@@ -965,6 +965,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 diagnostics.Add(ErrorCode.ERR_BadAsyncLacksBody, location);
             }
+            else if (bodySyntaxReferenceOpt == null && !IsExtern && !IsAbstract && !IsPartial && !IsExpressionBodied)
+            {
+                diagnostics.Add(ErrorCode.ERR_ConcreteMissingBody, location, this);
+            }
             else if (ContainingType.IsSealed && this.DeclaredAccessibility.HasProtected() && !this.IsOverride)
             {
                 diagnostics.Add(AccessCheck.GetProtectedMemberInSealedTypeError(ContainingType), location, this);

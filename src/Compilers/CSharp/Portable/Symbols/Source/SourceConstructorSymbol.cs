@@ -198,7 +198,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private void CheckModifiers(MethodKind methodKind, Location location, DiagnosticBag diagnostics)
         {
-            if (ContainingType.IsSealed && this.DeclaredAccessibility.HasProtected() && !this.IsOverride)
+            if (bodySyntaxReferenceOpt == null && !IsExtern)
+            {
+                diagnostics.Add(ErrorCode.ERR_ConcreteMissingBody, location, this);
+            }
+            else if (ContainingType.IsSealed && this.DeclaredAccessibility.HasProtected() && !this.IsOverride)
             {
                 diagnostics.Add(AccessCheck.GetProtectedMemberInSealedTypeError(ContainingType), location, this);
             }

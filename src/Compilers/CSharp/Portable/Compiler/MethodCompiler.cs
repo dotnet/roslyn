@@ -1541,25 +1541,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else
                 {
                     var property = sourceMethod.AssociatedSymbol as SourcePropertySymbol;
-                    if (!sourceMethod.IsExtern &&
-                        !sourceMethod.IsAbstract &&
-                        !sourceMethod.IsImplicitlyDeclared)
-                    {
-                        // avoid cascading on top of error ERR_AddRemoveMustHaveBody
-                        if (!(sourceMethod.AssociatedSymbol is SourceEventSymbol))
-                        {
-                            // avoid cascading on top of ERR_BadAsyncLacksBody
-                            if (!sourceMethod.IsAsync)
-                            {
-                                // avoid cascading on top of error ERR_AutoPropertyMustHaveXetAccessor
-                                if ((object)property == null || (!property.IsAutoProperty && (object)property.GetMethod != null && (object)property.GetMethod != null))
-                                {
-                                    diagnostics.Add(ErrorCode.ERR_ConcreteMissingBody, sourceMethod.Locations[0], sourceMethod);
-                                }
-                            }
-                        }
-                    }
-
                     if ((object)property != null && property.IsAutoProperty)
                     {
                         return MethodBodySynthesizer.ConstructAutoPropertyAccessorBody(sourceMethod);

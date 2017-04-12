@@ -113,40 +113,22 @@ class C6
 class C7
 {
     extern ~C7();
-}
-class C8
-{
-    ~C8();
 }";
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
                 // (4,13): error CS0106: The modifier 'public' is not valid for this item
-                //     public ~C1() { }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "C1").WithArguments("public").WithLocation(4, 13),
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "C1").WithArguments("public"),
                 // (9,14): error CS0106: The modifier 'virtual' is not valid for this item
-                //     virtual ~C2() { }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "C2").WithArguments("virtual").WithLocation(9, 14),
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "C2").WithArguments("virtual"),
                 // (14,15): error CS0106: The modifier 'override' is not valid for this item
-                //     override ~C3() { }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "C3").WithArguments("override").WithLocation(14, 15),
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "C3").WithArguments("override"),
                 // (19,15): error CS0106: The modifier 'abstract' is not valid for this item
-                //     abstract ~C4();
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "C4").WithArguments("abstract").WithLocation(19, 15),
-                // (19,15): error CS0501: 'C4.~C4()' must declare a body because it is not marked abstract, extern, or partial
-                //     abstract ~C4();
-                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "C4").WithArguments("C4.~C4()").WithLocation(19, 15),
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "C4").WithArguments("abstract"),
                 // (24,10): error CS0106: The modifier 'new' is not valid for this item
-                //     new ~C5() { }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "C5").WithArguments("new").WithLocation(24, 10),
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "C5").WithArguments("new"),
                 // (29,13): error CS0106: The modifier 'static' is not valid for this item
-                //     static ~C6() { }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "C6").WithArguments("static").WithLocation(29, 13),
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "C6").WithArguments("static"),
                 // (34,13): warning CS0626: Method, operator, or accessor 'C7.~C7()' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
-                //     extern ~C7();
-                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "C7").WithArguments("C7.~C7()").WithLocation(34, 13),
-                // (38,6): error CS0501: 'C8.~C8()' must declare a body because it is not marked abstract, extern, or partial
-                //     ~C8();
-                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "C8").WithArguments("C8.~C8()").WithLocation(38, 6)
-                );
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "C7").WithArguments("C7.~C7()"));
         }
 
         [WorkItem(528912, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528912")]

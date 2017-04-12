@@ -41,6 +41,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
+            if (!modifierErrors && bodySyntaxReferenceOpt == null && !IsExtern)
+            {
+                diagnostics.Add(ErrorCode.ERR_ConcreteMissingBody, location, this);
+            }
+
             Debug.Assert(syntax.ParameterList.Parameters.Count == 0);
 
             if (containingType.IsStatic)
