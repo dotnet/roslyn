@@ -42,6 +42,46 @@ class {|definition:C|}
             VerifyNone("void");
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public void WrittenReference()
+        {
+            var markup = @"
+class C
+{
+    void M()
+    {
+        int {|definition:x|};
+        {|writtenreference:x|} = 3;
+    }
+}";
+            Test.Utilities.MarkupTestFile.GetSpans(markup, out var text, out IDictionary<string, ImmutableArray<TextSpan>> spans);
+            VisualStudio.Editor.SetText(text);
+            Verify("x", spans);
+
+            // Verify tags disappear
+            VerifyNone("void");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public void Navigation()
+        {
+            var text = @"
+class C
+{
+   void M()
+    {
+        int x;
+        x = 3;
+    }
+}";
+            VisualStudio.Editor.SetText(text);
+            VisualStudio.Editor.PlaceCaret("x");
+            VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.ReferenceHighlighting);
+            VisualStudio.ExecuteCommand("Edit.NextHighlightedReference");
+            VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.ReferenceHighlighting);
+            VisualStudio.Editor.Verify.CurrentLineText("x$$ = 3;", assertCaretPosition: true, trimWhitespace: true);
+        }
+
         private void Verify(string marker, IDictionary<string, ImmutableArray<TextSpan>> spans)
         {
             VisualStudio.Editor.PlaceCaret(marker, charsOffset: -1);
@@ -50,9 +90,17 @@ class {|definition:C|}
                FeatureAttribute.DiagnosticService,
                FeatureAttribute.Classification,
                FeatureAttribute.ReferenceHighlighting));
-
-            AssertEx.SetEqual(spans["reference"], VisualStudio.Editor.GetTagSpans(ReferenceHighlightTag.TagId));
             AssertEx.SetEqual(spans["definition"], VisualStudio.Editor.GetTagSpans(DefinitionHighlightTag.TagId));
+
+            if (spans.ContainsKey("reference"))
+            {
+                AssertEx.SetEqual(spans["reference"], VisualStudio.Editor.GetTagSpans(ReferenceHighlightTag.TagId));
+            }
+
+            if (spans.ContainsKey("writtenreference"))
+            {
+                AssertEx.SetEqual(spans["writtenreference"], VisualStudio.Editor.GetTagSpans(WrittenReferenceHighlightTag.TagId));
+            }
         }
 
         private void VerifyNone(string marker)
