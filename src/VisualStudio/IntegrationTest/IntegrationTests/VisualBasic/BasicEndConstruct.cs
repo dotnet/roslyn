@@ -73,5 +73,23 @@ End Interface");
 Class C
 End Class");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)]
+        public void CaseInsensitveSubToFunction()
+        {
+            SetUpEditor(@"
+Class C
+    Public Sub$$ Foo()
+    End Sub
+End Class");
+
+            VisualStudio.Editor.SendKeys(new KeyPress(VirtualKey.Backspace, ShiftState.Ctrl));
+            VisualStudio.Editor.SendKeys("fu", VirtualKey.Tab);
+            VisualStudio.Editor.Verify.TextContains(@"
+Class C
+    Public Function Foo()
+    End Function
+End Class");
+        }
     }
 }
