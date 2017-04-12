@@ -596,11 +596,10 @@ public partial class C
                 CSharpCompilation comp = CreateCompilationWithMscorlib(Parse(source),
                     options: TestOptions.DebugDll.WithDeterministic(true), assemblyName: name);
 
-                Assert.False(comp.DeclarationDiagnostics.HasAnyErrors());
                 using (var output = new MemoryStream())
                 {
                     var emitResult = comp.Emit(output, options: emitOptions);
-                    Assert.Equal(!success, emitResult.Diagnostics.Any());
+                    Assert.Equal(!success, emitResult.Diagnostics.HasAnyErrors());
                     Assert.Equal(success, emitResult.Success);
                 }
             }
