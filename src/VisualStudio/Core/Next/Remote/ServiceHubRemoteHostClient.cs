@@ -74,6 +74,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
             // don't block UI thread while initialize workspace host
             var host = new WorkspaceHost(vsWorkspace, client);
+
+            // Initialize the remote side with whatever data we have currently for the workspace.
+            // As workspace changes happen, this host will get notified, and it can remote those
+            // changes appropriately over to the remote size.
             await host.InitializeAsync().ConfigureAwait(false);
 
             // RegisterWorkspaceHost is required to be called from UI thread so push the code
@@ -81,6 +85,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             await Task.Factory.SafeStartNew(() =>
             {
                 vsWorkspace.GetProjectTrackerAndInitializeIfNecessary(Shell.ServiceProvider.GlobalProvider).RegisterWorkspaceHost(host);
+
+                // There may have been notifications fired by the workspace between the time we 
+                // were created and now when we let it know about us.  Because of that, we need
+                // to do another initialization pass to make sure all the current workpsace
+                // state is pushed over to the remote side.
+                // 
+                // We can do this in a fire and forget manner.  We don't want to block the UI
+                // thread while we're pushing this data over.
+                Task.Run(() => host.InitializeAsync());
             }, CancellationToken.None, ForegroundThreadAffinitizedObject.CurrentForegroundThreadData.TaskScheduler).ConfigureAwait(false);
         }
 

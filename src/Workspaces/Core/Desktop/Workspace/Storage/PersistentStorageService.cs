@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Storage
         }
 
         protected abstract string GetDatabaseFilePath(string workingFolderPath);
-        protected abstract AbstractPersistentStorage OpenDatabase(Solution solution, string workingFolderPath);
+        protected abstract AbstractPersistentStorage OpenDatabase(Solution solution, string workingFolderPath, string databaseFilePath);
         protected abstract bool ShouldDeleteDatabase(Exception exception);
 
         public IPersistentStorage GetStorage(Solution solution)
@@ -216,9 +216,10 @@ namespace Microsoft.CodeAnalysis.Storage
             persistentStorage = null;
             AbstractPersistentStorage database = null;
 
+            var databaseFilePath = GetDatabaseFilePath(workingFolderPath);
             try
             {
-                database = OpenDatabase(solution, workingFolderPath);
+                database = OpenDatabase(solution, workingFolderPath, databaseFilePath);
                 database.Initialize(solution);
 
                 persistentStorage = database;
@@ -238,7 +239,7 @@ namespace Microsoft.CodeAnalysis.Storage
                     // this was not a normal exception that we expected during DB open.
                     // Report this so we can try to address whatever is causing this.
                     FatalError.ReportWithoutCrash(ex);
-                    IOUtilities.PerformIO(() => Directory.Delete(database.DatabaseDirectory, recursive: true));
+                    IOUtilities.PerformIO(() => Directory.Delete(Path.GetDirectoryName(databaseFilePath), recursive: true));
                 }
 
                 return false;
