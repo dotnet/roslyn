@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeFixes.Suppression;
 using Microsoft.CodeAnalysis.Text;
@@ -20,19 +19,24 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// <summary>
         /// Optional fix all context, which is non-null if the given <see cref="Provider"/> supports fix all occurrences code fix.
         /// </summary>
-        public FixAllCodeActionContext FixAllContext { get; }
+        public FixAllState FixAllState { get; }
+        public ImmutableArray<FixAllScope> SupportedScopes { get; }
+        public Diagnostic FirstDiagnostic { get; }
 
-        public CodeFixCollection(object provider, TextSpan span, IEnumerable<CodeFix> fixes, FixAllCodeActionContext fixAllContext = null) :
-            this(provider, span, fixes.ToImmutableArray(), fixAllContext)
+        public CodeFixCollection(
+            object provider,
+            TextSpan span,
+            ImmutableArray<CodeFix> fixes,
+            FixAllState fixAllState,
+            ImmutableArray<FixAllScope> supportedScopes,
+            Diagnostic firstDiagnostic)
         {
-        }
-
-        public CodeFixCollection(object provider, TextSpan span, ImmutableArray<CodeFix> fixes, FixAllCodeActionContext fixAllContext = null)
-        {
-            this.Provider = provider;
-            this.TextSpan = span;
-            this.Fixes = fixes;
-            this.FixAllContext = fixAllContext;
+            Provider = provider;
+            TextSpan = span;
+            Fixes = fixes.NullToEmpty();
+            FixAllState = fixAllState;
+            SupportedScopes = supportedScopes.NullToEmpty();
+            FirstDiagnostic = firstDiagnostic;
         }
     }
 }

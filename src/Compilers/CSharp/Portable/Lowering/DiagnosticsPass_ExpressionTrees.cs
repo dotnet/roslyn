@@ -112,22 +112,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        private static Symbol GetLocalOrParameterSymbol(BoundExpression expr)
-        {
-            if (expr != null)
-            {
-                switch (expr.Kind)
-                {
-                    case BoundKind.Local:
-                        return ((BoundLocal)expr).LocalSymbol;
-                    case BoundKind.Parameter:
-                        return ((BoundParameter)expr).ParameterSymbol;
-                }
-            }
-
-            return null;
-        }
-
         public override BoundNode VisitAssignmentOperator(BoundAssignmentOperator node)
         {
             CheckForAssignmentToSelf(node);
@@ -213,7 +197,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     Error(ErrorCode.ERR_ExpressionTreeContainsOptionalArgument, node);
                 }
-                else if (!argumentNamesOpt.IsDefault)
+                else if (!argumentNamesOpt.IsDefaultOrEmpty)
                 {
                     Error(ErrorCode.ERR_ExpressionTreeContainsNamedArgument, node);
                 }
@@ -224,6 +208,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else if (method.MethodKind == MethodKind.LocalFunction)
                 {
                     Error(ErrorCode.ERR_ExpressionTreeContainsLocalFunction, node);
+                }
+                else if (method.RefKind != RefKind.None)
+                {
+                    Error(ErrorCode.ERR_RefReturningCallInExpressionTree, node);
                 }
             }
         }
@@ -295,6 +283,25 @@ namespace Microsoft.CodeAnalysis.CSharp
             return base.VisitCall(node);
         }
 
+        /// <summary>
+        /// Called when a local represents an out variable declaration. Its syntax is of type DeclarationExpressionSyntax.
+        /// </summary>
+        private void CheckOutDeclaration(BoundLocal local)
+        {
+            if (_inExpressionLambda)
+            {
+                Error(ErrorCode.ERR_ExpressionTreeContainsOutVariable, local);
+            }
+        }
+
+        private void CheckDiscard(BoundDiscardExpression argument)
+        {
+            if (_inExpressionLambda)
+            {
+                Error(ErrorCode.ERR_ExpressionTreeContainsDiscard, argument);
+            }
+        }
+
         public override BoundNode VisitCollectionElementInitializer(BoundCollectionElementInitializer node)
         {
             if (_inExpressionLambda && node.AddMethod.IsStatic)
@@ -324,6 +331,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             return base.VisitIndexerAccess(node);
         }
 
+        public override BoundNode VisitPropertyAccess(BoundPropertyAccess node)
+        {
+            var property = node.PropertySymbol;
+            var method = property.GetMethod; // This is only checking for ref returns, so we don't fall back to the set method.
+            if ((object)method != null && _inExpressionLambda && method.RefKind != RefKind.None)
+            {
+                Error(ErrorCode.ERR_RefReturningCallInExpressionTree, node);
+            }
+            CheckReceiverIfField(node.ReceiverOpt);
+            return base.VisitPropertyAccess(node);
+        }
+
         public override BoundNode VisitLambda(BoundLambda node)
         {
             if (_inExpressionLambda)
@@ -340,6 +359,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                             else if (lambdaSyntax.Body.Kind() == SyntaxKind.Block)
                             {
                                 Error(ErrorCode.ERR_StatementLambdaToExpressionTree, node);
+                            }
+                            else if (lambdaSyntax.Body.Kind() == SyntaxKind.RefExpression)
+                            {
+                                Error(ErrorCode.ERR_BadRefReturnExpressionTree, node);
                             }
 
                             var lambda = node.ExpressionSymbol as MethodSymbol;
@@ -366,6 +389,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                             else if (lambdaSyntax.Body.Kind() == SyntaxKind.Block)
                             {
                                 Error(ErrorCode.ERR_StatementLambdaToExpressionTree, node);
+                            }
+                            else if (lambdaSyntax.Body.Kind() == SyntaxKind.RefExpression)
+                            {
+                                Error(ErrorCode.ERR_BadRefReturnExpressionTree, node);
                             }
                         }
                         break;
@@ -505,6 +532,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     break;
 
+                case ConversionKind.ExplicitTuple:
+                case ConversionKind.ExplicitTupleLiteral:
+                case ConversionKind.ImplicitTuple:
+                case ConversionKind.ImplicitTupleLiteral:
+                    if (_inExpressionLambda)
+                    {
+                        Error(ErrorCode.ERR_ExpressionTreeContainsTupleConversion, node);
+                    }
+                    break;
+
                 default:
                     break;
             }
@@ -622,6 +659,46 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return base.VisitDynamicObjectCreationExpression(node);
+        }
+
+        public override BoundNode VisitIsPatternExpression(BoundIsPatternExpression node)
+        {
+            if (_inExpressionLambda)
+            {
+                Error(ErrorCode.ERR_ExpressionTreeContainsIsMatch, node);
+            }
+
+            return base.VisitIsPatternExpression(node);
+        }
+
+        public override BoundNode VisitConvertedTupleLiteral(BoundConvertedTupleLiteral node)
+        {
+            if (_inExpressionLambda)
+            {
+                Error(ErrorCode.ERR_ExpressionTreeContainsTupleLiteral, node);
+            }
+
+            return base.VisitConvertedTupleLiteral(node);
+        }
+
+        public override BoundNode VisitTupleLiteral(BoundTupleLiteral node)
+        {
+            if (_inExpressionLambda)
+            {
+                Error(ErrorCode.ERR_ExpressionTreeContainsTupleLiteral, node);
+            }
+
+            return base.VisitTupleLiteral(node);
+        }
+
+        public override BoundNode VisitThrowExpression(BoundThrowExpression node)
+        {
+            if (_inExpressionLambda)
+            {
+                Error(ErrorCode.ERR_ExpressionTreeContainsThrowExpression, node);
+            }
+
+            return base.VisitThrowExpression(node);
         }
     }
 }

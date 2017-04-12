@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.SignatureHelp;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Utilities;
 
@@ -61,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
 
             // If args is `InvokeSignatureHelpCommandArgs` then sig help was explicitly invoked by the user and should
             // be shown whether or not the option is set.
-            if (!(args is InvokeSignatureHelpCommandArgs) && !args.SubjectBuffer.GetOption(SignatureHelpOptions.ShowSignatureHelp))
+            if (!(args is InvokeSignatureHelpCommandArgs) && !args.SubjectBuffer.GetFeatureOnOffOption(SignatureHelpOptions.ShowSignatureHelp))
             {
                 controller = null;
                 return false;
@@ -87,9 +88,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
             where TCommandArgs : CommandArgs
         {
             AssertIsForeground();
-
-            Controller controller;
-            if (!TryGetController(args, out controller))
+            if (!TryGetController(args, out var controller))
             {
                 commandHandler = null;
                 return false;
@@ -105,9 +104,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
             where TCommandArgs : CommandArgs
         {
             AssertIsForeground();
-
-            ICommandHandler<TCommandArgs> commandHandler;
-            return TryGetControllerCommandHandler(args, out commandHandler)
+            return TryGetControllerCommandHandler(args, out var commandHandler)
                 ? commandHandler.GetCommandState(args, nextHandler)
                 : nextHandler();
         }
@@ -118,9 +115,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
             where TCommandArgs : CommandArgs
         {
             AssertIsForeground();
-
-            ICommandHandler<TCommandArgs> commandHandler;
-            if (!TryGetControllerCommandHandler(args, out commandHandler))
+            if (!TryGetControllerCommandHandler(args, out var commandHandler))
             {
                 nextHandler();
             }
@@ -156,8 +151,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
 
         internal bool TryHandleEscapeKey(EscapeKeyCommandArgs commandArgs)
         {
-            Controller controller;
-            if (!TryGetController(commandArgs, out controller))
+            if (!TryGetController(commandArgs, out var controller))
             {
                 return false;
             }
@@ -167,8 +161,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
 
         internal bool TryHandleUpKey(UpKeyCommandArgs commandArgs)
         {
-            Controller controller;
-            if (!TryGetController(commandArgs, out controller))
+            if (!TryGetController(commandArgs, out var controller))
             {
                 return false;
             }
@@ -178,8 +171,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
 
         internal bool TryHandleDownKey(DownKeyCommandArgs commandArgs)
         {
-            Controller controller;
-            if (!TryGetController(commandArgs, out controller))
+            if (!TryGetController(commandArgs, out var controller))
             {
                 return false;
             }

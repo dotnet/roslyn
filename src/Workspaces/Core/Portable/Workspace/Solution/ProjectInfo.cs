@@ -2,11 +2,10 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Linq;
-using Microsoft.CodeAnalysis.Diagnostics;
-using Roslyn.Utilities;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -16,40 +15,54 @@ namespace Microsoft.CodeAnalysis
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
     public sealed class ProjectInfo
     {
+        internal ProjectAttributes Attributes { get; }
+
         /// <summary>
         /// The unique Id of the project.
         /// </summary>
-        public ProjectId Id { get; }
+        public ProjectId Id => Attributes.Id;
 
         /// <summary>
         /// The version of the project.
         /// </summary>
-        public VersionStamp Version { get; }
+        public VersionStamp Version => Attributes.Version;
 
         /// <summary>
         /// The name of the project. This may differ from the project's filename.
         /// </summary>
-        public string Name { get; }
+        public string Name => Attributes.Name;
 
         /// <summary>
         /// The name of the assembly that this project will create, without file extension.
         /// </summary>,
-        public string AssemblyName { get; }
+        public string AssemblyName => Attributes.AssemblyName;
 
         /// <summary>
         /// The language of the project.
         /// </summary>
-        public string Language { get; }
+        public string Language => Attributes.Language;
 
         /// <summary>
         /// The path to the project file or null if there is no project file.
         /// </summary>
-        public string FilePath { get; }
+        public string FilePath => Attributes.FilePath;
 
         /// <summary>
         /// The path to the output file (module or assembly).
         /// </summary>
-        public string OutputFilePath { get; }
+        public string OutputFilePath => Attributes.OutputFilePath;
+
+        /// <summary>
+        /// True if this is a submission project for interactive sessions.
+        /// </summary>
+        public bool IsSubmission => Attributes.IsSubmission;
+
+        /// <summary>
+        /// True if project information is complete. In some workspace hosts, it is possible
+        /// a project only has partial information. In such cases, a project might not have all
+        /// information on its files or references.
+        /// </summary>
+        internal bool HasAllInformation => Attributes.HasAllInformation;
 
         /// <summary>
         /// The initial compilation options for the project, or null if the default options should be used.
@@ -87,16 +100,36 @@ namespace Microsoft.CodeAnalysis
         public IReadOnlyList<DocumentInfo> AdditionalDocuments { get; }
 
         /// <summary>
-        /// True if this is a submission project for interactive sessions.
-        /// </summary>
-        public bool IsSubmission { get; }
-
-        /// <summary>
         /// Type of the host object.
         /// </summary>
         public Type HostObjectType { get; }
 
         private ProjectInfo(
+            ProjectAttributes attributes,
+            CompilationOptions compilationOptions,
+            ParseOptions parseOptions,
+            IEnumerable<DocumentInfo> documents,
+            IEnumerable<ProjectReference> projectReferences,
+            IEnumerable<MetadataReference> metadataReferences,
+            IEnumerable<AnalyzerReference> analyzerReferences,
+            IEnumerable<DocumentInfo> additionalDocuments,
+            Type hostObjectType)
+        {
+            Attributes = attributes;
+            CompilationOptions = compilationOptions;
+            ParseOptions = parseOptions;
+            Documents = documents.ToImmutableReadOnlyListOrEmpty();
+            ProjectReferences = projectReferences.ToImmutableReadOnlyListOrEmpty();
+            MetadataReferences = metadataReferences.ToImmutableReadOnlyListOrEmpty();
+            AnalyzerReferences = analyzerReferences.ToImmutableReadOnlyListOrEmpty();
+            AdditionalDocuments = additionalDocuments.ToImmutableReadOnlyListOrEmpty();
+            HostObjectType = hostObjectType;
+        }
+
+        /// <summary>
+        /// Create a new instance of a ProjectInfo.
+        /// </summary>
+        internal static ProjectInfo Create(
             ProjectId id,
             VersionStamp version,
             string name,
@@ -112,44 +145,28 @@ namespace Microsoft.CodeAnalysis
             IEnumerable<AnalyzerReference> analyzerReferences,
             IEnumerable<DocumentInfo> additionalDocuments,
             bool isSubmission,
-            Type hostObjectType)
+            Type hostObjectType,
+            bool hasAllInformation)
         {
-            if (id == null)
-            {
-                throw new ArgumentNullException(nameof(id));
-            }
-
-            if (name == null)
-            {
-                throw new ArgumentNullException(nameof(name));
-            }
-
-            if (assemblyName == null)
-            {
-                throw new ArgumentNullException(nameof(assemblyName));
-            }
-
-            if (language == null)
-            {
-                throw new ArgumentNullException(nameof(language));
-            }
-
-            this.Id = id;
-            this.Version = version;
-            this.Name = name;
-            this.AssemblyName = assemblyName;
-            this.Language = language;
-            this.FilePath = filePath;
-            this.OutputFilePath = outputFilePath;
-            this.CompilationOptions = compilationOptions;
-            this.ParseOptions = parseOptions;
-            this.Documents = documents.ToImmutableReadOnlyListOrEmpty();
-            this.ProjectReferences = projectReferences.ToImmutableReadOnlyListOrEmpty();
-            this.MetadataReferences = metadataReferences.ToImmutableReadOnlyListOrEmpty();
-            this.AnalyzerReferences = analyzerReferences.ToImmutableReadOnlyListOrEmpty();
-            this.AdditionalDocuments = additionalDocuments.ToImmutableReadOnlyListOrEmpty();
-            this.IsSubmission = isSubmission;
-            this.HostObjectType = hostObjectType;
+            return new ProjectInfo(
+                new ProjectAttributes(
+                    id,
+                    version,
+                    name,
+                    assemblyName,
+                    language,
+                    filePath,
+                    outputFilePath,
+                    isSubmission,
+                    hasAllInformation),
+                compilationOptions,
+                parseOptions,
+                documents,
+                projectReferences,
+                metadataReferences,
+                analyzerReferences,
+                additionalDocuments,
+                hostObjectType);
         }
 
         /// <summary>
@@ -173,33 +190,15 @@ namespace Microsoft.CodeAnalysis
             bool isSubmission = false,
             Type hostObjectType = null)
         {
-            return new ProjectInfo(
-                id,
-                version,
-                name,
-                assemblyName,
-                language,
-                filePath,
-                outputFilePath,
-                compilationOptions,
-                parseOptions,
-                documents,
-                projectReferences,
-                metadataReferences,
-                analyzerReferences,
-                additionalDocuments,
-                isSubmission,
-                hostObjectType);
+            return Create(
+                id, version, name, assemblyName, language,
+                filePath, outputFilePath, compilationOptions, parseOptions,
+                documents, projectReferences, metadataReferences, analyzerReferences, additionalDocuments,
+                isSubmission, hostObjectType, hasAllInformation: true);
         }
 
         private ProjectInfo With(
-            ProjectId id = null,
-            VersionStamp? version = default(VersionStamp?),
-            string name = null,
-            string assemblyName = null,
-            string language = null,
-            Optional<string> filePath = default(Optional<string>),
-            Optional<string> outputPath = default(Optional<string>),
+            ProjectAttributes attributes = null,
             CompilationOptions compilationOptions = null,
             ParseOptions parseOptions = null,
             IEnumerable<DocumentInfo> documents = null,
@@ -207,54 +206,33 @@ namespace Microsoft.CodeAnalysis
             IEnumerable<MetadataReference> metadataReferences = null,
             IEnumerable<AnalyzerReference> analyzerReferences = null,
             IEnumerable<DocumentInfo> additionalDocuments = null,
-            Optional<bool> isSubmission = default(Optional<bool>),
             Optional<Type> hostObjectType = default(Optional<Type>))
         {
-            var newId = id ?? this.Id;
-            var newVersion = version.HasValue ? version.Value : this.Version;
-            var newName = name ?? this.Name;
-            var newAssemblyName = assemblyName ?? this.AssemblyName;
-            var newLanguage = language ?? this.Language;
-            var newFilepath = filePath.HasValue ? filePath.Value : this.FilePath;
-            var newOutputPath = outputPath.HasValue ? outputPath.Value : this.OutputFilePath;
-            var newCompilationOptions = compilationOptions ?? this.CompilationOptions;
-            var newParseOptions = parseOptions ?? this.ParseOptions;
-            var newDocuments = documents ?? this.Documents;
-            var newProjectReferences = projectReferences ?? this.ProjectReferences;
-            var newMetadataReferences = metadataReferences ?? this.MetadataReferences;
-            var newAnalyzerReferences = analyzerReferences ?? this.AnalyzerReferences;
-            var newAdditionalDocuments = additionalDocuments ?? this.AdditionalDocuments;
-            var newIsSubmission = isSubmission.HasValue ? isSubmission.Value : this.IsSubmission;
-            var newHostObjectType = hostObjectType.HasValue ? hostObjectType.Value : this.HostObjectType;
+            var newAttributes = attributes ?? Attributes;
+            var newCompilationOptions = compilationOptions ?? CompilationOptions;
+            var newParseOptions = parseOptions ?? ParseOptions;
+            var newDocuments = documents ?? Documents;
+            var newProjectReferences = projectReferences ?? ProjectReferences;
+            var newMetadataReferences = metadataReferences ?? MetadataReferences;
+            var newAnalyzerReferences = analyzerReferences ?? AnalyzerReferences;
+            var newAdditionalDocuments = additionalDocuments ?? AdditionalDocuments;
+            var newHostObjectType = hostObjectType.HasValue ? hostObjectType.Value : HostObjectType;
 
-            if (newId == this.Id &&
-                newVersion == this.Version &&
-                newName == this.Name &&
-                newAssemblyName == this.AssemblyName &&
-                newLanguage == this.Language &&
-                newFilepath == this.FilePath &&
-                newOutputPath == this.OutputFilePath &&
-                newCompilationOptions == this.CompilationOptions &&
-                newParseOptions == this.ParseOptions &&
-                newDocuments == this.Documents &&
-                newProjectReferences == this.ProjectReferences &&
-                newMetadataReferences == this.MetadataReferences &&
-                newAnalyzerReferences == this.AnalyzerReferences &&
-                newAdditionalDocuments == this.AdditionalDocuments &&
-                newIsSubmission == this.IsSubmission &&
-                newHostObjectType == this.HostObjectType)
+            if (newAttributes == Attributes &&
+                newCompilationOptions == CompilationOptions &&
+                newParseOptions == ParseOptions &&
+                newDocuments == Documents &&
+                newProjectReferences == ProjectReferences &&
+                newMetadataReferences == MetadataReferences &&
+                newAnalyzerReferences == AnalyzerReferences &&
+                newAdditionalDocuments == AdditionalDocuments &&
+                newHostObjectType == HostObjectType)
             {
                 return this;
             }
 
             return new ProjectInfo(
-                    newId,
-                    newVersion,
-                    newName,
-                    newAssemblyName,
-                    newLanguage,
-                    newFilepath,
-                    newOutputPath,
+                    newAttributes,
                     newCompilationOptions,
                     newParseOptions,
                     newDocuments,
@@ -262,73 +240,246 @@ namespace Microsoft.CodeAnalysis
                     newMetadataReferences,
                     newAnalyzerReferences,
                     newAdditionalDocuments,
-                    newIsSubmission,
                     newHostObjectType);
         }
 
         public ProjectInfo WithDocuments(IEnumerable<DocumentInfo> documents)
         {
-            return this.With(documents: documents.ToImmutableReadOnlyListOrEmpty());
+            return With(documents: documents.ToImmutableReadOnlyListOrEmpty());
         }
 
         public ProjectInfo WithAdditionalDocuments(IEnumerable<DocumentInfo> additionalDocuments)
         {
-            return this.With(additionalDocuments: additionalDocuments.ToImmutableReadOnlyListOrEmpty());
+            return With(additionalDocuments: additionalDocuments.ToImmutableReadOnlyListOrEmpty());
         }
 
         public ProjectInfo WithVersion(VersionStamp version)
         {
-            return this.With(version: version);
+            return With(attributes: Attributes.With(version: version));
         }
 
         public ProjectInfo WithName(string name)
         {
-            return this.With(name: name);
+            return With(attributes: Attributes.With(name: name));
         }
 
         public ProjectInfo WithFilePath(string filePath)
         {
-            return this.With(filePath: filePath);
+            return With(attributes: Attributes.With(filePath: filePath));
         }
 
         public ProjectInfo WithAssemblyName(string assemblyName)
         {
-            return this.With(assemblyName: assemblyName);
+            return With(attributes: Attributes.With(assemblyName: assemblyName));
         }
 
         public ProjectInfo WithOutputFilePath(string outputFilePath)
         {
-            return this.With(outputPath: outputFilePath);
+            return With(attributes: Attributes.With(outputPath: outputFilePath));
         }
 
         public ProjectInfo WithCompilationOptions(CompilationOptions compilationOptions)
         {
-            return this.With(compilationOptions: compilationOptions);
+            return With(compilationOptions: compilationOptions);
         }
 
         public ProjectInfo WithParseOptions(ParseOptions parseOptions)
         {
-            return this.With(parseOptions: parseOptions);
+            return With(parseOptions: parseOptions);
         }
 
         public ProjectInfo WithProjectReferences(IEnumerable<ProjectReference> projectReferences)
         {
-            return this.With(projectReferences: projectReferences.ToImmutableReadOnlyListOrEmpty());
+            return With(projectReferences: projectReferences.ToImmutableReadOnlyListOrEmpty());
         }
 
         public ProjectInfo WithMetadataReferences(IEnumerable<MetadataReference> metadataReferences)
         {
-            return this.With(metadataReferences: metadataReferences.ToImmutableReadOnlyListOrEmpty());
+            return With(metadataReferences: metadataReferences.ToImmutableReadOnlyListOrEmpty());
         }
 
         public ProjectInfo WithAnalyzerReferences(IEnumerable<AnalyzerReference> analyzerReferences)
         {
-            return this.With(analyzerReferences: analyzerReferences.ToImmutableReadOnlyListOrEmpty());
+            return With(analyzerReferences: analyzerReferences.ToImmutableReadOnlyListOrEmpty());
+        }
+
+        internal ProjectInfo WithHasAllInformation(bool hasAllInformation)
+        {
+            return With(attributes: Attributes.With(hasAllInformation: hasAllInformation));
         }
 
         internal string GetDebuggerDisplay()
         {
             return nameof(ProjectInfo) + " " + Name + (!string.IsNullOrWhiteSpace(FilePath) ? " " + FilePath : "");
+        }
+
+        /// <summary>
+        /// type that contains information regarding this project itself but
+        /// no tree information such as document info
+        /// </summary>
+        internal class ProjectAttributes : IChecksummedObject, IObjectWritable
+        {
+            /// <summary>
+            /// The unique Id of the project.
+            /// </summary>
+            public ProjectId Id { get; }
+
+            /// <summary>
+            /// The version of the project.
+            /// </summary>
+            public VersionStamp Version { get; }
+
+            /// <summary>
+            /// The name of the project. This may differ from the project's filename.
+            /// </summary>
+            public string Name { get; }
+
+            /// <summary>
+            /// The name of the assembly that this project will create, without file extension.
+            /// </summary>,
+            public string AssemblyName { get; }
+
+            /// <summary>
+            /// The language of the project.
+            /// </summary>
+            public string Language { get; }
+
+            /// <summary>
+            /// The path to the project file or null if there is no project file.
+            /// </summary>
+            public string FilePath { get; }
+
+            /// <summary>
+            /// The path to the output file (module or assembly).
+            /// </summary>
+            public string OutputFilePath { get; }
+
+            /// <summary>
+            /// True if this is a submission project for interactive sessions.
+            /// </summary>
+            public bool IsSubmission { get; }
+
+            /// <summary>
+            /// True if project information is complete. In some workspace hosts, it is possible
+            /// a project only has partial information. In such cases, a project might not have all
+            /// information on its files or references.
+            /// </summary>
+            public bool HasAllInformation { get; }
+
+            public ProjectAttributes(
+                ProjectId id,
+                VersionStamp version,
+                string name,
+                string assemblyName,
+                string language,
+                string filePath,
+                string outputFilePath,
+                bool isSubmission,
+                bool hasAllInformation)
+            {
+                Id = id ?? throw new ArgumentNullException(nameof(id));
+                Name = name ?? throw new ArgumentNullException(nameof(name));
+                Language = language ?? throw new ArgumentNullException(nameof(language));
+                AssemblyName = assemblyName ?? throw new ArgumentNullException(nameof(assemblyName));
+
+                Version = version;
+                FilePath = filePath;
+                OutputFilePath = outputFilePath;
+                IsSubmission = isSubmission;
+                HasAllInformation = hasAllInformation;
+            }
+
+            public ProjectAttributes With(
+                VersionStamp? version = default(VersionStamp?),
+                string name = null,
+                string assemblyName = null,
+                string language = null,
+                Optional<string> filePath = default(Optional<string>),
+                Optional<string> outputPath = default(Optional<string>),
+                Optional<bool> isSubmission = default(Optional<bool>),
+                Optional<bool> hasAllInformation = default(Optional<bool>))
+            {
+                var newVersion = version.HasValue ? version.Value : Version;
+                var newName = name ?? Name;
+                var newAssemblyName = assemblyName ?? AssemblyName;
+                var newLanguage = language ?? Language;
+                var newFilepath = filePath.HasValue ? filePath.Value : FilePath;
+                var newOutputPath = outputPath.HasValue ? outputPath.Value : OutputFilePath;
+                var newIsSubmission = isSubmission.HasValue ? isSubmission.Value : IsSubmission;
+                var newHasAllInformation = hasAllInformation.HasValue ? hasAllInformation.Value : HasAllInformation;
+
+                if (newVersion == Version &&
+                    newName == Name &&
+                    newAssemblyName == AssemblyName &&
+                    newLanguage == Language &&
+                    newFilepath == FilePath &&
+                    newOutputPath == OutputFilePath &&
+                    newIsSubmission == IsSubmission &&
+                    newHasAllInformation == HasAllInformation)
+                {
+                    return this;
+                }
+
+                return new ProjectAttributes(
+                        Id,
+                        newVersion,
+                        newName,
+                        newAssemblyName,
+                        newLanguage,
+                        newFilepath,
+                        newOutputPath,
+                        newIsSubmission,
+                        newHasAllInformation);
+            }
+
+            public void WriteTo(ObjectWriter writer)
+            {
+                Id.WriteTo(writer);
+
+                // TODO: figure out a way to send version info over as well
+                // info.Version.WriteTo(writer);
+
+                writer.WriteString(Name);
+                writer.WriteString(AssemblyName);
+                writer.WriteString(Language);
+                writer.WriteString(FilePath);
+                writer.WriteString(OutputFilePath);
+                writer.WriteBoolean(IsSubmission);
+                writer.WriteBoolean(HasAllInformation);
+
+                // TODO: once CompilationOptions, ParseOptions, ProjectReference, MetadataReference, AnalyzerReference supports
+                //       serialization, we should include those here as well.
+            }
+
+            public static ProjectAttributes ReadFrom(ObjectReader reader)
+            {
+                var projectId = ProjectId.ReadFrom(reader);
+
+                // var version = VersionStamp.ReadFrom(reader);
+                var name = reader.ReadString();
+                var assemblyName = reader.ReadString();
+                var language = reader.ReadString();
+                var filePath = reader.ReadString();
+                var outputFilePath = reader.ReadString();
+                var isSubmission = reader.ReadBoolean();
+                var hasAllInformation = reader.ReadBoolean();
+
+                return new ProjectAttributes(projectId, VersionStamp.Create(), name, assemblyName, language, filePath, outputFilePath, isSubmission, hasAllInformation);
+            }
+
+            private Checksum _lazyChecksum;
+            Checksum IChecksummedObject.Checksum
+            {
+                get
+                {
+                    if (_lazyChecksum == null)
+                    {
+                        _lazyChecksum = Checksum.Create(nameof(ProjectAttributes), this);
+                    }
+
+                    return _lazyChecksum;
+                }
+            }
         }
     }
 }

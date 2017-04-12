@@ -4387,7 +4387,8 @@ End Class
         ' The native compiler reports constraint errors at
         ' the syntax location of invalid type argument.
         <WorkItem(529188, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529188")>
-        <Fact(Skip:="529188")>
+        <WorkItem(99630, "https://devdiv.visualstudio.com/defaultcollection/DevDiv/_workitems#_a=edit&id=99630")>
+        <Fact>
         Public Sub ConstraintErrorLocation()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
 <compilation>
@@ -4411,7 +4412,12 @@ Class C(Of U)
 End Class
     </file>
 </compilation>)
-            compilation.AssertTheseDiagnostics(<errors>
+            Dim expected As XElement
+
+            Const bug99630IsFixed = False
+
+            If bug99630IsFixed Then
+                expected = <errors>
 BC32105: Type argument 'U' does not satisfy the 'Structure' constraint for type parameter 'T'.
 Class B(Of U As I(Of U))
                      ~
@@ -4430,7 +4436,31 @@ BC32105: Type argument 'I(Of V As Structure)' does not satisfy the 'Structure' c
 BC32105: Type argument 'Object()' does not satisfy the 'Structure' constraint for type parameter 'T'.
     Function F() As C(Of A(Of Object())()).D
                               ~~~~~~~~
-     </errors>)
+                           </errors>
+            Else
+                expected = <errors>
+BC32105: Type argument 'U' does not satisfy the 'Structure' constraint for type parameter 'T'.
+Class B(Of U As I(Of U))
+                ~~~~~~~
+BC32105: Type argument 'A(Of U)' does not satisfy the 'Structure' constraint for type parameter 'T'.
+Class C(Of U)
+      ~
+BC32105: Type argument 'U' does not satisfy the 'Structure' constraint for type parameter 'T'.
+Class C(Of U)
+      ~
+BC32105: Type argument 'U' does not satisfy the 'Structure' constraint for type parameter 'T'.
+Class C(Of U)
+      ~
+BC32105: Type argument 'I(Of V As Structure)' does not satisfy the 'Structure' constraint for type parameter 'T'.
+    Sub M(Of V As Structure)(o As A(Of I(Of V)))
+                             ~
+BC32105: Type argument 'Object()' does not satisfy the 'Structure' constraint for type parameter 'T'.
+    Function F() As C(Of A(Of Object())()).D
+                    ~~~~~~~~~~~~~~~~~~~~~~~~
+                           </errors>
+            End If
+
+            compilation.AssertTheseDiagnostics(expected)
         End Sub
 
         <Fact()>
@@ -5058,7 +5088,8 @@ BC32083: Type argument 'B' must have a public parameterless instance constructor
         ''' same errors are reported from property signature.
         ''' </summary>
         <WorkItem(530423, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530423")>
-        <Fact(Skip:="530423")>
+        <WorkItem(101074, "https://devdiv.visualstudio.com/defaultcollection/DevDiv/_workitems#_a=edit&id=101074")>
+        <Fact>
         Public Sub PropertySignatureDuplicateErrors()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
 <compilation>
@@ -5096,7 +5127,13 @@ Class D
 End Class
    ]]></file>
 </compilation>)
-            compilation.AssertTheseDiagnostics(<errors><![CDATA[
+
+            Dim expected As XElement
+
+            Const bug101074IsFixed = False
+
+            If bug101074IsFixed Then
+                expected = <errors>
 BC32083: Type argument 'A' must have a public parameterless instance constructor to satisfy the 'New' constraint for type parameter 'T'.
     Property P1(o As I(Of A)) As Object
                           ~            
@@ -5109,7 +5146,34 @@ BC32083: Type argument 'C' must have a public parameterless instance constructor
 BC32083: Type argument 'C' must have a public parameterless instance constructor to satisfy the 'New' constraint for type parameter 'T'.
         Set(value As I(Of C))
                           ~  
-     ]]></errors>)
+                           </errors>
+            Else
+                expected = <errors>
+BC32083: Type argument 'A' must have a public parameterless instance constructor to satisfy the 'New' constraint for type parameter 'T'.
+    Property P1(o As I(Of A)) As Object
+                ~
+BC32083: Type argument 'A' must have a public parameterless instance constructor to satisfy the 'New' constraint for type parameter 'T'.
+    Property P1(o As I(Of A)) As Object
+                ~
+BC32083: Type argument 'A' must have a public parameterless instance constructor to satisfy the 'New' constraint for type parameter 'T'.
+    Property P1(o As I(Of A)) As Object
+                          ~
+BC32083: Type argument 'B' must have a public parameterless instance constructor to satisfy the 'New' constraint for type parameter 'T'.
+    Property P2 As I(Of B)
+                        ~
+BC32083: Type argument 'C' must have a public parameterless instance constructor to satisfy the 'New' constraint for type parameter 'T'.
+    Property P3 As I(Of C)
+                        ~
+BC32083: Type argument 'C' must have a public parameterless instance constructor to satisfy the 'New' constraint for type parameter 'T'.
+        Set(value As I(Of C))
+            ~~~~~
+BC32083: Type argument 'C' must have a public parameterless instance constructor to satisfy the 'New' constraint for type parameter 'T'.
+        Set(value As I(Of C))
+                          ~
+                           </errors>
+            End If
+
+            compilation.AssertTheseDiagnostics(expected)
         End Sub
 
         <WorkItem(546780, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546780")>

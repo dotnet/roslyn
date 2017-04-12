@@ -1,11 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Roslyn.Utilities;
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -24,6 +21,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly Queue<TElement> _data = new Queue<TElement>();
         private Queue<TaskCompletionSource<TElement>> _waiters;
         private bool _completed;
+        private bool _disallowEnqueue;
 
         private object SyncObject
         {
@@ -70,6 +68,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private bool EnqueueCore(TElement value)
         {
+            if (_disallowEnqueue)
+            {
+                throw new InvalidOperationException($"Cannot enqueue data after PromiseNotToEnqueue.");
+            }
+
             TaskCompletionSource<TElement> waiter;
             lock (SyncObject)
             {
@@ -140,6 +143,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
+        public void PromiseNotToEnqueue()
+        {
+            _disallowEnqueue = true;
+        }
+
         /// <summary>
         /// Same operation as <see cref="AsyncQueue{TElement}.Complete"/> except it will not
         /// throw if the queue is already completed.
@@ -160,15 +168,24 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     return false;
                 }
 
-                existingWaiters = _waiters;
                 _completed = true;
+
+                existingWaiters = _waiters;
                 _waiters = null;
             }
 
             Task.Run(() =>
             {
-                if (existingWaiters != null)
+                if (existingWaiters?.Count > 0)
                 {
+                    // cancel waiters.
+                    // NOTE: AsyncQueue has an invariant that 
+                    //       the queue can either have waiters or items, not both
+                    //       adding an item would "unwait" the waiters
+                    //       the fact that we _had_ waiters at the time we completed the queue
+                    //       guarantees that there is no items in the queue now or in the future, 
+                    //       so it is safe to cancel waiters with no loss of diagnostics
+                    Debug.Assert(this.Count == 0, "we should not be cancelling the waiters when we have items in the queue");
                     foreach (var tcs in existingWaiters)
                     {
                         tcs.SetCanceled();

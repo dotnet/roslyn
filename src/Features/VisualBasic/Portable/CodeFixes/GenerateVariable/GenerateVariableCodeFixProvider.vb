@@ -26,12 +26,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateVariable
             End Get
         End Property
 
-        Protected Overrides Function GetCodeActionsAsync(document As Document, node As SyntaxNode, cancellationToken As CancellationToken) As Task(Of IEnumerable(Of CodeAction))
+        Protected Overrides Function GetCodeActionsAsync(document As Document, node As SyntaxNode, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of CodeAction))
             Dim service = document.GetLanguageService(Of IGenerateVariableService)()
             Return service.GenerateVariableAsync(document, node, cancellationToken)
         End Function
 
-        Protected Overrides Function IsCandidate(node As SyntaxNode, diagnostic As Diagnostic) As Boolean
+        Protected Overrides Function IsCandidate(node As SyntaxNode, token As SyntaxToken, diagnostic As Diagnostic) As Boolean
             If TypeOf node Is QualifiedNameSyntax OrElse TypeOf node Is MemberAccessExpressionSyntax Then
                 Return True
             End If

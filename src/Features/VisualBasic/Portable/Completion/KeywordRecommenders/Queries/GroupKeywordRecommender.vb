@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Quer
 
         Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As IEnumerable(Of RecommendedKeyword)
             If context.IsQueryOperatorContext Then
-                Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("Group", VBFeaturesResources.GroupByQueryKeywordToolTip))
+                Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("Group", VBFeaturesResources.Groups_elements_that_have_a_common_key))
             End If
 
             Dim targetToken = context.TargetToken
@@ -23,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Quer
             ' Group Join ... Into |
             If targetToken.IsChildToken(Of GroupByClauseSyntax)(Function(g) g.IntoKeyword) OrElse
                targetToken.IsChildToken(Of GroupJoinClauseSyntax)(Function(gj) gj.IntoKeyword) Then
-                Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("Group", VBFeaturesResources.GroupRefQueryKeywordToolTip))
+                Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("Group", VBFeaturesResources.Use_Group_to_specify_that_a_group_named_Group_should_be_created))
             End If
 
             ' Group By ... Into ... = |
@@ -34,7 +34,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Quer
                   (variableNameEquals.Parent.IsParentKind(SyntaxKind.GroupByClause) OrElse
                    variableNameEquals.Parent.IsParentKind(SyntaxKind.GroupJoinClause)) Then
                     Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("Group",
-                                                                                             String.Format(VBFeaturesResources.GroupRefNameQueryKeywordToolTip,
+                                                                                             String.Format(VBFeaturesResources.Use_Group_to_specify_that_a_group_named_0_should_be_created,
                                                                                                                     variableNameEquals.Identifier.Identifier.ValueText)))
                 End If
             End If
@@ -43,7 +43,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Quer
             ' Group Join ... Into ... , |
             If targetToken.IsChildSeparatorToken(Of GroupByClauseSyntax, AggregationRangeVariableSyntax)(Function(g) g.AggregationVariables) OrElse
                targetToken.IsChildSeparatorToken(Of GroupByClauseSyntax, AggregationRangeVariableSyntax)(Function(g) g.AggregationVariables) Then
-                Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("Group", VBFeaturesResources.GroupByQueryKeywordToolTip))
+                Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("Group", VBFeaturesResources.Groups_elements_that_have_a_common_key))
             End If
 
             Return SpecializedCollections.EmptyEnumerable(Of RecommendedKeyword)()

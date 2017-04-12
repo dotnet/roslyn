@@ -45,6 +45,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return ObjectCreationExpression.GetHashCode();
             }
 
+            internal override SyntaxNode ScopeDesignatorOpt
+            {
+                get
+                {
+                    return null;
+                }
+            }
+
             public override Symbol ContainingSymbol
             {
                 get

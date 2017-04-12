@@ -176,7 +176,7 @@ using J = I;
             CreateSubmission(source).GetDiagnostics().Verify(expectedDiagnostics);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/5927")]
+        [Fact]
         public void AliasHiding()
         {
             var sub1 = CreateSubmission("using A = System.Int32; typeof(A)");

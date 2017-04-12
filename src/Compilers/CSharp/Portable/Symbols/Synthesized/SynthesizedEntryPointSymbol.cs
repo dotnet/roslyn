@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var taskType = compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task);
 #if DEBUG
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                Debug.Assert(taskType.IsErrorType() || initializerMethod.ReturnType.TypeSymbol.IsDerivedFrom(taskType, ignoreDynamic: true, useSiteDiagnostics: ref useSiteDiagnostics));
+                Debug.Assert(taskType.IsErrorType() || initializerMethod.ReturnType.TypeSymbol.IsDerivedFrom(taskType, TypeCompareKind.IgnoreDynamicAndTupleNames, useSiteDiagnostics: ref useSiteDiagnostics));
 #endif
                 ReportUseSiteDiagnostics(taskType, diagnostics);
                 var getAwaiterMethod = taskType.IsErrorType() ?
@@ -123,9 +123,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal override RefKind RefKind
+        {
+            get { return RefKind.None; }
+        }
+
         public override TypeSymbolWithAnnotations ReturnType
         {
             get { return _returnType; }
+        }
+
+        public override ImmutableArray<CustomModifier> RefCustomModifiers
+        {
+            get { return ImmutableArray<CustomModifier>.Empty; }
         }
 
         public override ImmutableArray<TypeSymbolWithAnnotations> TypeArguments
@@ -367,7 +377,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 return new BoundBlock(syntax,
                     ImmutableArray.Create<LocalSymbol>(scriptLocal.LocalSymbol),
-                    ImmutableArray<LocalFunctionSymbol>.Empty,
                     ImmutableArray.Create<BoundStatement>(
                         // var script = new Script();
                         new BoundExpressionStatement(
@@ -399,6 +408,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         // return;
                         new BoundReturnStatement(
                             syntax,
+                            RefKind.None,
                             null)
                         { WasCompilerGenerated = true }))
                 { WasCompilerGenerated = true };
@@ -414,7 +424,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 Debug.Assert(containingType.IsSubmissionClass);
                 Debug.Assert(returnType.SpecialType != SpecialType.System_Void);
-                _parameters = ImmutableArray.Create<ParameterSymbol>(new SynthesizedParameterSymbol(this, submissionArrayType, 0, RefKind.None, "submissionArray"));
+                _parameters = ImmutableArray.Create<ParameterSymbol>(SynthesizedParameterSymbol.Create(this, TypeSymbolWithAnnotations.Create(submissionArrayType), 0, RefKind.None, "submissionArray"));
             }
 
             public override string Name
@@ -480,12 +490,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Debug.Assert(initializeResult.Type == _returnType.TypeSymbol);
                 var returnStatement = new BoundReturnStatement(
                     syntax,
+                    RefKind.None,
                     initializeResult)
                 { WasCompilerGenerated = true };
 
                 return new BoundBlock(syntax,
                     ImmutableArray.Create<LocalSymbol>(submissionLocal.LocalSymbol),
-                    ImmutableArray<LocalFunctionSymbol>.Empty,
                     ImmutableArray.Create<BoundStatement>(submissionAssignment, returnStatement))
                 { WasCompilerGenerated = true };
             }

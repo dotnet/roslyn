@@ -81,14 +81,14 @@ namespace Microsoft.CodeAnalysis
         }
 
         internal AssemblyMetadata(ImmutableArray<ModuleMetadata> modules)
-            : base(isImageOwner: true, id: new MetadataId())
+            : base(isImageOwner: true, id: MetadataId.CreateNewId())
         {
             Debug.Assert(!modules.IsDefaultOrEmpty);
             _initialModules = modules;
         }
 
         internal AssemblyMetadata(ModuleMetadata manifestModule, Func<string, ModuleMetadata> moduleFactory)
-            : base(isImageOwner: true, id: new MetadataId())
+            : base(isImageOwner: true, id: MetadataId.CreateNewId())
         {
             Debug.Assert(manifestModule != null);
             Debug.Assert(moduleFactory != null);
@@ -190,12 +190,7 @@ namespace Microsoft.CodeAnalysis
         /// <exception cref="ArgumentException"><paramref name="modules"/> is empty or contains a module that doesn't own its image (was created via <see cref="Metadata.Copy"/>).</exception>
         public static AssemblyMetadata Create(ImmutableArray<ModuleMetadata> modules)
         {
-            if (modules.IsDefault)
-            {
-                throw new ArgumentException(nameof(modules));
-            }
-
-            if (modules.Length == 0)
+            if (modules.IsDefaultOrEmpty)
             {
                 throw new ArgumentException(CodeAnalysisResources.AssemblyMustHaveAtLeastOneModule, nameof(modules));
             }

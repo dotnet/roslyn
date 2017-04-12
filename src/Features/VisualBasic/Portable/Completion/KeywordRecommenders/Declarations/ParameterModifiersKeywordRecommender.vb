@@ -42,15 +42,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Decl
 
             ' Compute a simple list of the "standard" recommendations assuming nothing special is going on
             Dim defaultRecommendations As New List(Of RecommendedKeyword)
-            defaultRecommendations.Add(New RecommendedKeyword("ByVal", VBFeaturesResources.ByValKeywordToolTip))
+            defaultRecommendations.Add(New RecommendedKeyword("ByVal", VBFeaturesResources.Specifies_that_an_argument_is_passed_in_such_a_way_that_the_called_procedure_or_property_cannot_change_the_underlying_value_of_the_argument_in_the_calling_code))
 
             If byRefAllowed Then
-                defaultRecommendations.Add(New RecommendedKeyword("ByRef", VBFeaturesResources.ByRefKeywordToolTip))
+                defaultRecommendations.Add(New RecommendedKeyword("ByRef", VBFeaturesResources.Specifies_that_an_argument_is_passed_in_such_a_way_that_the_called_procedure_can_change_the_underlying_value_of_the_argument_in_the_calling_code))
             End If
 
             If optionalAndParamArrayAllowed Then
-                defaultRecommendations.Add(New RecommendedKeyword("Optional", VBFeaturesResources.OptionalKeywordToolTip))
-                defaultRecommendations.Add(New RecommendedKeyword("ParamArray", VBFeaturesResources.ParamArrayKeywordToolTip))
+                defaultRecommendations.Add(New RecommendedKeyword("Optional", VBFeaturesResources.Specifies_that_a_procedure_argument_can_be_omitted_when_the_procedure_is_called))
+                defaultRecommendations.Add(New RecommendedKeyword("ParamArray", VBFeaturesResources.Specifies_that_a_procedure_parameter_takes_an_optional_array_of_elements_of_the_specified_type))
             End If
 
             If methodDeclaration.ParameterList.OpenParenToken = targetToken Then

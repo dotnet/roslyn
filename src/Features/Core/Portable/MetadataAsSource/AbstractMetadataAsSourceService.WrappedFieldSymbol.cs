@@ -17,77 +17,25 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                 _symbol = fieldSymbol;
             }
 
-            public new IFieldSymbol OriginalDefinition
-            {
-                get
-                {
-                    return _symbol.OriginalDefinition;
-                }
-            }
+            public new IFieldSymbol OriginalDefinition => _symbol.OriginalDefinition;
 
-            public ISymbol AssociatedSymbol
-            {
-                get
-                {
-                    return _symbol.AssociatedSymbol;
-                }
-            }
+            public IFieldSymbol CorrespondingTupleField => null;
 
-            public object ConstantValue
-            {
-                get
-                {
-                    return _symbol.ConstantValue;
-                }
-            }
+            public ISymbol AssociatedSymbol => _symbol.AssociatedSymbol;
 
-            public ImmutableArray<CustomModifier> CustomModifiers
-            {
-                get
-                {
-                    return _symbol.CustomModifiers;
-                }
-            }
+            public object ConstantValue => _symbol.ConstantValue;
 
-            public bool HasConstantValue
-            {
-                get
-                {
-                    return _symbol.HasConstantValue;
-                }
-            }
+            public ImmutableArray<CustomModifier> CustomModifiers => _symbol.CustomModifiers;
 
-            public bool IsConst
-            {
-                get
-                {
-                    return _symbol.IsConst;
-                }
-            }
+            public bool HasConstantValue => _symbol.HasConstantValue;
 
-            public bool IsReadOnly
-            {
-                get
-                {
-                    return _symbol.IsReadOnly;
-                }
-            }
+            public bool IsConst => _symbol.IsConst;
 
-            public bool IsVolatile
-            {
-                get
-                {
-                    return _symbol.IsVolatile;
-                }
-            }
+            public bool IsReadOnly => _symbol.IsReadOnly;
 
-            public ITypeSymbol Type
-            {
-                get
-                {
-                    return _symbol.Type;
-                }
-            }
+            public bool IsVolatile => _symbol.IsVolatile;
+
+            public ITypeSymbol Type => _symbol.Type;
         }
     }
 }

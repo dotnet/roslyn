@@ -18,6 +18,7 @@ using Roslyn.Test.Utilities;
 
 
 using Xunit;
+using Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -90,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var iref = wns1.GetMember<PENamedTypeSymbol>("IUriRuntimeClass");
             var func = iref.GetMember<PEMethodSymbol>("CombineUri");
             var ret = func.ReturnType;
-            Assert.Equal(func.ReturnType.ToTestDisplayString(), "System.Uri");
+            Assert.Equal(func.ReturnType.TypeSymbol.ToTestDisplayString(), "System.Uri");
         }
 
         /// <summary>
@@ -201,7 +202,7 @@ public class C
         Console.WriteLine(result);
     }
 }";
-            var verifier = CompileAndVerifyOnWin8Only(source,
+            var verifier = this.CompileAndVerifyOnWin8Only(source,
                 expectedOutput: "10\r\n0");
             verifier.VerifyDiagnostics();
         }

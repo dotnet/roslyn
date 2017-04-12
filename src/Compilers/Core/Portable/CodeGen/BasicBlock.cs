@@ -1,11 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
+using Microsoft.CodeAnalysis.Debugging;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeGen
@@ -205,7 +205,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             public void SetBranchCode(ILOpCode newBranchCode)
             {
                 Debug.Assert(this.BranchCode.IsConditionalBranch() == newBranchCode.IsConditionalBranch());
-                Debug.Assert(newBranchCode.IsBranchToLabel() == (_branchLabel != null));
+                Debug.Assert(newBranchCode.IsBranch() == (_branchLabel != null));
 
                 this.BranchCode = newBranchCode;
             }
@@ -249,7 +249,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             /// <summary>
             /// Instructions that are not branches.
             /// </summary>
-            public Cci.BlobBuilder RegularInstructions => _lazyRegularInstructions;
+            public BlobBuilder RegularInstructions => _lazyRegularInstructions;
 
             /// <summary>
             /// The block contains only the final branch or nothing at all
@@ -309,7 +309,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 }
 
                 var curBranchCode = this.BranchCode;
-                if (curBranchCode.BranchOperandSize() == 1)
+                if (curBranchCode.GetBranchOperandSize() == 1)
                 {
                     return; //already short;
                 }
@@ -337,7 +337,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 if (unchecked((sbyte)offset == offset))
                 {
                     //it fits!
-                    this.SetBranchCode(curBranchCode.GetShortOpcode());
+                    this.SetBranchCode(curBranchCode.GetShortBranch());
                     delta += reduction;
                 }
             }
@@ -406,7 +406,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 {
                     if (next.EnclosingHandler == this.EnclosingHandler)
                     {
-                        var diff = this.BranchCode.Size() + this.BranchCode.BranchOperandSize();
+                        var diff = this.BranchCode.Size() + this.BranchCode.GetBranchOperandSize();
                         delta -= diff;
                         this.SetBranch(null, ILOpCode.Nop);
 
@@ -467,7 +467,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
                         if (next.BranchCode == ILOpCode.Br_s)
                         {
-                            revBrOp = revBrOp.GetShortOpcode();
+                            revBrOp = revBrOp.GetShortBranch();
                         }
 
                         // our next block is now where we used to branch
@@ -496,7 +496,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                         // becomes a nop block
                         this.SetBranch(null, ILOpCode.Nop);
 
-                        delta -= (curBranchCode.Size() + curBranchCode.BranchOperandSize());
+                        delta -= (curBranchCode.Size() + curBranchCode.GetBranchOperandSize());
                         return true;
                     }
 
@@ -506,7 +506,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                         this.SetBranch(null, ILOpCode.Ret);
 
                         // curBranchCode.Size() + curBranchCode.BranchOperandSize() - Ret.Size()
-                        delta -= (curBranchCode.Size() + curBranchCode.BranchOperandSize() - 1);
+                        delta -= (curBranchCode.Size() + curBranchCode.GetBranchOperandSize() - 1);
                         return true;
                     }
                 }
@@ -529,7 +529,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                         this.Writer.WriteByte((byte)ILOpCode.Pop);
 
                         // curBranchCode.Size() + curBranchCode.BranchOperandSize() - ILOpCode.Pop.Size()
-                        delta -= (curBranchCode.Size() + curBranchCode.BranchOperandSize() - 1);
+                        delta -= (curBranchCode.Size() + curBranchCode.GetBranchOperandSize() - 1);
 
                         if (curBranchCode.IsRelationalBranch())
                         {
@@ -627,7 +627,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
                         default:
                             Debug.Assert(BranchCode.Size() == 1);
-                            branchSize = 1 + BranchCode.BranchOperandSize();
+                            branchSize = 1 + BranchCode.GetBranchOperandSize();
                             break;
                     }
 

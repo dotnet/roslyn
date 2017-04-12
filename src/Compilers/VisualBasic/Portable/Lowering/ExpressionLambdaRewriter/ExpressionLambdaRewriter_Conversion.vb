@@ -20,8 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return Me.VisitInternal(node.Operand)
             End If
 
-            Debug.Assert(node.RelaxationLambdaOpt Is Nothing)
-            Debug.Assert(node.RelaxationReceiverPlaceholderOpt Is Nothing)
+            Debug.Assert(node.ExtendedInfoOpt Is Nothing)
             Return ConvertExpression(node.Operand, node.ConversionKind, node.Operand.Type, node.Type, node.Checked, node.ExplicitCastInCode, ConversionSemantics.[Default])
         End Function
 
@@ -389,7 +388,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' If there's an outer conversion, create that.
             Dim outerConversion As BoundConversion = node.OutConversionOpt
             If outerConversion IsNot Nothing Then
-                Debug.Assert(outerConversion.Type.IsSameTypeIgnoringCustomModifiers(resultType))
+                Debug.Assert(outerConversion.Type.IsSameTypeIgnoringAll(resultType))
                 Return CreateBuiltInConversion(methodCallType, resultType, userDefinedConversion,
                                                outerConversion.Checked, outerConversion.ExplicitCastInCode, ConversionSemantics.[Default])
             Else

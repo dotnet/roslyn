@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -117,7 +117,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
             }
             else
             {
-                var projectIdsForHierarchy = workspace.ProjectTracker.Projects
+                var projectIdsForHierarchy = (workspace.DeferredState?.ProjectTracker.ImmutableProjects ?? ImmutableArray<AbstractProject>.Empty)
                     .Where(p => p.Language == LanguageNames.CSharp || p.Language == LanguageNames.VisualBasic)
                     .Where(p => p.Hierarchy == projectHierarchyOpt)
                     .Select(p => workspace.CurrentSolution.GetProject(p.Id).Id)
@@ -128,7 +128,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
 
         private async Task<ImmutableArray<DiagnosticData>> GetAllBuildDiagnosticsAsync(Func<Project, bool> shouldFixInProject, CancellationToken cancellationToken)
         {
-            var builder = ImmutableArray.CreateBuilder<DiagnosticData>();
+            var builder = ArrayBuilder<DiagnosticData>.GetInstance();
+
             var buildDiagnostics = _buildErrorDiagnosticService.GetBuildErrors().Where(d => d.ProjectId != null && d.Severity != DiagnosticSeverity.Hidden);
             var solution = _workspace.CurrentSolution;
             foreach (var diagnosticsByProject in buildDiagnostics.GroupBy(d => d.ProjectId))
@@ -171,24 +172,26 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
                 }
             }
 
-            return builder.ToImmutable();
+            return builder.ToImmutableAndFree();
         }
 
         private static string GetFixTitle(bool isAddSuppression)
         {
-            return isAddSuppression ? ServicesVSResources.SuppressMultipleOccurrences : ServicesVSResources.RemoveSuppressMultipleOccurrences;
+            return isAddSuppression ? ServicesVSResources.Suppress_diagnostics : ServicesVSResources.Remove_suppressions;
         }
 
         private static string GetWaitDialogMessage(bool isAddSuppression)
         {
-            return isAddSuppression ? ServicesVSResources.ComputingSuppressionFix : ServicesVSResources.ComputingRemoveSuppressionFix;
+            return isAddSuppression ? ServicesVSResources.Computing_suppressions_fix : ServicesVSResources.Computing_remove_suppressions_fix;
         }
 
         private IEnumerable<DiagnosticData> GetDiagnosticsToFix(Func<Project, bool> shouldFixInProject, bool selectedEntriesOnly, bool isAddSuppression)
         {
             var diagnosticsToFix = ImmutableHashSet<DiagnosticData>.Empty;
-            Action<CancellationToken> computeDiagnosticsToFix = cancellationToken =>
+            Action<IWaitContext> computeDiagnosticsToFix = context =>
             {
+                var cancellationToken = context.CancellationToken;
+
                 // If we are fixing selected diagnostics in error list, then get the diagnostics from error list entry snapshots.
                 // Otherwise, get all diagnostics from the diagnostic service.
                 var diagnosticsToFixTask = selectedEntriesOnly ?
@@ -241,8 +244,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
             var newSolution = _workspace.CurrentSolution;
             HashSet<string> languages = null;
 
-            Action<CancellationToken> computeDiagnosticsAndFix = cancellationToken =>
+            Action<IWaitContext> computeDiagnosticsAndFix = context =>
             {
+                var cancellationToken = context.CancellationToken;
                 cancellationToken.ThrowIfCancellationRequested();
                 documentDiagnosticsToFixMap = GetDocumentDiagnosticsToFixAsync(diagnosticsToFix, shouldFixInProject, filterStaleDiagnostics: filterStaleDiagnostics, cancellationToken: cancellationToken)
                     .WaitAndGetResult(cancellationToken);
@@ -267,8 +271,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
                 // Equivalence key determines what fix will be applied.
                 // Make sure we don't include any specific diagnostic ID, as we want all of the given diagnostics (which can have varied ID) to be fixed.
                 var equivalenceKey = isAddSuppression ?
-                    (isSuppressionInSource ? FeaturesResources.SuppressWithPragma : FeaturesResources.SuppressWithGlobalSuppressMessage) :
-                    FeaturesResources.RemoveSuppressionEquivalenceKeyPrefix;
+                    (isSuppressionInSource ? FeaturesResources.in_Source : FeaturesResources.in_Suppression_File) :
+                    FeaturesResources.Remove_Suppression;
 
                 // We have different suppression fixers for every language.
                 // So we need to group diagnostics by the containing project language and apply fixes separately.
@@ -361,16 +365,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
                 }
             }
 
-            waitDialogMessage = isAddSuppression ? ServicesVSResources.ApplyingSuppressionFix : ServicesVSResources.ApplyingRemoveSuppressionFix;
-            Action<CancellationToken> applyFix = cancellationToken =>
+            waitDialogMessage = isAddSuppression ? ServicesVSResources.Applying_suppressions_fix : ServicesVSResources.Applying_remove_suppressions_fix;
+            Action<IWaitContext> applyFix = context =>
             {
-                var operations = SpecializedCollections.SingletonEnumerable<CodeActionOperation>(new ApplyChangesOperation(newSolution));
-                _editHandlerService.Apply(
+                var operations = ImmutableArray.Create<CodeActionOperation>(new ApplyChangesOperation(newSolution));
+                var cancellationToken = context.CancellationToken;
+                _editHandlerService.ApplyAsync(
                     _workspace,
                     fromDocument: null,
                     operations: operations,
                     title: title,
-                    cancellationToken: cancellationToken);
+                    progressTracker: context.ProgressTracker,
+                    cancellationToken: cancellationToken).Wait(cancellationToken);
             };
 
             result = InvokeWithWaitDialog(applyFix, title, waitDialogMessage);
@@ -415,18 +421,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
             }
         }
 
-        private WaitIndicatorResult InvokeWithWaitDialog(Action<CancellationToken> action, string waitDialogTitle, string waitDialogMessage)
+        private WaitIndicatorResult InvokeWithWaitDialog(
+            Action<IWaitContext> action, string waitDialogTitle, string waitDialogMessage)
         {
             var cancelled = false;
             var result = _waitIndicator.Wait(
                 waitDialogTitle,
                 waitDialogMessage,
                 allowCancel: true,
+                showProgress: true,
                 action: waitContext =>
                 {
                     try
                     {
-                        action(waitContext.CancellationToken);
+                        action(waitContext);
                     }
                     catch (OperationCanceledException)
                     {
@@ -492,8 +500,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
             var builder = ImmutableDictionary.CreateBuilder<DocumentId, List<DiagnosticData>>();
             foreach (var diagnosticData in diagnosticsToFix.Where(isDocumentDiagnostic))
             {
-                List<DiagnosticData> diagnosticsPerDocument;
-                if (!builder.TryGetValue(diagnosticData.DocumentId, out diagnosticsPerDocument))
+                if (!builder.TryGetValue(diagnosticData.DocumentId, out var diagnosticsPerDocument))
                 {
                     diagnosticsPerDocument = new List<DiagnosticData>();
                     builder[diagnosticData.DocumentId] = diagnosticsPerDocument;
@@ -542,8 +549,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
                     IEnumerable<DiagnosticData> documentDiagnosticsToFix;
                     if (filterStaleDiagnostics)
                     {
-                        ImmutableHashSet<DiagnosticData> latestDocumentDiagnostics;
-                        if (!latestDocumentDiagnosticsMapOpt.TryGetValue(document.Id, out latestDocumentDiagnostics))
+                        if (!latestDocumentDiagnosticsMapOpt.TryGetValue(document.Id, out var latestDocumentDiagnostics))
                         {
                             // Ignore stale diagnostics in error list.
                             latestDocumentDiagnostics = ImmutableHashSet<DiagnosticData>.Empty;
@@ -560,7 +566,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
                     if (documentDiagnosticsToFix.Any())
                     {
                         var diagnostics = await documentDiagnosticsToFix.ToDiagnosticsAsync(project, cancellationToken).ConfigureAwait(false);
-                        finalBuilder.Add(document, diagnostics.ToImmutableArray());
+                        finalBuilder.Add(document, diagnostics);
                     }
                 }
             }
@@ -574,8 +580,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
             var builder = ImmutableDictionary.CreateBuilder<ProjectId, List<DiagnosticData>>();
             foreach (var diagnosticData in diagnosticsToFix.Where(isProjectDiagnostic))
             {
-                List<DiagnosticData> diagnosticsPerProject;
-                if (!builder.TryGetValue(diagnosticData.ProjectId, out diagnosticsPerProject))
+                if (!builder.TryGetValue(diagnosticData.ProjectId, out var diagnosticsPerProject))
                 {
                     diagnosticsPerProject = new List<DiagnosticData>();
                     builder[diagnosticData.ProjectId] = diagnosticsPerProject;
@@ -622,7 +627,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
                 if (projectDiagnosticsToFix.Any())
                 {
                     var projectDiagnostics = await projectDiagnosticsToFix.ToDiagnosticsAsync(project, cancellationToken).ConfigureAwait(false);
-                    finalBuilder.Add(project, projectDiagnostics.ToImmutableArray());
+                    finalBuilder.Add(project, projectDiagnostics);
                 }
             }
 

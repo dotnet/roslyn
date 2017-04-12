@@ -1813,7 +1813,7 @@ End Class"
     End Sub
 End Class"
             Dim xmlReferences = GetAllXmlReferences()
-            Dim moduleOptions = New VisualBasicCompilationOptions(OutputKind.NetModule, optimizationLevel:=OptimizationLevel.Debug).WithExtendedCustomDebugInformation(True)
+            Dim moduleOptions = New VisualBasicCompilationOptions(OutputKind.NetModule, optimizationLevel:=OptimizationLevel.Debug)
 
             Dim tree1 = VisualBasicSyntaxTree.ParseText(String.Format(sourceTemplate, 1))
             Dim tree2 = VisualBasicSyntaxTree.ParseText(String.Format(sourceTemplate, 2))
@@ -3880,7 +3880,7 @@ End Class
         End Sub
 
         <WorkItem(1450, "https://github.com/dotnet/roslyn/issues/1450")>
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1450")>
+        <Fact>
         Public Sub WithExpression()
             Const source =
 "Structure S
@@ -3921,9 +3921,17 @@ End Sub)",
                         testData)
 
                     Assert.Empty(missingAssemblyIdentities)
-                    testData.GetMethodData("<>x._Closure$__._Lambda$__0-1").VerifyIL(
+                    testData.GetMethodData("<>x._Closure$__._Lambda$__0-0").VerifyIL(
 "{
-...
+  // Code size       22 (0x16)
+  .maxstack  1
+  .locals init (S V_0) //o
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    ""S""
+  IL_0008:  ldloca.s   V_0
+  IL_000a:  ldflda     ""S.F As T""
+  IL_000f:  initobj    ""T""
+  IL_0015:  ret
 }")
                 End Sub)
         End Sub

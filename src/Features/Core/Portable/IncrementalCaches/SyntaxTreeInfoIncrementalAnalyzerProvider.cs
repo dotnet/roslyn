@@ -5,10 +5,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.SolutionCrawler;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.IncrementalCaches
 {
-    [ExportIncrementalAnalyzerProvider(WorkspaceKind.Host), Shared]
+    [ExportIncrementalAnalyzerProvider(nameof(SyntaxTreeInfoIncrementalAnalyzerProvider), new[] { WorkspaceKind.Host, WorkspaceKind.RemoteWorkspace }), Shared]
     internal class SyntaxTreeInfoIncrementalAnalyzerProvider : IIncrementalAnalyzerProvider
     {
         public IIncrementalAnalyzer CreateIncrementalAnalyzer(Workspace workspace)
@@ -18,9 +19,17 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
 
         private class IncrementalAnalyzer : IncrementalAnalyzerBase
         {
-            public override Task AnalyzeSyntaxAsync(Document document, CancellationToken cancellationToken)
+            public override Task AnalyzeSyntaxAsync(Document document, InvocationReasons reasons, CancellationToken cancellationToken)
             {
-                return SyntaxTreeInfo.PrecalculateAsync(document, cancellationToken);
+                if (document.Project.Solution.Workspace.Kind != WorkspaceKind.RemoteWorkspace &&
+                    document.Project.Solution.Workspace.Options.GetOption(SymbolFinderOptions.OutOfProcessAllowed))
+                {
+                    // if FAR feature is set to run on remote host, then we don't need to build inproc cache.
+                    // remote host will build this cache in remote host.
+                    return SpecializedTasks.EmptyTask;
+                }
+
+                return SyntaxTreeIndex.PrecalculateAsync(document, cancellationToken);
             }
         }
     }

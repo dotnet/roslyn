@@ -6,11 +6,9 @@ using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Organizing;
 using Microsoft.CodeAnalysis.Organizing.Organizers;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Organizing
 {

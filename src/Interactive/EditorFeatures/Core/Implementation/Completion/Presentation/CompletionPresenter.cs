@@ -9,6 +9,9 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
 using Microsoft.VisualStudio.InteractiveWindow;
 using Microsoft.VisualStudio.InteractiveWindow.Commands;
+using System.Collections.Generic;
+using System;
+using Microsoft.CodeAnalysis.Editor.Extensibility.Composition;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Completion.Presentation
 {
@@ -19,18 +22,24 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Completion.Presentation
     {
         private readonly ICompletionBroker _completionBroker;
         private readonly IGlyphService _glyphService;
+        private readonly ICompletionSetFactory _completionSetFactory;
 
         [ImportingConstructor]
-        public CompletionPresenter(ICompletionBroker completionBroker, IGlyphService glyphService)
+        public CompletionPresenter(
+            ICompletionBroker completionBroker,
+            IGlyphService glyphService,
+            [ImportMany] IEnumerable<Lazy<ICompletionSetFactory, VisualStudioVersionMetadata>> completionSetFactories)
         {
             _completionBroker = completionBroker;
             _glyphService = glyphService;
+            _completionSetFactory = VersionSelector.SelectHighest(completionSetFactories);
         }
 
         ICompletionPresenterSession IIntelliSensePresenter<ICompletionPresenterSession, ICompletionSession>.CreateSession(ITextView textView, ITextBuffer subjectBuffer, ICompletionSession sessionOpt)
         {
             AssertIsForeground();
-            return new CompletionPresenterSession(_completionBroker, _glyphService, textView, subjectBuffer);
+            return new CompletionPresenterSession(
+                _completionSetFactory, _completionBroker, _glyphService, textView, subjectBuffer);
         }
 
         ICompletionSource ICompletionSourceProvider.TryCreateCompletionSource(ITextBuffer textBuffer)

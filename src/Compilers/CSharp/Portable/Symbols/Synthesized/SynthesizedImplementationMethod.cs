@@ -18,7 +18,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         //computed
         private readonly ImmutableArray<MethodSymbol> _explicitInterfaceImplementations;
         private readonly ImmutableArray<TypeParameterSymbol> _typeParameters;
-        private readonly TypeSymbolWithAnnotations _returnType;
         private readonly ImmutableArray<ParameterSymbol> _parameters;
         private readonly string _name;
 
@@ -33,7 +32,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(implementingType.IsDefinition);
 
             _name = name ?? ExplicitInterfaceHelpers.GetMemberName(interfaceMethod.Name, interfaceMethod.ContainingType, aliasQualifierOpt: null);
-            _interfaceMethod = interfaceMethod;
             _implementingType = implementingType;
             _generateDebugInfo = generateDebugInfo;
             _associatedProperty = associatedProperty;
@@ -43,9 +41,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var typeMap = interfaceMethod.ContainingType.TypeSubstitution ?? TypeMap.Empty;
             typeMap.WithAlphaRename(interfaceMethod, this, out _typeParameters);
 
-            var substitutedInterfaceMethod = interfaceMethod.IsGenericMethod ? interfaceMethod.Construct(_typeParameters.SelectAsArray(TypeMap.AsTypeSymbolWithAnnotations)) : interfaceMethod;
-            _returnType = substitutedInterfaceMethod.ReturnType;
-            _parameters = SynthesizedParameterSymbol.DeriveParameters(substitutedInterfaceMethod, this);
+            _interfaceMethod = interfaceMethod.ConstructIfGeneric(_typeParameters.SelectAsArray(TypeMap.AsTypeSymbolWithAnnotations));
+            _parameters = SynthesizedParameterSymbol.DeriveParameters(_interfaceMethod, this);
         }
 
         #region Delegate to interfaceMethod
@@ -70,22 +67,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _interfaceMethod.CallingConvention; }
         }
 
+        public sealed override ImmutableArray<CustomModifier> RefCustomModifiers
+        {
+            get { return _interfaceMethod.RefCustomModifiers; }
+        }
+
         #endregion
 
         internal override void AddSynthesizedAttributes(ModuleCompilationState compilationState, ref ArrayBuilder<SynthesizedAttributeData> attributes)
         {
             base.AddSynthesizedAttributes(compilationState, ref attributes);
 
+            var compilation = this.DeclaringCompilation;
             TypeSymbolWithAnnotations returnType = this.ReturnType;
-            if (returnType.TypeSymbol.ContainsDynamic())
+            if (returnType.TypeSymbol.ContainsDynamic() && compilation.HasDynamicEmitAttributes() && compilation.CanEmitBoolean())
             {
-                var compilation = this.DeclaringCompilation;
-                AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(returnType.TypeSymbol, returnType.CustomModifiers.Length));
+                AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(returnType.TypeSymbol, returnType.CustomModifiers.Length + this.RefCustomModifiers.Length, this.RefKind));
+            }
+
+            if (returnType.TypeSymbol.ContainsTupleNames() &&
+                compilation.HasTupleNamesAttributes &&
+                compilation.CanEmitSpecialType(SpecialType.System_String))
+            {
+                AddSynthesizedAttribute(ref attributes,
+                    compilation.SynthesizeTupleNamesAttribute(returnType.TypeSymbol));
             }
 
             if (returnType.ContainsNullableReferenceTypes())
             {
-                var compilation = this.DeclaringCompilation;
                 AddSynthesizedAttribute(ref attributes, compilation.SynthesizeNullableAttribute(returnType));
             }
         }
@@ -105,9 +114,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _typeParameters.SelectAsArray(TypeMap.AsTypeSymbolWithAnnotations); }
         }
 
+        internal override RefKind RefKind
+        {
+            get { return _interfaceMethod.RefKind; }
+        }
+
         public sealed override TypeSymbolWithAnnotations ReturnType
         {
-            get { return _returnType; }
+            get { return _interfaceMethod.ReturnType; }
         }
 
         public override ImmutableArray<ParameterSymbol> Parameters

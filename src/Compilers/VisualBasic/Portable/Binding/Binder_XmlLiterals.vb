@@ -1013,7 +1013,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' If the method or property group is not Nothing, bind as an invocation expression.
         ''' Otherwise return a BoundBadExpression containing the arguments.
         ''' </summary>
-        Private Function BindInvocationExpressionIfGroupNotNothing(syntax As VisualBasicSyntaxNode, groupOpt As BoundMethodOrPropertyGroup, arguments As ImmutableArray(Of BoundExpression), diagnostics As DiagnosticBag) As BoundExpression
+        Private Function BindInvocationExpressionIfGroupNotNothing(syntax As SyntaxNode, groupOpt As BoundMethodOrPropertyGroup, arguments As ImmutableArray(Of BoundExpression), diagnostics As DiagnosticBag) As BoundExpression
             If groupOpt Is Nothing Then
                 Return BadExpression(syntax, StaticCast(Of BoundNode).From(arguments), ErrorTypeSymbol.UnknownResultType)
             Else
@@ -1135,7 +1135,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return namespaces
         End Function
 
-        Private Function AddXmlAttributeIfNotDuplicate(
+        Private Shared Function AddXmlAttributeIfNotDuplicate(
                                                       syntax As XmlNodeSyntax,
                                                       name As XmlName,
                                                       attribute As BoundXmlAttribute,
@@ -1673,6 +1673,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
+        Public Overrides ReadOnly Property ReturnsByRef As Boolean
+            Get
+                Return _originalDefinition.ReturnsByRef
+            End Get
+        End Property
+
         Public Overrides ReadOnly Property Type As TypeSymbol
             Get
                 Return _originalDefinition.Type
@@ -1682,6 +1688,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides ReadOnly Property TypeCustomModifiers As ImmutableArray(Of CustomModifier)
             Get
                 Return _originalDefinition.TypeCustomModifiers
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property RefCustomModifiers As ImmutableArray(Of CustomModifier)
+            Get
+                Return _originalDefinition.RefCustomModifiers
             End Get
         End Property
 
@@ -1909,6 +1921,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Get
             End Property
 
+            Public Overrides ReadOnly Property ReturnsByRef As Boolean
+                Get
+                    Return _originalDefinition.ReturnsByRef
+                End Get
+            End Property
+
             Public Overrides ReadOnly Property ReturnType As TypeSymbol
                 Get
                     Return _originalDefinition.ReturnType
@@ -1921,7 +1939,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Get
             End Property
 
-            Friend Overrides ReadOnly Property Syntax As VisualBasicSyntaxNode
+            Public Overrides ReadOnly Property RefCustomModifiers As ImmutableArray(Of CustomModifier)
+                Get
+                    Return _originalDefinition.RefCustomModifiers
+                End Get
+            End Property
+
+            Friend Overrides ReadOnly Property Syntax As SyntaxNode
                 Get
                     Return _originalDefinition.Syntax
                 End Get

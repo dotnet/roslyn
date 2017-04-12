@@ -11,34 +11,44 @@ using Microsoft.VisualStudio.Debugger.Clr;
 using Microsoft.VisualStudio.Debugger.Evaluation;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
 using Xunit;
-using Roslyn.Test.Utilities;
-using System.Collections;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
     public abstract class ResultProviderTestBase
     {
-        protected static readonly string DynamicDebugViewEmptyMessage;
-
-        static ResultProviderTestBase()
+        internal static string GetDynamicDebugViewEmptyMessage()
         {
+            // Value should not be cached since it depends on the current CultureInfo.
             var exceptionType = typeof(Microsoft.CSharp.RuntimeBinder.RuntimeBinderException).Assembly.GetType(
                 "Microsoft.CSharp.RuntimeBinder.DynamicMetaObjectProviderDebugView+DynamicDebugViewEmptyException");
             var emptyProperty = exceptionType.GetProperty("Empty");
-            DynamicDebugViewEmptyMessage = (string)emptyProperty.GetValue(exceptionType.Instantiate());
+            return (string)emptyProperty.GetValue(exceptionType.Instantiate());
+        }
 
-            // We never want to swallow Exceptions (generate a non-fatal Watson) when running tests.
-            ExpressionEvaluatorFatalError.IsFailFastEnabled = true;
+        internal static DkmClrCustomTypeInfo MakeCustomTypeInfo(params bool[] dynamicFlags)
+        {
+            if (dynamicFlags == null || dynamicFlags.Length == 0)
+            {
+                return null;
+            }
+
+            var builder = ArrayBuilder<bool>.GetInstance(dynamicFlags.Length);
+            builder.AddRange(dynamicFlags);
+            var result = CustomTypeInfo.Create(DynamicFlagsCustomTypeInfo.ToBytes(builder), tupleElementNames: null);
+            builder.Free();
+            return result;
         }
 
         private readonly DkmInspectionSession _inspectionSession;
-
         internal readonly DkmInspectionContext DefaultInspectionContext;
 
         internal ResultProviderTestBase(DkmInspectionSession inspectionSession, DkmInspectionContext defaultInspectionContext)
         {
             _inspectionSession = inspectionSession;
             DefaultInspectionContext = defaultInspectionContext;
+
+            // We never want to swallow Exceptions (generate a non-fatal Watson) when running tests.
+            ExpressionEvaluatorFatalError.IsFailFastEnabled = true;
         }
 
         internal DkmClrValue CreateDkmClrValue(
@@ -162,7 +172,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             return FormatResult(name, name, value, declaredType, inspectionContext: inspectionContext);
         }
 
-        internal DkmEvaluationResult FormatResult(string name, string fullName, DkmClrValue value, DkmClrType declaredType = null, bool[] declaredTypeInfo = null, DkmInspectionContext inspectionContext = null)
+        internal DkmEvaluationResult FormatResult(string name, string fullName, DkmClrValue value, DkmClrType declaredType = null, DkmClrCustomTypeInfo declaredTypeInfo = null, DkmInspectionContext inspectionContext = null)
         {
             var asyncResult = FormatAsyncResult(name, fullName, value, declaredType, declaredTypeInfo, inspectionContext);
             var exception = asyncResult.Exception;
@@ -173,14 +183,14 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             return asyncResult.Result;
         }
 
-        internal DkmEvaluationAsyncResult FormatAsyncResult(string name, string fullName, DkmClrValue value, DkmClrType declaredType = null, bool[] declaredTypeInfo = null, DkmInspectionContext inspectionContext = null)
+        internal DkmEvaluationAsyncResult FormatAsyncResult(string name, string fullName, DkmClrValue value, DkmClrType declaredType = null, DkmClrCustomTypeInfo declaredTypeInfo = null, DkmInspectionContext inspectionContext = null)
         {
             DkmEvaluationAsyncResult asyncResult = default(DkmEvaluationAsyncResult);
             var workList = new DkmWorkList();
             value.GetResult(
                 workList,
                 DeclaredType: declaredType ?? value.Type,
-                CustomTypeInfo: DynamicFlagsCustomTypeInfo.Create(declaredTypeInfo).GetCustomTypeInfo(),
+                CustomTypeInfo: declaredTypeInfo,
                 InspectionContext: inspectionContext ?? DefaultInspectionContext,
                 FormatSpecifiers: Formatter.NoFormatSpecifiers,
                 ResultName: name,

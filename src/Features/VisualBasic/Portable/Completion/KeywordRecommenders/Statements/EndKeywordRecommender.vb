@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Stat
 
         Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As IEnumerable(Of RecommendedKeyword)
             If context.IsSingleLineStatementContext Then
-                Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("End", VBFeaturesResources.EndKeywordToolTip))
+                Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("End", VBFeaturesResources.Stops_execution_immediately))
             End If
 
             Return SpecializedCollections.EmptyEnumerable(Of RecommendedKeyword)()

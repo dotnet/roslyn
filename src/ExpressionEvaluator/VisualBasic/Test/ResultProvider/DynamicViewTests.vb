@@ -114,23 +114,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.UnitTests
             Next
         End Sub
 
-        <ConditionalFact(GetType(IsEnglishLocal))>
+        <Fact>
         <WorkItem(5667, "https://github.com/dotnet/roslyn/issues/5667")>
         Public Sub NoMembers()
-            Dim expression = "o"
-            Dim o As Object = New ExpandoObject()
+            Using New EnsureEnglishUICulture()
+                Dim expression = "o"
+                Dim o As Object = New ExpandoObject()
 
-            Dim type = New DkmClrType(CType(o.GetType(), TypeImpl))
-            Dim value = CreateDkmClrValue(o, type)
+                Dim type = New DkmClrType(CType(o.GetType(), TypeImpl))
+                Dim value = CreateDkmClrValue(o, type)
 
-            Dim result = FormatResult(expression, value)
-            Verify(result,
+                Dim result = FormatResult(expression, value)
+                Verify(result,
                 EvalResult(expression, "{System.Dynamic.ExpandoObject}", "System.Dynamic.ExpandoObject", expression, DkmEvaluationResultFlags.Expandable))
-            Dim dynamicView = GetChildren(result).Last()
-            Verify(dynamicView,
-                EvalResult(Resources.DynamicView, Resources.DynamicViewValueWarning, "", "o, dynamic", DkmEvaluationResultFlags.Expandable Or DkmEvaluationResultFlags.ReadOnly))
-            Verify(GetChildren(dynamicView),
-            EvalFailedResult(Resources.ErrorName, DynamicDebugViewEmptyMessage))
+                Dim dynamicView = GetChildren(result).Last()
+                Verify(dynamicView,
+                       EvalResult(Resources.DynamicView, Resources.DynamicViewValueWarning, "", "o, dynamic", DkmEvaluationResultFlags.Expandable Or DkmEvaluationResultFlags.ReadOnly))
+                Verify(GetChildren(dynamicView),
+                       EvalFailedResult(Resources.ErrorName, GetDynamicDebugViewEmptyMessage()))
+            End Using
         End Sub
 
         <Fact>

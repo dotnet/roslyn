@@ -17,13 +17,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
     /// <summary>
     /// The class to represent all properties imported from a PE/module.
     /// </summary>
-    internal sealed class PEPropertySymbol
+    internal class PEPropertySymbol
         : PropertySymbol
     {
         private readonly string _name;
         private readonly PENamedTypeSymbol _containingType;
         private readonly PropertyDefinitionHandle _handle;
         private readonly ImmutableArray<ParameterSymbol> _parameters;
+        private readonly RefKind _refKind;
         private readonly TypeSymbolWithAnnotations _propertyType;
         private readonly PEMethodSymbol _getMethod;
         private readonly PEMethodSymbol _setMethod;
@@ -50,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             CallMethodsDirectly = 4
         }
 
-        internal PEPropertySymbol(
+        internal static PEPropertySymbol Create(
             PEModuleSymbol moduleSymbol,
             PENamedTypeSymbol containingType,
             PropertyDefinitionHandle handle,
@@ -61,6 +62,42 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             Debug.Assert((object)containingType != null);
             Debug.Assert(!handle.IsNil);
 
+            var metadataDecoder = new MetadataDecoder(moduleSymbol, containingType);
+            SignatureHeader callingConvention;
+            BadImageFormatException propEx;
+            var propertyParams = metadataDecoder.GetSignatureForProperty(handle, out callingConvention, out propEx);
+            Debug.Assert(propertyParams.Length > 0);
+
+            var returnInfo = propertyParams[0];
+            PEPropertySymbol result;
+
+            if (returnInfo.CustomModifiers.IsDefaultOrEmpty && returnInfo.RefCustomModifiers.IsDefaultOrEmpty)
+            {
+                result = new PEPropertySymbol(moduleSymbol, containingType, handle, getMethod, setMethod, 0, propertyParams, metadataDecoder);
+            }
+            else
+            {
+                result = new PEPropertySymbolWithCustomModifiers(moduleSymbol, containingType, handle, getMethod, setMethod, propertyParams, metadataDecoder);
+            }
+
+            if (propEx != null)
+            {
+                result._lazyUseSiteDiagnostic = new CSDiagnosticInfo(ErrorCode.ERR_BindToBogus, result);
+            }
+
+            return result;
+        }
+
+        private PEPropertySymbol(
+            PEModuleSymbol moduleSymbol,
+            PENamedTypeSymbol containingType,
+            PropertyDefinitionHandle handle,
+            PEMethodSymbol getMethod,
+            PEMethodSymbol setMethod,
+            int countOfCustomModifiers,
+            ParamInfo<TypeSymbol>[] propertyParams,
+            MetadataDecoder metadataDecoder)
+        {
             _containingType = containingType;
             var module = moduleSymbol.Module;
             PropertyAttributes mdFlags = 0;
@@ -84,12 +121,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             _setMethod = setMethod;
             _handle = handle;
 
-            var metadataDecoder = new MetadataDecoder(moduleSymbol, containingType);
-            SignatureHeader callingConvention;
-            BadImageFormatException propEx;
-            var propertyParams = metadataDecoder.GetSignatureForProperty(handle, out callingConvention, out propEx);
-            Debug.Assert(propertyParams.Length > 0);
-
             SignatureHeader unusedCallingConvention;
             BadImageFormatException getEx = null;
             var getMethodParams = (object)getMethod == null ? null : metadataDecoder.GetSignatureForMethod(getMethod.Handle, out unusedCallingConvention, out getEx);
@@ -97,25 +128,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             var setMethodParams = (object)setMethod == null ? null : metadataDecoder.GetSignatureForMethod(setMethod.Handle, out unusedCallingConvention, out setEx);
 
             // NOTE: property parameter names are not recorded in metadata, so we have to
-            // use the parameter names from one of the indexers.
+            // use the parameter names from one of the indexers
             // NB: prefer setter names to getter names if both are present.
             bool isBad;
             _parameters = GetParameters(moduleSymbol, this, propertyParams, setMethodParams ?? getMethodParams, out isBad);
 
-            if (propEx != null || getEx != null || setEx != null || mrEx != null || isBad)
+            if (getEx != null || setEx != null || mrEx != null || isBad)
             {
                 _lazyUseSiteDiagnostic = new CSDiagnosticInfo(ErrorCode.ERR_BindToBogus, this);
             }
 
-            var typeCustomModifiers = CSharpCustomModifier.Convert(propertyParams[0].CustomModifiers);
+            var returnInfo = propertyParams[0];
+            var typeCustomModifiers = CSharpCustomModifier.Convert(returnInfo.CustomModifiers);
+            _refKind = returnInfo.IsByRef ? RefKind.Ref : RefKind.None;
 
             // CONSIDER: Can we make parameter type computation lazy?
-            TypeSymbol originalPropertyType = propertyParams[0].Type;
+            TypeSymbol originalPropertyType = returnInfo.Type;
 
             originalPropertyType = DynamicTypeDecoder.TransformType(originalPropertyType, typeCustomModifiers.Length, handle, moduleSymbol);
 
             // Dynamify object type if necessary
             originalPropertyType = originalPropertyType.AsDynamicIfNoPia(_containingType);
+
+            originalPropertyType = TupleTypeDecoder.DecodeTupleTypesIfApplicable(originalPropertyType, handle, moduleSymbol);
 
             var propertyType = TypeSymbolWithAnnotations.Create(originalPropertyType, typeCustomModifiers);
 
@@ -163,11 +198,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         private bool MustCallMethodsDirectlyCore()
         {
-            if (this.ParameterCount == 0)
+            if (this.RefKind != RefKind.None && _setMethod != null)
+            {
+                return true;
+            }
+            else if (this.ParameterCount == 0)
             {
                 return false;
             }
-            if (this.IsIndexedProperty)
+            else if (this.IsIndexedProperty)
             {
                 return this.IsStatic;
             }
@@ -427,9 +466,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
+        internal override RefKind RefKind
+        {
+            get { return _refKind; }
+        }
+
         public override TypeSymbolWithAnnotations Type
         {
             get { return _propertyType; }
+        }
+
+        public override ImmutableArray<CustomModifier> RefCustomModifiers
+        {
+            get { return ImmutableArray<CustomModifier>.Empty; }
         }
 
         public override MethodSymbol GetMethod
@@ -668,6 +717,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 bool optOut;
 
                 return moduleSymbol.Module.HasNullableOptOutAttribute(_handle, out optOut) ? optOut : base.NullableOptOut;
+            }
+        }
+
+        private sealed class PEPropertySymbolWithCustomModifiers : PEPropertySymbol
+        {
+            private readonly ImmutableArray<CustomModifier> _refCustomModifiers;
+
+            public PEPropertySymbolWithCustomModifiers(
+                PEModuleSymbol moduleSymbol,
+                PENamedTypeSymbol containingType,
+                PropertyDefinitionHandle handle,
+                PEMethodSymbol getMethod,
+                PEMethodSymbol setMethod,
+                ParamInfo<TypeSymbol>[] propertyParams,
+                MetadataDecoder metadataDecoder)
+                : base(moduleSymbol, containingType, handle, getMethod, setMethod,
+                        propertyParams[0].CustomModifiers.NullToEmpty().Length + propertyParams[0].RefCustomModifiers.NullToEmpty().Length,
+                        propertyParams, metadataDecoder)
+            {
+                var returnInfo = propertyParams[0];
+                _refCustomModifiers = CSharpCustomModifier.Convert(returnInfo.RefCustomModifiers);
+            }
+
+            public override ImmutableArray<CustomModifier> RefCustomModifiers
+            {
+                get { return _refCustomModifiers; }
             }
         }
     }

@@ -10,7 +10,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
     Public Class CSharpDebuggerIntellisenseTests
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.DebuggingIntelliSense)>
-        Public Async Function CompletionOnTypeCharacter() As Threading.Tasks.Task
+        Public Async Function CompletionOnTypeCharacter() As Task
             Dim text = <Workspace>
                            <Project Language="C#" CommonReferences="true">
                                <Document>$$</Document>
@@ -35,7 +35,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.DebuggingIntelliSense)>
-        Public Async Function CompletionOnTypeCharacterInImmediateWindow() As Threading.Tasks.Task
+        Public Async Function CompletionOnTypeCharacterInImmediateWindow() As Task
             Dim text = <Workspace>
                            <Project Language="C#" CommonReferences="true">
                                <Document>$$</Document>
@@ -60,7 +60,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.DebuggingIntelliSense)>
-        Public Async Function LocalsInBlockAfterInstructionPointer() As Threading.Tasks.Task
+        Public Async Function LocalsInBlockAfterInstructionPointer() As Task
             Dim text = <Workspace>
                            <Project Language="C#" CommonReferences="true">
                                <Document>$$</Document>
@@ -90,7 +90,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.DebuggingIntelliSense)>
-        Public Async Function CompletionAfterReturn() As Threading.Tasks.Task
+        Public Async Function CompletionAfterReturn() As Task
             Dim text = <Workspace>
                            <Project Language="C#" CommonReferences="true">
                                <Document>$$</Document>
@@ -122,7 +122,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.DebuggingIntelliSense)>
-        Public Async Function ExecutedUnexecutedLocals() As Threading.Tasks.Task
+        Public Async Function ExecutedUnexecutedLocals() As Task
             Dim text = <Workspace>
                            <Project Language="C#" CommonReferences="true">
                                <Document>$$</Document>
@@ -667,7 +667,90 @@ $$</Document>
             End Using
         End Sub
 
-        Private Async Function VerifyCompletionAndDotAfter(item As String, state As TestState) As Threading.Tasks.Task
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.DebuggingIntelliSense)>
+        Public Async Function TypeNumberAtStartOfViewDoesNotCrash() As Task
+			Dim text = <Workspace>
+							   <Project Language="C#" CommonReferences="true">
+								   <Document>$$</Document>
+								   <Document>class Program
+	{
+		static void Main(string[] args)
+		[|{|]
+
+		}
+	}</Document>
+							   </Project>
+						   </Workspace>
+		
+		    Using state = TestState.CreateCSharpTestState(text, True)
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionSession()
+                state.SendTypeChars("4")
+                Await state.AssertNoCompletionSession()
+			End Using
+		End Function
+        
+		<ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.DebuggingIntelliSense)>
+		Public Async Function BuilderSettingRetainedBetweenComputations_Watch() As Task
+            Dim text = <Workspace>
+                           <Project Language="C#" CommonReferences="true">
+                               <Document>$$</Document>
+                               <Document>class Program
+{
+    static void Main(string[] args)
+    [|{|]
+
+    }
+}</Document>
+                           </Project>
+                       </Workspace>
+
+            Using state = TestState.CreateCSharpTestState(text, isImmediateWindow:=False)
+                state.SendTypeChars("args")
+                Await state.WaitForAsynchronousOperationsAsync()
+                Assert.Equal("args", state.GetCurrentViewLineText())
+                Await state.AssertCompletionSession()
+                Assert.True(state.CurrentCompletionPresenterSession.SuggestionMode)
+                state.SendToggleCompletionMode()
+                Await state.WaitForAsynchronousOperationsAsync()
+                Assert.False(state.CurrentCompletionPresenterSession.SuggestionMode)
+                state.SendTypeChars(".")
+                Await state.WaitForAsynchronousOperationsAsync()
+                Assert.False(state.CurrentCompletionPresenterSession.SuggestionMode)
+            End Using
+        End Function
+
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.DebuggingIntelliSense)>
+        Public Async Function BuilderSettingRetainedBetweenComputations_Watch_Immediate() As Task
+            Dim text = <Workspace>
+                           <Project Language="C#" CommonReferences="true">
+                               <Document>$$</Document>
+                               <Document>class Program
+{
+    static void Main(string[] args)
+    [|{|]
+
+    }
+}</Document>
+                           </Project>
+                       </Workspace>
+
+            Using state = TestState.CreateCSharpTestState(text, isImmediateWindow:=True)
+                state.SendTypeChars("args")
+                Await state.WaitForAsynchronousOperationsAsync()
+                Assert.Equal("args", state.GetCurrentViewLineText())
+                Await state.AssertCompletionSession()
+                Assert.True(state.CurrentCompletionPresenterSession.SuggestionMode)
+                state.SendToggleCompletionMode()
+                Await state.WaitForAsynchronousOperationsAsync()
+                Assert.False(state.CurrentCompletionPresenterSession.SuggestionMode)
+                state.SendTypeChars(".")
+                Await state.WaitForAsynchronousOperationsAsync()
+                Assert.False(state.CurrentCompletionPresenterSession.SuggestionMode)
+            End Using
+        End Function
+
+        Private Async Function VerifyCompletionAndDotAfter(item As String, state As TestState) As Task
             state.SendTypeChars(item)
             Await state.WaitForAsynchronousOperationsAsync()
             Await state.AssertSelectedCompletionItem(item)

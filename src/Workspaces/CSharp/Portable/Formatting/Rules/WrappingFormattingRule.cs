@@ -74,15 +74,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         private void AddSpecificNodesSuppressOperations(List<SuppressOperation> list, SyntaxNode node)
         {
             var tokens = GetSpecificNodeSuppressionTokenRange(node);
-            if (tokens != default(ValueTuple<SyntaxToken, SyntaxToken>))
+            if (!tokens.Equals(default(ValueTuple<SyntaxToken, SyntaxToken>)))
             {
                 AddSuppressWrappingIfOnSingleLineOperation(list, tokens.Item1, tokens.Item2);
-            }
-
-            var ifStatementNode = node as IfStatementSyntax;
-            if (ifStatementNode?.Else != null)
-            {
-                AddSuppressWrappingIfOnSingleLineOperation(list, ifStatementNode.Else.ElseKeyword, ifStatementNode.Else.Statement.GetFirstToken(includeZeroWidth: true));
             }
         }
 
@@ -112,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             var tokens = GetSpecificNodeSuppressionTokenRange(node);
-            if (tokens != default(ValueTuple<SyntaxToken, SyntaxToken>))
+            if (!tokens.Equals(default(ValueTuple<SyntaxToken, SyntaxToken>)))
             {
                 RemoveSuppressOperation(list, tokens.Item1, tokens.Item2);
             }

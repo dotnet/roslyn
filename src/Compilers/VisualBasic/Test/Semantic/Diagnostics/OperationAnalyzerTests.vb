@@ -2,8 +2,8 @@
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.Diagnostics
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.UnitTests.Diagnostics
-Imports Microsoft.CodeAnalysis.UnitTests.Diagnostics.SystemLanguage
 Imports Roslyn.Test.Utilities
 Imports Xunit
 
@@ -38,7 +38,7 @@ End Class
                              </file>
                          </compilation>
 
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
             comp.VerifyDiagnostics()
             comp.VerifyAnalyzerDiagnostics({New EmptyArrayAnalyzer}, Nothing, Nothing, False,
                Diagnostic(EmptyArrayAnalyzer.UseArrayEmptyDescriptor.Id, "New Integer(-1) { }").WithLocation(3, 33),
@@ -89,7 +89,7 @@ End Structure
                              </file>
                          </compilation>
 
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
             comp.VerifyDiagnostics()
             comp.VerifyAnalyzerDiagnostics({New BoxingOperationAnalyzer}, Nothing, Nothing, False,
                Diagnostic(BoxingOperationAnalyzer.BoxingDescriptor.Id, "3").WithLocation(6, 32),
@@ -120,7 +120,7 @@ End Class
                              </file>
                          </compilation>
 
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
             comp.VerifyAnalyzerDiagnostics({New BadStuffTestAnalyzer}, Nothing, Nothing, False,
                                            Diagnostic(BadStuffTestAnalyzer.InvalidExpressionDescriptor.Id, "Framitz()").WithLocation(3, 9),
                                            Diagnostic(BadStuffTestAnalyzer.IsInvalidDescriptor.Id, "Framitz()").WithLocation(3, 9),
@@ -150,7 +150,7 @@ End Class
                              </file>
                          </compilation>
 
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
             comp.VerifyDiagnostics()
             comp.VerifyAnalyzerDiagnostics({New BigForTestAnalyzer}, Nothing, Nothing, False,
                                            Diagnostic(BigForTestAnalyzer.BigForDescriptor.Id, "For x = 1 To 2000000 : Next").WithLocation(5, 9),
@@ -244,7 +244,7 @@ End Class
                              </file>
                          </compilation>
 
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
             comp.VerifyDiagnostics(Diagnostic(ERRID.ERR_ExpectedExpression, "").WithLocation(60, 17),
                                    Diagnostic(ERRID.ERR_ExpectedExpression, "").WithLocation(68, 1),
                                    Diagnostic(ERRID.ERR_ExpectedExpression, "").WithLocation(74, 22))
@@ -297,7 +297,7 @@ End Class
                              </file>
                          </compilation>
 
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
             comp.VerifyDiagnostics()
             comp.VerifyAnalyzerDiagnostics({New InvocationTestAnalyzer}, Nothing, Nothing, False,
                                            Diagnostic(InvocationTestAnalyzer.OutOfNumericalOrderArgumentsDescriptor.Id, "2").WithLocation(11, 21),
@@ -367,7 +367,7 @@ End Class
                              </file>
                          </compilation>
 
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
             comp.VerifyDiagnostics()
             comp.VerifyAnalyzerDiagnostics({New FieldCouldBeReadOnlyAnalyzer}, Nothing, Nothing, False,
                                            Diagnostic(FieldCouldBeReadOnlyAnalyzer.FieldCouldBeReadOnlyDescriptor.Id, "F5").WithLocation(6, 12),
@@ -433,7 +433,7 @@ End Class
                              </file>
                          </compilation>
 
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
             comp.VerifyDiagnostics()
             comp.VerifyAnalyzerDiagnostics({New FieldCouldBeReadOnlyAnalyzer}, Nothing, Nothing, False,
                                            Diagnostic(FieldCouldBeReadOnlyAnalyzer.FieldCouldBeReadOnlyDescriptor.Id, "F5").WithLocation(6, 19),
@@ -487,7 +487,7 @@ End Class
                              </file>
                          </compilation>
 
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
             comp.VerifyDiagnostics()
             comp.VerifyAnalyzerDiagnostics({New LocalCouldBeConstAnalyzer}, Nothing, Nothing, False,
                                             Diagnostic(LocalCouldBeConstAnalyzer.LocalCouldBeConstDescriptor.Id, "e").WithLocation(10, 13),
@@ -652,7 +652,7 @@ End Interface
                              </file>
                          </compilation>
 
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
             comp.VerifyDiagnostics()
             comp.VerifyAnalyzerDiagnostics({New SymbolCouldHaveMoreSpecificTypeAnalyzer}, Nothing, Nothing, False,
                                             Diagnostic(SymbolCouldHaveMoreSpecificTypeAnalyzer.LocalCouldHaveMoreSpecificTypeDescriptor.Id, "a").WithArguments("a", "Middle").WithLocation(3, 13),
@@ -730,7 +730,7 @@ End Class
                              </file>
                          </compilation>
 
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
             comp.VerifyDiagnostics()
             comp.VerifyAnalyzerDiagnostics({New SeventeenTestAnalyzer}, Nothing, Nothing, False,
                                            Diagnostic(SeventeenTestAnalyzer.SeventeenDescriptor.Id, "17").WithLocation(2, 71),
@@ -774,7 +774,7 @@ End Class
                              </file>
                          </compilation>
 
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
             comp.VerifyDiagnostics()
             comp.VerifyAnalyzerDiagnostics({New NullArgumentTestAnalyzer}, Nothing, Nothing, False,
                                            Diagnostic(NullArgumentTestAnalyzer.NullArgumentsDescriptor.Id, "Nothing").WithLocation(13, 12),
@@ -815,7 +815,7 @@ End Class
                              </file>
                          </compilation>
 
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
             comp.VerifyDiagnostics(Diagnostic(ERRID.ERR_ExpectedQualifiedNameInInit, "").WithLocation(20, 32))
             comp.VerifyAnalyzerDiagnostics({New MemberInitializerTestAnalyzer}, Nothing, Nothing, False,
                                             Diagnostic(MemberInitializerTestAnalyzer.DoNotUseFieldInitializerDescriptor.Id, ".Field = 10").WithLocation(14, 34),
@@ -864,7 +864,7 @@ End Class
                              </file>
                          </compilation>
 
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
             comp.VerifyDiagnostics()
             comp.VerifyAnalyzerDiagnostics({New AssignmentTestAnalyzer}, Nothing, Nothing, False,
                 Diagnostic(AssignmentTestAnalyzer.DoNotUseMemberAssignmentDescriptor.Id, "f1.Field = 0").WithLocation(22, 9),
@@ -907,7 +907,7 @@ End Class
                              </file>
                          </compilation>
 
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
             comp.VerifyDiagnostics()
             comp.VerifyAnalyzerDiagnostics({New ArrayInitializerTestAnalyzer()}, Nothing, Nothing, False,
                 Diagnostic(ArrayInitializerTestAnalyzer.DoNotUseLargeListOfArrayInitializersDescriptor.Id, "{1, 2, 3, 4, 5, 6}").WithLocation(11, 34),
@@ -952,7 +952,7 @@ End Class
                              </file>
                          </compilation>
 
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
             comp.VerifyDiagnostics(
                 Diagnostic(ERRID.ERR_ExpectedIdentifier, "").WithLocation(11, 21),
                 Diagnostic(ERRID.ERR_UndefinedType1, "UndefType").WithArguments("UndefType").WithLocation(12, 35),
@@ -1071,7 +1071,7 @@ End Class
                              </file>
                          </compilation>
 
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
             comp.VerifyDiagnostics(Diagnostic(ERRID.ERR_ExpectedExpression, "").WithLocation(60, 17),
                                    Diagnostic(ERRID.ERR_ExpectedExpression, "").WithLocation(68, 1),
                                    Diagnostic(ERRID.ERR_ExpectedExpression, "").WithLocation(74, 22))
@@ -1118,7 +1118,7 @@ End Class
                              </file>
                          </compilation>
 
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
             comp.VerifyDiagnostics()
             comp.VerifyAnalyzerDiagnostics({New ExplicitVsImplicitInstanceAnalyzer}, Nothing, Nothing, False,
                Diagnostic(ExplicitVsImplicitInstanceAnalyzer.ExplicitInstanceDescriptor.Id, "Me").WithLocation(3, 9),
@@ -1158,7 +1158,7 @@ End Class
                              </file>
                          </compilation>
 
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
             comp.VerifyDiagnostics()
             comp.VerifyAnalyzerDiagnostics({New MemberReferenceAnalyzer}, Nothing, Nothing, False,
                  Diagnostic(MemberReferenceAnalyzer.HandlerAddedDescriptor.Id, "AddHandler Mumble, New MumbleEventHandler(AddressOf Mumbler)").WithLocation(7, 9),  ' Bug: Missing a EventReferenceExpression here https://github.com/dotnet/roslyn/issues/8346
@@ -1191,13 +1191,22 @@ Class C
         M0(1, New Integer() { 2, 3, 4 })
         M0(1, New Integer() { 2, 3, 4, 5 })
         M0(1, New Integer() { 2, 3, 4, 5, 6 })
+        Dim local As D = new D(1, 2, 3, 4, 5)
+        local = new D(1, New Integer() { 2, 3, 4, 5 })
+        local = new D(1, 2, 3, 4)
+        local = new D(1, New Integer() { 2, 3, 4 })
+    End Sub
+End Class
+
+Class D
+    Public Sub New(a As Integer, ParamArray b As Integer())
     End Sub
 End Class
 ]]>
                              </file>
                          </compilation>
 
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
             comp.VerifyDiagnostics()
             comp.VerifyAnalyzerDiagnostics({New ParamsArrayTestAnalyzer}, Nothing, Nothing, False,
                                            Diagnostic(ParamsArrayTestAnalyzer.LongParamsDescriptor.Id, "M0(1, 2, 3, 4, 5)").WithLocation(9, 9),
@@ -1207,7 +1216,9 @@ End Class
                                            Diagnostic(ParamsArrayTestAnalyzer.LongParamsDescriptor.Id, "New Integer() { 2, 3, 4, 5 }").WithLocation(12, 15),
                                            Diagnostic(ParamsArrayTestAnalyzer.LongParamsDescriptor.Id, "New Integer() { 2, 3, 4, 5 }").WithLocation(12, 15),
                                            Diagnostic(ParamsArrayTestAnalyzer.LongParamsDescriptor.Id, "New Integer() { 2, 3, 4, 5, 6 }").WithLocation(13, 15),
-                                           Diagnostic(ParamsArrayTestAnalyzer.LongParamsDescriptor.Id, "New Integer() { 2, 3, 4, 5, 6 }").WithLocation(13, 15))
+                                           Diagnostic(ParamsArrayTestAnalyzer.LongParamsDescriptor.Id, "New Integer() { 2, 3, 4, 5, 6 }").WithLocation(13, 15),
+                                           Diagnostic(ParamsArrayTestAnalyzer.LongParamsDescriptor.Id, "D").WithLocation(14, 30),
+                                           Diagnostic(ParamsArrayTestAnalyzer.LongParamsDescriptor.Id, "New Integer() { 2, 3, 4, 5 }").WithLocation(15, 26))
         End Sub
 
         <Fact>
@@ -1232,7 +1243,7 @@ End Class
                              </file>
                          </compilation>
 
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
             comp.VerifyDiagnostics()
             comp.VerifyAnalyzerDiagnostics({New EqualsValueTestAnalyzer}, Nothing, Nothing, False,
                                            Diagnostic(EqualsValueTestAnalyzer.EqualsValueDescriptor.Id, "= 44").WithLocation(2, 26),
@@ -1264,7 +1275,7 @@ End Class
                              </file>
                          </compilation>
 
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
             comp.VerifyDiagnostics()
             comp.VerifyAnalyzerDiagnostics({New OwningSymbolTestAnalyzer}, Nothing, Nothing, False,
                                            Diagnostic(OwningSymbolTestAnalyzer.ExpressionDescriptor.Id, "0").WithLocation(8, 28),
@@ -1289,14 +1300,28 @@ Class C
                 Exit Select
         End Select
     End Sub
+     
+    Public Property Fred As Integer  
+        Set(value As Integer)  
+            Exit Property  
+        End Set  
+        Get  
+            Return 12  
+        End Get  
+    End Property  
+  
+    Public Sub Barney  
+        Resume  
+    End Sub
 End Class
 ]]>
                              </file>
                          </compilation>
 
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
             comp.VerifyDiagnostics()
-            comp.VerifyAnalyzerDiagnostics({New NoneOperationTestAnalyzer}, Nothing, Nothing, False)
+            comp.VerifyAnalyzerDiagnostics({New NoneOperationTestAnalyzer}, Nothing, Nothing, False,
+                                           Diagnostic(NoneOperationTestAnalyzer.NoneOperationDescriptor.Id, "Resume").WithLocation(23, 9))
         End Sub
 
         <Fact>
@@ -1343,7 +1368,7 @@ End Class
                              </file>
                          </compilation>
 
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
             comp.VerifyDiagnostics()
             comp.VerifyAnalyzerDiagnostics({New LambdaTestAnalyzer}, Nothing, Nothing, False,
                 Diagnostic(LambdaTestAnalyzer.LambdaExpressionDescriptor.Id, "Sub()
@@ -1418,7 +1443,7 @@ End Class
                              </file>
                          </compilation>
 
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
             comp.VerifyDiagnostics()
             comp.VerifyAnalyzerDiagnostics({New StaticMemberTestAnalyzer}, Nothing, Nothing, False,
                 Diagnostic(StaticMemberTestAnalyzer.StaticMemberDescriptor.Id, "AddHandler C.E, AddressOf D.Method").WithLocation(19, 9),
@@ -1449,7 +1474,7 @@ End Class
                              </file>
                          </compilation>
 
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
             comp.VerifyDiagnostics()
             comp.VerifyAnalyzerDiagnostics({New LabelOperationsTestAnalyzer}, Nothing, Nothing, False,
                 Diagnostic(LabelOperationsTestAnalyzer.LabelDescriptor.Id, "Wilma:").WithLocation(3, 9),
@@ -1505,13 +1530,220 @@ End Class
                              </file>
                          </compilation>
 
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
             comp.VerifyDiagnostics()
             comp.VerifyAnalyzerDiagnostics({New UnaryAndBinaryOperationsTestAnalyzer}, Nothing, Nothing, False,
                 Diagnostic(UnaryAndBinaryOperationsTestAnalyzer.BooleanNotDescriptor.Id, "Not b").WithLocation(33, 13),
                 Diagnostic(UnaryAndBinaryOperationsTestAnalyzer.DoubleMultiplyDescriptor.Id, "d * 100").WithLocation(34, 13),
                 Diagnostic(UnaryAndBinaryOperationsTestAnalyzer.OperatorAddMethodDescriptor.Id, "a1 + a2").WithLocation(35, 14),
                 Diagnostic(UnaryAndBinaryOperationsTestAnalyzer.OperatorMinusMethodDescriptor.Id, "-a2").WithLocation(36, 14))
+        End Sub
+
+        <Fact>
+        Public Sub BinaryOperatorsVisualBasic()
+            Dim source = <compilation>
+                             <file name="c.vb">
+                                 <![CDATA[
+Public Class B2
+
+    Public Shared Operator +(x As B2, y As B2) As B2 
+        System.Console.WriteLine("+")
+        Return x
+    End Operator
+
+    Public Shared Operator -(x As B2, y As B2) As B2 
+        System.Console.WriteLine("-")
+        Return x
+    End Operator
+
+    Public Shared Operator *(x As B2, y As B2) As B2 
+        System.Console.WriteLine("*")
+        Return x
+    End Operator
+
+    Public Shared Operator /(x As B2, y As B2) As B2 
+        System.Console.WriteLine("/")
+        Return x
+    End Operator
+
+    Public Shared Operator \(x As B2, y As B2) As B2 
+        System.Console.WriteLine("\")
+        Return x
+    End Operator
+
+    Public Shared Operator Mod(x As B2, y As B2) As B2 
+        System.Console.WriteLine("Mod")
+        Return x
+    End Operator
+
+    Public Shared Operator ^(x As B2, y As B2) As B2 
+        System.Console.WriteLine("^")
+        Return x
+    End Operator
+
+    Public Shared Operator =(x As B2, y As B2) As B2 
+        System.Console.WriteLine("=")
+        Return x
+    End Operator
+
+    Public Shared Operator <>(x As B2, y As B2) As B2
+        System.Console.WriteLine("<>")
+        Return x
+    End Operator
+
+    Public Shared Operator <(x As B2, y As B2) As B2 
+        System.Console.WriteLine("<")
+        Return x
+    End Operator
+
+    Public Shared Operator >(x As B2, y As B2) As B2 
+        System.Console.WriteLine(">")
+        Return x
+    End Operator
+
+    Public Shared Operator <=(x As B2, y As B2) As B2
+        System.Console.WriteLine("<=")
+        Return x
+    End Operator
+
+    Public Shared Operator >=(x As B2, y As B2) As B2
+        System.Console.WriteLine(">=")
+        Return x
+    End Operator
+
+    Public Shared Operator Like(x As B2, y As B2) As B2
+        System.Console.WriteLine("Like")
+        Return x
+    End Operator
+
+    Public Shared Operator &(x As B2, y As B2) As B2 
+        System.Console.WriteLine("&")
+        Return x
+    End Operator
+
+    Public Shared Operator And(x As B2, y As B2) As B2
+        System.Console.WriteLine("And")
+        Return x
+    End Operator
+
+    Public Shared Operator Or(x As B2, y As B2) As B2 
+        System.Console.WriteLine("Or")
+        Return x
+    End Operator
+
+    Public Shared Operator Xor(x As B2, y As B2) As B2
+        System.Console.WriteLine("Xor")
+        Return x
+    End Operator
+
+    Public Shared Operator <<(x As B2, y As Integer) As B2
+        System.Console.WriteLine("<<")
+        Return x
+    End Operator
+
+    Public Shared Operator >>(x As B2, y As Integer) As B2
+        System.Console.WriteLine(">>")
+        Return x
+    End Operator
+End Class
+
+Module Module1
+
+    Sub Main() 
+        Dim x, y As New B2()
+        Dim r As B2
+        r = x + y      
+        r = x - y      
+        r = x * y      
+        r = x / y      
+        r = x \ y      
+        r = x Mod y    
+        r = x ^ y
+        r = x = y      
+        r = x <> y     
+        r = x < y      
+        r = x > y      
+        r = x <= y     
+        r = x >= y     
+        r = x Like y   ' TODO: Bug https://github.com/dotnet/roslyn/issues/9174
+        r = x & y      ' TODO: Bug https://github.com/dotnet/roslyn/issues/9174
+        r = x And y    
+        r = x Or y     
+        r = x Xor y    
+        r = x << 2     
+        r = x >> 3       
+    End Sub
+End Module
+]]>
+                             </file>
+                         </compilation>
+
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
+            comp.VerifyDiagnostics()
+            comp.VerifyAnalyzerDiagnostics({New BinaryOperatorVBTestAnalyzer}, Nothing, Nothing, False,
+                Diagnostic(BinaryOperatorVBTestAnalyzer.BinaryUserDefinedOperatorDescriptor.Id, "x + y").WithArguments("OperatorMethodAdd").WithLocation(109, 13),
+                Diagnostic(BinaryOperatorVBTestAnalyzer.BinaryUserDefinedOperatorDescriptor.Id, "x - y").WithArguments("OperatorMethodSubtract").WithLocation(110, 13),
+                Diagnostic(BinaryOperatorVBTestAnalyzer.BinaryUserDefinedOperatorDescriptor.Id, "x * y").WithArguments("OperatorMethodMultiply").WithLocation(111, 13),
+                Diagnostic(BinaryOperatorVBTestAnalyzer.BinaryUserDefinedOperatorDescriptor.Id, "x / y").WithArguments("OperatorMethodDivide").WithLocation(112, 13),
+                Diagnostic(BinaryOperatorVBTestAnalyzer.BinaryUserDefinedOperatorDescriptor.Id, "x \ y").WithArguments("OperatorMethodIntegerDivide").WithLocation(113, 13),
+                Diagnostic(BinaryOperatorVBTestAnalyzer.BinaryUserDefinedOperatorDescriptor.Id, "x Mod y").WithArguments("OperatorMethodRemainder").WithLocation(114, 13),
+                Diagnostic(BinaryOperatorVBTestAnalyzer.BinaryUserDefinedOperatorDescriptor.Id, "x ^ y").WithArguments("OperatorMethodPower").WithLocation(115, 13),
+                Diagnostic(BinaryOperatorVBTestAnalyzer.BinaryUserDefinedOperatorDescriptor.Id, "x = y").WithArguments("OperatorMethodEquals").WithLocation(116, 13),
+                Diagnostic(BinaryOperatorVBTestAnalyzer.BinaryUserDefinedOperatorDescriptor.Id, "x <> y").WithArguments("OperatorMethodNotEquals").WithLocation(117, 13),
+                Diagnostic(BinaryOperatorVBTestAnalyzer.BinaryUserDefinedOperatorDescriptor.Id, "x < y").WithArguments("OperatorMethodLessThan").WithLocation(118, 13),
+                Diagnostic(BinaryOperatorVBTestAnalyzer.BinaryUserDefinedOperatorDescriptor.Id, "x > y").WithArguments("OperatorMethodGreaterThan").WithLocation(119, 13),
+                Diagnostic(BinaryOperatorVBTestAnalyzer.BinaryUserDefinedOperatorDescriptor.Id, "x <= y").WithArguments("OperatorMethodLessThanOrEqual").WithLocation(120, 13),
+                Diagnostic(BinaryOperatorVBTestAnalyzer.BinaryUserDefinedOperatorDescriptor.Id, "x >= y").WithArguments("OperatorMethodGreaterThanOrEqual").WithLocation(121, 13),
+                Diagnostic(BinaryOperatorVBTestAnalyzer.BinaryUserDefinedOperatorDescriptor.Id, "x And y").WithArguments("OperatorMethodAnd").WithLocation(124, 13),
+                Diagnostic(BinaryOperatorVBTestAnalyzer.BinaryUserDefinedOperatorDescriptor.Id, "x Or y").WithArguments("OperatorMethodOr").WithLocation(125, 13),
+                Diagnostic(BinaryOperatorVBTestAnalyzer.BinaryUserDefinedOperatorDescriptor.Id, "x Xor y").WithArguments("OperatorMethodExclusiveOr").WithLocation(126, 13),
+                Diagnostic(BinaryOperatorVBTestAnalyzer.BinaryUserDefinedOperatorDescriptor.Id, "x << 2").WithArguments("OperatorMethodLeftShift").WithLocation(127, 13),
+                Diagnostic(BinaryOperatorVBTestAnalyzer.BinaryUserDefinedOperatorDescriptor.Id, "x >> 3").WithArguments("OperatorMethodRightShift").WithLocation(128, 13))
+        End Sub
+
+        <Fact>
+        Public Sub InvalidOperatorsVisualBasic()
+            Dim source = <compilation>
+                             <file name="c.vb">
+                                 <![CDATA[
+Public Class B2
+
+    Public Shared Operator +(x As B2, y As B2) As B2 
+        System.Console.WriteLine("+")
+        Return x
+    End Operator
+
+    Public Shared Operator -(x As B2) As B2 
+        System.Console.WriteLine("-")
+        Return x
+    End Operator
+
+    Public Shared Operator -(x As B2) As B2 
+        System.Console.WriteLine("-")
+        Return x
+    End Operator
+End Class
+
+Module Module1
+
+    Sub Main() 
+        Dim x, y As New B2()
+        x = x + 10
+        x = x + y
+        x = -x
+    End Sub
+End Module
+]]>
+                             </file>
+                         </compilation>
+
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
+            comp.VerifyDiagnostics(Diagnostic(ERRID.ERR_DuplicateProcDef1, "-", New Object() {"Public Shared Operator -(x As B2) As B2"}).WithLocation(8, 28),
+                                   Diagnostic(ERRID.ERR_TypeMismatch2, "10", New Object() {"Integer", "B2"}).WithLocation(23, 17),
+                                   Diagnostic(ERRID.ERR_NoMostSpecificOverload2, "-x", New Object() {"-", vbCrLf & "    'Public Shared Operator -(x As B2) As B2': Not most specific." & vbCrLf & "    'Public Shared Operator -(x As B2) As B2': Not most specific."}).WithLocation(25, 13))
+            comp.VerifyAnalyzerDiagnostics({New OperatorPropertyPullerTestAnalyzer}, Nothing, Nothing, False,
+                                           Diagnostic(OperatorPropertyPullerTestAnalyzer.BinaryOperatorDescriptor.Id, "x + 10").WithArguments("OperatorMethodAdd").WithLocation(23, 13),
+                                           Diagnostic(OperatorPropertyPullerTestAnalyzer.UnaryOperatorDescriptor.Id, "-x").WithArguments("OperatorMethodMinus").WithLocation(25, 13))
         End Sub
 
         <Fact>
@@ -1538,7 +1770,7 @@ End Class
 
             ' TODO: array should not be treated as ParamArray argument
             ' https://github.com/dotnet/roslyn/issues/8570
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
             comp.VerifyDiagnostics()
             comp.VerifyAnalyzerDiagnostics({New NullOperationSyntaxTestAnalyzer}, Nothing, Nothing, False,
                 Diagnostic(NullOperationSyntaxTestAnalyzer.ParamsArrayOperationDescriptor.Id, "M0()").WithLocation(6, 9),
@@ -1568,7 +1800,7 @@ End Class
                              </file>
                          </compilation>
 
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
             comp.VerifyDiagnostics(
                 Diagnostic(ERRID.ERR_EndFunctionExpected, "Public Function M1(a As Double, b as C) as Double").WithLocation(2, 5),
                 Diagnostic(ERRID.ERR_InvalidEndSub, "End Sub").WithLocation(4, 5),
@@ -1578,6 +1810,371 @@ End Class
             comp.VerifyAnalyzerDiagnostics({New InvalidOperatorExpressionTestAnalyzer}, Nothing, Nothing, False,
                 Diagnostic(InvalidOperatorExpressionTestAnalyzer.InvalidBinaryDescriptor.Id, "b + c").WithLocation(3, 16),
                 Diagnostic(InvalidOperatorExpressionTestAnalyzer.InvalidUnaryDescriptor.Id, "-s").WithLocation(7, 16))
+        End Sub
+
+        <WorkItem(9014, "https://github.com/dotnet/roslyn/issues/9014")>
+        <Fact>
+        Public Sub InvalidConstructorVisualBasic()
+            Dim source = <compilation>
+                             <file name="c.vb">
+                                 <![CDATA[
+Class C
+    Protected Structure S
+    End Structure
+End Class
+Class D
+    Shared Sub M(o)
+        M(New C.S())
+    End Sub
+End Class
+]]>
+                             </file>
+                         </compilation>
+
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
+            comp.AssertTheseDiagnostics(<errors><![CDATA[
+BC30389: 'C.S' is not accessible in this context because it is 'Protected'.
+        M(New C.S())
+              ~~~
+]]></errors>)
+            ' Reuse ParamsArrayTestAnalyzer for this test.
+            comp.VerifyAnalyzerDiagnostics({New ParamsArrayTestAnalyzer}, Nothing, Nothing, False,
+                Diagnostic(ParamsArrayTestAnalyzer.InvalidConstructorDescriptor.Id, "New C.S()").WithLocation(7, 11))
+        End Sub
+
+        <Fact>
+        Public Sub ConditionalAccessOperationsVisualBasic()
+            Dim source = <compilation>
+                             <file name="c.vb">
+                                 <![CDATA[
+Class C
+    Public Property Prop As Integer
+        Get
+            Return 0
+        End Get
+        Set
+        End Set
+    End Property
+
+    Public Field As Integer
+    
+    Default Public Property Mumble(i As Integer)
+        Get
+            return Field
+        End Get
+        Set
+            Field = Value
+        End Set
+    End Property
+    
+    Public Field1 As C = Nothing
+
+    Public Sub M0(p As C)
+        Dim x = p?.Prop
+        x = p?.Field
+        x = p?(0)
+        p?.M0(Nothing)
+
+        x = Field1?.Prop
+        x = Field1?.Field
+        x = Field1?(0)
+        Field1?.M0(Nothing)
+    End Sub
+End Class
+]]>
+                             </file>
+                         </compilation>
+
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
+            comp.VerifyDiagnostics()
+            comp.VerifyAnalyzerDiagnostics({New ConditionalAccessOperationTestAnalyzer}, Nothing, Nothing, False,
+                Diagnostic(ConditionalAccessOperationTestAnalyzer.ConditionalAccessOperationDescriptor.Id, "p?.Prop").WithLocation(24, 17),
+                Diagnostic(ConditionalAccessOperationTestAnalyzer.ConditionalAccessInstanceOperationDescriptor.Id, "p?.Prop").WithLocation(24, 17),
+                Diagnostic(ConditionalAccessOperationTestAnalyzer.ConditionalAccessOperationDescriptor.Id, "p?.Field").WithLocation(25, 13),
+                Diagnostic(ConditionalAccessOperationTestAnalyzer.ConditionalAccessInstanceOperationDescriptor.Id, "p?.Field").WithLocation(25, 13),
+                Diagnostic(ConditionalAccessOperationTestAnalyzer.ConditionalAccessOperationDescriptor.Id, "p?(0)").WithLocation(26, 13),
+                Diagnostic(ConditionalAccessOperationTestAnalyzer.ConditionalAccessInstanceOperationDescriptor.Id, "p?(0)").WithLocation(26, 13),
+                Diagnostic(ConditionalAccessOperationTestAnalyzer.ConditionalAccessOperationDescriptor.Id, "p?.M0(Nothing)").WithLocation(27, 9),
+                Diagnostic(ConditionalAccessOperationTestAnalyzer.ConditionalAccessInstanceOperationDescriptor.Id, "p?.M0(Nothing)").WithLocation(27, 9),
+                Diagnostic(ConditionalAccessOperationTestAnalyzer.ConditionalAccessOperationDescriptor.Id, "Field1?.Prop").WithLocation(29, 13),
+                Diagnostic(ConditionalAccessOperationTestAnalyzer.ConditionalAccessInstanceOperationDescriptor.Id, "Field1?.Prop").WithLocation(29, 13),
+                Diagnostic(ConditionalAccessOperationTestAnalyzer.ConditionalAccessOperationDescriptor.Id, "Field1?.Field").WithLocation(30, 13),
+                Diagnostic(ConditionalAccessOperationTestAnalyzer.ConditionalAccessInstanceOperationDescriptor.Id, "Field1?.Field").WithLocation(30, 13),
+                Diagnostic(ConditionalAccessOperationTestAnalyzer.ConditionalAccessOperationDescriptor.Id, "Field1?(0)").WithLocation(31, 13),
+                Diagnostic(ConditionalAccessOperationTestAnalyzer.ConditionalAccessInstanceOperationDescriptor.Id, "Field1?(0)").WithLocation(31, 13),
+                Diagnostic(ConditionalAccessOperationTestAnalyzer.ConditionalAccessOperationDescriptor.Id, "Field1?.M0(Nothing)").WithLocation(32, 9),
+                Diagnostic(ConditionalAccessOperationTestAnalyzer.ConditionalAccessInstanceOperationDescriptor.Id, "Field1?.M0(Nothing)").WithLocation(32, 9))
+        End Sub
+
+        <WorkItem(8955, "https://github.com/dotnet/roslyn/issues/8955")>
+        <Fact>
+        Public Sub ForToLoopConditionCrashVisualBasic()
+            Dim source = <compilation>
+                             <file name="c.vb">
+                                 <![CDATA[
+Imports System   
+
+Module M1
+    Class C1(Of t)
+        Shared Widening Operator CType(ByVal p1 As C1(Of t)) As Integer
+            Return 1
+        End Operator
+        Shared Widening Operator CType(ByVal p1 As Integer) As C1(Of t)
+            Return Nothing
+        End Operator
+        Shared Operator -(ByVal p1 As C1(Of t), ByVal p2 As C1(Of t)) As C1(Of Short)
+            Return Nothing
+        End Operator
+        Shared Operator +(ByVal p1 As C1(Of t), ByVal p2 As C1(Of t)) As C1(Of Integer)
+            Return Nothing
+        End Operator
+    End Class
+    Sub foo()
+        For i As C1(Of Integer) = 1 To 10
+        Next
+    End Sub
+End Module
+     
+Module M2
+    ReadOnly Property Moo As Integer
+        Get
+            Return 1
+        End Get
+    End Property
+
+    WriteOnly Property Boo As integer
+        Set(value As integer)
+
+        End Set
+    End Property
+
+    Sub Main()
+        For Moo = 1 to Moo step Moo
+        Next
+
+        For Boo = 1 to Boo step Boo
+        Next
+    End Sub
+End Module
+]]>
+                             </file>
+                         </compilation>
+
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
+            comp.VerifyDiagnostics(
+                Diagnostic(ERRID.ERR_LoopControlMustNotBeProperty, "Moo").WithLocation(38, 13),
+                Diagnostic(ERRID.ERR_LoopControlMustNotBeProperty, "Boo").WithLocation(41, 13),
+                Diagnostic(ERRID.ERR_NoGetProperty1, "Boo").WithArguments("Boo").WithLocation(41, 24),
+                Diagnostic(ERRID.ERR_NoGetProperty1, "Boo").WithArguments("Boo").WithLocation(41, 33),
+                Diagnostic(ERRID.ERR_UnacceptableForLoopOperator2, "For i As C1(Of Integer) = 1 To 10").WithArguments("Public Shared Operator -(p1 As M1.C1(Of Integer), p2 As M1.C1(Of Integer)) As M1.C1(Of Short)", "M1.C1(Of Integer)").WithLocation(19, 9),
+                Diagnostic(ERRID.ERR_ForLoopOperatorRequired2, "For i As C1(Of Integer) = 1 To 10").WithArguments("M1.C1(Of Integer)", "<=").WithLocation(19, 9),
+                Diagnostic(ERRID.ERR_ForLoopOperatorRequired2, "For i As C1(Of Integer) = 1 To 10").WithArguments("M1.C1(Of Integer)", ">=").WithLocation(19, 9),
+                Diagnostic(ERRID.HDN_UnusedImportStatement, "Imports System").WithLocation(1, 1))
+            comp.VerifyAnalyzerDiagnostics({New ForLoopConditionCrashVBTestAnalyzer}, Nothing, Nothing, False,
+                Diagnostic(ForLoopConditionCrashVBTestAnalyzer.ForLoopConditionCrashDescriptor.Id, "Moo").WithLocation(38, 24),
+                Diagnostic(ForLoopConditionCrashVBTestAnalyzer.ForLoopConditionCrashDescriptor.Id, "Boo").WithLocation(41, 24),
+                Diagnostic(ForLoopConditionCrashVBTestAnalyzer.ForLoopConditionCrashDescriptor.Id, "10").WithLocation(19, 40))
+        End Sub
+
+        <WorkItem(9012, "https://github.com/dotnet/roslyn/issues/9012")>
+        <Fact>
+        Public Sub InvalidEventInstanceVisualBasic()
+            Dim source = <compilation>
+                             <file name="c.vb">
+                                 <![CDATA[
+Imports System
+Imports System.Collections.Generic
+
+Module Program
+    Sub Main(args As String())
+        AddHandler Function(ByVal x) x
+    End Sub
+End Module
+
+Class TestClass
+
+    Event TestEvent As Action
+
+    Shared Sub Test(receiver As TestClass)
+        AddHandler receiver?.TestEvent, AddressOf Main
+    End Sub
+
+    Shared Sub Main()
+    End Sub
+End Class
+
+Module Module1
+    Sub Main()
+        Dim x = {Iterator sub() yield, new object}
+        Dim y = {Iterator sub() yield 1, Iterator sub() yield, new object}
+        Dim z = {Sub() AddHandler, New Object}
+        g0(Iterator sub() Yield)
+        g1(Iterator Sub() Yield, 5)
+    End Sub
+
+    Sub g0(ByVal x As Func(Of IEnumerator))
+    End Sub
+    Sub g1(ByVal x As Func(Of IEnumerator), ByVal y As Integer)
+    End Sub
+
+    Iterator Function f() As IEnumerator
+        Yield
+    End Function
+End Module
+]]>
+                             </file>
+                         </compilation>
+
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
+            comp.VerifyDiagnostics(
+                Diagnostic(ERRID.ERR_ExpectedComma, "").WithLocation(6, 39),
+                Diagnostic(ERRID.ERR_ExpectedExpression, "").WithLocation(6, 39),
+                Diagnostic(ERRID.ERR_ExpectedExpression, "").WithLocation(24, 38),
+                Diagnostic(ERRID.ERR_ExpectedExpression, "").WithLocation(25, 62),
+                Diagnostic(ERRID.ERR_ExpectedExpression, "").WithLocation(26, 34),
+                Diagnostic(ERRID.ERR_ExpectedExpression, "").WithLocation(27, 32),
+                Diagnostic(ERRID.ERR_ExpectedExpression, "").WithLocation(28, 32),
+                Diagnostic(ERRID.ERR_ExpectedExpression, "").WithLocation(37, 14),
+                Diagnostic(ERRID.ERR_TooFewGenericArguments1, "IEnumerator").WithArguments("System.Collections.Generic.IEnumerator(Of Out T)").WithLocation(31, 31),
+                Diagnostic(ERRID.ERR_TooFewGenericArguments1, "IEnumerator").WithArguments("System.Collections.Generic.IEnumerator(Of Out T)").WithLocation(33, 31),
+                Diagnostic(ERRID.ERR_TooFewGenericArguments1, "IEnumerator").WithArguments("System.Collections.Generic.IEnumerator(Of Out T)").WithLocation(36, 30),
+                Diagnostic(ERRID.ERR_AddOrRemoveHandlerEvent, "receiver?.TestEvent").WithLocation(15, 20),
+                Diagnostic(ERRID.ERR_AddOrRemoveHandlerEvent, "Function(ByVal x) x").WithLocation(6, 20),
+                Diagnostic(ERRID.ERR_BadIteratorReturn, "sub").WithLocation(24, 27),
+                Diagnostic(ERRID.ERR_BadIteratorReturn, "sub").WithLocation(25, 27),
+                Diagnostic(ERRID.ERR_BadIteratorReturn, "sub").WithLocation(25, 51),
+                Diagnostic(ERRID.ERR_BadIteratorReturn, "sub").WithLocation(27, 21),
+                Diagnostic(ERRID.ERR_BadIteratorReturn, "Sub").WithLocation(28, 21),
+                Diagnostic(ERRID.HDN_UnusedImportStatement, "Imports System.Collections.Generic").WithLocation(2, 1))
+            comp.VerifyAnalyzerDiagnostics({New MemberReferenceAnalyzer}, Nothing, Nothing, False,
+                Diagnostic(MemberReferenceAnalyzer.HandlerAddedDescriptor.Id, "AddHandler, New Object").WithLocation(26, 24),
+                Diagnostic(MemberReferenceAnalyzer.InvalidEventDescriptor.Id, "AddHandler, New Object").WithLocation(26, 24),
+                Diagnostic(MemberReferenceAnalyzer.HandlerAddedDescriptor.Id, "AddHandler receiver?.TestEvent, AddressOf Main").WithLocation(15, 9),
+                Diagnostic(MemberReferenceAnalyzer.InvalidEventDescriptor.Id, "AddHandler receiver?.TestEvent, AddressOf Main").WithLocation(15, 9),
+                Diagnostic(MemberReferenceAnalyzer.HandlerAddedDescriptor.Id, "AddHandler Function(ByVal x) x").WithLocation(6, 9),
+                Diagnostic(MemberReferenceAnalyzer.InvalidEventDescriptor.Id, "AddHandler Function(ByVal x) x").WithLocation(6, 9))
+        End Sub
+
+        <Fact, WorkItem(9127, "https://github.com/dotnet/roslyn/issues/9127")>
+        Public Sub UnaryTrueFalseOperationVisualBasic()
+            ' BoundCaseStatement is OperationKind.None
+            Dim source = <compilation>
+                             <file name="c.vb">
+                                 <![CDATA[
+Module Module1
+    Structure S8
+        Public Shared Narrowing Operator CType(x As S8) As Boolean
+            System.Console.WriteLine("Narrowing Operator CType(x As S8) As Boolean")
+            Return Nothing
+        End Operator
+
+        Public Shared Operator IsTrue(x As S8) As Boolean
+            System.Console.WriteLine("IsTrue(x As S8) As Boolean")
+            Return False
+        End Operator
+
+        Public Shared Operator IsFalse(x As S8) As Boolean
+            System.Console.WriteLine("IsFalse(x As S8) As Boolean")
+            Return False
+        End Operator
+
+        Public Shared Operator And(x As S8, y As S8) As S8
+            Return New S8()
+        End Operator
+    End Structure
+
+    Sub Main()
+        Dim x As New S8
+        Dim y As New S8
+
+        If x Then 'BIND1:"x"
+            System.Console.WriteLine("If")
+        Else
+            System.Console.WriteLine("Else")
+        End If
+
+        If x AndAlso y Then
+
+        End If
+    End Sub
+End Module
+]]>
+                             </file>
+                         </compilation>
+
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
+            comp.VerifyDiagnostics()
+            comp.VerifyAnalyzerDiagnostics({New TrueFalseUnaryOperationTestAnalyzer}, Nothing, Nothing, False,
+                Diagnostic(TrueFalseUnaryOperationTestAnalyzer.UnaryTrueDescriptor.Id, "x").WithLocation(27, 12),
+                Diagnostic(TrueFalseUnaryOperationTestAnalyzer.UnaryTrueDescriptor.Id, "x AndAlso y").WithLocation(33, 12))
+        End Sub
+
+        <WorkItem(9202, "https://github.com/dotnet/roslyn/issues/9202")>
+        <Fact>
+        Public Sub IOperationFeatureFlagVisualBasic()
+            Dim source = <compilation>
+                             <file name="c.vb">
+                                 <![CDATA[
+Class C
+    Sub M()
+        Dim a = 1
+    End Sub
+End Class
+]]>
+                             </file>
+                         </compilation>
+
+            ' with IOperation disabled (by default), public methods
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            comp.VerifyAnalyzerDiagnostics({New AnalysisContextAnalyzer}, Nothing, Nothing, True,
+                Diagnostic("AD0001").WithArguments("Microsoft.CodeAnalysis.UnitTests.Diagnostics.AnalysisContextAnalyzer", "System.InvalidOperationException", "Feature 'IOperation' is disabled.").WithLocation(1, 1))
+
+            comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            comp.VerifyAnalyzerDiagnostics({New CompilationStartAnalysisContextAnalyzer}, Nothing, Nothing, True,
+                Diagnostic("AD0001").WithArguments("Microsoft.CodeAnalysis.UnitTests.Diagnostics.CompilationStartAnalysisContextAnalyzer", "System.InvalidOperationException", "Feature 'IOperation' is disabled.").WithLocation(1, 1))
+
+            comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            comp.VerifyAnalyzerDiagnostics({New SemanticModelAnalyzer}, Nothing, Nothing, True,
+                Diagnostic("AD0001").WithArguments("Microsoft.CodeAnalysis.UnitTests.Diagnostics.SemanticModelAnalyzer", "System.InvalidOperationException", "Feature 'IOperation' is disabled.").WithLocation(1, 1))
+
+            ' with IOperation disabled (by default), internal methods
+            comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            comp.VerifyAnalyzerDiagnostics({New AnalysisContextInternalAnalyzer}, Nothing, Nothing, False,
+                Diagnostic(AnalysisContextInternalAnalyzer.OperationActionInternalDescriptor.Id, "1").WithArguments("Operation", "Analysis").WithLocation(3, 17))
+
+            comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            comp.VerifyAnalyzerDiagnostics({New CompilationStartAnalysisContextInternalAnalyzer}, Nothing, Nothing, False,
+                Diagnostic(CompilationStartAnalysisContextInternalAnalyzer.OperationActionInternalDescriptor.Id, "1").WithArguments("Operation", "CompilationStart within Analysis").WithLocation(3, 17))
+
+            comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            comp.VerifyAnalyzerDiagnostics({New SemanticModelInternalAnalyzer}, Nothing, Nothing, False,
+                Diagnostic(SemanticModelInternalAnalyzer.GetOperationInternalDescriptor.Id, "1").WithLocation(3, 17))
+
+            ' with IOperation enabled, public methods
+            comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
+            comp.VerifyAnalyzerDiagnostics({New AnalysisContextAnalyzer}, Nothing, Nothing, False,
+                Diagnostic(AnalysisContextAnalyzer.OperationActionDescriptor.Id, "1").WithArguments("Operation", "Analysis").WithLocation(3, 17))
+
+            comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
+            comp.VerifyAnalyzerDiagnostics({New CompilationStartAnalysisContextAnalyzer}, Nothing, Nothing, False,
+                Diagnostic(CompilationStartAnalysisContextAnalyzer.OperationActionDescriptor.Id, "1").WithArguments("Operation", "CompilationStart within Analysis").WithLocation(3, 17))
+
+            comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
+            comp.VerifyAnalyzerDiagnostics({New SemanticModelAnalyzer}, Nothing, Nothing, False,
+                Diagnostic(SemanticModelAnalyzer.GetOperationDescriptor.Id, "1").WithLocation(3, 17))
+
+            ' with IOperation enabled, internal methods
+            comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
+            comp.VerifyAnalyzerDiagnostics({New AnalysisContextInternalAnalyzer}, Nothing, Nothing, False,
+                Diagnostic(AnalysisContextInternalAnalyzer.OperationActionInternalDescriptor.Id, "1").WithArguments("Operation", "Analysis").WithLocation(3, 17))
+
+            comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
+            comp.VerifyAnalyzerDiagnostics({New CompilationStartAnalysisContextInternalAnalyzer}, Nothing, Nothing, False,
+                Diagnostic(CompilationStartAnalysisContextInternalAnalyzer.OperationActionInternalDescriptor.Id, "1").WithArguments("Operation", "CompilationStart within Analysis").WithLocation(3, 17))
+
+            comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
+            comp.VerifyAnalyzerDiagnostics({New SemanticModelInternalAnalyzer}, Nothing, Nothing, False,
+                Diagnostic(SemanticModelInternalAnalyzer.GetOperationInternalDescriptor.Id, "1").WithLocation(3, 17))
         End Sub
     End Class
 End Namespace

@@ -1,9 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
 using System.Globalization;
 using System.IO;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
@@ -88,60 +90,62 @@ public class C
       ""results"": [
         {{
           ""ruleId"": ""CS0169"",
-          ""kind"": ""warning"",
+          ""level"": ""warning"",
+          ""message"": ""The field 'C.x' is never used"",
           ""locations"": [
             {{
-              ""analysisTarget"": [
-                {{
-                  ""uri"": ""{0}"",
-                  ""region"": {{
-                    ""startLine"": 4,
-                    ""startColumn"": 17,
-                    ""endLine"": 4,
-                    ""endColumn"": 18
-                  }}
+              ""resultFile"": {{
+                ""uri"": ""{0}"",
+                ""region"": {{
+                  ""startLine"": 4,
+                  ""startColumn"": 17,
+                  ""endLine"": 4,
+                  ""endColumn"": 18
                 }}
-              ]
+              }}
             }}
           ],
-          ""fullMessage"": ""The field 'C.x' is never used"",
-          ""isSuppressedInSource"": false,
-          ""tags"": [
-            ""Compiler"",
-            ""Telemetry""
-          ],
           ""properties"": {{
-            ""severity"": ""Warning"",
-            ""warningLevel"": ""3"",
-            ""defaultSeverity"": ""Warning"",
-            ""title"": ""Field is never used"",
-            ""category"": ""Compiler"",
-            ""isEnabledByDefault"": ""True""
+            ""warningLevel"": 3
           }}
         }},
         {{
           ""ruleId"": ""CS5001"",
-          ""kind"": ""error"",
-          ""locations"": [
-          ],
-          ""fullMessage"": ""Program does not contain a static 'Main' method suitable for an entry point"",
-          ""isSuppressedInSource"": false,
-          ""tags"": [
-            ""Compiler"",
-            ""Telemetry"",
-            ""NotConfigurable""
-          ],
+          ""level"": ""error"",
+          ""message"": ""Program does not contain a static 'Main' method suitable for an entry point""
+        }}
+      ],
+      ""rules"": {{
+        ""CS0169"": {{
+          ""id"": ""CS0169"",
+          ""shortDescription"": ""Field is never used"",
+          ""defaultLevel"": ""warning"",
           ""properties"": {{
-            ""severity"": ""Error"",
-            ""defaultSeverity"": ""Error"",
             ""category"": ""Compiler"",
-            ""isEnabledByDefault"": ""True""
+            ""isEnabledByDefault"": true,
+            ""tags"": [
+              ""Compiler"",
+              ""Telemetry""
+            ]
+          }}
+        }},
+        ""CS5001"": {{
+          ""id"": ""CS5001"",
+          ""defaultLevel"": ""error"",
+          ""properties"": {{
+            ""category"": ""Compiler"",
+            ""isEnabledByDefault"": true,
+            ""tags"": [
+              ""Compiler"",
+              ""Telemetry"",
+              ""NotConfigurable""
+            ]
           }}
         }}
-      ]
+      }}
     }}
   ]
-}}", AnalyzerForErrorLogTest.GetEscapedUriForPath(sourceFile));
+}}", AnalyzerForErrorLogTest.GetUriForPath(sourceFile));
 
             var expectedText = expectedHeader + expectedIssues;
             Assert.Equal(expectedText, actualOutput);
@@ -183,60 +187,65 @@ public class C
       ""results"": [
         {{
           ""ruleId"": ""CS0169"",
-          ""kind"": ""warning"",
+          ""level"": ""warning"",
+          ""message"": ""The field 'C.x' is never used"",
+          ""suppressionStates"": [
+            ""suppressedInSource""
+          ],
           ""locations"": [
             {{
-              ""analysisTarget"": [
-                {{
-                  ""uri"": ""{0}"",
-                  ""region"": {{
-                    ""startLine"": 5,
-                    ""startColumn"": 17,
-                    ""endLine"": 5,
-                    ""endColumn"": 18
-                  }}
+              ""resultFile"": {{
+                ""uri"": ""{0}"",
+                ""region"": {{
+                  ""startLine"": 5,
+                  ""startColumn"": 17,
+                  ""endLine"": 5,
+                  ""endColumn"": 18
                 }}
-              ]
+              }}
             }}
           ],
-          ""fullMessage"": ""The field 'C.x' is never used"",
-          ""isSuppressedInSource"": true,
-          ""tags"": [
-            ""Compiler"",
-            ""Telemetry""
-          ],
           ""properties"": {{
-            ""severity"": ""Warning"",
-            ""warningLevel"": ""3"",
-            ""defaultSeverity"": ""Warning"",
-            ""title"": ""Field is never used"",
-            ""category"": ""Compiler"",
-            ""isEnabledByDefault"": ""True""
+            ""warningLevel"": 3
           }}
         }},
         {{
           ""ruleId"": ""CS5001"",
-          ""kind"": ""error"",
-          ""locations"": [
-          ],
-          ""fullMessage"": ""Program does not contain a static 'Main' method suitable for an entry point"",
-          ""isSuppressedInSource"": false,
-          ""tags"": [
-            ""Compiler"",
-            ""Telemetry"",
-            ""NotConfigurable""
-          ],
+          ""level"": ""error"",
+          ""message"": ""Program does not contain a static 'Main' method suitable for an entry point""
+        }}
+      ],
+      ""rules"": {{
+        ""CS0169"": {{
+          ""id"": ""CS0169"",
+          ""shortDescription"": ""Field is never used"",
+          ""defaultLevel"": ""warning"",
           ""properties"": {{
-            ""severity"": ""Error"",
-            ""defaultSeverity"": ""Error"",
             ""category"": ""Compiler"",
-            ""isEnabledByDefault"": ""True""
+            ""isEnabledByDefault"": true,
+            ""tags"": [
+              ""Compiler"",
+              ""Telemetry""
+            ]
+          }}
+        }},
+        ""CS5001"": {{
+          ""id"": ""CS5001"",
+          ""defaultLevel"": ""error"",
+          ""properties"": {{
+            ""category"": ""Compiler"",
+            ""isEnabledByDefault"": true,
+            ""tags"": [
+              ""Compiler"",
+              ""Telemetry"",
+              ""NotConfigurable""
+            ]
           }}
         }}
-      ]
+      }}
     }}
   ]
-}}", AnalyzerForErrorLogTest.GetEscapedUriForPath(sourceFile));
+}}", AnalyzerForErrorLogTest.GetUriForPath(sourceFile));
 
             var expectedText = expectedHeader + expectedIssues;
             Assert.Equal(expectedText, actualOutput);
@@ -259,7 +268,7 @@ public class C
 
             var cmd = new MockCSharpCompiler(null, _baseDirectory, new[] {
                 "/nologo", "/t:library", $"/out:{outputFilePath}", sourceFile, "/preferreduilang:en", $"/errorlog:{errorLogFile}" },
-               analyzer: new AnalyzerForErrorLogTest());
+               analyzers: ImmutableArray.Create<DiagnosticAnalyzer>(new AnalyzerForErrorLogTest()));
 
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
 

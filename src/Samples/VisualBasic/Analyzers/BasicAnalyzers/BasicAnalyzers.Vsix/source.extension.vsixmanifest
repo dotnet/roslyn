@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
   <Metadata>
-    <Identity Id="BasicAnalyzers.Vsix..8f9b3bbb-1431-4f57-98bf-f387a0e68808" Version="1.0" Language="en-US" Publisher="mavasani"/>
+    <Identity Id="BasicAnalyzers.Vsix..8f9b3bbb-1431-4f57-98bf-f387a0e68808" Version="1.0" Language="en-US" Publisher="Microsoft"/>
     <DisplayName>BasicAnalyzers.Vsix</DisplayName>
     <Description xml:space="preserve">This is a sample diagnostic extension for the .NET Compiler Platform ("Roslyn").</Description>
   </Metadata>
@@ -18,4 +18,7 @@
     <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="BasicAnalyzers" Path="|BasicAnalyzers|"/>
     <Asset Type="Microsoft.VisualStudio.Analyzer" d:Source="Project" d:ProjectName="BasicAnalyzers" Path="|BasicAnalyzers|"/>
   </Assets>
+  <Prerequisites>
+    <Prerequisite Id="Microsoft.VisualStudio.Component.CoreEditor" Version="[15.0,16.0)" DisplayName="Visual Studio core editor" />
+  </Prerequisites>
 </PackageManifest>

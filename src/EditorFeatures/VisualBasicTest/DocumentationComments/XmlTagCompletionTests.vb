@@ -6,7 +6,6 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.DocumentationComments
 Imports Microsoft.VisualStudio.Text.Operations
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
-Imports System.Threading.Tasks
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.DocumentationComments
     Public Class XmlTagCompletionTests
@@ -16,12 +15,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.DocumentationComme
             Return New XmlTagCompletionCommandHandler(undoHistory, TestWaitIndicator.Default)
         End Function
 
-        Protected Overrides Function CreateTestWorkspaceAsync(initialMarkup As String) As Task(Of TestWorkspace)
-            Return TestWorkspace.CreateVisualBasicAsync(initialMarkup)
+        Protected Overrides Function CreateTestWorkspace(initialMarkup As String) As TestWorkspace
+            Return TestWorkspace.CreateVisualBasic(initialMarkup)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.XmlTagCompletion)>
-        Public Async Function TestSimpleTagCompletion() As Task
+        Public Sub TestSimpleTagCompletion()
 
             Dim text = <File><![CDATA[
 ''' <foo$$
@@ -33,11 +32,11 @@ End Class]]></File>
 Class C 
 End Class]]></File>
 
-            Await VerifyAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), ">"c)
-        End Function
+            Verify(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), ">"c)
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.XmlTagCompletion)>
-        Public Async Function TestNestedTagCompletion() As Task
+        Public Sub TestNestedTagCompletion()
 
             Dim text = <File><![CDATA[
 ''' <summary>
@@ -53,11 +52,11 @@ End Class]]></File>
 Class C 
 End Class]]></File>
 
-            Await VerifyAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), ">"c)
-        End Function
+            Verify(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), ">"c)
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.XmlTagCompletion)>
-        Public Async Function TestCompleteBeforeIncompleteTag() As Task
+        Public Sub TestCompleteBeforeIncompleteTag()
 
             Dim text = <File><![CDATA[
 ''' <foo$$
@@ -71,11 +70,11 @@ End Class]]></File>
 Class C 
 End Class]]></File>
 
-            Await VerifyAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), ">"c)
-        End Function
+            Verify(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), ">"c)
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.XmlTagCompletion)>
-        Public Async Function TestNotEmptyElement() As Task
+        Public Sub TestNotEmptyElement()
 
             Dim text = <File><![CDATA[
 ''' <$$
@@ -87,11 +86,11 @@ End Class]]></File>
 Class C 
 End Class]]></File>
 
-            Await VerifyAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), ">"c)
-        End Function
+            Verify(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), ">"c)
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.XmlTagCompletion)>
-        Public Async Function TestNotAlreadyCompleteTag() As Task
+        Public Sub TestNotAlreadyCompleteTag()
 
             Dim text = <File><![CDATA[
 ''' <foo$$</foo>
@@ -103,11 +102,11 @@ End Class]]></File>
 Class C 
 End Class]]></File>
 
-            Await VerifyAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), ">"c)
-        End Function
+            Verify(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), ">"c)
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.XmlTagCompletion)>
-        Public Async Function TestNotAlreadyCompleteTag2() As Task
+        Public Sub TestNotAlreadyCompleteTag2()
 
             Dim text = <File><![CDATA[
 ''' <foo$$
@@ -123,11 +122,11 @@ End Class]]></File>
 Class C 
 End Class]]></File>
 
-            Await VerifyAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), ">"c)
-        End Function
+            Verify(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), ">"c)
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.XmlTagCompletion)>
-        Public Async Function TestNotOutsideDocComment() As Task
+        Public Sub TestNotOutsideDocComment()
 
             Dim text = <File><![CDATA[
 Class C
@@ -139,12 +138,12 @@ Class C
     DIm z = <foo>$$
 End Class]]></File>
 
-            Await VerifyAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), ">"c)
-        End Function
+            Verify(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), ">"c)
+        End Sub
 
         <WorkItem(638235, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638235")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.XmlTagCompletion)>
-        Public Async Function TestNotCloseClosedTag() As Task
+        Public Sub TestNotCloseClosedTag()
             Dim text = <File><![CDATA[
 ''' <summary>
 ''' <$$
@@ -159,7 +158,7 @@ End Class]]></File>
 Class C 
 End Class]]></File>
 
-            Await VerifyAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), "/"c)
-        End Function
+            Verify(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), "/"c)
+        End Sub
     End Class
 End Namespace

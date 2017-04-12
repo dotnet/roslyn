@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
     /// that holds on to a <see cref="CodeAction"/> and the set of
     /// <see cref="Diagnostic"/>s that this <see cref="CodeAction"/> will fix.
     /// </summary>
-    internal class CodeFix
+    internal sealed class CodeFix
     {
         internal readonly Project Project;
         internal readonly CodeAction Action;
@@ -34,13 +34,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// in the future, if we decide to change the UI to depict the true mapping between fixes and diagnostics
         /// or if we decide to use some other heuristic to determine the <see cref="PrimaryDiagnostic"/>.
         /// </remarks>
-        internal Diagnostic PrimaryDiagnostic
-        {
-            get
-            {
-                return Diagnostics[0];
-            }
-        }
+        internal Diagnostic PrimaryDiagnostic => Diagnostics[0];
 
         internal CodeFix(Project project, CodeAction action, Diagnostic diagnostic)
         {

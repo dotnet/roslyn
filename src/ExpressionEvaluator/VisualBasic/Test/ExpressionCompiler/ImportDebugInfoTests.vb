@@ -1,21 +1,18 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
-Imports System.IO
 Imports System.Reflection
-Imports System.Reflection.Metadata
-Imports System.Reflection.Metadata.Ecma335
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.CodeGen
+Imports Microsoft.CodeAnalysis.Debugging
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests
-Imports Microsoft.DiaSymReader
-Imports Roslyn.Test.PdbUtilities
 Imports Roslyn.Test.Utilities
+Imports Roslyn.Utilities
 Imports Xunit
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.UnitTests
@@ -205,42 +202,50 @@ End Namespace
 
         <Fact>
         Public Sub BadPdb_ForwardChain()
-            Const methodVersion = 1
             Const methodToken1 = &H600057A ' Forwards to 2
             Const methodToken2 = &H600055D ' Forwards to 3
             Const methodToken3 = &H6000540 ' Has an import
             Const importString = "@F:System"
 
-            Dim reader As ISymUnmanagedReader = New MockSymUnmanagedReader(
-                            New Dictionary(Of Integer, MethodDebugInfoBytes)() From
-                            {
-                                {methodToken1, New MethodDebugInfoBytes.Builder({({"@" & methodToken2})}).Build()},
-                                {methodToken2, New MethodDebugInfoBytes.Builder({({"@" & methodToken3})}).Build()},
-                                {methodToken3, New MethodDebugInfoBytes.Builder({({importString})}).Build()}
-                            }.ToImmutableDictionary())
+            Dim getMethodImportStrings =
+                Function(token As Integer, arg As Integer)
+                    Select Case token
+                        Case methodToken1
+                            Return ImmutableArray.Create("@" & methodToken2)
+                        Case methodToken2
+                            Return ImmutableArray.Create("@" & methodToken3)
+                        Case methodToken3
+                            Return ImmutableArray.Create(importString)
+                        Case Else
+                            Throw ExceptionUtilities.Unreachable
+                    End Select
+                End Function
 
-            Dim importStrings = reader.GetVisualBasicImportStrings(methodToken1, methodVersion)
+            Dim importStrings = CustomDebugInfoReader.GetVisualBasicImportStrings(methodToken1, 0, getMethodImportStrings)
             Assert.Equal("@" & methodToken3, importStrings.Single())
 
-            importStrings = reader.GetVisualBasicImportStrings(methodToken2, methodVersion)
+            importStrings = CustomDebugInfoReader.GetVisualBasicImportStrings(methodToken2, 0, getMethodImportStrings)
             Assert.Equal(importString, importStrings.Single())
 
-            importStrings = reader.GetVisualBasicImportStrings(methodToken3, methodVersion)
+            importStrings = CustomDebugInfoReader.GetVisualBasicImportStrings(methodToken3, 0, getMethodImportStrings)
             Assert.Equal(importString, importStrings.Single())
         End Sub
 
         <Fact>
         Public Sub BadPdb_ForwardCycle()
-            Const methodVersion = 1
             Const methodToken1 = &H600057A ' Forwards to itself
 
-            Dim reader As ISymUnmanagedReader = New MockSymUnmanagedReader(
-                            New Dictionary(Of Integer, MethodDebugInfoBytes)() From
-                            {
-                                {methodToken1, New MethodDebugInfoBytes.Builder({({"@" & methodToken1})}).Build()}
-                            }.ToImmutableDictionary())
+            Dim getMethodImportStrings =
+              Function(token As Integer, arg As Integer)
+                  Select Case token
+                      Case methodToken1
+                          Return ImmutableArray.Create("@" & methodToken1)
+                      Case Else
+                          Throw ExceptionUtilities.Unreachable
+                  End Select
+              End Function
 
-            Dim importStrings = reader.GetVisualBasicImportStrings(methodToken1, methodVersion)
+            Dim importStrings = CustomDebugInfoReader.GetVisualBasicImportStrings(methodToken1, 0, getMethodImportStrings)
             Assert.Equal("@" & methodToken1, importStrings.Single())
         End Sub
 
@@ -318,34 +323,40 @@ End Class
 
         <Fact>
         Public Sub OldPdb_EmbeddedPIA()
-            Const methodVersion = 1
             Const methodToken = &H6000540 ' Has an import
             Const importString = "&MyPia"
 
-            Dim reader As ISymUnmanagedReader = New MockSymUnmanagedReader(
-                            New Dictionary(Of Integer, MethodDebugInfoBytes)() From
-                            {
-                                {methodToken, New MethodDebugInfoBytes.Builder({({importString})}).Build()}
-                            }.ToImmutableDictionary())
+            Dim getMethodImportStrings =
+                Function(token As Integer, arg As Integer)
+                    Select Case token
+                        Case methodToken
+                            Return ImmutableArray.Create(importString)
+                        Case Else
+                            Throw ExceptionUtilities.Unreachable
+                    End Select
+                End Function
 
-            Dim importStrings = reader.GetVisualBasicImportStrings(methodToken, methodVersion)
+            Dim importStrings = CustomDebugInfoReader.GetVisualBasicImportStrings(methodToken, 0, getMethodImportStrings)
             Assert.Equal(importString, importStrings.Single())
         End Sub
 
         <Fact>
         Public Sub OldPdb_DefunctKinds()
-            Const methodVersion = 1
             Const methodToken = &H6000540 ' Has an import
             Const importString1 = "#NotSureWhatGoesHere"
             Const importString2 = "$NotSureWhatGoesHere"
 
-            Dim reader As ISymUnmanagedReader = New MockSymUnmanagedReader(
-                            New Dictionary(Of Integer, MethodDebugInfoBytes)() From
-                            {
-                                {methodToken, New MethodDebugInfoBytes.Builder({({importString1, importString2})}).Build()}
-                            }.ToImmutableDictionary())
+            Dim getMethodImportStrings =
+                Function(token As Integer, arg As Integer)
+                    Select Case token
+                        Case methodToken
+                            Return ImmutableArray.Create(importString1, importString2)
+                        Case Else
+                            Throw ExceptionUtilities.Unreachable
+                    End Select
+                End Function
 
-            Dim importStrings = reader.GetVisualBasicImportStrings(methodToken, methodVersion)
+            Dim importStrings = CustomDebugInfoReader.GetVisualBasicImportStrings(methodToken, 0, getMethodImportStrings)
             AssertEx.Equal(importStrings, {importString1, importString2})
         End Sub
 

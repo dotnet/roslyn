@@ -11,7 +11,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend Class Analyzer
 
         ''' <summary>
-        ''' Analyses method body for error conditions such as definite assignments, unreachable code etc...
+        ''' Analyzes method body for error conditions such as definite assignments, unreachable code etc...
         ''' 
         ''' This analysis is done when doing the full compile or when responding to GetCompileDiagnostics.
         ''' This method assume that the trees are already bound and will not do any rewriting/lowering

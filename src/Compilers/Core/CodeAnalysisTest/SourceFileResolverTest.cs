@@ -4,6 +4,7 @@ using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using System;
 using System.Collections.Immutable;
+using System.IO;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests
@@ -14,7 +15,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void IncorrectPathmaps()
         {
             string isABaseDirectory;
-            if (PortableShim.Path.DirectorySeparatorChar == '/')
+            if (Path.DirectorySeparatorChar == '/')
             {
                 isABaseDirectory = "/";
             }

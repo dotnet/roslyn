@@ -231,7 +231,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <remarks>
         /// Forces binding and decoding of attributes.
         /// </remarks>
-        internal FieldWellKnownAttributeData GetDecodedWellKnownAttributeData()
+        protected FieldWellKnownAttributeData GetDecodedWellKnownAttributeData()
         {
             var attributesBag = _lazyCustomAttributesBag;
             if (attributesBag == null || !attributesBag.IsDecodedWellKnownAttributeDataComputed)
@@ -362,6 +362,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 VerifyConstantValueMatches(attribute.DecodeDecimalConstantValue(), ref arguments);
             }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.TupleElementNamesAttribute))
+            {
+                arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitTupleElementNamesAttribute, arguments.AttributeSyntaxOpt.Location);
+            }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.NullableOptOutAttribute))
             {
                 arguments.GetOrCreateData<FieldWellKnownAttributeData>().NullableOptOut = attribute.GetConstructorArgument<bool>(0, SpecialType.System_Boolean);
@@ -464,12 +468,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             base.AddSynthesizedAttributes(compilationState, ref attributes);
 
-            TypeSymbolWithAnnotations type = this.Type;
+            var type = this.Type;
 
             if (type.TypeSymbol.ContainsDynamic())
             {
-                var compilation = this.DeclaringCompilation;
-                AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(type.TypeSymbol, type.CustomModifiers.Length));
+                AddSynthesizedAttribute(ref attributes, 
+                    DeclaringCompilation.SynthesizeDynamicAttribute(type.TypeSymbol, type.CustomModifiers.Length));
+            }
+
+            if (type.TypeSymbol.ContainsTupleNames())
+            {
+                AddSynthesizedAttribute(ref attributes,
+                    DeclaringCompilation.SynthesizeTupleNamesAttribute(type.TypeSymbol));
             }
 
             if (type.ContainsNullableReferenceTypes())
@@ -755,7 +765,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     Console.WriteLine("Thread {0}, Field {1}, StartsCycle {2}", Thread.CurrentThread.ManagedThreadId, this, startsCycle);
 #endif
                     this.AddDeclarationDiagnostics(diagnostics);
-                    this.state.NotePartComplete(CompletionPart.ConstantValue);
+                    // CompletionPart.ConstantValue is the last part for a field
+                    DeclaringCompilation.SymbolDeclaredEvent(this);
+                    var wasSetThisThread = this.state.NotePartComplete(CompletionPart.ConstantValue);
+                    Debug.Assert(wasSetThisThread);
                 }
             }
         }

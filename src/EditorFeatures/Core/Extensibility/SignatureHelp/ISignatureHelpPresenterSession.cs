@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using Microsoft.CodeAnalysis.SignatureHelp;
 using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.CodeAnalysis.Editor
@@ -13,5 +14,7 @@ namespace Microsoft.CodeAnalysis.Editor
         void SelectNextItem();
 
         event EventHandler<SignatureHelpItemEventArgs> ItemSelected;
+
+        bool EditorSessionIsActive { get; }
     }
 }

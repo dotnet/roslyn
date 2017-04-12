@@ -5,12 +5,14 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Security;
+using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.GeneratedCodeRecognition;
 using Microsoft.CodeAnalysis.GenerateType;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.ProjectManagement;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Roslyn.Utilities;
@@ -23,7 +25,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
         private INotificationService _notificationService;
         private IProjectManagementService _projectManagementService;
         private ISyntaxFactsService _syntaxFactsService;
-        private IGeneratedCodeRecognitionService _generatedCodeService;
         private GenerateTypeDialogOptions _generateTypeDialogOptions;
         private string _typeName;
         private bool _isNewFile;
@@ -240,20 +241,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
                 // Case : \\Something
                 if (trimmedFileName.StartsWith(@"\\", StringComparison.Ordinal))
                 {
-                    SendFailureNotification(ServicesVSResources.IllegalCharactersInPath);
+                    SendFailureNotification(ServicesVSResources.Illegal_characters_in_path);
                     return false;
                 }
 
                 // Case : something\
                 if (string.IsNullOrWhiteSpace(trimmedFileName) || trimmedFileName.EndsWith(@"\", StringComparison.Ordinal))
                 {
-                    SendFailureNotification(ServicesVSResources.PathCannotHaveEmptyFileName);
+                    SendFailureNotification(ServicesVSResources.Path_cannot_have_empty_filename);
                     return false;
                 }
 
                 if (trimmedFileName.IndexOfAny(Path.GetInvalidPathChars()) >= 0)
                 {
-                    SendFailureNotification(ServicesVSResources.IllegalCharactersInPath);
+                    SendFailureNotification(ServicesVSResources.Illegal_characters_in_path);
                     return false;
                 }
 
@@ -263,14 +264,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
                 // Construct the implicit file path
                 if (isRootOfTheProject || this.SelectedProject != _document.Project)
                 {
-                    if (!TryGetImplicitFilePath(this.SelectedProject.FilePath ?? string.Empty, ServicesVSResources.IllegalPathForProject, out implicitFilePath))
+                    if (!TryGetImplicitFilePath(this.SelectedProject.FilePath ?? string.Empty, ServicesVSResources.Project_Path_is_illegal, out implicitFilePath))
                     {
                         return false;
                     }
                 }
                 else
                 {
-                    if (!TryGetImplicitFilePath(_document.FilePath, ServicesVSResources.IllegalPathForDocument, out implicitFilePath))
+                    if (!TryGetImplicitFilePath(_document.FilePath, ServicesVSResources.DocumentPath_is_illegal, out implicitFilePath))
                     {
                         return false;
                     }
@@ -325,7 +326,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
                 {
                     projectRootPath = string.Empty;
                 }
-                else if (!TryGetImplicitFilePath(this.SelectedProject.FilePath, ServicesVSResources.IllegalPathForProject, out projectRootPath))
+                else if (!TryGetImplicitFilePath(this.SelectedProject.FilePath, ServicesVSResources.Project_Path_is_illegal, out projectRootPath))
                 {
                     return false;
                 }
@@ -356,7 +357,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
                     }
                     else
                     {
-                        SendFailureNotification(ServicesVSResources.IllegalCharactersInPath);
+                        SendFailureNotification(ServicesVSResources.Illegal_characters_in_path);
                         return false;
                     }
                 }
@@ -368,7 +369,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
                     var lastIndexOfSeparator = this.FullFilePath.LastIndexOf('\\');
                     if (lastIndexOfSeparator == -1)
                     {
-                        SendFailureNotification(ServicesVSResources.IllegalCharactersInPath);
+                        SendFailureNotification(ServicesVSResources.Illegal_characters_in_path);
                         return false;
                     }
 
@@ -378,7 +379,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
                 // Check for reserved words in the folder or filename
                 if (this.FullFilePath.Split(new[] { '\\' }, StringSplitOptions.RemoveEmptyEntries).Any(s => _reservedKeywords.Contains(s, StringComparer.OrdinalIgnoreCase)))
                 {
-                    SendFailureNotification(ServicesVSResources.FilePathCannotUseReservedKeywords);
+                    SendFailureNotification(ServicesVSResources.File_path_cannot_use_reserved_keywords);
                     return false;
                 }
 
@@ -389,7 +390,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
                      this.SelectedProject.Documents.Where(n => n.Name != null && n.Folders.Count > 0 && n.Name == this.FileName && this.Folders.SequenceEqual(n.Folders)).Any()) ||
                      File.Exists(FullFilePath))
                 {
-                    SendFailureNotification(ServicesVSResources.FileAlreadyExists);
+                    SendFailureNotification(ServicesVSResources.File_already_exists);
                     return false;
                 }
             }
@@ -507,45 +508,43 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
 
         private Project _previouslyPopulatedProject = null;
         private List<DocumentSelectItem> _previouslyPopulatedDocumentList = null;
-        public IEnumerable<DocumentSelectItem> DocumentList
+
+        public IEnumerable<DocumentSelectItem> GetDocumentList(CancellationToken cancellationToken)
         {
-            get
+            if (_previouslyPopulatedProject == _selectedProject)
             {
-                if (_previouslyPopulatedProject == _selectedProject)
-                {
-                    return _previouslyPopulatedDocumentList;
-                }
-
-                _previouslyPopulatedProject = _selectedProject;
-                _previouslyPopulatedDocumentList = new List<DocumentSelectItem>();
-
-                // Check for the current project
-                if (_selectedProject == _document.Project)
-                {
-                    // populate the current document
-                    _previouslyPopulatedDocumentList.Add(new DocumentSelectItem(_document, "<Current File>"));
-
-                    // Set the initial selected Document
-                    this.SelectedDocument = _document;
-
-                    // Populate the rest of the documents for the project
-                    _previouslyPopulatedDocumentList.AddRange(_document.Project.Documents
-                        .Where(d => d != _document && !_generatedCodeService.IsGeneratedCode(d))
-                        .Select(d => new DocumentSelectItem(d)));
-                }
-                else
-                {
-                    _previouslyPopulatedDocumentList.AddRange(_selectedProject.Documents
-                        .Where(d => !_generatedCodeService.IsGeneratedCode(d))
-                        .Select(d => new DocumentSelectItem(d)));
-
-                    this.SelectedDocument = _selectedProject.Documents.FirstOrDefault();
-                }
-
-                this.IsExistingFileEnabled = _previouslyPopulatedDocumentList.Count == 0 ? false : true;
-                this.IsNewFile = this.IsExistingFileEnabled ? this.IsNewFile : true;
                 return _previouslyPopulatedDocumentList;
             }
+
+            _previouslyPopulatedProject = _selectedProject;
+            _previouslyPopulatedDocumentList = new List<DocumentSelectItem>();
+
+            // Check for the current project
+            if (_selectedProject == _document.Project)
+            {
+                // populate the current document
+                _previouslyPopulatedDocumentList.Add(new DocumentSelectItem(_document, "<Current File>"));
+
+                // Set the initial selected Document
+                this.SelectedDocument = _document;
+
+                // Populate the rest of the documents for the project
+                _previouslyPopulatedDocumentList.AddRange(_document.Project.Documents
+                    .Where(d => d != _document && !d.IsGeneratedCode(cancellationToken))
+                    .Select(d => new DocumentSelectItem(d)));
+            }
+            else
+            {
+                _previouslyPopulatedDocumentList.AddRange(_selectedProject.Documents
+                    .Where(d => !d.IsGeneratedCode(cancellationToken))
+                    .Select(d => new DocumentSelectItem(d)));
+
+                this.SelectedDocument = _selectedProject.Documents.FirstOrDefault();
+            }
+
+            this.IsExistingFileEnabled = _previouslyPopulatedDocumentList.Count == 0 ? false : true;
+            this.IsNewFile = this.IsExistingFileEnabled ? this.IsNewFile : true;
+            return _previouslyPopulatedDocumentList;
         }
 
         private bool _isExistingFileEnabled = true;
@@ -723,7 +722,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
             INotificationService notificationService,
             IProjectManagementService projectManagementService,
             ISyntaxFactsService syntaxFactsService,
-            IGeneratedCodeRecognitionService generatedCodeService,
             GenerateTypeDialogOptions generateTypeDialogOptions,
             string typeName,
             string fileExtension,
@@ -759,20 +757,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
             this.SelectedProject = document.Project;
             this.SelectedDocument = document;
             _notificationService = notificationService;
-            _generatedCodeService = generatedCodeService;
 
-            this.AccessList = document.Project.Language == LanguageNames.CSharp ?
-                                _csharpAccessList :
-                                _visualBasicAccessList;
-            this.AccessSelectIndex = this.AccessList.Contains(accessSelectString) ?
-                                        this.AccessList.IndexOf(accessSelectString) : 0;
+            this.AccessList = document.Project.Language == LanguageNames.CSharp
+                ? _csharpAccessList 
+                : _visualBasicAccessList;
+            this.AccessSelectIndex = this.AccessList.Contains(accessSelectString) 
+                ? this.AccessList.IndexOf(accessSelectString) : 0;
             this.IsAccessListEnabled = true;
 
-            this.KindList = document.Project.Language == LanguageNames.CSharp ?
-                                _csharpTypeKindList :
-                                _visualBasicTypeKindList;
-            this.KindSelectIndex = this.KindList.Contains(typeKindSelectString) ?
-                                    this.KindList.IndexOf(typeKindSelectString) : 0;
+            this.KindList = document.Project.Language == LanguageNames.CSharp
+                ? _csharpTypeKindList 
+                : _visualBasicTypeKindList;
+            this.KindSelectIndex = this.KindList.Contains(typeKindSelectString)
+                ? this.KindList.IndexOf(typeKindSelectString) : 0;
 
             this.ProjectSelectIndex = 0;
             this.DocumentSelectIndex = 0;

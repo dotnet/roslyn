@@ -4462,19 +4462,49 @@ End Module]]>.Value.Replace("~"c, FULLWIDTH_COLON))
     End Sub
 
     <WorkItem(969980, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/969980")>
-    <Fact(Skip:="969980")>
+    <WorkItem(123533, "https://devdiv.visualstudio.com/defaultcollection/DevDiv/_workitems?_a=edit&id=123533")>
+    <Fact>
     Public Sub UnaliasedXmlImport_Local()
         Dim source = "
 Imports <xmlns = ""http://xml"">
 "
-        CreateCompilationWithMscorlib({source}, options:=TestOptions.ReleaseDll).VerifyDiagnostics(
-            Diagnostic(ERRID.HDN_UnusedImportStatement, "Imports <xmlns = ""http://xml"">").WithLocation(2, 1))
+        Dim compilation = CreateCompilationWithMscorlib({source}, options:=TestOptions.ReleaseDll)
+
+        Const bug123533IsFixed = False
+
+        If bug123533IsFixed Then
+            compilation.AssertTheseDiagnostics(<expected><![CDATA[
+BC50001: Unused import statement.
+Imports <xmlns = "http://xml">
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                                               ]]></expected>, False)
+        Else
+            compilation.AssertTheseDiagnostics(<expected><![CDATA[
+BC50001: Unused import statement.
+Imports <xmlns = "http://xml">
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC31187: Namespace declaration must start with 'xmlns'.
+Imports <xmlns = "http://xml">
+         ~
+BC30636: '>' expected.
+Imports <xmlns = "http://xml">
+         ~~~~~
+                                               ]]></expected>, False)
+        End If
     End Sub
 
     <WorkItem(969980, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/969980")>
-    <Fact(Skip:="969980")>
+    <WorkItem(123533, "https://devdiv.visualstudio.com/defaultcollection/DevDiv/_workitems?_a=edit&id=123533")>
+    <Fact>
     Public Sub UnaliasedXmlImport_Project()
-        CreateCompilationWithMscorlib({""}, options:=TestOptions.ReleaseDll.WithGlobalImports(GlobalImport.Parse("<xmlns = ""http://xml"">"))).VerifyDiagnostics()
+        Dim import = "<xmlns = ""http://xml"">"
+        Const bug123533IsFixed = False
+
+        If bug123533IsFixed Then
+            CreateCompilationWithMscorlib({""}, options:=TestOptions.ReleaseDll.WithGlobalImports(GlobalImport.Parse(import))).VerifyDiagnostics()
+        Else
+            Assert.Throws(Of ArgumentException)(Sub() GlobalImport.Parse(import))
+        End If
     End Sub
 
     <WorkItem(1042696, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1042696")>

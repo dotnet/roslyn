@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Collections.ObjectModel;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -103,6 +104,44 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 options: s_compilationOptions);
         }
 
+        internal static ReadOnlyCollection<byte> GetCustomTypeInfoPayload(
+            this CSharpCompilation compilation,
+            TypeSymbol type,
+            int customModifiersCount,
+            RefKind refKind)
+        {
+            return CustomTypeInfo.Encode(
+                GetDynamicTransforms(compilation, type, customModifiersCount, refKind),
+                GetTupleElementNames(compilation, type));
+        }
+
+        private static ReadOnlyCollection<byte> GetDynamicTransforms(
+            this CSharpCompilation compilation,
+            TypeSymbol type,
+            int customModifiersCount,
+            RefKind refKind)
+        {
+            var builder = ArrayBuilder<bool>.GetInstance();
+            CSharpCompilation.DynamicTransformsEncoder.Encode(type, customModifiersCount, refKind, builder, addCustomModifierFlags: true);
+            var bytes = builder.Count > 0 && compilation.HasDynamicEmitAttributes() ?
+                DynamicFlagsCustomTypeInfo.ToBytes(builder) :
+                null;
+            builder.Free();
+            return bytes;
+        }
+
+        private static ReadOnlyCollection<string> GetTupleElementNames(
+            this CSharpCompilation compilation,
+            TypeSymbol type)
+        {
+            var builder = ArrayBuilder<string>.GetInstance();
+            var names = CSharpCompilation.TupleNamesEncoder.TryGetNames(type, builder) && compilation.HasTupleNamesAttributes ?
+                new ReadOnlyCollection<string>(builder.ToArray()) :
+                null;
+            builder.Free();
+            return names;
+        }
+
         internal static readonly AssemblyIdentityComparer IdentityComparer = DesktopAssemblyIdentityComparer.Default;
 
         // XML file references, #r directives not supported:
@@ -113,6 +152,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             optimizationLevel: OptimizationLevel.Release,
             assemblyIdentityComparer: IdentityComparer).
             WithMetadataImportOptions(MetadataImportOptions.All).
+            WithReferencesSupersedeLowerVersions(true).
             WithTopLevelBinderFlags(
                 BinderFlags.SuppressObsoleteChecks |
                 BinderFlags.IgnoreAccessibility |

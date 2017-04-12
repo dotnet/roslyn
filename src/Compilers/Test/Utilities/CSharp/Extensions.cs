@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Reflection;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -366,7 +367,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     return typeSym.Name == expType.Name;
                 }
                 // generic
-                if (!(expType.IsGenericType))
+                if (!(expType.GetTypeInfo().IsGenericType))
                 {
                     return false;
                 }
@@ -410,7 +411,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 {
                     return false;
                 }
-                if (!IsEqual(arySym.BaseType, expType.BaseType))
+                if (!IsEqual(arySym.BaseType, expType.GetTypeInfo().BaseType))
                 {
                     return false;
                 }

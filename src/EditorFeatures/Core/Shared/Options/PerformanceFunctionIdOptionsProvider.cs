@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
@@ -12,13 +12,17 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
     [ExportOptionProvider, Shared]
     internal class PerformanceFunctionIdOptionsProvider : IOptionProvider
     {
-        public const string Name = "Performance/FunctionId";
-
-        public IEnumerable<IOption> GetOptions()
+        public ImmutableArray<IOption> Options
         {
-            foreach (var id in (FunctionId[])Enum.GetValues(typeof(FunctionId)))
+            get
             {
-                yield return FunctionIdOptions.GetOption(id);
+                var result = ArrayBuilder<IOption>.GetInstance();
+                foreach (var id in (FunctionId[])Enum.GetValues(typeof(FunctionId)))
+                {
+                    result.Add(FunctionIdOptions.GetOption(id));
+                }
+
+                return result.ToImmutableAndFree();
             }
         }
     }

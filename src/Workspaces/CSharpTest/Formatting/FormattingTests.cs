@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 using static Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions;
+using System;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Formatting
 {
@@ -1445,6 +1446,10 @@ class foo{int x = 0;}", false, changingOptions);
         {
         };
 
+        async void LocalFunction()
+        {
+        }
+
         try
         {
         }
@@ -1504,6 +1509,9 @@ var obj1 = new foo
             {
                             };
 
+        async void LocalFunction() {
+        }
+
            try
         {
         }
@@ -1537,17 +1545,18 @@ public class foo : System.Object
         }
 
         [WorkItem(751789, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/751789")]
+        [WorkItem(8808, "https://developercommunity.visualstudio.com/content/problem/8808/c-structure-guide-lines-for-unsafe-fixed.html")]
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task NewLineForOpenBracesNonDefault()
         {
             var changingOptions = new Dictionary<OptionKey, object>();
-            changingOptions.Add(CSharpFormattingOptions.NewLinesForBracesInTypes, false);
-            changingOptions.Add(CSharpFormattingOptions.NewLinesForBracesInMethods, false);
-            changingOptions.Add(CSharpFormattingOptions.NewLinesForBracesInAnonymousMethods, false);
-            changingOptions.Add(CSharpFormattingOptions.NewLinesForBracesInControlBlocks, false);
-            changingOptions.Add(CSharpFormattingOptions.NewLinesForBracesInAnonymousTypes, false);
-            changingOptions.Add(CSharpFormattingOptions.NewLinesForBracesInObjectCollectionArrayInitializers, false);
-            changingOptions.Add(CSharpFormattingOptions.NewLinesForBracesInLambdaExpressionBody, false);
+            changingOptions.Add(NewLinesForBracesInTypes, false);
+            changingOptions.Add(NewLinesForBracesInMethods, false);
+            changingOptions.Add(NewLinesForBracesInAnonymousMethods, false);
+            changingOptions.Add(NewLinesForBracesInControlBlocks, false);
+            changingOptions.Add(NewLinesForBracesInAnonymousTypes, false);
+            changingOptions.Add(NewLinesForBracesInObjectCollectionArrayInitializers, false);
+            changingOptions.Add(NewLinesForBracesInLambdaExpressionBody, false);
             await AssertFormatAsync(@"class f00 {
     void br() {
         Func<int, int> ret = x => {
@@ -1568,6 +1577,9 @@ public class foo : System.Object
         var obj1 = new foo {
         };
 
+        async void LocalFunction() {
+        }
+
         try {
         }
         catch (Exception e) {
@@ -1580,6 +1592,12 @@ public class foo : System.Object
         switch (switchVar) {
             default:
                 break;
+        }
+
+        unsafe {
+        }
+
+        fixed (int* p = &i) {
         }
     }
 }
@@ -1616,6 +1634,10 @@ var obj1 = new foo
             {
                             };
 
+        async void LocalFunction() 
+            {
+    }
+
            try
         {
         }
@@ -1633,6 +1655,14 @@ var obj1 = new foo
  {
             default: 
                 break;
+        }
+
+        unsafe
+{
+        }
+
+        fixed (int* p = &i)
+{
         }
 }
 }
@@ -3316,8 +3346,7 @@ class Program
         {
             await AssertFormatAsync(@"class Program
 {
-    [Flags]
-    public void Method() { }
+    [Flags] public void Method() { }
 }", @"class Program
 {
         [   Flags       ]       public       void       Method      (       )           {           }
@@ -4417,6 +4446,86 @@ case 1: break; case 2: break; default: break;}
         }
     }
 }";
+            await AssertFormatAsync(expectedCode, code);
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task SpacingInDeconstruction()
+        {
+            var code = @"class Class5{
+void bar()
+{
+var(x,y)=(1,2);
+}
+}";
+            var expectedCode = @"class Class5
+{
+    void bar()
+    {
+        var (x, y) = (1, 2);
+    }
+}";
+
+            await AssertFormatAsync(expectedCode, code);
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task SpacingInNullableTuple()
+        {
+            var code = @"class Class5
+{
+    void bar()
+    {
+        (int, string) ? x = (1, ""hello"");
+    }
+}";
+            var expectedCode = @"class Class5
+{
+    void bar()
+    {
+        (int, string)? x = (1, ""hello"");
+    }
+}";
+
+            await AssertFormatAsync(expectedCode, code);
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task SpacingInTupleExtension()
+        {
+            var code = @"static class Class5
+{
+    static void Extension(this(int, string) self) { }
+}";
+            var expectedCode = @"static class Class5
+{
+    static void Extension(this (int, string) self) { }
+}";
+
+            await AssertFormatAsync(expectedCode, code);
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task SpacingInNestedDeconstruction()
+        {
+            var code = @"class Class5{
+void bar()
+{
+( int x1 , var( x2,x3 ) )=(1,(2,3));
+}
+}";
+            var expectedCode = @"class Class5
+{
+    void bar()
+    {
+        (int x1, var (x2, x3)) = (1, (2, 3));
+    }
+}";
+
             await AssertFormatAsync(expectedCode, code);
         }
 
@@ -7269,6 +7378,170 @@ class C
     Console.WriteLine(""d"");
     }
 }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task PropertyDeclarationSimple()
+        {
+            var expected = @"if (o is Point p)";
+            await AssertFormatBodyAsync(expected, expected);
+            await AssertFormatBodyAsync(expected, @"if (o is Point   p)");
+            await AssertFormatBodyAsync(expected, @"if (o is Point p  )");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task PropertyDeclarationTypeOnNewLine()
+        {
+            var expected = @"
+var y = o is
+Point p;";
+            await AssertFormatBodyAsync(expected, expected);
+            await AssertFormatBodyAsync(expected, @"
+var y = o is
+Point p;    ");
+
+            await AssertFormatBodyAsync(expected, @"
+var y = o   is
+Point p    ;");
+
+            await AssertFormatBodyAsync(expected, @"
+var y = o   is
+Point     p    ;");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task CasePatternDeclarationSimple()
+        {
+            var expected = @"
+switch (o)
+{
+    case Point p:
+}";
+
+            await AssertFormatBodyAsync(expected, expected);
+            await AssertFormatBodyAsync(expected, @"
+switch (o)
+{
+    case Point p   :
+}");
+
+            await AssertFormatBodyAsync(expected, @"
+switch (o)
+{
+    case Point    p   :
+}");
+        }
+
+        private Task AssertFormatBodyAsync(string expected, string input)
+        {
+            Func<string, string> transform = s => 
+            {
+                var lines = s.Split(new[] { Environment.NewLine }, StringSplitOptions.None);
+                for (int i = 0; i < lines.Length; i++)
+                {
+                    if (!string.IsNullOrEmpty(lines[i]))
+                    {
+                        lines[i] = new string(' ', count: 8) + lines[i];
+                    }
+                }
+                return string.Join(Environment.NewLine, lines);
+            };
+
+            var pattern = @"
+class C
+{{
+    void M()
+    {{
+{0}
+    }}
+}}";
+
+            expected = string.Format(pattern, transform(expected));
+            input = string.Format(pattern, transform(input));
+            return AssertFormatAsync(expected, input);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(6628, "https://github.com/dotnet/roslyn/issues/6628")]
+        public async Task FormatElseBlockBracesOnDifferentLineToNewLines()
+        {
+            await AssertFormatAsync(@"
+class C
+{
+    public void M()
+    {
+        if (true)
+        {
+        }
+        else
+        {
+        }
+    }
+}", @"
+class C
+{
+    public void M()
+    {
+        if (true)
+        {
+        }
+        else {
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(6628, "https://github.com/dotnet/roslyn/issues/6628")]
+        public async Task FormatOnElseBlockBracesOnSameLineRemainsInSameLine_1()
+        {
+            var code = @"
+class C
+{
+    public void M()
+    {
+        if (true)
+        {
+        }
+        else { }
+    }
+}";
+            await AssertFormatAsync(code, code);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(11572, "https://github.com/dotnet/roslyn/issues/11572")]
+        public async Task FormatAttributeOnSameLineAsField()
+        {
+            await AssertFormatAsync(
+@"
+class C
+{
+    [Attr] int i;
+}",
+@"
+class C {
+    [Attr]   int   i;
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(6628, "https://github.com/dotnet/roslyn/issues/6628")]
+        public async Task FormatOnElseBlockBracesOnSameLineRemainsInSameLine_2()
+        {
+            var code = @"
+class C
+{
+    public void M()
+    {
+        if (true)
+        {
+        }
+        else
+        { }
+    }
+}";
+            await AssertFormatAsync(code, code);
         }
     }
 }

@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Expr
 
         Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As IEnumerable(Of RecommendedKeyword)
             If context.IsAnyExpressionContext Then
-                Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("Nothing", VBFeaturesResources.NothingKeywordToolTip))
+                Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("Nothing", VBFeaturesResources.Represents_the_default_value_of_any_data_type))
             End If
 
             Return SpecializedCollections.EmptyEnumerable(Of RecommendedKeyword)()

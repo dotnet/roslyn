@@ -75,29 +75,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
             }
         }
 
-        public string ContainingNamespaceName
-        {
-            get
-            {
-                return _containingNamespaceName;
-            }
-        }
+        public string ContainingNamespaceName => _containingNamespaceName;
 
-        public string ContainingTypeName
-        {
-            get
-            {
-                return _containingTypeName;
-            }
-        }
+        public string ContainingTypeName => _containingTypeName;
 
-        public IEnumerable<ICallHierarchyItemDetails> Details
-        {
-            get
-            {
-                return _callsites;
-            }
-        }
+        public IEnumerable<ICallHierarchyItemDetails> Details => _callsites;
 
         public ImageSource DisplayGlyph
         {
@@ -107,29 +89,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
             }
         }
 
-        public string MemberName
-        {
-            get
-            {
-                return _name;
-            }
-        }
+        public string MemberName => _name;
 
-        public string NameSeparator
-        {
-            get
-            {
-                return ".";
-            }
-        }
+        public string NameSeparator => ".";
 
-        public string SortText
-        {
-            get
-            {
-                return _sortText;
-            }
-        }
+        public string SortText => _sortText;
 
         public IEnumerable<CallHierarchySearchCategory> SupportedSearchCategories
         {
@@ -139,30 +103,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
             }
         }
 
-        public bool SupportsFindReferences
-        {
-            get
-            {
+        public bool SupportsFindReferences =>
                 // TODO: Use Dustin's find-references-from-symbol service.
-                return false;
-            }
-        }
+                false;
 
-        public bool SupportsNavigateTo
-        {
-            get
-            {
-                return true;
-            }
-        }
+        public bool SupportsNavigateTo => true;
 
-        public bool Valid
-        {
-            get
-            {
-                return true;
-            }
-        }
+        public bool Valid => true;
 
         public void CancelSearch(string categoryName)
         {

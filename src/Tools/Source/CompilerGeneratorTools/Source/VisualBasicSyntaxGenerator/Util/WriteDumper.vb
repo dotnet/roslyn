@@ -21,7 +21,7 @@ Friend Class WriteDumper
 
     ' Write the dumper utility function to the given file.
     Public Sub WriteDumper(filename As String)
-        _writer = New StreamWriter(filename)
+        _writer = New StreamWriter(New FileStream(filename, FileMode.Create, FileAccess.Write))
 
         Using _writer
             GenerateFile()

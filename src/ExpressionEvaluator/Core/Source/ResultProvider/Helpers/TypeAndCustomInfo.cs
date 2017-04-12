@@ -21,7 +21,21 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         public Type Type
         {
-            get { return (ClrType == null) ? null : ClrType.GetLmrType(); }
+            get
+            {
+                var t = ClrType?.GetLmrType();
+
+                //TODO: Sometimes we get byref types here when dealing with ref-returning members.
+                //      That probably should not happen.
+                //      For now we will just unwrap unexpected byrefs
+                if (t?.IsByRef == true)
+                {
+                    t = t.GetElementType();
+                    Debug.Assert(!t.IsByRef, "double byref type?");
+                }
+
+                return t;
+            }
         }
     }
 }

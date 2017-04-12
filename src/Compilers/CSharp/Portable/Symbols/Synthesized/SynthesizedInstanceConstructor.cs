@@ -140,9 +140,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return ContainingType.Locations; }
         }
 
+        internal override RefKind RefKind
+        {
+            get { return RefKind.None; }
+        }
+
         public sealed override TypeSymbolWithAnnotations ReturnType
         {
             get { return TypeSymbolWithAnnotations.Create(ContainingAssembly.GetSpecialType(SpecialType.System_Void)); }
+        }
+
+        public override ImmutableArray<CustomModifier> RefCustomModifiers
+        {
+            get { return ImmutableArray<CustomModifier>.Empty; }
         }
 
         public sealed override ImmutableArray<TypeSymbolWithAnnotations> TypeArguments

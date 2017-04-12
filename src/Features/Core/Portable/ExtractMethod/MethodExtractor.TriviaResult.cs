@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Linq;
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 {
                     // bug # 6644
                     // this could happen in malformed code. return as it was.
-                    var status = new OperationStatus(OperationStatusFlag.None, FeaturesResources.CantNotConstructFinalTree);
+                    var status = new OperationStatus(OperationStatusFlag.None, FeaturesResources.can_t_not_construct_final_tree);
                     return status.With(document);
                 }
 

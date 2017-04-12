@@ -6,7 +6,6 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Differencing;
 using Microsoft.CodeAnalysis.EditAndContinue;
@@ -157,8 +156,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
     [A]/*<span>*/public static explicit operator int(Z d)/*</span>*/ { return 1; }
     [A]/*<span>*/operator double(Z d)/*</span>*/ { return 1; }
 
-    [A]/*<span>*/public static operator int +(Z d, int x)/*</span>*/ { return 1; }
-    [A]/*<span>*/operator int +(Z d, int x)/*</span>*/ { return 1; }
+    [A]/*<span>*/public static operator +(Z d, int x)/*</span>*/ { return 1; }
+    [A]/*<span>*/operator +(Z d, int x)/*</span>*/ { return 1; }
     
 }
 ";
@@ -255,7 +254,7 @@ class C
 ";
             var analyzer = new CSharpEditAndContinueAnalyzer();
 
-            using (var workspace = await TestWorkspace.CreateCSharpAsync(source1))
+            using (var workspace = TestWorkspace.CreateCSharp(source1))
             {
                 var documentId = workspace.CurrentSolution.Projects.First().Documents.First().Id;
                 var oldSolution = workspace.CurrentSolution;
@@ -312,7 +311,7 @@ class C
 ";
             var analyzer = new CSharpEditAndContinueAnalyzer();
 
-            using (var workspace = await TestWorkspace.CreateCSharpAsync(source1))
+            using (var workspace = TestWorkspace.CreateCSharp(source1))
             {
                 var documentId = workspace.CurrentSolution.Projects.First().Documents.First().Id;
                 var oldSolution = workspace.CurrentSolution;
@@ -341,7 +340,7 @@ class C
 ";
             var analyzer = new CSharpEditAndContinueAnalyzer();
 
-            using (var workspace = await TestWorkspace.CreateCSharpAsync(source))
+            using (var workspace = TestWorkspace.CreateCSharp(source))
             {
                 var document = workspace.CurrentSolution.Projects.First().Documents.First();
                 var baseActiveStatements = ImmutableArray.Create<ActiveStatementSpan>();
@@ -376,7 +375,7 @@ class C
 ";
             var analyzer = new CSharpEditAndContinueAnalyzer();
 
-            using (var workspace = await TestWorkspace.CreateCSharpAsync(source1))
+            using (var workspace = TestWorkspace.CreateCSharp(source1))
             {
                 var documentId = workspace.CurrentSolution.Projects.First().Documents.First().Id;
                 var oldSolution = workspace.CurrentSolution;
@@ -407,7 +406,7 @@ class C
             var experimentalFeatures = new Dictionary<string, string>(); // no experimental features to enable
             var experimental = TestOptions.Regular.WithFeatures(experimentalFeatures);
 
-            using (var workspace = await TestWorkspace.CreateCSharpAsync(
+            using (var workspace = TestWorkspace.CreateCSharp(
                 source, parseOptions: experimental, compilationOptions: null, exportProvider: null))
             {
                 var document = workspace.CurrentSolution.Projects.First().Documents.First();
@@ -452,7 +451,7 @@ class C
                 var featuresToEnable = new Dictionary<string, string>() { { feature, "enabled" } };
                 var experimental = TestOptions.Regular.WithFeatures(featuresToEnable);
 
-                using (var workspace = await TestWorkspace.CreateCSharpAsync(
+                using (var workspace = TestWorkspace.CreateCSharp(
                     source1, parseOptions: experimental, compilationOptions: null, exportProvider: null))
                 {
                     var documentId = workspace.CurrentSolution.Projects.First().Documents.First().Id;
@@ -485,7 +484,7 @@ class C
 ";
             var analyzer = new CSharpEditAndContinueAnalyzer();
 
-            using (var workspace = await TestWorkspace.CreateCSharpAsync(source))
+            using (var workspace = TestWorkspace.CreateCSharp(source))
             {
                 var document = workspace.CurrentSolution.Projects.First().Documents.First();
                 var baseActiveStatements = ImmutableArray.Create<ActiveStatementSpan>();
@@ -522,7 +521,7 @@ class C
 ";
             var analyzer = new CSharpEditAndContinueAnalyzer();
 
-            using (var workspace = await TestWorkspace.CreateCSharpAsync(source1))
+            using (var workspace = TestWorkspace.CreateCSharp(source1))
             {
                 var documentId = workspace.CurrentSolution.Projects.First().Documents.First().Id;
                 var oldSolution = workspace.CurrentSolution;
@@ -561,7 +560,7 @@ namespace N
 ";
             var analyzer = new CSharpEditAndContinueAnalyzer();
 
-            using (var workspace = await TestWorkspace.CreateCSharpAsync(source1))
+            using (var workspace = TestWorkspace.CreateCSharp(source1))
             {
                 // fork the solution to introduce a change
                 var project = workspace.CurrentSolution.Projects.Single();
@@ -611,7 +610,7 @@ namespace N
 ";
             var analyzer = new CSharpEditAndContinueAnalyzer();
 
-            using (var workspace = await TestWorkspace.CreateCSharpAsync(source1))
+            using (var workspace = TestWorkspace.CreateCSharp(source1))
             {
                 // fork the solution to introduce a change
                 var project = workspace.CurrentSolution.Projects.Single();

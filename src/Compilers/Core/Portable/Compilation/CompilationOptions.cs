@@ -65,9 +65,8 @@ namespace Microsoft.CodeAnalysis
         /// but not both. If both are specified <see cref="CryptoKeyContainer"/> is ignored.
         /// </para>
         /// <para>
-        /// This setting is obsolete and only supported on Microsoft Windows platform.
-        /// Use <see cref="CryptoPublicKey"/> to generate assemblies with strong name and 
-        /// a signing tool (Microsoft .NET Framework Strong Name Utility (sn.exe) or equivalent) to sign them.
+        /// If <see cref="PublicSign" /> is also set, <see cref="CryptoKeyFile"/> must be the absolute
+        /// path to key file.
         /// </para>
         /// </remarks>
         public string CryptoKeyFile { get; protected set; }
@@ -107,7 +106,13 @@ namespace Microsoft.CodeAnalysis
         /// Mark the compilation assembly as fully signed, but only sign with the public key.
         /// </summary>
         /// <remarks>
+        /// <para>
         /// If true, the assembly is marked as signed, but is only signed with the public key.
+        /// </para>
+        /// <para>
+        /// The key must be provided through either an absolute path in <see cref="CryptoKeyFile"/>
+        /// or directly via <see cref="CryptoPublicKey" />.
+        /// </para>
         /// </remarks>
         public bool PublicSign { get; protected set; }
 
@@ -148,12 +153,12 @@ namespace Microsoft.CodeAnalysis
         public bool Deterministic { get; protected set; }
 
         /// <summary>
-        /// Emit extended custom debug information to the PDB file.
+        /// Used for time-based version generation when <see cref="System.Reflection.AssemblyVersionAttribute"/> contains a wildcard.
+        /// If equal to default(<see cref="DateTime"/>) the actual current local time will be used.
         /// </summary>
-        internal bool ExtendedCustomDebugInformation { get; private set; }
+        internal DateTime CurrentLocalTime { get; private set; }
 
-        // TODO: change visibility of the ExtendedCustomDebugInformation setter to internal & protected
-        internal bool ExtendedCustomDebugInformation_internal_protected_set { set { ExtendedCustomDebugInformation = value; } }
+        internal DateTime CurrentLocalTime_internal_protected_set { set { CurrentLocalTime = value; } }
 
         /// <summary>
         /// Emit mode that favors debuggability. 
@@ -170,6 +175,14 @@ namespace Microsoft.CodeAnalysis
 
         // TODO: change visibility of the MetadataImportOptions setter to internal & protected
         internal MetadataImportOptions MetadataImportOptions_internal_protected_set { set { MetadataImportOptions = value; } }
+
+        /// <summary>
+        /// Apply additional disambiguation rules during resolution of referenced assemblies.
+        /// </summary>
+        internal bool ReferencesSupersedeLowerVersions { get; private set; }
+
+        // TODO: change visibility of the ReferencesSupersedeLowerVersions setter to internal & protected
+        internal bool ReferencesSupersedeLowerVersions_internal_protected_set { set { ReferencesSupersedeLowerVersions = value; } }
 
         /// <summary>
         /// Modifies the incoming diagnostic, for example escalating its severity, or discarding it (returning null) based on the compilation options.
@@ -256,14 +269,15 @@ namespace Microsoft.CodeAnalysis
             ImmutableDictionary<string, ReportDiagnostic> specificDiagnosticOptions,
             bool concurrentBuild,
             bool deterministic,
-            bool extendedCustomDebugInformation,
+            DateTime currentLocalTime,
             bool debugPlusMode,
             XmlReferenceResolver xmlReferenceResolver,
             SourceReferenceResolver sourceReferenceResolver,
             MetadataReferenceResolver metadataReferenceResolver,
             AssemblyIdentityComparer assemblyIdentityComparer,
             StrongNameProvider strongNameProvider,
-            MetadataImportOptions metadataImportOptions)
+            MetadataImportOptions metadataImportOptions,
+            bool referencesSupersedeLowerVersions)
         {
             this.OutputKind = outputKind;
             this.ModuleName = moduleName;
@@ -282,7 +296,7 @@ namespace Microsoft.CodeAnalysis
             this.OptimizationLevel = optimizationLevel;
             this.ConcurrentBuild = concurrentBuild;
             this.Deterministic = deterministic;
-            this.ExtendedCustomDebugInformation = extendedCustomDebugInformation;
+            this.CurrentLocalTime = currentLocalTime;
             this.DebugPlusMode = debugPlusMode;
             this.XmlReferenceResolver = xmlReferenceResolver;
             this.SourceReferenceResolver = sourceReferenceResolver;
@@ -290,6 +304,7 @@ namespace Microsoft.CodeAnalysis
             this.StrongNameProvider = strongNameProvider;
             this.AssemblyIdentityComparer = assemblyIdentityComparer ?? AssemblyIdentityComparer.Default;
             this.MetadataImportOptions = metadataImportOptions;
+            this.ReferencesSupersedeLowerVersions = referencesSupersedeLowerVersions;
             this.PublicSign = publicSign;
 
             _lazyErrors = new Lazy<ImmutableArray<Diagnostic>>(() =>
@@ -307,11 +322,17 @@ namespace Microsoft.CodeAnalysis
             // Can't reuse when file resolver or identity comparers change.
             // Can reuse even if StrongNameProvider changes. When resolving a cyclic reference only the simple name is considered, not the strong name.
             return this.MetadataImportOptions == other.MetadataImportOptions
+                && this.ReferencesSupersedeLowerVersions == other.ReferencesSupersedeLowerVersions
                 && this.OutputKind.IsNetModule() == other.OutputKind.IsNetModule()
                 && object.Equals(this.XmlReferenceResolver, other.XmlReferenceResolver)
                 && object.Equals(this.MetadataReferenceResolver, other.MetadataReferenceResolver)
                 && object.Equals(this.AssemblyIdentityComparer, other.AssemblyIdentityComparer);
         }
+
+        /// <summary>
+        /// Gets the source language ("C#" or "Visual Basic").
+        /// </summary>
+        public abstract string Language { get; }
 
         internal bool EnableEditAndContinue
         {
@@ -369,6 +390,14 @@ namespace Microsoft.CodeAnalysis
         public CompilationOptions WithReportSuppressedDiagnostics(bool value)
         {
             return CommonWithReportSuppressedDiagnostics(value);
+        }
+
+        /// <summary>
+        /// Creates a new options instance with the concurrent build property set accordingly.
+        /// </summary>
+        public CompilationOptions WithConcurrentBuild(bool concurrent)
+        {
+            return CommonWithConcurrentBuild(concurrent);
         }
 
         /// <summary>
@@ -433,6 +462,47 @@ namespace Microsoft.CodeAnalysis
             return CommonWithStrongNameProvider(provider);
         }
 
+        public CompilationOptions WithModuleName(string moduleName)
+        {
+            return CommonWithModuleName(moduleName);
+        }
+
+        public CompilationOptions WithMainTypeName(string mainTypeName)
+        {
+            return CommonWithMainTypeName(mainTypeName);
+        }
+
+        public CompilationOptions WithScriptClassName(string scriptClassName)
+        {
+            return CommonWithScriptClassName(scriptClassName);
+        }
+
+        public CompilationOptions WithCryptoKeyContainer(string cryptoKeyContainer)
+        {
+            return CommonWithCryptoKeyContainer(cryptoKeyContainer);
+        }
+
+        public CompilationOptions WithCryptoKeyFile(string cryptoKeyFile)
+        {
+            return CommonWithCryptoKeyFile(cryptoKeyFile);
+        }
+
+        public CompilationOptions WithCryptoPublicKey(ImmutableArray<byte> cryptoPublicKey)
+        {
+            return CommonWithCryptoPublicKey(cryptoPublicKey);
+        }
+
+        public CompilationOptions WithDelaySign(bool? delaySign)
+        {
+            return CommonWithDelaySign(delaySign);
+        }
+
+        public CompilationOptions WithOverflowChecks(bool checkOverflow)
+        {
+            return CommonWithCheckOverflow(checkOverflow);
+        }
+
+        protected abstract CompilationOptions CommonWithConcurrentBuild(bool concurrent);
         protected abstract CompilationOptions CommonWithDeterministic(bool deterministic);
         protected abstract CompilationOptions CommonWithOutputKind(OutputKind kind);
         protected abstract CompilationOptions CommonWithPlatform(Platform platform);
@@ -447,6 +517,15 @@ namespace Microsoft.CodeAnalysis
         protected abstract CompilationOptions CommonWithSpecificDiagnosticOptions(ImmutableDictionary<string, ReportDiagnostic> specificDiagnosticOptions);
         protected abstract CompilationOptions CommonWithSpecificDiagnosticOptions(IEnumerable<KeyValuePair<string, ReportDiagnostic>> specificDiagnosticOptions);
         protected abstract CompilationOptions CommonWithReportSuppressedDiagnostics(bool reportSuppressedDiagnostics);
+        protected abstract CompilationOptions CommonWithModuleName(string moduleName);
+        protected abstract CompilationOptions CommonWithMainTypeName(string mainTypeName);
+        protected abstract CompilationOptions CommonWithScriptClassName(string scriptClassName);
+        protected abstract CompilationOptions CommonWithCryptoKeyContainer(string cryptoKeyContainer);
+        protected abstract CompilationOptions CommonWithCryptoKeyFile(string cryptoKeyFile);
+        protected abstract CompilationOptions CommonWithCryptoPublicKey(ImmutableArray<byte> cryptoPublicKey);
+        protected abstract CompilationOptions CommonWithDelaySign(bool? delaySign);
+        protected abstract CompilationOptions CommonWithCheckOverflow(bool checkOverflow);
+
         [Obsolete]
         protected abstract CompilationOptions CommonWithFeatures(ImmutableArray<string> features);
 
@@ -454,6 +533,45 @@ namespace Microsoft.CodeAnalysis
         /// Performs validation of options compatibilities and generates diagnostics if needed
         /// </summary>
         internal abstract void ValidateOptions(ArrayBuilder<Diagnostic> builder);
+
+        internal void ValidateOptions(ArrayBuilder<Diagnostic> builder, CommonMessageProvider messageProvider)
+        {
+            if (!CryptoPublicKey.IsEmpty)
+            {
+                if (CryptoKeyFile != null)
+                {
+                    builder.Add(messageProvider.CreateDiagnostic(messageProvider.ERR_MutuallyExclusiveOptions,
+                        Location.None, nameof(CryptoPublicKey), nameof(CryptoKeyFile)));
+                }
+
+                if (CryptoKeyContainer != null)
+                {
+                    builder.Add(messageProvider.CreateDiagnostic(messageProvider.ERR_MutuallyExclusiveOptions,
+                        Location.None, nameof(CryptoPublicKey), nameof(CryptoKeyContainer)));
+                }
+            }
+
+            if (PublicSign)
+            {
+                if (CryptoKeyFile != null && !PathUtilities.IsAbsolute(CryptoKeyFile))
+                {
+                    builder.Add(messageProvider.CreateDiagnostic(messageProvider.ERR_OptionMustBeAbsolutePath,
+                        Location.None, nameof(CryptoKeyFile)));
+                }
+
+                if (CryptoKeyContainer != null)
+                {
+                    builder.Add(messageProvider.CreateDiagnostic(messageProvider.ERR_MutuallyExclusiveOptions,
+                        Location.None, nameof(PublicSign), nameof(CryptoKeyContainer)));
+                }
+
+                if (DelaySign == true)
+                {
+                    builder.Add(messageProvider.CreateDiagnostic(messageProvider.ERR_MutuallyExclusiveOptions,
+                        Location.None, nameof(PublicSign), nameof(DelaySign)));
+                }
+            }
+        }
 
         /// <summary>
         /// Errors collection related to an incompatible set of compilation options
@@ -478,7 +596,7 @@ namespace Microsoft.CodeAnalysis
                    this.CheckOverflow == other.CheckOverflow &&
                    this.ConcurrentBuild == other.ConcurrentBuild &&
                    this.Deterministic == other.Deterministic &&
-                   this.ExtendedCustomDebugInformation == other.ExtendedCustomDebugInformation &&
+                   this.CurrentLocalTime == other.CurrentLocalTime &&
                    this.DebugPlusMode == other.DebugPlusMode &&
                    string.Equals(this.CryptoKeyContainer, other.CryptoKeyContainer, StringComparison.Ordinal) &&
                    string.Equals(this.CryptoKeyFile, other.CryptoKeyFile, StringComparison.Ordinal) &&
@@ -487,6 +605,7 @@ namespace Microsoft.CodeAnalysis
                    this.GeneralDiagnosticOption == other.GeneralDiagnosticOption &&
                    string.Equals(this.MainTypeName, other.MainTypeName, StringComparison.Ordinal) &&
                    this.MetadataImportOptions == other.MetadataImportOptions &&
+                   this.ReferencesSupersedeLowerVersions == other.ReferencesSupersedeLowerVersions &&
                    string.Equals(this.ModuleName, other.ModuleName, StringComparison.Ordinal) &&
                    this.OptimizationLevel == other.OptimizationLevel &&
                    this.OutputKind == other.OutputKind &&
@@ -512,7 +631,7 @@ namespace Microsoft.CodeAnalysis
             return Hash.Combine(this.CheckOverflow,
                    Hash.Combine(this.ConcurrentBuild,
                    Hash.Combine(this.Deterministic,
-                   Hash.Combine(this.ExtendedCustomDebugInformation,
+                   Hash.Combine(this.CurrentLocalTime.GetHashCode(),
                    Hash.Combine(this.DebugPlusMode,
                    Hash.Combine(this.CryptoKeyContainer != null ? StringComparer.Ordinal.GetHashCode(this.CryptoKeyContainer) : 0,
                    Hash.Combine(this.CryptoKeyFile != null ? StringComparer.Ordinal.GetHashCode(this.CryptoKeyFile) : 0,
@@ -520,6 +639,7 @@ namespace Microsoft.CodeAnalysis
                    Hash.Combine((int)this.GeneralDiagnosticOption,
                    Hash.Combine(this.MainTypeName != null ? StringComparer.Ordinal.GetHashCode(this.MainTypeName) : 0,
                    Hash.Combine((int)this.MetadataImportOptions,
+                   Hash.Combine(this.ReferencesSupersedeLowerVersions,
                    Hash.Combine(this.ModuleName != null ? StringComparer.Ordinal.GetHashCode(this.ModuleName) : 0,
                    Hash.Combine((int)this.OptimizationLevel,
                    Hash.Combine((int)this.OutputKind,
@@ -533,7 +653,7 @@ namespace Microsoft.CodeAnalysis
                    Hash.Combine(this.SourceReferenceResolver,
                    Hash.Combine(this.StrongNameProvider,
                    Hash.Combine(this.AssemblyIdentityComparer,
-                   Hash.Combine(this.PublicSign, 0)))))))))))))))))))))))));
+                   Hash.Combine(this.PublicSign, 0))))))))))))))))))))))))));
         }
 
         public static bool operator ==(CompilationOptions left, CompilationOptions right)

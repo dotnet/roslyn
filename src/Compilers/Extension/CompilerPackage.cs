@@ -5,6 +5,7 @@ using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Shell;
 using System.Reflection;
 using System.IO;
+using EnvDTE;
 
 namespace Roslyn.Compilers.Extension
 {
@@ -65,13 +66,12 @@ namespace Roslyn.Compilers.Extension
                     $@"<?xml version=""1.0"" encoding=""utf-8""?>
 <Project xmlns=""http://schemas.microsoft.com/developer/msbuild/2003"">
   <PropertyGroup Condition=""'$(RoslynHive)' == '{hiveName}'"">
-    <RoslynCompilerExtensionActive>true</RoslynCompilerExtensionActive>
     <CSharpCoreTargetsPath>{packagePath}\Microsoft.CSharp.Core.targets</CSharpCoreTargetsPath>
     <VisualBasicCoreTargetsPath>{packagePath}\Microsoft.VisualBasic.Core.targets</VisualBasicCoreTargetsPath>
   </PropertyGroup> 
 
-  <UsingTask TaskName=""Microsoft.CodeAnalysis.BuildTasks.Csc"" AssemblyFile=""{packagePath}\Microsoft.Build.Tasks.CodeAnalysis.dll"" Condition=""'$(RoslynCompilerExtensionActive)' == 'true'"" />
-  <UsingTask TaskName=""Microsoft.CodeAnalysis.BuildTasks.Vbc"" AssemblyFile=""{packagePath}\Microsoft.Build.Tasks.CodeAnalysis.dll"" Condition=""'$(RoslynCompilerExtensionActive)' == 'true'"" />
+  <UsingTask TaskName=""Microsoft.CodeAnalysis.BuildTasks.Csc"" AssemblyFile=""{packagePath}\Microsoft.Build.Tasks.CodeAnalysis.dll"" Condition=""'$(RoslynHive)' == '{hiveName}'"" />
+  <UsingTask TaskName=""Microsoft.CodeAnalysis.BuildTasks.Vbc"" AssemblyFile=""{packagePath}\Microsoft.Build.Tasks.CodeAnalysis.dll"" Condition=""'$(RoslynHive)' == '{hiveName}'"" />
 </Project>";
 
                 WriteMSBuildFile(propsContent, $@"Imports\Microsoft.Common.props\ImportBefore\Roslyn.Compilers.Extension.{hiveName}.props");
@@ -81,7 +81,7 @@ namespace Roslyn.Compilers.Extension
                     $@"<?xml version=""1.0"" encoding=""utf-8""?>
 <Project xmlns=""http://schemas.microsoft.com/developer/msbuild/2003"">
   <!-- If we're not using the compiler server, set ToolPath/Exe to direct to the exes in this package -->
-  <PropertyGroup Condition=""'$(RoslynCompilerExtensionActive)' == 'true' and '$(UseSharedCompilation)' != 'true'"">
+  <PropertyGroup Condition=""'$(RoslynHive)' == '{hiveName}' and '$(UseSharedCompilation)' != 'true'"">
     <CscToolPath>{packagePath}</CscToolPath>
     <CscToolExe>csc.exe</CscToolExe>
     <VbcToolPath>{packagePath}</VbcToolPath>
@@ -110,7 +110,32 @@ To reload the Roslyn compiler package, close Visual Studio and any MSBuild proce
             }
         }
 
-        private static void WriteMSBuildFile(string content, string relativeFilePath)
+        private string GetMSBuildVersionString()
+        {
+            var dte = (DTE)GetService(typeof(SDTE));
+            var parts = dte.Version.Split('.');
+            if (parts.Length == 0)
+            {
+                throw GetBadVisualStudioVersionException(dte.Version);
+            }
+
+            switch (parts[0])
+            {
+                case "14":
+                    return "14.0";
+                case "15":
+                    return "15.0";
+                default:
+                    throw GetBadVisualStudioVersionException(dte.Version);
+            }
+        }
+
+        private static Exception GetBadVisualStudioVersionException(string version)
+        {
+            return new Exception($"Unrecoginzed Visual Studio Version: {version}");
+        }
+
+        private void WriteMSBuildFile(string content, string relativeFilePath)
         {
             var fileFullPath = Path.Combine(GetMSBuildPath(), relativeFilePath);
             var directory = new DirectoryInfo(Path.GetDirectoryName(fileFullPath));
@@ -122,10 +147,11 @@ To reload the Roslyn compiler package, close Visual Studio and any MSBuild proce
             File.WriteAllText(fileFullPath, content);
         }
 
-        private static string GetMSBuildPath()
+        private string GetMSBuildPath()
         {
+            var version = GetMSBuildVersionString();
             var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-            return Path.Combine(localAppData, @"Microsoft\MSBuild\14.0");
+            return Path.Combine(localAppData, $@"Microsoft\MSBuild\{version}");
         }
     }
 }

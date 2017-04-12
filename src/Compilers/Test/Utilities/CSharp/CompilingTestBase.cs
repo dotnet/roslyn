@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var parameterBinderContext = factory.GetBinder(bodyBlock);
             var binder = new ExecutableCodeBinder(bodyBlock.Parent, method, parameterBinderContext);
             var diagnostics = new DiagnosticBag();
-            var block = (BoundBlock)binder.BindStatement(bodyBlock, diagnostics);
+            var block = binder.BindEmbeddedBlock(bodyBlock, diagnostics);
             AssertEx.SetEqual(errors, diagnostics.AsEnumerable().Select(DumpDiagnostic));
         }
 
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var bodyBlock = (BlockSyntax)method.BodySyntax;
             var parameterBinderContext = factory.GetBinder(bodyBlock);
             var binder = new ExecutableCodeBinder(bodyBlock.Parent, method, parameterBinderContext);
-            var block = (BoundBlock)binder.BindStatement(bodyBlock, new DiagnosticBag());
+            var block = binder.BindEmbeddedBlock(bodyBlock, new DiagnosticBag());
             var actualWarnings = new DiagnosticBag();
             DiagnosticsPass.IssueDiagnostics(compilation, block, actualWarnings, method);
             AssertEx.SetEqual(expectedWarnings, actualWarnings.AsEnumerable().Select(DumpDiagnostic));

@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _ordinal; }
         }
 
-        internal override bool Equals(TypeSymbol t2, TypeSymbolEqualityOptions options)
+        internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison)
         {
             if (ReferenceEquals(this, t2))
             {

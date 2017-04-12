@@ -8,13 +8,7 @@ namespace Microsoft.CodeAnalysis.OrganizeImports
 {
     internal interface IOrganizeImportsService : ILanguageService
     {
-        Task<Document> OrganizeImportsAsync(Document document, bool placeSystemNamespaceFirst, CancellationToken cancellationToken);
-
-        string OrganizeImportsDisplayStringWithAccelerator { get; }
-
-        string SortImportsDisplayStringWithAccelerator { get; }
-
-        string RemoveUnusedImportsDisplayStringWithAccelerator { get; }
+        Task<Document> OrganizeImportsAsync(Document document, CancellationToken cancellationToken);
 
         string SortAndRemoveUnusedImportsDisplayStringWithAccelerator { get; }
     }

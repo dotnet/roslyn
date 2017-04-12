@@ -1,15 +1,8 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Globalization
 Imports System.Threading
 Imports System.Threading.Tasks
-Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.CodeAnalysis.LanguageServices
-Imports Microsoft.CodeAnalysis.Shared.Extensions
-Imports Microsoft.CodeAnalysis.Text
-Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
@@ -17,7 +10,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         Inherits TestBase
 
         Private Async Function TestIsAccessibleWithinAsync(workspaceDefinition As XElement, expectedVisible As Boolean) As Tasks.Task
-            Using workspace = Await TestWorkspace.CreateAsync(workspaceDefinition)
+            Using workspace = TestWorkspace.Create(workspaceDefinition)
                 Dim cursorDocument = workspace.Documents.First(Function(d) d.CursorPosition.HasValue)
                 Dim cursorPosition = cursorDocument.CursorPosition.Value
                 Dim document = workspace.CurrentSolution.GetDocument(cursorDocument.Id)
@@ -26,7 +19,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 Dim commonSyntaxToken = Await tree.GetTouchingTokenAsync(cursorPosition, Nothing)
 
                 Dim semanticModel = Await document.GetSemanticModelAsync()
-                Dim symbol = semanticModel.GetSymbols(commonSyntaxToken, document.Project.Solution.Workspace, bindLiteralsToUnderlyingType:=False, cancellationToken:=Nothing).First()
+                Dim symbol = semanticModel.GetSemanticInfo(commonSyntaxToken, document.Project.Solution.Workspace, Nothing).
+                                           GetAnySymbol(includeType:=False)
                 Dim namedTypeSymbol = semanticModel.GetEnclosingNamedType(cursorPosition, CancellationToken.None)
 
                 Dim actualVisible = symbol.IsAccessibleWithin(namedTypeSymbol)

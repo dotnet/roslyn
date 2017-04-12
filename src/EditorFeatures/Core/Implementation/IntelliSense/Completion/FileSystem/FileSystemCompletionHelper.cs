@@ -28,12 +28,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.F
         private readonly ISet<string> _allowableExtensions;
 
         private readonly Lazy<string[]> _lazyGetDrives;
-        private readonly CompletionListProvider _completionProvider;
+        private readonly CompletionProvider _completionProvider;
         private readonly TextSpan _textChangeSpan;
         private readonly CompletionItemRules _itemRules;
 
         public FileSystemCompletionHelper(
-            CompletionListProvider completionProvider,
+            CompletionProvider completionProvider,
             TextSpan textChangeSpan,
             ICurrentWorkingDirectoryDiscoveryService fileSystemDiscoveryService,
             Glyph folderGlyph,
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.F
             _itemRules = itemRules;
 
             _lazyGetDrives = new Lazy<string[]>(() =>
-                IOUtilities.PerformIO(Directory.GetLogicalDrives, SpecializedCollections.EmptyArray<string>()));
+                IOUtilities.PerformIO(Directory.GetLogicalDrives, Array.Empty<string>()));
         }
 
         public ImmutableArray<CompletionItem> GetItems(string pathSoFar, string documentPath)
@@ -71,22 +71,22 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.F
 
         private CompletionItem CreateCurrentDirectoryItem()
         {
-            return new CompletionItem(_completionProvider, ".", _textChangeSpan, rules: _itemRules);
+            return CommonCompletionItem.Create(".", rules: _itemRules);
         }
 
         private CompletionItem CreateParentDirectoryItem()
         {
-            return new CompletionItem(_completionProvider, "..", _textChangeSpan, rules: _itemRules);
+            return CommonCompletionItem.Create("..", rules: _itemRules);
         }
 
         private CompletionItem CreateNetworkRoot(TextSpan textChangeSpan)
         {
-            return new CompletionItem(_completionProvider, "\\\\", textChangeSpan, rules: _itemRules);
+            return CommonCompletionItem.Create("\\\\", rules: _itemRules);
         }
 
         private ImmutableArray<CompletionItem> GetFilesAndDirectories(string path, string basePath)
         {
-            var result = ImmutableArray.CreateBuilder<CompletionItem>();
+            var result = ArrayBuilder<CompletionItem>.GetInstance();
             var pathKind = PathUtilities.GetPathKind(path);
             switch (pathKind)
             {
@@ -161,10 +161,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.F
                     break;
 
                 default:
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.UnexpectedValue(pathKind);
             }
 
-            return result.AsImmutable();
+            return result.ToImmutableAndFree();
         }
 
         private static bool IsDriveRoot(string fullPath)
@@ -192,10 +192,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.F
 
         private CompletionItem CreateCompletion(FileSystemInfo child)
         {
-            return new CompletionItem(
-                _completionProvider,
+            return CommonCompletionItem.Create(
                 child.Name,
-                _textChangeSpan,
                 glyph: child is DirectoryInfo ? _folderGlyph : _fileGlyph,
                 description: child.FullName.ToSymbolDisplayParts(),
                 rules: _itemRules);
@@ -230,9 +228,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.F
 
         private bool CanAccess(FileSystemInfo info)
         {
-            return info.TypeSwitch(
-                (DirectoryInfo d) => CanAccessDirectory(d),
-                (FileInfo f) => CanAccessFile(f));
+            switch (info)
+            {
+                case DirectoryInfo d: return CanAccessDirectory(d);
+                case FileInfo f: return CanAccessFile(f);
+            }
+
+            return false;
         }
 
         private bool CanAccessFile(FileInfo file)
@@ -276,12 +278,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.F
             return from d in _lazyGetDrives.Value
                    where d.Length > 0 && (d.Last() == Path.DirectorySeparatorChar || d.Last() == Path.AltDirectorySeparatorChar)
                    let text = d.Substring(0, d.Length - 1)
-                   select new CompletionItem(_completionProvider, text, _textChangeSpan, glyph: _folderGlyph, rules: _itemRules);
+                   select CommonCompletionItem.Create(text, glyph: _folderGlyph, rules: _itemRules);
         }
 
         private static FileSystemInfo[] GetFileSystemInfos(DirectoryInfo directoryInfo)
         {
-            return IOUtilities.PerformIO(directoryInfo.GetFileSystemInfos, SpecializedCollections.EmptyArray<FileSystemInfo>());
+            return IOUtilities.PerformIO(directoryInfo.GetFileSystemInfos, Array.Empty<FileSystemInfo>());
         }
     }
 }

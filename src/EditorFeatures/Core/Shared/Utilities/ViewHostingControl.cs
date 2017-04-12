@@ -14,7 +14,9 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
         private readonly Func<ITextBuffer, IWpfTextView> _createView;
         private readonly Func<ITextBuffer> _createBuffer;
 
-        public ViewHostingControl(Func<ITextBuffer, IWpfTextView> createView, Func<ITextBuffer> createBuffer)
+        public ViewHostingControl(
+            Func<ITextBuffer, IWpfTextView> createView, 
+            Func<ITextBuffer> createBuffer)
         {
             _createView = createView;
             _createBuffer = createBuffer;

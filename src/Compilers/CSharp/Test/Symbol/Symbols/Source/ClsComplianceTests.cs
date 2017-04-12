@@ -466,6 +466,62 @@ public class Generic<T> { }
         }
 
         [Fact]
+        public void TupleDefersClsComplianceToUnderlyingType()
+        {
+            var libCompliant_cs = @"
+namespace System
+{
+    [CLSCompliant(true)]
+    public struct ValueTuple<T1, T2>
+    {
+        public ValueTuple(T1 item1, T2 item2) { }
+    }
+}";
+
+            var libNotCompliant_cs = @"
+namespace System
+{
+    [CLSCompliant(false)]
+    public struct ValueTuple<T1, T2>
+    {
+        public ValueTuple(T1 item1, T2 item2) { }
+    }
+}";
+
+            var source = @"
+using System;
+
+[assembly:CLSCompliant(true)]
+public class C
+{
+    public (int, int) Method() { throw new Exception(); }
+    public (Bad, Bad) Method2() { throw new Exception(); }
+}
+
+[CLSCompliant(false)]
+public class Bad { }
+";
+            var libCompliant = CreateCompilationWithMscorlib(libCompliant_cs).EmitToImageReference();
+            var compCompliant = CreateCompilationWithMscorlib(source, new[] { libCompliant }, TestOptions.ReleaseDll);
+            compCompliant.VerifyDiagnostics(
+                // (8,23): warning CS3002: Return type of 'C.Method2()' is not CLS-compliant
+                //     public (Bad, Bad) Method2() { throw new Exception(); }
+                Diagnostic(ErrorCode.WRN_CLS_BadReturnType, "Method2").WithArguments("C.Method2()").WithLocation(8, 23)
+                );
+
+            var libNotCompliant = CreateCompilationWithMscorlib(libNotCompliant_cs).EmitToImageReference();
+            var compNotCompliant = CreateCompilationWithMscorlib(source, new[] { libNotCompliant }, TestOptions.ReleaseDll);
+            compNotCompliant.VerifyDiagnostics(
+                // (8,23): warning CS3002: Return type of 'C.Method2()' is not CLS-compliant
+                //     public (Bad, Bad) Method2() { throw new Exception(); }
+                Diagnostic(ErrorCode.WRN_CLS_BadReturnType, "Method2").WithArguments("C.Method2()").WithLocation(8, 23),
+                // (7,23): warning CS3002: Return type of 'C.Method()' is not CLS-compliant
+                //     public (int, int) Method() { throw new Exception(); }
+                Diagnostic(ErrorCode.WRN_CLS_BadReturnType, "Method").WithArguments("C.Method()").WithLocation(7, 23)
+                );
+        }
+
+        [Fact]
         public void WRN_CLS_BadInterface_Interface()
         {
             var source = @"

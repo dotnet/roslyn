@@ -111,6 +111,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal override RefKind RefKind
+        {
+            get { return RefKind.None; }
+        }
+
         public sealed override TypeSymbolWithAnnotations ReturnType
         {
             get
@@ -118,6 +123,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 LazyMethodChecks();
                 Debug.Assert((object)_lazyReturnType != null);
                 return _lazyReturnType;
+            }
+        }
+
+        public sealed override ImmutableArray<CustomModifier> RefCustomModifiers
+        {
+            get
+            {
+                return ImmutableArray<CustomModifier>.Empty; // Same as base, but this is clear and explicit.
             }
         }
 

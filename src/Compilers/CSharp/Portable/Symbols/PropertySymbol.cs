@@ -51,9 +51,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
+        /// Indicates whether or not the method returns by reference
+        /// </summary>
+        public bool ReturnsByRef { get { return this.RefKind != RefKind.None; } }
+
+        /// <summary>
+        /// Gets the ref kind of the property.
+        /// </summary>
+        internal abstract RefKind RefKind { get; }
+
+        /// <summary>
         /// The type of the property. 
         /// </summary>
         public abstract TypeSymbolWithAnnotations Type { get; }
+
+        /// <summary>
+        /// Custom modifiers associated with the ref modifier, or an empty array if there are none.
+        /// </summary>
+        public abstract ImmutableArray<CustomModifier> RefCustomModifiers { get; }
 
         /// <summary>
         /// The parameters of this property. If this property has no parameters, returns
@@ -137,6 +152,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return (object)property.GetMethod == null;
             }
         }
+
+        /// <summary>
+        /// True if the property itself is excluded from code covarage instrumentation.
+        /// True for source properties marked with <see cref="AttributeDescription.ExcludeFromCodeCoverageAttribute"/>.
+        /// </summary>
+        internal virtual bool IsDirectlyExcludedFromCodeCoverage { get => false; }
 
         /// <summary>
         /// True if this symbol has a special name (metadata flag SpecialName is set).
@@ -327,6 +348,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // Check return type, custom modifiers and parameters:
             if (DeriveUseSiteDiagnosticFromType(ref result, this.Type) ||
+                DeriveUseSiteDiagnosticFromCustomModifiers(ref result, this.RefCustomModifiers) ||
                 DeriveUseSiteDiagnosticFromParameters(ref result, this.Parameters))
             {
                 return true;
@@ -338,6 +360,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 HashSet<TypeSymbol> unificationCheckedTypes = null;
                 if (this.Type.GetUnificationUseSiteDiagnosticRecursive(ref result, this, ref unificationCheckedTypes) ||
+                    GetUnificationUseSiteDiagnosticRecursive(ref result, this.RefCustomModifiers, this, ref unificationCheckedTypes) ||
                     GetUnificationUseSiteDiagnosticRecursive(ref result, this.Parameters, this, ref unificationCheckedTypes))
                 {
                     return true;
@@ -368,6 +391,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         #endregion
+
+        /// <summary>
+        /// Is this a property of a tuple type?
+        /// </summary>
+        public virtual bool IsTupleProperty
+        {
+            get
+            {
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// If this is a property of a tuple type, return corresponding underlying property from the
+        /// tuple underlying type. Otherwise, null. 
+        /// </summary>
+        public virtual PropertySymbol TupleUnderlyingProperty
+        {
+            get
+            {
+                return null;
+            }
+        }
 
         #region IPropertySymbol Members
 
@@ -429,6 +475,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         ImmutableArray<CustomModifier> IPropertySymbol.TypeCustomModifiers
         {
             get { return this.Type.CustomModifiers; }
+        }
+
+        ImmutableArray<CustomModifier> IPropertySymbol.RefCustomModifiers
+        {
+            get { return this.RefCustomModifiers; }
         }
 
         #endregion

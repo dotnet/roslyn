@@ -5,7 +5,6 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -487,6 +486,85 @@ class Test : StaticModClass
             Assert.Equal("<I<System.Int32>.F>d__0", stateMachineClass.Name); // The name has been reconstructed correctly.
             Assert.Equal("C.<I<System.Int32>.F>d__0", stateMachineClass.ToTestDisplayString()); // SymbolDisplay works.
             Assert.Equal(stateMachineClass, comp.GetTypeByMetadataName("C+<I<System.Int32>.F>d__0")); // GetTypeByMetadataName works.
+        }
+
+        [Fact]
+        public void EmptyNamespaceNames()
+        {
+            var ilSource =
+@".class public A
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() { ret }
+}
+.namespace '.N'
+{
+  .class public B
+  {
+    .method public hidebysig specialname rtspecialname instance void .ctor() { ret }
+  }
+}
+.namespace '.'
+{
+  .class public C
+  {
+    .method public hidebysig specialname rtspecialname instance void .ctor() { ret }
+  }
+}
+.namespace '..'
+{
+  .class public D
+  {
+    .method public hidebysig specialname rtspecialname instance void .ctor() { ret }
+  }
+}
+.namespace '..N'
+{
+  .class public E
+  {
+    .method public hidebysig specialname rtspecialname instance void .ctor() { ret }
+  }
+}
+.namespace N.M
+{
+  .class public F
+  {
+    .method public hidebysig specialname rtspecialname instance void .ctor() { ret }
+  }
+}
+.namespace 'N.M.'
+{
+  .class public G
+  {
+    .method public hidebysig specialname rtspecialname instance void .ctor() { ret }
+  }
+}
+.namespace 'N.M..'
+{
+  .class public H
+  {
+    .method public hidebysig specialname rtspecialname instance void .ctor() { ret }
+  }
+}";
+            var comp = CreateCompilationWithCustomILSource("", ilSource);
+            comp.VerifyDiagnostics();
+            var builder = ArrayBuilder<string>.GetInstance();
+            var module = comp.GetMember<NamedTypeSymbol>("A").ContainingModule;
+            GetAllNamespaceNames(builder, module.GlobalNamespace);
+            Assert.Equal(new[] { "<global namespace>", "", ".", "..N", ".N", "N", "N.M", "N.M." }, builder);
+            builder.Free();
+        }
+
+        private static void GetAllNamespaceNames(ArrayBuilder<string> builder, NamespaceSymbol @namespace)
+        {
+            builder.Add(@namespace.ToTestDisplayString());
+            foreach (var member in @namespace.GetMembers())
+            {
+                if (member.Kind != SymbolKind.Namespace)
+                {
+                    continue;
+                }
+                GetAllNamespaceNames(builder, (NamespaceSymbol)member);
+            }
         }
     }
 }

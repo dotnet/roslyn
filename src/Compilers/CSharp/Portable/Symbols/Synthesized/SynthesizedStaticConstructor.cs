@@ -120,11 +120,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal override RefKind RefKind
+        {
+            get
+            {
+                return RefKind.None;
+            }
+        }
+
         public override TypeSymbolWithAnnotations ReturnType
         {
             get
             {
                 return TypeSymbolWithAnnotations.Create(ContainingAssembly.GetSpecialType(SpecialType.System_Void));
+            }
+        }
+
+        public override ImmutableArray<CustomModifier> RefCustomModifiers
+        {
+            get
+            {
+                return ImmutableArray<CustomModifier>.Empty;
             }
         }
 

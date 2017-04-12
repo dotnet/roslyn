@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using Microsoft.CodeAnalysis.Editor.Host;
-using Microsoft.CodeAnalysis.Editor.Navigation;
 using Microsoft.CodeAnalysis.Editor.Peek;
 using Microsoft.CodeAnalysis.Editor.SymbolMapping;
 using Microsoft.CodeAnalysis.FindSymbols;
@@ -58,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Peek
                 return;
             }
 
-            _waitIndicator.Wait(EditorFeaturesResources.Peek, EditorFeaturesResources.LoadingPeekInformation, allowCancel: true, action: context =>
+            _waitIndicator.Wait(EditorFeaturesResources.Peek, EditorFeaturesResources.Loading_Peek_information, allowCancel: true, action: context =>
             {
                 var cancellationToken = context.CancellationToken;
 
@@ -77,11 +76,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Peek
                 else
                 {
                     var semanticModel = document.GetSemanticModelAsync(cancellationToken).WaitAndGetResult(cancellationToken);
-                    var symbol = SymbolFinder.FindSymbolAtPositionAsync(semanticModel,
-                                                                   triggerPoint.Value.Position,
-                                                                   document.Project.Solution.Workspace,
-                                                                   bindLiteralsToUnderlyingType: true,
-                                                                   cancellationToken: cancellationToken).WaitAndGetResult(cancellationToken);
+                    var symbol = SymbolFinder.GetSemanticInfoAtPositionAsync(
+                        semanticModel,
+                        triggerPoint.Value.Position,
+                        document.Project.Solution.Workspace,
+                        cancellationToken).WaitAndGetResult(cancellationToken)
+                                          .GetAnySymbol(includeType: true);
 
                     if (symbol == null)
                     {

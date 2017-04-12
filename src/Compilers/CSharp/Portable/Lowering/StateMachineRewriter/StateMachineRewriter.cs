@@ -172,7 +172,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                             // map local id to the previous id, if available:
                             int previousSlotIndex;
-                            if (mapToPreviousFields && slotAllocatorOpt.TryGetPreviousHoistedLocalSlotIndex(declaratorSyntax, F.ModuleBuilderOpt.Translate(fieldType, declaratorSyntax, diagnostics), synthesizedKind, id, out previousSlotIndex))
+                            if (mapToPreviousFields && slotAllocatorOpt.TryGetPreviousHoistedLocalSlotIndex(
+                                declaratorSyntax, 
+                                F.ModuleBuilderOpt.Translate(fieldType, declaratorSyntax, diagnostics), 
+                                synthesizedKind, 
+                                id, 
+                                diagnostics,
+                                out previousSlotIndex))
                             {
                                 slotIndex = previousSlotIndex;
                             }
@@ -202,13 +208,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (parameter.IsThis)
                     {
                         var containingType = method.ContainingType;
-                        var proxyField = F.StateMachineField(containingType, GeneratedNames.ThisProxyFieldName(), isPublic: true);
+                        var proxyField = F.StateMachineField(containingType, GeneratedNames.ThisProxyFieldName(), isPublic: true, isThis: true);
                         proxiesBuilder.Add(parameter, new CapturedToStateMachineFieldReplacement(proxyField, isReusable: false));
 
                         if (PreserveInitialParameterValues)
                         {
                             var initialThis = containingType.IsStructType() ?
-                                F.StateMachineField(containingType, GeneratedNames.StateMachineThisParameterProxyName(), isPublic: true) : proxyField;
+                                F.StateMachineField(containingType, GeneratedNames.StateMachineThisParameterProxyName(), isPublic: true, isThis: true) : proxyField;
 
                             initialParameters.Add(parameter, new CapturedToStateMachineFieldReplacement(initialThis, isReusable: false));
                         }
@@ -269,7 +275,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             bodyBuilder.Add(GenerateStateMachineCreation(stateMachineVariable, frameType));
             return F.Block(
                 ImmutableArray.Create(stateMachineVariable),
-                ImmutableArray<LocalFunctionSymbol>.Empty,
                 bodyBuilder.ToImmutableAndFree());
         }
 

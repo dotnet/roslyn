@@ -135,24 +135,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
 
             distance = SyntaxComparer.ComputeDistance(
                 Nothing,
-                SpecializedCollections.EmptyArray(Of SyntaxNode))
+                Array.Empty(Of SyntaxNode))
 
             Assert.Equal(0.0, Math.Round(distance, 2))
 
             distance = SyntaxComparer.ComputeDistance(
-                SpecializedCollections.EmptyArray(Of SyntaxNode),
+                Array.Empty(Of SyntaxNode),
                 Nothing)
 
             Assert.Equal(0.0, Math.Round(distance, 2))
 
             distance = SyntaxComparer.ComputeDistance(
                 Nothing,
-                SpecializedCollections.EmptyArray(Of SyntaxToken))
+                Array.Empty(Of SyntaxToken))
 
             Assert.Equal(0.0, Math.Round(distance, 2))
 
             distance = SyntaxComparer.ComputeDistance(
-                SpecializedCollections.EmptyArray(Of SyntaxToken),
+                Array.Empty(Of SyntaxToken),
                 Nothing)
 
             Assert.Equal(0.0, Math.Round(distance, 2))

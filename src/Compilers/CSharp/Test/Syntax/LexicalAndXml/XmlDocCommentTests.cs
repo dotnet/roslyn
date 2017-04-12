@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 using System;
+using System.Threading;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -28,6 +29,39 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var options = this.GetOptions(defines);
             var itext = SourceText.From(text);
             return SyntaxFactory.ParseSyntaxTree(itext, options);
+        }
+
+        [Fact]
+        public void DocCommentWriteException()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+/// <summary>
+/// Doc comment for <see href=""C"" />
+/// </summary>
+public class C
+{
+    /// <summary>
+    /// Doc comment for method M
+    /// </summary>
+    public void M() { }
+}");
+            using (new EnsureEnglishUICulture()) 
+            {
+                var diags = new DiagnosticBag();
+                var badStream = new BrokenStream();
+                badStream.BreakHow = BrokenStream.BreakHowType.ThrowOnWrite;
+
+                DocumentationCommentCompiler.WriteDocumentationCommentXml(
+                    comp,
+                    null,
+                    badStream,
+                    diags,
+                    default(CancellationToken));
+
+                diags.Verify(
+                    // error CS1569: Error writing to XML documentation file: I/O error occurred.
+                    Diagnostic(ErrorCode.ERR_DocFileGen).WithArguments("I/O error occurred.").WithLocation(1, 1));
+            }
         }
 
         [ClrOnlyFact]
@@ -2860,6 +2894,40 @@ public class Program
                 // (5,9): warning CS1570: XML comment has badly formed XML -- 'Whitespace is not allowed at this location.'
                 // /// <A : B/>
                 Diagnostic(ErrorCode.WRN_XMLParseError, " "));
+        }
+
+        [Fact]
+        public void WhitespaceInXmlEndName()
+        {
+            var text = @"
+/// <A:B>
+///   good
+/// </A:B>
+/// <A:B>
+///   bad
+/// </A :B>
+/// <A:B>
+///   bad
+/// </A: B>
+public class Program
+{
+}";
+
+            var tree = Parse(text);
+            tree.GetDiagnostics().Verify(
+                // (7,7): warning CS1570: XML comment has badly formed XML -- 'End tag 'A :B' does not match the start tag 'A:B'.'
+                // /// </A :B>
+                Diagnostic(ErrorCode.WRN_XMLParseError, "A :B").WithArguments("A :B", "A:B").WithLocation(7, 7),
+                // (7,8): warning CS1570: XML comment has badly formed XML -- 'Whitespace is not allowed at this location.'
+                // /// </A :B>
+                Diagnostic(ErrorCode.WRN_XMLParseError, " ").WithLocation(7, 8),
+                // (10,7): warning CS1570: XML comment has badly formed XML -- 'End tag 'A: B' does not match the start tag 'A:B'.'
+                // /// </A: B>
+                Diagnostic(ErrorCode.WRN_XMLParseError, "A: B").WithArguments("A: B", "A:B").WithLocation(10, 7),
+                // (10,9): warning CS1570: XML comment has badly formed XML -- 'Whitespace is not allowed at this location.'
+                // /// </A: B>
+                Diagnostic(ErrorCode.WRN_XMLParseError, " ").WithLocation(10, 9)
+                );
         }
 
         [Fact]

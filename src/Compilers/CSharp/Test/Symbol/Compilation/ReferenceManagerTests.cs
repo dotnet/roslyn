@@ -383,15 +383,9 @@ public class OKImpl : I
             CompileAndVerify(main, validator: (assembly) =>
             {
                 var reader = assembly.GetMetadataReader();
-                List<string> refs = new List<string>();
-                foreach (var assemblyRef in reader.AssemblyReferences)
-                {
-                    var row = reader.GetAssemblyReference(assemblyRef);
-                    refs.Add(reader.GetString(row.Name) + " " + row.Version.Major + "." + row.Version.Minor);
-                }
 
                 // Dev11 adds "Lib 1.0" to the references, we don't (see DevDiv #15580)
-                AssertEx.SetEqual(new[] { "mscorlib 4.0", "RefLibV1 1.0", "Lib 2.0", "X 2.0" }, refs);
+                AssertEx.SetEqual(new[] { "mscorlib 4.0", "RefLibV1 1.0", "Lib 2.0", "X 2.0" }, reader.DumpAssemblyReferences());
             },
             // PE verification would need .config file with Lib v1 -> Lib v2 binding redirect 
             verify: false);
@@ -1413,7 +1407,7 @@ public class A
             var c = CreateCompilationWithMscorlib("class C : A {}", new[] { refA2, refB }, assemblyName: "C");
             var symbolA2 = c.GetReferencedAssemblySymbol(refA2);
             Assert.True(symbolA2 is Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE.PEAssemblySymbol, "PE symbol expected");
-            Assert.Equal(1, ((AssemblyMetadata)refA2.GetMetadata()).CachedSymbols.WeakCount);
+            Assert.Equal(1, ((AssemblyMetadata)refA2.GetMetadataNoCopy()).CachedSymbols.WeakCount);
 
             GC.KeepAlive(symbolA2);
 
@@ -1741,10 +1735,7 @@ public class C : I { }
             CompileAndVerify(main, validator: (pe) =>
             {
                 var reader = pe.GetMetadataReader();
-
-                var assemblyRef = reader.AssemblyReferences.AsEnumerable().Single();
-                var name = reader.GetString(reader.GetAssemblyReference(assemblyRef).Name);
-                Assert.Equal(name, "mscorlib");
+                AssertEx.SetEqual(new[] { "mscorlib 4.0" }, reader.DumpAssemblyReferences());
             },
             verify: false);
         }

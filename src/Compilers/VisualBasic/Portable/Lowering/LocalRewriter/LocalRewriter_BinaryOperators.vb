@@ -157,7 +157,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim cast = DirectCast(operand, BoundConversion)
                     Return cast.Update(ReplaceMyGroupCollectionPropertyGetWithUnderlyingField(cast.Operand),
                                        cast.ConversionKind, cast.Checked, cast.ExplicitCastInCode, cast.ConstantValueOpt,
-                                       cast.ConstructorOpt, cast.RelaxationLambdaOpt, cast.RelaxationReceiverPlaceholderOpt,
+                                       cast.ExtendedInfoOpt,
                                        cast.Type)
 
                 Case BoundKind.Call
@@ -1287,9 +1287,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 condition = MakeBooleanBinaryExpression(node.Syntax, BinaryOperatorKind.And, leftHasValueExpression, rightHasValueExpression)
             End If
 
-            Debug.Assert(leftCallInput.Type.IsSameTypeIgnoringCustomModifiers(operatorCall.Method.Parameters(0).Type),
+            Debug.Assert(leftCallInput.Type.IsSameTypeIgnoringAll(operatorCall.Method.Parameters(0).Type),
                          "operator must take either unwrapped values or not-nullable left directly")
-            Debug.Assert(rightCallInput.Type.IsSameTypeIgnoringCustomModifiers(operatorCall.Method.Parameters(1).Type),
+            Debug.Assert(rightCallInput.Type.IsSameTypeIgnoringAll(operatorCall.Method.Parameters(1).Type),
                          "operator must take either unwrapped values or not-nullable right directly")
 
             Dim whenHasValue As BoundExpression = operatorCall.Update(operatorCall.Method,
@@ -1297,14 +1297,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                        operatorCall.ReceiverOpt,
                                                                        ImmutableArray.Create(Of BoundExpression)(leftCallInput, rightCallInput),
                                                                        operatorCall.ConstantValueOpt,
-                                                                       operatorCall.SuppressObjectClone,
-                                                                       operatorCall.Method.ReturnType)
+                                                                       isLValue:=operatorCall.IsLValue,
+                                                                       suppressObjectClone:=operatorCall.SuppressObjectClone,
+                                                                       type:=operatorCall.Method.ReturnType)
 
-            If Not whenHasValue.Type.IsSameTypeIgnoringCustomModifiers(resultType) Then
+            If Not whenHasValue.Type.IsSameTypeIgnoringAll(resultType) Then
                 whenHasValue = WrapInNullable(whenHasValue, resultType)
             End If
 
-            Debug.Assert(whenHasValue.Type.IsSameTypeIgnoringCustomModifiers(resultType), "result type must be same as resultType")
+            Debug.Assert(whenHasValue.Type.IsSameTypeIgnoringAll(resultType), "result type must be same as resultType")
 
             ' RESULT
 

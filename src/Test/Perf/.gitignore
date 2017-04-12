@@ -1,0 +1,6 @@
+artifacts/
+infra/bin/
+results/
+temp/
+*.json
+*.csv

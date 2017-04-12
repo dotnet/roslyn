@@ -16,21 +16,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Inherits LambdaParameterSymbol
 
         Private _lambdaSymbol As LambdaSymbol
-        Private ReadOnly _syntaxNode As VisualBasicSyntaxNode
+        Private ReadOnly _syntaxNode As SyntaxNode
 
         Public Sub New(
             name As String,
             ordinal As Integer,
             type As TypeSymbol,
             isByRef As Boolean,
-            syntaxNode As VisualBasicSyntaxNode,
+            syntaxNode As SyntaxNode,
             location As Location
         )
             MyBase.New(name, ordinal, type, isByRef, location)
             _syntaxNode = syntaxNode
         End Sub
 
-        Public ReadOnly Property Syntax As VisualBasicSyntaxNode
+        Public ReadOnly Property Syntax As SyntaxNode
             Get
                 Return _syntaxNode
             End Get

@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void VersionAttribute02()
+        public void VersionAttribute_FourParts()
         {
             string s = @"[assembly: System.Reflection.AssemblyVersion(""1.22.333.4444"")] public class C {}";
 
@@ -42,13 +42,51 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             {
                 Assert.Equal(new Version(1, 22, 333, 4444), r.Version);
             });
+        }
 
-            s = @"[assembly: System.Reflection.AssemblyVersion(""10101.0.*"")] public class C {}";
-            comp = CreateCompilationWithMscorlib(s, options: TestOptions.ReleaseDll);
+        [Fact]
+        public void VersionAttribute_TwoParts()
+        {
+            var s = @"[assembly: System.Reflection.AssemblyVersion(""1.2"")] public class C {}";
+            var comp = CreateCompilationWithMscorlib(s, options: TestOptions.ReleaseDll);
+            VerifyAssemblyTable(comp, r =>
+            {
+                Assert.Equal(1, r.Version.Major);
+                Assert.Equal(2, r.Version.Minor);
+                Assert.Equal(0, r.Version.Build);
+                Assert.Equal(0, r.Version.Revision);
+            });
+        }
+
+        [Fact]
+        public void VersionAttribute_WildCard()
+        {
+            var now = DateTime.Now;
+            int days, seconds;
+            VersionTestHelpers.GetDefautVersion(now, out days, out seconds);
+
+            var s = @"[assembly: System.Reflection.AssemblyVersion(""10101.0.*"")] public class C {}";
+            var comp = CreateCompilationWithMscorlib(s, options: TestOptions.ReleaseDll.WithCurrentLocalTime(now));
             VerifyAssemblyTable(comp, r =>
             {
                 Assert.Equal(10101, r.Version.Major);
                 Assert.Equal(0, r.Version.Minor);
+                Assert.Equal(days, r.Version.Build);
+                Assert.Equal(seconds, r.Version.Revision);
+            });
+        }
+
+        [Fact]
+        public void VersionAttribute_Overflow()
+        {
+            var s = @"[assembly: System.Reflection.AssemblyVersion(""10101.0.*"")] public class C {}";
+            var comp = CreateCompilationWithMscorlib(s, options: TestOptions.ReleaseDll.WithCurrentLocalTime(new DateTime(2300, 1, 1)));
+            VerifyAssemblyTable(comp, r =>
+            {
+                Assert.Equal(10101, r.Version.Major);
+                Assert.Equal(0, r.Version.Minor);
+                Assert.Equal(65535, r.Version.Build);
+                Assert.Equal(0, r.Version.Revision);
             });
         }
 
@@ -82,7 +120,27 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void FileVersionAttributeWrn()
+        public void FileVersionAttribute_MissingParts()
+        {
+            string s = @"[assembly: System.Reflection.AssemblyFileVersion(""1.2"")] public class C {}";
+
+            var other = CreateCompilationWithMscorlib(s, options: TestOptions.ReleaseDll);
+            Assert.Empty(other.GetDiagnostics());
+            Assert.Equal("1.2", ((SourceAssemblySymbol)other.Assembly).FileVersion);
+        }
+
+        [Fact]
+        public void FileVersionAttribute_MaxValue()
+        {
+            string s = @"[assembly: System.Reflection.AssemblyFileVersion(""65535.65535.65535.65535"")] public class C {}";
+
+            var other = CreateCompilationWithMscorlib(s, options: TestOptions.ReleaseDll);
+            Assert.Empty(other.GetDiagnostics());
+            Assert.Equal("65535.65535.65535.65535", ((SourceAssemblySymbol)other.Assembly).FileVersion);
+        }
+
+        [Fact]
+        public void FileVersionAttributeWrn_Wildcard()
         {
             string s = @"[assembly: System.Reflection.AssemblyFileVersion(""1.2.*"")] public class C {}";
 
@@ -90,7 +148,22 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             other.VerifyDiagnostics(Diagnostic(ErrorCode.WRN_InvalidVersionFormat, @"""1.2.*"""));
 
             // Confirm that suppressing the old alink warning 1607 shuts off WRN_ConflictingMachineAssembly
-            var warnings = new System.Collections.Generic.Dictionary<string, ReportDiagnostic>();
+            var warnings = new Dictionary<string, ReportDiagnostic>();
+            warnings.Add(MessageProvider.Instance.GetIdForErrorCode((int)ErrorCode.WRN_ALinkWarn), ReportDiagnostic.Suppress);
+            other = other.WithOptions(other.Options.WithSpecificDiagnosticOptions(warnings));
+            other.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void FileVersionAttributeWarning_OutOfRange()
+        {
+            string s = @"[assembly: System.Reflection.AssemblyFileVersion(""1.65536"")] public class C {}";
+
+            var other = CreateCompilationWithMscorlib(s, options: TestOptions.ReleaseDll);
+            other.VerifyDiagnostics(Diagnostic(ErrorCode.WRN_InvalidVersionFormat, @"""1.65536"""));
+
+            // Confirm that suppressing the old alink warning 1607 shuts off WRN_ConflictingMachineAssembly
+            var warnings = new Dictionary<string, ReportDiagnostic>();
             warnings.Add(MessageProvider.Instance.GetIdForErrorCode((int)ErrorCode.WRN_ALinkWarn), ReportDiagnostic.Suppress);
             other = other.WithOptions(other.Options.WithSpecificDiagnosticOptions(warnings));
             other.VerifyEmitDiagnostics();
@@ -427,7 +500,7 @@ public class neutral
             string s = @"[assembly: System.Reflection.AssemblyInformationalVersion(""1.2.3garbage"")] public class C {}";
 
             var other = CreateCompilationWithMscorlib(s, options: TestOptions.ReleaseDll);
-            Assert.Empty(other.GetDiagnostics());
+            other.VerifyEmitDiagnostics();
             Assert.Equal("1.2.3garbage", ((SourceAssemblySymbol)other.Assembly).InformationalVersion);
         }
 
@@ -922,6 +995,8 @@ public class C {}
                 references: new[] { netModuleWithAssemblyAttributes.GetReference() },
                 options: TestOptions.ReleaseExe);
 
+            Assert.NotNull(consoleappCompilation.GetTypeByMetadataName("System.Runtime.CompilerServices.AssemblyAttributesGoHere"));
+            Assert.NotNull(consoleappCompilation.GetTypeByMetadataName("System.Runtime.CompilerServices.AssemblyAttributesGoHereM"));
             var diagnostics = consoleappCompilation.GetDiagnostics();
 
             var attrs = consoleappCompilation.Assembly.GetAttributes();
@@ -979,6 +1054,118 @@ public class C {}
             Assert.Equal(0, metadataReader.DeclarativeSecurityAttributes.Count);
 
             token = peModule.GetTypeRef(peModule.GetAssemblyRef("mscorlib"), "System.Runtime.CompilerServices", "AssemblyAttributesGoHereM");
+            Assert.True(token.IsNil);   //could the type ref be located? If not then the attribute's not there.
+        }
+
+        [Fact]
+        [WorkItem(10550, "https://github.com/dotnet/roslyn/issues/10550")]
+        public void AssemblyAttributesFromNetModule_WithoutAssemblyAttributesGoHereTypes()
+        {
+            string netModuleSource =
+              @"using System;
+                using System.Reflection;
+
+                [assembly: UserDefinedAssemblyAttrNoAllowMultiple(""UserDefinedAssemblyAttrNoAllowMultiple"")]
+                [assembly: UserDefinedAssemblyAttrAllowMultiple(""UserDefinedAssemblyAttrAllowMultiple"")]
+
+                public class NetModuleClass { }
+
+                [AttributeUsage(AttributeTargets.Assembly, AllowMultiple = false)]
+                public class UserDefinedAssemblyAttrNoAllowMultipleAttribute : Attribute
+                {
+                    public UserDefinedAssemblyAttrNoAllowMultipleAttribute(string text) {}
+                }
+
+                [AttributeUsage(AttributeTargets.Assembly, AllowMultiple = true)]
+                public class UserDefinedAssemblyAttrAllowMultipleAttribute : Attribute
+                {
+                    public UserDefinedAssemblyAttrAllowMultipleAttribute(string text) {}
+                }
+                ";
+
+            string consoleappSource =
+                @"
+                class Program
+                {
+                    static void Main(string[] args) { }
+                }
+                ";
+
+            var netmoduleCompilation = CreateCompilation(netModuleSource, 
+                                                         options: TestOptions.ReleaseModule, 
+                                                         references: new[] { MinCorlibRef });
+            Assert.Null(netmoduleCompilation.GetTypeByMetadataName("System.Runtime.CompilerServices.AssemblyAttributesGoHere"));
+            Assert.Null(netmoduleCompilation.GetTypeByMetadataName("System.Runtime.CompilerServices.AssemblyAttributesGoHereM"));
+            var netModuleWithAssemblyAttributes = ModuleMetadata.CreateFromImage(netmoduleCompilation.EmitToArray());
+
+            PEModule peModule = netModuleWithAssemblyAttributes.Module;
+            var metadataReader = peModule.GetMetadataReader();
+
+            Assert.Equal(0, metadataReader.GetTableRowCount(TableIndex.ExportedType));
+            Assert.Equal(4, metadataReader.CustomAttributes.Count);
+            Assert.Equal(0, metadataReader.DeclarativeSecurityAttributes.Count);
+
+            EntityHandle token = peModule.GetTypeRef(peModule.GetAssemblyRef("mincorlib"), "System.Runtime.CompilerServices", "AssemblyAttributesGoHereM");
+            Assert.False(token.IsNil);   //could the type ref be located? If not then the attribute's not there.
+
+            var consoleappCompilation = CreateCompilation(
+                consoleappSource,
+                references: new[] { MinCorlibRef, netModuleWithAssemblyAttributes.GetReference() },
+                options: TestOptions.ReleaseExe);
+
+            Assert.Null(consoleappCompilation.GetTypeByMetadataName("System.Runtime.CompilerServices.AssemblyAttributesGoHere"));
+            Assert.Null(consoleappCompilation.GetTypeByMetadataName("System.Runtime.CompilerServices.AssemblyAttributesGoHereM"));
+            consoleappCompilation.GetDiagnostics().Verify();
+
+            var attrs = consoleappCompilation.Assembly.GetAttributes();
+            Assert.Equal(2, attrs.Length);
+            foreach (var a in attrs)
+            {
+                switch (a.AttributeClass.Name)
+                {
+                    case "UserDefinedAssemblyAttrNoAllowMultipleAttribute":
+                        Assert.Equal(@"UserDefinedAssemblyAttrNoAllowMultipleAttribute(""UserDefinedAssemblyAttrNoAllowMultiple"")", a.ToString());
+                        break;
+                    case "UserDefinedAssemblyAttrAllowMultipleAttribute":
+                        Assert.Equal(@"UserDefinedAssemblyAttrAllowMultipleAttribute(""UserDefinedAssemblyAttrAllowMultiple"")", a.ToString());
+                        break;
+                    default:
+                        Assert.Equal("Unexpected Attr", a.AttributeClass.Name);
+                        break;
+                }
+            }
+
+            var exeMetadata = AssemblyMetadata.CreateFromImage(consoleappCompilation.EmitToArray());
+
+            peModule = exeMetadata.GetAssembly().ManifestModule;
+            metadataReader = peModule.GetMetadataReader();
+
+            Assert.Equal(1, metadataReader.GetTableRowCount(TableIndex.ModuleRef));
+            Assert.Equal(3, metadataReader.GetTableRowCount(TableIndex.ExportedType));
+            Assert.Equal(2, metadataReader.CustomAttributes.Count);
+            Assert.Equal(0, metadataReader.DeclarativeSecurityAttributes.Count);
+
+            token = peModule.GetTypeRef(peModule.GetAssemblyRef("mincorlib"), "System.Runtime.CompilerServices", "AssemblyAttributesGoHereM");
+            Assert.True(token.IsNil);   //could the type ref be located? If not then the attribute's not there.
+
+            consoleappCompilation = CreateCompilation(
+                consoleappSource,
+                references: new[] { MinCorlibRef, netModuleWithAssemblyAttributes.GetReference() },
+                options: TestOptions.ReleaseModule);
+
+            Assert.Equal(0, consoleappCompilation.Assembly.GetAttributes().Length);
+
+            var modMetadata = ModuleMetadata.CreateFromImage(consoleappCompilation.EmitToArray());
+
+            peModule = modMetadata.Module;
+            metadataReader = peModule.GetMetadataReader();
+
+            Assert.Equal(0, metadataReader.GetTableRowCount(TableIndex.ModuleRef));
+            Assert.Equal(0, metadataReader.GetTableRowCount(TableIndex.ExportedType));
+            Assert.Equal(0, metadataReader.CustomAttributes.Count);
+            Assert.Equal(0, metadataReader.DeclarativeSecurityAttributes.Count);
+
+            token = peModule.GetTypeRef(peModule.GetAssemblyRef("mincorlib"), "System.Runtime.CompilerServices", "AssemblyAttributesGoHereM");
             Assert.True(token.IsNil);   //could the type ref be located? If not then the attribute's not there.
         }
 

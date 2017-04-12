@@ -22,15 +22,21 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Interactive.Commands
     </Project>
     <Project Language=""C#"" AssemblyName=""ResetInteractiveTestsAssembly"" CommonReferences=""true"">
         <ProjectReference>ResetInteractiveVisualBasicSubproject</ProjectReference>
-        <Document FilePath=""ResetInteractiveTestsDocument""></Document>
+        <Document FilePath=""ResetInteractiveTestsDocument"">
+namespace ResetInteractiveTestsDocument
+{
+    class TestClass
+    {
+    }
+}</Document>
     </Project>
 </Workspace>";
 
         [WpfFact]
         [Trait(Traits.Feature, Traits.Features.Interactive)]
-        public async void TestResetREPLWithProjectContext()
+        public void TestResetREPLWithProjectContext()
         {
-            using (var workspace = await TestWorkspace.CreateAsync(WorkspaceXmlStr))
+            using (var workspace = TestWorkspace.Create(WorkspaceXmlStr))
             {
                 var project = workspace.CurrentSolution.Projects.FirstOrDefault(p => p.AssemblyName == "ResetInteractiveTestsAssembly");
                 var document = project.Documents.FirstOrDefault(d => d.FilePath == "ResetInteractiveTestsDocument");
@@ -40,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Interactive.Commands
                 Assert.True(replReferenceCommands.Any(rc => rc.EndsWith(@"ResetInteractiveVisualBasicSubproject.dll""")));
 
                 var expectedReferences = replReferenceCommands.ToList();
-                var expectedUsings = new List<string> { @"using ""ns1"";", @"using ""ns2"";" };
+                var expectedUsings = new List<string> { @"using ""System"";", @"using ""ResetInteractiveTestsDocument"";" };
                 AssertResetInteractive(workspace, project, buildSucceeds: true, expectedReferences: expectedReferences, expectedUsings: expectedUsings);
 
                 // Test that no submissions are executed if the build fails.
@@ -79,7 +85,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Interactive.Commands
                 References = ImmutableArray.CreateRange(GetProjectReferences(workspace, project)),
                 ReferenceSearchPaths = ImmutableArray.Create("rsp1", "rsp2"),
                 SourceSearchPaths = ImmutableArray.Create("ssp1", "ssp2"),
-                NamespacesToImport = ImmutableArray.Create("ns1", "ns2"),
+                ProjectNamespaces = ImmutableArray.Create("System", "ResetInteractiveTestsDocument", "VisualBasicResetInteractiveTestsDocument"),
+                NamespacesToImport = ImmutableArray.Create("System", "ResetInteractiveTestsDocument"),
                 ProjectDirectory = "pj",
             };
 

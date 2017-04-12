@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Utilities;
 
 namespace Roslyn.Utilities
 {
@@ -89,10 +90,10 @@ namespace Roslyn.Utilities
             private readonly Edge[] _compactEdges;
             private readonly BuilderNode[] _builderNodes;
 
-            public Builder(IEnumerable<string> values)
+            public Builder(IEnumerable<StringSlice> values)
             {
                 // TODO(cyrusn): Properly handle unicode normalization here.
-                var distinctValues = values.Where(v => v.Length > 0).Distinct(CaseInsensitiveComparison.Comparer).ToArray();
+                var distinctValues = values.Where(v => v.Length > 0).Distinct(StringSliceComparer.OrdinalIgnoreCase).ToArray();
                 var charCount = values.Sum(v => v.Length);
 
                 _concatenatedLowerCaseWords = new char[charCount];
@@ -201,8 +202,7 @@ namespace Roslyn.Utilities
                         throw new InvalidOperationException();
                     }
 
-                    int childNodeIndex;
-                    if (TryGetChildIndex(currentNode, currentNodeIndex, editDistance, out childNodeIndex))
+                    if (TryGetChildIndex(currentNode, currentNodeIndex, editDistance, out var childNodeIndex))
                     {
                         // Edit distances collide.  Move to this child and add this word to it.
                         currentNodeIndex = childNodeIndex;

@@ -59,8 +59,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
             End If
 
             _waitIndicator.Wait(
-                VBEditorResources.FormatDocument,
-                VBEditorResources.FormattingDocument,
+                VBEditorResources.Format_Document,
+                VBEditorResources.Formatting_Document,
                 allowCancel:=True,
                 action:=
                 Sub(waitContext)
@@ -85,8 +85,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
             End If
 
             _waitIndicator.Wait(
-                VBEditorResources.FormatDocument,
-                VBEditorResources.FormattingDocument,
+                VBEditorResources.Format_Document,
+                VBEditorResources.Formatting_Document,
                 allowCancel:=True,
                 action:=
                 Sub(waitContext)
@@ -116,7 +116,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
         End Function
 
         Public Sub ExecuteCommand(args As ReturnKeyCommandArgs, nextHandler As Action) Implements ICommandHandler(Of ReturnKeyCommandArgs).ExecuteCommand
-            If Not args.SubjectBuffer.GetOption(FeatureOnOffOptions.PrettyListing) Then
+            If Not args.SubjectBuffer.GetFeatureOnOffOption(FeatureOnOffOptions.PrettyListing) Then
                 nextHandler()
                 Return
             End If
@@ -134,7 +134,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
             Try
                 ' Evil: we really want a enter in VB to be always grouped as a single undo transaction, and so make sure all
                 ' things from here on out are grouped as one.
-                Using transaction = _textUndoHistoryRegistry.GetHistory(args.TextView.TextBuffer).CreateTransaction(VBEditorResources.InsertNewLine)
+                Using transaction = _textUndoHistoryRegistry.GetHistory(args.TextView.TextBuffer).CreateTransaction(VBEditorResources.Insert_new_line)
                     transaction.MergePolicy = AutomaticCodeChangeMergePolicy.Instance
 
                     nextHandler()
@@ -194,7 +194,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                     Return False
                 End If
 
-                Dim tree = document.GetSyntaxTreeAsync(cancellationToken).WaitAndGetResult(cancellationToken)
+                Dim tree = document.GetSyntaxTreeSynchronously(cancellationToken)
                 Dim token = tree.FindTokenOnLeftOfPosition(oldCaretPositionInOldSnapshot.Value, cancellationToken)
 
                 If token.IsKind(SyntaxKind.StringLiteralToken) AndAlso token.FullSpan.Contains(oldCaretPositionInOldSnapshot.Value) Then
@@ -217,8 +217,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
 
         Public Sub ExecuteCommand(args As PasteCommandArgs, nextHandler As Action) Implements ICommandHandler(Of PasteCommandArgs).ExecuteCommand
             _waitIndicator.Wait(
-                title:=VBEditorResources.FormatPaste,
-                message:=VBEditorResources.FormattingPastedText,
+                title:=VBEditorResources.Format_Paste,
+                message:=VBEditorResources.Formatting_pasted_text,
                 allowCancel:=True,
                 action:=Sub(waitContext) CommitOnPaste(args, nextHandler, waitContext))
         End Sub
@@ -230,7 +230,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                 ' Do the paste in the same transaction as the commit/format
                 nextHandler()
 
-                If Not args.SubjectBuffer.GetOption(FeatureOnOffOptions.FormatOnPaste) Then
+                If Not args.SubjectBuffer.GetFeatureOnOffOption(FeatureOnOffOptions.FormatOnPaste) Then
                     transaction.Complete()
                     Return
                 End If
@@ -262,13 +262,13 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
         End Function
 
         Public Sub ExecuteCommand(args As SaveCommandArgs, nextHandler As Action) Implements ICommandHandler(Of SaveCommandArgs).ExecuteCommand
-            If args.SubjectBuffer.GetOption(InternalFeatureOnOffOptions.FormatOnSave) Then
+            If args.SubjectBuffer.GetFeatureOnOffOption(InternalFeatureOnOffOptions.FormatOnSave) Then
                 _waitIndicator.Wait(
-                    title:=VBEditorResources.FormatOnSave,
-                    message:=VBEditorResources.FormattingDocument,
+                    title:=VBEditorResources.Format_on_Save,
+                    message:=VBEditorResources.Formatting_Document,
                     allowCancel:=True,
                     action:=Sub(waitContext)
-                                Using transaction = _textUndoHistoryRegistry.GetHistory(args.TextView.TextBuffer).CreateTransaction(VBEditorResources.FormatOnSave)
+                                Using transaction = _textUndoHistoryRegistry.GetHistory(args.TextView.TextBuffer).CreateTransaction(VBEditorResources.Format_on_Save)
                                     _bufferManagerFactory.CreateForBuffer(args.SubjectBuffer).CommitDirty(isExplicitFormat:=False, cancellationToken:=waitContext.CancellationToken)
 
                                     ' We should only create the transaction if anything actually happened

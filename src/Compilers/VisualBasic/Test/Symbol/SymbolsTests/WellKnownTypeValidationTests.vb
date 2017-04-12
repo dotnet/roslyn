@@ -489,11 +489,13 @@ End Namespace
                 CSharpRef,
                 SystemXmlRef,
                 SystemXmlLinqRef,
-                SystemWindowsFormsRef
+                SystemWindowsFormsRef,
+                ValueTupleRef
             }.Concat(WinRtRefs).ToArray()
 
+            Dim lastType = CType(WellKnownType.NextAvailable - 1, WellKnownType)
             Dim comp = CreateCompilationWithReferences((<compilation/>), refs.Concat(MsvbRef_v4_0_30319_17929).ToArray())
-            For wkt = WellKnownType.First To WellKnownType.Last
+            For wkt = WellKnownType.First To lastType
                 Select Case wkt
                     Case WellKnownType.Microsoft_VisualBasic_CompilerServices_EmbeddedOperators
                         ' Only present when embedding VB Core.
@@ -503,6 +505,12 @@ End Namespace
                          WellKnownType.System_Runtime_CompilerServices_NullableAttribute
                         ' Not available on all platforms.
                         Continue For
+                    Case WellKnownType.ExtSentinel
+                        ' Not a real type
+                        Continue For
+                    Case WellKnownType.Microsoft_CodeAnalysis_Runtime_Instrumentation
+                        ' Not always available.
+                        Continue For
                 End Select
 
                 Dim symbol = comp.GetWellKnownType(wkt)
@@ -511,7 +519,7 @@ End Namespace
             Next
 
             comp = CreateCompilationWithReferences(<compilation/>, refs, TestOptions.ReleaseDll.WithEmbedVbCoreRuntime(True))
-            For wkt = WellKnownType.First To WellKnownType.Last
+            For wkt = WellKnownType.First To lastType
                 Select Case wkt
                     Case WellKnownType.Microsoft_VisualBasic_CallType,
                          WellKnownType.Microsoft_VisualBasic_CompilerServices_Operators,
@@ -533,6 +541,12 @@ End Namespace
                          WellKnownType.System_Runtime_CompilerServices_NullableAttribute
                         ' Not available on all platforms.
                         Continue For
+                    Case WellKnownType.ExtSentinel
+                        ' Not a real type
+                        Continue For
+                    Case WellKnownType.Microsoft_CodeAnalysis_Runtime_Instrumentation
+                        ' Not always available.
+                        Continue For
                 End Select
 
                 Dim symbol = comp.GetWellKnownType(wkt)
@@ -552,7 +566,8 @@ End Namespace
                 CSharpRef,
                 SystemXmlRef,
                 SystemXmlLinqRef,
-                SystemWindowsFormsRef
+                SystemWindowsFormsRef,
+                ValueTupleRef
             }.Concat(WinRtRefs).ToArray()
 
             Dim comp = CreateCompilationWithReferences((<compilation/>), refs.Concat(MsvbRef_v4_0_30319_17929).ToArray())
@@ -568,6 +583,9 @@ End Namespace
                          WellKnownMember.System_Runtime_CompilerServices_NullableAttribute__ctor,
                          WellKnownMember.System_Runtime_CompilerServices_NullableAttribute__ctorTransformFlags
                         ' Not available yet, but will be in upcoming release.
+                        Continue For
+                    Case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayload
+                        ' Not always available.
                         Continue For
                 End Select
 
@@ -647,6 +665,9 @@ End Namespace
                          WellKnownMember.System_Runtime_CompilerServices_NullableAttribute__ctor,
                          WellKnownMember.System_Runtime_CompilerServices_NullableAttribute__ctorTransformFlags
                         ' Not available yet, but will be in upcoming release.
+                        Continue For
+                    Case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayload
+                        ' Not always available.
                         Continue For
                 End Select
 

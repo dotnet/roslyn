@@ -28,10 +28,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         Public Overloads Function Equals(other As TypeWithModifiers) As Boolean Implements IEquatable(Of TypeWithModifiers).Equals
-            Return Me.Type = other.Type AndAlso
-                   If(Me.CustomModifiers.IsDefault,
+            Return Me.IsSameType(other, TypeCompareKind.ConsiderEverything)
+        End Function
+
+        Friend Function IsSameType(other As TypeWithModifiers, compareKind As TypeCompareKind) As Boolean
+            If Not Me.Type.IsSameType(other.Type, compareKind) Then
+                Return False
+            End If
+
+            If (compareKind And TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds) = 0 Then
+                Return If(Me.CustomModifiers.IsDefault,
                       other.CustomModifiers.IsDefault,
                       Not other.CustomModifiers.IsDefault AndAlso Me.CustomModifiers.SequenceEqual(other.CustomModifiers))
+            End If
+
+            Return True
         End Function
 
         Shared Operator =(x As TypeWithModifiers, y As TypeWithModifiers) As Boolean

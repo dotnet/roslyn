@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public CSharpCompilation Compilation { get { return CompilationState.Compilation; } }
-        public CSharpSyntaxNode Syntax { get; set; }
+        public SyntaxNode Syntax { get; set; }
         public PEModuleBuilder ModuleBuilderOpt { get { return CompilationState.ModuleBuilderOpt; } }
         public DiagnosticBag Diagnostics { get; }
         public TypeCompilationState CompilationState { get; }
@@ -64,7 +64,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             set
             {
                 _currentMethod = value;
-                if ((object)value != null && value.MethodKind != MethodKind.AnonymousFunction)
+                if ((object)value != null &&
+                    value.MethodKind != MethodKind.AnonymousFunction &&
+                    value.MethodKind != MethodKind.LocalFunction)
                 {
                     _topLevelMethod = value;
                     _currentType = value.ContainingType;
@@ -92,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal BoundExpression MakeInvocationExpression(
             BinderFlags flags,
-            CSharpSyntaxNode node,
+            SyntaxNode node,
             BoundExpression receiver,
             string methodName,
             ImmutableArray<BoundExpression> args,
@@ -142,7 +144,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="node">The syntax node to which generated code should be attributed</param>
         /// <param name="compilationState">The state of compilation of the enclosing type</param>
         /// <param name="diagnostics">A bag where any diagnostics should be output</param>
-        public SyntheticBoundNodeFactory(MethodSymbol topLevelMethod, CSharpSyntaxNode node, TypeCompilationState compilationState, DiagnosticBag diagnostics)
+        public SyntheticBoundNodeFactory(MethodSymbol topLevelMethod, SyntaxNode node, TypeCompilationState compilationState, DiagnosticBag diagnostics)
             : this(topLevelMethod, topLevelMethod.ContainingType, node, compilationState, diagnostics)
         {
         }
@@ -152,7 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="node">The syntax node to which generated code should be attributed</param>
         /// <param name="compilationState">The state of compilation of the enclosing type</param>
         /// <param name="diagnostics">A bag where any diagnostics should be output</param>
-        public SyntheticBoundNodeFactory(MethodSymbol topLevelMethodOpt, NamedTypeSymbol currentClassOpt, CSharpSyntaxNode node, TypeCompilationState compilationState, DiagnosticBag diagnostics)
+        public SyntheticBoundNodeFactory(MethodSymbol topLevelMethodOpt, NamedTypeSymbol currentClassOpt, SyntaxNode node, TypeCompilationState compilationState, DiagnosticBag diagnostics)
         {
             Debug.Assert(node != null);
             Debug.Assert(compilationState != null);
@@ -203,9 +205,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundHoistedFieldAccess(Syntax, field, field.Type.TypeSymbol);
         }
 
-        public StateMachineFieldSymbol StateMachineField(TypeSymbol type, string name, bool isPublic = false)
+        public StateMachineFieldSymbol StateMachineField(TypeSymbol type, string name, bool isPublic = false, bool isThis = false)
         {
-            var result = new StateMachineFieldSymbol(CurrentType, type, name, isPublic);
+            var result = new StateMachineFieldSymbol(CurrentType, type, name, isPublic, isThis);
             AddField(CurrentType, result);
             return result;
         }
@@ -251,6 +253,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundBaseReference(Syntax, CurrentMethod.ThisParameter.Type.TypeSymbol.BaseTypeNoUseSiteDiagnostics) { WasCompilerGenerated = true };
         }
 
+        public BoundBadExpression BadExpression(TypeSymbol type)
+        {
+            return new BoundBadExpression(Syntax, LookupResultKind.Empty, ImmutableArray<Symbol>.Empty, ImmutableArray<BoundNode>.Empty, type, hasErrors: true);
+        }
+
         public BoundParameter Parameter(ParameterSymbol p)
         {
             return new BoundParameter(Syntax, p, p.Type.TypeSymbol) { WasCompilerGenerated = true };
@@ -281,22 +288,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Call(receiver, propertySym.GetMethod);
         }
 
-        public BoundExpression Property(BoundExpression receiver, string name)
+        public BoundExpression Property(BoundExpression receiver, PropertySymbol property)
         {
-            // TODO: unroll loop and add diagnostics for failure
-            // TODO: should we use GetBaseProperty() to ensure we generate a call to the overridden method?
-            // TODO: replace this with a mechanism that uses WellKnownMember instead of string names.
-            var property = receiver.Type.GetMembers(name).OfType<PropertySymbol>().Single();
             Debug.Assert(!property.IsStatic);
             return Call(receiver, property.GetMethod); // TODO: should we use property.GetBaseProperty().GetMethod to ensure we generate a call to the overridden method?
-        }
-
-        public BoundExpression Property(NamedTypeSymbol receiver, string name)
-        {
-            // TODO: unroll loop and add diagnostics for failure
-            var property = receiver.GetMembers(name).OfType<PropertySymbol>().Single();
-            Debug.Assert(property.IsStatic);
-            return Call(null, property.GetMethod);
         }
 
         public NamedTypeSymbol SpecialType(SpecialType st)
@@ -387,7 +382,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundAssignmentOperator AssignmentExpression(BoundExpression left, BoundExpression right, RefKind refKind = RefKind.None)
         {
-            Debug.Assert(left.Type.Equals(right.Type, TypeSymbolEqualityOptions.IgnoreDynamic) || right.Type.IsErrorType() || left.Type.IsErrorType());
+            Debug.Assert(left.Type.Equals(right.Type, TypeCompareKind.IgnoreDynamicAndTupleNames) ||
+                    right.Type.IsErrorType() || left.Type.IsErrorType());
+
             return new BoundAssignmentOperator(Syntax, left, right, left.Type, refKind: refKind) { WasCompilerGenerated = true };
         }
 
@@ -398,12 +395,22 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundBlock Block(ImmutableArray<BoundStatement> statements)
         {
-            return Block(ImmutableArray<LocalSymbol>.Empty, ImmutableArray<LocalFunctionSymbol>.Empty, statements);
+            return Block(ImmutableArray<LocalSymbol>.Empty, statements);
         }
 
         public BoundBlock Block(params BoundStatement[] statements)
         {
             return Block(ImmutableArray.Create(statements));
+        }
+
+        public BoundBlock Block(ImmutableArray<LocalSymbol> locals, params BoundStatement[] statements)
+        {
+            return Block(locals, ImmutableArray.Create(statements));
+        }
+
+        public BoundBlock Block(ImmutableArray<LocalSymbol> locals, ImmutableArray<BoundStatement> statements)
+        {
+            return new BoundBlock(Syntax, locals, statements) { WasCompilerGenerated = true };
         }
 
         public BoundBlock Block(ImmutableArray<LocalSymbol> locals, ImmutableArray<LocalFunctionSymbol> localFunctions, params BoundStatement[] statements)
@@ -416,59 +423,75 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundBlock(Syntax, locals, localFunctions, statements) { WasCompilerGenerated = true };
         }
 
+        public BoundStatementList StatementList()
+        {
+            return StatementList(ImmutableArray<BoundStatement>.Empty);
+        }
+
+        public BoundStatementList StatementList(ImmutableArray<BoundStatement> statements)
+        {
+            return new BoundStatementList(Syntax, statements) { WasCompilerGenerated = true };
+        }
+
+        public BoundStatementList StatementList(BoundStatement first, BoundStatement second)
+        {
+            return new BoundStatementList(Syntax, ImmutableArray.Create(first, second)) { WasCompilerGenerated = true };
+        }
+        
         public BoundReturnStatement Return(BoundExpression expression = null)
         {
             if (expression != null)
             {
                 // If necessary, add a conversion on the return expression.
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                var conversion = Compilation.Conversions.ClassifyConversion(expression.Type, CurrentMethod.ReturnType.TypeSymbol, ref useSiteDiagnostics);
+                var conversion = Compilation.Conversions.ClassifyConversionFromType(expression.Type, CurrentMethod.ReturnType.TypeSymbol, ref useSiteDiagnostics);
                 Debug.Assert(useSiteDiagnostics.IsNullOrEmpty());
                 Debug.Assert(conversion.Kind != ConversionKind.NoConversion);
                 if (conversion.Kind != ConversionKind.Identity)
                 {
+                    Debug.Assert(CurrentMethod.RefKind == RefKind.None);
                     expression = BoundConversion.Synthesized(Syntax, expression, conversion, false, false, ConstantValue.NotAvailable, CurrentMethod.ReturnType.TypeSymbol);
                 }
             }
 
-            return new BoundReturnStatement(Syntax, expression) { WasCompilerGenerated = true };
+            return new BoundReturnStatement(Syntax, CurrentMethod.RefKind, expression) { WasCompilerGenerated = true };
         }
 
         public void CloseMethod(BoundStatement body)
         {
             Debug.Assert((object)CurrentMethod != null);
-            if (body.Kind != BoundKind.Block) body = Block(body);
+            if (body.Kind != BoundKind.Block)
+            {
+                body = Block(body);
+            }
+
             CompilationState.AddSynthesizedMethod(CurrentMethod, body);
             CurrentMethod = null;
         }
 
+        public LocalSymbol SynthesizedLocal(
+            TypeSymbol type,
+            SyntaxNode syntax = null,
+            bool isPinned = false,
+            RefKind refKind = RefKind.None,
+            SynthesizedLocalKind kind = SynthesizedLocalKind.LoweringTemp
 #if DEBUG
-        public LocalSymbol SynthesizedLocal(
-            TypeSymbol type,
-            SyntaxNode syntax = null,
-            bool isPinned = false,
-            RefKind refKind = RefKind.None,
-            SynthesizedLocalKind kind = SynthesizedLocalKind.LoweringTemp,
+            ,
             [CallerLineNumber]int createdAtLineNumber = 0,
-            [CallerFilePath]string createdAtFilePath = null)
-        {
-            return new SynthesizedLocal(CurrentMethod, TypeSymbolWithAnnotations.Create(type), kind, syntax, isPinned, refKind, createdAtLineNumber, createdAtFilePath);
-        }
-#else
-        public LocalSymbol SynthesizedLocal(
-            TypeSymbol type,
-            SyntaxNode syntax = null,
-            bool isPinned = false,
-            RefKind refKind = RefKind.None,
-            SynthesizedLocalKind kind = SynthesizedLocalKind.LoweringTemp)
-        {
-            return new SynthesizedLocal(CurrentMethod, TypeSymbolWithAnnotations.Create(type), kind, syntax, isPinned, refKind);
-        }
+            [CallerFilePath]string createdAtFilePath = null
 #endif
+            )
+        {
+            return new SynthesizedLocal(CurrentMethod, TypeSymbolWithAnnotations.Create(type), kind, syntax, isPinned, refKind
+#if DEBUG
+                , createdAtLineNumber, createdAtFilePath
+#endif
+                );
+        }
 
         public ParameterSymbol SynthesizedParameter(TypeSymbol type, string name, MethodSymbol container = null, int ordinal = 0)
         {
-            return new SynthesizedParameterSymbol(container, type, ordinal, RefKind.None, name);
+            return SynthesizedParameterSymbol.Create(container, TypeSymbolWithAnnotations.Create(type), ordinal, RefKind.None, name);
         }
 
         public BoundBinaryOperator Binary(BinaryOperatorKind kind, TypeSymbol type, BoundExpression left, BoundExpression right)
@@ -479,6 +502,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundAsOperator As(BoundExpression operand, TypeSymbol type)
         {
             return new BoundAsOperator(this.Syntax, operand, Type(type), Conversion.ExplicitReference, type) { WasCompilerGenerated = true };
+        }
+
+        public BoundIsOperator Is(BoundExpression operand, TypeSymbol type)
+        {
+            HashSet<DiagnosticInfo> discarded = null;
+            Conversion c = Compilation.Conversions.ClassifyConversionFromExpression(operand, type, ref discarded);
+            return new BoundIsOperator(this.Syntax, operand, Type(type), c, SpecialType(Microsoft.CodeAnalysis.SpecialType.System_Boolean)) { WasCompilerGenerated = true };
         }
 
         public BoundBinaryOperator LogicalAnd(BoundExpression left, BoundExpression right)
@@ -539,6 +569,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundObjectCreationExpression(Syntax, ctor, args) { WasCompilerGenerated = true };
         }
 
+        public BoundExpression InstanceCall(BoundExpression receiver, string name, BoundExpression arg)
+        {
+            return MakeInvocationExpression(BinderFlags.None, this.Syntax, receiver, name, ImmutableArray.Create(arg), this.Diagnostics);
+        }
+
         public BoundExpression StaticCall(TypeSymbol receiver, string name, params BoundExpression[] args)
         {
             return MakeInvocationExpression(BinderFlags.None, this.Syntax, this.Type(receiver), name, args.ToImmutableArray(), this.Diagnostics);
@@ -562,6 +597,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return Call(null, method, args);
+        }
+
+        public BoundExpression StaticCall(WellKnownMember method, params BoundExpression[] args)
+        {
+            MethodSymbol methodSymbol = WellKnownMethod(method);
+            Binder.ReportUseSiteDiagnostics(methodSymbol, Diagnostics, Syntax);
+            Debug.Assert(methodSymbol.IsStatic);
+            return Call(null, methodSymbol, args);
         }
 
         public BoundCall Call(BoundExpression receiver, MethodSymbol method)
@@ -589,8 +632,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(method.ParameterCount == args.Length);
             return new BoundCall(
                 Syntax, receiver, method, args,
-                default(ImmutableArray<String>), default(ImmutableArray<RefKind>), false, false, false,
-                default(ImmutableArray<int>), LookupResultKind.Viable, method.ReturnType.TypeSymbol)
+                ImmutableArray<String>.Empty, ImmutableArray<RefKind>.Empty, false, false, false,
+                default(ImmutableArray<int>), LookupResultKind.Viable, method.ReturnType.TypeSymbol,
+                hasErrors:method.OriginalDefinition is ErrorMethodSymbol)
+            { WasCompilerGenerated = true };
+        }
+
+        public BoundCall Call(BoundExpression receiver, MethodSymbol method, ImmutableArray<RefKind> refKinds, ImmutableArray<BoundExpression> args)
+        {
+            Debug.Assert(method.ParameterCount == args.Length);
+            return new BoundCall(
+                Syntax, receiver, method, args,
+                ImmutableArray<String>.Empty, refKinds, false, false, false,
+                ImmutableArray<int>.Empty, LookupResultKind.Viable, method.ReturnType.TypeSymbol)
             { WasCompilerGenerated = true };
         }
 
@@ -607,13 +661,23 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundExpression Coalesce(BoundExpression left, BoundExpression right)
         {
-            Debug.Assert(left.Type.Equals(right.Type, TypeSymbolEqualityOptions.IgnoreCustomModifiersAndArraySizesAndLowerBounds));
+            Debug.Assert(left.Type.Equals(right.Type, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds));
             Debug.Assert(left.Type.IsReferenceType);
 
             return new BoundNullCoalescingOperator(Syntax, left, right, Conversion.Identity, left.Type) { WasCompilerGenerated = true };
         }
 
         public BoundStatement If(BoundExpression condition, BoundStatement thenClause, BoundStatement elseClauseOpt = null)
+        {
+            return If(condition, ImmutableArray<LocalSymbol>.Empty, thenClause, elseClauseOpt);
+        }
+
+        public BoundStatement ConditionalGoto(BoundExpression condition, LabelSymbol label, bool jumpIfTrue)
+        {
+            return new BoundConditionalGoto(Syntax, condition, jumpIfTrue, label) { WasCompilerGenerated = true };
+        }
+
+        public BoundStatement If(BoundExpression condition, ImmutableArray<LocalSymbol> locals, BoundStatement thenClause, BoundStatement elseClauseOpt = null)
         {
             // We translate
             //    if (condition) thenClause else elseClause
@@ -635,48 +699,33 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var alt = new GeneratedLabelSymbol("alternative");
 
-                statements.Add(new BoundConditionalGoto(Syntax, condition, false, alt) { WasCompilerGenerated = true });
+                statements.Add(ConditionalGoto(condition, alt, false));
                 statements.Add(thenClause);
                 statements.Add(Goto(afterif));
+                if (!locals.IsDefaultOrEmpty)
+                {
+                    var firstPart = this.Block(locals, statements.ToImmutable());
+                    statements.Clear();
+                    statements.Add(firstPart);
+                }
+
                 statements.Add(Label(alt));
                 statements.Add(elseClauseOpt);
             }
             else
             {
-                statements.Add(new BoundConditionalGoto(Syntax, condition, false, afterif) { WasCompilerGenerated = true });
+                statements.Add(ConditionalGoto(condition, afterif, false));
                 statements.Add(thenClause);
+                if (!locals.IsDefaultOrEmpty)
+                {
+                    var firstPart = this.Block(locals, statements.ToImmutable());
+                    statements.Clear();
+                    statements.Add(firstPart);
+                }
             }
 
             statements.Add(Label(afterif));
             return Block(statements.ToImmutableAndFree());
-        }
-
-        public BoundStatement For(BoundExpression initialization, BoundExpression termination, BoundExpression increment, BoundStatement body)
-        {
-            //      for(<initialization>; <increment>; <termination>)
-            //      {
-            //          <body>;
-            //      }
-
-            //  Lowered form:
-
-            //      <initialization>;
-            //      goto LoopCondition;
-            //      LoopStart:
-            //      <body>
-            //      <increment>
-            //      LoopCondition:
-            //      if(<termination>)
-            //          goto LoopStart;
-            var lLoopStart = GenerateLabel("LoopStart");
-            var lLoopCondition = GenerateLabel("LoopCondition");
-            return Block(ExpressionStatement(initialization),
-                         Goto(lLoopCondition),
-                         Label(lLoopStart),
-                         body,
-                         ExpressionStatement(increment),
-                         Label(lLoopCondition),
-                         If(termination, Goto(lLoopStart)));
         }
 
         public BoundThrowStatement Throw(BoundExpression e = null)
@@ -689,44 +738,66 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundLocal(Syntax, local, null, local.Type.TypeSymbol) { WasCompilerGenerated = true };
         }
 
-        public BoundExpression Sequence(LocalSymbol temp, params BoundExpression[] parts)
+        public BoundExpression MakeSequence(LocalSymbol temp, params BoundExpression[] parts)
         {
-            return Sequence(ImmutableArray.Create<LocalSymbol>(temp), parts);
+            return MakeSequence(ImmutableArray.Create<LocalSymbol>(temp), parts);
         }
 
-        public BoundExpression Sequence(params BoundExpression[] parts)
+        public BoundExpression MakeSequence(params BoundExpression[] parts)
         {
-            return Sequence(ImmutableArray<LocalSymbol>.Empty, parts);
+            return MakeSequence(ImmutableArray<LocalSymbol>.Empty, parts);
         }
 
-        public BoundExpression Sequence(ImmutableArray<LocalSymbol> locals, params BoundExpression[] parts)
+        public BoundExpression MakeSequence(ImmutableArray<LocalSymbol> locals, params BoundExpression[] parts)
         {
             var builder = ArrayBuilder<BoundExpression>.GetInstance();
-            for (int i = 0; i < parts.Length - 1; i++) builder.Add(parts[i]);
+            for (int i = 0; i < parts.Length - 1; i++)
+            {
+                var part = parts[i];
+                if (LocalRewriter.ReadIsSideeffecting(part))
+                {
+                    builder.Add(parts[i]);
+                }
+            }
             var lastExpression = parts[parts.Length - 1];
+
+            if (locals.IsDefaultOrEmpty && builder.Count == 0)
+            {
+                builder.Free();
+                return lastExpression;
+            }
+
             return Sequence(locals, builder.ToImmutableAndFree(), lastExpression);
         }
 
-        public BoundExpression Sequence(BoundExpression[] sideEffects, BoundExpression result, TypeSymbol type = null)
+        public BoundSequence Sequence(BoundExpression[] sideEffects, BoundExpression result, TypeSymbol type = null)
         {
             return new BoundSequence(Syntax, ImmutableArray<LocalSymbol>.Empty, sideEffects.AsImmutableOrNull(), result, type ?? result.Type) { WasCompilerGenerated = true };
         }
 
-        public BoundExpression Sequence(ImmutableArray<LocalSymbol> locals, ImmutableArray<BoundExpression> sideEffects, BoundExpression result)
+        public BoundSequence Sequence(ImmutableArray<LocalSymbol> locals, ImmutableArray<BoundExpression> sideEffects, BoundExpression result)
         {
             return new BoundSequence(Syntax, locals, sideEffects, result, result.Type) { WasCompilerGenerated = true };
         }
 
+        /// <summary>
+        /// Produce an int switch.
+        /// </summary>
         public BoundStatement Switch(BoundExpression ex, params BoundSwitchSection[] sections)
         {
             Debug.Assert(ex.Type.SpecialType != Microsoft.CodeAnalysis.SpecialType.System_String); // BoundSwitchStatement.StringEquality not set
 
-            if (sections.Length == 0) return ExpressionStatement(ex);
+            if (sections.Length == 0)
+            {
+                return ExpressionStatement(ex);
+            }
+
             GeneratedLabelSymbol breakLabel = new GeneratedLabelSymbol("break");
             var s = ImmutableArray.Create<BoundSwitchSection>(sections);
             CheckSwitchSections(s);
             return new BoundSwitchStatement(
                 Syntax,
+                null,
                 ex,
                 null,
                 ImmutableArray<LocalSymbol>.Empty,
@@ -737,6 +808,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             { WasCompilerGenerated = true };
         }
 
+        /// <summary>
+        /// Produce an int switch.
+        /// </summary>
         public BoundStatement Switch(BoundExpression ex, IEnumerable<BoundSwitchSection> sections)
         {
             return Switch(ex, sections.ToArray());
@@ -752,23 +826,25 @@ namespace Microsoft.CodeAnalysis.CSharp
             var labels = new HashSet<int>();
             foreach (var s in sections)
             {
-                foreach (var l in s.BoundSwitchLabels)
+                foreach (var l in s.SwitchLabels)
                 {
-                    var sl = (SourceLabelSymbol)l.Label;
-                    var v1 = sl.SwitchCaseLabelConstant.Int32Value;
-                    var v2 = l.ExpressionOpt;
-                    Debug.Assert(v2 == null || v1 == v2.ConstantValue.Int32Value);
-                    Debug.Assert(!labels.Contains(v1));
-                    labels.Add(v1);
+                    if (l.ConstantValueOpt == null)
+                    {
+                        continue;
+                    }
+
+                    var v2 = l.ConstantValueOpt.Int32Value;
+                    Debug.Assert(!labels.Contains(v2));
+                    labels.Add(v2);
                 }
             }
-            //Console.WriteLine();
         }
 
         public BoundSwitchSection SwitchSection(int value, params BoundStatement[] statements)
         {
-            var label = new SourceLabelSymbol(CurrentMethod, ConstantValue.Create(value));
-            var switchLabel = new BoundSwitchLabel(Syntax, label) { WasCompilerGenerated = true };
+            var label = GenerateLabel("case+" + value);
+            var literal = Literal(value);
+            var switchLabel = new BoundSwitchLabel(Syntax, label, literal, literal.ConstantValue) { WasCompilerGenerated = true };
             return new BoundSwitchSection(Syntax, ImmutableArray.Create<BoundSwitchLabel>(switchLabel), ImmutableArray.Create<BoundStatement>(statements)) { WasCompilerGenerated = true };
         }
 
@@ -777,8 +853,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             var builder = ArrayBuilder<BoundSwitchLabel>.GetInstance();
             foreach (var i in values)
             {
-                var label = new SourceLabelSymbol(CurrentMethod, ConstantValue.Create(i));
-                builder.Add(new BoundSwitchLabel(Syntax, label) { WasCompilerGenerated = true });
+                var label = GenerateLabel("case+" + i);
+                var expression = Literal(i);
+                builder.Add(new BoundSwitchLabel(Syntax, label, expression, expression.ConstantValue) { WasCompilerGenerated = true });
             }
 
             return new BoundSwitchSection(Syntax, builder.ToImmutableAndFree(), ImmutableArray.Create<BoundStatement>(statements)) { WasCompilerGenerated = true };
@@ -848,7 +925,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundExpressionStatement(Syntax, Call(Base(), ctor)) { WasCompilerGenerated = true };
         }
 
-        public BoundStatement SequencePoint(CSharpSyntaxNode syntax, BoundStatement statement)
+        public BoundStatement SequencePoint(SyntaxNode syntax, BoundStatement statement)
         {
             return new BoundSequencePoint(syntax, statement);
         }
@@ -868,11 +945,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Throw(Null(Compilation.GetWellKnownType(Microsoft.CodeAnalysis.WellKnownType.System_Exception)));
         }
 
+        public BoundExpression ThrowExpression(BoundExpression thrown, TypeSymbol type)
+        {
+            return new BoundThrowExpression(thrown.Syntax, thrown, type) { WasCompilerGenerated = true };
+        }
+
         public BoundExpression Null(TypeSymbol type)
         {
             BoundExpression nullLiteral = new BoundLiteral(Syntax, ConstantValue.Null, type) { WasCompilerGenerated = true };
             return type.IsPointerType()
-                ? BoundConversion.SynthesizedNonUserDefined(Syntax, nullLiteral, ConversionKind.NullToPointer, type)
+                ? BoundConversion.SynthesizedNonUserDefined(Syntax, nullLiteral, Conversion.NullToPointer, type)
                 : nullLiteral;
         }
 
@@ -898,12 +980,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundExpression Typeof(TypeSymbolWithAnnotations type)
         {
-            return new BoundTypeOfOperator(
-                Syntax,
-                Type(type.TypeSymbol),
-                WellKnownMethod(CodeAnalysis.WellKnownMember.System_Type__GetTypeFromHandle),
-                WellKnownType(CodeAnalysis.WellKnownType.System_Type))
-            { WasCompilerGenerated = true };
+            return Typeof(type.TypeSymbol);
         }
 
         public ImmutableArray<BoundExpression> TypeOfs(ImmutableArray<TypeSymbolWithAnnotations> typeArguments)
@@ -928,6 +1005,54 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ctor,
                 GetMethodFromHandleMethod(ctor.ContainingType),
                 WellKnownType(Microsoft.CodeAnalysis.WellKnownType.System_Reflection_ConstructorInfo))
+            { WasCompilerGenerated = true };
+        }
+
+        public BoundExpression MethodDefIndex(MethodSymbol method)
+        {
+            return new BoundMethodDefIndex(
+                Syntax,
+                method,
+                SpecialType(Microsoft.CodeAnalysis.SpecialType.System_Int32))
+            { WasCompilerGenerated = true };
+        }
+
+        /// <summary>
+        /// Synthesizes an expression that evaluates to the current module's MVID.
+        /// </summary>
+        /// <returns></returns>
+        public BoundExpression ModuleVersionId()
+        {
+            return new BoundModuleVersionId(Syntax, WellKnownType(Microsoft.CodeAnalysis.WellKnownType.System_Guid)) { WasCompilerGenerated = true };
+        }
+
+        public BoundExpression ModuleVersionIdString()
+        {
+            return new BoundModuleVersionIdString(Syntax, SpecialType(Microsoft.CodeAnalysis.SpecialType.System_String)) { WasCompilerGenerated = true };
+        }
+
+        public BoundExpression InstrumentationPayloadRoot(int analysisKind, TypeSymbol payloadType)
+        {
+            return new BoundInstrumentationPayloadRoot(Syntax, analysisKind, payloadType) { WasCompilerGenerated = true };
+        }
+
+        public BoundExpression MaximumMethodDefIndex()
+        {
+            return new BoundMaximumMethodDefIndex(
+                Syntax,
+                SpecialType(Microsoft.CodeAnalysis.SpecialType.System_Int32))
+            { WasCompilerGenerated = true };
+        }
+
+        /// <summary>
+        /// Synthesizes an expression that evaluates to the index of a source document in the table of debug source documents.
+        /// </summary>
+        public BoundExpression SourceDocumentIndex(Cci.DebugSourceDocument document)
+        {
+            return new BoundSourceDocumentIndex(
+                Syntax,
+                document,
+                SpecialType(Microsoft.CodeAnalysis.SpecialType.System_Int32))
             { WasCompilerGenerated = true };
         }
 
@@ -997,25 +1122,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 arg = Convert(conversion.Method.Parameters[0].Type.TypeSymbol, arg);
             }
 
-            return new BoundConversion(Syntax, arg, conversion, isChecked, true, null, type) { WasCompilerGenerated = true };
-        }
+            if (conversion.Kind == ConversionKind.ImplicitReference && arg.IsLiteralNull())
+            {
+                return Null(type);
+            }
 
-        public BoundExpression Convert(TypeSymbol type, BoundExpression arg, ConversionKind conversionKind, bool isChecked = false)
-        {
-            return new BoundConversion(
-                Syntax,
-                arg,
-                conversionKind,
-                LookupResultKind.Viable,
-                isBaseConversion: false,
-                symbolOpt: null,
-                @checked: isChecked,
-                explicitCastInCode: true,
-                isExtensionMethod: false,
-                isArrayIndex: false,
-                constantValueOpt: null,
-                type: type)
-            { WasCompilerGenerated = true };
+            return new BoundConversion(Syntax, arg, conversion, isChecked, true, null, type) { WasCompilerGenerated = true };
         }
 
         public BoundExpression ArrayOrEmpty(TypeSymbol elementType, BoundExpression[] elements)
@@ -1025,9 +1137,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// Helper that will use Array.Empty if available and elements have 0 length
-        /// NOTE: it is valid only if we know that the API that is being called will not 
+        /// NOTE: it is valid only if we know that the API that is being called will not
         ///       retain or use the array argument for any purpose (like locking or key in a hash table)
-        ///       Typical example of valid use is Linq.Expressions factories - they do not make any 
+        ///       Typical example of valid use is Linq.Expressions factories - they do not make any
         ///       assumptions about array arguments and do not keep them or rely on their identity.
         /// </summary>
         public BoundExpression ArrayOrEmpty(TypeSymbol elementType, ImmutableArray<BoundExpression> elements)
@@ -1052,6 +1164,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ImmutableArray.Create<BoundExpression>(Literal(elements.Length)),
                 new BoundArrayInitialization(Syntax, elements) { WasCompilerGenerated = true },
                 Compilation.CreateArrayTypeSymbol(elementType));
+        }
+        
+        public BoundExpression Array(TypeSymbol elementType, BoundExpression length)
+        {
+            return new BoundArrayCreation(
+               Syntax,
+               ImmutableArray.Create<BoundExpression>(length),
+               null,
+               Compilation.CreateArrayTypeSymbol(elementType)) { WasCompilerGenerated = true };
         }
 
         internal BoundExpression Default(TypeSymbol type)
@@ -1078,14 +1199,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundBlock block)
         {
             var source = Local(local);
-            return new BoundCatchBlock(Syntax, local, source, source.Type, exceptionFilterOpt: null, body: block, isSynthesizedAsyncCatchAll: false);
+            return new BoundCatchBlock(Syntax, ImmutableArray.Create(local), source, source.Type, exceptionFilterOpt: null, body: block, isSynthesizedAsyncCatchAll: false);
         }
 
         internal BoundCatchBlock Catch(
             BoundExpression source,
             BoundBlock block)
         {
-            return new BoundCatchBlock(Syntax, null, source, source.Type, exceptionFilterOpt: null, body: block, isSynthesizedAsyncCatchAll: false);
+            return new BoundCatchBlock(Syntax, ImmutableArray<LocalSymbol>.Empty, source, source.Type, exceptionFilterOpt: null, body: block, isSynthesizedAsyncCatchAll: false);
         }
 
         internal BoundTryStatement Fault(BoundBlock tryBlock, BoundBlock faultBlock)
@@ -1105,7 +1226,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Takes an expression and returns the bound local expression "temp" 
+        /// Takes an expression and returns the bound local expression "temp"
         /// and the bound assignment expression "temp = expr".
         /// </summary>
         public BoundLocal StoreToTemp(
@@ -1113,13 +1234,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             out BoundAssignmentOperator store,
             RefKind refKind = RefKind.None,
             SynthesizedLocalKind kind = SynthesizedLocalKind.LoweringTemp,
-            CSharpSyntaxNode syntaxOpt = null
+            SyntaxNode syntaxOpt = null
 #if DEBUG
             , [CallerLineNumber]int callerLineNumber = 0
             , [CallerFilePath]string callerFilePath = null
 #endif
             )
         {
+            if (refKind == RefKind.Out)
+            {
+                refKind = RefKind.Ref;
+            }
+
             MethodSymbol containingMethod = this.CurrentMethod;
             var syntax = argument.Syntax;
             var type = argument.Type;
@@ -1153,6 +1279,35 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal BoundStatement NoOp(NoOpStatementFlavor noOpStatementFlavor)
         {
             return new BoundNoOpStatement(Syntax, noOpStatementFlavor);
+        }
+
+        internal BoundLocal MakeTempForDiscard(BoundDiscardExpression node, ArrayBuilder<LocalSymbol> temps)
+        {
+            LocalSymbol temp;
+            BoundLocal result = MakeTempForDiscard(node, out temp);
+            temps.Add(temp);
+            return result;
+        }
+
+        internal BoundLocal MakeTempForDiscard(BoundDiscardExpression node, out LocalSymbol temp)
+        {
+            temp = new SynthesizedLocal(this.CurrentMethod, TypeSymbolWithAnnotations.Create(node.Type), SynthesizedLocalKind.LoweringTemp);
+
+            return new BoundLocal(node.Syntax, temp, constantValueOpt: null, type: node.Type) { WasCompilerGenerated = true };
+        }
+
+        internal ImmutableArray<BoundExpression> MakeTempsForDiscardArguments(ImmutableArray<BoundExpression> arguments, ArrayBuilder<LocalSymbol> builder)
+        {
+            var discardsCount = arguments.Count(a => a.Kind == BoundKind.DiscardExpression);
+
+            if (discardsCount != 0)
+            {
+                arguments = arguments.SelectAsArray(
+                    (arg, t) => arg.Kind == BoundKind.DiscardExpression ?  t.factory.MakeTempForDiscard((BoundDiscardExpression)arg, t.builder) : arg,
+                    (factory: this, builder: builder));
+            }
+
+            return arguments;
         }
     }
 }

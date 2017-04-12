@@ -1,10 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Differencing
 {
@@ -99,8 +97,7 @@ namespace Microsoft.CodeAnalysis.Differencing
 
         internal TNode GetParent(TNode node)
         {
-            TNode parent;
-            bool hasParent = TryGetParent(node, out parent);
+            bool hasParent = TryGetParent(node, out var parent);
             Debug.Assert(hasParent);
             return parent;
         }

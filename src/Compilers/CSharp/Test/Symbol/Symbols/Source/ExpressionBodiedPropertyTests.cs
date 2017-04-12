@@ -33,7 +33,7 @@ class C
             comp.VerifyDiagnostics(
     // (4,5): error CS8056: Properties cannot combine accessor lists with expression bodies.
     //     public int P { get; } => 1;
-    Diagnostic(ErrorCode.ERR_AccessorListAndExpressionBody, "public int P { get; } => 1;").WithLocation(4, 5)
+    Diagnostic(ErrorCode.ERR_BlockBodyAndExpressionBody, "public int P { get; } => 1;").WithLocation(4, 5)
     );
         }
 
@@ -481,6 +481,28 @@ class C
     // (4,16): error CS0106: The modifier 'static' is not valid for this item
     //     static int this[int i] => i;
     Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("static").WithLocation(4, 16));
+        }
+
+        [Fact]
+        public void RefReturningExpressionBodiedProperty()
+        {
+            var comp = CreateCompilationWithMscorlib45(@"
+class C
+{
+    int field = 0;
+    public ref int P => ref field;
+}");
+            comp.VerifyDiagnostics();
+
+            var global = comp.GlobalNamespace;
+            var c = global.GetTypeMember("C");
+
+            var p = c.GetMember<SourcePropertySymbol>("P");
+            Assert.Null(p.SetMethod);
+            Assert.NotNull(p.GetMethod);
+            Assert.False(p.GetMethod.IsImplicitlyDeclared);
+            Assert.True(p.IsExpressionBodied);
+            Assert.Equal(RefKind.Ref, p.GetMethod.RefKind);
         }
     }
 }

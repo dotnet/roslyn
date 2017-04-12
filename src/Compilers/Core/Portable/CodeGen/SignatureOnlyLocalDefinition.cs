@@ -2,7 +2,7 @@
 
 using System;
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.Symbols;
+using System.Reflection.Metadata;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeGen
@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             _slot = slot;
         }
 
-        public Cci.IMetadataConstant CompileTimeValue
+        public MetadataConstant CompileTimeValue
         {
             get { throw ExceptionUtilities.Unreachable; }
         }
@@ -36,16 +36,19 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         public ImmutableArray<TypedConstant> DynamicTransformFlags
         {
-            get { throw ExceptionUtilities.Unreachable; }
+            get { return ImmutableArray<TypedConstant>.Empty; }
+        }
+
+        public ImmutableArray<TypedConstant> TupleElementNames
+        {
+            get { return ImmutableArray<TypedConstant>.Empty; }
         }
 
         /// <remarks>
         /// This temp is not interesting to the expression compiler.  However, it 
         /// may be replaced by an interesting local in a later stage.
         /// </remarks>
-        public uint PdbAttributes => Cci.PdbWriter.HiddenLocalAttributesValue;
-
-        public bool IsDynamic => false;
+        public LocalVariableAttributes PdbAttributes => LocalVariableAttributes.DebuggerHidden;
 
         public bool IsPinned
         {

@@ -2,7 +2,6 @@
 
 Imports System.ComponentModel.Composition
 Imports Microsoft.VisualStudio.Text
-Imports Microsoft.VisualStudio.Text.Operations
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
     <Export(GetType(CommitBufferManagerFactory))>

@@ -180,7 +180,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 options:=Nothing,
                 [imports]:=Nothing,
                 attributes:=Nothing,
-                members:=InternalSyntax.SyntaxList.List(statement),
+                members:=Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList.List(statement),
                 endOfFileToken:=InternalSyntax.SyntaxFactory.EndOfFileToken)
         End Function
 

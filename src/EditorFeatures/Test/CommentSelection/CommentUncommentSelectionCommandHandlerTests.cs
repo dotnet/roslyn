@@ -372,8 +372,9 @@ class C
             UncommentSelection(code, expectedChanges, Span.FromBounds(14, 119), supportBlockComments: true);
         }
 
-        [WpfFact(Skip = "563927"), Trait(Traits.Feature, Traits.Features.CommentSelection)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CommentSelection)]
         [WorkItem(563927, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/563927")]
+        // This test is just measuring current behavior, there is no reason not to support maintaining box selection.
         public void Uncomment_BoxSelection()
         {
             var code = @"
@@ -390,18 +391,13 @@ class Foo
                 new TextChange(new TextSpan(20, 2), string.Empty),
                 new TextChange(new TextSpan(23, 2), string.Empty),
                 new TextChange(new TextSpan(38, 2), string.Empty),
-                new TextChange(new TextSpan(49, 2), string.Empty),
-                new TextChange(new TextSpan(52, 2), string.Empty),
                 new TextChange(new TextSpan(64, 2), string.Empty),
             };
 
             var expectedSelectedSpans = new[]
                 {
-                    Span.FromBounds(20, 21),
-                    Span.FromBounds(34, 34),
-                    Span.FromBounds(41, 42),
-                    Span.FromBounds(56, 56),
-                };
+                    Span.FromBounds(20, 21)
+                 };
 
             UncommentSelection(code, expectedChanges, expectedSelectedSpans, supportBlockComments: true);
         }

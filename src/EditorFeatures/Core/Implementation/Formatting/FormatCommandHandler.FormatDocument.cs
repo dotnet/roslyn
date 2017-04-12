@@ -2,6 +2,7 @@
 
 using System;
 using Microsoft.CodeAnalysis.Editor.Commands;
+using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
@@ -43,8 +44,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
 
             var result = false;
             _waitIndicator.Wait(
-                title: EditorFeaturesResources.FormatDocument,
-                message: EditorFeaturesResources.FormattingDocument,
+                title: EditorFeaturesResources.Format_Document,
+                message: EditorFeaturesResources.Formatting_document,
                 allowCancel: true,
                 action: waitContext =>
                 {

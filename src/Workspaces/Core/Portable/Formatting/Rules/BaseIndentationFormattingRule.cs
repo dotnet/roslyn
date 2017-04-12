@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
                 case IndentBlockOption.AbsolutePosition:
                     return FormattingOperations.CreateIndentBlockOperation(operation.StartToken, operation.EndToken, AdjustTextSpan(operation.TextSpan), operation.IndentationDeltaOrPosition, operation.Option);
                 default:
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.UnexpectedValue(operation.Option);
             }
         }
 
@@ -201,6 +201,17 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
                 {
                     end = tree.Length;
                 }
+            }
+
+            if (token1.Equals(token2) && end < start)
+            {
+                // This can happen if `token1.Span` is larger than `span` on each end (due to trivia) and occurs when
+                // only a single token is projected into a buffer and the projection is sandwiched between two other
+                // projections into the same backing buffer.  An example of this is during broken code scenarios when
+                // typing certain Razor `@` directives.
+                var temp = end;
+                end = start;
+                start = temp;
             }
 
             return TextSpan.FromBounds(start, end);

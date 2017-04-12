@@ -1,6 +1,5 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Threading.Tasks
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.EventHandling
     Public Class AddHandlerKeywordRecommenderTests
@@ -8,9 +7,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Ev
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function AddHandlerHelpTextTest() As Task
             Await VerifyRecommendationDescriptionTextIsAsync(<MethodBody>|</MethodBody>, "AddHandler",
-$"{VBFeaturesResources.AddhandlerStatement}
-{AssociatesAnEvent}
-AddHandler {Event1}, {Handler}")
+$"{VBFeaturesResources.AddHandler_statement}
+{VBWorkspaceResources.Associates_an_event_with_an_event_handler_delegate_or_lambda_expression_at_run_time}
+AddHandler {VBWorkspaceResources.event_}, {VBWorkspaceResources.handler}")
         End Function
 
         <Fact>

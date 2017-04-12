@@ -321,7 +321,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             For i = 0 To arity - 1
                 Dim typeParamSyntax = typeParamsSyntax(i)
                 Dim ident = typeParamSyntax.Identifier
-                binder.DisallowTypeCharacter(ident, diagBag, ERRID.ERR_TypeCharOnGenericParam)
+                Binder.DisallowTypeCharacter(ident, diagBag, ERRID.ERR_TypeCharOnGenericParam)
                 typeParameters(i) = New SourceTypeParameterOnMethodSymbol(Me, i, ident.ValueText,
                                                                           binder.GetSyntaxReference(typeParamSyntax))
 
@@ -541,12 +541,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
         End Sub
 
-        Friend Overrides Function GetBoundMethodBody(diagnostics As DiagnosticBag, Optional ByRef methodBodyBinder As Binder = Nothing) As BoundBlock
+        Friend Overrides Function GetBoundMethodBody(compilationState As TypeCompilationState, diagnostics As DiagnosticBag, Optional ByRef methodBodyBinder As Binder = Nothing) As BoundBlock
             If Me.IsPartial Then
                 Throw ExceptionUtilities.Unreachable
             End If
 
-            Return MyBase.GetBoundMethodBody(diagnostics, methodBodyBinder)
+            Return MyBase.GetBoundMethodBody(compilationState, diagnostics, methodBodyBinder)
         End Function
 
 #End Region
@@ -697,17 +697,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return Nothing
             End If
 
-            typeBinder.ReportUseSiteError(diagBag, singleHandleClause.EventMember, eventContainingType)
-
-            ' Bind event symbol
             Dim eventName As String = singleHandleClause.EventMember.Identifier.ValueText
-            Dim eventSymbol As EventSymbol = FindEvent(eventContainingType,
-                                                       typeBinder,
-                                                       eventName,
-                                                       handlesKind = HandledEventKind.MyBase,
-                                                       useSiteDiagnostics,
-                                                       candidateEventSymbols,
-                                                       resultKind)
+            Dim eventSymbol As EventSymbol = Nothing
+
+            If eventContainingType IsNot Nothing Then
+                Binder.ReportUseSiteError(diagBag, singleHandleClause.EventMember, eventContainingType)
+
+                ' Bind event symbol
+                eventSymbol = FindEvent(eventContainingType,
+                                        typeBinder,
+                                        eventName,
+                                        handlesKind = HandledEventKind.MyBase,
+                                        useSiteDiagnostics,
+                                        candidateEventSymbols,
+                                        resultKind)
+            End If
 
             diagBag.Add(singleHandleClause.EventMember, useSiteDiagnostics)
 
@@ -715,19 +719,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 'Event '{0}' cannot be found.
                 Binder.ReportDiagnostic(diagBag, singleHandleClause.EventMember, ERRID.ERR_EventNotFound1, eventName)
                 Return Nothing
-
             End If
 
             typeBinder.ReportDiagnosticsIfObsolete(diagBag, eventSymbol, singleHandleClause.EventMember)
 
-            typeBinder.ReportUseSiteError(diagBag, singleHandleClause.EventMember, eventSymbol)
+            Binder.ReportUseSiteError(diagBag, singleHandleClause.EventMember, eventSymbol)
 
             If eventSymbol.AddMethod IsNot Nothing Then
-                typeBinder.ReportUseSiteError(diagBag, singleHandleClause.EventMember, eventSymbol.AddMethod)
+                Binder.ReportUseSiteError(diagBag, singleHandleClause.EventMember, eventSymbol.AddMethod)
             End If
 
             If eventSymbol.RemoveMethod IsNot Nothing Then
-                typeBinder.ReportUseSiteError(diagBag, singleHandleClause.EventMember, eventSymbol.RemoveMethod)
+                Binder.ReportUseSiteError(diagBag, singleHandleClause.EventMember, eventSymbol.RemoveMethod)
             End If
 
             ' For WinRT events, we require that certain well-known members be present (needed in synthesize code).

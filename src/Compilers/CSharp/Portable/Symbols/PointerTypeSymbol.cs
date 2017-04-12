@@ -207,24 +207,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return Hash.Combine(current, indirections);
         }
 
-        internal override bool Equals(TypeSymbol t2, TypeSymbolEqualityOptions options)
+        internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison)
         {
-            return this.Equals(t2 as PointerTypeSymbol, options);
+            return this.Equals(t2 as PointerTypeSymbol, comparison);
         }
 
         internal bool Equals(PointerTypeSymbol other)
         {
-            return this.Equals(other, TypeSymbolEqualityOptions.None);
+            return this.Equals(other, TypeCompareKind.IgnoreTupleNames);
         }
 
-        private bool Equals(PointerTypeSymbol other, TypeSymbolEqualityOptions options)
+        private bool Equals(PointerTypeSymbol other, TypeCompareKind comparison)
         {
             if (ReferenceEquals(this, other))
             {
                 return true;
             }
 
-            if ((object)other == null || !other._pointedAtType.Equals(_pointedAtType, options))
+            if ((object)other == null || !other._pointedAtType.Equals(_pointedAtType, comparison))
             {
                 return false;
             }

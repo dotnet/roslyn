@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.WRN_XMLParseError, "").WithArguments("unclosed"));
         }
 
-        [ClrOnlyFact(ClrOnlyReason.DocumentationComment)]
+        [ClrOnlyFact(ClrOnlyReason.DocumentationComment, Skip = "https://github.com/dotnet/roslyn/issues/8807")]
         public void XmlSyntaxError_Included()
         {
             var xml = @"<unclosed>";
@@ -384,7 +384,7 @@ partial class Partial {{ }}
             comp.GetDiagnostics().Verify(fallbackToErrorCodeOnlyForNonEnglish: fallbackToErrorCodeOnlyForNonEnglish, expected: makeExpectedDiagnostics(includeElement));
 
             var actualText = GetDocumentationCommentText(comp, expectedDiagnostics: null);
-            var expectedText = string.Format(expectedTextTemplate, xmlFilePath);
+            var expectedText = string.Format(expectedTextTemplate, TestHelpers.AsXmlCommentText(xmlFilePath));
             Assert.Equal(expectedText, actualText);
         }
 

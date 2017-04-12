@@ -11,6 +11,7 @@ using Xunit;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Microsoft.CodeAnalysis.Emit;
+using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
 {
@@ -37,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
         {
             var options = (optimize ? TestOptions.ReleaseExe : TestOptions.DebugExe).WithPlatform(platform).WithDeterministic(true);
 
-            var compilation = CreateCompilation(source, assemblyName: "DeterminismTest", references: new[] { MscorlibRef }, options: options);
+            var compilation = CreateCompilation(source, assemblyName: "DeterminismTest", references: new[] { MscorlibRef, SystemCoreRef, CSharpRef }, options: options);
 
             // The resolution of the PE header time date stamp is seconds, and we want to make sure that has an opportunity to change
             // between calls to Emit.
@@ -46,7 +47,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
                 Thread.Sleep(TimeSpan.FromSeconds(1));
             }
 
-            return compilation.EmitToArray(EmitOptions.Default.WithDebugInformationFormat(pdbFormat), pdbStream: new MemoryStream());
+            var pdbStream = (pdbFormat == DebugInformationFormat.Embedded) ? null : new MemoryStream();
+
+            return compilation.EmitToArray(EmitOptions.Default.WithDebugInformationFormat(pdbFormat), pdbStream: pdbStream);
         }
 
         [Fact, WorkItem(4578, "https://github.com/dotnet/roslyn/issues/4578")]
@@ -101,6 +104,34 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
             Assert.NotEqual(mvid3, mvid7);
         }
 
+        const string CompareAllBytesEmitted_Source = @"
+using System;
+using System.Linq;
+using System.Collections.Generic;
+
+namespace N
+{
+    using I4 = System.Int32;
+    
+    class Program
+    {
+        public static IEnumerable<int> F() 
+        {
+            I4 x = 1; 
+            yield return 1;
+            yield return x;
+        }
+
+        public static void Main(string[] args) 
+        {
+            dynamic x = 1;
+            const int a = 1;
+            F().ToArray();
+            Console.WriteLine(x + a);
+        }
+    }
+}";
+
         [Fact]
         public void CompareAllBytesEmitted_Release()
         {
@@ -111,17 +142,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
                 DebugInformationFormat.Embedded
             })
             {
-                var source =
-    @"class Program
-{
-    public static void Main(string[] args) {}
-}";
-                var result1 = EmitDeterministic(source, Platform.AnyCpu32BitPreferred, pdbFormat, optimize: true);
-                var result2 = EmitDeterministic(source, Platform.AnyCpu32BitPreferred, pdbFormat, optimize: true);
+                var result1 = EmitDeterministic(CompareAllBytesEmitted_Source, Platform.AnyCpu32BitPreferred, pdbFormat, optimize: true);
+                var result2 = EmitDeterministic(CompareAllBytesEmitted_Source, Platform.AnyCpu32BitPreferred, pdbFormat, optimize: true);
                 AssertEx.Equal(result1, result2);
 
-                var result3 = EmitDeterministic(source, Platform.X64, pdbFormat, optimize: true);
-                var result4 = EmitDeterministic(source, Platform.X64, pdbFormat, optimize: true);
+                var result3 = EmitDeterministic(CompareAllBytesEmitted_Source, Platform.X64, pdbFormat, optimize: true);
+                var result4 = EmitDeterministic(CompareAllBytesEmitted_Source, Platform.X64, pdbFormat, optimize: true);
                 AssertEx.Equal(result3, result4);
             }
         }
@@ -136,17 +162,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
                 DebugInformationFormat.Embedded
             })
             {
-                var source =
-@"class Program
-{
-    public static void Main(string[] args) {}
-}";
-                var result1 = EmitDeterministic(source, Platform.AnyCpu32BitPreferred, pdbFormat, optimize: false);
-                var result2 = EmitDeterministic(source, Platform.AnyCpu32BitPreferred, pdbFormat, optimize: false);
+                var result1 = EmitDeterministic(CompareAllBytesEmitted_Source, Platform.AnyCpu32BitPreferred, pdbFormat, optimize: false);
+                var result2 = EmitDeterministic(CompareAllBytesEmitted_Source, Platform.AnyCpu32BitPreferred, pdbFormat, optimize: false);
                 AssertEx.Equal(result1, result2);
 
-                var result3 = EmitDeterministic(source, Platform.X64, pdbFormat, optimize: false);
-                var result4 = EmitDeterministic(source, Platform.X64, pdbFormat, optimize: false);
+                var result3 = EmitDeterministic(CompareAllBytesEmitted_Source, Platform.X64, pdbFormat, optimize: false);
+                var result4 = EmitDeterministic(CompareAllBytesEmitted_Source, Platform.X64, pdbFormat, optimize: false);
                 AssertEx.Equal(result3, result4);
             }
         }
@@ -161,6 +182,77 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
                                                        new CSharpCompilationOptions(OutputKind.ConsoleApplication).WithDeterministic(true));
             var output = new WriteOnlyStream();
             compilation.Emit(output);
+        }
+
+        [Fact, WorkItem(11990, "https://github.com/dotnet/roslyn/issues/11990")]
+        public void ForwardedTypesAreEmittedInADeterministicOrder()
+        {
+            var forwardedToCode = @"
+namespace Namespace2 {
+    public class GenericType1<T> {}
+    public class GenericType3<T> {}
+    public class GenericType2<T> {}
+}
+namespace Namespace1 {
+    public class Type3 {}
+    public class Type2 {}
+    public class Type1 {}
+}
+namespace Namespace4 {
+    namespace Embedded {
+        public class Type2 {}
+        public class Type1 {}
+    }
+}
+namespace Namespace3 {
+    public class GenericType {}
+    public class GenericType<T> {}
+    public class GenericType<T, U> {}
+}
+";
+            var forwardedToCompilation = CreateCompilation(forwardedToCode);
+            var forwardedToReference = new CSharpCompilationReference(forwardedToCompilation);
+
+            var forwardingCode = @"
+using System.Runtime.CompilerServices;
+[assembly: TypeForwardedTo(typeof(Namespace2.GenericType1<int>))]
+[assembly: TypeForwardedTo(typeof(Namespace2.GenericType3<int>))]
+[assembly: TypeForwardedTo(typeof(Namespace2.GenericType2<int>))]
+[assembly: TypeForwardedTo(typeof(Namespace1.Type3))]
+[assembly: TypeForwardedTo(typeof(Namespace1.Type2))]
+[assembly: TypeForwardedTo(typeof(Namespace1.Type1))]
+[assembly: TypeForwardedTo(typeof(Namespace4.Embedded.Type2))]
+[assembly: TypeForwardedTo(typeof(Namespace4.Embedded.Type1))]
+[assembly: TypeForwardedTo(typeof(Namespace3.GenericType))]
+[assembly: TypeForwardedTo(typeof(Namespace3.GenericType<int>))]
+[assembly: TypeForwardedTo(typeof(Namespace3.GenericType<int, int>))]
+";
+
+            var forwardingCompilation = CreateCompilationWithMscorlib(forwardingCode, new MetadataReference[] { forwardedToReference });
+
+            var sortedFullNames = new string[]
+            {
+                "Namespace1.Type1",
+                "Namespace1.Type2",
+                "Namespace1.Type3",
+                "Namespace2.GenericType1`1",
+                "Namespace2.GenericType2`1",
+                "Namespace2.GenericType3`1",
+                "Namespace3.GenericType",
+                "Namespace3.GenericType`1",
+                "Namespace3.GenericType`2",
+                "Namespace4.Embedded.Type1",
+                "Namespace4.Embedded.Type2"
+            };
+
+            using (var stream = forwardingCompilation.EmitToStream())
+            {
+                using (var block = ModuleMetadata.CreateFromStream(stream))
+                {
+                    var metadataFullNames = MetadataValidation.GetExportedTypesFullNames(block.MetadataReader);
+                    Assert.Equal(sortedFullNames, metadataFullNames);
+                }
+            }
         }
 
         [Fact]

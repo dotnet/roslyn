@@ -1,5 +1,7 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Threading.Tasks
+
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
     Public MustInherit Class AbstractCodeDelegateTests
         Inherits AbstractCodeElementTests(Of EnvDTE80.CodeDelegate2)
@@ -76,13 +78,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
             codeElement.RemoveParameter(child)
         End Sub
 
-        Protected Async Function TestBaseClass(code As XElement, expectedFullName As String) As Threading.Tasks.Task
-            Await TestElement(code,
+        Protected Sub TestBaseClass(code As XElement, expectedFullName As String)
+            TestElement(code,
                 Sub(codeElement)
                     Assert.NotNull(codeElement.BaseClass)
                     Assert.Equal(expectedFullName, codeElement.BaseClass.FullName)
                 End Sub)
-        End Function
+        End Sub
 
     End Class
 End Namespace

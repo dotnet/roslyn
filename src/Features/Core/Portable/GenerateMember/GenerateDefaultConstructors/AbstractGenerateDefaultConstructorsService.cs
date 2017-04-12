@@ -1,10 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Text;
 
@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateDefaultConstructors
 
         protected abstract bool TryInitializeState(SemanticDocument document, TextSpan textSpan, CancellationToken cancellationToken, out SyntaxNode baseTypeNode, out INamedTypeSymbol classType);
 
-        public async Task<IGenerateDefaultConstructorsResult> GenerateDefaultConstructorsAsync(
+        public async Task<ImmutableArray<CodeAction>> GenerateDefaultConstructorsAsync(
             Document document,
             TextSpan textSpan,
             CancellationToken cancellationToken)
@@ -33,11 +33,11 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateDefaultConstructors
                     var state = State.Generate((TService)this, semanticDocument, textSpan, cancellationToken);
                     if (state != null)
                     {
-                        return new GenerateDefaultConstructorsResult(new CodeRefactoring(null, GetActions(document, state)));
+                        return GetActions(document, state).AsImmutableOrNull();
                     }
                 }
 
-                return GenerateDefaultConstructorsResult.Failure;
+                return default(ImmutableArray<CodeAction>);
             }
         }
 

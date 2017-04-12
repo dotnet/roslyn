@@ -30,13 +30,7 @@ namespace Roslyn.Utilities
             _map = new Dictionary<T, LinkedListNode<T>>(comparer);
         }
 
-        public int Count
-        {
-            get
-            {
-                return _list.Count;
-            }
-        }
+        public int Count => _list.Count;
 
         public void Clear()
         {
@@ -45,13 +39,7 @@ namespace Roslyn.Utilities
             _insertionIndex = 0;
         }
 
-        public T First
-        {
-            get
-            {
-                return _list.First.Value;
-            }
-        }
+        public T First => _list.First.Value;
 
         /// <summary>
         /// Adds this item (or moves it if it's already in the queue) to the end.  If the item is not
@@ -60,9 +48,7 @@ namespace Roslyn.Utilities
         public bool Enqueue(T value)
         {
             var result = true;
-
-            LinkedListNode<T> node;
-            if (_map.TryGetValue(value, out node))
+            if (_map.TryGetValue(value, out var node))
             {
                 // Already had this in the list.  Return 'false'.  
                 result = false;
@@ -92,14 +78,12 @@ namespace Roslyn.Utilities
 
         public bool Contains(T value)
         {
-            LinkedListNode<T> node;
-            return _map.TryGetValue(value, out node);
+            return _map.TryGetValue(value, out var node);
         }
 
         public void Remove(T value)
         {
-            LinkedListNode<T> node;
-            _map.TryGetValue(value, out node);
+            _map.TryGetValue(value, out var node);
             if (_map.Remove(value))
             {
                 _list.Remove(node);

@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Roslyn.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -173,14 +174,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             // A sequence with information about namespaces immediately contained within this namespace.
             // For each pair:
             //    Key - contains simple name of a child namespace.
-            //    Value – contains a sequence similar to the one passed to this function, but
+            //    Value - contains a sequence similar to the one passed to this function, but
             //            calculated for the child namespace. 
             IEnumerable<KeyValuePair<string, IEnumerable<IGrouping<string, TypeDefinitionHandle>>>> nestedNamespaces = null;
             bool isGlobalNamespace = this.IsGlobalNamespace;
 
             MetadataHelpers.GetInfoForImmediateNamespaceMembers(
                 isGlobalNamespace,
-                isGlobalNamespace ? 0 : this.ToDisplayString(SymbolDisplayFormat.QualifiedNameOnlyFormat).Length,
+                isGlobalNamespace ? 0 : GetQualifiedNameLength(),
                 typesByNS,
                 StringComparer.Ordinal,
                 out nestedTypes, out nestedNamespaces);
@@ -188,6 +189,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             LazyInitializeNamespaces(nestedNamespaces);
 
             LazyInitializeTypes(nestedTypes);
+        }
+
+        private int GetQualifiedNameLength()
+        {
+            int length = this.Name.Length;
+
+            var parent = ContainingNamespace;
+            while (parent?.IsGlobalNamespace == false)
+            {
+                // add name of the parent + "."
+                length += parent.Name.Length + 1;
+                parent = parent.ContainingNamespace;
+            }
+
+            return length;
         }
 
         /// <summary>
@@ -198,13 +214,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             if (this.lazyNamespaces == null)
             {
-                var children = from child in childNamespaces
-                               select new PENestedNamespaceSymbol(child.Key, this, child.Value);
+                var namespaces = new Dictionary<string, PENestedNamespaceSymbol>(StringOrdinalComparer.Instance);
 
-                var namespaces = new Dictionary<string, PENestedNamespaceSymbol>();
-
-                foreach (var c in children)
+                foreach (var child in childNamespaces)
                 {
+                    var c = new PENestedNamespaceSymbol(child.Key, this, child.Value);
                     namespaces.Add(c.Name, c);
                 }
 
@@ -241,7 +255,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                                 if (noPiaLocalTypes == null)
                                 {
-                                    noPiaLocalTypes = new Dictionary<string, TypeDefinitionHandle>();
+                                    noPiaLocalTypes = new Dictionary<string, TypeDefinitionHandle>(StringOrdinalComparer.Instance);
                                 }
 
                                 noPiaLocalTypes[typeDefName] = t;
@@ -252,7 +266,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     }
                 }
 
-                var typesDict = children.ToDictionary(c => c.Name);
+                var typesDict = children.ToDictionary(c => c.Name, StringOrdinalComparer.Instance);
                 children.Free();
 
                 if (noPiaLocalTypes != null)

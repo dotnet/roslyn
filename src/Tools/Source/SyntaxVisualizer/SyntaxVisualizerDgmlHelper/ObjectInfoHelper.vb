@@ -106,7 +106,7 @@ End Module
 Friend Class ObjectInfo
     Private ReadOnly _typeName As String
     Private ReadOnly _propertyInfos As IEnumerable(Of PropertyInfo)
-    Private Shared ReadOnly s_emptyPropertyInfos As IEnumerable(Of PropertyInfo) = {}
+    Private Shared ReadOnly s_emptyPropertyInfos As IEnumerable(Of PropertyInfo) = Array.Empty(Of PropertyInfo)
 
     Friend ReadOnly Property TypeName As String
         Get

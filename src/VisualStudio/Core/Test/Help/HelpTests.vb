@@ -10,7 +10,7 @@ Imports Roslyn.Utilities
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Help
     Public Class HelpTests
         Public Async Function TestAsync(markup As String, expected As String) As Tasks.Task
-            Using workspace = Await TestWorkspace.CreateVisualBasicAsync(markup)
+            Using workspace = TestWorkspace.CreateVisualBasic(markup)
                 Dim caret = workspace.Documents.First().CursorPosition
                 Dim service = New VisualBasicHelpContextService()
                 Assert.Equal(expected, Await service.GetHelpTermAsync(workspace.CurrentSolution.Projects.First().Documents.First(), workspace.Documents.First().SelectedSpans.First(), CancellationToken.None))
@@ -2145,6 +2145,32 @@ End Module]]></a>.Value, "System.Linq.Enumerable")
         Dim z = From x In args Select x[||]
     End Sub
 End Module]]></a>.Value, "vb.String")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        Public Async Function CaretAfterMemberAccessDot() As Task
+            Await TestAsync(<a><![CDATA[Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+
+Module Program
+    Sub Main(args As String())
+        Dim x = (2).[||]ToString()
+    End Sub
+End Module]]></a>.Value, "System.Int32.ToString")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        Public Async Function CaretBeforeMemberAccessDot() As Task
+            Await TestAsync(<a><![CDATA[Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+
+Module Program
+    Sub Main(args As String())
+        Dim x = (2)[||].ToString()
+    End Sub
+End Module]]></a>.Value, "System.Int32.ToString")
         End Function
     End Class
 End Namespace

@@ -174,7 +174,11 @@ class C : Middle
                 Diagnostic(ErrorCode.ERR_BadNamedArgument, "optParam3").WithArguments("Foo", "optParam3").WithLocation(37, 15),
                 // (39,30): error CS1738: Named argument specifications must appear after all fixed arguments have been specified
                 //         c.Foo(optArg1: 3333, 11111);
-                Diagnostic(ErrorCode.ERR_NamedArgumentSpecificationBeforeFixedArgument, "11111").WithLocation(39, 30));
+                Diagnostic(ErrorCode.ERR_NamedArgumentSpecificationBeforeFixedArgument, "11111").WithLocation(39, 30),
+                // (39,15): error CS1739: The best overload for 'Foo' does not have a parameter named 'optArg1'
+                //         c.Foo(optArg1: 3333, 11111);
+                Diagnostic(ErrorCode.ERR_BadNamedArgument, "optArg1").WithArguments("Foo", "optArg1").WithLocation(39, 15)
+                );
         }
 
         [Fact]
@@ -845,6 +849,27 @@ namespace NS
                 Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "M2()").WithArguments("value").WithLocation(5, 37));
         }
 
+        [WorkItem(11638, "https://github.com/dotnet/roslyn/issues/11638")]
+        [Fact]
+        public void OptionalValueHasObjectInitializer()
+        {
+            var source =
+@"class C
+{
+    static void Test(Vector3 vector = new Vector3() { X = 1f, Y = 1f, Z = 1f}) { }
+}
+
+public struct Vector3
+{
+    public float X;
+    public float Y;
+    public float Z;
+}";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (3,39): error CS1736: Default parameter value for 'vector' must be a compile-time constant
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "new Vector3() { X = 1f, Y = 1f, Z = 1f}").WithArguments("vector").WithLocation(3, 39));
+        }
+
         [WorkItem(542411, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542411")]
         [WorkItem(542365, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542365")]
         [Fact]
@@ -932,10 +957,16 @@ class Test{
 }
 ";
             CreateCompilationWithMscorlib(source, new[] { SystemRef }).VerifyDiagnostics(
-                // (5,21): error CS1745: Cannot specify default parameter value in conjunction with DefaultParameterAttribute or OptionalAttribute
-                Diagnostic(ErrorCode.ERR_DefaultValueUsedWithAttributes, "Optional"),
                 // (9,21): error CS1745: Cannot specify default parameter value in conjunction with DefaultParameterAttribute or OptionalAttribute
-                Diagnostic(ErrorCode.ERR_DefaultValueUsedWithAttributes, "DefaultParameterValue"));
+                //     public int Bar([DefaultParameterValue(1)]int i = 2) {
+                Diagnostic(ErrorCode.ERR_DefaultValueUsedWithAttributes, "DefaultParameterValue").WithLocation(9, 21),
+                // (9,54): error CS8017: The parameter has multiple distinct default values.
+                //     public int Bar([DefaultParameterValue(1)]int i = 2) {
+                Diagnostic(ErrorCode.ERR_ParamDefaultValueDiffersFromAttribute, "2").WithLocation(9, 54),
+                // (5,21): error CS1745: Cannot specify default parameter value in conjunction with DefaultParameterAttribute or OptionalAttribute
+                //     public int Foo([Optional]object i = null) {
+                Diagnostic(ErrorCode.ERR_DefaultValueUsedWithAttributes, "Optional").WithLocation(5, 21)
+                );
         }
 
         [WorkItem(10290, "DevDiv_Projects/Roslyn")]

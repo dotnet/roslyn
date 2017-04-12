@@ -3,6 +3,7 @@
 using System.Collections.Immutable;
 using System.Linq;
 using System.Runtime.InteropServices;
+using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.InternalElements;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Interop;
@@ -43,7 +44,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Colle
             // property is accessed on CodeClass, CodeStruct or CodeInterface, consumers would hit this behavior rarely.
             if (_parts == null)
             {
-                var partsBuilder = ImmutableArray.CreateBuilder<EnvDTE.CodeElement>();
+                var partsBuilder = ArrayBuilder<EnvDTE.CodeElement>.GetInstance();
 
                 var solution = this.Workspace.CurrentSolution;
                 var symbol = ParentType.LookupSymbol();
@@ -67,7 +68,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Colle
                     }
                 }
 
-                _parts = partsBuilder.ToImmutable();
+                _parts = partsBuilder.ToImmutableAndFree();
             }
 
             return _parts;

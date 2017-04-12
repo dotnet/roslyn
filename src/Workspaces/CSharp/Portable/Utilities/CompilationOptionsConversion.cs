@@ -21,8 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 default:
                     if (!string.IsNullOrEmpty(projectLanguageVersion))
                     {
-                        int version;
-                        if (int.TryParse(projectLanguageVersion, out version))
+                        if (int.TryParse(projectLanguageVersion, out var version))
                         {
                             return (LanguageVersion)version;
                         }

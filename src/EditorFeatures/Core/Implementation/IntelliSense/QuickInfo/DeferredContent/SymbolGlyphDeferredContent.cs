@@ -3,7 +3,6 @@
 using System.Windows;
 using System.Windows.Data;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.PlatformUI;
@@ -43,9 +42,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
         }
 
         // For Testing.
-        internal Glyph Glyph
-        {
-            get { return _glyph; }
-        }
+        internal Glyph Glyph => _glyph;
     }
 }

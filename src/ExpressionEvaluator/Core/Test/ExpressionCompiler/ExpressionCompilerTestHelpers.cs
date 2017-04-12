@@ -2,7 +2,6 @@
 
 extern alias PDB;
 
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -17,6 +16,7 @@ using System.Reflection.PortableExecutable;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading;
+using Microsoft.Cci;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Emit;
@@ -347,8 +347,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
             var names = ArrayBuilder<string>.GetInstance();
             foreach (var scope in scopes)
             {
-                var locals = scope.GetLocals();
-                foreach (var local in locals)
+                foreach (var local in scope.GetLocals())
                 {
                     var name = local.GetName();
                     int slot;
@@ -414,7 +413,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
             }
             var scopes = ArrayBuilder<ISymUnmanagedScope>.GetInstance();
             method.GetAllScopes(scopes);
-            var result = scopes.SelectAsArray(s => new Scope(s.GetStartOffset(), s.GetEndOffset(), s.GetLocals().SelectAsArray(l => l.GetName()), isEndInclusive));
+            var result = scopes.SelectAsArray(s => new Scope(s.GetStartOffset(), s.GetEndOffset(), ImmutableArray.CreateRange(s.GetLocals().Select(l => l.GetName())), isEndInclusive));
             scopes.Free();
             return result;
         }
@@ -443,7 +442,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
 
         private static bool IsReferenced(MetadataReference reference, HashSet<string> referenceNames)
         {
-            var assemblyMetadata = ((PortableExecutableReference)reference).GetMetadata() as AssemblyMetadata;
+            var assemblyMetadata = ((PortableExecutableReference)reference).GetMetadataNoCopy() as AssemblyMetadata;
             if (assemblyMetadata == null)
             {
                 // Netmodule. Assume it is referenced.
@@ -497,7 +496,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
         private static ModuleMetadata GetManifestModuleMetadata(MetadataReference reference)
         {
             // make a copy to avoid disposing shared reference metadata:
-            var metadata = ((MetadataImageReference)reference).GetMetadata().Copy();
+            var metadata = ((MetadataImageReference)reference).GetMetadata();
             return (metadata as AssemblyMetadata)?.GetModules()[0] ?? (ModuleMetadata)metadata;
         }
 
@@ -735,6 +734,72 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
                 new string[0] :
                 parameters.Split(',');
             return methodName;
+        }
+
+        internal unsafe static ModuleMetadata ToModuleMetadata(this PEMemoryBlock metadata, bool ignoreAssemblyRefs)
+        {
+            return ModuleMetadata.CreateFromMetadata(
+                (IntPtr)metadata.Pointer,
+                metadata.Length,
+                includeEmbeddedInteropTypes: false,
+                ignoreAssemblyRefs: ignoreAssemblyRefs);
+        }
+
+        internal unsafe static MetadataReader ToMetadataReader(this PEMemoryBlock metadata)
+        {
+            return new MetadataReader(metadata.Pointer, metadata.Length, MetadataReaderOptions.None);
+        }
+
+        internal static void EmitCorLibWithAssemblyReferences(
+            Compilation comp,
+            string pdbPath,
+            Func<CommonPEModuleBuilder, CommonPEModuleBuilder> getModuleBuilder,
+            out ImmutableArray<byte> peBytes,
+            out ImmutableArray<byte> pdbBytes)
+        {
+            var diagnostics = DiagnosticBag.GetInstance();
+            var emitOptions = EmitOptions.Default.WithRuntimeMetadataVersion("0.0.0.0").WithDebugInformationFormat(DebugInformationFormat.PortablePdb);
+            var moduleBuilder = comp.CheckOptionsAndCreateModuleBuilder(
+                diagnostics,
+                null,
+                emitOptions,
+                null,
+                null,
+                null,
+                null,
+                default(CancellationToken));
+
+            // Wrap the module builder in a module builder that
+            // reports the "System.Object" type as having no base type.
+            moduleBuilder = getModuleBuilder(moduleBuilder);
+            bool result = comp.Compile(
+                moduleBuilder,
+                emittingPdb: pdbPath != null,
+                diagnostics: diagnostics,
+                filterOpt: null,
+                cancellationToken: default(CancellationToken));
+
+            using (var peStream = new MemoryStream())
+            {
+                using (var pdbStream = new MemoryStream())
+                {
+                    PeWriter.WritePeToStream(
+                        new EmitContext(moduleBuilder, null, diagnostics),
+                        comp.MessageProvider,
+                        () => peStream,
+                        () => pdbStream,
+                        null, null,
+                        allowMissingMethodBodies: true,
+                        isDeterministic: false,
+                        cancellationToken: default(CancellationToken));
+
+                    peBytes = peStream.ToImmutable();
+                    pdbBytes = pdbStream.ToImmutable();
+                }
+            }
+
+            diagnostics.Verify();
+            diagnostics.Free();
         }
     }
 }

@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
@@ -31,9 +32,9 @@ namespace Microsoft.CodeAnalysis.Editor
     internal struct DocumentHighlights
     {
         public Document Document { get; }
-        public IList<HighlightSpan> HighlightSpans { get; }
+        public ImmutableArray<HighlightSpan> HighlightSpans { get; }
 
-        public DocumentHighlights(Document document, IList<HighlightSpan> highlightSpans) : this()
+        public DocumentHighlights(Document document, ImmutableArray<HighlightSpan> highlightSpans)
         {
             this.Document = document;
             this.HighlightSpans = highlightSpans;
@@ -42,6 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor
 
     internal interface IDocumentHighlightsService : ILanguageService
     {
-        Task<IEnumerable<DocumentHighlights>> GetDocumentHighlightsAsync(Document document, int position, IEnumerable<Document> documentsToSearch, CancellationToken cancellationToken);
+        Task<ImmutableArray<DocumentHighlights>> GetDocumentHighlightsAsync(
+            Document document, int position, IImmutableSet<Document> documentsToSearch, CancellationToken cancellationToken);
     }
 }

@@ -232,6 +232,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Me._errorInfo = errorInfo
             End Sub
 
+            Public Sub New(moduleSymbol As ModuleSymbol, ByRef emittedName As MetadataTypeName, delayedErrorInfo As Func(Of TopLevelWithCustomErrorInfo, DiagnosticInfo))
+                MyBase.New(moduleSymbol, emittedName)
+
+                Debug.Assert(delayedErrorInfo IsNot Nothing)
+                Me._errorInfo = delayedErrorInfo(Me)
+            End Sub
+
             Friend Overrides ReadOnly Property ErrorInfo As DiagnosticInfo
                 Get
                     Return _errorInfo

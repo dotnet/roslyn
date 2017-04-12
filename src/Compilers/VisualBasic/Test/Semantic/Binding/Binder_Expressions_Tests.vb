@@ -62,7 +62,7 @@ expectedOutput:="123")
         End Sub
 
         <WorkItem(679765, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/679765")>
-        <Fact(Skip:="679765")>
+        <Fact>
         Public Sub Bug679765()
             CompileAndVerify(
 <compilation>

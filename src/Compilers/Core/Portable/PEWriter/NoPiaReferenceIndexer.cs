@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Microsoft.CodeAnalysis.Emit;
 using System.Diagnostics;
 using EmitContext = Microsoft.CodeAnalysis.Emit.EmitContext;
 
@@ -15,25 +16,16 @@ namespace Microsoft.Cci
         internal NoPiaReferenceIndexer(EmitContext context)
             : base(context)
         {
-            this.module = context.Module;
         }
 
-        public override void Visit(IAssembly assembly)
+        public override void Visit(CommonPEModuleBuilder module)
         {
-            Debug.Assert(assembly == module);
-            this.Visit((IModule)assembly);
-        }
-
-        public override void Visit(IModule module)
-        {
-            Debug.Assert(this.module == module);
-
             //EDMAURER visit these assembly-level attributes even when producing a module.
             //They'll be attached off the "AssemblyAttributesGoHere" typeRef if a module is being produced.
 
-            this.Visit(module.AssemblyAttributes);
-            this.Visit(module.AssemblySecurityAttributes);
-            this.Visit(module.ModuleAttributes);
+            this.Visit(module.GetSourceAssemblyAttributes());
+            this.Visit(module.GetSourceAssemblySecurityAttributes());
+            this.Visit(module.GetSourceModuleAttributes());
         }
 
         protected override void RecordAssemblyReference(IAssemblyReference assemblyReference)

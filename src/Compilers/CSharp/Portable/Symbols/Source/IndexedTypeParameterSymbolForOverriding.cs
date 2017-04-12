@@ -3,9 +3,6 @@
 using System;
 using System.Collections.Immutable;
 using System.Threading;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using System.Diagnostics;
 
@@ -20,8 +17,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </summary>
     internal sealed class IndexedTypeParameterSymbolForOverriding : TypeParameterSymbol
     {
-        private static TypeParameterSymbol[] s_parameterPoolHasReferenceTypeConstraint = SpecializedCollections.EmptyArray<TypeParameterSymbol>();
-        private static TypeParameterSymbol[] s_parameterPoolHasNoReferenceTypeConstraint = SpecializedCollections.EmptyArray<TypeParameterSymbol>();
+        private static TypeParameterSymbol[] s_parameterPoolHasReferenceTypeConstraint = Array.Empty<TypeParameterSymbol>();
+        private static TypeParameterSymbol[] s_parameterPoolHasNoReferenceTypeConstraint = Array.Empty<TypeParameterSymbol>();
 
         private readonly int _index;
         private readonly bool _hasReferenceTypeConstraint;
@@ -96,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         // These object are unique (per index).
-        internal override bool Equals(TypeSymbol t2, TypeSymbolEqualityOptions options)
+        internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison)
         {
             return ReferenceEquals(this, t2);
         }

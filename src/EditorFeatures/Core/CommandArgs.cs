@@ -23,18 +23,8 @@ namespace Microsoft.CodeAnalysis.Editor
 
         public CommandArgs(ITextView textView, ITextBuffer subjectBuffer)
         {
-            if (textView == null)
-            {
-                throw new ArgumentNullException(nameof(textView));
-            }
-
-            if (subjectBuffer == null)
-            {
-                throw new ArgumentNullException(nameof(subjectBuffer));
-            }
-
-            this.TextView = textView;
-            this.SubjectBuffer = subjectBuffer;
+            this.TextView = textView ?? throw new ArgumentNullException(nameof(textView));
+            this.SubjectBuffer = subjectBuffer ?? throw new ArgumentNullException(nameof(subjectBuffer));
         }
     }
 }

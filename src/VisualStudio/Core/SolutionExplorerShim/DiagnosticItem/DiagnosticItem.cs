@@ -80,17 +80,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
         public Uri GetHelpLink()
         {
-            Uri link;
-            if (BrowserHelper.TryGetUri(Descriptor.HelpLinkUri, out link))
+            if (BrowserHelper.TryGetUri(Descriptor.HelpLinkUri, out var link))
             {
                 return link;
             }
 
             if (!string.IsNullOrWhiteSpace(Descriptor.Id))
             {
-                string language;
-                string projectType;
-                _analyzerItem.AnalyzersFolder.Workspace.GetLanguageAndProjectType(_analyzerItem.AnalyzersFolder.ProjectId, out language, out projectType);
+                _analyzerItem.AnalyzersFolder.Workspace.GetLanguageAndProjectType(_analyzerItem.AnalyzersFolder.ProjectId, out var language, out var projectType);
 
                 // we use message format here since we don't have actual instance of diagnostic here. 
                 // (which means we do not have a message)
