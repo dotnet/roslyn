@@ -9122,4 +9122,158 @@ BC42105: Function 'Test2' doesn't return a value on all code paths. A null refer
     ~~~~~~~~~~~~
 </expected>)
     End Sub
+
+    <Fact>
+    <WorkItem(405887, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=405887")>
+    Public Sub ParseLineIfWithIncompleteInterpolatedString_01()
+        Dim compilationDef =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Module Module1
+    Sub Test1(val1 As Integer)
+        If val1 = 1 Then System.Console.WriteLine($"abc '{ sServiceName & "'")
+    End Sub
+End Module
+    ]]></file>
+</compilation>
+
+        Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
+        CompilationUtils.AssertTheseDiagnostics(compilation,
+<expected><![CDATA[
+BC30625: 'Module' statement must end with a matching 'End Module'.
+Module Module1
+~~~~~~~~~~~~~~
+BC30026: 'End Sub' expected.
+    Sub Test1(val1 As Integer)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC30451: 'sServiceName' is not declared. It may be inaccessible due to its protection level.
+        If val1 = 1 Then System.Console.WriteLine($"abc '{ sServiceName & "'")
+                                                           ~~~~~~~~~~~~
+BC30370: '}' expected.
+        If val1 = 1 Then System.Console.WriteLine($"abc '{ sServiceName & "'")
+                                                                             ~
+BC30198: ')' expected.
+End Module
+          ~
+]]></expected>)
+    End Sub
+
+    <Fact>
+    <WorkItem(405887, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=405887")>
+    Public Sub ParseLineIfWithIncompleteInterpolatedString_02()
+        Dim compilationDef =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Module Module1
+    Sub Test1(val1 As Integer)
+        If val1 = 1 Then System.Console.WriteLine($"abc '{ sServiceName & "'"})
+    End Sub
+End Module
+    ]]></file>
+</compilation>
+
+        Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
+        CompilationUtils.AssertTheseDiagnostics(compilation,
+<expected><![CDATA[
+BC30625: 'Module' statement must end with a matching 'End Module'.
+Module Module1
+~~~~~~~~~~~~~~
+BC30026: 'End Sub' expected.
+    Sub Test1(val1 As Integer)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC30451: 'sServiceName' is not declared. It may be inaccessible due to its protection level.
+        If val1 = 1 Then System.Console.WriteLine($"abc '{ sServiceName & "'"})
+                                                           ~~~~~~~~~~~~
+BC30198: ')' expected.
+End Module
+          ~
+]]></expected>)
+    End Sub
+
+    <Fact>
+    <WorkItem(405887, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=405887")>
+    Public Sub ParseLineIfWithIncompleteInterpolatedString_03()
+        Dim compilationDef =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Module Module1
+    Sub Test1(val1 As Integer)
+        If val1 = 1 Then System.Console.WriteLine($"abc '{ sServiceName & "'"}")
+    End Sub
+End Module
+    ]]></file>
+</compilation>
+
+        Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
+        CompilationUtils.AssertTheseDiagnostics(compilation,
+<expected><![CDATA[
+BC30451: 'sServiceName' is not declared. It may be inaccessible due to its protection level.
+        If val1 = 1 Then System.Console.WriteLine($"abc '{ sServiceName & "'"}")
+                                                           ~~~~~~~~~~~~
+]]></expected>)
+    End Sub
+
+    <Fact>
+    <WorkItem(405887, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=405887")>
+    Public Sub ParseLineIfWithIncompleteInterpolatedString_04()
+        Dim compilationDef =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Module Module1
+    Sub Test1(val1 As Integer)
+        If val1 = 1 Then System.Console.WriteLine($"abc '{ sServiceName & "'" ")
+    End Sub
+End Module
+    ]]></file>
+</compilation>
+
+        Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
+        CompilationUtils.AssertTheseDiagnostics(compilation,
+<expected><![CDATA[
+BC30451: 'sServiceName' is not declared. It may be inaccessible due to its protection level.
+        If val1 = 1 Then System.Console.WriteLine($"abc '{ sServiceName & "'" ")
+                                                           ~~~~~~~~~~~~
+BC30370: '}' expected.
+        If val1 = 1 Then System.Console.WriteLine($"abc '{ sServiceName & "'" ")
+                                                                              ~
+]]></expected>)
+    End Sub
+
+    <Fact>
+    <WorkItem(405887, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=405887")>
+    Public Sub ParseLineIfWithIncompleteInterpolatedString_05()
+        Dim compilationDef =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Module Module1
+    Sub Test1(val1 As Integer)
+        If val1 = 1 Then System.Console.WriteLine($"abc '{ sServiceName & "'"")
+    End Sub
+End Module
+    ]]></file>
+</compilation>
+
+        Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
+        CompilationUtils.AssertTheseDiagnostics(compilation,
+<expected><![CDATA[
+BC30625: 'Module' statement must end with a matching 'End Module'.
+Module Module1
+~~~~~~~~~~~~~~
+BC30026: 'End Sub' expected.
+    Sub Test1(val1 As Integer)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC30451: 'sServiceName' is not declared. It may be inaccessible due to its protection level.
+        If val1 = 1 Then System.Console.WriteLine($"abc '{ sServiceName & "'"")
+                                                           ~~~~~~~~~~~~
+BC30648: String constants must end with a double quote.
+        If val1 = 1 Then System.Console.WriteLine($"abc '{ sServiceName & "'"")
+                                                                          ~~~~~~
+BC30198: ')' expected.
+End Module
+          ~
+BC30370: '}' expected.
+End Module
+          ~
+]]></expected>)
+    End Sub
 End Class
