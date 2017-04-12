@@ -404,9 +404,13 @@ namespace Microsoft.CodeAnalysis.Semantics
         { }
 
         public override void VisitInvalidStatement(IInvalidStatement operation)
-        { }
+        {
+            VisitArray(operation.Children);
+        }
 
         public override void VisitInvalidExpression(IInvalidExpression operation)
-        { }
+        {
+            VisitArray(operation.Children);
+        }
     }
 }

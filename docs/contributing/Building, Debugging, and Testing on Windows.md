@@ -55,14 +55,19 @@ will start a new Visual Studio instance using those VSIX which override our inst
 binaries.  This means trying out a change to the languge, IDE or debugger is as
 simple as hitting F5.
 
-The startup project needs to be set to VisualStudioSetup.  This should be the default
-but in same cases will need to be set explicitly.
+The startup project needs to be set to VisualStudioSetup.Next.  This should be
+the default but in same cases will need to be set explicitly.
 
 Here are what is deployed with each extension, by project that builds it. If
 you're working on a particular area, you probably want to set the appropriate
 project as your startup project to ensure the right things are built and
 deployed.
 
+- **VisualStudioSetup.Next**: this project can be found inside the VisualStudio
+  folder from the Solution Explorer, and builds Roslyn.VisualStudio.Setup.vsix.
+  In theory, it contains code to light up features for the next version of VS
+  (Dev16), but currently hasn't been updated for that since Dev15/VS2017 shipped.
+  If you're working on fixing an IDE bug, this is the project you want to use.
 - **VisualStudioSetup**: this project can be found inside the VisualStudio folder
   from the Solution Explorer, and builds Roslyn.VisualStudio.Setup.vsix. It
   contains the core language services that provide C# and VB editing. It also
@@ -70,8 +75,8 @@ deployed.
   semantic analysis in Visual Studio. Although this is the copy of the compiler
   that's used to generate squiggles and other information, it's not the
   compiler used to actually produce your final .exe or .dll when you do a
-  build. If you're working on fixing an IDE bug, this is the project you want
-  to use.
+  build. If you're working on fixing an IDE bug, this is *NOT* the project you want
+  to use right now - use VisualStudioSetup.Next instead.
 - **CompilerExtension**: this project can be found inside the Compilers folder
   from the Solution Explorer, and builds Roslyn.Compilers.Extension.vsix.
   This deploys a copy of the command line compilers that are used to do actual

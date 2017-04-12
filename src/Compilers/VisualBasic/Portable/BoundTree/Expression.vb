@@ -58,7 +58,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
             End If
 
-            Return New InvalidExpression(parent.Syntax)
+            Return New InvalidExpression(parent.Syntax, ImmutableArray(Of IOperation).Empty)
         End Function
 
     End Class
@@ -903,6 +903,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
     Partial Friend Class BoundBadExpression
         Implements IInvalidExpression
+
+        Public ReadOnly Property Children As ImmutableArray(Of IOperation) Implements IInvalidExpression.Children
+            Get
+                Return StaticCast(Of IOperation).From(Me.ChildBoundNodes)
+            End Get
+        End Property
 
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.InvalidExpression

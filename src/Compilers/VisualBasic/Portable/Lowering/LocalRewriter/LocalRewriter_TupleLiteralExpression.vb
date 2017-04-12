@@ -51,7 +51,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                     syntax,
                                     LookupResultKind.Empty,
                                     ImmutableArray(Of Symbol).Empty,
-                                    StaticCast(Of BoundNode).From(rewrittenArguments),
+                                    rewrittenArguments,
                                     type,
                                     hasErrors:=True)
                 End If
@@ -70,7 +70,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                     syntax,
                                     LookupResultKind.Empty,
                                     ImmutableArray(Of Symbol).Empty,
-                                    StaticCast(Of BoundNode).From(rewrittenArguments),
+                                    rewrittenArguments,
                                     type,
                                     hasErrors:=True)
                     End If

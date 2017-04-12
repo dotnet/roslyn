@@ -12,6 +12,14 @@ namespace Microsoft.CodeAnalysis.UnitTests
 {
     public sealed class ObjectSerializationTests
     {
+        static ObjectSerializationTests()
+        {
+            // Register appropriate deserialization methods.
+            new PrimitiveArrayMemberTest();
+            new PrimitiveMemberTest();
+            new PrimitiveValueTest();
+        }
+
         [Fact]
         private void TestInvalidStreamVersion()
         {

@@ -89,11 +89,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             }
 
             internal Task<ImmutableArray<SymbolReference>> FindInMetadataSymbolsAsync(
-                IAssemblySymbol assembly, PortableExecutableReference metadataReference,
+                IAssemblySymbol assembly, ProjectId assemblyProjectId, PortableExecutableReference metadataReference,
                 bool exact, CancellationToken cancellationToken)
             {
                 var searchScope = new MetadataSymbolsSearchScope(
-                    _owner, _document.Project.Solution, assembly, metadataReference, exact, cancellationToken);
+                    _owner, _document.Project.Solution, assembly, assemblyProjectId, 
+                    metadataReference, exact, cancellationToken);
                 return DoAsync(searchScope);
             }
 
