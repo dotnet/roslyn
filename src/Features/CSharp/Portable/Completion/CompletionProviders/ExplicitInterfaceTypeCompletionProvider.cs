@@ -103,9 +103,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return Task.FromResult(interfaceSet.ToImmutableArray<ISymbol>());
         }
 
-        protected override CompletionItemRules GetCompletionItemRules(IReadOnlyList<ISymbol> symbols)
-            => s_rules;
-
         private bool IsPreviousTokenValid(SyntaxToken tokenBeforeType)
         {
             if (tokenBeforeType.Kind() == SyntaxKind.OpenBraceToken)
