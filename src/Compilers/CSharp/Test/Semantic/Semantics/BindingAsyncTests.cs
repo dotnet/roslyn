@@ -1236,7 +1236,7 @@ class A
     static void Main(){}
 }";
 
-            foreach (var langVersion in new LanguageVersion[] { LanguageVersion.CSharp7, LanguageVersion.CSharp7_1})
+            foreach (var langVersion in new LanguageVersion[] { LanguageVersion.CSharp7, LanguageVersion.CSharp7_1 })
             {
                 var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
                 compilation.VerifyDiagnostics();

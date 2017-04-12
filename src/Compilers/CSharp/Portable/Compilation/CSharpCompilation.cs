@@ -1506,7 +1506,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         diagnostics.Add(ErrorCode.ERR_NoMainInClass, mainType.Locations.First(), mainType);
                     }
                 }
-                else if (nonAsyncMainEntryPointCount == 1) 
+                else if (nonAsyncMainEntryPointCount == 1)
                 {
                     entryPoint = viableEntryPoints.Where(c => !c.IsAsync).Single();
                 }
