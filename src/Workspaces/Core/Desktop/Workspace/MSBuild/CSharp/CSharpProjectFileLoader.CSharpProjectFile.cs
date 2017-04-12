@@ -721,7 +721,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (treatWarningsAsErrors)
                     {
-                        this.CommandLineArgs.Add("/warningaserror");
+                        this.CommandLineArgs.Add("/warnaserror");
                     }
 
                     return true;

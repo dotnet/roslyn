@@ -1,11 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.ComponentModel;
 using System.Linq;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -26,6 +28,18 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         public static VisualStudioWorkspace_InProc Create()
             => new VisualStudioWorkspace_InProc();
 
+        public void SetOptionInfer(string projectName, bool value)
+            => InvokeOnUIThread(() => {
+                var convertedValue = value ? 1 : 0;
+                var project = GetProject(projectName);
+                project.Properties.Item("OptionInfer").Value = convertedValue;
+            });
+
+        private EnvDTE.Project GetProject(string nameOrFileName)
+            => GetDTE().Solution.Projects.OfType<EnvDTE.Project>().First(p =>
+               string.Compare(p.FileName, nameOrFileName, StringComparison.OrdinalIgnoreCase) == 0
+                || string.Compare(p.Name, nameOrFileName, StringComparison.OrdinalIgnoreCase) == 0);
+
         public bool IsUseSuggestionModeOn()
             => _visualStudioWorkspace.Options.GetOption(EditorCompletionOptions.UseSuggestionMode);
 
@@ -45,6 +59,56 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 _visualStudioWorkspace.Options = _visualStudioWorkspace.Options.WithChangedOption(
                     FeatureOnOffOptions.PrettyListing, languageName, value);
             });
+
+        public void EnableQuickInfo(bool value)
+            => InvokeOnUIThread(() => {
+                _visualStudioWorkspace.Options = _visualStudioWorkspace.Options.WithChangedOption(
+                    InternalFeatureOnOffOptions.QuickInfo, value);
+            });
+
+        public void SetPerLanguageOption(string optionName, string feature, string language, object value)
+        {
+            var optionService = _visualStudioWorkspace.Services.GetService<IOptionService>();
+            var option = GetOption(optionName, feature, optionService);
+            var result = GetValue(value, option);
+            var optionKey = new OptionKey(option, language);
+            optionService.SetOptions(optionService.GetOptions().WithChangedOption(optionKey, result));
+        }
+
+        public void SetOption(string optionName, string feature, object value)
+        {
+            var optionService = _visualStudioWorkspace.Services.GetService<IOptionService>();
+            var option = GetOption(optionName, feature, optionService);
+            var result = GetValue(value, option);
+            var optionKey = new OptionKey(option);
+            optionService.SetOptions(optionService.GetOptions().WithChangedOption(optionKey, result));
+        }
+
+        private static object GetValue(object value, IOption option)
+        {
+            object result;
+            if (value is string stringValue)
+            {
+                result = TypeDescriptor.GetConverter(option.Type).ConvertFromString(stringValue);
+            }
+            else
+            {
+                result = value;
+            }
+
+            return result;
+        }
+
+        private static IOption GetOption(string optionName, string feature, IOptionService optionService)
+        {
+            var option = optionService.GetRegisteredOptions().FirstOrDefault(o => o.Feature == feature && o.Name == optionName);
+            if (option == null)
+            {
+                throw new Exception($"Failed to find option with feature name '{feature}' and option name '{optionName}'");
+            }
+
+            return option;
+        }
 
         private static TestingOnly_WaitingService GetWaitingService()
             => GetComponentModel().DefaultExportProvider.GetExport<TestingOnly_WaitingService>().Value;
@@ -80,6 +144,24 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 }
 
                 GetWaitingService().EnableActiveTokenTracking(true);
+            });
+
+        public void SetFeatureOption(string feature, string optionName, string language, string valueString)
+            => InvokeOnUIThread(() =>
+            {
+                var optionService = _visualStudioWorkspace.Services.GetService<IOptionService>();
+                var option = optionService.GetRegisteredOptions().FirstOrDefault(o => o.Feature == feature && o.Name == optionName);
+                if (option == null)
+                {
+                    throw new InvalidOperationException($"Failed to find option with feature name '{feature}' and option name '{optionName}'");
+                }
+
+                var value = TypeDescriptor.GetConverter(option.Type).ConvertFromString(valueString);
+                var optionKey = string.IsNullOrWhiteSpace(language)
+                    ? new OptionKey(option)
+                    : new OptionKey(option, language);
+
+                optionService.SetOptions(optionService.GetOptions().WithChangedOption(optionKey, value));
             });
     }
 }

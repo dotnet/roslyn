@@ -1,9 +1,0 @@
-{
-  "dependencies": {
-    "Microsoft.VisualStudio.Debugger.Engine": "15.0.26201-alpha",
-    "Microsoft.VisualStudio.Debugger.Metadata": "15.0.26201-alpha"
-  },
-  "frameworks": {
-    ".NETPortable,Version=v4.5,Profile=Profile7": {}
-  }
-}

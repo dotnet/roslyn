@@ -18,7 +18,6 @@
     "Microsoft.VisualStudio.Imaging.Interop.14.0.DesignTime": "14.3.25407",
     "Microsoft.ServiceHub.Client": "1.0.177-rc-g56d40a8a02",
     "Newtonsoft.Json": "8.0.3",
-    "Microsoft.VisualStudio.Shell.Interop.15.0.DesignTime": "15.0.26201-alpha",
     "RoslynDependencies.Microsoft.VisualStudio.Workspace": "14.0.983-pre-ge167e81694",
     "System.Collections.Immutable": "1.3.1",
     "Microsoft.Tpl.Dataflow": "4.5.24",
