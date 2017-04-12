@@ -67,6 +67,7 @@
     <Compile Include="Completion\CompletionProviders\DeclarationNameCompletionProvider.DeclarationInfo.cs" />
     <Compile Include="Completion\CompletionProviders\DeclarationNameCompletionProvider_BuiltInStyles.cs" />
     <Compile Include="Completion\CompletionProviders\ExplicitInterfaceMemberCompletionProvider.cs" />
+    <Compile Include="Completion\CompletionProviders\ExplicitInterfaceTypeCompletionProvider.cs" />
     <Compile Include="ConvertIfToSwitch\CSharpConvertIfToSwitchCodeRefactoringProvider.cs" />
     <Compile Include="ConvertIfToSwitch\CSharpConvertIfToSwitchCodeRefactoringProvider.Pattern.cs" />
     <Compile Include="ConvertNumericLiteral\CSharpConvertNumericLiteralCodeRefactoringProvider.cs" />
