@@ -222,6 +222,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
                         }
 
                         break;
+
+                    case CandidateReason.WrongArity:
+                        // even if the arity is wrong, we want to classify to indicate that we have
+                        // understood what is going on.  The user will get a clear error telling them
+                        // the arity is wrong.
+                        return firstSymbol;
                 }
             }
 
