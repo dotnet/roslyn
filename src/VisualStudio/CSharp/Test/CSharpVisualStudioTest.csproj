@@ -180,6 +180,16 @@
     <Reference Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
+      <Content Include="$(NuGetPackageRoot)\sqlitepclraw.lib.e_sqlite3.v110_xp\1.1.2\runtimes\win7-x86\native\e_sqlite3.dll">
+          <Link>x86\e_sqlite3.dll</Link>
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </Content>
+      <Content Include="$(NuGetPackageRoot)\sqlitepclraw.lib.e_sqlite3.v110_xp\1.1.2\runtimes\win7-x64\native\e_sqlite3.dll">
+          <Link>x64\e_sqlite3.dll</Link>
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </Content>
+  </ItemGroup>
+  <ItemGroup>
     <Compile Include="CodeModel\AbstractFileCodeElementTests.cs" />
     <Compile Include="CodeModel\FileCodeClassTests.cs" />
     <Compile Include="CodeModel\FileCodeClassWithMissingBraceTests.cs" />
@@ -205,7 +215,9 @@
     <Compile Include="Interactive\Commands\ResetInteractiveTests.cs" />
     <Compile Include="Interactive\Commands\TestResetInteractive.cs" />
     <Compile Include="Interactive\TestInteractiveEvaluator.cs" />
-    <Compile Include="PersistentStorage\EsentPersistentStorageTests.cs" />
+    <Compile Include="PersistentStorage\AbstractPersistentStorageTests.cs" />
+    <Compile Include="PersistentStorage\SQLitePersistentStorageTests.cs" />
+    <Compile Include="PersistentStorage\EsentPersistentStorageTests1.cs" />
     <Compile Include="PersistentStorage\SolutionSizeTests.cs" />
     <Compile Include="ProjectSystemShim\CPS\AnalyzersTests.cs" />
     <Compile Include="ProjectSystemShim\CPS\CSharpCompilerOptionsTests.cs" />
