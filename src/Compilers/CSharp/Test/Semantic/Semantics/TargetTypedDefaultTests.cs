@@ -701,7 +701,38 @@ class C
                 //             System.Console.Write("catch");
                 Diagnostic(ErrorCode.WRN_UnreachableCode, "System").WithLocation(17, 13)
                 );
-            //CompileAndVerify(comp, expectedOutput: "True 2 False"); // PEVerify failed with Branch out of the method. Follow-up issue: https://github.com/dotnet/roslyn/issues/18609
+            //CompileAndVerify(comp, expectedOutput: "True 2 False"); // PEVerify failed with Branch out of the method. Follow-up issue: https://github.com/dotnet/roslyn/issues/18678
+        }
+
+        [Fact]
+        public void PEVerifyErrorWithFalse()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        try
+        {
+            throw new System.Exception();
+        }
+        catch (System.Exception) when (false)
+        {
+            System.Console.Write(""catch"");
+        }
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (10,40): warning CS7095: Filter expression is a constant, consider removing the filter
+                //         catch (System.Exception) when (false)
+                Diagnostic(ErrorCode.WRN_FilterIsConstant, "false").WithLocation(10, 40),
+                // (12,13): warning CS0162: Unreachable code detected
+                //             System.Console.Write("catch");
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "System").WithLocation(12, 13)
+                );
+            //CompileAndVerify(comp); // PEVerify failed with Branch out of the method. Follow-up issue: https://github.com/dotnet/roslyn/issues/18678
         }
 
         [Fact]
