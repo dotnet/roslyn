@@ -612,11 +612,11 @@ End Class]]></Text>.NormalizedValue()
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
-        Public Async Function ReorderIndexerParameters_CodeRefactoring_InCallSite() As Threading.Tasks.Task
+        Public Async Function ReorderIndexerParameters_CodeRefactoring_InCallSite_ViaCommand() As Task
             Dim markup = <Text><![CDATA[
 Class C
     Sub Foo(x As Integer, y As Integer)
-        Foo([||]1, 2)
+        Foo($$1, 2)
     End Sub
 End Class]]></Text>.NormalizedValue()
             Dim permutation = {1, 0}
@@ -627,7 +627,21 @@ Class C
     End Sub
 End Class]]></Text>.NormalizedValue()
 
-            Await TestChangeSignatureViaCodeActionAsync(markup, expectedCodeAction:=True, updatedSignature:=permutation, expectedCode:=updatedCode)
+            Await TestChangeSignatureViaCommandAsync(
+                LanguageNames.VisualBasic, markup, updatedSignature:=permutation,
+                expectedUpdatedInvocationDocumentCode:=updatedCode)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        Public Async Function ReorderIndexerParameters_CodeRefactoring_InCallSite_ViaCodeAction() As Threading.Tasks.Task
+            Dim markup = <Text><![CDATA[
+Class C
+    Sub Foo(x As Integer, y As Integer)
+        Foo([||]1, 2)
+    End Sub
+End Class]]></Text>.NormalizedValue()
+
+            Await TestMissingAsync(markup)
         End Function
 #End Region
 

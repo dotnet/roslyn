@@ -150,6 +150,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
                 Return False
             End If
 
+            Dim asClause = matchingNode.ChildNodes().LastOrDefault(Function(n) TypeOf n Is AsClauseSyntax)
+            If asClause IsNot Nothing Then
+                Return position <= asClause.FullSpan.End
+            End If
+
             ' If the symbol has a parameter list, then the caret shouldn't be past the end of it.
             Dim parameterList = matchingNode.ChildNodes().LastOrDefault(
                 Function(n) TypeOf n Is ParameterListSyntax)
