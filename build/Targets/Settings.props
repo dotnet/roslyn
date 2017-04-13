@@ -254,8 +254,9 @@
 
   <!-- The Sdk props will set the rootnamespace to the assembly name when the property
        is empty.  Need to override this after  -->
-  <PropertyGroup Condition="'$(MSBuildTargetsLanguageName)' == 'VisualBasic' AND '$(RoslynSdkProject)' == 'true'" >
-      <RootNamespace></RootNamespace>
+  <PropertyGroup Condition="'$(RoslynSdkProject)' == 'true'" >
+    <DebugType>full</DebugType>
+    <RootNamespace Condition="'$(MSBuildTargetsLanguageName)' == 'VisualBasic'"></RootNamespace>
   </PropertyGroup>
 
   <!-- 

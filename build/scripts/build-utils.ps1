@@ -256,53 +256,48 @@ function Clear-PackageCache() {
 }
 
 # Restore a single project
-function Restore-Project([string]$fileName, [string]$nuget, [string]$msbuildDir) {
+function Restore-Project([string]$fileName, [string]$msbuild) {
     $nugetConfig = Join-Path $repoDir "nuget.config"
     $filePath = Join-Path $repoDir $fileName
-    Exec-Block { & $nuget restore -verbosity quiet -configfile $nugetConfig -MSBuildPath $msbuildDir -Project2ProjectTimeOut 1200 $filePath } | Out-Null
+    # DO NOT MERGE until we can find out how to pass the config file
+    Exec-Block { & $msbuild /t:Restore /v:m $filePath } 
 }
 
 # Restore all of the projects that the repo consumes
-function Restore-Packages([switch]$clean = $false, [string]$msbuildDir = "", [string]$project = "") {
-    $nuget = Ensure-NuGet
-    if ($msbuildDir -eq "") {
-        $msbuildDir = Get-MSBuildDir
+function Restore-Packages([string]$msbuild = "", [string]$project = "") {
+    if ($msbuild -eq "") {
+        $msbuild = Ensure-MSBuild
     }
 
     Write-Host "Restore using MSBuild at $msbuildDir"
 
-    if ($clean) {
-        Write-Host "Deleting project.lock.json files"
-        Get-ChildItem $repoDir -re -in project.lock.json | Remove-Item
-    }
-
     if ($project -ne "") {
         Write-Host "Restoring project $project"
-        Restore-Project -fileName $project -nuget $nuget -msbuildDir $msbuildDir
+        Restore-Project -fileName $project -msbuild $msbuild
     }
     else {
         $all = @(
-            "Toolsets:build\ToolsetPackages\project.json",
-            "Toolsets (Dev14 VS SDK build tools):build\ToolsetPackages\dev14.project.json",
-            "Toolsets (Dev15 VS SDK RC build tools):build\ToolsetPackages\dev15rc.project.json",
-            "Samples:src\Samples\Samples.sln",
-            "Templates:src\Setup\Templates\Templates.sln",
-            "Toolsets Compiler:build\Toolset\Toolset.csproj",
-            "Roslyn:Roslyn.sln",
-            "DevDivInsertionFiles:src\Setup\DevDivInsertionFiles\DevDivInsertionFiles.sln",
-            "DevDiv Roslyn Packages:src\Setup\DevDivPackages\Roslyn\project.json",
-            "DevDiv Debugger Packages:src\Setup\DevDivPackages\Debugger\project.json")
+            "Base Toolset:build\ToolsetPackages\BaseToolset.csproj",
+            "Closed Toolset:build\ToolsetPackages\ClosedToolset.csproj",
+            "Roslyn:Roslyn.sln")
+            # DO NOT MERGE
+            # "Samples:src\Samples\Samples.sln",
+            # "Templates:src\Setup\Templates\Templates.sln",
+            # "Toolsets Compiler:build\Toolset\Toolset.csproj",
+            # "DevDivInsertionFiles:src\Setup\DevDivInsertionFiles\DevDivInsertionFiles.sln",
+            # "DevDiv Roslyn Packages:src\Setup\DevDivPackages\Roslyn\project.json",
+            # "DevDiv Debugger Packages:src\Setup\DevDivPackages\Debugger\project.json")
 
         foreach ($cur in $all) {
             $both = $cur.Split(':')
             Write-Host "Restoring $($both[0])"
-            Restore-Project -fileName $both[1] -nuget $nuget -msbuildDir $msbuildDir
+            Restore-Project -fileName $both[1] -msbuild $msbuild
         }
     }
 }
 
 # Restore all of the projects that the repo consumes
-function Restore-All([switch]$clean = $false, [string]$msbuildDir = "") {
-    Restore-Packages -clean:$clean -msbuildDir $msbuildDir
+function Restore-All([string]$msbuild = "") {
+    Restore-Packages -msbuild $msbuild
 }
 
