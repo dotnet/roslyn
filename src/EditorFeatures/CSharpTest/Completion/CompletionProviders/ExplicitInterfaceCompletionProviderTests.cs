@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-
+using System;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
@@ -97,6 +98,16 @@ class Bar : IFoo
 }";
 
             await VerifyProviderCommitAsync(markup, "Foo()", expected, '(', "");
+        }
+
+        [WorkItem(15988, "https://github.com/dotnet/roslyn/issues/15988")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task EnsureNoObjectMembersAreShown()
+        {
+            var markup = @"class C : IComparable {
+	int IComparable.$$
+}";
+            VerifyItemIsAbsentAsync(markup, "GetHashCode");
         }
     }
 }
