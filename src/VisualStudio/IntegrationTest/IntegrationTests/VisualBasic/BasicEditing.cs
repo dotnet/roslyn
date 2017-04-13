@@ -111,14 +111,5 @@ End Class]s");
             VisualStudio.Workspace.WaitForAllAsyncOperations();
             VisualStudio.Editor.Verify.TextContains(@"Long");
         }
-
-        private string PrependLines(string input, string toAdd)
-        {
-            MarkupTestFile.GetPosition(input, out var text, out int _);
-            var lines = text.Split(new[] { "\r\n" }, StringSplitOptions.None)
-                              .Select(s => toAdd + s);
-            return string.Join("\r\n", lines);
-            
-        }
     }
 }

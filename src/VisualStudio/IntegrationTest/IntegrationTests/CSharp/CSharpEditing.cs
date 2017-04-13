@@ -86,15 +86,6 @@ namespace ConsoleApplication1
     /// comment!
     /// 
     /// </summary>");
-    }
-
-        private string PrependLines(string input, string toAdd)
-        {
-            MarkupTestFile.GetPosition(input, out var text, out int _);
-            var lines = text.Split(new[] { "\r\n" }, StringSplitOptions.None)
-                              .Select(s => s.Length > 0 ? toAdd + s : s);
-            return string.Join("\r\n", lines);
-            
         }
     }
 }
