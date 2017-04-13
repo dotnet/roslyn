@@ -81,8 +81,8 @@ public class C
     }
 }
 ";
-            var libRef = CreateCompilationWithMscorlib(libSource, assemblyName: "Lib").EmitToImageReference();
-            var comp = CreateCompilationWithMscorlib(source, new[] { libRef }, TestOptions.DebugDll);
+            var libRef = CreateStandardCompilation(libSource, assemblyName: "Lib").EmitToImageReference();
+            var comp = CreateStandardCompilation(source, new[] { libRef }, TestOptions.DebugDll);
 
             WithRuntimeInstance(comp, new[] { MscorlibRef }, runtime =>
             {
@@ -121,7 +121,7 @@ public class C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source, new[] { SystemCoreRef }, TestOptions.DebugDll);
+            var comp = CreateStandardCompilation(source, new[] { SystemCoreRef }, TestOptions.DebugDll);
 
             WithRuntimeInstance(comp, new[] { MscorlibRef }, runtime =>
             {
@@ -163,7 +163,7 @@ public class C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source, new[] { SystemCoreRef }, TestOptions.DebugDll);
+            var comp = CreateStandardCompilation(source, new[] { SystemCoreRef }, TestOptions.DebugDll);
             WithRuntimeInstance(comp, new[] { MscorlibRef }, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -229,7 +229,7 @@ namespace System.Linq
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            var comp = CreateStandardCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(comp, new[] { MscorlibRef }, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -308,8 +308,8 @@ class C
     }
 }
 ";
-            var ilRef = CompileIL(il, appendDefaultHeader: false);
-            var comp = CreateCompilationWithMscorlib(csharp, new[] { ilRef });
+            var ilRef = CompileIL(il, prependDefaultHeader: false);
+            var comp = CreateStandardCompilation(csharp, new[] { ilRef });
             WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -370,7 +370,7 @@ class C
         [Fact]
         public unsafe void ShouldTryAgain_Success()
         {
-            var comp = CreateCompilationWithMscorlib("public class C { }");
+            var comp = CreateStandardCompilation("public class C { }");
             using (var pinned = new PinnedMetadata(GetMetadataBytes(comp)))
             {
                 DkmUtilities.GetMetadataBytesPtrFunction gmdbpf = (AssemblyIdentity assemblyIdentity, out uint uSize) =>
@@ -393,8 +393,8 @@ class C
         [Fact]
         public unsafe void ShouldTryAgain_Mixed()
         {
-            var comp1 = CreateCompilationWithMscorlib("public class C { }", assemblyName: GetUniqueName());
-            var comp2 = CreateCompilationWithMscorlib("public class D { }", assemblyName: GetUniqueName());
+            var comp1 = CreateStandardCompilation("public class C { }", assemblyName: GetUniqueName());
+            var comp2 = CreateStandardCompilation("public class D { }", assemblyName: GetUniqueName());
             using (PinnedMetadata pinned1 = new PinnedMetadata(GetMetadataBytes(comp1)),
                 pinned2 = new PinnedMetadata(GetMetadataBytes(comp2)))
             {
@@ -518,7 +518,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            var comp = CreateStandardCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(comp, new[] { CSharpRef }, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -555,7 +555,7 @@ class C
     {
     }
 }";
-            var comp = CreateCompilationWithMscorlib(source, WinRtRefs, TestOptions.DebugDll);
+            var comp = CreateStandardCompilation(source, WinRtRefs, TestOptions.DebugDll);
             var runtimeAssemblies = ExpressionCompilerTestHelpers.GetRuntimeWinMds("Windows.Storage");
             Assert.True(runtimeAssemblies.Any());
 
@@ -598,7 +598,7 @@ class C
     {
     }
 }";
-            var comp = CreateCompilationWithMscorlib(source, WinRtRefs, TestOptions.DebugDll);
+            var comp = CreateStandardCompilation(source, WinRtRefs, TestOptions.DebugDll);
             var runtimeAssemblies = ExpressionCompilerTestHelpers.GetRuntimeWinMds("Windows.UI");
             Assert.True(runtimeAssemblies.Any());
 
@@ -638,7 +638,7 @@ class C
     { 
     } 
 }";
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateStandardCompilation(source);
             WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -681,7 +681,7 @@ class C
     { 
     } 
 }";
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateStandardCompilation(source);
             WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -839,7 +839,7 @@ class UseLinq
 
         private static void TupleContextNoSystemRuntime(string source, string methodName, string expression, string expectedIL)
         {
-            var comp = CreateCompilationWithMscorlib(source, new[] { SystemRuntimeFacadeRef, ValueTupleRef }, options: TestOptions.DebugDll);
+            var comp = CreateStandardCompilation(source, new[] { SystemRuntimeFacadeRef, ValueTupleRef }, options: TestOptions.DebugDll);
             using (var systemRuntime = SystemRuntimeFacadeRef.ToModuleInstance())
             {
                 WithRuntimeInstance(comp, new[] { MscorlibRef, ValueTupleRef }, runtime =>

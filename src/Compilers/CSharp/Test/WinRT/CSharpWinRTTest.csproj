@@ -17,11 +17,14 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup>
+    <Compile Include="AnonymousTypesSymbolTests.cs" />
     <Compile Include="CodeGen\WinMdEventTests.cs" />
     <Compile Include="CodeGen\WinRTCollectionTests.cs" />
     <Compile Include="Metadata\WinMdDumpTest.cs" />
     <Compile Include="Metadata\WinMdEventTests.cs" />
     <Compile Include="Metadata\WinMdMetadataTests.cs" />
+    <Compile Include="PdbTests.cs" />
+    <Compile Include="PEParameterSymbolTests.cs" />
     <Compile Include="WinRTUtil.cs" />
   </ItemGroup>
   <ItemGroup>

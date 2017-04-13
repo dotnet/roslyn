@@ -19,7 +19,7 @@ MSBUILD_ADDITIONALARGS := /v:m /fl /fileloggerparameters:Verbosity=normal /p:Con
 ifeq ($(OS_NAME),Linux)
 	MSBUILD_ADDITIONALARGS := $(MSBUILD_ADDITIONALARGS) /p:BaseNuGetRuntimeIdentifier=$(shell . /etc/os-release && echo $$ID.$$VERSION_ID)
 else ifeq ($(OS_NAME),Darwin)
-	MSBUILD_ADDITIONALARGS := $(MSBUILD_ADDITIONALARGS) /p:BaseNuGetRuntimeIdentifier=osx.10.10
+	MSBUILD_ADDITIONALARGS := $(MSBUILD_ADDITIONALARGS) /p:BaseNuGetRuntimeIdentifier=osx.10.12
 endif
 
 ifneq ($(BUILD_LOG_PATH),)

@@ -106,7 +106,7 @@ public class Derived<T> : Outer<(int e1, (int e2, int e3) e4)>.Inner<
         [Fact]
         public void TestTupleAttributes()
         {
-            var comp = CreateCompilationWithMscorlib(s_tuplesTestSource,
+            var comp = CreateStandardCompilation(s_tuplesTestSource,
                 options: TestOptions.UnsafeReleaseDll,
                 references: s_attributeRefs);
             TupleAttributeValidator.ValidateTupleAttributes(comp);
@@ -115,7 +115,7 @@ public class Derived<T> : Outer<(int e1, (int e2, int e3) e4)>.Inner<
         [Fact]
         public void TupleAttributeWithOnlyOneConstructor()
         {
-            var comp = CreateCompilationWithMscorlib(
+            var comp = CreateStandardCompilation(
                 s_tuplesTestSource + TestResources.NetFX.ValueTuple.tuplelib_cs + @"
 namespace System.Runtime.CompilerServices
 {
@@ -641,7 +641,7 @@ class C
         [Fact]
         public void TupleAttributeMissing()
         {
-            var comp = CreateCompilationWithMscorlib(
+            var comp = CreateStandardCompilation(
                 s_tuplesTestSource + TestResources.NetFX.ValueTuple.tuplelib_cs,
                 references: new[] { SystemCoreRef },
                 options: TestOptions.ReleaseDll);
@@ -803,7 +803,7 @@ public class C
 public struct S
 {
 }";
-            var comp = CreateCompilationWithMscorlib(text, references: s_attributeRefs);
+            var comp = CreateStandardCompilation(text, references: s_attributeRefs);
             comp.VerifyDiagnostics(
                 // (31,2): error CS8208: Cannot reference 'System.Runtime.CompilerServices.TupleElementNamesAttribute' explicitly. Use the tuple syntax to define tuple names.
                 // [TupleElementNames(new[] { "a", "b" })]

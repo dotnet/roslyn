@@ -3420,7 +3420,7 @@ class Program
 }";
             string expectedOutput = @"Convert(Call(null.[System.Delegate CreateDelegate(System.Type, System.Object, System.Reflection.MethodInfo)](Constant(Del Type:System.Type), Parameter(tc1 Type:TestClass1), Constant(Int32 Func1(System.String) Type:System.Reflection.MethodInfo)) Type:System.Delegate) Type:Del)";
 
-            var comp = CreateCompilationWithMscorlib(
+            var comp = CreateStandardCompilation(
                 new[] { source, ExpressionTestLibrary },
                 new[] { SystemCoreRef },
                 TestOptions.ReleaseExe);
@@ -3625,7 +3625,7 @@ Lambda:
             string source = @"
 namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
 ";
-            CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular).VerifyDiagnostics(
+            CreateStandardCompilation(source, parseOptions: TestOptions.Regular).VerifyDiagnostics(
                 // (2,11): error CS7000: Unexpected use of an aliased name
                 // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
                 Diagnostic(ErrorCode.ERR_UnexpectedAliasedName, "global::").WithLocation(2, 11),
@@ -3675,7 +3675,7 @@ namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B 
             string source = @"
 namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
 ";
-            CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6)).VerifyDiagnostics(
+            CreateStandardCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6)).VerifyDiagnostics(
                 // (2,11): error CS7000: Unexpected use of an aliased name
                 // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
                 Diagnostic(ErrorCode.ERR_UnexpectedAliasedName, "global::").WithLocation(2, 11),
@@ -3735,7 +3735,7 @@ class Test
         ((System.Linq.Expressions.Expression<System.Func<void>>)(() => global::System.Console.WriteLine(""))).Compile()();
     }
 }";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (8,58): error CS1547: Keyword 'void' cannot be used in this context
                 //         ((System.Linq.Expressions.Expression<System.Func<void>>)(() => global::System.Console.WriteLine("))).Compile()();
                 Diagnostic(ErrorCode.ERR_NoVoidHere, "void"),
@@ -5856,7 +5856,7 @@ class C : TestBase
     public class Expression<T> { }
     public class ParameterExpression : Expression { }
 }";
-            var compilation1 = CreateCompilationWithMscorlib(source1);
+            var compilation1 = CreateStandardCompilation(source1);
             compilation1.VerifyDiagnostics();
             var reference1 = compilation1.EmitToImageReference();
 
@@ -5867,7 +5867,7 @@ class C
 {
     static Expression<D> E = () => 1;
 }";
-            var compilation2 = CreateCompilationWithMscorlib(source2, references: new[] { reference1 });
+            var compilation2 = CreateStandardCompilation(source2, references: new[] { reference1 });
             compilation2.VerifyDiagnostics();
 
             using (var stream = new MemoryStream())
