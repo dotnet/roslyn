@@ -60,7 +60,10 @@ public class Program
         return result;
     }
 
-    private static void [|NewMethod|]() => Console.WriteLine(""Hello World"");
+    private static void [|NewMethod|]()
+    {
+        Console.WriteLine(""Hello World"");
+    }
 }";
 
             MarkupTestFile.GetSpans(expectedMarkup, out var expectedText, out ImmutableArray<TextSpan> spans);
@@ -69,7 +72,10 @@ public class Program
             AssertEx.SetEqual(spans, VisualStudio.Editor.GetTagSpans(VisualStudio.InlineRenameDialog.ValidRenameTag));
 
             VisualStudio.Editor.SendKeys("SayHello", VirtualKey.Enter);
-            VisualStudio.Editor.Verify.TextContains(@"private static void SayHello() => Console.WriteLine(""Hello World"")");
+            VisualStudio.Editor.Verify.TextContains(@"private static void SayHello()
+    {
+        Console.WriteLine(""Hello World"");
+    }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
