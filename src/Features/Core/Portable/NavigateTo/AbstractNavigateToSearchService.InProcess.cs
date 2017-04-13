@@ -22,12 +22,12 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 document.Project, document, searchPattern, cancellationToken);
         }
 
-        private static Task<ImmutableArray<INavigateToSearchResult>> SearchInCurrentProcessAsync(
+        private static async Task<ImmutableArray<INavigateToSearchResult>> SearchInCurrentProcessAsync(
             Project project, Document searchDocument, string pattern, CancellationToken cancellationToken)
         {
             using (var searcher = new NavigateToProjectSearcher(project, searchDocument, pattern, cancellationToken))
             {
-                return searcher.DoAsync();
+                return await searcher.DoAsync().ConfigureAwait(false);
             }
         }
     }
