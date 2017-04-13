@@ -36,7 +36,7 @@ class C
     }
 }
 ";
-            CreateCompilationWithMscorlib(test, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6)).VerifyDiagnostics(
+            CreateStandardCompilation(test, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6)).VerifyDiagnostics(
                 // (9,13): error CS8059: Feature 'pattern matching' is not available in C# 6. Please use language version 7 or greater.
                 //             case 2 when args.Length == 2:
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "case 2 when args.Length == 2:").WithArguments("pattern matching", "7").WithLocation(9, 13),
@@ -66,8 +66,8 @@ class C
     }
     public static void NeverReturns() => throw new NullReferenceException();
 }";
-            CreateCompilationWithMscorlib(test).VerifyDiagnostics();
-            CreateCompilationWithMscorlib(test, parseOptions: TestOptions.Regular6).VerifyDiagnostics(
+            CreateStandardCompilation(test).VerifyDiagnostics();
+            CreateStandardCompilation(test, parseOptions: TestOptions.Regular6).VerifyDiagnostics(
                 // (6,14): error CS8059: Feature 'local functions' is not available in C# 6. Please use language version 7 or greater.
                 //         void NeverReturnsFunction() => throw new NullReferenceException();
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "NeverReturnsFunction").WithArguments("local functions", "7").WithLocation(6, 14),
@@ -116,7 +116,7 @@ class C
     }
     static void M(string s) {}
 }";
-            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+            CreateStandardCompilation(test).VerifyDiagnostics(
                 // (7,17): error CS1525: Invalid expression term 'throw'
                 //         s = s + throw new NullReferenceException();
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "throw new NullReferenceException()").WithArguments("throw").WithLocation(7, 17),

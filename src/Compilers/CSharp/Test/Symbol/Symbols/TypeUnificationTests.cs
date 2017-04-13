@@ -39,7 +39,7 @@ class C
     System.Collections.Generic.Dictionary<long, int> g2;
 }
 ";
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateStandardCompilation(text);
             var global = comp.GlobalNamespace;
 
             var @class = global.GetMember<NamedTypeSymbol>("C");
@@ -122,7 +122,7 @@ class C<T, U>
     U tp2;
 }
 ";
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateStandardCompilation(text);
             var global = comp.GlobalNamespace;
 
             var @class = global.GetMember<NamedTypeSymbol>("C");
@@ -193,7 +193,7 @@ class C<T>
     T[,] g3;
 }
 ";
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateStandardCompilation(text);
             var global = comp.GlobalNamespace;
 
             var @class = global.GetMember<NamedTypeSymbol>("C");
@@ -235,7 +235,7 @@ class D<T>
 {
 }
 ";
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateStandardCompilation(text);
             var global = comp.GlobalNamespace;
 
             var @class = global.GetMember<NamedTypeSymbol>("C");
@@ -286,7 +286,7 @@ public class L<T>
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateStandardCompilation(text);
             var global = comp.GlobalNamespace;
 
             var @class = global.GetMember<NamedTypeSymbol>("C");
@@ -323,7 +323,7 @@ class C<T>
     C<T> containing;
 }
 ";
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateStandardCompilation(text);
             var global = comp.GlobalNamespace;
 
             var @class = global.GetMember<NamedTypeSymbol>("C");
@@ -356,7 +356,7 @@ public class L<T>
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateStandardCompilation(text);
             var global = comp.GlobalNamespace;
 
             var @class = global.GetMember<NamedTypeSymbol>("C");
@@ -407,7 +407,7 @@ public class L<T>
 interface IB<T, U> : IA<U, object>, IA<T, U>
 {
 }";
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateStandardCompilation(text);
             var type = comp.GetMember<NamedTypeSymbol>("IB");
             AssertCanUnify(type.Interfaces[0], type.Interfaces[1]);
             DiagnosticsUtils.VerifyErrorCodes(comp.GetDiagnostics(),

@@ -453,6 +453,19 @@
                                TargetMonikers=".NETFramework,Version=v4.6">
       <Output TaskParameter="ResolvedCopyLocalItems" ItemName="ReferenceCopyLocalPaths" />
     </ResolveNuGetPackageAssets>
+
+    <!-- Desktop tests need to load the Desktop version of the TestUtilities via reflection at runtime without
+         referencing the assembly at compile time. However, it looks like adding a project-to-project reference 
+         with ReferenceOutputputAssembly=false and Private=true does not copy the assembly to the output
+         (https://github.com/Microsoft/msbuild/issues/1916). Therefore, we reference the assembly but do the
+         copying ourselves, by adding the output path of the project (GetTargetPath) manually to the set of copied
+         assemblies (ReferenceCopyLocalPaths) -->
+    <MSBuild Projects="$(MSBuildThisFileDirectory)..\..\src\Test\Utilities\Desktop\TestUtilities.Desktop.csproj"
+             Targets="GetTargetPath"
+             BuildInParallel="true">
+
+        <Output TaskParameter="TargetOutputs" ItemName="ReferenceCopyLocalPaths" />
+    </MSBuild>
   </Target>
 
   <!-- Returns the current build version. Used in .vsixmanifests to substitute our build version into them -->
