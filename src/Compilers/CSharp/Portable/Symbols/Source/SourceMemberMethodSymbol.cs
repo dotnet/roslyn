@@ -138,6 +138,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             CheckForBlockAndExpressionBody(
                 syntax.Body, syntax.ExpressionBody, syntax, diagnostics);
+
+            if (this.ReturnsByRefReadonly)
+            {
+                this.DeclaringCompilation.EnsureReadOnlyAttributeExists();
+            }
         }
 
         public override bool ReturnsVoid

@@ -73,6 +73,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             _binder = binder;
+
+            if (this.ReturnsByRefReadonly)
+            {
+                this.DeclaringCompilation.EnsureReadOnlyAttributeExists();
+            }
         }
 
         /// <summary>

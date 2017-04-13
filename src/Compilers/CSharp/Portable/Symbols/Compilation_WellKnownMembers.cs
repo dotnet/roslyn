@@ -415,6 +415,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return TrySynthesizeAttribute(WellKnownMember.System_Diagnostics_DebuggerStepThroughAttribute__ctor);
         }
 
+        internal void EnsureReadOnlyAttributeExists()
+        {
+            // TODO
+        }
+
         internal SynthesizedAttributeData SynthesizeReadOnlyAttribute()
         {
             // PROTOTYPE(readonlyRefs) it is optional now as it will be generated in the next PR

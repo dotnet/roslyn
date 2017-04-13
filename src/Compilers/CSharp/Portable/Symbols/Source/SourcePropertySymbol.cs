@@ -99,6 +99,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         _sourceName = propertyData.IndexerName;
                     }
                 }
+
+                if (this.ReturnsByRefReadonly)
+                {
+                    this.DeclaringCompilation.EnsureReadOnlyAttributeExists();
+                }
             }
 
             string aliasQualifierOpt;

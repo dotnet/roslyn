@@ -27,6 +27,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             _returnType = returnType;
             this.MakeFlags(methodKind, declarationModifiers, _returnType.SpecialType == SpecialType.System_Void, isExtensionMethod: false);
+
+            if (this.ReturnsByRefReadonly)
+            {
+                this.DeclaringCompilation.EnsureReadOnlyAttributeExists();
+            }
         }
 
         protected void InitializeParameters(ImmutableArray<ParameterSymbol> parameters)

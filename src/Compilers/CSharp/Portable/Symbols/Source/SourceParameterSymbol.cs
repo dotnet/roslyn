@@ -82,6 +82,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _refKind = refKind;
             _name = name;
             _locations = locations;
+
+            if (this.RefKind == RefKind.RefReadOnly)
+            {
+                this.DeclaringCompilation.EnsureReadOnlyAttributeExists();
+            }
         }
 
         internal override ParameterSymbol WithCustomModifiersAndParams(TypeSymbol newType, ImmutableArray<CustomModifier> newCustomModifiers, ImmutableArray<CustomModifier> newRefCustomModifiers, bool newIsParams)

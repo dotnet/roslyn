@@ -181,6 +181,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     _name = overriddenMethod.Name;
                 }
             }
+
+            if (this.ReturnsByRefReadonly)
+            {
+                this.DeclaringCompilation.EnsureReadOnlyAttributeExists();
+            }
         }
 
         private SourcePropertyAccessorSymbol(
@@ -255,6 +260,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             CheckForBlockAndExpressionBody(
                 syntax.Body, syntax.ExpressionBody, syntax, diagnostics);
+
+            if (this.ReturnsByRefReadonly)
+            {
+                this.DeclaringCompilation.EnsureReadOnlyAttributeExists();
+            }
         }
 
         protected override void MethodChecks(DiagnosticBag diagnostics)
