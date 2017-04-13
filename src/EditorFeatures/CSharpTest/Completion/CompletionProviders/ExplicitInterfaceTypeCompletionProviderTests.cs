@@ -30,7 +30,7 @@ class C : IList
     int $$
 }
 ";
-
+            await VerifyAnyItemExistsAsync(markup, hasSuggestionModeItem: true);
             await VerifyItemExistsAsync(markup, "IEnumerable");
             await VerifyItemExistsAsync(markup, "ICollection");
             await VerifyItemExistsAsync(markup, "IList");
@@ -48,6 +48,7 @@ struct C : IList
 }
 ";
 
+            await VerifyAnyItemExistsAsync(markup, hasSuggestionModeItem: true);
             await VerifyItemExistsAsync(markup, "IEnumerable");
             await VerifyItemExistsAsync(markup, "ICollection");
             await VerifyItemExistsAsync(markup, "IList");
@@ -66,6 +67,7 @@ class C : IList
 }
 ";
 
+            await VerifyAnyItemExistsAsync(markup, hasSuggestionModeItem: true);
             await VerifyItemExistsAsync(markup, "IEnumerable");
             await VerifyItemExistsAsync(markup, "ICollection");
             await VerifyItemExistsAsync(markup, "IList");
@@ -84,6 +86,7 @@ class C : IList
 }
 ";
 
+            await VerifyAnyItemExistsAsync(markup, hasSuggestionModeItem: true);
             await VerifyItemExistsAsync(markup, "IEnumerable");
             await VerifyItemExistsAsync(markup, "ICollection");
             await VerifyItemExistsAsync(markup, "IList");
@@ -102,6 +105,7 @@ class C : IList
 }
 ";
 
+            await VerifyAnyItemExistsAsync(markup, hasSuggestionModeItem: true);
             await VerifyItemExistsAsync(markup, "IEnumerable");
             await VerifyItemExistsAsync(markup, "ICollection");
             await VerifyItemExistsAsync(markup, "IList");
@@ -123,6 +127,70 @@ class C : IList
 }
 ";
 
+            await VerifyAnyItemExistsAsync(markup, hasSuggestionModeItem: true);
+            await VerifyItemExistsAsync(markup, "IEnumerable");
+            await VerifyItemExistsAsync(markup, "ICollection");
+            await VerifyItemExistsAsync(markup, "IList");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestWithModifierFollowing()
+        {
+            var markup = @"
+using System.Collections;
+
+class C : IList
+{
+    int Foo() => 0;
+    int $$
+
+    public int Bar();
+}
+";
+
+            await VerifyAnyItemExistsAsync(markup, hasSuggestionModeItem: true);
+            await VerifyItemExistsAsync(markup, "IEnumerable");
+            await VerifyItemExistsAsync(markup, "ICollection");
+            await VerifyItemExistsAsync(markup, "IList");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestWithTypeFollowing()
+        {
+            var markup = @"
+using System.Collections;
+
+class C : IList
+{
+    int Foo() => 0;
+    int $$
+
+    int Bar();
+}
+";
+
+            await VerifyAnyItemExistsAsync(markup, hasSuggestionModeItem: true);
+            await VerifyItemExistsAsync(markup, "IEnumerable");
+            await VerifyItemExistsAsync(markup, "ICollection");
+            await VerifyItemExistsAsync(markup, "IList");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestWithTypeFollowing2()
+        {
+            var markup = @"
+using System.Collections;
+
+class C : IList
+{
+    int Foo() => 0;
+    int $$
+
+    X Bar();
+}
+";
+
+            await VerifyAnyItemExistsAsync(markup, hasSuggestionModeItem: true);
             await VerifyItemExistsAsync(markup, "IEnumerable");
             await VerifyItemExistsAsync(markup, "ICollection");
             await VerifyItemExistsAsync(markup, "IList");
