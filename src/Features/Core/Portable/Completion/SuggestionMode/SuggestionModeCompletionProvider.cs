@@ -1,10 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Completion.SuggestionMode
@@ -22,16 +20,6 @@ namespace Microsoft.CodeAnalysis.Completion.SuggestionMode
         protected CompletionItem CreateEmptySuggestionModeItem()
         {
             return CreateSuggestionModeItem(displayText: null, description: null);
-        }
-
-        private static CompletionItemRules s_rules = CompletionItemRules.Create(enterKeyRule: EnterKeyRule.Never);
-
-        protected CompletionItem CreateSuggestionModeItem(string displayText, string description)
-        {
-            return CommonCompletionItem.Create(
-                displayText: displayText ?? string.Empty,
-                description: description != null ? description.ToSymbolDisplayParts() : default(ImmutableArray<SymbolDisplayPart>),
-                rules: s_rules);
         }
 
         internal override bool IsInsertionTrigger(SourceText text, int position, OptionSet options) => false;
