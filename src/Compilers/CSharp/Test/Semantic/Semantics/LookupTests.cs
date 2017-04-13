@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         internal List<ISymbol> GetLookupSymbols(string testSrc, NamespaceOrTypeSymbol container = null, string name = null, int? arity = null, bool isScript = false, IEnumerable<string> globalUsings = null)
         {
             var tree = Parse(testSrc, options: isScript ? TestOptions.Script : TestOptions.Regular);
-            var compilation = CreateCompilationWithMscorlib(tree, options: TestOptions.ReleaseDll.WithUsings(globalUsings));
+            var compilation = CreateStandardCompilation(tree, options: TestOptions.ReleaseDll.WithUsings(globalUsings));
             var model = compilation.GetSemanticModel(tree);
             var position = testSrc.Contains("/*<bind>*/") ? GetPositionForBinding(tree) : GetPositionForBinding(testSrc);
             return model.LookupSymbols(position, container, name).Where(s => !arity.HasValue || arity == ((Symbol)s).GetMemberArity()).ToList();
@@ -417,7 +417,7 @@ class Test
                 "Test"
             };
 
-            var comp = CreateCompilationWithMscorlib(testSrc);
+            var comp = CreateStandardCompilation(testSrc);
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
             var position = GetPositionForBinding(tree);
@@ -573,7 +573,7 @@ class Test
             };
 
             // Get the list of LookupSymbols at the location of the CSharpSyntaxNode enclosed within the <bind> </bind> tags
-            var comp = CreateCompilationWithMscorlib(testSrc);
+            var comp = CreateStandardCompilation(testSrc);
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
             var position = testSrc.IndexOf("return", StringComparison.Ordinal);
@@ -1225,7 +1225,7 @@ public class NumberSpecification<TCandidate>
         var key = candidate.Key;
     }
 }";
-            CreateCompilationWithMscorlib(testSrc).VerifyDiagnostics();
+            CreateStandardCompilation(testSrc).VerifyDiagnostics();
         }
 
         [WorkItem(529406, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529406")]
@@ -1274,7 +1274,7 @@ class Program
 {
 }";
             var tree = Parse(source);
-            var comp = CreateCompilationWithMscorlib(tree);
+            var comp = CreateStandardCompilation(tree);
             var model = comp.GetSemanticModel(tree);
             var eof = tree.GetCompilationUnitRoot().FullSpan.End;
             Assert.NotEqual(eof, 0);
@@ -1405,7 +1405,7 @@ class Q : P
         return 0;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
             var node = tree.GetRoot().DescendantNodes().OfType<ExpressionSyntax>().Where(n => n.ToString() == "m.M").Single();
@@ -1422,7 +1422,7 @@ class Q : P
         public void TestLookupVerbatimVar()
         {
             var source = "class C { public static void Main() { @var v = 1; } }";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (1,39): error CS0246: The type or namespace name 'var' could not be found (are you missing a using directive or an assembly reference?)
                 // class C { public static void Main() { @var v = 1; } }
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "@var").WithArguments("var").WithLocation(1, 39)
@@ -1522,7 +1522,7 @@ class C
         public void GenericNameLookup()
         {
             var source = @"using A = List<int>;";
-            var compilation = CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            var compilation = CreateStandardCompilation(source).VerifyDiagnostics(
                 // (1,11): error CS0246: The type or namespace name 'List<>' could not be found (are you missing a using directive or an assembly reference?)
                 // using A = List<int>;
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "List<int>").WithArguments("List<>").WithLocation(1, 11),
@@ -1546,7 +1546,7 @@ class C
     {
         int result = 0;
         Dels Test : Base";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
             SemanticModel imodel = model;
@@ -1573,7 +1573,7 @@ class Program
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
             SemanticModel imodel = model;
@@ -1614,7 +1614,7 @@ class Test
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics();
 
             var global = comp.GlobalNamespace;
@@ -1660,7 +1660,7 @@ public class C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees.Single();
@@ -1688,7 +1688,7 @@ public class C<T>
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics();
 
             var classC = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
@@ -1723,7 +1723,7 @@ public class Outer
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees.Single();
@@ -1884,7 +1884,7 @@ class C
     }
 }";
 
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees.Single();

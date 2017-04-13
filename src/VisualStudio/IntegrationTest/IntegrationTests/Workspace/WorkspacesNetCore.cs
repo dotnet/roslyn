@@ -4,8 +4,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
-using Roslyn.VisualStudio.IntegrationTests.Extensions;
-using Roslyn.VisualStudio.IntegrationTests.Extensions.SolutionExplorer;
 using Xunit;
 using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
@@ -20,24 +18,26 @@ namespace Roslyn.VisualStudio.IntegrationTests.Workspace
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn-project-system/issues/1825"), Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Trait(Traits.Feature, Traits.Features.NetCore)]
         public override void OpenCSharpThenVBSolution()
         {
             base.OpenCSharpThenVBSolution();
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn-project-system/issues/1826"), Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Trait(Traits.Feature, Traits.Features.NetCore)]
         public override void MetadataReference()
         {
             var project = new ProjectUtils.Project(ProjectName);
-            this.EditProjectFile(project);
-            Editor.SetText(@"<Project Sdk=""Microsoft.NET.Sdk"">
+            VisualStudio.SolutionExplorer.EditProjectFile(project);
+            VisualStudio.Editor.SetText(@"<Project Sdk=""Microsoft.NET.Sdk"">
   <PropertyGroup>
     <TargetFramework>net461</TargetFramework>
   </PropertyGroup>
 </Project>");
-            this.SaveAll();
-            this.WaitForAsyncOperations(FeatureAttribute.Workspace);
-            this.OpenFile("Class1.cs", project);
+            VisualStudio.SolutionExplorer.SaveAll();
+            VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
+            VisualStudio.SolutionExplorer.OpenFile(project, "Class1.cs");
             base.MetadataReference();
         }
 
@@ -48,10 +48,12 @@ namespace Roslyn.VisualStudio.IntegrationTests.Workspace
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn-project-system/issues/1825"), Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Trait(Traits.Feature, Traits.Features.NetCore)]
         public override void ProjectProperties()
         {
-            VisualStudio.Instance.SolutionExplorer.CreateSolution(nameof(WorkspacesDesktop));
-            VisualStudio.Instance.SolutionExplorer.AddProject(ProjectName, WellKnownProjectTemplates.ClassLibrary, LanguageNames.VisualBasic);
+            VisualStudio.SolutionExplorer.CreateSolution(nameof(WorkspacesDesktop));
+            var project = new ProjectUtils.Project(ProjectName);
+            VisualStudio.SolutionExplorer.AddProject(project, WellKnownProjectTemplates.ClassLibrary, LanguageNames.VisualBasic);
             base.ProjectProperties();
         }
     }

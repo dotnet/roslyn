@@ -3128,6 +3128,46 @@ print Goodbye, World"
             Assert.Equal("x.netmodule", parsedArgs.CompilationOptions.ModuleName)
         End Sub
 
+        <Fact, WorkItem(11497, "https://github.com/dotnet/roslyn/issues/11497")>
+        Public Sub ConsistentErrorMessageWhenProvidingNoKeyFile()
+            Dim outWriter = New StringWriter(CultureInfo.InvariantCulture)
+            Dim vbc = New MockVisualBasicCompiler(Nothing, _baseDirectory, {"/keyfile:", "/target:library", "/nologo", "/preferreduilang:en", "a.vb"})
+            Dim exitCode = vbc.Run(outWriter)
+
+            Assert.Equal(1, exitCode)
+            Assert.Equal("vbc : error BC2006: option 'keyfile' requires ':<file>'", outWriter.ToString().Trim())
+        End Sub
+
+        <Fact, WorkItem(11497, "https://github.com/dotnet/roslyn/issues/11497")>
+        Public Sub ConsistentErrorMessageWhenProvidingEmptyKeyFile()
+            Dim outWriter = New StringWriter(CultureInfo.InvariantCulture)
+            Dim vbc = New MockVisualBasicCompiler(Nothing, _baseDirectory, {"/keyfile:""""", "/target:library", "/nologo", "/preferreduilang:en", "a.vb"})
+            Dim exitCode = vbc.Run(outWriter)
+
+            Assert.Equal(1, exitCode)
+            Assert.Equal("vbc : error BC2006: option 'keyfile' requires ':<file>'", outWriter.ToString().Trim())
+        End Sub
+
+        <Fact, WorkItem(11497, "https://github.com/dotnet/roslyn/issues/11497")>
+        Public Sub ConsistentErrorMessageWhenProvidingNoKeyFile_PublicSign()
+            Dim outWriter = New StringWriter(CultureInfo.InvariantCulture)
+            Dim vbc = New MockVisualBasicCompiler(Nothing, _baseDirectory, {"/keyfile:", "/publicsign", "/target:library", "/nologo", "/preferreduilang:en", "a.vb"})
+            Dim exitCode = vbc.Run(outWriter)
+
+            Assert.Equal(1, exitCode)
+            Assert.Equal("vbc : error BC2006: option 'keyfile' requires ':<file>'", outWriter.ToString().Trim())
+        End Sub
+
+        <Fact, WorkItem(11497, "https://github.com/dotnet/roslyn/issues/11497")>
+        Public Sub ConsistentErrorMessageWhenProvidingEmptyKeyFile_PublicSign()
+            Dim outWriter = New StringWriter(CultureInfo.InvariantCulture)
+            Dim vbc = New MockVisualBasicCompiler(Nothing, _baseDirectory, {"/keyfile:""""", "/publicsign", "/target:library", "/nologo", "/preferreduilang:en", "a.vb"})
+            Dim exitCode = vbc.Run(outWriter)
+
+            Assert.Equal(1, exitCode)
+            Assert.Equal("vbc : error BC2006: option 'keyfile' requires ':<file>'", outWriter.ToString().Trim())
+        End Sub
+
         <Fact, WorkItem(531020, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531020")>
         Public Sub ParseDocBreak1()
             Const baseDirectory As String = "C:\abc\def\baz"

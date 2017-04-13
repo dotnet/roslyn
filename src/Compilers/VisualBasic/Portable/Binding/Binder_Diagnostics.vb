@@ -36,9 +36,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Shared Function ReportDiagnosticAndProduceBadExpression(diagBag As DiagnosticBag,
                                                                   syntax As VisualBasicSyntaxNode,
                                                                   info As DiagnosticInfo,
-                                                                  ParamArray nodes As BoundNode()) As BoundExpression
+                                                                  ParamArray nodes As BoundExpression()) As BoundExpression
             Return BadExpression(syntax,
-                                 If(nodes.IsEmpty, ImmutableArray(Of BoundNode).Empty, ImmutableArray.Create(Of BoundNode)(nodes)),
+                                 If(nodes.IsEmpty, ImmutableArray(Of BoundExpression).Empty, ImmutableArray.Create(nodes)),
                                  ReportDiagnosticAndProduceErrorTypeSymbol(diagBag, syntax, info))
         End Function
 

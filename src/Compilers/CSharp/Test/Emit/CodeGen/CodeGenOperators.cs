@@ -1040,7 +1040,7 @@ static class Program
     }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (10,17): error CS0019: Operator '??' cannot be applied to operands of type 'T' and 'T'
                 //         var y = default(T) ?? x;
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "default(T) ?? x").WithArguments("??", "T", "T").WithLocation(10, 17)); ;
@@ -1100,7 +1100,7 @@ public class Test
         a = M ?? a;
     }
 }";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (7,13): error CS0019: Operator '??' cannot be applied to operands of type 'method group' and 'System.Action'
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "M ?? a").WithArguments("??", "method group", "System.Action").WithLocation(7, 13));
         }
@@ -4783,7 +4783,7 @@ class Test
 }
 ";
 
-                var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe);
+                var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseExe);
                 diagnostics = compilation.GetEmitDiagnostics();
             }
 
@@ -4841,7 +4841,7 @@ class Test
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe);
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseExe);
             compilation.VerifyEmitDiagnostics(
     // (17,16): error CS8078: An expression is too long or complex to compile
     //         return 1 * f[0] + 2 * f[1] + 3 * f[2] + 4 * f[3] + ...
@@ -4947,7 +4947,7 @@ struct S1
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe);
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseExe);
             compilation.VerifyEmitDiagnostics(
     // (10,16): error CS8078: An expression is too long or complex to compile
     //         return a[0] && f[0] || a[1] && f[1] || a[2] && f[2] || ...
@@ -4979,6 +4979,33 @@ class Test
 4242691
 4242691";
             var result = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput);
+        }
+
+        [Fact, WorkItem(17756, "https://github.com/dotnet/roslyn/issues/17756")]
+        public void TestCoalesceNotLvalue()
+        {
+            var source = @"
+class Program
+{
+    struct S1
+    {
+        public int field;
+        public int Increment() => field++;
+    }
+
+    static void Main()
+    {
+        S1 v = default(S1);
+        v.Increment(); 
+
+        ((S1?)null ?? v).Increment();
+
+        System.Console.WriteLine(v.field);
+    }
+}
+";
+            string expectedOutput = @"1";
+            CompileAndVerify(source, expectedOutput: expectedOutput);
         }
     }
 }

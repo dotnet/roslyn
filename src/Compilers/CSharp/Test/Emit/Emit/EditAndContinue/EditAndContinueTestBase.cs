@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Roslyn.Test.MetadataUtilities;
+using Microsoft.Metadata.Tools;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;

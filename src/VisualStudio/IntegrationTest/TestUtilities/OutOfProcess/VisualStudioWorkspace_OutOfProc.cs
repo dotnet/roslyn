@@ -1,7 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
@@ -9,10 +11,12 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
     public class VisualStudioWorkspace_OutOfProc : OutOfProcComponent
     {
         private readonly VisualStudioWorkspace_InProc _inProc;
+        private readonly VisualStudioInstance _instance;
 
         internal VisualStudioWorkspace_OutOfProc(VisualStudioInstance visualStudioInstance)
             : base(visualStudioInstance)
         {
+            _instance = visualStudioInstance;
             _inProc = CreateInProcComponent<VisualStudioWorkspace_InProc>(visualStudioInstance);
         }
 
@@ -23,7 +27,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             => _inProc.SetUseSuggestionMode(value);
 
         public void SetOptionInfer(string projectName, bool value)
-            => _inProc.SetOptionInfer(projectName, value);
+        {
+            _inProc.SetOptionInfer(projectName, value);
+            WaitForAsyncOperations(FeatureAttribute.Workspace);
+        }
 
         public void SetPersistenceOption(bool value)
             => SetOption("Enabled", PersistentStorageOptions.OptionName, value);
@@ -54,5 +61,23 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
         public void SetQuickInfo(bool value)
             => _inProc.EnableQuickInfo(value);
+
+        public void SetFullSolutionAnalysis(bool value)
+        {
+            SetPerLanguageOption(
+                optionName: "Closed File Diagnostic",
+                feature: "ServiceFeaturesOnOff",
+                language: LanguageNames.CSharp,
+                value: value ? "true" : "false");
+
+            SetPerLanguageOption(
+                optionName: "Closed File Diagnostic",
+                feature: "ServiceFeaturesOnOff",
+                language: LanguageNames.VisualBasic,
+                value: value ? "true" : "false");
+        }
+
+        public void SetFeatureOption(string feature, string optionName, string language, string valueString)
+            => _inProc.SetFeatureOption(feature, optionName, language, valueString);
     }
 }

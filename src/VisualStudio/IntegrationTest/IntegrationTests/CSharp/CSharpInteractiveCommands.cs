@@ -2,8 +2,6 @@
 
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
-using Roslyn.VisualStudio.IntegrationTests.Extensions;
-using Roslyn.VisualStudio.IntegrationTests.Extensions.Interactive;
 using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
@@ -19,100 +17,109 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         [Fact]
         public void VerifyPreviousAndNextHistory()
         {
-            SubmitText("1 + 2");
-            SubmitText("1.ToString()");
-            SendKeys(Alt(VirtualKey.Up));
-            VerifyLastReplInput("1.ToString()");
-            SendKeys(VirtualKey.Enter);
-            WaitForReplOutput("\"1\"");
-            SendKeys(Alt(VirtualKey.Up));
-            VerifyLastReplInput("1.ToString()");
-            SendKeys(Alt(VirtualKey.Up));
-            VerifyLastReplInput("1 + 2");
-            SendKeys(VirtualKey.Enter);
-            WaitForReplOutput("3");
-            SendKeys(Alt(VirtualKey.Down));
-            VerifyLastReplInput("1.ToString()");
-            SendKeys(VirtualKey.Enter);
-            WaitForReplOutput("\"1\"");
+            VisualStudio.InteractiveWindow.SubmitText("1 + 2");
+            VisualStudio.InteractiveWindow.SubmitText("1.ToString()");
+            VisualStudio.InteractiveWindow.WaitForLastReplOutput("\"1\"");
+            VisualStudio.SendKeys.Send(Alt(VirtualKey.Up));
+            VisualStudio.InteractiveWindow.Verify.LastReplInput("1.ToString()");
+            VisualStudio.SendKeys.Send(VirtualKey.Enter);
+            VisualStudio.InteractiveWindow.WaitForLastReplOutput("\"1\"");
+            VisualStudio.SendKeys.Send(Alt(VirtualKey.Up));
+            VisualStudio.InteractiveWindow.Verify.LastReplInput("1.ToString()");
+            VisualStudio.SendKeys.Send(Alt(VirtualKey.Up));
+            VisualStudio.InteractiveWindow.Verify.LastReplInput("1 + 2");
+            VisualStudio.SendKeys.Send(VirtualKey.Enter);
+            VisualStudio.InteractiveWindow.WaitForLastReplOutput("3");
+            VisualStudio.SendKeys.Send(Alt(VirtualKey.Down));
+            VisualStudio.InteractiveWindow.Verify.LastReplInput("1.ToString()");
+            VisualStudio.SendKeys.Send(VirtualKey.Enter);
+            VisualStudio.InteractiveWindow.WaitForLastReplOutput("\"1\"");
         }
 
         [Fact]
         public void VerifyMaybeExecuteInput()
         {
-            InsertCode("2 + 3");
-            SendKeys(VirtualKey.Enter);
-            WaitForReplOutput("5");
+            VisualStudio.InteractiveWindow.InsertCode("2 + 3");
+            VisualStudio.SendKeys.Send(VirtualKey.Enter);
+            VisualStudio.InteractiveWindow.WaitForLastReplOutput("5");
         }
 
         [Fact]
         public void VerifyNewLineAndIndent()
         {
-            InsertCode("3 + ");
-            SendKeys(VirtualKey.Enter);
-            InsertCode("4");
-            SendKeys(VirtualKey.Enter);
-            WaitForReplOutput("7");
+            VisualStudio.InteractiveWindow.InsertCode("3 + ");
+            VisualStudio.SendKeys.Send(VirtualKey.Enter);
+            VisualStudio.InteractiveWindow.InsertCode("4");
+            VisualStudio.SendKeys.Send(VirtualKey.Enter);
+            VisualStudio.InteractiveWindow.WaitForLastReplOutput("7");
         }
 
         [Fact]
         public void VerifyExecuteInput()
         {
-            SubmitText("1 + ");
-            VerifyLastReplOutputContains("CS1733");
+            VisualStudio.InteractiveWindow.SubmitText("1 + ");
+            VisualStudio.InteractiveWindow.WaitForLastReplOutputContains("CS1733");
         }
 
         [Fact]
         public void VerifyForceNewLineAndIndent()
         {
-            InsertCode("1 + 2");
-            SendKeys(VirtualKey.Enter);
-            SubmitText("+ 3");
-            VerifyReplPromptConsistency("<![CDATA[1 + 2 + 3]]>", "6");
+            VisualStudio.InteractiveWindow.InsertCode("1 + 2");
+            VisualStudio.SendKeys.Send(VirtualKey.Enter);
+            VisualStudio.InteractiveWindow.SubmitText("+ 3");
+            VisualStudio.InteractiveWindow.WaitForLastReplOutputContains("3");
+            VisualStudio.InteractiveWindow.Verify.ReplPromptConsistency("<![CDATA[1 + 2 + 3]]>", "6");
         }
 
         [Fact]
         public void VerifyCancelInput()
         {
-            InsertCode("1 + 4");
-            SendKeys(Shift(VirtualKey.Enter));
-            SendKeys(VirtualKey.Escape);
-            VerifyLastReplInput(string.Empty);
+            VisualStudio.InteractiveWindow.InsertCode("1 + 4");
+            VisualStudio.SendKeys.Send(Shift(VirtualKey.Enter));
+            VisualStudio.SendKeys.Send(VirtualKey.Escape);
+            VisualStudio.InteractiveWindow.Verify.LastReplInput(string.Empty);
         }
 
         [Fact]
         public void VerifyUndoAndRedo()
         {
-            ClearReplText();
-            InsertCode(" 2 + 4 ");
-            SendKeys(Ctrl(VirtualKey.Z));
-            VerifyReplPromptConsistency("< ![CDATA[]] >", string.Empty);
-            SendKeys(Ctrl(VirtualKey.Y));
-            VerifyLastReplInput(" 2 + 4 ");
-            SendKeys(VirtualKey.Enter);
-            WaitForReplOutput("6");
+            VisualStudio.InteractiveWindow.ClearReplText();
+            VisualStudio.InteractiveWindow.InsertCode(" 2 + 4 ");
+            VisualStudio.SendKeys.Send(Ctrl(VirtualKey.Z));
+            VisualStudio.InteractiveWindow.Verify.ReplPromptConsistency("< ![CDATA[]] >", string.Empty);
+            VisualStudio.SendKeys.Send(Ctrl(VirtualKey.Y));
+            VisualStudio.InteractiveWindow.Verify.LastReplInput(" 2 + 4 ");
+            VisualStudio.SendKeys.Send(VirtualKey.Enter);
+            VisualStudio.InteractiveWindow.WaitForLastReplOutput("6");
         }
 
         [Fact]
         public void CutDeletePasteSelectAll()
         {
-            SendKeys("Text");
-            this.ExecuteCommand("Edit.LineStart");
-            this.ExecuteCommand("Edit.LineEnd");
-            this.ExecuteCommand("Edit.LineStartExtend");
-            this.ExecuteCommand("Edit.SelectionCancel");
-            this.ExecuteCommand("Edit.LineEndExtend");
-            this.ExecuteCommand("Edit.SelectAll");
-            this.ExecuteCommand("Edit.SelectAll");
-            this.ExecuteCommand("Edit.Copy");
-            this.ExecuteCommand("Edit.Cut");
-            this.ExecuteCommand("Edit.Paste");
-            this.ExecuteCommand("Edit.Delete");
-            this.ExecuteCommand("Edit.LineUp");
-            this.ExecuteCommand("Edit.LineDown");
-            this.ExecuteCommand("Edit.Paste");
-            this.ExecuteCommand("Edit.Paste");
-            SendKeys(VirtualKey.Escape);
+            ClearInteractiveWindow();
+            VisualStudio.InteractiveWindow.InsertCode("Text");
+            VisualStudio.ExecuteCommand(WellKnownCommandNames.Edit_LineStart);
+            VisualStudio.ExecuteCommand(WellKnownCommandNames.Edit_LineEnd);
+            VisualStudio.ExecuteCommand(WellKnownCommandNames.Edit_LineStartExtend);
+            VisualStudio.ExecuteCommand(WellKnownCommandNames.Edit_SelectionCancel);
+            VisualStudio.ExecuteCommand(WellKnownCommandNames.Edit_LineEndExtend);
+            VisualStudio.ExecuteCommand(WellKnownCommandNames.Edit_SelectAll);
+            VisualStudio.ExecuteCommand(WellKnownCommandNames.Edit_SelectAll);
+            VisualStudio.ExecuteCommand(WellKnownCommandNames.Edit_Copy);
+            VisualStudio.ExecuteCommand(WellKnownCommandNames.Edit_Cut);
+            VisualStudio.ExecuteCommand(WellKnownCommandNames.Edit_Paste);
+            VisualStudio.InteractiveWindow.WaitForLastReplInputContains("Text");
+            VisualStudio.InteractiveWindow.Verify.LastReplInput("Text");
+            VisualStudio.ExecuteCommand(WellKnownCommandNames.Edit_Delete);
+            VisualStudio.ExecuteCommand(WellKnownCommandNames.Edit_LineUp);
+            VisualStudio.ExecuteCommand(WellKnownCommandNames.Edit_LineDown);
+            VisualStudio.ExecuteCommand(WellKnownCommandNames.Edit_Paste);
+            VisualStudio.InteractiveWindow.WaitForLastReplInputContains("TextText");
+            VisualStudio.InteractiveWindow.Verify.LastReplInput("TextText");
+            VisualStudio.ExecuteCommand(WellKnownCommandNames.Edit_Paste);
+            VisualStudio.InteractiveWindow.WaitForLastReplInputContains("TextTextText");
+            VisualStudio.InteractiveWindow.Verify.LastReplInput("TextTextText");
+            VisualStudio.SendKeys.Send(VirtualKey.Escape);
         }
 
         //<!-- Regression test for bug 13731.
@@ -126,12 +133,12 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         [Fact]
         public void VerifyReturnIndentCurrentLine()
         {
-            InteractiveWindow.ClearScreen();
-            SendKeys(" (");
-            SendKeys(")");
-            SendKeys(VirtualKey.Left);
-            SendKeys(VirtualKey.Enter);
-            this.VerifyCaretPosition(12);
+            VisualStudio.InteractiveWindow.ClearScreen();
+            VisualStudio.SendKeys.Send(" (");
+            VisualStudio.SendKeys.Send(")");
+            VisualStudio.SendKeys.Send(VirtualKey.Left);
+            VisualStudio.SendKeys.Send(VirtualKey.Enter);
+            VisualStudio.InteractiveWindow.Verify.CaretPosition(12);
         }
     }
 }

@@ -118,7 +118,7 @@
         <Field Name="Symbols" Type="ImmutableArray(Of Symbol)"/>
 
         <!-- Any child bound nodes that we need to preserve are put here. -->
-        <Field Name="ChildBoundNodes" Type="ImmutableArray(Of BoundNode)"/>
+        <Field Name="ChildBoundNodes" Type="ImmutableArray(Of BoundExpression)"/>
     </Node>
 
     <!-- This node is used when we can't create a real statement because things are too broken. -->

@@ -13,7 +13,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
     internal interface ISyntaxFactsService : ILanguageService
     {
         bool IsCaseSensitive { get; }
+
         bool SupportsIndexingInitializer(ParseOptions options);
+        bool SupportsThrowExpression(ParseOptions options);
 
         bool IsAwaitKeyword(SyntaxToken token);
         bool IsIdentifier(SyntaxToken token);
@@ -124,11 +126,13 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsPointerMemberAccessExpression(SyntaxNode node);
 
         bool IsNamedParameter(SyntaxNode node);
+        SyntaxNode GetDefaultOfParameter(SyntaxNode node);
 
         bool IsSkippedTokensTrivia(SyntaxNode node);
 
         bool IsWhitespaceTrivia(SyntaxTrivia trivia);
         bool IsEndOfLineTrivia(SyntaxTrivia trivia);
+        bool IsDocumentationCommentExteriorTrivia(SyntaxTrivia trivia);
 
         SyntaxNode GetExpressionOfConditionalAccessExpression(SyntaxNode node);
 
@@ -183,6 +187,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsThisConstructorInitializer(SyntaxToken token);
         bool IsBaseConstructorInitializer(SyntaxToken token);
         bool IsQueryExpression(SyntaxNode node);
+        bool IsThrowExpression(SyntaxNode node);
         bool IsElementAccessExpression(SyntaxNode node);
         bool IsIndexerMemberCRef(SyntaxNode node);
 
@@ -285,6 +290,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         bool ContainsInterleavedDirective(SyntaxNode node, CancellationToken cancellationToken);
         bool ContainsInterleavedDirective(ImmutableArray<SyntaxNode> nodes, CancellationToken cancellationToken);
+
+        string GetBannerText(SyntaxNode documentationCommentTriviaSyntax, CancellationToken cancellationToken);
     }
 
     [Flags]

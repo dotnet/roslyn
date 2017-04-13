@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
     {
     }
 }";
-            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            var comp = CreateStandardCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(
                 comp,
                 references: null,
@@ -29,12 +29,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 validator: runtime =>
                 {
                     var context = CreateMethodContext(runtime, "C.F");
-                    ImmutableArray<int> methodTokens;
-                    ImmutableArray<string> errorMessages;
-                    var assembly = context.CompileExpressions(
-                        ImmutableArray<string>.Empty,
-                        out methodTokens,
-                        out errorMessages);
+                    var assembly = context.CompileExpressions(ImmutableArray<string>.Empty,
+                        out var methodTokens,
+                        out var errorMessages);
                     Assert.Null(assembly);
                     Assert.True(methodTokens.IsEmpty);
                     Assert.True(errorMessages.IsEmpty);
@@ -51,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
     {
     }
 }";
-            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            var comp = CreateStandardCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(
                 comp,
                 references: null,
@@ -60,12 +57,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 validator: runtime =>
                 {
                     var context = CreateMethodContext(runtime, "C.F");
-                    ImmutableArray<int> methodTokens;
-                    ImmutableArray<string> errorMessages;
                     var assembly = context.CompileExpressions(
                         ImmutableArray.Create("1"),
-                        out methodTokens,
-                        out errorMessages);
+                        out var methodTokens,
+                        out var errorMessages);
                     Assert.NotNull(assembly);
                     Assert.True(errorMessages.IsEmpty);
                     Assert.Equal(1, methodTokens.Length);
@@ -90,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
         object y;
     }
 }";
-            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            var comp = CreateStandardCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(
                 comp,
                 references: null,
@@ -99,17 +94,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 validator: runtime =>
                 {
                     var context = CreateMethodContext(runtime, "C.F");
-                    ImmutableArray<int> methodTokens;
-                    ImmutableArray<string> errorMessages;
                     var assembly = context.CompileExpressions(
                         ImmutableArray.Create("x", "x ?? y"),
-                        out methodTokens,
-                        out errorMessages);
+                        out var methodTokens,
+                        out var errorMessages);
                     Assert.NotNull(assembly);
                     Assert.True(errorMessages.IsEmpty);
                     Assert.Equal(2, methodTokens.Length);
                     assembly.VerifyIL(methodTokens[0], "<>x0.<>m0",
-@"Locals: 07-01-1C (#16)
+@"Locals: object
 {
   // Code size        2 (0x2)
   .maxstack  1
@@ -117,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
   IL_0001:  ret
 }");
                     assembly.VerifyIL(methodTokens[1], "<>x1.<>m0",
-@"Locals: 07-01-1C (#16)
+@"Locals: object
 {
   // Code size        7 (0x7)
   .maxstack  2
@@ -142,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
         object y;
     }
 }";
-            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            var comp = CreateStandardCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(
                 comp,
                 references: null,
@@ -151,18 +144,18 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 validator: runtime =>
                 {
                     var context = CreateMethodContext(runtime, "C.F");
-                    ImmutableArray<int> methodTokens;
-                    ImmutableArray<string> errorMessages;
                     var assembly = context.CompileExpressions(
                         ImmutableArray.Create("x", "x ??", "?? z", "x ?? z"),
-                        out methodTokens,
-                        out errorMessages);
+                        out var methodTokens,
+                        out var errorMessages);
+
                     Assert.Null(assembly);
-                    AssertEx.Equal(
-                        ImmutableArray.Create(
-                            "(1,5): error CS1733: Expected expression",
-                            "(1,1): error CS1525: Invalid expression term '??'"),
-                        errorMessages);
+                    AssertEx.Equal(new[]
+                    {
+                        "(1,5): error CS1733: Expected expression",
+                        "(1,1): error CS1525: Invalid expression term '??'"
+                    }, errorMessages);
+
                     Assert.True(methodTokens.IsEmpty);
                 });
         }
@@ -178,7 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
         object y;
     }
 }";
-            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            var comp = CreateStandardCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(
                 comp,
                 references: null,
@@ -187,8 +180,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 validator: runtime =>
                 {
                     var context = CreateMethodContext(runtime, "C.F");
-                    ImmutableArray<int> methodTokens;
-                    ImmutableArray<string> errorMessages;
                     var assembly = context.CompileExpressions(
                         ImmutableArray.Create(
                             "x",
@@ -196,14 +187,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                             "x ?? y",
                             "x ?? z", // (1,6): error CS0103: The name 'z' does not exist in the current context
                             "0l"), // (1,2): warning CS0078: The 'l' suffix is easily confused with the digit '1' -- use 'L' for clarity
-                        out methodTokens,
-                        out errorMessages);
+                        out var methodTokens,
+                        out var errorMessages);
+
                     Assert.Null(assembly);
-                    AssertEx.Equal(
-                        ImmutableArray.Create(
-                            "(1,1): error CS0103: The name 'z' does not exist in the current context",
-                            "(1,6): error CS0103: The name 'z' does not exist in the current context"),
-                        errorMessages);
+                    AssertEx.Equal(new[]
+                    {
+                        "(1,1): error CS0103: The name 'z' does not exist in the current context",
+                        "(1,6): error CS0103: The name 'z' does not exist in the current context"
+                    }, errorMessages);
                     Assert.True(methodTokens.IsEmpty);
                 });
         }
@@ -219,7 +211,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
     {
     }
 }";
-            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            var comp = CreateStandardCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(
                 comp,
                 references: null,
@@ -228,22 +220,21 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 validator: runtime =>
                 {
                     var context = CreateMethodContext(runtime, "C.F");
-                    ImmutableArray<int> methodTokens;
-                    ImmutableArray<string> errorMessages;
                     var assembly = context.CompileExpressions(
                         ImmutableArray.Create($"new {{ {longName} = 1 }}"),
-                        out methodTokens,
-                        out errorMessages);
+                        out var methodTokens,
+                        out var errorMessages);
                     Assert.Null(assembly);
-                    AssertEx.Equal(
-                        ImmutableArray.Create(
-                            $"error CS7013: Name '<{longName}>i__Field' exceeds the maximum length allowed in metadata.",
-                            $"error CS7013: Name '<{longName}>j__TPar' exceeds the maximum length allowed in metadata.",
-                            $"error CS7013: Name '<{longName}>i__Field' exceeds the maximum length allowed in metadata.",
-                            $"error CS7013: Name 'get_{longName}' exceeds the maximum length allowed in metadata.",
-                            $"error CS7013: Name '{longName}' exceeds the maximum length allowed in metadata.",
-                            $"error CS7013: Name '{longName}' exceeds the maximum length allowed in metadata."),
-                        errorMessages);
+                    AssertEx.Equal(new[]
+                    {
+                        $"error CS7013: Name '<{longName}>i__Field' exceeds the maximum length allowed in metadata.",
+                        $"error CS7013: Name '<{longName}>j__TPar' exceeds the maximum length allowed in metadata.",
+                        $"error CS7013: Name '<{longName}>i__Field' exceeds the maximum length allowed in metadata.",
+                        $"error CS7013: Name 'get_{longName}' exceeds the maximum length allowed in metadata.",
+                        $"error CS7013: Name '{longName}' exceeds the maximum length allowed in metadata.",
+                        $"error CS7013: Name '{longName}' exceeds the maximum length allowed in metadata."
+                    }, errorMessages);
+
                     Assert.True(methodTokens.IsEmpty);
                 });
         }
@@ -260,7 +251,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
         object o;
     }
 }";
-            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            var comp = CreateStandardCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(
                 comp,
                 references: null,
@@ -269,17 +260,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 validator: runtime =>
                 {
                     var context = CreateMethodContext(runtime, "C.M");
-                    ImmutableArray<int> methodTokens;
-                    ImmutableArray<string> errorMessages;
                     var assembly = context.CompileExpressions(
                         ImmutableArray.Create("o = F"),
-                        out methodTokens,
-                        out errorMessages);
+                        out var methodTokens,
+                        out var errorMessages);
                     Assert.NotNull(assembly);
                     Assert.True(errorMessages.IsEmpty);
                     Assert.Equal(1, methodTokens.Length);
                     assembly.VerifyIL(methodTokens[0], "<>x0.<>m0",
-@"  Locals: 07-01-1C (#16)
+@"Locals: object
 {
   // Code size        9 (0x9)
   .maxstack  2
@@ -302,7 +291,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
     {
     }
 }";
-            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            var comp = CreateStandardCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(
                 comp,
                 references: null,
@@ -311,12 +300,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 validator: runtime =>
                 {
                     var context = CreateMethodContext(runtime, "C.F");
-                    ImmutableArray<int> methodTokens;
-                    ImmutableArray<string> errorMessages;
                     var assembly = context.CompileExpressions(
                         ImmutableArray.Create("F()"),
-                        out methodTokens,
-                        out errorMessages);
+                        out var methodTokens,
+                        out var errorMessages);
                     Assert.NotNull(assembly);
                     Assert.True(errorMessages.IsEmpty);
                     Assert.Equal(1, methodTokens.Length);
@@ -344,7 +331,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
         o = null;
     }
 }";
-            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            var comp = CreateStandardCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(
                 comp,
                 references: null,
@@ -353,15 +340,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 validator: runtime =>
                 {
                     var context = CreateMethodContext(runtime, "C.F");
-                    ImmutableArray<int> methodTokens;
-                    ImmutableArray<string> errorMessages;
                     var assembly = context.CompileExpressions(
                         ImmutableArray.Create("G(out var o)"),
-                        out methodTokens,
-                        out errorMessages);
+                        out var methodTokens,
+                        out var errorMessages);
                     Assert.Null(assembly);
                     AssertEx.Equal(
-                        ImmutableArray.Create("(1,11): error CS8185: A declaration is not allowed in this context."),
+                        new[] { "(1,11): error CS8185: A declaration is not allowed in this context." },
                         errorMessages);
                     Assert.True(methodTokens.IsEmpty);
                 });
@@ -377,7 +362,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
     {
     }
 }";
-            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            var comp = CreateStandardCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(
                 comp,
                 references: null,
@@ -386,19 +371,17 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 validator: runtime =>
                 {
                     var context = CreateMethodContext(runtime, "C.F");
-                    ImmutableArray<int> methodTokens;
-                    ImmutableArray<string> errorMessages;
                     var assembly = context.CompileExpressions(
                         ImmutableArray.Create("$exception", "$1 ?? $unknown"),
-                        out methodTokens,
-                        out errorMessages);
+                        out var methodTokens,
+                        out var errorMessages);
                     Assert.Null(assembly);
-                    AssertEx.Equal(
-                        ImmutableArray.Create(
-                            "(1,1): error CS0103: The name '$exception' does not exist in the current context",
-                            "(1,1): error CS0103: The name '$1' does not exist in the current context",
-                            "(1,7): error CS0103: The name '$unknown' does not exist in the current context"),
-                        errorMessages);
+                    AssertEx.Equal(new[]
+                    {
+                        "(1,1): error CS0103: The name '$exception' does not exist in the current context",
+                        "(1,1): error CS0103: The name '$1' does not exist in the current context",
+                        "(1,7): error CS0103: The name '$unknown' does not exist in the current context",
+                    }, errorMessages);
                     Assert.True(methodTokens.IsEmpty);
                 });
         }
@@ -414,7 +397,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
         d.F();
     }
 }";
-            var comp = CreateCompilationWithMscorlib(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.DebugDll);
+            var comp = CreateStandardCompilation(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.DebugDll);
             WithRuntimeInstance(
                 comp,
                 references: null,
@@ -423,17 +406,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 validator: runtime =>
                 {
                     var context = CreateMethodContext(runtime, "C.F");
-                    ImmutableArray<int> methodTokens;
-                    ImmutableArray<string> errorMessages;
                     var assembly = context.CompileExpressions(
                         ImmutableArray.Create("default(T)", "default(U)", "d.F()"),
-                        out methodTokens,
-                        out errorMessages);
+                        out var methodTokens,
+                        out var errorMessages);
                     Assert.NotNull(assembly);
                     Assert.True(errorMessages.IsEmpty);
                     Assert.Equal(3, methodTokens.Length);
                     assembly.VerifyIL(methodTokens[0], "<>x0.<>m0",
-@"  Locals: 07-01-13-00 (#16)
+@"Locals: !0
 {
   // Code size       10 (0xa)
   .maxstack  1
@@ -443,7 +424,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
   IL_0009:  ret
 }");
                     assembly.VerifyIL(methodTokens[1], "<>x1.<>m0",
-@"  Locals: 07-01-1E-00 (#1e)
+@"Locals: !!0
 {
   // Code size       10 (0xa)
   .maxstack  1

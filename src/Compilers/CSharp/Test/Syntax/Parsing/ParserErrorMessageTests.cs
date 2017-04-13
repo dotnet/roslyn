@@ -58,7 +58,7 @@ abstract class A
 }
 ";
 
-            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+            CreateStandardCompilation(test).VerifyDiagnostics(
                 // (5,25): error CS0073: An add or remove accessor must have a body
                 //     event Action E { add; remove; }
                 Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";"),
@@ -89,7 +89,7 @@ public class Test
     }
 }
 ";
-            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+            CreateStandardCompilation(test).VerifyDiagnostics(
                 // (3,9): error CS0080: Constraints are not allowed on non-generic declarations
                 Diagnostic(ErrorCode.ERR_ConstraintOnlyAllowedOnGenericDecl, "where").WithLocation(3, 9));
         }
@@ -104,7 +104,7 @@ class C
 {
 }
 ";
-            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+            CreateStandardCompilation(test).VerifyDiagnostics(
                 // (3,5): error CS0080: Constraints are not allowed on non-generic declarations
                 //     where C : I
                 Diagnostic(ErrorCode.ERR_ConstraintOnlyAllowedOnGenericDecl, "where"));
@@ -492,7 +492,7 @@ public class Test
     }
 }
 ";
-            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+            CreateStandardCompilation(test).VerifyDiagnostics(
                 // (5,22): error CS0401: The new() constraint must be the last constraint specified
                 // class C<T> where T : new(), IA // CS0401 - should be T : IA, new()
                 Diagnostic(ErrorCode.ERR_NewBoundMustBeLast, "new").WithLocation(5, 22));
@@ -577,7 +577,7 @@ class C4
    public void F6<T>() where T : I {}
 }
 ";
-            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+            CreateStandardCompilation(test).VerifyDiagnostics(
                 // (5,41): error CS0449: The 'class' or 'struct' constraint must come before any other constraints
                 Diagnostic(ErrorCode.ERR_RefValBoundMustBeFirst, "struct").WithLocation(5, 41),
                 // (6,37): error CS0449: The 'class' or 'struct' constraint must come before any other constraints
@@ -604,7 +604,7 @@ public class C6
    public void F6<T>() where T : new() {}
 }
 ";
-            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+            CreateStandardCompilation(test).VerifyDiagnostics(
                 // (4,42): error CS0451: The 'new()' constraint cannot be used with the 'struct' constraint
                 Diagnostic(ErrorCode.ERR_NewBoundWithVal, "new").WithLocation(4, 42));
         }
@@ -634,7 +634,7 @@ abstract class B : A, I
     internal override abstract void M3<U>() where U : A;
     internal override abstract void M4<T>() where T : struct;
 }";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (14,20): error CS0460: Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly
                 Diagnostic(ErrorCode.ERR_OverrideWithConstraints, "where").WithLocation(14, 20),
                 // (15,22): error CS0460: Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly
@@ -671,7 +671,7 @@ namespace x
 }
 ";
 
-            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+            CreateStandardCompilation(test).VerifyDiagnostics(
                 // (12,24): error CS0514: 'cly': static constructor cannot have an explicit 'this' or 'base' constructor call
                 //         static cly() : base(0){} // sc0514
                 Diagnostic(ErrorCode.ERR_StaticConstructorWithExplicitConstructorCall, "base").WithArguments("cly").WithLocation(12, 24),
@@ -691,7 +691,7 @@ class C
 }
 ";
 
-            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+            CreateStandardCompilation(test).VerifyDiagnostics(
                 // (5,18): error CS0514: 'C': static constructor cannot have an explicit 'this' or 'base' constructor call
                 //     static C() : this() { } //CS0514
                 Diagnostic(ErrorCode.ERR_StaticConstructorWithExplicitConstructorCall, "this").WithArguments("C").WithLocation(5, 18));
@@ -713,7 +713,7 @@ namespace x
 }
 ";
 
-            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+            CreateStandardCompilation(test).VerifyDiagnostics(
                 // (6,10): error CS0574: Name of destructor must match name of class
                 //         ~iiii(){}
                 Diagnostic(ErrorCode.ERR_BadDestructorName, "iiii").WithLocation(6, 10));
@@ -787,7 +787,7 @@ class Test
 ";
             // Semantic error
             // (6,25): error CS0400: The type or namespace name 'MyType' could not be found in the global namespace (are you missing an assembly reference?)
-            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+            CreateStandardCompilation(test).VerifyDiagnostics(
                 Diagnostic(ErrorCode.ERR_GlobalSingleTypeNameNotFound, "MyType").WithArguments("MyType", "<global namespace>")
                 );
         }
@@ -808,7 +808,7 @@ interface IB<T>
         where U : T*
         where V : T[];
 }";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (2,15): error CS0706: Invalid constraint type. A type used as a constraint must be an interface, a non-sealed class or a type parameter.
                 Diagnostic(ErrorCode.ERR_BadConstraintType, "T*").WithLocation(2, 15),
                 // (3,15): error CS0706: Invalid constraint type. A type used as a constraint must be an interface, a non-sealed class or a type parameter.
@@ -1191,7 +1191,7 @@ class C
   }
 }
 ";
-            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+            CreateStandardCompilation(test).VerifyDiagnostics(
                 // (7,13): error CS1001: Identifier expected
                 //     DateTime
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(7, 13),
@@ -1402,7 +1402,7 @@ public class Container
 }
 ";
 
-            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+            CreateStandardCompilation(test).VerifyDiagnostics(
                 // (8,19): error CS1007: Property accessor already defined
                 //         protected get { return 1; }
                 Diagnostic(ErrorCode.ERR_DuplicateAccessor, "get").WithLocation(8, 19),
@@ -1426,7 +1426,7 @@ public class Container
         [Fact]
         public void CS1008ERR_IntegralTypeExpected01()
         {
-            CreateCompilationWithMscorlib(
+            CreateStandardCompilation(
 @"namespace x
 {
     abstract public class clx 
@@ -1448,7 +1448,7 @@ public class Container
         [Fact]
         public void CS1008ERR_IntegralTypeExpected02()
         {
-            CreateCompilationWithMscorlib(
+            CreateStandardCompilation(
 @"interface I { }
 class C { }
 enum E { }
@@ -1670,7 +1670,7 @@ public class Test
 }
 ";
 
-            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+            CreateStandardCompilation(test).VerifyDiagnostics(
                 // (10,15): error CS0155: The type caught or thrown must be derived from System.Exception
                 //         catch(int)
                 Diagnostic(ErrorCode.ERR_BadExceptionType, "int").WithLocation(10, 15),
@@ -1706,7 +1706,7 @@ namespace x
         }
     }
 }";
-            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+            CreateStandardCompilation(test).VerifyDiagnostics(
                 // (9,15): error CS1016: Named attribute argument expected
                 //     [Foo(a=5, b)]
                 Diagnostic(ErrorCode.ERR_NamedArgumentExpected, "b").WithLocation(9, 15),
@@ -1747,7 +1747,7 @@ public class mine {
 }
 ";
 
-            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+            CreateStandardCompilation(test).VerifyDiagnostics(
                 // (16,9): error CS1017: Catch clauses cannot follow the general catch clause of a try statement
                 //         catch (S1) {}
                 Diagnostic(ErrorCode.ERR_TooManyCatches, "catch").WithLocation(16, 9),
@@ -1859,7 +1859,7 @@ class C
 }
 ";
 
-            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+            CreateStandardCompilation(test).VerifyDiagnostics(
                 // (4,40): error CS1019: Overloadable unary operator expected
                 //     public static implicit operator int(C c1, C c2) => 0;
                 Diagnostic(ErrorCode.ERR_OvlUnaryOperatorExpected, "(C c1, C c2)").WithLocation(4, 40));
@@ -1917,7 +1917,7 @@ Diagnostic(ErrorCode.ERR_EOFExpected, "}"));
         {
             var test = @" > Roslyn.Utilities.dll!  Basic";
 
-            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+            CreateStandardCompilation(test).VerifyDiagnostics(
                 // (1,2): error CS1022: Type or namespace definition, or end-of-file expected
                 Diagnostic(ErrorCode.ERR_EOFExpected, ">").WithLocation(1, 2),
                 // (1,21): error CS0116: A namespace does not directly contain members such as fields or methods
@@ -2216,7 +2216,7 @@ public class Extensions
    public static void Main(){} 
 } 
 ";
-            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+            CreateStandardCompilation(test).VerifyDiagnostics(
                 // (6,22): error CS0027: Keyword 'this' is not available in the current context
                 //    public Extensions(this int i) {} 
                 Diagnostic(ErrorCode.ERR_ThisInBadContext, "this").WithLocation(6, 22),
@@ -2428,7 +2428,7 @@ Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "").WithArguments("", "readonly")
     C(this object o) { }
 }";
 
-            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+            CreateStandardCompilation(test).VerifyDiagnostics(
                 // (3,7): error CS0027: Keyword 'this' is not available in the current context
                 //     C(this object o) { }
                 Diagnostic(ErrorCode.ERR_ThisInBadContext, "this").WithLocation(3, 7));
@@ -2445,7 +2445,7 @@ Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "").WithArguments("", "readonly")
         get { return null; }
     }
 }";
-            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+            CreateStandardCompilation(test).VerifyDiagnostics(
                 // (3,17): error CS0027: Keyword 'this' is not available in the current context
                 //     object this[this object o]
                 Diagnostic(ErrorCode.ERR_ThisInBadContext, "this").WithLocation(3, 17));
@@ -2456,7 +2456,7 @@ Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "").WithArguments("", "readonly")
         {
             var test = @"delegate void D(this object o);";
 
-            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+            CreateStandardCompilation(test).VerifyDiagnostics(
                 // (1,17): error CS0027: Keyword 'this' is not available in the current context
                 // delegate void D(this object o);
                 Diagnostic(ErrorCode.ERR_ThisInBadContext, "this").WithLocation(1, 17));
@@ -2474,7 +2474,7 @@ class C
         D d = delegate (this object o) { };
     }
 }";
-            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+            CreateStandardCompilation(test).VerifyDiagnostics(
                 // (6,25): error CS0027: Keyword 'this' is not available in the current context
                 //         D d = delegate (this object o) { };
                 Diagnostic(ErrorCode.ERR_ThisInBadContext, "this").WithLocation(6, 25));
@@ -2489,7 +2489,7 @@ class C
     public static implicit operator int(this C c) { return 0; }
     public static C operator +(this C c1, C c2) { return null; }
 }";
-            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+            CreateStandardCompilation(test).VerifyDiagnostics(
                 // (4,32): error CS0027: Keyword 'this' is not available in the current context
                 //     public static C operator +(this C c1, C c2) { return null; }
                 Diagnostic(ErrorCode.ERR_ThisInBadContext, "this").WithLocation(4, 32),
@@ -2648,7 +2648,7 @@ class A
 }
 ";
 
-            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+            CreateStandardCompilation(test).VerifyDiagnostics(
                 // (5,27): error CS1065: Default values are not valid in this context.
                 //     D d1 = delegate(int x = 42) { };
                 Diagnostic(ErrorCode.ERR_DefaultValueNotAllowed, "=").WithLocation(5, 27));
@@ -2665,7 +2665,7 @@ class A
 }
 ";
 
-            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+            CreateStandardCompilation(test).VerifyDiagnostics(
                 // (5,34): error CS1065: Default values are not valid in this context.
                 //     D d1 = delegate(int x, int y = 42) { };
                 Diagnostic(ErrorCode.ERR_DefaultValueNotAllowed, "=").WithLocation(5, 34));
@@ -2690,7 +2690,7 @@ class Program
 }
 ";
 
-            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+            CreateStandardCompilation(test).VerifyDiagnostics(
                 // (10,13): error CS7014: Attributes are not valid in this context.
                 //             [ObsoleteAttribute(message)] [ObsoleteAttribute(message)] int x,
                 Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[ObsoleteAttribute(message)]").WithLocation(10, 13),
@@ -3288,7 +3288,25 @@ class Program
 }
 ";
 
-            ParseAndValidate(test, Diagnostic(ErrorCode.ERR_BadBaseType, "Test1[]"), Diagnostic(ErrorCode.ERR_BadBaseType, "Test1*"));
+            CreateStandardCompilation(test).GetDeclarationDiagnostics().Verify(
+                // (6,15): error CS1521: Invalid base type
+                // class Test3 : Test1*    // CS1521
+                Diagnostic(ErrorCode.ERR_BadBaseType, "Test1*").WithLocation(6, 15),
+                // (6,15): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                // class Test3 : Test1*    // CS1521
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "Test1*").WithLocation(6, 15),
+                // (6,15): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('Test1')
+                // class Test3 : Test1*    // CS1521
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "Test1*").WithArguments("Test1").WithLocation(6, 15),
+                // (6,15): error CS0527: Type 'Test1*' in interface list is not an interface
+                // class Test3 : Test1*    // CS1521
+                Diagnostic(ErrorCode.ERR_NonInterfaceInInterfaceList, "Test1*").WithArguments("Test1*").WithLocation(6, 15),
+                // (3,15): error CS1521: Invalid base type
+                // class Test2 : Test1[]   // CS1521
+                Diagnostic(ErrorCode.ERR_BadBaseType, "Test1[]").WithLocation(3, 15),
+                // (3,15): error CS0527: Type 'Test1[]' in interface list is not an interface
+                // class Test2 : Test1[]   // CS1521
+                Diagnostic(ErrorCode.ERR_NonInterfaceInInterfaceList, "Test1[]").WithArguments("Test1[]").WithLocation(3, 15));
         }
 
         [WorkItem(906299, "DevDiv/Personal")]
@@ -3930,7 +3948,7 @@ public class Test
 }
 ";
             // Extra errors
-            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+            CreateStandardCompilation(test).VerifyDiagnostics(
                 // (6,33): error CS1002: ; expected
                 //         int *p = stackalloc int (30); 
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "(").WithLocation(6, 33),
@@ -3955,6 +3973,62 @@ public class Test
         }
 
         [Fact]
+        public void CS1575ERR_BadStackAllocExpr1()
+        {
+            // Diff errors
+            var test = @"
+unsafe public class Test
+{
+    int* p = stackalloc int[1];
+}
+";
+            CreateStandardCompilation(test, options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, allowUnsafe: true)).VerifyDiagnostics(
+                // (4,14): error CS1525: Invalid expression term 'stackalloc'
+                //     int* p = stackalloc int[1];
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "stackalloc").WithArguments("stackalloc").WithLocation(4, 14));
+        }
+
+        [Fact]
+        public void CS1575ERR_BadStackAllocExpr2()
+        {
+            // Diff errors
+            var test = @"
+unsafe public class Test
+{
+    void M()
+    {
+        int*[] p = new int*[] { stackalloc int[1] };
+    }
+}
+";
+            CreateStandardCompilation(test, options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, allowUnsafe: true)).VerifyDiagnostics(
+                // (6,33): error CS1525: Invalid expression term 'stackalloc'
+                //         int*[] p = new int*[] { stackalloc int[1] };
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "stackalloc").WithArguments("stackalloc").WithLocation(6, 33));
+        }
+
+        [Fact]
+        public void CS1575ERR_BadStackAllocExpr3()
+        {
+            // Diff errors
+            var test = @"
+unsafe public class Test
+{
+    void M()
+    {
+        const int* p = stackalloc int[1];
+    }
+}
+";
+            CreateStandardCompilation(test, options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, allowUnsafe: true)).VerifyDiagnostics(
+                // (6,15): error CS0283: The type 'int*' cannot be declared const
+                //         const int* p = stackalloc int[1];
+                Diagnostic(ErrorCode.ERR_BadConstType, "int*").WithArguments("int*").WithLocation(6, 15),
+                // (6,24): error CS1525: Invalid expression term 'stackalloc'
+                //         const int* p = stackalloc int[1];
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "stackalloc").WithArguments("stackalloc").WithLocation(6, 24));
+        }
+        
         public void CS1674ERR_StackAllocInUsing1()
         {
             // Diff errors
@@ -3969,7 +4043,7 @@ public class Test
     }
 }
 ";
-            CreateCompilationWithMscorlib(test, options: TestOptions.ReleaseDll.WithAllowUnsafe(true)).VerifyDiagnostics(
+            CreateStandardCompilation(test, options: TestOptions.ReleaseDll.WithAllowUnsafe(true)).VerifyDiagnostics(
                 // (6,16): error CS1674: 'int*': type used in a using statement must be implicitly convertible to 'System.IDisposable'
                 //         using (var v = stackalloc int[1])
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "var v = stackalloc int[1]").WithArguments("int*").WithLocation(6, 16));
@@ -3990,7 +4064,7 @@ public class Test
     }
 }
 ";
-            CreateCompilationWithMscorlib(test, options: TestOptions.ReleaseDll.WithAllowUnsafe(true)).VerifyDiagnostics(
+            CreateStandardCompilation(test, options: TestOptions.ReleaseDll.WithAllowUnsafe(true)).VerifyDiagnostics(
                 // (6,39): error CS0029: Cannot implicitly convert type 'int*' to 'System.IDisposable'
                 //         using (System.IDisposable v = stackalloc int[1])
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "stackalloc int[1]").WithArguments("int*", "System.IDisposable").WithLocation(6, 39));
@@ -4150,7 +4224,7 @@ public class Test
     }
 }
 ";
-            CreateCompilationWithMscorlib(test).GetDeclarationDiagnostics().Verify(
+            CreateStandardCompilation(test).GetDeclarationDiagnostics().Verify(
                 // (17,9): error CS1609: Modifiers cannot be placed on event accessor declarations
                 //         private add{}
                 Diagnostic(ErrorCode.ERR_NoModifiersOnAccessor, "private").WithLocation(17, 9),
@@ -4174,7 +4248,7 @@ public class Test
 }
 ";
 
-            CreateCompilationWithMscorlib(test).GetDeclarationDiagnostics().Verify(
+            CreateStandardCompilation(test).GetDeclarationDiagnostics().Verify(
                 // (7,9): error CS1609: Modifiers cannot be placed on event accessor declarations
                 //         public add { }
                 Diagnostic(ErrorCode.ERR_NoModifiersOnAccessor, "public").WithLocation(7, 9),
@@ -4207,7 +4281,7 @@ public class Test
 }
 ";
 
-            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+            CreateStandardCompilation(test).VerifyDiagnostics(
                 // (7,35): error CS1611: The params parameter cannot be declared as ref or out
                 //     public static void boo(params out int[] a) 
                 Diagnostic(ErrorCode.ERR_ParamsCantBeRefOut, "out").WithLocation(7, 35),
@@ -4430,7 +4504,7 @@ class A<out T>
     delegate void D<in U>();
     class B<out U> { }
 }";
-            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+            CreateStandardCompilation(test).VerifyDiagnostics(
                 // (4,12): error CS7002: Unexpected use of a generic name
                 //     object this<out U>[int i] { get; set; }
                 Diagnostic(ErrorCode.ERR_UnexpectedGenericName, "this").WithLocation(4, 12),
@@ -4474,7 +4548,7 @@ class A<out T>
         void Local<in T>() { }
     }
 }";
-            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+            CreateStandardCompilation(test).VerifyDiagnostics(
                 // (5,20): error CS1960: Invalid variance modifier. Only interface and delegate type parameters can be specified as variant.
                 //         void Local<in T>() { }
                 Diagnostic(ErrorCode.ERR_IllegalVarianceSyntax, "in").WithLocation(5, 20),
@@ -4883,7 +4957,7 @@ class MyClass
 }
 ";
 
-            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+            CreateStandardCompilation(test).VerifyDiagnostics(
                 // (2,7): warning CS0440: Defining an alias named 'global' is ill-advised since 'global::' always references the global namespace and not an alias
                 // using global = MyClass;   // CS0440
                 Diagnostic(ErrorCode.WRN_GlobalAliasDefn, "global").WithLocation(2, 7),
@@ -4977,7 +5051,7 @@ partial class X
     partial void M();
 }
 ";
-            CreateCompilationWithMscorlib(test, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp2)).VerifyDiagnostics(
+            CreateStandardCompilation(test, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp2)).VerifyDiagnostics(
                 // (4,5): error CS8023: Feature 'partial method' is not available in C# 2. Please use language version 3 or greater.
                 //     partial void M();
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion2, "partial").WithArguments("partial method", "3"));

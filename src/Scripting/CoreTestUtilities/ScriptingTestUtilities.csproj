@@ -50,7 +50,6 @@
   <ItemGroup>
     <Compile Include="ObjectFormatterTestBase.cs" />
     <Compile Include="ObjectFormatterTests.Fixtures.cs" />
-    <Compile Include="RedirectedOutput.cs" />
     <Compile Include="ScriptingTestHelpers.cs" />
     <Compile Include="ScriptTaskExtensions.cs" />
     <Compile Include="TestRuntimeMetadataReferenceResolver.cs" />
@@ -64,6 +63,9 @@
     <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.CSharp.Scripting.Desktop.UnitTests" />
     <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.VisualBasic.Scripting.UnitTests" />
     <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.VisualBasic.Scripting.Desktop.UnitTests" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="project.json" />
   </ItemGroup>
   <Import Project="..\..\..\build\Targets\Imports.targets" />
 </Project>

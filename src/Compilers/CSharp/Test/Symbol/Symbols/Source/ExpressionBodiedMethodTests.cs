@@ -51,7 +51,7 @@ expectedOutput: "test");
         public void Syntax01()
         {
             // Feature is enabled by default
-            var comp = CreateCompilationWithMscorlib(@"
+            var comp = CreateStandardCompilation(@"
 class C
 {
     public int M() => 1;

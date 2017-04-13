@@ -44,8 +44,41 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CoreCLRRuntimeEnvironmentFactory.cs" />
+    <Compile Include="SharedConsoleOutWriter.cs" />
+    <Compile Include="TestExecutionLoadContext.cs" />
     <None Include="project.json" />
     <Compile Include="CoreCLRRuntimeEnvironment.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <Content Include="$(NetStandard20RefPath)\netstandard.dll">
+      <Link>ref/%(FileName)%(Extension)</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Visible>false</Visible>
+    </Content>
+    <Content Include="$(NetStandard20RefPath)\mscorlib.dll">
+      <Link>ref/%(FileName)%(Extension)</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Visible>false</Visible>
+    </Content>
+    <Content Include="$(NetStandard20RefPath)\System.Runtime.dll">
+      <Link>ref/%(FileName)%(Extension)</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Visible>false</Visible>
+    </Content>
+    <Content Include="$(NetStandard20RefPath)\System.Dynamic.Runtime.dll">
+      <Link>ref/%(FileName)%(Extension)</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Visible>false</Visible>
+    </Content>
+    <Content Include="$(MicrosoftCSharpRefPath)\Microsoft.CSharp.dll">
+      <Link>ref/%(FileName)%(Extension)</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Visible>false</Visible>
+    </Content>
+  </ItemGroup>
   <Import Project="..\..\..\..\build\Targets\Imports.targets" />
+  <PropertyGroup>
+    <NuGetTargetMoniker>.NETStandard,Version=v1.6</NuGetTargetMoniker>
+  </PropertyGroup>
 </Project>

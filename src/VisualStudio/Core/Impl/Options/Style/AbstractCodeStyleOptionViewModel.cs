@@ -29,6 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         public string Description { get; set; }
         public double DescriptionMargin { get; set; } = 12d;
         public string GroupName { get; set; }
+        public string GroupNameAndDescription { get; set; }
         public List<CodeStylePreference> Preferences { get; set; }
         public List<NotificationOptionViewModel> NotificationPreferences { get; set; }
 
@@ -56,6 +57,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             Preferences = preferences ?? GetDefaultPreferences();
             NotificationPreferences = notificationPreferences ?? GetDefaultNotifications();
             GroupName = groupName;
+            GroupNameAndDescription = $"{groupName}, {description}";
         }
 
         private static List<NotificationOptionViewModel> GetDefaultNotifications()

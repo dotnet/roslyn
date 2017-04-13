@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -150,7 +151,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         internal static SymbolInfo BindFirstConstructorInitializer(string source)
         {
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
             var constructorInitializer = GetFirstConstructorInitializer(tree.GetCompilationUnitRoot());
@@ -170,7 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         protected CompilationUtils.SemanticInfoSummary GetSemanticInfoForTest<TNode>(string testSrc, CSharpParseOptions parseOptions = null) where TNode : SyntaxNode
         {
-            var compilation = CreateCompilationWithMscorlib(testSrc, new[] { SystemCoreRef }, parseOptions: parseOptions);
+            var compilation = CreateStandardCompilation(testSrc, new[] { SystemCoreRef }, parseOptions: parseOptions);
             return GetSemanticInfoForTest<TNode>(compilation);
         }
 
@@ -191,7 +192,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         internal PreprocessingSymbolInfo GetPreprocessingSymbolInfoForTest(string testSrc, string subStrForPreprocessNameIndex)
         {
-            var compilation = CreateCompilationWithMscorlib(testSrc, new[] { SystemCoreRef });
+            var compilation = CreateStandardCompilation(testSrc, new[] { SystemCoreRef });
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
             var position = testSrc.IndexOf(subStrForPreprocessNameIndex, StringComparison.Ordinal);
@@ -202,7 +203,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         internal AliasSymbol GetAliasInfoForTest(string testSrc)
         {
-            var compilation = CreateCompilationWithMscorlib(testSrc, new[] { SystemCoreRef });
+            var compilation = CreateStandardCompilation(testSrc, new[] { SystemCoreRef });
             return GetAliasInfoForTest(compilation);
         }
 
@@ -235,10 +236,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             return operation != null ? OperationTreeVerifier.GetOperationTree(operation) : null;
         }
 
-        protected string GetOperationTreeForTest<TSyntaxNode>(string testSrc, string expectedOperationTree, CSharpParseOptions parseOptions = null)
+        protected string GetOperationTreeForTest<TSyntaxNode>(string testSrc, string expectedOperationTree, CSharpCompilationOptions compilationOptions = null, CSharpParseOptions parseOptions = null)
             where TSyntaxNode : SyntaxNode
         {
-            var compilation = CreateCompilationWithMscorlib(testSrc, new[] { SystemCoreRef }, parseOptions: parseOptions);
+            var compilation = CreateStandardCompilation(testSrc, new[] { SystemCoreRef }, options: compilationOptions ?? TestOptions.ReleaseDll, parseOptions: parseOptions);
             return GetOperationTreeForTest<TSyntaxNode>(compilation);
         }
 
@@ -249,11 +250,26 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             OperationTreeVerifier.Verify(expectedOperationTree, actualOperationTree);
         }
 
-        protected void VerifyOperationTreeForTest<TSyntaxNode>(string testSrc, string expectedOperationTree, CSharpParseOptions parseOptions = null)
+        protected void VerifyOperationTreeForTest<TSyntaxNode>(string testSrc, string expectedOperationTree, CSharpCompilationOptions compilationOptions = null, CSharpParseOptions parseOptions = null)
             where TSyntaxNode : SyntaxNode
         {
-            var actualOperationTree = GetOperationTreeForTest<TSyntaxNode>(testSrc, expectedOperationTree, parseOptions);
+            var actualOperationTree = GetOperationTreeForTest<TSyntaxNode>(testSrc, expectedOperationTree, compilationOptions, parseOptions);
             OperationTreeVerifier.Verify(expectedOperationTree, actualOperationTree);
+        }
+
+        protected void VerifyOperationTreeAndDiagnosticsForTest<TSyntaxNode>(CSharpCompilation compilation, string expectedOperationTree, DiagnosticDescription[] expectedDiagnostics)
+            where TSyntaxNode : SyntaxNode
+        {
+            var actualDiagnostics = compilation.GetDiagnostics().Where(d => d.Severity != DiagnosticSeverity.Hidden);
+            actualDiagnostics.Verify(expectedDiagnostics);
+            VerifyOperationTreeForTest<TSyntaxNode>(compilation, expectedOperationTree);
+        }
+
+        protected void VerifyOperationTreeAndDiagnosticsForTest<TSyntaxNode>(string testSrc, string expectedOperationTree, DiagnosticDescription[] expectedDiagnostics, CSharpCompilationOptions compilationOptions = null, CSharpParseOptions parseOptions = null)
+            where TSyntaxNode : SyntaxNode
+        {
+            var compilation = CreateStandardCompilation(testSrc, new[] { SystemCoreRef }, options: compilationOptions ?? TestOptions.ReleaseDll, parseOptions: parseOptions);
+            VerifyOperationTreeAndDiagnosticsForTest<TSyntaxNode>(compilation, expectedOperationTree, expectedDiagnostics);
         }
     }
 }
