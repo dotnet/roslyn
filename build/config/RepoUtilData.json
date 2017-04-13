@@ -49,7 +49,8 @@
         "^Microsoft.?Build.*",
         "GitLink",
         "Microsoft.NETCore.Runtime.CoreCLR",
-        "Microsoft.VSSDK.BuildTools"
+        "Microsoft.VSSDK.BuildTools",
+        "NETStandard.Library"
       ]
     }
   },
@@ -61,5 +62,10 @@
     "^src\\\\Dependencies.*",
     ".*NuSpec.loc.*",
     ".*Templates.*"
+  ],
+
+  "projectJsonExcludes": [
+    "^build\\\\MSBuildToolset.*",
+    "^src\\\\Tools\\\\Source\\\\CompilerGeneratorTools.*"
   ]
 }

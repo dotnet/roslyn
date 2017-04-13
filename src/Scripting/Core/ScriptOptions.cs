@@ -36,7 +36,6 @@ namespace Microsoft.CodeAnalysis.Scripting
                 return ImmutableArray<MetadataReference>.Empty;
             }
 
-            // Provide similar surface to mscorlib (netstandard 2.0).
             // These references are resolved lazily. Keep in sync with list in core csi.rsp.
             var files = new[]
             {
@@ -54,6 +53,7 @@ namespace Microsoft.CodeAnalysis.Scripting
                 "System.Reflection.Extensions",
                 "System.Reflection.Primitives",
                 "System.Runtime",
+                "System.Runtime.Extensions",
                 "System.Runtime.InteropServices",
                 "System.Text.Encoding",
                 "System.Text.Encoding.CodePages",

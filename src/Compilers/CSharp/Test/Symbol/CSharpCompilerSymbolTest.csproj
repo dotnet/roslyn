@@ -10,15 +10,14 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.CSharp.Symbol.UnitTests</RootNamespace>
     <AssemblyName>Roslyn.Compilers.CSharp.Symbol.UnitTests</AssemblyName>
-    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
-    <RoslynProjectType>UnitTest</RoslynProjectType>
+    <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <TargetFrameworkIdentifier>.NETPortable</TargetFrameworkIdentifier>
+    <TargetFrameworkVersion>v5.0</TargetFrameworkVersion>
+    <NoStdLib>true</NoStdLib>
+    <RoslynProjectType>UnitTestPortable</RoslynProjectType>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup Label="Project References">
-    <ProjectReference Include="..\..\..\..\Test\Utilities\Desktop\TestUtilities.Desktop.csproj">
-      <Project>{76C6F005-C89D-4348-BB4A-391898DBEB52}</Project>
-      <Name>TestUtilities.Desktop</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\..\..\Test\Utilities\Portable\TestUtilities.csproj">
       <Project>{ccbd3438-3e84-40a9-83ad-533f23bcfca5}</Project>
       <Name>TestUtilities</Name>
@@ -30,10 +29,6 @@
     <ProjectReference Include="..\..\..\Test\Resources\Core\CompilerTestResources.csproj">
       <Project>{7FE6B002-89D8-4298-9B1B-0B5C247DD1FD}</Project>
       <Name>CompilerTestResources</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\Test\Utilities\CSharp.Desktop\CSharpCompilerTestUtilities.Desktop.csproj">
-      <Project>{7a4b2176-7bfd-4b75-a61a-e25a1fdd0a1e}</Project>
-      <Name>CSharpCompilerTestUtilities.Desktop</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\..\Test\Utilities\CSharp\CSharpCompilerTestUtilities.csproj">
       <Project>{4371944a-d3ba-4b5b-8285-82e5ffc6d1f9}</Project>
@@ -91,7 +86,6 @@
     <Compile Include="Compilation\SymbolSearchTests.cs" />
     <Compile Include="Symbols\AccessorOverriddenOrHiddenMembersTests.cs" />
     <Compile Include="Symbols\AnonymousTypesSemanticsTests.cs" />
-    <Compile Include="Symbols\AnonymousTypesSymbolTests.cs" />
     <Compile Include="Symbols\ArrayTypeSymbolTests.cs" />
     <Compile Include="Symbols\AssemblyAndNamespaceTests.cs" />
     <Compile Include="Symbols\CompilationCreationTests.cs" />
@@ -129,7 +123,6 @@
     <Compile Include="Symbols\Metadata\PE\NoPia.cs" />
     <Compile Include="Symbols\Metadata\PE\NoPiaInstantiationOfGenericClassAndStruct.cs" />
     <Compile Include="Symbols\Metadata\PE\NoPiaLocalHideAndTypeSubstitutionTests.cs" />
-    <Compile Include="Symbols\Metadata\PE\PEParameterSymbolTests.cs" />
     <Compile Include="Symbols\Metadata\PE\TypeAccessibility.cs" />
     <Compile Include="Symbols\Metadata\PE\TypeForwarders.cs" />
     <Compile Include="Symbols\Metadata\PE\TypeKindTests.cs" />
@@ -175,13 +168,6 @@
     <Compile Include="Symbols\TypeTests.cs" />
     <Compile Include="Symbols\TypeUnificationTests.cs" />
     <Compile Include="Symbols\UserDefinedOperatorErrorTests.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Xml" />
-    <Reference Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
     <None Include="project.json" />

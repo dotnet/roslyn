@@ -5,9 +5,8 @@
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">x64</Platform>
     <PlatformTarget>x64</PlatformTarget>
-    <!-- Misspelling, bug in NuGet targets -->
-    <RuntimeIndentifier>x64</RuntimeIndentifier>
-    <NuGetRuntimeIdentifier>$(BaseNuGetRuntimeIdentifier)-$(RuntimeIndentifier)</NuGetRuntimeIdentifier>
+    <RuntimeIdentifier>x64</RuntimeIdentifier>
+    <NuGetRuntimeIdentifier>$(BaseNuGetRuntimeIdentifier)-$(RuntimeIdentifier)</NuGetRuntimeIdentifier>
     <ProjectGuid>{59BABFC3-C19B-4472-A93D-3DD3835BC219}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <AssemblyName>DeployCoreClrTestRuntime_DoNotUse</AssemblyName>
@@ -73,6 +72,10 @@
       <Project>{b501a547-c911-4a05-ac6e-274a50dff30e}</Project>
       <Name>CSharpCodeAnalysis</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\Compilers\CSharp\Test\Symbol\CSharpCompilerSymbolTest.csproj">
+      <Project>{28026d16-eb0c-40b0-bda7-11caa2b97ccc}</Project>
+      <Name>CSharpCompilerSymbolTest</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\Compilers\CSharp\Test\Syntax\CSharpCompilerSyntaxTest.csproj">
       <Project>{50d26304-0961-4a51-abf6-6cad1a56d202}</Project>
       <Name>CSharpCompilerSyntaxTest</Name>
@@ -129,10 +132,17 @@
       <Project>{afde6bea-5038-4a4a-a88e-dbd2e4088eed}</Project>
       <Name>PdbUtilities</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Utilities\CoreClr\TestUtilities.CoreClr.csproj">
+      <Project>{67ca3eee-37f1-4edf-bd9b-c11911748f37}</Project>
+      <Name>TestUtilities.CoreClr</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Utilities\Portable\TestUtilities.csproj">
       <Project>{ccbd3438-3e84-40a9-83ad-533f23bcfca5}</Project>
       <Name>TestUtilities</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="..\..\..\build\Targets\Imports.targets" />
+  <PropertyGroup>
+    <NuGetTargetMoniker>.NETCoreApp,Version=v2.0</NuGetTargetMoniker>
+  </PropertyGroup>
 </Project>

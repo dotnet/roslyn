@@ -601,7 +601,7 @@ public abstract class C
         {
             var source =
 @"System.Console.WriteLine(1);";
-            var compilation = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe);
+            var compilation = CreateStandardCompilation(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 // error CS0656: Missing compiler required member 'Task.GetAwaiter'
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.Threading.Tasks.Task", "GetAwaiter").WithLocation(1, 1));
