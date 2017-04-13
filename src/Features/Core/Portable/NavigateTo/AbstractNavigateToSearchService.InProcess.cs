@@ -33,6 +33,10 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         private static async Task<ImmutableArray<INavigateToSearchResult>> FindNavigableDeclaredSymbolInfosAsync(
             Project project, Document searchDocument, string pattern, CancellationToken cancellationToken)
         {
+            // Delay creating of the compilation until necessary.  But once we create it,
+            // cache for the remainder of the search so that it doesn't get cleaned up.
+            Compilation compilation = null;
+
             var containsDots = pattern.IndexOf('.') >= 0;
             using (var patternMatcher = new PatternMatcher(pattern, allowFuzzyMatching: true))
             {
@@ -44,6 +48,8 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                         continue;
                     }
 
+                    // Delay creating a semantic model until necessary.  But once we create it,
+                    // cache for the remainder of the search so that it doesn't get cleaned up.
                     SemanticModel semanticModel = null;
                     cancellationToken.ThrowIfCancellationRequested();
                     var declarationInfo = await document.GetSyntaxTreeIndexAsync(cancellationToken).ConfigureAwait(false);
@@ -59,6 +65,8 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                         if (!patternMatches.IsEmpty)
                         {
                             semanticModel = semanticModel ?? await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                            compilation = semanticModel.Compilation;
+
                             var converted = ConvertResult(
                                 document, semanticModel, containsDots, 
                                 declaredSymbolInfo, patternMatches, cancellationToken);
