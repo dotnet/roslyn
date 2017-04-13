@@ -13,6 +13,7 @@ using System.IO;
 using System.Globalization;
 using System.Text;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.Scripting.Test;
 
 namespace Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests
 {
@@ -129,13 +130,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests
         }
 
         [Fact]
-        public async Task TestRunVoidScript()
+        public void TestRunVoidScript()
         {
-            using (var redirect = new OutputRedirect(CultureInfo.InvariantCulture))
-            {
-                var state = await CSharpScript.RunAsync("System.Console.WriteLine(0);");
-                Assert.Null(state.ReturnValue);
-            }
+            var state = ScriptingTestHelpers.RunScriptWithOutput(
+                CSharpScript.Create("System.Console.WriteLine(0);"),
+                "0");
+            Assert.Null(state.ReturnValue);
         }
 
         [WorkItem(5279, "https://github.com/dotnet/roslyn/issues/5279")]
@@ -448,14 +448,10 @@ const int z = 3;
         }
 
         [Fact]
-        public async Task NoReturn()
+        public void NoReturn()
         {
-            using (var redirect = new OutputRedirect(CultureInfo.InvariantCulture))
-            {
-                var script = CSharpScript.Create<object>("System.Console.WriteLine();");
-                var result = await script.EvaluateAsync();
-                Assert.Null(result);
-            }
+            Assert.Null(ScriptingTestHelpers.EvaluateScriptWithOutput(
+                CSharpScript.Create("System.Console.WriteLine();"), ""));
         }
 
         [Fact]
@@ -500,11 +496,7 @@ if (condition)
 }
 System.Console.WriteLine();");
 
-            using (var redirect = new OutputRedirect(CultureInfo.InvariantCulture))
-            {
-                result = await script.EvaluateAsync();
-                Assert.Equal(1, result);
-            }
+            Assert.Equal(1, ScriptingTestHelpers.EvaluateScriptWithOutput(script, ""));
         }
 
         [Fact]
@@ -528,11 +520,7 @@ if (condition)
 }
 System.Console.WriteLine()");
 
-            using (var redirect = new OutputRedirect(CultureInfo.InvariantCulture))
-            {
-                result = await script.EvaluateAsync();
-                Assert.Equal(0, result);
-            }
+            Assert.Equal(0, ScriptingTestHelpers.EvaluateScriptWithOutput(script, ""));
         }
 
         [Fact]
@@ -641,29 +629,26 @@ if (false)
         }
 
         [Fact]
-        public async Task ReturnInLoadedFileTrailingVoidExpression()
+        public void ReturnInLoadedFileTrailingVoidExpression()
         {
-            using (var redirect = new OutputRedirect(CultureInfo.InvariantCulture))
-            {
-                var resolver = TestSourceReferenceResolver.Create(
-                    KeyValuePair.Create("a.csx", @"
+            var resolver = TestSourceReferenceResolver.Create(
+                KeyValuePair.Create("a.csx", @"
 if (false)
 {
     return 1;
 }
 System.Console.WriteLine(42)"));
-                var options = ScriptOptions.Default.WithSourceResolver(resolver);
+            var options = ScriptOptions.Default.WithSourceResolver(resolver);
 
-                var script = CSharpScript.Create("#load \"a.csx\"", options);
-                var result = await script.EvaluateAsync();
-                Assert.Null(result);
+            var script = CSharpScript.Create("#load \"a.csx\"", options);
+            var result = ScriptingTestHelpers.EvaluateScriptWithOutput(script, "42");
+            Assert.Null(result);
 
-                script = CSharpScript.Create(@"
+            script = CSharpScript.Create(@"
 #load ""a.csx""
 2", options);
-                result = await script.EvaluateAsync();
-                Assert.Equal(2, result);
-            }
+            result = ScriptingTestHelpers.EvaluateScriptWithOutput(script, "42");
+            Assert.Equal(2, result);
         }
 
         [Fact]
@@ -896,15 +881,12 @@ i", options);
 
         [WorkItem(12348, "https://github.com/dotnet/roslyn/issues/12348")]
         [Fact]
-        public async Task StreamWithOffset()
+        public void StreamWithOffset()
         {
             var resolver = new StreamOffsetResolver();
             var options = ScriptOptions.Default.WithSourceResolver(resolver);
             var script = CSharpScript.Create(@"#load ""a.csx""", options);
-            using (var redirect = new OutputRedirect(CultureInfo.InvariantCulture))
-            {
-                await script.EvaluateAsync();
-            }
+            ScriptingTestHelpers.EvaluateScriptWithOutput(script, "Hello World!");
         }
 
         private class StreamOffsetResolver : SourceReferenceResolver

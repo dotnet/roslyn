@@ -8,16 +8,21 @@ namespace Roslyn.Test.Utilities
 {
     public class CultureContext : IDisposable
     {
-        private readonly CultureInfo _threadCulture = CultureInfo.InvariantCulture;
-        public CultureContext(string testCulture)
+        private readonly CultureInfo _threadCulture;
+
+        public CultureContext(CultureInfo cultureInfo)
         {
-            _threadCulture = Thread.CurrentThread.CurrentCulture;
-            Thread.CurrentThread.CurrentCulture = new CultureInfo(testCulture, useUserOverride: false);
+            _threadCulture = CultureInfo.CurrentCulture;
+            CultureInfo.CurrentCulture = cultureInfo;
         }
+
+        public CultureContext(string testCulture)
+            : this(new CultureInfo(testCulture))
+        { }
 
         public void Dispose()
         {
-            Thread.CurrentThread.CurrentCulture = _threadCulture;
+            CultureInfo.CurrentCulture = _threadCulture;
         }
     }
 }

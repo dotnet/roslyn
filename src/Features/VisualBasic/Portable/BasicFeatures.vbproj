@@ -82,7 +82,7 @@
     <Compile Include="CodeFixes\Async\VisualBasicConvertToAsyncFunctionCodeFixProvider.vb" />
     <Compile Include="CodeFixes\Iterator\VisualBasicChangeToYieldCodeFixProvider.vb" />
     <Compile Include="CodeFixes\Iterator\VisualBasicConvertToIteratorCodeFixProvider.vb" />
-    <Compile Include="CodeFixes\FullyQualify\VisualBasicFullyQualifyCodeFixProvider.vb" />
+    <Compile Include="FullyQualify\VisualBasicFullyQualifyCodeFixProvider.vb" />
     <Compile Include="GenerateConstructor\GenerateConstructorCodeFixProvider.vb" />
     <Compile Include="CodeFixes\GenerateEndConstruct\GenerateEndConstructCodeFixProvider.vb" />
     <Compile Include="CodeFixes\GenerateEnumMember\GenerateEnumMemberCodeFixProvider.vb" />

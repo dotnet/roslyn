@@ -137,7 +137,7 @@ public sealed class CSharpArgumentInfo
             }
 
             string source = string.Format(CSharpBinderTemplate, sb.ToString());
-            return CreateCompilationWithMscorlib(source, new[] { systemCore ?? SystemCoreRef }, assemblyName: GetUniqueName()).EmitToImageReference();
+            return CreateStandardCompilation(source, new[] { systemCore ?? SystemCoreRef }, assemblyName: GetUniqueName()).EmitToImageReference();
         }
 
         private const string ExpressionTypeSource = @"
@@ -239,7 +239,7 @@ class C
     }
 }
 ";
-            CreateCompilationWithMscorlib(source, new[] { SystemCoreRef, csrtRef }).VerifyEmitDiagnostics(
+            CreateStandardCompilation(source, new[] { SystemCoreRef, csrtRef }).VerifyEmitDiagnostics(
                 // (8,9): error CS0656: Missing compiler required member 'Microsoft.CSharp.RuntimeBinder.Binder.InvokeConstructor'
                 //         new C(d.M(d.M = d[-d], d[(int)d()] = d * d.M));
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "new C(d.M(d.M = d[-d], d[(int)d()] = d * d.M))").WithArguments("Microsoft.CSharp.RuntimeBinder.Binder", "InvokeConstructor")
@@ -264,13 +264,13 @@ class C
 }
 ";
             // the compiler ignores the enum values, uses hardcoded values:
-            CreateCompilationWithMscorlib(source, new[] { SystemCoreRef, csrtRef }).VerifyEmitDiagnostics();
+            CreateStandardCompilation(source, new[] { SystemCoreRef, csrtRef }).VerifyEmitDiagnostics();
         }
 
         [Fact]
         public void Missing_Func()
         {
-            var systemCoreRef = CreateCompilationWithMscorlib(SystemCoreSource, assemblyName: GetUniqueName()).EmitToImageReference();
+            var systemCoreRef = CreateStandardCompilation(SystemCoreSource, assemblyName: GetUniqueName()).EmitToImageReference();
             var csrtRef = MakeCSharpRuntime(systemCore: systemCoreRef);
 
             string source = @"
@@ -289,7 +289,7 @@ class C
         [Fact]
         public void InvalidFunc_Arity()
         {
-            var systemCoreRef = CreateCompilationWithMscorlib(SystemCoreSource, assemblyName: GetUniqueName()).EmitToImageReference();
+            var systemCoreRef = CreateStandardCompilation(SystemCoreSource, assemblyName: GetUniqueName()).EmitToImageReference();
             var csrtRef = MakeCSharpRuntime(systemCore: systemCoreRef);
             var funcRef = MetadataReference.CreateFromImage(TestResources.MetadataTests.Invalid.InvalidFuncDelegateName.AsImmutableOrNull());
 
@@ -310,7 +310,7 @@ class C
         [Fact, WorkItem(530436, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530436")]
         public void InvalidFunc_Constraints()
         {
-            var systemCoreRef = CreateCompilationWithMscorlib(SystemCoreSource, assemblyName: GetUniqueName()).EmitToImageReference();
+            var systemCoreRef = CreateStandardCompilation(SystemCoreSource, assemblyName: GetUniqueName()).EmitToImageReference();
             var csrtRef = MakeCSharpRuntime(systemCore: systemCoreRef);
 
             string source = @"
@@ -449,7 +449,7 @@ namespace System.Runtime.CompilerServices
     public abstract class CallSiteBinder { }
 }";
 
-            var systemCoreRef = CreateCompilationWithMscorlib(systemCoreSource, assemblyName: GetUniqueName()).EmitToImageReference();
+            var systemCoreRef = CreateStandardCompilation(systemCoreSource, assemblyName: GetUniqueName()).EmitToImageReference();
             var csrtRef = MakeCSharpRuntime(systemCore: systemCoreRef);
 
             string source = @"
@@ -461,7 +461,7 @@ class C
     }
 }
 ";
-            CreateCompilationWithMscorlib(source, new[] { systemCoreRef, csrtRef }).VerifyEmitDiagnostics(
+            CreateStandardCompilation(source, new[] { systemCoreRef, csrtRef }).VerifyEmitDiagnostics(
                 // (6,16): error CS0518: Predefined type 'System.Runtime.CompilerServices.CallSite' is not defined or imported
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "d").WithArguments("System.Runtime.CompilerServices.CallSite"),
                 // error CS1969: One or more types required to compile a dynamic expression cannot be found. Are you missing a reference?
@@ -478,7 +478,7 @@ namespace System.Runtime.CompilerServices
     public class CallSiteBinder {}
 }";
 
-            var systemCoreRef = CreateCompilationWithMscorlib(systemCoreSource, assemblyName: GetUniqueName()).EmitToImageReference();
+            var systemCoreRef = CreateStandardCompilation(systemCoreSource, assemblyName: GetUniqueName()).EmitToImageReference();
             var csrtRef = MakeCSharpRuntime(systemCore: systemCoreRef);
 
             string source = @"
@@ -490,7 +490,7 @@ class C
     }
 }
 ";
-            CreateCompilationWithMscorlib(source, new[] { systemCoreRef, csrtRef }).VerifyEmitDiagnostics(
+            CreateStandardCompilation(source, new[] { systemCoreRef, csrtRef }).VerifyEmitDiagnostics(
     // (6,16): error CS0518: Predefined type 'System.Runtime.CompilerServices.CallSite`1' is not defined or imported
     //         return d * d;
     Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "d").WithArguments("System.Runtime.CompilerServices.CallSite`1").WithLocation(6, 16),
@@ -7405,7 +7405,7 @@ public class Color
 	public int F(int a) { return 1; } 
 }
 ";
-            var lib = CreateCompilationWithMscorlib(sourceLib);
+            var lib = CreateStandardCompilation(sourceLib);
 
             string sourceScript = @"
 Color Color;
@@ -7498,7 +7498,7 @@ public class Color
 	public int F(int a) { return 1; } 
 }
 ";
-            var lib = CreateCompilationWithMscorlib(sourceLib);
+            var lib = CreateStandardCompilation(sourceLib);
 
             string sourceScript = @"
 Color Color;
@@ -13614,7 +13614,7 @@ class C
     }
 }
 ";
-            CreateCompilationWithMscorlib(source, new[] { CSharpRef, SystemCoreRef }, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateStandardCompilation(source, new[] { CSharpRef, SystemCoreRef }, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (9,3): error CS0019: Operator '&=' cannot be applied to operands of type 'int*' and 'dynamic'
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "ret &= (1 == d)").WithArguments("&=", "int*", "dynamic"));
         }

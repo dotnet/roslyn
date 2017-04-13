@@ -2886,7 +2886,7 @@ class C1 {
             bool minimal,
             params SymbolDisplayPartKind[] expectedKinds)
         {
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateStandardCompilation(source);
             var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);
             var global = comp.GlobalNamespace;
@@ -2917,7 +2917,7 @@ class C1 {
             string expectedText,
             params SymbolDisplayPartKind[] expectedKinds)
         {
-            var comp = CreateCompilationWithMscorlib(source, parseOptions: parseOptions);
+            var comp = CreateStandardCompilation(source, parseOptions: parseOptions);
             var global = comp.GlobalNamespace;
             var symbol = findSymbol(global);
             var description = symbol.ToDisplayParts(format);
@@ -3911,13 +3911,13 @@ public class Gen<V>
     }
 }
 ";
-            var complib = CreateCompilationWithMscorlib(src1, assemblyName: "Lib");
+            var complib = CreateStandardCompilation(src1, assemblyName: "Lib");
             var compref = new CSharpCompilationReference(complib);
-            var comp1 = CreateCompilationWithMscorlib(src2, references: new MetadataReference[] { compref }, assemblyName: "Comp1");
+            var comp1 = CreateStandardCompilation(src2, references: new MetadataReference[] { compref }, assemblyName: "Comp1");
 
             var mtdata = comp1.EmitToArray();
             var mtref = MetadataReference.CreateFromImage(mtdata);
-            var comp2 = CreateCompilationWithMscorlib("", references: new MetadataReference[] { mtref }, assemblyName: "Comp2");
+            var comp2 = CreateStandardCompilation("", references: new MetadataReference[] { mtref }, assemblyName: "Comp2");
 
             var tsym1 = comp1.SourceModule.GlobalNamespace.GetMember<NamedTypeSymbol>("Gen");
             Assert.NotNull(tsym1);
@@ -3991,14 +3991,12 @@ public class C
     }
 }
 ";
-            var oldCulture = Thread.CurrentThread.CurrentCulture;
-            try
+            var newCulture = (CultureInfo)CultureInfo.CurrentUICulture.Clone();
+            newCulture.NumberFormat.NegativeSign = "~";
+            newCulture.NumberFormat.NumberDecimalSeparator = ",";
+            using (new CultureContext(newCulture))
             {
-                Thread.CurrentThread.CurrentCulture = (CultureInfo)oldCulture.Clone();
-                Thread.CurrentThread.CurrentCulture.NumberFormat.NegativeSign = "~";
-                Thread.CurrentThread.CurrentCulture.NumberFormat.NumberDecimalSeparator = ",";
-
-                var compilation = CreateCompilationWithMscorlib(text);
+                var compilation = CreateStandardCompilation(text);
                 compilation.VerifyDiagnostics();
 
                 var symbol = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember<MethodSymbol>("M");
@@ -4010,10 +4008,6 @@ public class C
                     "[System.Single p5 = -0.5], " +
                     "[System.Double p6 = -0.5], " +
                     "[System.Decimal p7 = -0.5])", symbol.ToTestDisplayString());
-            }
-            finally
-            {
-                Thread.CurrentThread.CurrentCulture = oldCulture;
             }
         }
 
@@ -4126,7 +4120,7 @@ namespace N
                 memberOptions: SymbolDisplayMemberOptions.IncludeContainingType,
                 kindOptions: SymbolDisplayKindOptions.IncludeNamespaceKeyword);
 
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateStandardCompilation(source);
             var namespaceSymbol = comp.GlobalNamespace.GetMember<NamespaceSymbol>("N");
             var typeSymbol = namespaceSymbol.GetMember<NamedTypeSymbol>("C");
             var eventSymbol = typeSymbol.GetMember<EventSymbol>("E");
@@ -4300,7 +4294,7 @@ enum E2 // Identical to E1, but has [Flags]
     A = 1,
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateStandardCompilation(source);
             var method = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("Program").GetMember<MethodSymbol>("M");
 
             var memberFormat = new SymbolDisplayFormat(
@@ -4494,7 +4488,7 @@ enum E2 // Identical to E1, but has [Flags]
 @"class A { }
 class B { }
 class C<T> { }";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
             var sA = compilation.GetMember<NamedTypeSymbol>("A");
             var sB = compilation.GetMember<NamedTypeSymbol>("B");
             var sC = compilation.GetMember<NamedTypeSymbol>("C");
@@ -4736,7 +4730,7 @@ class C
                 genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
                 memberOptions: SymbolDisplayMemberOptions.IncludeType,
                 miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
-            var comp = CreateCompilationWithMscorlib(text, references: new[] { SystemRuntimeFacadeRef, ValueTupleRef });
+            var comp = CreateStandardCompilation(text, references: new[] { SystemRuntimeFacadeRef, ValueTupleRef });
             comp.VerifyDiagnostics();
             var symbol = comp.GetMember("C.f");
 
@@ -5328,7 +5322,7 @@ public class C
     public ref int P => ref _p;
     public ref int this[int i] => ref _p;
 }";
-            var compA = CreateCompilationWithMscorlib(sourceA);
+            var compA = CreateCompilation(sourceA, new[] { MscorlibRef });
             compA.VerifyDiagnostics();
             var refA = compA.EmitToImageReference();
             // From C# symbols.
@@ -5512,7 +5506,7 @@ class C
     {
     }
 }";
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateStandardCompilation(text);
             var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);
             var methodDecl = tree.GetCompilationUnitRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().First();
@@ -5546,7 +5540,7 @@ class C
     }
 }");
             var root = srcTree.GetRoot();
-            var comp = CreateCompilationWithMscorlib(srcTree);
+            var comp = CreateStandardCompilation(srcTree);
 
             var semanticModel = comp.GetSemanticModel(comp.SyntaxTrees.Single());
             var local = root.DescendantNodes()

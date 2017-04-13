@@ -33,7 +33,7 @@ public class Cls
     {
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
             compilation.VerifyDiagnostics(
                 // (7,15): error CS1503: Argument 1: cannot convert from 'object' to 'int'
                 //         Test2(new object(), null);
@@ -75,7 +75,7 @@ public class C
         a = b = c = 1;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.RegularWithIOperationFeature);
+            var compilation = CreateStandardCompilation(text, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.RegularWithIOperationFeature);
             compilation.VerifyDiagnostics();
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);

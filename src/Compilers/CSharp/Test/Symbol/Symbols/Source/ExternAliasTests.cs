@@ -30,7 +30,7 @@ namespace NS
     }
 }
 ";
-                    var comp = CreateCompilationWithMscorlib(src, assemblyName: "Foo1", options: TestOptions.ReleaseDll);
+                    var comp = CreateStandardCompilation(src, assemblyName: "Foo1", options: TestOptions.ReleaseDll);
                     s_foo1 = comp.EmitToImageReference(aliases: ImmutableArray.Create("Bar"));
                 }
 
@@ -55,7 +55,7 @@ namespace NS
     }
 }
 ";
-                    var comp = CreateCompilationWithMscorlib(src, assemblyName: "Foo2", options: TestOptions.ReleaseDll);
+                    var comp = CreateStandardCompilation(src, assemblyName: "Foo2", options: TestOptions.ReleaseDll);
                     s_foo2 = comp.EmitToImageReference(aliases: ImmutableArray.Create("Bar"));
                 }
 
@@ -80,7 +80,7 @@ class Maine
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(src);
+            var comp = CreateStandardCompilation(src);
             comp = comp.AddReferences(Foo1, Foo2);
             comp.GetDiagnostics().Verify();
         }
@@ -132,7 +132,7 @@ namespace NS
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(src);
+            var comp = CreateStandardCompilation(src);
             comp = comp.AddReferences(Foo1, Foo2);
             comp.GetDiagnostics().Verify();
         }
@@ -152,7 +152,7 @@ class Maine
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(src);
+            var comp = CreateStandardCompilation(src);
             comp = comp.AddReferences(Foo1, Foo2);
             comp.VerifyDiagnostics(
                 // (3,1): error CS1537: The using alias 'Bar' appeared previously in this namespace
@@ -180,7 +180,7 @@ class Maine
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(src);
+            var comp = CreateStandardCompilation(src);
             comp = comp.AddReferences(Foo1);
             comp.VerifyDiagnostics(
                 // (2,14): error CS0430: The extern alias 'bar' was not specified in a /reference option
@@ -207,7 +207,7 @@ namespace NS
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(src, assemblyName: "Baz.dll", options: TestOptions.ReleaseDll);
+            var comp = CreateStandardCompilation(src, assemblyName: "Baz.dll", options: TestOptions.ReleaseDll);
             var outputMetadata = AssemblyMetadata.CreateFromImage(comp.EmitToArray());
             var foo1 = outputMetadata.GetReference();
             var foo1Alias = outputMetadata.GetReference(aliases: ImmutableArray.Create("Baz"));
@@ -222,7 +222,7 @@ namespace NS
     }
 }
 ";
-            comp = CreateCompilationWithMscorlib(src, assemblyName: "Bar.dll", options: TestOptions.ReleaseDll);
+            comp = CreateStandardCompilation(src, assemblyName: "Bar.dll", options: TestOptions.ReleaseDll);
             comp = comp.AddReferences(foo1);
             var foo2 = MetadataReference.CreateFromImage(comp.EmitToArray());
 
@@ -236,7 +236,7 @@ class Maine
     }
 }
 ";
-            comp = CreateCompilationWithMscorlib(src);
+            comp = CreateStandardCompilation(src);
             comp = comp.AddReferences(foo2, foo1Alias);
             comp.VerifyDiagnostics(
                 // (6,20): warning CS0219: The variable 'd' is assigned but its value is never used
@@ -258,7 +258,7 @@ class Maine
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(src);
+            var comp = CreateStandardCompilation(src);
             comp = comp.AddReferences(Foo1);
             comp.VerifyDiagnostics(
                 // (6,13): error CS0246: The type or namespace name 'NS' could not be found (are you missing a using directive or an assembly reference?)
@@ -282,7 +282,7 @@ class Maine
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(src);
+            var comp = CreateStandardCompilation(src);
             comp = comp.AddReferences(Foo1);
             comp.VerifyDiagnostics(
                 // (2,14): error CS1537: The using alias 'Bar' appeared previously in this namespace
@@ -309,7 +309,7 @@ namespace NS
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(src, options: TestOptions.ReleaseDll);
+            var comp = CreateStandardCompilation(src, options: TestOptions.ReleaseDll);
             var foo1Alias = comp.EmitToImageReference(aliases: ImmutableArray.Create("global"));
 
             src =
@@ -323,7 +323,7 @@ class Maine
     }
 }
 ";
-            comp = CreateCompilationWithMscorlib(src);
+            comp = CreateStandardCompilation(src);
             comp = comp.AddReferences(foo1Alias);
             comp.VerifyDiagnostics(
                 // (2,14): error CS1681: You cannot redefine the global extern alias
@@ -344,7 +344,7 @@ class A : Bar::NS.Foo {}
 ";
             var tree = Parse(text);
             var root = tree.GetCompilationUnitRoot() as CompilationUnitSyntax;
-            var comp = CreateCompilationWithMscorlib(tree);
+            var comp = CreateStandardCompilation(tree);
             comp = comp.AddReferences(Foo1);
 
             var model = comp.GetSemanticModel(tree);
@@ -377,7 +377,7 @@ class A : Bar::NS.Foo {}
         }
     }
 }";
-            var comp = CreateCompilationWithMscorlib(text).AddReferences(Foo1);
+            var comp = CreateStandardCompilation(text).AddReferences(Foo1);
             comp.VerifyDiagnostics(
                 // (3,5): info CS8020: Unused extern alias.
                 //     extern alias Bar;
@@ -388,14 +388,14 @@ class A : Bar::NS.Foo {}
         [Fact]
         public void SameExternAliasInMultipleTreesValid()
         {
-            var comp1 = CreateCompilationWithMscorlib("public class C { }", assemblyName: "A1");
+            var comp1 = CreateStandardCompilation("public class C { }", assemblyName: "A1");
             var ref1 = comp1.EmitToImageReference(aliases: ImmutableArray.Create("X"));
 
-            var comp2 = CreateCompilationWithMscorlib("public class D { }", assemblyName: "A2");
+            var comp2 = CreateStandardCompilation("public class D { }", assemblyName: "A2");
             var ref2 = comp2.EmitToImageReference(aliases: ImmutableArray.Create("X"));
 
             const int numFiles = 20;
-            var comp3 = CreateCompilationWithMscorlib(Enumerable.Range(1, numFiles).Select(x => "extern alias X;"), new[] { ref1, ref2 }, assemblyName: "A3.dll");
+            var comp3 = CreateStandardCompilation(Enumerable.Range(1, numFiles).Select(x => "extern alias X;"), new[] { ref1, ref2 }, assemblyName: "A3.dll");
 
             var targets = comp3.SyntaxTrees.AsParallel().Select(tree =>
             {
@@ -421,7 +421,7 @@ class A : Bar::NS.Foo {}
         public void SameExternAliasInMultipleTreesInvalid()
         {
             const int numFiles = 20;
-            var comp3 = CreateCompilationWithMscorlib(Enumerable.Range(1, numFiles).Select(x => "extern alias X;"), assemblyName: "A3.dll");
+            var comp3 = CreateStandardCompilation(Enumerable.Range(1, numFiles).Select(x => "extern alias X;"), assemblyName: "A3.dll");
 
             var targets = comp3.SyntaxTrees.AsParallel().Select(tree =>
             {
@@ -464,8 +464,8 @@ class Test
         C c = new C();
     }
 }";
-            var libRef = new CSharpCompilationReference(CreateCompilationWithMscorlib(libSource, assemblyName: "lib"), aliases: ImmutableArray.Create("A"));
-            var comp = CreateCompilationWithMscorlib(source, new[] { libRef });
+            var libRef = new CSharpCompilationReference(CreateStandardCompilation(libSource, assemblyName: "lib"), aliases: ImmutableArray.Create("A"));
+            var comp = CreateStandardCompilation(source, new[] { libRef });
             comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees.Single();
