@@ -110,6 +110,12 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
                 return;
             }
 
+            if (ifOperation.IfFalseStatement != null)
+            {
+                // Can't offer this if the 'if-statement' has an 'else-clause'.
+                return;
+            }
+
             var containingBlock = GetOperation(
                 semanticModel, ifOperation.Syntax.Parent, cancellationToken) as IBlockStatement;
             if (containingBlock == null)
