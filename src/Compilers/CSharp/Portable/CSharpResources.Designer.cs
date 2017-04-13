@@ -449,7 +449,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot assign {0} to anonymous type property.
+        ///   Looks up a localized string similar to Cannot assign &apos;{0}&apos; to anonymous type property.
         /// </summary>
         internal static string ERR_AnonymousTypePropertyAssignedBadValue {
             get {
@@ -8855,7 +8855,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The switch expression must be a value; found {0}..
+        ///   Looks up a localized string similar to The switch expression must be a value; found &apos;{0}&apos;..
         /// </summary>
         internal static string ERR_SwitchExpressionValueExpected {
             get {

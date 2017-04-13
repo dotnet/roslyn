@@ -672,7 +672,7 @@ class C
                 // (14,17): error CS1031: Type expected
                 //         default();
                 Diagnostic(ErrorCode.ERR_TypeExpected, ")").WithLocation(14, 17),
-                // (6,17): error CS8119: The switch expression must be a value; found default.
+                // (6,17): error CS8119: The switch expression must be a value; found 'default'.
                 //         switch (default)
                 Diagnostic(ErrorCode.ERR_SwitchExpressionValueExpected, "default").WithArguments("default").WithLocation(6, 17),
                 // (11,15): error CS0185: 'default' is not a reference type as required by the lock statement
@@ -680,10 +680,10 @@ class C
                 Diagnostic(ErrorCode.ERR_LockNeedsReference, "default").WithArguments("default").WithLocation(11, 15),
                 // (16,19): error CS1059: The operand of an increment or decrement operator must be a variable, property or indexer
                 //         int i = ++default;
-                Diagnostic(ErrorCode.ERR_IncrementLvalueExpected, "default"),
-                // (17,26): error CS0828: Cannot assign default to anonymous type property
+                Diagnostic(ErrorCode.ERR_IncrementLvalueExpected, "default").WithLocation(16, 19),
+                // (17,26): error CS0828: Cannot assign 'default' to anonymous type property
                 //         var anon = new { Name = default };
-                Diagnostic(ErrorCode.ERR_AnonymousTypePropertyAssignedBadValue, "Name = default").WithArguments("default"),
+                Diagnostic(ErrorCode.ERR_AnonymousTypePropertyAssignedBadValue, "Name = default").WithArguments("default").WithLocation(17, 26),
                 // (18,46): error CS1510: A ref or out value must be an assignable variable
                 //         System.TypedReference tr = __makeref(default);
                 Diagnostic(ErrorCode.ERR_RefLvalueExpected, "default").WithLocation(18, 46)
@@ -872,6 +872,33 @@ class C
         }
 
         [Fact]
+        public void NegationUnaryOperatorOnDefault()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        if (!default)
+        {
+            System.Console.WriteLine(""reached"");
+        }
+    }
+}";
+            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "reached");
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+
+            var def = tree.GetCompilationUnitRoot().DescendantNodes().OfType<LiteralExpressionSyntax>().ElementAt(0);
+            Assert.Equal("default", def.ToString());
+            Assert.Equal("System.Boolean", model.GetTypeInfo(def).Type.ToTestDisplayString());
+            Assert.Equal("System.Boolean", model.GetTypeInfo(def).ConvertedType.ToTestDisplayString());
+        }
+
+        [Fact]
         public void ConditionalOnDefault()
         {
             string source = @"
@@ -882,11 +909,6 @@ class C
         if (default)
         {
             System.Console.Write(""if"");
-        }
-
-        if (!default)
-        {
-            System.Console.WriteLine();
         }
 
         while (default)
@@ -903,18 +925,15 @@ class C
 ";
             var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
-                // (11,13): error CS0023: Operator '!' cannot be applied to operand of type 'default'
-                //         if (!default)
-                Diagnostic(ErrorCode.ERR_BadUnaryOp, "!default").WithArguments("!", "default"),
                 // (8,13): warning CS0162: Unreachable code detected
                 //             System.Console.Write("if");
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "System"),
-                // (18,13): warning CS0162: Unreachable code detected
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "System").WithLocation(8, 13),
+                // (13,13): warning CS0162: Unreachable code detected
                 //             System.Console.Write("while");
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "System"),
-                // (23,13): warning CS0162: Unreachable code detected
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "System").WithLocation(13, 13),
+                // (18,13): warning CS0162: Unreachable code detected
                 //             System.Console.Write("for");
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "System").WithLocation(23, 13)
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "System").WithLocation(18, 13)
                 );
         }
 
