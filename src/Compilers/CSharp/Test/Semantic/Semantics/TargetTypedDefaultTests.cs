@@ -755,10 +755,10 @@ struct S
     {
         if (new S() == default)
         {
-            System.Console.Write(""reached"");
+            System.Console.Write(""branch reached."");
         }
     }
-    public static bool operator ==(S left, S right) => true;
+    public static bool operator ==(S left, S right) { System.Console.Write(""operator reached. ""); return true; }
     public static bool operator !=(S left, S right) => false;
     public override bool Equals(object o) => throw null;
     public override int GetHashCode() => throw null;
@@ -766,7 +766,7 @@ struct S
 ";
             var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "reached");
+            CompileAndVerify(comp, expectedOutput: "operator reached. branch reached.");
 
             var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);
