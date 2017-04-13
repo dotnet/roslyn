@@ -836,14 +836,14 @@ class Program
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
-        public async Task ReorderMethodParameters_CodeRefactoring_AtCallSite()
+        public async Task ReorderMethodParameters_CodeRefactoring_AtCallSite_ViaCommand()
         {
             var markup = @"
 class Program
 {
     void M(int x, int y)
     {
-        M([||]5, 6);
+        M($$5, 6);
     }
 }";
             var permutation = new[] { 1, 0 };
@@ -855,8 +855,25 @@ class Program
         M(6, 5);
     }
 }";
-            await TestChangeSignatureViaCodeActionAsync(markup, expectedCodeAction: true, updatedSignature: permutation, expectedCode: updatedCode);
+            await TestChangeSignatureViaCommandAsync(
+                LanguageNames.CSharp, markup, updatedSignature: permutation, 
+                expectedUpdatedInvocationDocumentCode: updatedCode);
         }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        public async Task ReorderMethodParameters_CodeRefactoring_AtCallSite_ViaCodeAction()
+        {
+            var markup = @"
+class Program
+{
+    void M(int x, int y)
+    {
+        M([||]5, 6);
+    }
+}";
+            await TestMissingAsync(markup);
+        }
+
         #endregion
     }
 }
