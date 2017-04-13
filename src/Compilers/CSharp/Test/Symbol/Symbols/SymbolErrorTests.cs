@@ -3030,7 +3030,7 @@ class MyClass2 : MyClass
 }
 ";
             //we're diverging from Dev10 - it's a little silly to report two errors saying the same modifier isn't allowed
-            CreateCompilationWithMscorlib(text, parseOptions: TestOptions.Regular7).VerifyDiagnostics(
+            CreateStandardCompilation(text, parseOptions: TestOptions.Regular7).VerifyDiagnostics(
                 // (3,17): error CS8503: The modifier 'sealed' is not valid for this item in C# 7. Please use language version 7.1 or greater.
                 //     sealed void M();
                 Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "M").WithArguments("sealed", "7", "7.1").WithLocation(3, 17),
