@@ -193,7 +193,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var csharpAssemblyReference = TestReferences.SymbolsTests.UseSiteErrors.CSharp;
             var ilAssemblyReference = TestReferences.SymbolsTests.UseSiteErrors.IL;
-            var compilation = CreateCompilationWithMscorlib(references: new[] { csharpAssemblyReference, ilAssemblyReference }, text:
+            var compilation = CreateStandardCompilation(references: new[] { csharpAssemblyReference, ilAssemblyReference }, text:
 @"class C
 {
     internal static CSharpErrors.ClassMethods F = null;

@@ -300,7 +300,7 @@ class C
         }
     }
 }";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics();
+            CreateStandardCompilation(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -6882,7 +6882,7 @@ public class Test
     }
 }";
 
-            var comp = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe.WithModuleName("MODULE"));
+            var comp = CreateStandardCompilation(text, options: TestOptions.ReleaseExe.WithModuleName("MODULE"));
             CompileAndVerify(comp).VerifyIL("Test.Main", @"
 {
   // Code size      328 (0x148)
@@ -7049,7 +7049,7 @@ public class Test
     }
 }";
 
-            var comp = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe.WithModuleName("MODULE"));
+            var comp = CreateStandardCompilation(text, options: TestOptions.ReleaseExe.WithModuleName("MODULE"));
 
             // With special members available, we use a hashtable approach.
             CompileAndVerify(comp).VerifyIL("Test.Main", @"
@@ -7180,7 +7180,7 @@ public class Test
 }
 ");
 
-            comp = CreateCompilationWithMscorlib(text);
+            comp = CreateStandardCompilation(text);
             comp.MakeMemberMissing(SpecialMember.System_String__Chars);
 
             // Can't use the hash version when String.Chars is unavailable.

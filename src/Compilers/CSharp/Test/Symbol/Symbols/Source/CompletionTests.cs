@@ -65,7 +65,7 @@ class A {
     object P { get; set; }
     object this[object o] { get { return null; } set { } }
 }";
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateStandardCompilation(text);
             var global = comp.GlobalNamespace;
 
             var a = global.GetMember<NamedTypeSymbol>("A");

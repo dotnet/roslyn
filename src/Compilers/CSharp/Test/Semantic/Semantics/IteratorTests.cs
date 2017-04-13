@@ -27,7 +27,7 @@ class Test
         yield break;
     }
 }";
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateStandardCompilation(text);
             comp.VerifyDiagnostics();
         }
 
@@ -44,7 +44,7 @@ class Test
         yield return 1;
     }
 }";
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateStandardCompilation(text);
             comp.VerifyDiagnostics();
         }
 
@@ -62,7 +62,7 @@ class Test
         yield break;
     }
 }";
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateStandardCompilation(text);
             comp.VerifyDiagnostics(
                 // (7,22): error CS0266: Cannot implicitly convert type 'double' to 'int'. An explicit conversion exists (are you missing a cast?)
                 //         yield return 1.1;
@@ -85,7 +85,7 @@ class Test
         yield break;
     }
 }";
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateStandardCompilation(text);
             comp.VerifyDiagnostics(
                 // (8,44): error CS1621: The yield statement cannot be used inside an anonymous method or lambda expression
                 //         Func<IEnumerable<int>> i = () => { yield break; };
@@ -123,7 +123,7 @@ class Test
     {
     }
 }";
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateStandardCompilation(text);
 
             EmitResult emitResult;
             using (var output = new MemoryStream())
@@ -364,7 +364,7 @@ class Base
         }
     }
 }";
-            var comp = CreateCompilationWithMscorlib(text, options: TestOptions.DebugDll);
+            var comp = CreateStandardCompilation(text, options: TestOptions.DebugDll);
             comp.VerifyEmitDiagnostics(); // without the fix for bug 11649, the compilation would fail emitting
             CompileAndVerify(comp);
         }
@@ -422,7 +422,7 @@ class Test
         yield return;
     }
 }";
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateStandardCompilation(text);
             comp.VerifyDiagnostics(
                 // (7,15): error CS1627: Expression expected after yield return
                 //         yield return;

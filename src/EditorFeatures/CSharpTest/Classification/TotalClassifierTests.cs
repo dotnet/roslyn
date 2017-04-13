@@ -788,9 +788,62 @@ class MyClass
                 Punctuation.CloseParen,
                 Punctuation.OpenCurly,
                 Punctuation.CloseCurly,
-                Punctuation.CloseCurly
+                Punctuation.CloseCurly);
+        }
 
-                );
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestGenericTypeWithNoArity()
+        {
+            await TestAsync(
+@"
+using System.Collections.Generic;
+
+class Program : IReadOnlyCollection
+{
+}",
+                Keyword("using"),
+                Identifier("System"),
+                Operators.Dot,
+                Identifier("Collections"),
+                Operators.Dot,
+                Identifier("Generic"),
+                Punctuation.Semicolon,
+                Keyword("class"),
+                Class("Program"),
+                Punctuation.Colon,
+                Interface("IReadOnlyCollection"),
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestGenericTypeWithWrongArity()
+        {
+            await TestAsync(
+@"
+using System.Collections.Generic;
+
+class Program : IReadOnlyCollection<int,string>
+{
+}",
+                Keyword("using"),
+                Identifier("System"),
+                Operators.Dot,
+                Identifier("Collections"),
+                Operators.Dot,
+                Identifier("Generic"),
+                Punctuation.Semicolon,
+                Keyword("class"),
+                Class("Program"),
+                Punctuation.Colon,
+                Identifier("IReadOnlyCollection"),
+                Punctuation.OpenAngle,
+                Keyword("int"),
+                Punctuation.Comma,
+                Keyword("string"),
+                Punctuation.CloseAngle,
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly);
         }
     }
 }

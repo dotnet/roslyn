@@ -35,7 +35,7 @@ class X
         x = x; // error; assigning to const.
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
 
             EmitResult emitResult;
             using (var output = new MemoryStream())
@@ -69,10 +69,10 @@ public class X
     }
 }
 }";
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe.WithMainTypeName("abc.X"));
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseExe.WithMainTypeName("abc.X"));
             compilation.VerifyDiagnostics();
 
-            compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe.WithMainTypeName("\"abc.X\""));
+            compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseExe.WithMainTypeName("\"abc.X\""));
             compilation.VerifyDiagnostics(// error CS1555: Could not find '"abc.X"' specified for Main method
                                           Diagnostic(ErrorCode.ERR_MainClassNotFound).WithArguments("\"abc.X\""));
 
@@ -90,10 +90,10 @@ public class X
     }
 }
 }";
-            compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe.WithMainTypeName("решения.X"));
+            compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseExe.WithMainTypeName("решения.X"));
             compilation.VerifyDiagnostics();
 
-            compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe.WithMainTypeName("\"решения.X\""));
+            compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseExe.WithMainTypeName("\"решения.X\""));
             compilation.VerifyDiagnostics(Diagnostic(ErrorCode.ERR_MainClassNotFound).WithArguments("\"решения.X\""));
         }
 
@@ -113,7 +113,7 @@ class X
     }
 }";
 
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
             compilation.VerifyDiagnostics(
                 // (4,13): error CS0246: The type or namespace name 'Blah' could not be found (are you missing a using directive or an assembly reference?)
                 //     private Blah q;
@@ -130,7 +130,7 @@ class X
         [Fact]
         public void EmitDiagnostics()
         {
-            CSharpCompilation comp = CreateCompilationWithMscorlib(@"
+            CSharpCompilation comp = CreateStandardCompilation(@"
 namespace N {
      class X {
         public Blah field;
@@ -172,7 +172,7 @@ namespace N.Foo;
         [Fact]
         public void EmitMetadataOnly()
         {
-            CSharpCompilation comp = CreateCompilationWithMscorlib(@"
+            CSharpCompilation comp = CreateStandardCompilation(@"
 namespace Foo.Bar
 {
     public class Test1
@@ -224,7 +224,7 @@ class Test2
     }
 }  
 ";
-            CSharpCompilation compUsing = CreateCompilationWithMscorlib(srcUsing, new[] { MetadataReference.CreateFromImage(mdOnlyImage.AsImmutableOrNull()) });
+            CSharpCompilation compUsing = CreateStandardCompilation(srcUsing, new[] { MetadataReference.CreateFromImage(mdOnlyImage.AsImmutableOrNull()) });
 
             using (var output = new MemoryStream())
             {
@@ -260,7 +260,7 @@ public class Class1 : CppCli.CppBase2, CppCli.CppInterface1
 }
 ";
 
-            var libComp = CreateCompilationWithMscorlib(
+            var libComp = CreateStandardCompilation(
                 text: libText,
                 references: new MetadataReference[] { ilAssemblyReference },
                 options: TestOptions.ReleaseDll,
@@ -318,7 +318,7 @@ class Class2
 }  
 ";
 
-            var exeComp = CreateCompilationWithMscorlib(
+            var exeComp = CreateStandardCompilation(
                 text: exeText,
                 references: new MetadataReference[] { ilAssemblyReference, libAssemblyReference },
                 assemblyName: exeAssemblyName);
@@ -934,7 +934,7 @@ public class Test
 {
     public sealed object this";
 
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
 
             EmitResult emitResult;
             using (var output = new MemoryStream())
@@ -967,7 +967,7 @@ class C
     }
 }";
 
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
 
             EmitResult emitResult;
             using (var output = new MemoryStream())
@@ -1005,7 +1005,7 @@ class C
     }
 }";
 
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
 
             EmitResult emitResult;
             using (var output = new MemoryStream())
@@ -1050,27 +1050,27 @@ class C
 }";
             PEHeaders peHeaders;
 
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe.WithPlatform(Platform.AnyCpu));
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseExe.WithPlatform(Platform.AnyCpu));
             peHeaders = new PEHeaders(compilation.EmitToStream());
             Assert.Equal(CorFlags.ILOnly, peHeaders.CorHeader.Flags);
 
-            compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe.WithPlatform(Platform.X86));
+            compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseExe.WithPlatform(Platform.X86));
             peHeaders = new PEHeaders(compilation.EmitToStream());
             Assert.Equal(CorFlags.ILOnly | CorFlags.Requires32Bit, peHeaders.CorHeader.Flags);
 
-            compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe.WithPlatform(Platform.X64));
+            compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseExe.WithPlatform(Platform.X64));
             peHeaders = new PEHeaders(compilation.EmitToStream());
             Assert.Equal(CorFlags.ILOnly, peHeaders.CorHeader.Flags);
             Assert.True(peHeaders.Requires64Bits());
             Assert.True(peHeaders.RequiresAmdInstructionSet());
 
-            compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe.WithPlatform(Platform.AnyCpu32BitPreferred));
+            compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseExe.WithPlatform(Platform.AnyCpu32BitPreferred));
             peHeaders = new PEHeaders(compilation.EmitToStream());
             Assert.False(peHeaders.Requires64Bits());
             Assert.False(peHeaders.RequiresAmdInstructionSet());
             Assert.Equal(CorFlags.ILOnly | CorFlags.Requires32Bit | CorFlags.Prefers32Bit, peHeaders.CorHeader.Flags);
 
-            compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe.WithPlatform(Platform.Arm));
+            compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseExe.WithPlatform(Platform.Arm));
             peHeaders = new PEHeaders(compilation.EmitToStream());
             Assert.False(peHeaders.Requires64Bits());
             Assert.False(peHeaders.RequiresAmdInstructionSet());
@@ -1087,7 +1087,7 @@ class C
     {
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(source,
+            var compilation = CreateStandardCompilation(source,
                 options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithPlatform(Platform.X86));
 
             var peHeaders = new PEHeaders(compilation.EmitToStream());
@@ -1121,7 +1121,7 @@ class C
     {
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(source,
+            var compilation = CreateStandardCompilation(source,
                 options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithPlatform(Platform.X64));
 
             var peHeaders = new PEHeaders(compilation.EmitToStream());
@@ -1171,7 +1171,7 @@ class C
     {
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(source,
+            var compilation = CreateStandardCompilation(source,
                 options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithPlatform(Platform.Arm));
 
             var peHeaders = new PEHeaders(compilation.EmitToStream());
@@ -1211,7 +1211,7 @@ class C
     {
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(source,
+            var compilation = CreateStandardCompilation(source,
                 options: TestOptions.ReleaseExe.WithPlatform(Platform.AnyCpu));
 
             var peHeaders = new PEHeaders(compilation.EmitToStream());
@@ -1253,7 +1253,7 @@ class C
     {
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe.WithPlatform(Platform.X64));
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseExe.WithPlatform(Platform.X64));
             var peHeaders = new PEHeaders(compilation.EmitToStream());
 
             //interesting COFF bits
@@ -1285,7 +1285,7 @@ class C
     {
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
             var peHeaders = new PEHeaders(compilation.EmitToStream(options: new EmitOptions(highEntropyVirtualAddressSpace: true)));
 
             //interesting COFF bits
@@ -1303,7 +1303,7 @@ class C
     {
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(source, options: new CSharpCompilationOptions(OutputKind.WindowsRuntimeApplication));
+            var compilation = CreateStandardCompilation(source, options: new CSharpCompilationOptions(OutputKind.WindowsRuntimeApplication));
             var peHeaders = new PEHeaders(compilation.EmitToStream());
 
             //interesting COFF bits
@@ -1321,46 +1321,46 @@ class C
     }
 }";
             // last four hex digits get zero'ed
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe);
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseExe);
             var peHeaders = new PEHeaders(compilation.EmitToStream(options: new EmitOptions(baseAddress: 0x0000000010111111)));
             Assert.Equal(0x10110000ul, peHeaders.PEHeader.ImageBase);
 
             // test rounding up of values
-            compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe);
+            compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseExe);
             peHeaders = new PEHeaders(compilation.EmitToStream(options: new EmitOptions(baseAddress: 0x8000)));
             Assert.Equal(0x10000ul, peHeaders.PEHeader.ImageBase);
 
             // values less than 0x8000 get default baseaddress
-            compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe);
+            compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseExe);
             peHeaders = new PEHeaders(compilation.EmitToStream(options: new EmitOptions(baseAddress: 0x7fff)));
             Assert.Equal(0x00400000u, peHeaders.PEHeader.ImageBase);
 
             // default for 32bit
-            compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe.WithPlatform(Platform.X86));
+            compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseExe.WithPlatform(Platform.X86));
             peHeaders = new PEHeaders(compilation.EmitToStream(options: EmitOptions.Default));
             Assert.Equal(0x00400000u, peHeaders.PEHeader.ImageBase);
 
             // max for 32bit
-            compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe.WithPlatform(Platform.X86));
+            compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseExe.WithPlatform(Platform.X86));
             peHeaders = new PEHeaders(compilation.EmitToStream(options: new EmitOptions(baseAddress: 0xffff7fff)));
             Assert.Equal(0xffff0000ul, peHeaders.PEHeader.ImageBase);
 
             // max+1 for 32bit
-            compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe.WithPlatform(Platform.X86));
+            compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseExe.WithPlatform(Platform.X86));
             peHeaders = new PEHeaders(compilation.EmitToStream(options: new EmitOptions(baseAddress: 0xffff8000)));
             Assert.Equal(0x00400000u, peHeaders.PEHeader.ImageBase);
 
-            compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe.WithPlatform(Platform.X64));
+            compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseExe.WithPlatform(Platform.X64));
             peHeaders = new PEHeaders(compilation.EmitToStream(options: EmitOptions.Default));
             Assert.Equal(0x0000000140000000u, peHeaders.PEHeader.ImageBase);
 
             // max for 64bit
-            compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe.WithPlatform(Platform.X64));
+            compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseExe.WithPlatform(Platform.X64));
             peHeaders = new PEHeaders(compilation.EmitToStream(options: new EmitOptions(baseAddress: 0xffffffffffff7fff)));
             Assert.Equal(0xffffffffffff0000ul, peHeaders.PEHeader.ImageBase);
 
             // max+1 for 64bit
-            compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe.WithPlatform(Platform.X64));
+            compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseExe.WithPlatform(Platform.X64));
             peHeaders = new PEHeaders(compilation.EmitToStream(options: new EmitOptions(baseAddress: 0xffffffffffff8000)));
             Assert.Equal(0x0000000140000000u, peHeaders.PEHeader.ImageBase);
         }
@@ -1375,7 +1375,7 @@ class C
     {
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe);
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseExe);
             var peHeaders = new PEHeaders(compilation.EmitToStream(options: new EmitOptions(fileAlignment: 1024)));
             Assert.Equal(1024, peHeaders.PEHeader.FileAlignment);
         }
@@ -1566,7 +1566,7 @@ public class Test
     }
 }";
 
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
 
             CompileAndVerify(source, expectedOutput: "CheckPoint-2");
         }
@@ -1578,7 +1578,7 @@ public class Test
             var extension = ".dll";
             var nameWithExtension = name + extension;
 
-            var compilation = CreateCompilationWithMscorlib("class A { }", options: TestOptions.ReleaseDll, assemblyName: name);
+            var compilation = CreateStandardCompilation("class A { }", options: TestOptions.ReleaseDll, assemblyName: name);
             compilation.VerifyDiagnostics();
 
             var assembly = compilation.Assembly;
@@ -1609,7 +1609,7 @@ public class Test
             var extension = ".netmodule";
             var outputName = "b";
 
-            var compilation = CreateCompilationWithMscorlib("class A { }", options: TestOptions.ReleaseModule.WithModuleName(name + extension), assemblyName: null);
+            var compilation = CreateStandardCompilation("class A { }", options: TestOptions.ReleaseModule.WithModuleName(name + extension), assemblyName: null);
             compilation.VerifyDiagnostics();
 
             var assembly = compilation.Assembly;
@@ -1639,7 +1639,7 @@ public class Test
             var extension = ".dll";
             var nameOverride = "b";
 
-            var compilation = CreateCompilationWithMscorlib("class A { }", options: TestOptions.ReleaseDll, assemblyName: name);
+            var compilation = CreateStandardCompilation("class A { }", options: TestOptions.ReleaseDll, assemblyName: name);
             compilation.VerifyDiagnostics();
 
             var assembly = compilation.Assembly;
@@ -1670,7 +1670,7 @@ public class Test
             var extension = ".dll";
             var nameOverride = "b";
 
-            var compilation = CreateCompilationWithMscorlib("class A { }", options: TestOptions.ReleaseDll, assemblyName: name);
+            var compilation = CreateStandardCompilation("class A { }", options: TestOptions.ReleaseDll, assemblyName: name);
             compilation.VerifyDiagnostics();
 
             var assembly = compilation.Assembly;
@@ -1701,7 +1701,7 @@ public class Test
             var extension = ".dll";
             var nameOverride = "b";
 
-            var compilation = CreateCompilationWithMscorlib("class A { }", options: TestOptions.ReleaseDll, assemblyName: name);
+            var compilation = CreateStandardCompilation("class A { }", options: TestOptions.ReleaseDll, assemblyName: name);
             compilation.VerifyDiagnostics();
 
             var assembly = compilation.Assembly;
@@ -1732,7 +1732,7 @@ public class Test
             var extension = ".dll";
             var nameOverride = "b";
 
-            var compilation = CreateCompilationWithMscorlib("class A { }", options: TestOptions.ReleaseDll, assemblyName: name);
+            var compilation = CreateStandardCompilation("class A { }", options: TestOptions.ReleaseDll, assemblyName: name);
             compilation.VerifyDiagnostics();
 
             var assembly = compilation.Assembly;
@@ -1770,7 +1770,7 @@ public sealed class ContentType
 	}
 }";
 
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseModule, assemblyName: "ContentType");
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseModule, assemblyName: "ContentType");
             compilation.VerifyDiagnostics();
 
             using (ModuleMetadata block = ModuleMetadata.CreateFromStream(compilation.EmitToStream()))
@@ -1790,7 +1790,7 @@ public sealed class ContentType
         [Fact]
         public void IllegalNameOverride()
         {
-            var compilation = CreateCompilationWithMscorlib("class A { }", options: TestOptions.ReleaseDll);
+            var compilation = CreateStandardCompilation("class A { }", options: TestOptions.ReleaseDll);
             compilation.VerifyDiagnostics();
 
             var result = compilation.Emit(new MemoryStream(), options: new EmitOptions(outputNameOverride: "x\0x"));
@@ -1813,7 +1813,7 @@ class C
     }
 }";
             // Setting the CompilationOption.AllowUnsafe causes an entry to be inserted into the DeclSecurity table
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.UnsafeReleaseDll);
+            var compilation = CreateStandardCompilation(source, options: TestOptions.UnsafeReleaseDll);
             compilation.VerifyDiagnostics();
             ValidateDeclSecurity(compilation,
                 new DeclSecurityEntry
@@ -1847,7 +1847,7 @@ class C
     }
 }";
             // Setting the CompilationOption.AllowUnsafe causes an entry to be inserted into the DeclSecurity table
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll.WithOutputKind(OutputKind.NetModule));
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll.WithOutputKind(OutputKind.NetModule));
             compilation.VerifyDiagnostics();
             ValidateDeclSecurity(compilation); //no assembly => no decl security row
         }
@@ -1871,7 +1871,7 @@ class C
     }
 }";
 
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll);
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll);
             compilation.VerifyDiagnostics(
                 // (5,31): warning CS0618: 'System.Security.Permissions.SecurityAction.RequestMinimum' is obsolete: 'Assembly level declarative security is obsolete and is no longer enforced by the CLR by default. See http://go.microsoft.com/fwlink/?LinkID=155570 for more information.'
                 // [assembly: SecurityPermission(SecurityAction.RequestMinimum, SkipVerification = true)]
@@ -1916,7 +1916,7 @@ class C
     }
 }";
             // The attributes have the SecurityAction, so they should be merged into a single permission set.
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll);
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll);
             compilation.VerifyDiagnostics(
                 // (5,31): warning CS0618: 'System.Security.Permissions.SecurityAction.RequestMinimum' is obsolete: 'Assembly level declarative security is obsolete and is no longer enforced by the CLR by default. See http://go.microsoft.com/fwlink/?LinkID=155570 for more information.'
                 // [assembly: SecurityPermission(SecurityAction.RequestMinimum, RemotingConfiguration = true)]
@@ -1975,7 +1975,7 @@ class C
     }
 }";
             // The attributes have different SecurityActions, so they should not be merged into a single permission set.
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll);
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll);
             compilation.VerifyDiagnostics(
                 // (5,31): warning CS0618: 'System.Security.Permissions.SecurityAction.RequestOptional' is obsolete: 'Assembly level declarative security is obsolete and is no longer enforced by the CLR by default. See http://go.microsoft.com/fwlink/?LinkID=155570 for more information.'
                 // [assembly: SecurityPermission(SecurityAction.RequestOptional, RemotingConfiguration = true)]
@@ -2039,7 +2039,7 @@ class C
     }
 }";
             // The attributes have the SecurityAction, so they should be merged into a single permission set.
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.UnsafeReleaseDll);
+            var compilation = CreateStandardCompilation(source, options: TestOptions.UnsafeReleaseDll);
             compilation.VerifyDiagnostics(
                 // (5,31): warning CS0618: 'System.Security.Permissions.SecurityAction.RequestMinimum' is obsolete: 'Assembly level declarative security is obsolete and is no longer enforced by the CLR by default. See http://go.microsoft.com/fwlink/?LinkID=155570 for more information.'
                 // [assembly: SecurityPermission(SecurityAction.RequestMinimum, RemotingConfiguration = true)]
@@ -2094,7 +2094,7 @@ class C
     }
 }";
             // The attributes have different SecurityActions, so they should not be merged into a single permission set.
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.UnsafeReleaseDll);
+            var compilation = CreateStandardCompilation(source, options: TestOptions.UnsafeReleaseDll);
             compilation.VerifyDiagnostics(
                 // (5,31): warning CS0618: 'System.Security.Permissions.SecurityAction.RequestOptional' is obsolete: 'Assembly level declarative security is obsolete and is no longer enforced by the CLR by default. See http://go.microsoft.com/fwlink/?LinkID=155570 for more information.'
                 // [assembly: SecurityPermission(SecurityAction.RequestOptional, RemotingConfiguration = true)]
@@ -2154,7 +2154,7 @@ public class Test
         Console.WriteLine(typeof(J<int>).BaseType.Equals(typeof(C<Foo<int>>)) ? 0 : 1);
     }
 }";
-            var c1 = CreateCompilationWithMscorlib(p1, options: TestOptions.ReleaseDll, assemblyName: Guid.NewGuid().ToString());
+            var c1 = CreateStandardCompilation(p1, options: TestOptions.ReleaseDll, assemblyName: Guid.NewGuid().ToString());
             CompileAndVerify(p2, new[] { MetadataReference.CreateFromStream(c1.EmitToStream()) }, expectedOutput: "0");
         }
 
@@ -2164,7 +2164,7 @@ public class Test
         {
             string source1 = @"public class A {}";
             string source2 = @"public class B: A {}";
-            var comp = CreateCompilationWithMscorlib(source1, options: TestOptions.ReleaseModule);
+            var comp = CreateStandardCompilation(source1, options: TestOptions.ReleaseModule);
             var metadataRef = ModuleMetadata.CreateFromStream(comp.EmitToStream()).GetReference();
             CompileAndVerify(source2, additionalRefs: new[] { metadataRef }, options: TestOptions.ReleaseModule, verify: false);
         }
@@ -2175,7 +2175,7 @@ public class Test
         {
             string p1 = @"public class C1 { }";
 
-            var c1 = CreateCompilationWithMscorlib(p1);
+            var c1 = CreateStandardCompilation(p1);
             var tmpDir = Temp.CreateDirectory();
 
             var dllPath = Path.Combine(tmpDir.Path, "assemblyname.dll");
@@ -2203,7 +2203,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe).VerifyDiagnostics(
+            var comp = CreateStandardCompilation(text, options: TestOptions.ReleaseExe).VerifyDiagnostics(
                 // (7,18): warning CS0665: Assignment in conditional expression is always constant; did you mean to use == instead of = ?
                 //         int s = (b = false) ? 5 : 100; 		// Warning
                 Diagnostic(ErrorCode.WRN_IncorrectBooleanAssg, "b = false"),
@@ -2603,7 +2603,7 @@ class Viewable
     bool P2 { get { return true; } }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source, null, TestOptions.ReleaseDll);
+            var compilation = CreateStandardCompilation(source, null, TestOptions.ReleaseDll);
             var peReader = ModuleMetadata.CreateFromStream(compilation.EmitToStream()).Module.GetMetadataReader();
 
             int P1RVA = 0;
@@ -2675,7 +2675,7 @@ class C
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib(source, null, TestOptions.ReleaseDll);
+            var compilation = CreateStandardCompilation(source, null, TestOptions.ReleaseDll);
             using (var stream = compilation.EmitToStream())
             {
                 var bytes = new byte[stream.Length];
@@ -2696,7 +2696,7 @@ class C
             //These tests ensure that users supplying a broken stream implementation via the emit API 
             //get exceptions enabling them to attribute the failure to their code and to debug.
             string source = @"class Foo {}";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
 
             var output = new BrokenStream();
 
@@ -2721,7 +2721,7 @@ class C
         public void BrokenPDBStream()
         {
             string source = @"class Foo {}";
-            var compilation = CreateCompilationWithMscorlib(source, null, TestOptions.DebugDll);
+            var compilation = CreateStandardCompilation(source, null, TestOptions.DebugDll);
 
             var output = new MemoryStream();
             var pdb = new BrokenStream();
@@ -2777,15 +2777,15 @@ public class Program
         System.Console.WriteLine(B.M2());
     }
 }";
-            var comp1 = CreateCompilationWithMscorlib(s1, options: TestOptions.ReleaseModule);
+            var comp1 = CreateStandardCompilation(s1, options: TestOptions.ReleaseModule);
             comp1.VerifyDiagnostics();
             var ref1 = comp1.EmitToImageReference();
 
-            var comp2 = CreateCompilationWithMscorlib(s2, options: TestOptions.ReleaseModule, references: new[] { ref1 });
+            var comp2 = CreateStandardCompilation(s2, options: TestOptions.ReleaseModule, references: new[] { ref1 });
             comp2.VerifyDiagnostics();
             var ref2 = comp2.EmitToImageReference();
 
-            var comp3 = CreateCompilationWithMscorlib(s3, options: TestOptions.ReleaseExe, references: new[] { ref1, ref2 });
+            var comp3 = CreateStandardCompilation(s3, options: TestOptions.ReleaseExe, references: new[] { ref1, ref2 });
             // Before the bug was fixed, the PrivateImplementationDetails classes clashed, resulting in the commented-out error below.
             comp3.VerifyDiagnostics(
                 ////// error CS0101: The namespace '<global namespace>' already contains a definition for '<PrivateImplementationDetails>'
@@ -2824,15 +2824,15 @@ public class Program
         System.Console.WriteLine(B.M2());
     }
 }";
-            var comp1 = CreateCompilationWithMscorlib(s1, options: TestOptions.ReleaseModule.WithModuleName("A"));
+            var comp1 = CreateStandardCompilation(s1, options: TestOptions.ReleaseModule.WithModuleName("A"));
             comp1.VerifyDiagnostics();
             var ref1 = comp1.EmitToImageReference();
 
-            var comp2 = CreateCompilationWithMscorlib(s2, options: TestOptions.ReleaseModule.WithModuleName("B"), references: new[] { ref1 });
+            var comp2 = CreateStandardCompilation(s2, options: TestOptions.ReleaseModule.WithModuleName("B"), references: new[] { ref1 });
             comp2.VerifyDiagnostics();
             var ref2 = comp2.EmitToImageReference();
 
-            var comp3 = CreateCompilationWithMscorlib(s3, options: TestOptions.ReleaseExe.WithModuleName("C"), references: new[] { ref1, ref2 });
+            var comp3 = CreateStandardCompilation(s3, options: TestOptions.ReleaseExe.WithModuleName("C"), references: new[] { ref1, ref2 });
             comp3.VerifyDiagnostics();
             CompileAndVerify(comp3, expectedOutput: "Hello, world!");
         }
@@ -2869,7 +2869,7 @@ class C6
 {
     object F = new { Ab = 5 };
 }";
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll);
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll);
             var bytes = compilation.EmitToArray();
             using (var metadata = ModuleMetadata.CreateFromImage(bytes))
             {
@@ -2931,7 +2931,7 @@ class C4
         return d(ref o, 2);
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll, references: new[] { SystemCoreRef, CSharpRef });
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, references: new[] { SystemCoreRef, CSharpRef });
             var bytes = compilation.EmitToArray();
             using (var metadata = ModuleMetadata.CreateFromImage(bytes))
             {
@@ -2969,7 +2969,7 @@ public class X
   
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
             var broken = new BrokenStream();
             broken.BreakHow = BrokenStream.BreakHowType.ThrowOnWrite;
             var result = compilation.Emit(broken);
@@ -2991,7 +2991,7 @@ public class X
   
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
             var broken = new BrokenStream();
             broken.BreakHow = BrokenStream.BreakHowType.CancelOnWrite;
 
@@ -3018,7 +3018,7 @@ public class DerivingClass<T> : BaseClass<T>
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
             compilation.VerifyDiagnostics(
                 // (11,26): warning CS0809: Obsolete member 'DerivingClass<T>.Method(T)' overrides non-obsolete member 'BaseClass<T>.Method(T)'
                 //     public override void Method(T input)

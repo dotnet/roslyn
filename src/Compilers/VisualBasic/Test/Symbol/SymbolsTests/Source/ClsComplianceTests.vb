@@ -2940,7 +2940,7 @@ End Class
 
             ' NOTE: As in dev11, we consider the fact that Derived inherits CLSCompliant(False) from Base
             ' (since it is not from the current assembly).
-            Dim libRef = CompileIL(il.Value, appendDefaultHeader:=False)
+            Dim libRef = CompileIL(il.Value, prependDefaultHeader:=False)
             CreateCompilationWithMscorlibAndReferences(source, {libRef}).AssertTheseDiagnostics(<errors><![CDATA[
 BC40025: Type of member 'B' is not CLS-compliant.
     Public B as Base

@@ -66,6 +66,8 @@
     <Compile Include="Completion\CompletionProviders\DeclarationNameCompletionProvider.NameGenerator.cs" />
     <Compile Include="Completion\CompletionProviders\DeclarationNameCompletionProvider.DeclarationInfo.cs" />
     <Compile Include="Completion\CompletionProviders\DeclarationNameCompletionProvider_BuiltInStyles.cs" />
+    <Compile Include="Completion\CompletionProviders\ExplicitInterfaceMemberCompletionProvider.cs" />
+    <Compile Include="Completion\CompletionProviders\ExplicitInterfaceTypeCompletionProvider.cs" />
     <Compile Include="ConvertIfToSwitch\CSharpConvertIfToSwitchCodeRefactoringProvider.cs" />
     <Compile Include="ConvertIfToSwitch\CSharpConvertIfToSwitchCodeRefactoringProvider.Pattern.cs" />
     <Compile Include="ConvertNumericLiteral\CSharpConvertNumericLiteralCodeRefactoringProvider.cs" />
@@ -125,7 +127,7 @@
     <Compile Include="AddMissingReference\CSharpAddMissingReferenceCodeFixProvider.cs" />
     <Compile Include="CodeFixes\Async\CSharpAddAwaitCodeFixProvider.cs" />
     <Compile Include="CodeFixes\Async\CSharpConvertToAsyncMethodCodeFixProvider.cs" />
-    <Compile Include="CodeFixes\FullyQualify\CSharpFullyQualifyCodeFixProvider.cs" />
+    <Compile Include="FullyQualify\CSharpFullyQualifyCodeFixProvider.cs" />
     <Compile Include="GenerateConstructor\GenerateConstructorCodeFixProvider.cs" />
     <Compile Include="CodeFixes\GenerateEnumMember\GenerateEnumMemberCodeFixProvider.cs" />
     <Compile Include="CodeFixes\GenerateMethod\GenerateConversionCodeFixProvider.cs" />
@@ -161,7 +163,6 @@
     <Compile Include="Completion\CompletionProviders\CompletionUtilities.cs" />
     <Compile Include="Completion\CompletionProviders\CrefCompletionProvider.cs" />
     <Compile Include="Completion\CompletionProviders\EnumAndCompletionListTagCompletionProvider.cs" />
-    <Compile Include="Completion\CompletionProviders\ExplicitInterfaceCompletionProvider.cs" />
     <Compile Include="Completion\CompletionProviders\ExternAliasCompletionProvider.cs" />
     <Compile Include="Completion\CompletionProviders\KeywordCompletionProvider.cs" />
     <Compile Include="Completion\CompletionProviders\NamedParameterCompletionProvider.cs" />

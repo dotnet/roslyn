@@ -34,9 +34,9 @@ namespace Microsoft.CodeAnalysis.Esent
             return Path.Combine(workingFolderPath, StorageExtension, PersistentStorageFileName);
         }
 
-        protected override AbstractPersistentStorage OpenDatabase(Solution solution, string workingFolderPath)
-            => new EsentPersistentStorage(OptionService,
-                workingFolderPath, solution.FilePath, GetDatabaseFilePath(workingFolderPath), this.Release);
+        protected override AbstractPersistentStorage OpenDatabase(Solution solution, string workingFolderPath, string databaseFilePath)
+            => new EsentPersistentStorage(
+                OptionService, workingFolderPath, solution.FilePath, databaseFilePath, this.Release);
 
         protected override bool ShouldDeleteDatabase(Exception exception)
         {

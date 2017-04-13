@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
@@ -7,20 +8,18 @@ using Microsoft.CodeAnalysis.CSharp.Completion.SuggestionMode;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Roslyn.Test.Utilities;
 using Xunit;
-using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders
 {
     public class SuggestionModeCompletionProviderTests : AbstractCSharpCompletionProviderTests
     {
-        public SuggestionModeCompletionProviderTests(CSharpTestWorkspaceFixture workspaceFixture) : base(workspaceFixture)
+        public SuggestionModeCompletionProviderTests(CSharpTestWorkspaceFixture workspaceFixture) 
+            : base(workspaceFixture)
         {
         }
 
         internal override CompletionProvider CreateCompletionProvider()
-        {
-            return new CSharpSuggestionModeCompletionProvider();
-        }
+            => new CSharpSuggestionModeCompletionProvider();
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task AfterFirstExplicitArgument()

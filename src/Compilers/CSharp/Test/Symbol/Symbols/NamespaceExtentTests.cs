@@ -12,8 +12,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void Equality()
         {
-            var c1 = CreateCompilationWithMscorlib("");
-            var c2 = CreateCompilationWithMscorlib("");
+            var c1 = CreateStandardCompilation("");
+            var c2 = CreateStandardCompilation("");
             var a1 = c1.Assembly;
             var a2 = c2.Assembly;
 

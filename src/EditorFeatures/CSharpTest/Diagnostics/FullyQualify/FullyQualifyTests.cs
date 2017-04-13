@@ -298,7 +298,7 @@ class Class
         Foo();
     }
 }",
-count: 2);
+count: 1);
 
             await TestInRegularAndScriptAsync(
 @"using System.Collections.Generic;
@@ -1320,7 +1320,7 @@ namespace n2
         }
 
         [WorkItem(18275, "https://github.com/dotnet/roslyn/issues/18275")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task TestContextualKeyword1()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1338,6 +1338,19 @@ class C
     {
         [|nameof|]
     }
+}");
+        }
+
+        [WorkItem(18623, "https://github.com/dotnet/roslyn/issues/18623")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        public async Task TestDoNotQualifyToTheSameTypeToFixWrongArity()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+using System.Collections.Generic;
+
+class Program : [|IReadOnlyCollection|]
+{
 }");
         }
     }

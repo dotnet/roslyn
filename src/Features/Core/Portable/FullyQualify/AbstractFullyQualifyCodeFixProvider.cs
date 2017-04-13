@@ -66,8 +66,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
 
                 var proposedContainers =
                     matchingTypeContainers.Concat(matchingNamespaceContainers)
-                                            .Distinct()
-                                            .Take(MaxResults);
+                                          .Distinct()
+                                          .Take(MaxResults);
 
                 var displayService = project.LanguageServices.GetService<ISymbolDisplayService>();
                 var codeActions = CreateActions(context, document, diagnostic, node, semanticModel, proposedContainers, displayService).ToImmutableArray();
@@ -135,8 +135,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
         private async Task<ImmutableArray<SymbolResult>> GetMatchingTypesAsync(
             Project project, SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken)
         {
-            // Can't be on the right hand side of binary expression (like 'dot').
             cancellationToken.ThrowIfCancellationRequested();
+
             var syntaxFacts = project.LanguageServices.GetService<ISyntaxFactsService>();
             syntaxFacts.GetNameAndArityOfSimpleName(node, out var name, out var arity);
 
@@ -155,22 +155,60 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
                 symbols = symbols.Concat(attributeSymbolAndProjectIds.SelectAsArray(t => t.Symbol));
             }
 
-            var accessibleTypeSymbols = symbols
+            var validSymbols = symbols
                 .OfType<INamedTypeSymbol>()
-                .Where(s => (arity == 0 || s.GetArity() == arity)
-                    && s.IsAccessibleWithin(semanticModel.Compilation.Assembly)
-                    && (!inAttributeContext || s.IsAttribute())
-                    && HasValidContainer(s))
+                .Where(s => IsValidNamedTypeSearchResult(semanticModel, arity, inAttributeContext, s))
                 .ToImmutableArray();
 
-            return accessibleTypeSymbols.SelectAsArray(s => new SymbolResult(s, weight: TypeWeight));
+            // Check what the current node binds to.  If it binds to any symbols, but with
+            // the wrong arity, then we don't want to suggest fully qualifying to the same
+            // type that we're already binding to.  That won't address the WrongArity problem.
+            var currentSymbolInfo = semanticModel.GetSymbolInfo(node, cancellationToken);
+            if (currentSymbolInfo.CandidateReason == CandidateReason.WrongArity)
+            {
+                validSymbols = validSymbols.WhereAsArray(
+                    s => !currentSymbolInfo.CandidateSymbols.Contains(s));
+            }
+
+            return validSymbols.SelectAsArray(s => new SymbolResult(s, weight: TypeWeight));
+        }
+
+        private static bool IsValidNamedTypeSearchResult(
+            SemanticModel semanticModel, int arity, bool inAttributeContext, INamedTypeSymbol searchResult)
+        {
+            if (arity != 0 && searchResult.GetArity() != arity)
+            {
+                // If the user supplied type arguments, then the search result has to match the 
+                // number provided.
+                return false;
+            }
+
+            if (!searchResult.IsAccessibleWithin(semanticModel.Compilation.Assembly))
+            {
+                // Search result has to be accessible from our current location.
+                return false;
+            }
+
+            if (inAttributeContext && !searchResult.IsAttribute())
+            {
+                // If we need an attribute, we have to have found an attribute.
+                return false;
+            }
+
+            if (!HasValidContainer(searchResult))
+            {
+                // Named type we find must be in a namespace, or a non-generic type.
+                return false;
+            }
+
+            return true;
         }
 
         private static bool HasValidContainer(ISymbol symbol)
         {
             var container = symbol.ContainingSymbol;
             return container is INamespaceSymbol ||
-                (container is INamedTypeSymbol && !((INamedTypeSymbol)container).IsGenericType);
+                   (container is INamedTypeSymbol parentType && !parentType.IsGenericType);
         }
 
         private async Task<ImmutableArray<SymbolResult>> GetMatchingNamespacesAsync(

@@ -12,11 +12,28 @@ $ErrorActionPreference="Stop"
 # 
 # Original sample came from: http://jameskovacs.com/2010/02/25/the-exec-problem/
 function Exec([scriptblock]$cmd, [string]$errorMessage = "Error executing command: " + $cmd) { 
+    # Clear LastExitCode before invoking the script so a windows command failure
+    # before doesn't carry over.  Can happen if the expression is pure powershell
+    # and not wrapping a windows command.
+    $lastexitcode = 0
+
     $output = & $cmd 
+
+    # Need to check both of these cases for errors as they represent different items
+    # - $?: did the powershell script block throw an error
+    # - $lastexitcode: did a windows command executed by the script block end in error
     if ((-not $?) -or ($lastexitcode -ne 0)) {
         Write-Host $output
         throw $errorMessage 
     } 
+}
+
+# Handy function for executing Invoke-Expression and reliably throwing an 
+# error if the expression, or the command it invoked, fails
+# 
+# Original sample came from: http://jameskovacs.com/2010/02/25/the-exec-problem/
+function Exec-Expression([string]$expr) {
+    Exec { Invoke-Expression $expr }
 }
 
 # Ensure that NuGet is installed and return the path to the 

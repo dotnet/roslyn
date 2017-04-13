@@ -348,7 +348,7 @@ class C
 }";
             file = ParseFile(errorText);
 
-            CreateCompilationWithMscorlib(errorText).VerifyDiagnostics(
+            CreateStandardCompilation(errorText).VerifyDiagnostics(
                 // (11,19): error CS1003: Syntax error, '(' expected
                 //             foo<T>) { }
                 Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("(", ")").WithLocation(11, 19),

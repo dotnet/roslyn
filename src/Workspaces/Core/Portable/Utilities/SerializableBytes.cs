@@ -15,10 +15,14 @@ namespace Roslyn.Utilities
     {
         private const int ChunkSize = SharedPools.ByteBufferSize;
 
-        internal static PooledStream CreateReadableStream(byte[] bytes, CancellationToken cancellationToken)
+        internal static PooledStream CreateReadableStream(byte[] bytes)
+            => CreateReadableStream(bytes, bytes.Length);
+
+
+        internal static PooledStream CreateReadableStream(byte[] bytes, int length)
         {
             var stream = CreateWritableStream();
-            stream.Write(bytes, 0, bytes.Length);
+            stream.Write(bytes, 0, length);
 
             stream.Position = 0;
             return stream;

@@ -22,7 +22,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         {
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18295"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public void GenerateMethodInClosedFile()
         {
             var project = new ProjectUtils.Project(ProjectName);
@@ -75,7 +75,7 @@ class Program
 }
 ");
             VisualStudio.Editor.InvokeCodeActionList();
-            VisualStudio.Editor.Verify.CodeAction("using System;", applyFix: true, blockUntilComplete: false);
+            VisualStudio.Editor.Verify.CodeAction("using System;", applyFix: true, blockUntilComplete: true);
             VisualStudio.Editor.InvokeCodeActionListWithoutWaiting();
             VisualStudio.Editor.Verify.CodeAction("Simplify name 'System.ArgumentException'", applyFix: true, blockUntilComplete: true);
 
