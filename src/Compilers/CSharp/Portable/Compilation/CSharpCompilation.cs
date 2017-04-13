@@ -2311,7 +2311,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // The diagnostics should include syntax and declaration errors. We insert these before calling Emitter.Emit, so that the emitter
             // does not attempt to emit if there are declaration errors (but we do insert all errors from method body binding...)
-            bool hasDeclarationErrors = !FilterAndAppendDiagnostics(diagnostics, GetDiagnostics(CompilationStage.Declare, true, cancellationToken));
+            PooledHashSet<int> excludeDiagnostics = null;
+            if (emitMetadataOnly)
+            {
+                excludeDiagnostics = PooledHashSet<int>.GetInstance();
+                excludeDiagnostics.Add((int)ErrorCode.ERR_ConcreteMissingBody);
+            }
+            bool hasDeclarationErrors = !FilterAndAppendDiagnostics(diagnostics, GetDiagnostics(CompilationStage.Declare, true, cancellationToken), excludeDiagnostics);
+            excludeDiagnostics?.Free();
 
             // TODO (tomat): NoPIA:
             // EmbeddedSymbolManager.MarkAllDeferredSymbolsAsReferenced(this)

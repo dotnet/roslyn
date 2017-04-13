@@ -2221,7 +2221,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' The diagnostics should include syntax and declaration errors. We insert these before calling Emitter.Emit, so that we don't emit
             ' metadata if there are declaration errors or method body errors (but we do insert all errors from method body binding...)
-            Dim hasDeclarationErrors = Not FilterAndAppendDiagnostics(diagnostics, GetDiagnostics(CompilationStage.Declare, True, cancellationToken))
+            Dim hasDeclarationErrors = Not FilterAndAppendDiagnostics(diagnostics, GetDiagnostics(CompilationStage.Declare, True, cancellationToken), exclude:=Nothing)
 
             Dim moduleBeingBuilt = DirectCast(moduleBuilder, PEModuleBuilder)
 

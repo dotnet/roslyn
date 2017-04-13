@@ -321,7 +321,6 @@ class Test2
         [InlineData("public struct S { private int i; }", "public struct S { }", Match.Different)]
         [InlineData("private int i;", "", Match.RefOut)]
         [InlineData("public C() { }", "", Match.BothMetadataAndRefOut)]
-        //[InlineData("public int NoBody();", "public int NoBody() { }", Match.BothMetadataAndRefOut)] // PROTOTYPE(refout) Further refinement https://github.com/dotnet/roslyn/issues/17612
         public void RefAssembly_InvariantToSomeChanges(string left, string right, Match expectedMatch)
         {
             string sourceTemplate = @"
@@ -569,26 +568,40 @@ comp => comp.VerifyDiagnostics(
 
         [Theory]
         [InlineData("public int M() { error(); }", true)]
-        [InlineData("public int M() { error() }", false)] // Should be true. See follow-up issue https://github.com/dotnet/roslyn/issues/17612
+        [InlineData("public int M() { error() }", false)] // This may get relaxed. See follow-up issue https://github.com/dotnet/roslyn/issues/17612
+        [InlineData("public int M();", true)]
+        [InlineData("public int M() { int Local(); }", true)]
+        [InlineData("public C();", true)]
+        [InlineData("~ C();", true)]
         [InlineData("public Error M() { return null; }", false)] // This may get relaxed. See follow-up issue https://github.com/dotnet/roslyn/issues/17612
+        [InlineData("public static explicit operator C(int i);", true)]
+        [InlineData("public async Task M();", false)]
+        [InlineData("partial void M(); partial void M();", false)] // This may get relaxed. See follow-up issue https://github.com/dotnet/roslyn/issues/17612
         public void RefAssembly_IgnoresSomeDiagnostics(string change, bool expectSuccess)
         {
             string sourceTemplate = @"
-public class C
+using System.Threading.Tasks;
+public partial class C
 {
     CHANGE
 }
 ";
-            string source = sourceTemplate.Replace("CHANGE", change);
-            string name = GetUniqueName();
-            CSharpCompilation comp1 = CreateCompilationWithMscorlib(Parse(source),
-                options: TestOptions.DebugDll.WithDeterministic(true), assemblyName: name);
+            VerifyIgnoresDiagnostics(EmitOptions.Default.WithEmitMetadataOnly(false).WithTolerateErrors(false), success: false);
+            VerifyIgnoresDiagnostics(EmitOptions.Default.WithEmitMetadataOnly(true).WithTolerateErrors(false), success: expectSuccess);
 
-            using (var output = new MemoryStream())
+            void VerifyIgnoresDiagnostics(EmitOptions emitOptions, bool success)
             {
-                var emitResult = comp1.Emit(output, options: EmitOptions.Default.WithEmitMetadataOnly(true));
-                Assert.Equal(expectSuccess, emitResult.Success);
-                Assert.Equal(!expectSuccess, emitResult.Diagnostics.Any());
+                string source = sourceTemplate.Replace("CHANGE", change);
+                string name = GetUniqueName();
+                CSharpCompilation comp = CreateCompilationWithMscorlib(Parse(source),
+                    options: TestOptions.DebugDll.WithDeterministic(true), assemblyName: name);
+
+                using (var output = new MemoryStream())
+                {
+                    var emitResult = comp.Emit(output, options: emitOptions);
+                    Assert.Equal(!success, emitResult.Diagnostics.HasAnyErrors());
+                    Assert.Equal(success, emitResult.Success);
+                }
             }
         }
 

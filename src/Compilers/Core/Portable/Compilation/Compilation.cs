@@ -1151,7 +1151,7 @@ namespace Microsoft.CodeAnalysis
         /// <returns>True if there were no errors or warnings-as-errors.</returns>
         internal bool FilterAndAppendAndFreeDiagnostics(DiagnosticBag accumulator, ref DiagnosticBag incoming)
         {
-            bool result = FilterAndAppendDiagnostics(accumulator, incoming.AsEnumerableWithoutResolution());
+            bool result = FilterAndAppendDiagnostics(accumulator, incoming.AsEnumerableWithoutResolution(), exclude: null);
             incoming.Free();
             incoming = null;
             return result;
@@ -1161,13 +1161,18 @@ namespace Microsoft.CodeAnalysis
         /// Filter out warnings based on the compiler options (/nowarn, /warn and /warnaserror) and the pragma warning directives.
         /// </summary>
         /// <returns>True when there is no error.</returns>
-        internal bool FilterAndAppendDiagnostics(DiagnosticBag accumulator, IEnumerable<Diagnostic> incoming)
+        internal bool FilterAndAppendDiagnostics(DiagnosticBag accumulator, IEnumerable<Diagnostic> incoming, HashSet<int> exclude)
         {
             bool hasError = false;
             bool reportSuppressedDiagnostics = Options.ReportSuppressedDiagnostics;
 
             foreach (Diagnostic d in incoming)
             {
+                if (exclude?.Contains(d.Code) == true)
+                {
+                    continue;
+                }
+
                 var filtered = Options.FilterDiagnostic(d);
                 if (filtered == null ||
                     (!reportSuppressedDiagnostics && filtered.IsSuppressed))
