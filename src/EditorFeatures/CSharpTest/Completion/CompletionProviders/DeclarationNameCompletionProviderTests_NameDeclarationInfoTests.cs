@@ -344,14 +344,13 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async void ModifierExclusion7()
         {
-            // Note that the async is not included in the incomplete member syntax
             var markup = @"
 class C
 {
     async int $$
 }
 ";
-            await VerifySymbolKinds(markup, SymbolKind.Field, SymbolKind.Method, SymbolKind.Property);
+            await VerifySymbolKinds(markup, SymbolKind.Method);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
