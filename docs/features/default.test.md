@@ -12,8 +12,10 @@
 # Type and members
 - [ ] Attributes: positional and named parameters
 - [ ] Parameters:
-    - [ ] Default parameter values
-    - [ ] `F(params T[] args)`: `F(default)` and `F(null, default)`
+    - [ ] Default parameter values: `CancellationToken ct = default`
+    - [ ] `params`:
+        - [ ] `F(params T[] args)`: `F(default)` and `F(null, default)`
+        - [ ] overload resolution with `params` and non-`params`, mixed value/reference types
 - [ ] Constant values
 - [ ] Enum (implicit and explicit underlying type)
 - [ ] Expression trees
@@ -40,19 +42,25 @@
     - `using (default) { }`
     - `fixed (byte* p = default) { }`
     - `yield return default;`
+    - `this = default;` in `struct` .ctor
 - [ ] Expressions:
     - `default.F`
     - `default()`
     - `default[i]`
     - `a[default]`
     - `nameof(default)`
-    - `checked(default)`, `unchecked(default)`
+    - `checked(default)`, `unchecked(default)`, `checked(default + x)`
     - unary: `op default`
+        - `!default`
     - binary: `e op default`, `default op e`
+        - `default == false`
+        - `new S() == default` for `struct S` with/without `operator==`, `default` has type `S` not `S?`
+        - `default + x` with user-defined operator or conversion
     - `default ? e1 : e2`, `e1 ? default : e2`
     - `default ?? e`, `e ?? default`
     - `(T)default`
     - `x op= default`
+        - `x += default` with user-defined operator or conversion
     - `*default`, `&default`, `default->F`
     - `default is e`, `e is default`
     - `await default`
