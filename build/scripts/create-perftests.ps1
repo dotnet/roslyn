@@ -14,7 +14,7 @@ try {
         Create-Directory $target
     }
 
-    Push-Location $binariesDir
+    Push-Location $buildDir
     foreach ($subDir in @("Dlls", "UnitTests")) {
         Push-Location $subDir
         foreach ($path in Get-ChildItem -re -in "PerfTests") {
