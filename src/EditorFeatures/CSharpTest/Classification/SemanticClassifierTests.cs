@@ -253,7 +253,7 @@ class C
 class C
 {
     dynamic<int> d;
-}", Class("dynamic"));
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]

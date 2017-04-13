@@ -224,10 +224,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
                         break;
 
                     case CandidateReason.WrongArity:
-                        // even if the arity is wrong, we want to classify to indicate that we have
-                        // understood what is going on.  The user will get a clear error telling them
-                        // the arity is wrong.
-                        return firstSymbol;
+                        if (name.GetRightmostName().Arity == 0)
+                        {
+                            // When the user writes something like "IList" we don't want to *not* classify 
+                            // just because the type bound to "IList<T>".  This is also important for use
+                            // cases like "Add-using" where it can be confusing when the using is added for
+                            // "using System.Collection.Generic" but then the type name still does not classify.
+                            return firstSymbol;
+                        }
+
+                        break;
                 }
             }
 
