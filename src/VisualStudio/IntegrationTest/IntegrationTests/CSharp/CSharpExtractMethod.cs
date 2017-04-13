@@ -73,9 +73,9 @@ public class Program
 
             VisualStudio.Editor.SendKeys("SayHello", VirtualKey.Enter);
             VisualStudio.Editor.Verify.TextContains(@"private static void SayHello()
-{
-    Console.WriteLine(""Hello World"");
-}");
+    {
+        Console.WriteLine(""Hello World"");
+    }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
