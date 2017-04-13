@@ -61,6 +61,55 @@ class C
         }
 
         [Fact]
+        public void AssignmentToThisOnRefType()
+        {
+            string source = @"
+public class C
+{
+    public int field;
+    public C() => this = default;
+    public static void Main()
+    {
+        new C();
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (5,19): error CS1604: Cannot assign to 'this' because it is read-only
+                //     public C() => this = default;
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "this").WithArguments("this").WithLocation(5, 19)
+                );
+        }
+
+        [Fact]
+        public void AssignmentToThisOnStructType()
+        {
+            string source = @"
+public struct S
+{
+    public int field;
+    public S(int x) => this = default;
+    public static void Main()
+    {
+        new S(1);
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+
+            var def = nodes.OfType<LiteralExpressionSyntax>().ElementAt(0);
+            Assert.Equal("default", def.ToString());
+            Assert.Equal("S", model.GetTypeInfo(def).Type.ToTestDisplayString());
+            Assert.Equal("S", model.GetTypeInfo(def).ConvertedType.ToTestDisplayString());
+        }
+
+        [Fact]
         public void InAttributeParameter()
         {
             string source = @"
@@ -95,7 +144,7 @@ class C
 ";
 
             var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics(); // Should give an error. Follow-up issue: https://github.com/dotnet/roslyn/issues/18609
+            comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "()");
 
             var tree = comp.SyntaxTrees.First();
@@ -104,7 +153,7 @@ class C
 
             var def = nodes.OfType<LiteralExpressionSyntax>().Single();
             Assert.Equal("default", def.ToString());
-            Assert.Null(model.GetTypeInfo(def).Type);
+            Assert.Null(model.GetTypeInfo(def).Type); // Should be given a type. Follow-up issue: https://github.com/dotnet/roslyn/issues/18609
             Assert.Null(model.GetTypeInfo(def).ConvertedType);
             Assert.Null(model.GetSymbolInfo(def).Symbol);
             Assert.False(model.GetConstantValue(def).HasValue);
@@ -642,6 +691,93 @@ class C
         }
 
         [Fact]
+        public void InChecked()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        int i = checked(default);
+        int j = checked(default + 4);
+        System.Console.Write($""{i} {j}"");
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "0 4");
+        }
+
+        [Fact]
+        public void WithUserDefinedPlusOperator()
+        {
+            string source = @"
+struct S
+{
+    int field;
+    static void Main()
+    {
+        S s = new S(40) + default;
+        s += new S(2);
+        s += default;
+        System.Console.Write(s);
+    }
+    S(int i) { field = i; }
+    public static S operator +(S left, S right) => new S(left.field + right.field);
+    public override string ToString() => field.ToString();
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "42");
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+
+            var first = nodes.OfType<LiteralExpressionSyntax>().ElementAt(1);
+            Assert.Equal("new S(40) + default", first.Parent.ToString());
+            Assert.Equal("S", model.GetTypeInfo(first).Type.ToTestDisplayString());
+
+            var second = nodes.OfType<LiteralExpressionSyntax>().ElementAt(3);
+            Assert.Equal("s += default", second.Parent.ToString());
+            Assert.Equal("S", model.GetTypeInfo(second).Type.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void WithUserDefinedEqualityOperator()
+        {
+            string source = @"
+struct S
+{
+    static void Main()
+    {
+        if (new S() == default)
+        {
+            System.Console.Write(""reached"");
+        }
+    }
+    public static bool operator ==(S left, S right) => true;
+    public static bool operator !=(S left, S right) => false;
+    public override bool Equals(object o) => throw null;
+    public override int GetHashCode() => throw null;
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "reached");
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+
+            var first = nodes.OfType<LiteralExpressionSyntax>().ElementAt(0);
+            Assert.Equal("default", first.ToString());
+            Assert.Equal("S", model.GetTypeInfo(first).Type.ToTestDisplayString());
+        }
+
+        [Fact]
         public void RefTypeAndValue()
         {
             string source = @"
@@ -783,6 +919,34 @@ class C
         }
 
         [Fact]
+        public void ConditionalOnDefaultIsFalse()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        if (default == false)
+        {
+            System.Console.Write(""reached"");
+        }
+        if (default == true)
+        {
+            System.Console.Write(""NEVER"");
+        }
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (12,13): warning CS0162: Unreachable code detected
+                //             System.Console.Write("NEVER");
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "System").WithLocation(12, 13)
+                );
+            CompileAndVerify(comp, expectedOutput: "reached");
+        }
+
+        [Fact]
         public void InFixed()
         {
             string source = @"
@@ -807,6 +971,30 @@ class C
                 // (9,27): error CS0211: Cannot take the address of the given expression
                 //         fixed (byte* p = &default)
                 Diagnostic(ErrorCode.ERR_InvalidAddrOp, "default").WithLocation(9, 27)
+                );
+        }
+
+        [Fact]
+        public void Dereference()
+        {
+            string source = @"
+class C
+{
+    static void M()
+    {
+        var p = *default;
+        var q = default->F;
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular7_1);
+            comp.VerifyDiagnostics(
+                // (6,17): error CS0193: The * or -> operator must be applied to a pointer
+                //         var p = *default;
+                Diagnostic(ErrorCode.ERR_PtrExpected, "*default").WithLocation(6, 17),
+                // (7,17): error CS0193: The * or -> operator must be applied to a pointer
+                //         var q = default->F;
+                Diagnostic(ErrorCode.ERR_PtrExpected, "default->F").WithLocation(7, 17)
                 );
         }
 
@@ -882,6 +1070,125 @@ class C
             var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyEmitDiagnostics();
             CompileAndVerify(comp, expectedOutput: "0");
+        }
+
+        [Fact]
+        public void ArrayTypeInferredFromParams()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        M(default);
+        M(null);
+    }
+    static void M(params object[] x) { }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            comp.VerifyEmitDiagnostics();
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+
+            var def = nodes.OfType<LiteralExpressionSyntax>().ElementAt(0);
+            Assert.Equal("default", def.ToString());
+            Assert.Equal("System.Object[]", model.GetTypeInfo(def).Type.ToTestDisplayString());
+            Assert.Equal("System.Object[]", model.GetTypeInfo(def).ConvertedType.ToTestDisplayString());
+            Assert.Null(model.GetSymbolInfo(def).Symbol);
+            Assert.Null(model.GetDeclaredSymbol(def));
+
+            var nullSyntax = nodes.OfType<LiteralExpressionSyntax>().ElementAt(1);
+            Assert.Equal("null", nullSyntax.ToString());
+            Assert.Equal("System.Object[]", model.GetTypeInfo(nullSyntax).ConvertedType.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void ParamsAmbiguity()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        M(default);
+    }
+    static void M(params object[] x) { }
+    static void M(params int[] x) { }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular7_1);
+            comp.VerifyEmitDiagnostics(
+                // (6,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.M(params object[])' and 'C.M(params int[])'
+                //         M(default);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("C.M(params object[])", "C.M(params int[])").WithLocation(6, 9)
+                );
+        }
+
+        [Fact]
+        public void ParamsAmbiguity2()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        M(default);
+    }
+    static void M(params object[] x) { }
+    static void M(int x) { }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular7_1);
+            comp.VerifyEmitDiagnostics(
+                // (6,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.M(params object[])' and 'C.M(int)'
+                //         M(default);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("C.M(params object[])", "C.M(int)").WithLocation(6, 9)
+                );
+        }
+
+        [Fact]
+        public void ParamsAmbiguity3()
+        {
+            string source = @"
+struct S
+{
+    static void Main()
+    {
+        object o = null;
+        S s = default;
+        M(o, default);
+        M(default, o);
+        M(s, default);
+        M(default, s);
+    }
+    static void M<T>(T x, params T[] y) { }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            comp.VerifyEmitDiagnostics();
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+
+            var first = nodes.OfType<LiteralExpressionSyntax>().ElementAt(2);
+            Assert.Equal("(o, default)", first.Parent.Parent.ToString());
+            Assert.Equal("System.Object[]", model.GetTypeInfo(first).Type.ToTestDisplayString());
+
+            var second = nodes.OfType<LiteralExpressionSyntax>().ElementAt(3);
+            Assert.Equal("(default, o)", second.Parent.Parent.ToString());
+            Assert.Equal("System.Object", model.GetTypeInfo(second).Type.ToTestDisplayString());
+
+            var third = nodes.OfType<LiteralExpressionSyntax>().ElementAt(4);
+            Assert.Equal("(s, default)", third.Parent.Parent.ToString());
+            Assert.Equal("S[]", model.GetTypeInfo(third).Type.ToTestDisplayString());
+
+            var fourth = nodes.OfType<LiteralExpressionSyntax>().ElementAt(5);
+            Assert.Equal("(default, s)", fourth.Parent.Parent.ToString());
+            Assert.Equal("S", model.GetTypeInfo(fourth).Type.ToTestDisplayString());
         }
 
         [Fact]
@@ -1680,6 +1987,28 @@ class C
             var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "0");
+        }
+
+        [Fact]
+        public void OptionalCancellationTokenParameter()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        M();
+    }
+    static void M(System.Threading.CancellationToken x = default)
+    {
+        System.Console.Write(""ran"");
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "ran");
         }
 
         [Fact]
