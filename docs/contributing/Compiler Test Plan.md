@@ -75,6 +75,7 @@
     - Compound operators (+=, /=, etc ..) 
     - Assignment exprs
 - Ref returns
+- `this = e;` in `struct` .ctor
 
 # Misc
 - reserved keywords (sometimes contextual)
@@ -180,14 +181,15 @@ A variable is a storage location. These are all the different ways to refer to a
 ```
 x.y 
 f( ) 
-a[ ] 
+a[e] 
 x++ 
 x-- 
 new X() 
-typeof( ) 
-default( ) 
-checked( ) 
-unchecked( ) 
+typeof(T) 
+default(T)
+default 
+checked(e) 
+unchecked(e) 
 delegate ( ) { } 
 +x 
 -x 
