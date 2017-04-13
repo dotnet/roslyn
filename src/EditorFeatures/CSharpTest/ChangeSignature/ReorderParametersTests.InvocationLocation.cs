@@ -165,7 +165,7 @@ class C
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
-        public async Task ReorderMethodParameters_InvokeInMethodBody()
+        public async Task ReorderMethodParameters_InvokeInMethodBody_ViaCommand()
         {
             var markup = @"
 using System;
@@ -176,18 +176,25 @@ class MyClass
         $$
     }
 }";
-            var permutation = new[] { 1, 0 };
-            var updatedCode = @"
+
+            await TestChangeSignatureViaCommandAsync(
+                LanguageNames.CSharp, markup, expectedSuccess: false);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        public async Task ReorderMethodParameters_InvokeInMethodBody_ViaSmartTag()
+        {
+            var markup = @"
 using System;
 class MyClass
 {
-    public void Foo(string y, int x)
+    public void Foo(int x, string y)
     {
-        
+        [||]
     }
 }";
 
-            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
+            await TestMissingAsync(markup);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
