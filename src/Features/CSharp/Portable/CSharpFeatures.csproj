@@ -125,7 +125,7 @@
     <Compile Include="AddMissingReference\CSharpAddMissingReferenceCodeFixProvider.cs" />
     <Compile Include="CodeFixes\Async\CSharpAddAwaitCodeFixProvider.cs" />
     <Compile Include="CodeFixes\Async\CSharpConvertToAsyncMethodCodeFixProvider.cs" />
-    <Compile Include="CodeFixes\FullyQualify\CSharpFullyQualifyCodeFixProvider.cs" />
+    <Compile Include="FullyQualify\CSharpFullyQualifyCodeFixProvider.cs" />
     <Compile Include="GenerateConstructor\GenerateConstructorCodeFixProvider.cs" />
     <Compile Include="CodeFixes\GenerateEnumMember\GenerateEnumMemberCodeFixProvider.cs" />
     <Compile Include="CodeFixes\GenerateMethod\GenerateConversionCodeFixProvider.cs" />
