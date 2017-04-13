@@ -3766,6 +3766,65 @@ class Program
             });
         }
 
+        [Fact]
+        public void AssignDefaultToLocal()
+        {
+            var source = @"
+class C
+{
+    void Test()
+    {
+        int a = 1;
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll, parseOptions: TestOptions.Regular);
+            WithRuntimeInstance(comp, runtime =>
+            {
+                var context = CreateMethodContext(runtime, methodName: "C.Test");
+
+                ResultProperties resultProperties;
+                string error;
+                var testData = new CompilationTestData();
+                ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;
+                context.CompileAssignment("a", "default", NoAliases, DebuggerDiagnosticFormatter.Instance, out resultProperties, out error, out missingAssemblyIdentities, EnsureEnglishUICulture.PreferredOrNull, testData);
+                Assert.Null(error);
+                Assert.Empty(missingAssemblyIdentities);
+
+                Assert.Equal(DkmClrCompilationResultFlags.PotentialSideEffect, resultProperties.Flags);
+                Assert.Equal(default(DkmEvaluationResultCategory), resultProperties.Category); // Not Data
+                Assert.Equal(default(DkmEvaluationResultAccessType), resultProperties.AccessType); // Not Public
+                Assert.Equal(default(DkmEvaluationResultStorageType), resultProperties.StorageType);
+                Assert.Equal(default(DkmEvaluationResultTypeModifierFlags), resultProperties.ModifierFlags); // Not Virtual
+
+                var testData2 = new CompilationTestData();
+                context.CompileExpression("a = default;", DkmEvaluationFlags.None, ImmutableArray<Alias>.Empty, out error, testData2);
+                Assert.Null(error);
+                testData2.GetMethodData("<>x.<>m0").VerifyIL(@"
+{
+  // Code size        4 (0x4)
+  .maxstack  2
+  .locals init (int V_0) //a
+  IL_0000:  ldc.i4.0
+  IL_0001:  dup
+  IL_0002:  stloc.0
+  IL_0003:  ret
+}");
+
+                var testData3 = new CompilationTestData();
+                context.CompileExpression("default", DkmEvaluationFlags.None, ImmutableArray<Alias>.Empty, out error, testData3);
+                Assert.Null(error);
+                testData3.GetMethodData("<>x.<>m0").VerifyIL(@"
+{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (int V_0) //a
+  IL_0000:  ldnull
+  IL_0001:  ret
+}");
+            });
+        }
+
         private static void GetLocals(RuntimeInstance runtime, string methodName, bool argumentsOnly, ArrayBuilder<LocalAndMethod> locals, int count, out string typeName, out CompilationTestData testData)
         {
             var context = CreateMethodContext(runtime, methodName);
