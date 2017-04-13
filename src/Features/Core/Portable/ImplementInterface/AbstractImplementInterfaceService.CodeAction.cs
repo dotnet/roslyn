@@ -499,10 +499,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                             var explicitImplementationCast = generator.CastExpression(
                                 explicitlyImplementedProperty.ContainingType,
                                 generator.ThisExpression());
-
-                            var facts = this.Document.GetLanguageService<ISyntaxFactsService>();
-                            explicitImplementationCast = facts.Parenthesize(explicitImplementationCast);
-
+                            
                             through = generator.MemberAccessExpression(explicitImplementationCast,
                                 generator.IdentifierName(explicitlyImplementedProperty.Name));
 
