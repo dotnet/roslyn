@@ -3756,6 +3756,27 @@ class C
             Assert.Equal("this, p1, p2, local_0, non_nullable", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
         }
 
+
+        [WorkItem(17971, "https://github.com/dotnet/roslyn/issues/17971")]
+        [Fact]
+        public void VariablesDeclaredInBrokenForeach()
+        {
+            var dataFlowAnalysisResults = CompileAndAnalyzeDataFlowStatements(@"
+struct S
+{
+    static void Main(string[] args)
+    {
+/*<bind>*/
+        Console.WriteLine(1);
+        foreach ()
+        Console.WriteLine(2);
+/*</bind>*/
+    }
+}
+");
+            Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared));
+        }
+
         #endregion
 
         #region "lambda"
