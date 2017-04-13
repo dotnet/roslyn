@@ -41,6 +41,7 @@ try
         "dev15.1.x" { } 
         "dev15.2.x" { } 
         "master" { } 
+        "oopWorkUpstream" { }
         default
         {
             if (-not $test)
