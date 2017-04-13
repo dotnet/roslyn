@@ -12,6 +12,7 @@
 /r:System.Reflection
 /r:System.Reflection.Primitives
 /r:System.Runtime
+/r:System.Runtime.Extensions
 /r:System.Runtime.InteropServices
 /r:System.Text.Encoding
 /r:System.Text.Encoding.CodePages

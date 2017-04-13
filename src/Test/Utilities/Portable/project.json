@@ -6,6 +6,7 @@
     "Microsoft.Metadata.Visualizer": "1.0.0-beta1-61531-03",
     "Microsoft.NETCore.Platforms": "1.1.0",
     "Microsoft.NETCore.Portable.Compatibility": "1.0.1",
+    "System.AppContext": "4.3.0",
     "System.Collections.Concurrent": "4.3.0",
     "System.Console": "4.3.0",
     "System.Diagnostics.Debug": "4.3.0",

@@ -2795,7 +2795,7 @@ public class Cls
         return x;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation, expectedOutput: "12").VerifyDiagnostics();
 
@@ -3084,7 +3084,7 @@ a:      Test1(2 is var x1);
         return null;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation, expectedOutput: "2").VerifyDiagnostics(
                 // (6,1): warning CS0164: This label has not been referenced
@@ -3131,7 +3131,7 @@ a:          Test2(2 is var x1, x1);
         return x;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation, expectedOutput: "2").VerifyDiagnostics(
                 // (15,1): warning CS0164: This label has not been referenced
@@ -3511,7 +3511,7 @@ unsafe struct S
     fixed int F2[3 is var x2 ? 3 : 3, x2];
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(text,
+            var compilation = CreateStandardCompilation(text,
                                                             options: TestOptions.ReleaseDebugDll.WithAllowUnsafe(true),
                                                             parseOptions: TestOptions.Regular);
             var tree = compilation.SyntaxTrees.Single();
@@ -3750,7 +3750,7 @@ public class TestClass
     }
 }";
             // DEBUG
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugDll);
             compilation.VerifyDiagnostics();
             compilation.VerifyEmitDiagnostics();
 
@@ -3772,7 +3772,7 @@ public class TestClass
 }");
 
             // RELEASE
-            compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll);
+            compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll);
             compilation.VerifyDiagnostics();
             compilation.VerifyEmitDiagnostics();
 
@@ -3809,7 +3809,7 @@ public class TestClass
     }
 }";
             // DEBUG
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugDll);
             compilation.VerifyDiagnostics();
             compilation.VerifyEmitDiagnostics();
 
@@ -3832,7 +3832,7 @@ public class TestClass
 
             
             // RELEASE
-            compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll);
+            compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll);
             compilation.VerifyDiagnostics();
             compilation.VerifyEmitDiagnostics();
 
@@ -4644,7 +4644,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics(
                 // (6,30): error CS8117: Invalid operand for pattern match; value required, but found '<null>'.
                 //         System.Console.Write(null is Missing x);
