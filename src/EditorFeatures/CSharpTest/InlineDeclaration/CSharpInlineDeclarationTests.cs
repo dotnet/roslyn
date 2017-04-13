@@ -1528,8 +1528,7 @@ class C
         }
 
         [WorkItem(17624, "https://github.com/dotnet/roslyn/issues/17624")]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/17635"),
-         Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
         public async Task TestInLoops3()
         {
             await TestInRegularAndScript1Async(
