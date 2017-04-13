@@ -148,6 +148,7 @@
     <Compile Include="InitializeParameter\AbstractInitializeMemberFromParameterCodeRefactoringProviderMemberCreation.cs" />
     <Compile Include="InitializeParameter\AbstractAddParameterCheckCodeRefactoringProvider.cs" />
     <Compile Include="InitializeParameter\AbstractInitializeParameterCodeRefactoringProvider.cs" />
+    <Compile Include="NavigateTo\NavigateToProjectSearcher.cs" />
     <Compile Include="Navigation\NavigableItem.cs" />
     <Compile Include="PickMembers\IPickMembersService.cs" />
     <Compile Include="PickMembers\PickMembersResult.cs" />
