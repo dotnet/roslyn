@@ -222,6 +222,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
                         }
 
                         break;
+
+                    case CandidateReason.WrongArity:
+                        if (name.GetRightmostName().Arity == 0)
+                        {
+                            // When the user writes something like "IList" we don't want to *not* classify 
+                            // just because the type bound to "IList<T>".  This is also important for use
+                            // cases like "Add-using" where it can be confusing when the using is added for
+                            // "using System.Collection.Generic" but then the type name still does not classify.
+                            return firstSymbol;
+                        }
+
+                        break;
                 }
             }
 
