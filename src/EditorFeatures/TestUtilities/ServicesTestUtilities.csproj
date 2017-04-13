@@ -233,6 +233,7 @@
     <Compile Include="Workspaces\TestHostDocument.cs" />
     <Compile Include="Workspaces\TestHostProject.cs" />
     <Compile Include="Workspaces\TestHostSolution.cs" />
+    <Compile Include="Workspaces\TestSymbolRenamedCodeActionOperationFactoryWorkspaceService.cs" />
     <Compile Include="Workspaces\TestWorkspace.cs" />
     <Compile Include="Workspaces\TestWorkspaceFixture.cs" />
     <Compile Include="Workspaces\TestWorkspace_Create.cs" />
