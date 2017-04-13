@@ -64,9 +64,14 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
                 foreach (var member in type.GetMembers(MemberBindingFlags))
                 {
-                    if (!predicate(member))
+                    // The native EE shows members regardless of accessibility if they have a
+                    // DebuggerBrowsable attribute of any value. Match that behaviour here.
+                    if (browsableState == null || !browsableState.ContainsKey(member.Name))
                     {
-                        continue;
+                        if (!predicate(member))
+                        {
+                            continue;
+                        }
                     }
 
                     var memberName = member.Name;
@@ -191,10 +196,15 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     {
                         // Native EE uses the accessibility of the property rather than getter
                         // so "public object P { private get; set; }" is treated as public.
-                        // We match this behaviour to maintain compatibility with F#, where it
-                        // is impossible to make property getters public on internal types.
+                        // Instead, we drop properties if the getter is inaccessible.
                         var getMethod = GetNonIndexerGetMethod((PropertyInfo)member);
-                        return getMethod != null;
+                        if (getMethod == null)
+                        {
+                            return false;
+                        }
+                        var attributes = getMethod.Attributes;
+                        return ((attributes & System.Reflection.MethodAttributes.Public) == System.Reflection.MethodAttributes.Public) ||
+                            ((attributes & System.Reflection.MethodAttributes.Family) == System.Reflection.MethodAttributes.Family);
                     }
                 default:
                     return false;
