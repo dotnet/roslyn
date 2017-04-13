@@ -118,8 +118,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             foreach (var dehydrated in array)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                var rehydrated = await dehydrated.RehydrateAsync(solution, cancellationToken).ConfigureAwait(false);
-                result.Add(rehydrated);
+                var rehydrated = await dehydrated.TryRehydrateAsync(solution, cancellationToken).ConfigureAwait(false);
+                if (rehydrated != null)
+                {
+                    result.Add(rehydrated.Value);
+                }
             }
 
             return result.ToImmutableAndFree();
