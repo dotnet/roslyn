@@ -138,26 +138,32 @@ class C
 {
     static void Main()
     {
-        System.Console.Write($""({default})"");
+        System.Console.Write($""({default}) ({null})"");
     }
 }
 ";
 
             var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "()");
+            CompileAndVerify(comp, expectedOutput: "() ()");
 
             var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);
             var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
 
-            var def = nodes.OfType<LiteralExpressionSyntax>().Single();
+            var def = nodes.OfType<LiteralExpressionSyntax>().ElementAt(0);
             Assert.Equal("default", def.ToString());
             Assert.Null(model.GetTypeInfo(def).Type); // Should be given a type. Follow-up issue: https://github.com/dotnet/roslyn/issues/18609
             Assert.Null(model.GetTypeInfo(def).ConvertedType);
             Assert.Null(model.GetSymbolInfo(def).Symbol);
             Assert.False(model.GetConstantValue(def).HasValue);
             Assert.False(model.GetConversion(def).IsNullLiteral);
+
+            var nullSyntax = nodes.OfType<LiteralExpressionSyntax>().ElementAt(1);
+            Assert.Equal("null", nullSyntax.ToString());
+            Assert.Null(model.GetTypeInfo(nullSyntax).Type);
+            Assert.Null(model.GetTypeInfo(nullSyntax).ConvertedType); // Should be given a type. Follow-up issue: https://github.com/dotnet/roslyn/issues/18609
+            Assert.Null(model.GetSymbolInfo(nullSyntax).Symbol);
         }
 
         [Fact]
@@ -172,25 +178,31 @@ class C
         {
             System.Console.Write(""ok"");
         }
+        using (null) { }
     }
 }
 ";
 
             var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics(); // Should give an error. Follow-up issue: https://github.com/dotnet/roslyn/issues/18609
+            comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "ok");
 
             var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);
             var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
 
-            var def = nodes.OfType<LiteralExpressionSyntax>().First();
+            var def = nodes.OfType<LiteralExpressionSyntax>().ElementAt(0);
             Assert.Equal("default", def.ToString());
             Assert.Null(model.GetTypeInfo(def).Type);
-            Assert.Null(model.GetTypeInfo(def).ConvertedType);
+            Assert.Null(model.GetTypeInfo(def).ConvertedType); // Should get a type. Follow-up issue: https://github.com/dotnet/roslyn/issues/18609
             Assert.Null(model.GetSymbolInfo(def).Symbol);
             Assert.False(model.GetConstantValue(def).HasValue);
             Assert.False(model.GetConversion(def).IsNullLiteral);
+
+            var nullSyntax = nodes.OfType<LiteralExpressionSyntax>().ElementAt(2);
+            Assert.Equal("null", nullSyntax.ToString());
+            Assert.Null(model.GetTypeInfo(nullSyntax).Type);
+            Assert.Null(model.GetTypeInfo(nullSyntax).ConvertedType); // Should get a type. Follow-up issue: https://github.com/dotnet/roslyn/issues/18609
         }
 
         [Fact]
