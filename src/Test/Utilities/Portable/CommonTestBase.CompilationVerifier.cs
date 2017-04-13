@@ -32,6 +32,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             private ImmutableArray<Diagnostic> _diagnostics;
             private IModuleSymbol _lazyModuleSymbol;
             private IList<ModuleData> _allModuleData;
+            internal int _lastErrorCode;
 
             internal ImmutableArray<byte> EmittedAssemblyData;
             internal ImmutableArray<byte> EmittedAssemblyPdb;
@@ -45,6 +46,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 _compilation = compilation;
                 _dependencies = dependencies;
             }
+
+            internal int LastErrorCode => _lastErrorCode;
 
             internal CompilationTestData TestData
             {
@@ -88,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 return modules;
             }
 
-            public void Emit(string expectedOutput, string[] args, IEnumerable<ResourceDescription> manifestResources, EmitOptions emitOptions, bool peVerify, SignatureDescription[] expectedSignatures)
+            public int Emit(string expectedOutput, string[] args, IEnumerable<ResourceDescription> manifestResources, EmitOptions emitOptions, bool peVerify, SignatureDescription[] expectedSignatures)
             {
                 using (var testEnvironment = RuntimeEnvironmentFactory.Create(_dependencies))
                 {
@@ -107,9 +110,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
                     if (expectedOutput != null)
                     {
-                        testEnvironment.Execute(mainModuleName, expectedOutput, args);
+                        return testEnvironment.Execute(mainModuleName, expectedOutput, args);
                     }
                 }
+                return 1;
             }
 
             // TODO(tomat): Fold into CompileAndVerify. 

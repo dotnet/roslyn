@@ -1239,10 +1239,10 @@ class A
             foreach (var langVersion in new LanguageVersion[] { LanguageVersion.CSharp7, LanguageVersion.CSharp7_1 })
             {
                 var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
-                compilation.VerifyDiagnostics();
-                var entry = compilation.GetEntryPoint(CancellationToken.None);
-                Assert.NotNull(entry);
-                Assert.Equal("void A.Main()", entry.ToTestDisplayString());
+                compilation.VerifyDiagnostics(
+                    // (6,23): error CS0017: Program has more than one entry point defined. Compile with /main to specify the type that contains the entry point.
+                    //     async static Task Main(string[] args)
+                    Diagnostic(ErrorCode.ERR_MultipleEntryPoints, "Main").WithLocation(6, 23));
             }
         }
 

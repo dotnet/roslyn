@@ -213,7 +213,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             verifier = new CompilationVerifier(this, compilation, dependencies);
 
-            verifier.Emit(expectedOutput, args, manifestResources, emitOptions, verify, expectedSignatures);
+            verifier._lastErrorCode = verifier.Emit(expectedOutput, args, manifestResources, emitOptions, verify, expectedSignatures);
 
             // We're dual-purposing emitters here.  In this context, it
             // tells the validator the version of Emit that is calling it. 

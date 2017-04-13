@@ -386,7 +386,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 // Main(args) or Main()
                 BoundCall userMainInvocation = new BoundCall(
-                        syntax: this.GetSyntax(),
+                        syntax: syntax,
                         receiverOpt: null,
                         method: _userMain,
                         arguments: arguments,
