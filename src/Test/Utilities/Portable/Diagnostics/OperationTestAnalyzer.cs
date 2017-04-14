@@ -820,12 +820,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                  (operationContext) =>
                  {
                      var declarationStatement = (IVariableDeclarationStatement)operationContext.Operation;
-                     if (declarationStatement.Variables.Length > 3)
+                     if (declarationStatement.DeclarationGroups.Length > 3)
                      {
                          Report(operationContext, declarationStatement.Syntax, TooManyLocalVarDeclarationsDescriptor);
                      }
 
-                     foreach (var decl in declarationStatement.Variables)
+                     foreach (var decl in declarationStatement.DeclarationGroups)
                      {
                          if (decl.InitialValue != null && !decl.InitialValue.IsInvalid)
                          {

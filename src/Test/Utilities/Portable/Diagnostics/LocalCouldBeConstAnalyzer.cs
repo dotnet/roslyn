@@ -67,17 +67,19 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                             (operationContext) =>
                             {
                                 IVariableDeclarationStatement declaration = (IVariableDeclarationStatement)operationContext.Operation;
-                                foreach (IVariableDeclaration variable in declaration.Variables)
+                                foreach (IVariableDeclarationGroup variable in declaration.DeclarationGroups)
                                 {
-                                    ILocalSymbol local = variable.Variable;
-                                    if (!local.IsConst && !assignedToLocals.Contains(local))
+                                    foreach (ILocalSymbol local in variable.Symbols)
                                     {
-                                        var localType = local.Type;
-                                        if ((!localType.IsReferenceType || localType.SpecialType == SpecialType.System_String) && localType.SpecialType != SpecialType.None)
+                                        if (!local.IsConst && !assignedToLocals.Contains(local))
                                         {
-                                            if (variable.InitialValue != null && variable.InitialValue.ConstantValue.HasValue)
+                                            var localType = local.Type;
+                                            if ((!localType.IsReferenceType || localType.SpecialType == SpecialType.System_String) && localType.SpecialType != SpecialType.None)
                                             {
-                                                mightBecomeConstLocals.Add(local);
+                                                if (variable.InitialValue != null && variable.InitialValue.ConstantValue.HasValue)
+                                                {
+                                                    mightBecomeConstLocals.Add(local);
+                                                }
                                             }
                                         }
                                     }

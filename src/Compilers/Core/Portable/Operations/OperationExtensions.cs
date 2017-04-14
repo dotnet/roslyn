@@ -46,6 +46,17 @@ namespace Microsoft.CodeAnalysis.Semantics
             }
         }
 
+        public static IEnumerable<ILocalSymbol> GetDeclaredSymbols(this IVariableDeclarationStatement declarationStatement)
+        {
+            foreach (IVariableDeclarationGroup group in declarationStatement.DeclarationGroups)
+            {
+                foreach (ILocalSymbol symbol in group.Symbols)
+                {
+                    yield return symbol;
+                }
+            }
+        }
+
         private sealed class OperationCollector : OperationWalker
         {
             private readonly List<IOperation> _list;

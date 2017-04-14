@@ -126,7 +126,7 @@
     <Compile Include="Operations\IUnaryOperatorExpression.cs" />
     <Compile Include="Operations\IUnboundLambdaExpression.cs" />
     <Compile Include="Operations\IUsingStatement.cs" />
-    <Compile Include="Operations\IVariableDeclaration.cs" />
+    <Compile Include="Operations\IVariableDeclarationGroup.cs" />
     <Compile Include="Operations\IVariableDeclarationStatement.cs" />
     <Compile Include="Operations\IWhileUntilLoopStatement.cs" />
     <Compile Include="Operations\IWithStatement.cs" />

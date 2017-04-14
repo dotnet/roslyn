@@ -2281,29 +2281,29 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// This interface is reserved for implementation by its associated APIs. We reserve the right to
     /// change it in the future.
     /// </remarks>
-    internal sealed partial class VariableDeclaration : Operation, IVariableDeclaration
+    internal sealed partial class VariableDeclaration : Operation, IVariableDeclarationGroup
     {
-        public VariableDeclaration(ILocalSymbol variable, IOperation initialValue, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+        public VariableDeclaration(ImmutableArray<ILocalSymbol> variables, IOperation initialValue, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(OperationKind.VariableDeclaration, isInvalid, syntax, type, constantValue)
         {
-            Variable = variable;
+            Symbols = variables;
             InitialValue = initialValue;
         }
         /// <summary>
-        /// Variable declared by the declaration.
+        /// Variables declared by the declaration.
         /// </summary>
-        public ILocalSymbol Variable { get; }
+        public ImmutableArray<ILocalSymbol> Symbols { get; }
         /// <summary>
-        /// Initializer of the variable.
+        /// Initializer of the variables.
         /// </summary>
         public IOperation InitialValue { get; }
         public override void Accept(OperationVisitor visitor)
         {
-            visitor.VisitVariableDeclaration(this);
+            visitor.VisitVariableDeclarationGroup(this);
         }
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
-            return visitor.VisitVariableDeclaration(this, argument);
+            return visitor.VisitVariableDeclarationGroup(this, argument);
         }
     }
 
@@ -2316,15 +2316,15 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </remarks>
     internal sealed partial class VariableDeclarationStatement : Operation, IVariableDeclarationStatement
     {
-        public VariableDeclarationStatement(ImmutableArray<IVariableDeclaration> variables, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+        public VariableDeclarationStatement(ImmutableArray<IVariableDeclarationGroup> variables, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(OperationKind.VariableDeclarationStatement, isInvalid, syntax, type, constantValue)
         {
-            Variables = variables;
+            DeclarationGroups = variables;
         }
         /// <summary>
         /// Variables declared by the statement.
         /// </summary>
-        public ImmutableArray<IVariableDeclaration> Variables { get; }
+        public ImmutableArray<IVariableDeclarationGroup> DeclarationGroups { get; }
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitVariableDeclarationStatement(this);

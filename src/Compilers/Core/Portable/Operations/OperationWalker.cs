@@ -47,10 +47,10 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public override void VisitVariableDeclarationStatement(IVariableDeclarationStatement operation)
         {
-            VisitArray(operation.Variables);
+            VisitArray(operation.DeclarationGroups);
         }
 
-        public override void VisitVariableDeclaration(IVariableDeclaration operation)
+        public override void VisitVariableDeclarationGroup(IVariableDeclarationGroup operation)
         {
             Visit(operation.InitialValue);
         }

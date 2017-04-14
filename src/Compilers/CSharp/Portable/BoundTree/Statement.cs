@@ -626,12 +626,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static readonly ConditionalWeakTable<BoundLocalDeclaration, object> s_variablesMappings =
             new ConditionalWeakTable<BoundLocalDeclaration, object>();
 
-        ImmutableArray<IVariableDeclaration> IVariableDeclarationStatement.Variables
+        ImmutableArray<IVariableDeclarationGroup> IVariableDeclarationStatement.DeclarationGroups
         {
             get
             {
-                return (ImmutableArray<IVariableDeclaration>)s_variablesMappings.GetValue(this,
-                    declaration => ImmutableArray.Create<IVariableDeclaration>(new VariableDeclaration(declaration.LocalSymbol, declaration.InitializerOpt, declaration.Syntax)));
+                return (ImmutableArray<IVariableDeclarationGroup>)s_variablesMappings.GetValue(this,
+                    declaration => ImmutableArray.Create<IVariableDeclarationGroup>(new VariableDeclaration(declaration.LocalSymbol, declaration.InitializerOpt, declaration.Syntax)));
             }
         }
 
@@ -653,14 +653,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static readonly ConditionalWeakTable<BoundMultipleLocalDeclarations, object> s_variablesMappings =
             new ConditionalWeakTable<BoundMultipleLocalDeclarations, object>();
 
-        ImmutableArray<IVariableDeclaration> IVariableDeclarationStatement.Variables
+        ImmutableArray<IVariableDeclarationGroup> IVariableDeclarationStatement.DeclarationGroups
         {
             get
             {
-                return (ImmutableArray<IVariableDeclaration>)s_variablesMappings.GetValue(this,
+                return (ImmutableArray<IVariableDeclarationGroup>)s_variablesMappings.GetValue(this,
                     multipleDeclarations =>
                         multipleDeclarations.LocalDeclarations.SelectAsArray(declaration =>
-                            (IVariableDeclaration)new VariableDeclaration(declaration.LocalSymbol, declaration.InitializerOpt, declaration.Syntax)));
+                            (IVariableDeclarationGroup)new VariableDeclaration(declaration.LocalSymbol, declaration.InitializerOpt, declaration.Syntax)));
             }
         }
 

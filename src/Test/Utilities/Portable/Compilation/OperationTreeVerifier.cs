@@ -277,17 +277,20 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public override void VisitVariableDeclarationStatement(IVariableDeclarationStatement operation)
         {
-            var variablesCountStr = $"{operation.Variables.Length} variables";
+            var variablesCountStr = $"{operation.DeclarationGroups.Length} groups";
             LogString($"{nameof(IVariableDeclarationStatement)} ({variablesCountStr})");
             LogCommonPropertiesAndNewLine(operation);
 
             base.VisitVariableDeclarationStatement(operation);
         }
 
-        public override void VisitVariableDeclaration(IVariableDeclaration operation)
+        public override void VisitVariableDeclarationGroup(IVariableDeclarationGroup operation)
         {
-            LogSymbol(operation.Variable, header: nameof(IVariableDeclaration));
+            var symbolsCountStr = $"{operation.Symbols.Length} symbols";
+            LogString($"{nameof(IVariableDeclarationGroup)} ({symbolsCountStr})");
             LogCommonPropertiesAndNewLine(operation);
+
+            LogLocals(operation.Symbols);
 
             Visit(operation.InitialValue, "Initializer");
         }

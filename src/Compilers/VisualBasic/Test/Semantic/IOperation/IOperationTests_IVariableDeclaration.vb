@@ -445,9 +445,9 @@ End Module
             Dim semanticModel = compilation.GetSemanticModel(tree)
             Dim operation = CType(semanticModel.GetOperationInternal(node), IVariableDeclarationStatement)
 
-            Assert.Equal(2, operation.Variables.Count())
-            Dim var1 = operation.Variables(0)
-            Dim var2 = operation.Variables(1)
+            Assert.Equal(2, operation.DeclarationGroups.Count())
+            Dim var1 = operation.DeclarationGroups(0)
+            Dim var2 = operation.DeclarationGroups(1)
 
             Assert.NotNull(var1.InitialValue)
             Assert.NotNull(var2.InitialValue)
