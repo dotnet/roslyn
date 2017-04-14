@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                     tempArrays.Add(tempArray);
 
                     // Kick off a fresh task so searching can happen in parallel.
-                    tasks.Add(Task.Run(() => SearchDocumentAsync(document, tempArray)));
+                    tasks.Add(Task.Run(() => SearchDocumentAsync(document, tempArray), _cancellationToken));
                 }
             }
 

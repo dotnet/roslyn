@@ -61,11 +61,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                     {
                         _progress.AddItems(_solution.Projects.Count());
 
-                        // Search each project with an independent threadpool task.
-                        var searchTasks = _solution.Projects.Select(
-                            p => Task.Run(() => SearchAsync(p))).ToArray();
-
-                        await Task.WhenAll(searchTasks).ConfigureAwait(false);
+                        // Search each project serially.  Note that each managed project itself will
+                        // search its documents in parallel.
+                        foreach (var project in _solution.Projects)
+                        {
+                            await SearchAsync(project).ConfigureAwait(false);
+                        }
                     }
                 }
                 catch (OperationCanceledException)
