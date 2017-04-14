@@ -911,6 +911,30 @@ class C
         }
 
         [Fact]
+        public void NegationUnaryOperatorOnTypelessExpressions()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        if (!Main || !null)
+        {
+        }
+    }
+}";
+            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (6,13): error CS0023: Operator '!' cannot be applied to operand of type 'method group'
+                //         if (!Main || !null)
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "!Main").WithArguments("!", "method group"),
+                // (6,22): error CS0023: Operator '!' cannot be applied to operand of type '<null>'
+                //         if (!Main || !null)
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "!null").WithArguments("!", "<null>").WithLocation(6, 22)
+                );
+        }
+
+        [Fact]
         public void ConditionalOnDefault()
         {
             string source = @"
