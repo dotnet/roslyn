@@ -18,7 +18,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 {
-    internal abstract partial class AbstractAddImportCodeFixProvider<TSimpleNameSyntax> : CodeFixProvider, IEqualityComparer<PortableExecutableReference>
+    internal abstract partial class AbstractAddImportCodeFixProvider<TSimpleNameSyntax> 
+        : CodeFixProvider, IEqualityComparer<(ProjectId, PortableExecutableReference)>
         where TSimpleNameSyntax : SyntaxNode
     {
         private const int MaxResults = 3;
@@ -249,15 +250,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             // Keep track of the references we've seen (so that we don't process them multiple times
             // across many sibling projects).  Prepopulate it with our own metadata references since
             // we know we don't need to search in that.
-            var seenReferences = new HashSet<PortableExecutableReference>(comparer: this);
-            seenReferences.AddAll(project.MetadataReferences.OfType<PortableExecutableReference>());
+            var seenReferences = new HashSet<(ProjectId, PortableExecutableReference)>(comparer: this);
+            seenReferences.AddAll(project.MetadataReferences.OfType<PortableExecutableReference>().Select(r => (project.Id, r)));
 
-            var newReferences =
-                project.Solution.Projects.Where(p => p != project)
-                                         .SelectMany(p => p.MetadataReferences.OfType<PortableExecutableReference>())
-                                         .Distinct(comparer: this)
-                                         .Where(r => !seenReferences.Contains(r))
-                                         .Where(r => !IsInPackagesDirectory(r));
+            var newReferences = GetUnreferencedMetadataReferences(project, seenReferences);
 
             // Search all metadata references in parallel.
             var findTasks = new HashSet<Task<ImmutableArray<SymbolReference>>>();
@@ -267,9 +263,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             using (var nestedTokenSource = new CancellationTokenSource())
             using (var linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(nestedTokenSource.Token, cancellationToken))
             {
-                foreach (var reference in newReferences)
+                foreach (var (referenceProjectId, reference) in newReferences)
                 {
-                    var compilation = referenceToCompilation.GetOrAdd(reference, r => CreateCompilation(project, r));
+                    var compilation = referenceToCompilation.GetOrAdd(
+                        reference, r => CreateCompilation(project, r));
 
                     // Ignore netmodules.  First, they're incredibly esoteric and barely used.
                     // Second, the SymbolFinder API doesn't even support searching them. 
@@ -277,12 +274,29 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                     if (assembly != null)
                     {
                         findTasks.Add(finder.FindInMetadataSymbolsAsync(
-                            assembly, reference, exact, linkedTokenSource.Token));
+                            assembly, referenceProjectId, reference, exact, linkedTokenSource.Token));
                     }
                 }
 
                 await WaitForTasksAsync(allSymbolReferences, findTasks, nestedTokenSource, cancellationToken).ConfigureAwait(false);
             }
+        }
+
+        /// <summary>
+        /// Returns the set of PEReferences in the solution that are not currently being referenced
+        /// by this project.  The set returned will be tuples containing the PEReference, and the project-id
+        /// for the project we found the pe-reference in.
+        /// </summary>
+        private ImmutableArray<(ProjectId, PortableExecutableReference)> GetUnreferencedMetadataReferences(
+            Project project, HashSet<(ProjectId, PortableExecutableReference)> seenReferences)
+        {
+            var solution = project.Solution;
+            return solution.Projects.Where(p => p != project)
+                                    .SelectMany(p => p.MetadataReferences.OfType<PortableExecutableReference>().Select(pe => (p.Id, reference: pe)))
+                                    .Distinct(comparer: this)
+                                    .Where(t => !seenReferences.Contains(t))
+                                    .Where(t => !IsInPackagesDirectory(t.Item2))
+                                    .ToImmutableArray();
         }
 
         private async Task WaitForTasksAsync(
@@ -364,16 +378,17 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
         }
 
 
-        bool IEqualityComparer<PortableExecutableReference>.Equals(PortableExecutableReference x, PortableExecutableReference y)
+        bool IEqualityComparer<(ProjectId, PortableExecutableReference)>.Equals(
+            (ProjectId, PortableExecutableReference) x, (ProjectId, PortableExecutableReference) y)
         {
             return StringComparer.OrdinalIgnoreCase.Equals(
-                x.FilePath ?? x.Display,
-                y.FilePath ?? y.Display);
+                x.Item2.FilePath ?? x.Item2.Display,
+                y.Item2.FilePath ?? y.Item2.Display);
         }
 
-        int IEqualityComparer<PortableExecutableReference>.GetHashCode(PortableExecutableReference obj)
+        int IEqualityComparer<(ProjectId, PortableExecutableReference)>.GetHashCode((ProjectId, PortableExecutableReference) obj)
         {
-            return StringComparer.OrdinalIgnoreCase.GetHashCode(obj.FilePath ?? obj.Display);
+            return StringComparer.OrdinalIgnoreCase.GetHashCode(obj.Item2.FilePath ?? obj.Item2.Display);
         }
 
         private static HashSet<Project> GetViableUnreferencedProjects(Project project)

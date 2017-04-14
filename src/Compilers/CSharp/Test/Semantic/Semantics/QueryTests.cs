@@ -377,7 +377,7 @@ class Query
        Console.WriteLine(r1);
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(csSource);
+            var compilation = CreateStandardCompilation(csSource);
             compilation.VerifyDiagnostics();
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
@@ -440,7 +440,7 @@ class Query
        Console.WriteLine(r1);
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(csSource, new[] { LinqAssemblyRef });
+            var compilation = CreateStandardCompilation(csSource, new[] { LinqAssemblyRef });
             foreach (var dd in compilation.GetDiagnostics()) Console.WriteLine(dd);
             compilation.VerifyDiagnostics();
             var tree = compilation.SyntaxTrees[0];
@@ -501,7 +501,7 @@ class Query
        Console.WriteLine(r1);
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(csSource);
+            var compilation = CreateStandardCompilation(csSource);
             compilation.VerifyDiagnostics();
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
@@ -539,7 +539,7 @@ class Query
         Console.WriteLine(r);
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(csSource);
+            var compilation = CreateStandardCompilation(csSource);
             compilation.VerifyDiagnostics();
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
@@ -1857,7 +1857,7 @@ class Query
 ";
             var queryStatement = (LocalDeclarationStatementSyntax)SyntaxFactory.ParseStatement(speculatedSource);
 
-            var compilation = CreateCompilationWithMscorlib(csSource);
+            var compilation = CreateStandardCompilation(csSource);
             compilation.VerifyDiagnostics();
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
@@ -1901,7 +1901,7 @@ class Query
 
             var queryStatement = (LocalDeclarationStatementSyntax)SyntaxFactory.ParseStatement(speculatedSource);
 
-            var compilation = CreateCompilationWithMscorlib(csSource);
+            var compilation = CreateStandardCompilation(csSource);
             compilation.VerifyDiagnostics();
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);

@@ -287,7 +287,7 @@ public class B
 
             var countedTree = new CountedSyntaxTree(foreignType);
 
-            var compilation = CreateCompilationWithMscorlib(new SyntaxTree[] { underlyingTree, countedTree });
+            var compilation = CreateStandardCompilation(new SyntaxTree[] { underlyingTree, countedTree });
 
             var type = compilation.Assembly.GlobalNamespace.GetTypeMembers().First();
             Assert.Equal(1, countedTree.AccessCount);   // parse once to build the decl table

@@ -134,7 +134,7 @@ class C2
         [Fact]
         public void NameofRecursiveDefaultParameter()
         {
-            var comp = CreateCompilationWithMscorlib(@"
+            var comp = CreateStandardCompilation(@"
 using System;
 class C
 {
@@ -694,7 +694,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(src);
+            var comp = CreateStandardCompilation(src);
             comp.VerifyEmitDiagnostics();
         }
 
