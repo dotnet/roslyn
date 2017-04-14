@@ -820,7 +820,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                  (operationContext) =>
                  {
                      var declarationStatement = (IVariableDeclarationStatement)operationContext.Operation;
-                     if (declarationStatement.DeclarationGroups.Length > 3)
+                     if (declarationStatement.GetDeclaredSymbols().Count() > 3)
                      {
                          Report(operationContext, declarationStatement.Syntax, TooManyLocalVarDeclarationsDescriptor);
                      }
@@ -829,7 +829,10 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                      {
                          if (decl.InitialValue != null && !decl.InitialValue.IsInvalid)
                          {
-                             Report(operationContext, decl.Syntax, LocalVarInitializedDeclarationDescriptor);
+                             foreach (var symbol in decl.Symbols)
+                             {
+                                Report(operationContext, symbol.DeclaringSyntaxReferences.Single().GetSyntax(), LocalVarInitializedDeclarationDescriptor);
+                             }
                          }
                      }
                  },
