@@ -2108,10 +2108,9 @@ class C
   .maxstack  1
   .locals init (int V_0,
                 System.Runtime.CompilerServices.TaskAwaiter<object> V_1,
-                object V_2,
-                C.<M>d__1 V_3,
-                System.Runtime.CompilerServices.TaskAwaiter<object> V_4,
-                System.Exception V_5)
+                C.<M>d__1 V_2,
+                System.Runtime.CompilerServices.TaskAwaiter<object> V_3,
+                System.Exception V_4)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""object C.<M>d__1.x""
   IL_0006:  ret
@@ -2122,10 +2121,9 @@ class C
   .maxstack  1
   .locals init (int V_0,
                 System.Runtime.CompilerServices.TaskAwaiter<object> V_1,
-                object V_2,
-                C.<M>d__1 V_3,
-                System.Runtime.CompilerServices.TaskAwaiter<object> V_4,
-                System.Exception V_5)
+                C.<M>d__1 V_2,
+                System.Runtime.CompilerServices.TaskAwaiter<object> V_3,
+                System.Exception V_4)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""object C.<M>d__1.<y>5__1""
   IL_0006:  ret
@@ -2180,12 +2178,11 @@ class C
   .maxstack  1
   .locals init (int V_0,
                 System.Runtime.CompilerServices.TaskAwaiter<object> V_1,
-                object V_2,
-                C.<M>d__1 V_3,
+                C.<M>d__1 V_2,
+                System.Runtime.CompilerServices.TaskAwaiter<object> V_3,
                 System.Runtime.CompilerServices.TaskAwaiter<object> V_4,
                 System.Runtime.CompilerServices.TaskAwaiter<object> V_5,
-                System.Runtime.CompilerServices.TaskAwaiter<object> V_6,
-                System.Exception V_7)
+                System.Exception V_6)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""object C.<M>d__1.x""
   IL_0006:  ret
@@ -2196,12 +2193,11 @@ class C
   .maxstack  1
   .locals init (int V_0,
                 System.Runtime.CompilerServices.TaskAwaiter<object> V_1,
-                object V_2,
-                C.<M>d__1 V_3,
+                C.<M>d__1 V_2,
+                System.Runtime.CompilerServices.TaskAwaiter<object> V_3,
                 System.Runtime.CompilerServices.TaskAwaiter<object> V_4,
                 System.Runtime.CompilerServices.TaskAwaiter<object> V_5,
-                System.Runtime.CompilerServices.TaskAwaiter<object> V_6,
-                System.Exception V_7)
+                System.Exception V_6)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""int C.<M>d__1.<y>5__1""
   IL_0006:  ret
@@ -2221,28 +2217,27 @@ class C
   .maxstack  1
   .locals init (int V_0,
                 System.Runtime.CompilerServices.TaskAwaiter<object> V_1,
-                object V_2,
-                C.<M>d__1 V_3,
+                C.<M>d__1 V_2,
+                System.Runtime.CompilerServices.TaskAwaiter<object> V_3,
                 System.Runtime.CompilerServices.TaskAwaiter<object> V_4,
                 System.Runtime.CompilerServices.TaskAwaiter<object> V_5,
-                System.Runtime.CompilerServices.TaskAwaiter<object> V_6,
-                System.Exception V_7)
+                System.Exception V_6)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""object C.<M>d__1.x""
   IL_0006:  ret
-}");
+}
+");
                 VerifyLocal(testData, "<>x", locals[1], "<>m1", "y", expectedILOpt:
 @"{
   // Code size        7 (0x7)
   .maxstack  1
   .locals init (int V_0,
                 System.Runtime.CompilerServices.TaskAwaiter<object> V_1,
-                object V_2,
-                C.<M>d__1 V_3,
+                C.<M>d__1 V_2,
+                System.Runtime.CompilerServices.TaskAwaiter<object> V_3,
                 System.Runtime.CompilerServices.TaskAwaiter<object> V_4,
                 System.Runtime.CompilerServices.TaskAwaiter<object> V_5,
-                System.Runtime.CompilerServices.TaskAwaiter<object> V_6,
-                System.Exception V_7)
+                System.Exception V_6)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""long C.<M>d__1.<y>5__3""
   IL_0006:  ret
