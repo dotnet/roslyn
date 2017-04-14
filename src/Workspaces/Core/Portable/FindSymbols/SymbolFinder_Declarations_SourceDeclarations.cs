@@ -28,46 +28,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public static async Task<IEnumerable<ISymbol>> FindSourceDeclarationsAsync(
             Solution solution, string name, bool ignoreCase, SymbolFilter filter, CancellationToken cancellationToken = default(CancellationToken))
         {
-            if (solution == null)
-            {
-                throw new ArgumentNullException(nameof(solution));
-            }
-
-            if (name == null)
-            {
-                throw new ArgumentNullException(nameof(name));
-            }
-
-            if (string.IsNullOrWhiteSpace(name))
-            {
-                return ImmutableArray<ISymbol>.Empty;
-            }
-
             using (Logger.LogBlock(FunctionId.SymbolFinder_Solution_Name_FindSourceDeclarationsAsync, cancellationToken))
             {
-                return await FindSourceDeclarationsWithNormalQueryAsync(
-                    solution, SearchQuery.Create(name, ignoreCase), filter, cancellationToken).ConfigureAwait(false);
+                var declarations = await DeclarationFinder.FindSourceDeclarationsWithNormalQueryAsync(
+                    solution, name, ignoreCase, filter, cancellationToken).ConfigureAwait(false);
+                return declarations.SelectAsArray(t => t.Symbol);
             }
-        }
-
-        private static async Task<ImmutableArray<ISymbol>> FindSourceDeclarationsWithNormalQueryAsync(
-            Solution solution, SearchQuery query, SymbolFilter filter, CancellationToken cancellationToken)
-        {
-            Debug.Assert(query.Kind != SearchKind.Custom);
-
-            if (query.Name != null && string.IsNullOrWhiteSpace(query.Name))
-            {
-                return ImmutableArray<ISymbol>.Empty;
-            }
-
-            var result = ArrayBuilder<ISymbol>.GetInstance();
-            foreach (var projectId in solution.ProjectIds)
-            {
-                var project = solution.GetProject(projectId);
-                await AddCompilationDeclarationsWithNormalQueryAsync(project, query, filter, result, cancellationToken).ConfigureAwait(false);
-            }
-
-            return result.ToImmutableAndFree();
         }
 
         /// <summary>
@@ -82,27 +48,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public static async Task<IEnumerable<ISymbol>> FindSourceDeclarationsAsync(
             Project project, string name, bool ignoreCase, SymbolFilter filter, CancellationToken cancellationToken = default(CancellationToken))
         {
-            if (project == null)
-            {
-                throw new ArgumentNullException(nameof(project));
-            }
-
-            if (name == null)
-            {
-                throw new ArgumentNullException(nameof(name));
-            }
-
-            if (string.IsNullOrWhiteSpace(name))
-            {
-                return SpecializedCollections.EmptyEnumerable<ISymbol>();
-            }
-
             using (Logger.LogBlock(FunctionId.SymbolFinder_Project_Name_FindSourceDeclarationsAsync, cancellationToken))
             {
-                var list = ArrayBuilder<ISymbol>.GetInstance();
-                await AddCompilationDeclarationsWithNormalQueryAsync(
-                    project, SearchQuery.Create(name, ignoreCase), filter, list, cancellationToken).ConfigureAwait(false);
-                return list.ToImmutableAndFree();
+                var declarations = await DeclarationFinder.FindSourceDeclarationsWithNormalQueryAsync(
+                    project, name, ignoreCase, filter, cancellationToken).ConfigureAwait(false);
+
+                return declarations.SelectAsArray(t => t.Symbol);
             }
         }
     }

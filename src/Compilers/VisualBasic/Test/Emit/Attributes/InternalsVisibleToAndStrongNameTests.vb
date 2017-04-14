@@ -31,15 +31,12 @@ Partial Public Class InternalsVisibleToAndStrongNameTests
         Return New SigningTestHelpers.VirtualizedStrongNameProvider(ImmutableArray.Create(keyFilePath))
     End Function
 
-    Private Shared Sub VerifySigned(comp As Compilation)
+    Private Shared Sub VerifySigned(comp As Compilation, Optional expectedToBeSigned As Boolean = True)
         Using outStream = comp.EmitToStream()
-
             outStream.Position = 0
 
             Dim headers = New PEHeaders(outStream)
-
-            Dim flags = headers.CorHeader.Flags
-            Assert.True(flags.HasFlag(CorFlags.StrongNameSigned))
+            Assert.Equal(expectedToBeSigned, headers.CorHeader.Flags.HasFlag(CorFlags.StrongNameSigned))
         End Using
     End Sub
 
@@ -1181,7 +1178,7 @@ End Class
                      </file>
                  </compilation>
 
-        Dim ilRef = CompileIL(il.Value, appendDefaultHeader:=False)
+        Dim ilRef = CompileIL(il.Value, prependDefaultHeader:=False)
 
         Dim comp = CreateCompilationWithMscorlibAndReferences(vb, {ilRef}, TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultProvider))
 
@@ -2078,6 +2075,48 @@ End Class]]>
 
         CreateCompilationWithMscorlib(source).VerifyDiagnostics(
             Diagnostic(ERRID.ERR_FriendAssemblyNameInvalid, "Assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""System.Runtime.Serialization, PublicKey = 10000000000000000400000000000000"")").WithArguments("System.Runtime.Serialization, PublicKey = 10000000000000000400000000000000").WithLocation(1, 2))
+    End Sub
+
+    <Fact>
+    <WorkItem(11497, "https://github.com/dotnet/roslyn/issues/11497")>
+    Public Sub ConsistentErrorMessageWhenProvidingNullKeyFile()
+        Dim options = New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary, cryptoKeyFile:=Nothing)
+        Dim compilation = CreateCompilationWithMscorlib(String.Empty, options:=options).VerifyEmitDiagnostics()
+
+        VerifySigned(compilation, expectedToBeSigned:=False)
+    End Sub
+
+    <Fact>
+    <WorkItem(11497, "https://github.com/dotnet/roslyn/issues/11497")>
+    Public Sub ConsistentErrorMessageWhenProvidingEmptyKeyFile()
+        Dim options = New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary, cryptoKeyFile:=String.Empty)
+        Dim compilation = CreateCompilationWithMscorlib(String.Empty, options:=options).VerifyEmitDiagnostics()
+
+        VerifySigned(compilation, expectedToBeSigned:=False)
+    End Sub
+
+    <Fact>
+    <WorkItem(11497, "https://github.com/dotnet/roslyn/issues/11497")>
+    Public Sub ConsistentErrorMessageWhenProvidingNullKeyFile_PublicSign()
+        Dim options = New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary, cryptoKeyFile:=Nothing, publicSign:=True)
+        Dim compilation = CreateCompilationWithMscorlib(String.Empty, options:=options)
+
+        CompilationUtils.AssertTheseDiagnostics(compilation,
+<errors>
+BC37254: Public sign was specified and requires a public key, but no public key was specified
+</errors>)
+    End Sub
+
+    <Fact>
+    <WorkItem(11497, "https://github.com/dotnet/roslyn/issues/11497")>
+    Public Sub ConsistentErrorMessageWhenProvidingEmptyKeyFile_PublicSign()
+        Dim options = New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary, cryptoKeyFile:=String.Empty, publicSign:=True)
+        Dim compilation = CreateCompilationWithMscorlib(String.Empty, options:=options)
+
+        CompilationUtils.AssertTheseDiagnostics(compilation,
+<errors>
+BC37254: Public sign was specified and requires a public key, but no public key was specified
+</errors>)
     End Sub
 
 End Class

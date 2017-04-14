@@ -39,6 +39,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     var editDistance = new WordSimilarityChecker(name, substringsAreSimilar: false);
                     _predicate = editDistance.AreSimilar;
                     break;
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(kind);
             }
         }
 
@@ -48,24 +50,19 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             _predicate = predicate ?? throw new ArgumentNullException(nameof(predicate));
         }
 
+        public static SearchQuery Create(string name, SearchKind kind)
+            => new SearchQuery(name, kind);
+
         public static SearchQuery Create(string name, bool ignoreCase)
-        {
-            return new SearchQuery(name, ignoreCase ? SearchKind.ExactIgnoreCase : SearchKind.Exact);
-        }
+            => new SearchQuery(name, ignoreCase ? SearchKind.ExactIgnoreCase : SearchKind.Exact);
 
         public static SearchQuery CreateFuzzy(string name)
-        {
-            return new SearchQuery(name, SearchKind.Fuzzy);
-        }
+            => new SearchQuery(name, SearchKind.Fuzzy);
 
         public static SearchQuery CreateCustom(Func<string, bool> predicate)
-        {
-            return new SearchQuery(predicate);
-        }
+            => new SearchQuery(predicate);
 
         public Func<string, bool> GetPredicate()
-        {
-            return _predicate;
-        }
+            => _predicate;
     }
 }

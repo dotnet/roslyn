@@ -12,14 +12,16 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
     {
         private class MetadataSymbolsSearchScope : SearchScope
         {
-            private readonly IAssemblySymbol _assembly;
-            private readonly PortableExecutableReference _metadataReference;
             private readonly Solution _solution;
+            private readonly IAssemblySymbol _assembly;
+            private readonly ProjectId _assemblyProjectId;
+            private readonly PortableExecutableReference _metadataReference;
 
             public MetadataSymbolsSearchScope(
                 AbstractAddImportCodeFixProvider<TSimpleNameSyntax> provider,
                 Solution solution,
                 IAssemblySymbol assembly,
+                ProjectId assemblyProjectId,
                 PortableExecutableReference metadataReference,
                 bool exact,
                 CancellationToken cancellationToken)
@@ -27,6 +29,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             {
                 _solution = solution;
                 _assembly = assembly;
+                _assemblyProjectId = assemblyProjectId;
                 _metadataReference = metadataReference;
             }
 
@@ -48,7 +51,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                     return ImmutableArray<ISymbol>.Empty;
                 }
 
-                return await info.FindAsync(searchQuery, _assembly, filter, CancellationToken).ConfigureAwait(false);
+                var declarations = await info.FindAsync(
+                    searchQuery, _assembly, _assemblyProjectId,
+                    filter, CancellationToken).ConfigureAwait(false);
+
+                return declarations.SelectAsArray(d => d.Symbol);
             }
         }
     }

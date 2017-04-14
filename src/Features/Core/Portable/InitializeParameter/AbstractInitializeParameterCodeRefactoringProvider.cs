@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
 
         private TParameterSyntax GetParameterNode(SyntaxToken token, int position)
         {
-            var parameterNode = token.Parent.FirstAncestorOrSelf<TParameterSyntax>();
+            var parameterNode = token.Parent?.FirstAncestorOrSelf<TParameterSyntax>();
             if (parameterNode != null)
             {
                 return parameterNode;
@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             token = token.GetPreviousToken();
             if (position == token.FullSpan.End)
             {
-                return token.Parent.FirstAncestorOrSelf<TParameterSyntax>();
+                return token.Parent?.FirstAncestorOrSelf<TParameterSyntax>();
             }
 
             return null;

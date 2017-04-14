@@ -6,6 +6,7 @@ param (
     [switch]$testPerfCorrectness = $false,
     [switch]$testPerfRun = $false,
     [switch]$testVsi = $false,
+    [switch]$testVsiNetCore = $false,
     [switch]$skipTest = $false,
     [switch]$skipRestore = $false,
     [switch]$skipCommitPrinting = $false,
@@ -21,6 +22,8 @@ function Print-Usage() {
     Write-Host "  -release Perform release build."
     Write-Host "  -test32  Run unit tests in the 32-bit runner.  This is the default."
     Write-Host "  -test64  Run units tests in the 64-bit runner."
+    Write-Host "  -$testVsi  Run all integration tests."
+    Write-Host "  -$testVsiNetCore  Run just dotnet core integration tests."
 }
 
 function Run-MSBuild() {
@@ -41,6 +44,17 @@ function Run-MSBuild() {
 function Terminate-BuildProcesses() {
     Get-Process msbuild -ErrorAction SilentlyContinue | kill 
     Get-Process vbcscompiler -ErrorAction SilentlyContinue | kill
+}
+
+# The Jenkins images used to execute our tests can live for a very long time.  Over the course
+# of hundreds of runs this can cause the %TEMP% folder to fill up.  To avoid this we redirect
+# %TEMP% into the binaries folder which is deleted at the end of every run as a part of cleaning
+# up the workspace.
+function Redirect-Temp() {
+    $temp = Join-Path $binariesDir "Temp"
+    Create-Directory $temp
+    ${env:TEMP} = $temp
+    ${env:TMP} = $temp
 }
 
 try {
@@ -70,6 +84,7 @@ try {
 
     # Ensure the binaries directory exists because msbuild can fail when part of the path to LogFile isn't present.
     Create-Directory $binariesDir
+    Redirect-Temp
 
     if ($testBuildCorrectness) {
         Exec { & ".\build\scripts\test-build-correctness.ps1" $repoDir $configDir }
@@ -93,7 +108,7 @@ try {
     Terminate-BuildProcesses
 
     if ($testDeterminism) {
-        Exec { & ".\build\scripts\test-determinism.ps1" $bootstrapDir }
+        Exec { & ".\build\scripts\test-determinism.ps1" -buildDir $bootstrapDir }
         Terminate-BuildProcesses
         exit 0
     }
@@ -141,7 +156,13 @@ try {
     $testVsiArg = if ($testVsi) { "true" } else { "false" }
     $buildLog = Join-Path $binariesdir "Build.log"
 
-    Run-MSBuild /p:BootstrapBuildPath="$bootstrapDir" BuildAndTest.proj /t:$target /p:Configuration=$buildConfiguration /p:Test64=$test64Arg /p:TestVsi=$testVsiArg /p:PathMap="$($repoDir)=q:\roslyn" /p:Feature=pdb-path-determinism /fileloggerparameters:LogFile="$buildLog"`;verbosity=diagnostic /p:DeployExtension=false
+    if ($testVsiNetCore) { 
+        Run-MSBuild /p:BootstrapBuildPath="$bootstrapDir" BuildAndTest.proj /t:$target /p:Configuration=$buildConfiguration /p:Test64=$test64Arg /p:TestVsi=true /p:Trait="Feature=NetCore" /p:PathMap="$($repoDir)=q:\roslyn" /p:Feature=pdb-path-determinism /fileloggerparameters:LogFile="$buildLog"`;verbosity=diagnostic /p:DeployExtension=false
+    }
+    else {
+        Run-MSBuild /p:BootstrapBuildPath="$bootstrapDir" BuildAndTest.proj /t:$target /p:Configuration=$buildConfiguration /p:Test64=$test64Arg /p:TestVsi=$testVsiArg /p:PathMap="$($repoDir)=q:\roslyn" /p:Feature=pdb-path-determinism /fileloggerparameters:LogFile="$buildLog"`;verbosity=diagnostic /p:DeployExtension=false
+    }
+
     exit 0
 }
 catch {

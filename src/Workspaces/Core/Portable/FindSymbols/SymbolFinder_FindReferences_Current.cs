@@ -26,19 +26,16 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             using (Logger.LogBlock(FunctionId.FindReference, cancellationToken))
             {
-                var outOfProcessAllowed = solution.Workspace.Options.GetOption(SymbolFinderOptions.OutOfProcessAllowed);
-                if (symbolAndProjectId.ProjectId == null || !outOfProcessAllowed)
+                var handled = await TryFindReferencesInServiceProcessAsync(
+                    symbolAndProjectId, solution, progress, documents, cancellationToken).ConfigureAwait(false);
+                if (handled)
                 {
-                    // This is a call through our old public API.  We don't have the necessary
-                    // data to effectively run the call out of proc.
-                    await FindReferencesInCurrentProcessAsync(
-                        symbolAndProjectId, solution, progress, documents, cancellationToken).ConfigureAwait(false);
+                    return;
                 }
-                else
-                {
-                    await FindReferencesInServiceProcessAsync(
-                        symbolAndProjectId, solution, progress, documents, cancellationToken).ConfigureAwait(false);
-                }
+
+                // Couldn't effectively search using the OOP process.  Just perform the search in-proc.
+                await FindReferencesInCurrentProcessAsync(
+                    symbolAndProjectId, solution, progress, documents, cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -54,31 +51,38 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return engine.FindReferencesAsync(symbolAndProjectId);
         }
 
-        private static async Task FindReferencesInServiceProcessAsync(
+        private static async Task<bool> TryFindReferencesInServiceProcessAsync(
             SymbolAndProjectId symbolAndProjectId,
             Solution solution,
             IStreamingFindReferencesProgress progress,
             IImmutableSet<Document> documents,
             CancellationToken cancellationToken)
         {
-            var client = await solution.Workspace.TryGetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
-            if (client == null)
+            // If ProjectId is null then this is a call through our old public API.  We don't have
+            // the necessary data to effectively run the call out of proc.
+            if (symbolAndProjectId.ProjectId != null)
             {
-                await FindReferencesInCurrentProcessAsync(
-                    symbolAndProjectId, solution, progress, documents, cancellationToken).ConfigureAwait(false);
-                return;
+                // Create a callback that we can pass to the server process to hear about the 
+                // results as it finds them.  When we hear about results we'll forward them to
+                // the 'progress' parameter which will then update the UI.
+                var serverCallback = new FindReferencesServerCallback(solution, progress, cancellationToken);
+
+                using (var session = await TryGetRemoteSessionAsync(
+                    solution, serverCallback, cancellationToken).ConfigureAwait(false))
+                {
+                    if (session != null)
+                    {
+                        await session.InvokeAsync(
+                            nameof(IRemoteSymbolFinder.FindReferencesAsync),
+                            SerializableSymbolAndProjectId.Dehydrate(symbolAndProjectId),
+                            documents?.Select(d => d.Id).ToArray()).ConfigureAwait(false);
+
+                        return true;
+                    }
+                }
             }
 
-            // Create a callback that we can pass to the server process to hear about the 
-            // results as it finds them.  When we hear about results we'll forward them to
-            // the 'progress' parameter which will then update the UI.
-            var serverCallback = new FindReferencesServerCallback(solution, progress, cancellationToken);
-
-            await client.RunCodeAnalysisServiceOnRemoteHostAsync(
-                solution, serverCallback,
-                nameof(IRemoteSymbolFinder.FindReferencesAsync),
-                new object[] { SerializableSymbolAndProjectId.Dehydrate(symbolAndProjectId), documents?.Select(d => d.Id).ToArray() },
-                cancellationToken).ConfigureAwait(false);
+            return false;
         }
     }
 }

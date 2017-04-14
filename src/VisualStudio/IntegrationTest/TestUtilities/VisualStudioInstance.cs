@@ -35,6 +35,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
         public GenerateTypeDialog_OutOfProc GenerateTypeDialog { get; }
 
+		public InlineRenameDialog_OutOfProc InlineRenameDialog { get; set; }
+		
         public PreviewChangesDialog_OutOfProc PreviewChangesDialog { get; }
 
         public SendKeys SendKeys { get; }
@@ -92,6 +94,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             ErrorList = new ErrorList_OutOfProc(this);
             FindReferencesWindow = new FindReferencesWindow_OutOfProc(this);
             GenerateTypeDialog = new GenerateTypeDialog_OutOfProc(this);
+			InlineRenameDialog = new InlineRenameDialog_OutOfProc(this);
             PreviewChangesDialog = new PreviewChangesDialog_OutOfProc(this);
             Shell = new Shell_OutOfProc(this);
             SolutionExplorer = new SolutionExplorer_OutOfProc(this);

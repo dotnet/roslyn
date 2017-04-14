@@ -251,7 +251,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' NOTE: There were too many "else" cases to justify listing them explicitly and throwing on
                     ' anything unexpected.
                     Debug.Assert(node.ContainsDiagnostics, String.Format("Unexpected {0} syntax does not have diagnostics", node.Kind))
-                    Return BadExpression(node, ImmutableArray(Of BoundNode).Empty, ErrorTypeSymbol.UnknownResultType)
+                    Return BadExpression(node, ImmutableArray(Of BoundExpression).Empty, ErrorTypeSymbol.UnknownResultType)
 
             End Select
         End Function
@@ -260,30 +260,30 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Create a BoundBadExpression node for the given syntax node. No symbols or bound nodes are associated with it.
         ''' </summary>
         Protected Shared Function BadExpression(node As SyntaxNode, resultType As TypeSymbol) As BoundBadExpression
-            Return New BoundBadExpression(node, LookupResultKind.Empty, ImmutableArray(Of Symbol).Empty, ImmutableArray(Of BoundNode).Empty, resultType, hasErrors:=True)
+            Return New BoundBadExpression(node, LookupResultKind.Empty, ImmutableArray(Of Symbol).Empty, ImmutableArray(Of BoundExpression).Empty, resultType, hasErrors:=True)
         End Function
 
         ''' <summary>
         ''' Create a BoundBadExpression node for the given child-expression, which is preserved as a sub-expression. 
         ''' No ResultKind is associated
         ''' </summary>
-        Private Shared Function BadExpression(node As SyntaxNode, expr As BoundNode, resultType As TypeSymbol) As BoundBadExpression
-            Return New BoundBadExpression(node, LookupResultKind.Empty, ImmutableArray(Of Symbol).Empty, ImmutableArray.Create(Of BoundNode)(expr), resultType, hasErrors:=True)
+        Private Shared Function BadExpression(node As SyntaxNode, expr As BoundExpression, resultType As TypeSymbol) As BoundBadExpression
+            Return New BoundBadExpression(node, LookupResultKind.Empty, ImmutableArray(Of Symbol).Empty, ImmutableArray.Create(expr), resultType, hasErrors:=True)
         End Function
 
         ''' <summary>
         ''' Create a BoundBadExpression node for the given child-expression, which is preserved as a sub-expression. 
         ''' A ResultKind explains why the node is bad.
         ''' </summary>
-        Private Shared Function BadExpression(node As SyntaxNode, expr As BoundNode, resultKind As LookupResultKind, resultType As TypeSymbol) As BoundBadExpression
-            Return New BoundBadExpression(node, resultKind, ImmutableArray(Of Symbol).Empty, ImmutableArray.Create(Of BoundNode)(expr), resultType, hasErrors:=True)
+        Private Shared Function BadExpression(node As SyntaxNode, expr As BoundExpression, resultKind As LookupResultKind, resultType As TypeSymbol) As BoundBadExpression
+            Return New BoundBadExpression(node, resultKind, ImmutableArray(Of Symbol).Empty, ImmutableArray.Create(expr), resultType, hasErrors:=True)
         End Function
 
         ''' <summary>
         ''' Create a BoundBadExpression node for the given child expression, which is preserved as a sub-expression. Symbols
         ''' associated with the child node are not given a result kind.
         ''' </summary>
-        Private Shared Function BadExpression(node As SyntaxNode, exprs As ImmutableArray(Of BoundNode), resultType As TypeSymbol) As BoundBadExpression
+        Private Shared Function BadExpression(node As SyntaxNode, exprs As ImmutableArray(Of BoundExpression), resultType As TypeSymbol) As BoundBadExpression
             Return New BoundBadExpression(node, LookupResultKind.Empty, ImmutableArray(Of Symbol).Empty, exprs, resultType, hasErrors:=True)
         End Function
 
@@ -297,7 +297,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If wrappedBadExpression IsNot Nothing Then
                 Return New BoundBadExpression(wrappedBadExpression.Syntax, resultKind, wrappedBadExpression.Symbols, wrappedBadExpression.ChildBoundNodes, wrappedBadExpression.Type, hasErrors:=True)
             Else
-                Return New BoundBadExpression(wrappedExpression.Syntax, resultKind, ImmutableArray(Of Symbol).Empty, ImmutableArray.Create(Of BoundNode)(wrappedExpression), wrappedExpression.Type, hasErrors:=True)
+                Return New BoundBadExpression(wrappedExpression.Syntax, resultKind, ImmutableArray(Of Symbol).Empty, ImmutableArray.Create(wrappedExpression), wrappedExpression.Type, hasErrors:=True)
             End If
         End Function
 
@@ -308,8 +308,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If numElements < 2 Then
                 ' this should be a parse error already.
                 Dim args = If(numElements = 1,
-                    ImmutableArray.Create(Of BoundNode)(BindRValue(arguments(0).Expression, diagnostics)),
-                    ImmutableArray(Of BoundNode).Empty)
+                    ImmutableArray.Create(BindRValue(arguments(0).Expression, diagnostics)),
+                    ImmutableArray(Of BoundExpression).Empty)
 
                 Return BadExpression(node, args, ErrorTypeSymbol.UnknownResultType)
             End If
@@ -2991,7 +2991,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return New BoundBadExpression(node,
                                               lookupResult.Kind,
                                               symbols,
-                                              If(receiver IsNot Nothing, ImmutableArray.Create(Of BoundNode)(receiver), ImmutableArray(Of BoundNode).Empty),
+                                              If(receiver IsNot Nothing, ImmutableArray.Create(receiver), ImmutableArray(Of BoundExpression).Empty),
                                               GetCommonExpressionType(node, symbols, ConstantFieldsInProgress), hasErrors:=True)
             End If
 
@@ -3452,7 +3452,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return New BoundBadExpression(node,
                                               LookupResultKind.Empty,
                                               ImmutableArray(Of Symbol).Empty,
-                                              ImmutableArray(Of BoundNode).Empty,
+                                              ImmutableArray(Of BoundExpression).Empty,
                                               Nothing,
                                               hasErrors:=True)
             Else
@@ -3594,7 +3594,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     Return BadExpression(
                         node,
-                        ImmutableArray.Create(Of BoundNode)(
+                        ImmutableArray.Create(
                             ReportDiagnosticAndProduceBadExpression(diagnostics, node, ERRID.ERR_BadWithRef),
                             New BoundLiteral(
                                 node.Name,
@@ -3675,7 +3675,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Return BadExpression(
                 node,
-                ImmutableArray.Create(Of BoundNode)(
+                ImmutableArray.Create(
                     left,
                     New BoundLiteral(
                         node.Name,
@@ -3715,7 +3715,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Private Shared Function GenerateBadExpression(node As InvocationExpressionSyntax, target As BoundExpression, boundArguments As ImmutableArray(Of BoundExpression)) As BoundExpression
-            Dim children = ArrayBuilder(Of BoundNode).GetInstance()
+            Dim children = ArrayBuilder(Of BoundExpression).GetInstance()
             children.Add(target)
             children.AddRange(boundArguments)
             Return BadExpression(node, children.ToImmutableAndFree(), ErrorTypeSymbol.UnknownResultType)

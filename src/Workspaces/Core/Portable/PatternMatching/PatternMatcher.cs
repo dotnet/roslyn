@@ -21,6 +21,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
     /// </summary>
     internal sealed partial class PatternMatcher : IDisposable
     {
+        public const int NoBonus = 0;
         public const int CamelCaseContiguousBonus = 1;
         public const int CamelCaseMatchesFromStartBonus = 2;
         public const int CamelCaseMaxWeight = CamelCaseContiguousBonus + CamelCaseMatchesFromStartBonus;
@@ -35,7 +36,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
         private readonly PatternSegment[] _dotSeparatedPatternSegments;
 
         private readonly Dictionary<string, StringBreaks> _stringToWordSpans = new Dictionary<string, StringBreaks>();
-        private readonly Func<string, StringBreaks> _breakIntoWordSpans = StringBreaker.BreakIntoWordParts;
+        private static readonly Func<string, StringBreaks> _breakIntoWordSpans = StringBreaker.BreakIntoWordParts;
 
         // PERF: Cache the culture's compareInfo to avoid the overhead of asking for them repeatedly in inner loops
         private readonly CompareInfo _compareInfo;
@@ -333,6 +334,22 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                     //    Note: We only have a substring match if the lowercase part is prefix match of some
                     //    word part. That way we don't match something like 'Class' when the user types 'a'.
                     //    But we would match 'FooAttribute' (since 'Attribute' starts with 'a').
+                    //
+                    //    Also, if we matched at location right after punctuation, then this is a good
+                    //    substring match.  i.e. if the user is testing mybutton against _myButton
+                    //    then this should hit. As we really are finding the match at the beginning of 
+                    //    a word.
+                    if (char.IsPunctuation(candidate[caseInsensitiveIndex - 1]) ||
+                        char.IsPunctuation(patternChunk.Text[0]))
+                    {
+                        return new PatternMatch(
+                            PatternMatchKind.Substring, punctuationStripped,
+                            isCaseSensitive: PartStartsWith(
+                                candidate, new TextSpan(caseInsensitiveIndex, patternChunk.Text.Length),
+                                patternChunk.Text, CompareOptions.None),
+                            matchedSpan: GetMatchedSpan(includeMatchSpans, caseInsensitiveIndex, patternChunk.Text.Length));
+                    }
+
                     var wordSpans = GetWordSpans(candidate);
                     for (int i = 0; i < wordSpans.Count; i++)
                     {

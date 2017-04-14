@@ -18,6 +18,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InitializeParameter
             => new CSharpAddParameterCheckCodeRefactoringProvider();
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestEmptyFile()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"[||]");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
         public async Task TestSimpleReferenceType()
         {
             await TestInRegularAndScript1Async(

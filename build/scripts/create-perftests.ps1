@@ -1,32 +1,33 @@
 # Create the PerfTests directory under Binaries\$(Configuration).  There are still a number
 # of tools (in roslyn and roslyn-internal) that depend on this combined directory.
-param ([string]$script:binDir = $(throw "Need the binaries directory"))
-set-strictmode -version 2.0
+[CmdletBinding(PositionalBinding=$false)]
+param ([string]$buildDir)
+
+Set-StrictMode -version 2.0
 $ErrorActionPreference="Stop"
 
-try
-{
-    [string]$target = join-path $binDir "PerfTests"
-    write-host "PerfTests: $target"
+try {
+    . (Join-Path $PSScriptRoot "build-utils.ps1")
+    [string]$target = Join-Path $buildDir "PerfTests"
+    Write-Host "PerfTests: $target"
     if (-not (test-path $target)) {
-        mkdir $target | out-null
+        Create-Directory $target
     }
 
-    pushd $bindir
+    Push-Location $buildDir
     foreach ($subDir in @("Dlls", "UnitTests")) {
-        pushd $subDir
-        foreach ($path in gci -re -in "PerfTests") {
-            write-host "`tcopying $path"
-            copy -force -recurse "$path\*" $target
+        Push-Location $subDir
+        foreach ($path in Get-ChildItem -re -in "PerfTests") {
+            Write-Host "`tcopying $path"
+            Copy-Item -force -recurse "$path\*" $target
         }
-        popd
+        Pop-Location
     }
-    popd
+    Pop-Location
     exit 0
 }
-catch
-{
-    write-host "Error: $($_.Exception.Message)"
+catch {
+    Write-Host "Error: $($_.Exception.Message)"
     exit 1
 }
 

@@ -1082,10 +1082,15 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </remarks>
     internal sealed partial class InvalidExpression : Operation, IInvalidExpression
     {
-        public InvalidExpression(bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+        public InvalidExpression(ImmutableArray<IOperation> children, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(OperationKind.InvalidExpression, isInvalid, syntax, type, constantValue)
         {
+            Children = children;
         }
+        /// <summary>
+        /// Child operations.
+        /// </summary>
+        public ImmutableArray<IOperation> Children { get; }
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitInvalidExpression(this);
@@ -1105,10 +1110,15 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </remarks>
     internal sealed partial class InvalidStatement : Operation, IInvalidStatement
     {
-        public InvalidStatement(bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+        public InvalidStatement(ImmutableArray<IOperation> children, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(OperationKind.InvalidStatement, isInvalid, syntax, type, constantValue)
         {
+            Children = children;
         }
+        /// <summary>
+        /// Child operations.
+        /// </summary>
+        public ImmutableArray<IOperation> Children { get; }
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitInvalidStatement(this);
