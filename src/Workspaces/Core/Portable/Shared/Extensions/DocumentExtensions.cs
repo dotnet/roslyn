@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return semanticModelService.GetSemanticModelForNodeAsync(document, node, cancellationToken);
         }
 
-#if DEBUG
+#if VALIDATE_NO_CODE_ACTION_ERRORS
         public static async Task<bool> HasAnyErrorsAsync(this Document document, CancellationToken cancellationToken, List<string> ignoreErrorCode = null)
         {
             var errors = await GetErrorsAsync(document, cancellationToken, ignoreErrorCode).ConfigureAwait(false);

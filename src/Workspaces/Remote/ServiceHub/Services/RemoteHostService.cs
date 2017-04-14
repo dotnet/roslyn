@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public void UpdateSolutionIdStorageLocation(SolutionId solutionId, string storageLocation)
         {
-            RemotePersistentStorageLocationService.UpdateStorageLocation(solutionId, storageLocation);
+            AbstractPersistentStorageLocationService.UpdateStorageLocation(solutionId, storageLocation);
         }
 
         private static Func<FunctionId, bool> GetLoggingChecker()
