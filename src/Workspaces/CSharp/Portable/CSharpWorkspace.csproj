@@ -212,6 +212,8 @@
     <Compile Include="Simplification\AbstractCSharpReducer.AbstractExpressionRewriter.cs" />
     <Compile Include="Simplification\AbstractCSharpReducer.cs" />
     <Compile Include="Simplification\CSharpCastReducer.cs" />
+    <Compile Include="Simplification\CSharpInferredMemberNameReducer.cs" />
+    <Compile Include="Simplification\CSharpInferredMemberNameReducer.Rewriter.cs" />
     <Compile Include="Simplification\CSharpCastReducer.Rewriter.cs" />
     <Compile Include="Simplification\CSharpEscapingReducer.cs" />
     <Compile Include="Simplification\CSharpEscapingReducer.Rewriter.cs" />

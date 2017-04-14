@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxKind;
@@ -424,6 +425,29 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             parent = node.Parent as DeclarationExpressionSyntax;
             return node == parent?.Type;
+        }
+
+        /// <summary>
+        /// Given an initializer expression infer the name of anonymous property or tuple element.
+        /// Returns null if unsuccessful
+        /// </summary>
+        public static string TryGetInferredMemberName(this ExpressionSyntax input)
+        {
+            var nameToken = input.ExtractAnonymousTypeMemberName();
+            return nameToken.Kind() == SyntaxKind.IdentifierToken ? nameToken.ValueText : null;
+        }
+
+        /// <summary>
+        /// Checks whether the element name is reserved.
+        ///
+        /// For example:
+        /// "Item3" is reserved (at certain positions).
+        /// "Rest", "ToString" and other members of System.ValueTuple are reserved (in any position).
+        /// Names that are not reserved return false.
+        /// </summary>
+        public static bool IsReservedTupleElementName(string elementName)
+        {
+            return TupleTypeSymbol.IsElementNameReserved(elementName) != -1;
         }
     }
 }

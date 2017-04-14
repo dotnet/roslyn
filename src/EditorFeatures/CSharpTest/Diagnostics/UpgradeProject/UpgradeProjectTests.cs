@@ -72,6 +72,40 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUpgradeProject)]
+        public async Task UpgradeProjectFromCSharp5ToCSharp6()
+        {
+            await TestLanguageVersionUpgradedAsync(
+@"
+class Program
+{
+    void A()
+    {
+        var x = [|nameof(A)|];
+    }
+}",
+                LanguageVersion.CSharp6,
+                new CSharpParseOptions(LanguageVersion.CSharp5),
+                index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUpgradeProject)]
+        public async Task UpgradeProjectFromCSharp4ToCSharp5()
+        {
+            await TestLanguageVersionUpgradedAsync(
+@"
+class Program
+{
+    void A()
+    {
+        Func<int, Task<int>> f = [|async|] x => x;
+    }
+}",
+                LanguageVersion.CSharp5,
+                new CSharpParseOptions(LanguageVersion.CSharp4),
+                index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUpgradeProject)]
         public async Task UpgradeProjectFromCSharp7ToLatest()
         {
             await TestLanguageVersionUpgradedAsync(
