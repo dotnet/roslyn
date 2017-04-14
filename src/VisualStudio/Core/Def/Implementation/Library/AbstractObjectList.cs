@@ -28,10 +28,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library
         protected abstract int GoToSource(uint index, VSOBJGOTOSRCTYPE srcType);
         protected abstract uint GetUpdateCounter();
 
-        protected virtual bool SupportsBrowseContainers
-        {
-            get { return false; }
-        }
+        protected virtual bool SupportsBrowseContainers => false;
 
         protected virtual bool TryGetBrowseContainerData(uint index, ref VSCOMPONENTSELECTORDATA data)
         {
@@ -76,10 +73,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library
             return null;
         }
 
-        protected virtual bool SupportsNavInfo
-        {
-            get { return false; }
-        }
+        protected virtual bool SupportsNavInfo => false;
 
         protected virtual IVsNavInfo GetNavInfo(uint index)
         {
@@ -97,10 +91,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library
             return false;
         }
 
-        protected virtual bool SupportsDescription
-        {
-            get { return false; }
-        }
+        protected virtual bool SupportsDescription => false;
 
         protected virtual bool TryFillDescription(uint index, _VSOBJDESCOPTIONS options, IVsObjectBrowserDescription3 description)
         {

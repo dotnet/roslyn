@@ -58,13 +58,7 @@ namespace Roslyn.Utilities
             {
             }
 
-            object IEnumerator.Current
-            {
-                get
-                {
-                    return this.Current;
-                }
-            }
+            object IEnumerator.Current => this.Current;
 
             public void Reset()
             {

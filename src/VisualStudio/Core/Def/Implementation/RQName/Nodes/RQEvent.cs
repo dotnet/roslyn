@@ -8,9 +8,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.RQName.Nodes
             : base(containingType, memberName)
         { }
 
-        protected override string RQKeyword
-        {
-            get { return RQNameStrings.Event; }
-        }
+        protected override string RQKeyword => RQNameStrings.Event;
     }
 }

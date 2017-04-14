@@ -170,21 +170,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return base.TryApplyChanges(newSolution, progressTracker);
         }
 
-        public override bool CanOpenDocuments
-        {
-            get
-            {
-                return true;
-            }
-        }
+        public override bool CanOpenDocuments => true;
 
-        internal override bool CanChangeActiveContextDocument
-        {
-            get
-            {
-                return true;
-            }
-        }
+        internal override bool CanChangeActiveContextDocument => true;
 
         internal override bool CanRenameFilesDuringCodeActions(CodeAnalysis.Project project)
         {

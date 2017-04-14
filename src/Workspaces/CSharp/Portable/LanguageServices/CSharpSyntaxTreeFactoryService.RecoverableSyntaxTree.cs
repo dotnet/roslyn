@@ -53,20 +53,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return new RecoverableSyntaxTree(service, cacheKey, root, new SyntaxTreeInfo(filePath, options, text, encoding, root.FullSpan.Length));
                 }
 
-                public override string FilePath
-                {
-                    get { return _info.FilePath; }
-                }
+                public override string FilePath => _info.FilePath;
 
                 public override CSharpParseOptions Options
                 {
                     get { return (CSharpParseOptions)_info.Options; }
                 }
 
-                public override int Length
-                {
-                    get { return _info.Length; }
-                }
+                public override int Length => _info.Length;
 
                 public override bool TryGetText(out SourceText text)
                 {
@@ -83,10 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return _info.GetTextAsync(cancellationToken);
                 }
 
-                public override Encoding Encoding
-                {
-                    get { return _info.Encoding; }
-                }
+                public override Encoding Encoding => _info.Encoding;
 
                 private CompilationUnitSyntax CacheRootNode(CompilationUnitSyntax node)
                 {
@@ -111,10 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return CacheRootNode(await _recoverableRoot.GetValueAsync(cancellationToken).ConfigureAwait(false));
                 }
 
-                public override bool HasCompilationUnitRoot
-                {
-                    get { return true; }
-                }
+                public override bool HasCompilationUnitRoot => true;
 
                 public override SyntaxReference GetReference(SyntaxNode node)
                 {

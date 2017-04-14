@@ -31,26 +31,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 _fileCodeModelWeakComHandle = new WeakComHandle<EnvDTE80.FileCodeModel2, FileCodeModel>(handle);
             }
 
-            public EnvDTE80.FileCodeModel2 FileCodeModelRcw
-            {
-                get
-                {
-                    return _fileCodeModelWeakComHandle.ComAggregateObject;
-                }
-            }
+            public EnvDTE80.FileCodeModel2 FileCodeModelRcw => _fileCodeModelWeakComHandle.ComAggregateObject;
 
             internal bool TryGetFileCodeModelInstanceWithoutCaringWhetherRcwIsAlive(out FileCodeModel fileCodeModel)
             {
                 return _fileCodeModelWeakComHandle.TryGetManagedObjectWithoutCaringWhetherNativeObjectIsAlive(out fileCodeModel);
             }
 
-            public ComHandle<EnvDTE80.FileCodeModel2, FileCodeModel>? ComHandle
-            {
-                get
-                {
-                    return _fileCodeModelWeakComHandle.ComHandle;
-                }
-            }
+            public ComHandle<EnvDTE80.FileCodeModel2, FileCodeModel>? ComHandle => _fileCodeModelWeakComHandle.ComHandle;
         }
     }
 }

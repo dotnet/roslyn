@@ -81,10 +81,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             _lastSyntaxTree = GetSyntaxTree();
         }
 
-        internal ITextManagerAdapter TextManagerAdapter
-        {
-            get { return _textManagerAdapter; }
-        }
+        internal ITextManagerAdapter TextManagerAdapter => _textManagerAdapter;
 
         /// <summary>
         /// Internally, we store the DocumentId for the document that the FileCodeModel represents. If the underlying file

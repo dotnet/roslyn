@@ -53,13 +53,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
             ISymbol ISymbol.OriginalDefinition => _symbol.OriginalDefinition;
 
-            public new IPropertySymbol OriginalDefinition
-            {
-                get
-                {
-                    return this;
-                }
-            }
+            public new IPropertySymbol OriginalDefinition => this;
         }
     }
 }

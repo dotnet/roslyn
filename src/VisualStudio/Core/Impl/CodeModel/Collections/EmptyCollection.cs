@@ -45,9 +45,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Colle
             return false;
         }
 
-        public override int Count
-        {
-            get { return 0; }
-        }
+        public override int Count => 0;
     }
 }

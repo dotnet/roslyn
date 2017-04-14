@@ -61,10 +61,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             public event EventHandler UpdatedOnDisk;
 
-            public string FilePath
-            {
-                get { return _filePath; }
-            }
+            public string FilePath => _filePath;
 
             public Exception GetException()
             {

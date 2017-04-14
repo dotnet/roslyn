@@ -24,10 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Exter
         {
         }
 
-        public override EnvDTE.vsCMElement Kind
-        {
-            get { return EnvDTE.vsCMElement.vsCMElementClass; }
-        }
+        public override EnvDTE.vsCMElement Kind => EnvDTE.vsCMElement.vsCMElementClass;
 
         public EnvDTE80.vsCMClassKind ClassKind
         {
@@ -102,15 +99,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Exter
             get { return TypeSymbol is INamedTypeSymbol && ((INamedTypeSymbol)TypeSymbol).IsGenericType; }
         }
 
-        public EnvDTE.CodeElements PartialClasses
-        {
-            get { throw Exceptions.ThrowEFail(); }
-        }
+        public EnvDTE.CodeElements PartialClasses => throw Exceptions.ThrowEFail();
 
-        public EnvDTE.CodeElements Parts
-        {
-            get { throw Exceptions.ThrowEFail(); }
-        }
+        public EnvDTE.CodeElements Parts => throw Exceptions.ThrowEFail();
 
         public EnvDTE.CodeClass AddClass(string name, object position, object bases, object implementedInterfaces, EnvDTE.vsCMAccess access)
         {

@@ -42,10 +42,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Colle
             _nodeKey = nodeKey;
         }
 
-        private FileCodeModel FileCodeModel
-        {
-            get { return _fileCodeModel.Object; }
-        }
+        private FileCodeModel FileCodeModel => _fileCodeModel.Object;
 
         private SyntaxNode LookupNode()
         {

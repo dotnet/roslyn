@@ -56,14 +56,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
             }
         }
 
-        public bool IsInherited
-        {
-            get { return _isInherited; }
-        }
+        public bool IsInherited => _isInherited;
 
-        public MemberKind Kind
-        {
-            get { return _kind; }
-        }
+        public MemberKind Kind => _kind;
     }
 }

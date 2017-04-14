@@ -149,13 +149,7 @@ namespace Roslyn.Utilities
                 this.chunks = chunks;
             }
 
-            public override long Length
-            {
-                get
-                {
-                    return this.length;
-                }
-            }
+            public override long Length => this.length;
 
             public override bool CanRead => true;
 

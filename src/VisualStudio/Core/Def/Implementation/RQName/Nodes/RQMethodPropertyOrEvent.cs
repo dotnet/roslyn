@@ -15,10 +15,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.RQName.Nodes
             this.RqMemberName = memberName;
         }
 
-        public override string MemberName
-        {
-            get { return this.RqMemberName.OrdinaryNameValue; }
-        }
+        public override string MemberName => this.RqMemberName.OrdinaryNameValue;
 
         protected override void AppendChildren(List<SimpleTreeNode> childList)
         {

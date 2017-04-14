@@ -73,14 +73,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
             }
         }
 
-        public override EnvDTE.CodeElements Children
-        {
-            get
-            {
+        public override EnvDTE.CodeElements Children =>
                 // Children are the same as members for namespaces
-                return Members;
-            }
-        }
+                Members;
 
         public string Comment
         {
@@ -116,10 +111,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
             }
         }
 
-        public override EnvDTE.vsCMElement Kind
-        {
-            get { return EnvDTE.vsCMElement.vsCMElementNamespace; }
-        }
+        public override EnvDTE.vsCMElement Kind => EnvDTE.vsCMElement.vsCMElementNamespace;
 
         public EnvDTE.CodeClass AddClass(string name, object position, object bases, object implementedInterfaces, EnvDTE.vsCMAccess access = EnvDTE.vsCMAccess.vsCMAccessDefault)
         {

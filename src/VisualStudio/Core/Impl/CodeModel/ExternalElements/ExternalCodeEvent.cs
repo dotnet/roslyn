@@ -33,10 +33,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Exter
             throw new NotImplementedException();
         }
 
-        public override EnvDTE.vsCMElement Kind
-        {
-            get { return EnvDTE.vsCMElement.vsCMElementEvent; }
-        }
+        public override EnvDTE.vsCMElement Kind => EnvDTE.vsCMElement.vsCMElementEvent;
 
         public EnvDTE.CodeFunction Adder
         {
@@ -58,10 +55,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Exter
         }
 
         // TODO: Verify VB implementation
-        public bool IsPropertyStyleEvent
-        {
-            get { return true; }
-        }
+        public bool IsPropertyStyleEvent => true;
 
         // TODO: Verify VB implementation
         public EnvDTE80.vsCMOverrideKind OverrideKind

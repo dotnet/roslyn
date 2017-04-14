@@ -44,10 +44,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
-        public string FilePath
-        {
-            get { return _filePath; }
-        }
+        public string FilePath => _filePath;
 
         public void AssertUnsubscription()
         {

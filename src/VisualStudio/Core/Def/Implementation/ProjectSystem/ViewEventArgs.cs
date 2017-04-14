@@ -14,6 +14,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _textView = textView;
         }
 
-        public IVsTextView TextView { get { return _textView; } }
+        public IVsTextView TextView => _textView;
     }
 }

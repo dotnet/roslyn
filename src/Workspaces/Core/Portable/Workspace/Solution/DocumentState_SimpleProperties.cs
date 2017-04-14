@@ -18,9 +18,6 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        public bool IsGenerated
-        {
-            get { return this.info.IsGenerated; }
-        }
+        public bool IsGenerated => this.info.IsGenerated;
     }
 }

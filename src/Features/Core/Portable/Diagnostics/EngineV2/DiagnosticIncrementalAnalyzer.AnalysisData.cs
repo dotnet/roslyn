@@ -51,10 +51,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return new DocumentAnalysisData(Version, Items);
             }
 
-            public bool FromCache
-            {
-                get { return this.OldItems.IsDefault; }
-            }
+            public bool FromCache => this.OldItems.IsDefault;
         }
 
         /// <summary>

@@ -29,10 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
             _nodeKind = nodeKind;
         }
 
-        internal FileCodeModel FileCodeModel
-        {
-            get { return _fileCodeModel.Object; }
-        }
+        internal FileCodeModel FileCodeModel => _fileCodeModel.Object;
 
         protected SyntaxTree GetSyntaxTree()
         {
@@ -198,29 +195,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
             return FileCodeModel.TextManagerAdapter.CreateTextPoint(FileCodeModel, point.Value);
         }
 
-        public virtual EnvDTE.vsCMInfoLocation InfoLocation
-        {
-            get
-            {
+        public virtual EnvDTE.vsCMInfoLocation InfoLocation =>
                 // The default implementation assumes project-located elements...
-                return EnvDTE.vsCMInfoLocation.vsCMInfoLocationProject;
-            }
-        }
+                EnvDTE.vsCMInfoLocation.vsCMInfoLocationProject;
 
-        public virtual bool IsCodeType
-        {
-            get { return false; }
-        }
+        public virtual bool IsCodeType => false;
 
-        public EnvDTE.ProjectItem ProjectItem
-        {
-            get { return FileCodeModel.Parent; }
-        }
+        public EnvDTE.ProjectItem ProjectItem => FileCodeModel.Parent;
 
-        public string ExtenderCATID
-        {
-            get { throw new NotImplementedException(); }
-        }
+        public string ExtenderCATID => throw new NotImplementedException();
 
         protected virtual object GetExtenderNames()
         {
@@ -242,10 +225,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
             return GetExtender(extenderName);
         }
 
-        public string ElementID
-        {
-            get { throw new NotImplementedException(); }
-        }
+        public string ElementID => throw new NotImplementedException();
 
         public virtual void RenameSymbol(string newName)
         {

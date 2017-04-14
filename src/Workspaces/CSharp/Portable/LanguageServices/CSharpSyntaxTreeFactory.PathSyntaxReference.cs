@@ -33,21 +33,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _pathFromRoot = ComputePathFromRoot(node);
                 }
 
-                public override SyntaxTree SyntaxTree
-                {
-                    get
-                    {
-                        return _tree;
-                    }
-                }
+                public override SyntaxTree SyntaxTree => _tree;
 
-                public override TextSpan Span
-                {
-                    get
-                    {
-                        return _textSpan;
-                    }
-                }
+                public override TextSpan Span => _textSpan;
 
                 private ImmutableArray<int> ComputePathFromRoot(SyntaxNode node)
                 {

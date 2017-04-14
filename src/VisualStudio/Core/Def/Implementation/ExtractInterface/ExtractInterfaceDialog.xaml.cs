@@ -24,15 +24,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterfac
         internal static event Action TEST_DialogLoaded;
 
         // Expose localized strings for binding
-        public string ExtractInterfaceDialogTitle { get { return ServicesVSResources.Extract_Interface; } }
-        public string NewInterfaceName { get { return ServicesVSResources.New_interface_name_colon; } }
-        public string GeneratedName { get { return ServicesVSResources.Generated_name_colon; } }
-        public string NewFileName { get { return ServicesVSResources.New_file_name_colon; } }
-        public string SelectPublicMembersToFormInterface { get { return ServicesVSResources.Select_public_members_to_form_interface; } }
-        public string SelectAll { get { return ServicesVSResources.Select_All; } }
-        public string DeselectAll { get { return ServicesVSResources.Deselect_All; } }
-        public string OK { get { return ServicesVSResources.OK; } }
-        public string Cancel { get { return ServicesVSResources.Cancel; } }
+        public string ExtractInterfaceDialogTitle => ServicesVSResources.Extract_Interface;
+        public string NewInterfaceName => ServicesVSResources.New_interface_name_colon;
+        public string GeneratedName => ServicesVSResources.Generated_name_colon;
+        public string NewFileName => ServicesVSResources.New_file_name_colon;
+        public string SelectPublicMembersToFormInterface => ServicesVSResources.Select_public_members_to_form_interface;
+        public string SelectAll => ServicesVSResources.Select_All;
+        public string DeselectAll => ServicesVSResources.Deselect_All;
+        public string OK => ServicesVSResources.OK;
+        public string Cancel => ServicesVSResources.Cancel;
 
         // Use C# Extract Interface helpTopic for C# and VB.
         internal ExtractInterfaceDialog(ExtractInterfaceDialogViewModel viewModel)

@@ -13,8 +13,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         {
             public ITextUndoTransaction Parent { get; set; }
 
-            public bool CanRedo { get { return true; } }
-            public bool CanUndo { get { return true; } }
+            public bool CanRedo => true;
+            public bool CanUndo => true;
 
             public void Do() { }
             public void Undo() { }

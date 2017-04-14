@@ -183,12 +183,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
             _tracker.RemoveIdentifier(node.Identifier);
         }
 
-        public IEnumerable<SyntaxToken> ConflictingTokens
-        {
-            get
-            {
-                return _tracker.ConflictingTokens;
-            }
-        }
+        public IEnumerable<SyntaxToken> ConflictingTokens => _tracker.ConflictingTokens;
     }
 }

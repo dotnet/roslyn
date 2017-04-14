@@ -27,13 +27,7 @@ namespace Roslyn.Utilities
                     return false;
                 }
 
-                public ICollection<TKey> Keys
-                {
-                    get
-                    {
-                        return Collection<TKey>.Instance;
-                    }
-                }
+                public ICollection<TKey> Keys => Collection<TKey>.Instance;
 
                 IEnumerable<TKey> IReadOnlyDictionary<TKey, TValue>.Keys => Keys;
                 IEnumerable<TValue> IReadOnlyDictionary<TKey, TValue>.Values => Values;
@@ -49,13 +43,7 @@ namespace Roslyn.Utilities
                     return false;
                 }
 
-                public ICollection<TValue> Values
-                {
-                    get
-                    {
-                        return Collection<TValue>.Instance;
-                    }
-                }
+                public ICollection<TValue> Values => Collection<TValue>.Instance;
 
                 public TValue this[TKey key]
                 {

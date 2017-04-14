@@ -20,13 +20,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             }
         }
 
-        public ImmutableArray<int> Sizes
-        {
-            get
-            {
-                return ImmutableArray<int>.Empty;
-            }
-        }
+        public ImmutableArray<int> Sizes => ImmutableArray<int>.Empty;
 
         public ImmutableArray<int> LowerBounds
         {

@@ -369,9 +369,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             return null;
         }
 
-        public Graph Schema
-        {
-            get { return null; }
-        }
+        public Graph Schema => null;
     }
 }

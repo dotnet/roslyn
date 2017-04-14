@@ -24,10 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Exter
         {
         }
 
-        public override EnvDTE.vsCMElement Kind
-        {
-            get { return EnvDTE.vsCMElement.vsCMElementInterface; }
-        }
+        public override EnvDTE.vsCMElement Kind => EnvDTE.vsCMElement.vsCMElementInterface;
 
         #region EnvDTE.CodeInterface members
 
@@ -63,18 +60,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Exter
             }
         }
 
-        public bool IsGeneric
-        {
-            get { throw new NotImplementedException(); }
-        }
+        public bool IsGeneric => throw new NotImplementedException();
 
-        public EnvDTE.CodeElements Parts
-        {
-            get
-            {
-                throw Exceptions.ThrowEFail();
-            }
-        }
+        public EnvDTE.CodeElements Parts => throw Exceptions.ThrowEFail();
 
         #endregion
     }

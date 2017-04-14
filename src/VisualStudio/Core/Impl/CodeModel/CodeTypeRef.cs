@@ -119,10 +119,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             }
         }
 
-        public object Parent
-        {
-            get { return _parentHandle.Value; }
-        }
+        public object Parent => _parentHandle.Value;
 
         public int Rank
         {

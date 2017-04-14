@@ -91,23 +91,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
 #pragma warning disable 67
             public event EventHandler Committed;
 
-            public ReadOnlyObservableCollection<CompletionSet> CompletionSets
-            {
-                get { throw new NotImplementedException(); }
-            }
+            public ReadOnlyObservableCollection<CompletionSet> CompletionSets => throw new NotImplementedException();
 
             public void Filter()
             {
                 throw new NotImplementedException();
             }
 
-            public bool IsStarted
-            {
-                get
-                {
-                    throw new NotImplementedException();
-                }
-            }
+            public bool IsStarted => throw new NotImplementedException();
 
             public CompletionSet SelectedCompletionSet
             {
@@ -143,23 +134,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
 
             // The shim controller actually does check IsDismissed immediately after checking for a
             // session, so this implementation can't throw. 
-            public bool IsDismissed
-            {
-                get { return false; }
-            }
+            public bool IsDismissed => false;
 
             public bool Match()
             {
                 throw new NotImplementedException();
             }
 
-            public IIntellisensePresenter Presenter
-            {
-                get
-                {
-                    throw new NotImplementedException();
-                }
-            }
+            public IIntellisensePresenter Presenter => throw new NotImplementedException();
 
             public event EventHandler PresenterChanged;
 
@@ -175,15 +157,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
                 throw new NotImplementedException();
             }
 
-            public ITextView TextView
-            {
-                get { throw new NotImplementedException(); }
-            }
+            public ITextView TextView => throw new NotImplementedException();
 
-            public PropertyCollection Properties
-            {
-                get { throw new NotImplementedException(); }
-            }
+            public PropertyCollection Properties => throw new NotImplementedException();
         }
     }
 }

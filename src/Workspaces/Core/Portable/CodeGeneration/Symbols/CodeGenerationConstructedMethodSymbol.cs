@@ -44,14 +44,9 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public override ImmutableArray<ITypeParameterSymbol> TypeParameters => _constructedFrom.TypeParameters;
 
-        public override ImmutableArray<IParameterSymbol> Parameters
-        {
-            get
-            {
+        public override ImmutableArray<IParameterSymbol> Parameters =>
                 // TODO(cyrusn): Construct this.
-                return this.OriginalDefinition.Parameters;
-            }
-        }
+                this.OriginalDefinition.Parameters;
 
         public override IMethodSymbol ConstructedFrom => _constructedFrom;
 

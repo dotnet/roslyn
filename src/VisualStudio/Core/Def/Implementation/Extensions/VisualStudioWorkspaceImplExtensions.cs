@@ -111,13 +111,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Extensions
                 _imageMoniker = imageMoniker;
             }
 
-            public int ImageCount
-            {
-                get
-                {
-                    return 1;
-                }
-            }
+            public int ImageCount => 1;
 
             public void GetImageMonikers(int firstImageIndex, int imageMonikerCount, ImageMoniker[] imageMonikers)
             {

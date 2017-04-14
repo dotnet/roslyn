@@ -61,15 +61,9 @@ namespace Microsoft.CodeAnalysis.Formatting
             return _lastToken == token;
         }
 
-        public int StartPosition
-        {
-            get { return this.Root.FullSpan.Start; }
-        }
+        public int StartPosition => this.Root.FullSpan.Start;
 
-        public int EndPosition
-        {
-            get { return this.Root.FullSpan.End; }
-        }
+        public int EndPosition => this.Root.FullSpan.End;
 
         public IEnumerable<SyntaxToken> GetApplicableTokens(TextSpan textSpan)
         {

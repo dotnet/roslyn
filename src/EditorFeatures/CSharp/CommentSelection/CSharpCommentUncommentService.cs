@@ -9,24 +9,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CommentSelection
     [ExportLanguageService(typeof(ICommentUncommentService), LanguageNames.CSharp), Shared]
     internal class CSharpCommentUncommentService : AbstractCommentUncommentService
     {
-        public override string SingleLineCommentString
-        {
-            get { return "//"; }
-        }
+        public override string SingleLineCommentString => "//";
 
-        public override bool SupportsBlockComment
-        {
-            get { return true; }
-        }
+        public override bool SupportsBlockComment => true;
 
-        public override string BlockCommentStartString
-        {
-            get { return "/*"; }
-        }
+        public override string BlockCommentStartString => "/*";
 
-        public override string BlockCommentEndString
-        {
-            get { return "*/"; }
-        }
+        public override string BlockCommentEndString => "*/";
     }
 }

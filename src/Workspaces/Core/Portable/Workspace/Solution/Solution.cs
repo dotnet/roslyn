@@ -1029,13 +1029,8 @@ namespace Microsoft.CodeAnalysis
         /// Returns the options that should be applied to this solution. This is equivalent to <see cref="Workspace.Options" /> when the <see cref="Solution"/> 
         /// instance was created.
         /// </summary>
-        public OptionSet Options
-        {
-            get
-            {
+        public OptionSet Options =>
                 // TODO: actually make this a snapshot
-                return this.Workspace.Options;
-            }
-        }
+                this.Workspace.Options;
     }
 }

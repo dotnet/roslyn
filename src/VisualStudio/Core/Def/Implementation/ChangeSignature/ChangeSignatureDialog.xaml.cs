@@ -25,14 +25,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
         internal static event Action TEST_DialogLoaded;
 
         // Expose localized strings for binding
-        public string ChangeSignatureDialogTitle { get { return ServicesVSResources.Change_Signature; } }
-        public string Parameters { get { return ServicesVSResources.Parameters_colon2; } }
-        public string PreviewMethodSignature { get { return ServicesVSResources.Preview_method_signature_colon; } }
-        public string PreviewReferenceChanges { get { return ServicesVSResources.Preview_reference_changes; } }
-        public string Remove { get { return ServicesVSResources.Re_move; } }
-        public string Restore { get { return ServicesVSResources.Restore; } }
-        public string OK { get { return ServicesVSResources.OK; } }
-        public string Cancel { get { return ServicesVSResources.Cancel; } }
+        public string ChangeSignatureDialogTitle => ServicesVSResources.Change_Signature;
+        public string Parameters => ServicesVSResources.Parameters_colon2;
+        public string PreviewMethodSignature => ServicesVSResources.Preview_method_signature_colon;
+        public string PreviewReferenceChanges => ServicesVSResources.Preview_reference_changes;
+        public string Remove => ServicesVSResources.Re_move;
+        public string Restore => ServicesVSResources.Restore;
+        public string OK => ServicesVSResources.OK;
+        public string Cancel => ServicesVSResources.Cancel;
 
         public Brush ParameterText { get; }
         public Brush RemovedParameterText { get; }

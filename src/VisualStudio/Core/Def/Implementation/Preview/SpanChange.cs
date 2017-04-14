@@ -46,21 +46,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
             return VSConstants.S_OK;
         }
 
-        public override int CanRecurse
-        {
-            get
-            {
-                return 0;
-            }
-        }
+        public override int CanRecurse => 0;
 
-        public override int IsExpandable
-        {
-            get
-            {
-                return 0;
-            }
-        }
+        public override int IsExpandable => 0;
 
         public override int OnRequestSource(object pIUnknownTextView)
         {

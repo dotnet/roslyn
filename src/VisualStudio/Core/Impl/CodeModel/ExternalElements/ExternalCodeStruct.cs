@@ -24,10 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Exter
         {
         }
 
-        public override EnvDTE.vsCMElement Kind
-        {
-            get { return EnvDTE.vsCMElement.vsCMElementStruct; }
-        }
+        public override EnvDTE.vsCMElement Kind => EnvDTE.vsCMElement.vsCMElementStruct;
 
         public EnvDTE80.vsCMDataTypeKind DataTypeKind
         {
@@ -53,15 +50,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Exter
             set { throw Exceptions.ThrowEFail(); }
         }
 
-        public bool IsGeneric
-        {
-            get { throw new NotImplementedException(); }
-        }
+        public bool IsGeneric => throw new NotImplementedException();
 
-        public EnvDTE.CodeElements Parts
-        {
-            get { throw Exceptions.ThrowEFail(); }
-        }
+        public EnvDTE.CodeElements Parts => throw Exceptions.ThrowEFail();
 
         public EnvDTE.CodeClass AddClass(string name, object position, object bases, object implementedInterfaces, EnvDTE.vsCMAccess access)
         {

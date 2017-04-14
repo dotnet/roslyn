@@ -33,21 +33,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     System.Diagnostics.Debug.Assert(_textSpan.Length > 0);
                 }
 
-                public override SyntaxTree SyntaxTree
-                {
-                    get
-                    {
-                        return _tree;
-                    }
-                }
+                public override SyntaxTree SyntaxTree => _tree;
 
-                public override TextSpan Span
-                {
-                    get
-                    {
-                        return _textSpan;
-                    }
-                }
+                public override TextSpan Span => _textSpan;
 
                 public override SyntaxNode GetSyntax(CancellationToken cancellationToken)
                 {

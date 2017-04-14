@@ -35,13 +35,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Colle
 
         private readonly IEnumerator<EnvDTE.CodeElement> _childEnumerator;
 
-        public object Current
-        {
-            get
-            {
-                return _childEnumerator.Current;
-            }
-        }
+        public object Current => _childEnumerator.Current;
 
         public object Clone()
         {

@@ -19,8 +19,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private readonly IVisualStudioHostProject _hostProject;
         private readonly string _moniker;
 
-        public IVisualStudioHostProject HostProject { get { return _hostProject; } }
-        public string Moniker { get { return _moniker; } }
+        public IVisualStudioHostProject HostProject => _hostProject;
+        public string Moniker => _moniker;
 
         public DocumentKey(IVisualStudioHostProject hostProject, string moniker)
         {

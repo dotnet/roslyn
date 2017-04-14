@@ -18,11 +18,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.RQName.Nodes
             this.NamespaceNames = new ReadOnlyCollection<string>(namespaceNames);
         }
 
-        public INamespaceSymbol NamespaceIdentifier
-        {
-            // TODO: C# Specific?
-            get { return null; /*new CSharpNamespaceIdentifier(NamespaceNames);*/ }
-        }
+        public INamespaceSymbol NamespaceIdentifier => null; /*new CSharpNamespaceIdentifier(NamespaceNames);*/
 
         protected override void AppendChildren(List<SimpleTreeNode> childList)
         {

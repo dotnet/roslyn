@@ -69,7 +69,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
         private readonly IFormattingRule _vbHelperFormattingRule;
         private readonly string _itemMoniker;
 
-        public AbstractProject Project { get { return _containedLanguage.Project; } }
+        public AbstractProject Project => _containedLanguage.Project;
         public bool SupportsRename { get { return _hostType == HostType.Razor; } }
 
         public DocumentId Id { get; }
@@ -165,13 +165,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 filePath: this.Key.Moniker);
         }
 
-        public bool IsOpen
-        {
-            get
-            {
-                return true;
-            }
-        }
+        public bool IsOpen => true;
 
 #pragma warning disable 67
 
@@ -181,7 +175,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
 #pragma warning restore 67
 
-        IVisualStudioHostProject IVisualStudioHostDocument.Project { get { return this.Project; } }
+        IVisualStudioHostProject IVisualStudioHostDocument.Project => this.Project;
 
         public ITextBuffer GetOpenTextBuffer()
         {
@@ -193,13 +187,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             return this.GetOpenTextBuffer().AsTextContainer();
         }
 
-        public IContentType ContentType
-        {
-            get
-            {
-                return _containedLanguage.SubjectBuffer.ContentType;
-            }
-        }
+        public IContentType ContentType => _containedLanguage.SubjectBuffer.ContentType;
 
         public string Name
         {
@@ -216,29 +204,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             }
         }
 
-        public SourceCodeKind SourceCodeKind
-        {
-            get
-            {
-                return _sourceCodeKind;
-            }
-        }
+        public SourceCodeKind SourceCodeKind => _sourceCodeKind;
 
-        public string FilePath
-        {
-            get
-            {
-                return Key.Moniker;
-            }
-        }
+        public string FilePath => Key.Moniker;
 
-        public AbstractContainedLanguage ContainedLanguage
-        {
-            get
-            {
-                return _containedLanguage;
-            }
-        }
+        public AbstractContainedLanguage ContainedLanguage => _containedLanguage;
 
         public void Dispose()
         {

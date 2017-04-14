@@ -139,13 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        public bool SupportsParameterizedProperties
-        {
-            get
-            {
-                return false;
-            }
-        }
+        public bool SupportsParameterizedProperties => false;
 
         public bool TryGetSpeculativeSemanticModel(SemanticModel oldSemanticModel, SyntaxNode oldNode, SyntaxNode newNode, out SemanticModel speculativeModel)
         {

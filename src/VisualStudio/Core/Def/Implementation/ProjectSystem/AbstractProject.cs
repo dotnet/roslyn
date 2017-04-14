@@ -1322,13 +1322,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             StartPushingToWorkspaceAndNotifyOfOpenDocuments(this);
         }
 
-        internal bool PushingChangesToWorkspaceHosts
-        {
-            get
-            {
-                return _pushingChangesToWorkspaceHosts;
-            }
-        }
+        internal bool PushingChangesToWorkspaceHosts => _pushingChangesToWorkspaceHosts;
 
         protected void UpdateRuleSetError(IRuleSetFile ruleSetFile)
         {
@@ -1493,13 +1487,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         }
 
 #if DEBUG
-        public virtual bool Debug_VBEmbeddedCoreOptionOn
-        {
-            get
-            {
-                return false;
-            }
-        }
+        public virtual bool Debug_VBEmbeddedCoreOptionOn => false;
 #endif
 
         /// <summary>

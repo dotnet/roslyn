@@ -29,20 +29,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
             return null;
         }
 
-        public virtual IEnumerable<Type> SyntaxNodeTypes
-        {
-            get
-            {
-                return null;
-            }
-        }
+        public virtual IEnumerable<Type> SyntaxNodeTypes => null;
 
-        public virtual IEnumerable<int> SyntaxTokenKinds
-        {
-            get
-            {
-                return null;
-            }
-        }
+        public virtual IEnumerable<int> SyntaxTokenKinds => null;
     }
 }

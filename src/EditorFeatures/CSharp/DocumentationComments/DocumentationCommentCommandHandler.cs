@@ -281,9 +281,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DocumentationComments
             return documentationComment.IsMultilineDocComment();
         }
 
-        protected override bool AddIndent
-        {
-            get { return true; }
-        }
+        protected override bool AddIndent => true;
     }
 }

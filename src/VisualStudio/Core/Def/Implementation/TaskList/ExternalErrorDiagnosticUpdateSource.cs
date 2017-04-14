@@ -383,7 +383,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
         }
 
         #region not supported
-        public bool SupportGetDiagnostics { get { return false; } }
+        public bool SupportGetDiagnostics => false;
 
         public ImmutableArray<DiagnosticData> GetDiagnostics(
             Workspace workspace, ProjectId projectId, DocumentId documentId, object id, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default(CancellationToken))
@@ -531,10 +531,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             {
             }
 
-            public override string BuildTool
-            {
-                get { return PredefinedBuildTools.Build; }
-            }
+            public override string BuildTool => PredefinedBuildTools.Build;
 
             public override bool Equals(object obj)
             {

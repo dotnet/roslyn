@@ -57,13 +57,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public override SymbolKind Kind => SymbolKind.NamedType;
 
-        public override int Arity
-        {
-            get
-            {
-                return this.TypeParameters.Length;
-            }
-        }
+        public override int Arity => this.TypeParameters.Length;
 
         public override bool IsGenericType
         {
@@ -99,13 +93,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public override INamedTypeSymbol EnumUnderlyingType => _enumUnderlyingType;
 
-        public override INamedTypeSymbol ConstructedFrom
-        {
-            get
-            {
-                return this;
-            }
-        }
+        public override INamedTypeSymbol ConstructedFrom => this;
 
         public override INamedTypeSymbol ConstructUnboundGenericType()
         {

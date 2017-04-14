@@ -105,10 +105,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
             }
         }
 
-        public EnvDTE.CodeElements DerivedTypes
-        {
-            get { throw new NotImplementedException(); }
-        }
+        public EnvDTE.CodeElements DerivedTypes => throw new NotImplementedException();
 
         public EnvDTE.CodeElements ImplementedInterfaces
         {
@@ -158,10 +155,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
             return currentType.InheritsFromOrEquals(baseType);
         }
 
-        public override bool IsCodeType
-        {
-            get { return true; }
-        }
+        public override bool IsCodeType => true;
 
         public void RemoveMember(object element)
         {

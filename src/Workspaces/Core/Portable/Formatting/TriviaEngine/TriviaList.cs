@@ -78,10 +78,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             {
             }
 
-            object IEnumerator.Current
-            {
-                get { return this.Current; }
-            }
+            object IEnumerator.Current => this.Current;
         }
     }
 }
