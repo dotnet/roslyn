@@ -194,9 +194,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             return expression.MakeDebuggerExpression(source);
         }
 
+        static CSharpParseOptions GetCSharpParseOptions() => CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest);
+
         private static InternalSyntax.ExpressionSyntax ParseDebuggerExpressionInternal(SourceText source, bool consumeFullText)
         {
-            using (var lexer = new InternalSyntax.Lexer(source, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest), allowPreprocessorDirectives: false))
+            using (var lexer = new InternalSyntax.Lexer(source, GetCSharpParseOptions(), allowPreprocessorDirectives: false))
             {
                 using (var parser = new InternalSyntax.LanguageParser(lexer, oldTree: null, changes: null, lexerMode: InternalSyntax.LexerMode.DebuggerSyntax))
                 {
@@ -210,7 +212,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         private static StatementSyntax ParseDebuggerStatement(string text)
         {
             var source = SourceText.From(text);
-            using (var lexer = new InternalSyntax.Lexer(source, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest)))
+            using (var lexer = new InternalSyntax.Lexer(source, GetCSharpParseOptions()))
             {
                 using (var parser = new InternalSyntax.LanguageParser(lexer, oldTree: null, changes: null, lexerMode: InternalSyntax.LexerMode.DebuggerSyntax))
                 {

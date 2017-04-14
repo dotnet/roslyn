@@ -6259,6 +6259,29 @@ class C
   IL_0002:  stloc.0
   IL_0003:  ret
 }");
+                testData = new CompilationTestData();
+                context.CompileExpression("int b = default;", DkmEvaluationFlags.None, ImmutableArray<Alias>.Empty, out error, testData);
+                Assert.Null(error);
+                testData.GetMethodData("<>x.<>m0").VerifyIL(@"
+{
+  // Code size       43 (0x2b)
+  .maxstack  4
+  .locals init (int V_0, //a
+                System.Guid V_1)
+  IL_0000:  ldtoken    ""int""
+  IL_0005:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_000a:  ldstr      ""b""
+  IL_000f:  ldloca.s   V_1
+  IL_0011:  initobj    ""System.Guid""
+  IL_0017:  ldloc.1
+  IL_0018:  ldnull
+  IL_0019:  call       ""void Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.CreateVariable(System.Type, string, System.Guid, byte[])""
+  IL_001e:  ldstr      ""b""
+  IL_0023:  call       ""int Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress<int>(string)""
+  IL_0028:  ldc.i4.0
+  IL_0029:  stind.i4
+  IL_002a:  ret
+}");
 
                 testData = new CompilationTestData();
                 context.CompileExpression("default", DkmEvaluationFlags.None, ImmutableArray<Alias>.Empty, out error, testData);
