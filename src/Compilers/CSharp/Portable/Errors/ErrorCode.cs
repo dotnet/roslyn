@@ -1465,6 +1465,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ExpressionTreeContainsDiscard = 8207,
         ERR_PatternDynamicType = 8208,
         ERR_VoidAssignment = 8209,
+        ERR_VoidInTuple = 8210,
         #endregion more stragglers for C# 7
 
         ERR_Merge_conflict_marker_encountered = 8300,

@@ -816,6 +816,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 CollectTupleFieldMemberNames(name, i + 1, numElements, ref elementNames);
 
                 BoundExpression boundArgument = BindValue(argumentSyntax.Expression, diagnostics, BindValueKind.RValue);
+                if (boundArgument.Type?.SpecialType == SpecialType.System_Void)
+                {
+                    diagnostics.Add(ErrorCode.ERR_VoidInTuple, argumentSyntax.Location);
+                    boundArgument = new BoundBadExpression(
+                        argumentSyntax, LookupResultKind.Empty, ImmutableArray<Symbol>.Empty,
+                        ImmutableArray.Create<BoundExpression>(boundArgument), CreateErrorType("void"));
+                }
+
                 boundArguments.Add(boundArgument);
 
                 var elementType = boundArgument.Type;
