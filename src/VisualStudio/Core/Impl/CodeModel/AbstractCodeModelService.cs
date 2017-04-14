@@ -77,23 +77,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             return _editorOptionsFactoryService.GetEditorOptions(text).GetNewLineCharacter();
         }
 
-        protected int GetTabSize(SourceText text)
-        {
-            var snapshot = text.FindCorrespondingEditorTextSnapshot();
-            return GetTabSize(snapshot);
-        }
-
-        protected int GetTabSize(ITextSnapshot snapshot)
-        {
-            if (snapshot == null)
-            {
-                throw new ArgumentNullException(nameof(snapshot));
-            }
-
-            var textBuffer = snapshot.TextBuffer;
-            return _editorOptionsFactoryService.GetOptions(textBuffer).GetTabSize();
-        }
-
         protected SyntaxToken GetTokenWithoutAnnotation(SyntaxToken current, Func<SyntaxToken, SyntaxToken> nextTokenGetter)
         {
             while (current.ContainsAnnotations)
@@ -552,14 +535,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         public abstract string GetExternalSymbolName(ISymbol symbol);
         public abstract string GetExternalSymbolFullName(ISymbol symbol);
 
-        public VirtualTreePoint? GetStartPoint(SyntaxNode node, EnvDTE.vsCMPart? part)
+        public VirtualTreePoint? GetStartPoint(SyntaxNode node, OptionSet options, EnvDTE.vsCMPart? part)
         {
-            return _nodeLocator.GetStartPoint(node, part);
+            return _nodeLocator.GetStartPoint(node, options, part);
         }
 
-        public VirtualTreePoint? GetEndPoint(SyntaxNode node, EnvDTE.vsCMPart? part)
+        public VirtualTreePoint? GetEndPoint(SyntaxNode node, OptionSet options, EnvDTE.vsCMPart? part)
         {
-            return _nodeLocator.GetEndPoint(node, part);
+            return _nodeLocator.GetEndPoint(node, options, part);
         }
 
         public abstract EnvDTE.vsCMAccess GetAccess(ISymbol symbol);
