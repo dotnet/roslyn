@@ -191,8 +191,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     EmitAsExpression((BoundAsOperator)expression, used);
                     break;
 
-                case BoundKind.DefaultOperator:
-                    EmitDefaultExpression((BoundDefaultOperator)expression, used);
+                case BoundKind.DefaultExpression:
+                    EmitDefaultExpression((BoundDefaultExpression)expression, used);
                     break;
 
                 case BoundKind.TypeOfOperator:
@@ -2637,7 +2637,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
         }
 
-        private void EmitDefaultExpression(BoundDefaultOperator expression, bool used)
+        private void EmitDefaultExpression(BoundDefaultExpression expression, bool used)
         {
             Debug.Assert(expression.Type.SpecialType == SpecialType.System_Decimal ||
                 expression.Type.GetDefaultValue() == null, "constant should be set on this expression");
@@ -3009,8 +3009,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 case BoundKind.Conversion:
                     var conversion = (BoundConversion)expr;
                     var conversionKind = conversion.ConversionKind;
-                    if (conversionKind.IsImplicitConversion() &&
-                        conversionKind != ConversionKind.NullLiteral)
+                    Debug.Assert(conversionKind != ConversionKind.DefaultOrNullLiteral);
+
+                    if (conversionKind.IsImplicitConversion())
                     {
                         Debug.Assert(conversionKind != ConversionKind.MethodGroup);
                         return StackMergeType(conversion.Operand);
