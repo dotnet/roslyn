@@ -4,7 +4,6 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Emit;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeGen
 {
@@ -21,8 +20,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         private readonly ImmutableArray<Cci.ExceptionHandlerRegion> _exceptionHandlers;
 
         // Debug information emitted to Release & Debug PDBs supporting the debugger, EEs and other tools:
-        private readonly SequencePointList _sequencePoints;
-        private readonly DebugDocumentProvider _debugDocumentProvider;
+        private readonly ImmutableArray<Cci.SequencePoint> _sequencePoints;
         private readonly ImmutableArray<Cci.LocalScope> _localScopes;
         private readonly Cci.IImportScope _importScopeOpt;
         private readonly string _stateMachineTypeNameOpt;
@@ -73,8 +71,6 @@ namespace Microsoft.CodeAnalysis.CodeGen
             _parent = parent;
             _methodId = methodId;
             _locals = locals;
-            _sequencePoints = sequencePoints;
-            _debugDocumentProvider = debugDocumentProvider;
             _exceptionHandlers = exceptionHandlers;
             _localScopes = localScopes;
             _hasDynamicLocalVariables = hasDynamicLocalVariables;
@@ -86,11 +82,19 @@ namespace Microsoft.CodeAnalysis.CodeGen
             _stateMachineHoistedLocalSlots = stateMachineHoistedLocalSlots;
             _stateMachineAwaiterSlots = stateMachineAwaiterSlots;
             _dynamicAnalysisDataOpt = dynamicAnalysisDataOpt;
+            _sequencePoints = GetSequencePoints(sequencePoints, debugDocumentProvider);
         }
 
-        void Cci.IMethodBody.Dispatch(Cci.MetadataVisitor visitor)
+        private ImmutableArray<Cci.SequencePoint> GetSequencePoints(SequencePointList sequencePoints, DebugDocumentProvider debugDocumentProvider)
         {
-            throw ExceptionUtilities.Unreachable;
+            if (sequencePoints == null || sequencePoints.IsEmpty)
+            {
+                return ImmutableArray<Cci.SequencePoint>.Empty;
+            }
+
+            var sequencePointsBuilder = ArrayBuilder<Cci.SequencePoint>.GetInstance();
+            sequencePoints.GetSequencePoints(debugDocumentProvider, sequencePointsBuilder);
+            return sequencePointsBuilder.ToImmutableAndFree();
         }
 
         DynamicAnalysisMethodBodyData Cci.IMethodBody.DynamicAnalysisData => _dynamicAnalysisDataOpt;
@@ -109,16 +113,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         public ImmutableArray<byte> IL => _ilBits;
 
-        public void GetSequencePoints(ArrayBuilder<Cci.SequencePoint> builder)
-        {
-            if (HasAnySequencePoints)
-            {
-                _sequencePoints.GetSequencePoints(_debugDocumentProvider, builder);
-            }
-        }
-
-        public bool HasAnySequencePoints
-            => _sequencePoints != null && !_sequencePoints.IsEmpty;
+        public ImmutableArray<Cci.SequencePoint> SequencePoints => _sequencePoints;
 
         ImmutableArray<Cci.LocalScope> Cci.IMethodBody.LocalScopes => _localScopes;
 

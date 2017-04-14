@@ -2,6 +2,7 @@
 
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.Metadata.Tools;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -1181,7 +1182,7 @@ class C
           <namespace usingCount=""1"" />
         </using>
         <dynamicLocals>
-          <bucket flagCount=""1"" flags=""1"" slotId=""1"" localName=""d"" />
+          <bucket flags=""1"" slotId=""1"" localName=""d"" />
         </dynamicLocals>
       </customDebugInfo>
       <sequencePoints>

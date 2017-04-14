@@ -298,8 +298,15 @@ namespace Microsoft.Cci
         {
             Debug.Assert(_metadataWriter != null);
 
+            // A state machine kickoff method doesn't have sequence points as it only contains generated code.
+            // We could avoid emitting debug info for it if the corresponding MoveNext method had no sequence points,
+            // but there is no real need for such optimization.
+            // 
+            // Special case a hidden entry point (#line hidden applied) that would otherwise have no debug info.
+            // This is to accomodate for a requirement of Windows PDB writer that the entry point method must have some debug information.
             bool isIterator = methodBody.StateMachineTypeName != null;
-            bool emitDebugInfo = isIterator || methodBody.HasAnySequencePoints;
+            bool emitDebugInfo = isIterator || !methodBody.SequencePoints.IsEmpty ||
+                methodBody.MethodDefinition == (Context.Module.DebugEntryPoint ?? Context.Module.PEEntryPoint);
 
             if (!emitDebugInfo)
             {
@@ -340,10 +347,7 @@ namespace Microsoft.Cci
             }
 
             DefineLocalScopes(localScopes, localSignatureHandleOpt);
-            ArrayBuilder<SequencePoint> sequencePoints = ArrayBuilder<SequencePoint>.GetInstance();
-            methodBody.GetSequencePoints(sequencePoints);
-            EmitSequencePoints(sequencePoints);
-            sequencePoints.Free();
+            EmitSequencePoints(methodBody.SequencePoints);
 
             AsyncMethodBodyDebugInfo asyncDebugInfo = methodBody.AsyncDebugInfo;
             if (asyncDebugInfo != null)
@@ -1102,7 +1106,7 @@ namespace Microsoft.Cci
             Array.Resize(ref _sequencePointEndColumns, newCapacity);
         }
 
-        private void EmitSequencePoints(ArrayBuilder<Cci.SequencePoint> sequencePoints)
+        private void EmitSequencePoints(ImmutableArray<SequencePoint> sequencePoints)
         {
             DebugSourceDocument document = null;
             ISymUnmanagedDocumentWriter symDocumentWriter = null;

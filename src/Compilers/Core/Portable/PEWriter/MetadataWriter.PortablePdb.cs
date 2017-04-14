@@ -50,7 +50,7 @@ namespace Microsoft.Cci
             }
 
             bool isIterator = bodyOpt.StateMachineTypeName != null;
-            bool emitDebugInfo = isIterator || bodyOpt.HasAnySequencePoints;
+            bool emitDebugInfo = isIterator || !bodyOpt.SequencePoints.IsEmpty;
 
             if (!emitDebugInfo)
             {
@@ -65,9 +65,7 @@ namespace Microsoft.Cci
 
             // documents & sequence points:
             DocumentHandle singleDocumentHandle;
-            ArrayBuilder<Cci.SequencePoint> sequencePoints = ArrayBuilder<Cci.SequencePoint>.GetInstance();
-            bodyOpt.GetSequencePoints(sequencePoints);
-            BlobHandle sequencePointsBlob = SerializeSequencePoints(localSignatureHandleOpt, sequencePoints.ToImmutableAndFree(), _documentIndex, out singleDocumentHandle);
+            BlobHandle sequencePointsBlob = SerializeSequencePoints(localSignatureHandleOpt, bodyOpt.SequencePoints, _documentIndex, out singleDocumentHandle);
 
             _debugMetadataOpt.AddMethodDebugInformation(document: singleDocumentHandle, sequencePoints: sequencePointsBlob);
 

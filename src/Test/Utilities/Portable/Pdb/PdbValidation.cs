@@ -158,23 +158,20 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             RemoveEmptySequencePoints(expectedPdb);
 
             // remove scopes that only contained non-portable elements (namespace scopes)
+            RemoveEmptyCustomDebugInfo(expectedPdb);
             RemoveEmptyScopes(expectedPdb);
-            RemoveMethodsWithNoSequencePoints(expectedPdb);
             RemoveEmptyMethods(expectedPdb);
         }
 
-        private static void RemoveMethodsWithNoSequencePoints(XElement pdb)
+        private static void RemoveEmptyCustomDebugInfo(XElement pdb)
         {
-            var methods = (from e in pdb.DescendantsAndSelf()
-                           where e.Name == "method"
-                           select e).ToArray();
-            foreach (var method in methods)
+            var emptyNodes = from e in pdb.DescendantsAndSelf()
+                             where e.Name == "customDebugInfo" && !e.HasElements
+                             select e;
+
+            foreach (var e in emptyNodes.ToArray())
             {
-                bool hasNoSequencePoints = method.DescendantsAndSelf().Where(node => node.Name == "entry").IsEmpty();
-                if (hasNoSequencePoints)
-                {
-                    method.Remove();
-                }
+                e.Remove();
             }
         }
 
@@ -223,7 +220,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         private static void RemoveNonPortablePdb(XElement expectedNativePdb)
         {
             var nonPortableElements = from e in expectedNativePdb.DescendantsAndSelf()
-                                      where e.Name == "customDebugInfo" ||
+                                      where e.Name == "forwardIterator" ||
+                                            e.Name == "forwardToModule" ||
+                                            e.Name == "forward" ||
+                                            e.Name == "tupleElementNames" ||
+                                            e.Name == "dynamicLocals" ||
+                                            e.Name == "using" ||
                                             e.Name == "currentnamespace" ||
                                             e.Name == "defaultnamespace" ||
                                             e.Name == "importsforward" ||

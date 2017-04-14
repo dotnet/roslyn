@@ -1350,7 +1350,7 @@ class C
           <namespace usingCount=""1"" />
         </using>
         <dynamicLocals>
-          <bucket flagCount=""1"" flags=""1"" slotId=""1"" localName=""d"" />
+          <bucket flags=""1"" slotId=""1"" localName=""d"" />
         </dynamicLocals>
       </customDebugInfo>
       <sequencePoints>

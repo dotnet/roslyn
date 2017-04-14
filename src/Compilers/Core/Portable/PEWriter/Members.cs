@@ -358,24 +358,6 @@ namespace Microsoft.Cci
     internal interface IMethodBody
     {
         /// <summary>
-        /// Calls the visitor.Visit(T) method where T is the most derived object model node interface type implemented by the concrete type
-        /// of the object implementing IDoubleDispatcher. The dispatch method does not invoke Dispatch on any child objects. If child traversal
-        /// is desired, the implementations of the Visit methods should do the subsequent dispatching.
-        /// </summary>
-        void Dispatch(MetadataVisitor visitor);
-
-        ///// <summary>
-        ///// Returns the IL operation that is located at the given offset. If no operation exists the given offset, Dummy.Operation is returned.
-        ///// The offset of the operation that follows the operation at the given offset is returned as the value of the second parameter.
-        ///// If the given offset is invalid, or is the offset of the last operation in the method body, offsetOfNextOperation will be set to -1.
-        ///// </summary>
-        ///// <param name="offset">The offset of the operation to be returned by this method.</param>
-        ///// <param name="offsetOfNextOperation">The offset of the operation that follows the one returned by this method. If no such operation exists, the value is -1.</param>
-        // IOperation GetOperationAt(int offset, out int offsetOfNextOperation);
-        //// ^ requires 0 <= offset;
-        //// ^ ensures offsetOfNextOperation == -1 || offsetOfNextOperation > offset;
-
-        /// <summary>
         /// A list exception data within the method body IL.
         /// </summary>
         ImmutableArray<ExceptionHandlerRegion> ExceptionRegions
@@ -411,8 +393,7 @@ namespace Microsoft.Cci
         ushort MaxStack { get; }
 
         ImmutableArray<byte> IL { get; }
-        bool HasAnySequencePoints { get; }
-        void GetSequencePoints(ArrayBuilder<SequencePoint> builder);
+        ImmutableArray<SequencePoint> SequencePoints { get; }
 
         /// <summary>
         /// Returns true if there is at least one dynamic local within the MethodBody
