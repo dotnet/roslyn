@@ -4,7 +4,7 @@
   <PropertyGroup>
     <TargetNetFX20>true</TargetNetFX20>
   </PropertyGroup>
-  <Import Project="..\..\..\..\..\..\build\Targets\Settings.props" />
+  <Import Project="..\..\..\..\..\..\build\Targets\SettingsSdk.props" />
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -44,6 +44,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.VisualStudio.Debugger.Engine" Version="$(MicrosoftVisualStudioDebuggerEngineVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Debugger.Metadata" Version="$(MicrosoftVisualStudioDebuggerMetadataVersion)" />
+    <PackageReference Include="Microsoft.NetFX20" Version="$(MicrosoftNetFX20Version)" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="My Project\" />
