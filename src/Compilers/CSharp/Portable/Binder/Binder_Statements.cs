@@ -2687,6 +2687,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Error(diagnostics, ErrorCode.ERR_NoImplicitConv, syntax, distinguisher.First, distinguisher.Second);
                     }
                 }
+                else if (sourceType == targetType)
+                {
+                    // This occurs for `void`, which cannot even convert to itself. Since SymbolDistinguisher
+                    // requires two distinct types, we preempt its use here. The diagnostic is strange, but correct.
+                    // Though this diagnostic tends to be a cascaded one, we cannot suppress it until
+                    // we have proven that it is always so.
+                    Error(diagnostics, ErrorCode.ERR_NoImplicitConv, syntax, sourceType, targetType);
+                }
                 else
                 {
                     SymbolDistinguisher distinguisher = new SymbolDistinguisher(compilation, sourceType, targetType);

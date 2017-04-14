@@ -9602,6 +9602,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to A tuple may not contain a value of type &apos;void&apos;..
+        /// </summary>
+        internal static string ERR_VoidInTuple {
+            get {
+                return ResourceManager.GetString("ERR_VoidInTuple", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to &apos;{0}&apos;: a field cannot be both volatile and readonly.
         /// </summary>
         internal static string ERR_VolatileAndReadonly {
