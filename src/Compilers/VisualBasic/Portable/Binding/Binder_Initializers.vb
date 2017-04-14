@@ -514,7 +514,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 boundInitValue = New BoundBadExpression(boundInitValue.Syntax,
                                                         LookupResultKind.Empty,
                                                         ImmutableArray(Of Symbol).Empty,
-                                                        ImmutableArray.Create(Of BoundNode)(boundInitValue),
+                                                        ImmutableArray.Create(boundInitValue),
                                                         fieldType,
                                                         hasErrors:=True)
                 ignoredDiagnostics.Free()

@@ -518,6 +518,7 @@ End Module]]>.Value
 IVariableDeclarationStatement (1 variables) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Dim i1(2) As New Integer')
   IVariableDeclaration: i1 As System.Int32() (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'i1(2)')
     Initializer: IInvalidExpression (OperationKind.InvalidExpression, Type: System.Int32(), IsInvalid) (Syntax: 'As New Integer')
+        Children(1): IObjectCreationExpression (Constructor: Sub System.Int32..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Int32) (Syntax: 'New Integer')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -841,6 +842,7 @@ End Module]]>.Value
 IVariableDeclarationStatement (1 variables) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Const i1 = Int1()')
   IVariableDeclaration: i1 As System.Object (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'i1')
     Initializer: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'Int1()')
+        Children(1): IInvocationExpression (static Function Program.Int1() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'Int1()')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -869,8 +871,10 @@ End Module]]>.Value
 IVariableDeclarationStatement (2 variables) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Const i1 =  ... i2 = Int1()')
   IVariableDeclaration: i1 As System.Object (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'i1')
     Initializer: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'Int1()')
+        Children(1): IInvocationExpression (static Function Program.Int1() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'Int1()')
   IVariableDeclaration: i2 As System.Object (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'i2')
     Initializer: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'Int1()')
+        Children(1): IInvocationExpression (static Function Program.Int1() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'Int1()')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[

@@ -24,6 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             private readonly AbstractTableDataSourceFindUsagesContext _context;
 
             private readonly DocumentSpan _documentSpan;
+            private readonly string _projectName;
             private readonly object _boxedProjectGuid;
             protected readonly SourceText _sourceText;
 
@@ -31,13 +32,14 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 AbstractTableDataSourceFindUsagesContext context,
                 RoslynDefinitionBucket definitionBucket,
                 DocumentSpan documentSpan,
+                string projectName,
                 Guid projectGuid,
                 SourceText sourceText)
                 : base(definitionBucket)
             {
                 _context = context;
-
                 _documentSpan = documentSpan;
+                _projectName = projectName;
                 _boxedProjectGuid = projectGuid;
                 _sourceText = sourceText;
             }
@@ -58,7 +60,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     case StandardTableKeyNames.Column:
                         return _sourceText.Lines.GetLinePosition(SourceSpan.Start).Character;
                     case StandardTableKeyNames.ProjectName:
-                        return Document.Project.Name;
+                        return _projectName;
                     case StandardTableKeyNames.ProjectGuid:
                         return _boxedProjectGuid;
                     case StandardTableKeyNames.Text:
