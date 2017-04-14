@@ -1065,27 +1065,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Shared ReadOnly s_variablesMappings As New System.Runtime.CompilerServices.ConditionalWeakTable(Of BoundDimStatement, Object)
 
-        Private ReadOnly Property IVariableDeclarationStatement_Variables As ImmutableArray(Of IVariableDeclarationGroup) Implements IVariableDeclarationStatement.DeclarationGroups
+        Private ReadOnly Property IVariableDeclarationStatement_Variables As ImmutableArray(Of IVariableDeclaration) Implements IVariableDeclarationStatement.Declarations
             Get
                 Dim variables = s_variablesMappings.GetValue(Me, Function(dimStatement)
-                                                                     Dim builder = ArrayBuilder(Of IVariableDeclarationGroup).GetInstance()
+                                                                     Dim builder = ArrayBuilder(Of IVariableDeclaration).GetInstance()
                                                                      For Each base In dimStatement.LocalDeclarations
                                                                          If base.Kind = BoundKind.LocalDeclaration Then
                                                                              Dim declaration = DirectCast(base, BoundLocalDeclaration)
-                                                                             builder.Add(New VariableDeclarationGroup(declaration.LocalSymbol, declaration.InitializerOpt, declaration.Syntax))
+                                                                             builder.Add(New VariableDeclaration(declaration.LocalSymbol, declaration.InitializerOpt, declaration.Syntax))
                                                                          ElseIf base.Kind = BoundKind.AsNewLocalDeclarations Then
                                                                              Dim asNewDeclarations = DirectCast(base, BoundAsNewLocalDeclarations)
                                                                              Dim localSymbolsBuilder = ArrayBuilder(Of ILocalSymbol).GetInstance()
                                                                              For Each asNewDeclaration In asNewDeclarations.LocalDeclarations
                                                                                  localSymbolsBuilder.Add(asNewDeclaration.LocalSymbol)
                                                                              Next
-                                                                             builder.Add(New VariableDeclarationGroup(localSymbolsBuilder.ToImmutableAndFree(), asNewDeclarations.Initializer, asNewDeclarations.Syntax))
+                                                                             builder.Add(New VariableDeclaration(localSymbolsBuilder.ToImmutableAndFree(), asNewDeclarations.Initializer, asNewDeclarations.Syntax))
                                                                          End If
                                                                      Next
                                                                      Return builder.ToImmutableAndFree()
                                                                  End Function
                                                                )
-                Return DirectCast(variables, ImmutableArray(Of IVariableDeclarationGroup))
+                Return DirectCast(variables, ImmutableArray(Of IVariableDeclaration))
             End Get
         End Property
 
@@ -1398,7 +1398,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return s_variablesMappings.GetValue(
                     Me,
                     Function(BoundUsing)
-                        Return New Variables(BoundUsing.ResourceList.As(Of IVariableDeclarationGroup))
+                        Return New Variables(BoundUsing.ResourceList.As(Of IVariableDeclaration))
                     End Function)
             End Get
         End Property
@@ -1424,9 +1424,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private NotInheritable Class Variables
             Implements IVariableDeclarationStatement
 
-            Private ReadOnly _variables As ImmutableArray(Of IVariableDeclarationGroup)
+            Private ReadOnly _variables As ImmutableArray(Of IVariableDeclaration)
 
-            Public Sub New(variables As ImmutableArray(Of IVariableDeclarationGroup))
+            Public Sub New(variables As ImmutableArray(Of IVariableDeclaration))
                 _variables = variables
             End Sub
 
@@ -1456,7 +1456,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Get
             End Property
 
-            Private ReadOnly Property IVariableDeclarationStatement_Variables As ImmutableArray(Of IVariableDeclarationGroup) Implements IVariableDeclarationStatement.DeclarationGroups
+            Private ReadOnly Property IVariableDeclarationStatement_Variables As ImmutableArray(Of IVariableDeclaration) Implements IVariableDeclarationStatement.Declarations
                 Get
                     Return _variables
                 End Get

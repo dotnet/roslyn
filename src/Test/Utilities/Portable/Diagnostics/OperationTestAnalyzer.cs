@@ -825,11 +825,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                          Report(operationContext, declarationStatement.Syntax, TooManyLocalVarDeclarationsDescriptor);
                      }
 
-                     foreach (var decl in declarationStatement.DeclarationGroups)
+                     foreach (var decl in declarationStatement.Declarations)
                      {
-                         if (decl.InitialValue != null && !decl.InitialValue.IsInvalid)
+                         if (decl.Initializer != null && !decl.Initializer.IsInvalid)
                          {
-                             foreach (var symbol in decl.Symbols)
+                             foreach (var symbol in decl.Variables)
                              {
                                 Report(operationContext, symbol.DeclaringSyntaxReferences.Single().GetSyntax(), LocalVarInitializedDeclarationDescriptor);
                              }

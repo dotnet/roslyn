@@ -277,22 +277,22 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public override void VisitVariableDeclarationStatement(IVariableDeclarationStatement operation)
         {
-            var variablesCountStr = $"{operation.DeclarationGroups.Length} groups";
+            var variablesCountStr = $"{operation.Declarations.Length} declarations";
             LogString($"{nameof(IVariableDeclarationStatement)} ({variablesCountStr})");
             LogCommonPropertiesAndNewLine(operation);
 
             base.VisitVariableDeclarationStatement(operation);
         }
 
-        public override void VisitVariableDeclarationGroup(IVariableDeclarationGroup operation)
+        public override void VisitVariableDeclaration(IVariableDeclaration operation)
         {
-            var symbolsCountStr = $"{operation.Symbols.Length} symbols";
-            LogString($"{nameof(IVariableDeclarationGroup)} ({symbolsCountStr})");
+            var symbolsCountStr = $"{operation.Variables.Length} variables";
+            LogString($"{nameof(IVariableDeclaration)} ({symbolsCountStr})");
             LogCommonPropertiesAndNewLine(operation);
 
-            LogLocals(operation.Symbols);
+            LogLocals(operation.Variables, header: "Variables");
 
-            Visit(operation.InitialValue, "Initializer");
+            Visit(operation.Initializer, "Initializer");
         }
 
         public override void VisitSwitchStatement(ISwitchStatement operation)
@@ -341,7 +341,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Visit(operation.Body, "Body");
         }
 
-        private void LogLocals(IEnumerable<ILocalSymbol> locals)
+        private void LogLocals(IEnumerable<ILocalSymbol> locals, string header = "Locals")
         {
             if (!locals.Any())
             {
@@ -350,7 +350,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             Indent();
 
-            LogString("Locals: ");
+            LogString($"{header}: ");
             Indent();
 
             int localIndex = 1;

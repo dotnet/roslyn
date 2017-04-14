@@ -67,16 +67,16 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                             (operationContext) =>
                             {
                                 IVariableDeclarationStatement declaration = (IVariableDeclarationStatement)operationContext.Operation;
-                                foreach (IVariableDeclarationGroup variable in declaration.DeclarationGroups)
+                                foreach (IVariableDeclaration variable in declaration.Declarations)
                                 {
-                                    foreach (ILocalSymbol local in variable.Symbols)
+                                    foreach (ILocalSymbol local in variable.Variables)
                                     {
                                         if (!local.IsConst && !assignedToLocals.Contains(local))
                                         {
                                             var localType = local.Type;
                                             if ((!localType.IsReferenceType || localType.SpecialType == SpecialType.System_String) && localType.SpecialType != SpecialType.None)
                                             {
-                                                if (variable.InitialValue != null && variable.InitialValue.ConstantValue.HasValue)
+                                                if (variable.Initializer != null && variable.Initializer.ConstantValue.HasValue)
                                                 {
                                                     mightBecomeConstLocals.Add(local);
                                                 }

@@ -4,13 +4,13 @@ using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.Semantics
 {
-    internal partial class VariableDeclarationGroup : IVariableDeclarationGroup
+    internal partial class VariableDeclaration : IVariableDeclaration
     {
-        public VariableDeclarationGroup(ILocalSymbol variable, IOperation initialValue, SyntaxNode syntax) :
+        public VariableDeclaration(ILocalSymbol variable, IOperation initialValue, SyntaxNode syntax) :
             this(ImmutableArray.Create(variable), initialValue, syntax)
         {
         }
-        public VariableDeclarationGroup(ImmutableArray<ILocalSymbol> variables, IOperation initialValue, SyntaxNode syntax) :
+        public VariableDeclaration(ImmutableArray<ILocalSymbol> variables, IOperation initialValue, SyntaxNode syntax) :
             this(variables,
                 initialValue,
                 variables == null || (initialValue != null && initialValue.IsInvalid),

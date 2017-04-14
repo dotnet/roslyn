@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             DefaultVisit(operation);
         }
 
-        public virtual void VisitVariableDeclarationGroup(IVariableDeclarationGroup operation)
+        public virtual void VisitVariableDeclaration(IVariableDeclaration operation)
         {
             DefaultVisit(operation);
         }
@@ -435,7 +435,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             return DefaultVisit(operation, argument);
         }
 
-        public virtual TResult VisitVariableDeclarationGroup(IVariableDeclarationGroup operation, TArgument argument)
+        public virtual TResult VisitVariableDeclaration(IVariableDeclaration operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
         }

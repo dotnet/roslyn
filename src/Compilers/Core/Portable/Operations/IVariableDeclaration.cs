@@ -11,16 +11,16 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// This interface is reserved for implementation by its associated APIs. We reserve the right to
     /// change it in the future.
     /// </remarks>
-    public interface IVariableDeclarationGroup : IOperation
+    public interface IVariableDeclaration : IOperation
     {
         /// <summary>
         /// Symbols declared by the declaration.
         /// </summary>
-        ImmutableArray<ILocalSymbol> Symbols { get; }
+        ImmutableArray<ILocalSymbol> Variables { get; }
         /// <summary>
         /// Initializer of the variable.
         /// </summary>
-        IOperation InitialValue { get; }
+        IOperation Initializer { get; }
     }
 }
 

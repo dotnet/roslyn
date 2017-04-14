@@ -511,11 +511,11 @@ Microsoft.CodeAnalysis.Semantics.IUsingStatement
 Microsoft.CodeAnalysis.Semantics.IUsingStatement.Body.get -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.Semantics.IUsingStatement.Declaration.get -> Microsoft.CodeAnalysis.Semantics.IVariableDeclarationStatement
 Microsoft.CodeAnalysis.Semantics.IUsingStatement.Value.get -> Microsoft.CodeAnalysis.IOperation
-Microsoft.CodeAnalysis.Semantics.IVariableDeclarationGroup
-Microsoft.CodeAnalysis.Semantics.IVariableDeclarationGroup.InitialValue.get -> Microsoft.CodeAnalysis.IOperation
-Microsoft.CodeAnalysis.Semantics.IVariableDeclarationGroup.Symbols.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ILocalSymbol>
+Microsoft.CodeAnalysis.Semantics.IVariableDeclaration
+Microsoft.CodeAnalysis.Semantics.IVariableDeclaration.Initializer.get -> Microsoft.CodeAnalysis.IOperation
+Microsoft.CodeAnalysis.Semantics.IVariableDeclaration.Variables.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ILocalSymbol>
 Microsoft.CodeAnalysis.Semantics.IVariableDeclarationStatement
-Microsoft.CodeAnalysis.Semantics.IVariableDeclarationStatement.DeclarationGroups.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Semantics.IVariableDeclarationGroup>
+Microsoft.CodeAnalysis.Semantics.IVariableDeclarationStatement.Declarations.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Semantics.IVariableDeclaration>
 Microsoft.CodeAnalysis.Semantics.IWhileUntilLoopStatement
 Microsoft.CodeAnalysis.Semantics.IWhileUntilLoopStatement.IsTopTest.get -> bool
 Microsoft.CodeAnalysis.Semantics.IWhileUntilLoopStatement.IsWhile.get -> bool
@@ -730,7 +730,7 @@ override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitTypeParameterObje
 override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitUnaryOperatorExpression(Microsoft.CodeAnalysis.Semantics.IUnaryOperatorExpression operation) -> void
 override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitUnboundLambdaExpression(Microsoft.CodeAnalysis.Semantics.IUnboundLambdaExpression operation) -> void
 override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitUsingStatement(Microsoft.CodeAnalysis.Semantics.IUsingStatement operation) -> void
-override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitVariableDeclarationGroup(Microsoft.CodeAnalysis.Semantics.IVariableDeclarationGroup operation) -> void
+override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitVariableDeclaration(Microsoft.CodeAnalysis.Semantics.IVariableDeclaration operation) -> void
 override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitVariableDeclarationStatement(Microsoft.CodeAnalysis.Semantics.IVariableDeclarationStatement operation) -> void
 override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitWhileUntilLoopStatement(Microsoft.CodeAnalysis.Semantics.IWhileUntilLoopStatement operation) -> void
 override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitWithStatement(Microsoft.CodeAnalysis.Semantics.IWithStatement operation) -> void
@@ -829,7 +829,7 @@ virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitTypeParameterObje
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitUnaryOperatorExpression(Microsoft.CodeAnalysis.Semantics.IUnaryOperatorExpression operation) -> void
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitUnboundLambdaExpression(Microsoft.CodeAnalysis.Semantics.IUnboundLambdaExpression operation) -> void
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitUsingStatement(Microsoft.CodeAnalysis.Semantics.IUsingStatement operation) -> void
-virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitVariableDeclarationGroup(Microsoft.CodeAnalysis.Semantics.IVariableDeclarationGroup operation) -> void
+virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitVariableDeclaration(Microsoft.CodeAnalysis.Semantics.IVariableDeclaration operation) -> void
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitVariableDeclarationStatement(Microsoft.CodeAnalysis.Semantics.IVariableDeclarationStatement operation) -> void
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitWhileUntilLoopStatement(Microsoft.CodeAnalysis.Semantics.IWhileUntilLoopStatement operation) -> void
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitWithStatement(Microsoft.CodeAnalysis.Semantics.IWithStatement operation) -> void
@@ -905,7 +905,7 @@ virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.Vi
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitUnaryOperatorExpression(Microsoft.CodeAnalysis.Semantics.IUnaryOperatorExpression operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitUnboundLambdaExpression(Microsoft.CodeAnalysis.Semantics.IUnboundLambdaExpression operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitUsingStatement(Microsoft.CodeAnalysis.Semantics.IUsingStatement operation, TArgument argument) -> TResult
-virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitVariableDeclarationGroup(Microsoft.CodeAnalysis.Semantics.IVariableDeclarationGroup operation, TArgument argument) -> TResult
+virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitVariableDeclaration(Microsoft.CodeAnalysis.Semantics.IVariableDeclaration operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitVariableDeclarationStatement(Microsoft.CodeAnalysis.Semantics.IVariableDeclarationStatement operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitWhileUntilLoopStatement(Microsoft.CodeAnalysis.Semantics.IWhileUntilLoopStatement operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitWithStatement(Microsoft.CodeAnalysis.Semantics.IWithStatement operation, TArgument argument) -> TResult

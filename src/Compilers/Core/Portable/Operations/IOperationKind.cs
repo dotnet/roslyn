@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>Indicates an <see cref="IArrayInitializer"/>.</summary>
         ArrayInitializer = 0x405,
 
-        /// <summary>Indicates an <see cref="IVariableDeclarationGroup"/>.</summary>
+        /// <summary>Indicates an <see cref="IVariableDeclaration"/>.</summary>
         VariableDeclaration = 0x406,
 
         /// <summary>Indicates an <see cref="IArgument"/>.</summary>

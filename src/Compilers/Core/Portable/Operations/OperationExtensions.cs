@@ -48,9 +48,9 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public static IEnumerable<ILocalSymbol> GetDeclaredSymbols(this IVariableDeclarationStatement declarationStatement)
         {
-            foreach (IVariableDeclarationGroup group in declarationStatement.DeclarationGroups)
+            foreach (IVariableDeclaration group in declarationStatement.Declarations)
             {
-                foreach (ILocalSymbol symbol in group.Symbols)
+                foreach (ILocalSymbol symbol in group.Variables)
                 {
                     yield return symbol;
                 }
