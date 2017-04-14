@@ -4729,51 +4729,6 @@ class C
 {
     static void Main()
     {
-        (int x, void y) = (1, 2);
-    }
-}";
-            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
-            comp.VerifyDiagnostics(
-                // (5,17): error CS1547: Keyword 'void' cannot be used in this context
-                //         (int x, void y) = (1, 2);
-                Diagnostic(ErrorCode.ERR_NoVoidHere, "void").WithLocation(5, 17),
-                // (5,31): error CS0029: Cannot implicitly convert type 'int' to 'void'
-                //         (int x, void y) = (1, 2);
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "2").WithArguments("int", "void").WithLocation(5, 31),
-                // (5,17): error CS0029: Cannot implicitly convert type 'void' to 'void'
-                //         (int x, void y) = (1, 2);
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "void y").WithArguments("void", "void").WithLocation(5, 17)
-                );
-            var tree = comp.SyntaxTrees[0];
-            var model = comp.GetSemanticModel(tree);
-            var two = tree.GetRoot().DescendantNodes().OfType<ExpressionSyntax>().Where(n => n.ToString() == "2").Single();
-            var type = model.GetTypeInfo(two);
-            Assert.Equal(SpecialType.System_Int32, type.Type.SpecialType);
-            Assert.Equal(SpecialType.System_Int32, type.ConvertedType.SpecialType);
-            Assert.Equal(ConversionKind.Identity, model.GetConversion(two).Kind);
-            var symbols = model.GetSymbolInfo(two);
-            Assert.Null(symbols.Symbol);
-            Assert.Empty(symbols.CandidateSymbols);
-            Assert.Equal(CandidateReason.None, symbols.CandidateReason);
-
-            // the ArgumentSyntax above a tuple element doesn't support GetTypeInfo or GetSymbolInfo.
-            var argument = (ArgumentSyntax)two.Parent;
-            type = model.GetTypeInfo(argument);
-            Assert.Null(type.Type);
-            Assert.Null(type.ConvertedType);
-            symbols = model.GetSymbolInfo(argument);
-            Assert.Null(symbols.Symbol);
-            Assert.Empty(symbols.CandidateSymbols);
-            Assert.Equal(CandidateReason.None, symbols.CandidateReason);
-        }
-
-        [Fact, WorkItem(17921, "https://github.com/dotnet/roslyn/issues/17921")]
-        public void DeconstructVoid_05()
-        {
-            var source = @"class C
-{
-    static void Main()
-    {
         (int x, int y) = (1, Main());
     }
 }";
