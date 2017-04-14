@@ -1273,25 +1273,31 @@ class C
             string source = @"
 class C
 {
+    static int field;
     static long x { set { System.Console.WriteLine($""setX {value}""); } }
     static string y { get; set; }
+    static ref int z { get { return ref field; } }
 
     static void Main()
     {
-        (x, y) = new C();
+        (x, y, z) = new C();
         System.Console.WriteLine(y);
+        System.Console.WriteLine($""field: {field}"");
     }
 
-    public void Deconstruct(out int a, out string b)
+    public void Deconstruct(out int a, out string b, out int c)
     {
         a = 1;
         b = ""hello"";
+        c = 2;
     }
 }
 ";
             string expected =
 @"setX 1
-hello";
+hello
+field: 2
+";
             var comp = CompileAndVerify(source, expectedOutput: expected, additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics();
         }
@@ -1302,19 +1308,24 @@ hello";
             string source = @"
 class C
 {
+    static int field;
     static long x { set { System.Console.WriteLine($""setX {value}""); } }
     static string y { get; set; }
+    static ref int z { get { return ref field; } }
 
     static void Main()
     {
-        (x, y) = (1, ""hello"");
+        (x, y, z) = (1, ""hello"", 2);
         System.Console.WriteLine(y);
+        System.Console.WriteLine($""field: {field}"");
     }
 }
 ";
             string expected =
 @"setX 1
-hello";
+hello
+field: 2
+";
             var comp = CompileAndVerify(source, expectedOutput: expected, additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics();
         }
@@ -1332,7 +1343,7 @@ class C
     {
         get
         {
-            Console.WriteLine($""this[x: {x}, y: {y}, z: {z}].get"");
+            Console.WriteLine($""this.get"");
             return ref field;
         }
     }
@@ -1341,7 +1352,7 @@ class C
     {
         set
         {
-            Console.WriteLine($""this[x: {x}, y: {y}, z: {z}].set({value})"");
+            Console.WriteLine($""this.set({value})"");
         }
     }
 
@@ -1374,11 +1385,11 @@ class C
             var expectedOutput =
 @"M(1)
 M(2)
-this[x: 0, y: 10, z: 0].get
+this.get
 M(3)
 M(4)
 Deconstruct
-this[x: 0, y: 10, z: 0].set(2)
+this.set(2)
 field: 1
 ";
 
@@ -1399,7 +1410,7 @@ class C
     {
         get
         {
-            Console.WriteLine($""this[x: {x}, y: {y}, z: {z}].get"");
+            Console.WriteLine($""this.get"");
             return ref field;
         }
     }
@@ -1408,7 +1419,7 @@ class C
     {
         set
         {
-            Console.WriteLine($""this[x: {x}, y: {y}, z: {z}].set({value})"");
+            Console.WriteLine($""this.set({value})"");
         }
     }
 
@@ -1434,14 +1445,79 @@ class C
             var expectedOutput =
 @"M(1)
 M(2)
-this[x: 0, y: 10, z: 0].get
+this.get
 M(3)
 M(4)
-this[x: 0, y: 10, z: 0].set(2)
+this.set(2)
 field: 1
 ";
             var comp = CompileAndVerify(source, expectedOutput: expectedOutput, additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void AssigningIntoIndexerWithOptionalValueParameter()
+        {
+            var ilSource = @"
+.class public auto ansi beforefieldinit C
+    extends [mscorlib]System.Object
+{
+    .custom instance void [mscorlib]System.Reflection.DefaultMemberAttribute::.ctor(string) = (
+        01 00 04 49 74 65 6d 00 00
+    )
+    .method public hidebysig specialname 
+        instance void set_Item (
+            int32 i,
+            [opt] int32 'value'
+        ) cil managed 
+    {
+        .param [2] = int32(1)
+        .maxstack 8
+        IL_0000: ldstr ""this.set({0})""
+        IL_0005: ldarg.2            
+        IL_0006: box[mscorlib]System.Int32 
+        IL_000b: call string[mscorlib] System.String::Format(string, object) 
+        IL_0010: call void [mscorlib]System.Console::WriteLine(string) 
+        IL_0015: ret                
+        } // end of method C::set_Item
+
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        .maxstack 8
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Object::.ctor() 
+        IL_0006: ret
+    } // end of method C::.ctor
+    .property instance int32 Item(
+        int32 i
+    )
+    {
+        .set instance void C::set_Item(int32, int32)
+    }
+
+} // end of class C
+";
+
+            var source = @"
+class Program
+{
+
+    static void Main()
+    {
+        var c = new C();
+        (c[1], c[2]) = (1, 2);
+    }
+}
+";
+
+            string expectedOutput =
+@"this.set(1)
+this.set(2)
+";
+
+            var comp = CreateCompilationWithCustomILSource(source, ilSource,  references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
         }
 
         [Fact]
@@ -4674,7 +4750,7 @@ System.Console.Write($""{x1} {x2} {x3}"");
             // extra check on var
             var x123Var = (DeclarationExpressionSyntax)x1.Parent.Parent;
             Assert.Equal("var", x123Var.Type.ToString());
-            Assert.Null(model.GetTypeInfo(x123Var.Type).Type); 
+            Assert.Null(model.GetTypeInfo(x123Var.Type).Type);
             Assert.Null(model.GetSymbolInfo(x123Var.Type).Symbol); // The var in `var (x1, x2)` has no symbol
         }
 
@@ -6288,7 +6364,7 @@ public class MyClass
                 Diagnostic(ErrorCode.ERR_MustDeclareForeachIteration, "(arr[out int size], int b)").WithLocation(9, 18)
                 );
         }
-        
+
         [Fact]
         [WorkItem(16962, "https://github.com/dotnet/roslyn/issues/16962")]
         public void Events_01()
