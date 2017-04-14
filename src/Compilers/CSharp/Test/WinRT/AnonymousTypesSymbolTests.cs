@@ -14,6 +14,7 @@ using Roslyn.Test.Utilities;
 using Xunit;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Emit;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
 {
@@ -229,7 +230,7 @@ class Program
 
         private void TestAnonymousTypeFieldSymbols_InQuery(ImmutableArray<byte> image)
         {
-            Assembly refAsm = Assembly.Load(image.ToArray());
+            Assembly refAsm = CorLightup.Desktop.LoadAssembly(image.ToArray());
             Type type = refAsm.GetType("<>f__AnonymousType0`2");
             Assert.NotNull(type);
             Assert.Equal(2, type.GetFields(BindingFlags.NonPublic | BindingFlags.Instance).Count());
@@ -245,9 +246,9 @@ class Program
             Assert.Equal(fieldType, field.FieldType);
             Assert.Equal(FieldAttributes.Private | FieldAttributes.InitOnly, field.Attributes);
 
-            var attrs = field.GetCustomAttributesData().ToArray();
-            Assert.Equal(1, attrs.Length);
-            Assert.Equal(typeof(DebuggerBrowsableAttribute), attrs[0].Constructor.DeclaringType);
+            var attrs = field.CustomAttributes.ToList();
+            Assert.Equal(1, attrs.Count);
+            Assert.Equal(typeof(DebuggerBrowsableAttribute), attrs[0].AttributeType);
 
             var args = attrs[0].ConstructorArguments.ToArray();
             Assert.Equal(1, args.Length);
@@ -1296,9 +1297,7 @@ class Query
         public void AnonymousType_ToString()
         {
             // test AnonymousType.ToString()
-            var currCulture = System.Threading.Thread.CurrentThread.CurrentCulture;
-            System.Threading.Thread.CurrentThread.CurrentCulture = System.Globalization.CultureInfo.InvariantCulture;
-            try
+            using (new EnsureInvariantCulture())
             {
                 var source = @"
 using System;
@@ -1314,10 +1313,7 @@ class Query
                 CompileAndVerify(
                     source,
                     expectedOutput: "{ a = 1, b = text, c = 123.456 }");
-            }
-            finally
-            {
-                System.Threading.Thread.CurrentThread.CurrentCulture = currCulture;
+
             }
         }
 
@@ -1669,7 +1665,7 @@ class Program
 }
 ";
             var tree = SyntaxFactory.ParseSyntaxTree(source);
-            var comp = CreateCompilationWithMscorlib(tree);
+            var comp = CreateStandardCompilation(tree);
             var model = comp.GetSemanticModel(tree);
             var expr = tree.GetCompilationUnitRoot().DescendantNodes().OfType<AnonymousObjectCreationExpressionSyntax>().Single();
 
@@ -1710,7 +1706,7 @@ class Program
 }
 ";
             var tree = SyntaxFactory.ParseSyntaxTree(source);
-            var comp = CreateCompilationWithMscorlib(tree);
+            var comp = CreateStandardCompilation(tree);
             var model = comp.GetSemanticModel(tree);
             var programType = (NamedTypeSymbol)(comp.GlobalNamespace.GetTypeMembers("Program").Single());
             var mainMethod = (MethodSymbol)(programType.GetMembers("Main").Single());
@@ -1876,7 +1872,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics(
                 // error CS0746: Invalid anonymous type member declarator. Anonymous type members must be declared with a member assignment, simple name or member access.
                 Diagnostic(ErrorCode.ERR_InvalidAnonymousTypeMemberDeclarator, "local?.M()").WithLocation(12, 24),

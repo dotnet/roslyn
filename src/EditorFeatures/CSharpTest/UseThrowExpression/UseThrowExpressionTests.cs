@@ -360,5 +360,33 @@ public interface ISyntax
 {
 }");
         }
+
+        [WorkItem(18670, "https://github.com/dotnet/roslyn/issues/18670")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseThrowExpression)]
+        public async Task TestNotWithElseClause()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+using System;
+
+class C
+{
+    int? _x;
+
+    public C(int? x)
+    {
+        if (x == null)
+        {
+            [|throw|] new ArgumentNullException(nameof(x));
+        }
+        else
+        {
+            Console.WriteLine();
+        }
+
+        _x = x;
+    }
+}");
+        }
     }
 }

@@ -1388,7 +1388,7 @@ System.Runtime.CompilerServices.DateTimeConstantAttribute::.ctor(int64)
 } // end of class Class1
 ";
 
-            var c1 = CreateCompilationWithMscorlib(
+            var c1 = CreateStandardCompilation(
 @"
 public class Class1
 {

@@ -279,7 +279,7 @@ class C
 class C
 {
     A d;
-}");
+}", Class("A"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
