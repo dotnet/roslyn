@@ -24,7 +24,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         /// </summary>
         public void VerifyOpen()
         {
-            var dialog = DialogHelpers.FindDialog(GetMainWindowHWnd(), ExtractInterfaceDialogID, isOpen: true);
+            var dialog = DialogHelpers.FindDialogByAutomationId(GetMainWindowHWnd(), ExtractInterfaceDialogID, isOpen: true);
 
             if (dialog == null)
             {
@@ -37,7 +37,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         /// </summary>
         public void VerifyClosed()
         {
-            var dialog = DialogHelpers.FindDialog(GetMainWindowHWnd(), ExtractInterfaceDialogID, isOpen: false);
+            var dialog = DialogHelpers.FindDialogByAutomationId(GetMainWindowHWnd(), ExtractInterfaceDialogID, isOpen: false);
 
             if (dialog != null)
             {
@@ -51,7 +51,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public void ClickOK()
         {
             DialogHelpers.PressButton(GetMainWindowHWnd(), ExtractInterfaceDialogID, "OkButton");
-            VisualStudioInstance.VisualStudioWorkspace.WaitForAsyncOperations(FeatureAttribute.LightBulb);
+            VisualStudioInstance.Workspace.WaitForAsyncOperations(FeatureAttribute.LightBulb);
         }
 
         /// <summary>
@@ -60,7 +60,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public void ClickCancel()
         {
             DialogHelpers.PressButton(GetMainWindowHWnd(), ExtractInterfaceDialogID, "CancelButton");
-            VisualStudioInstance.VisualStudioWorkspace.WaitForAsyncOperations(FeatureAttribute.LightBulb);
+            VisualStudioInstance.Workspace.WaitForAsyncOperations(FeatureAttribute.LightBulb);
         }
 
         /// <summary>
@@ -68,7 +68,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         /// </summary>
         public string GetTargetFileName()
         {
-            var dialog = DialogHelpers.GetOpenDialog(GetMainWindowHWnd(), ExtractInterfaceDialogID);
+            var dialog = DialogHelpers.GetOpenDialogById(GetMainWindowHWnd(), ExtractInterfaceDialogID);
 
             var fileNameTextBox = dialog.FindDescendantByAutomationId("FileNameTextBox");
 
@@ -80,7 +80,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         /// </summary>
         public string[] GetSelectedItems()
         {
-            var dialog = DialogHelpers.GetOpenDialog(GetMainWindowHWnd(), ExtractInterfaceDialogID);
+            var dialog = DialogHelpers.GetOpenDialogById(GetMainWindowHWnd(), ExtractInterfaceDialogID);
 
             var memberSelectionList = dialog.FindDescendantByAutomationId("MemberSelectionList");
             var listItems = memberSelectionList.FindDescendantsByClass("ListBoxItem");
@@ -114,7 +114,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         /// <param name="item"></param>
         public void ToggleItem(string item)
         {
-            var dialog = DialogHelpers.GetOpenDialog(GetMainWindowHWnd(), ExtractInterfaceDialogID);
+            var dialog = DialogHelpers.GetOpenDialogById(GetMainWindowHWnd(), ExtractInterfaceDialogID);
 
             var memberSelectionList = dialog.FindDescendantByAutomationId("MemberSelectionList");
             var checkBox = memberSelectionList.FindDescendantByAutomationId(item);

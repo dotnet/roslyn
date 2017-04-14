@@ -1,15 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess;
 using Roslyn.Test.Utilities;
 using Xunit;
+using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
@@ -18,7 +14,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
     {
         protected override string LanguageName => LanguageNames.CSharp;
 
-        private ExtractInterfaceDialog_OutOfProc ExtractInterfaceDialog => VisualStudio.Instance.ExtractInterfaceDialog;
+        private ExtractInterfaceDialog_OutOfProc ExtractInterfaceDialog => VisualStudio.ExtractInterfaceDialog;
 
         public CSharpExtractInterfaceDialog(VisualStudioInstanceFactory instanceFactory)
             : base(instanceFactory, nameof(CSharpExtractInterfaceDialog))
@@ -33,8 +29,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
     public void M() { }
 }
 ");
-            InvokeCodeActionList();
-            VerifyCodeAction("Extract Interface...",
+            VisualStudio.Editor.InvokeCodeActionList();
+            VisualStudio.Editor.Verify.CodeAction("Extract Interface...",
                 applyFix: true,
                 blockUntilComplete: false);
 
@@ -42,7 +38,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             ExtractInterfaceDialog.ClickCancel();
             ExtractInterfaceDialog.VerifyClosed();
 
-            VerifyTextContains(@"class C
+            VisualStudio.Editor.Verify.TextContains(@"class C
 {
     public void M() { }
 }
@@ -57,8 +53,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
     public void M() { }
 }
 ");
-            InvokeCodeActionList();
-            VerifyCodeAction("Extract Interface...",
+            VisualStudio.Editor.InvokeCodeActionList();
+            VisualStudio.Editor.Verify.CodeAction("Extract Interface...",
                 applyFix: true,
                 blockUntilComplete: false);
 
@@ -81,8 +77,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 }
 ");
 
-            InvokeCodeActionList();
-            VerifyCodeAction("Extract Interface...",
+            VisualStudio.Editor.InvokeCodeActionList();
+            VisualStudio.Editor.Verify.CodeAction("Extract Interface...",
                 applyFix: true,
                 blockUntilComplete: false);
 
@@ -119,8 +115,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 }
 ");
 
-            InvokeCodeActionList();
-            VerifyCodeAction("Extract Interface...",
+            VisualStudio.Editor.InvokeCodeActionList();
+            VisualStudio.Editor.Verify.CodeAction("Extract Interface...",
                 applyFix: true,
                 blockUntilComplete: false);
 
@@ -130,16 +126,17 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             ExtractInterfaceDialog.ClickOK();
             ExtractInterfaceDialog.VerifyClosed();
 
-            VisualStudio.Instance.SolutionExplorer.OpenFile(ProjectName, "Class1.cs");
-            VerifyTextContains(@"class C : IC
+            var project = new ProjectUtils.Project(ProjectName);
+            VisualStudio.SolutionExplorer.OpenFile(project, "Class1.cs");
+            VisualStudio.Editor.Verify.TextContains(@"class C : IC
 {
     public void M1() { }
     public void M2() { }
 }
 ");
 
-            VisualStudio.Instance.SolutionExplorer.OpenFile(ProjectName, "IC.cs");
-            VerifyTextContains(@"interface IC
+            VisualStudio.SolutionExplorer.OpenFile(project, "IC.cs");
+            VisualStudio.Editor.Verify.TextContains(@"interface IC
 {
     void M2();
 }");
