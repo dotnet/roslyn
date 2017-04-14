@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     }
                 }
 
-                if (member.HideNonPublic && !member.IsPublic)
+                if (member.HideNonPublic && !member.IsPublic && !member.BrowsableState.HasValue)
                 {
                     nonPublicMembers.Add(member);
                 }
