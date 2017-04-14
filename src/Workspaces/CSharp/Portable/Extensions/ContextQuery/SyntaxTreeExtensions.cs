@@ -1042,6 +1042,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             return false;
         }
 
+        public static bool IsParamsModifierContext(
+            this SyntaxTree syntaxTree,
+            int position,
+            SyntaxToken tokenOnLeftOfPosition,
+            CancellationToken cancellationToken)
+        {
+            var token = tokenOnLeftOfPosition;
+            token = token.GetPreviousTokenIfTouchingWord(position);
+
+            if (syntaxTree.IsParameterModifierContext(position, tokenOnLeftOfPosition, cancellationToken))
+                return true;
+
+            if ((token.IsKind(SyntaxKind.OpenBracketToken) || token.IsKind(SyntaxKind.CommaToken)) &&
+                token.Parent.IsKind(SyntaxKind.BracketedParameterList) &&
+                token.Parent.IsParentKind(SyntaxKind.IndexerDeclaration))
+            {
+                return true;
+            }
+
+            return false;
+        }
+
         public static bool IsDelegateReturnTypeContext(
             this SyntaxTree syntaxTree, int position, SyntaxToken tokenOnLeftOfPosition, CancellationToken cancellationToken)
         {
