@@ -192,6 +192,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     }
                 }
 
+                // The native EE shows proxy type members as public members if they have a
+                // DebuggerBrowsable attribute of any value. Match that behaviour here.
                 if (member.HideNonPublic && !member.IsPublic && !member.BrowsableState.HasValue)
                 {
                     nonPublicMembers.Add(member);
