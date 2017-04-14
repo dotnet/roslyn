@@ -4561,7 +4561,7 @@ class C
         (_, _) = (1, Main());
     }
 }";
-            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
                 // (5,22): error CS8210: A tuple may not contain a value of type 'void'.
                 //         (_, _) = (1, Main());
@@ -4601,7 +4601,7 @@ class C
         (int x, void y) = (1, Main());
     }
 }";
-            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
                 // (5,17): error CS1547: Keyword 'void' cannot be used in this context
                 //         (int x, void y) = (1, Main());
@@ -4647,7 +4647,7 @@ class C
         var (x, y) = (1, Main());
     }
 }";
-            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
                 // (5,26): error CS8210: A tuple may not contain a value of type 'void'.
                 //         var (x, y) = (1, Main());
@@ -4687,7 +4687,7 @@ class C
         (int x, void y) = (1, 2);
     }
 }";
-            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
                 // (5,17): error CS1547: Keyword 'void' cannot be used in this context
                 //         (int x, void y) = (1, 2);
@@ -4732,7 +4732,7 @@ class C
         (int x, int y) = (1, Main());
     }
 }";
-            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
                 // (5,30): error CS8210: A tuple may not contain a value of type 'void'.
                 //         (int x, int y) = (1, Main());
