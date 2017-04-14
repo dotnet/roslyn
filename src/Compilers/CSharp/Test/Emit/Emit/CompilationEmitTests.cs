@@ -239,7 +239,7 @@ class Test2
         }
 
         [Fact]
-        public void EmitRefAssemblyWhenTargetExe()
+        public void EmitRefAssemblyPrivateMain()
         {
             CSharpCompilation comp = CreateCompilationWithMscorlib(@"
 public class C
@@ -260,6 +260,33 @@ public class C
                     options: new EmitOptions(includePrivateMembers: false));
                 Assert.True(emitResult.Success);
                 emitResult.Diagnostics.Verify();
+
+                VerifyEntryPoint(output, expectZero: false);
+                VerifyMethods(output, new[] { "void C.Main()", "C..ctor()" });
+
+                VerifyEntryPoint(metadataOutput, expectZero: true);
+                VerifyMethods(metadataOutput, new[] { "C..ctor()" });
+            }
+
+            void VerifyEntryPoint(MemoryStream stream, bool expectZero)
+            {
+                stream.Position = 0;
+                int entryPoint = new PEHeaders(stream).CorHeader.EntryPointTokenOrRelativeVirtualAddress;
+                Assert.Equal(expectZero, entryPoint == 0);
+            }
+
+            void VerifyMethods(MemoryStream stream, string[] expectedMethods)
+            {
+                stream.Position = 0;
+                var metadataRef = AssemblyMetadata.CreateFromImage(stream.ToArray()).GetReference();
+
+                var compWithMetadata = CreateCompilation("", references: new[] { MscorlibRef, metadataRef },
+                    options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+
+                AssertEx.Equal(
+                    expectedMethods,
+                    ((NamedTypeSymbol)compWithMetadata.SourceModule.GetReferencedAssemblySymbols().Last()
+                        .GlobalNamespace.GetMember("C")).GetMembers().Select(m => m.ToTestDisplayString()));
             }
         }
 
