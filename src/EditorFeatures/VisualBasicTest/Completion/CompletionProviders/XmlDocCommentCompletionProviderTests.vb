@@ -350,7 +350,7 @@ End Class
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function TestAttributeAfterName() As Task
+        Public Async Function TestAttributeNameAfterTagNameInIncompleteTag() As Task
             Dim text = "
 Class C(Of T)
     ''' <exception $$
@@ -363,7 +363,33 @@ End Class
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function TestAttributeAfterNamePartiallyTyped() As Task
+        Public Async Function TestAttributeNameAfterTagNameInElementStartTag() As Task
+            Dim text = "
+Class C(Of T)
+    ''' <exception $$>
+    Sub Goo(Of T)(bar as T)
+    End Sub
+End Class
+"
+
+            Await VerifyItemExistsAsync(text, "cref")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestAttributeNameAfterTagNameInEmptyElement() As Task
+            Dim text = "
+Class C(Of T)
+    ''' <see $$/>
+    Sub Goo(Of T)(bar as T)
+    End Sub
+End Class
+"
+
+            Await VerifyItemExistsAsync(text, "cref")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestAttributeNameAfterTagNamePartiallyTyped() As Task
             Dim text = "
 Class C(Of T)
     ''' <exception c$$
@@ -376,16 +402,108 @@ End Class
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function TestAttributeAfterAttribute() As Task
+        Public Async Function TestAttributeNameAfterSpecialCrefAttribute() As Task
             Dim text = "
 Class C(Of T)
-    ''' <exception name="""" $$
+    ''' <summary>
+    ''' <list cref=""String"" $$
+    ''' </summary>
     Sub Goo(Of T)(bar as T)
     End Sub
 End Class
 "
 
-            Await VerifyItemExistsAsync(text, "cref")
+            Await VerifyItemExistsAsync(text, "type")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestAttributeNameAfterSpecialNameAttributeNonEmpty() As Task
+            Dim text = "
+Class C(Of T)
+    ''' <summary>
+    ''' <list name=""goo"" $$
+    ''' </summary>
+    Sub Goo(Of T)(bar as T)
+    End Sub
+End Class
+"
+
+            Await VerifyItemExistsAsync(text, "type")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestAttributeNameAfterTextAttribute() As Task
+            Dim text = "
+Class C(Of T)
+    ''' <summary>
+    ''' <list goo="""" $$
+    ''' </summary>
+    Sub Goo(Of T)(bar as T)
+    End Sub
+End Class
+"
+
+            Await VerifyItemExistsAsync(text, "type")
+        End Function
+
+        <WorkItem(11489, "https://github.com/dotnet/roslyn/issues/11489")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestAttributeNameInWrongTagTypeEmptyElement() As Task
+            Dim text = "
+Class C
+    ''' <summary>
+    ''' <list $$/>
+    ''' </summary>
+    Sub Goo()
+    End Sub
+End Class
+"
+            Await VerifyItemExistsAsync(text, "type", usePreviousCharAsTrigger:=True)
+        End Function
+
+        <WorkItem(11489, "https://github.com/dotnet/roslyn/issues/11489")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestAttributeNameInWrongTagTypeElementStartTag() As Task
+            Dim text = "
+Class C
+    ''' <summary>
+    ''' <see $$>
+    ''' </summary>
+    Sub Goo()
+    End Sub
+End Class
+"
+            Await VerifyItemExistsAsync(text, "cref", usePreviousCharAsTrigger:=True)
+        End Function
+
+        <WorkItem(11489, "https://github.com/dotnet/roslyn/issues/11489")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestAttributeValueOnQuote() As Task
+            Dim text = "
+Class C
+    ''' <summary>
+    ''' <see langword=""$$
+    ''' </summary>
+    Sub Goo()
+    End Sub
+End Class
+"
+            Await VerifyItemExistsAsync(text, "Await", usePreviousCharAsTrigger:=True)
+        End Function
+
+        <WorkItem(11489, "https://github.com/dotnet/roslyn/issues/11489")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestAttributeValueOnStartOfWord() As Task
+            Dim text = "
+Class C
+    ''' <summary>
+    ''' <see langword=""A$$""
+    ''' </summary>
+    Sub Goo()
+    End Sub
+End Class
+"
+            Await VerifyItemExistsAsync(text, "Await", usePreviousCharAsTrigger:=True)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
@@ -569,7 +687,7 @@ End Class
 
         <WorkItem(8627, "https://github.com/dotnet/roslyn/issues/8627")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function WriteOnlyPropertyReturns() As Task
+        Public Async Function WriteOnlyPropertyNoReturns() As Task
             Dim text = "
 Class C
     ''' <$$
@@ -580,7 +698,7 @@ Class C
 End Class
 "
 
-            Await VerifyItemIsAbsentAsync(Text, "returns")
+            Await VerifyItemIsAbsentAsync(text, "returns")
         End Function
 
         <WorkItem(8627, "https://github.com/dotnet/roslyn/issues/8627")>
@@ -614,11 +732,25 @@ End Class
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function TestListTypes() As Task
+        Public Async Function TestListAttributeNames() As Task
             Dim text = "
 Class C
     ''' <summary>
-    ''' <list type=""$$""
+    ''' <list $$></list>
+    ''' </summary>
+    Sub Goo()
+    End Sub
+End Class
+"
+            Await VerifyItemsExistAsync(text, "type")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestListTypeAttributeValue() As Task
+            Dim text = "
+Class C
+    ''' <summary>
+    ''' <list type=""$$""></list>
     ''' </summary>
     Sub Goo()
     End Sub
@@ -629,62 +761,32 @@ End Class
 
         <WorkItem(11490, "https://github.com/dotnet/roslyn/issues/11490")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function TestSeeLangwordValues() As Task
+        Public Async Function TestSeeAttributeNames() As Task
             Dim text = "
 Class C
     ''' <summary>
-    ''' <see langword=""$$""
+    ''' <see $$/>
+    ''' </summary>
+    Sub Goo()
+    End Sub
+End Class
+"
+            Await VerifyItemsExistAsync(text, "cref", "langword")
+        End Function
+
+        <WorkItem(11490, "https://github.com/dotnet/roslyn/issues/11490")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestSeeLangwordAttributeValue() As Task
+            Dim text = "
+Class C
+    ''' <summary>
+    ''' <see langword=""$$""/>
     ''' </summary>
     Sub Goo()
     End Sub
 End Class
 "
             Await VerifyItemsExistAsync(text, "Await", "Class")
-        End Function
-
-        <WorkItem(11489, "https://github.com/dotnet/roslyn/issues/11489")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function TestSeeAttributesOnSpace() As Task
-            Dim text = "
-Class C
-    ''' <summary>
-    ''' <see $$
-    ''' </summary>
-    Sub Goo()
-    End Sub
-End Class
-"
-            Await VerifyItemExistsAsync(text, "langword", usePreviousCharAsTrigger:=True)
-        End Function
-
-        <WorkItem(11489, "https://github.com/dotnet/roslyn/issues/11489")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function SeeLangwordValuesOnQuote() As Task
-            Dim text = "
-Class C
-    ''' <summary>
-    ''' <see langword=""$$
-    ''' </summary>
-    Sub Goo()
-    End Sub
-End Class
-"
-            Await VerifyItemExistsAsync(text, "Await", usePreviousCharAsTrigger:=True)
-        End Function
-
-        <WorkItem(11489, "https://github.com/dotnet/roslyn/issues/11489")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function SeeLangwordValuesOnStartOfWord() As Task
-            Dim text = "
-Class C
-    ''' <summary>
-    ''' <see langword=""A$$""
-    ''' </summary>
-    Sub Goo()
-    End Sub
-End Class
-"
-            Await VerifyItemExistsAsync(text, "Await", usePreviousCharAsTrigger:=True)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>

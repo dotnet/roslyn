@@ -55,7 +55,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             If token.Parent.IsKind(SyntaxKind.XmlString) AndAlso token.Parent.Parent.IsKind(SyntaxKind.XmlAttribute) Then
                 Dim attribute = DirectCast(token.Parent.Parent, XmlAttributeSyntax)
                 Dim name = TryCast(attribute.Name, XmlNameSyntax)
-                If name IsNot Nothing AndAlso name.LocalName.ValueText = CrefAttributeName Then
+                Dim value = TryCast(attribute.Value, XmlStringSyntax)
+                If name?.LocalName.ValueText = CrefAttributeName AndAlso Not token = value?.EndQuoteToken Then
                     Return Nothing
                 End If
             End If
@@ -222,7 +223,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 End If
 
                 '<exception a=""|
-                If targetToken.IsChildToken(Function(s As XmlStringSyntax) s.EndQuoteToken) AndAlso targetToken.Parent.IsParentKind(SyntaxKind.XmlAttribute) Then
+                If (targetToken.IsChildToken(Function(s As XmlStringSyntax) s.EndQuoteToken) AndAlso targetToken.Parent.IsParentKind(SyntaxKind.XmlAttribute)) OrElse
+                    targetToken.IsChildToken(Function(a As XmlNameAttributeSyntax) a.EndQuoteToken) OrElse
+                    targetToken.IsChildToken(Function(a As XmlCrefAttributeSyntax) a.EndQuoteToken) Then
                     items.AddRange(GetAttributes(tagName, tagAttributes))
                 End If
 
@@ -248,33 +251,30 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         End Function
 
         Protected Overrides Function GetExistingTopLevelElementNames(parentTrivia As DocumentationCommentTriviaSyntax) As IEnumerable(Of String)
-            Return parentTrivia.Content.Select(AddressOf GetElementName).WhereNotNull()
+            Return parentTrivia.Content _
+                               .Select(Function(node) GetElementNameAndAttributes(node).Name) _
+                               .WhereNotNull()
         End Function
 
         Protected Overrides Function GetExistingTopLevelAttributeValues(syntax As DocumentationCommentTriviaSyntax, elementName As String, attributeName As String) As IEnumerable(Of String)
             Dim attributeValues = SpecializedCollections.EmptyEnumerable(Of String)()
 
             For Each node In syntax.Content
-                Dim attributes As SyntaxList(Of XmlNodeSyntax) = Nothing
-                If GetElementNameAndAttributes(node, attributes) = elementName Then
+                Dim nameAndAttributes = GetElementNameAndAttributes(node)
+                If nameAndAttributes.Name = elementName Then
                     attributeValues = attributeValues.Concat(
-                        attributes.Where(Function(attribute) GetAttributeName(attribute) = attributeName) _
-                                  .Select(AddressOf GetAttributeValue))
+                        nameAndAttributes.Attributes _
+                                         .Where(Function(attribute) GetAttributeName(attribute) = attributeName) _
+                                         .Select(AddressOf GetAttributeValue))
                 End If
             Next
 
             Return attributeValues
         End Function
 
-        Private Function GetElementName(node As XmlNodeSyntax) As String
-            Dim attributes As SyntaxList(Of XmlNodeSyntax) = Nothing
-            Return GetElementNameAndAttributes(node, attributes)
-        End Function
-
-        Private Function GetElementNameAndAttributes(node As XmlNodeSyntax, ByRef attributes As SyntaxList(Of XmlNodeSyntax)) As String
-            attributes = Nothing
-
+        Private Function GetElementNameAndAttributes(node As XmlNodeSyntax) As (Name As String, Attributes As SyntaxList(Of XmlNodeSyntax))
             Dim nameSyntax As XmlNameSyntax = Nothing
+            Dim attributes As SyntaxList(Of XmlNodeSyntax) = Nothing
 
             If node.IsKind(SyntaxKind.XmlEmptyElement) Then
                 Dim emptyElementSyntax = DirectCast(node, XmlEmptyElementSyntax)
@@ -286,7 +286,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 attributes = elementSyntax.StartTag.Attributes
             End If
 
-            Return nameSyntax?.LocalName.ValueText
+            Return (nameSyntax?.LocalName.ValueText, attributes)
         End Function
 
         Private Function GetAttributeValue(attribute As XmlNodeSyntax) As String
