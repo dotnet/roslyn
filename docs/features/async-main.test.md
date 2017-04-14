@@ -54,3 +54,17 @@ Classes that contain more than one main
 
 * Inspect IL for correct codegen.
 * Make sure that attributes are correctly applied to the synthesized mains.
+
+## Broken methods on Task and Task<T>
+
+* GetAwatier or GetResult are missing
+* GetAwaiter or GetResult don't have the required signature
+* Has the right shape, but types are missing
+
+## Task or Task<T> is missing
+
+This will be caught during entrypoint detection, should be a binding error.
+
+## Void or int is missing
+
+If Task can be found, but void or int can't be found, then the compiler should behave gracefully. 
