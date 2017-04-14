@@ -23,8 +23,7 @@ class Program {
     }
 }";
             var c = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
-            var verifier = CompileAndVerify(c, expectedOutput: "hello async main");
-            Assert.Equal(verifier.LastErrorCode, 10);
+            var verifier = CompileAndVerify(c, expectedOutput: "hello async main", expectedReturnCode: 10);
         }
 
         [Fact]
@@ -42,8 +41,7 @@ class Program {
     }
 }";
             var c = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
-            var verifier = CompileAndVerify(c, expectedOutput: "hello async main");
-            Assert.Equal(verifier.LastErrorCode, 0);
+            var verifier = CompileAndVerify(c, expectedOutput: "hello async main", expectedReturnCode: 0);
         }
 
         [Fact]
@@ -84,8 +82,7 @@ class Program {
     }
 }";
             var c = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
-            var verifier = CompileAndVerify(c, expectedOutput: "hello async main");
-            Assert.Equal(verifier.LastErrorCode, 10);
+            var verifier = CompileAndVerify(c, expectedOutput: "hello async main", expectedReturnCode: 10);
         }
 
         [Fact]
@@ -103,8 +100,7 @@ class Program {
     }
 }";
             var c = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
-            var verifier = CompileAndVerify(c, expectedOutput: "hello async main");
-            Assert.Equal(verifier.LastErrorCode, 0);
+            var verifier = CompileAndVerify(c, expectedOutput: "hello async main", expectedReturnCode: 0);
         }
 
         [Fact]
@@ -144,8 +140,7 @@ class Program {
     }
 }";
             var c = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
-            var verifier = CompileAndVerify(c, expectedOutput: "hello async main", args: new string[] { "async main" });
-            Assert.Equal(verifier.LastErrorCode, 10);
+            var verifier = CompileAndVerify(c, expectedOutput: "hello async main", expectedReturnCode: 10, args: new string[] { "async main" });
         }
 
         [Fact]
@@ -163,8 +158,7 @@ class Program {
     }
 }";
             var c = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
-            var verifier = CompileAndVerify(c, expectedOutput: "hello async main", args: new string[] { "async main" });
-            Assert.Equal(verifier.LastErrorCode, 0);
+            var verifier = CompileAndVerify(c, expectedOutput: "hello async main", expectedReturnCode: 0, args: new string[] { "async main" });
         }
     }
 }

@@ -1238,7 +1238,7 @@ class A
 
             foreach (var langVersion in new LanguageVersion[] { LanguageVersion.CSharp7, LanguageVersion.CSharp7_1 })
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
+                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion));
                 compilation.VerifyDiagnostics(
                     // (6,23): error CS0017: Program has more than one entry point defined. Compile with /main to specify the type that contains the entry point.
                     //     async static Task Main(string[] args)

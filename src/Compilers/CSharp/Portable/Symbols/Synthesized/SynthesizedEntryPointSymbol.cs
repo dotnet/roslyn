@@ -335,10 +335,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             { WasCompilerGenerated = true };
         }
 
-        // A synthesized entrypoint that forwards all calls to an async Main Method
+        /// A synthesized entrypoint that forwards all calls to an async Main Method
         internal sealed class AsyncForwardEntryPoint : SynthesizedEntryPointSymbol
         {
-            // The user-defined asynchronous main method.
+            /// The user-defined asynchronous main method.
             private readonly MethodSymbol _userMain;
 
             private readonly MethodSymbol _getAwaiterMethod;
@@ -346,8 +346,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             private readonly ImmutableArray<ParameterSymbol> _parameters;
 
-            // Task -> Void
-            // Task<_> -> Int32
+            /// Task -> Void
+            /// Task<_> -> Int32
             private static TypeSymbol TranslateReturnType(CSharpCompilation compilation, TypeSymbol returnType)
             {
                 return returnType.IsGenericTaskType(compilation)
@@ -381,7 +381,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             internal override BoundBlock CreateBody()
             {
                 var syntax = this.GetSyntax();
-
                 var arguments = Parameters.SelectAsArray(p => (BoundExpression)new BoundParameter(syntax, p, p.Type));
 
                 // Main(args) or Main()

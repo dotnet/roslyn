@@ -73,6 +73,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Action<IModuleSymbol> symbolValidator = null,
             SignatureDescription[] expectedSignatures = null,
             string expectedOutput = null,
+            int? expectedReturnCode = null,
             string[] args = null,
             CompilationOptions options = null,
             ParseOptions parseOptions = null,
@@ -95,6 +96,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 symbolValidator,
                 expectedSignatures,
                 expectedOutput,
+                expectedReturnCode,
                 args,
                 emitOptions,
                 verify);
@@ -109,6 +111,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Action<IModuleSymbol> symbolValidator = null,
             SignatureDescription[] expectedSignatures = null,
             string expectedOutput = null,
+            int? expectedReturnCode = null,
             string[] args = null,
             EmitOptions emitOptions = null,
             bool verify = true)
@@ -139,6 +142,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                                 manifestResources,
                                 expectedSignatures,
                                 expectedOutput,
+                                expectedReturnCode,
                                 args ?? new string[]{},
                                 assemblyValidator,
                                 symbolValidator,
@@ -203,6 +207,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             IEnumerable<ResourceDescription> manifestResources,
             SignatureDescription[] expectedSignatures,
             string expectedOutput,
+            int? expectedReturnCode,
             string[] args,
             Action<PEAssembly> assemblyValidator,
             Action<IModuleSymbol> symbolValidator,
@@ -213,7 +218,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             verifier = new CompilationVerifier(this, compilation, dependencies);
 
-            verifier._lastErrorCode = verifier.Emit(expectedOutput, args, manifestResources, emitOptions, verify, expectedSignatures);
+            verifier.Emit(expectedOutput, expectedReturnCode, args, manifestResources, emitOptions, verify, expectedSignatures);
 
             // We're dual-purposing emitters here.  In this context, it
             // tells the validator the version of Emit that is calling it. 

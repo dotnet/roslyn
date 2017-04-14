@@ -595,7 +595,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return IsStatic && Name == WellKnownMemberNames.EntryPointMethodName; }
         }
 
-        internal bool HasAsyncMainReturnType(CSharpCompilation compilation)
+        internal bool ReturnsTaskOrTaskOfInt(CSharpCompilation compilation)
         {
             var namedType = ReturnType as NamedTypeSymbol;
             if ((object)namedType == null)
@@ -632,15 +632,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             TypeSymbol returnType = ReturnType;
-            bool isAsyncMainReturnType = HasAsyncMainReturnType(compilation);
-            if (returnType.SpecialType != SpecialType.System_Int32 && returnType.SpecialType != SpecialType.System_Void && !isAsyncMainReturnType)
+            bool returnsTaskOrTaskOfInt = ReturnsTaskOrTaskOfInt(compilation);
+            if (returnType.SpecialType != SpecialType.System_Int32 && returnType.SpecialType != SpecialType.System_Void && !returnsTaskOrTaskOfInt)
             {
                 return false;
             }
 
             // Prior to 7.1, async methods were considered to "have the entrypoint signature".
             // In order to keep back-compat, we need to let these through if compiling using a previous language version.
-            if (!isAsyncMainReturnType && IsAsync && compilation.LanguageVersion >= LanguageVersion.CSharp7_1)
+            if (!returnsTaskOrTaskOfInt && IsAsync && compilation.LanguageVersion >= LanguageVersion.CSharp7_1)
             {
                 return false;
             }

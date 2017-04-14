@@ -1514,6 +1514,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     entryPoint = viableEntryPoints[0];
                 }
+
                 viableEntryPoints.Free();
                 return entryPoint;
             }
