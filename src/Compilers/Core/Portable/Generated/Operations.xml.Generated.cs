@@ -2281,9 +2281,9 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// This interface is reserved for implementation by its associated APIs. We reserve the right to
     /// change it in the future.
     /// </remarks>
-    internal sealed partial class VariableDeclaration : Operation, IVariableDeclarationGroup
+    internal sealed partial class VariableDeclarationGroup : Operation, IVariableDeclarationGroup
     {
-        public VariableDeclaration(ImmutableArray<ILocalSymbol> variables, IOperation initialValue, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+        public VariableDeclarationGroup(ImmutableArray<ILocalSymbol> variables, IOperation initialValue, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(OperationKind.VariableDeclaration, isInvalid, syntax, type, constantValue)
         {
             Symbols = variables;

@@ -1072,14 +1072,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                      For Each base In dimStatement.LocalDeclarations
                                                                          If base.Kind = BoundKind.LocalDeclaration Then
                                                                              Dim declaration = DirectCast(base, BoundLocalDeclaration)
-                                                                             builder.Add(New VariableDeclaration(declaration.LocalSymbol, declaration.InitializerOpt, declaration.Syntax))
+                                                                             builder.Add(New VariableDeclarationGroup(declaration.LocalSymbol, declaration.InitializerOpt, declaration.Syntax))
                                                                          ElseIf base.Kind = BoundKind.AsNewLocalDeclarations Then
                                                                              Dim asNewDeclarations = DirectCast(base, BoundAsNewLocalDeclarations)
                                                                              Dim localSymbolsBuilder = ArrayBuilder(Of ILocalSymbol).GetInstance()
                                                                              For Each asNewDeclaration In asNewDeclarations.LocalDeclarations
                                                                                  localSymbolsBuilder.Add(asNewDeclaration.LocalSymbol)
                                                                              Next
-                                                                             builder.Add(New VariableDeclaration(localSymbolsBuilder.ToImmutableAndFree(), asNewDeclarations.Initializer, asNewDeclarations.Syntax))
+                                                                             builder.Add(New VariableDeclarationGroup(localSymbolsBuilder.ToImmutableAndFree(), asNewDeclarations.Initializer, asNewDeclarations.Syntax))
                                                                          End If
                                                                      Next
                                                                      Return builder.ToImmutableAndFree()

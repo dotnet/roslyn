@@ -631,7 +631,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             get
             {
                 return (ImmutableArray<IVariableDeclarationGroup>)s_variablesMappings.GetValue(this,
-                    declaration => ImmutableArray.Create<IVariableDeclarationGroup>(new VariableDeclaration(declaration.LocalSymbol, declaration.InitializerOpt, declaration.Syntax)));
+                    declaration => ImmutableArray.Create<IVariableDeclarationGroup>(new VariableDeclarationGroup(declaration.LocalSymbol, declaration.InitializerOpt, declaration.Syntax)));
             }
         }
 
@@ -660,7 +660,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return (ImmutableArray<IVariableDeclarationGroup>)s_variablesMappings.GetValue(this,
                     multipleDeclarations =>
                         multipleDeclarations.LocalDeclarations.SelectAsArray(declaration =>
-                            (IVariableDeclarationGroup)new VariableDeclaration(declaration.LocalSymbol, declaration.InitializerOpt, declaration.Syntax)));
+                            (IVariableDeclarationGroup)new VariableDeclarationGroup(declaration.LocalSymbol, declaration.InitializerOpt, declaration.Syntax)));
             }
         }
 
