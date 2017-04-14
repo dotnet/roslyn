@@ -174,6 +174,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return _underlyingType.IsMetadataSealed;
             }
         }
+        
+        internal override bool HasEmbeddedAttribute => _underlyingType.HasEmbeddedAttribute;
 
         internal override ObsoleteAttributeData ObsoleteAttributeData
         {

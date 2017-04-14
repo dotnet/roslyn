@@ -243,6 +243,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             throw new NotImplementedException();
         }
 
+        internal override bool HasEmbeddedAttribute => false;
+
         internal sealed override bool IsManagedType
         {
             get

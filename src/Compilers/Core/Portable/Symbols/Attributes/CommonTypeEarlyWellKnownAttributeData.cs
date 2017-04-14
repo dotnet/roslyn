@@ -91,5 +91,23 @@ namespace Microsoft.CodeAnalysis
             }
         }
         #endregion
+
+        #region EmbeddedAttribute
+        private bool _hasEmbeddedAttribute;
+        public bool HasEmbeddedAttribute
+        {
+            get
+            {
+                VerifySealed(expected: true);
+                return _hasEmbeddedAttribute;
+            }
+            set
+            {
+                VerifySealed(expected: false);
+                _hasEmbeddedAttribute = value;
+                SetDataStored();
+            }
+        }
+        #endregion
     }
 }

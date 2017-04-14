@@ -62,6 +62,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         /// </summary>
         private TypeKind _lazyKind;
 
+        /// <summary>
+        /// Lazily initiated HasEmbeddedAttribute
+        /// </summary>
+        private ThreeState _lazyHasEmbeddedAttribute = ThreeState.Unknown;
+
         private NamedTypeSymbol _lazyBaseType = ErrorTypeSymbol.UnknownResultType;
         private ImmutableArray<NamedTypeSymbol> _lazyInterfaces = default(ImmutableArray<NamedTypeSymbol>);
         private NamedTypeSymbol _lazyDeclaredBaseType = ErrorTypeSymbol.UnknownResultType;
@@ -368,6 +373,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             get
             {
                 return _handle;
+            }
+        }
+
+
+        internal override bool HasEmbeddedAttribute
+        {
+            get
+            {
+                if (!_lazyHasEmbeddedAttribute.HasValue())
+                {
+                    _lazyHasEmbeddedAttribute = ContainingPEModule.Module.HasCodeAnalysisEmbeddedAttribute(_handle).ToThreeState();
+                }
+
+                return _lazyHasEmbeddedAttribute.Value();
             }
         }
 

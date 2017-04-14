@@ -936,10 +936,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         Friend Overrides ReadOnly Property HasEmbeddedAttribute As Boolean
             Get
                 If Me._lazyHasEmbeddedAttribute = ThreeState.Unknown Then
-                    Interlocked.CompareExchange(Me._lazyHasEmbeddedAttribute,
-                                                If(Me.ContainingPEModule.Module.HasVisualBasicEmbeddedAttribute(Me._handle),
-                                                   ThreeState.True, ThreeState.False),
-                                                ThreeState.Unknown)
+                    Interlocked.CompareExchange(
+                        Me._lazyHasEmbeddedAttribute,
+                        (Me.ContainingPEModule.Module.HasVisualBasicEmbeddedAttribute(Me._handle) Or Me.ContainingPEModule.Module.HasCodeAnalysisEmbeddedAttribute(Me._handle)).ToThreeState(),
+                        ThreeState.Unknown)
                 End If
                 Return Me._lazyHasEmbeddedAttribute = ThreeState.True
             End Get

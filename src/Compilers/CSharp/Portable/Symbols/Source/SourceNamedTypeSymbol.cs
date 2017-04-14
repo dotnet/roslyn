@@ -540,6 +540,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return null;
             }
 
+            if (CSharpAttributeData.IsTargetEarlyAttribute(arguments.AttributeType, arguments.AttributeSyntax, AttributeDescription.CodeAnalysisEmbeddedAttribute))
+            {
+                boundAttribute = arguments.Binder.GetAttribute(arguments.AttributeSyntax, arguments.AttributeType, out hasAnyDiagnostics);
+                if (!boundAttribute.HasErrors)
+                {
+                    arguments.GetOrCreateData<CommonTypeEarlyWellKnownAttributeData>().HasEmbeddedAttribute = true;
+                    if (!hasAnyDiagnostics)
+                    {
+                        return boundAttribute;
+                    }
+                }
+
+                return null;
+            }
+
             if (CSharpAttributeData.IsTargetEarlyAttribute(arguments.AttributeType, arguments.AttributeSyntax, AttributeDescription.ConditionalAttribute))
             {
                 boundAttribute = arguments.Binder.GetAttribute(arguments.AttributeSyntax, arguments.AttributeType, out hasAnyDiagnostics);
@@ -861,6 +876,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 var data = GetDecodedWellKnownAttributeData();
                 return data != null && data.HasSpecialNameAttribute;
+            }
+        }
+
+        internal override bool HasEmbeddedAttribute
+        {
+            get
+            {
+                var data = GetEarlyDecodedWellKnownAttributeData();
+                return data != null && data.HasEmbeddedAttribute;
             }
         }
 

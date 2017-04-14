@@ -1970,8 +1970,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Debug.Assert(Not arguments.AttributeType.IsErrorType())
             Dim hasAnyDiagnostics As Boolean = False
 
-            If VisualBasicAttributeData.IsTargetEarlyAttribute(arguments.AttributeType, arguments.AttributeSyntax, AttributeDescription.VisualBasicEmbeddedAttribute) Then
-                ' Handle Microsoft.VisualBasic.Embedded attribute
+            If VisualBasicAttributeData.IsTargetEarlyAttribute(arguments.AttributeType, arguments.AttributeSyntax, AttributeDescription.VisualBasicEmbeddedAttribute) Or
+               VisualBasicAttributeData.IsTargetEarlyAttribute(arguments.AttributeType, arguments.AttributeSyntax, AttributeDescription.CodeAnalysisEmbeddedAttribute) Then
+                ' Handle Microsoft.VisualBasic.Embedded and Microsoft.CodeAnalysis.Embedded attributes
                 Dim attrdata = arguments.Binder.GetAttribute(arguments.AttributeSyntax, arguments.AttributeType, hasAnyDiagnostics)
                 If Not attrdata.HasErrors Then
                     arguments.GetOrCreateData(Of TypeEarlyWellKnownAttributeData)().HasEmbeddedAttribute = True

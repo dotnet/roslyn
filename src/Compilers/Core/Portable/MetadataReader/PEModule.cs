@@ -953,6 +953,11 @@ namespace Microsoft.CodeAnalysis
             return FindTargetAttribute(token, AttributeDescription.VisualBasicEmbeddedAttribute).HasValue;
         }
 
+        internal bool HasCodeAnalysisEmbeddedAttribute(EntityHandle token)
+        {
+            return FindTargetAttribute(token, AttributeDescription.CodeAnalysisEmbeddedAttribute).HasValue;
+        }
+
         internal bool HasDefaultMemberAttribute(EntityHandle token, out string memberName)
         {
             return HasStringValuedAttribute(token, AttributeDescription.DefaultMemberAttribute, out memberName);

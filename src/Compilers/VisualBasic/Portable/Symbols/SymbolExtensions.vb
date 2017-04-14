@@ -360,7 +360,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         ''' <summary>
-        ''' Does symbol or its containing type have Microsoft.VisualBasic.Embedded() attribute
+        ''' Does symbol or its containing type have Microsoft.VisualBasic.Embedded() or Microsoft.CodeAnalysis.Embedded() attributes
         ''' </summary>
         <Extension()>
         Friend Function IsHiddenByEmbeddedAttribute(symbol As Symbol) As Boolean

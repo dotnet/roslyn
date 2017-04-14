@@ -212,6 +212,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
+            internal override bool HasEmbeddedAttribute => false;
+
             internal override ImmutableArray<TypeSymbol> TypeArgumentsNoUseSiteDiagnostics
             {
                 get { return StaticCast<TypeSymbol>.From(this.TypeParameters); }
