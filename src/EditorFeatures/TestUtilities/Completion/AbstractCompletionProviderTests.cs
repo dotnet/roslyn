@@ -273,9 +273,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             {
                 // Work on a cached copy since OptionServiceFactory.OptionService.GetOptions
                 // always returns a new instance, losing any recorded observations.
+                // See https://github.com/dotnet/roslyn/issues/18707
                 defaultOptions = workspace.Options;
 
                 // Workspace options are not guaranteed to be immutable until observed, so observe them.
+                // As above, see https://github.com/dotnet/roslyn/issues/18707
                 foreach (var option in options)
                 {
                     defaultOptions.GetOption(option.Key);
