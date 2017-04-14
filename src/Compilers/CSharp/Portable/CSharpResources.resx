@@ -2142,7 +2142,7 @@ If such a class is used as a base class and if the deriving class defines a dest
     <value>No best type found for implicitly-typed array</value>
   </data>
   <data name="ERR_AnonymousTypePropertyAssignedBadValue" xml:space="preserve">
-    <value>Cannot assign {0} to anonymous type property</value>
+    <value>Cannot assign '{0}' to anonymous type property</value>
   </data>
   <data name="ERR_ExpressionTreeContainsBaseAccess" xml:space="preserve">
     <value>An expression tree may not contain a base access</value>
@@ -4886,7 +4886,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Deconstruct assignment requires an expression with a type on the right-hand-side.</value>
   </data>
   <data name="ERR_SwitchExpressionValueExpected" xml:space="preserve">
-    <value>The switch expression must be a value; found {0}.</value>
+    <value>The switch expression must be a value; found '{0}'.</value>
   </data>
   <data name="ERR_PatternIsSubsumed" xml:space="preserve">
     <value>The switch case has already been handled by a previous case.</value>

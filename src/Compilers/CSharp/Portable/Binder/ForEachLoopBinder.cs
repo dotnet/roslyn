@@ -512,7 +512,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if ((object)collectionExprType == null) // There's no way to enumerate something without a type.
             {
-                if (collectionExpr.Kind == BoundKind.DefaultExpression && (object)collectionExpr.Type == null)
+                if (collectionExpr.Kind == BoundKind.DefaultExpression)
                 {
                     diagnostics.Add(ErrorCode.ERR_DefaultLiteralNotValid, _syntax.Expression.Location);
                 }
