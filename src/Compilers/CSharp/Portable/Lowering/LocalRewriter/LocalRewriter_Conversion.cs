@@ -132,11 +132,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
                     }
 
-                    // 4.1.6 C# spec: To force a value of a floating point type to the exact precision of its type, an explicit cast can be used.
-                    // If this is not an identity conversion of a float with unknown precision, strip away the identity conversion.
-                    if (!(explicitCastInCode && IsFloatPointExpressionOfUnknownPrecision(rewrittenOperand)))
+                    if (!explicitCastInCode)
                     {
                         return rewrittenOperand;
+                    }
+                    
+                    // 4.1.6 C# spec: To force a value of a floating point type to the exact precision of its type, an explicit cast can be used.
+                    // If this is not an identity conversion of a float with unknown precision, strip away the identity conversion.
+                    if (!IsFloatPointExpressionOfUnknownPrecision(rewrittenOperand))
+                    {
+                        return EnsureNotAssignableIfUsedAsMethodReceiver(rewrittenOperand);
                     }
 
                     break;

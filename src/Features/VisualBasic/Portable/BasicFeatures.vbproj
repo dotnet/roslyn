@@ -66,6 +66,8 @@
       <Link>InternalUtilities\LambdaUtilities.vb</Link>
     </Compile>
     <Compile Include="AddPackage\VisualBasicAddSpecificPackageCodeFixProvider.vb" />
+    <Compile Include="InitializeParameter\InitializeParameterHelpers.vb" />
+    <Compile Include="InitializeParameter\VisualBasicAddParameterCheckCodeRefactoringProvider.vb" />
     <Compile Include="ChangeSignature\ChangeSignatureFormattingRule.vb" />
     <Compile Include="ChangeSignature\UnifiedArgumentSyntax.vb" />
     <Compile Include="ChangeSignature\VisualBasicChangeSignatureService.vb" />
@@ -107,6 +109,7 @@
     <Compile Include="CodeFixes\OverloadBase\OverloadBaseCodeFixProvider.AddOverloads.vb" />
     <Compile Include="CodeFixes\OverloadBase\OverloadBaseCodeFixProvider.vb" />
     <Compile Include="ImplementInterface\VisualBasicImplementInterfaceCodeFixProvider.vb" />
+    <Compile Include="InitializeParameter\VisualBasicInitializeMemberFromParameterCodeRefactoringProvider.vb" />
     <Compile Include="ReplacePropertyWithMethods\ConvertValueToReturnsRewriter.vb" />
     <Compile Include="Structure\Providers\CollectionInitializerStructureProvider.vb" />
     <Compile Include="Structure\Providers\ObjectCreationInitializerStructureProvider.vb" />

@@ -29,7 +29,7 @@ public class Program
         yield return 1;
     }
 }";
-            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll);
+            var comp = CreateStandardCompilation(source, options: TestOptions.ReleaseDll);
 
             comp.MakeMemberMissing(SpecialMember.System_Collections_Generic_IEnumerable_T__GetEnumerator);
 
@@ -61,7 +61,7 @@ public class Program
         yield return 1;
     }
 }";
-            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll);
+            var comp = CreateStandardCompilation(source, options: TestOptions.ReleaseDll);
 
             comp.MakeMemberMissing(SpecialMember.System_IDisposable__Dispose);
 
@@ -93,7 +93,7 @@ public class Program
         yield return 1;
     }
 }";
-            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll);
+            var comp = CreateStandardCompilation(source, options: TestOptions.ReleaseDll);
 
             comp.MakeMemberMissing(WellKnownMember.System_Diagnostics_DebuggerHiddenAttribute__ctor);
 
@@ -116,7 +116,7 @@ public static class Program
 
     public static void Extension(this string x) {}
 }";
-            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll);
+            var comp = CreateCompilation(source, new[] { MscorlibRef }, options: TestOptions.ReleaseDll);
 
             comp.MakeMemberMissing(WellKnownMember.System_Diagnostics_DebuggerHiddenAttribute__ctor);
 
@@ -836,7 +836,7 @@ namespace System
                 SystemRef_v4_0_30319_17929,
                 SystemCoreRef_v4_0_30319_17929,
                 MsvbRef_v4_0_30319_17929,
-                CSharpRef,
+                DesktopCSharpRef,
                 SystemXmlRef,
                 SystemXmlLinqRef,
                 SystemWindowsFormsRef,
@@ -883,7 +883,7 @@ public class MyClass
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateStandardCompilation(source);
             comp.MakeMemberMissing(SpecialMember.System_IntPtr__op_Explicit_FromInt32);
             comp.VerifyEmitDiagnostics(
                 // (8,10): error CS0656: Missing compiler required member 'System.IntPtr.op_Explicit'

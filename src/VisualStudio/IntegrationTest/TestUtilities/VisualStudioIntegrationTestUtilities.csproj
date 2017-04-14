@@ -24,14 +24,19 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AutomationElementExtensions.cs" />
+    <Compile Include="AutomationElementHelper.cs" />
     <Compile Include="CaptureTestNameAttribute.cs" />
     <Compile Include="Common\Comparison.cs" />
+    <Compile Include="Common\ErrorListItem.cs" />
     <Compile Include="Common\Parameter.cs" />
     <Compile Include="Common\ProjectUtilities.cs" />
     <Compile Include="Common\Reference.cs" />
     <Compile Include="Common\Signature.cs" />
     <Compile Include="Helper.cs" />
     <Compile Include="HostWaitHelper.cs" />
+    <Compile Include="InProcess\Editor_InProc_NavigationBar.cs" />
+    <Compile Include="InProcess\ErrorList_InProc.cs" />
+    <Compile Include="Common\ClassifiedToken.cs" />
     <Compile Include="InProcess\TextViewWindow_InProc.cs" />
     <Compile Include="InProcess\CSharpInteractiveWindow_InProc.cs" />
     <Compile Include="DialogHelpers.cs" />
@@ -49,10 +54,19 @@
     <Compile Include="InProcess\Editor_InProc.cs" />
     <Compile Include="Interop\NativeMethods.cs" />
     <Compile Include="LightBulbHelper.cs" />
+    <Compile Include="OutOfProcess\InlineRenameDialog_OutOfProc.cs" />
     <Compile Include="OutOfProcess\ChangeSignatureDialog_OutOfProc.cs" />
+    <Compile Include="OutOfProcess\Editor_OutOfProc.Verifier.cs" />
+    <Compile Include="OutOfProcess\ErrorList_OutOfProc.Verifier.cs" />
+    <Compile Include="OutOfProcess\InteractiveWindow_OutOfProc.Verifier.cs" />
+    <Compile Include="OutOfProcess\SolutionExplorer_OutOfProc.Verifier.cs" />
+    <Compile Include="OutOfProcess\TextViewWindow_OutOfProc.Verifier.cs" />
+    <Compile Include="OutOfProcess\EncapsulateField_OutOfProc.cs" />
+    <Compile Include="OutOfProcess\ErrorList_OutOfProc.cs" />
     <Compile Include="OutOfProcess\FindReferencesWindow_OutOfProc.cs" />
     <Compile Include="OutOfProcess\GenerateTypeDialog_OutOfProc.cs" />
     <Compile Include="OutOfProcess\OutOfProcComponent.cs" />
+    <Compile Include="OutOfProcess\PreviewChangesDialog_OutOfProc.cs" />
     <Compile Include="OutOfProcess\Shell_OutOfProc.cs" />
     <Compile Include="OutOfProcess\SolutionExplorer_OutOfProc.cs" />
     <Compile Include="InProcess\VisualStudioWorkspace_InProc.cs" />
@@ -76,6 +90,7 @@
     <Compile Include="OutOfProcess\InteractiveWindow_OutOfProc.cs" />
     <Compile Include="WellKnownProjectTemplates.cs" />
     <Compile Include="OutOfProcess\VisualStudioWorkspace_OutOfProc.cs" />
+    <Compile Include="WellKnownTagNames.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="PresentationCore" />

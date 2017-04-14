@@ -140,14 +140,19 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
             var syntaxFacts = project.LanguageServices.GetService<ISyntaxFactsService>();
             syntaxFacts.GetNameAndArityOfSimpleName(node, out var name, out var arity);
 
-            var symbols = await SymbolFinder.FindDeclarationsAsync(project, name, this.IgnoreCase, SymbolFilter.Type, cancellationToken).ConfigureAwait(false);
+            var symbolAndProjectIds = await DeclarationFinder.FindAllDeclarationsWithNormalQueryAsync(
+                project, SearchQuery.Create(name, this.IgnoreCase),
+                SymbolFilter.Type, cancellationToken).ConfigureAwait(false);
+            var symbols = symbolAndProjectIds.SelectAsArray(t => t.Symbol);
 
             // also lookup type symbols with the "Attribute" suffix.
             var inAttributeContext = syntaxFacts.IsAttributeName(node);
             if (inAttributeContext)
             {
-                symbols = symbols.Concat(
-                    await SymbolFinder.FindDeclarationsAsync(project, name + "Attribute", this.IgnoreCase, SymbolFilter.Type, cancellationToken).ConfigureAwait(false));
+                var attributeSymbolAndProjectIds = await DeclarationFinder.FindAllDeclarationsWithNormalQueryAsync(
+                    project, SearchQuery.Create(name + "Attribute", this.IgnoreCase),
+                    SymbolFilter.Type, cancellationToken).ConfigureAwait(false);
+                symbols = symbols.Concat(attributeSymbolAndProjectIds.SelectAsArray(t => t.Symbol));
             }
 
             var accessibleTypeSymbols = symbols
@@ -186,8 +191,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
                 return ImmutableArray<SymbolResult>.Empty;
             }
 
-            var symbols = await SymbolFinder.FindDeclarationsAsync(
-                project, name, this.IgnoreCase, SymbolFilter.Namespace, cancellationToken).ConfigureAwait(false);
+            var symbolAndProjectIds = await DeclarationFinder.FindAllDeclarationsWithNormalQueryAsync(
+                project, SearchQuery.Create(name, this.IgnoreCase), 
+                SymbolFilter.Namespace, cancellationToken).ConfigureAwait(false);
+
+            var symbols = symbolAndProjectIds.SelectAsArray(t => t.Symbol);
 
             // There might be multiple namespaces that this name will resolve successfully in.
             // Some of them may be 'better' results than others.  For example, say you have

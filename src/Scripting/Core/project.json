@@ -2,6 +2,7 @@
   "dependencies": {
     "Microsoft.NETCore.Portable.Compatibility": "1.0.1",
     "System.AppContext": "4.3.0",
+    "System.Console": "4.3.0",
     "System.Collections": "4.3.0",
     "System.Diagnostics.Debug": "4.3.0",
     "System.Diagnostics.StackTrace": "4.3.0",

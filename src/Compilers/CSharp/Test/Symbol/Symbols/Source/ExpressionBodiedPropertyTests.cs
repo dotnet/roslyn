@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Source
         public void Syntax01()
         {
             // Language feature enabled by default
-            var comp = CreateCompilationWithMscorlib(@"
+            var comp = CreateStandardCompilation(@"
 class C
 {
     public int P => 1;

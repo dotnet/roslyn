@@ -220,6 +220,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public new CSharpCompilationOptions WithCryptoKeyFile(string path)
         {
+            if (string.IsNullOrEmpty(path))
+            {
+                path = null;
+            }
+
             if (path == this.CryptoKeyFile)
             {
                 return this;

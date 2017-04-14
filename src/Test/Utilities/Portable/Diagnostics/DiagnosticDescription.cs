@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             _errorCodeType = errorCodeType ?? code.GetType();
         }
 
-        internal DiagnosticDescription(Diagnostic d, bool errorCodeOnly, bool showPosition = false)
+        public DiagnosticDescription(Diagnostic d, bool errorCodeOnly, bool showPosition = false)
         {
             _code = d.Code;
             _isWarningAsError = d.IsWarningAsError;

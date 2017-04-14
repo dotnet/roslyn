@@ -218,7 +218,8 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
 
             private async Task UpdateSymbolTreeInfoAsync(Project project, CancellationToken cancellationToken)
             {
-                if (project.Solution.Workspace.Kind != WorkspaceKind.RemoteWorkspace &&
+                if (project.Solution.Workspace.Kind != "Test" &&
+                    project.Solution.Workspace.Kind != WorkspaceKind.RemoteWorkspace &&
                     project.Solution.Workspace.Options.GetOption(NavigateToOptions.OutOfProcessAllowed))
                 {
                     // if GoTo feature is set to run on remote host, then we don't need to build inproc cache.

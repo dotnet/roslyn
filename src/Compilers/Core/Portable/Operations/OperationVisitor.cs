@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             DefaultVisit(operation);
         }
 
-        public virtual void VisitCatch(ICatchClause operation)
+        public virtual void VisitCatchClause(ICatchClause operation)
         {
             DefaultVisit(operation);
         }
@@ -525,7 +525,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             return DefaultVisit(operation, argument);
         }
 
-        public virtual TResult VisitCatch(ICatchClause operation, TArgument argument)
+        public virtual TResult VisitCatchClause(ICatchClause operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
         }

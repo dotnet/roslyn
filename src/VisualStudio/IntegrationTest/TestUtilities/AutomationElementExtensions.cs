@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Windows.Automation;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities
@@ -150,6 +151,62 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             {
                 throw new InvalidOperationException($"The element '{element.GetNameForExceptionMessage()}' does not support the ValuePattern.");
             }
+        }
+
+        /// <summary>
+        /// Given an <see cref="AutomationElement"/>, returns a descendent following the <paramref name="path"/>.
+        /// Throws an <see cref="InvalidOperationException"/> if no such descendant is found.
+        /// </summary>
+
+        public static AutomationElement FindDescendantByPath(this AutomationElement element, string path)
+        {
+            string[] pathParts = path.Split(".".ToCharArray());
+
+            // traverse the path
+            AutomationElement item = element;
+            AutomationElement next = null;
+
+            foreach (string pathPart in pathParts)
+            {
+                next = item.FindFirst(TreeScope.Descendants, new PropertyCondition(AutomationElement.LocalizedControlTypeProperty, pathPart));
+                
+                if (next == null)
+                {
+                    ThrowUnableToFindChildException(path, item);
+                }
+
+                item = next;
+            }
+
+            return item;
+        }
+
+        private static void ThrowUnableToFindChildException(string path, AutomationElement item)
+        {
+            // if not found, build a list of available children for debugging purposes
+            var validChildren = new List<string>();
+
+            try
+            {
+                foreach (AutomationElement sub in item.CachedChildren)
+                {
+                    validChildren.Add(SimpleControlTypeName(sub));
+                }
+            }
+            catch (InvalidOperationException)
+            {
+                // if the cached children can't be enumerated, don't blow up trying to display debug info
+            }
+
+            throw new InvalidOperationException(string.Format("Unable to find a child named {0}.  Possible values: ({1}).",
+                path,
+                string.Join(", ", validChildren)));
+        }
+
+        private static string SimpleControlTypeName(AutomationElement element)
+        {
+            ControlType type = element.GetCurrentPropertyValue(AutomationElement.ControlTypeProperty, true) as ControlType;
+            return type == null ? null : type.LocalizedControlType;
         }
 
         /// <summary>

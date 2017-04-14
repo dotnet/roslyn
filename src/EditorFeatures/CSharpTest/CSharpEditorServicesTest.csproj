@@ -165,6 +165,10 @@
   <ItemGroup>
     <Compile Include="AddBraces\AddBracesFixAllTests.cs" />
     <Compile Include="AddBraces\AddBracesTests.cs" />
+    <Compile Include="Completion\CompletionProviders\ExplicitInterfaceTypeCompletionProviderTests.cs" />
+    <Compile Include="Completion\CompletionProviders\ExplicitInterfaceMemberCompletionProviderTests.cs" />
+    <Compile Include="Diagnostics\AddUsing\AddUsingTestsWithAddImportDiagnosticProvider.cs" />
+    <Compile Include="InitializeParameter\AddParameterCheckTests.cs" />
     <Compile Include="AddParameter\AddParameterTests.cs" />
     <Compile Include="AutomaticCompletion\AutomaticBraceCompletionTests.cs" />
     <Compile Include="AutomaticCompletion\AutomaticBracketCompletionTests.cs" />
@@ -240,6 +244,7 @@
     <Compile Include="Extensions\ContextQuery\PossibleTupleContextTests.cs" />
     <Compile Include="GenerateFromMembers\GenerateEqualsAndGetHashCodeFromMembers\GenerateEqualsAndGetHashCodeFromMembersTests.cs" />
     <Compile Include="GenerateOverrides\GenerateOverridesTests.cs" />
+    <Compile Include="InitializeParameter\InitializeMemberFromParameterTests.cs" />
     <Compile Include="QualifyMemberAccess\QualifyMemberAccessTests.cs" />
     <Compile Include="QualifyMemberAccess\QualifyMemberAccessTests_FixAllTests.cs" />
     <Compile Include="Diagnostics\SpellCheck\SpellCheckTests.cs" />
@@ -251,7 +256,6 @@
     <Compile Include="Completion\CompletionProviders\AttributeNamedParameterCompletionProviderTests.cs" />
     <Compile Include="Completion\CompletionProviders\CrefCompletionProviderTests.cs" />
     <Compile Include="Completion\CompletionProviders\EnumAndCompletionListTagCompletionProviderTests.cs" />
-    <Compile Include="Completion\CompletionProviders\ExplicitInterfaceCompletionProviderTests.cs" />
     <Compile Include="Completion\CompletionProviders\ExternAliasCompletionProviderTests.cs" />
     <Compile Include="Completion\CompletionProviders\GlobalAssemblyCacheCompletionHelperTests.cs" />
     <Compile Include="Completion\CompletionProviders\KeywordCompletionProviderTests.cs" />
