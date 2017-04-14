@@ -239,6 +239,31 @@ class Test2
         }
 
         [Fact]
+        public void EmitRefAssemblyWhenTargetExe()
+        {
+            CSharpCompilation comp = CreateCompilationWithMscorlib(@"
+public class C
+{
+    internal static void Main()
+    {
+        System.Console.WriteLine(""hello"");
+    }
+}
+", options: TestOptions.DebugExe);
+
+            using (var output = new MemoryStream())
+            using (var metadataOutput = new MemoryStream())
+            {
+                // Previously, this would crash when trying to get the entry point for the ref assembly
+                // (but the Main method is not emitted in the ref assembly...)
+                EmitResult emitResult = comp.Emit(output, metadataPEStream: metadataOutput,
+                    options: new EmitOptions(includePrivateMembers: false));
+                Assert.True(emitResult.Success);
+                emitResult.Diagnostics.Verify();
+            }
+        }
+
+        [Fact]
         public void RefAssembly_HasReferenceAssemblyAttribute()
         {
             var emitRefAssembly = EmitOptions.Default.WithEmitMetadataOnly(true).WithIncludePrivateMembers(false);

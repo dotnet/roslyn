@@ -1846,7 +1846,7 @@ namespace Microsoft.Cci
 
         internal void GetEntryPoints(out MethodDefinitionHandle entryPointHandle, out MethodDefinitionHandle debugEntryPointHandle)
         {
-            if (IsFullMetadata)
+            if (IsFullMetadata && !MetadataOnly)
             {
                 // PE entry point is set for executable programs
                 IMethodReference entryPoint = module.PEEntryPoint;
