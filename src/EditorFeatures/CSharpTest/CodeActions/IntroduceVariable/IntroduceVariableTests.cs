@@ -4051,5 +4051,32 @@ class Program
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TupleWithInferredName()
+        {
+            var code =
+@"class C
+{
+    static int y = 2;
+    void M()
+    {
+        var i = (1, [|C.y|]).y;
+    }
+}";
+
+            var expected =
+            @"class C
+{
+    static int y = 2;
+    void M()
+    {
+        int {|Rename:y1|} = C.y;
+        var i = (1, y1).y;
+    }
+}";
+
+            await TestInRegularAndScriptAsync(code, expected, ignoreTrivia: false);
+        }
     }
 }
