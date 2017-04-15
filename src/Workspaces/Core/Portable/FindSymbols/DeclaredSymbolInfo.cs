@@ -120,7 +120,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private static byte GetTypeParameterCount(uint flags)
             => (byte)((flags >> 12) & Lower4BitMask);
 
-
         internal void WriteTo(ObjectWriter writer)
         {
             writer.WriteString(Name);
