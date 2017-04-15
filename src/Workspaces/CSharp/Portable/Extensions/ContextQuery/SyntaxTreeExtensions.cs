@@ -1048,17 +1048,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             SyntaxToken tokenOnLeftOfPosition,
             CancellationToken cancellationToken)
         {
+            if (syntaxTree.IsParameterModifierContext(position, tokenOnLeftOfPosition, cancellationToken))
+            {
+                return true;
+            }
+
             var token = tokenOnLeftOfPosition;
             token = token.GetPreviousTokenIfTouchingWord(position);
 
-            if (syntaxTree.IsParameterModifierContext(position, tokenOnLeftOfPosition, cancellationToken))
-                return true;
-
-            if ((token.IsKind(SyntaxKind.OpenBracketToken) || token.IsKind(SyntaxKind.CommaToken)) &&
-                token.Parent.IsKind(SyntaxKind.BracketedParameterList) &&
-                token.Parent.IsParentKind(SyntaxKind.IndexerDeclaration))
+            if (token.IsKind(SyntaxKind.OpenBracketToken) || token.IsKind(SyntaxKind.CommaToken))
             {
-                return true;
+                return token.Parent.IsKind(SyntaxKind.BracketedParameterList);
             }
 
             return false;
