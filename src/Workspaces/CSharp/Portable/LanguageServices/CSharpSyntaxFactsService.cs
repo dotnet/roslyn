@@ -969,7 +969,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return pooledBuilder.ToStringAndFree();
         }
 
-
         private string GetSuffix(
             char openBrace, char closeBrace, SeparatedSyntaxList<ParameterSyntax> parameters)
         {
