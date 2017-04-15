@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             }
         }
 
-        public static IEnumerable<ILocalSymbol> GetDeclaredSymbols(this IVariableDeclarationStatement declarationStatement)
+        public static IEnumerable<ILocalSymbol> GetDeclaredVariables(this IVariableDeclarationStatement declarationStatement)
         {
             foreach (IVariableDeclaration group in declarationStatement.Declarations)
             {

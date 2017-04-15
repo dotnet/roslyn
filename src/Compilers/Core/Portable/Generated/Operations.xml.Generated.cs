@@ -2316,10 +2316,10 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </remarks>
     internal sealed partial class VariableDeclarationStatement : Operation, IVariableDeclarationStatement
     {
-        public VariableDeclarationStatement(ImmutableArray<IVariableDeclaration> variables, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+        public VariableDeclarationStatement(ImmutableArray<IVariableDeclaration> declarations, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(OperationKind.VariableDeclarationStatement, isInvalid, syntax, type, constantValue)
         {
-            Declarations = variables;
+            Declarations = declarations;
         }
         /// <summary>
         /// Variables declared by the statement.
