@@ -930,7 +930,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private string GetConstructorSuffix(ConstructorDeclarationSyntax constructor)
-            => GetSuffix("(", ")", constructor.ParameterList.Parameters);
+            => constructor.Modifiers.Any(SyntaxKind.StaticKeyword) 
+                ? ".static " + constructor.Identifier + "()"
+                : GetSuffix("(", ")", constructor.ParameterList.Parameters);
 
         private string GetMethodSuffix(MethodDeclarationSyntax method)
             => GetTypeParameterSuffix(method.TypeParameterList) +
