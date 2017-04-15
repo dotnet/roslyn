@@ -9,7 +9,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
 {
-    internal class DebuggerBrowsableAttributeTests : CSharpResultProviderTestBase
+    public class DebuggerBrowsableAttributeTests : CSharpResultProviderTestBase
     {
         [Fact]
         public void Never()
@@ -565,10 +565,11 @@ public class C
                 value: type.Instantiate(),
                 type: new DkmClrType(runtime.DefaultModule, runtime.DefaultAppDomain, (TypeImpl)type),
                 evalFlags: DkmEvaluationResultFlags.None);
-            var evalResult = FormatResult("o", value, inspectionContext: CreateDkmInspectionContext(DkmEvaluationFlags.HideNonPublicMembers));
+            var inspectionContext = CreateDkmInspectionContext(DkmEvaluationFlags.HideNonPublicMembers);
+            var evalResult = FormatResult("o", value, inspectionContext: inspectionContext);
             Verify(evalResult,
                 EvalResult("o", "{C}", "C", "o", DkmEvaluationResultFlags.Expandable));
-            var children = GetChildren(evalResult);
+            var children = GetChildren(evalResult, inspectionContext: inspectionContext);
             Verify(children,
                 EvalResult("Static members", null, "", "A", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Class),
                 EvalResult("Non-Public members", null, "", "o.FA, hidden", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Data),
