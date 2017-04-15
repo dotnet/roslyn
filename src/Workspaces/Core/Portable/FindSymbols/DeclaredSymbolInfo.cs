@@ -32,9 +32,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     internal struct DeclaredSymbolInfo
     {
         public string Name { get; }
+        public string NameSuffix { get; }
         public string ContainerDisplayName { get; }
         public string FullyQualifiedContainerName { get; }
-        public string FinalDisplayName { get; }
         public DeclaredSymbolInfoKind Kind { get; }
         public Accessibility Accessibility { get; }
         public TextSpan Span { get; }
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         public DeclaredSymbolInfo(
             string name,
-            string finalDisplayName,
+            string nameSuffix,
             string containerDisplayName,
             string fullyQualifiedContainerName,
             DeclaredSymbolInfoKind kind,
@@ -59,9 +59,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             : this()
         {
             Name = name;
+            NameSuffix = nameSuffix;
             ContainerDisplayName = containerDisplayName;
             FullyQualifiedContainerName = fullyQualifiedContainerName;
-            FinalDisplayName = finalDisplayName;
             Kind = kind;
             Accessibility = accessibility;
             Span = span;
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         internal void WriteTo(ObjectWriter writer)
         {
             writer.WriteString(Name);
-            writer.WriteString(FinalDisplayName);
+            writer.WriteString(NameSuffix);
             writer.WriteString(ContainerDisplayName);
             writer.WriteString(FullyQualifiedContainerName);
             writer.WriteByte((byte)Kind);
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         internal static DeclaredSymbolInfo ReadFrom_ThrowsOnFailure(ObjectReader reader)
         {
             var name = reader.ReadString();
-            var finalDisplayName = reader.ReadString();
+            var nameSuffix = reader.ReadString();
             var containerDisplayName = reader.ReadString();
             var fullyQualifiedContainerName = reader.ReadString();
             var kind = (DeclaredSymbolInfoKind)reader.ReadByte();
@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var span = new TextSpan(spanStart, spanLength);
             return new DeclaredSymbolInfo(
                 name: name,
-                finalDisplayName: finalDisplayName,
+                nameSuffix: nameSuffix,
                 containerDisplayName: containerDisplayName,
                 fullyQualifiedContainerName: fullyQualifiedContainerName,
                 kind: kind, accessibility: accessibility, span: span,

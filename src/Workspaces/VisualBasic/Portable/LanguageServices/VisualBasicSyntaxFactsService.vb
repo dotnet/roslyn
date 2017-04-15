@@ -844,8 +844,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.ClassBlock
                     Dim classDecl = CType(node, ClassBlockSyntax)
                     declaredSymbolInfo = New DeclaredSymbolInfo(
-                        classDecl.ClassStatement.Identifier.ValueText,
-                        classDecl.ClassStatement.Identifier.ValueText,
+                        classDecl.ClassStatement.Identifier.ValueText, "",
                         GetContainerDisplayName(node.Parent),
                         GetFullyQualifiedContainerName(node.Parent),
                         DeclaredSymbolInfoKind.Class,
@@ -858,8 +857,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim typeBlock = TryCast(constructor.Parent, TypeBlockSyntax)
                     If typeBlock IsNot Nothing Then
                         declaredSymbolInfo = New DeclaredSymbolInfo(
-                            typeBlock.BlockStatement.Identifier.ValueText,
-                            typeBlock.BlockStatement.Identifier.ValueText,
+                            typeBlock.BlockStatement.Identifier.ValueText, GetConstructorSuffix(constructor),
                             GetContainerDisplayName(node.Parent),
                             GetFullyQualifiedContainerName(node.Parent),
                             DeclaredSymbolInfoKind.Constructor,
@@ -873,8 +871,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.DelegateFunctionStatement, SyntaxKind.DelegateSubStatement
                     Dim delegateDecl = CType(node, DelegateStatementSyntax)
                     declaredSymbolInfo = New DeclaredSymbolInfo(
-                        delegateDecl.Identifier.ValueText,
-                        delegateDecl.Identifier.ValueText,
+                        delegateDecl.Identifier.ValueText, "",
                         GetContainerDisplayName(node.Parent),
                         GetFullyQualifiedContainerName(node.Parent),
                         DeclaredSymbolInfoKind.Delegate,
@@ -885,8 +882,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.EnumBlock
                     Dim enumDecl = CType(node, EnumBlockSyntax)
                     declaredSymbolInfo = New DeclaredSymbolInfo(
-                        enumDecl.EnumStatement.Identifier.ValueText,
-                        enumDecl.EnumStatement.Identifier.ValueText,
+                        enumDecl.EnumStatement.Identifier.ValueText, "",
                         GetContainerDisplayName(node.Parent),
                         GetFullyQualifiedContainerName(node.Parent),
                         DeclaredSymbolInfoKind.Enum,
@@ -897,8 +893,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.EnumMemberDeclaration
                     Dim enumMember = CType(node, EnumMemberDeclarationSyntax)
                     declaredSymbolInfo = New DeclaredSymbolInfo(
-                        enumMember.Identifier.ValueText,
-                        enumMember.Identifier.ValueText,
+                        enumMember.Identifier.ValueText, "",
                         GetContainerDisplayName(node.Parent),
                         GetFullyQualifiedContainerName(node.Parent),
                         DeclaredSymbolInfoKind.EnumMember,
@@ -911,8 +906,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim statementOrBlock = If(TypeOf node.Parent Is EventBlockSyntax, node.Parent, node)
                     Dim eventParent = statementOrBlock.Parent
                     declaredSymbolInfo = New DeclaredSymbolInfo(
-                        eventDecl.Identifier.ValueText,
-                        eventDecl.Identifier.ValueText,
+                        eventDecl.Identifier.ValueText, "",
                         GetContainerDisplayName(eventParent),
                         GetFullyQualifiedContainerName(eventParent),
                         DeclaredSymbolInfoKind.Event,
@@ -924,7 +918,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim funcDecl = CType(node, MethodBlockSyntax)
                     declaredSymbolInfo = New DeclaredSymbolInfo(
                         funcDecl.SubOrFunctionStatement.Identifier.ValueText,
-                        GetMethodFinalDisplayName(funcDecl),
+                        GetMethodSuffix(funcDecl),
                         GetContainerDisplayName(node.Parent),
                         GetFullyQualifiedContainerName(node.Parent),
                         DeclaredSymbolInfoKind.Method,
@@ -937,8 +931,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.InterfaceBlock
                     Dim interfaceDecl = CType(node, InterfaceBlockSyntax)
                     declaredSymbolInfo = New DeclaredSymbolInfo(
-                        interfaceDecl.InterfaceStatement.Identifier.ValueText,
-                        interfaceDecl.InterfaceStatement.Identifier.ValueText,
+                        interfaceDecl.InterfaceStatement.Identifier.ValueText, "",
                         GetContainerDisplayName(node.Parent),
                         GetFullyQualifiedContainerName(node.Parent),
                         DeclaredSymbolInfoKind.Interface,
@@ -955,8 +948,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             DeclaredSymbolInfoKind.Constant,
                             DeclaredSymbolInfoKind.Field)
                         declaredSymbolInfo = New DeclaredSymbolInfo(
-                            modifiedIdentifier.Identifier.ValueText,
-                            modifiedIdentifier.Identifier.ValueText,
+                            modifiedIdentifier.Identifier.ValueText, "",
                             GetContainerDisplayName(fieldDecl.Parent),
                             GetFullyQualifiedContainerName(fieldDecl.Parent),
                             kind, GetAccessibility(fieldDecl, fieldDecl.Modifiers),
@@ -967,8 +959,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.ModuleBlock
                     Dim moduleDecl = CType(node, ModuleBlockSyntax)
                     declaredSymbolInfo = New DeclaredSymbolInfo(
-                        moduleDecl.ModuleStatement.Identifier.ValueText,
-                        moduleDecl.ModuleStatement.Identifier.ValueText,
+                        moduleDecl.ModuleStatement.Identifier.ValueText, "",
                         GetContainerDisplayName(node.Parent),
                         GetFullyQualifiedContainerName(node.Parent),
                         DeclaredSymbolInfoKind.Module,
@@ -981,8 +972,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim statementOrBlock = If(TypeOf node.Parent Is PropertyBlockSyntax, node.Parent, node)
                     Dim propertyParent = statementOrBlock.Parent
                     declaredSymbolInfo = New DeclaredSymbolInfo(
-                        propertyDecl.Identifier.ValueText,
-                        propertyDecl.Identifier.ValueText,
+                        propertyDecl.Identifier.ValueText, GetPropertySuffix(propertyDecl),
                         GetContainerDisplayName(propertyParent),
                         GetFullyQualifiedContainerName(propertyParent),
                         DeclaredSymbolInfoKind.Property,
@@ -993,8 +983,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.StructureBlock
                     Dim structDecl = CType(node, StructureBlockSyntax)
                     declaredSymbolInfo = New DeclaredSymbolInfo(
-                        structDecl.StructureStatement.Identifier.ValueText,
-                        structDecl.StructureStatement.Identifier.ValueText,
+                        structDecl.StructureStatement.Identifier.ValueText, "",
                         GetContainerDisplayName(node.Parent),
                         GetFullyQualifiedContainerName(node.Parent),
                         DeclaredSymbolInfoKind.Struct,
@@ -1008,19 +997,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return False
         End Function
 
-        Private Function GetMethodFinalDisplayName(funcDecl As MethodBlockSyntax) As String
-            Throw New NotImplementedException()
+        Private Function GetMethodSuffix(method As MethodBlockSyntax) As String
+            Return GetSuffix(method.SubOrFunctionStatement.ParameterList)
         End Function
 
-        Private Function GetFinalDisplayName(
-            name As String, parameters As SeparatedSyntaxList(Of ParameterSyntax)) As String
+        Private Function GetConstructorSuffix(method As ConstructorBlockSyntax) As String
+            Return GetSuffix(method.SubNewStatement.ParameterList)
+        End Function
 
+        Private Function GetPropertySuffix([property] As PropertyStatementSyntax) As String
+            Return GetSuffix([property].ParameterList)
+        End Function
+
+        Private Function GetSuffix(parameterList As ParameterListSyntax) As String
             Dim pooledBuilder = PooledStringBuilder.GetInstance()
 
             Dim builder = pooledBuilder.Builder
-            builder.Append(name)
             builder.Append("(")
-            AppendParameters(parameters, builder)
+            If parameterList IsNot Nothing Then
+                AppendParameters(parameterList.Parameters, builder)
+            End If
             builder.Append(")")
 
             Return pooledBuilder.ToStringAndFree()
@@ -1034,7 +1030,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 AppendTokens(parameter.AsClause.Type, builder)
-
                 First = False
             Next
         End Sub

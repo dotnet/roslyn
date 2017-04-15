@@ -777,8 +777,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.ClassDeclaration:
                     var classDecl = (ClassDeclarationSyntax)node;
                     declaredSymbolInfo = new DeclaredSymbolInfo(
-                        classDecl.Identifier.ValueText,
-                        classDecl.Identifier.ValueText,
+                        classDecl.Identifier.ValueText, "",
                         GetContainerDisplayName(node.Parent),
                         GetFullyQualifiedContainerName(node.Parent),
                         DeclaredSymbolInfoKind.Class,
@@ -789,8 +788,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.ConstructorDeclaration:
                     var ctorDecl = (ConstructorDeclarationSyntax)node;
                     declaredSymbolInfo = new DeclaredSymbolInfo(
-                        ctorDecl.Identifier.ValueText,
-                        ctorDecl.Identifier.ValueText,
+                        ctorDecl.Identifier.ValueText, GetConstructorSuffix(ctorDecl),
                         GetContainerDisplayName(node.Parent),
                         GetFullyQualifiedContainerName(node.Parent),
                         DeclaredSymbolInfoKind.Constructor,
@@ -802,8 +800,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.DelegateDeclaration:
                     var delegateDecl = (DelegateDeclarationSyntax)node;
                     declaredSymbolInfo = new DeclaredSymbolInfo(
-                        delegateDecl.Identifier.ValueText,
-                        delegateDecl.Identifier.ValueText,
+                        delegateDecl.Identifier.ValueText, "",
                         GetContainerDisplayName(node.Parent),
                         GetFullyQualifiedContainerName(node.Parent),
                         DeclaredSymbolInfoKind.Delegate,
@@ -814,8 +811,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.EnumDeclaration:
                     var enumDecl = (EnumDeclarationSyntax)node;
                     declaredSymbolInfo = new DeclaredSymbolInfo(
-                        enumDecl.Identifier.ValueText,
-                        enumDecl.Identifier.ValueText,
+                        enumDecl.Identifier.ValueText, "",
                         GetContainerDisplayName(node.Parent),
                         GetFullyQualifiedContainerName(node.Parent),
                         DeclaredSymbolInfoKind.Enum,
@@ -826,8 +822,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.EnumMemberDeclaration:
                     var enumMember = (EnumMemberDeclarationSyntax)node;
                     declaredSymbolInfo = new DeclaredSymbolInfo(
-                        enumMember.Identifier.ValueText,
-                        enumMember.Identifier.ValueText,
+                        enumMember.Identifier.ValueText, "",
                         GetContainerDisplayName(node.Parent),
                         GetFullyQualifiedContainerName(node.Parent),
                         DeclaredSymbolInfoKind.EnumMember,
@@ -837,10 +832,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return true;
                 case SyntaxKind.EventDeclaration:
                     var eventDecl = (EventDeclarationSyntax)node;
-                    var eventName = ExpandExplicitInterfaceName(eventDecl.Identifier.ValueText, eventDecl.ExplicitInterfaceSpecifier);
                     declaredSymbolInfo = new DeclaredSymbolInfo(
-                        eventName,
-                        eventName,
+                        eventDecl.Identifier.ValueText, "",
                         GetContainerDisplayName(node.Parent),
                         GetFullyQualifiedContainerName(node.Parent),
                         DeclaredSymbolInfoKind.Event,
@@ -851,8 +844,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.IndexerDeclaration:
                     var indexerDecl = (IndexerDeclarationSyntax)node;
                     declaredSymbolInfo = new DeclaredSymbolInfo(
-                        WellKnownMemberNames.Indexer,
-                        GetIndexerFinalDisplayName(indexerDecl),
+                        WellKnownMemberNames.Indexer, GetIndexerSuffix(indexerDecl),
                         GetContainerDisplayName(node.Parent),
                         GetFullyQualifiedContainerName(node.Parent),
                         DeclaredSymbolInfoKind.Indexer,
@@ -863,8 +855,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.InterfaceDeclaration:
                     var interfaceDecl = (InterfaceDeclarationSyntax)node;
                     declaredSymbolInfo = new DeclaredSymbolInfo(
-                        interfaceDecl.Identifier.ValueText,
-                        interfaceDecl.Identifier.ValueText,
+                        interfaceDecl.Identifier.ValueText, "",
                         GetContainerDisplayName(node.Parent),
                         GetFullyQualifiedContainerName(node.Parent),
                         DeclaredSymbolInfoKind.Interface,
@@ -874,10 +865,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return true;
                 case SyntaxKind.MethodDeclaration:
                     var method = (MethodDeclarationSyntax)node;
-                    var methodName = ExpandExplicitInterfaceName(method.Identifier.ValueText, method.ExplicitInterfaceSpecifier);
                     declaredSymbolInfo = new DeclaredSymbolInfo(
-                        methodName,
-                        GetMethodFinalDisplayName(method),
+                        method.Identifier.ValueText, GetMethodSuffix(method),
                         GetContainerDisplayName(node.Parent),
                         GetFullyQualifiedContainerName(node.Parent),
                         IsExtensionMethod(method) ? DeclaredSymbolInfoKind.ExtensionMethod : DeclaredSymbolInfoKind.Method,
@@ -889,10 +878,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return true;
                 case SyntaxKind.PropertyDeclaration:
                     var property = (PropertyDeclarationSyntax)node;
-                    var propertyName = ExpandExplicitInterfaceName(property.Identifier.ValueText, property.ExplicitInterfaceSpecifier);
                     declaredSymbolInfo = new DeclaredSymbolInfo(
-                        propertyName,
-                        propertyName,
+                        property.Identifier.ValueText, "",
                         GetContainerDisplayName(node.Parent),
                         GetFullyQualifiedContainerName(node.Parent),
                         DeclaredSymbolInfoKind.Property,
@@ -903,8 +890,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.StructDeclaration:
                     var structDecl = (StructDeclarationSyntax)node;
                     declaredSymbolInfo = new DeclaredSymbolInfo(
-                        structDecl.Identifier.ValueText,
-                        structDecl.Identifier.ValueText,
+                        structDecl.Identifier.ValueText, "",
                         GetContainerDisplayName(node.Parent),
                         GetFullyQualifiedContainerName(node.Parent),
                         DeclaredSymbolInfoKind.Struct,
@@ -926,8 +912,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 : DeclaredSymbolInfoKind.Field;
 
                         declaredSymbolInfo = new DeclaredSymbolInfo(
-                            variableDeclarator.Identifier.ValueText,
-                            variableDeclarator.Identifier.ValueText,
+                            variableDeclarator.Identifier.ValueText, "",
                             GetContainerDisplayName(fieldDeclaration.Parent),
                             GetFullyQualifiedContainerName(fieldDeclaration.Parent),
                             kind,
@@ -944,19 +929,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        private string GetIndexerFinalDisplayName(IndexerDeclarationSyntax indexer)
-            => GetFinalDisplayName("this", "[", "]", indexer.ParameterList.Parameters);
+        private string GetConstructorSuffix(ConstructorDeclarationSyntax constructor)
+            => GetSuffix("(", ")", constructor.ParameterList.Parameters);
 
-        private string GetMethodFinalDisplayName(MethodDeclarationSyntax method)
-            => GetFinalDisplayName(method.Identifier.ValueText, "(", ")", method.ParameterList.Parameters);
+        private string GetMethodSuffix(MethodDeclarationSyntax method)
+            => GetSuffix("(", ")", method.ParameterList.Parameters);
 
-        private string GetFinalDisplayName(
-            string name, string openBrace, string closeBrace, SeparatedSyntaxList<ParameterSyntax> parameters)
+        private string GetIndexerSuffix(IndexerDeclarationSyntax indexer)
+            => GetSuffix("[", "]", indexer.ParameterList.Parameters);
+
+        private string GetSuffix(
+            string openBrace, string closeBrace, SeparatedSyntaxList<ParameterSyntax> parameters)
         {
             var pooledBuilder = PooledStringBuilder.GetInstance();
 
             var builder = pooledBuilder.Builder;
-            builder.Append(name);
             builder.Append(openBrace);
             AppendParameters(parameters, builder);
             builder.Append(closeBrace);
@@ -1160,13 +1147,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static string GetSimpleTypeName(SimpleNameSyntax name)
             => name.Identifier.ValueText;
-
-        private static string ExpandExplicitInterfaceName(string identifier, ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier)
-        {
-            return explicitInterfaceSpecifier == null
-                ? identifier
-                : $"{explicitInterfaceSpecifier.Name.GetNameToken().ValueText}.{identifier}";
-        }
 
         private string GetContainerDisplayName(SyntaxNode node)
         {

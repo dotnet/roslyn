@@ -6,7 +6,6 @@ using System.Diagnostics;
 using System.IO;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Navigation;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.NavigateTo
@@ -16,7 +15,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         private class SearchResult : INavigateToSearchResult
         {
             public string AdditionalInformation => _lazyAdditionalInfo.Value;
-            public string Name => _declaredSymbolInfo.Name;
+            public string Name => _declaredSymbolInfo.Name + _declaredSymbolInfo.NameSuffix;
             public string Summary { get; }
 
             public string Kind { get; }

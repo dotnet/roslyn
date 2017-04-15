@@ -17,7 +17,8 @@ namespace Microsoft.CodeAnalysis.Navigation
             public Document Document { get; }
 
             public ImmutableArray<TaggedText> DisplayTaggedParts
-                => ImmutableArray.Create(new TaggedText(TextTags.Text, _declaredSymbolInfo.FinalDisplayName));
+                => ImmutableArray.Create(new TaggedText(
+                    TextTags.Text, _declaredSymbolInfo.Name + _declaredSymbolInfo.NameSuffix));
 
             public Glyph Glyph => GetGlyph(_declaredSymbolInfo.Kind, _declaredSymbolInfo.Accessibility);
 
