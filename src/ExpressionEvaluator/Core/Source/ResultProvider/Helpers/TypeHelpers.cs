@@ -29,7 +29,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             Type declaredType,
             DkmClrAppDomain appDomain,
             bool includeInherited,
-            bool hideNonPublic)
+            bool hideNonPublic,
+            bool isProxyType)
         {
             Debug.Assert(!type.IsInterface);
 
@@ -64,9 +65,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
                 foreach (var member in type.GetMembers(MemberBindingFlags))
                 {
-                    // The native EE shows members regardless of accessibility if they have a
+                    // The native EE shows proxy members regardless of accessibility if they have a
                     // DebuggerBrowsable attribute of any value. Match that behaviour here.
-                    if (browsableState == null || !browsableState.ContainsKey(member.Name))
+                    if (!isProxyType || browsableState == null || !browsableState.ContainsKey(member.Name))
                     {
                         if (!predicate(member))
                         {
