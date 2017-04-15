@@ -1,13 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Drawing;
-using System.Linq;
 using Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.NavigateTo;
-using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.Language.NavigateTo.Interfaces;
 using Microsoft.VisualStudio.Text;
@@ -39,12 +36,6 @@ namespace Microsoft.CodeAnalysis.Editor.NavigateTo
 
             public IReadOnlyList<Span> GetAdditionalInformationMatchRuns(string searchValue)
                 => SpecializedCollections.EmptyReadOnlyList<Span>();
-
-            public IReadOnlyList<Span> GetNameMatchRuns(string searchValue)
-            {
-                var result = SearchResult.NameMatchSpans.NullToEmpty().Select(ts => ts.ToSpan()).ToList();
-                return result;
-            }
         }
     }
 }
