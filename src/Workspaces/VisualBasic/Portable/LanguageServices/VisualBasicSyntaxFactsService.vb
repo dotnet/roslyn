@@ -1070,8 +1070,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 For Each modifier In parameter.Modifiers
-                    builder.Append(modifier.Text)
-                    builder.Append(" "c)
+                    If modifier.Kind() <> SyntaxKind.ByValKeyword Then
+                        builder.Append(modifier.Text)
+                        builder.Append(" "c)
+                    End If
                 Next
 
                 If parameter.AsClause?.Type IsNot Nothing Then
