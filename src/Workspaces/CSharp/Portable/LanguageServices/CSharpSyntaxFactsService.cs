@@ -972,6 +972,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             return pooledBuilder.ToStringAndFree();
         }
 
+        /// <summary>
+        /// Builds up the suffix to show for something with parameters in navigate-to.
+        /// While it would be nice to just use the compiler SymbolDisplay API for this,
+        /// it would be too expensive as it requires going back to Symbols (which requires
+        /// creating compilations, etc.) in a perf sensitive area.
+        /// 
+        /// So, instead, we just build a reasonable suffix using the pure syntax that a 
+        /// user provided.  That means that if they wrote "Method(System.Int32 i)" we'll 
+        /// show that as "Method(System.Int32)" not "Method(int)".  Given that this is
+        /// actually what the user wrote, and it saves us from ever having to go back to
+        /// symbols/compilations, this is well worth it, even if it does mean we have to
+        /// create our own 'symbol display' logic here.
+        /// </summary>
         private string GetSuffix(
             char openBrace, char closeBrace, SeparatedSyntaxList<ParameterSyntax> parameters)
         {
