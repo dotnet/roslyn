@@ -184,6 +184,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
         [InlineData("[|Fog|]Bar", "fog", PatternMatchKind.Prefix, CaseInsensitive)]
         [InlineData("[|fog|]BarFoo", "Fog", PatternMatchKind.Prefix, CaseInsensitive)]
 
+        [InlineData("[|system.ref|]lection", "system.ref", PatternMatchKind.Prefix, CaseSensitive)]
+
         [InlineData("Fog[|B|]ar", "b", PatternMatchKind.Substring, CaseInsensitive)]
 
         [InlineData("_[|my|]Button", "my", PatternMatchKind.Substring, CaseSensitive)]
@@ -236,10 +238,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 
         [InlineData("my[|_b|]utton", "_B", PatternMatchKind.CamelCase, CaseInsensitive, PatternMatcher.CamelCaseContiguousBonus)]
         [InlineData("[|_|]my_[|b|]utton", "_B", PatternMatchKind.CamelCase, CaseInsensitive, PatternMatcher.CamelCaseMatchesFromStartBonus)]
-        public void TryMatchSingleWordPattern(
+        public void TestGetFirstMatch(
             string candidate, string pattern, int matchKindInt, bool isCaseSensitive, int? camelCaseWeight = null)
         {
-            var match = TryMatchSingleWordPattern(candidate, pattern);
+            var match = TestGetFirstMatch(candidate, pattern);
             Assert.NotNull(match);
 
             var matchKind = (PatternMatchKind)matchKindInt;
@@ -271,9 +273,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
         [InlineData("FogBarBaz", "FZ")]
         [InlineData("_mybutton", "myB")]
         [InlineData("FogBarChangedEventArgs", "changedeventarrrgh")]
-        public void TryMatchSingleWordPattern_NoMatch(string candidate, string pattern)
+        [InlineData("runtime.native.system", "system.reflection")]
+        public void TestGetFirstMatch_NoMatch(string candidate, string pattern)
         {
-            var match = TryMatchSingleWordPattern(candidate, pattern);
+            var match = TestGetFirstMatch(candidate, pattern);
             Assert.Null(match);
         }
 
@@ -472,7 +475,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 
             try
             {
-                var match = TryMatchSingleWordPattern("[|ioo|]", "\u0130oo"); // u0130 = Capital I with dot
+                var match = TestGetFirstMatch("[|ioo|]", "\u0130oo"); // u0130 = Capital I with dot
 
                 Assert.Equal(PatternMatchKind.Exact, match.Value.Kind);
                 Assert.False(match.Value.IsCaseSensitive);
@@ -501,11 +504,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
         private static IList<string> BreakIntoWordParts(string identifier)
             => PartListToSubstrings(identifier, StringBreaker.BreakIntoWordParts(identifier));
 
-        private static PatternMatch? TryMatchSingleWordPattern(string candidate, string pattern)
+        private static PatternMatch? TestGetFirstMatch(string candidate, string pattern)
         {
             MarkupTestFile.GetSpans(candidate, out candidate, out ImmutableArray<TextSpan> spans);
 
-            var match = new PatternMatcher(pattern).MatchSingleWordPattern_ForTestingOnly(candidate);
+            var match = new PatternMatcher(pattern).GetFirstMatch(
+                candidate, includeMatchSpans: true, fuzzyMatch: false);
 
             if (match == null)
             {

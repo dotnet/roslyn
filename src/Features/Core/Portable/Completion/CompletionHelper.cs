@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Completion
             if (!culture.Equals(EnUSCultureInfo))
             {
                 patternMatcher = this.GetEnUSPatternMatcher(pattern);
-                match = patternMatcher.GetFirstMatch(completionItemText);
+                match = patternMatcher.GetFirstMatch(completionItemText, includeMatchSpans);
                 if (match != null)
                 {
                     return match;
