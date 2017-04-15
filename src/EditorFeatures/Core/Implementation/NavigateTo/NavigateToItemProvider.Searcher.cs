@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -61,11 +62,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                     {
                         _progress.AddItems(_solution.Projects.Count());
 
-                        // Search each project serially.  Note that each managed project itself will
-                        // search its documents in parallel.
-                        foreach (var project in _solution.Projects)
+                        var dependencyGraph = _solution.GetProjectDependencyGraph();
+                        foreach (var connectedSet in dependencyGraph.GetDependencySets(_cancellationToken))
                         {
-                            await SearchAsync(project).ConfigureAwait(false);
+                            await ProcessConnectedSetAsync(connectedSet).ConfigureAwait(false);
                         }
                     }
                 }
@@ -76,6 +76,37 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                 {
                     _callback.Done();
                 }
+            }
+
+            private async Task ProcessConnectedSetAsync(IEnumerable<ProjectId> connectedSet)
+            {
+                var visited = new HashSet<ProjectId>();
+
+                foreach (var projectId in connectedSet)
+                {
+                    await ProcessProjectAsync(projectId, visited).ConfigureAwait(false);
+                }
+            }
+
+            private async Task ProcessProjectAsync(ProjectId projectId, HashSet<ProjectId> visited)
+            {
+                // only process a project once.
+                if (!visited.Add(projectId))
+                {
+                    return;
+                }
+
+                var project = _solution.GetProject(projectId);
+
+                // visit dependencies of a project before processing the project itself.
+                foreach (var projectRef in project.ProjectReferences)
+                {
+                    await ProcessProjectAsync(projectRef.ProjectId, visited).ConfigureAwait(false);
+                }
+
+                // Now search the project itself.
+                // Kick off in a bg thread to ensure no processing happens on the UI thread.
+                await Task.Run(() => SearchAsync(project), _cancellationToken).ConfigureAwait(false);
             }
 
             private async Task SearchAsync(Project project)
