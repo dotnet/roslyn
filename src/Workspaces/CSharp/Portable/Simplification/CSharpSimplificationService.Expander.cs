@@ -255,7 +255,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
             {
                 _cancellationToken.ThrowIfCancellationRequested();
 
+                var inferredName = node.Parent.Kind() == SyntaxKind.TupleExpression ?
+                    ExtractAnonymousTypeMemberName(node.Expression).ValueText :
+                    null;
+
                 var newArgument = (ArgumentSyntax)base.VisitArgument(node);
+
+                if (inferredName != null && node.NameColon == null)
+                {
+                    newArgument = newArgument.WithNameColon(SyntaxFactory.NameColon(inferredName))
+                         .WithAdditionalAnnotations(Simplifier.Annotation);
+                }
 
                 var argumentType = _semanticModel.GetTypeInfo(node.Expression).ConvertedType;
                 if (argumentType != null &&

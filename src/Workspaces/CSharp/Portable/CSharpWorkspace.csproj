@@ -211,7 +211,9 @@
     <Compile Include="Rename\LocalConflictVisitor.cs" />
     <Compile Include="Simplification\AbstractCSharpReducer.AbstractExpressionRewriter.cs" />
     <Compile Include="Simplification\AbstractCSharpReducer.cs" />
+    <Compile Include="Simplification\CSharpTupleNameReducer.cs" />
     <Compile Include="Simplification\CSharpCastReducer.cs" />
+    <Compile Include="Simplification\CSharpTupleNameReducer.Rewriter.cs" />
     <Compile Include="Simplification\CSharpCastReducer.Rewriter.cs" />
     <Compile Include="Simplification\CSharpEscapingReducer.cs" />
     <Compile Include="Simplification\CSharpEscapingReducer.Rewriter.cs" />

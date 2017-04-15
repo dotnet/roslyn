@@ -4053,7 +4053,7 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
-        public async Task TupleWithInferredName()
+        public async Task TupleWithInferredName_LeaveExplicitName()
         {
             var code =
 @"class C
@@ -4061,7 +4061,8 @@ class Program
     static int y = 2;
     void M()
     {
-        var i = (1, [|C.y|]).y;
+        int a = 1;
+        var t = (a, x: [|C.y|]);
     }
 }";
 
@@ -4071,8 +4072,38 @@ class Program
     static int y = 2;
     void M()
     {
+        int a = 1;
         int {|Rename:y1|} = C.y;
-        var i = (1, y1).y;
+        var t = (a, x: y1);
+    }
+}";
+
+            await TestInRegularAndScriptAsync(code, expected, ignoreTrivia: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TupleWithInferredName_InferredNameBecomesExplicit()
+        {
+            var code =
+@"class C
+{
+    static int y = 2;
+    void M()
+    {
+        int x = 1;
+        var t = (x, [|C.y|]);
+    }
+}";
+
+            var expected =
+            @"class C
+{
+    static int y = 2;
+    void M()
+    {
+        int x = 1;
+        int {|Rename:y1|} = C.y;
+        var t = (x, y: y1);
     }
 }";
 

@@ -303,12 +303,6 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
             var matches = FindMatches(document, expression, document, oldOutermostBlock, allOccurrences, cancellationToken);
             Debug.Assert(matches.Contains(expression));
 
-            // introduce explicit element names
-            // find the matches
-            // for each one, check if it is a tuple argument which has an implicit name (it's in the type, but not the syntax)
-            // then check if it's used
-            // if yes, then make the tuple element name explicit
-
             (document, matches) = await ComplexifyParentingStatements(document, matches, cancellationToken).ConfigureAwait(false);
 
             // Our original expression should have been one of the matches, which were tracked as part

@@ -30,7 +30,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 new CSharpExtensionMethodReducer(),
                 new CSharpParenthesesReducer(),
                 new CSharpEscapingReducer(),
-                new CSharpMiscellaneousReducer());
+                new CSharpMiscellaneousReducer(),
+                new CSharpInferredMemberNameReducer());
 
         public CSharpSimplificationService() : base(s_reducers)
         {
@@ -181,6 +182,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                     {
                         namespaceImports.Add(node);
                     }
+                }
+            }
+        }
+
+        internal static SyntaxToken ExtractAnonymousTypeMemberName(ExpressionSyntax input)
+        {
+            while (true)
+            {
+                switch (input.Kind())
+                {
+                    case SyntaxKind.IdentifierName:
+                        return ((IdentifierNameSyntax)input).Identifier;
+
+                    case SyntaxKind.SimpleMemberAccessExpression:
+                        input = ((MemberAccessExpressionSyntax)input).Name;
+                        continue;
+
+                    case SyntaxKind.ConditionalAccessExpression:
+                        input = ((ConditionalAccessExpressionSyntax)input).WhenNotNull;
+                        if (input.Kind() == SyntaxKind.MemberBindingExpression)
+                        {
+                            return ((MemberBindingExpressionSyntax)input).Name.Identifier;
+                        }
+
+                        continue;
+
+                    default:
+                        return default(SyntaxToken);
                 }
             }
         }

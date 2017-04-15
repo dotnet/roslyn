@@ -46,6 +46,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                     return GetParentNode(cref);
                 }
 
+                if (node.IsKind(SyntaxKind.Argument) && node.Parent.IsKind(SyntaxKind.TupleExpression))
+                {
+                    return node.Parent;
+                }
+
                 return null;
             }
 
