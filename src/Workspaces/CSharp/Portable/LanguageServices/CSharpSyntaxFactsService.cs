@@ -777,7 +777,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.ClassDeclaration:
                     var classDecl = (ClassDeclarationSyntax)node;
                     declaredSymbolInfo = new DeclaredSymbolInfo(
-                        classDecl.Identifier.ValueText, GetTypeParameterSuffix(classDecl.TypeParameterList),
+                        classDecl.Identifier.ValueText,
+                        GetTypeParameterSuffix(classDecl.TypeParameterList),
                         GetContainerDisplayName(node.Parent),
                         GetFullyQualifiedContainerName(node.Parent),
                         DeclaredSymbolInfoKind.Class,
@@ -788,7 +789,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.ConstructorDeclaration:
                     var ctorDecl = (ConstructorDeclarationSyntax)node;
                     declaredSymbolInfo = new DeclaredSymbolInfo(
-                        ctorDecl.Identifier.ValueText, GetConstructorSuffix(ctorDecl),
+                        ctorDecl.Identifier.ValueText,
+                        GetConstructorSuffix(ctorDecl),
                         GetContainerDisplayName(node.Parent),
                         GetFullyQualifiedContainerName(node.Parent),
                         DeclaredSymbolInfoKind.Constructor,
@@ -800,7 +802,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.DelegateDeclaration:
                     var delegateDecl = (DelegateDeclarationSyntax)node;
                     declaredSymbolInfo = new DeclaredSymbolInfo(
-                        delegateDecl.Identifier.ValueText, GetTypeParameterSuffix(delegateDecl.TypeParameterList),
+                        delegateDecl.Identifier.ValueText,
+                        GetTypeParameterSuffix(delegateDecl.TypeParameterList),
                         GetContainerDisplayName(node.Parent),
                         GetFullyQualifiedContainerName(node.Parent),
                         DeclaredSymbolInfoKind.Delegate,
@@ -811,7 +814,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.EnumDeclaration:
                     var enumDecl = (EnumDeclarationSyntax)node;
                     declaredSymbolInfo = new DeclaredSymbolInfo(
-                        enumDecl.Identifier.ValueText, "",
+                        enumDecl.Identifier.ValueText, null,
                         GetContainerDisplayName(node.Parent),
                         GetFullyQualifiedContainerName(node.Parent),
                         DeclaredSymbolInfoKind.Enum,
@@ -822,7 +825,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.EnumMemberDeclaration:
                     var enumMember = (EnumMemberDeclarationSyntax)node;
                     declaredSymbolInfo = new DeclaredSymbolInfo(
-                        enumMember.Identifier.ValueText, "",
+                        enumMember.Identifier.ValueText, null,
                         GetContainerDisplayName(node.Parent),
                         GetFullyQualifiedContainerName(node.Parent),
                         DeclaredSymbolInfoKind.EnumMember,
@@ -833,7 +836,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.EventDeclaration:
                     var eventDecl = (EventDeclarationSyntax)node;
                     declaredSymbolInfo = new DeclaredSymbolInfo(
-                        eventDecl.Identifier.ValueText, "",
+                        eventDecl.Identifier.ValueText, null,
                         GetContainerDisplayName(node.Parent),
                         GetFullyQualifiedContainerName(node.Parent),
                         DeclaredSymbolInfoKind.Event,
@@ -879,7 +882,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.PropertyDeclaration:
                     var property = (PropertyDeclarationSyntax)node;
                     declaredSymbolInfo = new DeclaredSymbolInfo(
-                        property.Identifier.ValueText, "",
+                        property.Identifier.ValueText, null,
                         GetContainerDisplayName(node.Parent),
                         GetFullyQualifiedContainerName(node.Parent),
                         DeclaredSymbolInfoKind.Property,
@@ -912,7 +915,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 : DeclaredSymbolInfoKind.Field;
 
                         declaredSymbolInfo = new DeclaredSymbolInfo(
-                            variableDeclarator.Identifier.ValueText, "",
+                            variableDeclarator.Identifier.ValueText, null,
                             GetContainerDisplayName(fieldDeclaration.Parent),
                             GetFullyQualifiedContainerName(fieldDeclaration.Parent),
                             kind,
@@ -945,7 +948,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (typeParameterList == null)
             {
-                return "";
+                return null;
             }
 
             var pooledBuilder = PooledStringBuilder.GetInstance();

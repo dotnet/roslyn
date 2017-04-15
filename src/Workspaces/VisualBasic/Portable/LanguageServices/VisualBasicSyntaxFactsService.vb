@@ -885,7 +885,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.EnumBlock
                     Dim enumDecl = CType(node, EnumBlockSyntax)
                     declaredSymbolInfo = New DeclaredSymbolInfo(
-                        enumDecl.EnumStatement.Identifier.ValueText, "",
+                        enumDecl.EnumStatement.Identifier.ValueText, Nothing,
                         GetContainerDisplayName(node.Parent),
                         GetFullyQualifiedContainerName(node.Parent),
                         DeclaredSymbolInfoKind.Enum,
@@ -896,7 +896,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.EnumMemberDeclaration
                     Dim enumMember = CType(node, EnumMemberDeclarationSyntax)
                     declaredSymbolInfo = New DeclaredSymbolInfo(
-                        enumMember.Identifier.ValueText, "",
+                        enumMember.Identifier.ValueText, Nothing,
                         GetContainerDisplayName(node.Parent),
                         GetFullyQualifiedContainerName(node.Parent),
                         DeclaredSymbolInfoKind.EnumMember,
@@ -909,7 +909,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim statementOrBlock = If(TypeOf node.Parent Is EventBlockSyntax, node.Parent, node)
                     Dim eventParent = statementOrBlock.Parent
                     declaredSymbolInfo = New DeclaredSymbolInfo(
-                        eventDecl.Identifier.ValueText, "",
+                        eventDecl.Identifier.ValueText, Nothing,
                         GetContainerDisplayName(eventParent),
                         GetFullyQualifiedContainerName(eventParent),
                         DeclaredSymbolInfoKind.Event,
@@ -952,7 +952,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             DeclaredSymbolInfoKind.Constant,
                             DeclaredSymbolInfoKind.Field)
                         declaredSymbolInfo = New DeclaredSymbolInfo(
-                            modifiedIdentifier.Identifier.ValueText, "",
+                            modifiedIdentifier.Identifier.ValueText, Nothing,
                             GetContainerDisplayName(fieldDecl.Parent),
                             GetFullyQualifiedContainerName(fieldDecl.Parent),
                             kind, GetAccessibility(fieldDecl, fieldDecl.Modifiers),
@@ -1014,7 +1014,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Function GetPropertySuffix([property] As PropertyStatementSyntax) As String
             If [property].ParameterList Is Nothing Then
-                Return ""
+                Return Nothing
             End If
 
             Return GetSuffix([property].ParameterList)
@@ -1022,7 +1022,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Function GetTypeParameterSuffix(typeParameterList As TypeParameterListSyntax) As String
             If typeParameterList Is Nothing Then
-                Return ""
+                Return Nothing
             End If
 
             Dim pooledBuilder = PooledStringBuilder.GetInstance()

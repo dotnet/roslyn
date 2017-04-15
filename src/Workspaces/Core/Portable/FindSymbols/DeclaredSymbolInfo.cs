@@ -31,10 +31,35 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
     internal struct DeclaredSymbolInfo
     {
+        /// <summary>
+        /// The name to pattern match against, and to show in a final presentation layer.
+        /// </summary>
         public string Name { get; }
+
+        /// <summary>
+        /// An optional suffix to be shown in a presentation layer appended to <see cref="Name"/>.
+        /// Can be null.
+        /// </summary>
         public string NameSuffix { get; }
+
+        /// <summary>
+        /// Container of the symbol that can be shown in a final presentation layer. 
+        /// For example, the container of a type "KeyValuePair" might be 
+        /// "System.Collections.Generic.Dictionary&lt;TKey, TValue&gt;".  This can 
+        /// then be shown with something like "type System.Collections.Generic.Dictionary&lt;TKey, TValue&gt;"
+        /// to indicate where the symbol is located.
+        /// </summary>
         public string ContainerDisplayName { get; }
+
+        /// <summary>
+        /// Dotted container name of the symbol, used for pattern matching.  For example
+        /// The fully qualified container of a type "KeyValuePair" would be 
+        /// "System.Collections.Generic.Dictionary" (note the lack of type parameters).
+        /// This way someone can search for "D.KVP" and have the "D" part of the pattern
+        /// match against this.  This should not be shown in a presentation layer.
+        /// </summary>
         public string FullyQualifiedContainerName { get; }
+
         public DeclaredSymbolInfoKind Kind { get; }
         public Accessibility Accessibility { get; }
         public TextSpan Span { get; }
