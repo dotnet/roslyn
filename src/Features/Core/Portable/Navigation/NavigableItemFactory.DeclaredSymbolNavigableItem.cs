@@ -46,6 +46,7 @@ namespace Microsoft.CodeAnalysis.Navigation
                 {
                     case DeclaredSymbolInfoKind.Class: return Glyph.ClassPublic;
                     case DeclaredSymbolInfoKind.Constant: return Glyph.ConstantPublic;
+                    case DeclaredSymbolInfoKind.Constructor: return Glyph.MethodPublic;
                     case DeclaredSymbolInfoKind.Delegate: return Glyph.DelegatePublic;
                     case DeclaredSymbolInfoKind.Enum: return Glyph.EnumPublic;
                     case DeclaredSymbolInfoKind.EnumMember: return Glyph.EnumMemberPublic;

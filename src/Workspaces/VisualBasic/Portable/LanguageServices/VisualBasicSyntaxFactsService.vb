@@ -863,7 +863,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             GetContainerDisplayName(node.Parent),
                             GetFullyQualifiedContainerName(node.Parent),
                             DeclaredSymbolInfoKind.Constructor,
-                            GetAccessibility(typeBlock, typeBlock.BlockStatement.Modifiers),
+                            GetAccessibility(constructor, constructor.SubNewStatement.Modifiers),
                             constructor.SubNewStatement.NewKeyword.Span,
                             ImmutableArray(Of String).Empty,
                             parameterCount:=CType(If(constructor.SubNewStatement.ParameterList?.Parameters.Count, 0), UShort))
@@ -1091,8 +1091,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' No accessibility modifiers
             Select Case node.Parent.Kind()
                 Case SyntaxKind.ClassBlock
-                    ' In a class, fields are private by default, everything else is public
-                    Return If(node.Kind() = SyntaxKind.FieldDeclaration, Accessibility.Private, Accessibility.Public)
+                    ' In a class, fields and shared-constructors are private by default,
+                    ' everything Else Is Public
+                    If node.Kind() = SyntaxKind.FieldDeclaration Then
+                        Return Accessibility.Private
+                    End If
+
+                    If node.Kind() = SyntaxKind.ConstructorBlock AndAlso
+                       DirectCast(node, ConstructorBlockSyntax).SubNewStatement.Modifiers.Any(SyntaxKind.SharedKeyword) Then
+                        Return Accessibility.Private
+                    End If
+
+                    Return Accessibility.Public
 
                 Case SyntaxKind.StructureBlock, SyntaxKind.InterfaceBlock
                     ' Everything in a struct/interface is public
