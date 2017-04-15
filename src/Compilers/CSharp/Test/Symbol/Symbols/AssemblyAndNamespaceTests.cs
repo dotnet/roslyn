@@ -431,9 +431,7 @@ class App
             Assert.Equal("System.Threading.Tasks.Task", taskType.ToTestDisplayString());
 
             // When we look in a single assembly, we don't consider referenced assemblies.
-            Assert.Null(comp.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task));
             Assert.Null(comp.Assembly.GetTypeByMetadataName("System.Threading.Tasks.Task"));
-            Assert.Equal(taskType, comp.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task));
             Assert.Equal(taskType, comp.Assembly.CorLibrary.GetTypeByMetadataName("System.Threading.Tasks.Task"));
         }
     }
