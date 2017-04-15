@@ -1069,7 +1069,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     builder.Append(", ")
                 End If
 
-                AppendTokens(parameter.AsClause.Type, builder)
+                For Each modifier In parameter.Modifiers
+                    builder.Append(modifier.Text)
+                    builder.Append(" "c)
+                Next
+
+                If parameter.AsClause?.Type IsNot Nothing Then
+                    AppendTokens(parameter.AsClause.Type, builder)
+                End If
+
                 First = False
             Next
         End Sub

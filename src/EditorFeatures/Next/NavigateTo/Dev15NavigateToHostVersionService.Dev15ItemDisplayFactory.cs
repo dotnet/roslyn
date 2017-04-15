@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Linq;
 using Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.NavigateTo;
@@ -40,7 +41,10 @@ namespace Microsoft.CodeAnalysis.Editor.NavigateTo
                 => SpecializedCollections.EmptyReadOnlyList<Span>();
 
             public IReadOnlyList<Span> GetNameMatchRuns(string searchValue)
-                => SearchResult.NameMatchSpans.NullToEmpty().SelectAsArray(ts => ts.ToSpan());
+            {
+                var result = SearchResult.NameMatchSpans.NullToEmpty().Select(ts => ts.ToSpan()).ToList();
+                return result;
+            }
         }
     }
 }
