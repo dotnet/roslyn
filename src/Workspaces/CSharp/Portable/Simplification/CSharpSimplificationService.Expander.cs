@@ -281,6 +281,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 return newArgument;
             }
 
+            public override SyntaxNode VisitAnonymousObjectMemberDeclarator(AnonymousObjectMemberDeclaratorSyntax node)
+            {
+                var inferredName = ExtractAnonymousTypeMemberName(node.Expression).ValueText;
+
+                var newDeclarator = (AnonymousObjectMemberDeclaratorSyntax)base.VisitAnonymousObjectMemberDeclarator(node);
+                if (inferredName != null && node.NameEquals == null)
+                {
+                    newDeclarator = newDeclarator.WithNameEquals(SyntaxFactory.NameEquals(inferredName))
+                         .WithAdditionalAnnotations(Simplifier.Annotation);
+                }
+                return newDeclarator;
+            }
+
             public override SyntaxNode VisitBinaryExpression(BinaryExpressionSyntax node)
             {
                 _cancellationToken.ThrowIfCancellationRequested();

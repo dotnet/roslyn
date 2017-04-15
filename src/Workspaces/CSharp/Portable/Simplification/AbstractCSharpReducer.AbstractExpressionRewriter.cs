@@ -51,6 +51,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                     return node.Parent;
                 }
 
+                if (node.IsKind(SyntaxKind.AnonymousObjectMemberDeclarator))
+                {
+                    return node.Parent;
+                }
+
                 return null;
             }
 

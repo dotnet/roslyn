@@ -4109,5 +4109,63 @@ class Program
 
             await TestInRegularAndScriptAsync(code, expected, ignoreTrivia: false);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task AnonymousTypeWithInferredName_LeaveExplicitName()
+        {
+            var code =
+@"class C
+{
+    static int y = 2;
+    void M()
+    {
+        int a = 1;
+        var t = new { a, x= [|C.y|] };
+    }
+}";
+
+            var expected =
+            @"class C
+{
+    static int y = 2;
+    void M()
+    {
+        int a = 1;
+        int {|Rename:y1|} = C.y;
+        var t = new { a, x= y1 };
+    }
+}";
+
+            await TestInRegularAndScriptAsync(code, expected, ignoreTrivia: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task AnonymousTypeWithInferredName_InferredNameBecomesExplicit()
+        {
+            var code =
+@"class C
+{
+    static int y = 2;
+    void M()
+    {
+        int x = 1;
+        var t = new { x, [|C.y|] };
+    }
+}";
+
+            var expected =
+            @"class C
+{
+    static int y = 2;
+    void M()
+    {
+        int x = 1;
+        int {|Rename:y1|} = C.y;
+        var t = new { x, y = y1 };
+    }
+}";
+
+            await TestInRegularAndScriptAsync(code, expected, ignoreTrivia: false);
+        }
     }
 }
