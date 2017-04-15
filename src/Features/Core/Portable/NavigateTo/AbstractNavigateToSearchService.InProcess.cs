@@ -105,6 +105,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 case DeclaredSymbolInfoKind.Interface:
                     return NavigateToItemKind.Interface;
                 case DeclaredSymbolInfoKind.Constructor:
+                case DeclaredSymbolInfoKind.ExtensionMethod:
                 case DeclaredSymbolInfoKind.Method:
                     return NavigateToItemKind.Method;
                 case DeclaredSymbolInfoKind.Module:
