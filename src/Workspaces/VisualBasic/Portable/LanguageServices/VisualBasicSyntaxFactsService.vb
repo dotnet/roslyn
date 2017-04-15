@@ -858,7 +858,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim typeBlock = TryCast(constructor.Parent, TypeBlockSyntax)
                     If typeBlock IsNot Nothing Then
                         declaredSymbolInfo = New DeclaredSymbolInfo(
-                            typeBlock.BlockStatement.Identifier.ValueText, GetConstructorSuffix(constructor),
+                            typeBlock.BlockStatement.Identifier.ValueText,
+                            GetConstructorSuffix(constructor),
                             GetContainerDisplayName(node.Parent),
                             GetFullyQualifiedContainerName(node.Parent),
                             DeclaredSymbolInfoKind.Constructor,
@@ -1003,11 +1004,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function GetMethodSuffix(method As MethodBlockSyntax) As String
-            Return GetSuffix(method.SubOrFunctionStatement.ParameterList)
+            Return GetTypeParameterSuffix(method.SubOrFunctionStatement.TypeParameterList) &
+                   GetSuffix(method.SubOrFunctionStatement.ParameterList)
         End Function
 
         Private Function GetConstructorSuffix(method As ConstructorBlockSyntax) As String
-            Return GetSuffix(method.SubNewStatement.ParameterList)
+            Return ".New" & GetSuffix(method.SubNewStatement.ParameterList)
         End Function
 
         Private Function GetPropertySuffix([property] As PropertyStatementSyntax) As String

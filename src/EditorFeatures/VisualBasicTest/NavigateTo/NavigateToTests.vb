@@ -332,7 +332,7 @@ End Sub
 End Class", Async Function(w)
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupMethod, StandardGlyphItem.GlyphItemPublic)
                 Dim item As NavigateToItem = (Await _aggregator.GetItemsAsync("Foo")).Single(Function(i) i.Kind = NavigateToItemKind.Method)
-                VerifyNavigateToResultItem(item, "Foo", MatchKind.Exact, NavigateToItemKind.Method, "New()", $"{FeaturesResources.type_space}Foo")
+                VerifyNavigateToResultItem(item, "Foo", MatchKind.Exact, NavigateToItemKind.Method, "Foo.New()", $"{FeaturesResources.type_space}Foo")
             End Function)
         End Function
 
@@ -344,7 +344,7 @@ End Sub
 End Class", Async Function(w)
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupMethod, StandardGlyphItem.GlyphItemPrivate)
                 Dim item As NavigateToItem = (Await _aggregator.GetItemsAsync("Foo")).Single(Function(i) i.Kind = NavigateToItemKind.Method)
-                VerifyNavigateToResultItem(item, "Foo", MatchKind.Exact, NavigateToItemKind.Method, "Shared New()", $"{FeaturesResources.type_space}Foo")
+                VerifyNavigateToResultItem(item, "Foo", MatchKind.Exact, NavigateToItemKind.Method, "Foo.New()", $"{FeaturesResources.type_space}Foo")
             End Function)
         End Function
 
