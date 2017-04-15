@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         private class SearchResult : INavigateToSearchResult
         {
             public string AdditionalInformation => _lazyAdditionalInfo.Value;
-            public string Name => _declaredSymbolInfo.Name + _declaredSymbolInfo.NameSuffix;
+            public string Name => _declaredSymbolInfo.Name;
             public string Summary { get; }
 
             public string Kind { get; }

@@ -844,7 +844,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.ClassBlock
                     Dim classDecl = CType(node, ClassBlockSyntax)
                     declaredSymbolInfo = New DeclaredSymbolInfo(
-                        classDecl.ClassStatement.Identifier.ValueText, "",
+                        classDecl.ClassStatement.Identifier.ValueText,
+                        GetTypeParameterSuffix(classDecl.ClassStatement.TypeParameterList),
                         GetContainerDisplayName(node.Parent),
                         GetFullyQualifiedContainerName(node.Parent),
                         DeclaredSymbolInfoKind.Class,
@@ -871,7 +872,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.DelegateFunctionStatement, SyntaxKind.DelegateSubStatement
                     Dim delegateDecl = CType(node, DelegateStatementSyntax)
                     declaredSymbolInfo = New DeclaredSymbolInfo(
-                        delegateDecl.Identifier.ValueText, "",
+                        delegateDecl.Identifier.ValueText,
+                        GetTypeParameterSuffix(delegateDecl.TypeParameterList),
                         GetContainerDisplayName(node.Parent),
                         GetFullyQualifiedContainerName(node.Parent),
                         DeclaredSymbolInfoKind.Delegate,
@@ -931,7 +933,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.InterfaceBlock
                     Dim interfaceDecl = CType(node, InterfaceBlockSyntax)
                     declaredSymbolInfo = New DeclaredSymbolInfo(
-                        interfaceDecl.InterfaceStatement.Identifier.ValueText, "",
+                        interfaceDecl.InterfaceStatement.Identifier.ValueText,
+                        GetTypeParameterSuffix(interfaceDecl.InterfaceStatement.TypeParameterList),
                         GetContainerDisplayName(node.Parent),
                         GetFullyQualifiedContainerName(node.Parent),
                         DeclaredSymbolInfoKind.Interface,
@@ -959,7 +962,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.ModuleBlock
                     Dim moduleDecl = CType(node, ModuleBlockSyntax)
                     declaredSymbolInfo = New DeclaredSymbolInfo(
-                        moduleDecl.ModuleStatement.Identifier.ValueText, "",
+                        moduleDecl.ModuleStatement.Identifier.ValueText,
+                        GetTypeParameterSuffix(moduleDecl.ModuleStatement.TypeParameterList),
                         GetContainerDisplayName(node.Parent),
                         GetFullyQualifiedContainerName(node.Parent),
                         DeclaredSymbolInfoKind.Module,
@@ -983,7 +987,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.StructureBlock
                     Dim structDecl = CType(node, StructureBlockSyntax)
                     declaredSymbolInfo = New DeclaredSymbolInfo(
-                        structDecl.StructureStatement.Identifier.ValueText, "",
+                        structDecl.StructureStatement.Identifier.ValueText,
+                        GetTypeParameterSuffix(structDecl.StructureStatement.TypeParameterList),
                         GetContainerDisplayName(node.Parent),
                         GetFullyQualifiedContainerName(node.Parent),
                         DeclaredSymbolInfoKind.Struct,
@@ -1006,7 +1011,36 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function GetPropertySuffix([property] As PropertyStatementSyntax) As String
+            If [property].ParameterList Is Nothing Then
+                Return ""
+            End If
+
             Return GetSuffix([property].ParameterList)
+        End Function
+
+        Private Function GetTypeParameterSuffix(typeParameterList As TypeParameterListSyntax) As String
+            If typeParameterList Is Nothing Then
+                Return ""
+            End If
+
+            Dim pooledBuilder = PooledStringBuilder.GetInstance()
+
+            Dim builder = pooledBuilder.Builder
+            builder.Append("(Of ")
+
+            Dim First = True
+            For Each parameter In typeParameterList.Parameters
+                If Not First Then
+                    builder.Append(", ")
+                End If
+
+                builder.Append(parameter.Identifier.Text)
+                First = False
+            Next
+
+            builder.Append(")")
+
+            Return pooledBuilder.ToStringAndFree()
         End Function
 
         Private Function GetSuffix(parameterList As ParameterListSyntax) As String
@@ -1054,10 +1088,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' No accessibility modifiers
             Select Case node.Parent.Kind()
-                Case SyntaxKind.ClassBlock,
-                     SyntaxKind.StructureBlock,
-                     SyntaxKind.InterfaceBlock
-                    ' Anything without modifiers in a class/struct/interface
+                Case SyntaxKind.ClassBlock
+                    ' In a class, fields are private by default, everything else is public
+                    Return If(node.Kind() = SyntaxKind.FieldDeclaration, Accessibility.Private, Accessibility.Public)
+
+                Case SyntaxKind.StructureBlock, SyntaxKind.InterfaceBlock
+                    ' Everything in a struct/interface is public
                     Return Accessibility.Public
             End Select
 
