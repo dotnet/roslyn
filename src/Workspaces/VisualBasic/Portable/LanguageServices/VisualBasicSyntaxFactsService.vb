@@ -1046,6 +1046,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function GetSuffix(parameterList As ParameterListSyntax) As String
+            If parameterList Is Nothing OrElse parameterList.Parameters.Count = 0 Then
+                Return "()"
+            End If
+
             Dim pooledBuilder = PooledStringBuilder.GetInstance()
 
             Dim builder = pooledBuilder.Builder
