@@ -1101,6 +1101,7 @@ class P
                 EvalResult("F", "3", "int", "(new C(3)).F"));
         }
 
+        [WorkItem(18581, "https://github.com/dotnet/roslyn/issues/18581")]
         [Fact]
         public void AccessibilityTrumpedByAttribute()
         {
