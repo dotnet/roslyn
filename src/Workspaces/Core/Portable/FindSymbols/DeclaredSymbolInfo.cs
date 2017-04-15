@@ -19,6 +19,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         Enum,
         EnumMember,
         Event,
+        ExtensionMethod,
         Field,
         Indexer,
         Interface,
@@ -33,7 +34,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public string Name { get; }
         public string ContainerDisplayName { get; }
         public string FullyQualifiedContainerName { get; }
+        public string FinalDisplayName { get; }
         public DeclaredSymbolInfoKind Kind { get; }
+        public Accessibility Accessibility { get; }
         public TextSpan Span { get; }
         public ushort ParameterCount { get; }
         public ushort TypeParameterCount { get; }
@@ -45,9 +48,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         public DeclaredSymbolInfo(
             string name,
+            string finalDisplayName,
             string containerDisplayName,
             string fullyQualifiedContainerName,
             DeclaredSymbolInfoKind kind,
+            Accessibility accessibility,
             TextSpan span,
             ImmutableArray<string> inheritanceNames,
             ushort parameterCount = 0, ushort typeParameterCount = 0)
@@ -56,7 +61,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             Name = name;
             ContainerDisplayName = containerDisplayName;
             FullyQualifiedContainerName = fullyQualifiedContainerName;
+            FinalDisplayName = finalDisplayName;
             Kind = kind;
+            Accessibility = accessibility;
             Span = span;
             ParameterCount = parameterCount;
             TypeParameterCount = typeParameterCount;
@@ -66,9 +73,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         internal void WriteTo(ObjectWriter writer)
         {
             writer.WriteString(Name);
+            writer.WriteString(FinalDisplayName);
             writer.WriteString(ContainerDisplayName);
             writer.WriteString(FullyQualifiedContainerName);
             writer.WriteByte((byte)Kind);
+            writer.WriteInt32((int)Accessibility);
             writer.WriteInt32(Span.Start);
             writer.WriteInt32(Span.Length);
             writer.WriteUInt16(ParameterCount);
@@ -84,24 +93,33 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         internal static DeclaredSymbolInfo ReadFrom_ThrowsOnFailure(ObjectReader reader)
         {
             var name = reader.ReadString();
-            var immediateContainer = reader.ReadString();
-            var entireContainer = reader.ReadString();
+            var finalDisplayName = reader.ReadString();
+            var containerDisplayName = reader.ReadString();
+            var fullyQualifiedContainerName = reader.ReadString();
             var kind = (DeclaredSymbolInfoKind)reader.ReadByte();
+            var accessibility = (Accessibility)reader.ReadInt32();
             var spanStart = reader.ReadInt32();
             var spanLength = reader.ReadInt32();
             var parameterCount = reader.ReadUInt16();
             var typeParameterCount = reader.ReadUInt16();
 
             var inheritanceNamesLength = reader.ReadInt32();
-            var builder = ImmutableArray.CreateBuilder<string>(inheritanceNamesLength);
+            var builder = ArrayBuilder<string>.GetInstance(inheritanceNamesLength);
             for (var i = 0; i < inheritanceNamesLength; i++)
             {
                 builder.Add(reader.ReadString());
             }
 
+            var span = new TextSpan(spanStart, spanLength);
             return new DeclaredSymbolInfo(
-                name, immediateContainer, entireContainer, kind, new TextSpan(spanStart, spanLength),
-                builder.MoveToImmutable(), parameterCount, typeParameterCount);
+                name: name,
+                finalDisplayName: finalDisplayName,
+                containerDisplayName: containerDisplayName,
+                fullyQualifiedContainerName: fullyQualifiedContainerName,
+                kind: kind, accessibility: accessibility, span: span,
+                inheritanceNames: builder.ToImmutableAndFree(),
+                parameterCount: parameterCount, 
+                typeParameterCount: typeParameterCount);
         }
 
         public async Task<ISymbol> TryResolveAsync(Document document, CancellationToken cancellationToken)

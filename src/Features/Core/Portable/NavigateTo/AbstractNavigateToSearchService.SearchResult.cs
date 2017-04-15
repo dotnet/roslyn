@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         {
             public string AdditionalInformation => _lazyAdditionalInfo.Value;
             public string Name => _declaredSymbolInfo.Name;
-            public string Summary => _lazySummary.Value;
+            public string Summary { get; }
 
             public string Kind { get; }
             public NavigateToMatchKind MatchKind { get; }
@@ -29,7 +29,6 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             private readonly Document _document;
             private readonly DeclaredSymbolInfo _declaredSymbolInfo;
             private readonly Lazy<string> _lazyAdditionalInfo;
-            private readonly Lazy<string> _lazySummary;
 
             public SearchResult(
                 Document document, DeclaredSymbolInfo declaredSymbolInfo, string kind,
@@ -48,7 +47,6 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 var declaredNavigableItem = navigableItem as NavigableItemFactory.DeclaredSymbolNavigableItem;
                 Debug.Assert(declaredNavigableItem != null);
 
-                _lazySummary = new Lazy<string>(() => declaredNavigableItem.SymbolOpt?.GetDocumentationComment()?.SummaryText);
                 _lazyAdditionalInfo = new Lazy<string>(() =>
                 {
                     switch (declaredSymbolInfo.Kind)
