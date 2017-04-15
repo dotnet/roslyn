@@ -777,7 +777,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.ClassDeclaration:
                     var classDecl = (ClassDeclarationSyntax)node;
                     declaredSymbolInfo = new DeclaredSymbolInfo(
-                        classDecl.Identifier.ValueText, "",
+                        classDecl.Identifier.ValueText, GetTypeParameterSuffix(classDecl.TypeParameterList),
                         GetContainerDisplayName(node.Parent),
                         GetFullyQualifiedContainerName(node.Parent),
                         DeclaredSymbolInfoKind.Class,
@@ -800,7 +800,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.DelegateDeclaration:
                     var delegateDecl = (DelegateDeclarationSyntax)node;
                     declaredSymbolInfo = new DeclaredSymbolInfo(
-                        delegateDecl.Identifier.ValueText, "",
+                        delegateDecl.Identifier.ValueText, GetTypeParameterSuffix(delegateDecl.TypeParameterList),
                         GetContainerDisplayName(node.Parent),
                         GetFullyQualifiedContainerName(node.Parent),
                         DeclaredSymbolInfoKind.Delegate,
@@ -855,7 +855,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.InterfaceDeclaration:
                     var interfaceDecl = (InterfaceDeclarationSyntax)node;
                     declaredSymbolInfo = new DeclaredSymbolInfo(
-                        interfaceDecl.Identifier.ValueText, "",
+                        interfaceDecl.Identifier.ValueText, GetTypeParameterSuffix(interfaceDecl.TypeParameterList),
                         GetContainerDisplayName(node.Parent),
                         GetFullyQualifiedContainerName(node.Parent),
                         DeclaredSymbolInfoKind.Interface,
@@ -890,7 +890,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.StructDeclaration:
                     var structDecl = (StructDeclarationSyntax)node;
                     declaredSymbolInfo = new DeclaredSymbolInfo(
-                        structDecl.Identifier.ValueText, "",
+                        structDecl.Identifier.ValueText, GetTypeParameterSuffix(structDecl.TypeParameterList),
                         GetContainerDisplayName(node.Parent),
                         GetFullyQualifiedContainerName(node.Parent),
                         DeclaredSymbolInfoKind.Struct,
@@ -933,10 +933,40 @@ namespace Microsoft.CodeAnalysis.CSharp
             => GetSuffix("(", ")", constructor.ParameterList.Parameters);
 
         private string GetMethodSuffix(MethodDeclarationSyntax method)
-            => GetSuffix("(", ")", method.ParameterList.Parameters);
+            => GetTypeParameterSuffix(method.TypeParameterList) +
+               GetSuffix("(", ")", method.ParameterList.Parameters);
 
         private string GetIndexerSuffix(IndexerDeclarationSyntax indexer)
             => GetSuffix("[", "]", indexer.ParameterList.Parameters);
+
+        private string GetTypeParameterSuffix(TypeParameterListSyntax typeParameterList)
+        {
+            if (typeParameterList == null)
+            {
+                return "";
+            }
+
+            var pooledBuilder = PooledStringBuilder.GetInstance();
+
+            var builder = pooledBuilder.Builder;
+            builder.Append("<");
+
+            var first = true;
+            foreach (var parameter in typeParameterList.Parameters)
+            {
+                if (!first)
+                {
+                    builder.Append(", ");
+                }
+
+                builder.Append(parameter.Identifier.Text);
+            }
+
+            builder.Append(">");
+
+            return pooledBuilder.ToStringAndFree();
+        }
+
 
         private string GetSuffix(
             string openBrace, string closeBrace, SeparatedSyntaxList<ParameterSyntax> parameters)
@@ -1007,8 +1037,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.InterfaceDeclaration:
                     // Anything without modifiers is public if it's in an interface declaration.
                     return Accessibility.Public;
+                case SyntaxKind.CompilationUnit:
+                    // Things are private by default in script
+                    if (((CSharpParseOptions)node.SyntaxTree.Options).Kind == SourceCodeKind.Script)
+                    {
+                        return Accessibility.Private;
+                    }
+
+                    return Accessibility.Internal;
+
                 default:
-                    // Otherwise, it's internal
+                    // Otherwise it's internal
                     return Accessibility.Internal;
             }
         }
