@@ -1045,6 +1045,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return pooledBuilder.ToStringAndFree()
         End Function
 
+
+
+        ''' <summary>
+        ''' Builds up the suffix to show for something with parameters in navigate-to.
+        ''' While it would be nice to just use the compiler SymbolDisplay API for this,
+        ''' it would be too expensive as it requires going back to Symbols (which requires
+        ''' creating compilations, etc.) in a perf sensitive area.
+        ''' 
+        ''' So, instead, we just build a reasonable suffix using the pure syntax that a 
+        ''' user provided.  That means that if they wrote "Method(System.Int32 i)" we'll 
+        ''' show that as "Method(System.Int32)" Not "Method(Integer)".  Given that this Is
+        ''' actually what the user wrote, And it saves us from ever having to go back to
+        ''' symbols/compilations, this Is well worth it, even if it does mean we have to
+        ''' create our own 'symbol display' logic here.
+        ''' </summary>
         Private Function GetSuffix(parameterList As ParameterListSyntax) As String
             If parameterList Is Nothing OrElse parameterList.Parameters.Count = 0 Then
                 Return "()"
