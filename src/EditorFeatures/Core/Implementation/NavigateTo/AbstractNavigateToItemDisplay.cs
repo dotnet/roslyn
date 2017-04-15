@@ -133,8 +133,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
         }
 
         public IReadOnlyList<Span> GetNameMatchRuns(string searchValue)
-        {
-            return SearchResult.NameMatchSpans.NullToEmpty().SelectAsArray(ts => ts.ToSpan());
-        }
+            => SearchResult.NameMatchSpans.NullToEmpty().SelectAsArray(ts => ts.ToSpan());
     }
 }
