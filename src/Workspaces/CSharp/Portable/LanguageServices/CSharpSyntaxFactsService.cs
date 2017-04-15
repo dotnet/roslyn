@@ -797,7 +797,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         GetAccessibility(ctorDecl, ctorDecl.Modifiers),
                         ctorDecl.Identifier.Span,
                         inheritanceNames: ImmutableArray<string>.Empty,
-                        parameterCount: (ushort)(ctorDecl.ParameterList?.Parameters.Count ?? 0));
+                        parameterCount: ctorDecl.ParameterList?.Parameters.Count ?? 0);
                     return true;
                 case SyntaxKind.DelegateDeclaration:
                     var delegateDecl = (DelegateDeclarationSyntax)node;
@@ -876,8 +876,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         GetAccessibility(method, method.Modifiers),
                         method.Identifier.Span,
                         inheritanceNames: ImmutableArray<string>.Empty,
-                        parameterCount: (ushort)(method.ParameterList?.Parameters.Count ?? 0),
-                        typeParameterCount: (ushort)(method.TypeParameterList?.Parameters.Count ?? 0));
+                        parameterCount: method.ParameterList?.Parameters.Count ?? 0,
+                        typeParameterCount: method.TypeParameterList?.Parameters.Count ?? 0);
                     return true;
                 case SyntaxKind.PropertyDeclaration:
                     var property = (PropertyDeclarationSyntax)node;

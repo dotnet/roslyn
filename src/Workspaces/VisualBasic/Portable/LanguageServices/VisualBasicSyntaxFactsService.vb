@@ -866,7 +866,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             GetAccessibility(constructor, constructor.SubNewStatement.Modifiers),
                             constructor.SubNewStatement.NewKeyword.Span,
                             ImmutableArray(Of String).Empty,
-                            parameterCount:=CType(If(constructor.SubNewStatement.ParameterList?.Parameters.Count, 0), UShort))
+                            parameterCount:=If(constructor.SubNewStatement.ParameterList?.Parameters.Count, 0))
 
                         Return True
                     End If
@@ -928,8 +928,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         GetAccessibility(node, funcDecl.SubOrFunctionStatement.Modifiers),
                         funcDecl.SubOrFunctionStatement.Identifier.Span,
                         ImmutableArray(Of String).Empty,
-                        parameterCount:=CType(If(funcDecl.SubOrFunctionStatement.ParameterList?.Parameters.Count, 0), UShort),
-                        typeParameterCount:=CType(If(funcDecl.SubOrFunctionStatement.TypeParameterList?.Parameters.Count, 0), UShort))
+                        parameterCount:=If(funcDecl.SubOrFunctionStatement.ParameterList?.Parameters.Count, 0),
+                        typeParameterCount:=If(funcDecl.SubOrFunctionStatement.TypeParameterList?.Parameters.Count, 0))
                     Return True
                 Case SyntaxKind.InterfaceBlock
                     Dim interfaceDecl = CType(node, InterfaceBlockSyntax)
