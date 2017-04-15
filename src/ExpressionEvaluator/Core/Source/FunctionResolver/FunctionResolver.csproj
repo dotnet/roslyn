@@ -60,13 +60,6 @@
     <VsdConfigXml Include="CSharp\FunctionResolver.vsdconfigxml" />
     <VsdConfigXml Include="VisualBasic\FunctionResolver.vsdconfigxml" />
   </ItemGroup>
-  <ItemGroup Label="Project References">
-    <ProjectReference Include="..\Concord\Concord.csproj">
-      <Project>{5002636a-fe8d-40bf-8818-ab513a2194fa}</Project>
-      <Name>Concord</Name>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-    </ProjectReference>
-  </ItemGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup>

@@ -46,6 +46,17 @@ function Terminate-BuildProcesses() {
     Get-Process vbcscompiler -ErrorAction SilentlyContinue | kill
 }
 
+# The Jenkins images used to execute our tests can live for a very long time.  Over the course
+# of hundreds of runs this can cause the %TEMP% folder to fill up.  To avoid this we redirect
+# %TEMP% into the binaries folder which is deleted at the end of every run as a part of cleaning
+# up the workspace.
+function Redirect-Temp() {
+    $temp = Join-Path $binariesDir "Temp"
+    Create-Directory $temp
+    ${env:TEMP} = $temp
+    ${env:TMP} = $temp
+}
+
 try {
     . (Join-Path $PSScriptRoot "build-utils.ps1")
     Push-Location $repoDir
@@ -73,6 +84,7 @@ try {
 
     # Ensure the binaries directory exists because msbuild can fail when part of the path to LogFile isn't present.
     Create-Directory $binariesDir
+    Redirect-Temp
 
     if ($testBuildCorrectness) {
         Exec { & ".\build\scripts\test-build-correctness.ps1" $repoDir $configDir }
@@ -96,7 +108,7 @@ try {
     Terminate-BuildProcesses
 
     if ($testDeterminism) {
-        Exec { & ".\build\scripts\test-determinism.ps1" $bootstrapDir }
+        Exec { & ".\build\scripts\test-determinism.ps1" -buildDir $bootstrapDir }
         Terminate-BuildProcesses
         exit 0
     }

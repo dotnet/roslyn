@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (NullableNeverHasValue(rewrittenOperand))
                         {
-                            return new BoundDefaultOperator(syntax, rewrittenType);
+                            return new BoundDefaultExpression(syntax, rewrittenType);
                         }
 
                         BoundExpression nullableValue = NullableAlwaysHasValue(rewrittenOperand);
@@ -192,10 +192,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     break;
 
-                case ConversionKind.NullLiteral:
+                case ConversionKind.DefaultOrNullLiteral:
                     if (!_inExpressionLambda || !explicitCastInCode)
                     {
-                        return new BoundDefaultOperator(syntax, rewrittenType);
+                        return new BoundDefaultExpression(syntax, rewrittenType);
                     }
 
                     break;
@@ -204,7 +204,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.ExplicitReference:
                     if (rewrittenOperand.IsDefaultValue() && (!_inExpressionLambda || !explicitCastInCode))
                     {
-                        return new BoundDefaultOperator(syntax, rewrittenType);
+                        return new BoundDefaultExpression(syntax, rewrittenType);
                     }
 
                     break;
@@ -222,7 +222,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.ExplicitNumeric:
                     if (rewrittenOperand.IsDefaultValue() && (!_inExpressionLambda || !explicitCastInCode))
                     {
-                        return new BoundDefaultOperator(syntax, rewrittenType);
+                        return new BoundDefaultExpression(syntax, rewrittenType);
                     }
 
                     if (rewrittenType.SpecialType == SpecialType.System_Decimal || rewrittenOperand.Type.SpecialType == SpecialType.System_Decimal)
@@ -282,7 +282,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         rewrittenOperand.IsDefaultValue() &&
                         (!_inExpressionLambda || !explicitCastInCode))
                     {
-                        return new BoundDefaultOperator(syntax, rewrittenType);
+                        return new BoundDefaultExpression(syntax, rewrittenType);
                     }
 
                     if (rewrittenType.SpecialType == SpecialType.System_Decimal)
@@ -684,7 +684,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // default(int?) never has a value.
-            if (expression.Kind == BoundKind.DefaultOperator)
+            if (expression.Kind == BoundKind.DefaultExpression)
             {
                 return true;
             }
@@ -857,7 +857,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     conversion.UnderlyingConversions[0],
                     type.GetNullableUnderlyingType(),
                     @checked));
-            BoundExpression alternative = new BoundDefaultOperator(syntax, null, type);
+            BoundExpression alternative = new BoundDefaultExpression(syntax, null, type);
             BoundExpression conditionalExpression = RewriteConditionalOperator(
                 syntax: syntax,
                 rewrittenCondition: condition,
@@ -885,7 +885,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (NullableNeverHasValue(operand))
             {
-                return new BoundDefaultOperator(syntax, type);
+                return new BoundDefaultExpression(syntax, type);
             }
 
             // If the converted expression is known to never be null then we can return 
@@ -914,7 +914,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (NullableNeverHasValue(operand))
             {
-                return new BoundDefaultOperator(syntax, null, type);
+                return new BoundDefaultExpression(syntax, null, type);
             }
 
             // Second, a trickier optimization. If the conversion is "(T?)(new S?(x))" then
@@ -1094,7 +1094,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression consequence = MakeLiftedUserDefinedConversionConsequence(userDefinedCall, rewrittenType);
 
             // default(R?)
-            BoundExpression alternative = new BoundDefaultOperator(syntax, rewrittenType);
+            BoundExpression alternative = new BoundDefaultExpression(syntax, rewrittenType);
 
             // temp.HasValue ? new R?(op_Whatever(temp.GetValueOrDefault())) : default(R?)
             BoundExpression conditionalExpression = RewriteConditionalOperator(

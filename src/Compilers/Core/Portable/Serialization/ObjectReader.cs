@@ -43,6 +43,14 @@ namespace Roslyn.Utilities
         private readonly ReaderReferenceMap<object> _objectReferenceMap;
         private readonly ReaderReferenceMap<string> _stringReferenceMap;
 
+        /// <summary>
+        /// Copy of the global binder data that maps from Types to the appropriate reading-function
+        /// for that type.  Types register functions directly with <see cref="ObjectBinder"/>, but 
+        /// that means that <see cref="ObjectBinder"/> is both static and locked.  This gives us 
+        /// local copy we can work with without needing to worry about anyone else mutating.
+        /// </summary>
+        private readonly ObjectBinderSnapshot _binderSnapshot;
+
         private int _recursionDepth;
 
         /// <summary>
@@ -61,6 +69,11 @@ namespace Roslyn.Utilities
             _reader = new BinaryReader(stream, Encoding.UTF8);
             _objectReferenceMap = new ReaderReferenceMap<object>();
             _stringReferenceMap = new ReaderReferenceMap<string>();
+
+            // Capture a copy of the current static binder state.  That way we don't have to 
+            // access any locks while we're doing our processing.
+            _binderSnapshot = ObjectBinder.GetSnapshot();
+
             _cancellationToken = cancellationToken;
         }
 
@@ -557,23 +570,23 @@ namespace Roslyn.Utilities
         public Type ReadType()
         {
             _reader.ReadByte();
-            return ReadTypeAfterTag();
+            return Type.GetType(ReadString());
         }
 
         private Type ReadTypeAfterTag()
-            => ObjectBinder.GetTypeFromId(this.ReadInt32());
+            => _binderSnapshot.GetTypeFromId(this.ReadInt32());
 
-        private (Type, Func<ObjectReader, object>) ReadTypeAndReader()
+        private Func<ObjectReader, object> ReadTypeReader()
         {
             _reader.ReadByte();
-            return ObjectBinder.GetTypeAndReaderFromId(this.ReadInt32());
+            return _binderSnapshot.GetTypeReaderFromId(this.ReadInt32());
         }
 
         private object ReadObject()
         {
-            int id = _objectReferenceMap.GetNextReferenceId();
+            var id = _objectReferenceMap.GetNextReferenceId();
 
-            var (type, typeReader) = this.ReadTypeAndReader();
+            var typeReader = this.ReadTypeReader();
 
             // recursive: read and construct instance immediately from member elements encoding next in the stream
             var instance = typeReader(this);

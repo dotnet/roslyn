@@ -195,6 +195,15 @@
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\ReflectionUtilities.cs">
       <Link>InternalUtilities\ReflectionUtilities.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\Compilers\Core\Portable\Serialization\ObjectBinderSnapshot.cs">
+      <Link>Serialization\ObjectBinderSnapshot.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Compilers\Core\Portable\Serialization\ObjectReader.cs">
+      <Link>Serialization\ObjectReader.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Compilers\Core\Portable\Serialization\ObjectWriter.cs">
+      <Link>Serialization\ObjectWriter.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\Syntax\SyntaxTreeExtensions.cs">
       <Link>InternalUtilities\SyntaxTreeExtensions.cs</Link>
     </Compile>
@@ -281,12 +290,6 @@
     </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\Serialization\ObjectBinder.cs">
       <Link>Serialization\ObjectBinder.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\Serialization\StreamObjectReader.cs">
-      <Link>Serialization\StreamObjectReader.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\Serialization\StreamObjectWriter.cs">
-      <Link>Serialization\StreamObjectWriter.cs</Link>
     </Compile>
     <Compile Include="AddImports\AbstractAddImportsService.cs" />
     <Compile Include="AddImports\IAddImportsService.cs" />

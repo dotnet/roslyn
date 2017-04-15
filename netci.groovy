@@ -121,7 +121,7 @@ commitPullList.each { isPr ->
 
   def triggerPhraseOnly = true
   def triggerPhraseExtra = "mac"
-  Utilities.setMachineAffinity(myJob, 'OSX10.11', 'latest-or-auto')
+  Utilities.setMachineAffinity(myJob, 'OSX10.12', 'latest-or-auto')
   Utilities.addXUnitDotNETResults(myJob, '**/xUnitResults/*.xml')
   addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
   }

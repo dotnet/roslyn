@@ -29,12 +29,20 @@ namespace Roslyn.Utilities
         private readonly CancellationToken _cancellationToken;
 
         /// <summary>
-        /// Map of serialized object's reference ids.  The object-reference-map uses refernece equality
+        /// Map of serialized object's reference ids.  The object-reference-map uses reference equality
         /// for performance.  While the string-reference-map uses value-equality for greater cache hits 
         /// and reuse.
         /// </summary>
         private readonly WriterReferenceMap _objectReferenceMap;
         private readonly WriterReferenceMap _stringReferenceMap;
+
+        /// <summary>
+        /// Copy of the global binder data that maps from Types to the appropriate reading-function
+        /// for that type.  Types register functions directly with <see cref="ObjectBinder"/>, but 
+        /// that means that <see cref="ObjectBinder"/> is both static and locked.  This gives us 
+        /// local copy we can work with without needing to worry about anyone else mutating.
+        /// </summary>
+        private readonly ObjectBinderSnapshot _binderSnapshot;
 
         private int _recursionDepth;
         internal const int MaxRecursionDepth = 50;
@@ -56,6 +64,10 @@ namespace Roslyn.Utilities
             _objectReferenceMap = new WriterReferenceMap(valueEquality: false);
             _stringReferenceMap = new WriterReferenceMap(valueEquality: true);
             _cancellationToken = cancellationToken;
+
+            // Capture a copy of the current static binder state.  That way we don't have to 
+            // access any locks while we're doing our processing.
+            _binderSnapshot = ObjectBinder.GetSnapshot();
 
             WriteVersion();
         }
@@ -649,13 +661,13 @@ namespace Roslyn.Utilities
         public void WriteType(Type type)
         {
             _writer.Write((byte)EncodingKind.Type);
-            this.WriteInt32(ObjectBinder.GetOrAddTypeId(type));
+            this.WriteString(type.AssemblyQualifiedName);
         }
 
         private void WriteKnownType(Type type)
         {
             _writer.Write((byte)EncodingKind.Type);
-            this.WriteInt32(ObjectBinder.GetTypeId(type));
+            this.WriteInt32(_binderSnapshot.GetTypeId(type));
         }
 
         private void WriteObject(object instance)

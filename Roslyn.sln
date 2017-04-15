@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26228.9
+VisualStudioVersion = 15.0.26228.4
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CodeAnalysisTest", "src\Compilers\Core\CodeAnalysisTest\CodeAnalysisTest.csproj", "{A4C99B85-765C-4C65-9C2A-BB609AAB09E6}"
 EndProject
@@ -180,8 +180,6 @@ EndProject
 Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "BasicResultProviderTest", "src\ExpressionEvaluator\VisualBasic\Test\ResultProvider\BasicResultProviderTest.vbproj", "{ACE53515-482C-4C6A-E2D2-4242A687DFEE}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExpressionCompilerTestUtilities", "src\ExpressionEvaluator\Core\Test\ExpressionCompiler\ExpressionCompilerTestUtilities.csproj", "{21B80A31-8FF9-4E3A-8403-AABD635AEED9}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Concord", "src\ExpressionEvaluator\Core\Source\Concord\Concord.csproj", "{5002636A-FE8D-40BF-8818-AB513A2194FA}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ResultProviderTestUtilities", "src\ExpressionEvaluator\Core\Test\ResultProvider\ResultProviderTestUtilities.csproj", "{ABDBAC1E-350E-4DC3-BB45-3504404545EE}"
 EndProject
@@ -758,10 +756,6 @@ Global
 		{21B80A31-8FF9-4E3A-8403-AABD635AEED9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{21B80A31-8FF9-4E3A-8403-AABD635AEED9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{21B80A31-8FF9-4E3A-8403-AABD635AEED9}.Release|Any CPU.Build.0 = Release|Any CPU
-		{5002636A-FE8D-40BF-8818-AB513A2194FA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{5002636A-FE8D-40BF-8818-AB513A2194FA}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{5002636A-FE8D-40BF-8818-AB513A2194FA}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{5002636A-FE8D-40BF-8818-AB513A2194FA}.Release|Any CPU.Build.0 = Release|Any CPU
 		{ABDBAC1E-350E-4DC3-BB45-3504404545EE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{ABDBAC1E-350E-4DC3-BB45-3504404545EE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{ABDBAC1E-350E-4DC3-BB45-3504404545EE}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -1117,7 +1111,6 @@ Global
 		{B8DA3A90-A60C-42E3-9D8E-6C67B800C395} = {998CAFE8-06E4-4683-A151-0F6AA4BFF6C6}
 		{ACE53515-482C-4C6A-E2D2-4242A687DFEE} = {151F6994-AEB3-4B12-B746-2ACFF26C7BBB}
 		{21B80A31-8FF9-4E3A-8403-AABD635AEED9} = {998CAFE8-06E4-4683-A151-0F6AA4BFF6C6}
-		{5002636A-FE8D-40BF-8818-AB513A2194FA} = {998CAFE8-06E4-4683-A151-0F6AA4BFF6C6}
 		{ABDBAC1E-350E-4DC3-BB45-3504404545EE} = {998CAFE8-06E4-4683-A151-0F6AA4BFF6C6}
 		{913A4C08-898E-49C7-9692-0EF9DC56CF6E} = {235A3418-A3B0-4844-BCEB-F1CF45069232}
 		{151F6994-AEB3-4B12-B746-2ACFF26C7BBB} = {235A3418-A3B0-4844-BCEB-F1CF45069232}

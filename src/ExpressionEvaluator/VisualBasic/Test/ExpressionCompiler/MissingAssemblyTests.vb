@@ -145,7 +145,7 @@ Class C
 End Class
 "
 
-            Dim ilRef = CompileIL(il, appendDefaultHeader:=False)
+            Dim ilRef = CompileIL(il, prependDefaultHeader:=False)
             Dim comp = CreateCompilationWithMscorlib({vb}, {ilRef}, TestOptions.DebugDll)
             WithRuntimeInstance(comp,
                 Sub(runtime)

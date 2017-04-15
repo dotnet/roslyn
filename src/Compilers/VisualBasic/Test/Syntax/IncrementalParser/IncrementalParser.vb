@@ -772,6 +772,31 @@ End Module
         Assert.Equal(False, incrementalTree.GetRoot().ContainsDiagnostics)
         VerifyEquivalent(incrementalTree, expectedTree)
     End Sub
+
+    <Fact>
+    <WorkItem(405887, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=405887")>
+    Public Sub IncrementalParseInterpolationInSingleLineIf()
+        Dim code As String = (<![CDATA[
+Module Module1
+    Sub Test1(val1 As Integer)
+        If val1 = 1 Then System.Console.WriteLine($"abc '" & sServiceName & "'")
+    End Sub
+End Module
+]]>).Value
+
+        Dim oldText = SourceText.From(code)
+        Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
+
+        Const replace = """ &"
+        Dim insertionPoint = code.IndexOf(replace, StringComparison.Ordinal)
+        Dim newText = oldText.WithChanges(New TextChange(New TextSpan(insertionPoint, replace.Length), "{"))
+        Dim expectedTree = VisualBasicSyntaxTree.ParseText(newText)
+        Dim incrementalTree = oldTree.WithChangedText(newText)
+
+        Assert.Equal(True, expectedTree.GetRoot().ContainsDiagnostics)
+        Assert.Equal(True, incrementalTree.GetRoot().ContainsDiagnostics)
+        VerifyEquivalent(incrementalTree, expectedTree)
+    End Sub
 #End Region
 
     <WorkItem(543489, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543489")>

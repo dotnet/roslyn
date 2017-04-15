@@ -5,16 +5,9 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Reflection;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.Win32;
 using Roslyn.Test.Utilities;
 using Xunit;
-using System.Xml;
-using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 {
@@ -25,7 +18,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 
         static IntegrationTests()
         {
-            s_msbuildDirectory = TestHelpers.GetMSBuildDirectory();
+            s_msbuildDirectory = DesktopTestHelpers.GetMSBuildDirectory();
             if (s_msbuildDirectory != null)
             {
                 s_msbuildExecutable = Path.Combine(s_msbuildDirectory, "MSBuild.exe");

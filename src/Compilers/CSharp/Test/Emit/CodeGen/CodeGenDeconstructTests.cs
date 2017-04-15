@@ -232,7 +232,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            var comp = CreateStandardCompilation(source, references: s_valueTupleRefs);
             comp.VerifyDiagnostics(
                 // (8,18): error CS8129: No Deconstruct instance or extension method was found for type 'C', with 2 out parameters and a void return type.
                 //         (x, y) = new C();
@@ -478,7 +478,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics(
                 // (4,58): error CS1108: A parameter cannot have all the specified modifiers; there are too many modifiers on the parameter
                 //     public void Deconstruct(out int a, out string b, out params int[] c)
@@ -1143,7 +1143,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
                 // (6,19): error CS8185: A declaration is not allowed in this context.
                 //         var z = ((var x, int y) = new C());
@@ -1180,7 +1180,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
                 // (19,29): error CS1601: Cannot make reference to variable of type 'ArgIterator'
                 //     public void Deconstruct(out ArgIterator a, out int b)
@@ -1243,7 +1243,7 @@ unsafe class C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.UnsafeDebugDll);
+            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.UnsafeDebugDll);
             comp.VerifyDiagnostics(
                 // (13,32): error CS0306: The type 'int*' may not be used as a type argument
                 //     public static (int*, int*) M2()
@@ -1295,7 +1295,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
                 // (7,9): error CS8184: A deconstruction cannot mix declarations and expressions on the left-hand-side.
                 //         (x, int y) = new C();
@@ -1316,7 +1316,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
                 // (6,10): error CS8187: Tuple element names are not permitted on the left of a deconstruction.
                 //         (Alice: var x, Bob: int y) = (1, 2);
@@ -1554,7 +1554,7 @@ public static class Extensions
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef });
+            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef });
             comp.VerifyDiagnostics(
                 // (8,25): error CS0029: Cannot implicitly convert type 'int' to 'string'
                 //         (x, y, z) = (1, 2);
@@ -1669,7 +1669,7 @@ static class Extension
     }
 }";
 
-            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef });
+            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef });
             comp.VerifyDiagnostics(
                 // (8,18): error CS0411: The type arguments for method 'Extension.Deconstruct<T>(C, out int, out T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         (x, y) = new C();
@@ -1768,7 +1768,7 @@ class C1
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics(
                 // (9,18): error CS0411: The type arguments for method 'C1.Deconstruct<T>(out int, out T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         (x, y) = new C1();
@@ -3877,7 +3877,7 @@ class C
     var (x, y) = (1, 2);
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            var comp = CreateStandardCompilation(source, references: s_valueTupleRefs);
             comp.VerifyDiagnostics(
                 // (3,2): error CS1520: Method must have a return type
                 // {
@@ -4825,7 +4825,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            var comp = CreateStandardCompilation(source, options: TestOptions.DebugExe, references: s_valueTupleRefs);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "Converted 1. Output 1 2 3.");
 
@@ -4869,7 +4869,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            var comp = CreateStandardCompilation(source, options: TestOptions.DebugExe, references: s_valueTupleRefs);
             comp.VerifyDiagnostics(
                 // (6,30): error CS0029: Cannot implicitly convert type 'string' to 'int'
                 //         (int _, string _) = ("hello", 42);
@@ -4896,7 +4896,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            var comp = CreateStandardCompilation(source, options: TestOptions.DebugExe, references: s_valueTupleRefs);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "hello");
         }
@@ -4916,7 +4916,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            var comp = CreateStandardCompilation(source, options: TestOptions.DebugExe, references: s_valueTupleRefs);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "2");
 
@@ -4945,7 +4945,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            var comp = CreateStandardCompilation(source, options: TestOptions.DebugExe, references: s_valueTupleRefs);
             comp.VerifyDiagnostics(
                 // (7,9): error CS8184: A deconstruction cannot mix declarations and expressions on the left-hand-side.
                 //         (_, var x) = (1, 2);
@@ -4978,7 +4978,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            var comp = CreateStandardCompilation(source, options: TestOptions.DebugExe, references: s_valueTupleRefs);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "3");
         }
@@ -4998,7 +4998,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            var comp = CreateStandardCompilation(source, options: TestOptions.DebugExe, references: s_valueTupleRefs);
             comp.VerifyDiagnostics(
                 // (7,9): error CS8184: A deconstruction cannot mix declarations and expressions on the left-hand-side.
                 //         (i, var x) = (1, 2);
@@ -5022,7 +5022,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            var comp = CreateStandardCompilation(source, options: TestOptions.DebugExe, references: s_valueTupleRefs);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "2");
 
@@ -5054,7 +5054,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            var comp = CreateStandardCompilation(source, options: TestOptions.DebugExe, references: s_valueTupleRefs);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "2");
 
@@ -5084,7 +5084,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            var comp = CreateStandardCompilation(source, options: TestOptions.DebugExe, references: s_valueTupleRefs);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "1 2");
 
@@ -5111,7 +5111,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            var comp = CreateStandardCompilation(source, options: TestOptions.DebugExe, references: s_valueTupleRefs);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "1 2");
 
@@ -5198,7 +5198,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            var comp = CreateStandardCompilation(source, options: TestOptions.DebugExe, references: s_valueTupleRefs);
             comp.VerifyDiagnostics(
                 // (11,30): error CS0029: Cannot implicitly convert type 'string' to 'int'
                 //             foreach ((var y, _) in new[] { (1, "hello") }) { System.Console.Write("4"); } // error
@@ -5227,7 +5227,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            var comp = CreateStandardCompilation(source, options: TestOptions.DebugExe, references: s_valueTupleRefs);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "CC");
         }
@@ -5276,7 +5276,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugExe);
+            var comp = CreateStandardCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "M");
 
@@ -5307,7 +5307,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular6);
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular6);
             comp.VerifyDiagnostics(
                 // (6,9): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7 or greater.
                 //         _ = M();
@@ -5344,7 +5344,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular6, references: s_valueTupleRefs);
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular6, references: s_valueTupleRefs);
             comp.VerifyDiagnostics(
                 // (6,9): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7 or greater.
                 //         (_, var _, int _) = (1, 2, 3);
@@ -5426,7 +5426,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugExe);
+            var comp = CreateStandardCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
                 // (6,9): error CS8183: Cannot infer the type of implicitly-typed discard.
                 //         _ = null;
@@ -5451,7 +5451,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugExe);
+            var comp = CreateStandardCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "1");
         }
@@ -5471,7 +5471,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            var comp = CreateStandardCompilation(source, options: TestOptions.DebugExe, references: s_valueTupleRefs);
             // mixing declaration and expressions isn't supported yet
             comp.VerifyDiagnostics(
                 // (6,17): error CS0841: Cannot use local variable 'x' before it is declared
@@ -5506,7 +5506,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            var comp = CreateStandardCompilation(source, options: TestOptions.DebugExe, references: s_valueTupleRefs);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "Written 1. 42");
         }
@@ -5528,7 +5528,7 @@ class C
     int P { set { System.Console.Write($""Written {value}. ""); } }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            var comp = CreateStandardCompilation(source, options: TestOptions.DebugExe, references: s_valueTupleRefs);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "Written 1. 2");
         }
@@ -5548,7 +5548,7 @@ class C
     static int M(out int i) { i = 42; return 3; }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            var comp = CreateStandardCompilation(source, options: TestOptions.DebugExe, references: s_valueTupleRefs);
             comp.VerifyDiagnostics(
                 // (6,10): error CS0841: Cannot use local variable 'x' before it is declared
                 //         (x, _) = (M(out var x), 2);
@@ -5662,7 +5662,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            var comp = CreateStandardCompilation(source, options: TestOptions.DebugExe, references: s_valueTupleRefs);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "6");
 
@@ -5728,7 +5728,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            var comp = CreateStandardCompilation(source, options: TestOptions.DebugExe, references: s_valueTupleRefs);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "M 1");
         }
@@ -5752,7 +5752,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            var comp = CreateStandardCompilation(source, options: TestOptions.DebugExe, references: s_valueTupleRefs);
             comp.VerifyDiagnostics(
                 // (6,18): error CS8186: A foreach loop must declare its iteration variables.
                 //         foreach (_ in M())
@@ -5776,7 +5776,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            var comp = CreateStandardCompilation(source, options: TestOptions.DebugExe, references: s_valueTupleRefs);
             comp.VerifyDiagnostics(
                 // (7,22): error CS0136: A local or parameter named '_' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //         foreach (var _ in new[] { 1 })
@@ -5801,7 +5801,7 @@ class Program
         System.Console.WriteLine(x2);
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe, references: s_valueTupleRefs);
             compilation.VerifyDiagnostics(
                 // (7,18): error CS8185: A declaration is not allowed in this context.
                 //         var x = (int x1, int x2) = t;
@@ -5834,7 +5834,7 @@ class Program
     }
 }";
 
-            var compilation = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var compilation = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             compilation.VerifyDiagnostics(
                 // (8,9): error CS8184: A deconstruction cannot mix declarations and expressions on the left-hand-side.
                 //         (int x1, z) = t;
@@ -5865,7 +5865,7 @@ class Program
     }
 }";
 
-            var compilation = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var compilation = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             compilation.VerifyDiagnostics(
                 // (8,14): error CS8184: A deconstruction cannot mix declarations and expressions on the left-hand-side.
                 //         for ((int x1, z) = t; ; )
@@ -5896,7 +5896,7 @@ class Program
     }
 }";
 
-            var compilation = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var compilation = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             compilation.VerifyDiagnostics(
                 // (7,19): error CS8185: A declaration is not allowed in this context.
                 //         for (; ; (int x1, int x2) = t)
@@ -5944,7 +5944,7 @@ class Program
     static ref int M(out int x) { x = 2; return ref _M; }
 }";
 
-            var compilation = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var compilation = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             compilation.VerifyDiagnostics(
                 // (6,34): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
                 //         foreach ((M(out var x1), args is var x2, _) in new[] { (1, 2, 3) })
@@ -5989,7 +5989,7 @@ class Program
     static ref int M(out int x) { x = 2; return ref _M; }
 }";
 
-            var compilation = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var compilation = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             compilation.VerifyDiagnostics(
                 // (6,32): error CS0230: Type and identifier are both required in a foreach statement
                 //         foreach (M(out var x1) in new[] { 1, 2, 3 })
@@ -6025,7 +6025,7 @@ class Program
     static int M2(out int x, bool b) => x = 2;
 }";
 
-            var compilation = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var compilation = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             compilation.VerifyDiagnostics(
                 // (6,61): error CS0230: Type and identifier are both required in a foreach statement
                 //         foreach (M1(M2(out var x1, args is var x2), x1, x2) in new[] {1, 2, 3})
@@ -6062,7 +6062,7 @@ class C
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var compilation = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             compilation.VerifyDiagnostics(
                 // (6,10): error CS8185: A declaration is not allowed in this context.
                 //         (int x1, string x2);
@@ -6109,7 +6109,7 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            var compilation = CreateStandardCompilation(source, references: s_valueTupleRefs);
             compilation.VerifyDiagnostics(
                 // (6,16): error CS1003: Syntax error, ',' expected
                 //         var (p2) = (1, 2);
@@ -6182,7 +6182,7 @@ class Program
         return ref z;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.DebugExe);
+            var compilation = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
 
             // PEVerify fails with ref return https://github.com/dotnet/roslyn/issues/12285
@@ -6224,7 +6224,7 @@ public class MyClass
     }
 }";
 
-            var compilation = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.DebugExe);
+            var compilation = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
             CompileAndVerify(compilation, expectedOutput: "0");
         }
@@ -6245,7 +6245,7 @@ public class MyClass
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            var compilation = CreateStandardCompilation(source, references: s_valueTupleRefs);
             compilation.VerifyDiagnostics(
                 // (9,36): error CS0230: Type and identifier are both required in a foreach statement
                 //         foreach (arr[out int size] in data) {}
@@ -6269,7 +6269,7 @@ public class MyClass
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            var compilation = CreateStandardCompilation(source, references: s_valueTupleRefs);
             compilation.VerifyDiagnostics(
                 // (9,27): error CS1615: Argument 1 may not be passed with the 'out' keyword
                 //         foreach ((arr[out int size], int b) in data) {}
@@ -6473,7 +6473,7 @@ class Program
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            var compilation = CreateStandardCompilation(source, references: s_valueTupleRefs);
             compilation.VerifyDiagnostics(
                 // (11,12): error CS0070: The event 'C.E' can only appear on the left hand side of += or -= (except when used from within the type 'C')
                 //         (C.E, _) = (null, 1);
@@ -6501,7 +6501,7 @@ class C
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            var compilation = CreateStandardCompilation(source, references: s_valueTupleRefs);
             compilation.VerifyDiagnostics(
                 // (12,10): error CS0079: The event 'C.E' can only appear on the left hand side of += or -=
                 //         (E, _) = (null, 1);

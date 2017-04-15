@@ -1608,8 +1608,8 @@ class C
         {
             var source = @"namespace N1.N2 { }";
 
-            var metadataReference = CreateCompilationWithMscorlib(source).ToMetadataReference();
-            var compilation = CreateCompilationWithMscorlib(source, new[] { metadataReference });
+            var metadataReference = CreateStandardCompilation(source).ToMetadataReference();
+            var compilation = CreateStandardCompilation(source, new[] { metadataReference });
             compilation.VerifyDiagnostics();
 
             // Analyzer reports a diagnostic if it receives a merged namespace symbol across assemblies in compilation.
