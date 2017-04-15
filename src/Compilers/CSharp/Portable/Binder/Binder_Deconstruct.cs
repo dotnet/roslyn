@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
@@ -466,10 +467,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundTupleLiteral DeconstructionVariablesAsTuple(CSharpSyntaxNode syntax, ArrayBuilder<DeconstructionVariable> variables, DiagnosticBag diagnostics, bool hasErrors)
         {
+            bool inferNames = this.Compilation.LanguageVersion.InferTupleElementNames();
             int count = variables.Count;
             var valuesBuilder = ArrayBuilder<BoundExpression>.GetInstance(count);
             var typesBuilder = ArrayBuilder<TypeSymbol>.GetInstance(count);
             var locationsBuilder = ArrayBuilder<Location>.GetInstance(count);
+            var namesBuilder = inferNames ? ArrayBuilder<string>.GetInstance(count) : null;
             foreach (var variable in variables)
             {
                 if (variable.HasNestedVariables)
@@ -477,23 +480,77 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var nestedTuple = DeconstructionVariablesAsTuple(variable.Syntax, variable.NestedVariables, diagnostics, hasErrors);
                     valuesBuilder.Add(nestedTuple);
                     typesBuilder.Add(nestedTuple.Type);
+                    if (inferNames)
+                    {
+                        namesBuilder.Add(null);
+                    }
                 }
                 else
                 {
                     var single = variable.Single;
                     valuesBuilder.Add(single);
                     typesBuilder.Add(single.Type);
+                    if (inferNames)
+                    {
+                        namesBuilder.Add(ExtractDeconstructResultElementName(single));
+                    }
                 }
                 locationsBuilder.Add(variable.Syntax.Location);
             }
 
+            ImmutableArray<string> tupleNames;
+            if (inferNames)
+            {
+                var uniqueFieldNames = PooledHashSet<string>.GetInstance();
+                RemoveDuplicateInferredTupleNames(namesBuilder, uniqueFieldNames);
+                uniqueFieldNames.Free();
+                tupleNames = namesBuilder.ToImmutableAndFree();
+            }
+            else
+            {
+                tupleNames = default(ImmutableArray<string>);
+            }
+
             var type = TupleTypeSymbol.Create(syntax.Location,
                 typesBuilder.ToImmutableAndFree(), locationsBuilder.ToImmutableAndFree(),
-                elementNames: default(ImmutableArray<string>), compilation: this.Compilation,
+                tupleNames, this.Compilation,
                 shouldCheckConstraints: !hasErrors, syntax: syntax, diagnostics: hasErrors ? null : diagnostics);
 
-            return new BoundTupleLiteral(syntax: syntax, argumentNamesOpt: default(ImmutableArray<string>),
-                arguments: valuesBuilder.ToImmutableAndFree(), type: type);
+            var inferredPositions = inferNames ? tupleNames.SelectAsArray(n => n != null) : default(ImmutableArray<bool>);
+            return new BoundTupleLiteral(syntax, tupleNames, inferredPositions, arguments: valuesBuilder.ToImmutableAndFree(), type: type);
+        }
+
+        /// <summary>Extract inferred name from a single deconstruction variable.</summary>
+        private static string ExtractDeconstructResultElementName(BoundExpression expression)
+        {
+            if (expression.Kind == BoundKind.DiscardExpression)
+            {
+                return null;
+            }
+
+            SyntaxNode variableSyntax = expression.Syntax;
+            SyntaxToken nameToken;
+            if (variableSyntax.Kind() == SyntaxKind.SingleVariableDesignation)
+            {
+                nameToken = ((SingleVariableDesignationSyntax)variableSyntax).Identifier;
+            }
+            else if (variableSyntax.Kind() == SyntaxKind.DeclarationExpression)
+            {
+                var declaration = (DeclarationExpressionSyntax)variableSyntax;
+                nameToken = ((SingleVariableDesignationSyntax)declaration.Designation).Identifier;
+            }
+            else
+            {
+                nameToken = ((ExpressionSyntax)variableSyntax).ExtractAnonymousTypeMemberName();
+            }
+
+            string name = nameToken.ValueText;
+            if (name == null || TupleTypeSymbol.IsElementNameReserved(name) != -1)
+            {
+                return null;
+            }
+
+            return name;
         }
 
         /// <summary>

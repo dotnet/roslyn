@@ -5476,4 +5476,7 @@
   <data name="ERR_BadSourceCodeKind" xml:space="preserve">
     <value>Provided source code kind is unsupported or invalid: '{0}'</value>
   </data>
+  <data name="ERR_TupleInferredNamesNotAvailable" xml:space="preserve">
+    <value>Tuple type '{0}' does not have an explicitly named element '{1}'. Please use language version {2} or greater to access a unnamed element by its inferred name.</value>
+  </data>
 </root>

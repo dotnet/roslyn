@@ -85,6 +85,24 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUpgradeProject)]
+        public async Task UpgradeProjectFromCSharp7ToLatest_TriggeredByInferredTupleNames()
+        {
+            await TestLanguageVersionUpgradedAsync(
+@"
+class Program
+{
+    void M()
+    {
+        int b = 2;
+        var t = (1, b);
+        System.Console.Write(t.[|b|]);
+    }
+}",
+                LanguageVersion.Latest,
+                new CSharpParseOptions(LanguageVersion.CSharp7));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUpgradeProject)]
         public async Task UpgradeProjectFromCSharp7_1ToLatest()
         {
             await TestLanguageVersionUpgradedAsync(

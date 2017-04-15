@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 elementLocations: default(ImmutableArray<Location>), elementNames: default(ImmutableArray<string>),
                 compilation: _compilation, shouldCheckConstraints: false);
 
-            return new BoundTupleLiteral(right.Syntax, default(ImmutableArray<string>), builder.ToImmutableAndFree(), tupleType);
+            return new BoundTupleLiteral(right.Syntax, default(ImmutableArray<string>), default(ImmutableArray<bool>), builder.ToImmutableAndFree(), tupleType);
         }
 
         private ImmutableArray<BoundExpression> GetRightParts(BoundExpression right, Conversion conversion,
@@ -127,7 +127,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             else if (right.Kind == BoundKind.Conversion)
             {
                 var tupleConversion = (BoundConversion)right;
-                Debug.Assert(tupleConversion.Conversion.Kind == ConversionKind.ImplicitTupleLiteral);
+                Debug.Assert(tupleConversion.Conversion.Kind == ConversionKind.ImplicitTupleLiteral ||
+                    tupleConversion.Conversion.Kind == ConversionKind.Identity);
                 rightParts = ((BoundTupleExpression)tupleConversion.Operand).Arguments;
             }
             else if (right.Type.IsTupleType)

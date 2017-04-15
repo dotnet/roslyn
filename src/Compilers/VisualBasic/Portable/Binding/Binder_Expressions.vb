@@ -314,33 +314,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return BadExpression(node, args, ErrorTypeSymbol.UnknownResultType)
             End If
 
-            Dim hasErrors = False
             Dim hasNaturalType = True
             Dim hasInferredType = True
-
-            ' set of names already used
-            Dim uniqueFieldNames = New HashSet(Of String)(IdentifierComparison.Comparer)
 
             Dim boundArguments = ArrayBuilder(Of BoundExpression).GetInstance(arguments.Count)
             Dim elementTypes = ArrayBuilder(Of TypeSymbol).GetInstance(arguments.Count)
             Dim elementLocations = ArrayBuilder(Of Location).GetInstance(arguments.Count)
 
-            Dim elementNames As ArrayBuilder(Of String) = Nothing
+            ' prepare names
+            Dim names = ExtractTupleElementNames(arguments, diagnostics,
+                withInference:=Me.Compilation.LanguageVersion.InferTupleElementNames())
+            Dim elementNames = names.elementNames
+            Dim inferredPositions = names.inferredPositions
+            Dim hasErrors = names.hasErrors
 
-            ' prepare and check element names and types
+            ' prepare types and locations
             For i As Integer = 0 To numElements - 1
                 Dim argumentSyntax As SimpleArgumentSyntax = arguments(i)
-                Dim name As String = Nothing
-
                 Dim nameSyntax As IdentifierNameSyntax = argumentSyntax.NameColonEquals?.Name
 
                 If nameSyntax IsNot Nothing Then
-                    name = nameSyntax.Identifier.ValueText
                     elementLocations.Add(nameSyntax.GetLocation)
-
-                    If Not CheckTupleMemberName(name, i, argumentSyntax.NameColonEquals.Name, diagnostics, uniqueFieldNames) Then
-                        hasErrors = True
-                    End If
 
                     '  check type character
                     Dim typeChar As TypeCharacter = nameSyntax.Identifier.GetTypeCharacter()
@@ -350,8 +344,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Else
                     elementLocations.Add(argumentSyntax.GetLocation)
                 End If
-
-                CollectTupleFieldMemberNames(name, i + 1, numElements, elementNames)
 
                 Dim boundArgument As BoundExpression = BindValue(argumentSyntax.Expression, diagnostics)
                 Dim elementType = GetTupleFieldType(boundArgument, argumentSyntax, diagnostics, hasNaturalType)
@@ -368,23 +360,126 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 elementTypes.Add(elementType)
             Next
 
-            Dim elementNamesArray = If(elementNames Is Nothing, Nothing, elementNames.ToImmutableAndFree())
-
-            Dim tupleTypeOpt As NamedTypeSymbol = Nothing
             Dim elements = elementTypes.ToImmutableAndFree()
             Dim locations = elementLocations.ToImmutableAndFree()
 
             Dim inferredType As TupleTypeSymbol = Nothing
-
             If hasInferredType Then
-                inferredType = TupleTypeSymbol.Create(node.GetLocation, elements, locations, elementNamesArray, Me.Compilation, shouldCheckConstraints:=True, syntax:=node, diagnostics:=diagnostics)
+                inferredType = TupleTypeSymbol.Create(node.GetLocation, elements, locations, elementNames, Me.Compilation, shouldCheckConstraints:=True, syntax:=node, diagnostics:=diagnostics)
             End If
 
-            If hasNaturalType Then
-                tupleTypeOpt = inferredType
+            Dim tupleTypeOpt As NamedTypeSymbol = If(hasNaturalType, inferredType, Nothing)
+
+            Return New BoundTupleLiteral(node, inferredType, elementNames, inferredPositions, boundArguments.ToImmutableAndFree(), tupleTypeOpt, hasErrors)
+        End Function
+
+        Private Shared Function ExtractTupleElementNames(arguments As SeparatedSyntaxList(Of SimpleArgumentSyntax), diagnostics As DiagnosticBag, withInference As Boolean) _
+            As (elementNames As ImmutableArray(Of String), inferredPositions As ImmutableArray(Of Boolean), hasErrors As Boolean)
+
+            Dim hasErrors = False
+
+            ' set of names already used
+            Dim uniqueFieldNames = New HashSet(Of String)(IdentifierComparison.Comparer)
+
+            Dim elementNames As ArrayBuilder(Of String) = Nothing
+            Dim inferredElementNames As ArrayBuilder(Of String) = Nothing
+
+            ' prepare and check element names and types
+            Dim numElements As Integer = arguments.Count
+            For i As Integer = 0 To numElements - 1
+                Dim argumentSyntax As SimpleArgumentSyntax = arguments(i)
+                Dim name As String = Nothing
+                Dim inferredName As String = Nothing
+
+                Dim nameSyntax As IdentifierNameSyntax = argumentSyntax.NameColonEquals?.Name
+
+                If nameSyntax IsNot Nothing Then
+                    name = nameSyntax.Identifier.ValueText
+
+                    If Not CheckTupleMemberName(name, i, argumentSyntax.NameColonEquals.Name, diagnostics, uniqueFieldNames) Then
+                        hasErrors = True
+                    End If
+                Else
+                    If withInference Then
+                        inferredName = InferTupleElementName(argumentSyntax.Expression)
+                    End If
+                End If
+
+                CollectTupleFieldMemberName(name, i, numElements, elementNames)
+                CollectTupleFieldMemberName(inferredName, i, numElements, inferredElementNames)
+            Next
+
+            RemoveDuplicateInferredTupleNames(inferredElementNames, uniqueFieldNames)
+
+            Dim result = MergeTupleElementNames(elementNames, inferredElementNames)
+            elementNames?.Free()
+            inferredElementNames?.Free()
+            Return (result.names, result.inferred, hasErrors)
+        End Function
+
+        Private Shared Function MergeTupleElementNames(elementNames As ArrayBuilder(Of String),
+                                                       inferredElementNames As ArrayBuilder(Of String)) As (names As ImmutableArray(Of String),
+                                                       inferred As ImmutableArray(Of Boolean))
+            If elementNames Is Nothing Then
+                If inferredElementNames Is Nothing Then
+                    Return (Nothing, Nothing)
+                Else
+                    Dim finalNames = inferredElementNames.ToImmutable()
+                    Return (finalNames, finalNames.SelectAsArray(Function(n) n IsNot Nothing))
+                End If
             End If
 
-            Return New BoundTupleLiteral(node, inferredType, elementNamesArray, boundArguments.ToImmutableAndFree(), tupleTypeOpt, hasErrors)
+            If inferredElementNames Is Nothing Then
+                Return (elementNames.ToImmutable(), Nothing)
+            End If
+
+            Debug.Assert(elementNames.Count = inferredElementNames.Count)
+            Dim builder = ArrayBuilder(Of Boolean).GetInstance(elementNames.Count)
+            For i = 0 To elementNames.Count - 1
+
+                Dim inferredName As String = inferredElementNames(i)
+                If elementNames(i) Is Nothing AndAlso inferredName IsNot Nothing Then
+                    elementNames(i) = inferredName
+                    builder.Add(True)
+                Else
+                    builder.Add(False)
+                End If
+            Next
+            Return (elementNames.ToImmutable(), builder.ToImmutableAndFree())
+        End Function
+
+        Private Shared Sub RemoveDuplicateInferredTupleNames(inferredElementNames As ArrayBuilder(Of String), uniqueFieldNames As HashSet(Of String))
+            If inferredElementNames Is Nothing Then
+                Return
+            End If
+
+            ' Inferred names that duplicate an explicit name or a previous inferred name are tagged for removal
+            Dim toRemove = New HashSet(Of String)(IdentifierComparison.Comparer)
+            For Each name In inferredElementNames
+                If name IsNot Nothing AndAlso Not uniqueFieldNames.Add(name) Then
+                    toRemove.Add(name)
+                End If
+            Next
+
+            For index = 0 To inferredElementNames.Count - 1
+                Dim inferredName As String = inferredElementNames(index)
+                If inferredName IsNot Nothing AndAlso toRemove.Contains(inferredName) Then
+                    inferredElementNames(index) = Nothing
+                End If
+            Next
+        End Sub
+
+        Private Shared Function InferTupleElementName(element As ExpressionSyntax) As String
+            Dim ignore As XmlNameSyntax = Nothing
+            Dim nameToken As SyntaxToken = element.ExtractAnonymousTypeMemberName(ignore)
+            If nameToken.Kind() = SyntaxKind.IdentifierToken Then
+                Dim name As String = nameToken.ValueText
+                ' Reserved names are never candidates to be inferred names, at any position
+                If TupleTypeSymbol.IsElementNameReserved(name) = -1 Then
+                    Return name
+                End If
+            End If
+            Return Nothing
         End Function
 
         ''' <summary>
@@ -424,8 +519,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Return expressionType
         End Function
- 
-        Private Shared Sub CollectTupleFieldMemberNames(name As String, position As Integer, tupleSize As Integer, ByRef elementNames As ArrayBuilder(Of String))
+
+        Private Shared Sub CollectTupleFieldMemberName(name As String, elementIndex As Integer, tupleSize As Integer, ByRef elementNames As ArrayBuilder(Of String))
             ' add the name to the list
             ' names would typically all be there or none at all
             ' but in case we need to handle this in error cases
@@ -434,7 +529,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Else
                 If name IsNot Nothing Then
                     elementNames = ArrayBuilder(Of String).GetInstance(tupleSize)
-                    For j As Integer = 1 To position - 1
+                    For j As Integer = 1 To elementIndex
                         elementNames.Add(Nothing)
                     Next
                     elementNames.Add(name)
@@ -2809,6 +2904,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ElseIf left.HasErrors Then
                         Return BadExpression(node, left, ErrorTypeSymbol.UnknownResultType)
 
+                    ElseIf left.Type.IsTupleType AndAlso Not Compilation.LanguageVersion.InferTupleElementNames() AndAlso
+                        IsMissingMemberAnInferredTupleName(left, rightName) Then
+
+                        Dim errorDiag = ErrorFactory.ErrorInfo(ERRID.ERR_TupleInferredNamesNotAvailable, type, rightName,
+                                                               New VisualBasicRequiredLanguageVersion(LanguageVersion.VisualBasic15_3))
+                        Return ReportDiagnosticAndProduceBadExpression(diagnostics, node, errorDiag, left)
+
                     Else
                         If type.IsInterfaceType() Then
                             ' In case IsExtensibleInterfaceNoUseSiteDiagnostics above failed because there were bad inherited interfaces.
@@ -2822,6 +2924,41 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 diagnostics.Add(node, useSiteDiagnostics)
                 lookupResult.Free()
             End Try
+        End Function
+
+        ''' <summary>
+        ''' When reporting a missing member error on a tuple type, determine whether that member
+        ''' could be an element with an inferred name (had the language version been above 15.3).
+        ''' </summary>
+        Private Shared Function IsMissingMemberAnInferredTupleName(left As BoundExpression, rightName As String) As Boolean
+            Debug.Assert(left.Type.IsTupleType)
+
+            Dim declarations = left.Type.DeclaringSyntaxReferences
+            If declarations.Length <> 1 Then
+                Return False
+            End If
+
+            Dim Syntax = declarations(0).GetSyntax()
+            If Syntax.Kind() <> SyntaxKind.TupleExpression Then
+                Return False
+            End If
+
+            Dim arguments = DirectCast(Syntax, TupleExpressionSyntax).Arguments
+            Dim names = ExtractTupleElementNames(arguments, diagnostics:=Nothing, withInference:=True)
+            Dim elementNames = names.elementNames
+            Dim inferredPositions = names.inferredPositions
+
+            If elementNames.IsDefault OrElse inferredPositions.IsDefault Then
+                Return False
+            End If
+
+            For i = 0 To arguments.Count - 1
+                If IdentifierComparison.Comparer.Equals(elementNames(i), rightName) AndAlso inferredPositions(i) Then
+                    Return True
+                End If
+            Next
+
+            Return False
         End Function
 
         ''' <summary> 

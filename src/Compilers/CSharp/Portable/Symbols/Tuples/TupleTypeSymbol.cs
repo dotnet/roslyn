@@ -386,6 +386,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
+            ImmutableArray<bool> inferredNames = literal.InferredNamesOpt;
+            bool noInferredNames = inferredNames.IsDefault;
             ImmutableArray<string> destinationNames = destination.TupleElementNames;
             int sourceLength = sourceNames.Length;
             bool allMissing = destinationNames.IsDefault;
@@ -394,7 +396,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             for (int i = 0; i < sourceLength; i++)
             {
                 var sourceName = sourceNames[i];
-                if (sourceName != null && (allMissing || string.CompareOrdinal(destinationNames[i], sourceName) != 0))
+                var wasInferred = noInferredNames ? false : inferredNames[i];
+
+                if (sourceName != null && !wasInferred && (allMissing || string.CompareOrdinal(destinationNames[i], sourceName) != 0))
                 {
                     diagnostics.Add(ErrorCode.WRN_TupleLiteralNameMismatch, literal.Arguments[i].Syntax.Parent.Location, sourceName, destination);
                 }
