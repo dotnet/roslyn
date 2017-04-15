@@ -4135,5 +4135,152 @@ class C
 
             await TestInRegularAndScriptAsync(code, expected, ignoreTrivia: false);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task ExplicitTupleNameAdded()
+        {
+            var code = @"
+class C
+{
+    void M()
+    {
+        int [||]i = 1 + 2;
+        var t = (i, 3);
+    }
+}";
+
+            var expected = @"
+class C
+{
+    void M()
+    {
+        var t = (i: 1 + 2, 3);
+    }
+}";
+
+            await TestInRegularAndScriptAsync(code, expected, ignoreTrivia: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task ExplicitTupleNameAdded_NoDuplicateNames()
+        {
+            var code = @"
+class C
+{
+    void M()
+    {
+        int [||]i = 1 + 2;
+        var t = (i, i);
+    }
+}";
+
+            var expected = @"
+class C
+{
+    void M()
+    {
+        var t = (i: 1 + 2, i: 1 + 2);
+    }
+}";
+            // PROTOTYPE(tuple-names) Duplicate name not allowed
+            await TestInRegularAndScriptAsync(code, expected, ignoreTrivia: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task ExplicitTupleNameAdded_NoReservedNames()
+        {
+            var code = @"
+class C
+{
+    void M()
+    {
+        int [||]Rest = 1 + 2;
+        var t = (Rest, Rest);
+    }
+}";
+
+            var expected = @"
+class C
+{
+    void M()
+    {
+        var t = (Rest: 1 + 2, Rest: 1 + 2);
+    }
+}";
+            // PROTOTYPE(tuple-names) Reserved names not allowed
+            await TestInRegularAndScriptAsync(code, expected, ignoreTrivia: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task ExplicitTupleNameAdded_EscapeKeywords()
+        {
+            var code = @"
+class C
+{
+    void M()
+    {
+        int [||]@int = 1 + 2;
+        var t = (@int, 3);
+    }
+}";
+
+            var expected = @"
+class C
+{
+    void M()
+    {
+        var t = (@int: 1 + 2, 3);
+    }
+}";
+            await TestInRegularAndScriptAsync(code, expected, ignoreTrivia: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task ExplicitTupleNameAdded_DoNotEscapeContextualKeywords()
+        {
+            var code = @"
+class C
+{
+    void M()
+    {
+        int [||]@where = 1 + 2;
+        var t = (@where, 3);
+    }
+}";
+
+            var expected = @"
+class C
+{
+    void M()
+    {
+        var t = (where: 1 + 2, 3);
+    }
+}";
+            await TestInRegularAndScriptAsync(code, expected, ignoreTrivia: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task ExplicitAnonymousTypeMemberNameAdded_DuplicateNames()
+        {
+            var code = @"
+class C
+{
+    void M()
+    {
+        int [||]i = 1 + 2;
+        var t = new { i, i }; // error already
+    }
+}";
+
+            var expected = @"
+class C
+{
+    void M()
+    {
+        var t = new { i = (1 + 2), i = (1 + 2) }; // error already
+    }
+}";
+            await TestInRegularAndScriptAsync(code, expected, ignoreTrivia: false);
+        }
     }
 }

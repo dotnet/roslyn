@@ -255,7 +255,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
             {
                 _cancellationToken.ThrowIfCancellationRequested();
 
-                var inferredName = node.Parent.Kind() == SyntaxKind.TupleExpression ?
+                var inferredName = node.Parent?.Kind() == SyntaxKind.TupleExpression ?
                     ExtractAnonymousTypeMemberName(node.Expression).ValueText :
                     null;
 
@@ -263,7 +263,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
 
                 if (inferredName != null && node.NameColon == null)
                 {
-                    newArgument = newArgument.WithNameColon(SyntaxFactory.NameColon(inferredName))
+                    var identifier = SyntaxFactory.Identifier(inferredName);
+                    identifier = TryEscapeIdentifierToken(identifier, node, _semanticModel);
+                    newArgument = newArgument.WithNameColon(SyntaxFactory.NameColon(SyntaxFactory.IdentifierName(identifier)))
                          .WithAdditionalAnnotations(Simplifier.Annotation);
                 }
 
@@ -288,7 +290,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 var newDeclarator = (AnonymousObjectMemberDeclaratorSyntax)base.VisitAnonymousObjectMemberDeclarator(node);
                 if (inferredName != null && node.NameEquals == null)
                 {
-                    newDeclarator = newDeclarator.WithNameEquals(SyntaxFactory.NameEquals(inferredName))
+                    var identifier = SyntaxFactory.Identifier(inferredName);
+                    identifier = TryEscapeIdentifierToken(identifier, node, _semanticModel);
+                    newDeclarator = newDeclarator.WithNameEquals(SyntaxFactory.NameEquals(SyntaxFactory.IdentifierName(identifier)))
                          .WithAdditionalAnnotations(Simplifier.Annotation);
                 }
                 return newDeclarator;
