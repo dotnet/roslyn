@@ -62,11 +62,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                     {
                         _progress.AddItems(_solution.Projects.Count());
 
-                        var dependencyGraph = _solution.GetProjectDependencyGraph();
-                        foreach (var connectedSet in dependencyGraph.GetDependencySets(_cancellationToken))
-                        {
-                            await ProcessConnectedSetAsync(connectedSet).ConfigureAwait(false);
-                        }
+                        var tasks = _solution.Projects.Select(
+                            p => Task.Run(() => SearchAsync(p), _cancellationToken)).ToArray();
+
+                        await Task.WhenAll(tasks).ConfigureAwait(false);
                     }
                 }
                 catch (OperationCanceledException)
@@ -76,37 +75,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                 {
                     _callback.Done();
                 }
-            }
-
-            private async Task ProcessConnectedSetAsync(IEnumerable<ProjectId> connectedSet)
-            {
-                var visited = new HashSet<ProjectId>();
-
-                foreach (var projectId in connectedSet)
-                {
-                    await ProcessProjectAsync(projectId, visited).ConfigureAwait(false);
-                }
-            }
-
-            private async Task ProcessProjectAsync(ProjectId projectId, HashSet<ProjectId> visited)
-            {
-                // only process a project once.
-                if (!visited.Add(projectId))
-                {
-                    return;
-                }
-
-                var project = _solution.GetProject(projectId);
-
-                // visit dependencies of a project before processing the project itself.
-                foreach (var projectRef in project.ProjectReferences)
-                {
-                    await ProcessProjectAsync(projectRef.ProjectId, visited).ConfigureAwait(false);
-                }
-
-                // Now search the project itself.
-                // Kick off in a bg thread to ensure no processing happens on the UI thread.
-                await Task.Run(() => SearchAsync(project), _cancellationToken).ConfigureAwait(false);
             }
 
             private async Task SearchAsync(Project project)
@@ -123,6 +91,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
 
             private async Task SearchAsyncWorker(Project project)
             {
+                _cancellationToken.ThrowIfCancellationRequested();
+
                 if (_searchCurrentDocument && _currentDocument?.Project != project)
                 {
                     return;
