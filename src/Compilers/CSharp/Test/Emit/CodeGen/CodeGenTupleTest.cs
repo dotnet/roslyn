@@ -3586,7 +3586,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
                 // (8,32): error CS8305: Tuple type '(int, int)' does not have an explicitly named element 'a'. Please use language version 7.1 or greater to access a unnamed element by its inferred name.
                 //         System.Console.Write(t.a);
@@ -3611,7 +3611,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.DebugDll);
+            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.DebugDll);
             comp.VerifyDiagnostics(
                 // (8,32): error CS1061: '(int, int)' does not contain a definition for 'b' and no extension method 'b' accepting a first argument of type '(int, int)' could be found (are you missing a using directive or an assembly reference?)
                 //         System.Console.Write(t.b);

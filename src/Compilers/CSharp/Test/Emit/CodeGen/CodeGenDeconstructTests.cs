@@ -1072,7 +1072,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
+            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
             comp.VerifyDiagnostics(
                 // (8,37): error CS8305: Tuple type '(int, int)' does not have an explicitly named element 'x'. Please use language version 7.1 or greater to access a unnamed element by its inferred name.
