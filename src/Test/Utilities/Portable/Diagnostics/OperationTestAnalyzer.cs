@@ -820,7 +820,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                  (operationContext) =>
                  {
                      var declarationStatement = (IVariableDeclarationStatement)operationContext.Operation;
-                     if (declarationStatement.GetDeclaredSymbols().Count() > 3)
+                     if (declarationStatement.GetDeclaredVariables().Count() > 3)
                      {
                          Report(operationContext, declarationStatement.Syntax, TooManyLocalVarDeclarationsDescriptor);
                      }
@@ -1717,7 +1717,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true);
 
-        // since we don't expect to see the first diagnostic, we created this one to make sure 
+        // since we don't expect to see the first diagnostic, we created this one to make sure
         // the test didn't pass because the analyzer crashed.
         public static readonly DiagnosticDescriptor ParamsArrayOperationDescriptor = new DiagnosticDescriptor(
             "ParamsArray",

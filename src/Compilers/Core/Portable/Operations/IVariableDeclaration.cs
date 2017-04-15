@@ -14,11 +14,13 @@ namespace Microsoft.CodeAnalysis.Semantics
     public interface IVariableDeclaration : IOperation
     {
         /// <summary>
-        /// Symbols declared by the declaration.
+        /// Symbols declared by the declaration. In VB, it's possible to declare multiple variables with the
+        /// same initializer. In C#, this will always have a single symbol.
         /// </summary>
         ImmutableArray<ILocalSymbol> Variables { get; }
+
         /// <summary>
-        /// Initializer of the variable.
+        /// Optional initializer of the variable.
         /// </summary>
         IOperation Initializer { get; }
     }
