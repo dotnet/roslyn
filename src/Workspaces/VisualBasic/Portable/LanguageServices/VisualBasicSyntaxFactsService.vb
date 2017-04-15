@@ -1040,7 +1040,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 First = False
             Next
 
-            builder.Append(")")
+            builder.Append(")"c)
 
             Return pooledBuilder.ToStringAndFree()
         End Function
@@ -1053,11 +1053,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim pooledBuilder = PooledStringBuilder.GetInstance()
 
             Dim builder = pooledBuilder.Builder
-            builder.Append("(")
+            builder.Append("("c)
             If parameterList IsNot Nothing Then
                 AppendParameters(parameterList.Parameters, builder)
             End If
-            builder.Append(")")
+            builder.Append(")"c)
 
             Return pooledBuilder.ToStringAndFree()
         End Function

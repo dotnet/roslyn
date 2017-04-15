@@ -932,14 +932,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         private string GetConstructorSuffix(ConstructorDeclarationSyntax constructor)
             => constructor.Modifiers.Any(SyntaxKind.StaticKeyword) 
                 ? ".static " + constructor.Identifier + "()"
-                : GetSuffix("(", ")", constructor.ParameterList.Parameters);
+                : GetSuffix('(', ')', constructor.ParameterList.Parameters);
 
         private string GetMethodSuffix(MethodDeclarationSyntax method)
             => GetTypeParameterSuffix(method.TypeParameterList) +
-               GetSuffix("(", ")", method.ParameterList.Parameters);
+               GetSuffix('(', ')', method.ParameterList.Parameters);
 
         private string GetIndexerSuffix(IndexerDeclarationSyntax indexer)
-            => GetSuffix("[", "]", indexer.ParameterList.Parameters);
+            => GetSuffix('[', ']', indexer.ParameterList.Parameters);
 
         private string GetTypeParameterSuffix(TypeParameterListSyntax typeParameterList)
         {
@@ -951,7 +951,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var pooledBuilder = PooledStringBuilder.GetInstance();
 
             var builder = pooledBuilder.Builder;
-            builder.Append("<");
+            builder.Append('<');
 
             var first = true;
             foreach (var parameter in typeParameterList.Parameters)
@@ -964,14 +964,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 builder.Append(parameter.Identifier.Text);
             }
 
-            builder.Append(">");
+            builder.Append('>');
 
             return pooledBuilder.ToStringAndFree();
         }
 
 
         private string GetSuffix(
-            string openBrace, string closeBrace, SeparatedSyntaxList<ParameterSyntax> parameters)
+            char openBrace, char closeBrace, SeparatedSyntaxList<ParameterSyntax> parameters)
         {
             var pooledBuilder = PooledStringBuilder.GetInstance();
 
@@ -993,9 +993,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     builder.Append(", ");
                 }
 
-                if (parameter.Modifiers.Any(SyntaxKind.ThisKeyword))
+                foreach (var modifier in parameter.Modifiers)
                 {
-                    builder.Append("this ");
+                    builder.Append(modifier.Text);
+                    builder.Append(' ');
                 }
 
                 AppendTokens(parameter.Type, builder);
