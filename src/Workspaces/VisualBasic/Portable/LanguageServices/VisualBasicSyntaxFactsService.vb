@@ -1054,9 +1054,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' No accessibility modifiers
             Select Case node.Parent.Kind()
-                Case SyntaxKind.ClassBlock
-                Case SyntaxKind.StructureBlock
-                Case SyntaxKind.InterfaceBlock
+                Case SyntaxKind.ClassBlock,
+                     SyntaxKind.StructureBlock,
+                     SyntaxKind.InterfaceBlock
                     ' Anything without modifiers in a class/struct/interface
                     Return Accessibility.Public
             End Select
