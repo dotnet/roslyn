@@ -178,12 +178,11 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                     document, declaredSymbolInfo.Span,
                     symbol.GetGlyph(), GetSymbolDisplayTaggedParts(document, symbol));
 
-                var summary = symbol.GetDocumentationComment()?.SummaryText;
                 var additionalInfo = GetAdditionalInfo(declaredSymbolInfo, document);
 
                 return new SearchResult(
                     document, declaredSymbolInfo, kind, matchKind,
-                    isCaseSensitive, navigableItem, summary, additionalInfo,
+                    isCaseSensitive, navigableItem, additionalInfo,
                     matches.CandidateMatches.SelectMany(m => m.MatchedSpans).ToImmutableArray());
             }
 

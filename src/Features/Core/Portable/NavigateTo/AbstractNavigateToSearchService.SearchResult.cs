@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             public SearchResult(
                 Document document, DeclaredSymbolInfo declaredSymbolInfo, string kind,
                 NavigateToMatchKind matchKind, bool isCaseSensitive, INavigableItem navigableItem,
-                string summary, string additionalInfo, ImmutableArray<TextSpan> nameMatchSpans)
+                string additionalInfo, ImmutableArray<TextSpan> nameMatchSpans)
             {
                 _document = document;
                 _declaredSymbolInfo = declaredSymbolInfo;
@@ -43,7 +43,6 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 NameMatchSpans = nameMatchSpans;
                 SecondarySort = ConstructSecondarySortString(document, declaredSymbolInfo);
 
-                Summary = summary;
                 AdditionalInformation = additionalInfo;
             }
 

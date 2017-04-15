@@ -41,7 +41,6 @@ namespace Microsoft.CodeAnalysis.Remote
         public string Name;
         public TextSpan[] NameMatchSpans;
         public string SecondarySort;
-        public string Summary;
 
         public SerializableNavigableItem NavigableItem;
 
@@ -56,7 +55,6 @@ namespace Microsoft.CodeAnalysis.Remote
                 Name = result.Name,
                 NameMatchSpans = result.NameMatchSpans.ToArray(),
                 SecondarySort = result.SecondarySort,
-                Summary = result.Summary,
                 NavigableItem = SerializableNavigableItem.Dehydrate(result.NavigableItem)
             };
         }
@@ -66,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Remote
             return new NavigateToSearchResult(
                 AdditionalInformation, Kind, MatchKind, IsCaseSensitive,
                 Name, NameMatchSpans.ToImmutableArray(),
-                SecondarySort, Summary, NavigableItem.Rehydrate(solution));
+                SecondarySort, NavigableItem.Rehydrate(solution));
         }
 
         private class NavigateToSearchResult : INavigateToSearchResult
@@ -85,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Remote
             public NavigateToSearchResult(
                 string additionalInformation, string kind, NavigateToMatchKind matchKind,
                 bool isCaseSensitive, string name, ImmutableArray<TextSpan> nameMatchSpans,
-                string secondarySort, string summary, INavigableItem navigableItem)
+                string secondarySort, INavigableItem navigableItem)
             {
                 AdditionalInformation = additionalInformation;
                 Kind = kind;
@@ -94,7 +92,6 @@ namespace Microsoft.CodeAnalysis.Remote
                 Name = name;
                 NameMatchSpans = nameMatchSpans;
                 SecondarySort = secondarySort;
-                Summary = summary;
                 NavigableItem = navigableItem;
             }
         }
