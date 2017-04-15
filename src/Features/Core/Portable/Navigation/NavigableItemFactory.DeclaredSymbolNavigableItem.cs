@@ -48,6 +48,7 @@ namespace Microsoft.CodeAnalysis.Navigation
                     case DeclaredSymbolInfoKind.Constant: return Glyph.ConstantPublic;
                     case DeclaredSymbolInfoKind.Delegate: return Glyph.DelegatePublic;
                     case DeclaredSymbolInfoKind.Enum: return Glyph.EnumPublic;
+                    case DeclaredSymbolInfoKind.EnumMember: return Glyph.EnumMemberPublic;
                     case DeclaredSymbolInfoKind.Event: return Glyph.EventPublic;
                     case DeclaredSymbolInfoKind.ExtensionMethod: return Glyph.ExtensionMethodPublic;
                     case DeclaredSymbolInfoKind.Field: return Glyph.FieldPublic;
@@ -63,12 +64,6 @@ namespace Microsoft.CodeAnalysis.Navigation
 
             private static Glyph GetGlyph(DeclaredSymbolInfoKind kind, Accessibility accessibility)
             {
-                // EnumMembers have no accessibility.
-                if (kind == DeclaredSymbolInfoKind.EnumMember)
-                {
-                    return Glyph.EnumMember;
-                }
-
                 // Glyphs are stored in this order:
                 //  ClassPublic,
                 //  ClassProtected,
