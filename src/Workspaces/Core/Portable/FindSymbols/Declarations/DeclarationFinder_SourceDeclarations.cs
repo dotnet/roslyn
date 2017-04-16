@@ -216,7 +216,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // If we don't have a dot in the pattern, just make a pattern matcher for the entire
             // pattern they passed in.  Otherwise, make a pattern matcher just for the part after
             // the dot.
-            var lastPartPatternMatcher = isDottedPattern
+            var lastPartPatternMatcher = !isDottedPattern
                 ? new PatternMatcher(pattern, includeMatchedSpans: false)
                 : new PatternMatcher(pattern.Substring(dotIndex + 1), includeMatchedSpans: false);
 
@@ -242,20 +242,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var entireNamePatternMatcher = new PatternMatcher(pattern, includeMatchedSpans: false);
             return symbolAndProjectIds.WhereAsArray(t =>
                 entireNamePatternMatcher.Matches(t.Symbol.Name, GetContainer(t.Symbol)));
-        }
-
-        private static string GetSearchName(ISymbol symbol)
-        {
-            if (symbol.IsConstructor() || symbol.IsStaticConstructor())
-            {
-                return symbol.ContainingType.Name;
-            }
-            else if (symbol.IsIndexer() && symbol.Name == WellKnownMemberNames.Indexer)
-            {
-                return "this";
-            }
-
-            return symbol.Name;
         }
 
         private static string GetContainer(ISymbol symbol)
