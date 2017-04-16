@@ -187,19 +187,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
         {
             var tokens = new List<SyntaxToken>();
 
-            var statements = node.ChildNodes()
-                                 .Where(x => x.IsKind(SyntaxKind.SwitchSection))
-                                 .SelectMany(x => x.ChildNodes().Where(n => n.IsKind(SyntaxKind.LocalDeclarationStatement)));
+            var statements = node.ChildNodes().Where(x => x.IsKind(SyntaxKind.SwitchSection)).SelectMany(x => x.ChildNodes());
 
-            // We want to collect any variable declarations that are in the block
-            // before visiting nested statements
             foreach (var statement in statements)
             {
-                var declarationStatement = (LocalDeclarationStatementSyntax)statement;
-
-                foreach (var declarator in declarationStatement.Declaration.Variables)
+                if (statement.Kind() == SyntaxKind.LocalDeclarationStatement)
                 {
-                    tokens.Add(declarator.Identifier);
+                    var declarationStatement = (LocalDeclarationStatementSyntax)statement;
+
+                    foreach (var declarator in declarationStatement.Declaration.Variables)
+                    {
+                        tokens.Add(declarator.Identifier);
+                    }
                 }
             }
 
