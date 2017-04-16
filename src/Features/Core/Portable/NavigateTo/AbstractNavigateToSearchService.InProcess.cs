@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 {
                     return await FindNavigableDeclaredSymbolInfosAsync(
                         project, searchDocument, containsDots, patternMatcher, 
-                        candidateMatches, containerMatchers, cancellationToken);
+                        candidateMatches, containerMatchers, cancellationToken).ConfigureAwait(false);
                 }
                 finally
                 {
