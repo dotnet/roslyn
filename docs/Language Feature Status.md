@@ -11,9 +11,9 @@ efforts behind them.
 | Feature | Branch | State | Developers | Reviewer | LDM Champ |
 | ------- | ------ | ----- | ---------- | -------- | --------- |
 | [Async Main](https://github.com/dotnet/csharplang/blob/master/proposals/async-main.md) | [async-main](https://github.com/dotnet/roslyn/tree/features/async-main)  | Prototype | [tyoverby](https://github.com/tyoverby) | [vsadov](https://github.com/vsadov) | [stephentoub](https://github.com/stephentoub) |
-| [Default Expressions](https://github.com/dotnet/csharplang/blob/master/proposals/target-typed-default.md) | [default](https://github.com/dotnet/roslyn/tree/features/default)  | Prototype | [jcouv](https://github.com/jcouv) | [cston](https://github.com/cston) | [jcouv](https://github.com/jcouv) |
-| [Ref Assemblies](https://github.com/dotnet/csharplang/blob/master/docs/features/refout.md) | [refout](https://github.com/dotnet/roslyn/tree/features/refout)  | Prototype | [jcouv](https://github.com/jcouv) | [gafter](https://github.com/gafter) | N/A |
-| [Infer tuple names](https://github.com/dotnet/csharplang/blob/master/docs/features/tuple-names.md) | [master](https://github.com/dotnet/roslyn)  | Prototype | [jcouv](https://github.com/jcouv) | [gafter](https://github.com/gafter) | [jcouv](https://github.com/jcouv) |
+| [Default Expressions](https://github.com/dotnet/csharplang/blob/master/proposals/target-typed-default.md) | master  | Complete | [jcouv](https://github.com/jcouv) | [cston](https://github.com/cston) | [jcouv](https://github.com/jcouv) |
+| [Ref Assemblies](https://github.com/dotnet/csharplang/blob/master/docs/features/refout.md) | [refout](https://github.com/dotnet/roslyn/tree/features/refout)  | Integration testing | [jcouv](https://github.com/jcouv) | [gafter](https://github.com/gafter) | N/A |
+| [Infer tuple names](https://github.com/dotnet/csharplang/blob/master/docs/features/tuple-names.md) | [tuple-names](https://github.com/dotnet/roslyn/tree/features/tuple-names)  | Implementation | [jcouv](https://github.com/jcouv) | [gafter](https://github.com/gafter) | [jcouv](https://github.com/jcouv) |
 
 # C# 7.2
 
