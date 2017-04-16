@@ -79,7 +79,7 @@ try {
 
 ```
 
-## Execution
+## Executing windows commands
 
 Invoking windows commands should be done via the Exec function.  This adds automatic error detection 
 to the invocation and removes the need for error prone if checking after every command.
@@ -91,5 +91,23 @@ to the invocation and removes the need for error prone if checking after every c
 Exec { & msbuild /v:m /m Roslyn.sln }
 ```
 
-Note this won't work for the rare Windows commands which use 0 as an exit code on failure.  For 
+Note this will not work for the rare Windows commands which use 0 as an exit code on failure.  For 
 example robocopy and corflags.
+
+In some cases windows commands need to have their argument list built up dynamically.  When that 
+happens do not use Invoke-Expression to execute the command, instead use Exec-Expression.  The former
+does not fail when the windows command fails and can lead to silent errors.  The Exec-Expression 
+will throw if the underlying expression or windows command fails.
+
+
+``` powershell
+$command = "& msbuild /v:m Roslyn.sln"
+if (...) { 
+    $command += " /fl /flp:v=diag"
+}
+# DO NOT
+Invoke-Expression $command
+# DO
+Exec-Expression $command
+```
+

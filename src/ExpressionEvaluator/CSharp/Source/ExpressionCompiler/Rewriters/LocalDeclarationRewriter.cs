@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         {
             if (!hasCustomTypeInfoPayload)
             {
-                return new BoundDefaultOperator(syntax, guidConstructor.ContainingType);
+                return new BoundDefaultExpression(syntax, guidConstructor.ContainingType);
             }
 
             var value = ConstantValue.Create(CustomTypeInfo.PayloadTypeId.ToString());

@@ -905,7 +905,7 @@ public class Program
         }
     }
 }");
-            var comp = CreateCompilationWithMscorlib(new[] { tree });
+            var comp = CreateStandardCompilation(new[] { tree });
             var semanticModel = comp.GetSemanticModel(tree);
             var foreachNode = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single();
             var flow = semanticModel.AnalyzeDataFlow(foreachNode);

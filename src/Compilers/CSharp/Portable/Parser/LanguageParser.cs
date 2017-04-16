@@ -9784,7 +9784,7 @@ tryAgain:
                 SyntaxToken lastTokenOfType;
                 ScanTypeFlags st = this.ScanType(out lastTokenOfType);
 
-                return st != ScanTypeFlags.NotType && this.IsTrueIdentifier(); 
+                return st != ScanTypeFlags.NotType && this.IsTrueIdentifier();
             }
             finally
             {
@@ -9803,16 +9803,23 @@ tryAgain:
             return _syntaxFactory.TypeOfExpression(keyword, openParen, type, closeParen);
         }
 
-        private DefaultExpressionSyntax ParseDefaultExpression()
+        private ExpressionSyntax ParseDefaultExpression()
         {
             var keyword = this.EatToken();
-            var openParen = this.EatToken(SyntaxKind.OpenParenToken);
-            var type = this.ParseType();
-            var closeParen = this.EatToken(SyntaxKind.CloseParenToken);
+            if (this.CurrentToken.Kind == SyntaxKind.OpenParenToken)
+            {
+                var openParen = this.EatToken(SyntaxKind.OpenParenToken);
+                var type = this.ParseType();
+                var closeParen = this.EatToken(SyntaxKind.CloseParenToken);
 
-            keyword = CheckFeatureAvailability(keyword, MessageID.IDS_FeatureDefault);
-
-            return _syntaxFactory.DefaultExpression(keyword, openParen, type, closeParen);
+                keyword = CheckFeatureAvailability(keyword, MessageID.IDS_FeatureDefault);
+                return _syntaxFactory.DefaultExpression(keyword, openParen, type, closeParen);
+            }
+            else
+            {
+                keyword = CheckFeatureAvailability(keyword, MessageID.IDS_FeatureDefaultLiteral);
+                return _syntaxFactory.LiteralExpression(SyntaxKind.DefaultLiteralExpression, keyword);
+            }
         }
 
         private SizeOfExpressionSyntax ParseSizeOfExpression()

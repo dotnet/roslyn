@@ -139,7 +139,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             End If
 
             If container Is Nothing Then
-                Return Nothing
+                Return ImmutableArray(Of ISymbol).Empty
             End If
             Dim symbols = semanticModel.LookupSymbols(position, container)
 

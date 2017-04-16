@@ -38,7 +38,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
   }
 }]]>.Value
 
-            Dim reference1 = CompileIL(source1, appendDefaultHeader:=False)
+            Dim reference1 = CompileIL(source1, prependDefaultHeader:=False)
             Dim source2 =
                 <compilation>
                     <file name="a.vb">
@@ -87,7 +87,7 @@ End Class
   }
 }]]>.Value
 
-            Dim reference1 = CompileIL(source1, appendDefaultHeader:=False)
+            Dim reference1 = CompileIL(source1, prependDefaultHeader:=False)
             Dim source2 =
                 <compilation>
                     <file name="a.vb">

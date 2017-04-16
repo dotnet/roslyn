@@ -259,19 +259,19 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
         }
 
-        internal static MetadataReference CompileIL(string ilSource, bool appendDefaultHeader = true, bool embedInteropTypes = false)
+        internal static MetadataReference CompileIL(string ilSource, bool prependDefaultHeader = true, bool embedInteropTypes = false)
         {
             ImmutableArray<byte> assemblyBytes;
             ImmutableArray<byte> pdbBytes;
-            EmitILToArray(ilSource, appendDefaultHeader, includePdb: false, assemblyBytes: out assemblyBytes, pdbBytes: out pdbBytes);
+            EmitILToArray(ilSource, prependDefaultHeader, includePdb: false, assemblyBytes: out assemblyBytes, pdbBytes: out pdbBytes);
             return AssemblyMetadata.CreateFromImage(assemblyBytes).GetReference(embedInteropTypes: embedInteropTypes);
         }
 
-        internal static MetadataReference GetILModuleReference(string ilSource, bool appendDefaultHeader = true)
+        internal static MetadataReference GetILModuleReference(string ilSource, bool prependDefaultHeader = true)
         {
             ImmutableArray<byte> assemblyBytes;
             ImmutableArray<byte> pdbBytes;
-            EmitILToArray(ilSource, appendDefaultHeader, includePdb: false, assemblyBytes: out assemblyBytes, pdbBytes: out pdbBytes);
+            EmitILToArray(ilSource, prependDefaultHeader, includePdb: false, assemblyBytes: out assemblyBytes, pdbBytes: out pdbBytes);
             return ModuleMetadata.CreateFromImage(assemblyBytes).GetReference();
         }
 

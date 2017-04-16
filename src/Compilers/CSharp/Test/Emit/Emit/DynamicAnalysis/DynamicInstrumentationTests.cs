@@ -2565,7 +2565,7 @@ class D
     void M() {}
 }
 ";
-            var c = CreateCompilationWithMscorlib(source + InstrumentationHelperSource, options: TestOptions.ReleaseDll);
+            var c = CreateStandardCompilation(source + InstrumentationHelperSource, options: TestOptions.ReleaseDll);
             c.VerifyDiagnostics();
 
             var verifier = CompileAndVerify(c, emitOptions: EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)));
@@ -2602,7 +2602,7 @@ class D
     void M() {}
 }
 ";
-            var c = CreateCompilationWithMscorlib(source + InstrumentationHelperSource, options: TestOptions.ReleaseDll);
+            var c = CreateStandardCompilation(source + InstrumentationHelperSource, options: TestOptions.ReleaseDll);
             c.VerifyDiagnostics();
 
             var verifier = CompileAndVerify(c, emitOptions: EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)));
