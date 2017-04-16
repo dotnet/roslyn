@@ -3665,6 +3665,54 @@ class C
         }
 
         [Fact]
+        public void TupleCreationWithInferredNames2()
+        {
+            var source = @"
+class C
+{
+    private int e = 5;
+}
+class C2
+{
+    C instance = null;
+    C2 instance2 = null;
+    int M()
+    {
+        var y = (instance?.e, (instance.e, instance2.M(), checked(instance.e), default(int)));
+        System.Console.Write(y);
+        return 42;
+    }
+}
+";
+
+            var compilation = CreateStandardCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1),
+                references: new[] { MscorlibRef, ValueTupleRef, SystemRuntimeFacadeRef });
+            compilation.VerifyDiagnostics(
+                // (12,27): error CS0122: 'C.e' is inaccessible due to its protection level
+                //         var y = (instance?.e, (instance.e, instance2.M(), checked(instance.e), default(int)));
+                Diagnostic(ErrorCode.ERR_BadAccess, ".e").WithArguments("C.e").WithLocation(12, 27),
+                // (12,41): error CS0122: 'C.e' is inaccessible due to its protection level
+                //         var y = (instance?.e, (instance.e, instance2.M(), checked(instance.e), default(int)));
+                Diagnostic(ErrorCode.ERR_BadAccess, "e").WithArguments("C.e").WithLocation(12, 41),
+                // (12,76): error CS0122: 'C.e' is inaccessible due to its protection level
+                //         var y = (instance?.e, (instance.e, instance2.M(), checked(instance.e), default(int)));
+                Diagnostic(ErrorCode.ERR_BadAccess, "e").WithArguments("C.e").WithLocation(12, 76),
+                // (4,17): warning CS0414: The field 'C.e' is assigned but its value is never used
+                //     private int e = 5;
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "e").WithArguments("C.e")
+                );
+
+            var tree = compilation.SyntaxTrees.First();
+            var model = compilation.GetSemanticModel(tree);
+            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+
+            // PROTOTYPE(tuple-names) The type for int? was not picked up
+            var yTuple = nodes.OfType<TupleExpressionSyntax>().ElementAt(0);
+            Assert.Equal("(? e, (System.Int32 e, System.Int32, System.Int32, System.Int32))",
+                model.GetTypeInfo(yTuple).Type.ToTestDisplayString());
+        }
+
+        [Fact]
         public void InferredNamesInLinq()
         {
             var source = @"

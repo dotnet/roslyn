@@ -5896,7 +5896,7 @@ End Class
         End Sub
 
         <Fact>
-        Public Sub TupleCreationWithInferredNamesWithVB15_3()
+        Public Sub TupleCreationWithInferredNames()
             Dim verifier = CompileAndVerify(
 <compilation>
     <file name="a.vb">
@@ -5934,6 +5934,39 @@ End Class
 
                         Dim zTuple = nodes.OfType(Of TupleExpressionSyntax)().ElementAt(1)
                         Assert.Equal("(x As System.Int32, b As System.Int32)", model.GetTypeInfo(zTuple).Type.ToTestDisplayString())
+                    End Sub)
+
+            verifier.VerifyDiagnostics()
+        End Sub
+
+        <Fact>
+        Public Sub TupleCreationWithInferredNames2()
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Class C
+    Dim e As Integer = 5
+    Dim instance As C = Nothing
+    Function M() As Integer
+        Dim y As (Integer?, object) = (instance?.e, (e, instance.M()))
+        System.Console.Write(y)
+        Return 42
+    End Function
+End Class
+    </file>
+</compilation>,
+                additionalRefs:=s_valueTupleRefs,
+                parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_3),
+                sourceSymbolValidator:=
+                    Sub(m As ModuleSymbol)
+                        Dim compilation = m.DeclaringCompilation
+                        Dim tree = compilation.SyntaxTrees.First()
+                        Dim model = compilation.GetSemanticModel(tree)
+                        Dim nodes = tree.GetCompilationUnitRoot().DescendantNodes()
+
+                        Dim yTuple = nodes.OfType(Of TupleExpressionSyntax)().ElementAt(0)
+                        Assert.Equal("(e As System.Nullable(Of System.Int32), (e As System.Int32, M As System.Int32))",
+                            model.GetTypeInfo(yTuple).Type.ToTestDisplayString())
                     End Sub)
 
             verifier.VerifyDiagnostics()
