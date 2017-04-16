@@ -6031,6 +6031,61 @@ End Class
         End Sub
 
         <Fact>
+        Public Sub InferredNamesInTernary()
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Class C
+    Shared Sub Main()
+        Dim i = 1
+        Dim flag = False
+        Dim t = If(flag, (i, 2), (i, 3))
+        System.Console.Write(t.i)
+    End Sub
+End Class
+    </file>
+</compilation>,
+                additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef, LinqAssemblyRef},
+                parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_3),
+                expectedOutput:="1")
+
+            verifier.VerifyDiagnostics()
+        End Sub
+
+        <Fact>
+        Public Sub InferredNames_ExtensionInvokedInVB15ButNotVB15_3()
+            Dim source = <compilation>
+                             <file name="a.vb">
+Imports System
+Class C
+    Shared Sub Main()
+        Dim M As Action = Sub() Console.Write("lambda")
+        Dim t = (1, M)
+        t.M()
+    End Sub
+End Class
+Module Extensions
+    &lt;System.Runtime.CompilerServices.Extension()&gt;
+    Public Sub M(self As (Integer, Action))
+        Console.Write("extension")
+    End Sub
+End Module
+    </file>
+                         </compilation>
+            Dim verifier15 = CompileAndVerify(source,
+                additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef},
+                parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15),
+                expectedOutput:="extension")
+            verifier15.VerifyDiagnostics()
+
+            Dim verifier15_3 = CompileAndVerify(source,
+                additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef},
+                parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_3),
+                expectedOutput:="lambda")
+            verifier15_3.VerifyDiagnostics()
+        End Sub
+
+        <Fact>
         Public Sub LongTupleWithArgumentEvaluation()
 
             Dim verifier = CompileAndVerify(

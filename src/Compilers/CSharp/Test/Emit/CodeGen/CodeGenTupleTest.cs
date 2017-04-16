@@ -3701,6 +3701,59 @@ class C
         }
 
         [Fact]
+        public void InferredNamesInTernary()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        var i = 1;
+        var flag = false;
+        var t = flag ? (i, 2) : (i, 3);
+        System.Console.Write(t.i);
+    }
+}
+";
+
+
+            var verifier = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1),
+                additionalRefs: new[] { MscorlibRef, ValueTupleRef, SystemRuntimeFacadeRef, LinqAssemblyRef },
+                expectedOutput:"1");
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void InferredNames_ExtensionInvokedInCSharp7ButNotCSharp7_1()
+        {
+            var source = @"
+using System;
+class C
+{
+    static void Main()
+    {
+        Action M = () => Console.Write(""lambda"");
+        (1, M).M();
+    }
+}
+static class Extension
+{
+    public static void M(this (int, Action) t) => Console.Write(""extension"");
+}
+";
+
+            var verifier7 = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7),
+                additionalRefs: new[] { MscorlibRef, ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef },
+                expectedOutput: "extension");
+            verifier7.VerifyDiagnostics();
+
+            var verifier7_1 = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1),
+                additionalRefs: new[] { MscorlibRef, ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef },
+                expectedOutput: "lambda");
+            verifier7_1.VerifyDiagnostics();
+        }
+
+        [Fact]
         public void LongTupleWithArgumentEvaluation()
         {
             var source = @"
