@@ -250,17 +250,6 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                    GetFirstMatchWorker(candidate, includeMatchSpans, fuzzyMatch: true);
         }
 
-        public PatternMatch? GetFirstMatch(
-            string candidate, bool includeMatchSpans, bool fuzzyMatch)
-        {
-            if (SkipMatch(candidate))
-            {
-                return null;
-            }
-
-            return GetFirstMatchWorker(candidate, includeMatchSpans, fuzzyMatch);
-        }
-
         private PatternMatch? GetFirstMatchWorker(
             string candidate, bool includeMatchSpans, bool fuzzyMatch)
         {
