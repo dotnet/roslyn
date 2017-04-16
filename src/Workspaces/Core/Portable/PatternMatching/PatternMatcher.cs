@@ -611,7 +611,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                 if (camelCaseWeight.HasValue)
                 {
                     return new PatternMatch(
-                        PatternMatchKind.CamelCase, punctuationStripped, isCaseSensitive: false, camelCaseWeight: camelCaseWeight,
+                        GetCamelCaseKind(camelCaseWeight.Value), punctuationStripped, isCaseSensitive: false,
                         matchedSpans: GetMatchedSpans(matchedSpans));
                 }
             }
@@ -626,7 +626,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                     if (camelCaseWeight.HasValue)
                     {
                         return new PatternMatch(
-                            PatternMatchKind.CamelCase, punctuationStripped, isCaseSensitive: true, camelCaseWeight: camelCaseWeight,
+                            GetCamelCaseKind(camelCaseWeight.Value), punctuationStripped, isCaseSensitive: true,
                             matchedSpans: GetMatchedSpans(matchedSpans));
                     }
 
@@ -634,13 +634,26 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                     if (camelCaseWeight.HasValue)
                     {
                         return new PatternMatch(
-                            PatternMatchKind.CamelCase, punctuationStripped, isCaseSensitive: false, camelCaseWeight: camelCaseWeight,
+                            GetCamelCaseKind(camelCaseWeight.Value), punctuationStripped, isCaseSensitive: false,
                             matchedSpans: GetMatchedSpans(matchedSpans));
                     }
                 }
             }
 
             return null;
+        }
+
+        private PatternMatchKind GetCamelCaseKind(int camelCaseWeight)
+        {
+            switch (camelCaseWeight)
+            {
+                case NoBonus: return PatternMatchKind.CamelCase;
+                case CamelCaseContiguousBonus: return PatternMatchKind.CamelCaseContiguous;
+                case CamelCaseMatchesFromStartBonus: return PatternMatchKind.CamelCaseFromStart;
+                case CamelCaseMaxWeight: return PatternMatchKind.CamelCaseContiguousFromStart;
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(camelCaseWeight);
+            }
         }
 
         private int? TryAllLowerCamelCaseMatch(

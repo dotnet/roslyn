@@ -25,7 +25,26 @@ namespace Microsoft.CodeAnalysis.PatternMatching
         Substring,
 
         /// <summary>
-        /// The pattern matched the CamelCased candidate string.
+        /// The pattern matched the CamelCased candidate string.  The pattern matched the first
+        /// camel-hump and matched all following humps.
+        /// </summary>
+        CamelCaseContiguousFromStart,
+
+        /// <summary>
+        /// The pattern matched the CamelCased candidate string.  The pattern matched the first
+        /// camel-hump but didn't match all following humps.
+        /// </summary>
+        CamelCaseFromStart,
+
+        /// <summary>
+        /// The pattern matched the CamelCased candidate string.  The pattern did not match the
+        /// first camel-hump, but once it matched all humps were contiguous.
+        /// </summary>
+        CamelCaseContiguous,
+
+        /// <summary>
+        /// The pattern matched the CamelCased candidate string.  The pattern did not match the
+        /// first camel-hump, and not all the humps were were contiguous.
         /// </summary>
         CamelCase,
 
