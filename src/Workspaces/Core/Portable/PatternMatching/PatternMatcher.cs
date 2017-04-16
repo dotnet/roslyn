@@ -580,7 +580,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                     matches.Add(result.Value);
                 }
 
-                if (wantAllMatches)
+                if (wantAllMatches && matches.Count >= 2)
                 {
                     allMatches = matches.ToImmutable();
                     return null;
