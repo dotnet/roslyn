@@ -106,8 +106,6 @@ namespace Microsoft.CodeAnalysis.PatternMatching
             }
         }
 
-        public bool IsDottedPattern => _dotSeparatedPatternSegments.Length > 1;
-
         private bool SkipMatch(string candidate)
         {
             return _invalidPattern || string.IsNullOrWhiteSpace(candidate);
