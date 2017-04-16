@@ -20,6 +20,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
             _tracker = new ConflictingIdentifierTracker(tokenBeingRenamed, StringComparer.Ordinal);
         }
 
+        private void VisitBlockStatements(SyntaxNode node, IEnumerable<SyntaxNode> statements)
+        {
+            var tokens = new List<SyntaxToken>();
+
+            // We want to collect any variable declarations that are in the block
+            // before visiting nested statements
+            foreach (var statement in statements)
+            {
+                if (statement.Kind() == SyntaxKind.LocalDeclarationStatement)
+                {
+                    var declarationStatement = (LocalDeclarationStatementSyntax)statement;
+
+                    foreach (var declarator in declarationStatement.Declaration.Variables)
+                    {
+                        tokens.Add(declarator.Identifier);
+                    }
+                }
+            }
+
+            _tracker.AddIdentifiers(tokens);
+            DefaultVisit(node);
+            _tracker.RemoveIdentifiers(tokens);
+        }
+
         public override void DefaultVisit(SyntaxNode node)
         {
             foreach (var child in node.ChildNodes())
@@ -38,26 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
 
         public override void VisitBlock(BlockSyntax node)
         {
-            var tokens = new List<SyntaxToken>();
-
-            // We want to collect any variable declarations that are in the block
-            // before visiting nested statements
-            foreach (var statement in node.Statements)
-            {
-                if (statement.Kind() == SyntaxKind.LocalDeclarationStatement)
-                {
-                    var declarationStatement = (LocalDeclarationStatementSyntax)statement;
-
-                    foreach (var declarator in declarationStatement.Declaration.Variables)
-                    {
-                        tokens.Add(declarator.Identifier);
-                    }
-                }
-            }
-
-            _tracker.AddIdentifiers(tokens);
-            DefaultVisit(node);
-            _tracker.RemoveIdentifiers(tokens);
+            VisitBlockStatements(node, node.Statements);
         }
 
         public override void VisitForEachStatement(ForEachStatementSyntax node)
@@ -185,26 +190,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
 
         public override void VisitSwitchStatement(SwitchStatementSyntax node)
         {
-            var tokens = new List<SyntaxToken>();
-
             var statements = node.ChildNodes().Where(x => x.IsKind(SyntaxKind.SwitchSection)).SelectMany(x => x.ChildNodes());
 
-            foreach (var statement in statements)
-            {
-                if (statement.Kind() == SyntaxKind.LocalDeclarationStatement)
-                {
-                    var declarationStatement = (LocalDeclarationStatementSyntax)statement;
-
-                    foreach (var declarator in declarationStatement.Declaration.Variables)
-                    {
-                        tokens.Add(declarator.Identifier);
-                    }
-                }
-            }
-
-            _tracker.AddIdentifiers(tokens);
-            DefaultVisit(node);
-            _tracker.RemoveIdentifiers(tokens);
+            VisitBlockStatements(node, statements);
         }
 
         public IEnumerable<SyntaxToken> ConflictingTokens
