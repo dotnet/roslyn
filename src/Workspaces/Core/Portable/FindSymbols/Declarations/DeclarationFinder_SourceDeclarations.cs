@@ -214,37 +214,39 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // we don't want to check the whole pattern against it (as it will clearly fail), instead
             // we only want to check the 'WL' portion.  Then, after we get all the candidate symbols
             // we'll check if the full name matches the full pattern.
-            var patternMatcher = new PatternMatcher(pattern);
-            var query = SearchQuery.CreateCustom(
-                k => !patternMatcher.GetMatchesForLastSegmentOfPattern(k).IsDefaultOrEmpty);
+            var dotIndex = pattern.IndexOf('.');
+            var isDottedPattern = dotIndex >= 0;
+
+            // If we don't have a dot in the pattern, just make a pattern matcher for the entire
+            // pattern they passed in.  Otherwise, make a pattern matcher just for the part after
+            // the dot.
+            var lastPartPatternMatcher = isDottedPattern
+                ? new PatternMatcher(pattern)
+                : new PatternMatcher(pattern.Substring(dotIndex + 1));
+
+            var query = SearchQuery.CreateCustom(k =>
+                lastPartPatternMatcher.GetFirstMatch(k, includeMatchSpans: false) != null);
 
             var symbolAndProjectIds = await SymbolFinder.FindSourceDeclarationsWithCustomQueryAsync(
                 project, query, criteria, cancellationToken).ConfigureAwait(false);
 
-            var result = ArrayBuilder<SymbolAndProjectId>.GetInstance();
-
-            // Now see if the symbols the compiler returned actually match the full pattern.
-            foreach (var symbolAndProjectId in symbolAndProjectIds)
+            if (symbolAndProjectIds.Length == 0)
             {
-                var symbol = symbolAndProjectId.Symbol;
-
-                // As an optimization, don't bother getting the container for this symbol if this
-                // isn't a dotted pattern.  Getting the container could cause lots of string 
-                // allocations that we don't if we're never going to check it.
-                var matches = !patternMatcher.IsDottedPattern
-                    ? new PatternMatches(patternMatcher.GetMatches(GetSearchName(symbol)))
-                    : patternMatcher.GetMatches(GetSearchName(symbol), GetContainer(symbol));
-
-                if (matches.IsEmpty)
-                {
-                    // Didn't actually match the full pattern, ignore it.
-                    continue;
-                }
-
-                result.Add(symbolAndProjectId);
+                return ImmutableArray<SymbolAndProjectId>.Empty;
             }
 
-            return result.ToImmutableAndFree();
+            if (!isDottedPattern)
+            {
+                // If it wasn't a dotted pattern, then we're done.  We can just return whatever
+                // set of results we got so far.
+                return symbolAndProjectIds;
+            }
+
+            // Ok, we had a dotted pattern.  Have to see if the symbol's container matches the 
+            // pattern as well.
+            var entireNamePatternMatcher = new PatternMatcher(pattern);
+            return symbolAndProjectIds.WhereAsArray(t =>
+                !entireNamePatternMatcher.GetMatches(t.Symbol.Name, GetContainer(t.Symbol)).IsEmpty);
         }
 
         private static string GetSearchName(ISymbol symbol)

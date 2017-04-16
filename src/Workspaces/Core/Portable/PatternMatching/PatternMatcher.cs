@@ -131,22 +131,6 @@ namespace Microsoft.CodeAnalysis.PatternMatching
             return MatchPatternSegment(candidate, includeMatchSpans, _fullPatternSegment, fuzzyMatch: false);
         }
 
-        public ImmutableArray<PatternMatch> GetMatchesForLastSegmentOfPattern(string candidate)
-        {
-            if (SkipMatch(candidate))
-            {
-                return ImmutableArray<PatternMatch>.Empty;
-            }
-
-            var result = MatchPatternSegment(candidate, includeMatchSpans: false, patternSegment: _dotSeparatedPatternSegments.Last(), fuzzyMatch: false);
-            if (!result.IsEmpty)
-            {
-                return result;
-            }
-
-            return MatchPatternSegment(candidate, includeMatchSpans: false, patternSegment: _dotSeparatedPatternSegments.Last(), fuzzyMatch: true);
-        }
-
         public PatternMatches GetMatches(string candidate, string dottedContainer)
             => GetMatches(candidate, dottedContainer, includeMatchSpans: false);
 
