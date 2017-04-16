@@ -17,16 +17,16 @@ namespace Microsoft.CodeAnalysis.PatternMatching
         /// </summary>
         private struct AllLowerCamelCaseMatcher
         {
-            private readonly string _candidate;
             private readonly bool _includeMatchedSpans;
+            private readonly string _candidate;
             private readonly StringBreaks _candidateHumps;
             private readonly TextChunk _patternChunk;
             private readonly string _patternText;
 
-            public AllLowerCamelCaseMatcher(string candidate, bool includeMatchedSpans, StringBreaks candidateHumps, TextChunk patternChunk)
+            public AllLowerCamelCaseMatcher(bool includeMatchedSpans, string candidate, StringBreaks candidateHumps, TextChunk patternChunk)
             {
-                _candidate = candidate;
                 _includeMatchedSpans = includeMatchedSpans;
+                _candidate = candidate;
                 _candidateHumps = candidateHumps;
                 _patternChunk = patternChunk;
                 _patternText = _patternChunk.Text;

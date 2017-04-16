@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             Project project, Document searchDocument, string pattern, CancellationToken cancellationToken)
         {
             var containsDots = pattern.IndexOf('.') >= 0;
-            using (var patternMatcher = new PatternMatcher(pattern, allowFuzzyMatching: true))
+            using (var patternMatcher = new PatternMatcher(pattern, includeMatchedSpans: true, allowFuzzyMatching: true))
             {
                 var result = ArrayBuilder<INavigateToSearchResult>.GetInstance();
                 foreach (var document in project.Documents)
@@ -52,8 +52,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                         cancellationToken.ThrowIfCancellationRequested();
                         var patternMatches = patternMatcher.GetMatches(
                             GetSearchName(declaredSymbolInfo),
-                            declaredSymbolInfo.FullyQualifiedContainerName,
-                            includeMatchSpans: true);
+                            declaredSymbolInfo.FullyQualifiedContainerName);
 
                         if (!patternMatches.IsEmpty)
                         {
