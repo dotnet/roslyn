@@ -220,8 +220,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 ? new PatternMatcher(pattern, includeMatchedSpans: false)
                 : new PatternMatcher(pattern.Substring(dotIndex + 1), includeMatchedSpans: false);
 
-            var query = SearchQuery.CreateCustom(k =>
-                lastPartPatternMatcher.GetFirstMatch(k) != null);
+            var query = SearchQuery.CreateCustom(lastPartPatternMatcher.Matches);
 
             var symbolAndProjectIds = await SymbolFinder.FindSourceDeclarationsWithCustomQueryAsync(
                 project, query, criteria, cancellationToken).ConfigureAwait(false);
@@ -242,7 +241,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // pattern as well.
             var entireNamePatternMatcher = new PatternMatcher(pattern, includeMatchedSpans: false);
             return symbolAndProjectIds.WhereAsArray(t =>
-                !entireNamePatternMatcher.GetMatches(t.Symbol.Name, GetContainer(t.Symbol)).IsEmpty);
+                entireNamePatternMatcher.Matches(t.Symbol.Name, GetContainer(t.Symbol)));
         }
 
         private static string GetSearchName(ISymbol symbol)

@@ -4,9 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Globalization;
-using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.PatternMatching;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -514,9 +512,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
         {
             MarkupTestFile.GetSpans(candidate, out candidate, out ImmutableArray<TextSpan> expectedSpans);
 
-            var matches = new PatternMatcher(pattern, includeMatchedSpans: true).GetMatches(candidate);
+            var matches = ArrayBuilder<PatternMatch>.GetInstance();
+            new PatternMatcher(pattern, includeMatchedSpans: true).AddMatches(candidate, matches);
 
-            if (matches.IsDefaultOrEmpty)
+            if (matches.Count == 0)
             {
                 Assert.True(expectedSpans.Length == 0);
                 return null;

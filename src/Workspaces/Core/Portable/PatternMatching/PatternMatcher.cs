@@ -115,23 +115,17 @@ namespace Microsoft.CodeAnalysis.PatternMatching
         /// Determines if a given candidate string matches under a multiple word query text, as you
         /// would find in features like Navigate To.
         /// </summary>
-        /// <param name="candidate">The word being tested.</param>
         /// <returns>If this was a match, a set of match types that occurred while matching the
         /// patterns. If it was not a match, it returns null.</returns>
-        public ImmutableArray<PatternMatch> GetMatches(string candidate)
+        public bool AddMatches(string candidate, ArrayBuilder<PatternMatch> matches)
         {
             if (SkipMatch(candidate))
             {
-                return ImmutableArray<PatternMatch>.Empty;
+                return false;
             }
 
-            var result = MatchPatternSegment(candidate, _fullPatternSegment, fuzzyMatch: true);
-            if (!result.IsEmpty)
-            {
-                return result;
-            }
-
-            return MatchPatternSegment(candidate, _fullPatternSegment, fuzzyMatch: false);
+            return MatchPatternSegment(candidate, _fullPatternSegment, matches, fuzzyMatch: true) ||
+                   MatchPatternSegment(candidate, _fullPatternSegment, matches, fuzzyMatch: false);
         }
 
         /// <summary>
@@ -146,58 +140,61 @@ namespace Microsoft.CodeAnalysis.PatternMatching
         /// dotted container of "System.Console", then "WL" will be tested against "WriteLine".
         /// With a match found there, "Con" will then be tested against "Console".
         /// </summary>
-        public PatternMatches GetMatches(string candidate, string dottedContainer)
+        public bool AddMatches(
+            string candidate, string dottedContainer,
+            ArrayBuilder<PatternMatch> candidateMatches,
+            ArrayBuilder<PatternMatch> containerMatches)
         {
-            var result = GetMatches(candidate, dottedContainer, fuzzyMatch: false);
-            if (!result.IsEmpty)
+            if (SkipMatch(candidate))
             {
-                return result;
+                return false;
             }
 
-            return GetMatches(candidate, dottedContainer, fuzzyMatch: true);
+            return AddMatches(candidate, dottedContainer, candidateMatches, containerMatches, fuzzyMatch: false) ||
+                   AddMatches(candidate, dottedContainer, candidateMatches, containerMatches, fuzzyMatch: true);
         }
 
-        private PatternMatches GetMatches(
-            string candidate, string dottedContainer, bool fuzzyMatch)
+        private bool AddMatches(
+            string candidate, string dottedContainer,
+            ArrayBuilder<PatternMatch> candidateMatches,
+            ArrayBuilder<PatternMatch> containerMatches,
+            bool fuzzyMatch)
         {
             if (fuzzyMatch && !_allowFuzzyMatching)
             {
-                return PatternMatches.Empty;
-            }
-
-            if (SkipMatch(candidate))
-            {
-                return PatternMatches.Empty;
+                return false;
             }
 
             // First, check that the last part of the dot separated pattern matches the name of the
             // candidate.  If not, then there's no point in proceeding and doing the more
             // expensive work.
-            var candidateMatch = MatchPatternSegment(candidate, _dotSeparatedPatternSegments.Last(), fuzzyMatch);
-            if (candidateMatch.IsDefaultOrEmpty)
-            {
-                return PatternMatches.Empty;
-            }
-
-            dottedContainer = dottedContainer ?? string.Empty;
-            var containerParts = dottedContainer.Split(s_dotCharacterArray, StringSplitOptions.RemoveEmptyEntries);
-
-            // -1 because the last part was checked against the name, and only the rest
-            // of the parts are checked against the container.
-            var relevantDotSeparatedSegmentLength = _dotSeparatedPatternSegments.Length - 1;
-            if (relevantDotSeparatedSegmentLength > containerParts.Length)
-            {
-                // There weren't enough container parts to match against the pattern parts.
-                // So this definitely doesn't match.
-                return PatternMatches.Empty;
-            }
-
-            // So far so good.  Now break up the container for the candidate and check if all
-            // the dotted parts match up correctly.
-            var containerMatches = ArrayBuilder<PatternMatch>.GetInstance();
+            var tempCandidateMatches = ArrayBuilder<PatternMatch>.GetInstance();
+            var tempContainerMatches = ArrayBuilder<PatternMatch>.GetInstance();
 
             try
             {
+                if (!MatchPatternSegment(candidate, _dotSeparatedPatternSegments.Last(), tempCandidateMatches, fuzzyMatch))
+                {
+                    // We didn't match the candidate, no point in going any further.
+                    return false;
+                }
+
+                dottedContainer = dottedContainer ?? string.Empty;
+                var containerParts = dottedContainer.Split(s_dotCharacterArray, StringSplitOptions.RemoveEmptyEntries);
+
+                // -1 because the last part was checked against the name, and only the rest
+                // of the parts are checked against the container.
+                var relevantDotSeparatedSegmentLength = _dotSeparatedPatternSegments.Length - 1;
+                if (relevantDotSeparatedSegmentLength > containerParts.Length)
+                {
+                    // There weren't enough container parts to match against the pattern parts.
+                    // So this definitely doesn't match.
+                    return false;
+                }
+
+                // So far so good.  Now break up the container for the candidate and check if all
+                // the dotted parts match up correctly.
+
                 // Don't need to check the last segment.  We did that as the very first bail out step.
                 for (int i = 0, j = containerParts.Length - relevantDotSeparatedSegmentLength;
                      i < relevantDotSeparatedSegmentLength;
@@ -205,54 +202,54 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                 {
                     var segment = _dotSeparatedPatternSegments[i];
                     var containerName = containerParts[j];
-                    var containerMatch = MatchPatternSegment(containerName, segment, fuzzyMatch);
-                    if (containerMatch.IsDefaultOrEmpty)
+                    if (!MatchPatternSegment(containerName, segment, tempContainerMatches, fuzzyMatch))
                     {
                         // This container didn't match the pattern piece.  So there's no match at all.
-                        return PatternMatches.Empty;
+                        return false;
                     }
-
-                    containerMatches.AddRange(containerMatch);
                 }
 
                 // Success, this symbol's full name matched against the dotted name the user was asking
                 // about.
-                return new PatternMatches(candidateMatch, containerMatches.ToImmutable());
+                candidateMatches.AddRange(tempCandidateMatches);
+                containerMatches.AddRange(tempContainerMatches);
+                return true;
             }
             finally
             {
-                containerMatches.Free();
+                tempCandidateMatches.Free();
+                tempContainerMatches.Free();
             }
         }
 
-        /// <summary>
-        /// Determines if a given candidate string matches under a multiple word query text, as you
-        /// would find in features like Navigate To.
-        /// </summary>
-        /// <remarks>
-        /// PERF: This is slightly faster and uses less memory than <see cref="GetMatches(string)"/>
-        /// so, unless you need to know the full set of matches, use this version.
-        /// </remarks>
-        /// <param name="candidate">The word being tested.</param>
-        /// <returns>If this was a match, the first element of the set of match types that occurred while matching the
-        /// patterns. If it was not a match, it returns null.</returns>
-        public PatternMatch? GetFirstMatch(string candidate)
-        {
-            if (SkipMatch(candidate))
-            {
-                return null;
-            }
+        ///// <summary>
+        ///// Determines if a given candidate string matches under a multiple word query text, as you
+        ///// would find in features like Navigate To.
+        ///// </summary>
+        ///// <remarks>
+        ///// PERF: This is slightly faster and uses less memory than <see cref="GetMatches(string)"/>
+        ///// so, unless you need to know the full set of matches, use this version.
+        ///// </remarks>
+        ///// <param name="candidate">The word being tested.</param>
+        ///// <returns>If this was a match, the first element of the set of match types that occurred while matching the
+        ///// patterns. If it was not a match, it returns null.</returns>
+        //public PatternMatch? GetFirstMatch(string candidate)
+        //{
+        //    if (SkipMatch(candidate))
+        //    {
+        //        return null;
+        //    }
 
-            return GetFirstMatchWorker(candidate, fuzzyMatch: false) ??
-                   GetFirstMatchWorker(candidate, fuzzyMatch: true);
-        }
+        //    return GetFirstMatchWorker(candidate, fuzzyMatch: false) ??
+        //           GetFirstMatchWorker(candidate, fuzzyMatch: true);
+        //}
 
-        private PatternMatch? GetFirstMatchWorker(string candidate, bool fuzzyMatch)
-        {
-            return MatchPatternSegment(
-                candidate, _fullPatternSegment, wantAllMatches: false, 
-                allMatches: out _, fuzzyMatch: fuzzyMatch);
-        }
+        //private PatternMatch? GetFirstMatchWorker(string candidate, bool fuzzyMatch)
+        //{
+        //    return MatchPatternSegment(
+        //        candidate, _fullPatternSegment, wantAllMatches: false, 
+        //        allMatches: out _, fuzzyMatch: fuzzyMatch);
+        //}
 
         private StringBreaks GetWordSpans(string word)
         {
@@ -423,23 +420,6 @@ namespace Microsoft.CodeAnalysis.PatternMatching
             return false;
         }
 
-        private ImmutableArray<PatternMatch> MatchPatternSegment(
-            string candidate, PatternSegment patternSegment, bool fuzzyMatch)
-        {
-            if (fuzzyMatch && !_allowFuzzyMatching)
-            {
-                return ImmutableArray<PatternMatch>.Empty;
-            }
-
-            var singleMatch = MatchPatternSegment(
-                candidate, patternSegment, wantAllMatches: true, 
-                fuzzyMatch: fuzzyMatch, allMatches: out var matches);
-
-            return singleMatch.HasValue
-                ? ImmutableArray.Create(singleMatch.Value)
-                : matches;
-        }
-
         /// <summary>
         /// Internal helper for MatchPatternInternal
         /// </summary>
@@ -451,22 +431,18 @@ namespace Microsoft.CodeAnalysis.PatternMatching
         /// </remarks>
         /// <param name="candidate">The word being tested.</param>
         /// <param name="segment">The segment of the pattern to check against the candidate.</param>
-        /// <param name="wantAllMatches">Does the caller want all matches or just the first?</param>
+        /// <param name="matches">The result array to place the matches in.</param>
         /// <param name="fuzzyMatch">If a fuzzy match should be performed</param>
-        /// <param name="allMatches">If <paramref name="wantAllMatches"/> is true, and there's more than one match, then the list of all matches.</param>
         /// <returns>If there's only one match, then the return value is that match. Otherwise it is null.</returns>
-        private PatternMatch? MatchPatternSegment(
+        private bool MatchPatternSegment(
             string candidate,
             PatternSegment segment,
-            bool wantAllMatches,
-            bool fuzzyMatch,
-            out ImmutableArray<PatternMatch> allMatches)
+            ArrayBuilder<PatternMatch> matches,
+            bool fuzzyMatch)
         {
-            allMatches = ImmutableArray<PatternMatch>.Empty;
-
             if (fuzzyMatch && !_allowFuzzyMatching)
             {
-                return null;
+                return false;
             }
 
             // First check if the segment matches as is.  This is also useful if the segment contains
@@ -482,7 +458,8 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                     candidate, segment.TotalTextChunk, punctuationStripped: false, fuzzyMatch: fuzzyMatch);
                 if (match != null)
                 {
-                    return match;
+                    matches.Add(match.Value);
+                    return true;
                 }
             }
 
@@ -526,7 +503,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
             //
             // Only if all words have some sort of match is the pattern considered matched.
 
-            var matches = ArrayBuilder<PatternMatch>.GetInstance();
+            var tempMatches = ArrayBuilder<PatternMatch>.GetInstance();
 
             try
             {
@@ -538,25 +515,18 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                         candidate, subWordTextChunk, punctuationStripped: true, fuzzyMatch: fuzzyMatch);
                     if (result == null)
                     {
-                        return null;
+                        return false;
                     }
 
-                    matches.Add(result.Value);
+                    tempMatches.Add(result.Value);
                 }
 
-                if (wantAllMatches && matches.Count >= 2)
-                {
-                    allMatches = matches.ToImmutable();
-                    return null;
-                }
-                else
-                {
-                    return matches.FirstOrNullable();
-                }
+                matches.AddRange(tempMatches);
+                return tempMatches.Count > 0;
             }
             finally
             {
-                matches.Free();
+                tempMatches.Free();
             }
         }
 
@@ -776,6 +746,36 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                 // Move onto the next candidate.
                 currentCandidate++;
             }
+        }
+    }
+
+    internal static class PatternMatcherExtensions
+    {
+        public static PatternMatch? GetFirstMatch(this PatternMatcher matcher, string candidate)
+        {
+            var matches = ArrayBuilder<PatternMatch>.GetInstance();
+            matcher.AddMatches(candidate, matches);
+
+            var result = matches.FirstOrNullable();
+            matches.Free();
+
+            return result;
+        }
+
+        public static bool Matches(this PatternMatcher matcher, string candidate)
+            => matcher.GetFirstMatch(candidate) != null;
+
+        public static bool Matches(this PatternMatcher matcher, string candidate, string container)
+        {
+            var candidateMatches = ArrayBuilder<PatternMatch>.GetInstance();
+            var containerMatches = ArrayBuilder<PatternMatch>.GetInstance();
+
+            var result = matcher.AddMatches(candidate, container, candidateMatches, containerMatches);
+
+            candidateMatches.Free();
+            containerMatches.Free();
+
+            return result;
         }
     }
 }

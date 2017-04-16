@@ -36,33 +36,59 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             var containsDots = pattern.IndexOf('.') >= 0;
             using (var patternMatcher = new PatternMatcher(pattern, includeMatchedSpans: true, allowFuzzyMatching: true))
             {
-                var result = ArrayBuilder<INavigateToSearchResult>.GetInstance();
-                foreach (var document in project.Documents)
+                var candidateMatches = ArrayBuilder<PatternMatch>.GetInstance();
+                var containerMatchers = ArrayBuilder<PatternMatch>.GetInstance();
+
+                try
                 {
-                    if (searchDocument != null && document != searchDocument)
-                    {
-                        continue;
-                    }
+                    return await FindNavigableDeclaredSymbolInfosAsync(
+                        project, searchDocument, containsDots, patternMatcher, 
+                        candidateMatches, containerMatchers, cancellationToken);
+                }
+                finally
+                {
+                    candidateMatches.Free();
+                    containerMatchers.Free();
+                }
+            }
+        }
 
-                    cancellationToken.ThrowIfCancellationRequested();
-                    var declarationInfo = await document.GetSyntaxTreeIndexAsync(cancellationToken).ConfigureAwait(false);
-
-                    foreach (var declaredSymbolInfo in declarationInfo.DeclaredSymbolInfos)
-                    {
-                        cancellationToken.ThrowIfCancellationRequested();
-                        var patternMatches = patternMatcher.GetMatches(
-                            GetSearchName(declaredSymbolInfo),
-                            declaredSymbolInfo.FullyQualifiedContainerName);
-
-                        if (!patternMatches.IsEmpty)
-                        {
-                            result.Add(ConvertResult(containsDots, declaredSymbolInfo, document, patternMatches));
-                        }
-                    }
+        private static async Task<ImmutableArray<INavigateToSearchResult>> FindNavigableDeclaredSymbolInfosAsync(
+            Project project, Document searchDocument, bool containsDots, PatternMatcher patternMatcher,
+            ArrayBuilder<PatternMatch> candidateMatches, ArrayBuilder<PatternMatch> containerMatchers,
+            CancellationToken cancellationToken)
+        {
+            var result = ArrayBuilder<INavigateToSearchResult>.GetInstance();
+            foreach (var document in project.Documents)
+            {
+                if (searchDocument != null && document != searchDocument)
+                {
+                    continue;
                 }
 
-                return result.ToImmutableAndFree();
+                cancellationToken.ThrowIfCancellationRequested();
+                var declarationInfo = await document.GetSyntaxTreeIndexAsync(cancellationToken).ConfigureAwait(false);
+
+                foreach (var declaredSymbolInfo in declarationInfo.DeclaredSymbolInfos)
+                {
+                    candidateMatches.Clear();
+                    containerMatchers.Clear();
+
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    if (patternMatcher.AddMatches(
+                            GetSearchName(declaredSymbolInfo),
+                            declaredSymbolInfo.FullyQualifiedContainerName,
+                            candidateMatches, containerMatchers))
+                    { 
+                        result.Add(ConvertResult(
+                            containsDots, declaredSymbolInfo, document, 
+                            candidateMatches, containerMatchers));
+                    }
+                }
             }
+
+            return result.ToImmutableAndFree();
         }
 
         private static string GetSearchName(DeclaredSymbolInfo declaredSymbolInfo)
@@ -78,20 +104,20 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         }
 
         private static INavigateToSearchResult ConvertResult(
-            bool containsDots, DeclaredSymbolInfo declaredSymbolInfo, 
-            Document document, PatternMatches matches)
+            bool containsDots, DeclaredSymbolInfo declaredSymbolInfo, Document document,
+            ArrayBuilder<PatternMatch> candidateMatches, ArrayBuilder<PatternMatch> containerMatches)
         {
-            var matchKind = GetNavigateToMatchKind(containsDots, matches);
+            var matchKind = GetNavigateToMatchKind(containsDots, candidateMatches);
 
             // A match is considered to be case sensitive if all its constituent pattern matches are
             // case sensitive. 
-            var isCaseSensitive = matches.All(m => m.IsCaseSensitive);
+            var isCaseSensitive = candidateMatches.All(m => m.IsCaseSensitive) && containerMatches.All(m => m.IsCaseSensitive);
             var kind = GetItemKind(declaredSymbolInfo);
             var navigableItem = NavigableItemFactory.GetItemFromDeclaredSymbolInfo(declaredSymbolInfo, document);
 
             return new SearchResult(
-                document, declaredSymbolInfo, kind, matchKind, 
-                isCaseSensitive, navigableItem, matches.CandidateMatches.SelectMany(m => m.MatchedSpans).ToImmutableArray());
+                document, declaredSymbolInfo, kind, matchKind, isCaseSensitive, navigableItem, 
+                candidateMatches.SelectMany(m => m.MatchedSpans).ToImmutableArray());
         }
 
         private static string GetItemKind(DeclaredSymbolInfo declaredSymbolInfo)
@@ -130,7 +156,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         }
 
         private static NavigateToMatchKind GetNavigateToMatchKind(
-            bool containsDots, PatternMatches matchResult)
+            bool containsDots, ArrayBuilder<PatternMatch> candidateMatches)
         {
             // NOTE(cyrusn): Unfortunately, the editor owns how sorting of NavigateToItems works,
             // and they only provide four buckets for sorting items before they sort by the name
@@ -150,7 +176,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             // what type of editor MatchKind to map to.
             if (containsDots)
             {
-                var lastResult = matchResult.CandidateMatches.LastOrNullable();
+                var lastResult = candidateMatches.LastOrNullable();
                 if (lastResult.HasValue)
                 {
                     switch (lastResult.Value.Kind)
@@ -170,17 +196,17 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 // had a something like a space separated pattern.  In that case, there's no
                 // clear indication as to what is the most important part of the pattern.  So 
                 // we make the result as good as any constituent part.
-                if (matchResult.Any(r => r.Kind == PatternMatchKind.Exact))
+                if (candidateMatches.Any(r => r.Kind == PatternMatchKind.Exact))
                 {
                     return NavigateToMatchKind.Exact;
                 }
 
-                if (matchResult.Any(r => r.Kind == PatternMatchKind.Prefix))
+                if (candidateMatches.Any(r => r.Kind == PatternMatchKind.Prefix))
                 {
                     return NavigateToMatchKind.Prefix;
                 }
 
-                if (matchResult.Any(r => r.Kind == PatternMatchKind.Substring))
+                if (candidateMatches.Any(r => r.Kind == PatternMatchKind.Substring))
                 {
                     return NavigateToMatchKind.Substring;
                 }
