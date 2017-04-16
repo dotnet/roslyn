@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
@@ -254,11 +255,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
             public override SyntaxNode VisitArgument(ArgumentSyntax node)
             {
                 _cancellationToken.ThrowIfCancellationRequested();
-
-                var inferredName = node.Parent?.Kind() == SyntaxKind.TupleExpression ?
-                    ExtractAnonymousTypeMemberName(node.Expression).ValueText :
-                    null;
-
+                string inferredName = null;
+                if (node.Parent.IsKind(SyntaxKind.TupleExpression))
+                {
+                    var tuple = (TupleExpressionSyntax)node.Parent;
+                    var nonDuplicateTupleNames = ExtractTupleNames(tuple);
+                    inferredName = ExtractAnonymousTypeMemberName(node.Expression).ValueText;
+                    if (!nonDuplicateTupleNames.Contains(inferredName))
+                    {
+                        inferredName = null;
+                    }
+                }
                 var newArgument = (ArgumentSyntax)base.VisitArgument(node);
 
                 if (inferredName != null && node.NameColon == null)
@@ -281,6 +288,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 }
 
                 return newArgument;
+            }
+
+            // PROTOTYPE(tuple-names) this can be memoized
+            private static HashSet<string> ExtractTupleNames(TupleExpressionSyntax tuple)
+            {
+                var result = new HashSet<string>();
+                foreach (var argument in tuple.Arguments)
+                {
+                    if (argument.NameColon != null)
+                    {
+                        result.Add(argument.NameColon.Name.Identifier.ValueText);
+                    }
+                    else
+                    {
+                        string inferredName = ExtractAnonymousTypeMemberName(argument.Expression).ValueText;
+                        if (inferredName!= null)
+                        {
+                            if (!result.Add(inferredName))
+                            {
+                                result.Remove(inferredName);
+                            }
+                        }
+                    }
+                }
+                return result;
             }
 
             public override SyntaxNode VisitAnonymousObjectMemberDeclarator(AnonymousObjectMemberDeclaratorSyntax node)

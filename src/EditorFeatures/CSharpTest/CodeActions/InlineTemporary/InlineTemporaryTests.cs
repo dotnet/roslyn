@@ -4179,10 +4179,60 @@ class C
 {
     void M()
     {
-        var t = (i: 1 + 2, i: 1 + 2);
+        var t = (1 + 2, 1 + 2);
     }
 }";
-            // PROTOTYPE(tuple-names) Duplicate name not allowed
+            await TestInRegularAndScriptAsync(code, expected, ignoreTrivia: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task ExplicitTupleNameAdded_DeconstructionDeclaration()
+        {
+            var code = @"
+class C
+{
+    static int y = 1;
+    void M()
+    {
+        int [||]i = C.y;
+        var t = ((i, _) = (1, 2));
+    }
+}";
+
+            var expected = @"
+class C
+{
+    static int y = 1;
+    void M()
+    {
+        var t = ((i: C.y, _) = (1, 2));
+    }
+}";
+            // PROTOTYPE(tuple-names) allow in language or disallow in refactoring?
+            await TestInRegularAndScriptAsync(code, expected, ignoreTrivia: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task ExplicitTupleNameAdded_RValuesInDeconstructionDeclaration()
+        {
+            var code = @"
+class C
+{
+    void M()
+    {
+        int [||]i = 1;
+        var t = ((i, _) = (1, 2));
+    }
+}";
+            var expected = @"
+class C
+{
+    void M()
+    {
+        var t = ((i: 1, _) = (1, 2));
+    }
+}";
+            // PROTOTYPE(tuple-names) Inlining RValue should be disallowed
             await TestInRegularAndScriptAsync(code, expected, ignoreTrivia: false);
         }
 
@@ -4195,7 +4245,7 @@ class C
     void M()
     {
         int [||]Rest = 1 + 2;
-        var t = (Rest, Rest);
+        var t = (Rest, 3);
     }
 }";
 
@@ -4204,7 +4254,7 @@ class C
 {
     void M()
     {
-        var t = (Rest: 1 + 2, Rest: 1 + 2);
+        var t = (Rest: 1 + 2, 3);
     }
 }";
             // PROTOTYPE(tuple-names) Reserved names not allowed

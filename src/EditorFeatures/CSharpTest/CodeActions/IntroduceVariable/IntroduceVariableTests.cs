@@ -4162,10 +4162,9 @@ class Program
     {
         int x = 1;
         int {|Rename:y1|} = C.y;
-        var t = (y: y1, y: y1);
+        var t = (y1, y1);
     }
 }";
-            // PROTOTYPE(tuple-names) Should not introduce duplicate names in tuple
             await TestInRegularAndScriptAsync(code, expected, index: 1, ignoreTrivia: false);
         }
 
