@@ -15,6 +15,66 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
     Friend Class VisualBasicChangeSignatureService
         Inherits AbstractChangeSignatureService
 
+        Private Shared ReadOnly _declarationKinds As ImmutableArray(Of SyntaxKind) = ImmutableArray.Create(
+            SyntaxKind.SubStatement,
+            SyntaxKind.FunctionStatement,
+            SyntaxKind.SubNewStatement,
+            SyntaxKind.PropertyStatement,
+            SyntaxKind.DelegateSubStatement,
+            SyntaxKind.DelegateFunctionStatement,
+            SyntaxKind.EventStatement)
+
+        Private Shared ReadOnly _declarationAndInvocableKinds As ImmutableArray(Of SyntaxKind) =
+            _declarationKinds.Concat(ImmutableArray.Create(
+                SyntaxKind.SubBlock,
+                SyntaxKind.FunctionBlock,
+                SyntaxKind.ConstructorBlock,
+                SyntaxKind.PropertyBlock,
+                SyntaxKind.InvocationExpression,
+                SyntaxKind.EventBlock,
+                SyntaxKind.ObjectCreationExpression))
+
+        Private Shared ReadOnly _nodeKindsToIgnore As ImmutableArray(Of SyntaxKind) = ImmutableArray.Create(
+            SyntaxKind.ImplementsClause)
+
+        Private Shared ReadOnly _updatableNodeKinds As ImmutableArray(Of SyntaxKind) = ImmutableArray.Create(
+            SyntaxKind.CrefReference,
+            SyntaxKind.ImplementsClause,
+            SyntaxKind.SubStatement,
+            SyntaxKind.FunctionStatement,
+            SyntaxKind.DelegateSubStatement,
+            SyntaxKind.DelegateFunctionStatement,
+            SyntaxKind.EventBlock,
+            SyntaxKind.EventStatement,
+            SyntaxKind.RaiseEventStatement,
+            SyntaxKind.PropertyStatement,
+            SyntaxKind.InvocationExpression,
+            SyntaxKind.Attribute,
+            SyntaxKind.ObjectCreationExpression,
+            SyntaxKind.SubNewStatement,
+            SyntaxKind.ConstructorBlock,
+            SyntaxKind.SingleLineSubLambdaExpression,
+            SyntaxKind.MultiLineSubLambdaExpression,
+            SyntaxKind.SingleLineFunctionLambdaExpression,
+            SyntaxKind.MultiLineFunctionLambdaExpression)
+
+        Private Shared ReadOnly _updatableAncestorKinds As ImmutableArray(Of SyntaxKind) = ImmutableArray.Create(
+            SyntaxKind.CrefReference,
+            SyntaxKind.ImplementsClause,
+            SyntaxKind.SubStatement,
+            SyntaxKind.FunctionStatement,
+            SyntaxKind.DelegateSubStatement,
+            SyntaxKind.DelegateFunctionStatement,
+            SyntaxKind.EventBlock,
+            SyntaxKind.EventStatement,
+            SyntaxKind.RaiseEventStatement,
+            SyntaxKind.PropertyStatement,
+            SyntaxKind.InvocationExpression,
+            SyntaxKind.Attribute,
+            SyntaxKind.ObjectCreationExpression,
+            SyntaxKind.SubNewStatement,
+            SyntaxKind.ConstructorBlock)
+
         Public Overrides Async Function GetInvocationSymbolAsync(
                 document As Document,
                 position As Integer,
@@ -23,22 +83,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
             Dim tree = Await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(False)
             Dim token = tree.GetRoot(cancellationToken).FindToken(If(position <> tree.Length, position, Math.Max(0, position - 1)))
 
-            Dim matchingNode = token.Parent.AncestorsAndSelf().FirstOrDefault(Function(n) _invokableAncestorKinds.Contains(n.Kind))
+            Dim matchingNode = GetMatchingNode(token.Parent, restrictToDeclarations)
 
-            If matchingNode Is Nothing OrElse (restrictToDeclarations AndAlso _nonDeclarationKinds.Contains(matchingNode.Kind)) Then
+            If matchingNode Is Nothing Then
                 Return Nothing
             End If
 
             ' Don't show change-signature in the random whitespace/trivia for code.
-
             If Not matchingNode.Span.IntersectsWith(position) Then
+                Return Nothing
+            End If
+
+            ' If we're actually on the declaration of some symbol, ensure that we're
+            ' in a good location for that symbol (i.e. Not in the attributes or after the parameter list).
+            If Not IsInSymbolHeader(matchingNode, position) Then
                 Return Nothing
             End If
 
             Dim semanticModel = Await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False)
             Dim symbol = TryGetDeclaredSymbol(semanticModel, matchingNode, token, cancellationToken)
             If symbol IsNot Nothing Then
-                Return If(restrictToDeclarations AndAlso Not IsInSymbolHeader(matchingNode, position), Nothing, symbol)
+                Return symbol
             End If
 
             If matchingNode.Kind() = SyntaxKind.ObjectCreationExpression Then
@@ -55,6 +120,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
             Return If(symbolInfo.Symbol, symbolInfo.CandidateSymbols.FirstOrDefault())
         End Function
 
+        Private Function GetMatchingNode(node As SyntaxNode, restrictToDeclarations As Boolean) As SyntaxNode
+            Dim current = node
+            While current IsNot Nothing
+                If restrictToDeclarations Then
+                    If _declarationKinds.Contains(current.Kind()) Then
+                        Return current
+                    End If
+                Else
+                    If _declarationAndInvocableKinds.Contains(current.Kind()) Then
+                        Return current
+                    End If
+                End If
+
+                current = current.Parent
+            End While
+
+            Return Nothing
+        End Function
+
         Private Function IsInSymbolHeader(matchingNode As SyntaxNode, position As Integer) As Boolean
             ' Caret has to be after the attributes if the symbol has any.
             Dim lastAttributes = matchingNode.ChildNodes().LastOrDefault(
@@ -64,6 +148,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
 
             If position < start Then
                 Return False
+            End If
+
+            Dim asClause = matchingNode.ChildNodes().LastOrDefault(Function(n) TypeOf n Is AsClauseSyntax)
+            If asClause IsNot Nothing Then
+                Return position <= asClause.FullSpan.End
             End If
 
             ' If the symbol has a parameter list, then the caret shouldn't be past the end of it.
@@ -102,78 +191,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
 
             Return semanticModel.GetDeclaredSymbol(matchingNode, cancellationToken)
         End Function
-
-        Private Shared ReadOnly _nonDeclarationKinds As ImmutableArray(Of SyntaxKind) = ImmutableArray.Create(
-            SyntaxKind.SubBlock,
-            SyntaxKind.FunctionBlock,
-            SyntaxKind.PropertyBlock,
-            SyntaxKind.EventBlock,
-            SyntaxKind.ConstructorBlock)
-
-        Private _invokableAncestorKinds As ImmutableArray(Of SyntaxKind) = New List(Of SyntaxKind) From
-            {
-                SyntaxKind.SubBlock,
-                SyntaxKind.SubStatement,
-                SyntaxKind.FunctionBlock,
-                SyntaxKind.FunctionStatement,
-                SyntaxKind.ConstructorBlock,
-                SyntaxKind.SubNewStatement,
-                SyntaxKind.PropertyBlock,
-                SyntaxKind.PropertyStatement,
-                SyntaxKind.InvocationExpression,
-                SyntaxKind.DelegateSubStatement,
-                SyntaxKind.DelegateFunctionStatement,
-                SyntaxKind.EventStatement,
-                SyntaxKind.EventBlock,
-                SyntaxKind.ObjectCreationExpression
-            }.ToImmutableArray()
-
-        Private _nodeKindsToIgnore As ImmutableArray(Of SyntaxKind) = New List(Of SyntaxKind) From
-            {
-                SyntaxKind.ImplementsClause
-            }.ToImmutableArray()
-
-        Private _updatableNodeKinds As ImmutableArray(Of SyntaxKind) = New List(Of SyntaxKind) From
-            {
-                SyntaxKind.CrefReference,
-                SyntaxKind.ImplementsClause,
-                SyntaxKind.SubStatement,
-                SyntaxKind.FunctionStatement,
-                SyntaxKind.DelegateSubStatement,
-                SyntaxKind.DelegateFunctionStatement,
-                SyntaxKind.EventBlock,
-                SyntaxKind.EventStatement,
-                SyntaxKind.RaiseEventStatement,
-                SyntaxKind.PropertyStatement,
-                SyntaxKind.InvocationExpression,
-                SyntaxKind.Attribute,
-                SyntaxKind.ObjectCreationExpression,
-                SyntaxKind.SubNewStatement,
-                SyntaxKind.ConstructorBlock,
-                SyntaxKind.SingleLineSubLambdaExpression,
-                SyntaxKind.MultiLineSubLambdaExpression,
-                SyntaxKind.SingleLineFunctionLambdaExpression,
-                SyntaxKind.MultiLineFunctionLambdaExpression
-            }.ToImmutableArray()
-
-        Private _updatableAncestorKinds As ImmutableArray(Of SyntaxKind) = New List(Of SyntaxKind) From
-            {
-                SyntaxKind.CrefReference,
-                SyntaxKind.ImplementsClause,
-                SyntaxKind.SubStatement,
-                SyntaxKind.FunctionStatement,
-                SyntaxKind.DelegateSubStatement,
-                SyntaxKind.DelegateFunctionStatement,
-                SyntaxKind.EventBlock,
-                SyntaxKind.EventStatement,
-                SyntaxKind.RaiseEventStatement,
-                SyntaxKind.PropertyStatement,
-                SyntaxKind.InvocationExpression,
-                SyntaxKind.Attribute,
-                SyntaxKind.ObjectCreationExpression,
-                SyntaxKind.SubNewStatement,
-                SyntaxKind.ConstructorBlock
-            }.ToImmutableArray()
 
         Public Overrides Function FindNodeToUpdate(document As Document, node As SyntaxNode) As SyntaxNode
             Dim vbnode = DirectCast(node, VisualBasicSyntaxNode)

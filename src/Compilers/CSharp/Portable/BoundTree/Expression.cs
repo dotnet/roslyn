@@ -738,7 +738,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case CSharp.ConversionKind.ImplicitConstant:
                     case CSharp.ConversionKind.IntegerToPointer:
                     case CSharp.ConversionKind.IntPtr:
-                    case CSharp.ConversionKind.NullLiteral:
+                    case CSharp.ConversionKind.DefaultOrNullLiteral:
                     case CSharp.ConversionKind.NullToPointer:
                     case CSharp.ConversionKind.PointerToInteger:
                     case CSharp.ConversionKind.PointerToPointer:
@@ -940,7 +940,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    internal partial class BoundDefaultOperator : IDefaultValueExpression
+    internal partial class BoundDefaultExpression : IDefaultValueExpression
     {
         protected override OperationKind ExpressionKind => OperationKind.DefaultValueExpression;
 
@@ -1945,7 +1945,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return visitor.VisitNoneOperation(this, argument);
         }
     }
-    
+
     internal partial class BoundSourceDocumentIndex
     {
         protected override OperationKind ExpressionKind => OperationKind.None;
