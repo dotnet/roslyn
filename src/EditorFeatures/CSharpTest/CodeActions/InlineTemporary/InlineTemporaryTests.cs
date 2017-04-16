@@ -4162,6 +4162,31 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task ExplicitTupleNameAdded_Trivia()
+        {
+            var code = @"
+class C
+{
+    void M()
+    {
+        int [||]i = 1 + 2;
+        var t = ( /*comment*/ i, 3);
+    }
+}";
+
+            var expected = @"
+class C
+{
+    void M()
+    {
+        var t = ( /*comment*/ i: 1 + 2, 3);
+    }
+}";
+
+            await TestInRegularAndScriptAsync(code, expected, ignoreTrivia: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task ExplicitTupleNameAdded_NoDuplicateNames()
         {
             var code = @"
@@ -4328,6 +4353,30 @@ class C
     void M()
     {
         var t = new { i = (1 + 2), i = (1 + 2) }; // error already
+    }
+}";
+            await TestInRegularAndScriptAsync(code, expected, ignoreTrivia: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task ExplicitAnonymousTypeMemberNameAdded_Comment()
+        {
+            var code = @"
+class C
+{
+    void M()
+    {
+        int [||]i = 1 + 2;
+        var t = new { /*comment*/ i, 3 };
+    }
+}";
+
+            var expected = @"
+class C
+{
+    void M()
+    {
+        var t = new { /*comment*/ i = ((int)(1 + 2)), 3 };
     }
 }";
             await TestInRegularAndScriptAsync(code, expected, ignoreTrivia: false);

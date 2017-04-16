@@ -16,29 +16,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
 
         private static ArgumentSyntax SimplifyTupleName(ArgumentSyntax node, SemanticModel semanticModel, OptionSet optionSet, CancellationToken cancellationToken)
         {
-            string inferredName = node.IsParentKind(SyntaxKind.TupleExpression) ?
-                CSharpSimplificationService.ExtractAnonymousTypeMemberName(node.Expression).ValueText :
-                null;
-
-            if (inferredName == null || inferredName != node?.NameColon?.Name.Identifier.ValueText)
+            if (node.NameColon == null || !node.IsParentKind(SyntaxKind.TupleExpression))
             {
                 return node;
             }
 
-            return node.WithNameColon(null);
+            var inferredName = CSharpSimplificationService.ExtractAnonymousTypeMemberName(node.Expression).ValueText;
+
+            if (inferredName == null || inferredName != node.NameColon.Name.Identifier.ValueText)
+            {
+                return node;
+            }
+
+            return node.WithNameColon(null).WithTriviaFrom(node);
         }
 
 
         private static SyntaxNode SimplifyAnonymousTypeMemberName(AnonymousObjectMemberDeclaratorSyntax node, SemanticModel semanticModel, OptionSet optionSet, CancellationToken canellationToken)
         {
-            string inferredName = CSharpSimplificationService.ExtractAnonymousTypeMemberName(node.Expression).ValueText;
-
-            if (inferredName == null || inferredName != node?.NameEquals?.Name.Identifier.ValueText)
+            if (node.NameEquals == null)
             {
                 return node;
             }
 
-            return node.WithNameEquals(null);
+            var inferredName = CSharpSimplificationService.ExtractAnonymousTypeMemberName(node.Expression).ValueText;
+
+            if (inferredName == null || inferredName != node.NameEquals.Name.Identifier.ValueText)
+            {
+                return node;
+            }
+
+            return node.WithNameEquals(null).WithTriviaFrom(node);
         }
     }
 }

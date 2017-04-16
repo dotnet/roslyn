@@ -259,13 +259,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 if (node.Parent.IsKind(SyntaxKind.TupleExpression))
                 {
                     var tuple = (TupleExpressionSyntax)node.Parent;
-                    var nonDuplicateTupleNames = ExtractTupleNames(tuple);
                     inferredName = ExtractAnonymousTypeMemberName(node.Expression).ValueText;
-                    if (!nonDuplicateTupleNames.Contains(inferredName))
+                    if (!CanMakeNameExplicitInTuple(tuple, inferredName))
                     {
                         inferredName = null;
                     }
                 }
+
                 var newArgument = (ArgumentSyntax)base.VisitArgument(node);
 
                 if (inferredName != null && node.NameColon == null)
@@ -290,29 +290,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 return newArgument;
             }
 
-            // PROTOTYPE(tuple-names) this can be memoized
-            private static HashSet<string> ExtractTupleNames(TupleExpressionSyntax tuple)
+            private static bool CanMakeNameExplicitInTuple(TupleExpressionSyntax tuple, string name)
             {
-                var result = new HashSet<string>();
+                bool found = false;
                 foreach (var argument in tuple.Arguments)
                 {
+                    string elementName = null;
                     if (argument.NameColon != null)
                     {
-                        result.Add(argument.NameColon.Name.Identifier.ValueText);
+                        elementName = argument.NameColon.Name.Identifier.ValueText;
                     }
                     else
                     {
-                        string inferredName = ExtractAnonymousTypeMemberName(argument.Expression).ValueText;
-                        if (inferredName!= null)
-                        {
-                            if (!result.Add(inferredName))
-                            {
-                                result.Remove(inferredName);
-                            }
-                        }
+                        elementName = ExtractAnonymousTypeMemberName(argument.Expression).ValueText;
                     }
+
+                    if (elementName?.Equals(name, StringComparison.Ordinal) == true)
+                    {
+                        if (found)
+                        {
+                            // No duplicate names allowed
+                            return false;
+                        }
+                        found = true;
+                    }
+
                 }
-                return result;
+
+                return true;
             }
 
             public override SyntaxNode VisitAnonymousObjectMemberDeclarator(AnonymousObjectMemberDeclaratorSyntax node)
@@ -327,6 +332,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                     newDeclarator = newDeclarator.WithNameEquals(SyntaxFactory.NameEquals(SyntaxFactory.IdentifierName(identifier)))
                          .WithAdditionalAnnotations(Simplifier.Annotation);
                 }
+
                 return newDeclarator;
             }
 
