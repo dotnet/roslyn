@@ -183,6 +183,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
             _tracker.RemoveIdentifier(node.Identifier);
         }
 
+        public override void VisitSwitchStatement(SwitchStatementSyntax node)
+        {
+            var tokens = new List<SyntaxToken>();
+
+            var statements = node.ChildNodes()
+                                 .Where(x => x.IsKind(SyntaxKind.SwitchSection))
+                                 .SelectMany(x => x.ChildNodes().Where(n => n.IsKind(SyntaxKind.LocalDeclarationStatement)));
+
+            // We want to collect any variable declarations that are in the block
+            // before visiting nested statements
+            foreach (var statement in statements)
+            {
+                var declarationStatement = (LocalDeclarationStatementSyntax)statement;
+
+                foreach (var declarator in declarationStatement.Declaration.Variables)
+                {
+                    tokens.Add(declarator.Identifier);
+                }
+            }
+
+            _tracker.AddIdentifiers(tokens);
+            DefaultVisit(node);
+            _tracker.RemoveIdentifiers(tokens);
+        }
+
         public IEnumerable<SyntaxToken> ConflictingTokens
         {
             get
