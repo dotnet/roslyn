@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
     internal sealed partial class PatternMatcher : IDisposable
     {
         /// <summary>
-        /// Encapsulated matches responsible for mathcing an all lowercase pattern against
+        /// Encapsulated matches responsible for matching an all lowercase pattern against
         /// a candidate using CamelCase matching. i.e. this code is responsible for finding the
         /// match between "cofipro" and "CodeFixProvider". 
         /// </summary>
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
 
             /// <summary>
             /// Returns null if no match was found, 1 if a contiguous match was found, 2 if a 
-            /// match as found that starts at the beginning of the candidate, and 3 if a continguous
+            /// match as found that starts at the beginning of the candidate, and 3 if a contiguous
             /// match was found that starts at the beginning of the candidate.
             /// </summary>
             public int? TryMatch(out List<TextSpan> matchedSpans)
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
 
                 // Look for a hump in the candidate that matches the current letter we're on.
                 var patternCharacter = _patternText[patternIndex];
-                for (int humpIndex = candidateHumpIndex, n = _candidateHumps.Count; humpIndex < n.Count; humpIndex++)
+                for (int humpIndex = candidateHumpIndex, n = _candidateHumps.Count; humpIndex < n; humpIndex++)
                 {
                     // If we've been contiguous, but we jumped past a hump, then we're no longer contiguous.
                     if (contiguous.HasValue && contiguous.Value)
@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                         {
                             // Even though we matched this current candidate hump we failed to match
                             // the remainder of the pattern.  Continue to the next candidate hump
-                            // to see if our pattern character will match it and potentially succed.
+                            // to see if our pattern character will match it and potentially succeed.
                             continue;
                         }
 
@@ -184,7 +184,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                     {
                         // We found a path that allowed us to match everything contiguously
                         // from the beginning.  This is the best match possible.  So we can
-                        // just stop now and return thie result.
+                        // just stop now and return the result.
                         matchedSpans?.Insert(0, candidateMatchSpan);
                         return (weight, matchedSpans);
                     }
