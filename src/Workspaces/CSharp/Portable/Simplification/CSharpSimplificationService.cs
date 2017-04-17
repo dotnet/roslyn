@@ -186,6 +186,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
             }
         }
 
+        private static bool IsTupleInLeftOfDeconstruction(SyntaxNode tuple)
+        {
+            Contract.Assert(tuple.IsKind(SyntaxKind.TupleExpression));
+            var parent = tuple.Parent;
+            do
+            {
+                if (parent.IsKind(SyntaxKind.SimpleAssignmentExpression))
+                {
+                    return true;
+                }
+            }
+            while ((tuple = parent.Parent).IsKind(SyntaxKind.TupleExpression)
+                && (parent = parent.Parent.Parent) != null);
+
+            return false;
+        }
+
         internal static SyntaxToken ExtractAnonymousTypeMemberName(ExpressionSyntax input)
         {
             while (true)

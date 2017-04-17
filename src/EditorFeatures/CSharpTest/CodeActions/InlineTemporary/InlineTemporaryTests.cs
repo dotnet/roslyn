@@ -4220,6 +4220,33 @@ class C
     void M()
     {
         int [||]i = C.y;
+        var t = ((i, (i, _)) = (1, (i, 3)));
+    }
+}";
+
+            var expected = @"
+class C
+{
+    static int y = 1;
+    void M()
+    {
+        var t = ((C.y, (C.y, _)) = (1, ((int, int))((C.y, 3))));
+    }
+}";
+            // redundant cast is tracked by https://github.com/dotnet/roslyn/issues/13796
+            await TestInRegularAndScriptAsync(code, expected, ignoreTrivia: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task ExplicitTupleNameAdded_DeconstructionDeclaration2()
+        {
+            var code = @"
+class C
+{
+    static int y = 1;
+    void M()
+    {
+        int [||]i = C.y;
         var t = ((i, _) = (1, 2));
     }
 }";
@@ -4230,34 +4257,9 @@ class C
     static int y = 1;
     void M()
     {
-        var t = ((i: C.y, _) = (1, 2));
+        var t = ((C.y, _) = (1, 2));
     }
 }";
-            // PROTOTYPE(tuple-names) allow in language or disallow in refactoring?
-            await TestInRegularAndScriptAsync(code, expected, ignoreTrivia: false);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public async Task ExplicitTupleNameAdded_RValuesInDeconstructionDeclaration()
-        {
-            var code = @"
-class C
-{
-    void M()
-    {
-        int [||]i = 1;
-        var t = ((i, _) = (1, 2));
-    }
-}";
-            var expected = @"
-class C
-{
-    void M()
-    {
-        var t = ((i: 1, _) = (1, 2));
-    }
-}";
-            // PROTOTYPE(tuple-names) Inlining RValue should be disallowed
             await TestInRegularAndScriptAsync(code, expected, ignoreTrivia: false);
         }
 

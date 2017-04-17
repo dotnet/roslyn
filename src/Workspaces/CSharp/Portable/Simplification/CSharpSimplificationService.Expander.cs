@@ -259,10 +259,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 if (node.Parent.IsKind(SyntaxKind.TupleExpression))
                 {
                     var tuple = (TupleExpressionSyntax)node.Parent;
-                    inferredName = ExtractAnonymousTypeMemberName(node.Expression).ValueText;
-                    if (!CanMakeNameExplicitInTuple(tuple, inferredName))
+                    if (!IsTupleInLeftOfDeconstruction(tuple))
                     {
-                        inferredName = null;
+                        inferredName = ExtractAnonymousTypeMemberName(node.Expression).ValueText;
+                        if (!CanMakeNameExplicitInTuple(tuple, inferredName))
+                        {
+                            inferredName = null;
+                        }
                     }
                 }
 
