@@ -38,6 +38,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
 
             public void Dispose()
             {
+                this.CharacterSpans.Dispose();
                 this.SimilarityChecker?.Dispose();
             }
         }

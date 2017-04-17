@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
 
                 // Look for a hump in the candidate that matches the current letter we're on.
                 var patternCharacter = _patternText[patternIndex];
-                for (var humpIndex = candidateHumpIndex; humpIndex < _candidateHumps.Count; humpIndex++)
+                for (int humpIndex = candidateHumpIndex, n = _candidateHumps.Count; humpIndex < n.Count; humpIndex++)
                 {
                     // If we've been contiguous, but we jumped past a hump, then we're no longer contiguous.
                     if (contiguous.HasValue && contiguous.Value)

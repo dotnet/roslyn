@@ -91,10 +91,17 @@ namespace Microsoft.CodeAnalysis.PatternMatching
         public void Dispose()
         {
             _fullPatternSegment.Dispose();
+
             foreach (var segment in _dotSeparatedPatternSegments)
             {
                 segment.Dispose();
             }
+
+            foreach (var kvp in _stringToWordSpans)
+            {
+                kvp.Value.Dispose();
+            }
+            _stringToWordSpans.Clear();
         }
 
         public bool IsDottedPattern => _dotSeparatedPatternSegments.Length > 1;
@@ -351,7 +358,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                     }
 
                     var wordSpans = GetWordSpans(candidate);
-                    for (int i = 0; i < wordSpans.Count; i++)
+                    for (int i = 0, n = wordSpans.Count; i < n; i++)
                     {
                         var span = wordSpans[i];
                         if (PartStartsWith(candidate, span, patternChunk.Text, CompareOptions.IgnoreCase))

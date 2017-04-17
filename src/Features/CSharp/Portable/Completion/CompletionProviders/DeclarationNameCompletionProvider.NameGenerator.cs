@@ -20,8 +20,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             internal static ImmutableArray<IEnumerable<string>> GetBaseNames(ITypeSymbol type)
             {
                 var baseName = TryRemoveInterfacePrefix(type);
-                var breaks = StringBreaker.BreakIntoWordParts(baseName);
-                return GetInterleavedPatterns(breaks, baseName);
+                using (var breaks = StringBreaker.BreakIntoWordParts(baseName))
+                {
+                    return GetInterleavedPatterns(breaks, baseName);
+                }
             }
 
             private static ImmutableArray<IEnumerable<string>> GetInterleavedPatterns(StringBreaks breaks, string baseName)
@@ -37,6 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     // going backward
                     result.Add(GetLongestBackwardSubsequence(length, breaks, baseName));
                 }
+
                 return result.ToImmutable();
             }
 
