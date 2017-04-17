@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         public VariableDeclaration(ImmutableArray<ILocalSymbol> variables, IOperation initialValue, SyntaxNode syntax) :
             this(variables,
                 initialValue,
-                variables.IsDefault || (initialValue != null && initialValue.IsInvalid),
+                variables.IsDefaultOrEmpty || (initialValue != null && initialValue.IsInvalid),
                 syntax,
                 type: null,
                 constantValue: default(Optional<object>))

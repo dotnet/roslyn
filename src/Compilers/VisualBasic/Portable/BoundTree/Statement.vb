@@ -1075,11 +1075,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                              builder.Add(New VariableDeclaration(declaration.LocalSymbol, declaration.InitializerOpt, declaration.Syntax))
                                                                          ElseIf base.Kind = BoundKind.AsNewLocalDeclarations Then
                                                                              Dim asNewDeclarations = DirectCast(base, BoundAsNewLocalDeclarations)
-                                                                             Dim localSymbolsBuilder = ArrayBuilder(Of ILocalSymbol).GetInstance()
-                                                                             For Each asNewDeclaration In asNewDeclarations.LocalDeclarations
-                                                                                 localSymbolsBuilder.Add(asNewDeclaration.LocalSymbol)
-                                                                             Next
-                                                                             builder.Add(New VariableDeclaration(localSymbolsBuilder.ToImmutableAndFree(), asNewDeclarations.Initializer, asNewDeclarations.Syntax))
+                                                                             Dim localSymbols = asNewDeclarations.LocalDeclarations.SelectAsArray(Of ILocalSymbol)(Function(declaration) declaration.LocalSymbol)
+                                                                             builder.Add(New VariableDeclaration(localSymbols, asNewDeclarations.Initializer, asNewDeclarations.Syntax))
                                                                          End If
                                                                      Next
                                                                      Return builder.ToImmutableAndFree()
