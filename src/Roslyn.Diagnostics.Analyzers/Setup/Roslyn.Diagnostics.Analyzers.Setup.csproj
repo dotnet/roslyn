@@ -5,7 +5,7 @@
   </ImportGroup>
   <PropertyGroup>
     <TargetFramework>net46</TargetFramework>
-    <TestProject>true</TestProject>
+    <SetupProject>true</SetupProject>
     <AssemblyName>Roslyn.Diagnostics.Analyzers.Setup</AssemblyName>
     <GeneratePkgDefFile>false</GeneratePkgDefFile>
     <VSSDKTargetPlatformRegRootSuffix>RoslynDev</VSSDKTargetPlatformRegRootSuffix>
