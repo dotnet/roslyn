@@ -4983,5 +4983,57 @@ public class C {
             var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
             base.CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
+
+        [Fact, WorkItem(18257, "https://github.com/dotnet/roslyn/issues/18257")]
+        public void PatternTempsSpill()
+        {
+            // This test exercises the spilling machinery of async for pattern-matching temps
+            var source = @"using System;
+using System.Threading.Tasks;
+
+public class C {
+    public class Foo
+    {
+        public int Value;
+    }
+    public static void Main(string[] args)
+    {
+        var c = new C();
+        c.M(new Foo() { Value = 1 });
+        c.M(new Foo() { Value = 2 });
+        c.M(new Foo() { Value = 3 });
+        c.M(new object());
+    }
+    public void M(object o)
+    {
+        MAsync(o).Wait();
+    }
+    public async Task MAsync(object o) {
+        switch (o)
+        {
+            case Foo foo when await Copy(foo.Value) == 1:
+                Console.Write($""{foo.Value}=1 "");
+                break;
+            case Foo foo when await Copy(foo.Value) == 2:
+                Console.Write($""{foo.Value}=2 "");
+                break;
+            case Foo foo:
+                Console.Write($""{foo.Value} "");
+                break;
+            default:
+                Console.Write(""X "");
+                break;
+        }
+    }
+    public async Task<int> Copy(int i)
+    {
+        await Task.Delay(1);
+        return i;
+    }
+}";
+            var expectedOutput = @"1=1 2=2 3 X";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            base.CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
     }
 }
