@@ -42,34 +42,22 @@ namespace Microsoft.CodeAnalysis.PatternMatching
         private readonly CompareInfo _compareInfo;
 
         /// <summary>
-        /// Construct a new PatternMatcher using the calling thread's culture for string searching and comparison.
-        /// </summary>
-        public PatternMatcher(
-            string pattern,
-            bool verbatimIdentifierPrefixIsWordCharacter = false,
-            bool allowFuzzyMatching = false)
-            : this(pattern, CultureInfo.CurrentCulture, verbatimIdentifierPrefixIsWordCharacter, allowFuzzyMatching)
-        {
-        }
-
-        /// <summary>
         /// Construct a new PatternMatcher using the specified culture.
         /// </summary>
         /// <param name="pattern">The pattern to make the pattern matcher for.</param>
         /// <param name="culture">The culture to use for string searching and comparison.</param>
-        /// <param name="verbatimIdentifierPrefixIsWordCharacter">Whether to consider "@" as a word character</param>
         /// <param name="allowFuzzyMatching">Whether or not close matches should count as matches.</param>
         public PatternMatcher(
             string pattern,
-            CultureInfo culture,
-            bool verbatimIdentifierPrefixIsWordCharacter,
-            bool allowFuzzyMatching)
+            CultureInfo culture = null,
+            bool allowFuzzyMatching = false)
         {
+            culture = culture ?? CultureInfo.CurrentCulture;
             pattern = pattern.Trim();
             _compareInfo = culture.CompareInfo;
             _allowFuzzyMatching = allowFuzzyMatching;
 
-            _fullPatternSegment = new PatternSegment(pattern, verbatimIdentifierPrefixIsWordCharacter, allowFuzzyMatching);
+            _fullPatternSegment = new PatternSegment(pattern, allowFuzzyMatching);
 
             if (pattern.IndexOf('.') < 0)
             {
@@ -81,7 +69,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
             else
             {
                 _dotSeparatedPatternSegments = pattern.Split(s_dotCharacterArray, StringSplitOptions.RemoveEmptyEntries)
-                                                .Select(text => new PatternSegment(text.Trim(), verbatimIdentifierPrefixIsWordCharacter, allowFuzzyMatching))
+                                                .Select(text => new PatternSegment(text.Trim(), allowFuzzyMatching))
                                                 .ToArray();
             }
 
@@ -584,10 +572,8 @@ namespace Microsoft.CodeAnalysis.PatternMatching
             }
         }
 
-        private static bool IsWordChar(char ch, bool verbatimIdentifierPrefixIsWordCharacter)
-        {
-            return char.IsLetterOrDigit(ch) || ch == '_' || (verbatimIdentifierPrefixIsWordCharacter && ch == '@');
-        }
+        private static bool IsWordChar(char ch)
+            => char.IsLetterOrDigit(ch) || ch == '_';
 
         /// <summary>
         /// Do the two 'parts' match? i.e. Does the candidate part start with the pattern part?
