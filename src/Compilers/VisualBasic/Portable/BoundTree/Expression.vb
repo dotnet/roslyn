@@ -366,12 +366,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 ' TODO: figure out if this is true:
                                 '       a compiler generated argument for a ParamArray parameter is created iff 
                                 '       a list of arguments (including 0 argument) is provided for ParamArray parameter in source
+                                '       https://github.com/dotnet/roslyn/issues/18550
                                 Dim kind = If(argument.WasCompilerGenerated AndAlso argument.Kind = BoundKind.ArrayCreation, ArgumentKind.ParamArray, ArgumentKind.Explicit)
                                 Return New Argument(kind, parameters(lastParameterIndex), argumentValue)
                             Else
                                 ' TODO: figure our if this is true:
                                 '       a compiler generated argument for an Optional parameter is created iff
                                 '       the argument is omitted from the source
+                                '       https://github.com/dotnet/roslyn/issues/18550
                                 Dim kind = If(argument.WasCompilerGenerated, ArgumentKind.DefaultValue, ArgumentKind.Explicit)
                                 Dim parameter = parameters(index)
                                 Return New Argument(kind, parameter, argumentValue)
