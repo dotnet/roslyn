@@ -165,6 +165,9 @@
   <ItemGroup>
     <Compile Include="AddBraces\AddBracesFixAllTests.cs" />
     <Compile Include="AddBraces\AddBracesTests.cs" />
+    <Compile Include="Completion\CompletionProviders\ExplicitInterfaceTypeCompletionProviderTests.cs" />
+    <Compile Include="Completion\CompletionProviders\ExplicitInterfaceMemberCompletionProviderTests.cs" />
+    <Compile Include="AddUsing\AddUsingTestsWithAddImportDiagnosticProvider.cs" />
     <Compile Include="InitializeParameter\AddParameterCheckTests.cs" />
     <Compile Include="AddParameter\AddParameterTests.cs" />
     <Compile Include="AutomaticCompletion\AutomaticBraceCompletionTests.cs" />
@@ -222,7 +225,7 @@
     <Compile Include="CodeActions\ReplacePropertyWithMethods\ReplacePropertyWithMethodsTests.cs" />
     <Compile Include="CodeLens\CSharpCodeLensTests.cs" />
     <Compile Include="Completion\CompletionServiceTests.cs" />
-    <Compile Include="Diagnostics\AddUsing\AddUsingTests_NuGet.cs" />
+    <Compile Include="AddUsing\AddUsingTests_NuGet.cs" />
     <Compile Include="Diagnostics\GenerateMethod\GenerateConversionTests.cs" />
     <Compile Include="Diagnostics\InvokeDelegateWithConditionalAccess\InvokeDelegateWithConditionalAccessTests_FixAllTests.cs" />
     <Compile Include="Diagnostics\MakeMethodSynchronous\MakeMethodSynchronousTests.cs" />
@@ -253,7 +256,6 @@
     <Compile Include="Completion\CompletionProviders\AttributeNamedParameterCompletionProviderTests.cs" />
     <Compile Include="Completion\CompletionProviders\CrefCompletionProviderTests.cs" />
     <Compile Include="Completion\CompletionProviders\EnumAndCompletionListTagCompletionProviderTests.cs" />
-    <Compile Include="Completion\CompletionProviders\ExplicitInterfaceCompletionProviderTests.cs" />
     <Compile Include="Completion\CompletionProviders\ExternAliasCompletionProviderTests.cs" />
     <Compile Include="Completion\CompletionProviders\GlobalAssemblyCacheCompletionHelperTests.cs" />
     <Compile Include="Completion\CompletionProviders\KeywordCompletionProviderTests.cs" />
@@ -279,9 +281,9 @@
     <Compile Include="DocumentationComments\CodeFixes\RemoveDocCommentNodeCodeFixProviderTests.cs" />
     <Compile Include="GoToAdjacentMember\CSharpGoToAdjacentMemberTests.cs" />
     <Compile Include="Diagnostics\AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest.cs" />
-    <Compile Include="Diagnostics\AddUsing\AddUsingTests.cs" />
-    <Compile Include="Diagnostics\AddUsing\AddUsingTests_ExtensionMethods.cs" />
-    <Compile Include="Diagnostics\AddUsing\AddUsingTests_Queries.cs" />
+    <Compile Include="AddUsing\AddUsingTests.cs" />
+    <Compile Include="AddUsing\AddUsingTests_ExtensionMethods.cs" />
+    <Compile Include="AddUsing\AddUsingTests_Queries.cs" />
     <Compile Include="Diagnostics\MakeMethodAsynchronous\MakeMethodAsynchronousTests.cs" />
     <Compile Include="Diagnostics\Async\AddAwaitTests.cs" />
     <Compile Include="Diagnostics\Async\ChangeToAsyncTests.cs" />

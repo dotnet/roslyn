@@ -943,6 +943,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Friend Class BoundBadStatement
         Implements IInvalidStatement
 
+        Public ReadOnly Property Children As ImmutableArray(Of IOperation) Implements IInvalidStatement.Children
+            Get
+                Dim builder As ArrayBuilder(Of IOperation) = ArrayBuilder(Of IOperation).GetInstance(Me.ChildBoundNodes.Length)
+                For Each childNode In Me.ChildBoundNodes
+                    Dim operation = TryCast(childNode, IOperation)
+                    If operation IsNot Nothing Then
+                        builder.Add(operation)
+                    End If
+                Next
+
+                Return builder.ToImmutableAndFree()
+            End Get
+        End Property
+
         Protected Overrides Function StatementKind() As OperationKind
             Return OperationKind.InvalidStatement
         End Function

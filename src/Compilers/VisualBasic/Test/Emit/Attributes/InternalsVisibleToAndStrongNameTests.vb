@@ -1178,7 +1178,7 @@ End Class
                      </file>
                  </compilation>
 
-        Dim ilRef = CompileIL(il.Value, appendDefaultHeader:=False)
+        Dim ilRef = CompileIL(il.Value, prependDefaultHeader:=False)
 
         Dim comp = CreateCompilationWithMscorlibAndReferences(vb, {ilRef}, TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultProvider))
 

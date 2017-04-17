@@ -21,6 +21,7 @@
   <ItemGroup>
     <Compile Include="AbstractIntegrationTest.cs" />
     <Compile Include="AbstractInteractiveWindowTest.cs" />
+    <Compile Include="CSharp\CSharpReferenceHighlighting.cs" />
     <Compile Include="CSharp\CSharpEncapsulateField.cs" />
     <Compile Include="CSharp\CSharpF1Help.cs" />
     <Compile Include="CSharp\CSharpInteractiveBoxSelection.cs" />
@@ -47,6 +48,7 @@
     <Compile Include="CSharp\CSharpNavigationBar.cs" />
     <Compile Include="CSharp\CSharpKeywordHighlighting.cs" />
     <Compile Include="CSharp\CSharpOutlining.cs" />
+    <Compile Include="CSharp\CSharpExtractMethod.cs" />
     <Compile Include="CSharp\CSharpReplClassification.cs" />
     <Compile Include="CSharp\CSharpReplIdeFeatures.cs" />
     <Compile Include="CSharp\CSharpReplIntellisense.cs" />
@@ -62,6 +64,8 @@
     <Compile Include="CSharp\CSharpSquigglesNetCore.cs" />
     <Compile Include="CSharp\CSharpWinForms.cs" />
     <Compile Include="CSharp\CSharpAddMissingReference.cs" />
+    <Compile Include="VisualBasic\BasicEndConstruct.cs" />
+    <Compile Include="VisualBasic\BasicReferenceHighlighting.cs" />
     <Compile Include="VisualBasic\BasicKeywordHighlighting.cs" />
     <Compile Include="VisualBasic\BasicEncapsulateField.cs" />
     <Compile Include="VisualBasic\BasicNavigationBar.cs" />
@@ -75,6 +79,7 @@
     <Compile Include="VisualBasic\BasicErrorListNetCore.cs" />
     <Compile Include="VisualBasic\BasicOrganizing.cs" />
     <Compile Include="VisualBasic\BasicOutlining.cs" />
+    <Compile Include="VisualBasic\BasicExtractMethod.cs" />
     <Compile Include="Workspace\WorkspaceBase.cs" />
     <Compile Include="Workspace\WorkspacesDesktop.cs" />
     <Compile Include="Workspace\WorkspacesNetCore.cs" />
@@ -84,6 +89,7 @@
     <Compile Include="VisualBasic\BasicBuild.cs" />
     <Compile Include="VisualBasic\BasicClassification.cs" />
     <Compile Include="VisualBasic\BasicFormatting.cs" />
+    <Compile Include="VisualBasic\BasicCodeActions.cs" />
     <Compile Include="VisualBasic\BasicGenerateEqualsAndGetHashCodeDialog.cs" />
     <Compile Include="VisualBasic\BasicGenerateConstructorDialog.cs" />
     <Compile Include="VisualBasic\BasicChangeSignatureDialog.cs" />

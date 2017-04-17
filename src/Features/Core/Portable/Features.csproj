@@ -235,8 +235,8 @@
     <Compile Include="CodeFixes\FixAllOccurrences\IFixMultipleOccurrencesService.cs" />
     <Compile Include="CodeFixes\ImplementAbstractClass\AbstractImplementAbstractClassCodeFixProvider.cs" />
     <Compile Include="CodeFixes\PreferFrameworkType\PreferFrameworkTypeCodeFixProvider.cs" />
-    <Compile Include="CodeFixes\Qualify\AbstractFullyQualifyCodeFixProvider.SymbolResult.cs" />
-    <Compile Include="CodeFixes\Qualify\AbstractFullyQualifyCodeFixProvider.cs" />
+    <Compile Include="FullyQualify\AbstractFullyQualifyCodeFixProvider.SymbolResult.cs" />
+    <Compile Include="FullyQualify\AbstractFullyQualifyCodeFixProvider.cs" />
     <Compile Include="CodeFixes\GenerateMember\AbstractGenerateMemberCodeFixProvider.cs" />
     <Compile Include="CodeFixes\ICodeFixProviderFactory.cs" />
     <Compile Include="CodeFixes\FixAllOccurrences\IFixAllGetFixesService.cs" />

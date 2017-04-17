@@ -8,9 +8,12 @@ using System.ComponentModel.Design;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
+using System.Windows;
 using System.Windows.Automation;
+using System.Windows.Controls;
 using System.Windows.Forms;
 using Microsoft.CodeAnalysis.Editor.Implementation.Highlighting;
+using System.Windows.Media;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
@@ -22,6 +25,7 @@ using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Text.Outlining;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.TextManager.Interop;
+using Microsoft.VisualStudio.Text.Classification;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 {
@@ -228,6 +232,99 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                     && caret.Bottom <= advancedView.ViewportBottom;
             });
 
+        public ClassifiedToken[] GetLightbulbPreviewClassifications(string menuText)
+        {
+            return ExecuteOnActiveView(view =>
+            {
+                var broker = GetComponentModel().GetService<ILightBulbBroker>();
+                var classifierAggregatorService = GetComponentModelService<IViewClassifierAggregatorService>();
+                var primitives = GetComponentModelService<IEditorPrimitivesFactoryService>();
+                return GetLightbulbPreviewClassifications(
+                    menuText,
+                    broker,
+                    view,
+                    classifierAggregatorService,
+                    primitives);
+            });
+        }
+
+        private ClassifiedToken[] GetLightbulbPreviewClassifications(
+                    string menuText,
+                    ILightBulbBroker broker,
+                    IWpfTextView view,
+                    IViewClassifierAggregatorService viewClassifierAggregator,
+                    IEditorPrimitivesFactoryService editorPrimitives)
+        {
+            LightBulbHelper.WaitForLightBulbSession(broker, view);
+
+            var bufferType = view.TextBuffer.ContentType.DisplayName;
+            if (!broker.IsLightBulbSessionActive(view))
+            {
+                throw new Exception(string.Format("No Active Smart Tags in View!  Buffer content type={0}", bufferType));
+            }
+
+            var activeSession = broker.GetSession(view);
+            if (activeSession == null || !activeSession.IsExpanded)
+            {
+                throw new InvalidOperationException(string.Format("No expanded light bulb session found after View.ShowSmartTag.  Buffer content type={0}", bufferType));
+            }
+
+            if (!string.IsNullOrEmpty(menuText))
+            {
+                IEnumerable<SuggestedActionSet> actionSets;
+                if (activeSession.TryGetSuggestedActionSets(out actionSets) != QuerySuggestedActionCompletionStatus.Completed)
+                {
+                    actionSets = Array.Empty<SuggestedActionSet>();
+                }
+
+                var set = actionSets.SelectMany(s => s.Actions).FirstOrDefault(a => a.DisplayText == menuText);
+                if (set == null)
+                {
+                    throw new InvalidOperationException(
+                        string.Format("ISuggestionAction {0} not found.  Buffer content type={1}", menuText, bufferType));
+                }
+
+                IWpfTextView preview = null;
+                object pane = HostWaitHelper.PumpingWaitResult(set.GetPreviewAsync(CancellationToken.None));
+                if (pane is System.Windows.Controls.UserControl)
+                {
+                    var container = ((System.Windows.Controls.UserControl)pane).FindName("PreviewDockPanel") as DockPanel;
+                    var host = FindDescendants<UIElement>(container).OfType<IWpfTextViewHost>().LastOrDefault();
+                    preview = (host == null) ? null : host.TextView;
+                }
+
+                if (preview == null)
+                {
+                    throw new InvalidOperationException(string.Format("Could not find light bulb preview.  Buffer content type={0}", bufferType));
+                }
+
+                activeSession.Collapse();
+                var classifier = viewClassifierAggregator.GetClassifier(preview);
+                var classifiedSpans = classifier.GetClassificationSpans(new SnapshotSpan(preview.TextBuffer.CurrentSnapshot, 0, preview.TextBuffer.CurrentSnapshot.Length));
+                return classifiedSpans.Select(x => new ClassifiedToken(x.Span.GetText().ToString(), x.ClassificationType.Classification)).ToArray();
+            }
+
+            activeSession.Collapse();
+            return Array.Empty<ClassifiedToken>();
+        }
+
+        private static IEnumerable<T> FindDescendants<T>(DependencyObject rootObject) where T : DependencyObject
+        {
+            if (rootObject != null)
+            {
+                for (int i = 0; i < VisualTreeHelper.GetChildrenCount(rootObject); i++)
+                {
+                    DependencyObject child = VisualTreeHelper.GetChild(rootObject, i);
+
+                    if (child != null && child is T)
+                        yield return (T)child;
+
+                    foreach (T descendant in FindDescendants<T>(child))
+                        yield return descendant;
+                }
+            }
+        }
+
         public void MessageBox(string message)
             => ExecuteOnActiveView(view => System.Windows.MessageBox.Show(message));
 
@@ -279,7 +376,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         {
             var vsAutomationElement = AutomationElement.FromHandle(new IntPtr(GetDTE().MainWindow.HWnd));
 
-            Condition elementCondition = new AndCondition(
+            System.Windows.Automation.Condition elementCondition = new AndCondition(
                 new PropertyCondition(AutomationElement.AutomationIdProperty, dialogAutomationName),
                 new PropertyCondition(AutomationElement.ControlTypeProperty, ControlType.Window));
 
@@ -331,7 +428,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 var componentChangeService = (IComponentChangeService)designerHost;
                 void ComponentAdded(object sender, ComponentEventArgs e)
                 {
-                    var control = e.Component as Control;
+                    var control = (System.Windows.Forms.Control)e.Component;
                     if (control.Name == buttonName)
                     {
                         waitHandle.Set();
@@ -345,7 +442,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                     var mainForm = (Form)designerHost.RootComponent;
                     InvokeOnUIThread(() =>
                     {
-                        var newControl = (Button)designerHost.CreateComponent(typeof(Button), buttonName);
+                        var newControl = (System.Windows.Forms.Button)designerHost.CreateComponent(typeof(System.Windows.Forms.Button), buttonName);
                         newControl.Parent = mainForm;
                     });
                     waitHandle.WaitOne();
@@ -365,7 +462,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 var componentChangeService = (IComponentChangeService)designerHost;
                 void ComponentRemoved(object sender, ComponentEventArgs e)
                 {
-                    var control = e.Component as Control;
+                    var control = (System.Windows.Forms.Control)e.Component;
                     if (control.Name == buttonName)
                     {
                         waitHandle.Set();
