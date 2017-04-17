@@ -40,7 +40,6 @@ namespace Microsoft.CodeAnalysis.PatternMatching
             {
                 this.CharacterSpans.Dispose();
                 this.SimilarityChecker?.Free();
-                this.SimilarityChecker?.Free();
             }
         }
     }
