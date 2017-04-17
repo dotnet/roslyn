@@ -287,7 +287,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             throw ExceptionUtilities.Unreachable;
         }
 
-        private CSharpSyntaxNode GetSyntax()
+        private static CSharpSyntaxNode DummySyntax()
         {
             var syntaxTree = CSharpSyntaxTree.Dummy;
             return (CSharpSyntaxNode)syntaxTree.GetRoot();
@@ -335,7 +335,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             { WasCompilerGenerated = true };
         }
 
-        /// A synthesized entrypoint that forwards all calls to an async Main Method
+        /// <summary> A synthesized entrypoint that forwards all calls to an async Main Method </summary>
         internal sealed class AsyncForwardEntryPoint : SynthesizedEntryPointSymbol
         {
             /// The user-defined asynchronous main method.
@@ -346,17 +346,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             private readonly ImmutableArray<ParameterSymbol> _parameters;
 
+            /// <summary>
             /// Task -> Void
-            /// Task<_> -> Int32
-            private static TypeSymbol TranslateReturnType(CSharpCompilation compilation, TypeSymbol returnType)
+            /// Generic Task -> Int32
+            /// </summary>
+            private static TypeSymbol TranslateReturnType(CSharpCompilation compilation, TypeSymbol returnType, DiagnosticBag diagnosticBag, MethodSymbol userMain)
             {
-                return returnType.IsGenericTaskType(compilation)
-                    ? compilation.GetSpecialType(SpecialType.System_Int32)
-                    : compilation.GetSpecialType(SpecialType.System_Void);
+                var specialType = returnType.IsGenericTaskType(compilation) ? SpecialType.System_Int32 : SpecialType.System_Void;
+                var syntax = userMain.DeclaringSyntaxReferences.SingleOrDefault()?.GetSyntax() ?? DummySyntax() ;
+                return Binder.GetSpecialType(compilation, specialType, syntax, diagnosticBag);
             }
 
             internal AsyncForwardEntryPoint(CSharpCompilation compilation, DiagnosticBag diagnosticBag, NamedTypeSymbol containingType, MethodSymbol userMain) :
-                base(containingType, TranslateReturnType(compilation, userMain.ReturnType))
+                base(containingType, TranslateReturnType(compilation, userMain.ReturnType, diagnosticBag, userMain))
             {
                 // There should be no way for a userMain to be passed in unless it already passed the 
                 // parameter checks for determining entrypoint validity.
@@ -371,6 +373,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if ((object)_getAwaiterMethod != null)
                 {
                     _getResultMethod = GetRequiredMethod(_getAwaiterMethod.ReturnType, WellKnownMemberNames.GetResult, diagnosticBag, userMainLocation);
+                    if ((object)_getResultMethod != null && _getResultMethod.ReturnType != ReturnType)
+                    {
+                        // Prototype: This needs a diagnostic
+                        throw new Exception("oh no");
+                    }
                 }
             }
 
@@ -380,7 +387,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             internal override BoundBlock CreateBody()
             {
-                var syntax = this.GetSyntax();
+                var syntax = DummySyntax();
                 var arguments = Parameters.SelectAsArray(p => (BoundExpression)new BoundParameter(syntax, p, p.Type));
 
                 // Main(args) or Main()
@@ -481,7 +488,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Debug.Assert((object)_getAwaiterMethod != null);
                 Debug.Assert((object)_getResultMethod != null);
 
-                var syntax = this.GetSyntax();
+                var syntax = DummySyntax();
 
                 var ctor = _containingType.GetScriptConstructor();
                 Debug.Assert(ctor.ParameterCount == 0);
@@ -565,7 +572,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // }
             internal override BoundBlock CreateBody()
             {
-                var syntax = this.GetSyntax();
+                var syntax = DummySyntax();
 
                 var ctor = _containingType.GetScriptConstructor();
                 Debug.Assert(ctor.ParameterCount == 1);

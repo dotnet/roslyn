@@ -74,10 +74,21 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
         }
 
-        public static void Capture(Action action, int expectedLength, out string output, out string errorOutput)
+        public static void Capture(Action action, int? expectedLength, out string output, out string errorOutput)
         {
-            TextWriter errorOutputWriter = new CappedStringWriter(expectedLength);
-            TextWriter outputWriter = new CappedStringWriter(expectedLength);
+            TextWriter errorOutputWriter;
+            TextWriter outputWriter; 
+
+            if (expectedLength is int el)
+            {
+                errorOutputWriter = new CappedStringWriter(el);
+                outputWriter = new CappedStringWriter(el);
+            }
+            else
+            {
+                errorOutputWriter = StreamWriter.Null;
+                outputWriter = StreamWriter.Null;
+            }
 
             lock (s_consoleGuard)
             {
@@ -96,8 +107,17 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 }
             }
 
-            output = outputWriter.ToString();
-            errorOutput = errorOutputWriter.ToString();
+            if (expectedLength is int)
+            {
+                output = outputWriter.ToString();
+                errorOutput = errorOutputWriter.ToString();
+            }
+            else
+            {
+                output = "";
+                errorOutput = "";
+            }
+
         }
 
         public static void AssertEqual(Action action, string expectedOutput, string expectedErrorOutput, Func<string, string, bool> equalityComparer = null)

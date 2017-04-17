@@ -105,9 +105,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                         MetadataSignatureUnitTestHelper.VerifyMemberSignatures(testEnvironment, expectedSignatures);
                     }
 
-                    if (expectedOutput != null)
+                    if (expectedOutput != null || expectedReturnCode != null)
                     {
-                        Assert.Equal(expectedReturnCode, testEnvironment.Execute(mainModuleName, expectedOutput, args));
+                        var returnCode = testEnvironment.Execute(mainModuleName, args, expectedOutput);
+
+                        if (expectedReturnCode is int exCode)
+                        {
+                            Assert.Equal(exCode, returnCode);
+                        }
                     }
                 }
             }

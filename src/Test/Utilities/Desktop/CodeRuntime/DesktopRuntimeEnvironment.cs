@@ -236,13 +236,22 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.CodeRuntime
             }
         }
 
-        public int Execute(string moduleName, int expectedOutputLength, string[] args, out string processOutput)
+        public int Execute(string moduleName, string[] args, string expectedOutput)
         {
             try
             {
                 var emitData = GetEmitData();
                 emitData.RuntimeData.ExecuteRequested = true;
-                return emitData.Manager.Execute(moduleName, expectedOutputLength, args, out processOutput);
+                var resultCode = emitData.Manager.Execute(moduleName, args, expectedOutput?.Length, out var output);
+
+                if (expectedOutput != null && expectedOutput.Trim() != output.Trim())
+                {
+                    string dumpDir;
+                    GetEmitData().Manager.DumpAssemblyData(out dumpDir);
+                    throw new ExecutionException(expectedOutput, output, dumpDir);
+                }
+
+                return resultCode;
             }
             catch (TargetInvocationException tie)
             {
@@ -255,21 +264,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.CodeRuntime
                 _emitData.Manager.DumpAssemblyData(out dumpDir);
                 throw new ExecutionException(tie.InnerException, dumpDir);
             }
-        }
-
-        public int Execute(string moduleName, string expectedOutput, string[] args)
-        {
-            string actualOutput;
-            int exitCode = Execute(moduleName, expectedOutput.Length, args, out actualOutput);
-
-            if (expectedOutput.Trim() != actualOutput.Trim())
-            {
-                string dumpDir;
-                GetEmitData().Manager.DumpAssemblyData(out dumpDir);
-                throw new ExecutionException(expectedOutput, actualOutput, dumpDir);
-            }
-
-            return exitCode;
         }
 
         private EmitData GetEmitData()

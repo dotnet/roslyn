@@ -367,7 +367,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.CodeRuntime
             return typeNames;
         }
 
-        public int Execute(string moduleName, int expectedOutputLength, string[] mainArgs,  out string output)
+        public int Execute(string moduleName, string[] mainArgs, int? expectedOutputLength, out string output)
         {
             ImmutableArray<byte> bytes = GetModuleBytesByName(moduleName);
             Assembly assembly = DesktopRuntimeUtil.LoadAsAssembly(moduleName, bytes);
