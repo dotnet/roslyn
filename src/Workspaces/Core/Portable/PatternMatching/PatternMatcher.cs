@@ -39,7 +39,6 @@ namespace Microsoft.CodeAnalysis.PatternMatching
         private readonly CompareInfo _compareInfo;
 
         private bool _invalidPattern;
-
         /// <summary>
         /// Construct a new PatternMatcher using the specified culture.
         /// </summary>
@@ -61,10 +60,9 @@ namespace Microsoft.CodeAnalysis.PatternMatching
             string pattern,
             CultureInfo culture = null,
             bool includeMatchedSpans = false,
-            bool verbatimIdentifierPrefixIsWordCharacter = false,
             bool allowFuzzyMatching = false)
         {
-            return new SimplePatternMatcher(pattern, culture, includeMatchedSpans, verbatimIdentifierPrefixIsWordCharacter, allowFuzzyMatching);
+            return new SimplePatternMatcher(pattern, culture, includeMatchedSpans, allowFuzzyMatching);
         }
 
         public static PatternMatcher CreateContainerPatternMatcher(
@@ -381,10 +379,8 @@ namespace Microsoft.CodeAnalysis.PatternMatching
             }
         }
 
-        private static bool IsWordChar(char ch, bool verbatimIdentifierPrefixIsWordCharacter)
-        {
-            return char.IsLetterOrDigit(ch) || ch == '_' || (verbatimIdentifierPrefixIsWordCharacter && ch == '@');
-        }
+        private static bool IsWordChar(char ch)
+            => char.IsLetterOrDigit(ch) || ch == '_';
 
         /// <summary>
         /// Do the two 'parts' match? i.e. Does the candidate part start with the pattern part?

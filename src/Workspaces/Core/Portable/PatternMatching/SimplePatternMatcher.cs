@@ -14,13 +14,12 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                 string pattern,
                 CultureInfo culture,
                 bool includeMatchedSpans,
-                bool verbatimIdentifierPrefixIsWordCharacter,
                 bool allowFuzzyMatching)
                 : base(includeMatchedSpans, culture, allowFuzzyMatching)
             {
                 pattern = pattern.Trim();
 
-                _fullPatternSegment = new PatternSegment(pattern, verbatimIdentifierPrefixIsWordCharacter, allowFuzzyMatching);
+                _fullPatternSegment = new PatternSegment(pattern, allowFuzzyMatching);
                 _invalidPattern = _fullPatternSegment.IsInvalid;
             }
 

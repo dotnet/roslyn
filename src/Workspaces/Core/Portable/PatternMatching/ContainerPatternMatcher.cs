@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                 _containerSplitCharacters = containerSplitCharacters;
 
                 _patternSegments = patternParts
-                    .Select(text => new PatternSegment(text.Trim(), verbatimIdentifierPrefixIsWordCharacter: false, allowFuzzyMatching: allowFuzzyMatching))
+                    .Select(text => new PatternSegment(text.Trim(), allowFuzzyMatching: allowFuzzyMatching))
                     .ToArray();
 
                 _invalidPattern = _patternSegments.Length == 0 || _patternSegments.Any(s => s.IsInvalid);
