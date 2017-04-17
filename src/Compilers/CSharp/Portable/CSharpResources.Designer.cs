@@ -449,7 +449,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot assign {0} to anonymous type property.
+        ///   Looks up a localized string similar to Cannot assign &apos;{0}&apos; to anonymous type property.
         /// </summary>
         internal static string ERR_AnonymousTypePropertyAssignedBadValue {
             get {
@@ -1354,6 +1354,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_BadDynamicMethodArg {
             get {
                 return ResourceManager.GetString("ERR_BadDynamicMethodArg", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cannot use a default literal as an argument to a dynamically dispatched operation..
+        /// </summary>
+        internal static string ERR_BadDynamicMethodArgDefaultLiteral {
+            get {
+                return ResourceManager.GetString("ERR_BadDynamicMethodArgDefaultLiteral", resourceCulture);
             }
         }
         
@@ -3203,6 +3212,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Use of default literal is not valid in this context.
+        /// </summary>
+        internal static string ERR_DefaultLiteralNotValid {
+            get {
+                return ResourceManager.GetString("ERR_DefaultLiteralNotValid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Cannot specify the DefaultMember attribute on a type containing an indexer.
         /// </summary>
         internal static string ERR_DefaultMemberOnIndexedType {
@@ -4157,7 +4175,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to An expression tree lambda may not contain a coalescing operator with a null literal left-hand side.
+        ///   Looks up a localized string similar to An expression tree lambda may not contain a coalescing operator with a null or default literal left-hand side.
         /// </summary>
         internal static string ERR_ExpressionTreeContainsBadCoalesce {
             get {
@@ -8837,7 +8855,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The switch expression must be a value; found {0}..
+        ///   Looks up a localized string similar to The switch expression must be a value; found &apos;{0}&apos;..
         /// </summary>
         internal static string ERR_SwitchExpressionValueExpected {
             get {
@@ -9602,6 +9620,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to A tuple may not contain a value of type &apos;void&apos;..
+        /// </summary>
+        internal static string ERR_VoidInTuple {
+            get {
+                return ResourceManager.GetString("ERR_VoidInTuple", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to &apos;{0}&apos;: a field cannot be both volatile and readonly.
         /// </summary>
         internal static string ERR_VolatileAndReadonly {
@@ -9923,6 +9950,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string IDS_FeatureDefault {
             get {
                 return ResourceManager.GetString("IDS_FeatureDefault", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to default literal.
+        /// </summary>
+        internal static string IDS_FeatureDefaultLiteral {
+            get {
+                return ResourceManager.GetString("IDS_FeatureDefaultLiteral", resourceCulture);
             }
         }
         
@@ -12155,6 +12191,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string WRN_DebugFullNameTooLong_Title {
             get {
                 return ResourceManager.GetString("WRN_DebugFullNameTooLong_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Did you mean to use the default switch label (`default:`) rather than `case default:`? If you really mean to use the default literal, consider `case (default):` or another literal (`case 0:` or `case null:`) as appropriate..
+        /// </summary>
+        internal static string WRN_DefaultInSwitch {
+            get {
+                return ResourceManager.GetString("WRN_DefaultInSwitch", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Did you mean to use the default switch label (`default:`) rather than `case default:`? If you really mean to use the default literal, consider `case (default):` or another literal (`case 0:` or `case null:`) as appropriate..
+        /// </summary>
+        internal static string WRN_DefaultInSwitch_Title {
+            get {
+                return ResourceManager.GetString("WRN_DefaultInSwitch_Title", resourceCulture);
             }
         }
         

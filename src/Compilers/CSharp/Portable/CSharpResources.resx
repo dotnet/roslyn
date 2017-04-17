@@ -207,6 +207,9 @@
   <data name="IDS_FeatureDefault" xml:space="preserve">
     <value>default operator</value>
   </data>
+  <data name="IDS_FeatureDefaultLiteral" xml:space="preserve">
+    <value>default literal</value>
+  </data>
   <data name="IDS_FeatureNullable" xml:space="preserve">
     <value>nullable types</value>
   </data>
@@ -845,6 +848,9 @@
   </data>
   <data name="ERR_NullNotValid" xml:space="preserve">
     <value>Use of null is not valid in this context</value>
+  </data>
+  <data name="ERR_DefaultLiteralNotValid" xml:space="preserve">
+    <value>Use of default literal is not valid in this context</value>
   </data>
   <data name="ERR_UseDefViolationThis" xml:space="preserve">
     <value>The 'this' object cannot be used before all of its fields are assigned to</value>
@@ -2136,7 +2142,7 @@ If such a class is used as a base class and if the deriving class defines a dest
     <value>No best type found for implicitly-typed array</value>
   </data>
   <data name="ERR_AnonymousTypePropertyAssignedBadValue" xml:space="preserve">
-    <value>Cannot assign {0} to anonymous type property</value>
+    <value>Cannot assign '{0}' to anonymous type property</value>
   </data>
   <data name="ERR_ExpressionTreeContainsBaseAccess" xml:space="preserve">
     <value>An expression tree may not contain a base access</value>
@@ -2181,7 +2187,7 @@ If such a class is used as a base class and if the deriving class defines a dest
     <value>Cannot use local variable '{0}' before it is declared. The declaration of the local variable hides the field '{1}'.</value>
   </data>
   <data name="ERR_ExpressionTreeContainsBadCoalesce" xml:space="preserve">
-    <value>An expression tree lambda may not contain a coalescing operator with a null literal left-hand side</value>
+    <value>An expression tree lambda may not contain a coalescing operator with a null or default literal left-hand side</value>
   </data>
   <data name="ERR_IdentifierExpected" xml:space="preserve">
     <value>Identifier expected</value>
@@ -4880,7 +4886,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Deconstruct assignment requires an expression with a type on the right-hand-side.</value>
   </data>
   <data name="ERR_SwitchExpressionValueExpected" xml:space="preserve">
-    <value>The switch expression must be a value; found {0}.</value>
+    <value>The switch expression must be a value; found '{0}'.</value>
   </data>
   <data name="ERR_PatternIsSubsumed" xml:space="preserve">
     <value>The switch case has already been handled by a previous case.</value>
@@ -5020,6 +5026,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_PatternDynamicType" xml:space="preserve">
     <value>It is not legal to use the type 'dynamic' in a pattern.</value>
   </data>
+  <data name="ERR_BadDynamicMethodArgDefaultLiteral" xml:space="preserve">
+    <value>Cannot use a default literal as an argument to a dynamically dispatched operation.</value>
+  </data>
   <data name="ERR_BadDocumentationMode" xml:space="preserve">
     <value>Provided documentation mode is unsupported or invalid: '{0}'.</value>
   </data>
@@ -5043,5 +5052,14 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_CompilerAndLanguageVersion" xml:space="preserve">
     <value>Compiler version: '{0}'. Language version: {1}.</value>
+  </data>
+  <data name="WRN_DefaultInSwitch" xml:space="preserve">
+    <value>Did you mean to use the default switch label (`default:`) rather than `case default:`? If you really mean to use the default literal, consider `case (default):` or another literal (`case 0:` or `case null:`) as appropriate.</value>
+  </data>
+  <data name="WRN_DefaultInSwitch_Title" xml:space="preserve">
+    <value>Did you mean to use the default switch label (`default:`) rather than `case default:`? If you really mean to use the default literal, consider `case (default):` or another literal (`case 0:` or `case null:`) as appropriate.</value>
+  </data>
+  <data name="ERR_VoidInTuple" xml:space="preserve">
+    <value>A tuple may not contain a value of type 'void'.</value>
   </data>
 </root>
