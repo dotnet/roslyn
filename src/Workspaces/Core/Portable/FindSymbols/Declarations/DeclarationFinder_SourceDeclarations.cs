@@ -217,31 +217,36 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // pattern they passed in.  Otherwise, make a pattern matcher just for the part after
             // the dot.
             var lastPartPatternMatcher = !isDottedPattern
-                ? new PatternMatcher(pattern, includeMatchedSpans: false)
-                : new PatternMatcher(pattern.Substring(dotIndex + 1), includeMatchedSpans: false);
+                ? new SimplePatternMatcher(pattern, includeMatchedSpans: false)
+                : new SimplePatternMatcher(pattern.Substring(dotIndex + 1), includeMatchedSpans: false);
 
-            var query = SearchQuery.CreateCustom(lastPartPatternMatcher.Matches);
-
-            var symbolAndProjectIds = await SymbolFinder.FindSourceDeclarationsWithCustomQueryAsync(
-                project, query, criteria, cancellationToken).ConfigureAwait(false);
-
-            if (symbolAndProjectIds.Length == 0)
+            using (lastPartPatternMatcher)
             {
-                return ImmutableArray<SymbolAndProjectId>.Empty;
-            }
+                var query = SearchQuery.CreateCustom(lastPartPatternMatcher.Matches);
 
-            if (!isDottedPattern)
-            {
-                // If it wasn't a dotted pattern, then we're done.  We can just return whatever
-                // set of results we got so far.
-                return symbolAndProjectIds;
-            }
+                var symbolAndProjectIds = await SymbolFinder.FindSourceDeclarationsWithCustomQueryAsync(
+                    project, query, criteria, cancellationToken).ConfigureAwait(false);
 
-            // Ok, we had a dotted pattern.  Have to see if the symbol's container matches the 
-            // pattern as well.
-            var entireNamePatternMatcher = new PatternMatcher(pattern, includeMatchedSpans: false);
-            return symbolAndProjectIds.WhereAsArray(t =>
-                entireNamePatternMatcher.Matches(t.Symbol.Name, GetContainer(t.Symbol)));
+                if (symbolAndProjectIds.Length == 0)
+                {
+                    return ImmutableArray<SymbolAndProjectId>.Empty;
+                }
+
+                if (!isDottedPattern)
+                {
+                    // If it wasn't a dotted pattern, then we're done.  We can just return whatever
+                    // set of results we got so far.
+                    return symbolAndProjectIds;
+                }
+
+                // Ok, we had a dotted pattern.  Have to see if the symbol's container matches the 
+                // pattern as well.
+                using (var containerPatternMatcher = ContainerPatternMatcher.CreateDotSeperatedContainerMatcher(pattern))
+                {
+                    return symbolAndProjectIds.WhereAsArray(t =>
+                        containerPatternMatcher.Matches(GetContainer(t.Symbol)));
+                }
+            }
         }
 
         private static string GetContainer(ISymbol symbol)

@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.PatternMatching
 {
-    internal sealed partial class PatternMatcher : IDisposable
+    internal partial class PatternMatcher : IDisposable
     {
         /// <summary>
         /// Encapsulated matches responsible for mathcing an all lowercase pattern against

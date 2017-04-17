@@ -16,8 +16,8 @@ namespace Microsoft.CodeAnalysis.Completion
         private static readonly CompletionHelper CaseInsensitiveInstance = new CompletionHelper(isCaseSensitive: false);
 
         private readonly object _gate = new object();
-        private readonly Dictionary<(CultureInfo, string, bool includeMatchedSpans), PatternMatcher> _patternMatcherMap =
-             new Dictionary<(CultureInfo, string, bool includeMatchedSpans), PatternMatcher>();
+        private readonly Dictionary<(CultureInfo, string, bool includeMatchedSpans), SimplePatternMatcher> _patternMatcherMap =
+             new Dictionary<(CultureInfo, string, bool includeMatchedSpans), SimplePatternMatcher>();
 
         private static readonly CultureInfo EnUSCultureInfo = new CultureInfo("en-US");
         private readonly bool _isCaseSensitive;
@@ -122,16 +122,16 @@ namespace Microsoft.CodeAnalysis.Completion
             return null;
         }
 
-        private PatternMatcher GetPatternMatcher(
+        private SimplePatternMatcher GetPatternMatcher(
             CultureInfo culture, string pattern, bool includeMatchedSpans,  
-            Dictionary<(CultureInfo, string, bool), PatternMatcher> map)
+            Dictionary<(CultureInfo, string, bool), SimplePatternMatcher> map)
         {
             lock (_gate)
             {
                 var key = (culture, pattern, includeMatchedSpans);
                 if (!map.TryGetValue(key, out var patternMatcher))
                 {
-                    patternMatcher = new PatternMatcher(
+                    patternMatcher = new SimplePatternMatcher(
                         pattern, includeMatchedSpans, culture,
                         verbatimIdentifierPrefixIsWordCharacter: true,
                         allowFuzzyMatching: false);
@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.Completion
             }
         }
 
-        private PatternMatcher GetPatternMatcher(string pattern, bool includeMatchedSpans, CultureInfo culture)
+        private SimplePatternMatcher GetPatternMatcher(string pattern, bool includeMatchedSpans, CultureInfo culture)
             => GetPatternMatcher(culture, pattern, includeMatchedSpans, _patternMatcherMap);
 
         /// <summary>

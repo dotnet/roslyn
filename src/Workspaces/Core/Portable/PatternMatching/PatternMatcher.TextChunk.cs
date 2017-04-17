@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
         /// capitalized runs and lowercase runs.  i.e. if you have AAbb, then there will be two 
         /// character spans, one for AA and one for BB.
         /// </summary>
-        private struct TextChunk : IDisposable
+        internal struct TextChunk : IDisposable
         {
             public readonly string Text;
 
