@@ -4187,6 +4187,37 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task ExplicitTupleNameAdded_Trivia2()
+        {
+            var code = @"
+class C
+{
+    void M()
+    {
+        int [||]i = 1 + 2;
+        var t = (
+            /*comment*/ i,
+            /*comment*/ 3
+        );
+    }
+}";
+
+            var expected = @"
+class C
+{
+    void M()
+    {
+        var t = (
+            /*comment*/ i: 1 + 2,
+            /*comment*/ 3
+        );
+    }
+}";
+
+            await TestInRegularAndScriptAsync(code, expected, ignoreTrivia: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task ExplicitTupleNameAdded_NoDuplicateNames()
         {
             var code = @"
@@ -4281,10 +4312,33 @@ class C
 {
     void M()
     {
-        var t = (Rest: 1 + 2, 3);
+        var t = (1 + 2, 3);
     }
 }";
-            // PROTOTYPE(tuple-names) Reserved names not allowed
+            await TestInRegularAndScriptAsync(code, expected, ignoreTrivia: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task ExplicitTupleNameAdded_NoReservedNames2()
+        {
+            var code = @"
+class C
+{
+    void M()
+    {
+        int [||]Item1 = 1 + 2;
+        var t = (Item1, 3);
+    }
+}";
+
+            var expected = @"
+class C
+{
+    void M()
+    {
+        var t = (1 + 2, 3);
+    }
+}";
             await TestInRegularAndScriptAsync(code, expected, ignoreTrivia: false);
         }
 
@@ -4379,6 +4433,37 @@ class C
     void M()
     {
         var t = new { /*comment*/ i = ((int)(1 + 2)), 3 };
+    }
+}";
+            await TestInRegularAndScriptAsync(code, expected, ignoreTrivia: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task ExplicitAnonymousTypeMemberNameAdded_Comment2()
+        {
+            var code = @"
+class C
+{
+    void M()
+    {
+        int [||]i = 1 + 2;
+        var t = new {
+            /*comment*/ i,
+            /*comment*/ 3
+        };
+    }
+}";
+
+            var expected = @"
+class C
+{
+    void M()
+    {
+        var t = new {
+            /*comment*/
+            i = ((int)(1 + 2)),
+            /*comment*/ 3
+        };
     }
 }";
             await TestInRegularAndScriptAsync(code, expected, ignoreTrivia: false);

@@ -259,7 +259,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 if (node.Parent.IsKind(SyntaxKind.TupleExpression))
                 {
                     var tuple = (TupleExpressionSyntax)node.Parent;
-                    if (!IsTupleInLeftOfDeconstruction(tuple))
+                    if (!IsTupleInDeconstruction(tuple))
                     {
                         inferredName = ExtractAnonymousTypeMemberName(node.Expression).ValueText;
                         if (!CanMakeNameExplicitInTuple(tuple, inferredName))
@@ -275,8 +275,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 {
                     var identifier = SyntaxFactory.Identifier(inferredName);
                     identifier = TryEscapeIdentifierToken(identifier, node, _semanticModel);
-                    newArgument = newArgument.WithNameColon(SyntaxFactory.NameColon(SyntaxFactory.IdentifierName(identifier)))
-                         .WithAdditionalAnnotations(Simplifier.Annotation);
+                    newArgument = newArgument.WithLeadingTrivia(SyntaxTriviaList.Empty)
+                        .WithNameColon(SyntaxFactory.NameColon(SyntaxFactory.IdentifierName(identifier)))
+                        .WithAdditionalAnnotations(Simplifier.Annotation)
+                        .WithLeadingTrivia(node.GetLeadingTrivia());
                 }
 
                 var argumentType = _semanticModel.GetTypeInfo(node.Expression).ConvertedType;
@@ -295,6 +297,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
 
             private static bool CanMakeNameExplicitInTuple(TupleExpressionSyntax tuple, string name)
             {
+                if (name == null || IsTupleElementNameReserved(name) != -1)
+                {
+                    return false;
+                }
+
                 bool found = false;
                 foreach (var argument in tuple.Arguments)
                 {
@@ -323,6 +330,57 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 return true;
             }
 
+            // This code is roughly copied from the compiler
+            private static int IsTupleElementNameReserved(string elementName)
+            {
+                if (IsElementNameForbidden(elementName))
+                {
+                    return 0;
+                }
+
+                return MatchesCanonicalElementName(elementName);
+
+                bool IsElementNameForbidden(string name)
+                {
+                    switch (name)
+                    {
+                        case "CompareTo":
+                        case "Deconstruct":
+                        case "Equals":
+                        case "GetHashCode":
+                        case "Rest":
+                        case "ToString":
+                            return true;
+
+                        default:
+                            return false;
+                    }
+                }
+
+                int MatchesCanonicalElementName(string name)
+                {
+                    if (name.StartsWith("Item", StringComparison.Ordinal))
+                    {
+                        string tail = name.Substring(4);
+                        int number;
+                        if (int.TryParse(tail, out number))
+                        {
+                            if (number > 0 && String.Equals(name, TupleMemberName(number), StringComparison.Ordinal))
+                            {
+                                return number;
+                            }
+                        }
+                    }
+
+                    return -1;
+                }
+
+                string TupleMemberName(int position)
+                {
+                    return "Item" + position;
+                }
+            }
+
             public override SyntaxNode VisitAnonymousObjectMemberDeclarator(AnonymousObjectMemberDeclaratorSyntax node)
             {
                 var inferredName = ExtractAnonymousTypeMemberName(node.Expression).ValueText;
@@ -332,8 +390,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 {
                     var identifier = SyntaxFactory.Identifier(inferredName);
                     identifier = TryEscapeIdentifierToken(identifier, node, _semanticModel);
-                    newDeclarator = newDeclarator.WithNameEquals(SyntaxFactory.NameEquals(SyntaxFactory.IdentifierName(identifier)))
-                         .WithAdditionalAnnotations(Simplifier.Annotation);
+                    newDeclarator = newDeclarator
+                        .WithLeadingTrivia(SyntaxTriviaList.Empty)
+                        .WithNameEquals(SyntaxFactory.NameEquals(SyntaxFactory.IdentifierName(identifier))
+                            .WithLeadingTrivia(node.GetLeadingTrivia()))
+                        .WithAdditionalAnnotations(Simplifier.Annotation);
                 }
 
                 return newDeclarator;

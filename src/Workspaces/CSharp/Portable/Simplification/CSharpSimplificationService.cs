@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
             }
         }
 
-        private static bool IsTupleInLeftOfDeconstruction(SyntaxNode tuple)
+        private static bool IsTupleInDeconstruction(SyntaxNode tuple)
         {
             Contract.Assert(tuple.IsKind(SyntaxKind.TupleExpression));
             var parent = tuple.Parent;
@@ -203,6 +203,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
             return false;
         }
 
+        // This code is copied from the compiler
         internal static SyntaxToken ExtractAnonymousTypeMemberName(ExpressionSyntax input)
         {
             while (true)
