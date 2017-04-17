@@ -493,7 +493,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
         {
             MarkupTestFile.GetSpans(candidate, out candidate, out ImmutableArray<TextSpan> spans);
 
-            var match = new SimplePatternMatcher(pattern, includeMatchedSpans: true, allowFuzzyMatching: false)
+            var match = PatternMatcher.CreatePatternMatcher(pattern, includeMatchedSpans: true, allowFuzzyMatching: false)
                 .GetFirstMatch(candidate);
 
             if (match == null)
@@ -513,7 +513,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             MarkupTestFile.GetSpans(candidate, out candidate, out ImmutableArray<TextSpan> expectedSpans);
 
             var matches = ArrayBuilder<PatternMatch>.GetInstance();
-            new SimplePatternMatcher(pattern, includeMatchedSpans: true).AddMatches(candidate, matches);
+            PatternMatcher.CreatePatternMatcher(pattern, includeMatchedSpans: true).AddMatches(candidate, matches);
 
             if (matches.Count == 0)
             {

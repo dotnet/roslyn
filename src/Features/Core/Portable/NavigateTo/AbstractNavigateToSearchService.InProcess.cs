@@ -31,14 +31,12 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         private static async Task<ImmutableArray<INavigateToSearchResult>> FindNavigableDeclaredSymbolInfosAsync(
             Project project, Document searchDocument, string pattern, CancellationToken cancellationToken)
         {
-            var dotIndex = pattern.LastIndexOf('.');
-            var containsDots = dotIndex >= 0;
-            var nameMatcher = containsDots
-                ? new SimplePatternMatcher(pattern, includeMatchedSpans: true, allowFuzzyMatching: true)
-                : new SimplePatternMatcher(pattern.Substring(dotIndex + 1), includeMatchedSpans: true, allowFuzzyMatching: true);
+            // If the user created a dotted pattern then we'll grab the last part of the name
+            var (patternName, patternContainerOpt) = PatternMatcher.GetNameAndContainer(pattern);
+            var nameMatcher = PatternMatcher.CreatePatternMatcher(pattern, includeMatchedSpans: true, allowFuzzyMatching: true);
 
-            var containerMatcher = containsDots
-                ? ContainerPatternMatcher.CreateDotSeperatedContainerMatcher(pattern.Substring(0, dotIndex))
+            var containerMatcher = patternContainerOpt != null
+                ? PatternMatcher.CreateDotSeperatedContainerMatcher(patternContainerOpt)
                 : null;
 
             using (nameMatcher)
@@ -63,7 +61,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
 
         private static async Task<ImmutableArray<INavigateToSearchResult>> FindNavigableDeclaredSymbolInfosAsync(
             Project project, Document searchDocument,
-            SimplePatternMatcher nameMatcher, ContainerPatternMatcher containerMatcher,
+            PatternMatcher nameMatcher, PatternMatcher containerMatcher,
             ArrayBuilder<PatternMatch> nameMatches, ArrayBuilder<PatternMatch> containerMatches,
             CancellationToken cancellationToken)
         {

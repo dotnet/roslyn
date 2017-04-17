@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Globalization;
-using System.Linq;
 using Microsoft.CodeAnalysis.Shared;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -12,163 +11,6 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.PatternMatching
 {
-    internal sealed partial class SimplePatternMatcher : PatternMatcher
-    {
-        private readonly PatternSegment _fullPatternSegment;
-
-        public SimplePatternMatcher(
-            string pattern,
-            bool includeMatchedSpans,
-            bool verbatimIdentifierPrefixIsWordCharacter = false,
-            bool allowFuzzyMatching = false)
-            : this(pattern,
-                   includeMatchedSpans,
-                   CultureInfo.CurrentCulture,
-                   verbatimIdentifierPrefixIsWordCharacter,
-                   allowFuzzyMatching)
-        {
-
-        }
-
-        public SimplePatternMatcher(
-            string pattern,
-            bool includeMatchedSpans,
-            CultureInfo culture,
-            bool verbatimIdentifierPrefixIsWordCharacter = false,
-            bool allowFuzzyMatching = false)
-            : base(includeMatchedSpans, culture, verbatimIdentifierPrefixIsWordCharacter, allowFuzzyMatching)
-        {
-            pattern = pattern.Trim();
-
-            _fullPatternSegment = new PatternSegment(pattern, verbatimIdentifierPrefixIsWordCharacter, allowFuzzyMatching);
-            _invalidPattern = _fullPatternSegment.IsInvalid;
-        }
-
-        public override void Dispose()
-        {
-            _fullPatternSegment.Dispose();
-        }
-
-        /// <summary>
-        /// Determines if a given candidate string matches under a multiple word query text, as you
-        /// would find in features like Navigate To.
-        /// </summary>
-        /// <returns>If this was a match, a set of match types that occurred while matching the
-        /// patterns. If it was not a match, it returns null.</returns>
-        public bool AddMatches(string candidate, ArrayBuilder<PatternMatch> matches)
-        {
-            if (SkipMatch(candidate))
-            {
-                return false;
-            }
-
-            return MatchPatternSegment(candidate, _fullPatternSegment, matches, fuzzyMatch: true) ||
-                   MatchPatternSegment(candidate, _fullPatternSegment, matches, fuzzyMatch: false);
-        }
-    }
-
-    internal sealed partial class ContainerPatternMatcher : PatternMatcher
-    {
-        private static readonly char[] s_dotCharacterArray = { '.' };
-
-        private readonly PatternSegment[] _patternSegments;
-        private readonly char[] _containerSplitCharacters;
-
-        public ContainerPatternMatcher(
-            string[] patternParts, char[] containerSplitCharacters,
-            bool verbatimIdentifierPrefixIsWordCharacter = false,
-            bool allowFuzzyMatching = false)
-            : this(patternParts, containerSplitCharacters, CultureInfo.CurrentCulture,
-                   verbatimIdentifierPrefixIsWordCharacter, allowFuzzyMatching)
-        {
-
-        }
-
-        public ContainerPatternMatcher(
-            string[] patternParts, char[] containerSplitCharacters,
-            CultureInfo culture, 
-            bool verbatimIdentifierPrefixIsWordCharacter = false,
-            bool allowFuzzyMatching = false)
-            : base(false, culture, verbatimIdentifierPrefixIsWordCharacter, allowFuzzyMatching)
-        {
-            _containerSplitCharacters = containerSplitCharacters;
-
-            _patternSegments = patternParts
-                .Select(text => new PatternSegment(text.Trim(), verbatimIdentifierPrefixIsWordCharacter, allowFuzzyMatching))
-                .ToArray();
-
-            _invalidPattern = _patternSegments.Length == 0 || _patternSegments.Any(s => s.IsInvalid);
-        }
-
-        public static ContainerPatternMatcher CreateDotSeperatedContainerMatcher(string pattern)
-            => new ContainerPatternMatcher(pattern.Split(s_dotCharacterArray, StringSplitOptions.RemoveEmptyEntries), s_dotCharacterArray);
-
-        public override void Dispose()
-        {
-            foreach (var segment in _patternSegments)
-            {
-                segment.Dispose();
-            }
-        }
-
-        public bool AddMatches(string container, ArrayBuilder<PatternMatch> matches)
-        {
-            if (SkipMatch(container))
-            {
-                return false;
-            }
-
-            return AddMatches(container, matches, fuzzyMatch: false) ||
-                   AddMatches(container, matches, fuzzyMatch: true);
-        }
-
-        private bool AddMatches(string container, ArrayBuilder<PatternMatch> matches, bool fuzzyMatch)
-        {
-            var tempContainerMatches = ArrayBuilder<PatternMatch>.GetInstance();
-
-            try
-            {
-                var containerParts = container.Split(_containerSplitCharacters, StringSplitOptions.RemoveEmptyEntries);
-
-                // -1 because the last part was checked against the name, and only the rest
-                // of the parts are checked against the container.
-                var relevantDotSeparatedSegmentLength = _patternSegments.Length - 1;
-                if (relevantDotSeparatedSegmentLength > containerParts.Length)
-                {
-                    // There weren't enough container parts to match against the pattern parts.
-                    // So this definitely doesn't match.
-                    return false;
-                }
-
-                // So far so good.  Now break up the container for the candidate and check if all
-                // the dotted parts match up correctly.
-
-                // Don't need to check the last segment.  We did that as the very first bail out step.
-                for (int i = 0, j = containerParts.Length - relevantDotSeparatedSegmentLength;
-                     i < relevantDotSeparatedSegmentLength;
-                     i++, j++)
-                {
-                    var segment = _patternSegments[i];
-                    var containerName = containerParts[j];
-                    if (!MatchPatternSegment(containerName, segment, tempContainerMatches, fuzzyMatch))
-                    {
-                        // This container didn't match the pattern piece.  So there's no match at all.
-                        return false;
-                    }
-                }
-
-                // Success, this symbol's full name matched against the dotted name the user was asking
-                // about.
-                matches.AddRange(tempContainerMatches);
-                return true;
-            }
-            finally
-            {
-                tempContainerMatches.Free();
-            }
-        }
-    }
-
     /// <summary>
     /// The pattern matcher is thread-safe.  However, it maintains an internal cache of
     /// information as it is used.  Therefore, you should not keep it around forever and should get
@@ -178,6 +20,8 @@ namespace Microsoft.CodeAnalysis.PatternMatching
     /// </summary>
     internal abstract partial class PatternMatcher : IDisposable
     {
+        private static readonly char[] s_dotCharacterArray = { '.' };
+
         public const int NoBonus = 0;
         public const int CamelCaseContiguousBonus = 1;
         public const int CamelCaseMatchesFromStartBonus = 2;
@@ -194,45 +38,68 @@ namespace Microsoft.CodeAnalysis.PatternMatching
         // PERF: Cache the culture's compareInfo to avoid the overhead of asking for them repeatedly in inner loops
         private readonly CompareInfo _compareInfo;
 
-        internal bool _invalidPattern;
-
-        // /// <summary>
-        /// Construct a new PatternMatcher using the calling thread's culture for string searching and comparison.
-        /// </summary>
-        //public PatternMatcher(
-        //    string pattern,
-        //    bool includeMatchedSpans,
-        //    bool verbatimIdentifierPrefixIsWordCharacter = false,
-        //    bool allowFuzzyMatching = false)
-        //    : this(pattern,
-        //           includeMatchedSpans,
-        //           CultureInfo.CurrentCulture,
-        //           verbatimIdentifierPrefixIsWordCharacter,
-        //           allowFuzzyMatching)
-        //{
-        //}
+        private bool _invalidPattern;
 
         /// <summary>
         /// Construct a new PatternMatcher using the specified culture.
         /// </summary>
         /// <param name="culture">The culture to use for string searching and comparison.</param>
         /// <param name="includeMatchedSpans">Whether or not the matching parts of the candidate should be supplied in results.</param>
-        /// <param name="verbatimIdentifierPrefixIsWordCharacter">Whether to consider "@" as a word character</param>
         /// <param name="allowFuzzyMatching">Whether or not close matches should count as matches.</param>
-        public PatternMatcher(
+        protected PatternMatcher(
             bool includeMatchedSpans,
             CultureInfo culture,
-            bool verbatimIdentifierPrefixIsWordCharacter = false,
             bool allowFuzzyMatching = false)
         {
+            culture = culture ?? CultureInfo.CurrentCulture;
             _compareInfo = culture.CompareInfo;
             _includeMatchedSpans = includeMatchedSpans;
             _allowFuzzyMatching = allowFuzzyMatching;
         }
 
+        public static PatternMatcher CreatePatternMatcher(
+            string pattern,
+            CultureInfo culture = null,
+            bool includeMatchedSpans = false,
+            bool verbatimIdentifierPrefixIsWordCharacter = false,
+            bool allowFuzzyMatching = false)
+        {
+            return new SimplePatternMatcher(pattern, culture, includeMatchedSpans, verbatimIdentifierPrefixIsWordCharacter, allowFuzzyMatching);
+        }
+
+        public static PatternMatcher CreateContainerPatternMatcher(
+            string[] patternParts,
+            char[] containerSplitCharacters,
+            CultureInfo culture = null,
+            bool allowFuzzyMatching = false)
+        {
+            return new ContainerPatternMatcher(
+                patternParts, containerSplitCharacters, culture, allowFuzzyMatching);
+        }
+
+        public static PatternMatcher CreateDotSeperatedContainerMatcher(
+            string pattern,
+            CultureInfo culture = null,
+            bool allowFuzzyMatching = false)
+        {
+            return CreateContainerPatternMatcher(
+                pattern.Split(s_dotCharacterArray), s_dotCharacterArray, culture, allowFuzzyMatching);
+        }
+
+        internal static (string name, string containerOpt) GetNameAndContainer(string pattern)
+        {
+            var dotIndex = pattern.LastIndexOf('.');
+            var containsDots = dotIndex >= 0;
+            return containsDots
+                ? (name: pattern.Substring(dotIndex + 1), containerOpt: pattern.Substring(0, dotIndex))
+                : (name: pattern, containerOpt: null);
+        }
+
         public abstract void Dispose();
 
-        internal bool SkipMatch(string candidate)
+        public abstract bool AddMatches(string candidate, ArrayBuilder<PatternMatch> matches);
+
+        private bool SkipMatch(string candidate)
             => _invalidPattern || string.IsNullOrWhiteSpace(candidate);
 
         private StringBreaks GetWordSpans(string word)
@@ -418,7 +285,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
         /// <param name="matches">The result array to place the matches in.</param>
         /// <param name="fuzzyMatch">If a fuzzy match should be performed</param>
         /// <returns>If there's only one match, then the return value is that match. Otherwise it is null.</returns>
-        internal bool MatchPatternSegment(
+        private bool MatchPatternSegment(
             string candidate,
             PatternSegment segment,
             ArrayBuilder<PatternMatch> matches,
@@ -731,48 +598,5 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                 currentCandidate++;
             }
         }
-    }
-
-    internal static class PatternMatcherExtensions
-    {
-        public static PatternMatch? GetFirstMatch(this SimplePatternMatcher matcher, string candidate)
-        {
-            var matches = ArrayBuilder<PatternMatch>.GetInstance();
-            matcher.AddMatches(candidate, matches);
-
-            var result = matches.FirstOrNullable();
-            matches.Free();
-
-            return result;
-        }
-        public static PatternMatch? GetFirstMatch(this ContainerPatternMatcher matcher, string candidate)
-        {
-            var matches = ArrayBuilder<PatternMatch>.GetInstance();
-            matcher.AddMatches(candidate, matches);
-
-            var result = matches.FirstOrNullable();
-            matches.Free();
-
-            return result;
-        }
-
-        public static bool Matches(this SimplePatternMatcher matcher, string candidate)
-            => matcher.GetFirstMatch(candidate) != null;
-
-        public static bool Matches(this ContainerPatternMatcher matcher, string candidate)
-            => matcher.GetFirstMatch(candidate) != null;
-
-        //public static bool Matches(this PatternMatcher matcher, string candidate, string container)
-        //{
-        //    var candidateMatches = ArrayBuilder<PatternMatch>.GetInstance();
-        //    var containerMatches = ArrayBuilder<PatternMatch>.GetInstance();
-
-        //    var result = matcher.AddMatches(candidate, container, candidateMatches, containerMatches);
-
-        //    candidateMatches.Free();
-        //    containerMatches.Free();
-
-        //    return result;
-        //}
     }
 }

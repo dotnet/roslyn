@@ -217,8 +217,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // pattern they passed in.  Otherwise, make a pattern matcher just for the part after
             // the dot.
             var lastPartPatternMatcher = !isDottedPattern
-                ? new SimplePatternMatcher(pattern, includeMatchedSpans: false)
-                : new SimplePatternMatcher(pattern.Substring(dotIndex + 1), includeMatchedSpans: false);
+                ? PatternMatcher.CreatePatternMatcher(pattern, includeMatchedSpans: false)
+                : PatternMatcher.CreatePatternMatcher(pattern.Substring(dotIndex + 1), includeMatchedSpans: false);
 
             using (lastPartPatternMatcher)
             {
@@ -241,7 +241,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                 // Ok, we had a dotted pattern.  Have to see if the symbol's container matches the 
                 // pattern as well.
-                using (var containerPatternMatcher = ContainerPatternMatcher.CreateDotSeperatedContainerMatcher(pattern))
+                using (var containerPatternMatcher = PatternMatcher.CreateDotSeperatedContainerMatcher(pattern))
                 {
                     return symbolAndProjectIds.WhereAsArray(t =>
                         containerPatternMatcher.Matches(GetContainer(t.Symbol)));
