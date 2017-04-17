@@ -4952,5 +4952,36 @@ namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : 
                 Diagnostic(ErrorCode.ERR_BadAsyncMethodBuilderTaskProperty, "{ await Task.Delay(5); throw null; }").WithArguments("MyTaskBuilder", "MyTask", "int").WithLocation(7, 29)
                 );
         }
+
+        [Fact, WorkItem(18257, "https://github.com/dotnet/roslyn/issues/18257")]
+        public void PatternTempsAreLongLived()
+        {
+            var source = @"using System;
+ 
+public class Foo {}
+ 
+public class C {
+    public static void Main(string[] args)
+    {
+        var c = new C();
+        c.M(new Foo());
+        c.M(new object());
+    }
+    public async void M(object o) {
+        switch (o)
+        {
+            case Foo _:
+                Console.Write(0);
+                break;
+            default:
+                Console.Write(1);
+                break;
+        }
+    }
+}";
+            var expectedOutput = @"01";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            base.CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
     }
 }
