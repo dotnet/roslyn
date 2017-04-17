@@ -30,6 +30,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private Symbol[] _lazyWellKnownTypeMembers;
 
+        internal bool NeedsReadOnlyAttribute { get; private set; }
+
         /// <summary>
         /// Lookup member declaration in well known type used by this Compilation.
         /// </summary>
@@ -417,13 +419,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal void EnsureReadOnlyAttributeExists()
         {
-            // TODO
-        }
-
-        internal SynthesizedAttributeData SynthesizeReadOnlyAttribute()
-        {
-            // PROTOTYPE(readonlyRefs) it is optional now as it will be generated in the next PR
-            return TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_ReadOnlyAttribute__ctor, isOptionalUse: true);
+            NeedsReadOnlyAttribute = true;
         }
 
         internal SynthesizedAttributeData SynthesizeDebuggableAttribute()

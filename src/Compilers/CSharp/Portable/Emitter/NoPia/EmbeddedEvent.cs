@@ -12,9 +12,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
         {
         }
 
-        protected override IEnumerable<CSharpAttributeData> GetCustomAttributesToEmit(ModuleCompilationState compilationState)
+        protected override IEnumerable<CSharpAttributeData> GetCustomAttributesToEmit(PEModuleBuilder moduleBuilder)
         {
-            return UnderlyingEvent.GetCustomAttributesToEmit(compilationState);
+            return UnderlyingEvent.GetCustomAttributesToEmit(moduleBuilder);
         }
 
         protected override bool IsRuntimeSpecial

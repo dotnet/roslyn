@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -15,6 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
     {
         private readonly SourceAssemblySymbol _sourceAssembly;
         private readonly ImmutableArray<NamedTypeSymbol> _additionalTypes;
+        private readonly ConcurrentDictionary<WellKnownMember, MethodSymbol> _embeddedAttributesConstructors;
         private ImmutableArray<Cci.IFileReference> _lazyFiles;
 
         /// <summary>
@@ -52,13 +54,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             _metadataName = (emitOptions.OutputNameOverride == null) ? sourceAssembly.MetadataName : FileNameUtilities.ChangeExtension(emitOptions.OutputNameOverride, extension: null);
 
             AssemblyOrModuleSymbolToModuleRefMap.Add(sourceAssembly, this);
+
+            _embeddedAttributesConstructors = new ConcurrentDictionary<WellKnownMember, MethodSymbol>();
+            CreateEmbeddedAttributes();
         }
 
         public override ISourceAssemblySymbolInternal SourceAssemblyOpt => _sourceAssembly;
 
         internal override ImmutableArray<NamedTypeSymbol> GetAdditionalTopLevelTypes()
         {
-            return _additionalTypes;
+            var builder = ArrayBuilder<NamedTypeSymbol>.GetInstance();
+
+            builder.AddRange(base.GetAdditionalTopLevelTypes());
+            builder.AddRange(_additionalTypes);
+
+            foreach(var constructor in _embeddedAttributesConstructors.Values)
+            {
+                builder.Add(constructor.ContainingType);
+            }
+
+            return builder.ToImmutableAndFree();
         }
 
         public sealed override IEnumerable<Cci.IFileReference> GetFiles(EmitContext context)
@@ -131,6 +146,50 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         public override string Name => _metadataName;
         public AssemblyIdentity Identity => _sourceAssembly.Identity;
         public Version AssemblyVersionPattern => _sourceAssembly.AssemblyVersionPattern;
+
+        internal override SynthesizedAttributeData SynthesizeEmbeddedAttribute()
+        {
+            if (_embeddedAttributesConstructors.TryGetValue(WellKnownMember.Microsoft_CodeAnalysis_EmbeddedAttribute__ctor, out var constructor))
+            {
+                return new SynthesizedAttributeData(constructor, ImmutableArray<TypedConstant>.Empty, ImmutableArray<KeyValuePair<string, TypedConstant>>.Empty);
+            }
+
+            return base.SynthesizeEmbeddedAttribute();
+        }
+
+        internal override SynthesizedAttributeData SynthesizeReadOnlyAttribute()
+        {
+            if (_embeddedAttributesConstructors.TryGetValue(WellKnownMember.System_Runtime_CompilerServices_ReadOnlyAttribute__ctor, out var constructor))
+            {
+                return new SynthesizedAttributeData(constructor, ImmutableArray<TypedConstant>.Empty, ImmutableArray<KeyValuePair<string, TypedConstant>>.Empty);
+            }
+
+            return base.SynthesizeReadOnlyAttribute();
+        }
+
+        private void CreateEmbeddedAttributes()
+        {
+            if(_sourceAssembly.DeclaringCompilation.NeedsReadOnlyAttribute)
+            {
+                CreateEmbeddedAttributeIfNeeded(
+                    WellKnownType.Microsoft_CodeAnalysis_EmbeddedAttribute,
+                    WellKnownMember.Microsoft_CodeAnalysis_EmbeddedAttribute__ctor);
+
+                CreateEmbeddedAttributeIfNeeded(
+                    WellKnownType.System_Runtime_CompilerServices_ReadOnlyAttribute,
+                    WellKnownMember.System_Runtime_CompilerServices_ReadOnlyAttribute__ctor);
+            }
+        }
+
+        private void CreateEmbeddedAttributeIfNeeded(WellKnownType type, WellKnownMember constructor)
+        {
+            if (_sourceAssembly.DeclaringCompilation.GetWellKnownTypeMember(constructor) == null &&
+                !_embeddedAttributesConstructors.ContainsKey(constructor))
+            {
+                var attributeSymbol = new SourceEmbeddedAttributeSymbol(type, _sourceAssembly.DeclaringCompilation);
+                _embeddedAttributesConstructors.Add(constructor, attributeSymbol.Constructor);
+            }
+        }
     }
 
     internal sealed class PEAssemblyBuilder : PEAssemblyBuilderBase

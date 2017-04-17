@@ -417,6 +417,7 @@ namespace Microsoft.CodeAnalysis
         Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayload,
 
         System_Runtime_CompilerServices_ReadOnlyAttribute__ctor,
+        Microsoft_CodeAnalysis_EmbeddedAttribute__ctor,
 
         Count
     }

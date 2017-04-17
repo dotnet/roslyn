@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         public sealed override IEnumerable<Cci.ICustomAttribute> GetSourceAssemblyAttributes()
         {
-            return SourceModule.ContainingSourceAssembly.GetCustomAttributesToEmit(this.CompilationState, emittingAssemblyAttributesInNetModule: OutputKind.IsNetModule());
+            return SourceModule.ContainingSourceAssembly.GetCustomAttributesToEmit(this, emittingAssemblyAttributesInNetModule: OutputKind.IsNetModule());
         }
 
         public sealed override IEnumerable<Cci.SecurityAttribute> GetSourceAssemblySecurityAttributes()
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         public sealed override IEnumerable<Cci.ICustomAttribute> GetSourceModuleAttributes()
         {
-            return SourceModule.GetCustomAttributesToEmit(this.CompilationState);
+            return SourceModule.GetCustomAttributesToEmit(this);
         }
 
         internal sealed override AssemblySymbol CorLibrary
@@ -1384,6 +1384,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         protected override Cci.IMethodDefinition CreatePrivateImplementationDetailsStaticConstructor(PrivateImplementationDetails details, SyntaxNode syntaxOpt, DiagnosticBag diagnostics)
         {
             return new SynthesizedPrivateImplementationDetailsStaticConstructor(SourceModule, details, GetUntranslatedSpecialType(SpecialType.System_Void, syntaxOpt, diagnostics));
+        }
+
+        internal virtual SynthesizedAttributeData SynthesizeEmbeddedAttribute()
+        {
+            // For modules, this attribute should be present. Only assemblies generate and embedd this type.
+            return Compilation.TrySynthesizeAttribute(WellKnownMember.Microsoft_CodeAnalysis_EmbeddedAttribute__ctor);
+        }
+
+        internal virtual SynthesizedAttributeData SynthesizeReadOnlyAttribute()
+        {
+            // For modules, this attribute should be present. Only assemblies generate and embedd this type.
+            return Compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_ReadOnlyAttribute__ctor);
         }
     }
 }

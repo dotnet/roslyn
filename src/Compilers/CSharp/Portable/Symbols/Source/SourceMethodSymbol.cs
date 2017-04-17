@@ -10,6 +10,7 @@ using System.Globalization;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
+using Microsoft.CodeAnalysis.CSharp.Emit;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -1531,9 +1532,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         #endregion
 
-        internal override void AddSynthesizedAttributes(ModuleCompilationState compilationState, ref ArrayBuilder<SynthesizedAttributeData> attributes)
+        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
         {
-            base.AddSynthesizedAttributes(compilationState, ref attributes);
+            base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
 
             if (this.IsAsync || this.IsIterator)
             {
@@ -1543,7 +1544,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // only emitting metadata the method body will not have been rewritten, and the async state machine
                 // type will not have been created. In this case, omit the attribute.
                 NamedTypeSymbol stateMachineType;
-                if (compilationState.TryGetStateMachineType(this, out stateMachineType))
+                if (moduleBuilder.CompilationState.TryGetStateMachineType(this, out stateMachineType))
                 {
                     WellKnownMember ctor = this.IsAsync ?
                         WellKnownMember.System_Runtime_CompilerServices_AsyncStateMachineAttribute__ctor :
