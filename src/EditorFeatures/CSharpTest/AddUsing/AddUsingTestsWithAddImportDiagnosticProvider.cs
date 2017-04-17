@@ -7,11 +7,12 @@ using Microsoft.CodeAnalysis.CSharp.AddImport;
 using Microsoft.CodeAnalysis.CSharp.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.AddUsing
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddUsing
 {
     public partial class AddUsingTestsWithAddImportDiagnosticProvider : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
@@ -239,6 +240,50 @@ class Class
 class Class
 {
     List<Y x; }");
+        }
+
+        [WorkItem(18621, "https://github.com/dotnet/roslyn/issues/18621")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        public async Task TestIncompleteMemberWithAsyncTaskReturnType()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+namespace X
+{
+    class ProjectConfiguration
+    {
+    }
+}
+
+namespace ConsoleApp282
+{
+    class Program
+    {
+        public async Task<IReadOnlyCollection<[|ProjectConfiguration|]>>
+    }
+}",
+@"
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using X;
+
+namespace X
+{
+    class ProjectConfiguration
+    {
+    }
+}
+
+namespace ConsoleApp282
+{
+    class Program
+    {
+        public async Task<IReadOnlyCollection<ProjectConfiguration>>
+    }
+}");
         }
     }
 }

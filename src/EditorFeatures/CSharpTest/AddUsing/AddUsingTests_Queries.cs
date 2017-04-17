@@ -4,9 +4,9 @@ using System.Threading.Tasks;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.AddUsing
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddUsing
 {
-    public partial class AddUsingTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    public partial class AddUsingTests
     {
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
         public async Task TestSimpleQuery()
