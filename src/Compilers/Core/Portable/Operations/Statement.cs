@@ -10,10 +10,11 @@ namespace Microsoft.CodeAnalysis.Semantics
             this(ImmutableArray.Create(variable), initialValue, syntax)
         {
         }
+
         public VariableDeclaration(ImmutableArray<ILocalSymbol> variables, IOperation initialValue, SyntaxNode syntax) :
             this(variables,
                 initialValue,
-                variables == null || (initialValue != null && initialValue.IsInvalid),
+                variables.IsDefault || (initialValue != null && initialValue.IsInvalid),
                 syntax,
                 type: null,
                 constantValue: default(Optional<object>))
