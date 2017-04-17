@@ -133,7 +133,6 @@ namespace Microsoft.CodeAnalysis.Completion
                 {
                     patternMatcher = new PatternMatcher(
                         pattern, includeMatchedSpans, culture,
-                        verbatimIdentifierPrefixIsWordCharacter: true,
                         allowFuzzyMatching: false);
                     map.Add(key, patternMatcher);
                 }
