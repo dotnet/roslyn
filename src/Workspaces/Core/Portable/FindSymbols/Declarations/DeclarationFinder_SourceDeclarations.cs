@@ -210,7 +210,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // we don't want to check the whole pattern against it (as it will clearly fail), instead
             // we only want to check the 'WL' portion.  Then, after we get all the candidate symbols
             // we'll check if the full name matches the full pattern.
-            var dotIndex = pattern.IndexOf('.');
+            var dotIndex = pattern.LastIndexOf('.');
             var isDottedPattern = dotIndex >= 0;
 
             // If we don't have a dot in the pattern, just make a pattern matcher for the entire
