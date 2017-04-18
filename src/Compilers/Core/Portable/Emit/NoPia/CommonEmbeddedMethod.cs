@@ -211,13 +211,10 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
 
             bool Cci.IMethodDefinition.RequiresSecurityObject => false;
 
-            IEnumerable<Cci.ICustomAttribute> Cci.IMethodDefinition.ReturnValueAttributes
+            IEnumerable<Cci.ICustomAttribute> Cci.IMethodDefinition.GetReturnValueAttributes(CommonPEModuleBuilder moduleBuilder)
             {
-                get
-                {
-                    // TODO:
-                    return SpecializedCollections.EmptyEnumerable<Cci.ICustomAttribute>();
-                }
+                // TODO:
+                return SpecializedCollections.EmptyEnumerable<Cci.ICustomAttribute>();
             }
 
             bool Cci.IMethodDefinition.ReturnValueIsMarshalledExplicitly => ReturnValueIsMarshalledExplicitly;

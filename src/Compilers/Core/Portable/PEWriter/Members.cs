@@ -609,7 +609,7 @@ namespace Microsoft.Cci
         /// <summary>
         /// Custom attributes associated with the method's return value.
         /// </summary>
-        IEnumerable<ICustomAttribute> ReturnValueAttributes { get; }
+        IEnumerable<ICustomAttribute> GetReturnValueAttributes(CommonPEModuleBuilder moduleBuilder);
 
         /// <summary>
         /// The return value has associated marshalling information.

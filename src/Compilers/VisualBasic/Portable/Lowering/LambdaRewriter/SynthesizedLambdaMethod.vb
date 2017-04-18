@@ -3,6 +3,7 @@
 Imports System
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.CodeGen
+Imports Microsoft.CodeAnalysis.VisualBasic.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -191,8 +192,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return DirectCast(substituted.GetMemberForDefinition(Me), MethodSymbol)
         End Function
 
-        Friend Overrides Sub AddSynthesizedAttributes(compilationState As ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
-            MyBase.AddSynthesizedAttributes(compilationState, attributes)
+        Friend Overrides Sub AddSynthesizedAttributes(moduleBuilder As PEModuleBuilder, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
+            MyBase.AddSynthesizedAttributes(moduleBuilder, attributes)
 
             ' Lambda that doesn't contain user code may still call to a user code (e.g. delegate relaxation stubs). We want the stack frame to be hidden.
             ' Dev11 marks such lambda with DebuggerStepThrough attribute but that seems to be useless. Rather we hide the frame completely.
@@ -201,7 +202,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             If Me.IsAsync OrElse Me.IsIterator Then
-                AddSynthesizedAttribute(attributes, Me.DeclaringCompilation.SynthesizeStateMachineAttribute(Me, compilationState))
+                AddSynthesizedAttribute(attributes, Me.DeclaringCompilation.SynthesizeStateMachineAttribute(Me, moduleBuilder.CompilationState))
 
                 If Me.IsAsync Then
                     ' Async kick-off method calls MoveNext, which contains user code. 

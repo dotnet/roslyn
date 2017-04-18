@@ -271,7 +271,7 @@ namespace Microsoft.Cci
 
         public virtual void Visit(IMethodDefinition method)
         {
-            this.Visit(method.ReturnValueAttributes);
+            this.Visit(method.GetReturnValueAttributes(Context.Module));
             this.Visit(method.ReturnValueCustomModifiers);
 
             if (method.HasDeclarativeSecurity)

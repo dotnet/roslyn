@@ -142,7 +142,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
 
-            AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeEmbeddedAttribute());
+            AddSynthesizedAttribute(
+                ref attributes,
+                moduleBuilder.Compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor));
+
+            AddSynthesizedAttribute(
+                ref attributes,
+                moduleBuilder.SynthesizeEmbeddedAttribute());
         }
     }
 }

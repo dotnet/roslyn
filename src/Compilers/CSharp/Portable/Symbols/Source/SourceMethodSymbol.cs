@@ -963,9 +963,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return this.GetReturnTypeAttributesBag().Attributes;
         }
 
-        internal override void AddSynthesizedReturnTypeAttributes(ref ArrayBuilder<SynthesizedAttributeData> attributes)
+        internal override void AddSynthesizedReturnTypeAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
         {
-            base.AddSynthesizedReturnTypeAttributes(ref attributes);
+            base.AddSynthesizedReturnTypeAttributes(moduleBuilder, ref attributes);
 
             if (this.ReturnType.ContainsDynamic())
             {

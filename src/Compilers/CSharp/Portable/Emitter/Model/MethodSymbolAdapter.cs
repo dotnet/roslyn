@@ -570,15 +570,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        IEnumerable<Cci.ICustomAttribute> Cci.IMethodDefinition.ReturnValueAttributes
-        {
-            get
-            {
-                return GetReturnValueCustomAttributesToEmit();
-            }
-        }
-
-        private IEnumerable<CSharpAttributeData> GetReturnValueCustomAttributesToEmit()
+        IEnumerable<Cci.ICustomAttribute> Cci.IMethodDefinition.GetReturnValueAttributes(CommonPEModuleBuilder moduleBuilder)
         {
             CheckDefinitionInvariant();
 
@@ -586,7 +578,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ArrayBuilder<SynthesizedAttributeData> synthesized = null;
 
             userDefined = this.GetReturnTypeAttributes();
-            this.AddSynthesizedReturnTypeAttributes(ref synthesized);
+            this.AddSynthesizedReturnTypeAttributes((PEModuleBuilder)moduleBuilder, ref synthesized);
 
             // Note that callers of this method (CCI and ReflectionEmitter) have to enumerate 
             // all items of the returned iterator, otherwise the synthesized ArrayBuilder may leak.
