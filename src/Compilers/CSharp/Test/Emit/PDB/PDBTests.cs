@@ -5827,6 +5827,119 @@ partial class C
     }
 }";
             var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            CompileAndVerify(c).VerifyIL("Program.M",
+@"{
+  // Code size      203 (0xcb)
+  .maxstack  2
+  .locals init (object V_0,
+                int V_1,
+                object V_2,
+                object V_3,
+                int? V_4,
+                int V_5,
+                object V_6,
+                object V_7)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.2
+  IL_0003:  ldloc.2
+  IL_0004:  stloc.3
+  IL_0005:  ldloc.3
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  brtrue.s   IL_000c
+  IL_000a:  br.s       IL_005e
+  IL_000c:  ldloc.0
+  IL_000d:  isinst     ""int?""
+  IL_0012:  unbox.any  ""int?""
+  IL_0017:  stloc.s    V_4
+  IL_0019:  ldloca.s   V_4
+  IL_001b:  call       ""int int?.GetValueOrDefault()""
+  IL_0020:  stloc.1
+  IL_0021:  ldloca.s   V_4
+  IL_0023:  call       ""bool int?.HasValue.get""
+  IL_0028:  brfalse.s  IL_005e
+  IL_002a:  ldloc.1
+  IL_002b:  stloc.s    V_5
+  IL_002d:  ldloc.s    V_5
+  IL_002f:  ldc.i4.1
+  IL_0030:  sub
+  IL_0031:  switch    (
+        IL_004c,
+        IL_0054,
+        IL_005a,
+        IL_0052,
+        IL_0058)
+  IL_004a:  br.s       IL_005e
+  IL_004c:  br.s       IL_0060
+  IL_004e:  br.s       IL_006c
+  IL_0050:  br.s       IL_007a
+  IL_0052:  br.s       IL_006a
+  IL_0054:  br.s       IL_0065
+  IL_0056:  br.s       IL_005e
+  IL_0058:  br.s       IL_0076
+  IL_005a:  br.s       IL_0071
+  IL_005c:  br.s       IL_005e
+  IL_005e:  br.s       IL_0078
+  IL_0060:  ldarg.0
+  IL_0061:  brfalse.s  IL_006a
+  IL_0063:  br.s       IL_004e
+  IL_0065:  ldarg.0
+  IL_0066:  brfalse.s  IL_006a
+  IL_0068:  br.s       IL_0056
+  IL_006a:  br.s       IL_007c
+  IL_006c:  ldarg.0
+  IL_006d:  brtrue.s   IL_0076
+  IL_006f:  br.s       IL_0050
+  IL_0071:  ldarg.0
+  IL_0072:  brtrue.s   IL_0076
+  IL_0074:  br.s       IL_005c
+  IL_0076:  br.s       IL_007c
+  IL_0078:  br.s       IL_007c
+  IL_007a:  br.s       IL_007c
+  IL_007c:  ldarg.0
+  IL_007d:  stloc.0
+  IL_007e:  ldloc.0
+  IL_007f:  stloc.s    V_6
+  IL_0081:  ldloc.s    V_6
+  IL_0083:  stloc.2
+  IL_0084:  ldloc.2
+  IL_0085:  brtrue.s   IL_0089
+  IL_0087:  br.s       IL_00b3
+  IL_0089:  ldloc.2
+  IL_008a:  isinst     ""int?""
+  IL_008f:  unbox.any  ""int?""
+  IL_0094:  stloc.s    V_4
+  IL_0096:  ldloca.s   V_4
+  IL_0098:  call       ""int int?.GetValueOrDefault()""
+  IL_009d:  stloc.1
+  IL_009e:  ldloca.s   V_4
+  IL_00a0:  call       ""bool int?.HasValue.get""
+  IL_00a5:  brfalse.s  IL_00b3
+  IL_00a7:  ldloc.1
+  IL_00a8:  stloc.s    V_5
+  IL_00aa:  ldloc.s    V_5
+  IL_00ac:  ldc.i4.1
+  IL_00ad:  beq.s      IL_00b1
+  IL_00af:  br.s       IL_00b3
+  IL_00b1:  br.s       IL_00b5
+  IL_00b3:  br.s       IL_00b7
+  IL_00b5:  br.s       IL_00b9
+  IL_00b7:  br.s       IL_00b9
+  IL_00b9:  ldarg.0
+  IL_00ba:  stloc.2
+  IL_00bb:  ldloc.2
+  IL_00bc:  stloc.s    V_7
+  IL_00be:  ldloc.s    V_7
+  IL_00c0:  stloc.0
+  IL_00c1:  ldloc.0
+  IL_00c2:  brtrue.s   IL_00c6
+  IL_00c4:  br.s       IL_00c6
+  IL_00c6:  br.s       IL_00c8
+  IL_00c8:  br.s       IL_00ca
+  IL_00ca:  ret
+}
+");
             c.VerifyPdb(
 @"<symbols>
   <methods>

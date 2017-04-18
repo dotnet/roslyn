@@ -204,9 +204,10 @@ namespace Microsoft.CodeAnalysis
         InstrumentationPayload = 34,
 
         /// <summary>
-        /// Temp created for pattern matching by type.
+        /// Temp created for pattern matching by type. This holds the value of an input value provisionally
+        /// converted to the type against which it is being matched.
         /// </summary>
-        PatternMatchingTemp = 35,
+        PatternMatching = -35,
 
         /// <summary>
         /// All values have to be less than or equal to <see cref="MaxValidValueForLocalVariableSerializedToDebugInformation"/> 
