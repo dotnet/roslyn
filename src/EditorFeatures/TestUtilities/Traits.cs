@@ -58,6 +58,7 @@ namespace Roslyn.Test.Utilities
             public const string CodeActionsGenerateMethod = "CodeActions.GenerateMethod";
             public const string CodeActionsGenerateOverrides = "CodeActions.GenerateOverrides";
             public const string CodeActionsGenerateType = "CodeActions.GenerateType";
+            public const string CodeActionsExtractInterface = "CodeActions.ExtractInterface";
             public const string CodeActionsExtractMethod = "CodeActions.ExtractMethod";
             public const string CodeActionsFixAllOccurrences = "CodeActions.FixAllOccurrences";
             public const string CodeActionsFullyQualify = "CodeActions.FullyQualify";
