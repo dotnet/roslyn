@@ -488,6 +488,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 
         private static readonly ImmutableArray<MetadataReference> s_desktopRefsToRemove = ImmutableArray.Create(SystemRef, SystemCoreRef);
 
+        private class MetadataReferenceEqualityComparer : IEqualityComparer<MetadataReference>
+        {
+            private MetadataReferenceEqualityComparer() { }
+
+            public bool Equals(MetadataReference x, MetadataReference y) => x.Display == y.Display;
+
+            public int GetHashCode(MetadataReference obj) => obj.Display?.GetHashCode() ?? 0;
+
+            private static readonly MetadataReferenceEqualityComparer s_instance = new MetadataReferenceEqualityComparer();
+            public static MetadataReferenceEqualityComparer Instance => s_instance;
+        }
+
         public static CSharpCompilation CreateStandardCompilation(
             IEnumerable<SyntaxTree> trees,
             IEnumerable<MetadataReference> references = null,
@@ -496,7 +508,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         {
             if (CoreClrShim.IsRunningOnCoreClr)
             {
-                references = references?.Except(s_desktopRefsToRemove);
+                references = references?.Except(s_desktopRefsToRemove, MetadataReferenceEqualityComparer.Instance);
             }
             return CreateCompilation(trees, (references != null) ? s_stdRefs.Concat(references) : s_stdRefs, options, assemblyName);
         }
