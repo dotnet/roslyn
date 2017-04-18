@@ -83,7 +83,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
             _aggregator = new NavigateToTestAggregator(_provider);
         }
 
-        protected void VerifyNavigateToResultItems(List<NavigateToItem> expecteditems, IEnumerable<NavigateToItem> items)
+        protected void VerifyNavigateToResultItems(
+            List<NavigateToItem> expecteditems, IEnumerable<NavigateToItem> items)
         {
             expecteditems = expecteditems.OrderBy(i => i.Name).ToList();
             items = items.OrderBy(i => i.Name).ToList();
@@ -107,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
         }
 
         protected void VerifyNavigateToResultItem(
-            NavigateToItem result, string name, string displayName, 
+            NavigateToItem result, string name, string displayMarkup, 
             MatchKind matchKind, string navigateToItemKind, 
             string additionalInfo = null)
         {
@@ -117,12 +118,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
             Assert.Equal(this.Language, result.Language);
             Assert.Equal(navigateToItemKind, result.Kind);
 
-            MarkupTestFile.GetSpans(displayName, out displayName,
+            MarkupTestFile.GetSpans(displayMarkup, out displayMarkup,
                 out ImmutableArray<TextSpan> expectedDisplayNameSpans);
 
             var itemDisplay = (AbstractNavigateToItemDisplay)result.DisplayFactory.CreateItemDisplay(result);
 
-            Assert.Equal(displayName, itemDisplay.Name);
+            Assert.Equal(displayMarkup, itemDisplay.Name);
             Assert.Equal<TextSpan>(
                 expectedDisplayNameSpans,
                 itemDisplay.GetNameMatchRuns("").Select(s => s.ToTextSpan()).ToImmutableArray());
