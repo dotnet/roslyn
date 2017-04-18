@@ -7,19 +7,13 @@ namespace Microsoft.CodeAnalysis.Semantics
     internal partial class ObjectCreationExpressionBase : IHasArgumentsExpression
     {
         /// <summary>
-        /// Arguments of the invocation, excluding the instance argument. Arguments are in parameter order,
-        /// and params/ParamArray arguments have been collected into arrays. Default values are supplied for
-        /// optional arguments missing in source.
-        /// </summary>
-        public ImmutableArray<IArgument> ArgumentsInParameterOrder { get; }
-        /// <summary>
         /// Find the argument supplied for a given parameter of the target method.
         /// </summary>
         /// <param name="parameter">Parameter of the target method.</param>
         /// <returns>Argument corresponding to the parameter.</returns>
         public IArgument GetArgumentMatchingParameter(IParameterSymbol parameter)
         {
-            throw new System.NotImplementedException();
+            return this.ArgumentsInParameterOrder[parameter.Ordinal];
         }
     }
 }

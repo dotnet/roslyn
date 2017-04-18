@@ -1913,11 +1913,18 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal sealed partial class IndexedPropertyReferenceExpression : PropertyReferenceExpressionBase, IHasArgumentsExpression, IIndexedPropertyReferenceExpression
     {
-        public IndexedPropertyReferenceExpression(IPropertySymbol property, IOperation instance, ISymbol member, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+        public IndexedPropertyReferenceExpression(IPropertySymbol property, IOperation instance, ISymbol member, ImmutableArray<IArgument> argumentsInParameterOrder, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(property, member, OperationKind.IndexedPropertyReferenceExpression, isInvalid, syntax, type, constantValue)
         {
+            ArgumentsInParameterOrder = argumentsInParameterOrder;
             Instance = instance ?? throw new System.ArgumentNullException("instance");
         }
+        /// <summary>
+        /// Arguments of the invocation, excluding the instance argument. Arguments are in parameter order,
+        /// and params/ParamArray arguments have been collected into arrays. Default values are supplied for
+        /// optional arguments missing in source.
+        /// </summary>
+        public ImmutableArray<IArgument> ArgumentsInParameterOrder { get; }
         /// <summary>
         /// Instance of the type. Null if the reference is to a static/shared member.
         /// </summary>
@@ -1938,11 +1945,20 @@ namespace Microsoft.CodeAnalysis.Semantics
     internal sealed partial class LazyIndexedPropertyReferenceExpression : PropertyReferenceExpressionBase, IHasArgumentsExpression, IIndexedPropertyReferenceExpression
     {
         private readonly Lazy<IOperation> _lazyInstance;
+        private readonly Lazy<ImmutableArray<IArgument>> _lazyArgumentsInParameterOrder;
 
-        public LazyIndexedPropertyReferenceExpression(IPropertySymbol property, Lazy<IOperation> instance, ISymbol member, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(property, member, OperationKind.IndexedPropertyReferenceExpression, isInvalid, syntax, type, constantValue)
+        public LazyIndexedPropertyReferenceExpression(IPropertySymbol property, Lazy<IOperation> instance, ISymbol member, Lazy<ImmutableArray<IArgument>> argumentsInParameterOrder, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(property, member, OperationKind.IndexedPropertyReferenceExpression, isInvalid, syntax, type, constantValue)
         {
+            _lazyArgumentsInParameterOrder = argumentsInParameterOrder;
             _lazyInstance = instance ?? throw new System.ArgumentNullException("instance");
         }
+        /// <summary>
+        /// Arguments of the invocation, excluding the instance argument. Arguments are in parameter order,
+        /// and params/ParamArray arguments have been collected into arrays. Default values are supplied for
+        /// optional arguments missing in source.
+        /// </summary>
+        public ImmutableArray<IArgument> ArgumentsInParameterOrder => _lazyArgumentsInParameterOrder.Value;
+
         /// <summary>
         /// Instance of the type. Null if the reference is to a static/shared member.
         /// </summary>
@@ -2051,6 +2067,12 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// unless supplied in source.
         /// </summary>
         public abstract ImmutableArray<IArgument> ArgumentsInSourceOrder { get; }
+        /// <summary>
+        /// Arguments of the invocation, excluding the instance argument. Arguments are in parameter order,
+        /// and params/ParamArray arguments have been collected into arrays. Default values are supplied for
+        /// optional arguments missing in source.
+        /// </summary>
+        public abstract ImmutableArray<IArgument> ArgumentsInParameterOrder { get; }
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitInvocationExpression(this);
@@ -2066,11 +2088,12 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal sealed partial class InvocationExpression : InvocationExpressionBase, IHasArgumentsExpression, IInvocationExpression
     {
-        public InvocationExpression(IMethodSymbol targetMethod, IOperation instance, bool isVirtual, ImmutableArray<IArgument> argumentsInSourceOrder, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+        public InvocationExpression(IMethodSymbol targetMethod, IOperation instance, bool isVirtual, ImmutableArray<IArgument> argumentsInSourceOrder, ImmutableArray<IArgument> argumentsInParameterOrder, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(targetMethod, isVirtual, isInvalid, syntax, type, constantValue)
         {
             Instance = instance ?? throw new System.ArgumentNullException("instance");
             ArgumentsInSourceOrder = argumentsInSourceOrder;
+            ArgumentsInParameterOrder = argumentsInParameterOrder;
         }
         /// <summary>
         /// 'This' or 'Me' instance to be supplied to the method, or null if the method is static.
@@ -2082,6 +2105,12 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// unless supplied in source.
         /// </summary>
         public override ImmutableArray<IArgument> ArgumentsInSourceOrder { get; }
+        /// <summary>
+        /// Arguments of the invocation, excluding the instance argument. Arguments are in parameter order,
+        /// and params/ParamArray arguments have been collected into arrays. Default values are supplied for
+        /// optional arguments missing in source.
+        /// </summary>
+        public override ImmutableArray<IArgument> ArgumentsInParameterOrder { get; }
     }
 
     /// <summary>
@@ -2091,11 +2120,13 @@ namespace Microsoft.CodeAnalysis.Semantics
     {
         private readonly Lazy<IOperation> _lazyInstance;
         private readonly Lazy<ImmutableArray<IArgument>> _lazyArgumentsInSourceOrder;
+        private readonly Lazy<ImmutableArray<IArgument>> _lazyArgumentsInParameterOrder;
 
-        public LazyInvocationExpression(IMethodSymbol targetMethod, Lazy<IOperation> instance, bool isVirtual, Lazy<ImmutableArray<IArgument>> argumentsInSourceOrder, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(targetMethod, isVirtual, isInvalid, syntax, type, constantValue)
+        public LazyInvocationExpression(IMethodSymbol targetMethod, Lazy<IOperation> instance, bool isVirtual, Lazy<ImmutableArray<IArgument>> argumentsInSourceOrder, Lazy<ImmutableArray<IArgument>> argumentsInParameterOrder, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(targetMethod, isVirtual, isInvalid, syntax, type, constantValue)
         {
             _lazyInstance = instance ?? throw new System.ArgumentNullException("instance");
             _lazyArgumentsInSourceOrder = argumentsInSourceOrder;
+            _lazyArgumentsInParameterOrder = argumentsInParameterOrder;
         }
         /// <summary>
         /// 'This' or 'Me' instance to be supplied to the method, or null if the method is static.
@@ -2108,6 +2139,13 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// unless supplied in source.
         /// </summary>
         public override ImmutableArray<IArgument> ArgumentsInSourceOrder => _lazyArgumentsInSourceOrder.Value;
+
+        /// <summary>
+        /// Arguments of the invocation, excluding the instance argument. Arguments are in parameter order,
+        /// and params/ParamArray arguments have been collected into arrays. Default values are supplied for
+        /// optional arguments missing in source.
+        /// </summary>
+        public override ImmutableArray<IArgument> ArgumentsInParameterOrder => _lazyArgumentsInParameterOrder.Value;
     }
 
     /// <summary>
@@ -2677,6 +2715,12 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Explicitly-specified member initializers.
         /// </summary>
         public abstract ImmutableArray<ISymbolInitializer> MemberInitializers { get; }
+        /// <summary>
+        /// Arguments of the invocation, excluding the instance argument. Arguments are in parameter order,
+        /// and params/ParamArray arguments have been collected into arrays. Default values are supplied for
+        /// optional arguments missing in source.
+        /// </summary>
+        public abstract ImmutableArray<IArgument> ArgumentsInParameterOrder { get; }
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitObjectCreationExpression(this);
@@ -2692,15 +2736,22 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal sealed partial class ObjectCreationExpression : ObjectCreationExpressionBase, IHasArgumentsExpression, IObjectCreationExpression
     {
-        public ObjectCreationExpression(IMethodSymbol constructor, ImmutableArray<ISymbolInitializer> memberInitializers, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+        public ObjectCreationExpression(IMethodSymbol constructor, ImmutableArray<ISymbolInitializer> memberInitializers, ImmutableArray<IArgument> argumentsInParameterOrder, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(constructor, isInvalid, syntax, type, constantValue)
         {
             MemberInitializers = memberInitializers;
+            ArgumentsInParameterOrder = argumentsInParameterOrder;
         }
         /// <summary>
         /// Explicitly-specified member initializers.
         /// </summary>
         public override ImmutableArray<ISymbolInitializer> MemberInitializers { get; }
+        /// <summary>
+        /// Arguments of the invocation, excluding the instance argument. Arguments are in parameter order,
+        /// and params/ParamArray arguments have been collected into arrays. Default values are supplied for
+        /// optional arguments missing in source.
+        /// </summary>
+        public override ImmutableArray<IArgument> ArgumentsInParameterOrder { get; }
     }
 
     /// <summary>
@@ -2709,15 +2760,24 @@ namespace Microsoft.CodeAnalysis.Semantics
     internal sealed partial class LazyObjectCreationExpression : ObjectCreationExpressionBase, IHasArgumentsExpression, IObjectCreationExpression
     {
         private readonly Lazy<ImmutableArray<ISymbolInitializer>> _lazyMemberInitializers;
+        private readonly Lazy<ImmutableArray<IArgument>> _lazyArgumentsInParameterOrder;
 
-        public LazyObjectCreationExpression(IMethodSymbol constructor, Lazy<ImmutableArray<ISymbolInitializer>> memberInitializers, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(constructor, isInvalid, syntax, type, constantValue)
+        public LazyObjectCreationExpression(IMethodSymbol constructor, Lazy<ImmutableArray<ISymbolInitializer>> memberInitializers, Lazy<ImmutableArray<IArgument>> argumentsInParameterOrder, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(constructor, isInvalid, syntax, type, constantValue)
         {
             _lazyMemberInitializers = memberInitializers;
+            _lazyArgumentsInParameterOrder = argumentsInParameterOrder;
         }
         /// <summary>
         /// Explicitly-specified member initializers.
         /// </summary>
         public override ImmutableArray<ISymbolInitializer> MemberInitializers => _lazyMemberInitializers.Value;
+
+        /// <summary>
+        /// Arguments of the invocation, excluding the instance argument. Arguments are in parameter order,
+        /// and params/ParamArray arguments have been collected into arrays. Default values are supplied for
+        /// optional arguments missing in source.
+        /// </summary>
+        public override ImmutableArray<IArgument> ArgumentsInParameterOrder => _lazyArgumentsInParameterOrder.Value;
     }
 
     /// <summary>

@@ -58,7 +58,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
             End If
 
-            Return New InvalidExpression(parent.Syntax)
+            Return OperationFactory.CreateInvalidExpression(parent.Syntax)
         End Function
 
     End Class

@@ -180,8 +180,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     case ConversionKind.ExplicitDynamic:
                     case ConversionKind.ImplicitDynamic:
-                        // Since the input was `dynamic`, which is equivalent to `object`, there must also
-                        // exist some unboxing, identity, or reference conversion as well, making the conversion legal.
+                    // Since the input was `dynamic`, which is equivalent to `object`, there must also
+                    // exist some unboxing, identity, or reference conversion as well, making the conversion legal.
                     case ConversionKind.Boxing:
                     case ConversionKind.ExplicitNullable:
                     case ConversionKind.ExplicitReference:
@@ -245,7 +245,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.SingleVariableDesignation:
                     break;
                 case SyntaxKind.DiscardDesignation:
-                    return new BoundDeclarationPattern(node, null, boundDeclType, isVar, hasErrors);
+                    return new BoundDeclarationPattern(node, null, new BoundDiscardExpression(node, boundDeclType.Type), boundDeclType, isVar, hasErrors);
                 default:
                     throw ExceptionUtilities.UnexpectedValue(node.Designation.Kind());
             }
@@ -271,7 +271,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     hasErrors = CheckRestrictedTypeInAsync(this.ContainingMemberOrLambda, declType, diagnostics, typeSyntax);
                 }
 
-                return new BoundDeclarationPattern(node, localSymbol, boundDeclType, isVar, hasErrors);
+                var expression = localSymbol == null ? new BoundDiscardExpression(node, boundDeclType.Type) : (BoundExpression)new BoundLocal(node, localSymbol, null, boundDeclType.Type);
+                return new BoundDeclarationPattern(node, localSymbol, expression, boundDeclType, isVar, hasErrors);
             }
             else
             {

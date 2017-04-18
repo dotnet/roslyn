@@ -29,23 +29,5 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode Accept(BoundTreeVisitor visitor) =>
             visitor.Visit(this);
-
-        protected override OperationKind ExpressionKind
-        {
-            get
-            {
-                throw new InvalidOperationException();
-            }
-        }
-
-        public override void Accept(OperationVisitor visitor)
-        {
-            throw new InvalidOperationException();
-        }
-
-        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
-        {
-            throw new InvalidOperationException();
-        }
     }
 }

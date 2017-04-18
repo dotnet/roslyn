@@ -43,7 +43,6 @@
     <Compile Include="Operations\BranchKind.cs" />
     <Compile Include="Operations\CaseKind.cs" />
     <Compile Include="Operations\ConversionKind.cs" />
-    <Compile Include="Operations\Expressions.cs" />
     <Compile Include="Operations\IAddressOfExpression.cs" />
     <Compile Include="Operations\IArgument.cs" />
     <Compile Include="Operations\IArrayCreationExpression.cs" />
@@ -131,6 +130,7 @@
     <Compile Include="Operations\IWhileUntilLoopStatement.cs" />
     <Compile Include="Operations\IWithStatement.cs" />
     <Compile Include="Operations\LoopKind.cs" />
+    <Compile Include="Operations\OperationFactory.cs" />
     <Compile Include="Operations\SimpleBinaryOperationKind.cs" />
     <Compile Include="Operations\SimpleUnaryOperationKind.cs" />
     <Compile Include="Operations\SyntheticLocalKind.cs" />
@@ -403,7 +403,6 @@
     <Compile Include="Compilation\SemanticModel.cs" />
     <Compile Include="Compilation\SourceReferenceResolver.cs" />
     <Compile Include="Compilation\SpeculativeBindingOption.cs" />
-    <Compile Include="Operations\Statement.cs" />
     <Compile Include="Compilation\SubsystemVersion.cs" />
     <Compile Include="Compilation\SymbolInfo.cs" />
     <Compile Include="Compilation\TypeInfo.cs" />

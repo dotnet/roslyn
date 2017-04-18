@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#if false
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.Semantics;
 using System.Collections.Immutable;
@@ -262,8 +263,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal partial class BoundForEachStatement : IForEachLoopStatement
     {
-        ILocalSymbol IForEachLoopStatement.IterationVariable => this.IterationVariables.Length == 1?
-                                                                        this.IterationVariables.FirstOrDefault():
+        ILocalSymbol IForEachLoopStatement.IterationVariable => this.IterationVariables.Length == 1 ?
+                                                                        this.IterationVariables.FirstOrDefault() :
                                                                         null;
 
         IOperation IForEachLoopStatement.Collection => this.Expression;
@@ -612,7 +613,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             get
             {
                 return (ImmutableArray<IVariableDeclaration>)s_variablesMappings.GetValue(this,
-                    declaration => ImmutableArray.Create<IVariableDeclaration>(new VariableDeclaration(declaration.LocalSymbol, declaration.InitializerOpt, declaration.Syntax)));
+                    declaration => ImmutableArray.Create<IVariableDeclaration>(OperationFactory.CreateVariableDeclaration(declaration.LocalSymbol, declaration.InitializerOpt, declaration.Syntax)));
             }
         }
 
@@ -641,7 +642,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return (ImmutableArray<IVariableDeclaration>)s_variablesMappings.GetValue(this,
                     multipleDeclarations =>
                         multipleDeclarations.LocalDeclarations.SelectAsArray(declaration =>
-                            (IVariableDeclaration)new VariableDeclaration(declaration.LocalSymbol, declaration.InitializerOpt, declaration.Syntax)));
+                            (IVariableDeclaration)OperationFactory.CreateVariableDeclaration(declaration.LocalSymbol, declaration.InitializerOpt, declaration.Syntax)));
             }
         }
 
@@ -837,3 +838,4 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 }
+#endif
