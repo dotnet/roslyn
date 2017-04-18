@@ -73,6 +73,8 @@ Microsoft.CodeAnalysis.OperationKind.IfStatement = 5 -> Microsoft.CodeAnalysis.O
 Microsoft.CodeAnalysis.OperationKind.IncrementExpression = 518 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.IndexedPropertyReferenceExpression = 267 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.InstanceReferenceExpression = 277 -> Microsoft.CodeAnalysis.OperationKind
+Microsoft.CodeAnalysis.OperationKind.InterpolatedStringExpression = 286 -> Microsoft.CodeAnalysis.OperationKind
+Microsoft.CodeAnalysis.OperationKind.Interpolation = 287 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.InvalidExpression = 256 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.InvalidStatement = 1 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.InvocationExpression = 259 -> Microsoft.CodeAnalysis.OperationKind
@@ -410,6 +412,12 @@ Microsoft.CodeAnalysis.Semantics.IIncrementExpression.IncrementOperationKind.get
 Microsoft.CodeAnalysis.Semantics.IIndexedPropertyReferenceExpression
 Microsoft.CodeAnalysis.Semantics.IInstanceReferenceExpression
 Microsoft.CodeAnalysis.Semantics.IInstanceReferenceExpression.InstanceReferenceKind.get -> Microsoft.CodeAnalysis.Semantics.InstanceReferenceKind
+Microsoft.CodeAnalysis.Semantics.IInterpolatedStringExpression
+Microsoft.CodeAnalysis.Semantics.IInterpolatedStringExpression.Parts.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.IOperation>
+Microsoft.CodeAnalysis.Semantics.IInterpolation
+Microsoft.CodeAnalysis.Semantics.IInterpolation.Alignment.get -> Microsoft.CodeAnalysis.IOperation
+Microsoft.CodeAnalysis.Semantics.IInterpolation.Expression.get -> Microsoft.CodeAnalysis.IOperation
+Microsoft.CodeAnalysis.Semantics.IInterpolation.FormatString.get -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.Semantics.IInvalidExpression
 Microsoft.CodeAnalysis.Semantics.IInvalidExpression.Children.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.IOperation>
 Microsoft.CodeAnalysis.Semantics.IInvalidStatement
@@ -690,6 +698,8 @@ override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitIfStatement(Micro
 override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitIncrementExpression(Microsoft.CodeAnalysis.Semantics.IIncrementExpression operation) -> void
 override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitIndexedPropertyReferenceExpression(Microsoft.CodeAnalysis.Semantics.IIndexedPropertyReferenceExpression operation) -> void
 override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitInstanceReferenceExpression(Microsoft.CodeAnalysis.Semantics.IInstanceReferenceExpression operation) -> void
+override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitInterpolatedStringExpression(Microsoft.CodeAnalysis.Semantics.IInterpolatedStringExpression operation) -> void
+override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitInterpolation(Microsoft.CodeAnalysis.Semantics.IInterpolation operation) -> void
 override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitInvalidExpression(Microsoft.CodeAnalysis.Semantics.IInvalidExpression operation) -> void
 override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitInvalidStatement(Microsoft.CodeAnalysis.Semantics.IInvalidStatement operation) -> void
 override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitInvocationExpression(Microsoft.CodeAnalysis.Semantics.IInvocationExpression operation) -> void
@@ -788,6 +798,8 @@ virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitIfStatement(Micro
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitIncrementExpression(Microsoft.CodeAnalysis.Semantics.IIncrementExpression operation) -> void
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitIndexedPropertyReferenceExpression(Microsoft.CodeAnalysis.Semantics.IIndexedPropertyReferenceExpression operation) -> void
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitInstanceReferenceExpression(Microsoft.CodeAnalysis.Semantics.IInstanceReferenceExpression operation) -> void
+virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitInterpolatedStringExpression(Microsoft.CodeAnalysis.Semantics.IInterpolatedStringExpression operation) -> void
+virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitInterpolation(Microsoft.CodeAnalysis.Semantics.IInterpolation operation) -> void
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitInvalidExpression(Microsoft.CodeAnalysis.Semantics.IInvalidExpression operation) -> void
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitInvalidStatement(Microsoft.CodeAnalysis.Semantics.IInvalidStatement operation) -> void
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitInvocationExpression(Microsoft.CodeAnalysis.Semantics.IInvocationExpression operation) -> void
@@ -864,6 +876,8 @@ virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.Vi
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitIncrementExpression(Microsoft.CodeAnalysis.Semantics.IIncrementExpression operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitIndexedPropertyReferenceExpression(Microsoft.CodeAnalysis.Semantics.IIndexedPropertyReferenceExpression operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitInstanceReferenceExpression(Microsoft.CodeAnalysis.Semantics.IInstanceReferenceExpression operation, TArgument argument) -> TResult
+virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitInterpolatedStringExpression(Microsoft.CodeAnalysis.Semantics.IInterpolatedStringExpression operation, TArgument argument) -> TResult
+virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitInterpolation(Microsoft.CodeAnalysis.Semantics.IInterpolation operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitInvalidExpression(Microsoft.CodeAnalysis.Semantics.IInvalidExpression operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitInvalidStatement(Microsoft.CodeAnalysis.Semantics.IInvalidStatement operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitInvocationExpression(Microsoft.CodeAnalysis.Semantics.IInvocationExpression operation, TArgument argument) -> TResult

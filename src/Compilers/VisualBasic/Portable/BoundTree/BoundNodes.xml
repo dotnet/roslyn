@@ -1897,13 +1897,13 @@
   <Node Name="BoundInterpolatedStringExpression" Base="BoundExpression" HasValidate="true">
     <!-- Type is required for this node type; may not be null -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
-    <Field Name="Contents" Type="ImmutableArray(Of BoundNode)"/>
+    <Field Name="Contents" Type="ImmutableArray(Of BoundExpression)"/>
     <Field Name="Binder" Type="Binder" Null="disallow" />
   </Node>
   
   <!-- There is no BoundInterpolatedStringText because we use BoundLiteral of type string for this purpose. -->
   
-  <Node Name="BoundInterpolation" Base="BoundNode">
+  <Node Name="BoundInterpolation" Base="BoundExpression" HasValidate="true">
     <Field Name="Expression" Type="BoundExpression" Null="disallow"/>
     <Field Name="AlignmentOpt" Type="BoundExpression" Null="allow"/>
     <Field Name="FormatStringOpt" Type="BoundLiteral" Null="allow"/>

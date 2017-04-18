@@ -9606,7 +9606,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend NotInheritable Partial Class BoundInterpolatedStringExpression
         Inherits BoundExpression
 
-        Public Sub New(syntax As SyntaxNode, contents As ImmutableArray(Of BoundNode), binder As Binder, type As TypeSymbol, Optional hasErrors As Boolean = False)
+        Public Sub New(syntax As SyntaxNode, contents As ImmutableArray(Of BoundExpression), binder As Binder, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.InterpolatedStringExpression, syntax, type, hasErrors OrElse contents.NonNullAndHasErrors())
 
             Debug.Assert(Not (contents.IsDefault), "Field 'contents' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
@@ -9623,8 +9623,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _Contents As ImmutableArray(Of BoundNode)
-        Public ReadOnly Property Contents As ImmutableArray(Of BoundNode)
+        Private ReadOnly _Contents As ImmutableArray(Of BoundExpression)
+        Public ReadOnly Property Contents As ImmutableArray(Of BoundExpression)
             Get
                 Return _Contents
             End Get
@@ -9641,7 +9641,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return visitor.VisitInterpolatedStringExpression(Me)
         End Function
 
-        Public Function Update(contents As ImmutableArray(Of BoundNode), binder As Binder, type As TypeSymbol) As BoundInterpolatedStringExpression
+        Public Function Update(contents As ImmutableArray(Of BoundExpression), binder As Binder, type As TypeSymbol) As BoundInterpolatedStringExpression
             If contents <> Me.Contents OrElse binder IsNot Me.Binder OrElse type IsNot Me.Type Then
                 Dim result = New BoundInterpolatedStringExpression(Me.Syntax, contents, binder, type, Me.HasErrors)
                 
@@ -9656,16 +9656,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     End Class
 
     Friend NotInheritable Partial Class BoundInterpolation
-        Inherits BoundNode
+        Inherits BoundExpression
 
-        Public Sub New(syntax As SyntaxNode, expression As BoundExpression, alignmentOpt As BoundExpression, formatStringOpt As BoundLiteral, Optional hasErrors As Boolean = False)
-            MyBase.New(BoundKind.Interpolation, syntax, hasErrors OrElse expression.NonNullAndHasErrors() OrElse alignmentOpt.NonNullAndHasErrors() OrElse formatStringOpt.NonNullAndHasErrors())
+        Public Sub New(syntax As SyntaxNode, expression As BoundExpression, alignmentOpt As BoundExpression, formatStringOpt As BoundLiteral, type As TypeSymbol, Optional hasErrors As Boolean = False)
+            MyBase.New(BoundKind.Interpolation, syntax, type, hasErrors OrElse expression.NonNullAndHasErrors() OrElse alignmentOpt.NonNullAndHasErrors() OrElse formatStringOpt.NonNullAndHasErrors())
 
             Debug.Assert(expression IsNot Nothing, "Field 'expression' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Expression = expression
             Me._AlignmentOpt = alignmentOpt
             Me._FormatStringOpt = formatStringOpt
+
+            Validate()
+        End Sub
+
+        Private Partial Sub Validate()
         End Sub
 
 
@@ -9694,9 +9699,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return visitor.VisitInterpolation(Me)
         End Function
 
-        Public Function Update(expression As BoundExpression, alignmentOpt As BoundExpression, formatStringOpt As BoundLiteral) As BoundInterpolation
-            If expression IsNot Me.Expression OrElse alignmentOpt IsNot Me.AlignmentOpt OrElse formatStringOpt IsNot Me.FormatStringOpt Then
-                Dim result = New BoundInterpolation(Me.Syntax, expression, alignmentOpt, formatStringOpt, Me.HasErrors)
+        Public Function Update(expression As BoundExpression, alignmentOpt As BoundExpression, formatStringOpt As BoundLiteral, type As TypeSymbol) As BoundInterpolation
+            If expression IsNot Me.Expression OrElse alignmentOpt IsNot Me.AlignmentOpt OrElse formatStringOpt IsNot Me.FormatStringOpt OrElse type IsNot Me.Type Then
+                Dim result = New BoundInterpolation(Me.Syntax, expression, alignmentOpt, formatStringOpt, type, Me.HasErrors)
                 
                 If Me.WasCompilerGenerated Then
                     result.SetWasCompilerGenerated()
@@ -13496,7 +13501,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Function VisitInterpolatedStringExpression(node As BoundInterpolatedStringExpression) As BoundNode
-            Dim contents As ImmutableArray(Of BoundNode) = Me.VisitList(node.Contents)
+            Dim contents As ImmutableArray(Of BoundExpression) = Me.VisitList(node.Contents)
             Dim type as TypeSymbol = Me.VisitType(node.Type)
             Return node.Update(contents, node.Binder, type)
         End Function
@@ -13505,7 +13510,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim expression As BoundExpression = DirectCast(Me.Visit(node.Expression), BoundExpression)
             Dim alignmentOpt As BoundExpression = DirectCast(Me.Visit(node.AlignmentOpt), BoundExpression)
             Dim formatStringOpt As BoundLiteral = DirectCast(Me.Visit(node.FormatStringOpt), BoundLiteral)
-            Return node.Update(expression, alignmentOpt, formatStringOpt)
+            Dim type as TypeSymbol = Me.VisitType(node.Type)
+            Return node.Update(expression, alignmentOpt, formatStringOpt, type)
         End Function
 
     End Class
@@ -14956,7 +14962,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New TreeDumperNode("interpolation", Nothing, New TreeDumperNode() {
                 New TreeDumperNode("expression", Nothing, new TreeDumperNode() { Visit(node.Expression, Nothing) }),
                 New TreeDumperNode("alignmentOpt", Nothing, new TreeDumperNode() { Visit(node.AlignmentOpt, Nothing) }),
-                New TreeDumperNode("formatStringOpt", Nothing, new TreeDumperNode() { Visit(node.FormatStringOpt, Nothing) })
+                New TreeDumperNode("formatStringOpt", Nothing, new TreeDumperNode() { Visit(node.FormatStringOpt, Nothing) }),
+                New TreeDumperNode("type", node.Type, Nothing)
             })
         End Function
 

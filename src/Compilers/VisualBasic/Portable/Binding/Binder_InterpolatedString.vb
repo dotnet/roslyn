@@ -12,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Function BindInterpolatedStringExpression(syntax As InterpolatedStringExpressionSyntax, diagnostics As DiagnosticBag) As BoundExpression
 
-            Dim contentBuilder = ArrayBuilder(Of BoundNode).GetInstance()
+            Dim contentBuilder = ArrayBuilder(Of BoundExpression).GetInstance()
 
             For Each item In syntax.Contents
 
@@ -65,7 +65,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                   CreateStringLiteral(syntax.FormatClause, syntax.FormatClause.FormatStringToken.ValueText, compilerGenerated:=False, diagnostics:=diagnostics),
                                   Nothing)
 
-            Return New BoundInterpolation(syntax, expression, alignmentOpt, formatStringOpt)
+            Return New BoundInterpolation(syntax, expression, alignmentOpt, formatStringOpt, type:=Nothing)
 
         End Function
 
