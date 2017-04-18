@@ -148,6 +148,8 @@
     <Compile Include="InitializeParameter\AbstractInitializeMemberFromParameterCodeRefactoringProviderMemberCreation.cs" />
     <Compile Include="InitializeParameter\AbstractAddParameterCheckCodeRefactoringProvider.cs" />
     <Compile Include="InitializeParameter\AbstractInitializeParameterCodeRefactoringProvider.cs" />
+    <Compile Include="NavigateTo\NavigateToProjectSearcher.cs" />
+    <Compile Include="Navigation\NavigableItem.cs" />
     <Compile Include="PickMembers\IPickMembersService.cs" />
     <Compile Include="PickMembers\PickMembersResult.cs" />
     <Compile Include="GenerateFromMembers\SelectedMemberInfo.cs" />
@@ -169,7 +171,6 @@
     <Compile Include="NavigateTo\NavigateToOptions.cs" />
     <Compile Include="Navigation\INavigableItem.cs" />
     <Compile Include="Navigation\NavigableItemFactory.cs" />
-    <Compile Include="Navigation\NavigableItemFactory.DeclaredSymbolNavigableItem.cs" />
     <Compile Include="Navigation\NavigableItemFactory.SymbolLocationNavigableItem.cs" />
     <Compile Include="AddImport\CodeActions\PackageReference.ParentCodeAction.cs" />
     <Compile Include="Remote\RemoteArguments.cs" />
