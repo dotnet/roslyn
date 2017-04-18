@@ -1222,31 +1222,6 @@ interface IInterface
         }
 
         [Fact]
-        public void BackCompatAsyncMain()
-        {
-            var source = @"
-using System.Threading.Tasks;
-
-class A
-{
-    async static Task Main(string[] args)
-    {
-        await Task.Factory.StartNew(() => { });
-    }
-    static void Main(){}
-}";
-
-            foreach (var langVersion in new LanguageVersion[] { LanguageVersion.CSharp7, LanguageVersion.CSharp7_1 })
-            {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion));
-                compilation.VerifyDiagnostics(
-                    // (6,23): error CS0017: Program has more than one entry point defined. Compile with /main to specify the type that contains the entry point.
-                    //     async static Task Main(string[] args)
-                    Diagnostic(ErrorCode.ERR_MultipleEntryPoints, "Main").WithLocation(6, 23));
-            }
-        }
-
-        [Fact]
         public void MainCanBeAsyncWithArgs()
         {
             var origSource = @"

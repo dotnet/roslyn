@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
         }
 
-        public int Execute(string moduleName, string expectedOutput, string[] args)
+        public int Execute(string moduleName, string[] args, string expectedOutput)
         {
             throw new NotImplementedException();
         }

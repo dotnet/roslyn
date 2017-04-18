@@ -384,6 +384,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.CodeRuntime
                 {
                     args = new object[0];
                 }
+                else if (count == 1 && mainArgs == null)
+                {
+                    args = new object[] { new string[0] };
+                }
                 else if (count == 1)
                 {
                     args = new object[] { mainArgs };
