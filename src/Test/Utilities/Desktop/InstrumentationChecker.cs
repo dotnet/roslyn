@@ -220,7 +220,10 @@ Namespace Microsoft.CodeAnalysis.Runtime
                 _mvid = mvid
             End If
 
-            If System.Threading.Interlocked.CompareExchange(payload, new Boolean(payloadLength - 1) {}, Nothing) Is Nothing Then
+            If System.Threading.Interlocked.CompareExchange(payload, new Boolean(payloadLength - 1) {}, Nothing) Is Nothing Then    
+                If _payloads(methodIndex) IsNot Nothing Then
+                    Throw New System.ArgumentException(""Overwriting existing payload array."")
+                End If
                 _payloads(methodIndex) = payload
                 _fileIndices(methodIndex) = fileIndex
                 Return payload

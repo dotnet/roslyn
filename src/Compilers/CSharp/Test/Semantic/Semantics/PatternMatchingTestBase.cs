@@ -121,6 +121,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
         }
 
+        protected static void VerifyNotAPatternField(SemanticModel model, IdentifierNameSyntax reference)
+        {
+            var symbol = model.GetSymbolInfo(reference).Symbol;
+
+            Assert.NotEqual(SymbolKind.Field, symbol.Kind);
+
+            Assert.Same(symbol, model.LookupSymbols(reference.SpanStart, name: reference.Identifier.ValueText).Single());
+            Assert.True(model.LookupNames(reference.SpanStart).Contains(reference.Identifier.ValueText));
+        }
+
         protected static void VerifyNotAPatternLocal(SemanticModel model, IdentifierNameSyntax reference)
         {
             var symbol = model.GetSymbolInfo(reference).Symbol;
@@ -299,6 +309,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Assert.DoesNotContain(reference.Identifier.ValueText, model.LookupNames(reference.SpanStart));
                 Assert.True(((TypeSymbol)model.GetTypeInfo(reference).Type).IsErrorType());
             }
+        }
+
+        protected static void AssertNoGlobalStatements(SyntaxTree tree)
+        {
+            Assert.Empty(tree.GetRoot().DescendantNodes().OfType<GlobalStatementSyntax>());
         }
 
         #endregion helpers
