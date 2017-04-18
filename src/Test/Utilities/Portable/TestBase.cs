@@ -4,6 +4,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
+using System.Threading;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -147,7 +148,10 @@ namespace Roslyn.Test.Utilities
             {
                 if (s_systemCoreRef == null)
                 {
-                    s_systemCoreRef = AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_0_30319.System_Core).GetReference(display: "System.Core.v4_0_30319.dll");
+                    Interlocked.CompareExchange(
+                        ref s_systemCoreRef,
+                        AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_0_30319.System_Core).GetReference(display: "System.Core.v4_0_30319.dll"),
+                        null);
                 }
 
                 return s_systemCoreRef;
@@ -414,7 +418,10 @@ namespace Roslyn.Test.Utilities
             {
                 if (s_systemRef == null)
                 {
-                    s_systemRef = AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_0_30319.System).GetReference(display: "System.v4_0_30319.dll");
+                    Interlocked.CompareExchange(
+                        ref s_systemRef,
+                        AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_0_30319.System).GetReference(display: "System.v4_0_30319.dll"),
+                        null);
                 }
 
                 return s_systemRef;

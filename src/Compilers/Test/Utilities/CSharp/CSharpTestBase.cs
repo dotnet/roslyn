@@ -486,19 +486,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             ? ImmutableArray.Create<MetadataReference>(NetStandard20.NetStandard, NetStandard20.MscorlibRef, NetStandard20.SystemRuntimeRef, NetStandard20.SystemDynamicRuntimeRef)
             : ImmutableArray.Create(MscorlibRef);
 
+        // Careful! Make sure everything in s_desktopRefsToRemove is constructed with
+        // the same object identity, since MetadataReference uses reference equality.
+        // this may mean adding Interlocked calls in the construction of the reference.
         private static readonly ImmutableArray<MetadataReference> s_desktopRefsToRemove = ImmutableArray.Create(SystemRef, SystemCoreRef);
-
-        private class MetadataReferenceEqualityComparer : IEqualityComparer<MetadataReference>
-        {
-            private MetadataReferenceEqualityComparer() { }
-
-            public bool Equals(MetadataReference x, MetadataReference y) => x.Display == y.Display;
-
-            public int GetHashCode(MetadataReference obj) => obj.Display?.GetHashCode() ?? 0;
-
-            private static readonly MetadataReferenceEqualityComparer s_instance = new MetadataReferenceEqualityComparer();
-            public static MetadataReferenceEqualityComparer Instance => s_instance;
-        }
 
         public static CSharpCompilation CreateStandardCompilation(
             IEnumerable<SyntaxTree> trees,
@@ -508,7 +499,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         {
             if (CoreClrShim.IsRunningOnCoreClr)
             {
-                references = references?.Except(s_desktopRefsToRemove, MetadataReferenceEqualityComparer.Instance);
+                references = references?.Except(s_desktopRefsToRemove);
             }
             return CreateCompilation(trees, (references != null) ? s_stdRefs.Concat(references) : s_stdRefs, options, assemblyName);
         }
