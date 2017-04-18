@@ -1875,7 +1875,7 @@ class C
             Assert.Equal((int)ErrorCode.ERR_LbraceExpected, file.Errors()[1].Code);
             Assert.Equal((int)ErrorCode.ERR_RbraceExpected, file.Errors()[2].Code);
 
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            CreateStandardCompilation(text).VerifyDiagnostics(
                 // (1,21): error CS1003: Syntax error, ']' expected
                 // class c { int this[ }
                 Diagnostic(ErrorCode.ERR_SyntaxError, "}").WithArguments("]", "}").WithLocation(1, 21),
@@ -1987,7 +1987,7 @@ class C
             Assert.Equal(1, file.Errors().Length);
             Assert.Equal((int)ErrorCode.ERR_UnexpectedCharacter, file.Errors()[0].Code);
 
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            CreateStandardCompilation(text).VerifyDiagnostics(
                 // (1,21): error CS1056: Unexpected character '$'
                 // class c { int this[ $ ] { } }
                 Diagnostic(ErrorCode.ERR_UnexpectedCharacter, "").WithArguments("$").WithLocation(1, 21),
@@ -2072,7 +2072,7 @@ class C
             Assert.Equal((int)ErrorCode.ERR_LbraceExpected, file.Errors()[1].Code);
             Assert.Equal((int)ErrorCode.ERR_RbraceExpected, file.Errors()[2].Code);
 
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            CreateStandardCompilation(text).VerifyDiagnostics(
                 // (1,21): error CS1003: Syntax error, ']' expected
                 // class c { int this[ public void m() { } }
                 Diagnostic(ErrorCode.ERR_SyntaxError, "public").WithArguments("]", "public").WithLocation(1, 21),
@@ -6734,7 +6734,7 @@ _ _::this
                 // _ _::this
                 Diagnostic(ErrorCode.ERR_RbraceExpected, ""));
 
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            CreateStandardCompilation(text).VerifyDiagnostics(
                 // (2,4): error CS1003: Syntax error, '.' expected
                 // _ _::this
                 Diagnostic(ErrorCode.ERR_SyntaxError, "::").WithArguments(".", "::").WithLocation(2, 4),

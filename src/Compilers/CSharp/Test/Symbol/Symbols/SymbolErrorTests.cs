@@ -19213,7 +19213,7 @@ static class A
     public static int f1<T>() { return 1; }
 }
 ";
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            CreateStandardCompilation(text).VerifyDiagnostics(
                 // (3,22): error CS0746: Invalid anonymous type member declarator. Anonymous type members must be declared with a member assignment, simple name or member access.
                 //     object F = new { f1<int> };
                 Diagnostic(ErrorCode.ERR_InvalidAnonymousTypeMemberDeclarator, "f1<int>").WithLocation(3, 22),
