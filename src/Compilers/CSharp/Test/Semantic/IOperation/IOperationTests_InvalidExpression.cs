@@ -60,7 +60,7 @@ class Program
             string expectedOperationTree = @"
 IInvocationExpression ( void Program.F(System.Int32 x)) (OperationKind.InvocationExpression, Type: System.Void, IsInvalid) (Syntax: 'F(string.Empty)')
   Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: Program) (Syntax: 'F')
-  Arguments(1): IArgument (Matching Parameter: x) (OperationKind.Argument) (Syntax: 'string.Empty')
+  Arguments(1): IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: 'string.Empty')
       IFieldReferenceExpression: System.String System.String.Empty (Static) (OperationKind.FieldReferenceExpression, Type: System.String) (Syntax: 'string.Empty')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
@@ -123,8 +123,9 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationStatement (1 variables) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'var y /*<bi ... *</bind>*/;')
-  IVariableDeclaration: ? y (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'var y /*<bi ... *</bind>*/;')
+IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'var y /*<bi ... *</bind>*/;')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'var y /*<bi ... *</bind>*/;')
+    Variables: Local_1: ? y
     Initializer: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'x.MissingField')
         Children(1): ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: Program) (Syntax: 'x')
 ";
@@ -158,8 +159,9 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationStatement (1 variables) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'string y /* ... *</bind>*/;')
-  IVariableDeclaration: System.String y (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'string y /* ... *</bind>*/;')
+IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'string y /* ... *</bind>*/;')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'string y /* ... *</bind>*/;')
+    Variables: Local_1: System.String y
     Initializer: IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: System.String, IsInvalid) (Syntax: 'x.i1')
         IFieldReferenceExpression: System.Int32 Program.i1 (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'x.i1')
           Instance Receiver: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: Program) (Syntax: 'x')
@@ -197,8 +199,9 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationStatement (1 variables) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Program y / ... *</bind>*/;')
-  IVariableDeclaration: Program y (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'Program y / ... *</bind>*/;')
+IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Program y / ... *</bind>*/;')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'Program y / ... *</bind>*/;')
+    Variables: Local_1: Program y
     Initializer: IConversionExpression (ConversionKind.Invalid, Explicit) (OperationKind.ConversionExpression, Type: Program, IsInvalid) (Syntax: '(Program)x.i1')
         IFieldReferenceExpression: System.Int32 Program.i1 (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'x.i1')
           Instance Receiver: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: Program) (Syntax: 'x')

@@ -2180,7 +2180,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             UnaryOperatorKind kind = SyntaxKindToUnaryOperatorKind(node.Kind());
 
-            bool isOperandTypeNull = (object)operand.Type == null;
+            bool isOperandTypeNull = operand.IsLiteralNull();
             if (isOperandTypeNull)
             {
                 // Dev10 does not allow unary prefix operators to be applied to the null literal
@@ -2974,7 +2974,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.IntegerToPointer:
                 case ConversionKind.NullToPointer:
                 case ConversionKind.AnonymousFunction:
-                case ConversionKind.NullLiteral:
+                case ConversionKind.DefaultOrNullLiteral:
                 case ConversionKind.MethodGroup:
                     // We've either replaced Dynamic with Object, or already bailed out with an error.
                     throw ExceptionUtilities.UnexpectedValue(conversionKind);
@@ -3060,7 +3060,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // We do not want to warn for the case "null as TYPE" where the null
                 // is a literal, because the user might be saying it to cause overload resolution
                 // to pick a particular method
-                return new BoundAsOperator(node, operand, typeExpression, Conversion.NullLiteral, resultType);
+                return new BoundAsOperator(node, operand, typeExpression, Conversion.DefaultOrNullLiteral, resultType);
+            }
+
+            if (operand.IsLiteralDefault())
+            {
+                var defaultLiteral = (BoundDefaultExpression)operand;
+                Debug.Assert((object)defaultLiteral.Type == null);
+                Debug.Assert((object)defaultLiteral.ConstantValueOpt == null);
+
+                operand = new BoundDefaultExpression(defaultLiteral.Syntax, constantValueOpt: ConstantValue.Null,
+                    type: GetSpecialType(SpecialType.System_Object, diagnostics, node));
             }
 
             if (operand.Kind == BoundKind.MethodGroup)

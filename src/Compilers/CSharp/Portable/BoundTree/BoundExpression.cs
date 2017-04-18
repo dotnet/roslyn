@@ -460,7 +460,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    internal partial class BoundDefaultOperator
+    internal partial class BoundDefaultExpression
     {
         public override ConstantValue ConstantValue
         {
