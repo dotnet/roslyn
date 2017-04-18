@@ -123,11 +123,10 @@ Microsoft.CodeAnalysis.ParseOptions.Errors.get -> System.Collections.Immutable.I
 Microsoft.CodeAnalysis.ParseOptions.SpecifiedKind.get -> Microsoft.CodeAnalysis.SourceCodeKind
 Microsoft.CodeAnalysis.SemanticModel.GetOperation(Microsoft.CodeAnalysis.SyntaxNode node, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.Semantics.ArgumentKind
-Microsoft.CodeAnalysis.Semantics.ArgumentKind.DefaultValue = 4 -> Microsoft.CodeAnalysis.Semantics.ArgumentKind
-Microsoft.CodeAnalysis.Semantics.ArgumentKind.Named = 2 -> Microsoft.CodeAnalysis.Semantics.ArgumentKind
+Microsoft.CodeAnalysis.Semantics.ArgumentKind.DefaultValue = 3 -> Microsoft.CodeAnalysis.Semantics.ArgumentKind
+Microsoft.CodeAnalysis.Semantics.ArgumentKind.Explicit = 1 -> Microsoft.CodeAnalysis.Semantics.ArgumentKind
 Microsoft.CodeAnalysis.Semantics.ArgumentKind.None = 0 -> Microsoft.CodeAnalysis.Semantics.ArgumentKind
-Microsoft.CodeAnalysis.Semantics.ArgumentKind.ParamArray = 3 -> Microsoft.CodeAnalysis.Semantics.ArgumentKind
-Microsoft.CodeAnalysis.Semantics.ArgumentKind.Positional = 1 -> Microsoft.CodeAnalysis.Semantics.ArgumentKind
+Microsoft.CodeAnalysis.Semantics.ArgumentKind.ParamArray = 2 -> Microsoft.CodeAnalysis.Semantics.ArgumentKind
 Microsoft.CodeAnalysis.Semantics.BinaryOperandsKind
 Microsoft.CodeAnalysis.Semantics.BinaryOperandsKind.Boolean = 1536 -> Microsoft.CodeAnalysis.Semantics.BinaryOperandsKind
 Microsoft.CodeAnalysis.Semantics.BinaryOperandsKind.Decimal = 1280 -> Microsoft.CodeAnalysis.Semantics.BinaryOperandsKind
@@ -398,8 +397,7 @@ Microsoft.CodeAnalysis.Semantics.IForLoopStatement.Locals.get -> System.Collecti
 Microsoft.CodeAnalysis.Semantics.IForWhileUntilLoopStatement
 Microsoft.CodeAnalysis.Semantics.IForWhileUntilLoopStatement.Condition.get -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.Semantics.IHasArgumentsExpression
-Microsoft.CodeAnalysis.Semantics.IHasArgumentsExpression.ArgumentsInParameterOrder.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Semantics.IArgument>
-Microsoft.CodeAnalysis.Semantics.IHasArgumentsExpression.GetArgumentMatchingParameter(Microsoft.CodeAnalysis.IParameterSymbol parameter) -> Microsoft.CodeAnalysis.Semantics.IArgument
+Microsoft.CodeAnalysis.Semantics.IHasArgumentsExpression.ArgumentsInEvaluationOrder.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Semantics.IArgument>
 Microsoft.CodeAnalysis.Semantics.IHasOperatorMethodExpression
 Microsoft.CodeAnalysis.Semantics.IHasOperatorMethodExpression.OperatorMethod.get -> Microsoft.CodeAnalysis.IMethodSymbol
 Microsoft.CodeAnalysis.Semantics.IHasOperatorMethodExpression.UsesOperatorMethod.get -> bool
@@ -417,7 +415,6 @@ Microsoft.CodeAnalysis.Semantics.IInvalidExpression.Children.get -> System.Colle
 Microsoft.CodeAnalysis.Semantics.IInvalidStatement
 Microsoft.CodeAnalysis.Semantics.IInvalidStatement.Children.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.IOperation>
 Microsoft.CodeAnalysis.Semantics.IInvocationExpression
-Microsoft.CodeAnalysis.Semantics.IInvocationExpression.ArgumentsInSourceOrder.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Semantics.IArgument>
 Microsoft.CodeAnalysis.Semantics.IInvocationExpression.Instance.get -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.Semantics.IInvocationExpression.IsVirtual.get -> bool
 Microsoft.CodeAnalysis.Semantics.IInvocationExpression.TargetMethod.get -> Microsoft.CodeAnalysis.IMethodSymbol

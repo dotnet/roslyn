@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Semantics;
 using Xunit;
 
@@ -204,19 +205,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             var targetMethod = operation.TargetMethod;
             var isVirtual = operation.IsVirtual;
-            // base.VisitInvocationExpression only visit operations in ArgumentsInSourceOrder
-            foreach (var argument in operation.ArgumentsInParameterOrder)
-            {
-                Visit(argument);
-            }
-            if (targetMethod != null)
-            {
-                foreach (var parameter in targetMethod.Parameters)
-                {
-                    var matchingArgument = operation.GetArgumentMatchingParameter(parameter);
-                    Visit(matchingArgument);
-                }
-            }
 
             base.VisitInvocationExpression(operation);
         }
@@ -332,14 +320,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             var member = operation.Member;
             var property = operation.Property;
-            if (property != null)
-            {
-                foreach (var parameter in property.Parameters)
-                {
-                    var matchingArgument = operation.GetArgumentMatchingParameter(parameter);
-                    Visit(matchingArgument);
-                }
-            }
 
             base.VisitIndexedPropertyReferenceExpression(operation);
         }
@@ -430,14 +410,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitObjectCreationExpression(IObjectCreationExpression operation)
         {
             var ctor = operation.Constructor;
-            if (ctor != null)
-            {
-                foreach (var parameter in ctor.Parameters)
-                {
-                    var matchingArgument = operation.GetArgumentMatchingParameter(parameter);
-                    Visit(matchingArgument);
-                }
-            }
 
             base.VisitObjectCreationExpression(operation);
         }

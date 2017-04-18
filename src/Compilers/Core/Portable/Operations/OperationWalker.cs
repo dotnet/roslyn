@@ -194,7 +194,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         public override void VisitInvocationExpression(IInvocationExpression operation)
         {
             Visit(operation.Instance);
-            VisitArray(operation.ArgumentsInParameterOrder);
+            VisitArray(operation.ArgumentsInEvaluationOrder);
         }
 
         public override void VisitArgument(IArgument operation)
@@ -273,7 +273,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         public override void VisitIndexedPropertyReferenceExpression(IIndexedPropertyReferenceExpression operation)
         {
             Visit(operation.Instance);
-            VisitArray(operation.ArgumentsInParameterOrder);
+            VisitArray(operation.ArgumentsInEvaluationOrder);
         }
 
         public override void VisitUnaryOperatorExpression(IUnaryOperatorExpression operation)
@@ -336,7 +336,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public override void VisitObjectCreationExpression(IObjectCreationExpression operation)
         {
-            VisitArray(operation.ArgumentsInParameterOrder);
+            VisitArray(operation.ArgumentsInEvaluationOrder);
             VisitArray(operation.MemberInitializers);
         }
 

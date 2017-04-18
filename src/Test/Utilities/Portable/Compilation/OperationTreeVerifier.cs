@@ -536,12 +536,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         private void VisitArguments(IHasArgumentsExpression operation)
         {
-            VisitArray(operation.ArgumentsInParameterOrder, "Arguments", logElementCount: true);
+            VisitArray(operation.ArgumentsInEvaluationOrder, "Arguments", logElementCount: true);
         }
 
         public override void VisitArgument(IArgument operation)
         {
             LogString($"{nameof(IArgument)} (");
+            LogString($"{nameof(ArgumentKind)}.{operation.ArgumentKind}, ");
             LogSymbol(operation.Parameter, header: "Matching Parameter", logDisplayString: false);
             LogString(")");
             LogCommonPropertiesAndNewLine(operation);
@@ -706,6 +707,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogString($": {operation.Property.ToTestDisplayString()}");
 
             VisitMemberReferenceExpressionCommon(operation);
+            VisitArguments(operation);
         }
 
         public override void VisitUnaryOperatorExpression(IUnaryOperatorExpression operation)
