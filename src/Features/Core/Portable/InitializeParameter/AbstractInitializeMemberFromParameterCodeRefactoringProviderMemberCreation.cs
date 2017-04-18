@@ -492,8 +492,8 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
 
         private List<string> CreateWords(StringBreaks wordBreaks, string name)
         {
-            var result = new List<string>(wordBreaks.Count);
-            for (var i = 0; i < wordBreaks.Count; i++)
+            var result = new List<string>(wordBreaks.GetCount());
+            for (int i = 0, n = wordBreaks.GetCount(); i < n; i++)
             {
                 var br = wordBreaks[i];
                 result.Add(name.Substring(br.Start, br.Length));
