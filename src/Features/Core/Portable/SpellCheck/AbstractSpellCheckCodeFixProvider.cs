@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.SpellCheck
             var similarityChecker = WordSimilarityChecker.Allocate(nameText, substringsAreSimilar: true);
             try
             {
-                await CheckItems(
+                await CheckItemsAsync(
                     context, nameNode, nameText,
                     completionList, similarityChecker).ConfigureAwait(false);
             }
@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.SpellCheck
             }
         }
 
-        private async Task CheckItems(
+        private async Task CheckItemsAsync(
             CodeFixContext context, TSimpleName nameNode, string nameText, 
             CompletionList completionList, WordSimilarityChecker similarityChecker)
         {
