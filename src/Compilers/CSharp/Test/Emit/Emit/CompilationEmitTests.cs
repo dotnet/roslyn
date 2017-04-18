@@ -239,7 +239,7 @@ class Test2
         }
 
         [Fact]
-        public void EmitRefAssemblyPrivateMain()
+        public void EmitRefAssembly_PrivateMain()
         {
             CSharpCompilation comp = CreateCompilationWithMscorlib(@"
 public class C
@@ -273,6 +273,45 @@ public class C
                 stream.Position = 0;
                 int entryPoint = new PEHeaders(stream).CorHeader.EntryPointTokenOrRelativeVirtualAddress;
                 Assert.Equal(expectZero, entryPoint == 0);
+            }
+
+            void VerifyMethods(MemoryStream stream, string[] expectedMethods)
+            {
+                stream.Position = 0;
+                var metadataRef = AssemblyMetadata.CreateFromImage(stream.ToArray()).GetReference();
+
+                var compWithMetadata = CreateCompilation("", references: new[] { MscorlibRef, metadataRef },
+                    options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+
+                AssertEx.Equal(
+                    expectedMethods,
+                    ((NamedTypeSymbol)compWithMetadata.SourceModule.GetReferencedAssemblySymbols().Last()
+                        .GlobalNamespace.GetMember("C")).GetMembers().Select(m => m.ToTestDisplayString()));
+            }
+        }
+
+        [Fact]
+        public void EmitRefAssembly_PrivateSetter()
+        {
+            CSharpCompilation comp = CreateCompilationWithMscorlib(@"
+public class C
+{
+    public int P { get; private set; }
+}
+");
+
+            using (var output = new MemoryStream())
+            using (var metadataOutput = new MemoryStream())
+            {
+                // Previously, this would crash when trying to get the entry point for the ref assembly
+                // (but the Main method is not emitted in the ref assembly...)
+                EmitResult emitResult = comp.Emit(output, metadataPEStream: metadataOutput,
+                    options: new EmitOptions(includePrivateMembers: false));
+                Assert.True(emitResult.Success);
+                emitResult.Diagnostics.Verify();
+
+                VerifyMethods(output, new[] { "void C.Main()", "C..ctor()" });
+                VerifyMethods(metadataOutput, new[] { "C..ctor()" });
             }
 
             void VerifyMethods(MemoryStream stream, string[] expectedMethods)
