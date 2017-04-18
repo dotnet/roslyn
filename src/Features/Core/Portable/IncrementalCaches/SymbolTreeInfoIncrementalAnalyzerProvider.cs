@@ -219,11 +219,11 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
             private async Task UpdateSymbolTreeInfoAsync(Project project, CancellationToken cancellationToken)
             {
                 if (project.Solution.Workspace.Kind != "Test" &&
-                    project.Solution.Workspace.Kind != WorkspaceKind.RemoteWorkspace &&
-                    project.Solution.Workspace.Options.GetOption(NavigateToOptions.OutOfProcessAllowed))
+                    project.Solution.Workspace.Kind != WorkspaceKind.RemoteWorkspace)
                 {
-                    // if GoTo feature is set to run on remote host, then we don't need to build inproc cache.
-                    // remote host will build this cache in remote host.
+                    // We only background compute the SymbolTreeInfo indices for the remote
+                    // and test workspaces.  We can spare the cycles and memory there and it
+                    // will make the data ready for when Add-Import needs it.
                     return;
                 }
 

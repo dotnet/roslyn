@@ -1,15 +1,15 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
+using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.PatternMatching;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.NavigateTo
@@ -33,6 +33,10 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         private static async Task<ImmutableArray<INavigateToSearchResult>> FindNavigableDeclaredSymbolInfosAsync(
             Project project, Document searchDocument, string pattern, CancellationToken cancellationToken)
         {
+            // Delay creating of the compilation until necessary.  But once we create it,
+            // cache for the remainder of the search so that it doesn't get cleaned up.
+            Compilation compilation = null;
+
             var containsDots = pattern.IndexOf('.') >= 0;
             using (var patternMatcher = new PatternMatcher(pattern, allowFuzzyMatching: true))
             {
@@ -44,6 +48,9 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                         continue;
                     }
 
+                    // Delay creating a semantic model until necessary.  But once we create it,
+                    // cache for the remainder of the search so that it doesn't get cleaned up.
+                    SemanticModel semanticModel = null;
                     cancellationToken.ThrowIfCancellationRequested();
                     var declarationInfo = await document.GetSyntaxTreeIndexAsync(cancellationToken).ConfigureAwait(false);
 
@@ -57,7 +64,17 @@ namespace Microsoft.CodeAnalysis.NavigateTo
 
                         if (!patternMatches.IsEmpty)
                         {
-                            result.Add(ConvertResult(containsDots, declaredSymbolInfo, document, patternMatches));
+                            semanticModel = semanticModel ?? await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                            compilation = semanticModel.Compilation;
+
+                            var converted = ConvertResult(
+                                document, semanticModel, containsDots, 
+                                declaredSymbolInfo, patternMatches, cancellationToken);
+
+                            if (converted != null)
+                            {
+                                result.Add(converted);
+                            }
                         }
                     }
                 }
@@ -79,20 +96,56 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         }
 
         private static INavigateToSearchResult ConvertResult(
-            bool containsDots, DeclaredSymbolInfo declaredSymbolInfo, 
-            Document document, PatternMatches matches)
+            Document document, SemanticModel semanticModel, bool containsDots,
+            DeclaredSymbolInfo declaredSymbolInfo, PatternMatches matches,
+            CancellationToken cancellationToken)
         {
+            var symbol = declaredSymbolInfo.TryResolve(semanticModel, cancellationToken);
+            if (symbol == null)
+            {
+                return null;
+            }
+
             var matchKind = GetNavigateToMatchKind(containsDots, matches);
 
             // A match is considered to be case sensitive if all its constituent pattern matches are
             // case sensitive. 
             var isCaseSensitive = matches.All(m => m.IsCaseSensitive);
             var kind = GetItemKind(declaredSymbolInfo);
-            var navigableItem = NavigableItemFactory.GetItemFromDeclaredSymbolInfo(declaredSymbolInfo, document);
+
+            var navigableItem = new NavigableItem(
+                document, declaredSymbolInfo.Span,
+                symbol.GetGlyph(), GetSymbolDisplayTaggedParts(document, symbol));
+
+            var summary = symbol.GetDocumentationComment()?.SummaryText;
+            var additionalInfo = GetAdditionalInfo(declaredSymbolInfo, document);
 
             return new SearchResult(
                 document, declaredSymbolInfo, kind, matchKind, 
-                isCaseSensitive, navigableItem, matches.CandidateMatches.SelectMany(m => m.MatchedSpans).ToImmutableArray());
+                isCaseSensitive, navigableItem, summary, additionalInfo,
+                matches.CandidateMatches.SelectMany(m => m.MatchedSpans).ToImmutableArray());
+        }
+
+        private static string GetAdditionalInfo(DeclaredSymbolInfo declaredSymbolInfo, Document document)
+        {
+            switch (declaredSymbolInfo.Kind)
+            {
+                case DeclaredSymbolInfoKind.Class:
+                case DeclaredSymbolInfoKind.Enum:
+                case DeclaredSymbolInfoKind.Interface:
+                case DeclaredSymbolInfoKind.Module:
+                case DeclaredSymbolInfoKind.Struct:
+                    return FeaturesResources.project_space + document.Project.Name;
+                default:
+                    return FeaturesResources.type_space + declaredSymbolInfo.ContainerDisplayName;
+            }
+        }
+
+        private static ImmutableArray<TaggedText> GetSymbolDisplayTaggedParts(
+            Document document, ISymbol symbol)
+        {
+            var symbolDisplayService = document.GetLanguageService<ISymbolDisplayService>();
+            return symbolDisplayService.ToDisplayParts(symbol, GetSymbolDisplayFormat(symbol)).ToTaggedText();
         }
 
         private static string GetItemKind(DeclaredSymbolInfo declaredSymbolInfo)
@@ -189,5 +242,45 @@ namespace Microsoft.CodeAnalysis.NavigateTo
 
             return NavigateToMatchKind.Regular;
         }
+
+        private static SymbolDisplayFormat GetSymbolDisplayFormat(ISymbol symbol)
+        {
+            switch (symbol.Kind)
+            {
+                case SymbolKind.NamedType:
+                    return s_shortFormatWithModifiers;
+
+                case SymbolKind.Method:
+                    return symbol.IsStaticConstructor() ? s_shortFormatWithModifiers : s_shortFormat;
+
+                default:
+                    return s_shortFormat;
+            }
+        }
+
+        private static readonly SymbolDisplayFormat s_shortFormat =
+            new SymbolDisplayFormat(
+                globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.OmittedAsContaining,
+                typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameOnly,
+                propertyStyle: SymbolDisplayPropertyStyle.NameOnly,
+                genericsOptions:
+                    SymbolDisplayGenericsOptions.IncludeTypeParameters |
+                    SymbolDisplayGenericsOptions.IncludeVariance,
+                memberOptions:
+                    SymbolDisplayMemberOptions.IncludeExplicitInterface |
+                    SymbolDisplayMemberOptions.IncludeParameters,
+                parameterOptions:
+                    SymbolDisplayParameterOptions.IncludeExtensionThis |
+                    SymbolDisplayParameterOptions.IncludeParamsRefOut |
+                    SymbolDisplayParameterOptions.IncludeType,
+                miscellaneousOptions:
+                    SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers |
+                    SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
+
+        private static readonly SymbolDisplayFormat s_shortFormatWithModifiers =
+            s_shortFormat.WithMemberOptions(
+                SymbolDisplayMemberOptions.IncludeModifiers |
+                SymbolDisplayMemberOptions.IncludeExplicitInterface |
+                SymbolDisplayMemberOptions.IncludeParameters);
     }
 }
