@@ -145,10 +145,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var type = loweredTarget.Type;
 
-            // The type here is not a Nullable<T> instance type, as that would have led to the semantic error:
-            // ERR_PatternNullableType: It is not legal to use nullable type '{0}' in a pattern; use the underlying type '{1}' instead.
-            Debug.Assert(!type.IsNullableType());
-
             // a pattern match of the form "expression is Type identifier" is equivalent to
             // an invocation of one of these helpers:
             if (type.IsReferenceType)
@@ -175,8 +171,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (type.IsValueType)
             {
+                // The type here is not a Nullable<T> instance type, as that would have led to the semantic error:
+                // ERR_PatternNullableType: It is not legal to use nullable type '{0}' in a pattern; use the underlying type '{1}' instead.
+                Debug.Assert(!type.IsNullableType());
+
                 // It is possible that the input value is already of the correct type, in which case the pattern
-                // is irrefutable, and we can just do the assignment and return true.
+                // is irrefutable (there is no way for a non-nullable value type to be null), and we can just do
+                // the assignment and return true.
                 if (loweredInput.Type == type)
                 {
                     return _factory.MakeSequence(
@@ -207,18 +208,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(type.IsTypeParameter());
                 // bool Is<T>(this object i, out T o)
                 // {
-                //     // inefficient because it performs the type test twice.
+                //     // inefficient because it performs the type test twice, and also because it boxes the input.
                 //     bool s = i is T;
-                //     if (s) o = (T)i;
+                //     o = s ? (T)i : default(T);
                 //     return s;
                 // }
-                return _factory.Conditional(_factory.Is(loweredInput, type),
-                    _factory.MakeSequence(_factory.AssignmentExpression(
-                        loweredTarget,
-                        _factory.Convert(type, loweredInput)),
-                        _factory.Literal(true)),
-                    _factory.Literal(false),
-                    _factory.SpecialType(SpecialType.System_Boolean));
+
+                // Because a cast involving a type parameter is not necessarily a valid conversion (or, if it is, it might not
+                // be of a kind appropriate for pattern-matching), we use `object` as an intermediate type for the input expression.
+                var tmpType = _factory.SpecialType(SpecialType.System_Object);
+                var s = _factory.SynthesizedLocal(_factory.SpecialType(SpecialType.System_Boolean), syntax);
+                var i = _factory.SynthesizedLocal(tmpType, syntax); // we copy the input to avoid double evaluation
+                return _factory.Sequence(
+                    ImmutableArray.Create(s, i),
+                    ImmutableArray.Create<BoundExpression>(
+                        _factory.AssignmentExpression(_factory.Local(i), _factory.Convert(tmpType, loweredInput)),
+                        _factory.AssignmentExpression(_factory.Local(s), _factory.Is(_factory.Local(i), type)),
+                        _factory.AssignmentExpression(loweredTarget, _factory.Conditional(_factory.Local(s), _factory.Convert(type, _factory.Local(i)), _factory.Default(type), type))
+                        ),
+                    _factory.Local(s)
+                    );
             }
         }
     }

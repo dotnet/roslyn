@@ -1474,8 +1474,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_LanguageVersionCannotHaveLeadingZeroes = 8303,
         ERR_CompilerAndLanguageVersion = 8304,
 
+        #region diagnostics for C# 7.1
+
         ERR_BadDynamicMethodArgDefaultLiteral = 9000,
         ERR_DefaultLiteralNotValid = 9001,
         WRN_DefaultInSwitch = 9002,
+        ERR_PatternWrongGenericTypeInVersion = 9003,
+
+        #endregion diagnostics for C# 7.1
     }
 }
