@@ -361,7 +361,7 @@ End Class
 <symbols>
     <entryPoint declaringType="C1" methodName="Main"/>
     <methods>
-        <method containingType="C1" name="Main">
+        <method containingType="C1" name="Main" format="windows">
             <scope startOffset="0x0" endOffset="0x18">
                 <namespace name="System" importlevel="file"/>
                 <namespace name="System.Collections.Generic" importlevel="file"/>
@@ -419,7 +419,7 @@ End Class
 <symbols>
     <entryPoint declaringType="C1" methodName="Main"/>
     <methods>
-        <method containingType="C1" name="Main">
+        <method containingType="C1" name="Main" format="windows">
             <scope startOffset="0x0" endOffset="0x23">
                 <namespace name="System" importlevel="file"/>
                 <namespace name="System.Collections.Generic" importlevel="file"/>

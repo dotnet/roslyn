@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
 
                 bool Cci.IMethodBody.HasDynamicLocalVariables => false;
 
-                Cci.AsyncMethodBodyDebugInfo Cci.IMethodBody.AsyncDebugInfo => null;
+                StateMachineMoveNextBodyDebugInfo Cci.IMethodBody.MoveNextBodyInfo => null;
 
                 DynamicAnalysisMethodBodyData Cci.IMethodBody.DynamicAnalysisData => null;
 

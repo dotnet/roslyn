@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Reflection;
 using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis;
@@ -312,47 +311,6 @@ namespace Microsoft.Cci
     }
 
     /// <summary>
-    /// Represents additional info needed by async method implementation methods 
-    /// (MoveNext() methods) to properly emit necessary PDB data for async debugging.
-    /// </summary>
-    internal class AsyncMethodBodyDebugInfo
-    {
-        /// <summary>
-        ///  Original async method transformed into MoveNext() 
-        /// </summary>
-        public readonly IMethodDefinition KickoffMethod;
-
-        /// <summary> 
-        /// IL offset of catch handler or -1 
-        /// </summary>
-        public readonly int CatchHandlerOffset;
-
-        /// <summary> 
-        /// Set of IL offsets where await operators yield control
-        ///  </summary>
-        public readonly ImmutableArray<int> YieldOffsets;
-
-        /// <summary> 
-        /// Set of IL offsets where await operators are to be resumed 
-        /// </summary>
-        public readonly ImmutableArray<int> ResumeOffsets;
-
-        public AsyncMethodBodyDebugInfo(
-            IMethodDefinition kickoffMethod,
-            int catchHandlerOffset,
-            ImmutableArray<int> yieldOffsets,
-            ImmutableArray<int> resumeOffsets)
-        {
-            Debug.Assert(!yieldOffsets.IsDefault && !resumeOffsets.IsDefault && yieldOffsets.Length == resumeOffsets.Length);
-
-            this.KickoffMethod = kickoffMethod;
-            this.CatchHandlerOffset = catchHandlerOffset;
-            this.YieldOffsets = yieldOffsets;
-            this.ResumeOffsets = resumeOffsets;
-        }
-    }
-
-    /// <summary>
     /// A metadata (IL) level representation of the body of a method or of a property/event accessor.
     /// </summary>
     internal interface IMethodBody
@@ -383,9 +341,9 @@ namespace Microsoft.Cci
         IMethodDefinition MethodDefinition { get; }
 
         /// <summary>
-        /// Debugging information associated with an async method to support EE.
+        /// Debugging information associated with a MoveNext method of a state machine.
         /// </summary>
-        AsyncMethodBodyDebugInfo AsyncDebugInfo { get; }
+        StateMachineMoveNextBodyDebugInfo MoveNextBodyInfo { get; }
 
         /// <summary>
         /// The maximum number of elements on the evaluation stack during the execution of the method.

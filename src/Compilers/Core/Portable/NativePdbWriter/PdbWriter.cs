@@ -304,8 +304,8 @@ namespace Microsoft.Cci
             // 
             // Special case a hidden entry point (#line hidden applied) that would otherwise have no debug info.
             // This is to accomodate for a requirement of Windows PDB writer that the entry point method must have some debug information.
-            bool isIterator = methodBody.StateMachineTypeName != null;
-            bool emitDebugInfo = isIterator || !methodBody.SequencePoints.IsEmpty ||
+            bool isKickoffMethod = methodBody.StateMachineTypeName != null;
+            bool emitDebugInfo = isKickoffMethod || !methodBody.SequencePoints.IsEmpty ||
                 methodBody.MethodDefinition == (Context.Module.DebugEntryPoint ?? Context.Module.PEEntryPoint);
 
             if (!emitDebugInfo)
@@ -326,10 +326,7 @@ namespace Microsoft.Cci
                 this.DefineScopeLocals(localScopes[0], localSignatureHandleOpt);
             }
 
-            // NOTE: This is an attempt to match Dev10's apparent behavior.  For iterator methods (i.e. the method
-            // that appears in source, not the synthesized ones), Dev10 only emits the ForwardIterator and IteratorLocal
-            // custom debug info (e.g. there will be no information about the usings that were in scope).
-            if (!isIterator && methodBody.ImportScope != null)
+            if (!isKickoffMethod && methodBody.ImportScope != null)
             {
                 IMethodDefinition forwardToMethod;
                 if (customDebugInfoWriter.ShouldForwardNamespaceScopes(Context, methodBody, methodHandle, out forwardToMethod))
@@ -349,15 +346,14 @@ namespace Microsoft.Cci
             DefineLocalScopes(localScopes, localSignatureHandleOpt);
             EmitSequencePoints(methodBody.SequencePoints);
 
-            AsyncMethodBodyDebugInfo asyncDebugInfo = methodBody.AsyncDebugInfo;
-            if (asyncDebugInfo != null)
+            if (methodBody.MoveNextBodyInfo is AsyncMoveNextBodyDebugInfo asyncMoveNextInfo)
             {
                 SetAsyncInfo(
                     methodToken,
-                    MetadataTokens.GetToken(_metadataWriter.GetMethodHandle(asyncDebugInfo.KickoffMethod)),
-                    asyncDebugInfo.CatchHandlerOffset,
-                    asyncDebugInfo.YieldOffsets,
-                    asyncDebugInfo.ResumeOffsets);
+                    MetadataTokens.GetToken(_metadataWriter.GetMethodHandle(asyncMoveNextInfo.KickoffMethod)),
+                    asyncMoveNextInfo.CatchHandlerOffset,
+                    asyncMoveNextInfo.YieldOffsets,
+                    asyncMoveNextInfo.ResumeOffsets);
             }
 
             var compilationOptions = Context.Module.CommonCompilation.Options;

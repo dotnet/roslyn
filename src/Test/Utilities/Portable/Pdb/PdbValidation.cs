@@ -49,13 +49,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             [CallerLineNumber]int expectedValueSourceLine = 0,
             [CallerFilePath]string expectedValueSourcePath = null)
         {
-            var expectedPdbXml = XElement.Parse(string.IsNullOrWhiteSpace(expectedPdb) ? "<symbols></symbols>" : expectedPdb);
-
             VerifyPdbImpl(
                 compilation,
                 debugEntryPoint,
                 qualifiedMethodName,
-                expectedPdbXml,
+                string.IsNullOrWhiteSpace(expectedPdb) ? "<symbols></symbols>" : expectedPdb,
                 format,
                 options,
                 expectedValueSourceLine,
@@ -89,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 compilation,
                 debugEntryPoint,
                 qualifiedMethodName,
-                expectedPdb,
+                expectedPdb.ToString(),
                 format,
                 options,
                 expectedValueSourceLine,
@@ -101,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             this Compilation compilation,
             IMethodSymbol debugEntryPoint,
             string qualifiedMethodName,
-            XElement expectedPdb,
+            string expectedPdb,
             DebugInformationFormat format,
             PdbToXmlOptions options,
             int expectedValueSourceLine,
@@ -112,55 +110,47 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             if (format == 0 || format == DebugInformationFormat.Pdb)
             {
-                var actualNativePdb = XElement.Parse(GetPdbXml(compilation, debugEntryPoint, options, qualifiedMethodName, portable: false));
-                AssertXml.Equal(expectedPdb, actualNativePdb, $"PDB format: Windows{Environment.NewLine}", expectedValueSourcePath, expectedValueSourceLine, expectedIsXmlLiteral);
+                var actualPdb = GetPdbXml(compilation, debugEntryPoint, options, qualifiedMethodName, portable: false);
+                var (actualXml, expectedXml) = AdjustToPdbFormat(actualPdb, expectedPdb, actualIsPortable: false);
+
+                AssertXml.Equal(expectedXml, actualXml, $"PDB format: Windows{Environment.NewLine}", expectedValueSourcePath, expectedValueSourceLine, expectedIsXmlLiteral);
             }
 
             if (format == 0 || format == DebugInformationFormat.PortablePdb)
             {
-                var actualPortablePdb = XElement.Parse(GetPdbXml(compilation, debugEntryPoint, options, qualifiedMethodName, portable: true));
+                string actualPdb = GetPdbXml(compilation, debugEntryPoint, options, qualifiedMethodName, portable: true);
+                var (actualXml, expectedXml) = AdjustToPdbFormat(actualPdb, expectedPdb, actualIsPortable: true);
 
-                // If format is not specified, we share expected output between portable and non-portable.
-                // The output is then non-portable since it contains more information (such as cdi).
-                AdjustToPdbFormat(
-                    actualPdb: actualPortablePdb,
-                    actualIsPortable: true,
-                    expectedPdb: expectedPdb,
-                    expectedIsPortable: format == DebugInformationFormat.PortablePdb);
-
-                AssertXml.Equal(expectedPdb, actualPortablePdb, $"PDB format: Portable{Environment.NewLine}", expectedValueSourcePath, expectedValueSourceLine, expectedIsXmlLiteral);
+                AssertXml.Equal(expectedXml, actualXml, $"PDB format: Portable{Environment.NewLine}", expectedValueSourcePath, expectedValueSourceLine, expectedIsXmlLiteral);
             }
         }
 
-        internal static void AdjustToPdbFormat(
-            XElement actualPdb,
-            bool actualIsPortable,
-            XElement expectedPdb,
-            bool expectedIsPortable)
+        internal static (XElement Actual, XElement Expected) AdjustToPdbFormat(string actualPdb, string expectedPdb, bool actualIsPortable)
         {
-            if (actualIsPortable == expectedIsPortable)
+            var actualXml = XElement.Parse(actualPdb);
+            var expectedXml = XElement.Parse(expectedPdb);
+
+            if (actualIsPortable)
             {
-                return;
+                // Windows SymWriter doesn't serialize empty scopes.
+                // In Portable PDB each method with a body (even with no locals) has a scope that points to the imports. Such scope appears as empty
+                // in the current XML representation. 
+                RemoveEmptyScopes(actualXml);
+
+                RemoveWindowsSpecificElements(expectedXml);
+            }
+            else
+            {
+                RemovePortableSpecificElements(expectedXml);
             }
 
-            // The test doesn't specify portable as expected PDB unless it's testing portable only in which case actual is also portable.
-            Assert.False(expectedIsPortable);
-            Assert.True(actualIsPortable);
+            RemoveEmptySequencePoints(expectedXml);
+            RemoveEmptyScopes(expectedXml);
+            RemoveEmptyCustomDebugInfo(expectedXml);
+            RemoveEmptyMethods(expectedXml);
+            RemoveFormatAttributes(expectedXml);
 
-            // SymWriter doesn't create empty scopes. When the C# compiler uses forwarding CDI instead of a NamespaceScope
-            // the scope is actually not empty - it logically contains the imports. Portable PDB does not use forwarding and thus
-            // creates the scope. When generating PDB XML for testing the Portable DiaSymReader returns empty namespaces.
-            RemoveEmptyScopes(actualPdb);
-
-            // if the actual format is portable and the expected is not, remove native-only artifacts:
-            RemoveNonPortablePdb(expectedPdb);
-
-            RemoveEmptySequencePoints(expectedPdb);
-
-            // remove scopes that only contained non-portable elements (namespace scopes)
-            RemoveEmptyCustomDebugInfo(expectedPdb);
-            RemoveEmptyScopes(expectedPdb);
-            RemoveEmptyMethods(expectedPdb);
+            return (actualXml, expectedXml);
         }
 
         private static void RemoveEmptyCustomDebugInfo(XElement pdb)
@@ -217,31 +207,52 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
         }
 
-        private static void RemoveNonPortablePdb(XElement expectedNativePdb)
+        private static void RemoveWindowsSpecificElements(XElement expectedNativePdb)
         {
-            var nonPortableElements = from e in expectedNativePdb.DescendantsAndSelf()
-                                      where e.Name == "forwardIterator" ||
-                                            e.Name == "forwardToModule" ||
-                                            e.Name == "forward" ||
-                                            e.Name == "tupleElementNames" ||
-                                            e.Name == "dynamicLocals" ||
-                                            e.Name == "using" ||
-                                            e.Name == "currentnamespace" ||
-                                            e.Name == "defaultnamespace" ||
-                                            e.Name == "importsforward" ||
-                                            e.Name == "xmlnamespace" ||
-                                            e.Name == "alias" ||
-                                            e.Name == "namespace" ||
-                                            e.Name == "type" ||
-                                            e.Name == "defunct" ||
-                                            e.Name == "extern" ||
-                                            e.Name == "externinfo" ||
-                                            e.Name == "local" && e.Attributes().Any(a => a.Name.LocalName == "name" && a.Value.StartsWith("$VB$ResumableLocal_"))
-                                      select e;
+            var elementsToRemove = from e in expectedNativePdb.DescendantsAndSelf()
+                                   where e.Name == "forwardIterator" ||
+                                         e.Name == "forwardToModule" ||
+                                         e.Name == "forward" ||
+                                         e.Name == "tupleElementNames" ||
+                                         e.Name == "dynamicLocals" ||
+                                         e.Name == "using" ||
+                                         e.Name == "currentnamespace" ||
+                                         e.Name == "defaultnamespace" ||
+                                         e.Name == "importsforward" ||
+                                         e.Name == "xmlnamespace" ||
+                                         e.Name == "alias" ||
+                                         e.Name == "namespace" ||
+                                         e.Name == "type" ||
+                                         e.Name == "defunct" ||
+                                         e.Name == "extern" ||
+                                         e.Name == "externinfo" ||
+                                         e.Name == "local" && e.Attributes().Any(a => a.Name.LocalName == "name" && a.Value.StartsWith("$VB$ResumableLocal_")) ||
+                                         e.Attributes().Any(a => a.Name.LocalName == "format" && a.Value == "windows")
+                                   select e;
 
-            foreach (var e in nonPortableElements.ToArray())
+            foreach (var e in elementsToRemove.ToArray())
             {
                 e.Remove();
+            }
+        }
+
+        private static void RemovePortableSpecificElements(XElement expectedNativePdb)
+        {
+            var elementsToRemove = from e in expectedNativePdb.DescendantsAndSelf()
+                                   where e.Attributes().Any(a => a.Name.LocalName == "format" && a.Value == "portable")
+                                   select e;
+
+            foreach (var e in elementsToRemove.ToArray())
+            {
+                e.Remove();
+            }
+        }
+
+        private static void RemoveFormatAttributes(XElement pdb)
+        {
+            foreach (var element in pdb.DescendantsAndSelf())
+            {
+                element.Attributes().FirstOrDefault(a => a.Name.LocalName == "format")?.Remove();
             }
         }
 

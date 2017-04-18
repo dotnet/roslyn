@@ -5277,7 +5277,7 @@ class C
 <symbols>
   <entryPoint declaringType=""C"" methodName=""Main"" />
   <methods>
-    <method containingType=""C"" name=""Main"">
+    <method containingType=""C"" name=""Main"" format=""windows"">
       <customDebugInfo>
         <using>
           <namespace usingCount=""0"" />
@@ -5285,13 +5285,8 @@ class C
       </customDebugInfo>
     </method>
   </methods>
-</symbols>", format: DebugInformationFormat.Pdb);
+</symbols>");
 
-            c.VerifyPdb(@"
-<symbols>
-  <entryPoint declaringType=""C"" methodName=""Main"" />
-  <methods/>
-</symbols>", format: DebugInformationFormat.PortablePdb);
         }
 
         [Fact]
