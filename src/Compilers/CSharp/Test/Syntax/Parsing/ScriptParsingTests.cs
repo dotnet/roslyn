@@ -1574,7 +1574,7 @@ new public bool this[int index] { get; }
                 new ErrorDescription { Code = 1514, Line = 1, Column = 17 },
                 new ErrorDescription { Code = 1513, Line = 1, Column = 17 });
 
-            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+            CreateStandardCompilation(test).VerifyDiagnostics(
                 // (1,13): error CS1003: Syntax error, '[' expected
                 // string this ="";
                 Diagnostic(ErrorCode.ERR_SyntaxError, "=").WithArguments("[", "=").WithLocation(1, 13),

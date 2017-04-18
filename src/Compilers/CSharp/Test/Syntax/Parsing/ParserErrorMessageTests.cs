@@ -343,7 +343,7 @@ class Foo
 }
 ";
 
-            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+            CreateStandardCompilation(test).VerifyDiagnostics(
                 // (4,19): error CS0257: An __arglist parameter must be the last parameter in a formal parameter list
                 //   public void Bar(__arglist,  int b)
                 Diagnostic(ErrorCode.ERR_VarargsLast, "__arglist"));
@@ -937,7 +937,7 @@ public class C
 }
 ";
 
-            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+            CreateStandardCompilation(test).VerifyDiagnostics(
                 // (7,23): error CS0746: Invalid anonymous type member declarator. Anonymous type members must be declared with a member assignment, simple name or member access.
                 //         var t = new { a.b = 1 };
                 Diagnostic(ErrorCode.ERR_InvalidAnonymousTypeMemberDeclarator, "a.b = 1").WithLocation(7, 23),
@@ -962,7 +962,7 @@ public class C
     }
 }
 ";
-            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+            CreateStandardCompilation(test).VerifyDiagnostics(
                 // (7,23): error CS0746: Invalid anonymous type member declarator. Anonymous type members must be declared with a member assignment, simple name or member access.
                 //         var t = new { s.Length = 1 };
                 Diagnostic(ErrorCode.ERR_InvalidAnonymousTypeMemberDeclarator, "s.Length = 1").WithLocation(7, 23),
@@ -984,7 +984,7 @@ public class C
     }
 }
 ";
-            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+            CreateStandardCompilation(test).VerifyDiagnostics(
                 // (7,23): error CS0746: Invalid anonymous type member declarator. Anonymous type members must be declared with a member assignment, simple name or member access.
                 //         var t = new { s.ToString() = 1 };
                 Diagnostic(ErrorCode.ERR_InvalidAnonymousTypeMemberDeclarator, "s.ToString() = 1").WithLocation(7, 23),
@@ -3802,7 +3802,7 @@ public class MyClass {
 }
 ";
 
-            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+            CreateStandardCompilation(test).VerifyDiagnostics(
                 // (4,14): error CS1551: Indexers must have at least one parameter
                 //     int this[] {
                 Diagnostic(ErrorCode.ERR_IndexerNeedsParam, "]").WithLocation(4, 14));
