@@ -20,6 +20,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
             _tracker = new ConflictingIdentifierTracker(tokenBeingRenamed, StringComparer.Ordinal);
         }
 
+        public override void DefaultVisit(SyntaxNode node)
+        {
+            foreach (var child in node.ChildNodes())
+            {
+                Visit(child);
+            }
+        }
+
+        public override void VisitMethodDeclaration(MethodDeclarationSyntax node)
+        {
+            var parameterTokens = node.ParameterList.Parameters.Select(p => p.Identifier);
+            _tracker.AddIdentifiers(parameterTokens);
+            Visit(node.Body);
+            _tracker.RemoveIdentifiers(parameterTokens);
+        }
+
+        public override void VisitBlock(BlockSyntax node)
+        {
+            VisitBlockStatements(node, node.Statements);
+        }
+
         private void VisitBlockStatements(SyntaxNode node, IEnumerable<SyntaxNode> statements)
         {
             var tokens = new List<SyntaxToken>();
@@ -42,27 +63,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
             _tracker.AddIdentifiers(tokens);
             DefaultVisit(node);
             _tracker.RemoveIdentifiers(tokens);
-        }
-
-        public override void DefaultVisit(SyntaxNode node)
-        {
-            foreach (var child in node.ChildNodes())
-            {
-                Visit(child);
-            }
-        }
-
-        public override void VisitMethodDeclaration(MethodDeclarationSyntax node)
-        {
-            var parameterTokens = node.ParameterList.Parameters.Select(p => p.Identifier);
-            _tracker.AddIdentifiers(parameterTokens);
-            Visit(node.Body);
-            _tracker.RemoveIdentifiers(parameterTokens);
-        }
-
-        public override void VisitBlock(BlockSyntax node)
-        {
-            VisitBlockStatements(node, node.Statements);
         }
 
         public override void VisitForEachStatement(ForEachStatementSyntax node)
