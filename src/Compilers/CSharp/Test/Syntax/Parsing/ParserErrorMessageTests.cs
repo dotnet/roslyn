@@ -317,7 +317,6 @@ public struct st { }
         public void CS0231ERR_ParamsLast()
         {
             var test = @"
-using System;
 public class MyClass {
     public void MyMeth(params int[] values, int i) {}
     public static int Main() {
@@ -326,7 +325,10 @@ public class MyClass {
 }
 ";
 
-            ParseAndValidate(test, Diagnostic(ErrorCode.ERR_ParamsLast, "params int[] values"));
+            CreateCompilationWithMscorlib45(test).VerifyDiagnostics(
+                // (3,24): error CS0231: A params parameter must be the last parameter in a formal parameter list
+                //     public void MyMeth(params int[] values, int i) {}
+                Diagnostic(ErrorCode.ERR_ParamsLast, "params int[] values").WithLocation(3, 24));
         }
 
         [Fact]
@@ -341,10 +343,10 @@ class Foo
 }
 ";
 
-            ParseAndValidate(test,
-    // (4,19): error CS0257: An __arglist parameter must be the last parameter in a formal parameter list
-    //   public void Bar(__arglist,  int b)
-    Diagnostic(ErrorCode.ERR_VarargsLast, "__arglist"));
+            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+                // (4,19): error CS0257: An __arglist parameter must be the last parameter in a formal parameter list
+                //   public void Bar(__arglist,  int b)
+                Diagnostic(ErrorCode.ERR_VarargsLast, "__arglist"));
         }
 
         [WorkItem(536668, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536668")]
