@@ -1133,8 +1133,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     Return Accessibility.Public
 
-                Case SyntaxKind.StructureBlock, SyntaxKind.InterfaceBlock
-                    ' Everything in a struct/interface is public
+                Case SyntaxKind.StructureBlock, SyntaxKind.InterfaceBlock, SyntaxKind.ModuleBlock
+                    ' Everything in a struct/interface/module is public
                     Return Accessibility.Public
             End Select
 
