@@ -274,59 +274,113 @@ public class C
                 int entryPoint = new PEHeaders(stream).CorHeader.EntryPointTokenOrRelativeVirtualAddress;
                 Assert.Equal(expectZero, entryPoint == 0);
             }
-
-            void VerifyMethods(MemoryStream stream, string[] expectedMethods)
-            {
-                stream.Position = 0;
-                var metadataRef = AssemblyMetadata.CreateFromImage(stream.ToArray()).GetReference();
-
-                var compWithMetadata = CreateCompilation("", references: new[] { MscorlibRef, metadataRef },
-                    options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
-
-                AssertEx.Equal(
-                    expectedMethods,
-                    ((NamedTypeSymbol)compWithMetadata.SourceModule.GetReferencedAssemblySymbols().Last()
-                        .GlobalNamespace.GetMember("C")).GetMembers().Select(m => m.ToTestDisplayString()));
-            }
         }
 
         [Fact]
-        public void EmitRefAssembly_PrivateSetter()
+        public void EmitRefAssembly_PrivatePropertySetter()
         {
             CSharpCompilation comp = CreateCompilationWithMscorlib(@"
 public class C
 {
-    public int P { get; private set; }
+    public int PrivateSetter { get; private set; }
 }
 ");
 
             using (var output = new MemoryStream())
             using (var metadataOutput = new MemoryStream())
             {
-                // Previously, this would crash when trying to get the entry point for the ref assembly
-                // (but the Main method is not emitted in the ref assembly...)
                 EmitResult emitResult = comp.Emit(output, metadataPEStream: metadataOutput,
                     options: new EmitOptions(includePrivateMembers: false));
                 Assert.True(emitResult.Success);
                 emitResult.Diagnostics.Verify();
 
-                VerifyMethods(output, new[] { "void C.Main()", "C..ctor()" });
-                VerifyMethods(metadataOutput, new[] { "C..ctor()" });
+                VerifyMethods(output, new[] { "System.Int32 C.<PrivateSetter>k__BackingField", "System.Int32 C.PrivateSetter.get", "void C.PrivateSetter.set",
+                    "C..ctor()", "System.Int32 C.PrivateSetter { get; private set; }" });
+                VerifyMethods(metadataOutput, new[] { "System.Int32 C.PrivateSetter.get", "C..ctor()", "System.Int32 C.PrivateSetter { get; }" });
             }
+        }
 
-            void VerifyMethods(MemoryStream stream, string[] expectedMethods)
+        [Fact]
+        public void EmitRefAssembly_PrivatePropertyGetter()
+        {
+            CSharpCompilation comp = CreateCompilationWithMscorlib(@"
+public class C
+{
+    public int PrivateGetter { private get; set; }
+}
+");
+
+            using (var output = new MemoryStream())
+            using (var metadataOutput = new MemoryStream())
             {
-                stream.Position = 0;
-                var metadataRef = AssemblyMetadata.CreateFromImage(stream.ToArray()).GetReference();
+                EmitResult emitResult = comp.Emit(output, metadataPEStream: metadataOutput,
+                    options: new EmitOptions(includePrivateMembers: false));
+                Assert.True(emitResult.Success);
+                emitResult.Diagnostics.Verify();
 
-                var compWithMetadata = CreateCompilation("", references: new[] { MscorlibRef, metadataRef },
-                    options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
-
-                AssertEx.Equal(
-                    expectedMethods,
-                    ((NamedTypeSymbol)compWithMetadata.SourceModule.GetReferencedAssemblySymbols().Last()
-                        .GlobalNamespace.GetMember("C")).GetMembers().Select(m => m.ToTestDisplayString()));
+                VerifyMethods(output, new[] { "System.Int32 C.<PrivateGetter>k__BackingField", "System.Int32 C.PrivateGetter.get", "void C.PrivateGetter.set",
+                    "C..ctor()", "System.Int32 C.PrivateGetter { private get; set; }" });
+                VerifyMethods(metadataOutput, new[] { "void C.PrivateGetter.set", "C..ctor()", "System.Int32 C.PrivateGetter { set; }" });
             }
+        }
+
+        [Fact]
+        public void EmitRefAssembly_PrivateIndexerGetter()
+        {
+            CSharpCompilation comp = CreateCompilationWithMscorlib(@"
+public class C
+{
+    public int this[int i] { private get { return 0; } set { } }
+}
+");
+
+            using (var output = new MemoryStream())
+            using (var metadataOutput = new MemoryStream())
+            {
+                EmitResult emitResult = comp.Emit(output, metadataPEStream: metadataOutput,
+                    options: new EmitOptions(includePrivateMembers: false));
+                Assert.True(emitResult.Success);
+                emitResult.Diagnostics.Verify();
+
+                VerifyMethods(output, new[] { "System.Int32 C.this[System.Int32 i].get", "void C.this[System.Int32 i].set",
+                    "C..ctor()", "System.Int32 C.this[System.Int32 i] { private get; set; }" });
+                VerifyMethods(metadataOutput, new[] { "void C.this[System.Int32 i].set", "C..ctor()",
+                    "System.Int32 C.this[System.Int32 i] { set; }" });
+            }
+        }
+
+        [Fact]
+        public void EmitRefAssembly_PrivateAccessorOnEvent()
+        {
+            CSharpCompilation comp = CreateCompilationWithMscorlib(@"
+public class C
+{
+    public event System.Action PrivateAdder { private add { } remove { } }
+    public event System.Action PrivateRemover { add { } private remove { } }
+}
+");
+            comp.VerifyDiagnostics(
+                // (4,47): error CS1609: Modifiers cannot be placed on event accessor declarations
+                //     public event System.Action PrivateAdder { private add { } remove { } }
+                Diagnostic(ErrorCode.ERR_NoModifiersOnAccessor, "private").WithLocation(4, 47),
+                // (5,57): error CS1609: Modifiers cannot be placed on event accessor declarations
+                //     public event System.Action PrivateRemover { add { } private remove { } }
+                Diagnostic(ErrorCode.ERR_NoModifiersOnAccessor, "private").WithLocation(5, 57)
+                );
+        }
+
+        private static void VerifyMethods(MemoryStream stream, string[] expectedMethods)
+        {
+            stream.Position = 0;
+            var metadataRef = AssemblyMetadata.CreateFromImage(stream.ToArray()).GetReference();
+
+            var compWithMetadata = CreateCompilation("", references: new[] { MscorlibRef, metadataRef },
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+
+            AssertEx.Equal(
+                expectedMethods,
+                ((NamedTypeSymbol)compWithMetadata.SourceModule.GetReferencedAssemblySymbols().Last()
+                    .GlobalNamespace.GetMember("C")).GetMembers().Select(m => m.ToTestDisplayString()));
         }
 
         [Fact]

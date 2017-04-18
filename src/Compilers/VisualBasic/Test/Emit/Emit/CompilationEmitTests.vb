@@ -298,6 +298,74 @@ End Class
         End Sub
 
         <Fact>
+        Private Sub EmitRefAssembly_PrivatePropertyGetter()
+            Dim source As String = "
+Public Class C
+    Property P As Integer
+        Private Get
+            Return 0
+        End Get
+        Set
+        End Set
+    End Property
+End Class"
+
+            Dim comp = CreateCompilationWithMscorlib(source, options:=TestOptions.DebugDll.WithDeterministic(True))
+
+            Using output As New MemoryStream()
+                Using metadataOutput As New MemoryStream()
+                    Dim emitResult = comp.Emit(output, metadataPEStream:=metadataOutput,
+                                               options:=EmitOptions.Default.WithIncludePrivateMembers(False))
+                    Assert.True(emitResult.Success)
+                    emitResult.Diagnostics.Verify()
+
+                    VerifyMethod(output, {"Sub C..ctor()", "Function C.get_P() As System.Int32", "Sub C.set_P(Value As System.Int32)", "Property C.P As System.Int32"})
+                    VerifyMethod(metadataOutput, {"Sub C..ctor()", "Sub C.set_P(Value As System.Int32)", "WriteOnly Property C.P As System.Int32"})
+                End Using
+            End Using
+        End Sub
+
+        <Fact>
+        Private Sub EmitRefAssembly_PrivatePropertySetter()
+            Dim source As String = "
+Public Class C
+    Property P As Integer
+        Get
+            Return 0
+        End Get
+        Private Set
+        End Set
+    End Property
+End Class"
+
+            Dim comp = CreateCompilationWithMscorlib(source, options:=TestOptions.DebugDll.WithDeterministic(True))
+
+            Using output As New MemoryStream()
+                Using metadataOutput As New MemoryStream()
+                    Dim emitResult = comp.Emit(output, metadataPEStream:=metadataOutput,
+                                               options:=EmitOptions.Default.WithIncludePrivateMembers(False))
+                    Assert.True(emitResult.Success)
+                    emitResult.Diagnostics.Verify()
+
+                    VerifyMethod(output, {"Sub C..ctor()", "Function C.get_P() As System.Int32", "Sub C.set_P(Value As System.Int32)", "Property C.P As System.Int32"})
+                    VerifyMethod(metadataOutput, {"Sub C..ctor()", "Function C.get_P() As System.Int32", "ReadOnly Property C.P As System.Int32"})
+                End Using
+            End Using
+        End Sub
+
+        Private Shared Sub VerifyMethod(stream As MemoryStream, expectedMethods As String())
+            stream.Position = 0
+            Dim metadataRef = AssemblyMetadata.CreateFromImage(stream.ToArray()).GetReference()
+
+            Dim compWithMetadata = CreateCompilation("", references:={MscorlibRef, metadataRef},
+                                                     options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+
+            AssertEx.Equal(expectedMethods,
+                           DirectCast(compWithMetadata.SourceModule.GetReferencedAssemblySymbols().Last().GlobalNamespace.GetMember("C"), NamedTypeSymbol).
+                               GetMembers().Select(Function(m) m.ToTestDisplayString()))
+        End Sub
+
+        <Fact>
         Public Sub RefAssembly_HasReferenceAssemblyAttribute()
             Dim emitRefAssembly = EmitOptions.Default.WithEmitMetadataOnly(True).WithIncludePrivateMembers(False)
 

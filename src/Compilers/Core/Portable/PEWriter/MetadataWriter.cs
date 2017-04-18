@@ -2579,7 +2579,7 @@ namespace Microsoft.Cci
             foreach (IPropertyDefinition propertyDef in this.GetPropertyDefs())
             {
                 var association = GetPropertyDefIndex(propertyDef);
-                foreach (IMethodReference accessorMethod in propertyDef.Accessors)
+                foreach (IMethodReference accessorMethod in propertyDef.GetAccessors(Context))
                 {
                     MethodSemanticsAttributes semantics;
                     if (accessorMethod == propertyDef.Setter)

@@ -14,32 +14,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         #region IPropertyDefinition Members
 
-        IEnumerable<Cci.IMethodReference> Cci.IPropertyDefinition.Accessors
+        IEnumerable<Cci.IMethodReference> Cci.IPropertyDefinition.GetAccessors(EmitContext context)
         {
-            get
+            CheckDefinitionInvariant();
+
+            Cci.IMethodReference getMethod = this.GetMethod;
+            if (getMethod != null && Cci.Extensions.ShouldInclude(getMethod.GetResolvedMethod(context), context))
             {
-                CheckDefinitionInvariant();
+                yield return getMethod;
+            }
 
-                var getMethod = this.GetMethod;
-                if ((object)getMethod != null)
-                {
-                    yield return getMethod;
-                }
+            Cci.IMethodReference setMethod = this.SetMethod;
+            if (setMethod != null && Cci.Extensions.ShouldInclude(setMethod.GetResolvedMethod(context), context))
+            {
+                yield return setMethod;
+            }
 
-                var setMethod = this.SetMethod;
-                if ((object)setMethod != null)
+            SourcePropertySymbol sourceProperty = this as SourcePropertySymbol;
+            if ((object)sourceProperty != null)
+            {
+                SynthesizedSealedPropertyAccessor synthesizedAccessor = sourceProperty.SynthesizedSealedAccessorOpt;
+                if ((object)synthesizedAccessor != null)
                 {
-                    yield return setMethod;
-                }
-
-                SourcePropertySymbol sourceProperty = this as SourcePropertySymbol;
-                if ((object)sourceProperty != null)
-                {
-                    SynthesizedSealedPropertyAccessor synthesizedAccessor = sourceProperty.SynthesizedSealedAccessorOpt;
-                    if ((object)synthesizedAccessor != null)
-                    {
-                        yield return synthesizedAccessor;
-                    }
+                    yield return synthesizedAccessor;
                 }
             }
         }
