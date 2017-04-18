@@ -55,13 +55,11 @@ static class Program {
             var sourceCompilation = CreateCompilationWithMscorlib(source,  options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
             sourceCompilation.VerifyEmitDiagnostics(
                 // (12,12): warning CS0436: The type 'Task<T>' in '' conflicts with the imported type 'Task<TResult>' in 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'. Using the type defined in ''.
-                //     static Task<int> Main() {
+                //     Task<int>
                 Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Task<int>").WithArguments("", "System.Threading.Tasks.Task<T>", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "System.Threading.Tasks.Task<TResult>").WithLocation(12, 12),
                 // (12,5): error CS0656: Missing compiler required member 'void.GetResult'
-                //     static Task<int> Main() {
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"static Task<int> Main() {
-        return null;
-    }").WithArguments("void", "GetResult").WithLocation(12, 5)
+                //     Task<int>
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"Task<int>").WithArguments("void", "GetResult").WithLocation(12, 12)
 );
         }
         [Fact]
@@ -89,9 +87,7 @@ static class Program {
                 Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Task").WithArguments("", "System.Threading.Tasks.Task", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "System.Threading.Tasks.Task").WithLocation(12, 12),
                 // (12,5): error CS0656: Missing compiler required member 'void.GetResult'
                 //     static Task Main() {
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"static Task Main() {
-        return null;
-    }").WithArguments("void", "GetResult").WithLocation(12, 5));
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"Task").WithArguments("void", "GetResult").WithLocation(12, 12));
         }
 
         [Fact]
@@ -114,12 +110,10 @@ static class Program {
             sourceCompilation.VerifyEmitDiagnostics(
                 // (10,12): warning CS0436: The type 'Task' in '' conflicts with the imported type 'Task' in 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'. Using the type defined in ''.
                 //     static Task Main() {
-                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Task").WithArguments("", "System.Threading.Tasks.Task", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "System.Threading.Tasks.Task").WithLocation(10, 12),
-                // (10,5): error CS0656: Missing compiler required member 'Task.GetAwaiter'
+                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Task").WithArguments("", "System.Threading.Tasks.Task", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "System.Threading.Tasks.Task"),
+                // (10,12): error CS0656: Missing compiler required member 'Task.GetAwaiter'
                 //     static Task Main() {
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"static Task Main() {
-        return null;
-    }").WithArguments("System.Threading.Tasks.Task", "GetAwaiter").WithLocation(10, 5));
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "Task").WithArguments("System.Threading.Tasks.Task", "GetAwaiter").WithLocation(10, 12));
         }
 
         [Fact]
@@ -151,20 +145,16 @@ static class Program {
             var sourceCompilation = CreateCompilation(source, new[] { corCompilation.ToMetadataReference(), taskCompilation.ToMetadataReference() },  options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
             sourceCompilation.VerifyEmitDiagnostics(
                 // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
-                Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion),
+                Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1),
                 // (6,17): error CS0518: Predefined type 'System.Int32' is not defined or imported
                 //     static Task<int> Main() {
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "int").WithArguments("System.Int32").WithLocation(6, 17),
-                // (6,5): error CS0518: Predefined type 'System.Int32' is not defined or imported
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "int").WithArguments("System.Int32"),
+                // (6,12): error CS0518: Predefined type 'System.Int32' is not defined or imported
                 //     static Task<int> Main() {
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, @"static Task<int> Main() {
-        return null;
-    }").WithArguments("System.Int32").WithLocation(6, 5),
-                // (6,5): error CS0656: Missing compiler required member 'Task<int>.GetAwaiter'
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "Task<int>").WithArguments("System.Int32").WithLocation(6, 12),
+                // (6,12): error CS0656: Missing compiler required member 'Task<int>.GetAwaiter'
                 //     static Task<int> Main() {
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"static Task<int> Main() {
-        return null;
-    }").WithArguments("System.Threading.Tasks.Task<int>", "GetAwaiter").WithLocation(6, 5));
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "Task<int>").WithArguments("System.Threading.Tasks.Task<int>", "GetAwaiter").WithLocation(6, 12));
         }
 
         [Fact]
@@ -196,18 +186,13 @@ static class Program {
             var sourceCompilation = CreateCompilation(source, new[] { corCompilation.ToMetadataReference(), taskCompilation.ToMetadataReference() },  options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
             sourceCompilation.VerifyEmitDiagnostics(
                 // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
-                Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1),
-                // (6,5): error CS0518: Predefined type 'System.Void' is not defined or imported
+                Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion),
+                // (6,12): error CS0518: Predefined type 'System.Void' is not defined or imported
                 //     static Task Main() {
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, @"static Task Main() {
-        return null;
-    }").WithArguments("System.Void").WithLocation(6, 5),
-                // (6,5): error CS0656: Missing compiler required member 'Task.GetAwaiter'
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "Task").WithArguments("System.Void").WithLocation(6, 12),
+                // (6,12): error CS0656: Missing compiler required member 'Task.GetAwaiter'
                 //     static Task Main() {
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"static Task Main() {
-        return null;
-    }").WithArguments("System.Threading.Tasks.Task", "GetAwaiter").WithLocation(6, 5));
-            //var verifier = CompileAndVerify(c, expectedOutput: "hello async main", expectedReturnCode: 10);
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "Task").WithArguments("System.Threading.Tasks.Task", "GetAwaiter").WithLocation(6, 12));
         }
 
         [Fact]
@@ -244,7 +229,6 @@ class Program {
     }
 }";
             var c = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
-            //var verifier = CompileAndVerify(c, expectedOutput: "hello async main", expectedReturnCode: 0);
             var verifier = CompileAndVerify(c, expectedReturnCode: 0);
         }
 

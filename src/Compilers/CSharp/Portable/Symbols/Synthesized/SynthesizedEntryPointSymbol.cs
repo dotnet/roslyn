@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -353,8 +354,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             private static TypeSymbol TranslateReturnType(CSharpCompilation compilation, TypeSymbol returnType, DiagnosticBag diagnosticBag, MethodSymbol userMain)
             {
                 var specialType = returnType.IsGenericTaskType(compilation) ? SpecialType.System_Int32 : SpecialType.System_Void;
-                var syntax = userMain.DeclaringSyntaxReferences.SingleOrDefault()?.GetSyntax() ?? DummySyntax() ;
+                var syntax = ExtractReturnTypeSyntax(userMain.DeclaringSyntaxReferences);
                 return Binder.GetSpecialType(compilation, specialType, syntax, diagnosticBag);
+            }
+
+            private static SyntaxNode ExtractReturnTypeSyntax(IEnumerable<SyntaxReference> userMainDeclaringReferences) {
+                var methodSyntax = userMainDeclaringReferences
+                    .Select(r => r.GetSyntax() as MethodDeclarationSyntax)
+                    .Where(s => (object)s != null).FirstOrDefault();
+                return methodSyntax?.ReturnType;
             }
 
             internal AsyncForwardEntryPoint(CSharpCompilation compilation, DiagnosticBag diagnosticBag, NamedTypeSymbol containingType, MethodSymbol userMain) :
@@ -367,12 +375,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 _userMain = userMain;
                 _parameters = SynthesizedParameterSymbol.DeriveParameters(userMain, this);
 
-                var userMainLocation = userMain.DeclaringSyntaxReferences.SingleOrDefault()?.GetLocation();
-
-                _getAwaiterMethod = GetRequiredMethod(_userMain.ReturnType, WellKnownMemberNames.GetAwaiter, diagnosticBag, userMainLocation);
+                var userMainReturnTypeSyntax = ExtractReturnTypeSyntax(userMain.DeclaringSyntaxReferences);
+                _getAwaiterMethod = GetRequiredMethod(_userMain.ReturnType, WellKnownMemberNames.GetAwaiter, diagnosticBag, userMainReturnTypeSyntax.Location);
                 if ((object)_getAwaiterMethod != null)
                 {
-                    _getResultMethod = GetRequiredMethod(_getAwaiterMethod.ReturnType, WellKnownMemberNames.GetResult, diagnosticBag, userMainLocation);
+                    _getResultMethod = GetRequiredMethod(_getAwaiterMethod.ReturnType, WellKnownMemberNames.GetResult, diagnosticBag, userMainReturnTypeSyntax.Location);
                     if ((object)_getResultMethod != null && _getResultMethod.ReturnType != ReturnType)
                     {
                         // Prototype: This needs a diagnostic
