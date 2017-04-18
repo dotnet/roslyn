@@ -372,8 +372,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 if (bestFilterResult != null)
                 {
                     // Only hard select this result if it's a prefix match
-                    var prefixLength = bestFilterResult.Value.CompletionItem.FilterText.GetCaseInsensitivePrefixLength(model.FilterText);
-                    var hardSelect =  prefixLength == bestFilterResult.Value.CompletionItem.FilterText.Length;
+                    var hardSelect = bestFilterResult.Value.CompletionItem.FilterText.StartsWith(model.FilterText, StringComparison.CurrentCultureIgnoreCase);
                     return model.WithSelectedItem(bestFilterResult.Value.CompletionItem)
                                 .WithHardSelection(hardSelect)
                                 .WithIsUnique(matchCount == 1);
