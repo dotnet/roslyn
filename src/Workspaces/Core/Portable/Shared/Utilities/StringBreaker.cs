@@ -109,23 +109,23 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             _spans?.Free();
         }
 
-        public int Count
+        public int GetCount()
         {
-            get
+            if (_spans != null)
             {
-                if (_spans != null)
-                {
-                    return _spans.Count;
-                }
-
-                int i;
-                for (i = 0; i < MaxShortSpans; i++)
-                {
-                    if (_encodedSpans[i] == 0) break;
-                }
-
-                return i;
+                return _spans.Count;
             }
+
+            int i;
+            for (i = 0; i < MaxShortSpans; i++)
+            {
+                if (_encodedSpans[i] == 0)
+                {
+                    break;
+                }
+            }
+
+            return i;
         }
 
         public TextSpan this[int index]
