@@ -5,7 +5,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
-    internal class SearchQuery
+    internal class SearchQuery : IDisposable
     {
         /// <summary>The name being searched for.  Is null in the case of custom predicate searching..  But 
         /// can be used for faster index based searching when it is available.</summary> 
@@ -17,6 +17,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         ///<summary>The predicate to fall back on if faster index searching is not possible.</summary>
         private readonly Func<string, bool> _predicate;
+
+        private readonly WordSimilarityChecker _wordSimilarityChecker;
 
         private SearchQuery(string name, SearchKind kind)
         {
@@ -36,8 +38,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     // its 'AreSimilar' method. That way we only create the WordSimilarityChecker
                     // once and it can cache all the information it needs while it does the AreSimilar
                     // check against all the possible candidates.
-                    var editDistance = WordSimilarityChecker.Allocate(name, substringsAreSimilar: false);
-                    _predicate = editDistance.AreSimilar;
+                    _wordSimilarityChecker = WordSimilarityChecker.Allocate(name, substringsAreSimilar: false);
+                    _predicate = _wordSimilarityChecker.AreSimilar;
                     break;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(kind);
@@ -48,6 +50,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             Kind = SearchKind.Custom;
             _predicate = predicate ?? throw new ArgumentNullException(nameof(predicate));
+        }
+
+        public void Dispose()
+        {
+            _wordSimilarityChecker?.Free();
         }
 
         public static SearchQuery Create(string name, SearchKind kind)

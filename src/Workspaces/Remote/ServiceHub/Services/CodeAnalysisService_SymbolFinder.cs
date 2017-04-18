@@ -50,10 +50,13 @@ namespace Microsoft.CodeAnalysis.Remote
             var solution = await GetSolutionAsync().ConfigureAwait(false);
             var project = solution.GetProject(projectId);
 
-            var result = await DeclarationFinder.FindAllDeclarationsWithNormalQueryInCurrentProcessAsync(
-                project, SearchQuery.Create(name, searchKind), criteria, this.CancellationToken).ConfigureAwait(false);
+            using (var query = SearchQuery.Create(name, searchKind))
+            {
+                var result = await DeclarationFinder.FindAllDeclarationsWithNormalQueryInCurrentProcessAsync(
+                    project, query, criteria, this.CancellationToken).ConfigureAwait(false);
 
-            return result.Select(SerializableSymbolAndProjectId.Dehydrate).ToArray();
+                return result.Select(SerializableSymbolAndProjectId.Dehydrate).ToArray();
+            }
         }
 
         public async Task<SerializableSymbolAndProjectId[]> FindSolutionSourceDeclarationsWithNormalQueryAsync(
