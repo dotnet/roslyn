@@ -298,6 +298,73 @@ End Class
         End Sub
 
         <Fact>
+        Private Sub EmitRefAssembly_PrivatePropertyGetter()
+            Dim source As String = "
+Public Class C
+    Property P As Integer
+        Private Get
+            Return 0
+        End Get
+        Set
+        End Set
+    End Property
+End Class"
+
+            Dim comp = CreateCompilationWithMscorlib(source, options:=TestOptions.DebugDll.WithDeterministic(True))
+
+            Using output As New MemoryStream()
+                Using metadataOutput As New MemoryStream()
+                    Dim emitResult = comp.Emit(output, metadataPEStream:=metadataOutput,
+                                               options:=EmitOptions.Default.WithIncludePrivateMembers(False))
+                    Assert.True(emitResult.Success)
+                    emitResult.Diagnostics.Verify()
+
+                    VerifyMethod(output, {"Sub C..ctor()", "Function C.get_P() As System.Int32", "Sub C.set_P(Value As System.Int32)", "Property C.P As System.Int32"})
+                    VerifyMethod(metadataOutput, {"Sub C..ctor()", "Sub C.set_P(Value As System.Int32)", "WriteOnly Property C.P As System.Int32"})
+                End Using
+            End Using
+        End Sub
+
+        <Fact>
+        Private Sub EmitRefAssembly_PrivatePropertySetter()
+            Dim source As String = "
+Public Class C
+    Property P As Integer
+        Get
+            Return 0
+        End Get
+        Private Set
+        End Set
+    End Property
+End Class"
+
+            Dim comp = CreateCompilationWithMscorlib(source, options:=TestOptions.DebugDll.WithDeterministic(True))
+
+            Using output As New MemoryStream()
+                Using metadataOutput As New MemoryStream()
+                    Dim emitResult = comp.Emit(output, metadataPEStream:=metadataOutput,
+                                               options:=EmitOptions.Default.WithIncludePrivateMembers(False))
+                    Assert.True(emitResult.Success)
+                    emitResult.Diagnostics.Verify()
+
+                    VerifyMethod(output, {"Sub C..ctor()", "Function C.get_P() As System.Int32", "Sub C.set_P(Value As System.Int32)", "Property C.P As System.Int32"})
+                    VerifyMethod(metadataOutput, {"Sub C..ctor()", "Function C.get_P() As System.Int32", "ReadOnly Property C.P As System.Int32"})
+                End Using
+            End Using
+        End Sub
+
+        Private Shared Sub VerifyMethod(stream As MemoryStream, expectedMethods As String())
+            stream.Position = 0
+            Dim metadataRef = AssemblyMetadata.CreateFromImage(stream.ToArray()).GetReference()
+
+            Dim compWithMetadata = CreateCompilation("", references:={MscorlibRef, metadataRef},
+                                                     options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+
+            AssertEx.Equal(expectedMethods,
+                           compWithMetadata.GetMember(Of NamedTypeSymbol)("C").GetMembers().Select(Function(m) m.ToTestDisplayString()))
+        End Sub
+
+        <Fact>
         Public Sub RefAssembly_HasReferenceAssemblyAttribute()
             Dim emitRefAssembly = EmitOptions.Default.WithEmitMetadataOnly(True).WithIncludePrivateMembers(False)
 
@@ -734,20 +801,22 @@ End Class"
             Dim compWithReal = CreateCompilation("", references:={MscorlibRef, realImage},
                             options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
             Dim realAssembly = compWithReal.SourceModule.GetReferencedAssemblySymbols().Last()
-            AssertEx.SetEqual(realAssembly.GlobalNamespace.GetMembers().Select(Function(m) m.ToDisplayString()),
-                {"<Module>", "PublicClass"})
+            AssertEx.SetEqual(
+                {"<Module>", "PublicClass"},
+                realAssembly.GlobalNamespace.GetMembers().Select(Function(m) m.ToDisplayString()))
 
             AssertEx.SetEqual(
-                DirectCast(realAssembly.GlobalNamespace.GetMember("PublicClass"), NamedTypeSymbol).GetMembers().
-                                Select(Function(m) m.ToTestDisplayString()),
-                            {"Sub PublicClass.PublicMethod()", "Sub PublicClass.PrivateMethod()",
-                                "Sub PublicClass.InternalMethod()", "Sub PublicClass.ProtectedMethod()",
-                                "Sub PublicClass.AbstractMethod()", "Sub PublicClass..ctor()"})
+                {"Sub PublicClass.PublicMethod()", "Sub PublicClass.PrivateMethod()",
+                    "Sub PublicClass.InternalMethod()", "Sub PublicClass.ProtectedMethod()",
+                    "Sub PublicClass.AbstractMethod()", "Sub PublicClass..ctor()"},
+                compWithReal.GetMember(Of NamedTypeSymbol)("PublicClass").GetMembers().
+                    Select(Function(m) m.ToTestDisplayString()))
 
-            AssertEx.SetEqual(realAssembly.GetAttributes().Select(Function(a) a.AttributeClass.ToTestDisplayString()),
+            AssertEx.SetEqual(
                 {"System.Runtime.CompilerServices.CompilationRelaxationsAttribute",
                     "System.Runtime.CompilerServices.RuntimeCompatibilityAttribute",
-                    "System.Diagnostics.DebuggableAttribute"})
+                    "System.Diagnostics.DebuggableAttribute"},
+                realAssembly.GetAttributes().Select(Function(a) a.AttributeClass.ToTestDisplayString()))
 
             ' verify metadata (types, members, attributes) of the metadata-only assembly
             Dim emitMetadataOnly = EmitOptions.Default.WithEmitMetadataOnly(True)
@@ -757,20 +826,22 @@ End Class"
             Dim compWithMetadata = CreateCompilation("", references:={MscorlibRef, metadataImage},
                             options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
             Dim metadataAssembly As AssemblySymbol = compWithMetadata.SourceModule.GetReferencedAssemblySymbols().Last()
-            AssertEx.SetEqual(metadataAssembly.GlobalNamespace.GetMembers().Select(Function(m) m.ToDisplayString()),
-                {"<Module>", "PublicClass"})
+            AssertEx.SetEqual(
+                {"<Module>", "PublicClass"},
+                metadataAssembly.GlobalNamespace.GetMembers().Select(Function(m) m.ToDisplayString()))
 
             AssertEx.SetEqual(
-                DirectCast(metadataAssembly.GlobalNamespace.GetMember("PublicClass"), NamedTypeSymbol).GetMembers().
-                                Select(Function(m) m.ToTestDisplayString()),
-                            {"Sub PublicClass.PublicMethod()", "Sub PublicClass.PrivateMethod()",
-                                "Sub PublicClass.InternalMethod()", "Sub PublicClass.ProtectedMethod()",
-                                "Sub PublicClass.AbstractMethod()", "Sub PublicClass..ctor()"})
+                {"Sub PublicClass.PublicMethod()", "Sub PublicClass.PrivateMethod()",
+                    "Sub PublicClass.InternalMethod()", "Sub PublicClass.ProtectedMethod()",
+                    "Sub PublicClass.AbstractMethod()", "Sub PublicClass..ctor()"},
+                compWithMetadata.GetMember(Of NamedTypeSymbol)("PublicClass").GetMembers().
+                    Select(Function(m) m.ToTestDisplayString()))
 
-            AssertEx.SetEqual(metadataAssembly.GetAttributes().Select(Function(a) a.AttributeClass.ToTestDisplayString()),
+            AssertEx.SetEqual(
                 {"System.Runtime.CompilerServices.CompilationRelaxationsAttribute",
                     "System.Runtime.CompilerServices.RuntimeCompatibilityAttribute",
-                    "System.Diagnostics.DebuggableAttribute"})
+                    "System.Diagnostics.DebuggableAttribute"},
+                metadataAssembly.GetAttributes().Select(Function(a) a.AttributeClass.ToTestDisplayString()))
 
             MetadataReaderUtils.AssertEmptyOrThrowNull(comp.EmitToArray(emitMetadataOnly))
 
@@ -782,20 +853,22 @@ End Class"
             Dim compWithRef = CreateCompilation("", references:={MscorlibRef, refImage},
                             options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
             Dim refAssembly As AssemblySymbol = compWithRef.SourceModule.GetReferencedAssemblySymbols().Last()
-            AssertEx.SetEqual(refAssembly.GlobalNamespace.GetMembers().Select(Function(m) m.ToDisplayString()),
-                {"<Module>", "PublicClass"})
+            AssertEx.SetEqual(
+                {"<Module>", "PublicClass"},
+                refAssembly.GlobalNamespace.GetMembers().Select(Function(m) m.ToDisplayString()))
 
             AssertEx.SetEqual(
-                DirectCast(refAssembly.GlobalNamespace.GetMember("PublicClass"), NamedTypeSymbol).GetMembers().
-                                Select(Function(m) m.ToTestDisplayString()),
-                            {"Sub PublicClass..ctor()", "Sub PublicClass.PublicMethod()",
-                                "Sub PublicClass.ProtectedMethod()", "Sub PublicClass.AbstractMethod()"})
+                {"Sub PublicClass..ctor()", "Sub PublicClass.PublicMethod()",
+                    "Sub PublicClass.ProtectedMethod()", "Sub PublicClass.AbstractMethod()"},
+                compWithRef.GetMember(Of NamedTypeSymbol)("PublicClass").GetMembers().
+                    Select(Function(m) m.ToTestDisplayString()))
 
-            AssertEx.SetEqual(refAssembly.GetAttributes().Select(Function(a) a.AttributeClass.ToTestDisplayString()),
+            AssertEx.SetEqual(
                 {"System.Runtime.CompilerServices.CompilationRelaxationsAttribute",
                     "System.Runtime.CompilerServices.RuntimeCompatibilityAttribute",
                     "System.Diagnostics.DebuggableAttribute",
-                    "System.Runtime.CompilerServices.ReferenceAssemblyAttribute"})
+                    "System.Runtime.CompilerServices.ReferenceAssemblyAttribute"},
+                refAssembly.GetAttributes().Select(Function(a) a.AttributeClass.ToTestDisplayString()))
 
             MetadataReaderUtils.AssertEmptyOrThrowNull(comp.EmitToArray(emitRefOnly))
         End Sub
