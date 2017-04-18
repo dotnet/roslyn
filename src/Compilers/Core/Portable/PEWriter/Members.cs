@@ -984,6 +984,11 @@ namespace Microsoft.Cci
         /// </summary>
         public static bool ShouldInclude(this ITypeDefinitionMember member, EmitContext context)
         {
+            if (context.IncludePrivateMembers)
+            {
+                return true;
+            }
+
             var method = member as IMethodDefinition;
             if (method != null && method.IsVirtual)
             {
