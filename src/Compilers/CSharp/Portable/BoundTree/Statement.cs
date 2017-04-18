@@ -626,7 +626,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static readonly ConditionalWeakTable<BoundLocalDeclaration, object> s_variablesMappings =
             new ConditionalWeakTable<BoundLocalDeclaration, object>();
 
-        ImmutableArray<IVariableDeclaration> IVariableDeclarationStatement.Variables
+        ImmutableArray<IVariableDeclaration> IVariableDeclarationStatement.Declarations
         {
             get
             {
@@ -653,7 +653,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static readonly ConditionalWeakTable<BoundMultipleLocalDeclarations, object> s_variablesMappings =
             new ConditionalWeakTable<BoundMultipleLocalDeclarations, object>();
 
-        ImmutableArray<IVariableDeclaration> IVariableDeclarationStatement.Variables
+        ImmutableArray<IVariableDeclaration> IVariableDeclarationStatement.Declarations
         {
             get
             {

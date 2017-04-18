@@ -277,7 +277,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public override void VisitVariableDeclarationStatement(IVariableDeclarationStatement operation)
         {
-            var variablesCountStr = $"{operation.Variables.Length} variables";
+            var variablesCountStr = $"{operation.Declarations.Length} declarations";
             LogString($"{nameof(IVariableDeclarationStatement)} ({variablesCountStr})");
             LogCommonPropertiesAndNewLine(operation);
 
@@ -286,10 +286,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public override void VisitVariableDeclaration(IVariableDeclaration operation)
         {
-            LogSymbol(operation.Variable, header: nameof(IVariableDeclaration));
+            var symbolsCountStr = $"{operation.Variables.Length} variables";
+            LogString($"{nameof(IVariableDeclaration)} ({symbolsCountStr})");
             LogCommonPropertiesAndNewLine(operation);
 
-            Visit(operation.InitialValue, "Initializer");
+            LogLocals(operation.Variables, header: "Variables");
+
+            Visit(operation.Initializer, "Initializer");
         }
 
         public override void VisitSwitchStatement(ISwitchStatement operation)
@@ -338,7 +341,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Visit(operation.Body, "Body");
         }
 
-        private void LogLocals(IEnumerable<ILocalSymbol> locals)
+        private void LogLocals(IEnumerable<ILocalSymbol> locals, string header = "Locals")
         {
             if (!locals.Any())
             {
@@ -347,7 +350,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             Indent();
 
-            LogString("Locals: ");
+            LogString($"{header}: ");
             Indent();
 
             int localIndex = 1;
@@ -536,12 +539,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         private void VisitArguments(IHasArgumentsExpression operation)
         {
-            VisitArray(operation.ArgumentsInParameterOrder, "Arguments", logElementCount: true);
+            VisitArray(operation.ArgumentsInEvaluationOrder, "Arguments", logElementCount: true);
         }
 
         public override void VisitArgument(IArgument operation)
         {
             LogString($"{nameof(IArgument)} (");
+            LogString($"{nameof(ArgumentKind)}.{operation.ArgumentKind}, ");
             LogSymbol(operation.Parameter, header: "Matching Parameter", logDisplayString: false);
             LogString(")");
             LogCommonPropertiesAndNewLine(operation);
@@ -706,6 +710,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogString($": {operation.Property.ToTestDisplayString()}");
 
             VisitMemberReferenceExpressionCommon(operation);
+            VisitArguments(operation);
         }
 
         public override void VisitUnaryOperatorExpression(IUnaryOperatorExpression operation)
