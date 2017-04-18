@@ -820,16 +820,19 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                  (operationContext) =>
                  {
                      var declarationStatement = (IVariableDeclarationStatement)operationContext.Operation;
-                     if (declarationStatement.Variables.Length > 3)
+                     if (declarationStatement.GetDeclaredVariables().Count() > 3)
                      {
                          Report(operationContext, declarationStatement.Syntax, TooManyLocalVarDeclarationsDescriptor);
                      }
 
-                     foreach (var decl in declarationStatement.Variables)
+                     foreach (var decl in declarationStatement.Declarations)
                      {
-                         if (decl.InitialValue != null && !decl.InitialValue.IsInvalid)
+                         if (decl.Initializer != null && !decl.Initializer.IsInvalid)
                          {
-                             Report(operationContext, decl.Syntax, LocalVarInitializedDeclarationDescriptor);
+                             foreach (var symbol in decl.Variables)
+                             {
+                                Report(operationContext, symbol.DeclaringSyntaxReferences.Single().GetSyntax(), LocalVarInitializedDeclarationDescriptor);
+                             }
                          }
                      }
                  },
@@ -1698,7 +1701,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true);
 
-        // since we don't expect to see the first diagnostic, we created this one to make sure 
+        // since we don't expect to see the first diagnostic, we created this one to make sure
         // the test didn't pass because the analyzer crashed.
         public static readonly DiagnosticDescriptor ParamsArrayOperationDescriptor = new DiagnosticDescriptor(
             "ParamsArray",

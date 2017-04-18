@@ -82,12 +82,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                                     (operationContext) =>
                                     {
                                         IVariableDeclarationStatement declaration = (IVariableDeclarationStatement)operationContext.Operation;
-                                        foreach (IVariableDeclaration variable in declaration.Variables)
+                                        foreach (IVariableDeclaration variable in declaration.Declarations)
                                         {
-                                            ILocalSymbol local = variable.Variable;
-                                            if (variable.InitialValue != null)
+                                            foreach (ILocalSymbol local in variable.Variables)
                                             {
-                                                AssignTo(local, local.Type, localsSourceTypes, variable.InitialValue);
+                                                if (variable.Initializer != null)
+                                                {
+                                                    AssignTo(local, local.Type, localsSourceTypes, variable.Initializer);
+                                                }
                                             }
                                         }
                                     },

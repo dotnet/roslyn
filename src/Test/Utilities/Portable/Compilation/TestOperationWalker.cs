@@ -59,7 +59,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public override void VisitVariableDeclaration(IVariableDeclaration operation)
         {
-            var variable = operation.Variable;
+            foreach (var symbol in operation.Variables)
+            {
+                // empty loop body, just want to make sure it won't crash.
+            }
 
             base.VisitVariableDeclaration(operation);
         }

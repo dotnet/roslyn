@@ -47,6 +47,20 @@ namespace Microsoft.CodeAnalysis.Semantics
             }
         }
 
+        public static ImmutableArray<ILocalSymbol> GetDeclaredVariables(this IVariableDeclarationStatement declarationStatement)
+        {
+            var arrayBuilder = ArrayBuilder<ILocalSymbol>.GetInstance();
+            foreach (IVariableDeclaration group in declarationStatement.Declarations)
+            {
+                foreach (ILocalSymbol symbol in group.Variables)
+                {
+                    arrayBuilder.Add(symbol);
+                }
+            }
+
+            return arrayBuilder.ToImmutableAndFree();
+        }
+
         private sealed class OperationCollector : OperationWalker
         {
             private readonly List<IOperation> _list;
