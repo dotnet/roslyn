@@ -5005,8 +5005,8 @@ tryAgain:
                     ExpressionSyntax value;
                     if (this.CurrentToken.Kind == SyntaxKind.CommaToken || this.CurrentToken.Kind == SyntaxKind.CloseBraceToken)
                     {
-                        value = this.CreateMissingIdentifierName(); //an identifier is a valid expression
-                        value = this.AddErrorToFirstToken(value, ErrorCode.ERR_ConstantExpected);
+                        //an identifier is a valid expression
+                        value = this.ParseIdentifierName(ErrorCode.ERR_ConstantExpected);
                     }
                     else
                     {
@@ -5093,7 +5093,7 @@ tryAgain:
                 !(this.IsInQuery && IsTokenQueryContextualKeyword(token));
         }
 
-        private IdentifierNameSyntax ParseIdentifierName()
+        private IdentifierNameSyntax ParseIdentifierName(ErrorCode code = ErrorCode.ERR_IdentifierExpected)
         {
             if (this.IsIncrementalAndFactoryContextMatches && this.CurrentNodeKind == SyntaxKind.IdentifierName)
             {
@@ -5103,11 +5103,11 @@ tryAgain:
                 }
             }
 
-            var tk = ParseIdentifierToken();
+            var tk = ParseIdentifierToken(code);
             return SyntaxFactory.IdentifierName(tk);
         }
 
-        private SyntaxToken ParseIdentifierToken()
+        private SyntaxToken ParseIdentifierToken(ErrorCode code = ErrorCode.ERR_IdentifierExpected)
         {
             var ctk = this.CurrentToken.Kind;
             if (ctk == SyntaxKind.IdentifierToken)
@@ -5137,7 +5137,7 @@ tryAgain:
             else
             {
                 var name = CreateMissingIdentifierToken();
-                name = this.AddError(name, ErrorCode.ERR_IdentifierExpected);
+                name = this.AddError(name, code);
                 return name;
             }
         }
@@ -8051,8 +8051,7 @@ tryAgain:
 
                         if (this.CurrentToken.Kind == SyntaxKind.ColonToken)
                         {
-                            expression = this.CreateMissingIdentifierName();
-                            expression = this.AddError(expression, ErrorCode.ERR_ConstantExpected);
+                            expression = ParseIdentifierName(ErrorCode.ERR_ConstantExpected);
                             colon = this.EatToken(SyntaxKind.ColonToken);
                             label = _syntaxFactory.CaseSwitchLabel(specifier, expression, colon);
                         }
@@ -9714,11 +9713,11 @@ tryAgain:
 
             if (isIndexer && (this.CurrentToken.Kind == SyntaxKind.CommaToken || this.CurrentToken.Kind == SyntaxKind.CloseBracketToken))
             {
-                expression = this.AddError(this.CreateMissingIdentifierName(), ErrorCode.ERR_ValueExpected);
+                expression = this.ParseIdentifierName(ErrorCode.ERR_ValueExpected);
             }
             else if (this.CurrentToken.Kind == SyntaxKind.CommaToken)
             {
-                expression = this.AddError(this.CreateMissingIdentifierName(), ErrorCode.ERR_MissingArgument);
+                expression = this.ParseIdentifierName(ErrorCode.ERR_MissingArgument);
             }
             else
             {
