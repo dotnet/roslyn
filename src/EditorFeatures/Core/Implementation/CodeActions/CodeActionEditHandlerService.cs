@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
                 return;
             }
 
-#if DEBUG
+#if VALIDATE_NO_CODE_ACTION_ERRORS
             var documentErrorLookup = new HashSet<DocumentId>();
             foreach (var project in workspace.CurrentSolution.Projects)
             {

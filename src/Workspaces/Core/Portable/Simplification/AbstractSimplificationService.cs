@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Simplification
 
                 var root = await semanticModel.SyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
 
-#if DEBUG
+#if VALIDATE_NO_CODE_ACTION_ERRORS
                 bool originalDocHasErrors = await document.HasAnyErrorsAsync(cancellationToken).ConfigureAwait(false);
 #endif
 
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Simplification
 
                 if (reduced != document)
                 {
-#if DEBUG
+#if VALIDATE_NO_CODE_ACTION_ERRORS
                     if (!originalDocHasErrors)
                     {
                         await reduced.VerifyNoErrorsAsync("Error introduced by Simplification Service", cancellationToken).ConfigureAwait(false);

@@ -2,14 +2,12 @@
 
 using System.Collections.Generic;
 using System.Composition;
-using System.IO;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.Remote.Storage
 {
-    [ExportWorkspaceService(typeof(IPersistentStorageLocationService), layer: WorkspaceKind.RemoteWorkspace), Shared]
-    internal class RemotePersistentStorageLocationService : IPersistentStorageLocationService
+    internal abstract class AbstractPersistentStorageLocationService : IPersistentStorageLocationService
     {
         private static readonly object _gate = new object();
         private static readonly Dictionary<SolutionId, string> _idToStorageLocation = new Dictionary<SolutionId, string>();
@@ -48,5 +46,15 @@ namespace Microsoft.CodeAnalysis.Remote.Storage
                 }
             }
         }
+    }
+
+    [ExportWorkspaceService(typeof(IPersistentStorageLocationService),  layer: WorkspaceKind.RemoteWorkspace), Shared]
+    internal class RemoteWorkspacePersistentStorageLocationService : AbstractPersistentStorageLocationService
+    {
+    }
+
+    [ExportWorkspaceService(typeof(IPersistentStorageLocationService), layer: TemporaryWorkspace.WorkspaceKind_TemporaryWorkspace), Shared]
+    internal class TemporaryWorkspacePersistentStorageLocationService : AbstractPersistentStorageLocationService
+    {
     }
 }

@@ -61,11 +61,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                     {
                         _progress.AddItems(_solution.Projects.Count());
 
-                        // Search each project with an independent threadpool task.
-                        var searchTasks = _solution.Projects.Select(
-                            p => Task.Run(() => SearchAsync(p))).ToArray();
+                        var tasks = _solution.Projects.Select(
+                            p => Task.Run(() => SearchAsync(p), _cancellationToken)).ToArray();
 
-                        await Task.WhenAll(searchTasks).ConfigureAwait(false);
+                        await Task.WhenAll(tasks).ConfigureAwait(false);
                     }
                 }
                 catch (OperationCanceledException)
@@ -91,6 +90,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
 
             private async Task SearchAsyncWorker(Project project)
             {
+                _cancellationToken.ThrowIfCancellationRequested();
+
                 if (_searchCurrentDocument && _currentDocument?.Project != project)
                 {
                     return;

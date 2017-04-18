@@ -464,7 +464,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
                 Document previousDocument = null;
                 var spans = ImmutableArray<TextSpan>.Empty;
 
-#if DEBUG
+#if VALIDATE_NO_CODE_ACTION_ERRORS
                 bool originalDocHasErrors = await annotatedDocument.HasAnyErrorsAsync(cancellationToken).ConfigureAwait(false);
 #endif
 
@@ -495,7 +495,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
                         currentDocument = await codeCleaner.CleanupAsync(currentDocument, spans, cancellationToken).ConfigureAwait(false);
                     }
 
-#if DEBUG
+#if VALIDATE_NO_CODE_ACTION_ERRORS
                     if (!originalDocHasErrors && currentDocument != annotatedDocument)
                     {
                         await currentDocument.VerifyNoErrorsAsync("Pretty-listing introduced errors in error-free code", cancellationToken).ConfigureAwait(false);

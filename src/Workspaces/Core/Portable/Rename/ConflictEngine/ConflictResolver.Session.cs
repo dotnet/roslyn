@@ -226,7 +226,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                             relatedLocation.Type = RelatedLocationType.UnresolvedConflict;
                         }
                     }
-#if DEBUG
+#if VALIDATE_NO_CODE_ACTION_ERRORS
                     await DebugVerifyNoErrorsAsync(conflictResolution, _documentsIdsToBeCheckedForConflict).ConfigureAwait(false);
 #endif
                     return conflictResolution;
@@ -237,7 +237,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 }
             }
 
-#if DEBUG
+#if VALIDATE_NO_CODE_ACTION_ERRORS
             private async Task DebugVerifyNoErrorsAsync(ConflictResolution conflictResolution, IEnumerable<DocumentId> documents)
             {
                 var documentIdErrorStateLookup = new Dictionary<DocumentId, bool>();

@@ -21,7 +21,10 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
 
         public AsynchronousOperationListener()
         {
+            _trackActiveTokens = false;
+#if false
             TrackActiveTokens = Debugger.IsAttached;
+#endif
         }
 
         public IAsyncToken BeginAsyncOperation(string name, object tag = null, [CallerFilePath] string filePath = "", [CallerLineNumber] int lineNumber = 0)
@@ -110,8 +113,10 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
         public bool TrackActiveTokens
         {
             get { return _trackActiveTokens; }
+
             set
             {
+#if false
                 lock (_gate)
                 {
                     if (_trackActiveTokens == value)
@@ -122,6 +127,7 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
                     _trackActiveTokens = value;
                     _diagnosticTokenList = _trackActiveTokens ? new List<DiagnosticAsyncToken>() : null;
                 }
+#endif
             }
         }
 

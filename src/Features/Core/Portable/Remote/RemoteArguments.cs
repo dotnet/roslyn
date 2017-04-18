@@ -41,7 +41,6 @@ namespace Microsoft.CodeAnalysis.Remote
         public string Name;
         public TextSpan[] NameMatchSpans;
         public string SecondarySort;
-        public string Summary;
 
         public SerializableNavigableItem NavigableItem;
 
@@ -56,7 +55,6 @@ namespace Microsoft.CodeAnalysis.Remote
                 Name = result.Name,
                 NameMatchSpans = result.NameMatchSpans.ToArray(),
                 SecondarySort = result.SecondarySort,
-                Summary = result.Summary,
                 NavigableItem = SerializableNavigableItem.Dehydrate(result.NavigableItem)
             };
         }
@@ -66,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Remote
             return new NavigateToSearchResult(
                 AdditionalInformation, Kind, MatchKind, IsCaseSensitive,
                 Name, NameMatchSpans.ToImmutableArray(),
-                SecondarySort, Summary, NavigableItem.Rehydrate(solution));
+                SecondarySort, NavigableItem.Rehydrate(solution));
         }
 
         private class NavigateToSearchResult : INavigateToSearchResult
@@ -85,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Remote
             public NavigateToSearchResult(
                 string additionalInformation, string kind, NavigateToMatchKind matchKind,
                 bool isCaseSensitive, string name, ImmutableArray<TextSpan> nameMatchSpans,
-                string secondarySort, string summary, INavigableItem navigableItem)
+                string secondarySort, INavigableItem navigableItem)
             {
                 AdditionalInformation = additionalInformation;
                 Kind = kind;
@@ -94,7 +92,6 @@ namespace Microsoft.CodeAnalysis.Remote
                 Name = name;
                 NameMatchSpans = nameMatchSpans;
                 SecondarySort = secondarySort;
-                Summary = summary;
                 NavigableItem = navigableItem;
             }
         }
@@ -102,18 +99,10 @@ namespace Microsoft.CodeAnalysis.Remote
 
     internal class SerializableNavigableItem
     {
-        public Glyph Glyph;
-
-        public SerializableTaggedText[] DisplayTaggedParts;
-
-        public bool DisplayFileLocation;
-
-        public bool IsImplicitlyDeclared;
-
         public DocumentId Document;
         public TextSpan SourceSpan;
-
-        SerializableNavigableItem[] ChildItems;
+        public Glyph Glyph;
+        public SerializableTaggedText[] DisplayTaggedParts;
 
         public static SerializableNavigableItem Dehydrate(INavigableItem item)
         {
@@ -121,56 +110,19 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 Glyph = item.Glyph,
                 DisplayTaggedParts = SerializableTaggedText.Dehydrate(item.DisplayTaggedParts),
-                DisplayFileLocation = item.DisplayFileLocation,
-                IsImplicitlyDeclared = item.IsImplicitlyDeclared,
                 Document = item.Document.Id,
-                SourceSpan = item.SourceSpan,
-                ChildItems = SerializableNavigableItem.Dehydrate(item.ChildItems)
+                SourceSpan = item.SourceSpan
             };
         }
 
         private static SerializableNavigableItem[] Dehydrate(ImmutableArray<INavigableItem> childItems)
-        {
-            return childItems.Select(Dehydrate).ToArray();
-        }
+            => childItems.Select(Dehydrate).ToArray();
 
         public INavigableItem Rehydrate(Solution solution)
         {
-            var childItems = ChildItems == null
-                ? ImmutableArray<INavigableItem>.Empty
-                : ChildItems.Select(c => c.Rehydrate(solution)).ToImmutableArray();
             return new NavigableItem(
-                Glyph, DisplayTaggedParts.Select(p => p.Rehydrate()).ToImmutableArray(),
-                DisplayFileLocation, IsImplicitlyDeclared,
-                solution.GetDocument(Document),
-                SourceSpan,
-                childItems);
-        }
-
-        private class NavigableItem : INavigableItem
-        {
-            public Glyph Glyph { get; }
-            public ImmutableArray<TaggedText> DisplayTaggedParts { get; }
-            public bool DisplayFileLocation { get; }
-            public bool IsImplicitlyDeclared { get; }
-
-            public Document Document { get; }
-            public TextSpan SourceSpan { get; }
-
-            public ImmutableArray<INavigableItem> ChildItems { get; }
-
-            public NavigableItem(
-                Glyph glyph, ImmutableArray<TaggedText> displayTaggedParts,
-                bool displayFileLocation, bool isImplicitlyDeclared, Document document, TextSpan sourceSpan, ImmutableArray<INavigableItem> childItems)
-            {
-                Glyph = glyph;
-                DisplayTaggedParts = displayTaggedParts;
-                DisplayFileLocation = displayFileLocation;
-                IsImplicitlyDeclared = isImplicitlyDeclared;
-                Document = document;
-                SourceSpan = sourceSpan;
-                ChildItems = childItems;
-            }
+                solution.GetDocument(Document), SourceSpan,
+                Glyph, DisplayTaggedParts.Select(p => p.Rehydrate()).ToImmutableArray());
         }
     }
 
