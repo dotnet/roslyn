@@ -3118,7 +3118,7 @@ parse_member_name:;
                 semicolon);
         }
 
-        private MemberDeclarationSyntax ParseIndexerDeclaration(
+        private IndexerDeclarationSyntax ParseIndexerDeclaration(
             SyntaxListBuilder<AttributeListSyntax> attributes,
             SyntaxListBuilder modifiers,
             TypeSyntax type,
@@ -3136,11 +3136,6 @@ parse_member_name:;
             }
 
             var parameterList = this.ParseBracketedParameterList();
-            // TODO: ReportExtensionMethods(parameters, retval);
-            if (parameterList.Parameters.Count == 0)
-            {
-                parameterList = this.AddErrorToLastToken(parameterList, ErrorCode.ERR_IndexerNeedsParam);
-            }
 
             AccessorListSyntax accessorList = null;
             ArrowExpressionClauseSyntax expressionBody = null;
@@ -3816,11 +3811,6 @@ parse_member_name:;
                 if (this.CurrentToken.Kind != closeKind)
                 {
 tryAgain:
-                    int mustBeLastIndex = -1;
-                    bool mustBeLastHadParams = false;
-                    bool hasParams = false;
-                    bool hasArgList = false;
-
                     if (this.IsPossibleParameter() || this.CurrentToken.Kind == SyntaxKind.CommaToken)
                     {
                         // first parameter
@@ -3828,14 +3818,6 @@ tryAgain:
                         modifiers.Clear();
                         var parameter = this.ParseParameter(attributes, modifiers);
                         nodes.Add(parameter);
-                        hasParams = modifiers.Any((int)SyntaxKind.ParamsKeyword);
-                        hasArgList = parameter.Identifier.Kind == SyntaxKind.ArgListKeyword;
-                        bool mustBeLast = hasParams || hasArgList;
-                        if (mustBeLast && mustBeLastIndex == -1)
-                        {
-                            mustBeLastIndex = nodes.Count - 1;
-                            mustBeLastHadParams = hasParams;
-                        }
 
                         // additional parameters
                         while (true)
@@ -3857,15 +3839,6 @@ tryAgain:
                                 }
 
                                 nodes.Add(parameter);
-                                hasParams = modifiers.Any((int)SyntaxKind.ParamsKeyword);
-                                hasArgList = parameter.Identifier.Kind == SyntaxKind.ArgListKeyword;
-                                mustBeLast = hasParams || hasArgList;
-                                if (mustBeLast && mustBeLastIndex == -1)
-                                {
-                                    mustBeLastIndex = nodes.Count - 1;
-                                    mustBeLastHadParams = hasParams;
-                                }
-
                                 continue;
                             }
                             else if (this.SkipBadParameterListTokens(ref open, nodes, SyntaxKind.CommaToken, closeKind) == PostSkipAction.Abort)
@@ -3877,11 +3850,6 @@ tryAgain:
                     else if (this.SkipBadParameterListTokens(ref open, nodes, SyntaxKind.IdentifierToken, closeKind) == PostSkipAction.Continue)
                     {
                         goto tryAgain;
-                    }
-
-                    if (mustBeLastIndex >= 0 && mustBeLastIndex < nodes.Count - 1)
-                    {
-                        nodes[mustBeLastIndex] = this.AddError(nodes[mustBeLastIndex], mustBeLastHadParams ? ErrorCode.ERR_ParamsLast : ErrorCode.ERR_VarargsLast);
                     }
                 }
 
@@ -5005,8 +4973,8 @@ tryAgain:
                     ExpressionSyntax value;
                     if (this.CurrentToken.Kind == SyntaxKind.CommaToken || this.CurrentToken.Kind == SyntaxKind.CloseBraceToken)
                     {
-                        value = this.CreateMissingIdentifierName(); //an identifier is a valid expression
-                        value = this.AddErrorToFirstToken(value, ErrorCode.ERR_ConstantExpected);
+                        //an identifier is a valid expression
+                        value = this.ParseIdentifierName(ErrorCode.ERR_ConstantExpected);
                     }
                     else
                     {
@@ -5093,7 +5061,7 @@ tryAgain:
                 !(this.IsInQuery && IsTokenQueryContextualKeyword(token));
         }
 
-        private IdentifierNameSyntax ParseIdentifierName()
+        private IdentifierNameSyntax ParseIdentifierName(ErrorCode code = ErrorCode.ERR_IdentifierExpected)
         {
             if (this.IsIncrementalAndFactoryContextMatches && this.CurrentNodeKind == SyntaxKind.IdentifierName)
             {
@@ -5103,11 +5071,11 @@ tryAgain:
                 }
             }
 
-            var tk = ParseIdentifierToken();
+            var tk = ParseIdentifierToken(code);
             return SyntaxFactory.IdentifierName(tk);
         }
 
-        private SyntaxToken ParseIdentifierToken()
+        private SyntaxToken ParseIdentifierToken(ErrorCode code = ErrorCode.ERR_IdentifierExpected)
         {
             var ctk = this.CurrentToken.Kind;
             if (ctk == SyntaxKind.IdentifierToken)
@@ -5137,7 +5105,7 @@ tryAgain:
             else
             {
                 var name = CreateMissingIdentifierToken();
-                name = this.AddError(name, ErrorCode.ERR_IdentifierExpected);
+                name = this.AddError(name, code);
                 return name;
             }
         }
@@ -8051,8 +8019,7 @@ tryAgain:
 
                         if (this.CurrentToken.Kind == SyntaxKind.ColonToken)
                         {
-                            expression = this.CreateMissingIdentifierName();
-                            expression = this.AddError(expression, ErrorCode.ERR_ConstantExpected);
+                            expression = ParseIdentifierName(ErrorCode.ERR_ConstantExpected);
                             colon = this.EatToken(SyntaxKind.ColonToken);
                             label = _syntaxFactory.CaseSwitchLabel(specifier, expression, colon);
                         }
@@ -9714,11 +9681,11 @@ tryAgain:
 
             if (isIndexer && (this.CurrentToken.Kind == SyntaxKind.CommaToken || this.CurrentToken.Kind == SyntaxKind.CloseBracketToken))
             {
-                expression = this.AddError(this.CreateMissingIdentifierName(), ErrorCode.ERR_ValueExpected);
+                expression = this.ParseIdentifierName(ErrorCode.ERR_ValueExpected);
             }
             else if (this.CurrentToken.Kind == SyntaxKind.CommaToken)
             {
-                expression = this.AddError(this.CreateMissingIdentifierName(), ErrorCode.ERR_MissingArgument);
+                expression = this.ParseIdentifierName(ErrorCode.ERR_MissingArgument);
             }
             else
             {
@@ -10373,47 +10340,12 @@ tryAgain:
 
         private AnonymousObjectMemberDeclaratorSyntax ParseAnonymousTypeMemberInitializer()
         {
-            bool isNamedAssignment = this.IsNamedAssignment();
-
-            NameEqualsSyntax nameEquals = null;
-            if (isNamedAssignment)
-            {
-                nameEquals = ParseNameEquals();
-            }
+            var nameEquals = this.IsNamedAssignment()
+                ? ParseNameEquals()
+                : null;
 
             var expression = this.ParseExpressionCore();
-            if (!isNamedAssignment && !IsAnonymousTypeMemberExpression(expression))
-            {
-                expression = this.AddError(expression, ErrorCode.ERR_InvalidAnonymousTypeMemberDeclarator);
-            }
-
             return _syntaxFactory.AnonymousObjectMemberDeclarator(nameEquals, expression);
-        }
-
-        private static bool IsAnonymousTypeMemberExpression(ExpressionSyntax expr)
-        {
-            while (true)
-            {
-                switch (expr.Kind)
-                {
-                    case SyntaxKind.QualifiedName:
-                        expr = ((QualifiedNameSyntax)expr).Right;
-                        continue;
-                    case SyntaxKind.ConditionalAccessExpression:
-                        expr = ((ConditionalAccessExpressionSyntax)expr).WhenNotNull;
-                        if (expr.Kind == SyntaxKind.MemberBindingExpression)
-                        {
-                            return true;
-                        }
-
-                        continue;
-                    case SyntaxKind.IdentifierName:
-                    case SyntaxKind.SimpleMemberAccessExpression:
-                        return true;
-                    default:
-                        return false;
-                }
-            }
         }
 
         private bool IsInitializerMember()
@@ -10482,18 +10414,12 @@ tryAgain:
                 if (argumentList == null && initializer == null)
                 {
                     argumentList = _syntaxFactory.ArgumentList(
-                        this.AddError(SyntaxFactory.MissingToken(SyntaxKind.OpenParenToken), ErrorCode.ERR_BadNewExpr),
+                        this.EatToken(SyntaxKind.OpenParenToken, ErrorCode.ERR_BadNewExpr),
                         default(SeparatedSyntaxList<ArgumentSyntax>),
                         SyntaxFactory.MissingToken(SyntaxKind.CloseParenToken));
                 }
 
-                var objectCreation = _syntaxFactory.ObjectCreationExpression(@new, type, argumentList, initializer);
-                if (type.Kind == SyntaxKind.TupleType)
-                {
-                    objectCreation = this.AddError(objectCreation, type, ErrorCode.ERR_NewWithTupleTypeSyntax);
-                }
-
-                return objectCreation;
+                return _syntaxFactory.ObjectCreationExpression(@new, type, argumentList, initializer);
             }
         }
 
