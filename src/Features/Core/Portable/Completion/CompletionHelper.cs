@@ -113,6 +113,7 @@ namespace Microsoft.CodeAnalysis.Completion
             {
                 patternMatcher = this.GetPatternMatcher(pattern, includeMatchSpans, EnUSCultureInfo);
                 match = patternMatcher.GetFirstMatch(completionItemText);
+
                 if (match != null)
                 {
                     return match;
