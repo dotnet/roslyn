@@ -14,13 +14,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private Iterator Function IPropertyDefinitionAccessors(context As EmitContext) As IEnumerable(Of IMethodReference) Implements IPropertyDefinition.GetAccessors
             CheckDefinitionInvariant()
 
-            Dim getter As IMethodReference = Me.GetMethod
-            If getter IsNot Nothing AndAlso getter.GetResolvedMethod(context).ShouldInclude(context) Then
+            Dim getter As MethodSymbol = Me.GetMethod
+            If getter IsNot Nothing AndAlso getter.ShouldInclude(context) Then
                 Yield getter
             End If
 
-            Dim setter As IMethodReference = Me.SetMethod
-            If setter IsNot Nothing AndAlso setter.GetResolvedMethod(context).ShouldInclude(context) Then
+            Dim setter As MethodSymbol = Me.SetMethod
+            If setter IsNot Nothing AndAlso setter.ShouldInclude(context) Then
                 Yield setter
             End If
         End Function
