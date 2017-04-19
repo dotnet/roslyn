@@ -226,33 +226,12 @@ namespace Microsoft.CodeAnalysis.PatternMatching
             }
         }
 
-        ///// <summary>
-        ///// Determines if a given candidate string matches under a multiple word query text, as you
-        ///// would find in features like Navigate To.
-        ///// </summary>
-        ///// <remarks>
-        ///// PERF: This is slightly faster and uses less memory than <see cref="GetMatches(string)"/>
-        ///// so, unless you need to know the full set of matches, use this version.
-        ///// </remarks>
-        ///// <param name="candidate">The word being tested.</param>
-        ///// <returns>If this was a match, the first element of the set of match types that occurred while matching the
-        ///// patterns. If it was not a match, it returns null.</returns>
-        //public PatternMatch? GetFirstMatch(string candidate)
-        //{
-        //    if (SkipMatch(candidate))
-        //    {
-        //        return null;
-        //    }
-
-        //    return GetFirstMatchWorker(candidate, fuzzyMatch: false) ??
-        //           GetFirstMatchWorker(candidate, fuzzyMatch: true);
-        //}
-
-        //private PatternMatch? GetFirstMatchWorker(string candidate, bool fuzzyMatch)
+        //private PatternMatch? GetFirstMatchWorker(
+        //    string candidate, bool includeMatchSpans, bool fuzzyMatch)
         //{
         //    return MatchPatternSegment(
-        //        candidate, _fullPatternSegment, wantAllMatches: false, 
-        //        allMatches: out _, fuzzyMatch: fuzzyMatch);
+        //        candidate, includeMatchSpans, _fullPatternSegment, 
+        //        wantAllMatches: false, allMatches: out _, fuzzyMatch: fuzzyMatch);
         //}
 
         private StringBreaks GetWordSpans(string word)

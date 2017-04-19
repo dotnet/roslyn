@@ -200,6 +200,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
         [InlineData("[|AbCd|]xxx[|Ef|]Cd[|Gh|]", "AbCdEfGh", PatternMatchKind.CamelCaseFromStart, CaseSensitive)]
 
         [InlineData("A[|BCD|]EFGH", "bcd", PatternMatchKind.Substring, CaseInsensitive)]
+
         [InlineData("Abcdefghij[|EfgHij|]", "efghij", PatternMatchKind.CamelCaseContiguous, CaseInsensitive)]
 
         [InlineData("[|F|]og[|B|]ar", "FB", PatternMatchKind.CamelCaseContiguousFromStart, CaseSensitive)]
@@ -236,10 +237,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 
         [InlineData("my[|_b|]utton", "_B", PatternMatchKind.CamelCaseContiguous, CaseInsensitive)]
         [InlineData("[|_|]my_[|b|]utton", "_B", PatternMatchKind.CamelCaseFromStart, CaseInsensitive)]
-        public void TestGetFirstMatch(
+        public void TestNonFuzzyMatch(
             string candidate, string pattern, int matchKindInt, bool isCaseSensitive, int? camelCaseWeight = null)
         {
-            var match = TestGetFirstMatch(candidate, pattern);
+            var match = TestNonFuzzyMatch(candidate, pattern);
             Assert.NotNull(match);
 
             var matchKind = (PatternMatchKind)matchKindInt;
@@ -259,9 +260,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
         [InlineData("_mybutton", "myB")]
         [InlineData("FogBarChangedEventArgs", "changedeventarrrgh")]
         [InlineData("runtime.native.system", "system.reflection")]
-        public void TestGetFirstMatch_NoMatch(string candidate, string pattern)
+        public void TestNonFuzzyMatch_NoMatch(string candidate, string pattern)
         {
-            var match = TestGetFirstMatch(candidate, pattern);
+            var match = TestNonFuzzyMatch(candidate, pattern);
             Assert.Null(match);
         }
 
@@ -460,7 +461,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 
             try
             {
-                var match = TestGetFirstMatch("[|ioo|]", "\u0130oo"); // u0130 = Capital I with dot
+                var match = TestNonFuzzyMatch("[|ioo|]", "\u0130oo"); // u0130 = Capital I with dot
 
                 Assert.Equal(PatternMatchKind.Exact, match.Value.Kind);
                 Assert.False(match.Value.IsCaseSensitive);
@@ -489,7 +490,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
         private static IList<string> BreakIntoWordParts(string identifier)
             => PartListToSubstrings(identifier, StringBreaker.BreakIntoWordParts(identifier));
 
-        private static PatternMatch? TestGetFirstMatch(string candidate, string pattern)
+        private static PatternMatch? TestNonFuzzyMatch(string candidate, string pattern)
         {
             MarkupTestFile.GetSpans(candidate, out candidate, out ImmutableArray<TextSpan> spans);
 
