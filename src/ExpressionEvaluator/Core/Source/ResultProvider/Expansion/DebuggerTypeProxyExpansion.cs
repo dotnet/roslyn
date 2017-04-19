@@ -117,7 +117,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 proxyValue,
                 ExpansionFlags.IncludeBaseMembers,
                 TypeHelpers.IsPublic,
-                resultProvider);
+                resultProvider,
+                isProxyType: true);
             if (proxyMembers != null)
             {
                 string proxyMemberFullNamePrefix = null;

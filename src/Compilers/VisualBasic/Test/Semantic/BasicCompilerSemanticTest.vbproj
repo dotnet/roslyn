@@ -96,6 +96,7 @@
     <Compile Include="Diagnostics\DiagnosticAnalyzerTests.vb" />
     <Compile Include="Diagnostics\DiagnosticTests.vb" />
     <Compile Include="Diagnostics\GetDiagnosticsTests.vb" />
+    <Compile Include="IOperation\IOperationTests_IArgument.vb" />
     <Compile Include="IOperation\IOperationTests_InvalidStatement.vb" />
     <Compile Include="IOperation\IOperationTests_InvalidExpression.vb" />
     <Compile Include="IOperation\IOperationTests_IBlockStatement_MethodBlocks.vb" />

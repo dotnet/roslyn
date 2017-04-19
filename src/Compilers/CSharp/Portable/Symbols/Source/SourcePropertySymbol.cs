@@ -766,11 +766,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return mods;
         }
 
-        private static ImmutableArray<ParameterSymbol> MakeParameters(Binder binder, SourcePropertySymbol owner, BaseParameterListSyntax parameterSyntaxOpt, DiagnosticBag diagnostics)
+        private static ImmutableArray<ParameterSymbol> MakeParameters(
+            Binder binder, SourcePropertySymbol owner, BaseParameterListSyntax parameterSyntaxOpt, DiagnosticBag diagnostics)
         {
             if (parameterSyntaxOpt == null)
             {
                 return ImmutableArray<ParameterSymbol>.Empty;
+            }
+
+            if (parameterSyntaxOpt.Parameters.Count < 1)
+            {
+                diagnostics.Add(ErrorCode.ERR_IndexerNeedsParam, parameterSyntaxOpt.GetLastToken().GetLocation());
             }
 
             SyntaxToken arglistToken;
