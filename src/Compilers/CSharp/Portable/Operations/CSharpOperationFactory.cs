@@ -10,7 +10,14 @@ namespace Microsoft.CodeAnalysis.Semantics
 {
     internal static partial class CSharpOperationFactory
     {
+        private static readonly ConditionalWeakTable<BoundNode, IOperation> s_cache = new ConditionalWeakTable<BoundNode, IOperation>();
+
         public static IOperation Create(BoundNode boundNode)
+        {
+            return s_cache.GetValue(boundNode, n => CreateInternal(n));
+        }
+
+        private static IOperation CreateInternal(BoundNode boundNode)
         {
             switch (boundNode)
             {
@@ -175,11 +182,12 @@ namespace Microsoft.CodeAnalysis.Semantics
                         (boundCall.Method.IsVirtual || boundCall.Method.IsAbstract || boundCall.Method.IsOverride) &&
                         !boundCall.ReceiverOpt.SuppressVirtualCalls;
             Lazy<ImmutableArray<IArgument>> argumentsInSourceOrder = new Lazy<ImmutableArray<IArgument>>(() => GetArgumentsInSourceOrder(boundCall));
+            Lazy<ImmutableArray<IArgument>> argumentsInParameterOrder = new Lazy<ImmutableArray<IArgument>>(() => DeriveArguments(boundCall.Arguments, boundCall.ArgumentNamesOpt, boundCall.ArgsToParamsOpt, boundCall.ArgumentRefKindsOpt, boundCall.Method.Parameters, boundCall.Syntax));
             bool isInvalid = boundCall.HasErrors;
             SyntaxNode syntax = boundCall.Syntax;
             ITypeSymbol type = boundCall.Type;
             Optional<object> constantValue = ConvertToOptional(boundCall.ConstantValue);
-            return new LazyInvocationExpression(targetMethod, instance, isVirtual, argumentsInSourceOrder, isInvalid, syntax, type, constantValue);
+            return new LazyInvocationExpression(targetMethod, instance, isVirtual, argumentsInSourceOrder, argumentsInParameterOrder, isInvalid, syntax, type, constantValue);
         }
         private static ILocalReferenceExpression CreateBoundLocalOperation(BoundLocal boundLocal)
         {
@@ -210,18 +218,19 @@ namespace Microsoft.CodeAnalysis.Semantics
             SyntaxNode syntax = boundPropertyAccess.Syntax;
             ITypeSymbol type = boundPropertyAccess.Type;
             Optional<object> constantValue = ConvertToOptional(boundPropertyAccess.ConstantValue);
-            return new LazyIndexedPropertyReferenceExpression(property, instance, member, isInvalid, syntax, type, constantValue);
+            return new LazyPropertyReferenceExpression(property, instance, member, isInvalid, syntax, type, constantValue);
         }
         private static IIndexedPropertyReferenceExpression CreateBoundIndexerAccessOperation(BoundIndexerAccess boundIndexerAccess)
         {
             IPropertySymbol property = boundIndexerAccess.Indexer;
             Lazy<IOperation> instance = new Lazy<IOperation>(() => (IOperation)Create(boundIndexerAccess.Indexer.IsStatic ? null : boundIndexerAccess.ReceiverOpt));
             ISymbol member = boundIndexerAccess.Indexer;
+            Lazy<ImmutableArray<IArgument>> argumentsInParameterOrder = new Lazy<ImmutableArray<IArgument>>(() => DeriveArguments(boundIndexerAccess.Arguments, boundIndexerAccess.ArgumentNamesOpt, boundIndexerAccess.ArgsToParamsOpt, boundIndexerAccess.ArgumentRefKindsOpt, boundIndexerAccess.Indexer.Parameters, boundIndexerAccess.Syntax));
             bool isInvalid = boundIndexerAccess.HasErrors;
             SyntaxNode syntax = boundIndexerAccess.Syntax;
             ITypeSymbol type = boundIndexerAccess.Type;
             Optional<object> constantValue = ConvertToOptional(boundIndexerAccess.ConstantValue);
-            return new LazyIndexedPropertyReferenceExpression(property, instance, member, isInvalid, syntax, type, constantValue);
+            return new LazyIndexedPropertyReferenceExpression(property, instance, member, argumentsInParameterOrder, isInvalid, syntax, type, constantValue);
         }
         private static IEventReferenceExpression CreateBoundEventAccessOperation(BoundEventAccess boundEventAccess)
         {
@@ -282,11 +291,12 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             IMethodSymbol constructor = boundObjectCreationExpression.Constructor;
             Lazy<ImmutableArray<ISymbolInitializer>> memberInitializers = new Lazy<ImmutableArray<ISymbolInitializer>>(() => GetObjectCreationMemberInitializers(boundObjectCreationExpression));
+            Lazy<ImmutableArray<IArgument>> argumentsInParameterOrder = new Lazy<ImmutableArray<IArgument>>(() => DeriveArguments(boundObjectCreationExpression.Arguments, boundObjectCreationExpression.ArgumentNamesOpt, boundObjectCreationExpression.ArgsToParamsOpt, boundObjectCreationExpression.ArgumentRefKindsOpt, boundObjectCreationExpression.Constructor.Parameters, boundObjectCreationExpression.Syntax));
             bool isInvalid = boundObjectCreationExpression.HasErrors;
             SyntaxNode syntax = boundObjectCreationExpression.Syntax;
             ITypeSymbol type = boundObjectCreationExpression.Type;
             Optional<object> constantValue = ConvertToOptional(boundObjectCreationExpression.ConstantValue);
-            return new LazyObjectCreationExpression(constructor, memberInitializers, isInvalid, syntax, type, constantValue);
+            return new LazyObjectCreationExpression(constructor, memberInitializers, argumentsInParameterOrder, isInvalid, syntax, type, constantValue);
         }
         private static IUnboundLambdaExpression CreateUnboundLambdaOperation(UnboundLambda unboundLambda)
         {
@@ -929,7 +939,7 @@ namespace Microsoft.CodeAnalysis.Semantics
                     call.Arguments,
                     call.ArgumentNamesOpt,
                     call.ArgumentRefKindsOpt,
-                    call.Method.Parameters.As<IParameterSymbol>(),
+                    call.Method.Parameters,
                     call.Syntax);
 
                 sourceOrderArguments.Add(argument);
@@ -950,7 +960,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             ImmutableArray<BoundExpression> boundArguments,
             ImmutableArray<string> argumentNamesOpt,
             ImmutableArray<RefKind> argumentRefKindsOpt,
-            ImmutableArray<IParameterSymbol> parameters,
+            ImmutableArray<CSharp.Symbols.ParameterSymbol> parameters,
             SyntaxNode invocationSyntax)
         {
             if ((uint)argumentIndex >= (uint)boundArguments.Length)
@@ -1302,6 +1312,64 @@ namespace Microsoft.CodeAnalysis.Semantics
                 multipleDeclarations =>
                     multipleDeclarations.LocalDeclarations.SelectAsArray(declaration =>
                         OperationFactory.CreateVariableDeclaration(declaration.LocalSymbol, Create(declaration.InitializerOpt), declaration.Syntax)));
+        }
+
+        internal static ImmutableArray<IArgument> DeriveArguments(
+            ImmutableArray<BoundExpression> boundArguments,
+            ImmutableArray<string> argumentNamesOpt,
+            ImmutableArray<int> argumentsToParametersOpt,
+            ImmutableArray<RefKind> argumentRefKindsOpt,
+            ImmutableArray<CSharp.Symbols.ParameterSymbol> parameters,
+            SyntaxNode invocationSyntax)
+        {
+            ArrayBuilder<IArgument> arguments = ArrayBuilder<IArgument>.GetInstance(boundArguments.Length);
+            for (int parameterIndex = 0; parameterIndex < parameters.Length; parameterIndex++)
+            {
+                int argumentIndex = -1;
+                if (argumentsToParametersOpt.IsDefault)
+                {
+                    argumentIndex = parameterIndex;
+                }
+                else
+                {
+                    argumentIndex = argumentsToParametersOpt.IndexOf(parameterIndex);
+                }
+
+                if ((uint)argumentIndex >= (uint)boundArguments.Length)
+                {
+                    // No argument has been supplied for the parameter at `parameterIndex`:
+                    // 1. `argumentIndex == -1' when the arguments are specified out of parameter order, and no argument is provided for parameter corresponding to `parameters[parameterIndex]`.
+                    // 2. `argumentIndex >= boundArguments.Length` when the arguments are specified in parameter order, and no argument is provided at `parameterIndex`.
+
+                    var parameter = parameters[parameterIndex];
+                    if (parameter.HasExplicitDefaultValue)
+                    {
+                        // The parameter is optional with a default value.
+                        arguments.Add(new Argument(
+                            ArgumentKind.DefaultValue,
+                            parameter,
+                            OperationFactory.CreateLiteralExpression(parameter.ExplicitDefaultConstantValue, parameter.Type, invocationSyntax),
+                            inConversion: null,
+                            outConversion: null,
+                            isInvalid: parameter.ExplicitDefaultConstantValue.IsBad,
+                            syntax: invocationSyntax,
+                            type: null,
+                            constantValue: default(Optional<object>)));
+                    }
+                    else
+                    {
+                        // If the invocation is semantically valid, the parameter will be a params array and an empty array will be provided.
+                        // If the argument is otherwise omitted for a parameter with no default value, the invocation is not valid and a null argument will be provided.
+                        arguments.Add(DeriveArgument(parameterIndex, boundArguments.Length, boundArguments, argumentNamesOpt, argumentRefKindsOpt, parameters, invocationSyntax));
+                    }
+                }
+                else
+                {
+                    arguments.Add(DeriveArgument(parameterIndex, argumentIndex, boundArguments, argumentNamesOpt, argumentRefKindsOpt, parameters, invocationSyntax));
+                }
+            }
+
+            return arguments.ToImmutableAndFree();
         }
     }
 }
