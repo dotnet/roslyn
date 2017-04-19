@@ -105,7 +105,14 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
 
         public void AssertIsForeground()
         {
-            Contract.ThrowIfFalse(IsForeground());
+            var whenCreatedThread = _foregroundThreadDataWhenCreated.Thread;
+            var currentThread = Thread.CurrentThread;
+            Contract.ThrowIfFalse(currentThread == whenCreatedThread, 
+                "When created kind       : " + _foregroundThreadDataWhenCreated.Kind + "\r\n" +
+                "When created thread id  : " + whenCreatedThread?.ManagedThreadId + "\r\n" +
+                "When created thread name: " + whenCreatedThread?.Name + "\r\n" +
+                "Current thread id       : " + currentThread?.ManagedThreadId + "\r\n" + 
+                "Current thread name     : " + currentThread?.Name);
         }
 
         public void AssertIsBackground()
