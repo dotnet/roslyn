@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// and params/ParamArray arguments have been collected into arrays. Default values are supplied for
         /// optional arguments missing in source.
         /// </summary>
-        public ImmutableArray<IArgument> ArgumentsInParameterOrder { get; }
+        public ImmutableArray<IArgument> ArgumentsInEvaluationOrder { get; }
         /// <summary>
         /// Find the argument supplied for a given parameter of the target method.
         /// </summary>
