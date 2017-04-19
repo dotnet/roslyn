@@ -393,13 +393,6 @@ namespace Microsoft.CodeAnalysis.PatternMatching
             return null;
         }
 
-        private ImmutableArray<TextSpan> GetMatchedSpans(List<TextSpan> matchedSpans)
-        {
-            return _includeMatchedSpans
-                ? new NormalizedTextSpanCollection(matchedSpans).ToImmutableArray()
-                : ImmutableArray<TextSpan>.Empty;
-        }
-
         private TextSpan? GetMatchedSpan(int start, int length)
             => _includeMatchedSpans ? new TextSpan(start, length) : (TextSpan?)null;
 
@@ -577,7 +570,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                 {
                     return new PatternMatch(
                         GetCamelCaseKind(camelCaseWeight.Value), punctuationStripped, isCaseSensitive: false,
-                        matchedSpans: GetMatchedSpans(matchedSpans));
+                        matchedSpans: matchedSpans);
                 }
             }
             else
@@ -592,7 +585,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                     {
                         return new PatternMatch(
                             GetCamelCaseKind(camelCaseWeight.Value), punctuationStripped, isCaseSensitive: true,
-                            matchedSpans: GetMatchedSpans(matchedSpans));
+                            matchedSpans: matchedSpans);
                     }
 
                     camelCaseWeight = TryUpperCaseCamelCaseMatch(candidate, candidateParts, patternChunk, CompareOptions.IgnoreCase, out matchedSpans);
@@ -600,7 +593,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                     {
                         return new PatternMatch(
                             GetCamelCaseKind(camelCaseWeight.Value), punctuationStripped, isCaseSensitive: false,
-                            matchedSpans: GetMatchedSpans(matchedSpans));
+                            matchedSpans: matchedSpans);
                     }
                 }
             }
@@ -625,7 +618,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
             string candidate,
             StringBreaks candidateParts,
             TextChunk patternChunk,
-            out List<TextSpan> matchedSpans)
+            out ImmutableArray<TextSpan> matchedSpans)
         {
             var matcher = new AllLowerCamelCaseMatcher(_includeMatchedSpans, candidate, candidateParts, patternChunk);
             return matcher.TryMatch(out matchedSpans);
@@ -636,9 +629,8 @@ namespace Microsoft.CodeAnalysis.PatternMatching
             StringBreaks candidateParts,
             TextChunk patternChunk,
             CompareOptions compareOption,
-            out List<TextSpan> matchedSpans)
+            out ImmutableArray<TextSpan> matchedSpans)
         {
-            matchedSpans = null;
             var patternChunkCharacterSpans = patternChunk.CharacterSpans;
 
             // Note: we may have more pattern parts than candidate parts.  This is because multiple
@@ -650,6 +642,8 @@ namespace Microsoft.CodeAnalysis.PatternMatching
             int currentChunkSpan = 0;
             int? firstMatch = null;
             bool? contiguous = null;
+
+            var result = ArrayBuilder<TextSpan>.GetInstance();
 
             while (true)
             {
@@ -674,12 +668,17 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                         weight += CamelCaseMatchesFromStartBonus;
                     }
 
+                    matchedSpans = _includeMatchedSpans
+                        ? new NormalizedTextSpanCollection(result).ToImmutableArray()
+                        : ImmutableArray<TextSpan>.Empty;
+                    result.Free();
                     return weight;
                 }
                 else if (currentCandidate == candidateParts.Count)
                 {
                     // No match, since we still have more of the pattern to hit
-                    matchedSpans = null;
+                    matchedSpans = ImmutableArray<TextSpan>.Empty;
+                    result.Free();
                     return null;
                 }
 
@@ -713,8 +712,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
 
                     if (_includeMatchedSpans)
                     {
-                        matchedSpans = matchedSpans ?? new List<TextSpan>();
-                        matchedSpans.Add(new TextSpan(candidatePart.Start, patternChunkCharacterSpan.Length));
+                        result.Add(new TextSpan(candidatePart.Start, patternChunkCharacterSpan.Length));
                     }
 
                     gotOneMatchThisCandidate = true;

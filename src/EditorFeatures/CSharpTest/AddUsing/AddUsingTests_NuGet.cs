@@ -16,7 +16,7 @@ using Moq;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.AddUsing
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddUsing
 {
     using FixProviderData = Tuple<IPackageInstallerService, ISymbolSearchService>;
 

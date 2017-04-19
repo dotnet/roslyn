@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                     cancellationToken.ThrowIfCancellationRequested();
 
                     if (patternMatcher.AddMatches(
-                            GetSearchName(declaredSymbolInfo),
+                            declaredSymbolInfo.Name,
                             declaredSymbolInfo.FullyQualifiedContainerName,
                             candidateMatches, containerMatchers))
                     { 
@@ -89,18 +89,6 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             }
 
             return result.ToImmutableAndFree();
-        }
-
-        private static string GetSearchName(DeclaredSymbolInfo declaredSymbolInfo)
-        {
-            if (declaredSymbolInfo.Kind == DeclaredSymbolInfoKind.Indexer && declaredSymbolInfo.Name == WellKnownMemberNames.Indexer)
-            {
-                return "this";
-            }
-            else
-            {
-                return declaredSymbolInfo.Name;
-            }
         }
 
         private static INavigateToSearchResult ConvertResult(
@@ -141,6 +129,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 case DeclaredSymbolInfoKind.Interface:
                     return NavigateToItemKind.Interface;
                 case DeclaredSymbolInfoKind.Constructor:
+                case DeclaredSymbolInfoKind.ExtensionMethod:
                 case DeclaredSymbolInfoKind.Method:
                     return NavigateToItemKind.Method;
                 case DeclaredSymbolInfoKind.Module:

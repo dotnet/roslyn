@@ -87,7 +87,7 @@ try {
     Redirect-Temp
 
     if ($testBuildCorrectness) {
-        Exec { & ".\build\scripts\test-build-correctness.ps1" $repoDir $configDir }
+        Exec-Echo { & ".\build\scripts\test-build-correctness.ps1" -config $buildConfiguration }
         exit 0
     }
 

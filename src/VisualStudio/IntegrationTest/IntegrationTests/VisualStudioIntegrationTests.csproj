@@ -32,6 +32,7 @@
     <Compile Include="CSharp\CSharpErrorListCommon.cs" />
     <Compile Include="CSharp\CSharpErrorListDesktop.cs" />
     <Compile Include="CSharp\CSharpErrorListNetCore.cs" />
+    <Compile Include="CSharp\CSharpExtractInterfaceDialog.cs" />
     <Compile Include="CSharp\CSharpFindReferences.cs" />
     <Compile Include="CSharp\CSharpGoToImplementation.cs" />
     <Compile Include="CSharp\CSharpGenerateTypeDialog.cs" />
@@ -90,6 +91,7 @@
     <Compile Include="VisualBasic\BasicClassification.cs" />
     <Compile Include="VisualBasic\BasicFormatting.cs" />
     <Compile Include="VisualBasic\BasicCodeActions.cs" />
+    <Compile Include="VisualBasic\BasicExtractInterfaceDialog.cs" />
     <Compile Include="VisualBasic\BasicGenerateEqualsAndGetHashCodeDialog.cs" />
     <Compile Include="VisualBasic\BasicGenerateConstructorDialog.cs" />
     <Compile Include="VisualBasic\BasicChangeSignatureDialog.cs" />
