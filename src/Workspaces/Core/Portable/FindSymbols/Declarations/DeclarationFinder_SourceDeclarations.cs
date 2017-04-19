@@ -215,18 +215,16 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // we don't want to check the whole pattern against it (as it will clearly fail), instead
             // we only want to check the 'WL' portion.  Then, after we get all the candidate symbols
             // we'll check if the full name matches the full pattern.
+            var (namePart, containerPart) = PatternMatcher.GetNameAndContainer(pattern);
+
             var dotIndex = pattern.LastIndexOf('.');
             var isDottedPattern = dotIndex >= 0;
 
             // If we don't have a dot in the pattern, just make a pattern matcher for the entire
             // pattern they passed in.  Otherwise, make a pattern matcher just for the part after
             // the dot.
-            var lastPartPatternMatcher = !isDottedPattern
-                ? PatternMatcher.CreatePatternMatcher(pattern, includeMatchedSpans: false)
-                : PatternMatcher.CreatePatternMatcher(pattern.Substring(dotIndex + 1), includeMatchedSpans: false);
-
-            using (lastPartPatternMatcher)
-            using (var query = SearchQuery.CreateCustom(lastPartPatternMatcher.Matches))
+            using (var nameMatcher = PatternMatcher.CreatePatternMatcher(namePart, includeMatchedSpans: false))
+            using (var query = SearchQuery.CreateCustom(nameMatcher.Matches))
             {
                 var symbolAndProjectIds = await SymbolFinder.FindSourceDeclarationsWithCustomQueryAsync(
                     project, query, criteria, cancellationToken).ConfigureAwait(false);
@@ -241,7 +239,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                 // Ok, we had a dotted pattern.  Have to see if the symbol's container matches the 
                 // pattern as well.
-                using (var containerPatternMatcher = PatternMatcher.CreateDotSeperatedContainerMatcher(pattern))
+                using (var containerPatternMatcher = PatternMatcher.CreateDotSeperatedContainerMatcher(containerPart))
                 {
                     return symbolAndProjectIds.WhereAsArray(t =>
                         containerPatternMatcher.Matches(GetContainer(t.Symbol)));
