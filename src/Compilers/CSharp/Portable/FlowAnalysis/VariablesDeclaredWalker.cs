@@ -131,12 +131,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (deconstructionAssignment == null)
                 {
-                    // regular, not deconstructing, foreach declares exactly one iteration variable
-                    _variablesDeclared.Add(node.IterationVariables.Single());
+                    _variablesDeclared.AddAll(node.IterationVariables);
                 }
                 else
                 {
-                    // deconstruction foreach declares multiple variables
+                    // Deconstruction foreach declares multiple variables.
                     ((BoundTupleExpression)deconstructionAssignment.Left).VisitAllElements((x, self) => self.Visit(x), this);
                 }
             }
