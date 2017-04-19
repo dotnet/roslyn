@@ -257,12 +257,6 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             // In this case, inlining the 'i' would cause it to longer be definitely
             // assigned in the WriteLine invocation.
 
-            if (localDeclarator.Initializer == null)
-            {
-                // Don't need to examine this unless the variable has an initializer.
-                return false;
-            }
-
             // Find all the current read-references to the local.
             var query = from t in enclosingBlock.DescendantTokens()
                         where t.Kind() == SyntaxKind.IdentifierToken
@@ -331,11 +325,17 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
                     return current;
                 }
 
-                // Any loop construct defines a scope for out-variables.
+                // Any loop construct defines a scope for out-variables, as well as each of the following:
+                // * Using statements
+                // * Fixed statements
+                // * Try statements (specifically for exception filters)
                 if (current.Kind() == SyntaxKind.WhileStatement ||
                     current.Kind() == SyntaxKind.DoStatement ||
                     current.Kind() == SyntaxKind.ForStatement ||
-                    current.Kind() == SyntaxKind.ForEachStatement)
+                    current.Kind() == SyntaxKind.ForEachStatement ||
+                    current.Kind() == SyntaxKind.UsingStatement ||
+                    current.Kind() == SyntaxKind.FixedStatement ||
+                    current.Kind() == SyntaxKind.TryStatement)
                 {
                     return current;
                 }

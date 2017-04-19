@@ -39,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ReportDiagnostic(diagnostics, node, ERRID.ERR_StrictDisallowsLateBinding)
                 End If
 
-                Dim children = ArrayBuilder(Of BoundNode).GetInstance
+                Dim children = ArrayBuilder(Of BoundExpression).GetInstance
                 If receiver IsNot Nothing Then
                     children.Add(receiver)
                 End If
@@ -128,7 +128,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If receiver.IsNothingLiteral Then
                 ReportDiagnostic(diagnostics, node, ERRID.ERR_IllegalCallOrIndex)
 
-                Return BadExpression(node, StaticCast(Of BoundNode).From(arguments), ErrorTypeSymbol.UnknownResultType)
+                Return BadExpression(node, arguments, ErrorTypeSymbol.UnknownResultType)
             End If
 
             If OptionStrict = VisualBasic.OptionStrict.On Then
@@ -137,7 +137,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' "Option Strict On disallows late binding."
                 ReportDiagnostic(diagnostics, GetLocationForOverloadResolutionDiagnostic(node, groupOpt), ERRID.ERR_StrictDisallowsLateBinding)
 
-                Dim children = ArrayBuilder(Of BoundNode).GetInstance
+                Dim children = ArrayBuilder(Of BoundExpression).GetInstance
                 If receiver IsNot Nothing Then
                     children.Add(receiver)
                 End If

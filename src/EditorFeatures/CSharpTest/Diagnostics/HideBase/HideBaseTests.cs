@@ -34,7 +34,7 @@ class App : Application
 
 class App : Application
 {
-    public static new App Current { get; set; }
+    public new static App Current { get; set; }
 }");
         }
 
@@ -64,7 +64,7 @@ class App : Application
 
 class App : Application
 {
-    public static new void Method()
+    public new static void Method()
     {
     }
 }");
@@ -92,6 +92,44 @@ class App : Application
 {
     public new int Test;
 }");
+        }
+
+        [WorkItem(18391, "https://github.com/dotnet/roslyn/issues/18391")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddNew)]
+        public async Task TestAddNewToConstant()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Application
+{
+    public const int Test = 1;
+}
+
+class App : Application
+{
+    [|public const int Test = Application.Test + 1;|]
+}",
+@"class Application
+{
+    public const int Test = 1;
+}
+
+class App : Application
+{
+    public new const int Test = Application.Test + 1;
+}");
+        }
+
+        [WorkItem(14455, "https://github.com/dotnet/roslyn/issues/14455")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddNew)]
+        public async Task TestAddNewToConstantInternalFields()
+        {
+            await TestInRegularAndScriptAsync(
+@"class A { internal const int i = 0; }
+class B : A { [|internal const int i = 1;|] }
+",
+@"class A { internal const int i = 0; }
+class B : A { internal new const int i = 1; }
+");
         }
     }
 }

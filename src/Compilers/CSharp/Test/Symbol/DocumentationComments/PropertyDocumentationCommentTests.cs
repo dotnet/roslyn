@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         public PropertyDocumentationCommentTests()
         {
-            _compilation = CreateCompilationWithMscorlib(@"namespace Acme
+            _compilation = CreateStandardCompilation(@"namespace Acme
 {
     class Widget: IProcess
     {

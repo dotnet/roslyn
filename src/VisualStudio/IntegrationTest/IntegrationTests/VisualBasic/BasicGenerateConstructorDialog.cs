@@ -4,8 +4,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Roslyn.Test.Utilities;
-using Roslyn.VisualStudio.IntegrationTests.Extensions;
-using Roslyn.VisualStudio.IntegrationTests.Extensions.Editor;
 using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
@@ -34,11 +32,11 @@ Class C
 $$
 End Class");
 
-            this.InvokeCodeActionList();
-            this.VerifyCodeAction("Generate constructor...", applyFix: true, blockUntilComplete: false);
+            VisualStudio.Editor.InvokeCodeActionList();
+            VisualStudio.Editor.Verify.CodeAction("Generate constructor...", applyFix: true, blockUntilComplete: false);
             VerifyDialog(isOpen: true);
             Dialog_ClickCancel();
-            var actualText = Editor.GetText();
+            var actualText = VisualStudio.Editor.GetText();
             Assert.Contains(
 @"
 Class C
@@ -63,12 +61,12 @@ Class C
 $$
 End Class");
 
-            this.InvokeCodeActionList();
-            this.VerifyCodeAction("Generate constructor...", applyFix: true, blockUntilComplete: false);
+            VisualStudio.Editor.InvokeCodeActionList();
+            VisualStudio.Editor.Verify.CodeAction("Generate constructor...", applyFix: true, blockUntilComplete: false);
             VerifyDialog(isOpen: true);
             Dialog_ClickOk();
-            this.WaitForAsyncOperations(FeatureAttribute.LightBulb);
-            var actualText = Editor.GetText();
+            VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.LightBulb);
+            var actualText = VisualStudio.Editor.GetText();
             Assert.Contains(
 @"
 Class C
@@ -97,14 +95,14 @@ Class C
 $$
 End Class");
 
-            this.InvokeCodeActionList();
-            this.VerifyCodeAction("Generate constructor...", applyFix: true, blockUntilComplete: false);
+            VisualStudio.Editor.InvokeCodeActionList();
+            VisualStudio.Editor.Verify.CodeAction("Generate constructor...", applyFix: true, blockUntilComplete: false);
             VerifyDialog(isOpen: true);
-            Editor.DialogSendKeys(DialogName, "{TAB}");
-            this.PressDialogButton(DialogName, "Down");
+            VisualStudio.Editor.DialogSendKeys(DialogName, "{TAB}");
+            VisualStudio.Editor.PressDialogButton(DialogName, "Down");
             Dialog_ClickOk();
-            this.WaitForAsyncOperations(FeatureAttribute.LightBulb);
-            var actualText = Editor.GetText();
+            VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.LightBulb);
+            var actualText = VisualStudio.Editor.GetText();
             Assert.Contains(
 @"
 Class C
@@ -133,14 +131,14 @@ Class C
 $$
 End Class");
 
-            this.InvokeCodeActionList();
-            this.VerifyCodeAction("Generate constructor...", applyFix: true, blockUntilComplete: false);
+            VisualStudio.Editor.InvokeCodeActionList();
+            VisualStudio.Editor.Verify.CodeAction("Generate constructor...", applyFix: true, blockUntilComplete: false);
             VerifyDialog(isOpen: true);
-            Editor.DialogSendKeys(DialogName, "{TAB}");
-            Editor.DialogSendKeys(DialogName, " ");
+            VisualStudio.Editor.DialogSendKeys(DialogName, "{TAB}");
+            VisualStudio.Editor.DialogSendKeys(DialogName, " ");
             Dialog_ClickOk();
-            this.WaitForAsyncOperations(FeatureAttribute.LightBulb);
-            var actualText = Editor.GetText();
+            VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.LightBulb);
+            var actualText = VisualStudio.Editor.GetText();
             Assert.Contains(
 @"
 Class C
@@ -156,12 +154,12 @@ End Class", actualText);
         }
 
         private void VerifyDialog(bool isOpen)
-            => this.VerifyDialog(DialogName, isOpen);
+            => VisualStudio.Editor.Verify.Dialog(DialogName, isOpen);
 
         private void Dialog_ClickCancel()
-            => this.PressDialogButton(DialogName, "CancelButton");
+            => VisualStudio.Editor.PressDialogButton(DialogName, "CancelButton");
 
         private void Dialog_ClickOk()
-            => this.PressDialogButton(DialogName, "OkButton");
+            => VisualStudio.Editor.PressDialogButton(DialogName, "OkButton");
     }
 }

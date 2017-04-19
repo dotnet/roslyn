@@ -59,8 +59,11 @@
     <Compile Include="Diagnostics\DiagnosticAnalyzerTests.AllInOne.cs" />
     <Compile Include="Diagnostics\DiagnosticAnalyzerTests.cs" />
     <Compile Include="Diagnostics\GetDiagnosticsTests.cs" />
+    <Compile Include="IOperation\IOperationTests_IArgument.cs" />
     <Compile Include="IOperation\IOperationTests_IIfStatement.cs" />
     <Compile Include="IOperation\IOperationTests_ISymbolInitializer.cs" />
+    <Compile Include="IOperation\IOperationTests_InvalidExpression.cs" />
+    <Compile Include="IOperation\IOperationTests_InvalidStatement.cs" />
     <Compile Include="IOperation\IOperationTests.cs" />
     <Compile Include="Diagnostics\OperationAnalyzerTests.cs" />
     <Compile Include="FlowAnalysis\FlowDiagnosticTests.cs" />
@@ -78,6 +81,7 @@
     <Compile Include="Semantics\PatternMatchingTests_Global.cs" />
     <Compile Include="Semantics\BindingAsyncTasklikeMoreTests.cs" />
     <Compile Include="Semantics\BindingAsyncTasklikeTests.cs" />
+    <Compile Include="Semantics\TargetTypedDefaultTests.cs" />
     <Compile Include="Semantics\DeconstructionTests.cs" />
     <Compile Include="Semantics\ImportsTests.cs" />
     <Compile Include="Semantics\AccessCheckTests.cs" />
