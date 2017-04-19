@@ -239,22 +239,27 @@ class Class1
 {
     void Main(string[] args)
     {
-        $$
+        Main$$
     }
 }");
 
             VisualStudio.Workspace.SetUseSuggestionMode(false);
 
             VisualStudio.Editor.SendKeys(
-                'M',
+                "(ar",
                 Shift(VirtualKey.Enter));
+
+            // convert virtual whitespace into real whitespace in order
+            // to properly check the caret position
+            VisualStudio.Editor.SendKeys(" "); 
 
             VisualStudio.Editor.Verify.TextContains(@"
 class Class1
 {
     void Main(string[] args)
     {
-        Main$$
+        Main(args);
+         $$
     }
 }",
 assertCaretPosition: true);

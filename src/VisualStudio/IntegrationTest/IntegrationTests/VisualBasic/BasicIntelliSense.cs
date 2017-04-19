@@ -290,5 +290,33 @@ Public Class Bar
     End Sub
 End Class", actualText);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public void CommitOnShiftEnter()
+        {
+            SetUpEditor(@"
+Class Class1
+    Sub Main(args as string())
+        Main$$
+    End Sub
+End Class");
+
+            VisualStudio.Editor.SendKeys(
+                "(ar",
+                Shift(VirtualKey.Enter));
+
+            // convert virtual whitespace into real whitespace in order
+            // to properly check the caret position
+            VisualStudio.Editor.SendKeys(" ");
+
+            VisualStudio.Editor.Verify.TextContains(@"
+Class Class1
+    Sub Main(args as string())
+        Main(args)
+         $$
+    End Sub
+End Class",
+assertCaretPosition: true);
+        }
     }
 }
