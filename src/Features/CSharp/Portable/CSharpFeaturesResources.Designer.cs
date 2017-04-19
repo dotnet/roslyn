@@ -98,6 +98,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Autoselect disabled due to member declaration.
+        /// </summary>
+        internal static string Autoselect_disabled_due_to_member_declaration {
+            get {
+                return ResourceManager.GetString("Autoselect_disabled_due_to_member_declaration", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Autoselect disabled due to namespace declaration..
         /// </summary>
         internal static string Autoselect_disabled_due_to_namespace_declaration {

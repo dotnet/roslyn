@@ -12,7 +12,9 @@ namespace Microsoft.CodeAnalysis.Emit
     /// </summary>
     public sealed class EmitOptions : IEquatable<EmitOptions>
     {
-        internal static readonly EmitOptions Default = new EmitOptions();
+        internal static readonly EmitOptions Default = PlatformInformation.IsWindows
+            ? new EmitOptions()
+            : new EmitOptions().WithDebugInformationFormat(DebugInformationFormat.PortablePdb);
 
         /// <summary>
         /// True to emit an assembly excluding executable code such as method bodies.

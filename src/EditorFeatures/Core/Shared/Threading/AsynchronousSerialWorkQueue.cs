@@ -129,7 +129,11 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Threading
                 else
                 {
                     _currentBackgroundTask = _currentBackgroundTask.ContinueWithAfterDelayFromAsync(
-                        _ => taskGeneratingFunctionAsync(cancellationToken), cancellationToken, afterDelay, TaskContinuationOptions.None, TaskScheduler.Default);
+                        _ => taskGeneratingFunctionAsync(cancellationToken),
+                        cancellationToken,
+                        afterDelay,
+                        TaskContinuationOptions.None,
+                        TaskScheduler.Default);
                 }
 
                 _currentBackgroundTask.CompletesAsyncOperation(asyncToken);

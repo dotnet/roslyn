@@ -906,7 +906,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             If String.IsNullOrWhiteSpace(value) Then
                                 AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, "keyfile", ":<file>")
                             Else
-                                keyFileSetting = RemoveQuotesAndSlashes(value)
+                                keyFileSetting = value
                             End If
                             Continue For
 

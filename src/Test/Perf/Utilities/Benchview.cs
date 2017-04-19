@@ -86,7 +86,7 @@ namespace Roslyn.Test.Performance.Utilities
             if (result)
             {
                 var submissionJson = CreateSubmissionJson(s_submissionType, submissionName, s_branch, Path.Combine(s_outputDirectory, "measurement.json"));
-
+                System.Console.Write(System.IO.File.ReadAllText(submissionJson));
                 Log("Uploading json to Azure blob storage");
                 var uploadPy = Path.Combine(s_scriptDirectory, "upload.py");
                 ShellOutVital("py", $"\"{uploadPy}\" \"{submissionJson}\" --container roslyn");

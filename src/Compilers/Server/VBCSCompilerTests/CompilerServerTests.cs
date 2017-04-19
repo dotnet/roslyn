@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 
                 // VBCSCompiler is used as a DLL in these tests, need to hook the resolve to the installed location.
                 AppDomain.CurrentDomain.AssemblyResolve += OnAssemblyResolve;
-                basePath = TestHelpers.GetMSBuildDirectory();
+                basePath = DesktopTestHelpers.GetMSBuildDirectory();
                 if (basePath == null)
                 {
                     return;

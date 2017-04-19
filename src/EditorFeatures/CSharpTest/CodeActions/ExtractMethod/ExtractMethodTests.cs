@@ -945,6 +945,36 @@ ignoreTrivia: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
+        [WorkItem(18311, "https://github.com/dotnet/roslyn/issues/18311")]
+        public async Task TestTupleWith1Arity()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+class Program
+{
+    static void Main(string[] args)
+    {
+        ValueTuple<int> y = ValueTuple.Create(1);
+        [|y.Item1.ToString();|]
+    }
+}" + TestResources.NetFX.ValueTuple.tuplelib_cs,
+@"using System;
+class Program
+{
+    static void Main(string[] args)
+    {
+        ValueTuple<int> y = ValueTuple.Create(1);
+        {|Rename:NewMethod|}(y);
+    }
+
+    private static void NewMethod(ValueTuple<int> y)
+    {
+        y.Item1.ToString();
+    }
+}" + TestResources.NetFX.ValueTuple.tuplelib_cs);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
         [WorkItem(11196, "https://github.com/dotnet/roslyn/issues/11196")]
         public async Task TestTupleLiteralWithNames()
         {
@@ -1677,6 +1707,188 @@ class Test
     private static int NewMethod()
     {
         {|Warning:return v = v + i;|}
+    }
+}");
+        }
+
+        [WorkItem(392560, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=392560")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        public async Task TestExpressionBodyProperty()
+        {
+            await TestInRegularAndScriptAsync(@"
+class Program
+{
+    int field;
+
+    public int Blah => [|this.field|];
+}",
+@"
+class Program
+{
+    int field;
+
+    public int Blah => {|Rename:GetField|}();
+
+    private int GetField()
+    {
+        return this.field;
+    }
+}");
+        }
+
+        [WorkItem(392560, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=392560")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        public async Task TestExpressionBodyIndexer()
+        {
+            await TestInRegularAndScriptAsync(@"
+class Program
+{
+    int field;
+
+    public int this[int i] => [|this.field|];
+}",
+@"
+class Program
+{
+    int field;
+
+    public int this[int i] => {|Rename:GetField|}();
+
+    private int GetField()
+    {
+        return this.field;
+    }
+}");
+        }
+
+        [WorkItem(392560, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=392560")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        public async Task TestExpressionBodyPropertyGetAccessor()
+        {
+            await TestInRegularAndScriptAsync(@"
+class Program
+{
+    int field;
+
+    public int Blah
+    {
+        get => [|this.field|];
+        set => field = value;
+    }
+}",
+@"
+class Program
+{
+    int field;
+
+    public int Blah
+    {
+        get => {|Rename:GetField|}();
+        set => field = value;
+    }
+
+    private int GetField()
+    {
+        return this.field;
+    }
+}");
+        }
+
+        [WorkItem(392560, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=392560")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        public async Task TestExpressionBodyPropertySetAccessor()
+        {
+            await TestInRegularAndScriptAsync(@"
+class Program
+{
+    int field;
+
+    public int Blah
+    {
+        get => this.field;
+        set => field = [|value|];
+    }
+}",
+@"
+class Program
+{
+    int field;
+
+    public int Blah
+    {
+        get => this.field;
+        set => field = {|Rename:GetValue|}(value);
+    }
+
+    private static int GetValue(int value)
+    {
+        return value;
+    }
+}");
+        }
+
+        [WorkItem(392560, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=392560")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        public async Task TestExpressionBodyIndexerGetAccessor()
+        {
+            await TestInRegularAndScriptAsync(@"
+class Program
+{
+    int field;
+
+    public int this[int i]
+    {
+        get => [|this.field|];
+        set => field = value;
+    }
+}",
+@"
+class Program
+{
+    int field;
+
+    public int this[int i]
+    {
+        get => {|Rename:GetField|}();
+        set => field = value;
+    }
+
+    private int GetField()
+    {
+        return this.field;
+    }
+}");
+        }
+
+        [WorkItem(392560, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=392560")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        public async Task TestExpressionBodyIndexerSetAccessor()
+        {
+            await TestInRegularAndScriptAsync(@"
+class Program
+{
+    int field;
+
+    public int this[int i]
+    {
+        get => this.field;
+        set => field = [|value|];
+    }
+}",
+@"
+class Program
+{
+    int field;
+
+    public int this[int i]
+    {
+        get => this.field;
+        set => field = {|Rename:GetValue|}(value);
+    }
+
+    private static int GetValue(int value)
+    {
+        return value;
     }
 }");
         }

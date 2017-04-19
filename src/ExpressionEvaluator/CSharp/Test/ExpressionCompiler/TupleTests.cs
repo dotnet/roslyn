@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
         (int, int) o;
     }
 }";
-            var comp = CreateCompilationWithMscorlib(source, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.DebugDll);
+            var comp = CreateStandardCompilation(source, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.DebugDll);
             WithRuntimeInstance(comp, new[] { ValueTupleRef, SystemRuntimeFacadeRef, MscorlibRef }, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -164,7 +164,7 @@ class C
         (int, int) o;
     }
 }";
-            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            var comp = CreateStandardCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -203,7 +203,7 @@ class C
         (int A\u1234, int \u1234B) o = (1, 2);
     }
 }";
-            var comp = CreateCompilationWithMscorlib(source, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.DebugDll);
+            var comp = CreateStandardCompilation(source, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.DebugDll);
             WithRuntimeInstance(comp, new[] { ValueTupleRef, SystemRuntimeFacadeRef, MscorlibRef }, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -251,7 +251,7 @@ class C
         const A<(int, int A)>.B<(object B, object)>[] c = null;
     }
 }";
-            var comp = CreateCompilationWithMscorlib(source, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.DebugDll);
+            var comp = CreateStandardCompilation(source, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.DebugDll);
             WithRuntimeInstance(comp, new[] { ValueTupleRef, SystemRuntimeFacadeRef, MscorlibRef }, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -294,7 +294,7 @@ class C
         var x = (1, 2, 3, 4, 5, 6, 7, 8);
     }
 }";
-            var comp = CreateCompilationWithMscorlib(source, new[] { SystemRuntimeFacadeRef, ValueTupleRef }, options: TestOptions.DebugDll);
+            var comp = CreateStandardCompilation(source, new[] { SystemRuntimeFacadeRef, ValueTupleRef }, options: TestOptions.DebugDll);
             WithRuntimeInstance(comp, new[] { MscorlibRef, SystemCoreRef, SystemRuntimeFacadeRef, ValueTupleRef }, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -307,9 +307,9 @@ class C
   .maxstack  2
   .locals init ((int, int, int, int, int, int, int, int) V_0) //x
   IL_0000:  ldloc.0
-  IL_0001:  ldfld      ""int System.ValueTuple<int, int, int, int, int, int, int, (int)>.Item4""
+  IL_0001:  ldfld      ""int System.ValueTuple<int, int, int, int, int, int, int, ValueTuple<int>>.Item4""
   IL_0006:  ldloc.0
-  IL_0007:  ldfld      ""(int) System.ValueTuple<int, int, int, int, int, int, int, (int)>.Rest""
+  IL_0007:  ldfld      ""ValueTuple<int> System.ValueTuple<int, int, int, int, int, int, int, ValueTuple<int>>.Rest""
   IL_000c:  ldfld      ""int System.ValueTuple<int>.Item1""
   IL_0011:  add
   IL_0012:  ret
@@ -328,7 +328,7 @@ class C
         var x = (1, 2, Three: 3, Four: 4, 5, 6, 7, Eight: 8);
     }
 }";
-            var comp = CreateCompilationWithMscorlib(source, new[] { SystemRuntimeFacadeRef, ValueTupleRef }, options: TestOptions.DebugDll);
+            var comp = CreateStandardCompilation(source, new[] { SystemRuntimeFacadeRef, ValueTupleRef }, options: TestOptions.DebugDll);
             WithRuntimeInstance(comp, new[] { MscorlibRef, SystemCoreRef, SystemRuntimeFacadeRef, ValueTupleRef }, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -341,10 +341,10 @@ class C
   .maxstack  2
   .locals init ((int, int, int Three, int Four, int, int, int, int Eight) V_0) //x
   IL_0000:  ldloc.0
-  IL_0001:  ldfld      ""(int) System.ValueTuple<int, int, int, int, int, int, int, (int)>.Rest""
+  IL_0001:  ldfld      ""ValueTuple<int> System.ValueTuple<int, int, int, int, int, int, int, ValueTuple<int>>.Rest""
   IL_0006:  ldfld      ""int System.ValueTuple<int>.Item1""
   IL_000b:  ldloc.0
-  IL_000c:  ldfld      ""(int) System.ValueTuple<int, int, int, int, int, int, int, (int)>.Rest""
+  IL_000c:  ldfld      ""ValueTuple<int> System.ValueTuple<int, int, int, int, int, int, int, ValueTuple<int>>.Rest""
   IL_0011:  ldfld      ""int System.ValueTuple<int>.Item1""
   IL_0016:  add
   IL_0017:  ret
@@ -363,7 +363,7 @@ class C
         var x = (1, 2);
     }
 }";
-            var comp = CreateCompilationWithMscorlib(source, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.DebugDll);
+            var comp = CreateStandardCompilation(source, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.DebugDll);
             WithRuntimeInstance(comp, new[] { ValueTupleRef, SystemRuntimeFacadeRef, MscorlibRef }, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -429,7 +429,7 @@ class C
     {
     }
 }";
-            var comp = CreateCompilationWithMscorlib(source, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.DebugDll);
+            var comp = CreateStandardCompilation(source, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.DebugDll);
             WithRuntimeInstance(comp, new[] { ValueTupleRef, SystemRuntimeFacadeRef, MscorlibRef }, runtime =>
             {
                 var context = CreateMethodContext(
@@ -494,7 +494,7 @@ class C
     {
     }
 }";
-            var comp = CreateCompilationWithMscorlib(source, new[] { SystemRuntimeFacadeRef, ValueTupleRef }, options: TestOptions.DebugDll);
+            var comp = CreateStandardCompilation(source, new[] { SystemRuntimeFacadeRef, ValueTupleRef }, options: TestOptions.DebugDll);
             WithRuntimeInstance(comp, new[] { MscorlibRef, SystemCoreRef, SystemRuntimeFacadeRef, ValueTupleRef }, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");

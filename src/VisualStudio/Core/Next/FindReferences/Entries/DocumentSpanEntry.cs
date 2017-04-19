@@ -39,10 +39,11 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 RoslynDefinitionBucket definitionBucket,
                 DocumentSpan documentSpan,
                 HighlightSpanKind spanKind,
+                string documentName,
                 Guid projectGuid,
                 SourceText sourceText,
                 ClassifiedSpansAndHighlightSpan classifiedSpans)
-                : base(context, definitionBucket, documentSpan, projectGuid, sourceText)
+                : base(context, definitionBucket, documentSpan, documentName, projectGuid, sourceText)
             {
                 _spanKind = spanKind;
                 _classifiedSpansAndHighlights = classifiedSpans;

@@ -330,6 +330,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Shared Function CanUseTupleTypeName(tupleSymbol As INamedTypeSymbol) As Boolean
             Dim currentUnderlying As INamedTypeSymbol = tupleSymbol.TupleUnderlyingType
 
+            If currentUnderlying.Arity = 1 Then
+                Return False
+            End If
+
             While currentUnderlying.Arity = TupleTypeSymbol.RestPosition
                 tupleSymbol = DirectCast(currentUnderlying.TypeArguments(TupleTypeSymbol.RestPosition - 1), INamedTypeSymbol)
                 Debug.Assert(tupleSymbol.IsTupleType)

@@ -34,6 +34,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <None Include="App.config" />
     <None Include="project.json" />
     <None Include="vbi.rsp">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

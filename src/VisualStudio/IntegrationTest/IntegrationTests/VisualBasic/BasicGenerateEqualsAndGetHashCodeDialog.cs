@@ -4,8 +4,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Roslyn.Test.Utilities;
-using Roslyn.VisualStudio.IntegrationTests.Extensions;
-using Roslyn.VisualStudio.IntegrationTests.Extensions.Editor;
 using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
@@ -34,11 +32,11 @@ Class C
 $$
 End Class");
 
-            this.InvokeCodeActionList();
-            this.VerifyCodeAction("Generate Equals(object)...", applyFix: true, blockUntilComplete: false);
+            VisualStudio.Editor.InvokeCodeActionList();
+            VisualStudio.Editor.Verify.CodeAction("Generate Equals(object)...", applyFix: true, blockUntilComplete: false);
             VerifyDialog(isOpen: true);
             Dialog_ClickCancel();
-            var actualText = Editor.GetText();
+            var actualText = VisualStudio.Editor.GetText();
             var expectedText = @"
 Class C
     Dim i as Integer
@@ -64,12 +62,12 @@ Class C
 $$
 End Class");
 
-            this.InvokeCodeActionList();
-            this.VerifyCodeAction("Generate Equals(object)...", applyFix: true, blockUntilComplete: false);
+            VisualStudio.Editor.InvokeCodeActionList();
+            VisualStudio.Editor.Verify.CodeAction("Generate Equals(object)...", applyFix: true, blockUntilComplete: false);
             VerifyDialog(isOpen: true);
             Dialog_ClickOk();
-            this.WaitForAsyncOperations(FeatureAttribute.LightBulb);
-            var actualText = Editor.GetText();
+            VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.LightBulb);
+            var actualText = VisualStudio.Editor.GetText();
             var expectedText = @"
 Imports TestProj
 
@@ -90,12 +88,12 @@ End Class";
         }
 
         private void VerifyDialog(bool isOpen)
-            => this.VerifyDialog(DialogName, isOpen);
+            => VisualStudio.Editor.Verify.Dialog(DialogName, isOpen);
 
         private void Dialog_ClickCancel()
-            => this.PressDialogButton(DialogName, "CancelButton");
+            => VisualStudio.Editor.PressDialogButton(DialogName, "CancelButton");
 
         private void Dialog_ClickOk()
-            => this.PressDialogButton(DialogName, "OkButton");
+            => VisualStudio.Editor.PressDialogButton(DialogName, "OkButton");
     }
 }

@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.LinkedFileDiffMerging
 {
     public partial class LinkedFileDiffMergingTests
     {
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18432")]
         [Trait(Traits.Feature, Traits.Features.LinkedFileDiffMerging)]
         public void TestChangeSignature()
         {
