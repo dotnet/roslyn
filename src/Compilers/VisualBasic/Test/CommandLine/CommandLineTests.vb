@@ -1043,76 +1043,35 @@ End Module").Path
             Assert.Equal(False, parsedArgs.SourceFiles.Any())
         End Sub
 
+      #Region "/langversion unit tests"
+        <InlineData({"/langversion:9", "a.vb"}, LanguageVersion.VisualBasic9), InlineData({"/langversion:9.0", "a.vb"}, LanguageVersion.VisualBasic9)>
+        <InlineData({"/langversion:10", "a.vb"}, LanguageVersion.VisualBasic10), InlineData({"/langversion:10.0", "a.vb"}, LanguageVersion.VisualBasic10)>
+        <InlineData({"/langversion:11", "a.vb"}, LanguageVersion.VisualBasic11), InlineData({"/langversion:11.0", "a.vb"}, LanguageVersion.VisualBasic11)>
+        <InlineData({"/langversion:12", "a.vb"}, LanguageVersion.VisualBasic12), InlineData({"/langversion:12.0", "a.vb"}, LanguageVersion.VisualBasic12)>
+        <InlineData({"/langversion:14", "a.vb"}, LanguageVersion.VisualBasic14), InlineData({"/langversion:14.0", "a.vb"}, LanguageVersion.VisualBasic14)>
+        <InlineData({"/langversion:15", "a.vb"}, LanguageVersion.VisualBasic15), InlineData({"/langversion:15.0", "a.vb"}, LanguageVersion.VisualBasic15)>
+        <InlineData({"a.vb"}, LanguageVersion.VisualBasic15)>' default: "current version"
+        <InlineData({"/langVERSION:10", "/langVERSION:9.0", "a.vb"}, LanguageVersion.VisualBasic9)>' overriding
+        <Theory()>
+        Public Sub LangVersion(args As String(), expected_LanguageVersion As LanguageVersion)
+            Dim parsedArgs = DefaultParse(args, _baseDirectory)
+            parsedArgs.Errors.Verify()
+            Assert.Equal(expected_LanguageVersion, parsedArgs.ParseOptions.LanguageVersion)
+        End Sub
+
+        <InlineData({"/langVERSION:default", "a.vb"}, LanguageVersion.Default, LanguageVersion.VisualBasic15)>
+        <InlineData({"/langVERSION:latest", "a.vb"}, LanguageVersion.Latest, LanguageVersion.VisualBasic15)>
+        <Theory>
+        Public Sub LangVersion(args As String(), expected_SpecifiedLanguageVersion As LanguageVersion, expected_LanguageVersion As LanguageVersion)
+            Dim parsedArgs = DefaultParse(args, _baseDirectory)
+            parsedArgs.Errors.Verify()
+            Assert.Equal(expected_SpecifiedLanguageVersion, parsedArgs.ParseOptions.SpecifiedLanguageVersion)
+            Assert.Equal(expected_LanguageVersion, parsedArgs.ParseOptions.LanguageVersion)
+        End Sub
+
         <Fact>
-        Public Sub LangVersion()
+        Public Sub LangVersion_ParseErrors()
             Dim parsedArgs = DefaultParse({"/langversion:9", "a.VB"}, _baseDirectory)
-            parsedArgs.Errors.Verify()
-            Assert.Equal(LanguageVersion.VisualBasic9, parsedArgs.ParseOptions.LanguageVersion)
-
-            parsedArgs = DefaultParse({"/langVERSION:9.0", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify()
-            Assert.Equal(LanguageVersion.VisualBasic9, parsedArgs.ParseOptions.LanguageVersion)
-
-            parsedArgs = DefaultParse({"/langVERSION:10", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify()
-            Assert.Equal(LanguageVersion.VisualBasic10, parsedArgs.ParseOptions.LanguageVersion)
-
-            parsedArgs = DefaultParse({"/langVERSION:10.0", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify()
-            Assert.Equal(LanguageVersion.VisualBasic10, parsedArgs.ParseOptions.LanguageVersion)
-
-            parsedArgs = DefaultParse({"/langVERSION:11", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify()
-            Assert.Equal(LanguageVersion.VisualBasic11, parsedArgs.ParseOptions.LanguageVersion)
-
-            parsedArgs = DefaultParse({"/langVERSION:11.0", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify()
-            Assert.Equal(LanguageVersion.VisualBasic11, parsedArgs.ParseOptions.LanguageVersion)
-
-            parsedArgs = DefaultParse({"/langVERSION:12", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify()
-            Assert.Equal(LanguageVersion.VisualBasic12, parsedArgs.ParseOptions.LanguageVersion)
-
-            parsedArgs = DefaultParse({"/langVERSION:12.0", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify()
-            Assert.Equal(LanguageVersion.VisualBasic12, parsedArgs.ParseOptions.LanguageVersion)
-
-            parsedArgs = DefaultParse({"/langVERSION:14", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify()
-            Assert.Equal(LanguageVersion.VisualBasic14, parsedArgs.ParseOptions.LanguageVersion)
-
-            parsedArgs = DefaultParse({"/langVERSION:14.0", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify()
-            Assert.Equal(LanguageVersion.VisualBasic14, parsedArgs.ParseOptions.LanguageVersion)
-
-            parsedArgs = DefaultParse({"/langVERSION:15", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify()
-            Assert.Equal(LanguageVersion.VisualBasic15, parsedArgs.ParseOptions.LanguageVersion)
-
-            parsedArgs = DefaultParse({"/langVERSION:15.0", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify()
-            Assert.Equal(LanguageVersion.VisualBasic15, parsedArgs.ParseOptions.LanguageVersion)
-
-            parsedArgs = DefaultParse({"/langVERSION:default", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify()
-            Assert.Equal(LanguageVersion.Default, parsedArgs.ParseOptions.SpecifiedLanguageVersion)
-            Assert.Equal(LanguageVersion.VisualBasic15, parsedArgs.ParseOptions.LanguageVersion)
-
-            parsedArgs = DefaultParse({"/langVERSION:latest", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify()
-            Assert.Equal(LanguageVersion.Latest, parsedArgs.ParseOptions.SpecifiedLanguageVersion)
-            Assert.Equal(LanguageVersion.VisualBasic15, parsedArgs.ParseOptions.LanguageVersion)
-
-            ' default: "current version"
-            parsedArgs = DefaultParse({"a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify()
-            Assert.Equal(LanguageVersion.VisualBasic15, parsedArgs.ParseOptions.LanguageVersion)
-
-            ' overriding
-            parsedArgs = DefaultParse({"/langVERSION:10", "/langVERSION:9.0", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify()
-            Assert.Equal(LanguageVersion.VisualBasic9, parsedArgs.ParseOptions.LanguageVersion)
-
             ' errors
             parsedArgs = DefaultParse({"/langVERSION", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("langversion", ":<number>"))
@@ -1134,6 +1093,7 @@ End Module").Path
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("langversion", CStr(LanguageVersion.VisualBasic12 + 1)))
             Assert.Equal(LanguageVersion.VisualBasic15, parsedArgs.ParseOptions.LanguageVersion)
         End Sub
+#End Region
 
         <Fact>
         Public Sub DelaySign()
