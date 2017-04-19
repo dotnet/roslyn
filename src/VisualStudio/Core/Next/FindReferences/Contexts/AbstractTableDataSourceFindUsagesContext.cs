@@ -271,14 +271,28 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 var document = documentSpan.Document;
                 var (guid, projectName, sourceText) = await GetGuidAndProjectNameAndSourceTextAsync(document).ConfigureAwait(false);
 
-                var narrowSpan = documentSpan.SourceSpan;
-                var lineSpan = GetLineSpanForReference(sourceText, narrowSpan);
-
-                var taggedLineParts = await GetTaggedTextForDocumentRegionAsync(document, narrowSpan, lineSpan).ConfigureAwait(false);
+                var classifiedSpansAndHighlightSpan = await GetClassifiedSpansAndHighlightSpan(
+                    sourceText, documentSpan).ConfigureAwait(false);
 
                 return new DocumentSpanEntry(
                     this, definitionBucket, documentSpan, spanKind,
-                    projectName, guid, sourceText, taggedLineParts);
+                    projectName, guid, sourceText, classifiedSpansAndHighlightSpan);
+            }
+
+            private async Task<ClassifiedSpansAndHighlightSpan> GetClassifiedSpansAndHighlightSpan(
+                SourceText sourceText, DocumentSpan documentSpan)
+            {
+                if (documentSpan.Properties.TryGetValue(nameof(ClassifiedSpansAndHighlightSpan), out var encoded))
+                {
+                    return (ClassifiedSpansAndHighlightSpan)encoded;
+                }
+
+                var narrowSpan = documentSpan.SourceSpan;
+                var lineSpan = GetLineSpanForReference(sourceText, narrowSpan);
+
+                var taggedLineParts = await GetTaggedTextForDocumentRegionAsync(
+                    documentSpan.Document, narrowSpan, lineSpan).ConfigureAwait(false);
+                return taggedLineParts;
             }
 
             private TextSpan GetLineSpanForReference(SourceText sourceText, TextSpan referenceSpan)
