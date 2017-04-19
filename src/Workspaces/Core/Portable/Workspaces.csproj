@@ -423,6 +423,7 @@
     <Compile Include="NamingStyles\Serialization\NamingStylePreferences.cs" />
     <Compile Include="NamingStyles\Serialization\SymbolSpecification.cs" />
     <Compile Include="Shared\Extensions\SolutionExtensions.cs" />
+    <Compile Include="Shared\Utilities\StringBreaks.EncodedSpans.cs" />
     <Compile Include="Shared\Utilities\TextReaderWithLength.cs" />
     <Compile Include="Simplification\DoNotAddImportsAnnotation.cs" />
     <Compile Include="SymbolKey\SymbolKey.AnonymousFunctionOrDelegateSymbolKey.cs" />
