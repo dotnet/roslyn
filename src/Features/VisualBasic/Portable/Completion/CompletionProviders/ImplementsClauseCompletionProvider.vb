@@ -171,8 +171,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Next
 
             Dim symbols = semanticModel.LookupSymbols(position)
+            Dim availableInterfacesAndContainers = interfacesAndContainers.Where(Function(s) symbols.Contains(s.OriginalDefinition)).ToImmutableArray()
 
-            Dim result = TryAddGlobalTo(interfacesAndContainers.Intersect(symbols.ToArray()).ToImmutableArray())
+            Dim result = TryAddGlobalTo(availableInterfacesAndContainers)
 
             ' Even if there's not anything left to implement, we'll show the list of interfaces, 
             ' the global namespace, and the project root namespace (if any), as long as the class implements something.
