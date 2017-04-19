@@ -494,7 +494,7 @@ class Variable
                 state.SendBackspace()
                 ' This completion is hard-selected because the suggestion mode never triggers on backspace
                 ' See issue https://github.com/dotnet/roslyn/issues/15302
-                Await state.AssertSelectedCompletionItem(displayText:="as", isHardSelected:=False)
+                Await state.AssertSelectedCompletionItem(displayText:="as", isHardSelected:=True)
 
                 state.SendTypeChars(", var as")
                 state.SendBackspace()
@@ -502,7 +502,7 @@ class Variable
 
                 state.SendTypeChars(")")
                 Await state.AssertNoCompletionSession()
-                Assert.Contains("(var a, var a)", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+                Assert.Contains("(var as, var a)", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
         End Function
 
@@ -524,7 +524,7 @@ class Variable
                 state.SendBackspace()
                 ' This completion is hard-selected because the suggestion mode never triggers on backspace
                 ' See issue https://github.com/dotnet/roslyn/issues/15302
-                Await state.AssertSelectedCompletionItem(displayText:="as", isHardSelected:=False)
+                Await state.AssertSelectedCompletionItem(displayText:="as", isHardSelected:=True)
 
                 state.SendTypeChars(", var as")
                 state.SendBackspace()
@@ -532,7 +532,7 @@ class Variable
 
                 state.SendReturn()
                 Await state.AssertNoCompletionSession()
-                Assert.Contains("(var a, var a", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+                Assert.Contains("(var as, var a", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
         End Function
 
@@ -2911,7 +2911,7 @@ class Program
                 state.Workspace.Options = state.Workspace.Options.WithChangedOption(key, True)
 
                 state.SendBackspace()
-                Await state.AssertSelectedCompletionItem(displayText:="Environment", isHardSelected:=False)
+                Await state.AssertSelectedCompletionItem(displayText:="Environment", isHardSelected:=True)
             End Using
         End Function
 
