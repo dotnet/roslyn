@@ -17,10 +17,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
         public class Operation : CodeActionOperation
         {
-            private ISymbol _symbol;
-            private string _newName;
-            private Solution _startingSolution;
-            private Solution _updatedSolution;
+            public ISymbol _symbol;
+            public string _newName;
+            public Solution _startingSolution;
+            public Solution _updatedSolution;
 
             public Operation(ISymbol symbol, string newName, Solution startingSolution, Solution updatedSolution)
             {
