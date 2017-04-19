@@ -140,6 +140,30 @@ namespace Microsoft.CodeAnalysis.PatternMatching
             bool punctuationStripped,
             bool fuzzyMatch)
         {
+            return fuzzyMatch
+                ? FuzzyyMatchPatternChunk(candidate, patternChunk, punctuationStripped)
+                : NonFuzzyMatchPatternChunk(candidate, patternChunk, punctuationStripped);
+        }
+
+        private PatternMatch? FuzzyyMatchPatternChunk(
+            string candidate,
+            TextChunk patternChunk,
+            bool punctuationStripped)
+        {
+            if (patternChunk.SimilarityChecker.AreSimilar(candidate))
+            {
+                return new PatternMatch(
+                    PatternMatchKind.Fuzzy, punctuationStripped, isCaseSensitive: false, matchedSpan: null);
+            }
+
+            return null;
+        }
+
+        private PatternMatch? NonFuzzyMatchPatternChunk(
+            string candidate,
+            TextChunk patternChunk,
+            bool punctuationStripped)
+        {
             int caseInsensitiveIndex = _compareInfo.IndexOf(candidate, patternChunk.Text, CompareOptions.IgnoreCase);
             if (caseInsensitiveIndex == 0)
             {
@@ -242,15 +266,6 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                             PatternMatchKind.Substring, punctuationStripped, isCaseSensitive: false,
                             matchedSpan: GetMatchedSpan(caseInsensitiveIndex, patternChunk.Text.Length));
                     }
-                }
-            }
-
-            if (fuzzyMatch)
-            {
-                if (patternChunk.SimilarityChecker.AreSimilar(candidate))
-                {
-                    return new PatternMatch(
-                        PatternMatchKind.Fuzzy, punctuationStripped, isCaseSensitive: false, matchedSpan: null);
                 }
             }
 
