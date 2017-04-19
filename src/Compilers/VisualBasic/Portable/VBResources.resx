@@ -5476,4 +5476,7 @@
   <data name="ERR_BadSourceCodeKind" xml:space="preserve">
     <value>Provided source code kind is unsupported or invalid: '{0}'</value>
   </data>
+  <data name="FEATURE_ImplicitDefaultOptionalParameter" xml:space="preserve">
+    <value>ImplicitDefaultOptionalParameter</value>
+  </data>
 </root>

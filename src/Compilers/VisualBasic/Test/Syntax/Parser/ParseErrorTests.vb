@@ -1441,11 +1441,12 @@ End Class
                             End Function
                         End Class
                 ]]>,
-            <errors>
-                <error id="30200"/>
-                <error id="30201"/>
-                <error id="30812"/>
-            </errors>)
+                       Diagnostic(ERRID.ERR_InvalidNewInType, "").WithLocation(3, 65))
+        '<errors>
+        '    <error id="30200"/>
+        '    '<error id="30201"/>
+        '    '<error id="30812"/>
+        '</errors>)
     End Sub
 
     <Fact()>
@@ -2226,9 +2227,10 @@ End Module
             ]]>,
         <errors>
             <error id="30642"/>
-            <error id="30812"/>
-            <error id="30201"/>
         </errors>)
+        '    <error id="30812"/>
+        '    <error id="30201"/>
+        '</errors>)
     End Sub
 
     <Fact()>
@@ -2537,10 +2539,12 @@ End Module
                     End Function
                 End Class
             ]]>.Value
-        ParseAndVerify(code, <errors>
-                                 <error id="30812"/>
-                                 <error id="30201"/>
-                             </errors>)
+        AssertNoErrors(Parse(code).GetDiagnostics.AsImmutable)
+        'ParseAndVerify(code, <errors></errors>)
+        ''ParseAndVerify(code, <errors>
+        ''                         <error id="30812"/>
+        ''                         <error id="30201"/>
+        ''                     </errors>)
     End Sub
 
     <Fact()>

@@ -2004,5 +2004,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         FEATURE_BinaryLiterals
         FEATURE_Tuples
         FEATURE_IOperation
+        FEATURE_ImplicitDefaultOptionalParameter
     End Enum
 End Namespace

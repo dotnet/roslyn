@@ -4545,14 +4545,17 @@ checkNullable:
                     Dim paramSpecifiers As ParameterSpecifiers = 0
                     Dim modifiers = ParseParameterSpecifiers(paramSpecifiers)
                     Dim param = ParseParameter(attributes, modifiers)
-
-                    ' TODO - Bug 889301 - Dev10 does a resync here when there is an error.  That prevents ERRID_InvalidParameterSyntax below from
-                    ' being reported. For now keep backwards compatibility.
-                    If param.ContainsDiagnostics Then
+                    If CheckFeatureAvailability(Feature.ImplicitDefaultOptionalParameter) Then
+                        param = param.AddTrailingSyntax(ResyncAt({SyntaxKind.CommaToken, SyntaxKind.CloseParenToken}))
+                    Else
+                        ' TODO - Bug 889301 - Dev10 does a resync here when there is an error.  That prevents ERRID_InvalidParameterSyntax below from
+                        ' being reported. For now keep backwards compatibility.
+                        If param.ContainsDiagnostics Then
                         param = param.AddTrailingSyntax(ResyncAt({SyntaxKind.CommaToken, SyntaxKind.CloseParenToken}))
                     End If
+                    End If
 
-                    Dim comma As PunctuationSyntax = Nothing
+            Dim comma As PunctuationSyntax = Nothing
                     If Not TryGetTokenAndEatNewLine(SyntaxKind.CommaToken, comma) Then
 
                         If CurrentToken.Kind <> SyntaxKind.CloseParenToken AndAlso Not MustEndStatement(CurrentToken) Then
@@ -4724,10 +4727,10 @@ checkNullable:
                 value = ParseExpressionCore()
 
             ElseIf modifiers.Any AndAlso modifiers.Any(SyntaxKind.OptionalKeyword) Then
-
-                equals = ReportSyntaxError(InternalSyntaxFactory.MissingPunctuation(SyntaxKind.EqualsToken), ERRID.ERR_ObsoleteOptionalWithoutValue)
-                value = ParseExpressionCore()
-
+                If Not CheckFeatureAvailability(Feature.ImplicitDefaultOptionalParameter) Then
+                    equals = ReportSyntaxError(InternalSyntaxFactory.MissingPunctuation(SyntaxKind.EqualsToken), ERRID.ERR_ObsoleteOptionalWithoutValue)
+                    value = ParseExpressionCore()
+                End If
             End If
 
             Dim initializer As EqualsValueSyntax = Nothing

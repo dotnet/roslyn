@@ -33,6 +33,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         BinaryLiterals
         Tuples
         IOperation
+        ImplicitDefaultOptionalParameter
     End Enum
 
     Friend Module FeatureExtensions
@@ -41,7 +42,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Select Case feature
                 Case feature.IOperation
                     Return "IOperation"
-
+                Case Feature.ImplicitDefaultOptionalParameter
+                    Return "ImplicitDefaultOptionalParameter"
                 Case Else
                     Return Nothing
             End Select
@@ -83,7 +85,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                 Case Feature.Tuples,
                     Feature.BinaryLiterals,
-                    Feature.DigitSeparators
+                    Feature.DigitSeparators,
+                    Feature.ImplicitDefaultOptionalParameter
                     Return LanguageVersion.VisualBasic15
 
                 Case Else
@@ -149,6 +152,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     Return ERRID.FEATURE_Tuples
                 Case Feature.IOperation
                     Return ERRID.FEATURE_IOperation
+                Case Feature.ImplicitDefaultOptionalParameter
+                    Return ERRID.FEATURE_ImplicitDefaultOptionalParameter
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(feature)
             End Select
