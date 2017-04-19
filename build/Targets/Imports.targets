@@ -464,7 +464,7 @@
              Targets="GetTargetPath"
              BuildInParallel="true">
 
-        <Output TaskParameter="TargetOutputs" ItemName="ReferenceCopyLocalPaths" Condition="Exists(@TargetOutputs)" />
+      <Output TaskParameter="TargetOutputs" ItemName="ReferenceCopyLocalPaths" />
     </MSBuild>
   </Target>
 
