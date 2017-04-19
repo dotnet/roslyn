@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     internal sealed partial class SyntaxTreeIndex : IObjectWritable
     {
         private const string PersistenceName = "<TreeInfoPersistence>";
-        private const string SerializationFormat = "3";
+        private const string SerializationFormat = "6";
 
         /// <summary>
         /// in memory cache will hold onto any info related to opened documents in primary branch or all documents in forked branch

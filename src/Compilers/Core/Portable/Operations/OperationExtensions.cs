@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using Roslyn.Utilities;
 
@@ -44,6 +45,20 @@ namespace Microsoft.CodeAnalysis.Semantics
             {
                 return null;
             }
+        }
+
+        public static ImmutableArray<ILocalSymbol> GetDeclaredVariables(this IVariableDeclarationStatement declarationStatement)
+        {
+            var arrayBuilder = ArrayBuilder<ILocalSymbol>.GetInstance();
+            foreach (IVariableDeclaration group in declarationStatement.Declarations)
+            {
+                foreach (ILocalSymbol symbol in group.Variables)
+                {
+                    arrayBuilder.Add(symbol);
+                }
+            }
+
+            return arrayBuilder.ToImmutableAndFree();
         }
 
         private sealed class OperationCollector : OperationWalker
