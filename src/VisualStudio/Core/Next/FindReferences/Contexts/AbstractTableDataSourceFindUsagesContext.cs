@@ -282,6 +282,9 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             private async Task<ClassifiedSpansAndHighlightSpan> GetClassifiedSpansAndHighlightSpan(
                 SourceText sourceText, DocumentSpan documentSpan)
             {
+                // If the document span is providing us with the classified spans up front, then we
+                // can just use that.  Otherwise, go back and actually classify the text for the line
+                // the document span is on.
                 if (documentSpan.Properties.TryGetValue(nameof(ClassifiedSpansAndHighlightSpan), out var encoded))
                 {
                     return (ClassifiedSpansAndHighlightSpan)encoded;
