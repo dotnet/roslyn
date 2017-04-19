@@ -30,6 +30,8 @@ namespace Microsoft.CodeAnalysis.PatternMatching
 
             public override void Dispose()
             {
+                base.Dispose();
+
                 foreach (var segment in _patternSegments)
                 {
                     segment.Dispose();

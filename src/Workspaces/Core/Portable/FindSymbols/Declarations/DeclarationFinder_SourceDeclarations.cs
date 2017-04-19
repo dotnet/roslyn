@@ -179,26 +179,31 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         internal static async Task<ImmutableArray<SymbolAndProjectId>> FindSourceDeclarationsWithNormalQueryInCurrentProcessAsync(
             Solution solution, string name, bool ignoreCase, SymbolFilter criteria, CancellationToken cancellationToken)
         {
-            var query = SearchQuery.Create(name, ignoreCase);
-            var result = ArrayBuilder<SymbolAndProjectId>.GetInstance();
-            foreach (var projectId in solution.ProjectIds)
+            using (var query = SearchQuery.Create(name, ignoreCase))
             {
-                var project = solution.GetProject(projectId);
-                await AddCompilationDeclarationsWithNormalQueryAsync(
-                    project, query, criteria, result, cancellationToken).ConfigureAwait(false);
-            }
+                var result = ArrayBuilder<SymbolAndProjectId>.GetInstance();
+                foreach (var projectId in solution.ProjectIds)
+                {
+                    var project = solution.GetProject(projectId);
+                    await AddCompilationDeclarationsWithNormalQueryAsync(
+                        project, query, criteria, result, cancellationToken).ConfigureAwait(false);
+                }
 
-            return result.ToImmutableAndFree();
+                return result.ToImmutableAndFree();
+            }
         }
 
         internal static async Task<ImmutableArray<SymbolAndProjectId>> FindSourceDeclarationsWithNormalQueryInCurrentProcessAsync(
             Project project, string name, bool ignoreCase, SymbolFilter filter, CancellationToken cancellationToken)
         {
             var list = ArrayBuilder<SymbolAndProjectId>.GetInstance();
-            await AddCompilationDeclarationsWithNormalQueryAsync(
-                project, SearchQuery.Create(name, ignoreCase),
-                filter, list, cancellationToken).ConfigureAwait(false);
-            return list.ToImmutableAndFree();
+
+            using (var query = SearchQuery.Create(name, ignoreCase))
+            {
+                await AddCompilationDeclarationsWithNormalQueryAsync(
+                    project, query, filter, list, cancellationToken).ConfigureAwait(false);
+                return list.ToImmutableAndFree();
+            }
         }
 
         internal static async Task<ImmutableArray<SymbolAndProjectId>> FindSourceDeclarationsWithPatternInCurrentProcessAsync(
@@ -221,21 +226,16 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 : PatternMatcher.CreatePatternMatcher(pattern.Substring(dotIndex + 1), includeMatchedSpans: false);
 
             using (lastPartPatternMatcher)
+            using (var query = SearchQuery.CreateCustom(lastPartPatternMatcher.Matches))
             {
-                var query = SearchQuery.CreateCustom(lastPartPatternMatcher.Matches);
-
                 var symbolAndProjectIds = await SymbolFinder.FindSourceDeclarationsWithCustomQueryAsync(
                     project, query, criteria, cancellationToken).ConfigureAwait(false);
 
-                if (symbolAndProjectIds.Length == 0)
+                if (symbolAndProjectIds.Length == 0 ||
+                    !isDottedPattern)
                 {
-                    return ImmutableArray<SymbolAndProjectId>.Empty;
-                }
-
-                if (!isDottedPattern)
-                {
-                    // If it wasn't a dotted pattern, then we're done.  We can just return whatever
-                    // set of results we got so far.
+                    // If it wasn't a dotted pattern, or we didn't get anything back, then we're done.
+                    // We can just return whatever set of results we got so far.
                     return symbolAndProjectIds;
                 }
 

@@ -474,7 +474,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
         private static IList<string> PartListToSubstrings(string identifier, StringBreaks parts)
         {
             var result = new List<string>();
-            for (var i = 0; i < parts.Count; i++)
+            for (int i = 0, n = parts.GetCount(); i < n; i++)
             {
                 var span = parts[i];
                 result.Add(identifier.Substring(span.Start, span.Length));

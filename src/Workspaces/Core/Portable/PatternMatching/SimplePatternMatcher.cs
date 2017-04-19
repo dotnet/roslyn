@@ -25,6 +25,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
 
             public override void Dispose()
             {
+                base.Dispose();
                 _fullPatternSegment.Dispose();
             }
 
