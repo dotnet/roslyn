@@ -141,6 +141,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // of the function where the enumerable is returned.
             if (localFuncSymbol.IsIterator)
             {
+                //This causes an exception later if one of the parameters is out or ref
+                //Added the check bellow if (branch != null) to not check for LeaveParameters
                 PendingBranches.Add(new PendingBranch(null, this.State));
             }
 
@@ -163,9 +165,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 this.State = pending.State;
                 BoundNode branch = pending.Branch;
-                LeaveParameters(localFuncSymbol.Parameters, branch?.Syntax,
-                                branch?.WasCompilerGenerated == true
-                                    ? location : null);
+
+                if (branch != null)//No need to check the parameters if we dont know the branch -> Causes NullReferenceException in ReportUnassignedOutParameter location = new SourceLocation(node);
+                {
+                    LeaveParameters(localFuncSymbol.Parameters, branch?.Syntax,
+                                    branch?.WasCompilerGenerated == true
+                                        ? location : null);
+                }
+
                 IntersectWith(ref stateAtReturn, ref this.State);
             }
 
