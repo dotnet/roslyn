@@ -4,9 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Globalization;
-using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.PatternMatching;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -238,7 +236,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 
         [InlineData("my[|_b|]utton", "_B", PatternMatchKind.CamelCase, CaseInsensitive, PatternMatcher.CamelCaseContiguousBonus)]
         [InlineData("[|_|]my_[|b|]utton", "_B", PatternMatchKind.CamelCase, CaseInsensitive, PatternMatcher.CamelCaseMatchesFromStartBonus)]
-        public void TestGetFirstMatch(
+        public void TestNonFuzzyMatch(
             string candidate, string pattern, int matchKindInt, bool isCaseSensitive, int? camelCaseWeight = null)
         {
             var match = TestNonFuzzyMatch(candidate, pattern);
@@ -274,7 +272,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
         [InlineData("_mybutton", "myB")]
         [InlineData("FogBarChangedEventArgs", "changedeventarrrgh")]
         [InlineData("runtime.native.system", "system.reflection")]
-        public void TestGetFirstMatch_NoMatch(string candidate, string pattern)
+        public void TestNonFuzzyMatch_NoMatch(string candidate, string pattern)
         {
             var match = TestNonFuzzyMatch(candidate, pattern);
             Assert.Null(match);
