@@ -241,7 +241,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
         public void TestGetFirstMatch(
             string candidate, string pattern, int matchKindInt, bool isCaseSensitive, int? camelCaseWeight = null)
         {
-            var match = TestGetFirstMatch(candidate, pattern);
+            var match = TestNonFuzzyMatch(candidate, pattern);
             Assert.NotNull(match);
 
             var matchKind = (PatternMatchKind)matchKindInt;
@@ -276,7 +276,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
         [InlineData("runtime.native.system", "system.reflection")]
         public void TestGetFirstMatch_NoMatch(string candidate, string pattern)
         {
-            var match = TestGetFirstMatch(candidate, pattern);
+            var match = TestNonFuzzyMatch(candidate, pattern);
             Assert.Null(match);
         }
 
@@ -475,7 +475,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 
             try
             {
-                var match = TestGetFirstMatch("[|ioo|]", "\u0130oo"); // u0130 = Capital I with dot
+                var match = TestNonFuzzyMatch("[|ioo|]", "\u0130oo"); // u0130 = Capital I with dot
 
                 Assert.Equal(PatternMatchKind.Exact, match.Value.Kind);
                 Assert.False(match.Value.IsCaseSensitive);
@@ -504,12 +504,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
         private static IList<string> BreakIntoWordParts(string identifier)
             => PartListToSubstrings(identifier, StringBreaker.BreakIntoWordParts(identifier));
 
-        private static PatternMatch? TestGetFirstMatch(string candidate, string pattern)
+        private static PatternMatch? TestNonFuzzyMatch(string candidate, string pattern)
         {
             MarkupTestFile.GetSpans(candidate, out candidate, out ImmutableArray<TextSpan> spans);
 
-            var match = new PatternMatcher(pattern).GetFirstMatch(
-                candidate, includeMatchSpans: true, fuzzyMatch: false);
+            var match = new PatternMatcher(pattern).GetFirstMatch(candidate, includeMatchSpans: true);
+            if (match?.Kind == PatternMatchKind.Fuzzy)
+            {
+                match = null;
+            }
 
             if (match == null)
             {
