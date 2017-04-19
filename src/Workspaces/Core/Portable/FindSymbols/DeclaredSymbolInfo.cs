@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -19,60 +20,115 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         Enum,
         EnumMember,
         Event,
+        ExtensionMethod,
         Field,
         Indexer,
         Interface,
         Method,
         Module,
         Property,
-        Struct
+        Struct,
     }
 
     internal struct DeclaredSymbolInfo
     {
+        /// <summary>
+        /// The name to pattern match against, and to show in a final presentation layer.
+        /// </summary>
         public string Name { get; }
+
+        /// <summary>
+        /// An optional suffix to be shown in a presentation layer appended to <see cref="Name"/>.
+        /// Can be null.
+        /// </summary>
+        public string NameSuffix { get; }
+
+        /// <summary>
+        /// Container of the symbol that can be shown in a final presentation layer. 
+        /// For example, the container of a type "KeyValuePair" might be 
+        /// "System.Collections.Generic.Dictionary&lt;TKey, TValue&gt;".  This can 
+        /// then be shown with something like "type System.Collections.Generic.Dictionary&lt;TKey, TValue&gt;"
+        /// to indicate where the symbol is located.
+        /// </summary>
         public string ContainerDisplayName { get; }
+
+        /// <summary>
+        /// Dotted container name of the symbol, used for pattern matching.  For example
+        /// The fully qualified container of a type "KeyValuePair" would be 
+        /// "System.Collections.Generic.Dictionary" (note the lack of type parameters).
+        /// This way someone can search for "D.KVP" and have the "D" part of the pattern
+        /// match against this.  This should not be shown in a presentation layer.
+        /// </summary>
         public string FullyQualifiedContainerName { get; }
-        public DeclaredSymbolInfoKind Kind { get; }
+
         public TextSpan Span { get; }
-        public ushort ParameterCount { get; }
-        public ushort TypeParameterCount { get; }
+
+        // Store the kind, accessibility, parameter-count, and type-parameter-count
+        // in a single int.  Each gets 4 bits which is ample and gives us more space
+        // for flags in the future.
+        private readonly uint _flags;
+
+        private const uint Lower4BitMask = 0b1111;
+
+        public DeclaredSymbolInfoKind Kind => GetKind(_flags);
+        public Accessibility Accessibility => GetAccessibility(_flags);
+        public byte ParameterCount => GetParameterCount(_flags);
+        public byte TypeParameterCount => GetTypeParameterCount(_flags);
 
         /// <summary>
         /// The names directly referenced in source that this type inherits from.
         /// </summary>
-        public ImmutableArray<string> InheritanceNames { get; } 
+        public ImmutableArray<string> InheritanceNames { get; }
 
         public DeclaredSymbolInfo(
             string name,
+            string nameSuffix,
             string containerDisplayName,
             string fullyQualifiedContainerName,
             DeclaredSymbolInfoKind kind,
+            Accessibility accessibility,
             TextSpan span,
             ImmutableArray<string> inheritanceNames,
-            ushort parameterCount = 0, ushort typeParameterCount = 0)
+            int parameterCount = 0, int typeParameterCount = 0)
             : this()
         {
             Name = name;
+            NameSuffix = nameSuffix;
             ContainerDisplayName = containerDisplayName;
             FullyQualifiedContainerName = fullyQualifiedContainerName;
-            Kind = kind;
             Span = span;
-            ParameterCount = parameterCount;
-            TypeParameterCount = typeParameterCount;
             InheritanceNames = inheritanceNames;
+
+            const uint MaxFlagValue = 0b1111;
+            Contract.ThrowIfTrue((uint)accessibility > MaxFlagValue);
+            Contract.ThrowIfTrue((uint)kind > MaxFlagValue);
+            parameterCount = Math.Min(parameterCount, (byte)MaxFlagValue);
+            typeParameterCount = Math.Min(typeParameterCount, (byte)MaxFlagValue);
+
+            _flags = (uint)kind | ((uint)accessibility << 4) | ((uint)parameterCount << 8) | ((uint)typeParameterCount << 12);
         }
+
+        private static DeclaredSymbolInfoKind GetKind(uint flags)
+            => (DeclaredSymbolInfoKind)(flags & Lower4BitMask);
+
+        private static Accessibility GetAccessibility(uint flags)
+            => (Accessibility)((flags >> 4) & Lower4BitMask);
+
+        private static byte GetParameterCount(uint flags)
+            => (byte)((flags >> 8) & Lower4BitMask);
+
+        private static byte GetTypeParameterCount(uint flags)
+            => (byte)((flags >> 12) & Lower4BitMask);
 
         internal void WriteTo(ObjectWriter writer)
         {
             writer.WriteString(Name);
+            writer.WriteString(NameSuffix);
             writer.WriteString(ContainerDisplayName);
             writer.WriteString(FullyQualifiedContainerName);
-            writer.WriteByte((byte)Kind);
+            writer.WriteUInt32(_flags);
             writer.WriteInt32(Span.Start);
             writer.WriteInt32(Span.Length);
-            writer.WriteUInt16(ParameterCount);
-            writer.WriteUInt16(TypeParameterCount);
             writer.WriteInt32(InheritanceNames.Length);
 
             foreach (var name in InheritanceNames)
@@ -84,24 +140,32 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         internal static DeclaredSymbolInfo ReadFrom_ThrowsOnFailure(ObjectReader reader)
         {
             var name = reader.ReadString();
-            var immediateContainer = reader.ReadString();
-            var entireContainer = reader.ReadString();
-            var kind = (DeclaredSymbolInfoKind)reader.ReadByte();
+            var nameSuffix = reader.ReadString();
+            var containerDisplayName = reader.ReadString();
+            var fullyQualifiedContainerName = reader.ReadString();
+            var flags = reader.ReadUInt32();
             var spanStart = reader.ReadInt32();
             var spanLength = reader.ReadInt32();
-            var parameterCount = reader.ReadUInt16();
-            var typeParameterCount = reader.ReadUInt16();
 
             var inheritanceNamesLength = reader.ReadInt32();
-            var builder = ImmutableArray.CreateBuilder<string>(inheritanceNamesLength);
+            var builder = ArrayBuilder<string>.GetInstance(inheritanceNamesLength);
             for (var i = 0; i < inheritanceNamesLength; i++)
             {
                 builder.Add(reader.ReadString());
             }
 
+            var span = new TextSpan(spanStart, spanLength);
             return new DeclaredSymbolInfo(
-                name, immediateContainer, entireContainer, kind, new TextSpan(spanStart, spanLength),
-                builder.MoveToImmutable(), parameterCount, typeParameterCount);
+                name: name,
+                nameSuffix: nameSuffix,
+                containerDisplayName: containerDisplayName,
+                fullyQualifiedContainerName: fullyQualifiedContainerName,
+                kind: GetKind(flags),
+                accessibility: GetAccessibility(flags),
+                span: span,
+                inheritanceNames: builder.ToImmutableAndFree(),
+                parameterCount: GetParameterCount(flags),
+                typeParameterCount: GetTypeParameterCount(flags));
         }
 
         public async Task<ISymbol> TryResolveAsync(Document document, CancellationToken cancellationToken)
