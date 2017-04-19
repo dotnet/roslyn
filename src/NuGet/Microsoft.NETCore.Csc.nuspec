@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
+  <metadata>
+    <id>Microsoft.NETCore.Csc</id>
+    <description>
+      CoreCLR-compatible version of the C# compiler for use in MSBuild.
+    </description>
+    <language>en-US</language>
+    <requireLicenseAcceptance>true</requireLicenseAcceptance>
+    <version>$version$</version>
+    <authors>$authors$</authors>
+    <licenseUrl>$licenseUrl$</licenseUrl>
+    <projectUrl>$projectUrl$</projectUrl>
+    <tags>$tags$</tags>
+    <serviceable>true</serviceable>
+    <developmentDependency>true</developmentDependency>
+  </metadata>
+  <files>
+    <file src="$netcoreCscPropsPath$" target="build/Microsoft.NETCore.Csc.props" />
+    <file src="Dlls/CodeAnalysis/Microsoft.CodeAnalysis.dll" target="tools" />
+    <file src="Dlls/CSharpCodeAnalysis/Microsoft.CodeAnalysis.CSharp.dll" target="tools" />
+    <file src="Exes/CscCore/csc.exe" target="tools" />
+    <file src="Exes/CscCore/csc.deps.json" target="tools" />
+    <file src="Exes/CscCore/csc.runtimeconfig.json" target="tools" />
+    <file src="$runCscShPath$" target="tools/RunCsc" />
+    <file src="$runCscCmdPath$" target="tools" />
+    <file src="Dlls/MSBuildTask/Microsoft.Build.Tasks.CodeAnalysis.dll" target="tools" />
+    <file src="Dlls/MSbuildTask/Microsoft.CSharp.Core.targets" target="tools" />
+
+    <!-- References that are either not in the target framework or are a higher version -->
+    <file src="Exes/CscCore/System.Collections.Immutable.dll" target="tools" />
+    <file src="Exes/CscCore/System.Reflection.Metadata.dll" target="tools" />
+    <file src="Exes/CscCore/System.ValueTuple.dll" target="tools" />
+    <file src="Exes/CscCore/System.Xml.XmlDocument.dll" target="tools" />
+    <file src="Exes/CscCore/System.Xml.XPath.dll" target="tools" />
+    <file src="Exes/CscCore/System.Xml.XPath.XDocument.dll" target="tools" />
+  </files>
+</package>

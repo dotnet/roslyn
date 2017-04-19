@@ -77,6 +77,9 @@ var IsCoreBuild = File.Exists(Path.Combine(ToolsetPath, "corerun"));
 var NuGetAdditionalFilesPath = Path.Combine(SolutionRoot, "build/NuGetAdditionalFiles");
 var ThirdPartyNoticesPath = Path.Combine(NuGetAdditionalFilesPath, "ThirdPartyNotices.rtf");
 var NetCompilersPropsPath = Path.Combine(NuGetAdditionalFilesPath, "Microsoft.Net.Compilers.props");
+var NetcoreCscPropsPath = Path.Combine(NuGetAdditionalFilesPath, "Microsoft.NETCore.Csc.props");
+var RunCscShPath = Path.Combine(NuGetAdditionalFilesPath, "RunCsc");
+var RunCscCmdPath = Path.Combine(NuGetAdditionalFilesPath, "RunCsc.cmd");
 
 string[] RedistPackageNames = {
     "Microsoft.CodeAnalysis",
@@ -110,6 +113,7 @@ string[] NonRedistPackageNames = {
     "Microsoft.Net.Compilers",
     "Microsoft.Net.Compilers.netcore",
     "Microsoft.Net.CSharp.Interactive.netcore",
+    "Microsoft.NETCore.Csc",
     "Microsoft.VisualStudio.IntegrationTest.Utilities",
     "Microsoft.VisualStudio.LanguageServices.Razor.RemoteClient",
 };
@@ -127,6 +131,7 @@ var PreReleaseOnlyPackages = new HashSet<string>
     "Microsoft.CodeAnalysis.VisualBasic.Scripting",
     "Microsoft.Net.Compilers.netcore",
     "Microsoft.Net.CSharp.Interactive.netcore",
+    "Microsoft.NETCore.Csc",
     "Microsoft.CodeAnalysis.Remote.Razor.ServiceHub",
     "Microsoft.CodeAnalysis.Remote.ServiceHub",
     "Microsoft.CodeAnalysis.Remote.Workspaces",
@@ -206,6 +211,9 @@ int PackFiles(string[] nuspecFiles, string licenseUrl)
         { "thirdPartyNoticesPath", ThirdPartyNoticesPath },
         { "netCompilersPropsPath", NetCompilersPropsPath },
         { "emptyDirPath", emptyDir },
+        { "netcoreCscPropsPath", NetcoreCscPropsPath },
+        { "runCscShPath", RunCscShPath },
+        { "runCscCmdPath", RunCscCmdPath },
     };
 
     foreach (var dependencyVersion in dependencyVersions)
