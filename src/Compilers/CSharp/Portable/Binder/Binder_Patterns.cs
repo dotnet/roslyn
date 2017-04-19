@@ -190,10 +190,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case ConversionKind.ImplicitReference:
                     case ConversionKind.ValueTypeUnboxing:
                     case ConversionKind.TypeParameterUnboxing:
-                    case ConversionKind.NullLiteral:
                     case ConversionKind.ImplicitNullable:
                         // these are the conversions allowed by a pattern match
                         break;
+                    case ConversionKind.DefaultOrNullLiteral:
+                        throw ExceptionUtilities.UnexpectedValue(conversion.Kind);
                     //case ConversionKind.ExplicitNumeric:  // we do not perform numeric conversions of the operand
                     //case ConversionKind.ImplicitConstant:
                     //case ConversionKind.ImplicitNumeric:

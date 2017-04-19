@@ -945,6 +945,36 @@ ignoreTrivia: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
+        [WorkItem(18311, "https://github.com/dotnet/roslyn/issues/18311")]
+        public async Task TestTupleWith1Arity()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+class Program
+{
+    static void Main(string[] args)
+    {
+        ValueTuple<int> y = ValueTuple.Create(1);
+        [|y.Item1.ToString();|]
+    }
+}" + TestResources.NetFX.ValueTuple.tuplelib_cs,
+@"using System;
+class Program
+{
+    static void Main(string[] args)
+    {
+        ValueTuple<int> y = ValueTuple.Create(1);
+        {|Rename:NewMethod|}(y);
+    }
+
+    private static void NewMethod(ValueTuple<int> y)
+    {
+        y.Item1.ToString();
+    }
+}" + TestResources.NetFX.ValueTuple.tuplelib_cs);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
         [WorkItem(11196, "https://github.com/dotnet/roslyn/issues/11196")]
         public async Task TestTupleLiteralWithNames()
         {

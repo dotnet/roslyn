@@ -15,14 +15,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void ImplicitClassSymbol()
         {
-            var c = CreateCompilationWithMscorlib(@"
+            var c = CreateCompilation(@"
 namespace N
 {
     void Foo()
     {
     }
 }
-");
+", new[] { MscorlibRef });
             var n = ((NamespaceSymbol)c.Assembly.GlobalNamespace.GetMembers("N").Single());
             var implicitClass = ((NamedTypeSymbol)n.GetMembers().Single());
             Assert.Equal(0, implicitClass.GetAttributes().Length);
@@ -46,7 +46,7 @@ namespace N
         [Fact]
         public void ScriptClassSymbol()
         {
-            var c = CreateCompilationWithMscorlib(@"
+            var c = CreateStandardCompilation(@"
 base.ToString();
 void Foo()
 {
@@ -89,7 +89,7 @@ event System.Action e;
         [Fact]
         public void AliasQualifiedNamespaceName()
         {
-            var comp = CreateCompilationWithMscorlib(@"
+            var comp = CreateStandardCompilation(@"
 namespace N::A
 {
     void Foo()

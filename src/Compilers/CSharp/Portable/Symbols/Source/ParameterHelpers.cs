@@ -28,10 +28,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             int firstDefault = -1;
 
             var builder = ArrayBuilder<ParameterSymbol>.GetInstance();
-            ImmutableArray<ParameterSymbol> parameters;
+            var mustBeLastParameter = (ParameterSyntax)null;
 
             foreach (var parameterSyntax in syntax.Parameters)
             {
+                if (mustBeLastParameter == null)
+                {
+                    if (parameterSyntax.Modifiers.Any(SyntaxKind.ParamsKeyword) ||
+                        parameterSyntax.Identifier.Kind() == SyntaxKind.ArgListKeyword)
+                    {
+                        mustBeLastParameter = parameterSyntax;
+                    }
+                }
+
                 CheckParameterModifiers(parameterSyntax, diagnostics);
 
                 var refKind = GetModifiers(parameterSyntax.Modifiers,
@@ -92,7 +101,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 ++parameterIndex;
             }
 
-            parameters = builder.ToImmutableAndFree();
+            if (mustBeLastParameter != null && mustBeLastParameter != syntax.Parameters.Last())
+            {
+                diagnostics.Add(
+                    mustBeLastParameter.Identifier.Kind() == SyntaxKind.ArgListKeyword
+                        ? ErrorCode.ERR_VarargsLast
+                        : ErrorCode.ERR_ParamsLast,
+                    mustBeLastParameter.GetLocation());
+            }
+
+            ImmutableArray<ParameterSymbol> parameters = builder.ToImmutableAndFree();
 
             var methodOwner = owner as MethodSymbol;
             var typeParameters = (object)methodOwner != null ?
@@ -429,7 +447,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // Also when valuetype S has a parameterless constructor, 
             // new S() is clearly not a constant expression and should produce an error
             return (expression.ConstantValue != null) ||
-                   (expression.Kind == BoundKind.DefaultOperator) ||
+                   (expression.Kind == BoundKind.DefaultExpression) ||
                    (expression.Kind == BoundKind.ObjectCreationExpression &&
                        IsValidDefaultValue((BoundObjectCreationExpression)expression));
         }

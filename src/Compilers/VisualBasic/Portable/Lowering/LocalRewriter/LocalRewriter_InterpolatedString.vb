@@ -184,7 +184,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
 ReturnBadExpression:
             ReportDiagnostic(node, ErrorFactory.ErrorInfo(ERRID.ERR_InterpolatedStringFactoryError, factoryType.Name, factoryMethodName), _diagnostics)
-            Return factory.Convert(targetType, factory.BadExpression(MyBase.VisitInterpolatedStringExpression(node)))
+            Return factory.Convert(targetType, factory.BadExpression(DirectCast(MyBase.VisitInterpolatedStringExpression(node), BoundExpression)))
 
         End Function
 

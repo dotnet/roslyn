@@ -10,14 +10,19 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
     /// <summary>
     /// Provides a means of interacting with the interactive window in the Visual Studio host.
     /// </summary>
-    public abstract class InteractiveWindow_OutOfProc : TextViewWindow_OutOfProc
+    public abstract partial class InteractiveWindow_OutOfProc : TextViewWindow_OutOfProc
     {
         private readonly InteractiveWindow_InProc _interactiveWindowInProc;
+        private readonly VisualStudioInstance _instance;
+
+        public new Verifier Verify { get; }
 
         internal InteractiveWindow_OutOfProc(VisualStudioInstance visualStudioInstance)
             : base(visualStudioInstance)
         {
+            _instance = visualStudioInstance;
             _interactiveWindowInProc = (InteractiveWindow_InProc)_textViewWindowInProc;
+            Verify = new Verifier(this, visualStudioInstance);
         }
 
         public void Initialize()
@@ -37,6 +42,15 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
         public string GetReplText()
             => _interactiveWindowInProc.GetReplText();
+
+        public void ClearReplText()
+        {
+            // Dismiss the pop-up (if any)
+            _instance.ExecuteCommand(WellKnownCommandNames.Edit_SelectionCancel);
+
+            // Clear the line
+            _instance.ExecuteCommand(WellKnownCommandNames.Edit_SelectionCancel);
+        }
 
         /// <summary>
         /// Gets the contents of the REPL window without the prompt text.

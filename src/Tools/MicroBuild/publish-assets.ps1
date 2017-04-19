@@ -39,6 +39,7 @@ try
     {
         "dev15.0.x" { } 
         "dev15.1.x" { } 
+        "dev15.2.x" { } 
         "master" { } 
         default
         {

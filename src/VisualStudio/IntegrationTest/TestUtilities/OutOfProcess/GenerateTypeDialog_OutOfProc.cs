@@ -69,7 +69,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public void ClickOK()
         {
             DialogHelpers.PressButtonWithName(GetMainWindowHWnd(), GenerateTypeDialogID, "OK");
-            VisualStudioInstance.VisualStudioWorkspace.WaitForAsyncOperations(FeatureAttribute.LightBulb);
+            VisualStudioInstance.Workspace.WaitForAsyncOperations(FeatureAttribute.LightBulb);
         }
 
         /// <summary>
@@ -78,7 +78,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public void ClickCancel()
         {
             DialogHelpers.PressButtonWithName(GetMainWindowHWnd(), GenerateTypeDialogID, "Cancel");
-            VisualStudioInstance.VisualStudioWorkspace.WaitForAsyncOperations(FeatureAttribute.LightBulb);
+            VisualStudioInstance.Workspace.WaitForAsyncOperations(FeatureAttribute.LightBulb);
         }
 
         public string[] GetNewFileComboBoxItems()

@@ -15,6 +15,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 
         [Test.Utilities.WorkItem(1825 , "https://github.com/dotnet/roslyn-project-system/issues/1825")]
         [Fact(Skip = "https://github.com/dotnet/roslyn-project-system/issues/1825"), Trait(Traits.Feature, Traits.Features.ErrorList)]
+        [Trait(Traits.Feature, Traits.Features.NetCore)]
         public override void ErrorList()
         {
             base.ErrorList();
@@ -22,6 +23,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 
         [Test.Utilities.WorkItem(1825 , "https://github.com/dotnet/roslyn-project-system/issues/1825")]
         [Fact(Skip = "https://github.com/dotnet/roslyn-project-system/issues/1825"), Trait(Traits.Feature, Traits.Features.ErrorList)]
+        [Trait(Traits.Feature, Traits.Features.NetCore)]
         public override void ErrorsDuringMethodBodyEditing()
         {
             base.ErrorsDuringMethodBodyEditing();

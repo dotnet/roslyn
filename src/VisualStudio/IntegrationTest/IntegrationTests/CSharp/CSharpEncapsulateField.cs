@@ -3,8 +3,6 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Roslyn.Test.Utilities;
-using Roslyn.VisualStudio.IntegrationTests.Extensions;
-using Roslyn.VisualStudio.IntegrationTests.Extensions.Editor;
 using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
@@ -37,8 +35,8 @@ namespace myNamespace
         {
             SetUpEditor(TestSource);
 
-            var encapsulateField = VisualStudio.Instance.EncapsulateField;
-            var dialog = VisualStudio.Instance.PreviewChangesDialog;
+            var encapsulateField = VisualStudio.EncapsulateField;
+            var dialog = VisualStudio.PreviewChangesDialog;
             encapsulateField.Invoke();
             dialog.VerifyOpen(encapsulateField.DialogName);
             dialog.ClickCancel(encapsulateField.DialogName);
@@ -46,16 +44,16 @@ namespace myNamespace
             encapsulateField.Invoke();
             dialog.VerifyOpen(encapsulateField.DialogName);
             dialog.ClickApply(encapsulateField.DialogName);
-            this.VerifyTextContains("public static int? Param { get => param; set => param = value; }");
+            VisualStudio.Editor.Verify.TextContains("public static int? Param { get => param; set => param = value; }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
         public void EncapsulateThroughLightbulbIncludingReferences()
         {
             SetUpEditor(TestSource);
-            this.InvokeCodeActionList();
-            this.VerifyCodeAction("Encapsulate field: 'param' (and use property)", applyFix: true, blockUntilComplete: true);
-            this.VerifyTextContains(@"
+            VisualStudio.Editor.InvokeCodeActionList();
+            VisualStudio.Editor.Verify.CodeAction("Encapsulate field: 'param' (and use property)", applyFix: true, blockUntilComplete: true);
+            VisualStudio.Editor.Verify.TextContains(@"
 namespace myNamespace
 {
     class Program
@@ -76,9 +74,9 @@ namespace myNamespace
         public void EncapsulateThroughLightbulbDefinitionsOnly()
         {
             SetUpEditor(TestSource);
-            this.InvokeCodeActionList();
-            this.VerifyCodeAction("Encapsulate field: 'param' (but still use field)", applyFix: true, blockUntilComplete: true);
-            this.VerifyTextContains(@"
+            VisualStudio.Editor.InvokeCodeActionList();
+            VisualStudio.Editor.Verify.CodeAction("Encapsulate field: 'param' (but still use field)", applyFix: true, blockUntilComplete: true);
+            VisualStudio.Editor.Verify.TextContains(@"
 namespace myNamespace
 {
     class Program

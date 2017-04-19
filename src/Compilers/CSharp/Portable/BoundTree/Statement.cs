@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.Semantics;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -591,6 +592,24 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         protected override OperationKind StatementKind => OperationKind.InvalidStatement;
 
+        ImmutableArray<IOperation> IInvalidStatement.Children
+        {
+            get
+            {
+                var builder = ArrayBuilder<IOperation>.GetInstance(this.ChildBoundNodes.Length);
+                foreach (var childNode in this.ChildBoundNodes)
+                {
+                    var operation = childNode as IOperation;
+                    if (operation != null)
+                    {
+                        builder.Add(operation);
+                    }
+                }
+
+                return builder.ToImmutableAndFree();
+            }
+        }
+
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitInvalidStatement(this);
@@ -607,7 +626,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static readonly ConditionalWeakTable<BoundLocalDeclaration, object> s_variablesMappings =
             new ConditionalWeakTable<BoundLocalDeclaration, object>();
 
-        ImmutableArray<IVariableDeclaration> IVariableDeclarationStatement.Variables
+        ImmutableArray<IVariableDeclaration> IVariableDeclarationStatement.Declarations
         {
             get
             {
@@ -634,7 +653,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static readonly ConditionalWeakTable<BoundMultipleLocalDeclarations, object> s_variablesMappings =
             new ConditionalWeakTable<BoundMultipleLocalDeclarations, object>();
 
-        ImmutableArray<IVariableDeclaration> IVariableDeclarationStatement.Variables
+        ImmutableArray<IVariableDeclaration> IVariableDeclarationStatement.Declarations
         {
             get
             {

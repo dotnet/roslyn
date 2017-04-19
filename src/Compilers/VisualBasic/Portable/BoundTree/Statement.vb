@@ -943,6 +943,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Friend Class BoundBadStatement
         Implements IInvalidStatement
 
+        Public ReadOnly Property Children As ImmutableArray(Of IOperation) Implements IInvalidStatement.Children
+            Get
+                Dim builder As ArrayBuilder(Of IOperation) = ArrayBuilder(Of IOperation).GetInstance(Me.ChildBoundNodes.Length)
+                For Each childNode In Me.ChildBoundNodes
+                    Dim operation = TryCast(childNode, IOperation)
+                    If operation IsNot Nothing Then
+                        builder.Add(operation)
+                    End If
+                Next
+
+                Return builder.ToImmutableAndFree()
+            End Get
+        End Property
+
         Protected Overrides Function StatementKind() As OperationKind
             Return OperationKind.InvalidStatement
         End Function
@@ -1051,7 +1065,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Shared ReadOnly s_variablesMappings As New System.Runtime.CompilerServices.ConditionalWeakTable(Of BoundDimStatement, Object)
 
-        Private ReadOnly Property IVariableDeclarationStatement_Variables As ImmutableArray(Of IVariableDeclaration) Implements IVariableDeclarationStatement.Variables
+        Private ReadOnly Property IVariableDeclarationStatement_Variables As ImmutableArray(Of IVariableDeclaration) Implements IVariableDeclarationStatement.Declarations
             Get
                 Dim variables = s_variablesMappings.GetValue(Me, Function(dimStatement)
                                                                      Dim builder = ArrayBuilder(Of IVariableDeclaration).GetInstance()
@@ -1061,9 +1075,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                              builder.Add(New VariableDeclaration(declaration.LocalSymbol, declaration.InitializerOpt, declaration.Syntax))
                                                                          ElseIf base.Kind = BoundKind.AsNewLocalDeclarations Then
                                                                              Dim asNewDeclarations = DirectCast(base, BoundAsNewLocalDeclarations)
-                                                                             For Each asNewDeclaration In asNewDeclarations.LocalDeclarations
-                                                                                 builder.Add(New VariableDeclaration(asNewDeclaration.LocalSymbol, asNewDeclarations.Initializer, asNewDeclaration.Syntax))
-                                                                             Next
+                                                                             Dim localSymbols = asNewDeclarations.LocalDeclarations.SelectAsArray(Of ILocalSymbol)(Function(declaration) declaration.LocalSymbol)
+                                                                             builder.Add(New VariableDeclaration(localSymbols, asNewDeclarations.Initializer, asNewDeclarations.Syntax))
                                                                          End If
                                                                      Next
                                                                      Return builder.ToImmutableAndFree()
@@ -1440,7 +1453,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Get
             End Property
 
-            Private ReadOnly Property IVariableDeclarationStatement_Variables As ImmutableArray(Of IVariableDeclaration) Implements IVariableDeclarationStatement.Variables
+            Private ReadOnly Property IVariableDeclarationStatement_Variables As ImmutableArray(Of IVariableDeclaration) Implements IVariableDeclarationStatement.Declarations
                 Get
                     Return _variables
                 End Get

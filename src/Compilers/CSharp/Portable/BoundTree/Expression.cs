@@ -7,6 +7,7 @@ using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.Semantics;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.Collections;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -62,31 +63,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             (this.Method.IsVirtual || this.Method.IsAbstract || this.Method.IsOverride) &&
             !this.ReceiverOpt.SuppressVirtualCalls;
 
-        ImmutableArray<IArgument> IInvocationExpression.ArgumentsInSourceOrder
-        {
-            get
-            {
-                ArrayBuilder<IArgument> sourceOrderArguments = ArrayBuilder<IArgument>.GetInstance(this.Arguments.Length);
-                for (int argumentIndex = 0; argumentIndex < this.Arguments.Length; argumentIndex++)
-                {
-                    IArgument argument = DeriveArgument(this.ArgsToParamsOpt.IsDefault ? argumentIndex : this.ArgsToParamsOpt[argumentIndex], argumentIndex, this.Arguments, this.ArgumentNamesOpt, this.ArgumentRefKindsOpt, this.Method.Parameters, this.Syntax);
-                    sourceOrderArguments.Add(argument);
-                    if (argument.ArgumentKind == ArgumentKind.ParamArray)
-                    {
-                        break;
-                    }
-                }
-
-                return sourceOrderArguments.ToImmutableAndFree();
-            }
-        }
-
-        ImmutableArray<IArgument> IHasArgumentsExpression.ArgumentsInParameterOrder => DeriveArguments(this.Arguments, this.ArgumentNamesOpt, this.ArgsToParamsOpt, this.ArgumentRefKindsOpt, this.Method.Parameters, this.Syntax);
-
-        IArgument IHasArgumentsExpression.GetArgumentMatchingParameter(IParameterSymbol parameter)
-        {
-            return ArgumentMatchingParameter(this.Arguments, this.ArgsToParamsOpt, this.ArgumentNamesOpt, this.ArgumentRefKindsOpt, parameter.ContainingSymbol, ((Symbols.MethodSymbol)parameter.ContainingSymbol).Parameters, parameter, this.Syntax);
-        }
+        ImmutableArray<IArgument> IHasArgumentsExpression.ArgumentsInEvaluationOrder
+            => DeriveArguments(this.Arguments, this.ArgumentNamesOpt, this.ArgsToParamsOpt, this.ArgumentRefKindsOpt, this.Method.Parameters, this.Syntax);
 
         protected override OperationKind ExpressionKind => OperationKind.InvocationExpression;
 
@@ -100,6 +78,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return visitor.VisitInvocationExpression(this, argument);
         }
 
+        // TODO: We need to reuse the logic in `LocalRewriter.MakeArguments` instead of using private implementation. 
+        //       Also. this implementation here was for the (now removed) API `ArgumentsInParameter`, which doesn't fulfill
+        //       the contract of `ArgumentsInEvaluationOrder` plus it doesn't handle various scenarios correctly even for parameter order, 
+        //       e.g. default arguments, erroneous code, etc. 
+        //       https://github.com/dotnet/roslyn/issues/18549
         internal static ImmutableArray<IArgument> DeriveArguments(ImmutableArray<BoundExpression> boundArguments, ImmutableArray<string> argumentNamesOpt, ImmutableArray<int> argumentsToParametersOpt, ImmutableArray<RefKind> argumentRefKindsOpt, ImmutableArray<Symbols.ParameterSymbol> parameters, SyntaxNode invocationSyntax)
         {
             ArrayBuilder<IArgument> arguments = ArrayBuilder<IArgument>.GetInstance(boundArguments.Length);
@@ -160,7 +143,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 // There is no supplied argument and there is no params parameter. Any action is suspect at this point.
-                return new SimpleArgument(null, new InvalidExpression(invocationSyntax));
+                return new SimpleArgument(null, new InvalidExpression(invocationSyntax, ImmutableArray<IOperation>.Empty));
             }
 
             return s_argumentMappings.GetValue(
@@ -176,7 +159,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (refMode != RefKind.None)
                         {
-                            return new Argument(ArgumentKind.Positional, parameterOpt, argument);
+                            return new Argument(ArgumentKind.Explicit, parameterOpt, argument);
                         }
 
                         if (argumentIndex >= parameters.Length - 1 &&
@@ -196,7 +179,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
 
-                    return new Argument(ArgumentKind.Named, parameterOpt, argument);
+                    return new Argument(ArgumentKind.Explicit, parameterOpt, argument);
                 });
         }
 
@@ -206,18 +189,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 IArrayTypeSymbol arrayType = (IArrayTypeSymbol)parameter.Type;
                 ArrayBuilder<IOperation> builder = ArrayBuilder<IOperation>.GetInstance(boundArguments.Length - firstArgumentElementIndex);
-
                 for (int index = firstArgumentElementIndex; index < boundArguments.Length; index++)
                 {
                     builder.Add(boundArguments[index]);
                 }
+
                 var paramArrayArguments = builder.ToImmutableAndFree();
+
 
                 // Use the invocation syntax node if there is no actual syntax available for the argument (because the paramarray is empty.)
                 return new ArrayCreationExpression(arrayType, paramArrayArguments, paramArrayArguments.Length > 0 ? paramArrayArguments[0].Syntax : invocationSyntax);
             }
 
-            return new InvalidExpression(invocationSyntax);
+            return new InvalidExpression(invocationSyntax, ImmutableArray<IOperation>.Empty);
         }
 
         internal static IArgument ArgumentMatchingParameter(ImmutableArray<BoundExpression> arguments, ImmutableArray<int> argumentsToParametersOpt, ImmutableArray<string> argumentNamesOpt, ImmutableArray<RefKind> argumentRefKindsOpt, ISymbol targetMethod, ImmutableArray<Symbols.ParameterSymbol> parameters, IParameterSymbol parameter, SyntaxNode invocationSyntax)
@@ -294,7 +278,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 : base(parameter, value)
             { }
 
-            public override ArgumentKind ArgumentKind => ArgumentKind.Positional;
+            public override ArgumentKind ArgumentKind => ArgumentKind.Explicit;
         }
 
         private sealed class Argument : ArgumentBase
@@ -376,12 +360,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ISymbol IMemberReferenceExpression.Member => this.Indexer;
 
-        ImmutableArray<IArgument> IHasArgumentsExpression.ArgumentsInParameterOrder => BoundCall.DeriveArguments(this.Arguments, this.ArgumentNamesOpt, this.ArgsToParamsOpt, this.ArgumentRefKindsOpt, this.Indexer.Parameters, this.Syntax);
-
-        IArgument IHasArgumentsExpression.GetArgumentMatchingParameter(IParameterSymbol parameter)
-        {
-            return BoundCall.ArgumentMatchingParameter(this.Arguments, this.ArgsToParamsOpt, this.ArgumentNamesOpt, this.ArgumentRefKindsOpt, this.Indexer, this.Indexer.Parameters, parameter, this.Syntax);
-        }
+        ImmutableArray<IArgument> IHasArgumentsExpression.ArgumentsInEvaluationOrder => BoundCall.DeriveArguments(this.Arguments, this.ArgumentNamesOpt, this.ArgsToParamsOpt, this.ArgumentRefKindsOpt, this.Indexer.Parameters, this.Syntax);
 
         protected override OperationKind ExpressionKind => OperationKind.IndexedPropertyReferenceExpression;
 
@@ -537,12 +516,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         IMethodSymbol IObjectCreationExpression.Constructor => this.Constructor;
 
-        ImmutableArray<IArgument> IHasArgumentsExpression.ArgumentsInParameterOrder => BoundCall.DeriveArguments(this.Arguments, this.ArgumentNamesOpt, this.ArgsToParamsOpt, this.ArgumentRefKindsOpt, this.Constructor.Parameters, this.Syntax);
-
-        IArgument IHasArgumentsExpression.GetArgumentMatchingParameter(IParameterSymbol parameter)
-        {
-            return BoundCall.ArgumentMatchingParameter(this.Arguments, this.ArgsToParamsOpt, this.ArgumentNamesOpt, this.ArgumentRefKindsOpt, this.Constructor, this.Constructor.Parameters, parameter, this.Syntax);
-        }
+        ImmutableArray<IArgument> IHasArgumentsExpression.ArgumentsInEvaluationOrder => BoundCall.DeriveArguments(this.Arguments, this.ArgumentNamesOpt, this.ArgsToParamsOpt, this.ArgumentRefKindsOpt, this.Constructor.Parameters, this.Syntax);
 
         ImmutableArray<ISymbolInitializer> IObjectCreationExpression.MemberInitializers
         {
@@ -739,7 +713,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case CSharp.ConversionKind.ImplicitConstant:
                     case CSharp.ConversionKind.IntegerToPointer:
                     case CSharp.ConversionKind.IntPtr:
-                    case CSharp.ConversionKind.NullLiteral:
+                    case CSharp.ConversionKind.DefaultOrNullLiteral:
                     case CSharp.ConversionKind.NullToPointer:
                     case CSharp.ConversionKind.PointerToInteger:
                     case CSharp.ConversionKind.PointerToPointer:
@@ -941,7 +915,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    internal partial class BoundDefaultOperator : IDefaultValueExpression
+    internal partial class BoundDefaultExpression : IDefaultValueExpression
     {
         protected override OperationKind ExpressionKind => OperationKind.DefaultValueExpression;
 
@@ -1099,6 +1073,8 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal partial class BoundBadExpression : IInvalidExpression
     {
         protected override OperationKind ExpressionKind => OperationKind.InvalidExpression;
+
+        ImmutableArray<IOperation> IInvalidExpression.Children => StaticCast<IOperation>.From(ChildBoundNodes);
 
         public override void Accept(OperationVisitor visitor)
         {
@@ -1944,7 +1920,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return visitor.VisitNoneOperation(this, argument);
         }
     }
-    
+
     internal partial class BoundSourceDocumentIndex
     {
         protected override OperationKind ExpressionKind => OperationKind.None;

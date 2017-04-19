@@ -14,7 +14,7 @@ function Run-Tool($tool, $toolArgs) {
         throw "$tool does not exist"
     }
 
-    Invoke-Expression "& `"$coreRun`" `"$tool`" $toolArgs"
+    Exec-Expression "& `"$coreRun`" `"$tool`" $toolArgs"
     if ((-not $?) -or ($lastexitcode -ne 0)) {
         throw "Failed"
     }

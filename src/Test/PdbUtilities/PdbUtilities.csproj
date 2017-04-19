@@ -29,9 +29,6 @@
       <Link>InternalUtilities\StreamExtensions.cs</Link>
     </Compile>
     <Compile Include="Metadata\AggregatedMetadataReader.cs" />
-    <Compile Include="Metadata\ILVisualizer.cs" />
-    <Compile Include="Metadata\ILVisualizerAsTokens.cs" />
-    <Compile Include="Metadata\MetadataVisualizer.cs" />
     <Compile Include="Metadata\MethodILExtensions.cs" />
     <Compile Include="Pdb\CustomDebugInfoUtilities.cs" />
     <Compile Include="Pdb\SymReaderFactory.cs" />

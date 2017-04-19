@@ -4,7 +4,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Roslyn.Test.Utilities;
-using Roslyn.VisualStudio.IntegrationTests.Extensions.Editor;
 using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
@@ -29,11 +28,11 @@ class C {
     }
 }");
 
-            this.SendKeys("if (true) {");
-            this.VerifyCurrentLineText("if (true) { $$}", assertCaretPosition: true);
+            VisualStudio.Editor.SendKeys("if (true) {");
+            VisualStudio.Editor.Verify.CurrentLineText("if (true) { $$}", assertCaretPosition: true);
 
-            this.SendKeys(VirtualKey.Tab);
-            this.VerifyCurrentLineText("if (true) { }$$", assertCaretPosition: true);
+            VisualStudio.Editor.SendKeys(VirtualKey.Tab);
+            VisualStudio.Editor.Verify.CurrentLineText("if (true) { }$$", assertCaretPosition: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -46,11 +45,11 @@ class C {
     }
 }");
 
-            this.SendKeys("if (true) {");
-            this.VerifyCurrentLineText("if (true) { $$}", assertCaretPosition: true);
+            VisualStudio.Editor.SendKeys("if (true) {");
+            VisualStudio.Editor.Verify.CurrentLineText("if (true) { $$}", assertCaretPosition: true);
 
-            this.SendKeys("}");
-            this.VerifyCurrentLineText("if (true) { }$$", assertCaretPosition: true);
+            VisualStudio.Editor.SendKeys("}");
+            VisualStudio.Editor.Verify.CurrentLineText("if (true) { }$$", assertCaretPosition: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -63,12 +62,12 @@ class C {
     }
 }");
 
-            this.SendKeys(
+            VisualStudio.Editor.SendKeys(
                 "if (true) {",
                 VirtualKey.Enter,
                 "var a = 1;");
 
-            this.VerifyTextContains(@"
+            VisualStudio.Editor.Verify.TextContains(@"
 class C {
     void Foo() {
         if (true)
@@ -90,13 +89,13 @@ class C {
     }
 }");
 
-            this.SendKeys(
+            VisualStudio.Editor.SendKeys(
                 "if (true) {",
                 VirtualKey.Enter,
                 "var a = 1;",
                 '}');
 
-            this.VerifyTextContains(@"
+            VisualStudio.Editor.Verify.TextContains(@"
 class C {
     void Foo() {
         if (true)
@@ -112,11 +111,11 @@ assertCaretPosition: true);
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void Braces_OnReturnWithNonWhitespaceSpanInside()
         {
-            this.SendKeys(
+            VisualStudio.Editor.SendKeys(
                 "class A { int i;",
                 VirtualKey.Enter);
 
-            this.VerifyTextContains(@"class A { int i;
+            VisualStudio.Editor.Verify.TextContains(@"class A { int i;
 $$}",
 assertCaretPosition: true);
         }
@@ -129,11 +128,11 @@ class C {
     $$
 }");
 
-            this.SendKeys("void Foo(");
-            this.VerifyCurrentLineText("void Foo($$)", assertCaretPosition: true);
+            VisualStudio.Editor.SendKeys("void Foo(");
+            VisualStudio.Editor.Verify.CurrentLineText("void Foo($$)", assertCaretPosition: true);
 
-            this.SendKeys("int x", VirtualKey.Tab);
-            this.VerifyCurrentLineText("void Foo(int x)$$", assertCaretPosition: true);
+            VisualStudio.Editor.SendKeys("int x", VirtualKey.Tab);
+            VisualStudio.Editor.Verify.CurrentLineText("void Foo(int x)$$", assertCaretPosition: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -144,12 +143,12 @@ class C {
     $$
 }");
 
-            this.SendKeys(
+            VisualStudio.Editor.SendKeys(
                 "void Foo(",
                 VirtualKey.Escape,
                 ")");
 
-            this.VerifyCurrentLineText("void Foo()$$", assertCaretPosition: true);
+            VisualStudio.Editor.Verify.CurrentLineText("void Foo()$$", assertCaretPosition: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -160,8 +159,8 @@ class C {
     $$
 }");
 
-            this.SendKeys("int [");
-            this.VerifyCurrentLineText("int [$$]", assertCaretPosition: true);
+            VisualStudio.Editor.SendKeys("int [");
+            VisualStudio.Editor.Verify.CurrentLineText("int [$$]", assertCaretPosition: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -172,8 +171,8 @@ class C {
     $$
 }");
 
-            this.SendKeys("int [", ']');
-            this.VerifyCurrentLineText("int []$$", assertCaretPosition: true);
+            VisualStudio.Editor.SendKeys("int [", ']');
+            VisualStudio.Editor.Verify.CurrentLineText("int []$$", assertCaretPosition: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -184,8 +183,8 @@ class C {
     $$
 }");
 
-            this.SendKeys("string str = \"", VirtualKey.Tab);
-            this.VerifyCurrentLineText("string str = \"\"$$", assertCaretPosition: true);
+            VisualStudio.Editor.SendKeys("string str = \"", VirtualKey.Tab);
+            VisualStudio.Editor.Verify.CurrentLineText("string str = \"\"$$", assertCaretPosition: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -196,8 +195,8 @@ class C {
     $$
 }");
 
-            this.SendKeys("string str = \"Hi Roslyn!", '"');
-            this.VerifyCurrentLineText("string str = \"Hi Roslyn!\"$$", assertCaretPosition: true);
+            VisualStudio.Editor.SendKeys("string str = \"Hi Roslyn!", '"');
+            VisualStudio.Editor.Verify.CurrentLineText("string str = \"Hi Roslyn!\"$$", assertCaretPosition: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -209,8 +208,8 @@ class C {
     $$
 }");
 
-            this.SendKeys("System.Action<", VirtualKey.Tab);
-            this.VerifyCurrentLineText("System.Action<>$$", assertCaretPosition: true);
+            VisualStudio.Editor.SendKeys("System.Action<", VirtualKey.Tab);
+            VisualStudio.Editor.Verify.CurrentLineText("System.Action<>$$", assertCaretPosition: true);
 
             SetUpEditor(@"
 class C {
@@ -218,8 +217,8 @@ class C {
     $$
 }");
 
-            this.SendKeys("void GenericMethod<", VirtualKey.Tab);
-            this.VerifyCurrentLineText("void GenericMethod<>$$", assertCaretPosition: true);
+            VisualStudio.Editor.SendKeys("void GenericMethod<", VirtualKey.Tab);
+            VisualStudio.Editor.Verify.CurrentLineText("void GenericMethod<>$$", assertCaretPosition: true);
 
             SetUpEditor(@"
 class C {
@@ -227,24 +226,24 @@ class C {
     $$
 }");
 
-            this.SendKeys("delegate void Del<");
-            this.VerifyCurrentLineText("delegate void Del<$$>", assertCaretPosition: true);
+            VisualStudio.Editor.SendKeys("delegate void Del<");
+            VisualStudio.Editor.Verify.CurrentLineText("delegate void Del<$$>", assertCaretPosition: true);
 
             SetUpEditor(@"
 //using directive
 $$
 ");
 
-            this.SendKeys("using ActionOfT = System.Action<");
-            this.VerifyCurrentLineText("using ActionOfT = System.Action<$$>", assertCaretPosition: true);
+            VisualStudio.Editor.SendKeys("using ActionOfT = System.Action<");
+            VisualStudio.Editor.Verify.CurrentLineText("using ActionOfT = System.Action<$$>", assertCaretPosition: true);
 
             SetUpEditor(@"
 //class
 $$
 ");
 
-            this.SendKeys("class GenericClass<", '>');
-            this.VerifyCurrentLineText("class GenericClass<>$$", assertCaretPosition: true);
+            VisualStudio.Editor.SendKeys("class GenericClass<", '>');
+            VisualStudio.Editor.Verify.CurrentLineText("class GenericClass<>$$", assertCaretPosition: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -255,13 +254,13 @@ class C {
     $$
 }");
 
-            this.SendKeys("char c = '");
-            this.VerifyCurrentLineText("char c = '$$'", assertCaretPosition: true);
+            VisualStudio.Editor.SendKeys("char c = '");
+            VisualStudio.Editor.Verify.CurrentLineText("char c = '$$'", assertCaretPosition: true);
 
-            this.SendKeys(VirtualKey.Delete, VirtualKey.Backspace);
-            this.SendKeys("'\u6666", "'");
+            VisualStudio.Editor.SendKeys(VirtualKey.Delete, VirtualKey.Backspace);
+            VisualStudio.Editor.SendKeys("'\u6666", "'");
 
-            this.VerifyCurrentLineText("char c = '\u6666'$$", assertCaretPosition: true);
+            VisualStudio.Editor.Verify.CurrentLineText("char c = '\u6666'$$", assertCaretPosition: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -277,7 +276,7 @@ class Bar<U>
     }
 }");
 
-            this.SendKeys(
+            VisualStudio.Editor.SendKeys(
                 "var arr=new object[,]{{Foo(0",
                 VirtualKey.Tab,
                 VirtualKey.Tab,
@@ -289,7 +288,7 @@ class Bar<U>
                 VirtualKey.Tab,
                 ';');
 
-            this.VerifyCurrentLineText("var arr = new object[,] { { Foo(0) }, { Foo(Foo(\"hello\")) } };$$", assertCaretPosition: true);
+            VisualStudio.Editor.Verify.CurrentLineText("var arr = new object[,] { { Foo(0) }, { Foo(Foo(\"hello\")) } };$$", assertCaretPosition: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -300,8 +299,8 @@ class C {
     // $$
 }");
 
-            this.SendKeys("{([\"'");
-            this.VerifyCurrentLineText("// {([\"'$$", assertCaretPosition: true);
+            VisualStudio.Editor.SendKeys("{([\"'");
+            VisualStudio.Editor.Verify.CurrentLineText("// {([\"'$$", assertCaretPosition: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -314,8 +313,8 @@ class C {
     */
 }");
 
-            this.SendKeys("{([\"'");
-            this.VerifyCurrentLineText("{([\"'$$", assertCaretPosition: true);
+            VisualStudio.Editor.SendKeys("{([\"'");
+            VisualStudio.Editor.Verify.CurrentLineText("{([\"'$$", assertCaretPosition: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -326,18 +325,18 @@ class C {
     $$
 }");
 
-            this.SendKeys("string s = \"{([<'");
-            this.VerifyCurrentLineText("string s = \"{([<'\"$$", assertCaretPosition: true);
+            VisualStudio.Editor.SendKeys("string s = \"{([<'");
+            VisualStudio.Editor.Verify.CurrentLineText("string s = \"{([<'\"$$", assertCaretPosition: true);
 
-            this.SendKeys(VirtualKey.End, ';', VirtualKey.Enter);
+            VisualStudio.Editor.SendKeys(VirtualKey.End, ';', VirtualKey.Enter);
 
-            this.SendKeys("string y = @\"{([<'");
-            this.VerifyCurrentLineText("string y = @\"{([<'\"$$", assertCaretPosition: true);
+            VisualStudio.Editor.SendKeys("string y = @\"{([<'");
+            VisualStudio.Editor.Verify.CurrentLineText("string y = @\"{([<'\"$$", assertCaretPosition: true);
 
-            this.SendKeys(VirtualKey.End, ';', VirtualKey.Enter);
+            VisualStudio.Editor.SendKeys(VirtualKey.End, ';', VirtualKey.Enter);
 
-            this.SendKeys("char ch = '{([<\"");
-            this.VerifyCurrentLineText("char ch = '{([<\"'$$", assertCaretPosition: true);
+            VisualStudio.Editor.SendKeys("char ch = '{([<\"");
+            VisualStudio.Editor.Verify.CurrentLineText("char ch = '{([<\"'$$", assertCaretPosition: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -347,11 +346,11 @@ class C {
 $$
 class C { }");
 
-            this.SendKeys(
+            VisualStudio.Editor.SendKeys(
                 "///",
                 "{([<\"'");
 
-            this.VerifyCurrentLineText("/// {([<\"'$$", assertCaretPosition: true);
+            VisualStudio.Editor.Verify.CurrentLineText("/// {([<\"'$$", assertCaretPosition: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -364,8 +363,8 @@ $$
 #endif
 }");
 
-            this.SendKeys("void Foo(");
-            this.VerifyCurrentLineText("void Foo($$", assertCaretPosition: true);
+            VisualStudio.Editor.SendKeys("void Foo(");
+            VisualStudio.Editor.Verify.CurrentLineText("void Foo($$", assertCaretPosition: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -377,8 +376,8 @@ $$
 #endregion
 ");
 
-            this.SendKeys("{([<\"'");
-            this.VerifyCurrentLineText("#region {([<\"'$$", assertCaretPosition: true);
+            VisualStudio.Editor.SendKeys("{([<\"'");
+            VisualStudio.Editor.Verify.CurrentLineText("#region {([<\"'$$", assertCaretPosition: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -390,8 +389,8 @@ $$
 #endregion $$
 ");
 
-            this.SendKeys("{([<\"'");
-            this.VerifyCurrentLineText("#endregion {([<\"'$$", assertCaretPosition: true);
+            VisualStudio.Editor.SendKeys("{([<\"'");
+            VisualStudio.Editor.Verify.CurrentLineText("#endregion {([<\"'$$", assertCaretPosition: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -401,8 +400,8 @@ $$
 #if $$
 ");
 
-            this.SendKeys("{([<\"'");
-            this.VerifyCurrentLineText("#if {([<\"'$$", assertCaretPosition: true);
+            VisualStudio.Editor.SendKeys("{([<\"'");
+            VisualStudio.Editor.Verify.CurrentLineText("#if {([<\"'$$", assertCaretPosition: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -412,8 +411,8 @@ $$
 #pragma $$
 ");
 
-            this.SendKeys("{([<\"'");
-            this.VerifyCurrentLineText("#pragma {([<\"'$$", assertCaretPosition: true);
+            VisualStudio.Editor.SendKeys("{([<\"'");
+            VisualStudio.Editor.Verify.CurrentLineText("#pragma {([<\"'$$", assertCaretPosition: true);
         }
 
         [WorkItem(651954, "DevDiv")]
@@ -432,8 +431,8 @@ class B : A
 }
 ");
 
-            this.SendKeys("override Foo(");
-            var actualText = Editor.GetText();
+            VisualStudio.Editor.SendKeys("override Foo(");
+            var actualText = VisualStudio.Editor.GetText();
             Assert.Contains(@"
 class B : A
 {
@@ -460,8 +459,8 @@ class C
 }
 ");
 
-            this.SendKeys("new Li(", VirtualKey.Tab);
-            this.VerifyCurrentLineText("List<int> li = new List<int>($$)", assertCaretPosition: true);
+            VisualStudio.Editor.SendKeys("new Li(", VirtualKey.Tab);
+            VisualStudio.Editor.Verify.CurrentLineText("List<int> li = new List<int>($$)", assertCaretPosition: true);
         }
 
         [WorkItem(823958, "DevDiv")]
@@ -478,8 +477,8 @@ class C
 }
 ");
 
-            this.SendKeys("new int[]{");
-            this.VerifyCurrentLineText("var x = new int[] {$$}", assertCaretPosition: true);
+            VisualStudio.Editor.SendKeys("new int[]{");
+            VisualStudio.Editor.Verify.CurrentLineText("var x = new int[] {$$}", assertCaretPosition: true);
         }
 
         [WorkItem(823958, "DevDiv")]
@@ -496,8 +495,8 @@ class C
 }
 ");
 
-            this.SendKeys("new {");
-            this.VerifyCurrentLineText("var x = new {$$}", assertCaretPosition: true);
+            VisualStudio.Editor.SendKeys("new {");
+            VisualStudio.Editor.Verify.CurrentLineText("var x = new {$$}", assertCaretPosition: true);
         }
 
         [WorkItem(823958, "DevDiv")]
@@ -508,13 +507,13 @@ class C
 class $$
 ");
 
-            this.SendKeys("C{");
-            this.VerifyCurrentLineText("class C { $$}", assertCaretPosition: true);
+            VisualStudio.Editor.SendKeys("C{");
+            VisualStudio.Editor.Verify.CurrentLineText("class C { $$}", assertCaretPosition: true);
 
-            this.SendKeys(
+            VisualStudio.Editor.SendKeys(
                 VirtualKey.Enter,
                 "int Prop {");
-            this.VerifyTextContains(@"
+            VisualStudio.Editor.Verify.TextContains(@"
 class C
 {
     int Prop { $$}

@@ -2,6 +2,7 @@
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -17,7 +18,7 @@ class P
 {
     private void M()
     {
-        bool condition=false;
+        bool condition = false;
         /*<bind>*/if (true)
         {
             condition = true;
@@ -25,17 +26,22 @@ class P
     }
 }
 ";
-
             string expectedOperationTree = @"
-IIfStatement (OperationKind.IfStatement)
-  Condition: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Boolean, Constant: True)
-  IBlockStatement (1 statements) (OperationKind.BlockStatement)
-    IExpressionStatement (OperationKind.ExpressionStatement)
-      IAssignmentExpression (OperationKind.AssignmentExpression, Type: System.Boolean)
-        Left: ILocalReferenceExpression: condition (OperationKind.LocalReferenceExpression, Type: System.Boolean)
-        Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Boolean, Constant: True)
+IIfStatement (OperationKind.IfStatement) (Syntax: 'if (true) ... }')
+  Condition: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Boolean, Constant: True) (Syntax: 'true')
+  IfTrue: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
+      IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'condition = true;')
+        IAssignmentExpression (OperationKind.AssignmentExpression, Type: System.Boolean) (Syntax: 'condition = true')
+          Left: ILocalReferenceExpression: condition (OperationKind.LocalReferenceExpression, Type: System.Boolean) (Syntax: 'condition')
+          Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Boolean, Constant: True) (Syntax: 'true')
 ";
-            VerifyOperationTreeForTest<IfStatementSyntax>(source, expectedOperationTree);
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0219: The variable 'condition' is assigned but its value is never used
+                //         bool condition = false;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "condition").WithArguments("condition").WithLocation(6, 14)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<IfStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         [Fact, WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")]
@@ -46,7 +52,7 @@ class P
 {
     private void M()
     {
-        bool condition=false;
+        bool condition = false;
         /*<bind>*/if (true)
         {
             condition = true;
@@ -59,20 +65,29 @@ class P
 }
 ";
             string expectedOperationTree = @"
-IIfStatement (OperationKind.IfStatement)
-  Condition: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Boolean, Constant: True)
-  IBlockStatement (1 statements) (OperationKind.BlockStatement)
-    IExpressionStatement (OperationKind.ExpressionStatement)
-      IAssignmentExpression (OperationKind.AssignmentExpression, Type: System.Boolean)
-        Left: ILocalReferenceExpression: condition (OperationKind.LocalReferenceExpression, Type: System.Boolean)
-        Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Boolean, Constant: True)
-  IBlockStatement (1 statements) (OperationKind.BlockStatement)
-    IExpressionStatement (OperationKind.ExpressionStatement)
-      IAssignmentExpression (OperationKind.AssignmentExpression, Type: System.Boolean)
-        Left: ILocalReferenceExpression: condition (OperationKind.LocalReferenceExpression, Type: System.Boolean)
-        Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Boolean, Constant: False)
+IIfStatement (OperationKind.IfStatement) (Syntax: 'if (true) ... }')
+  Condition: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Boolean, Constant: True) (Syntax: 'true')
+  IfTrue: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
+      IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'condition = true;')
+        IAssignmentExpression (OperationKind.AssignmentExpression, Type: System.Boolean) (Syntax: 'condition = true')
+          Left: ILocalReferenceExpression: condition (OperationKind.LocalReferenceExpression, Type: System.Boolean) (Syntax: 'condition')
+          Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Boolean, Constant: True) (Syntax: 'true')
+  IfFalse: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
+      IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'condition = false;')
+        IAssignmentExpression (OperationKind.AssignmentExpression, Type: System.Boolean) (Syntax: 'condition = false')
+          Left: ILocalReferenceExpression: condition (OperationKind.LocalReferenceExpression, Type: System.Boolean) (Syntax: 'condition')
+          Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Boolean, Constant: False) (Syntax: 'false')
 ";
-            VerifyOperationTreeForTest<IfStatementSyntax>(source, expectedOperationTree);
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0162: Unreachable code detected
+                //             condition = false;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "condition").WithLocation(13, 13),
+                // CS0219: The variable 'condition' is assigned but its value is never used
+                //         bool condition = false;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "condition").WithArguments("condition").WithLocation(6, 14)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<IfStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         [Fact, WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")]
@@ -83,27 +98,34 @@ class P
 {
     private void M()
     {
-          bool condition=false;
-        /*<bind>*/if (1==1)
+        bool condition = false;
+        /*<bind>*/if (1 == 1)
         {
             condition = true;
         }/*</bind>*/
-        
+
     }
 }
 ";
             string expectedOperationTree = @"
-IIfStatement (OperationKind.IfStatement)
-  Condition: IBinaryOperatorExpression (BinaryOperationKind.IntegerEquals) (OperationKind.BinaryOperatorExpression, Type: System.Boolean, Constant: True)
-      Left: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1)
-      Right: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1)
-  IBlockStatement (1 statements) (OperationKind.BlockStatement)
-    IExpressionStatement (OperationKind.ExpressionStatement)
-      IAssignmentExpression (OperationKind.AssignmentExpression, Type: System.Boolean)
-        Left: ILocalReferenceExpression: condition (OperationKind.LocalReferenceExpression, Type: System.Boolean)
-        Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Boolean, Constant: True)
+IIfStatement (OperationKind.IfStatement) (Syntax: 'if (1 == 1) ... }')
+  Condition: IBinaryOperatorExpression (BinaryOperationKind.IntegerEquals) (OperationKind.BinaryOperatorExpression, Type: System.Boolean, Constant: True) (Syntax: '1 == 1')
+      Left: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+      Right: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+  IfTrue: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
+      IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'condition = true;')
+        IAssignmentExpression (OperationKind.AssignmentExpression, Type: System.Boolean) (Syntax: 'condition = true')
+          Left: ILocalReferenceExpression: condition (OperationKind.LocalReferenceExpression, Type: System.Boolean) (Syntax: 'condition')
+          Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Boolean, Constant: True) (Syntax: 'true')
 ";
-            VerifyOperationTreeForTest<IfStatementSyntax>(source, expectedOperationTree);
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0219: The variable 'condition' is assigned but its value is never used
+                //         bool condition = false;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "condition").WithArguments("condition").WithLocation(6, 14)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<IfStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
+
         }
 
         [Fact, WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")]
@@ -113,47 +135,46 @@ IIfStatement (OperationKind.IfStatement)
 using System;
 class P
 {
-   private void M()
+    private void M()
     {
         int m = 12;
         int n = 18;
-        /*<bind>*/
-        if (m > 10)
+        /*<bind>*/if (m > 10)
         {
             if (n > 20)
-                Console.WriteLine(""Result1"");
+                Console.WriteLine(m);
         }
         else
         {
-            Console.WriteLine(""Result2"");
+            Console.WriteLine(n);
         }/*</bind>*/
 
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
-
             string expectedOperationTree = @"
-IIfStatement (OperationKind.IfStatement)
-  Condition: IBinaryOperatorExpression (BinaryOperationKind.IntegerGreaterThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean)
-      Left: ILocalReferenceExpression: m (OperationKind.LocalReferenceExpression, Type: System.Int32)
-      Right: ILiteralExpression (Text: 10) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10)
-  IBlockStatement (1 statements) (OperationKind.BlockStatement)
-    IIfStatement (OperationKind.IfStatement)
-      Condition: IBinaryOperatorExpression (BinaryOperationKind.IntegerGreaterThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean)
-          Left: ILocalReferenceExpression: n (OperationKind.LocalReferenceExpression, Type: System.Int32)
-          Right: ILiteralExpression (Text: 20) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 20)
-      IExpressionStatement (OperationKind.ExpressionStatement)
-        IInvocationExpression (static void System.Console.WriteLine(System.String value)) (OperationKind.InvocationExpression, Type: System.Void)
-          IArgument (Matching Parameter: value) (OperationKind.Argument)
-            ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: Result1)
-  IBlockStatement (1 statements) (OperationKind.BlockStatement)
-    IExpressionStatement (OperationKind.ExpressionStatement)
-      IInvocationExpression (static void System.Console.WriteLine(System.String value)) (OperationKind.InvocationExpression, Type: System.Void)
-        IArgument (Matching Parameter: value) (OperationKind.Argument)
-          ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: Result2)
+IIfStatement (OperationKind.IfStatement) (Syntax: 'if (m > 10) ... }')
+  Condition: IBinaryOperatorExpression (BinaryOperationKind.IntegerGreaterThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'm > 10')
+      Left: ILocalReferenceExpression: m (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'm')
+      Right: ILiteralExpression (Text: 10) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
+  IfTrue: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
+      IIfStatement (OperationKind.IfStatement) (Syntax: 'if (n > 20) ... iteLine(m);')
+        Condition: IBinaryOperatorExpression (BinaryOperationKind.IntegerGreaterThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'n > 20')
+            Left: ILocalReferenceExpression: n (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'n')
+            Right: ILiteralExpression (Text: 20) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 20) (Syntax: '20')
+        IfTrue: IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.WriteLine(m);')
+            IInvocationExpression (static void System.Console.WriteLine(System.Int32 value)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.WriteLine(m)')
+              Arguments(1): IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: 'm')
+                  ILocalReferenceExpression: m (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'm')
+  IfFalse: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
+      IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.WriteLine(n);')
+        IInvocationExpression (static void System.Console.WriteLine(System.Int32 value)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.WriteLine(n)')
+          Arguments(1): IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: 'n')
+              ILocalReferenceExpression: n (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'n')
 ";
-            VerifyOperationTreeForTest<IfStatementSyntax>(source, expectedOperationTree);
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<IfStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         [Fact, WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")]
@@ -163,44 +184,45 @@ IIfStatement (OperationKind.IfStatement)
 using System;
 class P
 {
-private void M()
+    private void M()
     {
         int m = 9;
         int n = 7;
         /*<bind>*/if (m > 10)
             if (n > 20)
             {
-                Console.WriteLine(""Result1"");
+                Console.WriteLine(m);
             }
             else
             {
-                Console.WriteLine(""Result2"");
+                Console.WriteLine(n);
             }/*</bind>*/
-
     }
 }
 ";
             string expectedOperationTree = @"
-IIfStatement (OperationKind.IfStatement)
-  Condition: IBinaryOperatorExpression (BinaryOperationKind.IntegerGreaterThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean)
-      Left: ILocalReferenceExpression: m (OperationKind.LocalReferenceExpression, Type: System.Int32)
-      Right: ILiteralExpression (Text: 10) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10)
-  IIfStatement (OperationKind.IfStatement)
-    Condition: IBinaryOperatorExpression (BinaryOperationKind.IntegerGreaterThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean)
-        Left: ILocalReferenceExpression: n (OperationKind.LocalReferenceExpression, Type: System.Int32)
-        Right: ILiteralExpression (Text: 20) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 20)
-    IBlockStatement (1 statements) (OperationKind.BlockStatement)
-      IExpressionStatement (OperationKind.ExpressionStatement)
-        IInvocationExpression (static void System.Console.WriteLine(System.String value)) (OperationKind.InvocationExpression, Type: System.Void)
-          IArgument (Matching Parameter: value) (OperationKind.Argument)
-            ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: Result1)
-    IBlockStatement (1 statements) (OperationKind.BlockStatement)
-      IExpressionStatement (OperationKind.ExpressionStatement)
-        IInvocationExpression (static void System.Console.WriteLine(System.String value)) (OperationKind.InvocationExpression, Type: System.Void)
-          IArgument (Matching Parameter: value) (OperationKind.Argument)
-            ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: Result2)
+IIfStatement (OperationKind.IfStatement) (Syntax: 'if (m > 10) ... }')
+  Condition: IBinaryOperatorExpression (BinaryOperationKind.IntegerGreaterThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'm > 10')
+      Left: ILocalReferenceExpression: m (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'm')
+      Right: ILiteralExpression (Text: 10) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
+  IfTrue: IIfStatement (OperationKind.IfStatement) (Syntax: 'if (n > 20) ... }')
+      Condition: IBinaryOperatorExpression (BinaryOperationKind.IntegerGreaterThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'n > 20')
+          Left: ILocalReferenceExpression: n (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'n')
+          Right: ILiteralExpression (Text: 20) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 20) (Syntax: '20')
+      IfTrue: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
+          IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.WriteLine(m);')
+            IInvocationExpression (static void System.Console.WriteLine(System.Int32 value)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.WriteLine(m)')
+              Arguments(1): IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: 'm')
+                  ILocalReferenceExpression: m (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'm')
+      IfFalse: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
+          IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.WriteLine(n);')
+            IInvocationExpression (static void System.Console.WriteLine(System.Int32 value)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.WriteLine(n)')
+              Arguments(1): IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: 'n')
+                  ILocalReferenceExpression: n (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'n')
 ";
-            VerifyOperationTreeForTest<IfStatementSyntax>(source, expectedOperationTree);
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<IfStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         [Fact, WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")]
@@ -210,7 +232,7 @@ IIfStatement (OperationKind.IfStatement)
 using System;
 class P
 {
-  private void M()
+    private void M()
     {
         int m = 9;
         int n = 7;
@@ -223,21 +245,23 @@ class P
 }
 ";
             string expectedOperationTree = @"
-IIfStatement (OperationKind.IfStatement)
-  Condition: IBinaryOperatorExpression (BinaryOperationKind.BooleanConditionalAnd) (OperationKind.BinaryOperatorExpression, Type: System.Boolean)
-      Left: IBinaryOperatorExpression (BinaryOperationKind.IntegerGreaterThanOrEqual) (OperationKind.BinaryOperatorExpression, Type: System.Boolean)
-          Left: ILocalReferenceExpression: m (OperationKind.LocalReferenceExpression, Type: System.Int32)
-          Right: ILocalReferenceExpression: n (OperationKind.LocalReferenceExpression, Type: System.Int32)
-      Right: IBinaryOperatorExpression (BinaryOperationKind.IntegerGreaterThanOrEqual) (OperationKind.BinaryOperatorExpression, Type: System.Boolean)
-          Left: ILocalReferenceExpression: m (OperationKind.LocalReferenceExpression, Type: System.Int32)
-          Right: ILocalReferenceExpression: p (OperationKind.LocalReferenceExpression, Type: System.Int32)
-  IBlockStatement (1 statements) (OperationKind.BlockStatement)
-    IExpressionStatement (OperationKind.ExpressionStatement)
-      IInvocationExpression (static void System.Console.WriteLine(System.String value)) (OperationKind.InvocationExpression, Type: System.Void)
-        IArgument (Matching Parameter: value) (OperationKind.Argument)
-          ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: Nothing is larger than m.)
+IIfStatement (OperationKind.IfStatement) (Syntax: 'if (m >= n  ... }')
+  Condition: IBinaryOperatorExpression (BinaryOperationKind.BooleanConditionalAnd) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'm >= n && m >= p')
+      Left: IBinaryOperatorExpression (BinaryOperationKind.IntegerGreaterThanOrEqual) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'm >= n')
+          Left: ILocalReferenceExpression: m (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'm')
+          Right: ILocalReferenceExpression: n (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'n')
+      Right: IBinaryOperatorExpression (BinaryOperationKind.IntegerGreaterThanOrEqual) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'm >= p')
+          Left: ILocalReferenceExpression: m (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'm')
+          Right: ILocalReferenceExpression: p (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'p')
+  IfTrue: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
+      IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.Wri ...  than m."");')
+        IInvocationExpression (static void System.Console.WriteLine(System.String value)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.Wri ... r than m."")')
+          Arguments(1): IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: '""Nothing is ... er than m.""')
+              ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: ""Nothing is larger than m."") (Syntax: '""Nothing is ... er than m.""')
 ";
-            VerifyOperationTreeForTest<IfStatementSyntax>(source, expectedOperationTree);
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<IfStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         [Fact, WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")]
@@ -255,7 +279,7 @@ class P
         {
             Console.WriteLine(""Result1"");
         }
-        else if(m > 10)
+        else if (m > 10)
         {
             Console.WriteLine(""Result2"");
         }
@@ -268,31 +292,33 @@ class P
 }
 ";
             string expectedOperationTree = @"
-IIfStatement (OperationKind.IfStatement)
-  Condition: IBinaryOperatorExpression (BinaryOperationKind.IntegerGreaterThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean)
-      Left: ILocalReferenceExpression: n (OperationKind.LocalReferenceExpression, Type: System.Int32)
-      Right: ILiteralExpression (Text: 20) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 20)
-  IBlockStatement (1 statements) (OperationKind.BlockStatement)
-    IExpressionStatement (OperationKind.ExpressionStatement)
-      IInvocationExpression (static void System.Console.WriteLine(System.String value)) (OperationKind.InvocationExpression, Type: System.Void)
-        IArgument (Matching Parameter: value) (OperationKind.Argument)
-          ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: Result1)
-  IIfStatement (OperationKind.IfStatement)
-    Condition: IBinaryOperatorExpression (BinaryOperationKind.IntegerGreaterThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean)
-        Left: ILocalReferenceExpression: m (OperationKind.LocalReferenceExpression, Type: System.Int32)
-        Right: ILiteralExpression (Text: 10) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10)
-    IBlockStatement (1 statements) (OperationKind.BlockStatement)
-      IExpressionStatement (OperationKind.ExpressionStatement)
-        IInvocationExpression (static void System.Console.WriteLine(System.String value)) (OperationKind.InvocationExpression, Type: System.Void)
-          IArgument (Matching Parameter: value) (OperationKind.Argument)
-            ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: Result2)
-    IBlockStatement (1 statements) (OperationKind.BlockStatement)
-      IExpressionStatement (OperationKind.ExpressionStatement)
-        IInvocationExpression (static void System.Console.WriteLine(System.String value)) (OperationKind.InvocationExpression, Type: System.Void)
-          IArgument (Matching Parameter: value) (OperationKind.Argument)
-            ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: Result3)
+IIfStatement (OperationKind.IfStatement) (Syntax: 'if (n > 20) ... }')
+  Condition: IBinaryOperatorExpression (BinaryOperationKind.IntegerGreaterThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'n > 20')
+      Left: ILocalReferenceExpression: n (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'n')
+      Right: ILiteralExpression (Text: 20) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 20) (Syntax: '20')
+  IfTrue: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
+      IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.Wri ... ""Result1"");')
+        IInvocationExpression (static void System.Console.WriteLine(System.String value)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.Wri ... (""Result1"")')
+          Arguments(1): IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: '""Result1""')
+              ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: ""Result1"") (Syntax: '""Result1""')
+  IfFalse: IIfStatement (OperationKind.IfStatement) (Syntax: 'if (m > 10) ... }')
+      Condition: IBinaryOperatorExpression (BinaryOperationKind.IntegerGreaterThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'm > 10')
+          Left: ILocalReferenceExpression: m (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'm')
+          Right: ILiteralExpression (Text: 10) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
+      IfTrue: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
+          IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.Wri ... ""Result2"");')
+            IInvocationExpression (static void System.Console.WriteLine(System.String value)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.Wri ... (""Result2"")')
+              Arguments(1): IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: '""Result2""')
+                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: ""Result2"") (Syntax: '""Result2""')
+      IfFalse: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
+          IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.Wri ... ""Result3"");')
+            IInvocationExpression (static void System.Console.WriteLine(System.String value)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.Wri ... (""Result3"")')
+              Arguments(1): IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: '""Result3""')
+                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: ""Result3"") (Syntax: '""Result3""')
 ";
-            VerifyOperationTreeForTest<IfStatementSyntax>(source, expectedOperationTree);
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<IfStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         [Fact, WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")]
@@ -313,22 +339,24 @@ class P
 }
 ";
             string expectedOperationTree = @"
-IIfStatement (OperationKind.IfStatement)
-  Condition: IInvocationExpression (static System.Boolean System.Int32.TryParse(System.String s, out System.Int32 result)) (OperationKind.InvocationExpression, Type: System.Boolean)
-      IArgument (Matching Parameter: s) (OperationKind.Argument)
-        ILocalReferenceExpression: s (OperationKind.LocalReferenceExpression, Type: System.String)
-      IArgument (Matching Parameter: result) (OperationKind.Argument)
-        ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32)
-  IExpressionStatement (OperationKind.ExpressionStatement)
-    IInvocationExpression (static void System.Console.WriteLine(System.String value)) (OperationKind.InvocationExpression, Type: System.Void)
-      IArgument (Matching Parameter: value) (OperationKind.Argument)
-        IOperation:  (OperationKind.None)
-  IExpressionStatement (OperationKind.ExpressionStatement)
-    IInvocationExpression (static void System.Console.WriteLine(System.String value)) (OperationKind.InvocationExpression, Type: System.Void)
-      IArgument (Matching Parameter: value) (OperationKind.Argument)
-        IOperation:  (OperationKind.None)
+IIfStatement (OperationKind.IfStatement) (Syntax: 'if (int.Try ...  s ={ s}"");')
+  Condition: IInvocationExpression (static System.Boolean System.Int32.TryParse(System.String s, out System.Int32 result)) (OperationKind.InvocationExpression, Type: System.Boolean) (Syntax: 'int.TryPars ...  out var i)')
+      Arguments(2): IArgument (ArgumentKind.Explicit, Matching Parameter: s) (OperationKind.Argument) (Syntax: 's')
+          ILocalReferenceExpression: s (OperationKind.LocalReferenceExpression, Type: System.String) (Syntax: 's')
+        IArgument (ArgumentKind.Explicit, Matching Parameter: result) (OperationKind.Argument) (Syntax: 'var i')
+          ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'var i')
+  IfTrue: IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'System.Cons ...  s ={ s}"");')
+      IInvocationExpression (static void System.Console.WriteLine(System.String value)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'System.Cons ... , s ={ s}"")')
+        Arguments(1): IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: '$""i ={ i}, s ={ s}""')
+            IOperation:  (OperationKind.None) (Syntax: '$""i ={ i}, s ={ s}""')
+  IfFalse: IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'System.Cons ...  s ={ s}"");')
+      IInvocationExpression (static void System.Console.WriteLine(System.String value)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'System.Cons ... , s ={ s}"")')
+        Arguments(1): IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: '$""i ={ i}, s ={ s}""')
+            IOperation:  (OperationKind.None) (Syntax: '$""i ={ i}, s ={ s}""')
 ";
-            VerifyOperationTreeForTest<IfStatementSyntax>(source, expectedOperationTree);
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<IfStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         [Fact, WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")]
@@ -339,7 +367,7 @@ class P
 {
     private void M()
     {
-        
+
         /*<bind>*/if (true)
             System.Console.WriteLine(A());/*</bind>*/
     }
@@ -354,22 +382,21 @@ class P
         {
             return -1;
         }
-
     }
-    
 }
-
 ";
             string expectedOperationTree = @"
-IIfStatement (OperationKind.IfStatement)
-  Condition: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Boolean, Constant: True)
-  IExpressionStatement (OperationKind.ExpressionStatement)
-    IInvocationExpression (static void System.Console.WriteLine(System.Int32 value)) (OperationKind.InvocationExpression, Type: System.Void)
-      IArgument (Matching Parameter: value) (OperationKind.Argument)
-        IInvocationExpression ( System.Int32 P.A()) (OperationKind.InvocationExpression, Type: System.Int32)
-          Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: P)
+IIfStatement (OperationKind.IfStatement) (Syntax: 'if (true) ... eLine(A());')
+  Condition: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Boolean, Constant: True) (Syntax: 'true')
+  IfTrue: IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'System.Cons ... eLine(A());')
+      IInvocationExpression (static void System.Console.WriteLine(System.Int32 value)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'System.Cons ... teLine(A())')
+        Arguments(1): IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: 'A()')
+            IInvocationExpression ( System.Int32 P.A()) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'A()')
+              Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: P) (Syntax: 'A')
 ";
-            VerifyOperationTreeForTest<IfStatementSyntax>(source, expectedOperationTree);
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<IfStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         [Fact, WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")]
@@ -385,34 +412,34 @@ class P
         {
             A(int.TryParse(s, out var i));
         }/*</bind>*/
-     }
+    }
     private void A(bool flag)
     {
-       if (flag)
+        if (flag)
         {
             System.Console.WriteLine(""Result1"");
         }
     }
-    
 }
-
 ";
             string expectedOperationTree = @"
-IIfStatement (OperationKind.IfStatement)
-  Condition: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Boolean, Constant: True)
-  IBlockStatement (1 statements, 1 locals) (OperationKind.BlockStatement)
-    Local_1: System.Int32 i
-    IExpressionStatement (OperationKind.ExpressionStatement)
-      IInvocationExpression ( void P.A(System.Boolean flag)) (OperationKind.InvocationExpression, Type: System.Void)
-        Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: P)
-        IArgument (Matching Parameter: flag) (OperationKind.Argument)
-          IInvocationExpression (static System.Boolean System.Int32.TryParse(System.String s, out System.Int32 result)) (OperationKind.InvocationExpression, Type: System.Boolean)
-            IArgument (Matching Parameter: s) (OperationKind.Argument)
-              ILocalReferenceExpression: s (OperationKind.LocalReferenceExpression, Type: System.String)
-            IArgument (Matching Parameter: result) (OperationKind.Argument)
-              ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32)
+IIfStatement (OperationKind.IfStatement) (Syntax: 'if (true) ... }')
+  Condition: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Boolean, Constant: True) (Syntax: 'true')
+  IfTrue: IBlockStatement (1 statements, 1 locals) (OperationKind.BlockStatement) (Syntax: '{ ... }')
+      Locals: Local_1: System.Int32 i
+      IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'A(int.TryPa ... ut var i));')
+        IInvocationExpression ( void P.A(System.Boolean flag)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'A(int.TryPa ... out var i))')
+          Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: P) (Syntax: 'A')
+          Arguments(1): IArgument (ArgumentKind.Explicit, Matching Parameter: flag) (OperationKind.Argument) (Syntax: 'int.TryPars ...  out var i)')
+              IInvocationExpression (static System.Boolean System.Int32.TryParse(System.String s, out System.Int32 result)) (OperationKind.InvocationExpression, Type: System.Boolean) (Syntax: 'int.TryPars ...  out var i)')
+                Arguments(2): IArgument (ArgumentKind.Explicit, Matching Parameter: s) (OperationKind.Argument) (Syntax: 's')
+                    ILocalReferenceExpression: s (OperationKind.LocalReferenceExpression, Type: System.String) (Syntax: 's')
+                  IArgument (ArgumentKind.Explicit, Matching Parameter: result) (OperationKind.Argument) (Syntax: 'var i')
+                    ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'var i')
 ";
-            VerifyOperationTreeForTest<IfStatementSyntax>(source, expectedOperationTree);
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<IfStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         [Fact, WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")]
@@ -438,18 +465,20 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-IIfStatement (OperationKind.IfStatement)
-  Condition: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Boolean, Constant: True)
-  IBlockStatement (1 statements, 1 locals) (OperationKind.BlockStatement)
-    Local_1: System.Int32 i
-    IExpressionStatement (OperationKind.ExpressionStatement)
-      IInvocationExpression (static void Program.A(System.Boolean flag, System.Int32 number)) (OperationKind.InvocationExpression, Type: System.Void)
-        IArgument (Matching Parameter: flag) (OperationKind.Argument)
-          IOperation:  (OperationKind.None)
-        IArgument (Matching Parameter: number) (OperationKind.Argument)
-          ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1)
+IIfStatement (OperationKind.IfStatement) (Syntax: 'if (true) ...  int i, 1);')
+  Condition: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Boolean, Constant: True) (Syntax: 'true')
+  IfTrue: IBlockStatement (1 statements, 1 locals) (OperationKind.BlockStatement) (Syntax: 'A(o is int i, 1);')
+      Locals: Local_1: System.Int32 i
+      IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'A(o is int i, 1);')
+        IInvocationExpression (static void Program.A(System.Boolean flag, System.Int32 number)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'A(o is int i, 1)')
+          Arguments(2): IArgument (ArgumentKind.Explicit, Matching Parameter: flag) (OperationKind.Argument) (Syntax: 'o is int i')
+              IOperation:  (OperationKind.None) (Syntax: 'o is int i')
+            IArgument (ArgumentKind.Explicit, Matching Parameter: number) (OperationKind.Argument) (Syntax: '1')
+              ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
 ";
-            VerifyOperationTreeForTest<IfStatementSyntax>(source, expectedOperationTree);
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<IfStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         [Fact, WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")]
@@ -472,15 +501,17 @@ class P
 }
 ";
             string expectedOperationTree = @"
-IIfStatement (OperationKind.IfStatement)
-  Condition: IOperation:  (OperationKind.None)
-  IBlockStatement (1 statements) (OperationKind.BlockStatement)
-    IExpressionStatement (OperationKind.ExpressionStatement)
-      IInvocationExpression (static void System.Console.WriteLine(System.String value)) (OperationKind.InvocationExpression, Type: System.Void)
-        IArgument (Matching Parameter: value) (OperationKind.Argument)
-          ILocalReferenceExpression: str (OperationKind.LocalReferenceExpression, Type: System.String)
+IIfStatement (OperationKind.IfStatement) (Syntax: 'if (obj is  ... }')
+  Condition: IOperation:  (OperationKind.None) (Syntax: 'obj is string str')
+  IfTrue: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
+      IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.WriteLine(str);')
+        IInvocationExpression (static void System.Console.WriteLine(System.String value)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.WriteLine(str)')
+          Arguments(1): IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: 'str')
+              ILocalReferenceExpression: str (OperationKind.LocalReferenceExpression, Type: System.String) (Syntax: 'str')
 ";
-            VerifyOperationTreeForTest<IfStatementSyntax>(source, expectedOperationTree);
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<IfStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         [Fact, WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")]
@@ -504,15 +535,17 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-IIfStatement (OperationKind.IfStatement)
-  Condition: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Boolean, Constant: True)
-  IExpressionStatement (OperationKind.ExpressionStatement)
-    IInvocationExpression (static void Program.A(System.Object o)) (OperationKind.InvocationExpression, Type: System.Void)
-      IArgument (Matching Parameter: o) (OperationKind.Argument)
-        IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.Object)
-          ILiteralExpression (Text: 25) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 25)
+IIfStatement (OperationKind.IfStatement) (Syntax: 'if (true) ... A(25);')
+  Condition: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Boolean, Constant: True) (Syntax: 'true')
+  IfTrue: IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'A(25);')
+      IInvocationExpression (static void Program.A(System.Object o)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'A(25)')
+        Arguments(1): IArgument (ArgumentKind.Explicit, Matching Parameter: o) (OperationKind.Argument) (Syntax: '25')
+            IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: '25')
+              ILiteralExpression (Text: 25) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 25) (Syntax: '25')
 ";
-            VerifyOperationTreeForTest<IfStatementSyntax>(source, expectedOperationTree);
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<IfStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         [Fact, WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")]
@@ -540,18 +573,20 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-IIfStatement (OperationKind.IfStatement)
-  Condition: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Boolean, Constant: True)
-  IBlockStatement (1 statements, 1 locals) (OperationKind.BlockStatement)
-    Local_1: System.Int32 i
-    IExpressionStatement (OperationKind.ExpressionStatement)
-      IInvocationExpression (static void Program.A(System.Boolean flag, System.Int32 number)) (OperationKind.InvocationExpression, Type: System.Void)
-        IArgument (Matching Parameter: flag) (OperationKind.Argument)
-          IOperation:  (OperationKind.None)
-        IArgument (Matching Parameter: number) (OperationKind.Argument)
-          ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1)
+IIfStatement (OperationKind.IfStatement) (Syntax: 'if (true) ... }')
+  Condition: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Boolean, Constant: True) (Syntax: 'true')
+  IfTrue: IBlockStatement (1 statements, 1 locals) (OperationKind.BlockStatement) (Syntax: '{ ... }')
+      Locals: Local_1: System.Int32 i
+      IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'A(o is int i, 1);')
+        IInvocationExpression (static void Program.A(System.Boolean flag, System.Int32 number)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'A(o is int i, 1)')
+          Arguments(2): IArgument (ArgumentKind.Explicit, Matching Parameter: flag) (OperationKind.Argument) (Syntax: 'o is int i')
+              IOperation:  (OperationKind.None) (Syntax: 'o is int i')
+            IArgument (ArgumentKind.Explicit, Matching Parameter: number) (OperationKind.Argument) (Syntax: '1')
+              ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
 ";
-            VerifyOperationTreeForTest<IfStatementSyntax>(source, expectedOperationTree);
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<IfStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         [Fact, WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")]
@@ -575,17 +610,26 @@ class P
 }
 ";
             string expectedOperationTree = @"
-IIfStatement (OperationKind.IfStatement, IsInvalid)
-  Condition: IOperation:  (OperationKind.None)
-  IBlockStatement (1 statements) (OperationKind.BlockStatement)
-    IExpressionStatement (OperationKind.ExpressionStatement)
-      IInvocationExpression (static void System.Console.WriteLine(System.String value)) (OperationKind.InvocationExpression, Type: System.Void)
-        IArgument (Matching Parameter: value) (OperationKind.Argument)
-          ILocalReferenceExpression: str (OperationKind.LocalReferenceExpression, Type: System.String)
-  IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid)
-    IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid)
+IIfStatement (OperationKind.IfStatement, IsInvalid) (Syntax: 'if (obj is  ... else')
+  Condition: IOperation:  (OperationKind.None) (Syntax: 'obj is string str')
+  IfTrue: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
+      IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.WriteLine(str);')
+        IInvocationExpression (static void System.Console.WriteLine(System.String value)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.WriteLine(str)')
+          Arguments(1): IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: 'str')
+              ILocalReferenceExpression: str (OperationKind.LocalReferenceExpression, Type: System.String) (Syntax: 'str')
+  IfFalse: IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: '')
+      IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '')
 ";
-            VerifyOperationTreeForTest<IfStatementSyntax>(source, expectedOperationTree);
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS1525: Invalid expression term '}'
+                //         else
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("}").WithLocation(14, 13),
+                // CS1002: ; expected
+                //         else
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(14, 13)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<IfStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         [Fact, WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")]
@@ -605,27 +649,36 @@ class P
         }
         else
         {
-            a = 3; 
+            a = 3;
         }/*</bind>*/
     }
 }
 ";
             string expectedOperationTree = @"
-IIfStatement (OperationKind.IfStatement, IsInvalid)
-  Condition: IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: System.Boolean, IsInvalid)
-      IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid)
-  IBlockStatement (1 statements) (OperationKind.BlockStatement)
-    IExpressionStatement (OperationKind.ExpressionStatement)
-      IAssignmentExpression (OperationKind.AssignmentExpression, Type: System.Int32)
-        Left: ILocalReferenceExpression: a (OperationKind.LocalReferenceExpression, Type: System.Int32)
-        Right: ILiteralExpression (Text: 2) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2)
-  IBlockStatement (1 statements) (OperationKind.BlockStatement)
-    IExpressionStatement (OperationKind.ExpressionStatement)
-      IAssignmentExpression (OperationKind.AssignmentExpression, Type: System.Int32)
-        Left: ILocalReferenceExpression: a (OperationKind.LocalReferenceExpression, Type: System.Int32)
-        Right: ILiteralExpression (Text: 3) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 3)
+IIfStatement (OperationKind.IfStatement, IsInvalid) (Syntax: 'if () ... }')
+  Condition: IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: System.Boolean, IsInvalid) (Syntax: '')
+      IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '')
+  IfTrue: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
+      IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'a = 2;')
+        IAssignmentExpression (OperationKind.AssignmentExpression, Type: System.Int32) (Syntax: 'a = 2')
+          Left: ILocalReferenceExpression: a (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'a')
+          Right: ILiteralExpression (Text: 2) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
+  IfFalse: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
+      IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'a = 3;')
+        IAssignmentExpression (OperationKind.AssignmentExpression, Type: System.Int32) (Syntax: 'a = 3')
+          Left: ILocalReferenceExpression: a (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'a')
+          Right: ILiteralExpression (Text: 3) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 3) (Syntax: '3')
 ";
-            VerifyOperationTreeForTest<IfStatementSyntax>(source, expectedOperationTree);
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS1525: Invalid expression term ')'
+                //         /*<bind>*/if ()
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(9, 23),
+                // CS0219: The variable 'a' is assigned but its value is never used
+                //         int a = 1;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "a").WithArguments("a").WithLocation(8, 13)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<IfStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         [Fact, WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")]
@@ -639,23 +692,39 @@ class P
     private void M()
     {
         int a = 1;
-        /*<bind>*/if (a==1)
+        
+        /*<bind>*/if (a == 1)
         else
-/*</bind>*/        
+/*</bind>*/
     }
 }
 ";
             string expectedOperationTree = @"
-IIfStatement (OperationKind.IfStatement, IsInvalid)
-  Condition: IBinaryOperatorExpression (BinaryOperationKind.IntegerEquals) (OperationKind.BinaryOperatorExpression, Type: System.Boolean)
-      Left: ILocalReferenceExpression: a (OperationKind.LocalReferenceExpression, Type: System.Int32)
-      Right: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1)
-  IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid)
-    IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid)
-  IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid)
-    IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid)
+IIfStatement (OperationKind.IfStatement, IsInvalid) (Syntax: 'if (a == 1) ... else')
+  Condition: IBinaryOperatorExpression (BinaryOperationKind.IntegerEquals) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'a == 1')
+      Left: ILocalReferenceExpression: a (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'a')
+      Right: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+  IfTrue: IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: '')
+      IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '')
+  IfFalse: IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: '')
+      IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '')
 ";
-            VerifyOperationTreeForTest<IfStatementSyntax>(source, expectedOperationTree);
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS1525: Invalid expression term 'else'
+                //         /*<bind>*/if (a == 1)
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("else").WithLocation(10, 30),
+                // CS1002: ; expected
+                //         /*<bind>*/if (a == 1)
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(10, 30),
+                // CS1525: Invalid expression term '}'
+                //         else
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("}").WithLocation(11, 13),
+                // CS1002: ; expected
+                //         else
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(11, 13)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<IfStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         [Fact, WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")]
@@ -684,16 +753,22 @@ class P
 }
 ";
             string expectedOperationTree = @"
-IIfStatement (OperationKind.IfStatement)
-  Condition: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Boolean, Constant: True)
-  IExpressionStatement (OperationKind.ExpressionStatement)
-    IInvocationExpression ( void P.A()) (OperationKind.InvocationExpression, Type: System.Void)
-      Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: P)
-  IExpressionStatement (OperationKind.ExpressionStatement)
-    IInvocationExpression ( void P.B()) (OperationKind.InvocationExpression, Type: System.Void)
-      Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: P)
+IIfStatement (OperationKind.IfStatement) (Syntax: 'if (true) ... B();')
+  Condition: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Boolean, Constant: True) (Syntax: 'true')
+  IfTrue: IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'A();')
+      IInvocationExpression ( void P.A()) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'A()')
+        Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: P) (Syntax: 'A')
+  IfFalse: IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'B();')
+      IInvocationExpression ( void P.B()) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'B()')
+        Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: P) (Syntax: 'B')
 ";
-            VerifyOperationTreeForTest<IfStatementSyntax>(source, expectedOperationTree);
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0162: Unreachable code detected
+                //             B();/*</bind>*/
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "B").WithLocation(11, 13)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<IfStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         [Fact, WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")]
@@ -716,24 +791,25 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IIfStatement (OperationKind.IfStatement)
-  Condition: IUnaryOperatorExpression (UnaryOperationKind.DynamicTrue) (OperationKind.UnaryOperatorExpression, Type: System.Boolean)
-      IBinaryOperatorExpression (BinaryOperationKind.DynamicAnd) (OperationKind.BinaryOperatorExpression, Type: dynamic)
-        Left: IBinaryOperatorExpression (BinaryOperationKind.Invalid) (OperationKind.BinaryOperatorExpression, Type: dynamic)
-            Left: IOperation:  (OperationKind.None)
-            Right: IParameterReferenceExpression: t (OperationKind.ParameterReferenceExpression, Type: System.Type)
-        Right: IInvocationExpression (virtual System.Boolean System.ValueType.Equals(System.Object obj)) (OperationKind.InvocationExpression, Type: System.Boolean)
-            Instance Receiver: IConversionExpression (ConversionKind.CSharp, Explicit) (OperationKind.ConversionExpression, Type: T)
-                IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: dynamic)
-            IArgument (Matching Parameter: obj) (OperationKind.Argument)
-              IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.Object)
-                IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: T)
-  IBlockStatement (1 statements) (OperationKind.BlockStatement)
-    IReturnStatement (OperationKind.ReturnStatement)
-      ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1)
+IIfStatement (OperationKind.IfStatement) (Syntax: 'if (d.GetTy ... }')
+  Condition: IUnaryOperatorExpression (UnaryOperationKind.DynamicTrue) (OperationKind.UnaryOperatorExpression, Type: System.Boolean) (Syntax: 'd.GetType() ... ).Equals(x)')
+      IBinaryOperatorExpression (BinaryOperationKind.DynamicAnd) (OperationKind.BinaryOperatorExpression, Type: dynamic) (Syntax: 'd.GetType() ... ).Equals(x)')
+        Left: IBinaryOperatorExpression (BinaryOperationKind.Invalid) (OperationKind.BinaryOperatorExpression, Type: dynamic) (Syntax: 'd.GetType() == t')
+            Left: IOperation:  (OperationKind.None) (Syntax: 'd.GetType()')
+            Right: IParameterReferenceExpression: t (OperationKind.ParameterReferenceExpression, Type: System.Type) (Syntax: 't')
+        Right: IInvocationExpression (virtual System.Boolean System.ValueType.Equals(System.Object obj)) (OperationKind.InvocationExpression, Type: System.Boolean) (Syntax: '((T)d).Equals(x)')
+            Instance Receiver: IConversionExpression (ConversionKind.CSharp, Explicit) (OperationKind.ConversionExpression, Type: T) (Syntax: '(T)d')
+                IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: dynamic) (Syntax: 'd')
+            Arguments(1): IArgument (ArgumentKind.Explicit, Matching Parameter: obj) (OperationKind.Argument) (Syntax: 'x')
+                IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: 'x')
+                  IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: T) (Syntax: 'x')
+  IfTrue: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
+      IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'return 1;')
+        ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
 ";
-            VerifyOperationTreeForTest<IfStatementSyntax>(source, expectedOperationTree);
-        }
+            var expectedDiagnostics = DiagnosticDescription.None;
 
+            VerifyOperationTreeAndDiagnosticsForTest<IfStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
     }
 }

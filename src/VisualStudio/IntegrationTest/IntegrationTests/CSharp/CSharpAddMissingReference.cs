@@ -4,9 +4,6 @@ using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
-using Roslyn.VisualStudio.IntegrationTests.Extensions;
-using Roslyn.VisualStudio.IntegrationTests.Extensions.Editor;
-using Roslyn.VisualStudio.IntegrationTests.Extensions.SolutionExplorer;
 using Xunit;
 using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
@@ -102,7 +99,7 @@ class Program
         public CSharpAddMissingReference(VisualStudioInstanceFactory instanceFactory)
             : base(instanceFactory)
         {
-            VisualStudio.Instance.SolutionExplorer.CreateSolution("ReferenceErrors", solutionElement: XElement.Parse(
+            VisualStudio.SolutionExplorer.CreateSolution("ReferenceErrors", solutionElement: XElement.Parse(
                 "<Solution>" +
                $"   <Project ProjectName=\"{ClassLibrary1Name}\" ProjectTemplate=\"{WellKnownProjectTemplates.WinFormsApplication}\" Language=\"{LanguageNames.VisualBasic}\">" +
                 "       <Document FileName=\"Class1.vb\"><![CDATA[" +
@@ -135,35 +132,35 @@ class Program
         public void VerifyAvailableCodeActions()
         {
             var consoleProject = new ProjectUtils.Project(ConsoleProjectName);
-            this.OpenFile("Program.cs", consoleProject);
-            this.PlaceCaret("y.foo", charsOffset: 1);
-            this.InvokeCodeActionList();
-            this.VerifyCodeAction("Add reference to 'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.", applyFix: false);
-            this.PlaceCaret("y.ee", charsOffset: 1);
-            this.InvokeCodeActionList();
-            this.VerifyCodeAction("Add reference to 'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.", applyFix: false);
-            this.PlaceCaret("a.bar", charsOffset: 1);
-            this.InvokeCodeActionList();
-            this.VerifyCodeAction("Add project reference to 'ClassLibrary3'.", applyFix: false);
+            VisualStudio.SolutionExplorer.OpenFile( consoleProject, "Program.cs");
+            VisualStudio.Editor.PlaceCaret("y.foo", charsOffset: 1);
+            VisualStudio.Editor.InvokeCodeActionList();
+            VisualStudio.Editor.Verify.CodeAction("Add reference to 'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.", applyFix: false);
+            VisualStudio.Editor.PlaceCaret("y.ee", charsOffset: 1);
+            VisualStudio.Editor.InvokeCodeActionList();
+            VisualStudio.Editor.Verify.CodeAction("Add reference to 'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.", applyFix: false);
+            VisualStudio.Editor.PlaceCaret("a.bar", charsOffset: 1);
+            VisualStudio.Editor.InvokeCodeActionList();
+            VisualStudio.Editor.Verify.CodeAction("Add project reference to 'ClassLibrary3'.", applyFix: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.AddMissingReference)]
         public void InvokeSomeFixesInCSharpThenVerifyReferences()
         {
             var consoleProject = new ProjectUtils.Project(ConsoleProjectName);
-            this.OpenFile("Program.cs", consoleProject);
-            this.PlaceCaret("y.foo", charsOffset: 1);
-            this.InvokeCodeActionList();
-            this.VerifyCodeAction("Add reference to 'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.", applyFix: true);
-            this.VerifyAssemblyReferencePresent(
+            VisualStudio.SolutionExplorer.OpenFile(consoleProject, "Program.cs");
+            VisualStudio.Editor.PlaceCaret("y.foo", charsOffset: 1);
+            VisualStudio.Editor.InvokeCodeActionList();
+            VisualStudio.Editor.Verify.CodeAction("Add reference to 'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.", applyFix: true);
+            VisualStudio.SolutionExplorer.Verify.AssemblyReferencePresent(
                 project: consoleProject,
                 assemblyName: "System.Windows.Forms",
                 assemblyVersion: "4.0.0.0",
                 assemblyPublicKeyToken: "b77a5c561934e089");
-            this.PlaceCaret("a.bar", charsOffset: 1);
-            this.InvokeCodeActionList();
-            this.VerifyCodeAction("Add project reference to 'ClassLibrary3'.", applyFix: true);
-            this.VerifyProjectReferencePresent(
+            VisualStudio.Editor.PlaceCaret("a.bar", charsOffset: 1);
+            VisualStudio.Editor.InvokeCodeActionList();
+            VisualStudio.Editor.Verify.CodeAction("Add project reference to 'ClassLibrary3'.", applyFix: true);
+            VisualStudio.SolutionExplorer.Verify.ProjectReferencePresent(
                 project: consoleProject,
                 referencedProjectName: ClassLibrary3Name);
         }

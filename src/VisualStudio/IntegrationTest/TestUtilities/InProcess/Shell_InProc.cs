@@ -20,18 +20,18 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             => InvokeOnUIThread(() =>
             {
                 var shellMonitorSelection = GetGlobalService<SVsShellMonitorSelection, IVsMonitorSelection>();
-                if (!ErrorHandler.Succeeded(shellMonitorSelection.GetCurrentElementValue((uint) VSConstants.VSSELELEMID.SEID_DocumentFrame, out var windowFrameObject)))
+                if (!ErrorHandler.Succeeded(shellMonitorSelection.GetCurrentElementValue((uint)VSConstants.VSSELELEMID.SEID_DocumentFrame, out var windowFrameObject)))
                 {
                     throw new InvalidOperationException("Tried to get the active document frame but no documents were open.");
                 }
 
                 var windowFrame = (IVsWindowFrame)windowFrameObject;
-                if (!ErrorHandler.Succeeded(windowFrame.GetProperty((int) VsFramePropID.IsProvisional, out var isProvisionalObject)))
+                if (!ErrorHandler.Succeeded(windowFrame.GetProperty((int)VsFramePropID.IsProvisional, out var isProvisionalObject)))
                 {
                     throw new InvalidOperationException("The active window frame did not have an 'IsProvisional' property.");
                 }
 
-                return (bool) isProvisionalObject;
+                return (bool)isProvisionalObject;
             });
     }
 }

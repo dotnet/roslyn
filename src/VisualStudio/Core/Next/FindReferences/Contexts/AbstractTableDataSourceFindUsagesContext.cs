@@ -245,7 +245,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
             protected abstract Task OnDefinitionFoundWorkerAsync(DefinitionItem definition);
 
-            protected async Task<(Guid, SourceText)> GetGuidAndSourceTextAsync(Document document)
+            protected async Task<(Guid, string projectName, SourceText)> GetGuidAndProjectNameAndSourceTextAsync(Document document)
             {
                 // The FAR system needs to know the guid for the project that a def/reference is 
                 // from (to support features like filtering).  Normally that would mean we could
@@ -254,10 +254,13 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 // when we have another type of workspace.  This means we will show results, but
                 // certain features (like filtering) may not work in that context.
                 var workspace = document.Project.Solution.Workspace as VisualStudioWorkspaceImpl;
-                var guid = workspace?.GetHostProject(document.Project.Id)?.Guid ?? Guid.Empty;
+                var hostProject = workspace?.GetHostProject(document.Project.Id);
+
+                var projectName = hostProject?.DisplayName ?? document.Project.Name;
+                var guid = hostProject?.Guid ?? Guid.Empty;
 
                 var sourceText = await document.GetTextAsync(CancellationToken).ConfigureAwait(false);
-                return (guid, sourceText);
+                return (guid, projectName, sourceText);
             }
 
             protected async Task<Entry> CreateDocumentSpanEntryAsync(
@@ -266,7 +269,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 HighlightSpanKind spanKind)
             {
                 var document = documentSpan.Document;
-                var (guid, sourceText) = await GetGuidAndSourceTextAsync(document).ConfigureAwait(false);
+                var (guid, projectName, sourceText) = await GetGuidAndProjectNameAndSourceTextAsync(document).ConfigureAwait(false);
 
                 var narrowSpan = documentSpan.SourceSpan;
                 var lineSpan = GetLineSpanForReference(sourceText, narrowSpan);
@@ -275,7 +278,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
                 return new DocumentSpanEntry(
                     this, definitionBucket, documentSpan, spanKind,
-                    guid, sourceText, taggedLineParts);
+                    projectName, guid, sourceText, taggedLineParts);
             }
 
             private TextSpan GetLineSpanForReference(SourceText sourceText, TextSpan referenceSpan)

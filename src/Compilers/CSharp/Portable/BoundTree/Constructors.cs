@@ -446,7 +446,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundBadExpression
     {
-        public BoundBadExpression(SyntaxNode syntax, LookupResultKind resultKind, ImmutableArray<Symbol> symbols, ImmutableArray<BoundNode> childBoundNodes, TypeSymbol type)
+        public BoundBadExpression(SyntaxNode syntax, LookupResultKind resultKind, ImmutableArray<Symbol> symbols, ImmutableArray<BoundExpression> childBoundNodes, TypeSymbol type)
             : this(syntax, resultKind, symbols, childBoundNodes, type, true)
         {
             Debug.Assert((object)type != null);
@@ -523,10 +523,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    internal partial class BoundDefaultOperator
+    internal partial class BoundDefaultExpression
     {
-        public BoundDefaultOperator(SyntaxNode syntax, TypeSymbol type)
-            : this(syntax, type.GetDefaultValue(), type)
+        public BoundDefaultExpression(SyntaxNode syntax, TypeSymbol type, bool hasErrors = false)
+            : this(syntax, type.GetDefaultValue(), type, hasErrors)
         {
         }
     }
