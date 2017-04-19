@@ -12,9 +12,9 @@ namespace Microsoft.CodeAnalysis.Differencing
     {
         private const double ExactMatchDistance = 0.0;
         private const double EpsilonDistance = 0.00001;
-        private const double MatchingDistance1 = 0.5;
-        private const double MatchingDistance2 = 1.0;
-        private const double MatchingDistance3 = 1.5;
+        private const double MatchingDistance1 = 0.25;
+        private const double MatchingDistance2 = 0.5;
+        private const double MatchingDistance3 = 1;
         private const double MaxDistance = 2.0;
 
         private readonly TreeComparer<TNode> _comparer;
@@ -257,6 +257,11 @@ namespace Microsoft.CodeAnalysis.Differencing
                     if (i2 == firstNonMatch2)
                     {
                         firstNonMatch2 = i2 + 1;
+                    }
+
+                    if (firstNonMatch2 == count2)
+                    {
+                        return;
                     }
                 }
             }
