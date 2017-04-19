@@ -204,7 +204,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
 
                 if (matchSpanToAdd != null)
                 {
-                    matchedSpansInReverse.Add(matchSpanToAdd.Value);
+                    matchedSpansInReverse?.Add(matchSpanToAdd.Value);
                 }
 
                 // This was result was better than whatever previous best result we had was.
