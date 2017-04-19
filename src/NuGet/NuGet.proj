@@ -15,9 +15,9 @@
   </Target>
 
   <Target Name="Clean">
-    <MSBuild Projects="@(Project)" Targets="Clean" BuildInParallel="false" />
+    <RemoveDir Directories="$(OutDir)NuGet" />
   </Target>
-  <Target Name="Rebuild">
-    <MSBuild Projects="@(Project)" Targets="Rebuild" BuildInParallel="false" />
+
+  <Target Name="Rebuild" DependsOnTargets="Clean;Build">
   </Target>
 </Project>

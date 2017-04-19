@@ -16,19 +16,9 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup Label="Project References">
-    <ProjectReference Include="..\..\..\..\Core\Source\Concord\Concord.csproj">
-      <Project>{5002636a-fe8d-40bf-8818-ab513a2194fa}</Project>
-      <Name>Concord</Name>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-    </ProjectReference>
     <ProjectReference Include="..\..\..\..\Core\Source\ResultProvider\Portable\ResultProvider.Portable.csproj">
       <Project>{fa0e905d-ec46-466d-b7b2-3b5557f9428c}</Project>
       <Name>ResultProvider.Portable</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\..\..\Tools\Source\CompilerGeneratorTools\DeployCompilerGeneratorToolsRuntime\DeployCompilerGeneratorToolsRuntime.csproj">
-      <Project>{6da08f12-32f2-4dd9-bbad-982eb71a2c9b}</Project>
-      <Name>DeployCompilerGeneratorToolsRuntime</Name>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup Label="Linked Files">
@@ -47,11 +37,9 @@
     <Compile Include="..\..\..\..\..\Compilers\VisualBasic\Portable\Syntax\SyntaxKindFacts.vb">
       <Link>Compiler\Syntax\SyntaxKindFacts.vb</Link>
     </Compile>
-    <SyntaxGetTextDefinition Include="..\..\..\..\..\Compilers\VisualBasic\Portable\Syntax\Syntax.xml">
-      <Link>Compiler\Syntax\Syntax.xml</Link>
-      <SubType>Designer</SubType>
-    </SyntaxGetTextDefinition>
-    <Compile Include="$(IntermediateOutputPath)Syntax.xml.Generated.vb" />
+    <Compile Include="..\Generated\Syntax.xml.GetText.Generated.vb">
+      <Link>Generated\Syntax.xml.GetText.Generated.vb</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <None Include="project.json" />

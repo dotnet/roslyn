@@ -59,14 +59,12 @@
     <Compile Include="DesktopRuntimeUtil.cs" />
     <Compile Include="InstrumentationChecker.cs" />
     <Compile Include="ConditionalFactAttribute.cs" />
-    <Compile Include="ObjectReference.cs" />
     <Compile Include="CodeRuntime\AppDomainAssemblyCache.cs" />
     <Compile Include="CodeRuntime\Exceptions.cs" />
     <Compile Include="Extensions.cs" />
     <Compile Include="CodeRuntime\RuntimeAssemblyManager.cs" />
     <Compile Include="SharedResourceHelpers.cs" />
     <Compile Include="CommonDiagnosticAnalyzers.cs" />
-    <Compile Include="CultureContext.cs" />
     <Compile Include="ErrorDiagnostics.cs" />
     <Compile Include="CodeRuntime\DesktopRuntimeEnvironment.cs" />
     <Compile Include="MetadataSignatureHelper.cs" />

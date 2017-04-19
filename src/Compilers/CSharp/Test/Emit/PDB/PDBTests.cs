@@ -93,7 +93,7 @@ public class C
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib(
+            var compilation = CreateStandardCompilation(
                 new[] { Parse(text1, @"C:\Folder1\Folder2\Test1.cs") },
                 options: TestOptions.DebugDll.WithSourceReferenceResolver(SourceFileResolver.Default));
 
@@ -127,7 +127,7 @@ public class C
 @"class C
 {
 }";
-            var compilation = CreateCompilationWithMscorlib(source0, options: TestOptions.DebugDll);
+            var compilation = CreateStandardCompilation(source0, options: TestOptions.DebugDll);
 
             // Verify full metadata contains expected rows.
             using (MemoryStream peStream = new MemoryStream(), pdbStream = new MemoryStream())
@@ -160,7 +160,7 @@ public class C
 @"class C
 {
 }";
-            var compilation = CreateCompilationWithMscorlib(source0, options: TestOptions.DebugDll);
+            var compilation = CreateStandardCompilation(source0, options: TestOptions.DebugDll);
 
             // Verify full metadata contains expected rows.
             using (MemoryStream peStream = new MemoryStream(), pdbStream = new MemoryStream())
@@ -193,7 +193,7 @@ public class C
 @"class C
 {
 }";
-            var compilation = CreateCompilationWithMscorlib(source0, options: TestOptions.DebugDll.WithDeterministic(true));
+            var compilation = CreateStandardCompilation(source0, options: TestOptions.DebugDll.WithDeterministic(true));
 
             // Verify full metadata contains expected rows.
             using (MemoryStream peStream = new MemoryStream(), pdbStream = new MemoryStream())
@@ -237,7 +237,7 @@ public class C
 }
 ";
 
-            var debug = CreateCompilationWithMscorlib(source, new[] { CSharpRef, SystemCoreRef }, options: TestOptions.DebugWinMD);
+            var debug = CreateStandardCompilation(source, new[] { CSharpRef, SystemCoreRef }, options: TestOptions.DebugWinMD);
             debug.VerifyPdb(@"
 <symbols>
     <methods>
@@ -273,7 +273,7 @@ public class C
   </methods>
 </symbols>");
 
-            var release = CreateCompilationWithMscorlib(source, new[] { CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseWinMD);
+            var release = CreateStandardCompilation(source, new[] { CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseWinMD);
             release.VerifyPdb(@"
 <symbols>
   <methods>
@@ -315,7 +315,7 @@ public class C
     }
 }";
 
-            var debug = CreateCompilationWithMscorlib(source, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.DebugWinMD);
+            var debug = CreateStandardCompilation(source, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.DebugWinMD);
             debug.VerifyPdb(
 @"<symbols>
   <methods>
@@ -337,7 +337,7 @@ public class C
   </methods>
 </symbols>");
 
-            var release = CreateCompilationWithMscorlib(source, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.ReleaseWinMD);
+            var release = CreateStandardCompilation(source, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.ReleaseWinMD);
             release.VerifyPdb(
 @"<symbols>
   <methods>
@@ -364,7 +364,7 @@ public class C
             var tree1 = Parse(source1, @"foo.cs");
             var tree2 = Parse(source2, @"foo.cs");
 
-            var comp = CreateCompilationWithMscorlib(new[] { tree1, tree2 });
+            var comp = CreateStandardCompilation(new[] { tree1, tree2 });
 
             // the first file wins (checksum CB 22 ...)
             comp.VerifyPdb(@"
@@ -401,7 +401,7 @@ public class C
         {
             var source = @"class C { static void F() { } }";
 
-            var c = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            var c = CreateStandardCompilation(source, options: TestOptions.DebugDll);
             var f = c.GetMember<MethodSymbol>("C.F");
 
             c.VerifyPdb(@"
@@ -421,7 +421,7 @@ public class C
         {
             var source = @"class M { static void Main() { } } class C { static void F<S>() { } }";
 
-            var c = CreateCompilationWithMscorlib(source, options: TestOptions.DebugExe);
+            var c = CreateStandardCompilation(source, options: TestOptions.DebugExe);
             var f = c.GetMember<MethodSymbol>("C.F");
 
             c.VerifyPdb(@"
@@ -444,8 +444,8 @@ public class C
             var source1 = @"class C { static void F() { } } class D<T> { static void G<S>() {} }";
             var source2 = @"class C { static void F() { } }";
 
-            var c1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll);
-            var c2 = CreateCompilationWithMscorlib(source2, options: TestOptions.DebugDll);
+            var c1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll);
+            var c2 = CreateStandardCompilation(source2, options: TestOptions.DebugDll);
 
             var f1 = c1.GetMember<MethodSymbol>("C.F");
             var f2 = c2.GetMember<MethodSymbol>("C.F");
@@ -3217,7 +3217,7 @@ public partial class C
             //Having a unique name here may be important. The infrastructure of the pdb to xml conversion
             //loads the assembly into the ReflectionOnlyLoadFrom context.
             //So it's probably a good idea to have a new name for each assembly.
-            var compilation = CreateCompilationWithMscorlib(new SyntaxTree[] { Parse(text1, "a.cs"), Parse(text2, "b.cs") });
+            var compilation = CreateStandardCompilation(new SyntaxTree[] { Parse(text1, "a.cs"), Parse(text2, "b.cs") });
 
             compilation.VerifyPdb("C..ctor", @"
 <symbols>
@@ -3296,7 +3296,7 @@ public partial class C
             //Having a unique name here may be important. The infrastructure of the pdb to xml conversion
             //loads the assembly into the ReflectionOnlyLoadFrom context.
             //So it's probably a good idea to have a new name for each assembly.
-            var compilation = CreateCompilationWithMscorlib(new[] { Parse(text1, "a.cs"), Parse(text2, "b.cs"), Parse(text3, "a.cs") }, options: TestOptions.DebugDll);
+            var compilation = CreateStandardCompilation(new[] { Parse(text1, "a.cs"), Parse(text2, "b.cs"), Parse(text3, "a.cs") }, options: TestOptions.DebugDll);
 
             compilation.VerifyPdb("C..ctor", @"
 <symbols>
@@ -3425,7 +3425,7 @@ public class C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            var comp = CreateStandardCompilation(source, options: TestOptions.DebugDll);
 
             comp.VerifyPdb(@"
 <symbols>
@@ -5041,7 +5041,7 @@ public class C
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib(text1, options: TestOptions.DebugDll);
+            var compilation = CreateStandardCompilation(text1, options: TestOptions.DebugDll);
             compilation.VerifyPdb(@"
 <symbols>
   <methods>
@@ -5112,288 +5112,6 @@ public class C
 
         #endregion
 
-        #region Constants
-
-        [Fact]
-        public void Constant_StringsWithSurrogateChar()
-        {
-            var source = @"
-using System;
-public class T
-{
-    public static void Main()
-    {
-        const string HighSurrogateCharacter = ""\uD800"";
-        const string LowSurrogateCharacter = ""\uDC00"";
-        const string MatchedSurrogateCharacters = ""\uD800\uDC00"";
-    }
-}";
-
-            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
-
-            // Note:  U+FFFD is the Unicode 'replacement character' point and is used to replace an incoming character
-            //        whose value is unknown or unrepresentable in Unicode.  This is what our pdb writer does with
-            //        unpaired surrogates.
-            c.VerifyPdb(@"
-<symbols>
-  <methods>
-    <method containingType=""T"" name=""Main"">
-      <customDebugInfo>
-        <using>
-          <namespace usingCount=""1"" />
-        </using>
-      </customDebugInfo>
-      <sequencePoints>
-        <entry offset=""0x0"" startLine=""6"" startColumn=""5"" endLine=""6"" endColumn=""6"" />
-        <entry offset=""0x1"" startLine=""10"" startColumn=""5"" endLine=""10"" endColumn=""6"" />
-      </sequencePoints>
-      <scope startOffset=""0x0"" endOffset=""0x2"">
-        <namespace name=""System"" />
-        <constant name=""HighSurrogateCharacter"" value=""\uFFFD"" type=""String"" />
-        <constant name=""LowSurrogateCharacter"" value=""\uFFFD"" type=""String"" />
-        <constant name=""MatchedSurrogateCharacters"" value=""\uD800\uDC00"" type=""String"" />
-      </scope>
-    </method>
-  </methods>
-</symbols>", format: DebugInformationFormat.Pdb);
-
-            c.VerifyPdb(@"
-<symbols>
-  <methods>
-    <method containingType=""T"" name=""Main"">
-      <sequencePoints>
-        <entry offset=""0x0"" startLine=""6"" startColumn=""5"" endLine=""6"" endColumn=""6"" />
-        <entry offset=""0x1"" startLine=""10"" startColumn=""5"" endLine=""10"" endColumn=""6"" />
-      </sequencePoints>
-      <scope startOffset=""0x0"" endOffset=""0x2"">
-        <constant name=""HighSurrogateCharacter"" value=""\uD800"" type=""String"" />
-        <constant name=""LowSurrogateCharacter"" value=""\uDC00"" type=""String"" />
-        <constant name=""MatchedSurrogateCharacters"" value=""\uD800\uDC00"" type=""String"" />
-      </scope>
-    </method>
-  </methods>
-</symbols>", format: DebugInformationFormat.PortablePdb);
-        }
-
-        [Fact, WorkItem(546862, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546862")]
-        public void Constant_InvalidUnicodeString()
-        {
-            var source = @"
-using System;
-public class T
-{
-    public static void Main()
-    {
-        const string invalidUnicodeString = ""\uD800\0\uDC00"";
-    }
-}";
-
-            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
-
-            // Note:  U+FFFD is the Unicode 'replacement character' point and is used to replace an incoming character
-            //        whose value is unknown or unrepresentable in Unicode.  This is what our pdb writer does with
-            //        unpaired surrogates.
-            c.VerifyPdb(@"
-<symbols>
-  <methods>
-    <method containingType=""T"" name=""Main"">
-      <customDebugInfo>
-        <using>
-          <namespace usingCount=""1"" />
-        </using>
-      </customDebugInfo>
-      <sequencePoints>
-        <entry offset=""0x0"" startLine=""6"" startColumn=""5"" endLine=""6"" endColumn=""6"" />
-        <entry offset=""0x1"" startLine=""8"" startColumn=""5"" endLine=""8"" endColumn=""6"" />
-      </sequencePoints>
-      <scope startOffset=""0x0"" endOffset=""0x2"">
-        <namespace name=""System"" />
-        <constant name=""invalidUnicodeString"" value=""\uFFFD\u0000\uFFFD"" type=""String"" />
-      </scope>
-    </method>
-  </methods>
-</symbols>", format: DebugInformationFormat.Pdb);
-
-            c.VerifyPdb(@"
-<symbols>
-  <methods>
-    <method containingType=""T"" name=""Main"">
-      <sequencePoints>
-        <entry offset=""0x0"" startLine=""6"" startColumn=""5"" endLine=""6"" endColumn=""6"" />
-        <entry offset=""0x1"" startLine=""8"" startColumn=""5"" endLine=""8"" endColumn=""6"" />
-      </sequencePoints>
-      <scope startOffset=""0x0"" endOffset=""0x2"">
-        <constant name=""invalidUnicodeString"" value=""\uD800\u0000\uDC00"" type=""String"" />
-      </scope>
-    </method>
-  </methods>
-</symbols>", format: DebugInformationFormat.PortablePdb);
-        }
-
-        [Fact]
-        public void WRN_PDBConstantStringValueTooLong()
-        {
-            var longStringValue = new string('a', 2049);
-            var source = @"
-using System;
-
-class C
-{
-    static void Main()
-    {
-        const string foo = """ + longStringValue + @""";
-        Console.Write(foo);
-    }
-}
-";
-
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.DebugExe);
-
-            var exebits = new MemoryStream();
-            var pdbbits = new MemoryStream();
-            var result = compilation.Emit(exebits, pdbbits);
-            result.Diagnostics.Verify();
-
-            /*
-             * old behavior. This new warning was abandoned
-            result.Diagnostics.Verify(// warning CS7063: Constant string value of 'foo' is too long to be used in a PDB file. Only the debug experience may be affected.
-                                      Diagnostic(ErrorCode.WRN_PDBConstantStringValueTooLong).WithArguments("foo", longStringValue.Substring(0, 20) + "..."));
-
-            //make sure that this warning is suppressable
-            compilation = CreateCompilationWithMscorlib(text, compOptions: Options.Exe.WithDebugInformationKind(Common.DebugInformationKind.Full).WithOptimizations(false).
-                WithSpecificDiagnosticOptions(new Dictionary<int, ReportWarning>(){ {(int)ErrorCode.WRN_PDBConstantStringValueTooLong, ReportWarning.Suppress} }));
-
-            result = compilation.Emit(exebits, null, "DontCare", pdbbits, null);
-            result.Diagnostics.Verify();
-
-            //make sure that this warning can be turned into an error.
-            compilation = CreateCompilationWithMscorlib(text, compOptions: Options.Exe.WithDebugInformationKind(Common.DebugInformationKind.Full).WithOptimizations(false).
-                WithSpecificDiagnosticOptions(new Dictionary<int, ReportWarning>() { { (int)ErrorCode.WRN_PDBConstantStringValueTooLong, ReportWarning.Error } }));
-
-            result = compilation.Emit(exebits, null, "DontCare", pdbbits, null);
-            Assert.False(result.Success);
-            result.Diagnostics.Verify(
-                                      Diagnostic(ErrorCode.WRN_PDBConstantStringValueTooLong).WithArguments("foo", longStringValue.Substring(0, 20) + "...").WithWarningAsError(true));
-             * */
-        }
-
-        [Fact]
-        public void Constant_AllTypes()
-        {
-            var source = @"
-using System;
-using System.Collections.Generic;
-
-class X {}
-
-public class C<S>
-{
-    enum EnumI1 : sbyte  { A }
-    enum EnumU1 : byte   { A }
-    enum EnumI2 : short  { A }
-    enum EnumU2 : ushort { A }
-    enum EnumI4 : int    { A }
-    enum EnumU4 : uint   { A }
-    enum EnumI8 : long   { A }
-    enum EnumU8 : ulong  { A }
-
-    public static void F<T>()
-    {
-        const bool B = false;
-        const char C = '\0';
-        const sbyte I1 = 0;
-        const byte U1 = 0;
-        const short I2 = 0;
-        const ushort U2 = 0;
-        const int I4 = 0;
-        const uint U4 = 0;
-        const long I8 = 0;
-        const ulong U8 = 0;
-        const float R4 = 0;
-        const double R8 = 0;
-
-        const C<int>.EnumI1 EI1 = 0;
-        const C<int>.EnumU1 EU1 = 0;
-        const C<int>.EnumI2 EI2 = 0;
-        const C<int>.EnumU2 EU2 = 0;
-        const C<int>.EnumI4 EI4 = 0;
-        const C<int>.EnumU4 EU4 = 0;
-        const C<int>.EnumI8 EI8 = 0;
-        const C<int>.EnumU8 EU8 = 0;
-
-        const string StrWithNul = ""\0"";
-        const string EmptyStr = """";
-        const string NullStr = null;
-        const object NullObject = null;
-        const dynamic NullDynamic = null;
-        const X NullTypeDef = null;
-        const Action NullTypeRef = null;
-        const Func<Dictionary<int, C<int>>, dynamic, T, List<S>> NullTypeSpec = null;
-        
-        const decimal D = 0M;
-        // DateTime const not expressible in C#
-    }
-}";
-
-            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
-
-            c.VerifyPdb("C`1.F", @"
-<symbols>
-  <methods>
-    <method containingType=""C`1"" name=""F"">
-      <customDebugInfo>
-        <using>
-          <namespace usingCount=""2"" />
-        </using>
-        <dynamicLocals>
-          <bucket flagCount=""1"" flags=""1"" slotId=""0"" localName=""NullDynamic"" />
-          <bucket flagCount=""9"" flags=""000001000"" slotId=""0"" localName=""NullTypeSpec"" />
-        </dynamicLocals>
-      </customDebugInfo>
-      <sequencePoints>
-        <entry offset=""0x0"" startLine=""19"" startColumn=""5"" endLine=""19"" endColumn=""6"" />
-        <entry offset=""0x1"" startLine=""53"" startColumn=""5"" endLine=""53"" endColumn=""6"" />
-      </sequencePoints>
-      <scope startOffset=""0x0"" endOffset=""0x2"">
-        <namespace name=""System"" />
-        <namespace name=""System.Collections.Generic"" />
-        <constant name=""B"" value=""0"" type=""Boolean"" />
-        <constant name=""C"" value=""0"" type=""Char"" />
-        <constant name=""I1"" value=""0"" type=""SByte"" />
-        <constant name=""U1"" value=""0"" type=""Byte"" />
-        <constant name=""I2"" value=""0"" type=""Int16"" />
-        <constant name=""U2"" value=""0"" type=""UInt16"" />
-        <constant name=""I4"" value=""0"" type=""Int32"" />
-        <constant name=""U4"" value=""0"" type=""UInt32"" />
-        <constant name=""I8"" value=""0"" type=""Int64"" />
-        <constant name=""U8"" value=""0"" type=""UInt64"" />
-        <constant name=""R4"" value=""0"" type=""Single"" />
-        <constant name=""R8"" value=""0"" type=""Double"" />
-        <constant name=""EI1"" value=""0"" signature=""EnumI1{Int32}"" />
-        <constant name=""EU1"" value=""0"" signature=""EnumU1{Int32}"" />
-        <constant name=""EI2"" value=""0"" signature=""EnumI2{Int32}"" />
-        <constant name=""EU2"" value=""0"" signature=""EnumU2{Int32}"" />
-        <constant name=""EI4"" value=""0"" signature=""EnumI4{Int32}"" />
-        <constant name=""EU4"" value=""0"" signature=""EnumU4{Int32}"" />
-        <constant name=""EI8"" value=""0"" signature=""EnumI8{Int32}"" />
-        <constant name=""EU8"" value=""0"" signature=""EnumU8{Int32}"" />
-        <constant name=""StrWithNul"" value=""\u0000"" type=""String"" />
-        <constant name=""EmptyStr"" value="""" type=""String"" />
-        <constant name=""NullStr"" value=""null"" type=""String"" />
-        <constant name=""NullObject"" value=""null"" type=""Object"" />
-        <constant name=""NullDynamic"" value=""null"" type=""Object"" />
-        <constant name=""NullTypeDef"" value=""null"" signature=""X"" />
-        <constant name=""NullTypeRef"" value=""null"" signature=""System.Action"" />
-        <constant name=""NullTypeSpec"" value=""null"" signature=""System.Func`4{System.Collections.Generic.Dictionary`2{Int32, C`1{Int32}}, Object, !!0, System.Collections.Generic.List`1{!0}}"" />
-        <constant name=""D"" value=""0"" type=""Decimal"" />
-      </scope>
-    </method>
-  </methods>
-</symbols>");
-        }
-
-        #endregion
-
         #region Nested Types
 
         [Fact]
@@ -5419,7 +5137,7 @@ namespace N
 	}
 }
 ";
-            var c = CreateCompilationWithMscorlib(Parse(source, filename: "file.cs"));
+            var c = CreateStandardCompilation(Parse(source, filename: "file.cs"));
             c.VerifyPdb(@"
 <symbols>
   <files>
@@ -6041,7 +5759,7 @@ partial class C
 }
 ";
 
-            var c = CreateCompilationWithMscorlib(
+            var c = CreateStandardCompilation(
                 new[] { Parse(initializerSource, "initializer.cs"), Parse(constructorSource, "constructor.cs") },
                 options: TestOptions.DebugDll);
 

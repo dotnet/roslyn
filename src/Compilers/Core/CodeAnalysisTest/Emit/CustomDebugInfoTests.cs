@@ -587,6 +587,62 @@ namespace Microsoft.CodeAnalysis.UnitTests.Emit
         }
 
         [Fact]
+        public void TupleElementNames()
+        {
+            var builder = new BlobBuilder();
+            var cdiEncoder = new CustomDebugInfoEncoder(builder);
+
+            cdiEncoder.AddTupleElementNames(new[]
+            {
+                (LocalName: "a", SlotIndex: 1, ScopeStart: 0, ScopeEnd: 0, Names: ImmutableArray.Create("e")),
+                (LocalName: "b", SlotIndex: -1, ScopeStart: 0, ScopeEnd: 10, Names: ImmutableArray.Create("u", null, "v")),
+            });
+
+            var cdi = cdiEncoder.ToArray();
+
+            Assert.Equal(1, cdiEncoder.RecordCount);
+
+            AssertEx.Equal(new byte[]
+            {
+                0x04,       // version
+                0x01,       // record count
+                0x00, 0x00, // alignment
+
+                0x04, // version
+                0x08, // record kind
+                0x00,
+                0x01, // alignment size
+
+                // aligned record size
+                0x38, 0x00, 0x00, 0x00,
+
+                // payload (4B aligned)
+                0x02, 0x00, 0x00, 0x00,   // number of entries
+
+                // entry #1
+
+                0x01, 0x00, 0x00, 0x00,   // element name count
+                (byte)'e', 0x00,          // element name 1
+                0x01, 0x00, 0x00, 0x00,   // slot index
+                0x00, 0x00, 0x00, 0x00,   // scope start 
+                0x00, 0x00, 0x00, 0x00,   // scope end
+                (byte)'a', 0x00,          // local name
+
+                // entry #2
+
+                0x03, 0x00, 0x00, 0x00,   // element name count  
+                (byte)'u', 0x00,          // element name 1
+                0x00,                     // element name 2
+                (byte)'v', 0x00,          // element name 3
+
+                0xFF, 0xFF, 0xFF, 0xFF,   // slot index
+                0x00, 0x00, 0x00, 0x00,   // scope start 
+                0x0A, 0x00, 0x00, 0x00,   // scope end   
+                (byte)'b', 0x00, 0x00     // local name
+            }, cdi);
+        }
+
+        [Fact]
         public void InvalidAlignment1()
         {
             // CDIs that don't support alignment:

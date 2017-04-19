@@ -47,8 +47,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EncapsulateField
         public static EncapsulateFieldTestState Create(string markup)
         {
             var workspace = TestWorkspace.CreateCSharp(markup, exportProvider: s_exportProvider);
-            workspace.Options = workspace.Options.WithChangedOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CodeStyleOptions.FalseWithNoneEnforcement)
-                                                 .WithChangedOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CodeStyleOptions.FalseWithNoneEnforcement);
+            workspace.Options = workspace.Options
+                .WithChangedOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithNoneEnforcement)
+                .WithChangedOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.NeverWithNoneEnforcement);
             return new EncapsulateFieldTestState(workspace);
         }
 

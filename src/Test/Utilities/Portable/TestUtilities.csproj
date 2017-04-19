@@ -86,6 +86,9 @@
     <None Include="project.json" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\..\..\Compilers\Shared\CoreClrShim.cs">
+      <Link>Assert\CoreClrShim.cs</Link>
+    </Compile>
     <Compile Include="Assert\AssertEx.cs" />
     <Compile Include="Assert\AssertXml.cs" />
     <Compile Include="Assert\ClrOnlyFactAttribute.cs" />
@@ -110,7 +113,7 @@
     <Compile Include="Compilation\OperationTreeVerifier.cs" />
     <Compile Include="Compilation\TestOperationWalker.cs" />
     <Compile Include="Compilation\VersionTestHelpers.cs" />
-    <Compile Include="ConditionalFactAttribute.cs" />
+    <Compile Include="CultureContext.cs" />
     <Compile Include="Diagnostics\BoxingOperationAnalyzer.cs" />
     <Compile Include="Diagnostics\CouldHaveMoreSpecificTypeAnalyzer.cs" />
     <Compile Include="Diagnostics\DescriptorFactory.cs" />
@@ -131,7 +134,7 @@
     <Compile Include="CompilerTraitAttribute.cs" />
     <Compile Include="Extensions\SemanticModelExtensions.cs" />
     <Compile Include="Extensions\SymbolExtensions.cs" />
-    <Compile Include="FX\ConsoleOutput.cs" />
+    <Compile Include="FX\CappedStringWriter.cs" />
     <Compile Include="FX\CultureHelpers.cs" />
     <Compile Include="FX\DirectoryHelper.cs" />
     <Compile Include="FX\EncodingUtilities.cs" />
@@ -170,6 +173,7 @@
     <Compile Include="Mocks\TestSourceReferenceResolver.cs" />
     <Compile Include="Mocks\TestStream.cs" />
     <Compile Include="Mocks\VirtualizedRelativePathResolver.cs" />
+    <Compile Include="ObjectReference.cs" />
     <Compile Include="Pdb\MockSymWriter.cs" />
     <Compile Include="Pdb\PdbTestUtilities.cs" />
     <Compile Include="Pdb\PdbValidation.cs" />
@@ -188,6 +192,7 @@
     <Compile Include="TempFiles\TempFile.cs" />
     <Compile Include="TempFiles\TempRoot.cs" />
     <Compile Include="TestBase.cs" />
+    <Compile Include="TestHelpers.cs" />
     <Compile Include="TestResource.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>

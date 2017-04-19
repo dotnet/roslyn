@@ -4837,6 +4837,114 @@ class C : I
                 MainDescription("(int, int) C.Name { get; set; }"));
         }
 
+        [WorkItem(18311, "https://github.com/dotnet/roslyn/issues/18311")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task ValueTupleWithArity0VariableName()
+        {
+            await TestAsync(
+@"
+using System;
+public class C
+{
+    void M()
+    {
+        var y$$ = ValueTuple.Create();
+    }
+}
+" + TestResources.NetFX.ValueTuple.tuplelib_cs,
+                MainDescription("(local variable) ValueTuple y"));
+        }
+
+        [WorkItem(18311, "https://github.com/dotnet/roslyn/issues/18311")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task ValueTupleWithArity0ImplicitVar()
+        {
+            await TestAsync(
+@"
+using System;
+public class C
+{
+    void M()
+    {
+        var$$ y = ValueTuple.Create();
+    }
+}
+" + TestResources.NetFX.ValueTuple.tuplelib_cs,
+                MainDescription("struct System.ValueTuple"));
+        }
+
+        [WorkItem(18311, "https://github.com/dotnet/roslyn/issues/18311")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task ValueTupleWithArity1VariableName()
+        {
+            await TestAsync(
+@"
+using System;
+public class C
+{
+    void M()
+    {
+        var y$$ = ValueTuple.Create(1);
+    }
+}
+" + TestResources.NetFX.ValueTuple.tuplelib_cs,
+                MainDescription("(local variable) ValueTuple<int> y"));
+        }
+
+        [WorkItem(18311, "https://github.com/dotnet/roslyn/issues/18311")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task ValueTupleWithArity1ImplicitVar()
+        {
+            await TestAsync(
+@"
+using System;
+public class C
+{
+    void M()
+    {
+        var$$ y = ValueTuple.Create(1);
+    }
+}
+" + TestResources.NetFX.ValueTuple.tuplelib_cs,
+                MainDescription("ValueTuple<System.Int32>"));
+        }
+
+        [WorkItem(18311, "https://github.com/dotnet/roslyn/issues/18311")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task ValueTupleWithArity2VariableName()
+        {
+            await TestAsync(
+@"
+using System;
+public class C
+{
+    void M()
+    {
+        var y$$ = ValueTuple.Create(1, 1);
+    }
+}
+" + TestResources.NetFX.ValueTuple.tuplelib_cs,
+                MainDescription("(local variable) (int, int) y"));
+        }
+
+        [WorkItem(18311, "https://github.com/dotnet/roslyn/issues/18311")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task ValueTupleWithArity2ImplicitVar()
+        {
+            await TestAsync(
+@"
+using System;
+public class C
+{
+    void M()
+    {
+        var$$ y = ValueTuple.Create(1, 1);
+    }
+}
+" + TestResources.NetFX.ValueTuple.tuplelib_cs,
+                MainDescription("(System.Int32, System.Int32)"));
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestRefMethod()
         {

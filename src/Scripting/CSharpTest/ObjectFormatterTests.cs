@@ -675,7 +675,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
             Assert.Equal("ReadOnlyCollection<int>(3) { 1, 2, 3 }", str);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void DebuggerProxy_FrameworkTypes_Lazy()
         {
             var obj = new Lazy<int[]>(() => new int[] { 1, 2 }, LazyThreadSafetyMode.None);

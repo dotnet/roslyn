@@ -121,7 +121,7 @@ commitPullList.each { isPr ->
 
   def triggerPhraseOnly = true
   def triggerPhraseExtra = "mac"
-  Utilities.setMachineAffinity(myJob, 'OSX10.11', 'latest-or-auto')
+  Utilities.setMachineAffinity(myJob, 'OSX10.12', 'latest-or-auto')
   Utilities.addXUnitDotNETResults(myJob, '**/xUnitResults/*.xml')
   addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
   }
@@ -186,7 +186,7 @@ commitPullList.each { isPr ->
 
   def triggerPhraseOnly = false
   def triggerPhraseExtra = "microbuild"
-  Utilities.setMachineAffinity(myJob, 'Windows_NT', 'latest-or-auto-dev15')
+  Utilities.setMachineAffinity(myJob, 'Windows_NT', 'win2016-base')
   addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
 }
 

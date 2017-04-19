@@ -548,7 +548,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                     var filteredRefactorings = FilterOnUIThread(refactorings, workspace);
 
-                    return filteredRefactorings.SelectAsArray(r => OrganizeRefactorings(workspace, r));
+                    // Refactorings are given the span the user currently has selected.  That
+                    // way they can be accurately sorted against other refactorings/fixes that
+                    // are of the same priority.  i.e. refactorings are LowPriority by default.
+                    // But we still want them to come first over a low-pri code fix that is
+                    // further away.  A good example of this is "Add null parameter check" which
+                    // should be higher in the list when the caret is on a parameter, vs the 
+                    // code-fix for "use expression body" which is given the entire span of a 
+                    // method.
+                    return filteredRefactorings.SelectAsArray(
+                        r => OrganizeRefactorings(workspace, r, selection.Value.ToSpan()));
                 }
 
                 return ImmutableArray<SuggestedActionSet>.Empty;
@@ -562,7 +571,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             /// Priority for all <see cref="SuggestedActionSet"/>s containing refactorings is set to <see cref="SuggestedActionSetPriority.Low"/>
             /// and should show up after fixes but before suppression fixes in the light bulb menu.
             /// </remarks>
-            private SuggestedActionSet OrganizeRefactorings(Workspace workspace, CodeRefactoring refactoring)
+            private SuggestedActionSet OrganizeRefactorings(
+                Workspace workspace, CodeRefactoring refactoring, Span applicableSpan)
             {
                 var refactoringSuggestedActions = ArrayBuilder<SuggestedAction>.GetInstance();
 
@@ -573,7 +583,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 }
 
                 return new SuggestedActionSet(
-                    refactoringSuggestedActions.ToImmutableAndFree(), SuggestedActionSetPriority.Low);
+                    refactoringSuggestedActions.ToImmutableAndFree(),
+                    SuggestedActionSetPriority.Low,
+                    applicableSpan);
             }
 
             public async Task<bool> HasSuggestedActionsAsync(ISuggestedActionCategorySet requestedActionCategories, SnapshotSpan range, CancellationToken cancellationToken)

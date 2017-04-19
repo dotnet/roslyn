@@ -7,7 +7,7 @@ Quickstart guide for tuples (C# 7.0 and Visual Basic 15)
 ![Install the ValueTuple package](img/install-valuetuple.png)
 4. Use tuples in C#:
 
-    ```C#
+```C#
 public class C
 {
         public static (int code, string message) Method((int, string) x) 
@@ -24,11 +24,11 @@ public class C
                 System.Console.Write(pair2.message);
         }
 }
-    ```
+```
     
 5. Or use tuples in VB:
 
-    ```VB
+```VB
 Public Class C
         Public Shared Function Method(x As (Integer, String)) As (code As Integer, message As String)
                 Return x
@@ -42,7 +42,7 @@ Public Class C
                 System.Console.Write(pair2.message)
         End Sub
 End Class
-    ```
+```
 
 6. Use deconstructions (C# only): see the [deconstruction page](deconstruction.md)
 

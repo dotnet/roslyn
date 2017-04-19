@@ -502,6 +502,39 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)]
+        [WorkItem(18626, "https://github.com/dotnet/roslyn/issues/18626")]
+        public async Task TestForExplicitInterfaceTypeName()
+        {
+            await TestInRegularAndScriptAsync(
+@"interface IProjectConfigurationsService
+{
+    void Method();
+}
+
+class Program : IProjectConfigurationsService
+{
+    void [|IProjectConfigurationService|].Method()
+    {
+
+    }
+}",
+@"interface IProjectConfigurationsService
+{
+    void Method();
+}
+
+class Program : IProjectConfigurationsService
+{
+    void IProjectConfigurationsService.Method()
+    {
+
+    }
+}");
+        }
+
+        
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)]
         [WorkItem(13345, "https://github.com/dotnet/roslyn/issues/13345")]
         public async Task TestMissingOnKeywordWhichIsOnlyASnippet()
         {

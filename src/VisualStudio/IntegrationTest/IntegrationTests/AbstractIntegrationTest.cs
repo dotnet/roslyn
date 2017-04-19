@@ -1,33 +1,38 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Threading;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
+using Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess;
+using System;
+using System.Threading;
 
 namespace Roslyn.VisualStudio.IntegrationTests
 {
     [CaptureTestName]
     public abstract class AbstractIntegrationTest : IDisposable
     {
-        protected readonly VisualStudioInstanceContext VisualStudio;
+        public readonly VisualStudioInstance VisualStudio;
 
-        protected AbstractIntegrationTest(VisualStudioInstanceFactory instanceFactory)
+        protected readonly string ProjectName = "TestProj";
+        protected readonly string SolutionName = "TestSolution";
+
+        private VisualStudioInstanceContext _visualStudioContext;
+
+        protected AbstractIntegrationTest(
+            VisualStudioInstanceFactory instanceFactory)
         {
-            VisualStudio = instanceFactory.GetNewOrUsedInstance(SharedIntegrationHostFixture.RequiredPackageIds);
+            _visualStudioContext = instanceFactory.GetNewOrUsedInstance(SharedIntegrationHostFixture.RequiredPackageIds);
+            VisualStudio = _visualStudioContext.Instance;
         }
 
         public void Dispose()
-            => VisualStudio.Dispose();
+            => _visualStudioContext.Dispose();
 
         protected void Wait(double seconds)
         {
             var timeout = TimeSpan.FromMilliseconds(seconds * 1000);
             Thread.Sleep(timeout);
         }
-
-        protected KeyPress KeyPress(VirtualKey virtualKey, ShiftState shiftState)
-            => new KeyPress(virtualKey, shiftState);
 
         protected KeyPress Ctrl(VirtualKey virtualKey)
             => new KeyPress(virtualKey, ShiftState.Ctrl);
@@ -37,8 +42,5 @@ namespace Roslyn.VisualStudio.IntegrationTests
 
         protected KeyPress Alt(VirtualKey virtualKey)
             => new KeyPress(virtualKey, ShiftState.Alt);
-
-        protected void ExecuteCommand(string commandName, string argument = "")
-            => VisualStudio.Instance.ExecuteCommand(commandName, argument);
     }
 }

@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -118,16 +119,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         {
             if (methodDeclaration.ExpressionBody == null)
             {
-                var preferExpressionBody = workspace.Options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedMethods).Value;
-                if (preferExpressionBody)
+                var expressionBodyPreference = workspace.Options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedMethods).Value;
+                if (methodDeclaration.Body.TryConvertToExpressionBody(
+                        options, expressionBodyPreference, out var expressionBody, out var semicolonToken))
                 {
-                    if (methodDeclaration.Body.TryConvertToExpressionBody(
-                            options, out var expressionBody, out var semicolonToken))
-                    {
-                        return methodDeclaration.WithBody(null)
-                                                .WithExpressionBody(expressionBody)
-                                                .WithSemicolonToken(semicolonToken);
-                    }
+                    return methodDeclaration.WithBody(null)
+                                            .WithExpressionBody(expressionBody)
+                                            .WithSemicolonToken(semicolonToken);
                 }
             }
 

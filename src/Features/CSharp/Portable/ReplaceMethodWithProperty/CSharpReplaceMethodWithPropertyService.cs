@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Composition;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -79,8 +80,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProper
                 documentOptions, parseOptions, semanticModel,
                 generator, getAndSetMethods, propertyName, nameChanged);
 
-            var preferExpressionBody = documentOptions.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties).Value;
-            if (preferExpressionBody)
+            var expressionBodyPreference = documentOptions.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties).Value;
+            if (expressionBodyPreference != ExpressionBodyPreference.Never)
             {
                 if (propertyDeclaration.AccessorList?.Accessors.Count == 1 &&
                     propertyDeclaration.AccessorList?.Accessors[0].Kind() == SyntaxKind.GetAccessorDeclaration)
@@ -93,7 +94,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProper
                                                   .WithAccessorList(null);
                     }
                     else if (getAccessor.Body != null &&
-                             getAccessor.Body.TryConvertToExpressionBody(parseOptions, out var arrowExpression, out var semicolonToken))
+                             getAccessor.Body.TryConvertToExpressionBody(
+                                 parseOptions, expressionBodyPreference, 
+                                 out var arrowExpression, out var semicolonToken))
                     {
                         return propertyDeclaration.WithExpressionBody(arrowExpression)
                                                   .WithSemicolonToken(semicolonToken)
@@ -174,11 +177,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProper
             DocumentOptionSet documentOptions, ParseOptions parseOptions,
             AccessorDeclarationSyntax accessorDeclaration)
         {
-            var preferExpressionBody = documentOptions.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors).Value;
-            if (accessorDeclaration?.Body != null && preferExpressionBody)
+            var expressionBodyPreference = documentOptions.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors).Value;
+            if (accessorDeclaration?.Body != null && expressionBodyPreference != ExpressionBodyPreference.Never)
             {
                 if (accessorDeclaration.Body.TryConvertToExpressionBody(
-                        parseOptions, out var arrowExpression, out var semicolonToken))
+                        parseOptions, expressionBodyPreference, 
+                        out var arrowExpression, out var semicolonToken))
                 {
                     return accessorDeclaration.WithBody(null)
                                               .WithExpressionBody(arrowExpression)
@@ -186,7 +190,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProper
                                               .WithAdditionalAnnotations(Formatter.Annotation);
                 }
             }
-            else if (accessorDeclaration?.ExpressionBody != null && !preferExpressionBody)
+            else if (accessorDeclaration?.ExpressionBody != null && expressionBodyPreference == ExpressionBodyPreference.Never)
             {
                 var block = accessorDeclaration.ExpressionBody.ConvertToBlock(
                     accessorDeclaration.SemicolonToken,

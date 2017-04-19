@@ -82,12 +82,24 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 
         public bool Equals(NamingStylePreferences other)
         {
-            return !ReferenceEquals(other, null) &&
-                   CreateXElement().ToString() == other.CreateXElement().ToString();
+            return other == null
+                ? false
+                : CreateXElement().ToString() == other.CreateXElement().ToString();
         }
 
         public static bool operator ==(NamingStylePreferences left, NamingStylePreferences right)
-            => left?.Equals(right) == true;
+        {
+            if (ReferenceEquals(left, null) && ReferenceEquals(right, null))
+            {
+                return true;
+            }
+            else if (ReferenceEquals(left, null) || ReferenceEquals(right, null))
+            {
+                return false;
+            }
+
+            return left.Equals(right);
+        }
 
         public static bool operator !=(NamingStylePreferences left, NamingStylePreferences right)
             => !(left == right);

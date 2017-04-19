@@ -29,6 +29,7 @@
     <Compile Include="DynamicFlagsCustomTypeInfo.cs" />
     <Compile Include="EESymbolProvider.cs" />
     <Compile Include="ILSpan.cs" />
+    <Compile Include="MetadataUtilities_Exceptions.cs" />
     <Compile Include="NotImplementedMetadataException.cs" />
     <Compile Include="PDB\MethodDebugInfo.Native.cs" />
     <Compile Include="PDB\MethodDebugInfo.Portable.cs" />
@@ -59,11 +60,6 @@
     <Compile Include="PseudoVariableUtilities.cs" />
   </ItemGroup>
   <ItemGroup Label="Project References">
-    <ProjectReference Include="..\Concord\Concord.csproj">
-      <Project>{5002636a-fe8d-40bf-8818-ab513a2194fa}</Project>
-      <Name>Concord</Name>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-    </ProjectReference>
     <ProjectReference Include="..\..\..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
       <Project>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</Project>
       <Name>CodeAnalysis</Name>

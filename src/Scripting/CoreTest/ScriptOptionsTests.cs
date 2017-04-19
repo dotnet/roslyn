@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Test
                 AddReferences("System.Linq").
                 AddReferences("System.Linq");
 
-            Assert.Equal(GacFileResolver.IsAvailable ? 5 : 28, options.MetadataReferences.Length);
+            Assert.Equal(GacFileResolver.IsAvailable ? 5 : 29, options.MetadataReferences.Length);
         }
 
         [Fact]

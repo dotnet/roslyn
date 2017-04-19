@@ -6,11 +6,12 @@ param (
     [switch]$testPerfCorrectness = $false,
     [switch]$testPerfRun = $false,
     [switch]$testVsi = $false,
+    [switch]$testVsiNetCore = $false,
     [switch]$skipTest = $false,
     [switch]$skipRestore = $false,
     [switch]$skipCommitPrinting = $false,
-    [switch]$release = $false
-)
+    [switch]$release = $false,
+    [parameter(ValueFromRemainingArguments=$true)] $badArgs)
 
 Set-StrictMode -version 2.0
 $ErrorActionPreference = "Stop"
@@ -21,6 +22,8 @@ function Print-Usage() {
     Write-Host "  -release Perform release build."
     Write-Host "  -test32  Run unit tests in the 32-bit runner.  This is the default."
     Write-Host "  -test64  Run units tests in the 64-bit runner."
+    Write-Host "  -$testVsi  Run all integration tests."
+    Write-Host "  -$testVsiNetCore  Run just dotnet core integration tests."
 }
 
 function Run-MSBuild() {
@@ -28,7 +31,7 @@ function Run-MSBuild() {
     # that we do not reuse MSBuild nodes from other jobs/builds on the machine. Otherwise,
     # we'll run into issues such as https://github.com/dotnet/roslyn/issues/6211.
     # MSBuildAdditionalCommandLineArgs=
-    & $msbuild /nologo /m /nodeReuse:false /consoleloggerparameters:Verbosity=minimal /filelogger /fileloggerparameters:Verbosity=normal @args
+    & $msbuild /warnaserror /nologo /m /nodeReuse:false /consoleloggerparameters:Verbosity=minimal /filelogger /fileloggerparameters:Verbosity=normal @args
     if (-not $?) {
         throw "Build failed"
     }
@@ -43,9 +46,25 @@ function Terminate-BuildProcesses() {
     Get-Process vbcscompiler -ErrorAction SilentlyContinue | kill
 }
 
+# The Jenkins images used to execute our tests can live for a very long time.  Over the course
+# of hundreds of runs this can cause the %TEMP% folder to fill up.  To avoid this we redirect
+# %TEMP% into the binaries folder which is deleted at the end of every run as a part of cleaning
+# up the workspace.
+function Redirect-Temp() {
+    $temp = Join-Path $binariesDir "Temp"
+    Create-Directory $temp
+    ${env:TEMP} = $temp
+    ${env:TMP} = $temp
+}
+
 try {
     . (Join-Path $PSScriptRoot "build-utils.ps1")
     Push-Location $repoDir
+
+    if ($badArgs -ne $null) {
+        Print-Usage
+        exit 1
+    }
 
     Write-Host "Parameters:"
     foreach ($k in $PSBoundParameters.Keys)  {
@@ -60,14 +79,15 @@ try {
 
     if (-not $skipRestore) { 
         Write-Host "Running restore"
-        & ".\build\scripts\restore.ps1" -msbuildDir $msbuildDir
+        Restore-All -msbuildDir $msbuildDir 
     }
 
     # Ensure the binaries directory exists because msbuild can fail when part of the path to LogFile isn't present.
     Create-Directory $binariesDir
+    Redirect-Temp
 
     if ($testBuildCorrectness) {
-        Exec { & ".\build\scripts\test-build-correctness.ps1" $repoDir $configDir }
+        Exec-Echo { & ".\build\scripts\test-build-correctness.ps1" -config $buildConfiguration }
         exit 0
     }
 
@@ -80,7 +100,6 @@ try {
     # Build with the real assembly version, since that's what's contained in the bootstrap compiler redirects
     $bootstrapLog = Join-Path $binariesDir "Bootstrap.log"
     Run-MSBuild /p:UseShippingAssemblyVersion=true /p:InitialDefineConstants=BOOTSTRAP "build\Toolset\Toolset.csproj" /p:Configuration=$buildConfiguration /fileloggerparameters:LogFile=$($bootstrapLog)
-    Exec { & ".\build\scripts\check-msbuild.ps1" $bootstrapLog }
     $bootstrapDir = Join-Path $binariesDir "Bootstrap"
     Remove-Item -re $bootstrapDir -ErrorAction SilentlyContinue
     Create-Directory $bootstrapDir
@@ -89,7 +108,7 @@ try {
     Terminate-BuildProcesses
 
     if ($testDeterminism) {
-        Exec { & ".\build\scripts\test-determinism.ps1" $bootstrapDir }
+        Exec { & ".\build\scripts\test-determinism.ps1" -buildDir $bootstrapDir }
         Terminate-BuildProcesses
         exit 0
     }
@@ -104,16 +123,19 @@ try {
         Run-MSBuild Roslyn.sln /p:Configuration=$buildConfiguration /p:DeployExtension=false
 
         # Check if we have credentials to upload to benchview
-        $extraArgs = ""
+        $extraArgs = @()
         if ((Test-Path env:\GIT_BRANCH) -and (Test-Path env:\BV_UPLOAD_SAS_TOKEN)) {
-            $extraArgs = "--report-benchview --branch $($env:GIT_BRANCH)"
+            $extraArgs += "--report-benchview"
+            $extraArgs += "--branch=$env:GIT_BRANCH"
 
             # Check if we are in a PR or this is a rolling submission
             if (Test-Path env:\ghprbPullTitle) {
-                $extraArgs = '$($extraArgs) --benchview-submission-name "[$($env:ghprbPullAuthorLogin)] PR $($env:ghprbPullId): $($env:ghprbPullTitle)" --benchview-submission-type private'
+                $submissionName = $env:ghprbPullTitle.Replace(" ", "_")
+                $extraArgs += "--benchview-submission-name=""$submissionName"""
+                $extraArgs += "--benchview-submission-type=private"
             } 
             else {
-                $extraArgs = '$(4extraArgs) --benchview-submission-type rolling'
+                $extraArgs += "--benchview-submission-type=rolling"
             }
 
             Create-Directory ".\Binaries\$buildConfiguration\tools\"
@@ -122,7 +144,7 @@ try {
         }
 
         Terminate-BuildProcesses
-        & ".\Binaries\$buildConfiguration\Exes\Perf.Runner\Roslyn.Test.Performance.Runner.exe"  --search-directory=".\\Binaries\\$buildConfiguration\\Dlls\\" --no-trace-upload $extraArgs 
+        & ".\Binaries\$buildConfiguration\Exes\Perf.Runner\Roslyn.Test.Performance.Runner.exe"  $extraArgs --search-directory=".\\Binaries\\$buildConfiguration\\Dlls\\" --no-trace-upload
         if (-not $?) { 
             throw "Perf run failed"
         }
@@ -134,8 +156,13 @@ try {
     $testVsiArg = if ($testVsi) { "true" } else { "false" }
     $buildLog = Join-Path $binariesdir "Build.log"
 
-    Run-MSBuild /p:BootstrapBuildPath="$bootstrapDir" BuildAndTest.proj /t:$target /p:Configuration=$buildConfiguration /p:Test64=$test64Arg /p:TestVsi=$testVsiArg /p:PathMap="$($repoDir)=q:\roslyn" /p:Feature=pdb-path-determinism /fileloggerparameters:LogFile="$buildLog"`;verbosity=diagnostic /p:DeployExtension=false
-    Exec { & ".\build\scripts\check-msbuild.ps1" $buildLog }
+    if ($testVsiNetCore) { 
+        Run-MSBuild /p:BootstrapBuildPath="$bootstrapDir" BuildAndTest.proj /t:$target /p:Configuration=$buildConfiguration /p:Test64=$test64Arg /p:TestVsi=true /p:Trait="Feature=NetCore" /p:PathMap="$($repoDir)=q:\roslyn" /p:Feature=pdb-path-determinism /fileloggerparameters:LogFile="$buildLog"`;verbosity=diagnostic /p:DeployExtension=false
+    }
+    else {
+        Run-MSBuild /p:BootstrapBuildPath="$bootstrapDir" BuildAndTest.proj /t:$target /p:Configuration=$buildConfiguration /p:Test64=$test64Arg /p:TestVsi=$testVsiArg /p:PathMap="$($repoDir)=q:\roslyn" /p:Feature=pdb-path-determinism /fileloggerparameters:LogFile="$buildLog"`;verbosity=diagnostic /p:DeployExtension=false
+    }
+
     exit 0
 }
 catch {

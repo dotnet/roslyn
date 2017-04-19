@@ -21,6 +21,11 @@ foreach ($arg in $args) {
     $newArgs += $arg
 }
 
+Write-Host "!!!This script is legacy and will be deleted.  Please call build/scripts/cibuild.cmd directly!!!"
 Write-Host "New Args are $newArgs"
 $script = Join-Path $PSScriptRoot "cibuild.ps1"
 Invoke-Expression "$script $newArgs"
+if ((-not $?) -or ($lastexitcode -ne 0)) {
+    exit 1
+} 
+Write-Host "!!!This script is legacy and will be deleted.  Please call build/scripts/cibuild.cmd directly!!!"

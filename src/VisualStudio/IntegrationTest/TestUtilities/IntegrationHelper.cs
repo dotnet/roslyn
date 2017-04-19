@@ -77,6 +77,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             }
         }
 
+        public static string CreateTemporaryPath()
+        {
+            return Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+        }
+
         public static bool DetachThreadInput(uint idAttach, uint idAttachTo)
         {
             var success = NativeMethods.AttachThreadInput(idAttach, idAttachTo, false);

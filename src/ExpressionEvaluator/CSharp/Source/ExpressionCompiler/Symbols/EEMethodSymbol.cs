@@ -13,6 +13,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 {
+    internal delegate BoundExpression GenerateThisReference(SyntaxNode syntax);
+
     internal delegate BoundStatement GenerateMethodBody(
         EEMethodSymbol method,
         DiagnosticBag diagnostics,
@@ -576,7 +578,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 // Rewrite "this" and "base" references to parameter in this method.
                 // Rewrite variables within body to reference existing display classes.
                 body = (BoundStatement)CapturedVariableRewriter.Rewrite(
-                    this.SubstitutedSourceMethod.IsStatic ? null : _parameters[0],
+                    this.GenerateThisReference,
                     compilation.Conversions,
                     _displayClassVariables,
                     body,
@@ -645,6 +647,28 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             {
                 ex.AddAnError(diagnostics);
             }
+        }
+
+        private BoundExpression GenerateThisReference(SyntaxNode syntax)
+        {
+            var thisProxy = CompilationContext.GetThisProxy(_displayClassVariables);
+            if (thisProxy != null)
+            {
+                return thisProxy.ToBoundExpression(syntax);
+            }
+            if ((object)_thisParameter != null)
+            {
+                var typeNameKind = GeneratedNames.GetKind(_thisParameter.Type.Name);
+                if (typeNameKind != GeneratedNameKind.None && typeNameKind != GeneratedNameKind.AnonymousType)
+                {
+                    Debug.Assert(typeNameKind == GeneratedNameKind.LambdaDisplayClass ||
+                        typeNameKind == GeneratedNameKind.StateMachineType,
+                        $"Unexpected typeNameKind '{typeNameKind}'");
+                    return null;
+                }
+                return new BoundParameter(syntax, _thisParameter);
+            }
+            return null;
         }
 
         private static TypeSymbol CalculateReturnType(CSharpCompilation compilation, BoundStatement bodyOpt)

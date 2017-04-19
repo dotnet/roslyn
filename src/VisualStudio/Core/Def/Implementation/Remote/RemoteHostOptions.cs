@@ -35,7 +35,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         // when there are many (over 10+ requests) at the same time. one of reasons of this is we put our service hub process as "Below Normal" priority.
         // normally response time is within 10s ms. at most 100ms. if priority is changed to "Normal", most of time 10s ms.
         [ExportOption]
-        public static readonly Option<int> RequestServiceTimeoutInMS = new Option<int>(nameof(InternalFeatureOnOffOptions), nameof(RequestServiceTimeoutInMS), defaultValue: 10 * 60 * 1000);
+        public static readonly Option<int> RequestServiceTimeoutInMS = new Option<int>(
+            nameof(InternalFeatureOnOffOptions), nameof(RequestServiceTimeoutInMS), defaultValue: 10 * 60 * 1000,
+            storageLocations: new LocalUserProfileStorageLocation(InternalFeatureOnOffOptions.LocalRegistryPath + nameof(RequestServiceTimeoutInMS)));
+
+        // This options allow users to restart OOP when it is killed by users
+        [ExportOption]
+        public static readonly Option<bool> RestartRemoteHostAllowed = new Option<bool>(
+            nameof(InternalFeatureOnOffOptions), nameof(RestartRemoteHostAllowed), defaultValue: false,
+            storageLocations: new LocalUserProfileStorageLocation(InternalFeatureOnOffOptions.LocalRegistryPath + nameof(RestartRemoteHostAllowed)));
 
         [ExportOption]
         public static readonly Option<bool> RemoteHostTest = new Option<bool>(nameof(InternalFeatureOnOffOptions), nameof(RemoteHostTest), defaultValue: false);
