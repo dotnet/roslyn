@@ -339,7 +339,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary> A synthesized entrypoint that forwards all calls to an async Main Method </summary>
         internal sealed class AsyncForwardEntryPoint : SynthesizedEntryPointSymbol
         {
-            /// The user-defined asynchronous main method.
+            /// <summary> The user-defined asynchronous main method. </summary>
             private readonly MethodSymbol _userMain;
 
             private readonly MethodSymbol _getAwaiterMethod;
@@ -359,10 +359,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             private static SyntaxNode ExtractReturnTypeSyntax(IEnumerable<SyntaxReference> userMainDeclaringReferences) {
-                var methodSyntax = userMainDeclaringReferences
-                    .Select(r => r.GetSyntax() as MethodDeclarationSyntax)
-                    .Where(s => (object)s != null).FirstOrDefault();
-                return methodSyntax?.ReturnType;
+                foreach (var reference in userMainDeclaringReferences)
+                {
+                    var methodDeclaration = reference.GetSyntax() as MethodDeclarationSyntax;
+                    if ((object)methodDeclaration != null)
+                    {
+                        return methodDeclaration.ReturnType;
+                    }
+                }
+                return DummySyntax();
             }
 
             internal AsyncForwardEntryPoint(CSharpCompilation compilation, DiagnosticBag diagnosticBag, NamedTypeSymbol containingType, MethodSymbol userMain) :
@@ -382,7 +387,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     _getResultMethod = GetRequiredMethod(_getAwaiterMethod.ReturnType, WellKnownMemberNames.GetResult, diagnosticBag, userMainReturnTypeSyntax.Location);
                     if ((object)_getResultMethod != null && _getResultMethod.ReturnType != ReturnType)
                     {
-                        // Prototype: This needs a diagnostic
+                        // PROTOTYPE(async-main): This needs a diagnostic
                         throw new Exception("oh no");
                     }
                 }

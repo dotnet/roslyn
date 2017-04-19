@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 }
             }
 
-            if (expectedLength is int)
+            if (expectedLength != null)
             {
                 output = outputWriter.ToString();
                 errorOutput = errorOutputWriter.ToString();

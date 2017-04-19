@@ -52,6 +52,8 @@ static class Program {
         return null;
     }
 }";
+
+            // PROTOTYPE(async-main):  make sure that these errors are better.
             var sourceCompilation = CreateCompilationWithMscorlib(source,  options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
             sourceCompilation.VerifyEmitDiagnostics(
                 // (12,12): warning CS0436: The type 'Task<T>' in '' conflicts with the imported type 'Task<TResult>' in 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'. Using the type defined in ''.
@@ -80,6 +82,7 @@ static class Program {
         return null;
     }
 }";
+            // PROTOTYPE(async-main):  make sure that these errors are better.
             var sourceCompilation = CreateCompilationWithMscorlib(source,  options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
             sourceCompilation.VerifyEmitDiagnostics(
                 // (12,12): warning CS0436: The type 'Task' in '' conflicts with the imported type 'Task' in 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'. Using the type defined in ''.
@@ -229,7 +232,7 @@ class Program {
     }
 }";
             var c = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
-            var verifier = CompileAndVerify(c, expectedReturnCode: 0);
+            var verifier = CompileAndVerify(c, expectedOutput: "hello async main", expectedReturnCode: 0);
         }
 
         [Fact]
