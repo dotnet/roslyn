@@ -183,26 +183,31 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         internal static async Task<ImmutableArray<SymbolAndProjectId>> FindSourceDeclarationsWithNormalQueryInCurrentProcessAsync(
             Solution solution, string name, bool ignoreCase, SymbolFilter criteria, CancellationToken cancellationToken)
         {
-            var query = SearchQuery.Create(name, ignoreCase);
-            var result = ArrayBuilder<SymbolAndProjectId>.GetInstance();
-            foreach (var projectId in solution.ProjectIds)
+            using (var query = SearchQuery.Create(name, ignoreCase))
             {
-                var project = solution.GetProject(projectId);
-                await AddCompilationDeclarationsWithNormalQueryAsync(
-                    project, query, criteria, result, cancellationToken).ConfigureAwait(false);
-            }
+                var result = ArrayBuilder<SymbolAndProjectId>.GetInstance();
+                foreach (var projectId in solution.ProjectIds)
+                {
+                    var project = solution.GetProject(projectId);
+                    await AddCompilationDeclarationsWithNormalQueryAsync(
+                        project, query, criteria, result, cancellationToken).ConfigureAwait(false);
+                }
 
-            return result.ToImmutableAndFree();
+                return result.ToImmutableAndFree();
+            }
         }
 
         internal static async Task<ImmutableArray<SymbolAndProjectId>> FindSourceDeclarationsWithNormalQueryInCurrentProcessAsync(
             Project project, string name, bool ignoreCase, SymbolFilter filter, CancellationToken cancellationToken)
         {
             var list = ArrayBuilder<SymbolAndProjectId>.GetInstance();
-            await AddCompilationDeclarationsWithNormalQueryAsync(
-                project, SearchQuery.Create(name, ignoreCase),
-                filter, list, cancellationToken).ConfigureAwait(false);
-            return list.ToImmutableAndFree();
+
+            using (var query = SearchQuery.Create(name, ignoreCase))
+            {
+                await AddCompilationDeclarationsWithNormalQueryAsync(
+                    project, query, filter, list, cancellationToken).ConfigureAwait(false);
+                return list.ToImmutableAndFree();
+            }
         }
 
         internal static async Task<ImmutableArray<SymbolAndProjectId>> FindSourceDeclarationsWithPatternInCurrentProcessAsync(
@@ -215,36 +220,38 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // we only want to check the 'WL' portion.  Then, after we get all the candidate symbols
             // we'll check if the full name matches the full pattern.
             var patternMatcher = new PatternMatcher(pattern);
-            var query = SearchQuery.CreateCustom(
-                k => !patternMatcher.GetMatchesForLastSegmentOfPattern(k).IsDefaultOrEmpty);
-
-            var symbolAndProjectIds = await SymbolFinder.FindSourceDeclarationsWithCustomQueryAsync(
-                project, query, criteria, cancellationToken).ConfigureAwait(false);
-
-            var result = ArrayBuilder<SymbolAndProjectId>.GetInstance();
-
-            // Now see if the symbols the compiler returned actually match the full pattern.
-            foreach (var symbolAndProjectId in symbolAndProjectIds)
+            using (var query = SearchQuery.CreateCustom(
+                k => !patternMatcher.GetMatchesForLastSegmentOfPattern(k).IsDefaultOrEmpty))
             {
-                var symbol = symbolAndProjectId.Symbol;
 
-                // As an optimization, don't bother getting the container for this symbol if this
-                // isn't a dotted pattern.  Getting the container could cause lots of string 
-                // allocations that we don't if we're never going to check it.
-                var matches = !patternMatcher.IsDottedPattern
-                    ? new PatternMatches(patternMatcher.GetMatches(GetSearchName(symbol)))
-                    : patternMatcher.GetMatches(GetSearchName(symbol), GetContainer(symbol));
+                var symbolAndProjectIds = await SymbolFinder.FindSourceDeclarationsWithCustomQueryAsync(
+                    project, query, criteria, cancellationToken).ConfigureAwait(false);
 
-                if (matches.IsEmpty)
+                var result = ArrayBuilder<SymbolAndProjectId>.GetInstance();
+
+                // Now see if the symbols the compiler returned actually match the full pattern.
+                foreach (var symbolAndProjectId in symbolAndProjectIds)
                 {
-                    // Didn't actually match the full pattern, ignore it.
-                    continue;
+                    var symbol = symbolAndProjectId.Symbol;
+
+                    // As an optimization, don't bother getting the container for this symbol if this
+                    // isn't a dotted pattern.  Getting the container could cause lots of string 
+                    // allocations that we don't if we're never going to check it.
+                    var matches = !patternMatcher.IsDottedPattern
+                        ? new PatternMatches(patternMatcher.GetMatches(GetSearchName(symbol)))
+                        : patternMatcher.GetMatches(GetSearchName(symbol), GetContainer(symbol));
+
+                    if (matches.IsEmpty)
+                    {
+                        // Didn't actually match the full pattern, ignore it.
+                        continue;
+                    }
+
+                    result.Add(symbolAndProjectId);
                 }
 
-                result.Add(symbolAndProjectId);
+                return result.ToImmutableAndFree();
             }
-
-            return result.ToImmutableAndFree();
         }
 
         private static string GetSearchName(ISymbol symbol)
