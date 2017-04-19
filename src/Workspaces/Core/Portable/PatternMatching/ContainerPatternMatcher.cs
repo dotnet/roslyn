@@ -57,10 +57,8 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                 {
                     var containerParts = container.Split(_containerSplitCharacters, StringSplitOptions.RemoveEmptyEntries);
 
-                    // -1 because the last part was checked against the name, and only the rest
-                    // of the parts are checked against the container.
-                    var relevantDotSeparatedSegmentLength = _patternSegments.Length - 1;
-                    if (relevantDotSeparatedSegmentLength > containerParts.Length)
+                    var relevantDotSeparatedSegmentLength = _patternSegments.Length;
+                    if (_patternSegments.Length > containerParts.Length)
                     {
                         // There weren't enough container parts to match against the pattern parts.
                         // So this definitely doesn't match.
@@ -70,10 +68,9 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                     // So far so good.  Now break up the container for the candidate and check if all
                     // the dotted parts match up correctly.
 
-                    // Don't need to check the last segment.  We did that as the very first bail out step.
-                    for (int i = 0, j = containerParts.Length - relevantDotSeparatedSegmentLength;
-                         i < relevantDotSeparatedSegmentLength;
-                         i++, j++)
+                    for (int i = _patternSegments.Length - 1, j = containerParts.Length - 1;
+                         i >= 0;
+                         i--, j--)
                     {
                         var segment = _patternSegments[i];
                         var containerName = containerParts[j];
