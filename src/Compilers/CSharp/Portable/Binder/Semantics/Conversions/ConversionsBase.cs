@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected abstract Conversion GetExplicitTupleLiteralConversion(BoundTupleLiteral source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics, bool forCast);
 
-        internal AssemblySymbol CorLibrary {  get { return corLibrary; } }
+        internal AssemblySymbol CorLibrary { get { return corLibrary; } }
 
         /// <summary>
         /// Determines if the source expression is convertible to the destination type via
@@ -802,6 +802,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     break;
 
+                case BoundKind.DefaultExpression:
+                    var defaultExpression = (BoundDefaultExpression)sourceExpression;
+                    if ((object)defaultExpression.Type == null)
+                    {
+                        return Conversion.DefaultOrNullLiteral;
+                    }
+                    break;
+
                 case BoundKind.TupleLiteral:
                     var tupleConversion = ClassifyImplicitTupleLiteralConversion((BoundTupleLiteral)sourceExpression, destination, ref useSiteDiagnostics);
                     if (tupleConversion.Exists)
@@ -855,7 +863,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // The spec defines a "null literal conversion" specifically as a conversion from
                 // null to nullable type.
-                return Conversion.NullLiteral;
+                return Conversion.DefaultOrNullLiteral;
             }
 
             // SPEC: An implicit conversion exists from the null literal to any reference type. 
@@ -965,7 +973,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var constantValue = source.ConstantValue;
 
-            if (constantValue == null)
+            if (constantValue == null || (object)source.Type == null)
             {
                 return false;
             }

@@ -32882,6 +32882,36 @@ class C
             var info = model.GetSymbolInfo(identifierAfter);
             Assert.Equal("void C.G(out System.Object o)", info.Symbol.ToTestDisplayString());
         }
+
+        [Fact]
+        [WorkItem(10604, "https://github.com/dotnet/roslyn/issues/10604")]
+        [WorkItem(16306, "https://github.com/dotnet/roslyn/issues/16306")]
+        public void GetForEachSymbolInfoWithOutVar()
+        {
+            var source =
+@"using System.Collections.Generic;
+public class C
+{
+    void M()
+    {
+        foreach (var x in M2(out int i)) { }
+    }
+    IEnumerable<object> M2(out int j)
+    {
+        throw null;
+    }
+}";
+            var comp = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var foreachStatement = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single();
+            var info = model.GetForEachStatementInfo(foreachStatement);
+            Assert.Equal("System.Object", info.ElementType.ToTestDisplayString());
+            Assert.Equal("System.Collections.Generic.IEnumerator<System.Object> System.Collections.Generic.IEnumerable<System.Object>.GetEnumerator()",
+                info.GetEnumeratorMethod.ToTestDisplayString());
+        }
     }
 
     internal static class OutVarTestsExtensions

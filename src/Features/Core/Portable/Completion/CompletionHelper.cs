@@ -16,10 +16,8 @@ namespace Microsoft.CodeAnalysis.Completion
         private static readonly CompletionHelper CaseInsensitiveInstance = new CompletionHelper(isCaseSensitive: false);
 
         private readonly object _gate = new object();
-        private readonly Dictionary<CultureInfo, Dictionary<string, PatternMatcher>> _patternMatcherMap =
-             new Dictionary<CultureInfo, Dictionary<string, PatternMatcher>>();
-        private readonly Dictionary<CultureInfo, Dictionary<string, PatternMatcher>> _fallbackPatternMatcherMap =
-            new Dictionary<CultureInfo, Dictionary<string, PatternMatcher>>();
+        private readonly Dictionary<(CultureInfo, string), PatternMatcher> _patternMatcherMap =
+             new Dictionary<(CultureInfo, string), PatternMatcher>();
 
         private static readonly CultureInfo EnUSCultureInfo = new CultureInfo("en-US");
         private readonly bool _isCaseSensitive;
@@ -113,7 +111,7 @@ namespace Microsoft.CodeAnalysis.Completion
             // Start with the culture-specific comparison, and fall back to en-US.
             if (!culture.Equals(EnUSCultureInfo))
             {
-                patternMatcher = this.GetEnUSPatternMatcher(pattern);
+                patternMatcher = this.GetPatternMatcher(pattern, EnUSCultureInfo);
                 match = patternMatcher.GetFirstMatch(completionItemText);
                 if (match != null)
                 {
@@ -125,22 +123,16 @@ namespace Microsoft.CodeAnalysis.Completion
         }
 
         private PatternMatcher GetPatternMatcher(
-            string pattern, CultureInfo culture, Dictionary<CultureInfo, Dictionary<string, PatternMatcher>> map)
+            string pattern, CultureInfo culture, Dictionary<(CultureInfo, string), PatternMatcher> map)
         {
             lock (_gate)
             {
-                if (!map.TryGetValue(culture, out var innerMap))
-                {
-                    innerMap = new Dictionary<string, PatternMatcher>();
-                    map[culture] = innerMap;
-                }
+                var key = (culture, pattern);
 
-                if (!innerMap.TryGetValue(pattern, out var patternMatcher))
+                if (!map.TryGetValue(key, out var patternMatcher))
                 {
-                    patternMatcher = new PatternMatcher(pattern, culture,
-                        verbatimIdentifierPrefixIsWordCharacter: true,
-                        allowFuzzyMatching: false);
-                    innerMap.Add(pattern, patternMatcher);
+                    patternMatcher = new PatternMatcher(pattern, culture, allowFuzzyMatching: false);
+                    map.Add(key, patternMatcher);
                 }
 
                 return patternMatcher;
@@ -149,9 +141,6 @@ namespace Microsoft.CodeAnalysis.Completion
 
         private PatternMatcher GetPatternMatcher(string pattern, CultureInfo culture)
             => GetPatternMatcher(pattern, culture, _patternMatcherMap);
-
-        private PatternMatcher GetEnUSPatternMatcher(string pattern)
-            => GetPatternMatcher(pattern, EnUSCultureInfo, _fallbackPatternMatcherMap);
 
         /// <summary>
         /// Returns true if item1 is a better completion item than item2 given the provided filter

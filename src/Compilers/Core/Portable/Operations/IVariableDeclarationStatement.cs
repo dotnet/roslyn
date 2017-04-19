@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Variables declared by the statement.
         /// </summary>
-        ImmutableArray<IVariableDeclaration> Variables { get; }
+        ImmutableArray<IVariableDeclaration> Declarations { get; }
     }
 }
 

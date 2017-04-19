@@ -527,6 +527,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.NullLiteralExpression:
                     return BindLiteralConstant((LiteralExpressionSyntax)node, diagnostics);
 
+                case SyntaxKind.DefaultLiteralExpression:
+                    return BindDefaultLiteral(node);
+
                 case SyntaxKind.ParenthesizedExpression:
                     // Parenthesis tokens are ignored, and operand is bound in the context of parent
                     // expression.
@@ -634,6 +637,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(false, "Unexpected SyntaxKind " + node.Kind());
                     return BadExpression(node);
             }
+        }
+
+        private static BoundExpression BindDefaultLiteral(ExpressionSyntax node)
+        {
+            return new BoundDefaultExpression(node, constantValueOpt: null, type: null);
         }
 
         private BoundExpression BindRefExpression(ExpressionSyntax node, DiagnosticBag diagnostics)
@@ -808,6 +816,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 CollectTupleFieldMemberNames(name, i + 1, numElements, ref elementNames);
 
                 BoundExpression boundArgument = BindValue(argumentSyntax.Expression, diagnostics, BindValueKind.RValue);
+                if (boundArgument.Type?.SpecialType == SpecialType.System_Void)
+                {
+                    diagnostics.Add(ErrorCode.ERR_VoidInTuple, argumentSyntax.Location);
+                    boundArgument = new BoundBadExpression(
+                        argumentSyntax, LookupResultKind.Empty, ImmutableArray<Symbol>.Empty,
+                        ImmutableArray.Create<BoundExpression>(boundArgument), CreateErrorType("void"));
+                }
+
                 boundArguments.Add(boundArgument);
 
                 var elementType = boundArgument.Type;
@@ -1041,7 +1057,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression BindDefaultExpression(DefaultExpressionSyntax node, DiagnosticBag diagnostics)
         {
             TypeSymbol type = this.BindType(node.Type, diagnostics);
-            return new BoundDefaultOperator(node, type);
+            return new BoundDefaultExpression(node, type);
         }
 
         /// <summary>
@@ -3549,7 +3565,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else if (node.Type.Kind() == SyntaxKind.TupleType)
                 {
-                    Debug.Assert(node.HasErrors, "new <tuple type> should be a syntax error");
+                    diagnostics.Add(ErrorCode.ERR_NewWithTupleTypeSyntax, node.Type.GetLocation());
                     return MakeBadExpressionForObjectCreation(node, type, boundInitializerOpt, analyzedArguments);
                 }
 
@@ -5055,7 +5071,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             // No member accesses on void
             if ((object)leftType != null && leftType.SpecialType == SpecialType.System_Void)
             {
-                DiagnosticInfo diagnosticInfo = new CSDiagnosticInfo(ErrorCode.ERR_BadUnaryOp, SyntaxFacts.GetText(operatorToken.Kind()), leftType);
+                diagnostics.Add(ErrorCode.ERR_BadUnaryOp, operatorToken.GetLocation(), SyntaxFacts.GetText(operatorToken.Kind()), leftType);
+                return BadExpression(node, boundLeft);
+            }
+
+            // No member accesses on default
+            if (boundLeft.IsLiteralDefault())
+            {
+                DiagnosticInfo diagnosticInfo = new CSDiagnosticInfo(ErrorCode.ERR_BadUnaryOp, SyntaxFacts.GetText(operatorToken.Kind()), "default");
                 diagnostics.Add(new CSDiagnostic(diagnosticInfo, operatorToken.GetLocation()));
                 return BadExpression(node, boundLeft);
             }
@@ -5065,8 +5088,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert((object)leftType == null);
 
                 var msgId = ((UnboundLambda)boundLeft).MessageID;
-                DiagnosticInfo diagnosticInfo = new CSDiagnosticInfo(ErrorCode.ERR_BadUnaryOp, SyntaxFacts.GetText(operatorToken.Kind()), msgId.Localize());
-                diagnostics.Add(new CSDiagnostic(diagnosticInfo, node.Location));
+                diagnostics.Add(ErrorCode.ERR_BadUnaryOp, node.Location, SyntaxFacts.GetText(operatorToken.Kind()), msgId.Localize());
                 return BadExpression(node, boundLeft);
             }
 
@@ -5229,7 +5251,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static void WarnOnAccessOfOffDefault(SyntaxNode node, BoundExpression boundLeft, DiagnosticBag diagnostics)
         {
-            if (boundLeft != null && boundLeft.Kind == BoundKind.DefaultOperator && boundLeft.ConstantValue == ConstantValue.Null)
+            if (boundLeft != null && boundLeft.Kind == BoundKind.DefaultExpression && boundLeft.ConstantValue == ConstantValue.Null)
             {
                 Error(diagnostics, ErrorCode.WRN_DotOnDefault, node, boundLeft.Type);
             }
