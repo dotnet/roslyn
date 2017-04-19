@@ -1,20 +1,16 @@
 [CmdletBinding(PositionalBinding=$false)]
-Param( [string]$version = "26014.00",
+param(
+    [string]$version = "26014.00",
     [string]$branch = "d15rel",
-    [string]$outPath = $null,
-    [string]$fakeSign = $null
+    [string]$outPath = $null
 )
 
 Set-StrictMode -version 2.0
 $ErrorActionPreference = "Stop"
 
-function Create-Directory([string]$name) {
-    [IO.Directory]::CreateDirectory($name)
-}
-
 # Package a normal DLL into a nuget.  Default used for packages that have a simple 1-1
 # relationship between DLL and NuGet for only Net46.
-function package-normal() {
+function Package-Normal() {
     $baseNuspecPath = Join-Path $PSScriptRoot "base.nuspec"
     $sourceFilePath = Join-Path $dropPath $item
     $filePath = Join-Path $dllPath $name
@@ -30,35 +26,15 @@ function package-normal() {
 
 # The debugger DLLs have a more complex structure and it's easier to special case
 # copying them over.
-function copy-debugger() { 
+function Copy-Debugger() { 
     $refRootPath = [IO.Path]::GetFullPath((Join-Path $dropPath "..\..\Debugger\ReferenceDLL"))
     $debuggerDllPath = Join-Path $dllPath "debugger"
-    $net20Path = Join-Path $debuggerDllPath "net20"
-    $net45Path = Join-Path $debuggerDllPath "net45"
-    $portablePath = Join-Path $debuggerDllPath "portable"
-
     Create-Directory $debuggerDllPath
-    Create-Directory $net20Path
-    Create-Directory $net45Path
-    Create-Directory $portablePath
-
-    Push-Location $debuggerDllPath
-    try {
-        $d = Join-Path $dropPath "..\..\Debugger"
-        Copy-Item (Join-Path $d "RemoteDebugger\Microsoft.VisualStudio.Debugger.Engine.dll") $net20Path
-        Copy-Item (Join-Path $d "IDE\Microsoft.VisualStudio.Debugger.Engine.dll") $net45Path
-        Copy-Item (Join-Path $d "x-plat\coreclr.windows\mcg\Microsoft.VisualStudio.Debugger.Engine.dll") $portablePath
-        Copy-Item (Join-Path $dropPath "Microsoft.VisualStudio.Debugger.Metadata.dll") $net20Path
-        Copy-Item (Join-Path $dropPath "Microsoft.VisualStudio.Debugger.Metadata.dll") $portablePath
-        Get-ChildItem -re -in *.dll | %{ & $fakeSign -f $_ }
-    }
-    finally {
-        Pop-Location
-    }
+    Copy-Item -re -fo "$refRootPath\*" $debuggerDllPath
 }
 
 # Used to package debugger nugets
-function package-debugger() {
+function Package-Debugger() {
     param( [string]$kind )
     $debuggerPath = Join-Path $dllPath "debugger"
     $nuspecPath = Join-Path $PSScriptRoot "$kind.nuspec"
@@ -71,14 +47,12 @@ try {
         exit 1
     }
 
-    if ($fakeSign -eq "") {
-        Write-Host "Need a -fakeSign value"
-        exit 1
-    }
+    . (Join-Path $PSScriptRoot "..\..\..\build\scripts\build-utils.ps1")
 
     $list = Get-Content (Join-Path $PSScriptRoot "files.txt")
     $dropPath = "\\cpvsbuild\drops\VS\$branch\raw\$version\binaries.x86ret\bin\i386"
     $nuget = Join-Path $PSScriptRoot "..\..\..\nuget.exe"
+    $fakeSign = Join-Path (Get-PackageDir "FakeSign") "Tools\FakeSign.exe"
 
     $shortVersion = $version.Substring(0, $version.IndexOf('.'))
     $packageVersion = "15.0.$shortVersion-alpha"
@@ -94,16 +68,16 @@ try {
     Create-Directory $packagePath
     Push-Location $outPath
     try {
-        copy-debugger
+        Copy-Debugger
 
         foreach ($item in $list) {
             $name = Split-Path -leaf $item
             $simpleName = [IO.Path]::GetFileNameWithoutExtension($name) 
             Write-Host "Packing $simpleName"
             switch ($simpleName) {
-                "Microsoft.VisualStudio.Debugger.Engine" { package-debugger "engine" }
-                "Microsoft.VisualStudio.Debugger.Metadata" { package-debugger "metadata" }
-                default { package-normal }
+                "Microsoft.VisualStudio.Debugger.Engine" { Package-Debugger "engine" }
+                "Microsoft.VisualStudio.Debugger.Metadata" { Package-Debugger "metadata" }
+                default { Package-Normal }
             }
         }
     }
@@ -113,5 +87,9 @@ try {
 }
 catch {
     Write-Host $_
+    Write-Host $_.Exception
+    Get-PSCallstack
+    throw
+
     exit 1
 }
