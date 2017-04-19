@@ -386,5 +386,10 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         }
 
         protected abstract bool ContainsInterleavedDirective(TextSpan span, SyntaxToken token, CancellationToken cancellationToken);
+
+        public string GetBannerText(SyntaxNode documentationCommentTriviaSyntax, CancellationToken cancellationToken)
+            => DocumentationCommentService.GetBannerText(documentationCommentTriviaSyntax, cancellationToken);
+
+        protected abstract IDocumentationCommentService DocumentationCommentService { get; }
     }
 }

@@ -68,6 +68,28 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        public void TestOptionEditorConfig1()
+        {
+            Assert.Null(CSharpCodeStyleOptions.ParseExpressionBodyPreference("true", null));
+            Assert.Null(CSharpCodeStyleOptions.ParseExpressionBodyPreference("false", null));
+            Assert.Null(CSharpCodeStyleOptions.ParseExpressionBodyPreference("when_on_single_line", null));
+            Assert.Null(CSharpCodeStyleOptions.ParseExpressionBodyPreference("true:blah", null));
+            Assert.Null(CSharpCodeStyleOptions.ParseExpressionBodyPreference("when_blah:error", null));
+
+            var option = CSharpCodeStyleOptions.ParseExpressionBodyPreference("false:error", null);
+            Assert.Equal(ExpressionBodyPreference.Never, option.Value);
+            Assert.Equal(NotificationOption.Error, option.Notification);
+
+            option = CSharpCodeStyleOptions.ParseExpressionBodyPreference("true:warning", null);
+            Assert.Equal(ExpressionBodyPreference.WhenPossible, option.Value);
+            Assert.Equal(NotificationOption.Warning, option.Notification);
+
+            option = CSharpCodeStyleOptions.ParseExpressionBodyPreference("when_on_single_line:suggestion", null);
+            Assert.Equal(ExpressionBodyPreference.WhenOnSingleLine, option.Value);
+            Assert.Equal(NotificationOption.Suggestion, option.Notification);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
         public async Task TestUseExpressionBody1()
         {
             await TestInRegularAndScriptAsync(

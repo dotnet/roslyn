@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                         syntax,
                         LookupResultKind.Empty,
                         ImmutableArray<Symbol>.Empty,
-                        ImmutableArray.Create<BoundNode>(expr),
+                        ImmutableArray.Create(expr),
                         type);
                 }
             }

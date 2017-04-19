@@ -639,7 +639,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (frame.Constructor == null)
             {
                 Debug.Assert(frame.TypeKind == TypeKind.Struct);
-                newFrame = new BoundDefaultOperator(syntax: syntax, type: frameType);
+                newFrame = new BoundDefaultExpression(syntax: syntax, type: frameType);
             }
             else
             {
@@ -1580,7 +1580,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 catch (SyntheticBoundNodeFactory.MissingPredefinedMember ex)
                 {
                     Diagnostics.Add(ex.Diagnostic);
-                    return new BoundBadExpression(F.Syntax, LookupResultKind.Empty, ImmutableArray<Symbol>.Empty, ImmutableArray.Create<BoundNode>(node), node.Type);
+                    return new BoundBadExpression(F.Syntax, LookupResultKind.Empty, ImmutableArray<Symbol>.Empty, ImmutableArray.Create<BoundExpression>(node), node.Type);
                 }
             }
 

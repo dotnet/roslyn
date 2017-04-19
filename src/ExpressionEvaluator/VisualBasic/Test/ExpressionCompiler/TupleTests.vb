@@ -318,9 +318,9 @@ End Class"
   .maxstack  2
   .locals init ((Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer) V_0) //x
   IL_0000:  ldloc.0
-  IL_0001:  ldfld      ""System.ValueTuple(Of Integer, Integer, Integer, Integer, Integer, Integer, Integer, (Integer)).Item4 As Integer""
+  IL_0001:  ldfld      ""System.ValueTuple(Of Integer, Integer, Integer, Integer, Integer, Integer, Integer, ValueTuple(Of Integer)).Item4 As Integer""
   IL_0006:  ldloc.0
-  IL_0007:  ldfld      ""System.ValueTuple(Of Integer, Integer, Integer, Integer, Integer, Integer, Integer, (Integer)).Rest As (Integer)""
+  IL_0007:  ldfld      ""System.ValueTuple(Of Integer, Integer, Integer, Integer, Integer, Integer, Integer, ValueTuple(Of Integer)).Rest As ValueTuple(Of Integer)""
   IL_000c:  ldfld      ""System.ValueTuple(Of Integer).Item1 As Integer""
   IL_0011:  add.ovf
   IL_0012:  ret
@@ -355,10 +355,10 @@ End Class"
   .maxstack  2
   .locals init ((Integer, Integer, Three As Integer, Four As Integer, Integer, Integer, Integer, Eight As Integer) V_0) //x
   IL_0000:  ldloc.0
-  IL_0001:  ldfld      ""System.ValueTuple(Of Integer, Integer, Integer, Integer, Integer, Integer, Integer, (Integer)).Rest As (Integer)""
+  IL_0001:  ldfld      ""System.ValueTuple(Of Integer, Integer, Integer, Integer, Integer, Integer, Integer, ValueTuple(Of Integer)).Rest As ValueTuple(Of Integer)""
   IL_0006:  ldfld      ""System.ValueTuple(Of Integer).Item1 As Integer""
   IL_000b:  ldloc.0
-  IL_000c:  ldfld      ""System.ValueTuple(Of Integer, Integer, Integer, Integer, Integer, Integer, Integer, (Integer)).Rest As (Integer)""
+  IL_000c:  ldfld      ""System.ValueTuple(Of Integer, Integer, Integer, Integer, Integer, Integer, Integer, ValueTuple(Of Integer)).Rest As ValueTuple(Of Integer)""
   IL_0011:  ldfld      ""System.ValueTuple(Of Integer).Item1 As Integer""
   IL_0016:  add.ovf
   IL_0017:  ret

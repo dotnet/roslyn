@@ -359,6 +359,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 i++;
                 var typeSyntax = baseTypeSyntax.Type;
+                if (typeSyntax.Kind() != SyntaxKind.PredefinedType && !SyntaxFacts.IsName(typeSyntax.Kind()))
+                {
+                    diagnostics.Add(ErrorCode.ERR_BadBaseType, typeSyntax.GetLocation());
+                }
+
                 var location = new SourceLocation(typeSyntax);
 
                 TypeSymbol baseType;

@@ -1211,6 +1211,27 @@ This version used in: {2}</value>
   <data name="Pick_members_to_override" xml:space="preserve">
     <value>Pick members to override</value>
   </data>
+  <data name="Add_null_check" xml:space="preserve">
+    <value>Add null check</value>
+  </data>
+  <data name="Add_string_IsNullOrEmpty_check" xml:space="preserve">
+    <value>Add 'string.IsNullOrEmpty' check</value>
+  </data>
+  <data name="Add_string_IsNullOrWhiteSpace_check" xml:space="preserve">
+    <value>Add 'string.IsNullOrWhiteSpace' check</value>
+  </data>
+  <data name="Create_and_initialize_field_0" xml:space="preserve">
+    <value>Create and initialize field '{0}'</value>
+  </data>
+  <data name="Create_and_initialize_property_0" xml:space="preserve">
+    <value>Create and initialize property '{0}'</value>
+  </data>
+  <data name="Initialize_field_0" xml:space="preserve">
+    <value>Initialize field '{0}'</value>
+  </data>
+  <data name="Initialize_property_0" xml:space="preserve">
+    <value>Initialize property '{0}'</value>
+  </data>
   <data name="Add_null_checks" xml:space="preserve">
     <value>Add null checks</value>
   </data>

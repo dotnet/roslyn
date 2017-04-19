@@ -116,10 +116,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
                 Return
             End If
 
-            Dim codeCleanups = CodeCleaner.GetDefaultProviders(document) _
-                        .Where(Function(p)
-                                   Return p.Name = PredefinedCodeCleanupProviderNames.NormalizeModifiersOrOperators
-                               End Function)
+            Dim codeCleanups = CodeCleaner.GetDefaultProviders(document).
+                WhereAsArray(Function(p)
+                                 Return p.Name = PredefinedCodeCleanupProviderNames.NormalizeModifiersOrOperators
+                             End Function)
 
             Dim cleanDocument = CodeCleaner.CleanupAsync(document, GetSpanToCleanup(statement), codeCleanups, cancellationToken:=cancellationToken).WaitAndGetResult(cancellationToken)
 

@@ -300,7 +300,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 case ConversionKind.AnonymousFunction:
                                 case ConversionKind.ImplicitConstant:
                                 case ConversionKind.MethodGroup:
-                                case ConversionKind.NullLiteral:
+                                case ConversionKind.DefaultOrNullLiteral:
                                     return true;
 
                                 case ConversionKind.Boxing:
@@ -994,14 +994,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else
                 {
                     // The argument to M([Optional] int x) becomes default(int)
-                    defaultValue = new BoundDefaultOperator(syntax, parameterType);
+                    defaultValue = new BoundDefaultExpression(syntax, parameterType);
                 }
             }
             else if (defaultConstantValue.IsNull && parameterType.IsValueType)
             {
                 // We have something like M(int? x = null) or M(S x = default(S)),
                 // so replace the argument with default(int?).
-                defaultValue = new BoundDefaultOperator(syntax, parameterType);
+                defaultValue = new BoundDefaultExpression(syntax, parameterType);
             }
             else if (parameterType.IsNullableType())
             {
@@ -1057,20 +1057,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (parameter.IsMarshalAsObject)
             {
                 // default(object)
-                defaultValue = new BoundDefaultOperator(syntax, parameter.Type);
+                defaultValue = new BoundDefaultExpression(syntax, parameter.Type);
             }
             else if (parameter.IsIUnknownConstant)
             {
                 // new UnknownWrapper(default(object))
                 var methodSymbol = (MethodSymbol)_compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_InteropServices_UnknownWrapper__ctor);
-                var argument = new BoundDefaultOperator(syntax, parameter.Type);
+                var argument = new BoundDefaultExpression(syntax, parameter.Type);
                 defaultValue = new BoundObjectCreationExpression(syntax, methodSymbol, argument);
             }
             else if (parameter.IsIDispatchConstant)
             {
                 // new DispatchWrapper(default(object))
                 var methodSymbol = (MethodSymbol)_compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_InteropServices_DispatchWrapper__ctor);
-                var argument = new BoundDefaultOperator(syntax, parameter.Type);
+                var argument = new BoundDefaultExpression(syntax, parameter.Type);
                 defaultValue = new BoundObjectCreationExpression(syntax, methodSymbol, argument);
             }
             else

@@ -481,7 +481,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics.Add(ErrorCode.ERR_SwitchExpressionValueExpected, node.Location, switchExpression.Display);
             }
 
-            return new BoundBadExpression(node, LookupResultKind.Empty, ImmutableArray<Symbol>.Empty, ImmutableArray.Create<BoundNode>(switchExpression), switchGoverningType ?? CreateErrorType());
+            return new BoundBadExpression(node, LookupResultKind.Empty, ImmutableArray<Symbol>.Empty, ImmutableArray.Create(switchExpression), switchGoverningType ?? CreateErrorType());
         }
 
         private LabelSymbol BindConstantJumpTarget(ConstantValue constantValue, CSharpSyntaxNode syntax)
@@ -606,6 +606,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         diagnostics.Add(ErrorCode.ERR_DuplicateCaseLabel, node.Location, labelExpressionConstant?.GetValueToDisplay() ?? label.Name);
                         hasErrors = true;
+                    }
+
+                    if (caseLabelSyntax.Value.Kind() == SyntaxKind.DefaultLiteralExpression)
+                    {
+                        diagnostics.Add(ErrorCode.WRN_DefaultInSwitch, caseLabelSyntax.Value.Location);
                     }
 
                     // LabelSymbols for all the switch case labels are created by BuildLabels().
