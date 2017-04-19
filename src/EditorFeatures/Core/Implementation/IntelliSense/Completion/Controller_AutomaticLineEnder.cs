@@ -30,8 +30,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             if (!committed)
             {
                 this.DismissSessionIfActive();
-                nextHandler();
             }
+
+            nextHandler();
         }
     }
 }

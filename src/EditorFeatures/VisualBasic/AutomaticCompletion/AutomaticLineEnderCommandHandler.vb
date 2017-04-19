@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticCompletion
     ' visual basic automatic line ender command handler
     ' </summary>
     <ExportCommandHandler(PredefinedCommandHandlerNames.AutomaticLineEnder, ContentTypeNames.VisualBasicContentType)>
-    <Order(Before:=PredefinedCommandHandlerNames.Completion)>
+    <Order(After:=PredefinedCommandHandlerNames.Completion)>
     Friend Class AutomaticLineEnderCommandHandler
         Inherits AbstractAutomaticLineEnderCommandHandler
 
