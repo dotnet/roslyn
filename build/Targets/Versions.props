@@ -38,8 +38,8 @@
          Additionally, in order ensure the value fits in the 16-bit PE header fields, we will only take the last five digits of the BuildNumber, so
          in the case of 20160615, we will set BuildNumberFiveDigitDateStamp to 60615. Unfortunately for releases in 2017 we can't go any higher, so
          well continue the month counting instead: the build after 61231 is 61301. -->
-    <BuildNumberFiveDigitDateStamp>$([MSBuild]::Subtract($(BuildNumber.Split('.')[0].Substring(3).Trim()), 8800))</BuildNumberFiveDigitDateStamp>
-    <BuildNumberBuildOfTheDayPadded>$(BuildNumber.Split('.')[1].PadLeft(2,'0'))</BuildNumberBuildOfTheDayPadded>
+    <BuildNumberFiveDigitDateStamp>$([MSBuild]::Subtract($(BuildNumber.Split('.').GetValue($([System.Convert]::ToInt32(0))).Substring(3).Trim()), 8800))</BuildNumberFiveDigitDateStamp>
+    <BuildNumberBuildOfTheDayPadded>$(BuildNumber.Split('.').GetValue($([System.Convert]::ToInt32(1))).PadLeft(2,'0'))</BuildNumberBuildOfTheDayPadded>
 
     <!-- NuGet version -->
     <NuGetReleaseVersion>$(RoslynFileVersionBase)</NuGetReleaseVersion>
