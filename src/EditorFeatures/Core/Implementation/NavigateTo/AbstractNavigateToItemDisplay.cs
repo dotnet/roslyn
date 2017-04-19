@@ -6,7 +6,9 @@ using System.Drawing;
 using System.Threading;
 using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.CodeAnalysis.Navigation;
+using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Language.NavigateTo.Interfaces;
+using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
@@ -130,5 +132,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
             previewService.PreviewItem(this);
         }
 
+        public IReadOnlyList<Span> GetNameMatchRuns(string searchValue)
+            => SearchResult.NameMatchSpans.NullToEmpty().SelectAsArray(ts => ts.ToSpan());
     }
 }
