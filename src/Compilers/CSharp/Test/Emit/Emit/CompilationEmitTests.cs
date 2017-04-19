@@ -349,6 +349,34 @@ public class C
         }
 
         [Fact]
+        public void EmitRefAssembly_SealedPropertyWithInternalInheritedGetter()
+        {
+            CSharpCompilation comp = CreateStandardCompilation(@"
+public class Base
+{
+    public virtual int Property { internal get { return 0; } set { } }
+}
+public class C : Base
+{
+    public sealed override int Property { set { } }
+}
+");
+
+            using (var output = new MemoryStream())
+            using (var metadataOutput = new MemoryStream())
+            {
+                EmitResult emitResult = comp.Emit(output, metadataPEStream: metadataOutput,
+                    options: new EmitOptions(includePrivateMembers: false));
+                emitResult.Diagnostics.Verify();
+                Assert.True(emitResult.Success);
+
+                VerifyMethods(output, new[] { "void C.Property.set", "C..ctor()", "System.Int32 C.Property.get", "System.Int32 C.Property { internal get; set; }" });
+                // A getter is synthesized on C.Property so that it can be marked as sealed. It is emitted despite being internal because it is virtual.
+                VerifyMethods(metadataOutput, new[] {  "void C.Property.set", "C..ctor()", "System.Int32 C.Property.get", "System.Int32 C.Property { internal get; set; }" });
+            }
+        }
+
+        [Fact]
         public void EmitRefAssembly_PrivateAccessorOnEvent()
         {
             CSharpCompilation comp = CreateStandardCompilation(@"

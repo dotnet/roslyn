@@ -19,20 +19,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             CheckDefinitionInvariant();
 
-            IMethodReference getMethod = this.GetMethod;
-            if (getMethod != null && getMethod.GetResolvedMethod(context).ShouldInclude(context))
+            MethodSymbol getMethod = this.GetMethod;
+            if (getMethod != null && getMethod.ShouldInclude(context))
             {
                 yield return getMethod;
             }
 
-            IMethodReference setMethod = this.SetMethod;
-            if (setMethod != null && setMethod.GetResolvedMethod(context).ShouldInclude(context))
+            MethodSymbol setMethod = this.SetMethod;
+            if (setMethod != null && setMethod.ShouldInclude(context))
             {
                 yield return setMethod;
             }
 
             SourcePropertySymbol sourceProperty = this as SourcePropertySymbol;
-            if ((object)sourceProperty != null)
+            if ((object)sourceProperty != null && sourceProperty.ShouldInclude(context))
             {
                 SynthesizedSealedPropertyAccessor synthesizedAccessor = sourceProperty.SynthesizedSealedAccessorOpt;
                 if ((object)synthesizedAccessor != null)
