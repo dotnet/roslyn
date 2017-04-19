@@ -9,10 +9,15 @@ namespace Microsoft.CodeAnalysis.Semantics
     {
         public static VariableDeclaration CreateVariableDeclaration(ILocalSymbol variable, IOperation initialValue, SyntaxNode syntax)
         {
+            return CreateVariableDeclaration(ImmutableArray.Create(variable), initialValue, syntax);
+        }
+
+        public static VariableDeclaration CreateVariableDeclaration(ImmutableArray<ILocalSymbol> variables, IOperation initialValue, SyntaxNode syntax)
+        {
             return new VariableDeclaration(
-                variable,
+                variables,
                 initialValue,
-                variable == null || (initialValue != null && initialValue.IsInvalid),
+                variables.IsDefaultOrEmpty || (initialValue != null && initialValue.IsInvalid),
                 syntax,
                 type: null,
                 constantValue: default(Optional<object>));
@@ -93,7 +98,12 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public static InvalidExpression CreateInvalidExpression(SyntaxNode syntax)
         {
-            return new InvalidExpression(isInvalid: true, syntax: syntax, type: null, constantValue: default(Optional<object>));
+            return CreateInvalidExpression(syntax, ImmutableArray<IOperation>.Empty);
+        }
+
+        public static InvalidExpression CreateInvalidExpression(SyntaxNode syntax, ImmutableArray<IOperation> children)
+        {
+            return new InvalidExpression(children: children, isInvalid: true, syntax: syntax, type: null, constantValue: default(Optional<object>));
         }
     }
 }

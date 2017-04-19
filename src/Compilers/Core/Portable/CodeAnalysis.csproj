@@ -91,13 +91,10 @@
     <Compile Include="Operations\ILoopStatement.cs" />
     <Compile Include="Operations\IMemberReferenceExpression.cs" />
     <Compile Include="Operations\IMethodBindingExpression.cs" />
-    <Compile Include="Operations\IndexedPropertyReferenceExpression_IHasArgumentsExpression.cs" />
     <Compile Include="Operations\InstanceReferenceKind.cs" />
     <Compile Include="Operations\INullCoalescingExpression.cs" />
-    <Compile Include="Operations\InvocationExpression_IHasArgumentsExpression.cs" />
     <Compile Include="Operations\IObjectCreationExpression.cs" />
     <Compile Include="Operations\IOmittedArgumentExpression.cs" />
-    <Compile Include="Operations\ObjectCreationExpression_IHasArgumentsExpression.cs" />
     <Compile Include="Operations\Operation.cs" />
     <Compile Include="Operations\IOperationKind.cs" />
     <Compile Include="Operations\IParameterInitializer.cs" />
