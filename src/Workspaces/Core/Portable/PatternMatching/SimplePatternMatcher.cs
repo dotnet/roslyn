@@ -42,8 +42,8 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                     return false;
                 }
 
-                return MatchPatternSegment(candidate, _fullPatternSegment, matches, fuzzyMatch: true) ||
-                       MatchPatternSegment(candidate, _fullPatternSegment, matches, fuzzyMatch: false);
+                return MatchPatternSegment(candidate, _fullPatternSegment, matches, fuzzyMatch: false) ||
+                       MatchPatternSegment(candidate, _fullPatternSegment, matches, fuzzyMatch: true);
             }
         }
     }
