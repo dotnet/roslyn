@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         {
             // If the user created a dotted pattern then we'll grab the last part of the name
             var (patternName, patternContainerOpt) = PatternMatcher.GetNameAndContainer(pattern);
-            var nameMatcher = PatternMatcher.CreatePatternMatcher(pattern, includeMatchedSpans: true, allowFuzzyMatching: true);
+            var nameMatcher = PatternMatcher.CreatePatternMatcher(patternName, includeMatchedSpans: true, allowFuzzyMatching: true);
 
             var containerMatcher = patternContainerOpt != null
                 ? PatternMatcher.CreateDotSeperatedContainerMatcher(patternContainerOpt)
