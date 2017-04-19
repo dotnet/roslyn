@@ -453,6 +453,16 @@ Public MustInherit Class BasicTestBaseBase
         Return XElement.Parse(PdbValidation.GetPdbXml(compilation, qualifiedMethodName:=methodName))
     End Function
 
+    Friend Shared Function GetDefaultPEBuilder(compilation As VisualBasicCompilation) As PEAssemblyBuilder
+        ' PROTOTYPE(readonlyRefs): Using a PEAssemblyBuilder here Is a hack till https://github.com/dotnet/roslyn/issues/18799 Is fixed.
+        Return New PEAssemblyBuilder(
+                DirectCast(compilation.Assembly, SourceAssemblySymbol),
+                EmitOptions.Default,
+                compilation.Options.OutputKind,
+                GetDefaultModulePropertiesForSerialization(),
+                SpecializedCollections.EmptyEnumerable(Of ResourceDescription)())
+    End Function
+
     Public Shared Shadows Function GetPdbXml(source As XElement, Optional options As VisualBasicCompilationOptions = Nothing, Optional methodName As String = "") As XElement
         Dim compilation = CreateCompilationWithMscorlib(source, options)
         compilation.VerifyDiagnostics()

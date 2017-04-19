@@ -525,6 +525,7 @@ namespace Microsoft.CodeAnalysis
             "Microsoft.CodeAnalysis.Runtime.Instrumentation",
 
             "System.Runtime.CompilerServices.ReadOnlyAttribute",
+            "Microsoft.CodeAnalysis.EmbeddedAttribute",
         };
 
         private readonly static Dictionary<string, WellKnownType> s_nameToTypeIdMap = new Dictionary<string, WellKnownType>((int)Count);

@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Reflection;
+using Microsoft.Cci;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.Emit;
 using Roslyn.Utilities;
@@ -16,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
     {
         private readonly SourceAssemblySymbol _sourceAssembly;
         private readonly ImmutableArray<NamedTypeSymbol> _additionalTypes;
-        private readonly ConcurrentDictionary<WellKnownMember, MethodSymbol> _embeddedAttributesConstructors;
+        private readonly Dictionary<WellKnownMember, MethodSymbol> _embeddedAttributesConstructors;
         private ImmutableArray<Cci.IFileReference> _lazyFiles;
 
         /// <summary>
@@ -52,28 +53,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             _sourceAssembly = sourceAssembly;
             _additionalTypes = additionalTypes.NullToEmpty();
             _metadataName = (emitOptions.OutputNameOverride == null) ? sourceAssembly.MetadataName : FileNameUtilities.ChangeExtension(emitOptions.OutputNameOverride, extension: null);
+            _embeddedAttributesConstructors = new Dictionary<WellKnownMember, MethodSymbol>();
 
             AssemblyOrModuleSymbolToModuleRefMap.Add(sourceAssembly, this);
-
-            _embeddedAttributesConstructors = new ConcurrentDictionary<WellKnownMember, MethodSymbol>();
-            CreateEmbeddedAttributes();
         }
 
         public override ISourceAssemblySymbolInternal SourceAssemblyOpt => _sourceAssembly;
 
-        internal override ImmutableArray<NamedTypeSymbol> GetAdditionalTopLevelTypes()
+        internal override IEnumerable<INamespaceTypeDefinition> GetTopLevelTypesCore(EmitContext context)
         {
-            var builder = ArrayBuilder<NamedTypeSymbol>.GetInstance();
+            CreateEmbeddedAttributesIfNeeded();
 
-            builder.AddRange(base.GetAdditionalTopLevelTypes());
-            builder.AddRange(_additionalTypes);
-
-            foreach(var constructor in _embeddedAttributesConstructors.Values)
+            foreach (var constructor in _embeddedAttributesConstructors.Values)
             {
-                builder.Add(constructor.ContainingType);
+                yield return constructor.ContainingType;
             }
 
-            return builder.ToImmutableAndFree();
+            foreach (var type in base.GetTopLevelTypesCore(context))
+            {
+                yield return type;
+            }
+        }
+
+        internal override ImmutableArray<NamedTypeSymbol> GetAdditionalTopLevelTypes()
+        {
+            return _additionalTypes;
         }
 
         public sealed override IEnumerable<Cci.IFileReference> GetFiles(EmitContext context)
@@ -167,9 +171,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return base.SynthesizeReadOnlyAttribute();
         }
 
-        private void CreateEmbeddedAttributes()
+        private void CreateEmbeddedAttributesIfNeeded()
         {
-            if(_sourceAssembly.DeclaringCompilation.NeedsReadOnlyAttribute)
+            if(_sourceAssembly.DeclaringCompilation.NeedsGeneratedReadOnlyAttribute)
             {
                 CreateEmbeddedAttributeIfNeeded(
                     WellKnownType.Microsoft_CodeAnalysis_EmbeddedAttribute,
@@ -183,8 +187,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         private void CreateEmbeddedAttributeIfNeeded(WellKnownType type, WellKnownMember constructor)
         {
-            if (_sourceAssembly.DeclaringCompilation.GetWellKnownTypeMember(constructor) == null &&
-                !_embeddedAttributesConstructors.ContainsKey(constructor))
+            if (!_embeddedAttributesConstructors.ContainsKey(constructor))
             {
                 var attributeSymbol = new SourceEmbeddedAttributeSymbol(type, _sourceAssembly.DeclaringCompilation);
                 _embeddedAttributesConstructors.Add(constructor, attributeSymbol.Constructor);

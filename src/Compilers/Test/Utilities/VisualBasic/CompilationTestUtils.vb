@@ -13,6 +13,7 @@ Imports Roslyn.Test.Utilities
 Imports Roslyn.Test.Utilities.TestBase
 Imports Xunit
 Imports Microsoft.CodeAnalysis.Collections
+Imports Microsoft.CodeAnalysis.Emit
 
 Friend Module CompilationUtils
 
@@ -1264,11 +1265,11 @@ Friend Module CompilationUtils
     End Sub
 
     <Extension>
-    Friend Function GetSynthesizedAttributes(symbol As ISymbol, Optional forReturnType As Boolean = False) As ImmutableArray(Of SynthesizedAttributeData)
+    Friend Function GetSynthesizedAttributes(symbol As Symbol, Optional forReturnType As Boolean = False) As ImmutableArray(Of SynthesizedAttributeData)
+
         Dim attributes As ArrayBuilder(Of SynthesizedAttributeData) = Nothing
         If Not forReturnType Then
-            Dim context = New ModuleCompilationState()
-            DirectCast(symbol, Symbol).AddSynthesizedAttributes(context, attributes)
+            symbol.AddSynthesizedAttributes(BasicTestBase.GetDefaultPEBuilder(symbol.DeclaringCompilation), attributes)
         Else
             DirectCast(symbol, MethodSymbol).AddSynthesizedReturnTypeAttributes(attributes)
         End If

@@ -954,7 +954,7 @@ public class C {}
             // We should get only unique netmodule/assembly attributes here, duplicate ones should not be emitted.
             int expectedEmittedAttrsCount = expectedSrcAttrCount - expectedDuplicateAttrCount;
 
-            var allEmittedAttrs = assembly.GetCustomAttributesToEmit(new ModuleCompilationState(), emittingAssemblyAttributesInNetModule: false);
+            var allEmittedAttrs = assembly.GetCustomAttributesToEmit(GetDefaultPEBuilder(assembly.DeclaringCompilation), emittingAssemblyAttributesInNetModule: false);
             var emittedAttrs = allEmittedAttrs.Where(a => string.Equals(a.AttributeClass.Name, attrTypeName, StringComparison.Ordinal)).AsImmutable();
 
             Assert.Equal(expectedEmittedAttrsCount, emittedAttrs.Length);
@@ -1243,7 +1243,7 @@ public class C {}
                expectedDuplicateAttrCount: 1,
                attrTypeName: "AssemblyTitleAttribute");
 
-            var attrs = consoleappCompilation.Assembly.GetCustomAttributesToEmit(new ModuleCompilationState(), emittingAssemblyAttributesInNetModule: false);
+            var attrs = consoleappCompilation.Assembly.GetCustomAttributesToEmit(GetDefaultPEBuilder(consoleappCompilation), emittingAssemblyAttributesInNetModule: false);
             foreach (var a in attrs)
             {
                 switch (a.AttributeClass.Name)

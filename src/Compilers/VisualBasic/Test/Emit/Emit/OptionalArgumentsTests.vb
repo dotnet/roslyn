@@ -724,7 +724,7 @@ End Interface
         End Sub
 
         Private Shared Function CountParamArrayAttributes(parameter As ParameterSymbol) As Integer
-            Dim attributes = parameter.GetCustomAttributesToEmit(New ModuleCompilationState)
+            Dim attributes = parameter.GetCustomAttributesToEmit(GetDefaultPEBuilder(parameter.DeclaringCompilation))
             Return attributes.Where(Function(a) a.AttributeClass.Name = "ParamArrayAttribute").Count()
         End Function
 
@@ -993,7 +993,7 @@ End Class
         End Sub
 
         Private Shared Sub VerifyDefaultValueAttribute(parameter As ParameterSymbol, expectedAttributeName As String, expectedDefault As Object, hasDefault As Boolean)
-            Dim attributes = parameter.GetCustomAttributesToEmit(New ModuleCompilationState).ToArray()
+            Dim attributes = parameter.GetCustomAttributesToEmit(GetDefaultPEBuilder(parameter.DeclaringCompilation)).ToArray()
             If expectedAttributeName Is Nothing Then
                 Assert.Equal(attributes.Length, 0)
             Else
@@ -1433,9 +1433,8 @@ BC37228: The field has multiple distinct constant values.
 ]]></errors>)
 
             Dim c = comp.GetTypeByMetadataName("C")
-            Dim context = New ModuleCompilationState()
-            Assert.Equal(1, c.GetMember("F15").GetCustomAttributesToEmit(context).Count())
-            Assert.Equal(1, c.GetMember("F16").GetCustomAttributesToEmit(context).Count())
+            Assert.Equal(1, c.GetMember("F15").GetCustomAttributesToEmit(GetDefaultPEBuilder(comp)).Count())
+            Assert.Equal(1, c.GetMember("F16").GetCustomAttributesToEmit(GetDefaultPEBuilder(comp)).Count())
         End Sub
 
     End Class

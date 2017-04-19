@@ -28,6 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private NamedTypeSymbol _baseType;
         private MissingNamespaceSymbol _namespace;
         private ImmutableArray<Symbol> _members;
+        private ModuleSymbol _module;
 
         public SourceEmbeddedAttributeSymbol(WellKnownType wellKnownType, CSharpCompilation compilation)
         {
@@ -39,6 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             Constructor = new SynthesizedInstanceConstructor(this);
             _members = ImmutableArray.Create<Symbol>(Constructor);
+            _module = compilation.SourceModule;
 
             _namespace = new MissingNamespaceSymbol(compilation.GlobalNamespace, nameParts[0]);
             for (int i = 1; i + 1 < nameParts.Length; i++)
@@ -66,6 +68,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override TypeKind TypeKind => TypeKind.Class;
 
         public override Symbol ContainingSymbol => _namespace;
+
+        internal override ModuleSymbol ContainingModule => _module;
+
+        public override NamespaceSymbol ContainingNamespace => _namespace;
 
         public override ImmutableArray<Location> Locations => ImmutableArray<Location>.Empty;
 

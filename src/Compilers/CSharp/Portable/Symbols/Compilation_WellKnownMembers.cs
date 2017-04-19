@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private Symbol[] _lazyWellKnownTypeMembers;
 
-        internal bool NeedsReadOnlyAttribute { get; private set; }
+        internal bool NeedsGeneratedReadOnlyAttribute { get; private set; }
 
         /// <summary>
         /// Lookup member declaration in well known type used by this Compilation.
@@ -419,7 +419,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal void EnsureReadOnlyAttributeExists()
         {
-            NeedsReadOnlyAttribute = true;
+            if (GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_ReadOnlyAttribute) == null)
+            {
+                NeedsGeneratedReadOnlyAttribute = true;
+            }
         }
 
         internal SynthesizedAttributeData SynthesizeDebuggableAttribute()

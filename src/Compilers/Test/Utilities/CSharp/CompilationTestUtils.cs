@@ -1,16 +1,18 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Microsoft.CodeAnalysis.CSharp.Emit;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using Microsoft.CodeAnalysis.CSharp.Emit;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
-using Roslyn.Test.Utilities;
-using Roslyn.Utilities;
 using Xunit;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -266,20 +268,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             return summary;
         }
 
-        internal static ImmutableArray<SynthesizedAttributeData> GetSynthesizedAttributes(this ISymbol symbol, bool forReturnType = false)
+        internal static ImmutableArray<SynthesizedAttributeData> GetSynthesizedAttributes(this Symbol symbol, bool forReturnType = false)
         {
+            var builder = CSharpTestBase.GetDefaultPEBuilder(symbol.DeclaringCompilation);
             ArrayBuilder<SynthesizedAttributeData> attributes = null;
+
             if (!forReturnType)
             {
-                var context = new ModuleCompilationState();
-                ((Symbol)symbol).AddSynthesizedAttributes(context, ref attributes);
+                symbol.AddSynthesizedAttributes(builder, ref attributes);
             }
             else
             {
                 Assert.True(symbol.Kind == SymbolKind.Method, "Incorrect usage of GetSynthesizedAttributes");
-                ((MethodSymbol)symbol).AddSynthesizedReturnTypeAttributes(ref attributes);
+                ((MethodSymbol)symbol).AddSynthesizedReturnTypeAttributes(builder, ref attributes);
             }
-
+            
             return attributes != null ? attributes.ToImmutableAndFree() : ImmutableArray.Create<SynthesizedAttributeData>();
         }
 

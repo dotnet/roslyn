@@ -22,6 +22,7 @@ using Roslyn.Utilities;
 using Xunit;
 using Roslyn.Test.Utilities;
 using System.Globalization;
+using Microsoft.CodeAnalysis.CSharp.Emit;
 
 namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 {
@@ -225,6 +226,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                     return tc1.GetReferencedModuleSymbol(r);
                 }
             });
+        }
+
+        internal static PEAssemblyBuilder GetDefaultPEBuilder(CSharpCompilation compilation)
+        {
+            // PROTOTYPE(readonlyRefs): Using a PEAssemblyBuilder here is a hack till https://github.com/dotnet/roslyn/issues/18799 is fixed.
+            return new PEAssemblyBuilder(
+                (SourceAssemblySymbol)compilation.Assembly,
+                EmitOptions.Default,
+                compilation.Options.OutputKind,
+                GetDefaultModulePropertiesForSerialization(),
+                SpecializedCollections.EmptyEnumerable<ResourceDescription>());
         }
 
         protected override CompilationOptions CompilationOptionsReleaseDll
