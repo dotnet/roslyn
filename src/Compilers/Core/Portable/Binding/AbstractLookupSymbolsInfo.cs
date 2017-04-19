@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis
 
             public void AddSymbol(TSymbol symbol, int arity)
             {
-                if (symbol == _uniqueSymbolOrArities)
+                if (symbol != null && symbol == _uniqueSymbolOrArities)
                 {
                     Debug.Assert(arity == _arityBitVectorOrUniqueArity);
                     return;

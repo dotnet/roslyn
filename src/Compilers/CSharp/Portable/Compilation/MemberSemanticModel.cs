@@ -127,19 +127,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        /// <summary>
-        /// This overload exists for callers who
-        ///   a) Already have a node in hand and don't want to search through the tree
-        ///   b) May want to search from an indirect container (e.g. node containing node
-        ///      containing position).
-        /// </summary>
-        private Binder GetEnclosingBinder(SyntaxNode node, int position)
+        private Binder GetEnclosingBinderInternalWithinRoot(SyntaxNode node, int position)
         {
             AssertPositionAdjusted(position);
-            return GetEnclosingBinder(node, position, RootBinder, _root).WithAdditionalFlags(GetSemanticModelBinderFlags());
+            return GetEnclosingBinderInternalWithinRoot(node, position, RootBinder, _root).WithAdditionalFlags(GetSemanticModelBinderFlags());
         }
 
-        private static Binder GetEnclosingBinder(SyntaxNode node, int position, Binder rootBinder, SyntaxNode root)
+        private static Binder GetEnclosingBinderInternalWithinRoot(SyntaxNode node, int position, Binder rootBinder, SyntaxNode root)
         {
             if (node == root)
             {
@@ -149,15 +143,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(root.Contains(node));
 
             ExpressionSyntax typeOfArgument = null;
-            SyntaxNode unexpectedAnonymousFunction = null;
-
-            // Keep track of which fix-up should be applied first.  If we see a typeof expression inside an unexpected
-            // anonymous function, that the typeof binder should be innermost (i.e. should have the unexpected
-            // anonymous function binder as its Next).
-            // NOTE: only meaningful if typeOfArgument is non-null;
-            bool typeOfEncounteredBeforeUnexpectedAnonymousFunction = false;
-
             Binder binder = null;
+
             for (var current = node; binder == null; current = current.ParentOrStructuredTriviaParent)
             {
                 Debug.Assert(current != null); // Why were we asked for an enclosing binder for a node outside our root?
@@ -195,16 +182,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (LookupPosition.IsInAnonymousFunctionOrQuery(position, current))
                     {
-                        binder = rootBinder.GetBinder(current);
-
-                        // This should only happen in error scenarios.  For example, C# does not allow array rank
-                        // specifiers in types, (e.g. int[1] x;), but the syntax model does.  In order to construct
-                        // an appropriate binder chain for the anonymous method body, we need to construct an
-                        // ExecutableCodeBinder.
-                        if (binder == null && unexpectedAnonymousFunction == null && current != root)
-                        {
-                            unexpectedAnonymousFunction = current;
-                        }
+                        binder = rootBinder.GetBinder(current.AnonymousFunctionBody());
+                        Debug.Assert(binder != null);
                     }
                 }
                 else if (kind == SyntaxKind.TypeOfExpression &&
@@ -215,7 +194,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         typeOfExpression.CloseParenToken))
                 {
                     typeOfArgument = typeOfExpression.Type;
-                    typeOfEncounteredBeforeUnexpectedAnonymousFunction = unexpectedAnonymousFunction == null;
                 }
                 else if (kind == SyntaxKind.SwitchSection)
                 {
@@ -265,22 +243,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             binder = binder ?? rootBinder.GetBinder(root) ?? rootBinder;
             Debug.Assert(binder != null);
 
-            if (typeOfArgument != null && !typeOfEncounteredBeforeUnexpectedAnonymousFunction)
-            {
-                binder = new TypeofBinder(typeOfArgument, binder);
-            }
-
-            if (unexpectedAnonymousFunction != null)
-            {
-                binder = new ExecutableCodeBinder(unexpectedAnonymousFunction,
-                                                  new LambdaSymbol(binder.ContainingMemberOrLambda,
-                                                                   unexpectedAnonymousFunction.Kind() == SyntaxKind.AnonymousMethodExpression ? MessageID.IDS_AnonMethod : MessageID.IDS_Lambda,
-                                                                   unexpectedAnonymousFunction,
-                                                                   isSynthesized: false),
-                                                  binder);
-            }
-
-            if (typeOfArgument != null && typeOfEncounteredBeforeUnexpectedAnonymousFunction)
+            if (typeOfArgument != null)
             {
                 binder = new TypeofBinder(typeOfArgument, binder);
             }
@@ -376,7 +339,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             CheckSyntaxNode(expression);
 
-            var binder = this.GetEnclosingBinder(expression, GetAdjustedNodePosition(expression));
+            var binder = this.GetEnclosingBinderInternal(expression, GetAdjustedNodePosition(expression));
             CSharpSyntaxNode bindableNode = this.GetBindableSyntaxNode(expression);
             var boundExpression = this.GetLowerBoundNode(bindableNode) as BoundExpression;
             if (binder == null || boundExpression == null)
@@ -399,7 +362,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw new ArgumentNullException(nameof(destination));
             }
 
-            var binder = this.GetEnclosingBinder(expression, GetAdjustedNodePosition(expression));
+            var binder = this.GetEnclosingBinderInternal(expression, GetAdjustedNodePosition(expression));
             CSharpSyntaxNode bindableNode = this.GetBindableSyntaxNode(expression);
             var boundExpression = this.GetLowerBoundNode(bindableNode) as BoundExpression;
             if (binder == null || boundExpression == null)
@@ -463,8 +426,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                return boundNodes[boundNodes.Length - 1];
+                return GetLowerBoundNode(boundNodes);
             }
+        }
+
+        private static BoundNode GetLowerBoundNode(ImmutableArray<BoundNode> boundNodes)
+        {
+            return boundNodes[boundNodes.Length - 1];
         }
 
         public override ImmutableArray<Diagnostic> GetSyntaxDiagnostics(TextSpan? span = null, CancellationToken cancellationToken = default(CancellationToken))
@@ -1154,19 +1122,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     continue;
                 }
 
-                // If the lambda that is "enclosing" us is in fact enclosing an explicit lambda
-                // parameter type then keep on going; that guy is logically bound outside of the
-                // lambda. For example, if we have:
-                //
-                // D d = (Foo f)=>{int Foo; };
-                //
-                // Then the type "Foo" is bound in the context outside the lambda body, not inside
-                // where it might get confused with local "Foo".
-                if (NodeIsExplicitType(node, current))
-                {
-                    continue;
-                }
-
                 return current;
             }
 
@@ -1175,42 +1130,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             // with the innermost lambda; if we are already in a binding associated with the
             // innermost lambda then we're done.
             return null;
-        }
-
-        private static bool NodeIsExplicitType(CSharpSyntaxNode node, CSharpSyntaxNode lambda)
-        {
-            Debug.Assert(node != null);
-            Debug.Assert(lambda != null);
-            Debug.Assert(lambda.IsAnonymousFunction() || lambda.IsQuery());
-
-            // UNDONE;
-            return false;
-        }
-
-        private CSharpSyntaxNode GetOutermostLambdaOrQuery(CSharpSyntaxNode node)
-        {
-            Debug.Assert(node != null);
-
-            CSharpSyntaxNode lambda = null;
-            for (var current = node; current != this.Root; current = current.ParentOrStructuredTriviaParent)
-            {
-                // (It is possible for the outermost lambda to be the node we were given.)
-                if (current.IsAnonymousFunction() || current.IsQuery())
-                {
-                    lambda = current;
-                }
-
-                // current can only become null if we somehow got past the root. The only way we
-                // could have gotten past the root is to have started outside of it. That's
-                // unexpected; the binding should only be asked to provide an opinion on syntax
-                // nodes that it knows about.
-                Debug.Assert(current != null, "Why are we being asked to find an enclosing lambda outside of our root?");
-            }
-
-            // As above, if the root is a lambda then it does not count as the one "outside" of the
-            // given node. We want the outermost lambda that we can find a binding for; if the root
-            // of this binding is the lambda we're inside then "this" is the right binding.
-            return lambda;
         }
 
         private ImmutableArray<BoundNode> GuardedGetBoundNodesFromMap(CSharpSyntaxNode node)
@@ -1299,17 +1218,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     enclosingStatement = current as StatementSyntax;
                 }
-
-                switch (current.Kind())
-                {
-                    case SyntaxKind.ParenthesizedLambdaExpression:
-                    case SyntaxKind.SimpleLambdaExpression:
-                    case SyntaxKind.AnonymousMethodExpression:
-                    case SyntaxKind.LocalFunctionStatement:
-                        // We can't use a statement that is inside a lambda.
-                        enclosingStatement = null;
-                        break;
-                }
             }
 
             return enclosingStatement ?? this.Root;
@@ -1336,7 +1244,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxToken token = this.Root.FindToken(position);
             CSharpSyntaxNode node = (CSharpSyntaxNode)token.Parent;
 
-            CSharpSyntaxNode innerLambda = GetInnermostLambdaOrQuery(node, position, allowStarting: true);
+            return GetEnclosingBinderInternal(node, position);
+        }
+
+        /// <summary>
+        /// This overload exists for callers who already have a node in hand 
+        /// and don't want to search through the tree.
+        /// </summary>
+        private Binder GetEnclosingBinderInternal(CSharpSyntaxNode node, int position)
+        {
+            AssertPositionAdjusted(position);
+
+            CSharpSyntaxNode innerLambdaOrQuery = GetInnermostLambdaOrQuery(node, position, allowStarting: true);
 
             // There are three possible scenarios here.
             //
@@ -1357,70 +1276,131 @@ namespace Microsoft.CodeAnalysis.CSharp
             // We should step out to the enclosing statement or expression, if there is one, and
             // bind that.
 
-            if (innerLambda == null)
+            if (innerLambdaOrQuery == null)
             {
-                return GetEnclosingBinder(node, position);
+                return GetEnclosingBinderInternalWithinRoot(node, position);
             }
 
-            // In the third case, we're in a child lambda. Have we already cached a binder for it?
-            // If not, bind the outermost expression containing the lambda and then fill in the map.
+            // In the third case, we're in a child lambda. 
+            BoundNode boundInnerLambdaOrQuery = GetBoundLambdaOrQuery(innerLambdaOrQuery);
+            return GetEnclosingBinderInLambdaOrQuery(position, node, innerLambdaOrQuery, ref boundInnerLambdaOrQuery);
+        }
 
+        private BoundNode GetBoundLambdaOrQuery(CSharpSyntaxNode lambdaOrQuery)
+        {
+            // Have we already cached a bound node for it?
+            // If not, bind the outermost expression containing the lambda and then fill in the map.
             ImmutableArray<BoundNode> nodes;
 
             using (_nodeMapLock.DisposableRead())
             {
-                nodes = GuardedGetBoundNodesFromMap(innerLambda);
+                nodes = GuardedGetBoundNodesFromMap(lambdaOrQuery);
             }
 
-            if (nodes.IsDefaultOrEmpty)
+            if (!nodes.IsDefaultOrEmpty)
             {
-                CSharpSyntaxNode outerLambda = GetOutermostLambdaOrQuery(innerLambda);
-                Debug.Assert(outerLambda != null);
-                Debug.Assert(outerLambda != this.Root);
-                CSharpSyntaxNode nodeToBind = GetBindingRoot(outerLambda);
+                return GetLowerBoundNode(nodes);
+            }
 
-                var statementBinder = GetEnclosingBinder(nodeToBind, position);
-                Binder incrementalBinder = new IncrementalBinder(this, statementBinder);
+            // We probably never tried to bind an enclosing statement
+            // Let's do that
+            Binder lambdaRecoveryBinder;
+            CSharpSyntaxNode bindingRoot = GetBindingRoot(lambdaOrQuery);
+            CSharpSyntaxNode enclosingLambdaOrQuery = GetInnermostLambdaOrQuery(lambdaOrQuery, lambdaOrQuery.SpanStart, allowStarting: false);
+            BoundNode boundEnclosingLambdaOrQuery = null;
+            CSharpSyntaxNode nodeToBind;
 
-                using (_nodeMapLock.DisposableWrite())
+            if (enclosingLambdaOrQuery == null)
+            {
+                nodeToBind = bindingRoot;
+                lambdaRecoveryBinder = GetEnclosingBinderInternalWithinRoot(nodeToBind, nodeToBind.SpanStart);
+            }
+            else
+            {
+                if (enclosingLambdaOrQuery == bindingRoot || !enclosingLambdaOrQuery.Contains(bindingRoot))
                 {
-                    BoundNode boundOuterExpression = this.Bind(incrementalBinder, nodeToBind, _ignoredDiagnostics);
-                    GuardedAddBoundTreeAndGetBoundNodeFromMap(innerLambda, boundOuterExpression);
+                    Debug.Assert(bindingRoot.Contains(enclosingLambdaOrQuery));
+                    nodeToBind = lambdaOrQuery;
+                }
+                else
+                {
+                    nodeToBind = bindingRoot;
                 }
 
-                // If there is a bug in the binder such that we "lose" a sub-expression containing a
-                // lambda, and never put bound state for it into the bound tree, then the bound lambda
-                // that comes back from the map lookup will be null. This can occur in error recovery
-                // situations.  If it is null, we fall back to the outer binder.
+                boundEnclosingLambdaOrQuery = GetBoundLambdaOrQuery(enclosingLambdaOrQuery);
 
                 using (_nodeMapLock.DisposableRead())
                 {
-                    nodes = GuardedGetBoundNodesFromMap(innerLambda);
+                    nodes = GuardedGetBoundNodesFromMap(lambdaOrQuery);
                 }
 
-                if (nodes.IsDefaultOrEmpty)
+                if (!nodes.IsDefaultOrEmpty)
                 {
-                    return GetEnclosingBinder(node, position);
+                    // If everything is working as expected we should end up here because binding the enclosing lambda
+                    // should also take care of binding and caching this lambda.
+                    return GetLowerBoundNode(nodes);
                 }
+
+                lambdaRecoveryBinder = GetEnclosingBinderInLambdaOrQuery(nodeToBind.SpanStart, nodeToBind, enclosingLambdaOrQuery, ref boundEnclosingLambdaOrQuery);
             }
 
-            BoundNode boundInnerLambda = GetLowerBoundNode(innerLambda);
-            Debug.Assert(boundInnerLambda != null);
+            Binder incrementalBinder = new IncrementalBinder(this, lambdaRecoveryBinder);
+
+            using (_nodeMapLock.DisposableWrite())
+            {
+                BoundNode boundOuterExpression = this.Bind(incrementalBinder, nodeToBind, _ignoredDiagnostics);
+                nodes = GuardedAddBoundTreeAndGetBoundNodeFromMap(lambdaOrQuery, boundOuterExpression);
+            }
+
+            if (!nodes.IsDefaultOrEmpty)
+            {
+                return GetLowerBoundNode(nodes);
+            }
+
+            Debug.Assert(lambdaOrQuery != nodeToBind);
+
+            // If there is a bug in the binder such that we "lose" a sub-expression containing a
+            // lambda, and never put bound state for it into the bound tree, then the bound lambda
+            // that comes back from the map lookup will be null. This can occur in error recovery
+            // situations. Let's bind the node directly.
+            if (enclosingLambdaOrQuery == null)
+            {
+                lambdaRecoveryBinder = GetEnclosingBinderInternalWithinRoot(lambdaOrQuery, lambdaOrQuery.SpanStart);
+            }
+            else
+            {
+                lambdaRecoveryBinder = GetEnclosingBinderInLambdaOrQuery(lambdaOrQuery.SpanStart, lambdaOrQuery, enclosingLambdaOrQuery, ref boundEnclosingLambdaOrQuery);
+            }
+
+            incrementalBinder = new IncrementalBinder(this, lambdaRecoveryBinder);
+
+            using (_nodeMapLock.DisposableWrite())
+            {
+                BoundNode boundOuterExpression = this.Bind(incrementalBinder, lambdaOrQuery, _ignoredDiagnostics);
+                nodes = GuardedAddBoundTreeAndGetBoundNodeFromMap(lambdaOrQuery, boundOuterExpression);
+            }
+
+            return GetLowerBoundNode(nodes);
+        }
+
+        private Binder GetEnclosingBinderInLambdaOrQuery(int position, CSharpSyntaxNode node, CSharpSyntaxNode innerLambdaOrQuery, ref BoundNode boundInnerLambdaOrQuery)
+        {
+            Debug.Assert(boundInnerLambdaOrQuery != null);
             Binder result;
-            switch (boundInnerLambda.Kind)
+            switch (boundInnerLambdaOrQuery.Kind)
             {
                 case BoundKind.UnboundLambda:
-                    boundInnerLambda = ((UnboundLambda)boundInnerLambda).BindForErrorRecovery();
+                    boundInnerLambdaOrQuery = ((UnboundLambda)boundInnerLambdaOrQuery).BindForErrorRecovery();
                     goto case BoundKind.Lambda;
                 case BoundKind.Lambda:
                     AssertPositionAdjusted(position);
-                    result = GetLambdaEnclosingBinder(position, node, innerLambda, ((BoundLambda)boundInnerLambda).Binder);
+                    result = GetLambdaEnclosingBinder(position, node, innerLambdaOrQuery, ((BoundLambda)boundInnerLambdaOrQuery).Binder);
                     break;
                 case BoundKind.QueryClause:
-                    result = GetQueryEnclosingBinder(position, node, ((BoundQueryClause)boundInnerLambda));
+                    result = GetQueryEnclosingBinder(position, node, ((BoundQueryClause)boundInnerLambdaOrQuery));
                     break;
                 default:
-                    return GetEnclosingBinder(node, position); // Known to return non-null with BinderFlags.SemanticModel.
+                    return GetEnclosingBinderInternalWithinRoot(node, position); // Known to return non-null with BinderFlags.SemanticModel.
             }
 
             Debug.Assert(result != null);
@@ -1476,11 +1456,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         continue;
                     case BoundKind.UnboundLambda:
                         var unbound = (UnboundLambda)node;
-                        return GetEnclosingBinder(AdjustStartingNodeAccordingToNewRoot(startingNode, unbound.Syntax),
+                        return GetEnclosingBinderInternalWithinRoot(AdjustStartingNodeAccordingToNewRoot(startingNode, unbound.Syntax),
                                                   position, unbound.BindForErrorRecovery().Binder, unbound.Syntax);
                     case BoundKind.Lambda:
                         var lambda = (BoundLambda)node;
-                        return GetEnclosingBinder(AdjustStartingNodeAccordingToNewRoot(startingNode, lambda.Body.Syntax),
+                        return GetEnclosingBinderInternalWithinRoot(AdjustStartingNodeAccordingToNewRoot(startingNode, lambda.Body.Syntax),
                                                   position, lambda.Binder, lambda.Body.Syntax);
                     default:
                         goto done;
@@ -1489,7 +1469,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             while (node != null);
 
 done:
-            return GetEnclosingBinder(AdjustStartingNodeAccordingToNewRoot(startingNode, queryClause.Syntax),
+            return GetEnclosingBinderInternalWithinRoot(AdjustStartingNodeAccordingToNewRoot(startingNode, queryClause.Syntax),
                                       position, queryClause.Binder, queryClause.Syntax);
         }
 
@@ -1567,7 +1547,7 @@ done:
             Debug.Assert(containingLambda.IsAnonymousFunction());
             Debug.Assert(LookupPosition.IsInAnonymousFunctionOrQuery(position, containingLambda));
 
-            return GetEnclosingBinder(startingNode, position, lambdaBinder, containingLambda);
+            return GetEnclosingBinderInternalWithinRoot(startingNode, position, lambdaBinder, containingLambda);
         }
 
         /// <summary>

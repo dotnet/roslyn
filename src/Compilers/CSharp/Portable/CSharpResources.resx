@@ -4951,6 +4951,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_ExpressionTreeContainsOutVariable" xml:space="preserve">
     <value>An expression tree may not contain an out argument variable declaration.</value>
   </data>
+  <data name="ERR_ExpressionTreeContainsDiscard" xml:space="preserve">
+    <value>An expression tree may not contain a discard.</value>
+  </data>
   <data name="ERR_ExpressionTreeContainsIsMatch" xml:space="preserve">
     <value>An expression tree may not contain an 'is' pattern-matching operator.</value>
   </data>

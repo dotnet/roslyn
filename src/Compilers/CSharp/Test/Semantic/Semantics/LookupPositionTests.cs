@@ -701,13 +701,13 @@ class C
             var text = @"
 class C
 `{
-    System.Func<int, int> f1 = `x => x`;
-    System.Func<int, int> f2 = `x => `{ int y; return x; `};
+    System.Func<int, int> f1 = x `=> x`;
+    System.Func<int, int> f2 = x `=> `{ int y; return x; `};
 
     void M()
     `{
-        System.Func<int, int> g1 = `x => x`;
-        System.Func<int, int> g2 = `x => `{ int y; return x; `};
+        System.Func<int, int> g1 = x `=> x`;
+        System.Func<int, int> g2 = x `=> `{ int y; return x; `};
     `}
 `}
 ";
@@ -751,13 +751,13 @@ class C
             var text = @"
 class C
 `{
-    System.Func<int, System.Func<int, int>> f1 = `x => `y => x + y`;
-    System.Func<int, System.Func<int, int>> f2 = `x => `{ int y; `{int z; return `a => x`; `} `};
+    System.Func<int, System.Func<int, int>> f1 = x `=> y `=> x + y`;
+    System.Func<int, System.Func<int, int>> f2 = x `=> `{ int y; `{int z; return a `=> x`; `} `};
 
     void M()
     `{
-        System.Func<int, System.Func<int, int>> g1 = `x => `y => x + y`;
-        System.Func<int, System.Func<int, int>> g2 = `x => `{ int y; `{int z; return `a => x`; `} `};
+        System.Func<int, System.Func<int, int>> g1 = x `=> y `=> x + y`;
+        System.Func<int, System.Func<int, int>> g2 = x `=> `{ int y; `{int z; return a `=> x`; `} `};
     `}
 `}
 ";
@@ -866,9 +866,9 @@ class D : C
 class C
 `{
     public C(System.Func<int, int> x) `{ `}
-    public C() : this(`a => a`) 
+    public C() : this(a `=> a`) 
     {
-        M(`b => b`); 
+        M(b `=> b`); 
     }
 
     private void M(System.Func<int, int> f) `{ `}
@@ -910,7 +910,7 @@ class C
     private void M(System.Func<int, int> f) `{ `}
     public C()
     {
-        M(`b =>
+        M(b `=>
 ";
 
             var expectedNames = MakeExpectedSymbols(
@@ -945,7 +945,7 @@ class C
     private void M(System.Func<int, int> f) `{ `}
     public C()
     {
-        M(`b => `);
+        M(b `=> `);
     }
 `}
 ";

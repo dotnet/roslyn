@@ -286,11 +286,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Called when a local represents an out variable declaration. Its syntax is of type DeclarationExpressionSyntax.
         /// </summary>
-        private void CheckOutDeclaration(BoundLocal local, Symbol method)
+        private void CheckOutDeclaration(BoundLocal local)
         {
             if (_inExpressionLambda)
             {
                 Error(ErrorCode.ERR_ExpressionTreeContainsOutVariable, local);
+            }
+        }
+
+        private void CheckDiscard(BoundDiscardExpression argument)
+        {
+            if (_inExpressionLambda)
+            {
+                Error(ErrorCode.ERR_ExpressionTreeContainsDiscard, argument);
             }
         }
 
