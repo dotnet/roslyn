@@ -482,9 +482,6 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                         {
                             through = generator.CastExpression(interfaceBeingImplemented,
                                 through.WithAdditionalAnnotations(Simplifier.Annotation));
-
-                            var facts = this.Document.GetLanguageService<ISyntaxFactsService>();
-                            through = facts.Parenthesize(through);
                         }
                         else if (!ThroughMember.IsStatic &&
                             ThroughMember is IPropertySymbol throughMemberProperty &&
@@ -504,7 +501,6 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                                 generator.IdentifierName(explicitlyImplementedProperty.Name));
 
                             through = through.WithAdditionalAnnotations(Simplifier.Annotation);
-
                         }
                     }
                 }
