@@ -142,6 +142,7 @@ namespace BuildBoss
             var declaredList = _projectUtil.GetDeclaredProjectReferences();
             allGood &= CheckProjectReferencesComplete(textWriter, declaredList);
             allGood &= CheckUnitTestReferenceRestriction(textWriter, declaredList);
+            allGood &= CheckPortableUnitTestReferencesTestUtilitiesDesktop(textWriter, declaredList);
             allGood &= CheckTransitiveReferences(textWriter, declaredList);
 
             return allGood;
@@ -221,6 +222,52 @@ namespace BuildBoss
             }
 
             return allGood;
+        }
+
+        /// <summary>
+        /// All portable unit test projects which reference TestUtilities must also reference
+        /// TestUtilities.Desktop. Although portable unit tests shouldn't normally reference
+        /// desktop projects, the test utilities project reflection loads the desktop assembly
+        /// whenever the tests are running on the desktop framework. Therefore, portable test
+        /// projects must have a reference, marked ReferenceOutputAssembly=false, to TestUtilities.Desktop.
+        /// </summary>
+        private bool CheckPortableUnitTestReferencesTestUtilitiesDesktop(TextWriter textWriter, IEnumerable<ProjectKey> declaredReferences)
+        {
+            var data = _projectUtil.TryGetRoslynProjectData();
+            if (!data.HasValue || !data.Value.IsPortableUnitTest)
+            {
+                return true;
+            }
+
+            const string TestUtilitiesDesktopFileName = "TestUtilities.Desktop.csproj";
+            const string TestUtilitiesFileName = "TestUtilities.csproj";
+
+            var refsTestUtilities = false;
+            foreach (var key in declaredReferences)
+            {
+                if (!_solutionMap.TryGetValue(key, out var projectData))
+                {
+                    continue;
+                }
+
+                if (projectData.FileName == TestUtilitiesDesktopFileName)
+                {
+                    return true;
+                }
+
+                if (projectData.FileName == TestUtilitiesFileName)
+                {
+                    refsTestUtilities = true;
+                }
+            }
+
+            if (!refsTestUtilities)
+            {
+                return true;
+            }
+
+            textWriter.WriteLine($"Missing reference to {TestUtilitiesDesktopFileName}");
+            return false;
         }
 
         /// <summary>

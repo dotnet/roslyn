@@ -46,11 +46,6 @@
       <Project>{3e7dea65-317b-4f43-a25d-62f18d96cfd7}</Project>
       <Name>BasicScripting</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\..\Test\Utilities\Desktop\TestUtilities.Desktop.csproj">
-      <Project>{76C6F005-C89D-4348-BB4A-391898DBEB52}</Project>
-      <Name>TestUtilities.Desktop</Name>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ObjectFormatterTestBase.cs" />

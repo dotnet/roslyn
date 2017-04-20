@@ -66,6 +66,9 @@ namespace BuildBoss
                 kind == RoslynProjectKind.DeploymentTest ||
                 IsAnyUnitTest(kind);
         }
+
+        internal static bool IsPortableUnitTest(RoslynProjectKind kind)
+            => kind == RoslynProjectKind.UnitTestPortable;
     }
 
     internal struct RoslynProjectData
@@ -74,6 +77,7 @@ namespace BuildBoss
         internal RoslynProjectKind? DeclaredKind { get; }
         internal string DeclaredValue { get; }
 
+        internal bool IsPortableUnitTest => RoslynProjectKindUtil.IsPortableUnitTest(EffectiveKind);
         internal bool IsAnyUnitTest => RoslynProjectKindUtil.IsAnyUnitTest(EffectiveKind);
         internal bool IsDeploymentProject => RoslynProjectKindUtil.IsDeploymentProject(EffectiveKind);
 
