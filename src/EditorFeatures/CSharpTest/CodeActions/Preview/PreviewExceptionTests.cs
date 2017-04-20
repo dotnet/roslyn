@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void TestExceptionInDisplayText()
         {
             using (var workspace = CreateWorkspaceFromFile("class D {}", new TestParameters()))
