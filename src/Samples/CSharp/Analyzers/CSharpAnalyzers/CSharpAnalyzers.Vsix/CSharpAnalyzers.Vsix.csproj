@@ -10,7 +10,8 @@
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>CSharpAnalyzers</RootNamespace>
-    <AssemblyName>CSharpAnalyzers</AssemblyName>
+    <AssemblyName>CSharpAnalyzers.Vsix</AssemblyName>
+    <RuntimeIdentifiers>win7</RuntimeIdentifiers>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <ImportVSSDKTargets>True</ImportVSSDKTargets>
     <GeneratePkgDefFile>false</GeneratePkgDefFile>
