@@ -11,6 +11,7 @@
     <RootNamespace>Microsoft.CodeAnalysis.Editor.UnitTests</RootNamespace>
     <AssemblyName>Roslyn.Services.Editor.UnitTests</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <RuntimeIdentifiers>win7</RuntimeIdentifiers>
     <TargetFrameworkProfile />
     <RoslynProjectType>UnitTest</RoslynProjectType>
   </PropertyGroup>
@@ -158,6 +159,42 @@
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="WindowsBase" />
+    <PackageReference Include="BasicUndo">
+      <Version>$(BasicUndoVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Composition">
+      <Version>$(MicrosoftVisualStudioCompositionVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Platform.VSEditor">
+      <Version>$(MicrosoftVisualStudioPlatformVSEditorVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Platform.VSEditor.Interop">
+      <Version>$(MicrosoftVisualStudioPlatformVSEditorInteropVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.InteractiveWindow">
+      <Version>$(MicrosoftVisualStudioInteractiveWindowVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Language.Intellisense">
+      <Version>$(MicrosoftVisualStudioLanguageIntellisenseVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Text.Internal">
+      <Version>$(MicrosoftVisualStudioTextInternalVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Language.CallHierarchy">
+      <Version>$(MicrosoftVisualStudioLanguageCallHierarchyVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Language.NavigateTo.Interfaces">
+      <Version>$(MicrosoftVisualStudioLanguageNavigateToInterfacesVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Language.StandardClassification">
+      <Version>$(MicrosoftVisualStudioLanguageStandardClassificationVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Text.UI">
+      <Version>$(MicrosoftVisualStudioTextUIVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Text.UI.Wpf">
+      <Version>$(MicrosoftVisualStudioTextUIWpfVersion)</Version>
+    </PackageReference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Attributes\AttributeTests.cs" />
@@ -247,7 +284,6 @@
     <Compile Include="Workspaces\WorkspaceTests.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="project.json" />
     <None Include="PerfTests\ResetRoslynOptions.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <SubType>Designer</SubType>
@@ -256,6 +292,5 @@
   <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
   </ItemGroup>
-  <ItemGroup />
   <Import Project="..\..\..\build\Targets\Imports.targets" />
 </Project>
