@@ -271,14 +271,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected virtual void ReportUnassignedOutParameter(ParameterSymbol parameter, SyntaxNode node, Location location)
         {
-            if (!_requireOutParamsAssigned && topLevelMethod == currentMethodOrLambda) return;
+            if (!_requireOutParamsAssigned && topLevelMethod == currentMethodOrLambda &&
+                node == null && location == null)
+            {
+                return;
+            }
+
             if (Diagnostics != null && this.State.Reachable)
             {
                 if (location == null)
                 {
                     location = new SourceLocation(node);
                 }
-
+                
                 bool reported = false;
                 if (parameter.IsThis)
                 {
