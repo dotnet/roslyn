@@ -1206,7 +1206,7 @@ namespace Microsoft.CodeAnalysis
 
             switch (attributeInfo.SignatureIndex)
             {
-                case 0: // ExperimentalAttribute(String) 
+                case 0: // ExperimentalAttribute() 
                     obsoleteData = ObsoleteAttributeData.Experimental;
                     return true;
 
