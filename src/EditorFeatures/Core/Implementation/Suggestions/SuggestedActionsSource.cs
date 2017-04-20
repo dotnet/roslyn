@@ -42,6 +42,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             private Workspace _workspace;
             private int _lastSolutionVersionReported;
 
+            public event EventHandler<EventArgs> SuggestedActionsChanged;
+
             public SuggestedActionsSource(SuggestedActionsSourceProvider owner, ITextView textView, ITextBuffer textBuffer)
             {
                 _owner = owner;
@@ -64,7 +66,37 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 _registration.WorkspaceChanged += OnWorkspaceChanged;
             }
 
-            public event EventHandler<EventArgs> SuggestedActionsChanged;
+            public void Dispose()
+            {
+                if (_owner != null)
+                {
+                    var updateSource = (IDiagnosticUpdateSource)_owner._diagnosticService;
+                    updateSource.DiagnosticsUpdated -= OnDiagnosticsUpdated;
+                }
+
+                if (_workspace != null)
+                {
+                    _workspace.DocumentActiveContextChanged -= OnActiveContextChanged;
+                }
+
+                if (_registration != null)
+                {
+                    _registration.WorkspaceChanged -= OnWorkspaceChanged;
+                }
+
+                if (_textView != null)
+                {
+                    _textView.Closed -= OnTextViewClosed;
+                }
+
+                _owner = null;
+                _workspace = null;
+                _registration = null;
+                _textView = null;
+                _subjectBuffer = null;
+            }
+
+            private bool IsDisposed => _subjectBuffer == null;
 
             public bool TryGetTelemetryId(out Guid telemetryId)
             {
@@ -110,6 +142,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 CancellationToken cancellationToken)
             {
                 AssertIsForeground();
+
+                if (IsDisposed)
+                {
+                    return null;
+                }
 
                 using (Logger.LogBlock(FunctionId.SuggestedActions_GetSuggestedActions, cancellationToken))
                 {
@@ -529,7 +566,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     requestedActionCategories.Contains(PredefinedSuggestedActionCategoryNames.Refactoring))
                 {
                     // Get the selection while on the UI thread.
-                    var selection = TryGetCodeRefactoringSelection(_subjectBuffer, _textView, range);
+                    var selection = TryGetCodeRefactoringSelection(range);
                     if (!selection.HasValue)
                     {
                         // this is here to fail test and see why it is failed.
@@ -590,36 +627,38 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
             public async Task<bool> HasSuggestedActionsAsync(ISuggestedActionCategorySet requestedActionCategories, SnapshotSpan range, CancellationToken cancellationToken)
             {
-                // Explicitly hold onto below fields in locals and use these locals throughout this code path to avoid crashes
-                // if these fields happen to be cleared by Dispose() below. This is required since this code path involves
-                // code that can run asynchronously from background thread.
-                var view = _textView;
-                var buffer = _subjectBuffer;
                 var provider = _owner;
 
-                if (view == null || buffer == null || provider == null)
+                if (IsDisposed)
                 {
+                    // We've already been disposed.  No point in continuing.
                     return false;
                 }
 
-                using (var asyncToken = provider.OperationListener.BeginAsyncOperation("HasSuggestedActionsAsync"))
+                using (var asyncToken = _owner.OperationListener.BeginAsyncOperation("HasSuggestedActionsAsync"))
                 {
                     // Acquire the user's selection up front, before we do any async work, so that we can
                     // directly grab it when we're on the UI thread.  That way we don't have any reentrancy
                     // blocking concerns if VS wants to block on this call (for example, if the user 
                     // explicitly invokes the 'show smart tag' command).
+                    //
+                    // This work must happen on the UI thread as it needs to access the _textView's mutable
+                    // state.
                     TextSpan? selection = null;
                     if (IsForeground())
                     {
-                        // This operation needs to happen on UI thread because it needs to access textView.Selection.
-                        selection = TryGetCodeRefactoringSelection(buffer, view, range);
+                        selection = TryGetCodeRefactoringSelection(range);
                     }
                     else
                     {
                         await InvokeBelowInputPriority(() =>
                         {
-                            // This operation needs to happen on UI thread because it needs to access textView.Selection.
-                            selection = TryGetCodeRefactoringSelection(buffer, view, range);
+                            if (IsDisposed)
+                            {
+                                return;
+                            }
+
+                            selection = TryGetCodeRefactoringSelection(range);
                         }).ConfigureAwait(false);
                     }
 
@@ -700,11 +739,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 return false;
             }
 
-            private static TextSpan? TryGetCodeRefactoringSelection(ITextBuffer buffer, ITextView view, SnapshotSpan range)
+            private TextSpan? TryGetCodeRefactoringSelection(SnapshotSpan range)
             {
-                var selectedSpans = view.Selection.SelectedSpans
-                    .SelectMany(ss => view.BufferGraph.MapDownToBuffer(ss, SpanTrackingMode.EdgeExclusive, buffer))
-                    .Where(ss => !view.IsReadOnlyOnSurfaceBuffer(ss))
+                this.AssertIsForeground();
+                Debug.Assert(!this.IsDisposed);
+
+                var selectedSpans = _textView.Selection.SelectedSpans
+                    .SelectMany(ss => _textView.BufferGraph.MapDownToBuffer(ss, SpanTrackingMode.EdgeExclusive, _subjectBuffer))
+                    .Where(ss => !_textView.IsReadOnlyOnSurfaceBuffer(ss))
                     .ToList();
 
                 // We only support refactorings when there is a single selection in the document.
@@ -832,39 +874,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 this.SuggestedActionsChanged?.Invoke(this, EventArgs.Empty);
 
                 Volatile.Write(ref _lastSolutionVersionReported, solutionVersion);
-            }
-
-            public void Dispose()
-            {
-                if (_owner != null)
-                {
-                    var updateSource = (IDiagnosticUpdateSource)_owner._diagnosticService;
-                    updateSource.DiagnosticsUpdated -= OnDiagnosticsUpdated;
-                    _owner = null;
-                }
-
-                if (_workspace != null)
-                {
-                    _workspace.DocumentActiveContextChanged -= OnActiveContextChanged;
-                    _workspace = null;
-                }
-
-                if (_registration != null)
-                {
-                    _registration.WorkspaceChanged -= OnWorkspaceChanged;
-                    _registration = null;
-                }
-
-                if (_textView != null)
-                {
-                    _textView.Closed -= OnTextViewClosed;
-                    _textView = null;
-                }
-
-                if (_subjectBuffer != null)
-                {
-                    _subjectBuffer = null;
-                }
             }
         }
     }
