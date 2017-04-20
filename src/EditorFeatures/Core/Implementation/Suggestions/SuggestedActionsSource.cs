@@ -604,6 +604,25 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                 using (var asyncToken = provider.OperationListener.BeginAsyncOperation("HasSuggestedActionsAsync"))
                 {
+                    // Acquire the user's selection up front, before we do any async work, so that we can
+                    // directly grab it when we're on the UI thread.  That way we don't have any reentrancy
+                    // blocking concerns if VS wants to block on this call (for example, if the user 
+                    // explicitly invokes the 'show smart tag' command).
+                    TextSpan? selection = null;
+                    if (IsForeground())
+                    {
+                        // This operation needs to happen on UI thread because it needs to access textView.Selection.
+                        selection = TryGetCodeRefactoringSelection(buffer, view, range);
+                    }
+                    else
+                    {
+                        await InvokeBelowInputPriority(() =>
+                        {
+                            // This operation needs to happen on UI thread because it needs to access textView.Selection.
+                            selection = TryGetCodeRefactoringSelection(buffer, view, range);
+                        }).ConfigureAwait(false);
+                    }
+
                     var document = await GetMatchingDocumentAsync(range.Snapshot, cancellationToken).ConfigureAwait(false);
                     if (document == null)
                     {
@@ -614,7 +633,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                     return
                         await HasFixesAsync(provider, document, range, cancellationToken).ConfigureAwait(false) ||
-                        await HasRefactoringsAsync(provider, document, buffer, view, range, cancellationToken).ConfigureAwait(false);
+                        await HasRefactoringsAsync(provider, document, selection, cancellationToken).ConfigureAwait(false);
                 }
             }
 
@@ -655,11 +674,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             private async Task<bool> HasRefactoringsAsync(
                 SuggestedActionsSourceProvider provider,
                 Document document,
-                ITextBuffer buffer,
-                ITextView view,
-                SnapshotSpan range,
+                TextSpan? selection,
                 CancellationToken cancellationToken)
             {
+                if (!selection.HasValue)
+                {
+                    // this is here to fail test and see why it is failed.
+                    Trace.WriteLine("given range is not current");
+                    return false;
+                }
+
                 var workspace = document.Project.Solution.Workspace;
                 var supportsFeatureService = workspace.Services.GetService<IDocumentSupportsFeatureService>();
 
@@ -667,28 +691,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     provider._codeRefactoringService != null &&
                     supportsFeatureService.SupportsRefactorings(document))
                 {
-                    TextSpan? selection = null;
-                    if (IsForeground())
-                    {
-                        // This operation needs to happen on UI thread because it needs to access textView.Selection.
-                        selection = TryGetCodeRefactoringSelection(buffer, view, range);
-                    }
-                    else
-                    {
-                        await InvokeBelowInputPriority(() =>
-                        {
-                                // This operation needs to happen on UI thread because it needs to access textView.Selection.
-                                selection = TryGetCodeRefactoringSelection(buffer, view, range);
-                        }).ConfigureAwait(false);
-                    }
-
-                    if (!selection.HasValue)
-                    {
-                        // this is here to fail test and see why it is failed.
-                        Trace.WriteLine("given range is not current");
-                        return false;
-                    }
-
                     return await Task.Run(
                         () => provider._codeRefactoringService.HasRefactoringsAsync(
                             document, selection.Value, cancellationToken),
