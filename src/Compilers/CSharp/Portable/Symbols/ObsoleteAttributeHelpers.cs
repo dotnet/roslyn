@@ -39,37 +39,42 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// This method checks to see if the given symbol is Obsolete or if any symbol in the parent hierarchy is Obsolete.
         /// </summary>
         /// <returns>
-        /// True if some symbol in the parent hierarchy is known to be Obsolete. Unknown if any
-        /// symbol's Obsoleteness is Unknown. False, if we are certain that no symbol in the parent
-        /// hierarchy is Obsolete.
+        /// Uninitialized if attributes have not been cracked yet.
         /// </returns>
-        internal static ThreeState GetObsoleteContextState(Symbol symbol, bool forceComplete = false)
+        internal static ObsoleteAttributeKind GetObsoleteContextKind(this Symbol symbol, bool forceComplete = false)
         {
-            if ((object)symbol == null)
-                return ThreeState.False;
-
-            // For Property or Event accessors, check the associated property or event instead.
-            if (symbol.IsAccessor())
+            while ((object)symbol != null)
             {
-                symbol = ((MethodSymbol)symbol).AssociatedSymbol;
-            }
-            // If this is the backing field of an event, look at the event instead.
-            else if (symbol.Kind == SymbolKind.Field && (object)((FieldSymbol)symbol).AssociatedSymbol != null)
-            {
-                symbol = ((FieldSymbol)symbol).AssociatedSymbol;
+                // For property or event accessors, check the associated property or event instead.
+                if (symbol.IsAccessor())
+                {
+                    symbol = ((MethodSymbol)symbol).AssociatedSymbol;
+                }
+                else if (symbol.Kind == SymbolKind.Field)
+                {
+                    // If this is the backing field of an event, look at the event instead.
+                    var associatedSymbol = ((FieldSymbol)symbol).AssociatedSymbol;
+                    if ((object)associatedSymbol != null)
+                    {
+                        symbol = associatedSymbol;
+                    }
+                }
+
+                if (forceComplete)
+                {
+                    symbol.ForceCompleteObsoleteAttribute();
+                }
+
+                var kind = symbol.ObsoleteKind;
+                if (kind != ObsoleteAttributeKind.None)
+                {
+                    return kind;
+                }
+
+                symbol = symbol.ContainingSymbol;
             }
 
-            if (forceComplete)
-            {
-                symbol.ForceCompleteObsoleteAttribute();
-            }
-
-            if (symbol.ObsoleteState != ThreeState.False)
-            {
-                return symbol.ObsoleteState;
-            }
-
-            return GetObsoleteContextState(symbol.ContainingSymbol, forceComplete);
+            return ObsoleteAttributeKind.None;
         }
 
         /// <summary>
@@ -79,10 +84,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal static DiagnosticInfo CreateObsoleteDiagnostic(Symbol symbol, BinderFlags location)
         {
             var data = symbol.ObsoleteAttributeData;
+            Debug.Assert(data != null);
 
             if (data == null)
             {
-                // ObsoleteAttribute had errors.
                 return null;
             }
 

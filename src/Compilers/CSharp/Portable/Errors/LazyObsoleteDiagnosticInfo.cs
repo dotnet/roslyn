@@ -33,10 +33,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (_symbol.ObsoleteState == ThreeState.True)
                 {
-                    var inObsoleteContext = ObsoleteAttributeHelpers.GetObsoleteContextState(_containingSymbol, forceComplete: true);
-                    Debug.Assert(inObsoleteContext != ThreeState.Unknown);
+                    var kind = _containingSymbol.GetObsoleteContextKind(forceComplete: true);
+                    Debug.Assert(kind != ObsoleteAttributeKind.Uninitialized);
 
-                    if (inObsoleteContext == ThreeState.False)
+                    if (kind == ObsoleteAttributeKind.None)
                     {
                         DiagnosticInfo info = ObsoleteAttributeHelpers.CreateObsoleteDiagnostic(_symbol, _binderFlags);
                         if (info != null)

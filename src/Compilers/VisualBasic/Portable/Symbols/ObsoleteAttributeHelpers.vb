@@ -1,8 +1,8 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Diagnostics
-Imports System.Threading
 Imports System.Reflection.Metadata
+Imports System.Threading
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -32,40 +32,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' This method checks to see if the given symbol is Obsolete or if any symbol in the parent hierarchy is Obsolete.
         ''' </summary>
         ''' <returns>
-        ''' True if some symbol in the parent hierarchy is known to be Obsolete. Unknown if any
-        ''' symbol's Obsoleteness is Unknown. False, if we are certain that no symbol in the parent
-        ''' hierarchy is Obsolete.
+        ''' Uninitialized if attributes have not been cracked yet.
         ''' </returns>
-        Friend Shared Function GetObsoleteContextState(symbol As Symbol, Optional forceComplete As Boolean = False) As ThreeState
-            If symbol Is Nothing Then
-                Return ThreeState.False
-            End If
+        Friend Shared Function GetObsoleteContextKind(symbol As Symbol, Optional forceComplete As Boolean = False) As ObsoleteAttributeKind
+            While symbol IsNot Nothing
+                ' For property or event accessors, check the associated property or event instead.
+                If symbol.IsAccessor() Then
+                    symbol = DirectCast(symbol, MethodSymbol).AssociatedSymbol
+                End If
 
-            If forceComplete Then
-                symbol.ForceCompleteObsoleteAttribute()
-            End If
+                If forceComplete Then
+                    symbol.ForceCompleteObsoleteAttribute()
+                End If
 
-            Dim associatedPropertyOrEvent = If(symbol.IsAccessor(), DirectCast(symbol, MethodSymbol).AssociatedSymbol, Nothing)
+                Dim kind = symbol.ObsoleteKind
+                If kind <> ObsoleteAttributeKind.None Then
+                    Return kind
+                End If
 
-            ' If this is an event accessor, then consider the event itself for context since
-            ' event accessors cannot be marked obsolete.
-            If associatedPropertyOrEvent IsNot Nothing AndAlso associatedPropertyOrEvent.Kind = SymbolKind.Event Then
-                symbol = DirectCast(symbol, MethodSymbol).AssociatedSymbol
-            End If
+                symbol = symbol.ContainingSymbol
+            End While
 
-            If symbol.ObsoleteState <> ThreeState.False Then
-                Return symbol.ObsoleteState
-            End If
-
-            ' If this is a property accessor then check the property for obsoleteness as well so that we suppress
-            ' obsolete diagnostics anywhere inside a property.
-            If associatedPropertyOrEvent IsNot Nothing AndAlso associatedPropertyOrEvent.Kind = SymbolKind.Property Then
-                Return GetObsoleteContextState(associatedPropertyOrEvent, forceComplete)
-            Else
-                Return GetObsoleteContextState(symbol.ContainingSymbol, forceComplete)
-            End If
+            Return ObsoleteAttributeKind.None
         End Function
-
 
         ''' <summary>
         ''' Create a diagnostic for the given symbol. This could be an error or a warning based on
@@ -73,9 +62,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Friend Shared Function CreateObsoleteDiagnostic(symbol As Symbol) As DiagnosticInfo
             Dim data = symbol.ObsoleteAttributeData
+            Debug.Assert(data IsNot Nothing)
 
             If data Is Nothing Then
-                ' ObsoleteAttribute had errors.
                 Return Nothing
             End If
 

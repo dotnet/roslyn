@@ -26,10 +26,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 _symbol.ForceCompleteObsoleteAttribute()
 
                 If _symbol.ObsoleteState = ThreeState.True Then
-                    Dim inObsoleteContext = ObsoleteAttributeHelpers.GetObsoleteContextState(_containingSymbol, forceComplete:=True)
-                    Debug.Assert(inObsoleteContext <> ThreeState.Unknown)
+                    Dim kind = ObsoleteAttributeHelpers.GetObsoleteContextKind(_containingSymbol, forceComplete:=True)
+                    Debug.Assert(kind <> ObsoleteAttributeKind.Uninitialized)
 
-                    If inObsoleteContext = ThreeState.False Then
+                    If kind = ObsoleteAttributeKind.None Then
                         Dim info As DiagnosticInfo = ObsoleteAttributeHelpers.CreateObsoleteDiagnostic(_symbol)
                         If info IsNot Nothing Then
                             Interlocked.CompareExchange(Me._lazyActualObsoleteDiagnostic, info, Nothing)

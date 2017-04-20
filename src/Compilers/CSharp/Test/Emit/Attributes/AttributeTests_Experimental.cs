@@ -167,8 +167,6 @@ class Program
                 Diagnostic(ErrorCode.WRN_Experimental, "((I)o).F()").WithArguments("I.F()").WithLocation(11, 9));
         }
 
-        // [Obsolete] and [Deprecated] diagnostics are not
-        // suppressed inside [Experimental] type.
         [Fact]
         public void TestExperimentalTypeWithDeprecatedAndObsoleteMembers()
         {
@@ -227,8 +225,62 @@ class C
                 Diagnostic(ErrorCode.WRN_Experimental, "A.B").WithArguments("A.B").WithLocation(27, 14));
         }
 
+        // Diagnostics for [Obsolete] members
+        // are not suppressed in [Experimental] types.
+        [Fact]
+        public void TestObsoleteMembersInExperimentalType()
+        {
+            var source =
+@"using System;
+using Windows.Foundation.Metadata;
+class A
+{
+    internal void F0() { }
+    [Deprecated("""", DeprecationType.Deprecate, 0)]
+    internal void F1() { }
+    [Deprecated("""", DeprecationType.Remove, 0)]
+    internal void F2() { }
+    [Obsolete("""", false)]
+    internal void F3() { }
+    [Obsolete("""", true)]
+    internal void F4() { }
+    [Experimental]
+    internal class B { }
+}
+[Experimental]
+class C
+{
+    static void F(A a)
+    {
+        a.F0();
+        a.F1();
+        a.F2();
+        a.F3();
+        a.F4();
+        (new A.B()).ToString();
+    }
+}";
+            var comp = CreateCompilationWithMscorlibAndSystemCore(new[] { Parse(DeprecatedAttributeSource), Parse(ExperimentalAttributeSource), Parse(source) });
+            comp.VerifyDiagnostics(
+                // (23,9): warning CS0618: 'A.F1()' is obsolete: ''
+                //         a.F1();
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "a.F1()").WithArguments("A.F1()", "").WithLocation(23, 9),
+                // (24,9): error CS0619: 'A.F2()' is obsolete: ''
+                //         a.F2();
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "a.F2()").WithArguments("A.F2()", "").WithLocation(24, 9),
+                // (25,9): warning CS0618: 'A.F3()' is obsolete: ''
+                //         a.F3();
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "a.F3()").WithArguments("A.F3()", "").WithLocation(25, 9),
+                // (26,9): error CS0619: 'A.F4()' is obsolete: ''
+                //         a.F4();
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "a.F4()").WithArguments("A.F4()", "").WithLocation(26, 9),
+                // (27,14): warning CS8305: 'A.B' is for evaluation purposes only and is subject to change or removal in future updates.
+                //         (new A.B()).ToString();
+                Diagnostic(ErrorCode.WRN_Experimental, "A.B").WithArguments("A.B").WithLocation(27, 14));
+        }
+
         // Diagnostics for [Experimental] types
-        // are suppressed in [Obsolete] members.
+        // are not suppressed in [Obsolete] members.
         [Fact]
         public void TestExperimentalTypeInObsoleteMember()
         {

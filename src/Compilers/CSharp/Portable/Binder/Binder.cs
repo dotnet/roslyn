@@ -559,52 +559,41 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(diagnostics != null);
 
-            if (symbol.ObsoleteState == ThreeState.False)
+            var kind = symbol.ObsoleteKind;
+            switch (kind)
             {
-                return ThreeState.False;
+                case ObsoleteAttributeKind.None:
+                    return ThreeState.False;
+                case ObsoleteAttributeKind.Uninitialized:
+                    // If we haven't cracked attributes on the symbol at all or we haven't
+                    // cracked attribute arguments enough to be able to report diagnostics for
+                    // ObsoleteAttribute, store the symbol so that we can report diagnostics at a 
+                    // later stage.
+                    diagnostics.Add(new LazyObsoleteDiagnosticInfo(symbol, containingMember, location), node.GetLocation());
+                    return ThreeState.Unknown;
             }
 
-            var data = symbol.ObsoleteAttributeData;
-            if (data == null)
+            kind = containingMember.GetObsoleteContextKind();
+            switch (kind)
             {
-                // Obsolete attribute has errors.
-                return ThreeState.False;
-            }
-
-            // If we haven't cracked attributes on the symbol at all or we haven't
-            // cracked attribute arguments enough to be able to report diagnostics for
-            // ObsoleteAttribute, store the symbol so that we can report diagnostics at a 
-            // later stage.
-            if (symbol.ObsoleteState == ThreeState.Unknown)
-            {
-                diagnostics.Add(new LazyObsoleteDiagnosticInfo(symbol, containingMember, location), node.GetLocation());
-                return ThreeState.Unknown;
-            }
-
-            // After this point, always return True.
-
-            var inObsoleteContext = ObsoleteAttributeHelpers.GetObsoleteContextState(containingMember);
-
-            // If we are in a context that is already obsolete, there is no point reporting
-            // more obsolete diagnostics.
-            if (inObsoleteContext == ThreeState.True)
-            {
-                return ThreeState.True;
-            }
-            // If the context is unknown, then store the symbol so that we can do this check at a
-            // later stage
-            else if (inObsoleteContext == ThreeState.Unknown)
-            {
-                diagnostics.Add(new LazyObsoleteDiagnosticInfo(symbol, containingMember, location), node.GetLocation());
-                return ThreeState.True;
-            }
-
-            // We have all the information we need to report diagnostics right now. So do it.
-            var diagInfo = ObsoleteAttributeHelpers.CreateObsoleteDiagnostic(symbol, location);
-            if (diagInfo != null)
-            {
-                diagnostics.Add(diagInfo, node.GetLocation());
-                return ThreeState.True;
+                case ObsoleteAttributeKind.None:
+                case ObsoleteAttributeKind.Experimental:
+                    // We have all the information we need to report diagnostics right now. So do it.
+                    var diagInfo = ObsoleteAttributeHelpers.CreateObsoleteDiagnostic(symbol, location);
+                    if (diagInfo != null)
+                    {
+                        diagnostics.Add(diagInfo, node.GetLocation());
+                    }
+                    break;
+                case ObsoleteAttributeKind.Uninitialized:
+                    // If the context is unknown, then store the symbol so that we can do this check at a
+                    // later stage
+                    diagnostics.Add(new LazyObsoleteDiagnosticInfo(symbol, containingMember, location), node.GetLocation());
+                    break;
+                default:
+                    // If we are in a context that is already obsolete, there is no point reporting
+                    // more obsolete diagnostics.
+                    break;
             }
 
             return ThreeState.True;

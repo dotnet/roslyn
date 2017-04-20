@@ -210,8 +210,6 @@ End Class
 </compilation>
         End Sub
 
-        ' <Obsolete> and <Deprecated> diagnostics are not
-        ' suppressed inside <Experimental> type.
         <Fact()>
         Public Sub TestExperimentalTypeWithDeprecatedAndObsoleteMembers()
             Dim comp0 = CreateCompilationWithMscorlib(DeprecatedAndExperimentalAttributeSource)
@@ -282,8 +280,74 @@ BC42380: 'A.B' is for evaluation purposes only and is subject to change or remov
      </errors>)
         End Sub
 
+        ' Diagnostics for <Obsolete> members
+        ' are not suppressed in <Experimental> types.
+        <Fact()>
+        Public Sub TestObsoleteMembersInExperimentalType()
+            Dim comp0 = CreateCompilationWithMscorlib(DeprecatedAndExperimentalAttributeSource)
+            comp0.AssertNoDiagnostics()
+            Dim ref0 = comp0.EmitToImageReference()
+
+            Dim source =
+<compilation>
+    <file><![CDATA[
+Imports System
+Imports Windows.Foundation.Metadata
+Class A
+    Friend Sub F0()
+    End Sub
+    <Deprecated("", DeprecationType.Deprecate, 0)>
+    Friend Sub F1()
+    End Sub
+    <Deprecated("", DeprecationType.Remove, 0)>
+    Friend Sub F2()
+    End Sub
+    <Obsolete("", False)>
+    Friend Sub F3()
+    End Sub
+    <Obsolete("", True)>
+    Friend Sub F4()
+    End Sub
+    <Experimental>
+    Friend Class B
+    End Class
+End Class
+<Experimental>
+Class C
+    Shared Sub F(a As A)
+        a.F0()
+        a.F1()
+        a.F2()
+        a.F3()
+        a.F4()
+        Dim b = New A.B()
+    End Sub
+End Class
+]]>
+    </file>
+</compilation>
+            Dim comp = CreateCompilationWithMscorlib(source, references:={ref0})
+            comp.AssertTheseDiagnostics(<errors>
+BC40008: 'Friend Sub F1()' is obsolete.
+        a.F1()
+        ~~~~~~
+BC31075: 'Friend Sub F2()' is obsolete.
+        a.F2()
+        ~~~~~~
+BC40008: 'Friend Sub F3()' is obsolete.
+        a.F3()
+        ~~~~~~
+BC31075: 'Friend Sub F4()' is obsolete.
+        a.F4()
+        ~~~~~~
+BC42380: 'A.B' is for evaluation purposes only and is subject to change or removal in future updates.
+        Dim b = New A.B()
+                    ~~~
+     </errors>)
+        End Sub
+
         ' Diagnostics for <Experimental> types
-        ' are suppressed in [Obsolete] members.
+        ' are not suppressed in <Obsolete> members.
         <Fact()>
         Public Sub TestExperimentalTypeInObsoleteMember()
             Dim comp0 = CreateCompilationWithMscorlib(DeprecatedAndExperimentalAttributeSource)
