@@ -91,6 +91,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 return syntaxToken;
             }
 
+            if (SyntaxFacts.GetContextualKeywordKind(syntaxToken.ValueText) == SyntaxKind.UnderscoreToken)
+            {
+                return syntaxToken;
+            }
+
             var parent = parentOfToken.Parent;
             if (parentOfToken is SimpleNameSyntax && parent.Kind() == SyntaxKind.XmlNameAttribute)
             {

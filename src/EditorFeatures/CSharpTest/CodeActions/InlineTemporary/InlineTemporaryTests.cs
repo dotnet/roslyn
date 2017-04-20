@@ -4261,10 +4261,9 @@ class C
     static int y = 1;
     void M()
     {
-        var t = ((C.y, (C.y, _)) = (1, ((int, int))((C.y, 3))));
+        var t = ((C.y, (C.y, _)) = (1, (C.y, 3)));
     }
 }";
-            // redundant cast is tracked by https://github.com/dotnet/roslyn/issues/13796
             await TestInRegularAndScriptAsync(code, expected, ignoreTrivia: false);
         }
 
@@ -4423,7 +4422,7 @@ class C
     void M()
     {
         int [||]i = 1 + 2;
-        var t = new { /*comment*/ i, 3 };
+        var t = new { /*comment*/ i, j = 3 };
     }
 }";
 
@@ -4432,7 +4431,7 @@ class C
 {
     void M()
     {
-        var t = new { /*comment*/ i = ((int)(1 + 2)), 3 };
+        var t = new { /*comment*/ i = (1 + 2), j = 3 };
     }
 }";
             await TestInRegularAndScriptAsync(code, expected, ignoreTrivia: false);
@@ -4449,7 +4448,7 @@ class C
         int [||]i = 1 + 2;
         var t = new {
             /*comment*/ i,
-            /*comment*/ 3
+            /*comment*/ j = 3
         };
     }
 }";
@@ -4461,8 +4460,8 @@ class C
     {
         var t = new {
             /*comment*/
-            i = ((int)(1 + 2)),
-            /*comment*/ 3
+            i = (1 + 2),
+            /*comment*/ j = 3
         };
     }
 }";
