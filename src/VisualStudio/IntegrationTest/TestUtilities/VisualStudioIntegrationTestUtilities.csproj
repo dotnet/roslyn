@@ -23,12 +23,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Update="Settings.Designer.cs">
-    <Compile Include="InProcess\ETW\EtwCallbackManager.cs" />
-    <Compile Include="InProcess\ETW\EtwListener.cs" />
-    <Compile Include="InProcess\ETW\IEtwCallbackManager.cs" />
-    <Compile Include="InProcess\ETW\IEtwListener.cs" />
-    <Compile Include="InProcess\ETW\RoslynEventSourceTraceEventParser.cs" />
-    <Compile Include="InProcess\ETW\TraceEventMonitor.cs" />
       <AutoGen>True</AutoGen>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
       <DependentUpon>Settings.settings</DependentUpon>
@@ -65,6 +59,7 @@
     <PackageReference Include="Microsoft.VisualStudio.ComponentModelHost" Version="$(MicrosoftVisualStudioComponentModelHostVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Text.Internal" Version="$(MicrosoftVisualStudioTextInternalVersion)" />
     <PackageReference Include="System.Collections.Immutable" Version="$(SystemCollectionsImmutableVersion)" />
+    <PackageReference Include="Microsoft.Diagnostics.Tracing.TraceEvent" Version="$(MicrosoftDiagnosticsTracingTraceEventVersion)" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\CodeAnalysis.csproj" />
@@ -77,10 +72,6 @@
     <ProjectReference Include="..\..\Core\Def\ServicesVisualStudio.csproj" />
     <ProjectReference Include="..\..\CSharp\Repl\CSharpVisualStudioRepl.csproj" />
     <ProjectReference Include="..\..\InteractiveServices\VisualStudioInteractiveServices.csproj" />
-    <ProjectReference Include="..\..\..\Workspaces\Core\Desktop\Workspaces.Desktop.csproj">
-      <Project>{2e87fa96-50bb-4607-8676-46521599f998}</Project>
-      <Name>Workspaces.Desktop</Name>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\..\Tools\Source\RunTests\ProcDumpUtil.cs" />
@@ -88,7 +79,6 @@
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LiveUnitTesting.IntegrationTests" />
     <InternalsVisibleToTest Include="Microsoft.VisualStudio.IntegrationTest.Setup" />
-    <InternalsVisibleToTest Include="Roslyn.VisualStudio.IntegrationTests" />
   </ItemGroup>
   <Import Project="..\..\..\..\build\Targets\Imports.targets" />
 </Project>
