@@ -87,8 +87,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 }
             }
 
-            private static bool s_UseOldCode = true;
-
             /// <summary>
             /// Return all diagnostics that belong to given project for the given StateSets (analyzers) either from cache or by calculating them
             /// </summary>
@@ -110,12 +108,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         }
 
                         // perf optimization. check whether we want to analyze this project or not.
-                        if (!ignoreFullAnalysisOptions || s_UseOldCode)
+                        if (!ignoreFullAnalysisOptions && !await FullAnalysisEnabledAsync(project, cancellationToken).ConfigureAwait(false))
                         {
-                            if (!await FullAnalysisEnabledAsync(project, ignoreFullAnalysisOptions, cancellationToken).ConfigureAwait(false))
-                            {
-                                return new ProjectAnalysisData(project.Id, VersionStamp.Default, existingData.Result, ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>.Empty);
-                            }
+                            return new ProjectAnalysisData(project.Id, VersionStamp.Default, existingData.Result, ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>.Empty);
                         }
 
                         var result = await ComputeDiagnosticsAsync(analyzerDriverOpt, project, stateSets, existingData.Result, cancellationToken).ConfigureAwait(false);
@@ -429,13 +424,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 }
             }
 
-            private static async Task<bool> FullAnalysisEnabledAsync(Project project, bool ignoreFullAnalysisOptions, CancellationToken cancellationToken)
+            private static async Task<bool> FullAnalysisEnabledAsync(Project project, CancellationToken cancellationToken)
             {
-                if (ignoreFullAnalysisOptions)
-                {
-                    return await project.HasSuccessfullyLoadedAsync(cancellationToken).ConfigureAwait(false);
-                }
-
                 if (!ServiceFeatureOnOffOptions.IsClosedFileDiagnosticsEnabled(project) ||
                     !project.Solution.Options.GetOption(RuntimeOptions.FullSolutionAnalysis))
                 {
