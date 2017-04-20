@@ -6,22 +6,20 @@ using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.Editor.GoToDefinition;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Undo;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindUsages;
-using Microsoft.CodeAnalysis.GeneratedCodeRecognition;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Composition;
-using Microsoft.VisualStudio.LanguageServices.Implementation;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectBrowser.Lists;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
-using Microsoft.VisualStudio.Shell;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices
@@ -31,18 +29,15 @@ namespace Microsoft.VisualStudio.LanguageServices
     internal class RoslynVisualStudioWorkspace : VisualStudioWorkspaceImpl
     {
         private readonly IEnumerable<Lazy<IStreamingFindUsagesPresenter>> _streamingPresenters;
-        private readonly IEnumerable<Lazy<IDefinitionsAndReferencesPresenter>> _referencedSymbolsPresenters;
 
         [ImportingConstructor]
         private RoslynVisualStudioWorkspace(
             ExportProvider exportProvider,
             [ImportMany] IEnumerable<Lazy<IStreamingFindUsagesPresenter>> streamingPresenters,
-            [ImportMany] IEnumerable<Lazy<IDefinitionsAndReferencesPresenter>> referencedSymbolsPresenters,
             [ImportMany] IEnumerable<IDocumentOptionsProviderFactory> documentOptionsProviderFactories)
             : base(exportProvider.AsExportProvider())
         {
             _streamingPresenters = streamingPresenters;
-            _referencedSymbolsPresenters = referencedSymbolsPresenters;
 
             foreach (var providerFactory in documentOptionsProviderFactories)
             {
@@ -202,44 +197,27 @@ namespace Microsoft.VisualStudio.LanguageServices
 
         public override bool TryFindAllReferences(ISymbol symbol, Project project, CancellationToken cancellationToken)
         {
-            if (!_referencedSymbolsPresenters.Any())
+            if (!_streamingPresenters.Any())
             {
                 return false;
             }
 
-            if (!TryResolveSymbol(symbol, project, cancellationToken, out var searchSymbol, out var searchProject))
+            if (!TryResolveSymbol(symbol, project, cancellationToken, 
+                    out var searchSymbol, out var searchProject))
             {
                 return false;
             }
 
-            var searchSolution = searchProject.Solution;
+            var context = _streamingPresenters.First().Value.StartSearch(
+                EditorFeaturesResources.Find_References, supportsReferences: true);
+            var task = AbstractFindUsagesService.FindReferencesAsync(
+                context, searchSymbol, searchProject, CancellationToken.None);
 
-            var result = SymbolFinder
-                .FindReferencesAsync(searchSymbol, searchSolution, cancellationToken)
-                .WaitAndGetResult(cancellationToken).ToList();
-
-            if (result != null)
-            {
-                DisplayReferencedSymbols(searchSolution, result);
-                return true;
-            }
-
-            return false;
+            return true;
         }
 
-        public override void DisplayReferencedSymbols(
-            Solution solution, IEnumerable<ReferencedSymbol> referencedSymbols)
+        public override void DisplayReferencedSymbols(Solution solution, IEnumerable<ReferencedSymbol> referencedSymbols)
         {
-            var service = this.Services.GetService<IDefinitionsAndReferencesFactory>();
-            var definitionsAndReferences = service.CreateDefinitionsAndReferences(
-                solution, referencedSymbols,
-                includeHiddenLocations: false, cancellationToken: CancellationToken.None);
-
-            foreach (var presenter in _referencedSymbolsPresenters)
-            {
-                presenter.Value.DisplayResult(definitionsAndReferences);
-                return;
-            }
         }
 
         internal override object GetBrowseObject(SymbolListItem symbolListItem)
