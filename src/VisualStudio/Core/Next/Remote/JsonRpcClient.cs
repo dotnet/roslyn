@@ -81,9 +81,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
         public void Dispose()
         {
-            OnDisposed();
-
-            _rpc.Dispose();
+            Dispose(true);
+            GC.SuppressFinalize(this);
         }
 
         protected void StartListening()
@@ -93,9 +92,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             _rpc.StartListening();
         }
 
-        protected virtual void OnDisposed()
+        protected virtual void Dispose(bool disposing)
         {
-            // do nothing
+            if (disposing)
+            {
+                _rpc.Dispose();
+            }
         }
 
         protected virtual void OnDisconnected(object sender, JsonRpcDisconnectedEventArgs e)
