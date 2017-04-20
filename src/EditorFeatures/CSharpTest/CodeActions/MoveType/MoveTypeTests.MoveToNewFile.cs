@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.MoveType
 {
     public partial class MoveTypeTests : CSharpMoveTypeTestsBase
     {
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/18766"), Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
         public async Task TestMissing_OnMatchingFileName()
         {
             var code =
@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.MoveType
             await TestMissingInRegularAndScriptAsync(code);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/18766"), Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
         public async Task TestMissing_Nested_OnMatchingFileName_Simple()
         {
             var code =
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.MoveType
             await TestMissingInRegularAndScriptAsync(code);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/18766"), Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
         public async Task TestMatchingFileName_CaseSensitive()
         {
             var code =
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.MoveType
             await TestActionCountAsync(code, count: 2);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/18766"), Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
         public async Task TestForSpans1()
         {
             var code =
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.MoveType
             await TestMissingInRegularAndScriptAsync(code);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/18766"), Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
         public async Task TestForSpans2()
         {
             var code =
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.MoveType
             await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/18766"), Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
         [WorkItem(14008, "https://github.com/dotnet/roslyn/issues/14008")]
         public async Task TestMoveToNewFileWithFolders()
         {
@@ -88,7 +88,7 @@ class Class2 { }
                 destinationDocumentText, destinationDocumentContainers: ImmutableArray.Create("A", "B"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/18766"), Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
         public async Task TestForSpans3()
         {
             var code =
@@ -98,7 +98,7 @@ class Class2 { }";
             await TestMissingInRegularAndScriptAsync(code);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/18766"), Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
         public async Task TestForSpans4()
         {
             var code =
@@ -112,7 +112,7 @@ class Class2 { }";
             await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/18766"), Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
         public async Task MoveTypeWithNoContainerNamespace()
         {
             var code =
@@ -126,7 +126,7 @@ class Class2 { }";
             await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/18766"), Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
         public async Task MoveTypeWithWithUsingsAndNoContainerNamespace()
         {
             var code =
@@ -149,7 +149,7 @@ class Class2 { }";
             await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/18766"), Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
         public async Task MoveTypeWithWithMembers()
         {
             var code =
@@ -185,7 +185,7 @@ class Class1
             await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/18766"), Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
         public async Task MoveTypeWithWithMembers2()
         {
             var code =
@@ -235,7 +235,7 @@ class Class1
             await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/18766"), Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
         public async Task MoveAnInterface()
         {
             var code =
@@ -249,7 +249,7 @@ class Class2 { }";
             await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/18766"), Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
         public async Task MoveAStruct()
         {
             var code =
@@ -263,7 +263,7 @@ class Class2 { }";
             await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/18766"), Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
         public async Task MoveAnEnum()
         {
             var code =
@@ -277,7 +277,7 @@ class Class2 { }";
             await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/18766"), Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
         public async Task MoveTypeWithWithContainerNamespace()
         {
             var code =
@@ -303,7 +303,7 @@ class Class2 { }";
             await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/18766"), Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
         public async Task MoveNestedTypeToNewFile_Simple()
         {
             var code =
@@ -340,7 +340,7 @@ class Class2 { }";
             await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/18766"), Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
         public async Task MoveNestedTypePreserveModifiers()
         {
             var code =
@@ -377,7 +377,7 @@ class Class2 { }";
             await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/18766"), Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
         [WorkItem(14004, "https://github.com/dotnet/roslyn/issues/14004")]
         public async Task MoveNestedTypeToNewFile_Attributes1()
         {
@@ -419,7 +419,7 @@ class Class2 { }";
             await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/18766"), Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
         [WorkItem(14484, "https://github.com/dotnet/roslyn/issues/14484")]
         public async Task MoveNestedTypeToNewFile_Comments1()
         {
@@ -463,7 +463,7 @@ class Class2 { }";
                 ignoreTrivia: false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/18766"), Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
         public async Task MoveNestedTypeToNewFile_Simple_DottedName()
         {
             var code =
@@ -500,7 +500,7 @@ class Class2 { }";
             await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText, index: 1);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/18766"), Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
         public async Task MoveNestedTypeToNewFile_ParentHasOtherMembers()
         {
             var code =
@@ -543,7 +543,7 @@ class Class2 { }";
             await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/18766"), Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
         public async Task MoveNestedTypeToNewFile_HasOtherTopLevelMembers()
         {
             var code =
@@ -595,7 +595,7 @@ class Class2 { }";
             await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/18766"), Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
         public async Task MoveNestedTypeToNewFile_HasMembers()
         {
             var code =
@@ -643,7 +643,7 @@ class Class2 { }";
             await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/18766"), Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
         [WorkItem(13969, "https://github.com/dotnet/roslyn/issues/13969")]
         public async Task MoveTypeInFileWithComplexHierarchy()
         {
@@ -755,7 +755,7 @@ namespace OuterN1.N1
             await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/18766"), Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
         public async Task MoveTypeUsings1()
         {
             var code =
@@ -794,7 +794,7 @@ partial class Outer {
         }
 
         [WorkItem(16283, "https://github.com/dotnet/roslyn/issues/16283")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/18766"), Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
         public async Task TestLeadingTrivia1()
         {
             var code =
@@ -832,7 +832,7 @@ partial class Outer
         }
 
         [WorkItem(17171, "https://github.com/dotnet/roslyn/issues/17171")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/18766"), Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
         public async Task TestInsertFinalNewLine()
         {
             var code =
@@ -875,7 +875,7 @@ partial class Outer
         }
 
         [WorkItem(17171, "https://github.com/dotnet/roslyn/issues/17171")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/18766"), Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
         public async Task TestInsertFinalNewLine2()
         {
             var code =
@@ -917,7 +917,7 @@ partial class Outer
         }
 
         [WorkItem(16282, "https://github.com/dotnet/roslyn/issues/16282")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/18766"), Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
         public async Task MoveTypeRemoveOuterInheritanceTypes()
         {
             var code =
@@ -946,7 +946,7 @@ partial class Outer {
         }
 
         [WorkItem(17930, "https://github.com/dotnet/roslyn/issues/17930")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/18766"), Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
         public async Task MoveTypeWithDirectives1()
         {
             var code =
@@ -998,7 +998,7 @@ public class Inner
         }
 
         [WorkItem(17930, "https://github.com/dotnet/roslyn/issues/17930")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/18766"), Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
         public async Task MoveTypeWithDirectives2()
         {
             var code =

@@ -50,7 +50,8 @@
         "GitLink",
         "Microsoft.NETCore.Runtime.CoreCLR",
         "Microsoft.VSSDK.BuildTools",
-        "NETStandard.Library"
+        "NETStandard.Library",
+        "FakeSign"
       ]
     }
   },

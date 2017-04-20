@@ -88,26 +88,28 @@ to the invocation and removes the need for error prone if checking after every c
 # DO NOT
 & msbuild /v:m /m Roslyn.sln
 # DO 
-Exec { & msbuild /v:m /m Roslyn.sln }
+Exec-Block { & msbuild /v:m /m Roslyn.sln }
 ```
 
 Note this will not work for the rare Windows commands which use 0 as an exit code on failure.  For 
 example robocopy and corflags.
 
 In some cases windows commands need to have their argument list built up dynamically.  When that 
-happens do not use Invoke-Expression to execute the command, instead use Exec-Expression.  The former
-does not fail when the windows command fails and can lead to silent errors.  The Exec-Expression 
-will throw if the underlying expression or windows command fails.
+happens do not use Invoke-Expression to execute the command, instead use Exec-Command.  The former
+does not fail when the windows command fails, can invoke powershell argument parsing and doesn't 
+have a mechanism for echoing output to console.  The Exec-Command uses Process directly and can support
+the major functionality needed.
 
 
 ``` powershell
-$command = "& msbuild /v:m Roslyn.sln"
+$command = "C:\Program Files (x86)\Microsoft Visual Studio\Preview\Dogfood\MSBuild\15.0\Bin\MSBuild.exe"
+$args = "/v:m Roslyn.sln"
 if (...) { 
-    $command += " /fl /flp:v=diag"
+    $args += " /fl /flp:v=diag"
 }
 # DO NOT
-Invoke-Expression $command
+Invoke-Expression "& $command $args"
 # DO
-Exec-Expression $command
+Exec-Command $command $args
 ```
 

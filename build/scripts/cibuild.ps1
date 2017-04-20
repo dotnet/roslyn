@@ -31,10 +31,12 @@ function Run-MSBuild() {
     # that we do not reuse MSBuild nodes from other jobs/builds on the machine. Otherwise,
     # we'll run into issues such as https://github.com/dotnet/roslyn/issues/6211.
     # MSBuildAdditionalCommandLineArgs=
-    & $msbuild /warnaserror /nologo /m /nodeReuse:false /consoleloggerparameters:Verbosity=minimal /filelogger /fileloggerparameters:Verbosity=normal @args
-    if (-not $?) {
-        throw "Build failed"
+    $buildArgs = "/warnaserror /nologo /m /nodeReuse:false /consoleloggerparameters:Verbosity=minimal /filelogger /fileloggerparameters:Verbosity=normal"
+    foreach ($arg in $args) { 
+        $buildArgs += " $arg"
     }
+    
+    Exec-Command $msbuild $buildArgs
 }
 
 # Kill any instances VBCSCompiler.exe to release locked files, ignoring stderr if process is not open
@@ -87,14 +89,14 @@ try {
     Redirect-Temp
 
     if ($testBuildCorrectness) {
-        Exec-Echo { & ".\build\scripts\test-build-correctness.ps1" -config $buildConfiguration }
+        Exec-Block { & ".\build\scripts\test-build-correctness.ps1" -config $buildConfiguration } | Out-Host
         exit 0
     }
 
     # Output the commit that we're building, for reference in Jenkins logs
     if (-not $skipCommitPrinting) {
         Write-Host "Building this commit:"
-        Exec { & git show --no-patch --pretty=raw HEAD }
+        Exec-Block { & git show --no-patch --pretty=raw HEAD } | Out-Host
     }
 
     # Build with the real assembly version, since that's what's contained in the bootstrap compiler redirects
@@ -108,14 +110,14 @@ try {
     Terminate-BuildProcesses
 
     if ($testDeterminism) {
-        Exec { & ".\build\scripts\test-determinism.ps1" -buildDir $bootstrapDir }
+        Exec-Block { & ".\build\scripts\test-determinism.ps1" -buildDir $bootstrapDir } | Out-Host
         Terminate-BuildProcesses
         exit 0
     }
 
     if ($testPerfCorrectness) {
         Run-MSBuild Roslyn.sln /p:Configuration=$buildConfiguration /p:DeployExtension=false
-        Exec { & ".\Binaries\$buildConfiguration\Exes\Perf.Runner\Roslyn.Test.Performance.Runner.exe" --ci-test }
+        Exec-Block { & ".\Binaries\$buildConfiguration\Exes\Perf.Runner\Roslyn.Test.Performance.Runner.exe" --ci-test } | Out-Host
         exit 0
     }
 
@@ -140,7 +142,7 @@ try {
 
             Create-Directory ".\Binaries\$buildConfiguration\tools\"
             # Get the benchview tools - Place alongside Roslyn.Test.Performance.Runner.exe
-            Exec { & ".\build\scripts\install_benchview_tools.cmd" ".\Binaries\$buildConfiguration\tools\" }
+            Exec-Block { & ".\build\scripts\install_benchview_tools.cmd" ".\Binaries\$buildConfiguration\tools\" } | Out-Host
         }
 
         Terminate-BuildProcesses

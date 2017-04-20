@@ -2705,9 +2705,9 @@ class Student : Person { public double GPA; }
       <customDebugInfo>
         <forward declaringType=""Program"" methodName=""Main"" parameterNames=""args"" />
         <encLocalSlotMap>
-          <slot kind=""temp"" />
-          <slot kind=""temp"" />
-          <slot kind=""temp"" />
+          <slot kind=""35"" offset=""11"" />
+          <slot kind=""35"" offset=""46"" />
+          <slot kind=""35"" offset=""237"" />
           <slot kind=""temp"" />
           <slot kind=""0"" offset=""59"" />
           <slot kind=""0"" offset=""163"" />
@@ -2798,9 +2798,9 @@ class Student : Person { public double GPA; }
         <encLocalSlotMap>
           <slot kind=""30"" offset=""0"" />
           <slot kind=""30"" offset=""383"" />
-          <slot kind=""temp"" />
-          <slot kind=""temp"" />
-          <slot kind=""temp"" />
+          <slot kind=""35"" offset=""11"" />
+          <slot kind=""35"" offset=""46"" />
+          <slot kind=""35"" offset=""249"" />
           <slot kind=""temp"" />
           <slot kind=""1"" offset=""11"" />
           <slot kind=""21"" offset=""0"" />
@@ -5827,6 +5827,122 @@ partial class C
     }
 }";
             var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            CompileAndVerify(c).VerifyIL("Program.M",
+@"{
+  // Code size      210 (0xd2)
+  .maxstack  2
+  .locals init (object V_0,
+                int V_1,
+                object V_2,
+                object V_3,
+                int? V_4,
+                int V_5,
+                object V_6,
+                int V_7,
+                object V_8,
+                object V_9,
+                object V_10)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.2
+  IL_0003:  ldloc.2
+  IL_0004:  stloc.3
+  IL_0005:  ldloc.3
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  brtrue.s   IL_000c
+  IL_000a:  br.s       IL_005e
+  IL_000c:  ldloc.0
+  IL_000d:  isinst     ""int?""
+  IL_0012:  unbox.any  ""int?""
+  IL_0017:  stloc.s    V_4
+  IL_0019:  ldloca.s   V_4
+  IL_001b:  call       ""int int?.GetValueOrDefault()""
+  IL_0020:  stloc.1
+  IL_0021:  ldloca.s   V_4
+  IL_0023:  call       ""bool int?.HasValue.get""
+  IL_0028:  brfalse.s  IL_005e
+  IL_002a:  ldloc.1
+  IL_002b:  stloc.s    V_5
+  IL_002d:  ldloc.s    V_5
+  IL_002f:  ldc.i4.1
+  IL_0030:  sub
+  IL_0031:  switch    (
+        IL_004c,
+        IL_0054,
+        IL_005a,
+        IL_0052,
+        IL_0058)
+  IL_004a:  br.s       IL_005e
+  IL_004c:  br.s       IL_0060
+  IL_004e:  br.s       IL_006c
+  IL_0050:  br.s       IL_007a
+  IL_0052:  br.s       IL_006a
+  IL_0054:  br.s       IL_0065
+  IL_0056:  br.s       IL_005e
+  IL_0058:  br.s       IL_0076
+  IL_005a:  br.s       IL_0071
+  IL_005c:  br.s       IL_005e
+  IL_005e:  br.s       IL_0078
+  IL_0060:  ldarg.0
+  IL_0061:  brfalse.s  IL_006a
+  IL_0063:  br.s       IL_004e
+  IL_0065:  ldarg.0
+  IL_0066:  brfalse.s  IL_006a
+  IL_0068:  br.s       IL_0056
+  IL_006a:  br.s       IL_007c
+  IL_006c:  ldarg.0
+  IL_006d:  brtrue.s   IL_0076
+  IL_006f:  br.s       IL_0050
+  IL_0071:  ldarg.0
+  IL_0072:  brtrue.s   IL_0076
+  IL_0074:  br.s       IL_005c
+  IL_0076:  br.s       IL_007c
+  IL_0078:  br.s       IL_007c
+  IL_007a:  br.s       IL_007c
+  IL_007c:  ldarg.0
+  IL_007d:  stloc.2
+  IL_007e:  ldloc.2
+  IL_007f:  stloc.s    V_8
+  IL_0081:  ldloc.s    V_8
+  IL_0083:  stloc.s    V_6
+  IL_0085:  ldloc.s    V_6
+  IL_0087:  brtrue.s   IL_008b
+  IL_0089:  br.s       IL_00b8
+  IL_008b:  ldloc.s    V_6
+  IL_008d:  isinst     ""int?""
+  IL_0092:  unbox.any  ""int?""
+  IL_0097:  stloc.s    V_4
+  IL_0099:  ldloca.s   V_4
+  IL_009b:  call       ""int int?.GetValueOrDefault()""
+  IL_00a0:  stloc.s    V_7
+  IL_00a2:  ldloca.s   V_4
+  IL_00a4:  call       ""bool int?.HasValue.get""
+  IL_00a9:  brfalse.s  IL_00b8
+  IL_00ab:  ldloc.s    V_7
+  IL_00ad:  stloc.s    V_5
+  IL_00af:  ldloc.s    V_5
+  IL_00b1:  ldc.i4.1
+  IL_00b2:  beq.s      IL_00b6
+  IL_00b4:  br.s       IL_00b8
+  IL_00b6:  br.s       IL_00ba
+  IL_00b8:  br.s       IL_00bc
+  IL_00ba:  br.s       IL_00be
+  IL_00bc:  br.s       IL_00be
+  IL_00be:  ldarg.0
+  IL_00bf:  stloc.2
+  IL_00c0:  ldloc.2
+  IL_00c1:  stloc.s    V_10
+  IL_00c3:  ldloc.s    V_10
+  IL_00c5:  stloc.s    V_9
+  IL_00c7:  ldloc.s    V_9
+  IL_00c9:  brtrue.s   IL_00cd
+  IL_00cb:  br.s       IL_00cd
+  IL_00cd:  br.s       IL_00cf
+  IL_00cf:  br.s       IL_00d1
+  IL_00d1:  ret
+}
+");
             c.VerifyPdb(
 @"<symbols>
   <methods>
@@ -5836,13 +5952,16 @@ partial class C
           <namespace usingCount=""0"" />
         </using>
         <encLocalSlotMap>
-          <slot kind=""temp"" />
-          <slot kind=""temp"" />
+          <slot kind=""35"" offset=""11"" />
+          <slot kind=""35"" offset=""46"" />
           <slot kind=""temp"" />
           <slot kind=""1"" offset=""11"" />
           <slot kind=""temp"" />
           <slot kind=""temp"" />
+          <slot kind=""35"" offset=""378"" />
+          <slot kind=""35"" offset=""413"" />
           <slot kind=""1"" offset=""378"" />
+          <slot kind=""35"" offset=""511"" />
           <slot kind=""1"" offset=""511"" />
         </encLocalSlotMap>
       </customDebugInfo>
@@ -5860,12 +5979,12 @@ partial class C
         <entry offset=""0x7a"" startLine=""18"" startColumn=""17"" endLine=""18"" endColumn=""23"" />
         <entry offset=""0x7c"" startLine=""20"" startColumn=""9"" endLine=""20"" endColumn=""19"" />
         <entry offset=""0x81"" hidden=""true"" />
-        <entry offset=""0xb5"" startLine=""23"" startColumn=""17"" endLine=""23"" endColumn=""23"" />
-        <entry offset=""0xb7"" startLine=""25"" startColumn=""17"" endLine=""25"" endColumn=""23"" />
-        <entry offset=""0xb9"" startLine=""27"" startColumn=""9"" endLine=""27"" endColumn=""19"" />
-        <entry offset=""0xbe"" hidden=""true"" />
-        <entry offset=""0xc8"" startLine=""30"" startColumn=""17"" endLine=""30"" endColumn=""23"" />
-        <entry offset=""0xca"" startLine=""32"" startColumn=""5"" endLine=""32"" endColumn=""6"" />
+        <entry offset=""0xba"" startLine=""23"" startColumn=""17"" endLine=""23"" endColumn=""23"" />
+        <entry offset=""0xbc"" startLine=""25"" startColumn=""17"" endLine=""25"" endColumn=""23"" />
+        <entry offset=""0xbe"" startLine=""27"" startColumn=""9"" endLine=""27"" endColumn=""19"" />
+        <entry offset=""0xc3"" hidden=""true"" />
+        <entry offset=""0xcf"" startLine=""30"" startColumn=""17"" endLine=""30"" endColumn=""23"" />
+        <entry offset=""0xd1"" startLine=""32"" startColumn=""5"" endLine=""32"" endColumn=""6"" />
       </sequencePoints>
     </method>
   </methods>
