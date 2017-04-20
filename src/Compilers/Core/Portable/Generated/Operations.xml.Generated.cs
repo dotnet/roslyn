@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         public AddressOfExpression(IOperation reference, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(isInvalid, syntax, type, constantValue)
         {
-            Reference = reference ?? throw new System.ArgumentNullException("reference");
+            Reference = reference;
         }
         /// <summary>
         /// Addressed reference.
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Semantics
                     base(OperationKind.Argument, isInvalid, syntax, type, constantValue)
         {
             ArgumentKind = argumentKind;
-            Parameter = parameter ?? throw new System.ArgumentNullException("parameter");
+            Parameter = parameter;
         }
         /// <summary>
         /// Kind of argument.
@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         public Argument(ArgumentKind argumentKind, IParameterSymbol parameter, IOperation value, IOperation inConversion, IOperation outConversion, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(argumentKind, parameter, isInvalid, syntax, type, constantValue)
         {
-            Value = value ?? throw new System.ArgumentNullException("value");
+            Value = value;
             InConversion = inConversion;
             OutConversion = outConversion;
         }
@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         protected ArrayCreationExpressionBase(ITypeSymbol elementType, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
                     base(OperationKind.ArrayCreationExpression, isInvalid, syntax, type, constantValue)
         {
-            ElementType = elementType ?? throw new System.ArgumentNullException("elementType");
+            ElementType = elementType;
         }
         /// <summary>
         /// Element type of the created array instance.
@@ -269,7 +269,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         public ArrayElementReferenceExpression(IOperation arrayReference, ImmutableArray<IOperation> indices, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(isInvalid, syntax, type, constantValue)
         {
-            ArrayReference = arrayReference ?? throw new System.ArgumentNullException("arrayReference");
+            ArrayReference = arrayReference;
             Indices = indices;
         }
         /// <summary>
@@ -389,8 +389,8 @@ namespace Microsoft.CodeAnalysis.Semantics
         public AssignmentExpression(IOperation target, IOperation value, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(OperationKind.AssignmentExpression, isInvalid, syntax, type, constantValue)
         {
-            Target = target ?? throw new System.ArgumentNullException("target");
-            Value = value ?? throw new System.ArgumentNullException("value");
+            Target = target;
+            Value = value;
         }
         /// <summary>
         /// Target of the assignment.
@@ -474,7 +474,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         public AwaitExpression(IOperation awaitedValue, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(isInvalid, syntax, type, constantValue)
         {
-            AwaitedValue = awaitedValue ?? throw new System.ArgumentNullException("awaitedValue");
+            AwaitedValue = awaitedValue;
         }
         /// <summary>
         /// Value to be awaited.
@@ -549,8 +549,8 @@ namespace Microsoft.CodeAnalysis.Semantics
         public BinaryOperatorExpression(BinaryOperationKind binaryOperationKind, IOperation leftOperand, IOperation rightOperand, bool usesOperatorMethod, IMethodSymbol operatorMethod, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(binaryOperationKind, usesOperatorMethod, operatorMethod, isInvalid, syntax, type, constantValue)
         {
-            LeftOperand = leftOperand ?? throw new System.ArgumentNullException("leftOperand");
-            RightOperand = rightOperand ?? throw new System.ArgumentNullException("rightOperand");
+            LeftOperand = leftOperand;
+            RightOperand = rightOperand;
         }
         /// <summary>
         /// Left operand.
@@ -655,7 +655,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         public BranchStatement(ILabelSymbol target, BranchKind branchKind, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(OperationKind.BranchStatement, isInvalid, syntax, type, constantValue)
         {
-            Target = target ?? throw new System.ArgumentNullException("target");
+            Target = target;
             BranchKind = branchKind;
         }
         /// <summary>
@@ -700,8 +700,8 @@ namespace Microsoft.CodeAnalysis.Semantics
         protected CatchClauseBase(ITypeSymbol caughtType, ILocalSymbol exceptionLocal, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
                     base(OperationKind.CatchClause, isInvalid, syntax, type, constantValue)
         {
-            CaughtType = caughtType ?? throw new System.ArgumentNullException("caughtType");
-            ExceptionLocal = exceptionLocal ?? throw new System.ArgumentNullException("exceptionLocal");
+            CaughtType = caughtType;
+            ExceptionLocal = exceptionLocal;
         }
         /// <summary>
         /// Body of the exception handler.
@@ -737,8 +737,8 @@ namespace Microsoft.CodeAnalysis.Semantics
         public CatchClause(IBlockStatement handler, ITypeSymbol caughtType, IOperation filter, ILocalSymbol exceptionLocal, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(caughtType, exceptionLocal, isInvalid, syntax, type, constantValue)
         {
-            Handler = handler ?? throw new System.ArgumentNullException("handler");
-            Filter = filter ?? throw new System.ArgumentNullException("filter");
+            Handler = handler;
+            Filter = filter;
         }
         /// <summary>
         /// Body of the exception handler.
@@ -808,8 +808,8 @@ namespace Microsoft.CodeAnalysis.Semantics
         public CompoundAssignmentExpression(BinaryOperationKind binaryOperationKind, IOperation target, IOperation value, bool usesOperatorMethod, IMethodSymbol operatorMethod, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(binaryOperationKind, usesOperatorMethod, operatorMethod, OperationKind.CompoundAssignmentExpression, isInvalid, syntax, type, constantValue)
         {
-            Target = target ?? throw new System.ArgumentNullException("target");
-            Value = value ?? throw new System.ArgumentNullException("value");
+            Target = target;
+            Value = value;
         }
         /// <summary>
         /// Target of the assignment.
@@ -897,8 +897,8 @@ namespace Microsoft.CodeAnalysis.Semantics
         public ConditionalAccessExpression(IOperation conditionalValue, IOperation conditionalInstance, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(isInvalid, syntax, type, constantValue)
         {
-            ConditionalValue = conditionalValue ?? throw new System.ArgumentNullException("conditionalValue");
-            ConditionalInstance = conditionalInstance ?? throw new System.ArgumentNullException("conditionalInstance");
+            ConditionalValue = conditionalValue;
+            ConditionalInstance = conditionalInstance;
         }
         /// <summary>
         /// Expression to be evaluated if the conditional instance is non null.
@@ -992,9 +992,9 @@ namespace Microsoft.CodeAnalysis.Semantics
         public ConditionalChoiceExpression(IOperation condition, IOperation ifTrueValue, IOperation ifFalseValue, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(isInvalid, syntax, type, constantValue)
         {
-            Condition = condition ?? throw new System.ArgumentNullException("condition");
-            IfTrueValue = ifTrueValue ?? throw new System.ArgumentNullException("ifTrueValue");
-            IfFalseValue = ifFalseValue ?? throw new System.ArgumentNullException("ifFalseValue");
+            Condition = condition;
+            IfTrueValue = ifTrueValue;
+            IfFalseValue = ifFalseValue;
         }
         /// <summary>
         /// Condition to be tested.
@@ -1092,7 +1092,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         public ConversionExpression(IOperation operand, ConversionKind conversionKind, bool isExplicit, bool usesOperatorMethod, IMethodSymbol operatorMethod, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(conversionKind, isExplicit, usesOperatorMethod, operatorMethod, isInvalid, syntax, type, constantValue)
         {
-            Operand = operand ?? throw new System.ArgumentNullException("operand");
+            Operand = operand;
         }
         /// <summary>
         /// Value to be converted.
@@ -1183,7 +1183,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         protected EventAssignmentExpressionBase(IEventSymbol @event, bool adds, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
                     base(OperationKind.EventAssignmentExpression, isInvalid, syntax, type, constantValue)
         {
-            Event = @event ?? throw new System.ArgumentNullException("@event");
+            Event = @event;
             Adds = adds;
         }
         /// <summary>
@@ -1223,8 +1223,8 @@ namespace Microsoft.CodeAnalysis.Semantics
         public EventAssignmentExpression(IEventSymbol @event, IOperation eventInstance, IOperation handlerValue, bool adds, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(@event, adds, isInvalid, syntax, type, constantValue)
         {
-            EventInstance = eventInstance ?? throw new System.ArgumentNullException("eventInstance");
-            HandlerValue = handlerValue ?? throw new System.ArgumentNullException("handlerValue");
+            EventInstance = eventInstance;
+            HandlerValue = handlerValue;
         }
 
         /// <summary>
@@ -1271,8 +1271,8 @@ namespace Microsoft.CodeAnalysis.Semantics
         public EventReferenceExpression(IEventSymbol @event, IOperation instance, ISymbol member, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(member, OperationKind.EventReferenceExpression, isInvalid, syntax, type, constantValue)
         {
-            Event = @event ?? throw new System.ArgumentNullException("@event");
-            Instance = instance ?? throw new System.ArgumentNullException("instance");
+            Event = @event;
+            Instance = instance;
         }
         /// <summary>
         /// Referenced event.
@@ -1301,7 +1301,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public LazyEventReferenceExpression(IEventSymbol @event, Lazy<IOperation> instance, ISymbol member, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(member, OperationKind.EventReferenceExpression, isInvalid, syntax, type, constantValue)
         {
-            Event = @event ?? throw new System.ArgumentNullException("@event");
+            Event = @event;
             _lazyInstance = instance ?? throw new System.ArgumentNullException("instance");
         }
         /// <summary>
@@ -1354,7 +1354,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         public ExpressionStatement(IOperation expression, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(isInvalid, syntax, type, constantValue)
         {
-            Expression = expression ?? throw new System.ArgumentNullException("expression");
+            Expression = expression;
         }
         /// <summary>
         /// Expression of the statement.
@@ -1388,7 +1388,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             base(kind, isInvalid, syntax, type, constantValue)
         {
             InitializedFields = initializedFields;
-            Value = value ?? throw new System.ArgumentNullException("value");
+            Value = value;
         }
         /// <summary>
         /// Initialized fields. There can be multiple fields for Visual Basic fields declared with As New.
@@ -1441,8 +1441,8 @@ namespace Microsoft.CodeAnalysis.Semantics
         public FieldReferenceExpression(IFieldSymbol field, IOperation instance, ISymbol member, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(member, OperationKind.FieldReferenceExpression, isInvalid, syntax, type, constantValue)
         {
-            Field = field ?? throw new System.ArgumentNullException("field");
-            Instance = instance ?? throw new System.ArgumentNullException("instance");
+            Field = field;
+            Instance = instance;
         }
         /// <summary>
         /// Referenced field.
@@ -1471,7 +1471,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public LazyFieldReferenceExpression(IFieldSymbol field, Lazy<IOperation> instance, ISymbol member, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(member, OperationKind.FieldReferenceExpression, isInvalid, syntax, type, constantValue)
         {
-            Field = field ?? throw new System.ArgumentNullException("field");
+            Field = field;
             _lazyInstance = instance ?? throw new System.ArgumentNullException("instance");
         }
         /// <summary>
@@ -1528,8 +1528,8 @@ namespace Microsoft.CodeAnalysis.Semantics
         public FixedStatement(IVariableDeclarationStatement variables, IOperation body, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(isInvalid, syntax, type, constantValue)
         {
-            Variables = variables ?? throw new System.ArgumentNullException("variables");
-            Body = body ?? throw new System.ArgumentNullException("body");
+            Variables = variables;
+            Body = body;
         }
         /// <summary>
         /// Variables to be fixed.
@@ -1573,9 +1573,9 @@ namespace Microsoft.CodeAnalysis.Semantics
         public ForEachLoopStatement(ILocalSymbol iterationVariable, IOperation collection, LoopKind loopKind, IOperation body, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(loopKind, OperationKind.LoopStatement, isInvalid, syntax, type, constantValue)
         {
-            IterationVariable = iterationVariable ?? throw new System.ArgumentNullException("iterationVariable");
-            Collection = collection ?? throw new System.ArgumentNullException("collection");
-            Body = body ?? throw new System.ArgumentNullException("body");
+            IterationVariable = iterationVariable;
+            Collection = collection;
+            Body = body;
         }
         /// <summary>
         /// Iteration variable of the loop.
@@ -1609,7 +1609,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public LazyForEachLoopStatement(ILocalSymbol iterationVariable, Lazy<IOperation> collection, LoopKind loopKind, Lazy<IOperation> body, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(loopKind, OperationKind.LoopStatement, isInvalid, syntax, type, constantValue)
         {
-            IterationVariable = iterationVariable ?? throw new System.ArgumentNullException("iterationVariable");
+            IterationVariable = iterationVariable;
             _lazyCollection = collection ?? throw new System.ArgumentNullException("collection");
             _lazyBody = body ?? throw new System.ArgumentNullException("body");
         }
@@ -1648,8 +1648,8 @@ namespace Microsoft.CodeAnalysis.Semantics
             Before = before;
             AtLoopBottom = atLoopBottom;
             Locals = locals;
-            Condition = condition ?? throw new System.ArgumentNullException("condition");
-            Body = body ?? throw new System.ArgumentNullException("body");
+            Condition = condition;
+            Body = body;
         }
         /// <summary>
         /// Statements to execute before entry to the loop. For C# these come from the first clause of the for statement. For VB these initialize the index variable of the For statement.
@@ -1787,9 +1787,9 @@ namespace Microsoft.CodeAnalysis.Semantics
         public IfStatement(IOperation condition, IOperation ifTrueStatement, IOperation ifFalseStatement, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(isInvalid, syntax, type, constantValue)
         {
-            Condition = condition ?? throw new System.ArgumentNullException("condition");
-            IfTrueStatement = ifTrueStatement ?? throw new System.ArgumentNullException("ifTrueStatement");
-            IfFalseStatement = ifFalseStatement ?? throw new System.ArgumentNullException("ifFalseStatement");
+            Condition = condition;
+            IfTrueStatement = ifTrueStatement;
+            IfFalseStatement = ifFalseStatement;
         }
         /// <summary>
         /// Condition of the if statement. For C# there is naturally one clause per if, but for VB If statements with multiple clauses are rewritten to have only one.
@@ -1845,8 +1845,8 @@ namespace Microsoft.CodeAnalysis.Semantics
             base(binaryOperationKind, usesOperatorMethod, operatorMethod, OperationKind.IncrementExpression, isInvalid, syntax, type, constantValue)
         {
             IncrementOperationKind = incrementOperationKind;
-            Target = target ?? throw new System.ArgumentNullException("target");
-            Value = value ?? throw new System.ArgumentNullException("value");
+            Target = target;
+            Value = value;
         }
         /// <summary>
         /// Kind of increment.
@@ -1917,7 +1917,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             base(property, member, OperationKind.IndexedPropertyReferenceExpression, isInvalid, syntax, type, constantValue)
         {
             ArgumentsInEvaluationOrder = argumentsInEvaluationOrder;
-            Instance = instance ?? throw new System.ArgumentNullException("instance");
+            Instance = instance;
         }
         /// <summary>
         /// Arguments of the invocation, excluding the instance argument. Arguments are in evaluation order.
@@ -2126,7 +2126,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         protected InvocationExpressionBase(IMethodSymbol targetMethod, bool isVirtual, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
                     base(OperationKind.InvocationExpression, isInvalid, syntax, type, constantValue)
         {
-            TargetMethod = targetMethod ?? throw new System.ArgumentNullException("targetMethod");
+            TargetMethod = targetMethod;
             IsVirtual = isVirtual;
         }
         /// <summary>
@@ -2167,7 +2167,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         public InvocationExpression(IMethodSymbol targetMethod, IOperation instance, bool isVirtual, ImmutableArray<IArgument> argumentsInEvaluationOrder, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(targetMethod, isVirtual, isInvalid, syntax, type, constantValue)
         {
-            Instance = instance ?? throw new System.ArgumentNullException("instance");
+            Instance = instance;
             ArgumentsInEvaluationOrder = argumentsInEvaluationOrder;
         }
         /// <summary>
@@ -2220,7 +2220,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         protected IsTypeExpressionBase(ITypeSymbol isType, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
                     base(OperationKind.IsTypeExpression, isInvalid, syntax, type, constantValue)
         {
-            IsType = isType ?? throw new System.ArgumentNullException("isType");
+            IsType = isType;
         }
         /// <summary>
         /// Value to test.
@@ -2248,7 +2248,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         public IsTypeExpression(IOperation operand, ITypeSymbol isType, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(isType, isInvalid, syntax, type, constantValue)
         {
-            Operand = operand ?? throw new System.ArgumentNullException("operand");
+            Operand = operand;
         }
         /// <summary>
         /// Value to test.
@@ -2281,7 +2281,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         protected LabelStatementBase(ILabelSymbol label, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
                     base(OperationKind.LabelStatement, isInvalid, syntax, type, constantValue)
         {
-            Label = label ?? throw new System.ArgumentNullException("label");
+            Label = label;
         }
         /// <summary>
         ///  Label that can be the target of branches.
@@ -2309,7 +2309,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         public LabelStatement(ILabelSymbol label, IOperation labeledStatement, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(label, isInvalid, syntax, type, constantValue)
         {
-            LabeledStatement = labeledStatement ?? throw new System.ArgumentNullException("labeledStatement");
+            LabeledStatement = labeledStatement;
         }
         /// <summary>
         /// Statement that has been labeled.
@@ -2342,7 +2342,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         protected LambdaExpressionBase(IMethodSymbol signature, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
                     base(OperationKind.LambdaExpression, isInvalid, syntax, type, constantValue)
         {
-            Signature = signature ?? throw new System.ArgumentNullException("signature");
+            Signature = signature;
         }
         /// <summary>
         /// Signature of the lambda.
@@ -2370,7 +2370,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         public LambdaExpression(IMethodSymbol signature, IBlockStatement body, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(signature, isInvalid, syntax, type, constantValue)
         {
-            Body = body ?? throw new System.ArgumentNullException("body");
+            Body = body;
         }
         /// <summary>
         /// Body of the lambda.
@@ -2403,7 +2403,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         protected LateBoundMemberReferenceExpressionBase(string memberName, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
                     base(OperationKind.LateBoundMemberReferenceExpression, isInvalid, syntax, type, constantValue)
         {
-            MemberName = memberName ?? throw new System.ArgumentNullException("memberName");
+            MemberName = memberName;
         }
         /// <summary>
         /// Instance used to bind the member reference.
@@ -2431,7 +2431,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         public LateBoundMemberReferenceExpression(IOperation instance, string memberName, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(memberName, isInvalid, syntax, type, constantValue)
         {
-            Instance = instance ?? throw new System.ArgumentNullException("instance");
+            Instance = instance;
         }
         /// <summary>
         /// Instance used to bind the member reference.
@@ -2464,7 +2464,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         public LiteralExpression(string text, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(OperationKind.LiteralExpression, isInvalid, syntax, type, constantValue)
         {
-            Text = text ?? throw new System.ArgumentNullException("text");
+            Text = text;
         }
         /// <summary>
         /// Textual representation of the literal.
@@ -2488,7 +2488,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         public LocalReferenceExpression(ILocalSymbol local, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(OperationKind.LocalReferenceExpression, isInvalid, syntax, type, constantValue)
         {
-            Local = local ?? throw new System.ArgumentNullException("local");
+            Local = local;
         }
         /// <summary>
         /// Referenced local variable.
@@ -2539,8 +2539,8 @@ namespace Microsoft.CodeAnalysis.Semantics
         public LockStatement(IOperation lockedObject, IOperation body, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(isInvalid, syntax, type, constantValue)
         {
-            LockedObject = lockedObject ?? throw new System.ArgumentNullException("lockedObject");
-            Body = body ?? throw new System.ArgumentNullException("body");
+            LockedObject = lockedObject;
+            Body = body;
         }
         /// <summary>
         /// Value to be locked.
@@ -2625,9 +2625,9 @@ namespace Microsoft.CodeAnalysis.Semantics
         public MethodBindingExpression(IMethodSymbol method, bool isVirtual, IOperation instance, ISymbol member, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(member, OperationKind.MethodBindingExpression, isInvalid, syntax, type, constantValue)
         {
-            Method = method ?? throw new System.ArgumentNullException("method");
+            Method = method;
             IsVirtual = isVirtual;
-            Instance = instance ?? throw new System.ArgumentNullException("instance");
+            Instance = instance;
         }
         /// <summary>
         /// Referenced method.
@@ -2724,8 +2724,8 @@ namespace Microsoft.CodeAnalysis.Semantics
         public NullCoalescingExpression(IOperation primaryOperand, IOperation secondaryOperand, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(isInvalid, syntax, type, constantValue)
         {
-            PrimaryOperand = primaryOperand ?? throw new System.ArgumentNullException("primaryOperand");
-            SecondaryOperand = secondaryOperand ?? throw new System.ArgumentNullException("secondaryOperand");
+            PrimaryOperand = primaryOperand;
+            SecondaryOperand = secondaryOperand;
         }
         /// <summary>
         /// Value to be unconditionally evaluated.
@@ -2769,7 +2769,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         protected ObjectCreationExpressionBase(IMethodSymbol constructor, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
                     base(OperationKind.ObjectCreationExpression, isInvalid, syntax, type, constantValue)
         {
-            Constructor = constructor ?? throw new System.ArgumentNullException("constructor");
+            Constructor = constructor;
         }
         /// <summary>
         /// Constructor to be invoked on the created instance.
@@ -2877,8 +2877,8 @@ namespace Microsoft.CodeAnalysis.Semantics
         public ParameterInitializer(IParameterSymbol parameter, IOperation value, OperationKind kind, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(kind, isInvalid, syntax, type, constantValue)
         {
-            Parameter = parameter ?? throw new System.ArgumentNullException("parameter");
-            Value = value ?? throw new System.ArgumentNullException("value");
+            Parameter = parameter;
+            Value = value;
         }
         /// <summary>
         /// Initialized parameter.
@@ -2904,7 +2904,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public LazyParameterInitializer(IParameterSymbol parameter, Lazy<IOperation> value, OperationKind kind, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(kind, isInvalid, syntax, type, constantValue)
         {
-            Parameter = parameter ?? throw new System.ArgumentNullException("parameter");
+            Parameter = parameter;
             _lazyValue = value ?? throw new System.ArgumentNullException("value");
         }
         /// <summary>
@@ -2931,7 +2931,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         public ParameterReferenceExpression(IParameterSymbol parameter, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(OperationKind.ParameterReferenceExpression, isInvalid, syntax, type, constantValue)
         {
-            Parameter = parameter ?? throw new System.ArgumentNullException("parameter");
+            Parameter = parameter;
         }
         /// <summary>
         /// Referenced parameter.
@@ -2978,7 +2978,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         public ParenthesizedExpression(IOperation operand, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(isInvalid, syntax, type, constantValue)
         {
-            Operand = operand ?? throw new System.ArgumentNullException("operand");
+            Operand = operand;
         }
         /// <summary>
         /// Operand enclosed in parentheses.
@@ -3054,7 +3054,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         public PointerIndirectionReferenceExpression(IOperation pointer, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(isInvalid, syntax, type, constantValue)
         {
-            Pointer = pointer ?? throw new System.ArgumentNullException("pointer");
+            Pointer = pointer;
         }
         /// <summary>
         /// Pointer to be dereferenced.
@@ -3087,8 +3087,8 @@ namespace Microsoft.CodeAnalysis.Semantics
         public PropertyInitializer(IPropertySymbol initializedProperty, IOperation value, OperationKind kind, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(kind, isInvalid, syntax, type, constantValue)
         {
-            InitializedProperty = initializedProperty ?? throw new System.ArgumentNullException("initializedProperty");
-            Value = value ?? throw new System.ArgumentNullException("value");
+            InitializedProperty = initializedProperty;
+            Value = value;
         }
         /// <summary>
         /// Set method used to initialize the property.
@@ -3114,7 +3114,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public LazyPropertyInitializer(IPropertySymbol initializedProperty, Lazy<IOperation> value, OperationKind kind, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(kind, isInvalid, syntax, type, constantValue)
         {
-            InitializedProperty = initializedProperty ?? throw new System.ArgumentNullException("initializedProperty");
+            InitializedProperty = initializedProperty;
             _lazyValue = value ?? throw new System.ArgumentNullException("value");
         }
         /// <summary>
@@ -3141,7 +3141,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         protected PropertyReferenceExpressionBase(IPropertySymbol property, ISymbol member, OperationKind kind, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(member, kind, isInvalid, syntax, type, constantValue)
         {
-            Property = property ?? throw new System.ArgumentNullException("property");
+            Property = property;
         }
         /// <summary>
         /// Referenced property.
@@ -3157,7 +3157,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         public PropertyReferenceExpression(IPropertySymbol property, IOperation instance, ISymbol member, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(property, member, OperationKind.PropertyReferenceExpression, isInvalid, syntax, type, constantValue)
         {
-            Instance = instance ?? throw new System.ArgumentNullException("instance");
+            Instance = instance;
         }
         /// <summary>
         /// Instance of the type. Null if the reference is to a static/shared member.
@@ -3207,8 +3207,8 @@ namespace Microsoft.CodeAnalysis.Semantics
         public RangeCaseClause(IOperation minimumValue, IOperation maximumValue, CaseKind caseKind, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(caseKind, OperationKind.RangeCaseClause, isInvalid, syntax, type, constantValue)
         {
-            MinimumValue = minimumValue ?? throw new System.ArgumentNullException("minimumValue");
-            MaximumValue = maximumValue ?? throw new System.ArgumentNullException("maximumValue");
+            MinimumValue = minimumValue;
+            MaximumValue = maximumValue;
         }
         /// <summary>
         /// Minimum value of the case range.
@@ -3269,7 +3269,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         public RelationalCaseClause(IOperation value, BinaryOperationKind relation, CaseKind caseKind, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(caseKind, OperationKind.RelationalCaseClause, isInvalid, syntax, type, constantValue)
         {
-            Value = value ?? throw new System.ArgumentNullException("value");
+            Value = value;
             Relation = relation;
         }
         /// <summary>
@@ -3352,7 +3352,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         public ReturnStatement(IOperation returnedValue, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(isInvalid, syntax, type, constantValue)
         {
-            ReturnedValue = returnedValue ?? throw new System.ArgumentNullException("returnedValue");
+            ReturnedValue = returnedValue;
         }
         /// <summary>
         /// Value to be returned.
@@ -3385,7 +3385,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         public SingleValueCaseClause(IOperation value, BinaryOperationKind equality, CaseKind caseKind, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(caseKind, OperationKind.SingleValueCaseClause, isInvalid, syntax, type, constantValue)
         {
-            Value = value ?? throw new System.ArgumentNullException("value");
+            Value = value;
             Equality = equality;
         }
         /// <summary>
@@ -3582,7 +3582,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         public SwitchStatement(IOperation value, ImmutableArray<ISwitchCase> cases, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(isInvalid, syntax, type, constantValue)
         {
-            Value = value ?? throw new System.ArgumentNullException("value");
+            Value = value;
             Cases = cases;
         }
         /// <summary>
@@ -3667,7 +3667,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         public SyntheticLocalReferenceExpression(SyntheticLocalKind syntheticLocalKind, IOperation containingStatement, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(syntheticLocalKind, isInvalid, syntax, type, constantValue)
         {
-            ContainingStatement = containingStatement ?? throw new System.ArgumentNullException("containingStatement");
+            ContainingStatement = containingStatement;
         }
         /// <summary>
         /// Statement defining the lifetime of the synthetic local.
@@ -3723,7 +3723,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         public ThrowStatement(IOperation thrownObject, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(isInvalid, syntax, type, constantValue)
         {
-            ThrownObject = thrownObject ?? throw new System.ArgumentNullException("thrownObject");
+            ThrownObject = thrownObject;
         }
         /// <summary>
         /// Value to be thrown.
@@ -3787,9 +3787,9 @@ namespace Microsoft.CodeAnalysis.Semantics
         public TryStatement(IBlockStatement body, ImmutableArray<ICatchClause> catches, IBlockStatement finallyHandler, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(isInvalid, syntax, type, constantValue)
         {
-            Body = body ?? throw new System.ArgumentNullException("body");
+            Body = body;
             Catches = catches;
-            FinallyHandler = finallyHandler ?? throw new System.ArgumentNullException("finallyHandler");
+            FinallyHandler = finallyHandler;
         }
         /// <summary>
         /// Body of the try, over which the handlers are active.
@@ -3863,7 +3863,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         protected TypeOperationExpression(ITypeSymbol typeOperand, OperationKind kind, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(kind, isInvalid, syntax, type, constantValue)
         {
-            TypeOperand = typeOperand ?? throw new System.ArgumentNullException("typeOperand");
+            TypeOperand = typeOperand;
         }
         /// <summary>
         /// Type operand.
@@ -3937,7 +3937,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         public UnaryOperatorExpression(UnaryOperationKind unaryOperationKind, IOperation operand, bool usesOperatorMethod, IMethodSymbol operatorMethod, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(unaryOperationKind, usesOperatorMethod, operatorMethod, isInvalid, syntax, type, constantValue)
         {
-            Operand = operand ?? throw new System.ArgumentNullException("operand");
+            Operand = operand;
         }
         /// <summary>
         /// Single operand.
@@ -4023,9 +4023,9 @@ namespace Microsoft.CodeAnalysis.Semantics
         public UsingStatement(IOperation body, IVariableDeclarationStatement declaration, IOperation value, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(isInvalid, syntax, type, constantValue)
         {
-            Body = body ?? throw new System.ArgumentNullException("body");
-            Declaration = declaration ?? throw new System.ArgumentNullException("declaration");
-            Value = value ?? throw new System.ArgumentNullException("value");
+            Body = body;
+            Declaration = declaration;
+            Value = value;
         }
         /// <summary>
         /// Body of the using, over which the resources of the using are maintained.
@@ -4205,8 +4205,8 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             IsTopTest = isTopTest;
             IsWhile = isWhile;
-            Condition = condition ?? throw new System.ArgumentNullException("condition");
-            Body = body ?? throw new System.ArgumentNullException("body");
+            Condition = condition;
+            Body = body;
         }
         /// <summary>
         /// True if the loop test executes at the top of the loop; false if the loop test executes at the bottom of the loop.
@@ -4312,8 +4312,8 @@ namespace Microsoft.CodeAnalysis.Semantics
         public WithStatement(IOperation body, IOperation value, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(isInvalid, syntax, type, constantValue)
         {
-            Body = body ?? throw new System.ArgumentNullException("body");
-            Value = value ?? throw new System.ArgumentNullException("value");
+            Body = body;
+            Value = value;
         }
         /// <summary>
         /// Body of the with.
