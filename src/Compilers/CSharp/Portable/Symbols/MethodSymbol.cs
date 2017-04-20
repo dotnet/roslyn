@@ -597,7 +597,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
 
-        internal bool ReturnsAwaitableToVoidOrInt(CSharpCompilation compilation)
+        internal bool ReturnsAwaitableToVoidOrInt(CSharpCompilation compilation, DiagnosticBag diagnostics)
         {
             // Early bail so we only even check things that are System.Threading.Tasks.Task(<T>)
             if (ReturnType is NamedTypeSymbol namedType &&
@@ -612,14 +612,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var syntax = this.ExtractReturnTypeSyntax();
             var binder = compilation.GetBinder(syntax);
             BoundExpression result;
-            var bag = new DiagnosticBag();
-            var success = binder.GetAwaitableExpressionInfo(dumbInstance, out _, out _, out _, out result, syntax, bag, false, false);
+            var success = binder.GetAwaitableExpressionInfo(dumbInstance, out _, out _, out _, out result, syntax, diagnostics);
 
             return
                 success &&
-                bag.IsEmptyWithoutResolution &&
-                (result.Type == compilation.GetSpecialType(SpecialType.System_Void) ||
-                 result.Type == compilation.GetSpecialType(SpecialType.System_Int32));
+                (result.Type.SpecialType == SpecialType.System_Void ||
+                 result.Type.SpecialType == SpecialType.System_Int32);
         }
 
         /// <summary>
@@ -628,7 +626,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// or <see cref="System.Threading.Tasks.Task{T}" /> where T is an int.
         /// - has either no parameter or a single parameter of type string[]
         /// </summary>
-        internal bool HasEntryPointSignature(CSharpCompilation compilation)
+        internal bool HasEntryPointSignature(CSharpCompilation compilation, DiagnosticBag bag)
         {
             if (IsVararg)
             {
@@ -640,7 +638,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (returnType.SpecialType != SpecialType.System_Int32 && returnType.SpecialType != SpecialType.System_Void)
             {
                 // Never look for ReturnsAwaitableToVoidOrInt on int32 or void
-                returnsTaskOrTaskOfInt = ReturnsAwaitableToVoidOrInt(compilation);
+                returnsTaskOrTaskOfInt = ReturnsAwaitableToVoidOrInt(compilation, bag);
                 if (!returnsTaskOrTaskOfInt)
                 {
                     return false;

@@ -1457,7 +1457,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var viableEntryPoints = ArrayBuilder<MethodSymbol>.GetInstance();
                 foreach (var candidate in entryPointCandidates)
                 {
-                    if (!candidate.HasEntryPointSignature(this))
+                    if (!candidate.HasEntryPointSignature(this, diagnostics))
                     {
                         // a single error for partial methods
                         warnings.Add(ErrorCode.WRN_InvalidMainSig, candidate.Locations.First(), candidate);

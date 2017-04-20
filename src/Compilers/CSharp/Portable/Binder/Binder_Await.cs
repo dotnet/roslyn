@@ -216,9 +216,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             out MethodSymbol getResult,
             out BoundExpression getAwaiterGetResultCall,
             SyntaxNode node,
-            DiagnosticBag diagnostics,
-            bool needsGetIsCompletedProperty = true,
-            bool needsAwaiterImplementsINotifyCompletion = true)
+            DiagnosticBag diagnostics)
         {
             getAwaiter = null;
             isCompleted = null;
@@ -242,8 +240,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             TypeSymbol awaiterType = getAwaiter.ReturnType;
-            return (!needsGetIsCompletedProperty || GetIsCompletedProperty(awaiterType, node, expression.Type, diagnostics, out isCompleted))
-                && (!needsAwaiterImplementsINotifyCompletion || AwaiterImplementsINotifyCompletion(awaiterType, node, diagnostics))
+            return GetIsCompletedProperty(awaiterType, node, expression.Type, diagnostics, out isCompleted)
+                && AwaiterImplementsINotifyCompletion(awaiterType, node, diagnostics)
                 && GetGetResultMethod(getAwaiterCall, node, expression.Type, diagnostics, out getResult, out getAwaiterGetResultCall);
         }
 
