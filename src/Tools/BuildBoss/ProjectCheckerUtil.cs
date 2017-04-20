@@ -142,7 +142,8 @@ namespace BuildBoss
             var declaredList = _projectUtil.GetDeclaredProjectReferences();
             allGood &= CheckProjectReferencesComplete(textWriter, declaredList);
             allGood &= CheckUnitTestReferenceRestriction(textWriter, declaredList);
-            allGood &= CheckPortableUnitTestReferencesTestUtilitiesDesktop(textWriter, declaredList);
+            allGood &= CheckPortableUnitTestReferencesTestUtilitiesDesktop(textWriter,
+                _projectUtil.GetDeclaredProjectReferences(withoutRefOutputFalse: false));
             allGood &= CheckTransitiveReferences(textWriter, declaredList);
 
             return allGood;
