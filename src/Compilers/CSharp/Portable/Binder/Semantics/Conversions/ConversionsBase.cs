@@ -634,10 +634,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     impliedExplicitConversion = Conversion.ExplicitReference;
                     break;
                 case ConversionKind.ValueTypeBoxing:
-                    impliedExplicitConversion = Conversion.ValueTypeBoxing;
+                    impliedExplicitConversion = Conversion.ValueTypeUnboxing;
                     break;
                 case ConversionKind.TypeParameterBoxing:
-                    impliedExplicitConversion = Conversion.TypeParameterBoxing;
+                    impliedExplicitConversion = Conversion.TypeParameterUnboxing;
                     break;
                 case ConversionKind.NoConversion:
                     impliedExplicitConversion = Conversion.NoConversion;
