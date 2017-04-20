@@ -271,7 +271,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected virtual void ReportUnassignedOutParameter(ParameterSymbol parameter, SyntaxNode node, Location location)
         {
-            if (!_requireOutParamsAssigned && topLevelMethod == currentMethodOrLambda &&
+            if (!_requireOutParamsAssigned && topLevelMethod == currentMethodOrLambda ||
                 node == null && location == null)
             {
                 return;
