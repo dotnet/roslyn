@@ -239,7 +239,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                         edit.Replace(change.Span.Start, change.Span.Length, change.NewText);
                     }
 
-                    edit.Apply();
+                    edit.ApplyAndCancelOnException();
                 }
             }
 

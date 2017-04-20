@@ -194,6 +194,7 @@
     <Compile Include="Telemetry\RoslynTelemetrySetup.cs" />
     <Compile Include="Telemetry\VSTelemetryCache.cs" />
     <Compile Include="Telemetry\VSTelemetryLogger.cs" />
+    <Compile Include="Utilities\ITextEditExtensions.cs" />
     <Compile Include="Utilities\IVsEditorAdaptersFactoryServiceExtensions.cs" />
     <Compile Include="Utilities\VSCodeAnalysisColors.cs" />
     <Compile Include="Implementation\WorkspaceCacheService.cs" />
