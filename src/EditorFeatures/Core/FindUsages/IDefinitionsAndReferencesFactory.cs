@@ -1,11 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindUsages;
@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
 {
     internal interface IDefinitionsAndReferencesFactory : IWorkspaceService
     {
-        DefinitionsAndReferences CreateDefinitionsAndReferences(
+        Task<DefinitionsAndReferences> CreateDefinitionsAndReferencesAsync(
             Solution solution, IEnumerable<ReferencedSymbol> referencedSymbols,
             bool includeHiddenLocations, CancellationToken cancellationToken);
 
@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
     [ExportWorkspaceService(typeof(IDefinitionsAndReferencesFactory)), Shared]
     internal class DefaultDefinitionsAndReferencesFactory : IDefinitionsAndReferencesFactory
     {
-        public DefinitionsAndReferences CreateDefinitionsAndReferences(
+        public async Task<DefinitionsAndReferences> CreateDefinitionsAndReferencesAsync(
             Solution solution, IEnumerable<ReferencedSymbol> referencedSymbols,
             bool includeHiddenLocations, CancellationToken cancellationToken)
         {
@@ -43,9 +43,9 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             // reference locations.
             foreach (var referencedSymbol in referencedSymbols.OrderBy(GetPrecedence))
             {
-                ProcessReferencedSymbol(
+                await ProcessReferencedSymbolAsync(
                     solution, referencedSymbol, definitions, references,
-                    includeHiddenLocations, uniqueLocations,cancellationToken);
+                    includeHiddenLocations, uniqueLocations, cancellationToken).ConfigureAwait(false);
             }
 
             return new DefinitionsAndReferences(
@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             }
         }
 
-        private void ProcessReferencedSymbol(
+        private async Task ProcessReferencedSymbolAsync(
             Solution solution,
             ReferencedSymbol referencedSymbol,
             ArrayBuilder<DefinitionItem> definitions,
@@ -103,15 +103,15 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                 return;
             }
 
-            var definitionItem = referencedSymbol.Definition.ToDefinitionItem(
-                solution, includeHiddenLocations, uniqueSpans);
+            var definitionItem = await referencedSymbol.Definition.ToDefinitionItemAsync(
+                solution, includeHiddenLocations, cancellationToken, uniqueSpans).ConfigureAwait(false);
             definitions.Add(definitionItem);
 
             // Now, create the SourceReferenceItems for all the reference locations
             // for this definition.
-            CreateReferences(
+            await CreateReferencesAsync(
                 referencedSymbol, references, definitionItem,
-                includeHiddenLocations, uniqueSpans);
+                includeHiddenLocations, uniqueSpans, cancellationToken).ConfigureAwait(false);
 
             // Finally, see if there are any third parties that want to add their
             // own result to our collection.
@@ -133,17 +133,18 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             return null;
         }
 
-        private static void CreateReferences(
+        private static async Task CreateReferencesAsync(
             ReferencedSymbol referencedSymbol,
             ArrayBuilder<SourceReferenceItem> references,
             DefinitionItem definitionItem,
             bool includeHiddenLocations,
-            HashSet<DocumentSpan> uniqueSpans)
+            HashSet<DocumentSpan> uniqueSpans,
+            CancellationToken cancellationToken)
         {
             foreach (var referenceLocation in referencedSymbol.Locations)
             {
-                var sourceReferenceItem = referenceLocation.TryCreateSourceReferenceItem(
-                    definitionItem, includeHiddenLocations);
+                var sourceReferenceItem = await referenceLocation.TryCreateSourceReferenceItemAsync(
+                    definitionItem, includeHiddenLocations, cancellationToken).ConfigureAwait(false);
                 if (sourceReferenceItem == null)
                 {
                     continue;
@@ -159,10 +160,11 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
 
     internal static class DefinitionItemExtensions
     {
-        public static DefinitionItem ToDefinitionItem(
+        public static async Task<DefinitionItem> ToDefinitionItemAsync(
             this ISymbol definition,
             Solution solution,
             bool includeHiddenLocations,
+            CancellationToken cancellationToken,
             HashSet<DocumentSpan> uniqueSpans = null)
         {
             // Ensure we're working with the original definition for the symbol. I.e. When we're 
@@ -206,7 +208,8 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                         var document = solution.GetDocument(location.SourceTree);
                         if (document != null)
                         {
-                            var documentLocation = new DocumentSpan(document, location.SourceSpan);
+                            var documentLocation = await ClassifiedSpansAndHighlightSpan.GetClassifiedDocumentSpanAsync(
+                                document, location.SourceSpan, cancellationToken).ConfigureAwait(false);
                             if (sourceLocations.Count == 0)
                             {
                                 sourceLocations.Add(documentLocation);
@@ -239,10 +242,11 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                 nameDisplayParts, displayIfNoReferences);
         }
 
-        public static SourceReferenceItem TryCreateSourceReferenceItem(
+        public static async Task<SourceReferenceItem> TryCreateSourceReferenceItemAsync(
             this ReferenceLocation referenceLocation,
             DefinitionItem definitionItem,
-            bool includeHiddenLocations)
+            bool includeHiddenLocations,
+            CancellationToken cancellationToken)
         {
             var location = referenceLocation.Location;
 
@@ -253,10 +257,13 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                 return null;
             }
 
-            return new SourceReferenceItem(
-                definitionItem, 
-                new DocumentSpan(referenceLocation.Document, location.SourceSpan),
-                referenceLocation.IsWrittenTo);
+            var document = referenceLocation.Document;
+            var sourceSpan = location.SourceSpan;
+
+            var documentSpan = await ClassifiedSpansAndHighlightSpan.GetClassifiedDocumentSpanAsync(
+                document, sourceSpan, cancellationToken).ConfigureAwait(false);
+
+            return new SourceReferenceItem(definitionItem, documentSpan, referenceLocation.IsWrittenTo);
         }
 
         private static SymbolDisplayFormat GetFormat(ISymbol definition)

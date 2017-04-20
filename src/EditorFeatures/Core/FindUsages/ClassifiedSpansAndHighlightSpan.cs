@@ -13,6 +13,8 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
 {
     internal struct ClassifiedSpansAndHighlightSpan
     {
+        private const string Key = nameof(ClassifiedSpansAndHighlightSpan);
+
         public readonly ImmutableArray<ClassifiedSpan> ClassifiedSpans;
         public readonly TextSpan HighlightSpan;
 
@@ -24,13 +26,24 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             HighlightSpan = highlightSpan;
         }
 
+        public static async Task<DocumentSpan> GetClassifiedDocumentSpanAsync(
+            Document document, TextSpan sourceSpan, CancellationToken cancellationToken)
+        {
+            var classifiedSpans = await ClassifyAsync(
+                document, sourceSpan, cancellationToken).ConfigureAwait(false);
+
+            var properties = ImmutableDictionary<string, object>.Empty.Add(Key, classifiedSpans);
+
+            return new DocumentSpan(document, sourceSpan, properties);
+        }
+
         public static async Task<ClassifiedSpansAndHighlightSpan> ClassifyAsync(
             DocumentSpan documentSpan, CancellationToken cancellationToken)
         {
             // If the document span is providing us with the classified spans up front, then we
             // can just use that.  Otherwise, go back and actually classify the text for the line
             // the document span is on.
-            if (documentSpan.Properties.TryGetValue(nameof(ClassifiedSpansAndHighlightSpan), out var value))
+            if (documentSpan.Properties.TryGetValue(Key, out var value))
             {
                 return (ClassifiedSpansAndHighlightSpan)value;
             }

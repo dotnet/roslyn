@@ -70,7 +70,9 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
 
             var options = project.Solution.Options;
 
-            definitions.Add(symbol.ToDefinitionItem(solution, includeHiddenLocations: true));
+            var definitionItem = symbol.ToDefinitionItemAsync(
+                solution, includeHiddenLocations: true, cancellationToken: cancellationToken).WaitAndGetResult(cancellationToken);
+            definitions.Add(definitionItem);
 
             var presenter = GetFindUsagesPresenter(streamingPresenters);
             var title = string.Format(EditorFeaturesResources._0_declarations,

@@ -7,15 +7,18 @@ using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Editor.FindUsages
 {
     internal abstract partial class AbstractFindUsagesService : IFindUsagesService
     {
-        public async Task FindImplementationsAsync(Document document, int position, IFindUsagesContext context)
+        public async Task FindImplementationsAsync(
+            Document document, int position, IFindUsagesContext context)
         {
+            var cancellationToken = context.CancellationToken;
             var tuple = await FindUsagesHelpers.FindImplementationsAsync(
-                document, position, context.CancellationToken).ConfigureAwait(false);
+                document, position, cancellationToken).ConfigureAwait(false);
             if (tuple == null)
             {
                 context.ReportMessage(EditorFeaturesResources.Cannot_navigate_to_the_symbol_under_the_caret);
@@ -36,8 +39,9 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             var project = tuple.Value.project;
             foreach (var implementation in tuple.Value.implementations)
             {
-                var definitionItem = implementation.ToDefinitionItem(
-                    project.Solution, includeHiddenLocations: false);
+                var definitionItem = await implementation.ToDefinitionItemAsync(
+                    project.Solution, includeHiddenLocations: false,
+                    cancellationToken: cancellationToken).ConfigureAwait(false);
                 await context.OnDefinitionFoundAsync(definitionItem).ConfigureAwait(false);
             }
         }

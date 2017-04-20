@@ -23,10 +23,15 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public ImmutableDictionary<string, object> Properties { get; }
 
+        public DocumentSpan(Document document, TextSpan sourceSpan)
+            : this(document, sourceSpan, properties: null)
+        {
+        }
+
         public DocumentSpan(
             Document document,
             TextSpan sourceSpan,
-            ImmutableDictionary<string, object> properties = null)
+            ImmutableDictionary<string, object> properties)
         {
             Document = document;
             SourceSpan = sourceSpan;
