@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
@@ -595,27 +596,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return IsStatic && Name == WellKnownMemberNames.EntryPointMethodName; }
         }
 
-        internal bool ReturnsTaskOrTaskOfInt(CSharpCompilation compilation)
+
+        internal bool ReturnsAwaitableToVoidOrInt(CSharpCompilation compilation)
         {
-            var namedType = ReturnType as NamedTypeSymbol;
-            if ((object)namedType == null)
+            // Early bail so we only even check things that are System.Threading.Tasks.Task(<T>)
+            if (ReturnType is NamedTypeSymbol namedType &&
+                !(namedType.ConstructedFrom== compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task) ||
+                  namedType.ConstructedFrom == compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T)))
             {
                 return false;
             }
-            else if (namedType.ConstructedFrom == compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task))
-            {
-                // Change this to `namedType.IsNonGenericTaskType` if you want to support "task-like" objects.
-                return true;
-            }
-            else if (namedType.ConstructedFrom == compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T))
-            {
-                // Change this to `namedType.IsGenericTaskType` if you want to support "task-like" objects.
-                return namedType.TypeArguments[0].SpecialType == SpecialType.System_Int32;
-            }
-            else
-            {
-                return false;
-            }
+
+
+            var dumbInstance = new BoundLiteral(CSharpSyntaxTree.Dummy.GetRoot(), ConstantValue.Null, ReturnType);
+            var syntax = this.ExtractReturnTypeSyntax();
+            var binder = compilation.GetBinder(syntax);
+            BoundExpression result;
+            var bag = new DiagnosticBag();
+            var success = binder.GetAwaitableExpressionInfo(dumbInstance, out _, out _, out _, out result, syntax, bag, false, false);
+
+            return 
+                success &&
+                bag.IsEmptyWithoutResolution &&
+                (result.Type == compilation.GetSpecialType(SpecialType.System_Void) ||
+                 result.Type == compilation.GetSpecialType(SpecialType.System_Int32));
         }
 
         /// <summary>
@@ -632,10 +636,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             TypeSymbol returnType = ReturnType;
-            bool returnsTaskOrTaskOfInt = ReturnsTaskOrTaskOfInt(compilation);
-            if (returnType.SpecialType != SpecialType.System_Int32 && returnType.SpecialType != SpecialType.System_Void && !returnsTaskOrTaskOfInt)
+            bool returnsTaskOrTaskOfInt = false;
+            if (returnType.SpecialType != SpecialType.System_Int32 && returnType.SpecialType != SpecialType.System_Void)
             {
-                return false;
+                // Never look for ReturnsAwaitableToVoidOrInt on int32 or void
+                returnsTaskOrTaskOfInt = ReturnsAwaitableToVoidOrInt(compilation);
+                if (!returnsTaskOrTaskOfInt) {
+                    return false;
+                }
             }
 
             // Prior to 7.1, async methods were considered to "have the entrypoint signature".

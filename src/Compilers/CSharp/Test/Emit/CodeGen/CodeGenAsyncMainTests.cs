@@ -30,8 +30,15 @@ static class Program {
     }
 }";
             var sourceCompilation = CreateCompilationWithMscorlib(source,  options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
-            // Prototype: this should be a diagnostic.
-            Assert.Throws<System.Exception>(() => { sourceCompilation.VerifyEmitDiagnostics(); });
+            sourceCompilation.VerifyEmitDiagnostics(
+                // (16,12): warning CS0436: The type 'Task<T>' in '' conflicts with the imported type 'Task<TResult>' in 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'. Using the type defined in ''.
+                //     static Task<int> Main() {
+                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Task<int>").WithArguments("", "System.Threading.Tasks.Task<T>", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "System.Threading.Tasks.Task<TResult>").WithLocation(16, 12),
+                // (16,22): warning CS0028: 'Program.Main()' has the wrong signature to be an entry point
+                //     static Task<int> Main() {
+                Diagnostic(ErrorCode.WRN_InvalidMainSig, "Main").WithArguments("Program.Main()").WithLocation(16, 22),
+                // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
+                Diagnostic(ErrorCode.ERR_NoEntryPoint).WithLocation(1, 1));
         }
 
         [Fact]
@@ -53,15 +60,19 @@ static class Program {
     }
 }";
 
-            // PROTOTYPE(async-main):  make sure that these errors are better.
             var sourceCompilation = CreateCompilationWithMscorlib(source,  options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
-            sourceCompilation.VerifyEmitDiagnostics(
+            sourceCompilation.VerifyDiagnostics(
                 // (12,12): warning CS0436: The type 'Task<T>' in '' conflicts with the imported type 'Task<TResult>' in 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'. Using the type defined in ''.
-                //     Task<int>
+                //     static Task<int> Main() {
                 Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Task<int>").WithArguments("", "System.Threading.Tasks.Task<T>", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "System.Threading.Tasks.Task<TResult>").WithLocation(12, 12),
-                // (12,5): error CS0656: Missing compiler required member 'void.GetResult'
-                //     Task<int>
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"Task<int>").WithArguments("void", "GetResult").WithLocation(12, 12)
+                // (12,22): warning CS0028: 'Program.Main()' has the wrong signature to be an entry point
+                //     static Task<int> Main() {
+                Diagnostic(ErrorCode.WRN_InvalidMainSig, "Main").WithArguments("Program.Main()").WithLocation(12, 22),
+                // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
+                Diagnostic(ErrorCode.ERR_NoEntryPoint),
+                // (2,1): hidden CS8019: Unnecessary using directive.
+                // using System;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System;").WithLocation(2, 1)
 );
         }
         [Fact]
@@ -87,10 +98,13 @@ static class Program {
             sourceCompilation.VerifyEmitDiagnostics(
                 // (12,12): warning CS0436: The type 'Task' in '' conflicts with the imported type 'Task' in 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'. Using the type defined in ''.
                 //     static Task Main() {
-                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Task").WithArguments("", "System.Threading.Tasks.Task", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "System.Threading.Tasks.Task").WithLocation(12, 12),
-                // (12,5): error CS0656: Missing compiler required member 'void.GetResult'
+                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Task").WithArguments("", "System.Threading.Tasks.Task", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "System.Threading.Tasks.Task"),
+                // (12,17): warning CS0028: 'Program.Main()' has the wrong signature to be an entry point
                 //     static Task Main() {
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"Task").WithArguments("void", "GetResult").WithLocation(12, 12));
+                Diagnostic(ErrorCode.WRN_InvalidMainSig, "Main").WithArguments("Program.Main()").WithLocation(12, 17),
+                // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
+                Diagnostic(ErrorCode.ERR_NoEntryPoint).WithLocation(1, 1)
+);
         }
 
         [Fact]
@@ -113,10 +127,12 @@ static class Program {
             sourceCompilation.VerifyEmitDiagnostics(
                 // (10,12): warning CS0436: The type 'Task' in '' conflicts with the imported type 'Task' in 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'. Using the type defined in ''.
                 //     static Task Main() {
-                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Task").WithArguments("", "System.Threading.Tasks.Task", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "System.Threading.Tasks.Task"),
-                // (10,12): error CS0656: Missing compiler required member 'Task.GetAwaiter'
+                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Task").WithArguments("", "System.Threading.Tasks.Task", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "System.Threading.Tasks.Task").WithLocation(10, 12),
+                // (10,17): warning CS0028: 'Program.Main()' has the wrong signature to be an entry point
                 //     static Task Main() {
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "Task").WithArguments("System.Threading.Tasks.Task", "GetAwaiter").WithLocation(10, 12));
+                Diagnostic(ErrorCode.WRN_InvalidMainSig, "Main").WithArguments("Program.Main()").WithLocation(10, 17),
+                // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
+                Diagnostic(ErrorCode.ERR_NoEntryPoint).WithLocation(1, 1));
         }
 
         [Fact]
@@ -148,16 +164,15 @@ static class Program {
             var sourceCompilation = CreateCompilation(source, new[] { corCompilation.ToMetadataReference(), taskCompilation.ToMetadataReference() },  options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
             sourceCompilation.VerifyEmitDiagnostics(
                 // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
-                Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1),
+                Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion),
                 // (6,17): error CS0518: Predefined type 'System.Int32' is not defined or imported
                 //     static Task<int> Main() {
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "int").WithArguments("System.Int32"),
-                // (6,12): error CS0518: Predefined type 'System.Int32' is not defined or imported
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "int").WithArguments("System.Int32").WithLocation(6, 17),
+                // (6,22): warning CS0028: 'Program.Main()' has the wrong signature to be an entry point
                 //     static Task<int> Main() {
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "Task<int>").WithArguments("System.Int32").WithLocation(6, 12),
-                // (6,12): error CS0656: Missing compiler required member 'Task<int>.GetAwaiter'
-                //     static Task<int> Main() {
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "Task<int>").WithArguments("System.Threading.Tasks.Task<int>", "GetAwaiter").WithLocation(6, 12));
+                Diagnostic(ErrorCode.WRN_InvalidMainSig, "Main").WithArguments("Program.Main()").WithLocation(6, 22),
+                // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
+                Diagnostic(ErrorCode.ERR_NoEntryPoint).WithLocation(1, 1));
         }
 
         [Fact]
@@ -189,13 +204,12 @@ static class Program {
             var sourceCompilation = CreateCompilation(source, new[] { corCompilation.ToMetadataReference(), taskCompilation.ToMetadataReference() },  options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
             sourceCompilation.VerifyEmitDiagnostics(
                 // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
-                Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion),
-                // (6,12): error CS0518: Predefined type 'System.Void' is not defined or imported
+                Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1),
+                // (6,17): warning CS0028: 'Program.Main()' has the wrong signature to be an entry point
                 //     static Task Main() {
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "Task").WithArguments("System.Void").WithLocation(6, 12),
-                // (6,12): error CS0656: Missing compiler required member 'Task.GetAwaiter'
-                //     static Task Main() {
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "Task").WithArguments("System.Threading.Tasks.Task", "GetAwaiter").WithLocation(6, 12));
+                Diagnostic(ErrorCode.WRN_InvalidMainSig, "Main").WithArguments("Program.Main()").WithLocation(6, 17),
+                // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
+                Diagnostic(ErrorCode.ERR_NoEntryPoint).WithLocation(1, 1));
         }
 
         [Fact]

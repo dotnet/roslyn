@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal const string FactoryName = "<Factory>";
 
         private readonly NamedTypeSymbol _containingType;
-        private readonly TypeSymbol _returnType;
+        private TypeSymbol _returnType;
 
         internal static SynthesizedEntryPointSymbol Create(SynthesizedInteractiveInitializerMethod initializerMethod, DiagnosticBag diagnostics)
         {
@@ -56,10 +56,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private SynthesizedEntryPointSymbol(NamedTypeSymbol containingType, TypeSymbol returnType)
+        private SynthesizedEntryPointSymbol(NamedTypeSymbol containingType, TypeSymbol returnType = null)
         {
             Debug.Assert((object)containingType != null);
-            Debug.Assert((object)returnType != null);
 
             _containingType = containingType;
             _returnType = returnType;
@@ -340,73 +339,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal sealed class AsyncForwardEntryPoint : SynthesizedEntryPointSymbol
         {
             /// <summary> The user-defined asynchronous main method. </summary>
-            private readonly MethodSymbol _userMain;
+            private readonly CSharpSyntaxNode _userMainReturnTypeSyntax;
 
-            private readonly MethodSymbol _getAwaiterMethod;
-            private readonly MethodSymbol _getResultMethod;
+            private readonly BoundExpression _getAwaiterGetResultCall;
 
             private readonly ImmutableArray<ParameterSymbol> _parameters;
 
-            /// <summary>
-            /// Task -> Void
-            /// Generic Task -> Int32
-            /// </summary>
-            private static TypeSymbol TranslateReturnType(CSharpCompilation compilation, TypeSymbol returnType, DiagnosticBag diagnosticBag, MethodSymbol userMain)
-            {
-                var specialType = returnType.IsGenericTaskType(compilation) ? SpecialType.System_Int32 : SpecialType.System_Void;
-                var syntax = ExtractReturnTypeSyntax(userMain.DeclaringSyntaxReferences);
-                return Binder.GetSpecialType(compilation, specialType, syntax, diagnosticBag);
-            }
-
-            private static SyntaxNode ExtractReturnTypeSyntax(IEnumerable<SyntaxReference> userMainDeclaringReferences) {
-                foreach (var reference in userMainDeclaringReferences)
-                {
-                    var methodDeclaration = reference.GetSyntax() as MethodDeclarationSyntax;
-                    if ((object)methodDeclaration != null)
-                    {
-                        return methodDeclaration.ReturnType;
-                    }
-                }
-                return DummySyntax();
-            }
-
             internal AsyncForwardEntryPoint(CSharpCompilation compilation, DiagnosticBag diagnosticBag, NamedTypeSymbol containingType, MethodSymbol userMain) :
-                base(containingType, TranslateReturnType(compilation, userMain.ReturnType, diagnosticBag, userMain))
+                base(containingType)
             {
                 // There should be no way for a userMain to be passed in unless it already passed the 
                 // parameter checks for determining entrypoint validity.
                 Debug.Assert(userMain.ParameterCount == 0 || userMain.ParameterCount == 1);
 
-                _userMain = userMain;
+                _userMainReturnTypeSyntax = userMain.ExtractReturnTypeSyntax();
+                var binder = compilation.GetBinder(_userMainReturnTypeSyntax);
                 _parameters = SynthesizedParameterSymbol.DeriveParameters(userMain, this);
 
-                var userMainReturnTypeSyntax = ExtractReturnTypeSyntax(userMain.DeclaringSyntaxReferences);
-                _getAwaiterMethod = GetRequiredMethod(_userMain.ReturnType, WellKnownMemberNames.GetAwaiter, diagnosticBag, userMainReturnTypeSyntax.Location);
-                if ((object)_getAwaiterMethod != null)
-                {
-                    _getResultMethod = GetRequiredMethod(_getAwaiterMethod.ReturnType, WellKnownMemberNames.GetResult, diagnosticBag, userMainReturnTypeSyntax.Location);
-                    if ((object)_getResultMethod != null && _getResultMethod.ReturnType != ReturnType)
-                    {
-                        // PROTOTYPE(async-main): This needs a diagnostic
-                        throw new Exception("oh no");
-                    }
-                }
-            }
-
-            public override string Name => MainName;
-
-            public override ImmutableArray<ParameterSymbol> Parameters => _parameters;
-
-            internal override BoundBlock CreateBody()
-            {
-                var syntax = DummySyntax();
-                var arguments = Parameters.SelectAsArray(p => (BoundExpression)new BoundParameter(syntax, p, p.Type));
+                var arguments = Parameters.SelectAsArray(p => (BoundExpression)new BoundParameter(_userMainReturnTypeSyntax, p, p.Type));
 
                 // Main(args) or Main()
                 BoundCall userMainInvocation = new BoundCall(
-                        syntax: syntax,
+                        syntax: _userMainReturnTypeSyntax,
                         receiverOpt: null,
-                        method: _userMain,
+                        method: userMain,
                         arguments: arguments,
                         argumentNamesOpt: default(ImmutableArray<string>),
                         argumentRefKindsOpt: default(ImmutableArray<RefKind>),
@@ -415,20 +371,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         invokedAsExtensionMethod: false,
                         argsToParamsOpt: default(ImmutableArray<int>),
                         resultKind: LookupResultKind.Viable,
-                        type: _userMain.ReturnType)
+                        type: userMain.ReturnType)
                 { WasCompilerGenerated = true };
 
-                // GetAwaiter().GetResult()
-                BoundCall getAwaiterGetResult =
-                    CreateParameterlessCall(
-                            syntax: syntax,
-                            method: _getResultMethod,
-                            receiver: CreateParameterlessCall(
-                                syntax: syntax,
-                                method: _getAwaiterMethod,
-                                receiver: userMainInvocation
-                            )
-                    );
+                var success = binder.GetAwaitableExpressionInfo(userMainInvocation, out _, out _, out _, out _getAwaiterGetResultCall, _userMainReturnTypeSyntax, diagnosticBag, false, false);
+                _returnType = _getAwaiterGetResultCall.Type;
+
+#if Debug
+                var systemVoid = compilation.GetSpecialType(SpecialType.System_Void);
+                var systemInt = compilation.GetSpecialType(SpecialType.System_Int32);
+                Debug.Assert(ReturnType == systemVoid || ReturnType -= systemInt));
+#endif
+            }
+
+            public override string Name => MainName;
+
+            public override ImmutableArray<ParameterSymbol> Parameters => _parameters;
+
+            internal override BoundBlock CreateBody()
+            {
+                var syntax = _userMainReturnTypeSyntax;
+
 
                 if (ReturnsVoid)
                 {
@@ -438,7 +401,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         statements: ImmutableArray.Create<BoundStatement>(
                             new BoundExpressionStatement(
                                 syntax: syntax,
-                                expression: getAwaiterGetResult
+                                expression: _getAwaiterGetResultCall
                             )
                             { WasCompilerGenerated = true },
                             new BoundReturnStatement(
@@ -461,7 +424,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             new BoundReturnStatement(
                                 syntax: syntax,
                                 refKind: RefKind.None,
-                                expressionOpt: getAwaiterGetResult
+                                expressionOpt: _getAwaiterGetResultCall
                             )
                         )
                     )

@@ -5,6 +5,7 @@ using Roslyn.Utilities;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -299,6 +300,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             return method.IsAsync
                 && method.ReturnType.IsGenericTaskType(compilation);
+        }
+
+        internal static CSharpSyntaxNode ExtractReturnTypeSyntax(this MethodSymbol method) {
+            foreach (var reference in method.DeclaringSyntaxReferences)
+            {
+                var methodDeclaration = reference.GetSyntax() as MethodDeclarationSyntax;
+                if ((object)methodDeclaration != null)
+                {
+                    return methodDeclaration.ReturnType;
+                }
+            }
+            return CSharpSyntaxTree.Dummy.GetRoot() as CSharpSyntaxNode;
         }
     }
 }

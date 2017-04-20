@@ -209,14 +209,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Finds and validates the required members of an awaitable expression, as described in spec 7.7.7.1.
         /// </summary>
         /// <returns>True if the expression is awaitable; false otherwise.</returns>
-        private bool GetAwaitableExpressionInfo(
+        internal bool GetAwaitableExpressionInfo(
             BoundExpression expression,
             out MethodSymbol getAwaiter,
             out PropertySymbol isCompleted,
             out MethodSymbol getResult,
             out BoundExpression getAwaiterGetResultCall,
             SyntaxNode node,
-            DiagnosticBag diagnostics)
+            DiagnosticBag diagnostics,
+            bool needsGetIsCompletedProperty = true,
+            bool needsAwaiterImplementsINotifyCompletion = true)
         {
             getAwaiter = null;
             isCompleted = null;
@@ -240,8 +242,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             TypeSymbol awaiterType = getAwaiter.ReturnType;
-            return GetIsCompletedProperty(awaiterType, node, expression.Type, diagnostics, out isCompleted)
-                && AwaiterImplementsINotifyCompletion(awaiterType, node, diagnostics)
+            return (!needsGetIsCompletedProperty || GetIsCompletedProperty(awaiterType, node, expression.Type, diagnostics, out isCompleted))
+                && (!needsAwaiterImplementsINotifyCompletion || AwaiterImplementsINotifyCompletion(awaiterType, node, diagnostics))
                 && GetGetResultMethod(getAwaiterCall, node, expression.Type, diagnostics, out getResult, out getAwaiterGetResultCall);
         }
 

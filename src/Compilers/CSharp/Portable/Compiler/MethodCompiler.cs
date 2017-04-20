@@ -206,7 +206,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // entryPoint can be a SynthesizedEntryPointSymbol if a script is being compiled.
             SynthesizedEntryPointSymbol synthesizedEntryPoint = entryPoint as SynthesizedEntryPointSymbol;
-            if ((object)synthesizedEntryPoint == null && entryPoint.ReturnsTaskOrTaskOfInt(compilation))
+            if ((object)synthesizedEntryPoint == null && entryPoint.ReturnsAwaitableToVoidOrInt(compilation))
             {
                 synthesizedEntryPoint = new SynthesizedEntryPointSymbol.AsyncForwardEntryPoint(compilation, diagnostics, entryPoint.ContainingType, entryPoint);
                 entryPoint = synthesizedEntryPoint;
