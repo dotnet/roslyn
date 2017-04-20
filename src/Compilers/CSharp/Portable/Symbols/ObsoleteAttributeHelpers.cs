@@ -7,6 +7,15 @@ using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
+    internal enum ObsoleteDiagnosticKind
+    {
+        NotObsolete,
+        Suppressed,
+        Diagnostic,
+        Lazy,
+        LazyPotentiallySuppressed,
+    }
+
     internal static class ObsoleteAttributeHelpers
     {
         /// <summary>
@@ -39,9 +48,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// This method checks to see if the given symbol is Obsolete or if any symbol in the parent hierarchy is Obsolete.
         /// </summary>
         /// <returns>
-        /// Uninitialized if attributes have not been cracked yet.
+        /// True if some symbol in the parent hierarchy is known to be Obsolete. Unknown if any
+        /// symbol's Obsoleteness is Unknown. False, if we are certain that no symbol in the parent
+        /// hierarchy is Obsolete.
         /// </returns>
-        internal static ObsoleteAttributeKind GetObsoleteContextKind(this Symbol symbol, bool forceComplete = false)
+        internal static ThreeState GetObsoleteContextState(this Symbol symbol, bool forceComplete = false)
         {
             while ((object)symbol != null)
             {
@@ -65,16 +76,47 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     symbol.ForceCompleteObsoleteAttribute();
                 }
 
-                var kind = symbol.ObsoleteKind;
-                if (kind != ObsoleteAttributeKind.None)
+                var state = symbol.ObsoleteState;
+                if (state != ThreeState.False)
                 {
-                    return kind;
+                    return state;
                 }
 
                 symbol = symbol.ContainingSymbol;
             }
 
-            return ObsoleteAttributeKind.None;
+            return ThreeState.False;
+        }
+
+        internal static ObsoleteDiagnosticKind GetObsoleteDiagnosticKind(Symbol symbol, Symbol containingMember)
+        {
+            switch (symbol.ObsoleteKind)
+            {
+                case ObsoleteAttributeKind.None:
+                    return ObsoleteDiagnosticKind.NotObsolete;
+                case ObsoleteAttributeKind.Experimental:
+                    return ObsoleteDiagnosticKind.Diagnostic;
+                case ObsoleteAttributeKind.Uninitialized:
+                    // If we haven't cracked attributes on the symbol at all or we haven't
+                    // cracked attribute arguments enough to be able to report diagnostics for
+                    // ObsoleteAttribute, store the symbol so that we can report diagnostics at a 
+                    // later stage.
+                    return ObsoleteDiagnosticKind.Lazy;
+            }
+
+            switch (containingMember.GetObsoleteContextState())
+            {
+                case ThreeState.False:
+                    return ObsoleteDiagnosticKind.Diagnostic;
+                case ThreeState.True:
+                    // If we are in a context that is already obsolete, there is no point reporting
+                    // more obsolete diagnostics.
+                    return ObsoleteDiagnosticKind.Suppressed;
+                default:
+                    // If the context is unknown, then store the symbol so that we can do this check at a
+                    // later stage
+                    return ObsoleteDiagnosticKind.LazyPotentiallySuppressed;
+            }
         }
 
         /// <summary>

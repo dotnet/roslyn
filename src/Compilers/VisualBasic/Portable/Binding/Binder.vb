@@ -892,38 +892,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Friend Shared Sub ReportDiagnosticsIfObsolete(diagnostics As DiagnosticBag, context As Symbol, symbol As Symbol, node As SyntaxNode)
-            Debug.Assert(context IsNot Nothing)
-            Debug.Assert(symbol IsNot Nothing)
+            Dim kind = ObsoleteAttributeHelpers.GetObsoleteDiagnosticKind(context, symbol)
 
-            Dim kind = symbol.ObsoleteKind
+            Dim info As DiagnosticInfo = Nothing
             Select Case kind
-                Case ObsoleteAttributeKind.None
-                    Return
-                Case ObsoleteAttributeKind.Uninitialized
-                    ' If we haven't cracked attributes on the symbol at all or we haven't
-                    ' cracked attribute arguments enough to be able to report diagnostics for
-                    ' ObsoleteAttribute, store the symbol so that we can report diagnostics at a 
-                    ' later stage.
-                    diagnostics.Add(New LazyObsoleteDiagnosticInfo(symbol, context), node.GetLocation())
-                    Return
+                Case ObsoleteDiagnosticKind.Diagnostic
+                    info = ObsoleteAttributeHelpers.CreateObsoleteDiagnostic(symbol)
+                Case ObsoleteDiagnosticKind.Lazy, ObsoleteDiagnosticKind.LazyPotentiallySuppressed
+                    info = New LazyObsoleteDiagnosticInfo(symbol, context)
             End Select
 
-            kind = ObsoleteAttributeHelpers.GetObsoleteContextKind(context)
-            Select Case kind
-                Case ObsoleteAttributeKind.None, ObsoleteAttributeKind.Experimental
-                    ' We have all the information we need to report diagnostics right now. So do it.
-                    Dim info = ObsoleteAttributeHelpers.CreateObsoleteDiagnostic(symbol)
-                    If info IsNot Nothing Then
-                        diagnostics.Add(info, node.GetLocation())
-                    End If
-                Case ObsoleteAttributeKind.Uninitialized
-                    ' If the context is unknown, then store the symbol so that we can do this check at a
-                    ' later stage
-                    diagnostics.Add(New LazyObsoleteDiagnosticInfo(symbol, context), node.GetLocation())
-                Case Else
-                    ' If we are in a context that is already obsolete, there is no point reporting
-                    ' more obsolete diagnostics.
-            End Select
+            If info IsNot Nothing Then
+                diagnostics.Add(info, node.GetLocation())
+            End If
         End Sub
 
         Friend Overridable ReadOnly Property SuppressObsoleteDiagnostics As Boolean

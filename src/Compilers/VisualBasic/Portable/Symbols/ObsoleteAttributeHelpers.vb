@@ -7,6 +7,14 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
+    Friend Enum ObsoleteDiagnosticKind
+        NotObsolete
+        Suppressed
+        Diagnostic
+        Lazy
+        LazyPotentiallySuppressed
+    End Enum
+
     Friend NotInheritable Class ObsoleteAttributeHelpers
 
         ''' <summary>
@@ -32,9 +40,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' This method checks to see if the given symbol is Obsolete or if any symbol in the parent hierarchy is Obsolete.
         ''' </summary>
         ''' <returns>
-        ''' Uninitialized if attributes have not been cracked yet.
+        ''' True if some symbol in the parent hierarchy is known to be Obsolete. Unknown if any
+        ''' symbol's Obsoleteness is Unknown. False, if we are certain that no symbol in the parent
+        ''' hierarchy is Obsolete.
         ''' </returns>
-        Friend Shared Function GetObsoleteContextKind(symbol As Symbol, Optional forceComplete As Boolean = False) As ObsoleteAttributeKind
+        Friend Shared Function GetObsoleteContextState(symbol As Symbol, Optional forceComplete As Boolean = False) As ThreeState
             While symbol IsNot Nothing
                 ' For property or event accessors, check the associated property or event instead.
                 If symbol.IsAccessor() Then
@@ -45,15 +55,46 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     symbol.ForceCompleteObsoleteAttribute()
                 End If
 
-                Dim kind = symbol.ObsoleteKind
-                If kind <> ObsoleteAttributeKind.None Then
-                    Return kind
+                Dim state = symbol.ObsoleteState
+                If state <> ThreeState.False Then
+                    Return state
                 End If
 
                 symbol = symbol.ContainingSymbol
             End While
 
-            Return ObsoleteAttributeKind.None
+            Return ThreeState.False
+        End Function
+
+        Friend Shared Function GetObsoleteDiagnosticKind(context As Symbol, symbol As Symbol) As ObsoleteDiagnosticKind
+            Debug.Assert(context IsNot Nothing)
+            Debug.Assert(symbol IsNot Nothing)
+
+            Select Case symbol.ObsoleteKind
+                Case ObsoleteAttributeKind.None
+                    Return ObsoleteDiagnosticKind.NotObsolete
+                Case ObsoleteAttributeKind.Experimental
+                    Return ObsoleteDiagnosticKind.Diagnostic
+                Case ObsoleteAttributeKind.Uninitialized
+                    ' If we haven't cracked attributes on the symbol at all or we haven't
+                    ' cracked attribute arguments enough to be able to report diagnostics for
+                    ' ObsoleteAttribute, store the symbol so that we can report diagnostics at a 
+                    ' later stage.
+                    Return ObsoleteDiagnosticKind.Lazy
+            End Select
+
+            Select Case ObsoleteAttributeHelpers.GetObsoleteContextState(context)
+                Case ThreeState.False
+                    Return ObsoleteDiagnosticKind.Diagnostic
+                Case ThreeState.True
+                    ' If we are in a context that is already obsolete, there is no point reporting
+                    ' more obsolete diagnostics.
+                    Return ObsoleteDiagnosticKind.Suppressed
+                Case Else
+                    ' If the context is unknown, then store the symbol so that we can do this check at a
+                    ' later stage
+                    Return ObsoleteDiagnosticKind.LazyPotentiallySuppressed
+            End Select
         End Function
 
         ''' <summary>

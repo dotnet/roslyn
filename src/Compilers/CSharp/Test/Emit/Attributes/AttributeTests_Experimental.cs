@@ -279,6 +279,33 @@ class C
                 Diagnostic(ErrorCode.WRN_Experimental, "A.B").WithArguments("A.B").WithLocation(27, 14));
         }
 
+        [Fact]
+        public void TestObsoleteMembersInExperimentalTypeInObsoleteType()
+        {
+            var source =
+@"using System;
+using Windows.Foundation.Metadata;
+class A
+{
+    [Obsolete("""", false)]
+    internal void F() { }
+}
+[Obsolete("""", false)]
+class B
+{
+    [Experimental]
+    class C
+    {
+        static void G(A a)
+        {
+            a.F();
+        }
+    }
+}";
+            var comp = CreateCompilationWithMscorlibAndSystemCore(new[] { Parse(DeprecatedAttributeSource), Parse(ExperimentalAttributeSource), Parse(source) });
+            comp.VerifyDiagnostics();
+        }
+
         // Diagnostics for [Experimental] types
         // are not suppressed in [Obsolete] members.
         [Fact]
@@ -287,21 +314,154 @@ class C
             var source =
 @"using System;
 using Windows.Foundation.Metadata;
+[Experimental] class A { }
+[Experimental] class B { }
+class C
+{
+    static object FA() => new A();
+    [Obsolete("""", false)]
+    static object FB() => new B();
+}";
+            var comp = CreateCompilationWithMscorlibAndSystemCore(new[] { Parse(ExperimentalAttributeSource), Parse(source) });
+            comp.VerifyDiagnostics(
+                // (7,31): warning CS8305: 'A' is for evaluation purposes only and is subject to change or removal in future updates.
+                //     static object FA() => new A();
+                Diagnostic(ErrorCode.WRN_Experimental, "A").WithArguments("A"),
+                // (9,31): warning CS8305: 'B' is for evaluation purposes only and is subject to change or removal in future updates.
+                //     static object FB() => new B();
+                Diagnostic(ErrorCode.WRN_Experimental, "B").WithArguments("B").WithLocation(9, 31));
+        }
+
+        [Fact]
+        public void TestExperimentalTypeWithAttributeMarkedObsolete()
+        {
+            var source =
+@"using System;
+using Windows.Foundation.Metadata;
+[Obsolete]
+class MyAttribute : Attribute
+{
+}
 [Experimental]
+[MyAttribute]
 class A
 {
 }
 class B
 {
-    static object F0() => new A();
-    [Obsolete("""", false)]
-    static object F1() => new A();
+    A F() => null;
 }";
             var comp = CreateCompilationWithMscorlibAndSystemCore(new[] { Parse(ExperimentalAttributeSource), Parse(source) });
             comp.VerifyDiagnostics(
-                // (9,31): warning CS8305: 'A' is for evaluation purposes only and is subject to change or removal in future updates.
-                //     static object F0() => new A();
-                Diagnostic(ErrorCode.WRN_Experimental, "A").WithArguments("A").WithLocation(9, 31));
+                // (8,2): warning CS0612: 'MyAttribute' is obsolete
+                // [MyAttribute]
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "MyAttribute").WithArguments("MyAttribute"),
+                // (14,5): warning CS8305: 'A' is for evaluation purposes only and is subject to change or removal in future updates.
+                //     A F() => null;
+                Diagnostic(ErrorCode.WRN_Experimental, "A").WithArguments("A").WithLocation(14, 5));
+        }
+
+        [Fact]
+        public void TestObsoleteTypeWithAttributeMarkedExperimental()
+        {
+            var source =
+@"using System;
+using Windows.Foundation.Metadata;
+[Experimental]
+class MyAttribute : Attribute
+{
+}
+[Obsolete]
+[MyAttribute]
+class A
+{
+}
+class B
+{
+    A F() => null;
+}";
+            var comp = CreateCompilationWithMscorlibAndSystemCore(new[] { Parse(ExperimentalAttributeSource), Parse(source) });
+            comp.VerifyDiagnostics(
+                // (8,2): warning CS8305: 'MyAttribute' is for evaluation purposes only and is subject to change or removal in future updates.
+                // [MyAttribute]
+                Diagnostic(ErrorCode.WRN_Experimental, "MyAttribute").WithArguments("MyAttribute").WithLocation(8, 2),
+                // (14,5): warning CS0612: 'A' is obsolete
+                //     A F() => null;
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "A").WithArguments("A").WithLocation(14, 5));
+        }
+
+        [Fact]
+        public void TestAttributesMarkedExperimentalAndObsolete()
+        {
+            var source =
+@"using System;
+using Windows.Foundation.Metadata;
+[Experimental]
+[B]
+class AAttribute : Attribute
+{
+}
+[Obsolete]
+[A]
+class BAttribute : Attribute
+{
+}
+[A]
+[B]
+class C
+{
+}";
+            var comp = CreateCompilationWithMscorlibAndSystemCore(new[] { Parse(ExperimentalAttributeSource), Parse(source) });
+            comp.VerifyDiagnostics(
+                // (9,2): warning CS8305: 'AAttribute' is for evaluation purposes only and is subject to change or removal in future updates.
+                // [A]
+                Diagnostic(ErrorCode.WRN_Experimental, "A").WithArguments("AAttribute").WithLocation(9, 2),
+                // (4,2): warning CS0612: 'BAttribute' is obsolete
+                // [B]
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "B").WithArguments("BAttribute").WithLocation(4, 2),
+                // (13,2): warning CS8305: 'AAttribute' is for evaluation purposes only and is subject to change or removal in future updates.
+                // [A]
+                Diagnostic(ErrorCode.WRN_Experimental, "A").WithArguments("AAttribute").WithLocation(13, 2),
+                // (14,2): warning CS0612: 'BAttribute' is obsolete
+                // [B]
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "B").WithArguments("BAttribute").WithLocation(14, 2));
+        }
+
+        [Fact]
+        public void TestAttributesMarkedExperimentalAndObsolete2()
+        {
+            var source =
+@"using System;
+using Windows.Foundation.Metadata;
+[Obsolete]
+[B]
+class AAttribute : Attribute
+{
+}
+[Experimental]
+[A]
+class BAttribute : Attribute
+{
+}
+[A]
+[B]
+class C
+{
+}";
+            var comp = CreateCompilationWithMscorlibAndSystemCore(new[] { Parse(ExperimentalAttributeSource), Parse(source) });
+            comp.VerifyDiagnostics(
+                // (9,2): warning CS0612: 'AAttribute' is obsolete
+                // [A]
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "A").WithArguments("AAttribute").WithLocation(9, 2),
+                // (4,2): warning CS8305: 'BAttribute' is for evaluation purposes only and is subject to change or removal in future updates.
+                // [B]
+                Diagnostic(ErrorCode.WRN_Experimental, "B").WithArguments("BAttribute").WithLocation(4, 2),
+                // (13,2): warning CS0612: 'AAttribute' is obsolete
+                // [A]
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "A").WithArguments("AAttribute").WithLocation(13, 2),
+                // (14,2): warning CS8305: 'BAttribute' is for evaluation purposes only and is subject to change or removal in future updates.
+                // [B]
+                Diagnostic(ErrorCode.WRN_Experimental, "B").WithArguments("BAttribute").WithLocation(14, 2));
         }
 
         // Combinations of attributes.

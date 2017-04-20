@@ -46,9 +46,7 @@ End Namespace
 
         <Fact()>
         Public Sub TestExperimentalAttribute()
-            Dim comp0 = CreateCompilationWithMscorlib(DeprecatedAndExperimentalAttributeSource)
-            comp0.AssertNoDiagnostics()
-            Dim ref0 = comp0.EmitToImageReference()
+            Dim ref0 = CreateDeprecatedAndExperimentalAttributeReference()
 
             Dim source1 =
 <compilation>
@@ -212,10 +210,7 @@ End Class
 
         <Fact()>
         Public Sub TestExperimentalTypeWithDeprecatedAndObsoleteMembers()
-            Dim comp0 = CreateCompilationWithMscorlib(DeprecatedAndExperimentalAttributeSource)
-            comp0.AssertNoDiagnostics()
-            Dim ref0 = comp0.EmitToImageReference()
-
+            Dim ref0 = CreateDeprecatedAndExperimentalAttributeReference()
             Dim source =
 <compilation>
     <file><![CDATA[
@@ -284,10 +279,7 @@ BC42380: 'A.B' is for evaluation purposes only and is subject to change or remov
         ' are not suppressed in <Experimental> types.
         <Fact()>
         Public Sub TestObsoleteMembersInExperimentalType()
-            Dim comp0 = CreateCompilationWithMscorlib(DeprecatedAndExperimentalAttributeSource)
-            comp0.AssertNoDiagnostics()
-            Dim ref0 = comp0.EmitToImageReference()
-
+            Dim ref0 = CreateDeprecatedAndExperimentalAttributeReference()
             Dim source =
 <compilation>
     <file><![CDATA[
@@ -346,14 +338,40 @@ BC42380: 'A.B' is for evaluation purposes only and is subject to change or remov
      </errors>)
         End Sub
 
+        <Fact()>
+        Public Sub TestObsoleteMembersInExperimentalTypeInObsoleteType()
+            Dim ref0 = CreateDeprecatedAndExperimentalAttributeReference()
+            Dim source =
+<compilation>
+    <file><![CDATA[
+Imports System
+Imports Windows.Foundation.Metadata
+Class A
+    <Obsolete("", False)>
+    Friend Sub F()
+    End Sub
+End Class
+<Obsolete("", False)>
+Class B
+    <Experimental>
+    Class C
+        Shared Sub G(a As A)
+            a.F()
+        End Sub
+    End Class
+End Class
+]]>
+    </file>
+</compilation>
+            Dim comp = CreateCompilationWithMscorlib(source, references:={ref0})
+            comp.AssertTheseDiagnostics(<errors/>)
+        End Sub
+
         ' Diagnostics for <Experimental> types
         ' are not suppressed in <Obsolete> members.
         <Fact()>
         Public Sub TestExperimentalTypeInObsoleteMember()
-            Dim comp0 = CreateCompilationWithMscorlib(DeprecatedAndExperimentalAttributeSource)
-            comp0.AssertNoDiagnostics()
-            Dim ref0 = comp0.EmitToImageReference()
-
+            Dim ref0 = CreateDeprecatedAndExperimentalAttributeReference()
             Dim source =
 <compilation>
     <file><![CDATA[
@@ -362,13 +380,16 @@ Imports Windows.Foundation.Metadata
 <Experimental>
 Class A
 End Class
+<Experimental>
+Class B
+End Class
 Class C
-    Shared Function F0() As Object
-        Return If(New A(), 0)
+    Shared Function FA() As Object
+        Return New A()
     End Function
     <Obsolete("", False)>
-    Shared Function F1() As Object
-        Return If(New A(), 1)
+    Shared Function FB() As Object
+        Return New B()
     End Function
 End Class
 ]]>
@@ -377,17 +398,166 @@ End Class
             Dim comp = CreateCompilationWithMscorlib(source, references:={ref0})
             comp.AssertTheseDiagnostics(<errors>
 BC42380: 'A' is for evaluation purposes only and is subject to change or removal in future updates.
-        Return If(New A(), 0)
-                      ~
+        Return New A()
+                   ~
+BC42380: 'B' is for evaluation purposes only and is subject to change or removal in future updates.
+        Return New B()
+                   ~
      </errors>)
+        End Sub
+
+        <Fact()>
+        Public Sub TestExperimentalTypeWithAttributeMarkedObsolete()
+            Dim ref0 = CreateDeprecatedAndExperimentalAttributeReference()
+            Dim source =
+<compilation>
+    <file><![CDATA[
+Imports System
+Imports Windows.Foundation.Metadata
+<Obsolete>
+Class MyAttribute
+    Inherits Attribute
+End Class
+<Experimental>
+<MyAttribute>
+Class A
+End Class
+Class B
+    Function F() As A
+        Return Nothing
+    End Function
+End Class
+]]>
+    </file>
+</compilation>
+            Dim comp = CreateCompilationWithMscorlib(source, references:={ref0})
+            comp.AssertTheseDiagnostics(<errors><![CDATA[
+BC40008: 'MyAttribute' is obsolete.
+<MyAttribute>
+ ~~~~~~~~~~~
+BC42380: 'A' is for evaluation purposes only and is subject to change or removal in future updates.
+    Function F() As A
+                    ~
+]]></errors>)
+        End Sub
+
+        <Fact()>
+        Public Sub TestObsoleteTypeWithAttributeMarkedExperimental()
+            Dim ref0 = CreateDeprecatedAndExperimentalAttributeReference()
+            Dim source =
+<compilation>
+    <file><![CDATA[
+Imports System
+Imports Windows.Foundation.Metadata
+<Experimental>
+Class MyAttribute
+    Inherits Attribute
+End Class
+<Obsolete>
+<MyAttribute>
+Class A
+End Class
+Class B
+    Function F() As A
+        Return Nothing
+    End Function
+End Class
+]]>
+    </file>
+</compilation>
+            Dim comp = CreateCompilationWithMscorlib(source, references:={ref0})
+            comp.AssertTheseDiagnostics(<errors><![CDATA[
+BC42380: 'MyAttribute' is for evaluation purposes only and is subject to change or removal in future updates.
+<MyAttribute>
+ ~~~~~~~~~~~
+BC40008: 'A' is obsolete.
+    Function F() As A
+                    ~
+]]></errors>)
+        End Sub
+
+        <Fact()>
+        Public Sub TestAttributesMarkedExperimentalAndObsolete()
+            Dim ref0 = CreateDeprecatedAndExperimentalAttributeReference()
+            Dim source =
+<compilation>
+    <file><![CDATA[
+Imports System
+Imports Windows.Foundation.Metadata
+<Experimental><B>
+Class AAttribute
+    Inherits Attribute
+End Class
+<Obsolete><A>
+Class BAttribute
+    Inherits Attribute
+End Class
+<A><B>
+Class C
+End Class
+]]>
+    </file>
+</compilation>
+            Dim comp = CreateCompilationWithMscorlib(source, references:={ref0})
+            comp.AssertTheseDiagnostics(<errors><![CDATA[
+BC40008: 'BAttribute' is obsolete.
+<Experimental><B>
+               ~
+BC42380: 'AAttribute' is for evaluation purposes only and is subject to change or removal in future updates.
+<Obsolete><A>
+           ~
+BC42380: 'AAttribute' is for evaluation purposes only and is subject to change or removal in future updates.
+<A><B>
+ ~
+BC40008: 'BAttribute' is obsolete.
+<A><B>
+    ~
+]]></errors>)
+        End Sub
+
+        <Fact()>
+        Public Sub TestAttributesMarkedExperimentalAndObsolete2()
+            Dim ref0 = CreateDeprecatedAndExperimentalAttributeReference()
+            Dim source =
+<compilation>
+    <file><![CDATA[
+Imports System
+Imports Windows.Foundation.Metadata
+<Obsolete><B>
+Class AAttribute
+    Inherits Attribute
+End Class
+<Experimental><A>
+Class BAttribute
+    Inherits Attribute
+End Class
+<A><B>
+Class C
+End Class
+]]>
+    </file>
+</compilation>
+            Dim comp = CreateCompilationWithMscorlib(source, references:={ref0})
+            comp.AssertTheseDiagnostics(<errors><![CDATA[
+BC42380: 'BAttribute' is for evaluation purposes only and is subject to change or removal in future updates.
+<Obsolete><B>
+           ~
+BC40008: 'AAttribute' is obsolete.
+<Experimental><A>
+               ~
+BC40008: 'AAttribute' is obsolete.
+<A><B>
+ ~
+BC42380: 'BAttribute' is for evaluation purposes only and is subject to change or removal in future updates.
+<A><B>
+    ~
+]]></errors>)
         End Sub
 
         ' Combinations of attributes.
         <Fact()>
         Public Sub TestDeprecatedAndExperimentalAndObsoleteAttributes()
-            Dim comp0 = CreateCompilationWithMscorlib(DeprecatedAndExperimentalAttributeSource)
-            comp0.AssertNoDiagnostics()
-            Dim ref0 = comp0.EmitToImageReference()
+            Dim ref0 = CreateDeprecatedAndExperimentalAttributeReference()
 
             Dim source1 =
 <compilation>
@@ -493,6 +663,12 @@ BC30668: 'CP' is obsolete: 'DP'.
               ~~
      </errors>)
         End Sub
+
+        Private Shared Function CreateDeprecatedAndExperimentalAttributeReference() As MetadataReference
+            Dim comp = CreateCompilationWithMscorlib(DeprecatedAndExperimentalAttributeSource)
+            comp.AssertNoDiagnostics()
+            Return comp.EmitToImageReference()
+        End Function
 
     End Class
 

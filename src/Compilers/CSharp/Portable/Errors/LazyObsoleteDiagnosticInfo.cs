@@ -31,25 +31,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // from a different compilation's source. In that case, force completion of attributes.
                 _symbol.ForceCompleteObsoleteAttribute();
 
-                if (_symbol.ObsoleteState == ThreeState.True)
-                {
-                    var kind = _containingSymbol.GetObsoleteContextKind(forceComplete: true);
-                    Debug.Assert(kind != ObsoleteAttributeKind.Uninitialized);
+                var kind = ObsoleteAttributeHelpers.GetObsoleteDiagnosticKind(_symbol, _containingSymbol);
+                Debug.Assert(kind != ObsoleteDiagnosticKind.Lazy);
+                Debug.Assert(kind != ObsoleteDiagnosticKind.LazyPotentiallySuppressed);
 
-                    if (kind == ObsoleteAttributeKind.None)
-                    {
-                        DiagnosticInfo info = ObsoleteAttributeHelpers.CreateObsoleteDiagnostic(_symbol, _binderFlags);
-                        if (info != null)
-                        {
-                            Interlocked.CompareExchange(ref _lazyActualObsoleteDiagnostic, info, null);
-                            return _lazyActualObsoleteDiagnostic;
-                        }
-                    }
-                }
+                var info = (kind == ObsoleteDiagnosticKind.Diagnostic) ?
+                    ObsoleteAttributeHelpers.CreateObsoleteDiagnostic(_symbol, _binderFlags) :
+                    null;
 
                 // If this symbol is not obsolete or is in an obsolete context, we don't want to report any diagnostics.
                 // Therefore make this a Void diagnostic.
-                Interlocked.CompareExchange(ref _lazyActualObsoleteDiagnostic, CSDiagnosticInfo.VoidDiagnosticInfo, null);
+                Interlocked.CompareExchange(ref _lazyActualObsoleteDiagnostic, info ?? CSDiagnosticInfo.VoidDiagnosticInfo, null);
             }
 
             return _lazyActualObsoleteDiagnostic;
