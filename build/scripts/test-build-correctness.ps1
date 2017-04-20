@@ -34,24 +34,24 @@ try {
     }
 
     Write-Host "Building Roslyn.sln with logging support"
-    Exec-Echo { & $msbuild /v:m /m /logger:StructuredLogger`,$structuredLoggerPath`;$logPath /nodeReuse:false /p:DeployExtension=false Roslyn.sln }
+    Exec-Command $msbuild "/v:m /m /logger:StructuredLogger,$structuredLoggerPath;$logPath /nodeReuse:false /p:DeployExtension=false Roslyn.sln"
     Write-Host ""
 
     # Verify the state of our various build artifacts
     Write-Host "Running BuildBoss"
     $buildBossPath = Join-Path $configDir "Exes\BuildBoss\BuildBoss.exe"
-    Exec-Echo { & $buildBossPath Roslyn.sln Compilers.sln src\Samples\Samples.sln CrossPlatform.sln "build\Targets" $logPath }
+    Exec-Command $buildBossPath "Roslyn.sln Compilers.sln src\Samples\Samples.sln CrossPlatform.sln build\Targets $logPath"
     Write-Host ""
 
     # Verify the state of our project.jsons
     Write-Host "Running RepoUtil"
     $repoUtilPath = Join-Path $configDir "Exes\RepoUtil\RepoUtil.exe"
-    Exec-Echo { & $repoUtilPath verify }
+    Exec-Command $repoUtilPath verify 
     Write-Host ""
 
     # Verify the state of our generated syntax files
     Write-Host "Checking generated compiler files"
-    Exec-Echo { & (Join-Path $PSScriptRoot "generate-compiler-code.ps1") -test }
+    Exec-Block { & (Join-Path $PSScriptRoot "generate-compiler-code.ps1") -test }
 
     exit 0
 }

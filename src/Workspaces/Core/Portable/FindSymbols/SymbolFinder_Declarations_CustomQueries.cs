@@ -30,10 +30,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// </summary>
         public static async Task<IEnumerable<ISymbol>> FindSourceDeclarationsAsync(Solution solution, Func<string, bool> predicate, SymbolFilter filter, CancellationToken cancellationToken = default(CancellationToken))
         {
-            var declarations = await FindSourceDeclarationsWithCustomQueryAsync(
-                solution, SearchQuery.CreateCustom(predicate), filter, cancellationToken).ConfigureAwait(false);
+            using (var query = SearchQuery.CreateCustom(predicate))
+            {
+                var declarations = await FindSourceDeclarationsWithCustomQueryAsync(
+                    solution, query, filter, cancellationToken).ConfigureAwait(false);
 
-            return declarations.SelectAsArray(d => d.Symbol);
+                return declarations.SelectAsArray(d => d.Symbol);
+            }
         }
 
         private static async Task<ImmutableArray<SymbolAndProjectId>> FindSourceDeclarationsWithCustomQueryAsync(
@@ -74,10 +77,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// </summary>
         public static async Task<IEnumerable<ISymbol>> FindSourceDeclarationsAsync(Project project, Func<string, bool> predicate, SymbolFilter filter, CancellationToken cancellationToken = default(CancellationToken))
         {
-            var declarations = await FindSourceDeclarationsWithCustomQueryAsync(
-                project, SearchQuery.CreateCustom(predicate), filter, cancellationToken).ConfigureAwait(false);
+            using (var query = SearchQuery.CreateCustom(predicate))
+            {
+                var declarations = await FindSourceDeclarationsWithCustomQueryAsync(
+                    project, query, filter, cancellationToken).ConfigureAwait(false);
 
-            return declarations.SelectAsArray(d => d.Symbol);
+                return declarations.SelectAsArray(d => d.Symbol);
+            }
         }
 
         internal static async Task<ImmutableArray<SymbolAndProjectId>> FindSourceDeclarationsWithCustomQueryAsync(
