@@ -1,4 +1,4 @@
-param ([string]$nugetVersion = "4.0.0")
+param ([string]$nugetVersion = "4.1.0")
 
 Set-StrictMode -version 2.0
 $ErrorActionPreference="Stop"

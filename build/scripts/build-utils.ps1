@@ -223,7 +223,7 @@ function Get-MSBuildKindAndDir([switch]$xcopy = $false) {
 
 # Locate the xcopy version of MSBuild
 function Get-MSBuildDirXCopy() {
-    $version = "0.1.2"
+    $version = "0.2.0-alpha"
     $name = "RoslynTools.MSBuild"
     $p = Ensure-BasicTool $name $version
     $p = Join-Path $p "tools\msbuild"
@@ -256,24 +256,24 @@ function Clear-PackageCache() {
 }
 
 # Restore a single project
-function Restore-Project([string]$fileName, [string]$msbuild) {
+function Restore-Project([string]$fileName, [string]$nuget, [string]$msbuildDir) {
     $nugetConfig = Join-Path $repoDir "nuget.config"
     $filePath = Join-Path $repoDir $fileName
-    # DO NOT MERGE until we can find out how to pass the config file
-    Exec-Block { & $msbuild /t:Restore /v:m $filePath } 
+    Exec-Block { & $nuget restore -verbosity quiet -configfile $nugetConfig -MSBuildPath $msbuildDir -Project2ProjectTimeOut 1200 $filePath }
 }
 
 # Restore all of the projects that the repo consumes
-function Restore-Packages([string]$msbuild = "", [string]$project = "") {
-    if ($msbuild -eq "") {
-        $msbuild = Ensure-MSBuild
+function Restore-Packages([string]$msbuildDir = "", [string]$project = "") {
+    $nuget = Ensure-NuGet
+    if ($msbuildDir -eq "") {
+        $msbuildDir = Get-MSBuildDir
     }
 
     Write-Host "Restore using MSBuild at $msbuildDir"
 
     if ($project -ne "") {
         Write-Host "Restoring project $project"
-        Restore-Project -fileName $project -msbuild $msbuild
+        Restore-Project -fileName $project -msbuildDir $msbuildDir -nuget $nuget
     }
     else {
         $all = @(
@@ -291,7 +291,7 @@ function Restore-Packages([string]$msbuild = "", [string]$project = "") {
         foreach ($cur in $all) {
             $both = $cur.Split(':')
             Write-Host "Restoring $($both[0])"
-            Restore-Project -fileName $both[1] -msbuild $msbuild
+            Restore-Project -fileName $both[1] -msbuildDir $msbuildDir -nuget $nuget
         }
     }
 }
