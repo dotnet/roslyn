@@ -13,6 +13,7 @@ Imports Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindResul
 Imports Microsoft.VisualStudio.LanguageServices.UnitTests.ObjectBrowser.Mocks
 Imports Roslyn.Test.Utilities
 Imports Roslyn.Utilities
+Imports Microsoft.CodeAnalysis.Editor.FindUsages
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.FindResults
     Public Class FindResultsTests
