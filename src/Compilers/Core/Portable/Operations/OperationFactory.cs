@@ -7,7 +7,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 {
     internal static class OperationFactory
     {
-        public static VariableDeclaration CreateVariableDeclaration(ILocalSymbol variable, IOperation initialValue, SyntaxNode syntax)
+        public static IVariableDeclaration CreateVariableDeclaration(ILocalSymbol variable, IOperation initialValue, SyntaxNode syntax)
         {
             return CreateVariableDeclaration(ImmutableArray.Create(variable), initialValue, syntax);
         }
@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Semantics
                 constantValue: default(Optional<object>));
         }
 
-        public static ConditionalChoiceExpression CreateConditionalChoiceExpression(IOperation condition, IOperation ifTrue, IOperation ifFalse, ITypeSymbol resultType, SyntaxNode syntax)
+        public static IConditionalChoiceExpression CreateConditionalChoiceExpression(IOperation condition, IOperation ifTrue, IOperation ifFalse, ITypeSymbol resultType, SyntaxNode syntax)
         {
             var isInvalid = (condition == null || condition.IsInvalid || ifTrue == null || ifTrue.IsInvalid || ifFalse == null || ifFalse.IsInvalid || resultType == null);
 
@@ -37,14 +37,14 @@ namespace Microsoft.CodeAnalysis.Semantics
                 default(Optional<object>));
         }
 
-        public static ExpressionStatement CreateAssignmentExpressionStatement(IOperation target, IOperation value, SyntaxNode syntax)
+        public static IExpressionStatement CreateAssignmentExpressionStatement(IOperation target, IOperation value, SyntaxNode syntax)
         {
             var isInvalid = target == null || target.IsInvalid || value == null || value.IsInvalid;
             var expression = new AssignmentExpression(target, value, isInvalid, syntax, target.Type, default(Optional<object>));
             return new ExpressionStatement(expression, expression.IsInvalid, syntax, type: null, constantValue: default(Optional<object>));
         }
 
-        public static ExpressionStatement CreateCompoundAssignmentExpressionStatement(
+        public static IExpressionStatement CreateCompoundAssignmentExpressionStatement(
             IOperation target, IOperation value, BinaryOperationKind binaryOperationKind, IMethodSymbol operatorMethod, SyntaxNode syntax)
         {
             var isInvalid = target == null || target.IsInvalid || value == null || value.IsInvalid;
@@ -62,17 +62,17 @@ namespace Microsoft.CodeAnalysis.Semantics
             return new ExpressionStatement(expression, expression.IsInvalid, syntax, type: null, constantValue: default(Optional<object>));
         }
 
-        public static LiteralExpression CreateLiteralExpression(long value, ITypeSymbol resultType, SyntaxNode syntax)
+        public static ILiteralExpression CreateLiteralExpression(long value, ITypeSymbol resultType, SyntaxNode syntax)
         {
             return new LiteralExpression(value.ToString(), isInvalid: false, syntax: syntax, type: resultType, constantValue: new Optional<object>(value));
         }
 
-        public static LiteralExpression CreateLiteralExpression(ConstantValue value, ITypeSymbol resultType, SyntaxNode syntax)
+        public static ILiteralExpression CreateLiteralExpression(ConstantValue value, ITypeSymbol resultType, SyntaxNode syntax)
         {
             return new LiteralExpression(value.GetValueToDisplay(), value.IsBad, syntax, resultType, new Optional<object>(value.Value));
         }
 
-        public static BinaryOperatorExpression CreateBinaryOperatorExpression(
+        public static IBinaryOperatorExpression CreateBinaryOperatorExpression(
             BinaryOperationKind binaryOperationKind, IOperation left, IOperation right, ITypeSymbol resultType, SyntaxNode syntax)
         {
             var isInvalid = left == null || left.IsInvalid || right == null || right.IsInvalid || binaryOperationKind == BinaryOperationKind.Invalid || resultType == null;
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Semantics
                 isInvalid: isInvalid, syntax: syntax, type: resultType, constantValue: default(Optional<object>));
         }
 
-        public static ArrayCreationExpression CreateArrayCreationExpression(
+        public static IArrayCreationExpression CreateArrayCreationExpression(
             IArrayTypeSymbol arrayType, ImmutableArray<IOperation> elementValues, SyntaxNode syntax)
         {
             var initializer = new ArrayInitializer(elementValues, elementValues.Any(v => v.IsInvalid), syntax, arrayType, default(Optional<object>));
@@ -96,12 +96,12 @@ namespace Microsoft.CodeAnalysis.Semantics
                 default(Optional<object>));
         }
 
-        public static InvalidExpression CreateInvalidExpression(SyntaxNode syntax)
+        public static IInvalidExpression CreateInvalidExpression(SyntaxNode syntax)
         {
             return CreateInvalidExpression(syntax, ImmutableArray<IOperation>.Empty);
         }
 
-        public static InvalidExpression CreateInvalidExpression(SyntaxNode syntax, ImmutableArray<IOperation> children)
+        public static IInvalidExpression CreateInvalidExpression(SyntaxNode syntax, ImmutableArray<IOperation> children)
         {
             return new InvalidExpression(children: children, isInvalid: true, syntax: syntax, type: null, constantValue: default(Optional<object>));
         }

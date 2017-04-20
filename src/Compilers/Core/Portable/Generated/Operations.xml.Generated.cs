@@ -109,8 +109,8 @@ namespace Microsoft.CodeAnalysis.Semantics
             base(argumentKind, parameter, isInvalid, syntax, type, constantValue)
         {
             Value = value ?? throw new System.ArgumentNullException("value");
-            InConversion = inConversion ?? throw new System.ArgumentNullException("inConversion");
-            OutConversion = outConversion ?? throw new System.ArgumentNullException("outConversion");
+            InConversion = inConversion;
+            OutConversion = outConversion;
         }
         /// <summary>
         /// Value supplied for the argument.
@@ -198,7 +198,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             base(elementType, isInvalid, syntax, type, constantValue)
         {
             DimensionSizes = dimensionSizes;
-            Initializer = initializer ?? throw new System.ArgumentNullException("initializer");
+            Initializer = initializer;
         }
         /// <summary>
         /// Sizes of the dimensions of the created array instance.
@@ -509,7 +509,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             BinaryOperationKind = binaryOperationKind;
             UsesOperatorMethod = usesOperatorMethod;
-            OperatorMethod = operatorMethod ?? throw new System.ArgumentNullException("operatorMethod");
+            OperatorMethod = operatorMethod;
         }
         /// <summary>
         /// Kind of binary operation.
@@ -784,7 +784,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             BinaryOperationKind = binaryOperationKind;
             UsesOperatorMethod = usesOperatorMethod;
-            OperatorMethod = operatorMethod ?? throw new System.ArgumentNullException("operatorMethod");
+            OperatorMethod = operatorMethod;
         }
         /// <summary>
         /// Kind of binary operation.
@@ -1052,7 +1052,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             ConversionKind = conversionKind;
             IsExplicit = isExplicit;
             UsesOperatorMethod = usesOperatorMethod;
-            OperatorMethod = operatorMethod ?? throw new System.ArgumentNullException("operatorMethod");
+            OperatorMethod = operatorMethod;
         }
         /// <summary>
         /// Value to be converted.
@@ -2604,7 +2604,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         protected MemberReferenceExpression(ISymbol member, OperationKind kind, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(kind, isInvalid, syntax, type, constantValue)
         {
-            Member = member ?? throw new System.ArgumentNullException("member");
+            Member = member;
         }
         /// <summary>
         /// Instance of the type. Null if the reference is to a static/shared member.
@@ -2661,7 +2661,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public LazyMethodBindingExpression(IMethodSymbol method, bool isVirtual, Lazy<IOperation> instance, ISymbol member, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(member, OperationKind.MethodBindingExpression, isInvalid, syntax, type, constantValue)
         {
-            Method = method ?? throw new System.ArgumentNullException("method");
+            Method = method;
             IsVirtual = isVirtual;
             _lazyInstance = instance ?? throw new System.ArgumentNullException("instance");
         }
@@ -3901,7 +3901,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             UnaryOperationKind = unaryOperationKind;
             UsesOperatorMethod = usesOperatorMethod;
-            OperatorMethod = operatorMethod ?? throw new System.ArgumentNullException("operatorMethod");
+            OperatorMethod = operatorMethod;
         }
         /// <summary>
         /// Kind of unary operation.
@@ -4112,7 +4112,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         public VariableDeclaration(ImmutableArray<ILocalSymbol> variables, IOperation initializer, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(variables, isInvalid, syntax, type, constantValue)
         {
-            Initializer = initializer ?? throw new System.ArgumentNullException("initializer");
+            Initializer = initializer;
         }
 
         /// <summary>

@@ -14,6 +14,11 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public static IOperation Create(BoundNode boundNode)
         {
+            if (boundNode == null)
+            {
+                return null;
+            }
+
             return s_cache.GetValue(boundNode, n => CreateInternal(n));
         }
 
@@ -162,9 +167,10 @@ namespace Microsoft.CodeAnalysis.Semantics
                 case BoundExpressionStatement boundExpressionStatement:
                     return CreateBoundExpressionStatementOperation(boundExpressionStatement);
                 default:
-                    throw Roslyn.Utilities.ExceptionUtilities.UnexpectedValue(boundNode);
+                    return Operation.CreateOperationNone(boundNode.HasErrors, boundNode.Syntax);
             }
         }
+
         private static IPlaceholderExpression CreateBoundDeconstructValuePlaceholderOperation(BoundDeconstructValuePlaceholder boundDeconstructValuePlaceholder)
         {
             bool isInvalid = boundDeconstructValuePlaceholder.HasErrors;
@@ -315,18 +321,33 @@ namespace Microsoft.CodeAnalysis.Semantics
             Optional<object> constantValue = ConvertToOptional(boundLambda.ConstantValue);
             return new LazyLambdaExpression(signature, body, isInvalid, syntax, type, constantValue);
         }
-        private static IConversionExpression CreateBoundConversionOperation(BoundConversion boundConversion)
+        private static IOperation CreateBoundConversionOperation(BoundConversion boundConversion)
         {
-            Lazy<IOperation> operand = new Lazy<IOperation>(() => (IOperation)Create(boundConversion.Operand));
             ConversionKind conversionKind = GetConversionKind(boundConversion.ConversionKind);
-            bool isExplicit = boundConversion.ExplicitCastInCode;
-            bool usesOperatorMethod = boundConversion.ConversionKind == CSharp.ConversionKind.ExplicitUserDefined || boundConversion.ConversionKind == CSharp.ConversionKind.ImplicitUserDefined;
-            IMethodSymbol operatorMethod = boundConversion.SymbolOpt;
-            bool isInvalid = boundConversion.HasErrors;
-            SyntaxNode syntax = boundConversion.Syntax;
-            ITypeSymbol type = boundConversion.Type;
-            Optional<object> constantValue = ConvertToOptional(boundConversion.ConstantValue);
-            return new LazyConversionExpression(operand, conversionKind, isExplicit, usesOperatorMethod, operatorMethod, isInvalid, syntax, type, constantValue);
+            if (boundConversion.ConversionKind == CSharp.ConversionKind.MethodGroup)
+            {
+                IMethodSymbol method = boundConversion.SymbolOpt;
+                bool isVirtual = method != null && (method.IsAbstract || method.IsOverride || method.IsVirtual) && !boundConversion.SuppressVirtualCalls;
+                Lazy<IOperation> instance = new Lazy<IOperation>(() => Create((boundConversion.Operand as BoundMethodGroup)?.InstanceOpt));
+                bool isInvalid = boundConversion.HasErrors;
+                SyntaxNode syntax = boundConversion.Syntax;
+                ITypeSymbol type = boundConversion.Type;
+                Optional<object> constantValue = ConvertToOptional(boundConversion.ConstantValue);
+                return new LazyMethodBindingExpression(method, isVirtual, instance, method, isInvalid, syntax, type, constantValue);
+            }
+            else
+            {
+                Lazy<IOperation> operand = new Lazy<IOperation>(() => (IOperation)Create(boundConversion.Operand));
+
+                bool isExplicit = boundConversion.ExplicitCastInCode;
+                bool usesOperatorMethod = boundConversion.ConversionKind == CSharp.ConversionKind.ExplicitUserDefined || boundConversion.ConversionKind == CSharp.ConversionKind.ImplicitUserDefined;
+                IMethodSymbol operatorMethod = boundConversion.SymbolOpt;
+                bool isInvalid = boundConversion.HasErrors;
+                SyntaxNode syntax = boundConversion.Syntax;
+                ITypeSymbol type = boundConversion.Type;
+                Optional<object> constantValue = ConvertToOptional(boundConversion.ConstantValue);
+                return new LazyConversionExpression(operand, conversionKind, isExplicit, usesOperatorMethod, operatorMethod, isInvalid, syntax, type, constantValue);
+            }
         }
         private static IConversionExpression CreateBoundAsOperatorOperation(BoundAsOperator boundAsOperator)
         {
@@ -584,7 +605,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             ImmutableArray<IFieldSymbol> initializedFields = ImmutableArray.Create<IFieldSymbol>(boundFieldEqualsValue.Field);
             Lazy<IOperation> value = new Lazy<IOperation>(() => (IOperation)Create(boundFieldEqualsValue.Value));
             OperationKind kind = OperationKind.FieldInitializerAtDeclaration;
-            bool isInvalid = ((IOperation)boundFieldEqualsValue.Value).IsInvalid;
+            bool isInvalid = value.Value.IsInvalid;
             SyntaxNode syntax = boundFieldEqualsValue.Syntax;
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);
@@ -595,7 +616,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             IPropertySymbol initializedProperty = boundPropertyEqualsValue.Property;
             Lazy<IOperation> value = new Lazy<IOperation>(() => (IOperation)Create(boundPropertyEqualsValue.Value));
             OperationKind kind = OperationKind.PropertyInitializerAtDeclaration;
-            bool isInvalid = ((IOperation)boundPropertyEqualsValue.Value).IsInvalid;
+            bool isInvalid = value.Value.IsInvalid;
             SyntaxNode syntax = boundPropertyEqualsValue.Syntax;
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);
@@ -606,7 +627,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             IParameterSymbol parameter = boundParameterEqualsValue.Parameter;
             Lazy<IOperation> value = new Lazy<IOperation>(() => (IOperation)Create(boundParameterEqualsValue.Value));
             OperationKind kind = OperationKind.ParameterInitializerAtDeclaration;
-            bool isInvalid = ((IOperation)boundParameterEqualsValue.Value).IsInvalid;
+            bool isInvalid = value.Value.IsInvalid;
             SyntaxNode syntax = boundParameterEqualsValue.Syntax;
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);
@@ -1225,10 +1246,10 @@ namespace Microsoft.CodeAnalysis.Semantics
                 {
                     return switchStatement.SwitchSections.SelectAsArray(switchSection =>
                     {
-                        var clauses = switchSection.SwitchLabels.Select(s => (ICaseClause)Create(s)).ToImmutableArray();
-                        var body = switchSection.Statements.Select(s => Create(s)).ToImmutableArray();
+                        var clauses = switchSection.SwitchLabels.SelectAsArray(s => (ICaseClause)Create(s));
+                        var body = switchSection.Statements.SelectAsArray(s => Create(s));
 
-                        return new SwitchCase(clauses, body, switchSection.HasErrors, switchSection.Syntax, type: null, constantValue: default(Optional<object>));
+                        return (ISwitchCase)new SwitchCase(clauses, body, switchSection.HasErrors, switchSection.Syntax, type: null, constantValue: default(Optional<object>));
                     });
                 });
         }
@@ -1297,11 +1318,11 @@ namespace Microsoft.CodeAnalysis.Semantics
         //       e.g. default arguments, erroneous code, etc. 
         //       https://github.com/dotnet/roslyn/issues/18549
         internal static ImmutableArray<IArgument> DeriveArguments(
-            ImmutableArray<BoundExpression> boundArguments, 
-            ImmutableArray<string> argumentNamesOpt, 
-            ImmutableArray<int> argumentsToParametersOpt, 
-            ImmutableArray<RefKind> argumentRefKindsOpt, 
-            ImmutableArray<CSharp.Symbols.ParameterSymbol> parameters, 
+            ImmutableArray<BoundExpression> boundArguments,
+            ImmutableArray<string> argumentNamesOpt,
+            ImmutableArray<int> argumentsToParametersOpt,
+            ImmutableArray<RefKind> argumentRefKindsOpt,
+            ImmutableArray<CSharp.Symbols.ParameterSymbol> parameters,
             SyntaxNode invocationSyntax)
         {
             ArrayBuilder<IArgument> arguments = ArrayBuilder<IArgument>.GetInstance(boundArguments.Length);
@@ -1328,7 +1349,7 @@ namespace Microsoft.CodeAnalysis.Semantics
                     {
                         // The parameter is optional with a default value.
                         arguments.Add(new Argument(
-                            ArgumentKind.DefaultValue, 
+                            ArgumentKind.DefaultValue,
                             parameter,
                             OperationFactory.CreateLiteralExpression(parameter.ExplicitDefaultConstantValue, parameter.Type, invocationSyntax),
                             inConversion: null,

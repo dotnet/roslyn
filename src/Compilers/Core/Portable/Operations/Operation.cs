@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using Microsoft.CodeAnalysis.Semantics;
 
 namespace Microsoft.CodeAnalysis
@@ -46,5 +47,39 @@ namespace Microsoft.CodeAnalysis
         public abstract void Accept(OperationVisitor visitor);
 
         public abstract TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument);
+
+        public static IOperation CreateOperationNone(bool isInvalid, SyntaxNode node)
+        {
+            return new NoneOperation(isInvalid, node);
+        }
+
+        private class NoneOperation : IOperation
+        {
+            public NoneOperation(bool isInvalid, SyntaxNode node)
+            {
+                IsInvalid = isInvalid;
+                Syntax = node;
+            }
+
+            public OperationKind Kind => OperationKind.None;
+
+            public bool IsInvalid { get; }
+
+            public SyntaxNode Syntax { get; }
+
+            public ITypeSymbol Type => null;
+
+            public Optional<object> ConstantValue => default(Optional<object>);
+
+            public void Accept(OperationVisitor visitor)
+            {
+                visitor.VisitNoneOperation(this);
+            }
+
+            public TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+            {
+                return visitor.VisitNoneOperation(this, argument);
+            }
+        }
     }
 }
