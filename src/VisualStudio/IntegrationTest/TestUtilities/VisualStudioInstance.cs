@@ -25,6 +25,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
         public CSharpInteractiveWindow_OutOfProc InteractiveWindow { get; }
 
+        public Debugger_OutOfProc Debugger { get; }
+
         public Editor_OutOfProc Editor { get; }
 
         public EncapsulateField_OutOfProc EncapsulateField { get; }
@@ -91,6 +93,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
             ChangeSignatureDialog = new ChangeSignatureDialog_OutOfProc(this);
             InteractiveWindow = new CSharpInteractiveWindow_OutOfProc(this);
+            Debugger = new Debugger_OutOfProc(this);
             Editor = new Editor_OutOfProc(this);
             EncapsulateField = new EncapsulateField_OutOfProc(this);
             ErrorList = new ErrorList_OutOfProc(this);

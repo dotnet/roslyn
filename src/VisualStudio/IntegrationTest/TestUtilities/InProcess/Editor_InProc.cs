@@ -89,6 +89,21 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 view.TextBuffer.Replace(replacementSpan, text);
             });
 
+        public void SelectText(string text)
+        {
+            PlaceCaret(text, charsOffset: -1, occurrence: 0, extendSelection: false, selectBlock: false);
+            PlaceCaret(text, charsOffset: 0, occurrence: 0, extendSelection: true, selectBlock: false);
+        }
+
+        public void ReplaceText(string oldText, string newText)
+            => ExecuteOnActiveView(view =>
+            {
+                var textSnapshot = view.TextSnapshot;
+                SelectText(oldText);                
+                var replacementSpan = new SnapshotSpan(textSnapshot, view.Selection.Start.Position, view.Selection.End.Position - view.Selection.Start.Position);
+                view.TextBuffer.Replace(replacementSpan, newText);
+            });
+
         public string GetCurrentLineText()
             => ExecuteOnActiveView(view =>
             {
@@ -97,6 +112,20 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 var line = bufferPosition.GetContainingLine();
 
                 return line.GetText();
+            });
+
+        public int GetLine()
+            => ExecuteOnActiveView(view =>
+            {
+                view.Caret.Position.BufferPosition.GetLineAndColumn(out int lineNumber, out int columnIndex);
+                return lineNumber;
+            });
+
+        public int GetColumn()
+            => ExecuteOnActiveView(view =>
+            {
+                view.Caret.Position.BufferPosition.GetLineAndColumn(out int lineNumber, out int columnIndex);
+                return columnIndex;
             });
 
         public string GetLineTextBeforeCaret()

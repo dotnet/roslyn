@@ -127,11 +127,19 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             PlaceCaret(text, charsOffset: 0, occurrence: 0, extendSelection: true, selectBlock: false);
         }
 
+        public int GetLine() => _editorInProc.GetLine();
+
+        public int GetColumn() => _editorInProc.GetColumn();
+
+
         public void DeleteText(string text)
         {
             SelectTextInCurrentDocument(text);
             SendKeys(VirtualKey.Delete);
         }
+
+        public void ReplaceText(string oldText, string newText)
+            => _editorInProc.ReplaceText(oldText, newText);
 
         public bool IsCaretOnScreen()
             => _editorInProc.IsCaretOnScreen();
