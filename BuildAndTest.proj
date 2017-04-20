@@ -34,11 +34,14 @@
              Projects="$(RoslynSolution)"
              Properties="$(MSBuildCommonProperties)"
              Targets="Build" />
+    <!-- DO NOT MERGE
+         Not building samples until we've converted them
     <MSBuild BuildInParallel="true"
              Condition="'$(ManualTest)' == ''"
              Projects="$(SamplesSolution)"
              Properties="$(MSBuildCommonProperties)"
              Targets="Build" />
+    -->
   </Target>
 
   <Target Name="Clean">
@@ -46,11 +49,14 @@
              Projects="$(RoslynSolution)"
              Properties="$(MSBuildCommonProperties)"
              Targets="Clean" />
+    <!-- DO NOT MERGE
+         Not building samples until we've converted them
     <MSBuild BuildInParallel="true"
              Condition="'$(ManualTest)' == ''"
              Projects="$(SamplesSolution)"
              Properties="$(MSBuildCommonProperties)"
              Targets="Clean" />
+    -->
   </Target>
 
   <Target Name="Rebuild">
@@ -58,11 +64,14 @@
              Projects="$(RoslynSolution)"
              Properties="$(MSBuildCommonProperties)"
              Targets="Rebuild" />
+    <!-- DO NOT MERGE
+         Not building samples until we've converted them
     <MSBuild BuildInParallel="true"
              Condition="'$(ManualTest)' == ''"
              Projects="$(SamplesSolution)"
              Properties="$(MSBuildCommonProperties)"
              Targets="Rebuild" />
+    -->
   </Target>
 
   <Target Name="Test">
