@@ -173,6 +173,7 @@
     <Compile Include="Navigation\NavigableItemFactory.SymbolLocationNavigableItem.cs" />
     <Compile Include="AddImport\CodeActions\PackageReference.ParentCodeAction.cs" />
     <Compile Include="Remote\RemoteArguments.cs" />
+    <Compile Include="Shared\Extensions\SyntaxTokenListExtensions.cs" />
     <Compile Include="Structure\BlockStructureOptions.cs" />
     <Compile Include="AddImport\CodeActions\SymbolReference.SymbolReferenceCodeAction.cs" />
     <Compile Include="TodoComments\AbstractTodoCommentService.cs" />

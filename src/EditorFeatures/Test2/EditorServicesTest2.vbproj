@@ -194,6 +194,8 @@
     <Compile Include="FindReferences\FindReferencesTests.Tuples.vb" />
     <Compile Include="GoToImplementation\GoToImplementationTests.vb" />
     <Compile Include="IntelliSense\CompletionServiceTests.vb" />
+    <Compile Include="IntelliSense\CSharpCompletionCommandHandlerTests_Projections.vb" />
+    <Compile Include="IntelliSense\VisualBasicCompletionCommandHandlerTests_XmlDoc.vb" />
     <Compile Include="InteractivePaste\InteractivePasteCommandHandlerTests.vb" />
     <Compile Include="IntelliSense\CompletionRulesTests.vb" />
     <Compile Include="LanguageServices\SyntaxFactsServiceTests.vb" />
@@ -253,7 +255,7 @@
     <Compile Include="GoToDefinition\GoToDefinitionCommandHandlerTests.vb" />
     <Compile Include="GoToDefinition\GoToDefinitionTests.vb" />
     <Compile Include="IntelliSense\CSharpCompletionCommandHandlerTests.vb" />
-    <Compile Include="IntelliSense\CSharpCompletionCommandHandlerTests_Projections.vb" />
+    <Compile Include="IntelliSense\CSharpCompletionCommandHandlerTests_XmlDoc.vb" />
     <Compile Include="IntelliSense\CSharpIntelliSenseCommandHandlerTests.vb" />
     <Compile Include="IntelliSense\CSharpSignatureHelpCommandHandlerTests.vb" />
     <Compile Include="IntelliSense\MockCompletionProvider.vb" />

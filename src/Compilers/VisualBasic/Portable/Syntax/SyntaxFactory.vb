@@ -748,7 +748,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 XmlAttribute(
                     XmlName(
                         Nothing,
-                        XmlTextLiteralToken(DocumentationCommentXmlNames.KeywordElementName, DocumentationCommentXmlNames.KeywordElementName)),
+                        XmlTextLiteralToken(DocumentationCommentXmlNames.LangwordAttributeName, DocumentationCommentXmlNames.LangwordAttributeName)),
                     XmlString(
                         Token(SyntaxKind.DoubleQuoteToken),
                         SyntaxTokenList.Create(XmlTextLiteralToken(keyword, keyword)),
