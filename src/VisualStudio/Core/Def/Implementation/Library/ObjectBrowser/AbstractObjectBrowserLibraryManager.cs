@@ -1,10 +1,15 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.Editor.FindUsages;
+using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectBrowser.Lists;
@@ -33,7 +38,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
         private AbstractListItemFactory _listItemFactory;
         private object _classMemberGate = new object();
 
-        protected AbstractObjectBrowserLibraryManager(string languageName, Guid libraryGuid, __SymbolToolLanguage preferredLanguage, IServiceProvider serviceProvider)
+        private readonly IEnumerable<Lazy<IStreamingFindUsagesPresenter>> _streamingPresenters;
+
+        protected AbstractObjectBrowserLibraryManager(
+            string languageName, 
+            Guid libraryGuid, 
+            __SymbolToolLanguage preferredLanguage, 
+            IServiceProvider serviceProvider)
             : base(libraryGuid, serviceProvider)
         {
             _languageName = languageName;
@@ -43,6 +54,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
             this.Workspace = componentModel.GetService<VisualStudioWorkspace>();
             this.LibraryService = this.Workspace.Services.GetLanguageServices(languageName).GetService<ILibraryService>();
             this.Workspace.WorkspaceChanged += OnWorkspaceChanged;
+
+            this._streamingPresenters = componentModel.DefaultExportProvider.GetExports<IStreamingFindUsagesPresenter>();
         }
 
         internal abstract AbstractDescriptionBuilder CreateDescriptionBuilder(
@@ -481,24 +494,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
                 switch (commandId)
                 {
                     case (uint)VSConstants.VSStd97CmdID.FindReferences:
+                        var streamingPresenter = GetStreamingPresenter();
                         var symbolListItem = _activeListItem as SymbolListItem;
-                        if (symbolListItem != null)
+                        if (streamingPresenter != null && symbolListItem?.ProjectId != null)
                         {
-                            var projectId = symbolListItem.ProjectId;
-                            if (projectId != null)
+                            var project = this.Workspace.CurrentSolution.GetProject(symbolListItem.ProjectId);
+                            if (project != null)
                             {
-                                var project = this.Workspace.CurrentSolution.GetProject(projectId);
-                                if (project != null)
-                                {
-                                    var compilation = project
-                                        .GetCompilationAsync(CancellationToken.None)
-                                        .WaitAndGetResult(CancellationToken.None);
-
-                                    var symbol = symbolListItem.ResolveSymbol(compilation);
-
-                                    this.Workspace.TryFindAllReferences(symbol, project, CancellationToken.None);
-                                    return true;
-                                }
+                                FindReferences(streamingPresenter, symbolListItem, project);
+                                return true;
                             }
                         }
 
@@ -507,6 +511,52 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
             }
 
             return false;
+        }
+
+        private IStreamingFindUsagesPresenter GetStreamingPresenter()
+        {
+            try
+            {
+                return _streamingPresenters.FirstOrDefault()?.Value;
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        private async void FindReferences(
+            IStreamingFindUsagesPresenter presenter, SymbolListItem symbolListItem, Project project)
+        {
+            try
+            {
+                // Let the presented know we're starting a search.  It will give us back
+                // the context object that the FAR service will push results into.
+                var context = presenter.StartSearch(
+                    EditorFeaturesResources.Find_References, supportsReferences: true);
+
+                var cancellationToken = context.CancellationToken;
+
+                // Fire and forget the work to go get references.
+                var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+                var symbol = symbolListItem.ResolveSymbol(compilation);
+
+                await AbstractFindUsagesService.FindSymbolReferencesAsync(
+                    context, symbol, project, cancellationToken).ConfigureAwait(false);
+
+                // Note: we don't need to put this in a finally.  The only time we might not hit
+                // this is if cancellation or another error gets thrown.  In the former case,
+                // that means that a new search has started.  We don't care about telling the
+                // context it has completed.  In the latter case something wrong has happened
+                // and we don't want to run any more code in this particular context.
+                await context.OnCompletedAsync().ConfigureAwait(false);
+            }
+            catch (OperationCanceledException)
+            {
+            }
+            catch (Exception e) when (FatalError.ReportWithoutCrash(e))
+            {
+            }
         }
     }
 }
