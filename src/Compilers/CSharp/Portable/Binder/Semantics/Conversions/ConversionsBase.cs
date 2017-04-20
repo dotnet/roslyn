@@ -493,9 +493,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return Conversion.ImplicitReference;
             }
 
-            if (HasBoxingConversion(source, destination, ref useSiteDiagnostics))
+            ConversionKind conversionKind = ClassifyBoxingConversionKind(source, destination, ref useSiteDiagnostics);
+            if (conversionKind != ConversionKind.NoConversion)
             {
-                return source.Kind == SymbolKind.TypeParameter ? Conversion.TypeParameterBoxing : Conversion.ValueTypeBoxing;
+                Debug.Assert(conversionKind == ConversionKind.TypeParameterBoxing ||
+                             conversionKind == ConversionKind.ValueTypeBoxing);
+
+                return conversionKind == ConversionKind.TypeParameterBoxing
+                    ? Conversion.TypeParameterBoxing
+                    : Conversion.ValueTypeBoxing;
             }
 
             if (HasImplicitPointerConversion(source, destination))
@@ -577,9 +583,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return (source.Kind == SymbolKind.DynamicType) ? Conversion.ExplicitDynamic : Conversion.ExplicitReference;
             }
 
-            if (HasUnboxingConversion(source, destination, ref useSiteDiagnostics))
+            ConversionKind conversionKind = ClassifyUnboxingConversionKind(source, destination, ref useSiteDiagnostics);
+            if (conversionKind != ConversionKind.NoConversion)
             {
-                return source.Kind == SymbolKind.TypeParameter ? Conversion.TypeParameterUnboxing : Conversion.ValueTypeUnboxing;
+                Debug.Assert(conversionKind == ConversionKind.TypeParameterUnboxing ||
+                             conversionKind == ConversionKind.ValueTypeUnboxing);
+                return conversionKind == ConversionKind.TypeParameterUnboxing
+                    ? Conversion.TypeParameterUnboxing
+                    : Conversion.ValueTypeUnboxing;
             }
 
             var tupleConversion = ClassifyExplicitTupleConversion(source, destination, ref useSiteDiagnostics, forCast);
@@ -2464,7 +2475,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        public bool HasBoxingConversion(TypeSymbol source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        public bool HasBoxingConversion(
+            TypeSymbol source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        {
+            ConversionKind conversionKind = ClassifyBoxingConversionKind(source, destination, ref useSiteDiagnostics);
+            Debug.Assert(conversionKind == ConversionKind.NoConversion ||
+                         conversionKind == ConversionKind.TypeParameterBoxing ||
+                         conversionKind == ConversionKind.ValueTypeBoxing);
+            return conversionKind != ConversionKind.NoConversion;
+        }
+
+        private ConversionKind ClassifyBoxingConversionKind(
+            TypeSymbol source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             Debug.Assert((object)source != null);
             Debug.Assert((object)destination != null);
@@ -2473,21 +2495,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             if ((source.TypeKind == TypeKind.TypeParameter) &&
                 HasImplicitBoxingTypeParameterConversion((TypeParameterSymbol)source, destination, ref useSiteDiagnostics))
             {
-                return true;
+                return ConversionKind.TypeParameterBoxing;
             }
 
             // The rest of the boxing conversions only operate when going from a value type to a
             // reference type.
             if (!source.IsValueType || !destination.IsReferenceType)
             {
-                return false;
+                return ConversionKind.NoConversion;
             }
 
             // A boxing conversion exists from a nullable type to a reference type if and only if a
             // boxing conversion exists from the underlying type.
             if (source.IsNullableType())
             {
-                return HasBoxingConversion(source.GetNullableUnderlyingType(), destination, ref useSiteDiagnostics);
+                return HasBoxingConversion(source.GetNullableUnderlyingType(), destination, ref useSiteDiagnostics)
+                    ? ConversionKind.ValueTypeBoxing
+                    : ConversionKind.NoConversion;
             }
 
             // A boxing conversion exists from any non-nullable value type to object and dynamic, to
@@ -2504,25 +2528,27 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (source.IsRestrictedType())
             {
-                return false;
+                return ConversionKind.NoConversion;
             }
 
             if (destination.Kind == SymbolKind.DynamicType)
             {
-                return !source.IsPointerType();
+                return !source.IsPointerType()
+                    ? ConversionKind.ValueTypeBoxing
+                    : ConversionKind.NoConversion;
             }
 
             if (IsBaseClass(source, destination, ref useSiteDiagnostics))
             {
-                return true;
+                return ConversionKind.ValueTypeBoxing;
             }
 
             if (HasAnyBaseInterfaceConversion(source, destination, ref useSiteDiagnostics))
             {
-                return true;
+                return ConversionKind.ValueTypeBoxing;
             }
 
-            return false;
+            return ConversionKind.NoConversion;
         }
 
         private static bool HasImplicitPointerConversion(TypeSymbol source, TypeSymbol destination)
@@ -2911,12 +2937,22 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool HasUnboxingConversion(TypeSymbol source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
+            var conversionKind = ClassifyUnboxingConversionKind(source, destination, ref useSiteDiagnostics);
+            Debug.Assert(conversionKind == ConversionKind.NoConversion ||
+                         conversionKind == ConversionKind.TypeParameterUnboxing ||
+                         conversionKind == ConversionKind.ValueTypeUnboxing);
+
+            return conversionKind != ConversionKind.NoConversion;
+        }
+
+        private ConversionKind ClassifyUnboxingConversionKind(TypeSymbol source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        {
             Debug.Assert((object)source != null);
             Debug.Assert((object)destination != null);
 
             if (destination.IsPointerType())
             {
-                return false;
+                return ConversionKind.NoConversion;
             }
 
             // SPEC: An unboxing conversion permits a reference type to be explicitly converted to a value-type. 
@@ -2927,7 +2963,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (destination.IsValueType && !destination.IsNullableType())
                 {
-                    return true;
+                    return ConversionKind.ValueTypeUnboxing;
                 }
             }
 
@@ -2938,13 +2974,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 !destination.IsNullableType() &&
                 HasBoxingConversion(destination, source, ref useSiteDiagnostics))
             {
-                return true;
+                return ConversionKind.ValueTypeUnboxing;
             }
 
             // SPEC: Furthermore type System.Enum can be unboxed to any enum-type.
             if (source.SpecialType == SpecialType.System_Enum && destination.IsEnumType())
             {
-                return true;
+                return ConversionKind.ValueTypeUnboxing;
             }
 
             // SPEC: An unboxing conversion exists from a reference type to a nullable-type if an unboxing 
@@ -2954,7 +2990,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 destination.IsNullableType() &&
                 HasUnboxingConversion(source, destination.GetNullableUnderlyingType(), ref useSiteDiagnostics))
             {
-                return true;
+                return ConversionKind.ValueTypeUnboxing;
             }
 
             // SPEC: UNDONE A value type S has an unboxing conversion from an interface type I if it has an unboxing 
@@ -2965,10 +3001,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (HasUnboxingTypeParameterConversion(source, destination, ref useSiteDiagnostics))
             {
-                return true;
+                return ConversionKind.TypeParameterUnboxing;
             }
 
-            return false;
+            return ConversionKind.NoConversion;
         }
 
         private static bool HasPointerToPointerConversion(TypeSymbol source, TypeSymbol destination)
