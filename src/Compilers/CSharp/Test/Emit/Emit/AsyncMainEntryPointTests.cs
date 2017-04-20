@@ -5,7 +5,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
 {
-    public class AsyncMainEntryPointTests: CompilingTestBase
+    public class AsyncMainEntryPointTests : CompilingTestBase
     {
         [Fact]
         public void MainCanBeAsyncWithArgs()
@@ -238,11 +238,11 @@ class A
         return await Task.Factory.StartNew(() => 5);
     }
 }";
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
-                compilation.VerifyDiagnostics(
-// (6,5): error CS8107: Feature 'async main' is not available in C# 7. Please use language version 7.1 or greater.
-                //     async static Task<int> Main(string[] args)
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, @"async static Task<int> Main(string[] args)
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
+            compilation.VerifyDiagnostics(
+            // (6,5): error CS8107: Feature 'async main' is not available in C# 7. Please use language version 7.1 or greater.
+            //     async static Task<int> Main(string[] args)
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, @"async static Task<int> Main(string[] args)
     {
         return await Task.Factory.StartNew(() => 5);
     }").WithArguments("async main", "7.1").WithLocation(6, 5)
@@ -286,15 +286,15 @@ class A
         return await Task.Factory.StartNew(() => 5);
     }
 }";
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
-                compilation.VerifyDiagnostics(
-                    // (6,5): error CS8107: Feature 'async main' is not available in C# 7. Please use language version 7.1 or greater.
-                    //     async static Task<int> Main()
-                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, @"async static Task<int> Main()
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
+            compilation.VerifyDiagnostics(
+                // (6,5): error CS8107: Feature 'async main' is not available in C# 7. Please use language version 7.1 or greater.
+                //     async static Task<int> Main()
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, @"async static Task<int> Main()
     {
         return await Task.Factory.StartNew(() => 5);
     }").WithArguments("async main", "7.1").WithLocation(6, 5)
-                    );
+                );
         }
 
         [Fact]
@@ -317,7 +317,7 @@ class A
                 //     async static Task<float> Main()
                 Diagnostic(ErrorCode.WRN_InvalidMainSig, "Main").WithArguments("A.Main()").WithLocation(6, 30),
                 // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
-                Diagnostic(ErrorCode.ERR_NoEntryPoint).WithLocation(1, 1) );
+                Diagnostic(ErrorCode.ERR_NoEntryPoint).WithLocation(1, 1));
         }
 
         [Fact]

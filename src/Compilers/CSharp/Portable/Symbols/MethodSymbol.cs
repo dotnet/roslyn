@@ -601,7 +601,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             // Early bail so we only even check things that are System.Threading.Tasks.Task(<T>)
             if (ReturnType is NamedTypeSymbol namedType &&
-                !(namedType.ConstructedFrom== compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task) ||
+                !(namedType.ConstructedFrom == compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task) ||
                   namedType.ConstructedFrom == compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T)))
             {
                 return false;
@@ -615,7 +615,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var bag = new DiagnosticBag();
             var success = binder.GetAwaitableExpressionInfo(dumbInstance, out _, out _, out _, out result, syntax, bag, false, false);
 
-            return 
+            return
                 success &&
                 bag.IsEmptyWithoutResolution &&
                 (result.Type == compilation.GetSpecialType(SpecialType.System_Void) ||
@@ -641,7 +641,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 // Never look for ReturnsAwaitableToVoidOrInt on int32 or void
                 returnsTaskOrTaskOfInt = ReturnsAwaitableToVoidOrInt(compilation);
-                if (!returnsTaskOrTaskOfInt) {
+                if (!returnsTaskOrTaskOfInt)
+                {
                     return false;
                 }
             }

@@ -302,7 +302,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 && method.ReturnType.IsGenericTaskType(compilation);
         }
 
-        internal static CSharpSyntaxNode ExtractReturnTypeSyntax(this MethodSymbol method) {
+        internal static CSharpSyntaxNode ExtractReturnTypeSyntax(this MethodSymbol method)
+        {
             foreach (var reference in method.DeclaringSyntaxReferences)
             {
                 var methodDeclaration = reference.GetSyntax() as MethodDeclarationSyntax;

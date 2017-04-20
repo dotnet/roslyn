@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public static void Capture(Action action, int? expectedLength, out string output, out string errorOutput)
         {
             TextWriter errorOutputWriter;
-            TextWriter outputWriter; 
+            TextWriter outputWriter;
 
             if (expectedLength is int el)
             {
