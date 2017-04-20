@@ -47,6 +47,7 @@
     <MicrosoftNetCompilersVersion>2.0.1</MicrosoftNetCompilersVersion>                                                                                                
     <MicrosoftNetCompilersnetcoreVersion>2.0.0-rc2-61102-09</MicrosoftNetCompilersnetcoreVersion>                                                                     
     <MicrosoftNetRoslynDiagnosticsVersion>1.2.0-beta2</MicrosoftNetRoslynDiagnosticsVersion>                                                                          
+    <MicrosoftNetCoreILAsmVersion>1.1.0</MicrosoftNetCoreILAsmVersion>
     <MicrosoftNETCoreVersion>5.0.0</MicrosoftNETCoreVersion>                                                                                                          
     <MicrosoftNETCoreAppVersion>1.1.0</MicrosoftNETCoreAppVersion>                                                                                                    
     <MicrosoftNETCorePlatformsVersion>1.1.0</MicrosoftNETCorePlatformsVersion>                                                                                        
@@ -203,6 +204,7 @@
     <SystemXmlXmlDocumentVersion>4.3.0</SystemXmlXmlDocumentVersion>                                                                                                  
     <SystemXmlXmlSerializerVersion>4.3.0</SystemXmlXmlSerializerVersion>                                                                                              
     <SystemXmlXPathXDocumentVersion>4.3.0</SystemXmlXPathXDocumentVersion>                                                                                            
+    <SQLitePCLRawbundle_greenVersion>1.1.2</SQLitePCLRawbundle_greenVersion>
     <MicrosoftVSSDKBuildToolsVersion>15.0.26124-RC3</MicrosoftVSSDKBuildToolsVersion>
     <VSExternalAPIsCodingConventionsVersion>1.0.60704.2</VSExternalAPIsCodingConventionsVersion>                                                                      
     <VSLangProjVersion>7.0.3300</VSLangProjVersion>                                                                                                                   

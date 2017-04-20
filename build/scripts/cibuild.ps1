@@ -99,6 +99,10 @@ try {
         Exec-Block { & git show --no-patch --pretty=raw HEAD } | Out-Host
     }
 
+    # DO NOT MERGE
+    # Bootstrap build broken at the moment because Toolset output isn't producing a runnable
+    # compiler.  For now just use the stock compiler.
+    <#
     # Build with the real assembly version, since that's what's contained in the bootstrap compiler redirects
     $bootstrapLog = Join-Path $binariesDir "Bootstrap.log"
     Run-MSBuild /p:UseShippingAssemblyVersion=true /p:InitialDefineConstants=BOOTSTRAP "build\Toolset\Toolset.csproj" /p:Configuration=$buildConfiguration /fileloggerparameters:LogFile=$($bootstrapLog)
@@ -108,6 +112,7 @@ try {
     Move-Item "$configDir\Exes\Toolset\*" $bootstrapDir
     Run-MSBuild /t:Clean "build\Toolset\Toolset.csproj" /p:Configuration=$buildConfiguration
     Terminate-BuildProcesses
+    #>
 
     if ($testDeterminism) {
         Exec-Block { & ".\build\scripts\test-determinism.ps1" -buildDir $bootstrapDir } | Out-Host
@@ -162,7 +167,9 @@ try {
         Run-MSBuild /p:BootstrapBuildPath="$bootstrapDir" BuildAndTest.proj /t:$target /p:Configuration=$buildConfiguration /p:Test64=$test64Arg /p:TestVsi=true /p:Trait="Feature=NetCore" /p:PathMap="$($repoDir)=q:\roslyn" /p:Feature=pdb-path-determinism /fileloggerparameters:LogFile="$buildLog"`;verbosity=diagnostic /p:DeployExtension=false
     }
     else {
-        Run-MSBuild /p:BootstrapBuildPath="$bootstrapDir" BuildAndTest.proj /t:$target /p:Configuration=$buildConfiguration /p:Test64=$test64Arg /p:TestVsi=$testVsiArg /p:PathMap="$($repoDir)=q:\roslyn" /p:Feature=pdb-path-determinism /fileloggerparameters:LogFile="$buildLog"`;verbosity=diagnostic /p:DeployExtension=false
+        # DO NOT MEREG
+        # Need to add back the property /p:BootstrapBuildPath="$bootstrapDir" 
+        Run-MSBuild BuildAndTest.proj /t:$target /p:Configuration=$buildConfiguration /p:Test64=$test64Arg /p:TestVsi=$testVsiArg /p:PathMap="$($repoDir)=q:\roslyn" /p:Feature=pdb-path-determinism /fileloggerparameters:LogFile="$buildLog"`;verbosity=diagnostic /p:DeployExtension=false
     }
 
     exit 0
