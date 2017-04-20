@@ -279,11 +279,10 @@ function Restore-Packages([string]$msbuildDir = "", [string]$project = "") {
         $all = @(
             "Base Toolset:build\ToolsetPackages\BaseToolset.csproj",
             "Closed Toolset:build\ToolsetPackages\ClosedToolset.csproj",
-            "Roslyn:Roslyn.sln")
+            "Roslyn:Roslyn.sln",
+            "Samples:src\Samples\Samples.sln")
             # DO NOT MERGE
-            # "Samples:src\Samples\Samples.sln",
             # "Templates:src\Setup\Templates\Templates.sln",
-            # "Toolsets Compiler:build\Toolset\Toolset.csproj",
             # "DevDivInsertionFiles:src\Setup\DevDivInsertionFiles\DevDivInsertionFiles.sln",
             # "DevDiv Roslyn Packages:src\Setup\DevDivPackages\Roslyn\project.json",
             # "DevDiv Debugger Packages:src\Setup\DevDivPackages\Debugger\project.json")

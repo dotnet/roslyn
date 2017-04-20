@@ -10,6 +10,7 @@
     <OutputType>Library</OutputType>
     <RootNamespace>BasicAnalyzers</RootNamespace>
     <AssemblyName>BasicAnalyzers.Vsix</AssemblyName>
+    <RuntimeIdentifiers>win7</RuntimeIdentifiers>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <ImportVSSDKTargets>True</ImportVSSDKTargets>
     <GeneratePkgDefFile>false</GeneratePkgDefFile>
