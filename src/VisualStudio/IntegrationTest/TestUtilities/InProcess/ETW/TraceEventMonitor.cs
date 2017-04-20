@@ -100,7 +100,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             }
         }
 
-        public static void WaitFor(string functionIdString, TimeSpan timeout)
+        public static void WaitFor(string functionIdString)
         {
             var functionId = DiagnosticOnly_Logger.GetFunctionIdValue(functionIdString);
 
@@ -109,7 +109,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             var @event = GetEvent(functionId, functionIdString);
             if (@event != null)
             {
-                @event.Wait(timeout);
+                @event.Wait();
             }
         }
 
