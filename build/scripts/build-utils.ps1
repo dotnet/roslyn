@@ -23,9 +23,6 @@ function Exec-Block([scriptblock]$cmd) {
     # - $?: did the powershell script block throw an error
     # - $lastexitcode: did a windows command executed by the script block end in error
     if ((-not $?) -or ($lastexitcode -ne 0)) {
-        if (-not $echo) { 
-            Write-Host $output
-        }
         throw "Command failed to execute: $cmd"
     } 
 }
