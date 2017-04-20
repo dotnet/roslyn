@@ -599,6 +599,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression BoxTypeParameterReceiver(BoundExpression rewrittenReceiver, NamedTypeSymbol memberContainingType)
         {
+            Debug.Assert(rewrittenReceiver.Type.IsTypeParameter());
             return MakeConversionNode(
                 rewrittenReceiver.Syntax,
                 rewrittenReceiver,
