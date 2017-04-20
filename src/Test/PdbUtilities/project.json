@@ -2,7 +2,7 @@
   "supports": {},
   "dependencies": {
     "Microsoft.NETCore.Portable.Compatibility": "1.0.1",
-    "Microsoft.DiaSymReader.Native": "1.5.0",
+    "Microsoft.DiaSymReader.Native": "1.6.0-beta2-25219",
     "Microsoft.DiaSymReader": "1.1.0",
     "Microsoft.DiaSymReader.PortablePdb": "1.3.0-beta1-61619-01",
     "Microsoft.Metadata.Visualizer": "1.0.0-beta1-61531-03",

@@ -1,6 +1,6 @@
 ﻿{
   "dependencies": {
-    "Microsoft.DiaSymReader.Native": "1.5.0"
+    "Microsoft.DiaSymReader.Native": "1.6.0-beta2-25219"
   },
   "frameworks": {
     "net46": { }
