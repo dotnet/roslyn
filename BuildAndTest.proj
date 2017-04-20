@@ -34,11 +34,14 @@
              Projects="$(RoslynSolution)"
              Properties="$(MSBuildCommonProperties)"
              Targets="Build" />
+    <!-- DO NOT MERGE
+         Not building samples until we've converted them
     <MSBuild BuildInParallel="true"
              Condition="'$(ManualTest)' == ''"
              Projects="$(SamplesSolution)"
              Properties="$(MSBuildCommonProperties)"
              Targets="Build" />
+    -->
   </Target>
 
   <Target Name="Clean">
@@ -46,11 +49,14 @@
              Projects="$(RoslynSolution)"
              Properties="$(MSBuildCommonProperties)"
              Targets="Clean" />
+    <!-- DO NOT MERGE
+         Not building samples until we've converted them
     <MSBuild BuildInParallel="true"
              Condition="'$(ManualTest)' == ''"
              Projects="$(SamplesSolution)"
              Properties="$(MSBuildCommonProperties)"
              Targets="Clean" />
+    -->
   </Target>
 
   <Target Name="Rebuild">
@@ -58,11 +64,14 @@
              Projects="$(RoslynSolution)"
              Properties="$(MSBuildCommonProperties)"
              Targets="Rebuild" />
+    <!-- DO NOT MERGE
+         Not building samples until we've converted them
     <MSBuild BuildInParallel="true"
              Condition="'$(ManualTest)' == ''"
              Projects="$(SamplesSolution)"
              Properties="$(MSBuildCommonProperties)"
              Targets="Rebuild" />
+    -->
   </Target>
 
   <Target Name="Test">
@@ -101,7 +110,10 @@
       <VsixExpInstallerArgs>/rootSuffix:RoslynDev /vsInstallDir:"$([System.IO.Path]::GetFullPath('$(MSBuildBinPath)\..\..\..'))"</VsixExpInstallerArgs>
     </PropertyGroup>
 
+    <!-- DO NOT MERGE
+         Skip CoreCLR until we have time to look 
     <Exec Condition="'$(TestVsi)' != 'true' AND '$(SkipCoreClr)' != 'true'" Command="&quot;$(CoreRunExe)&quot; $(CoreRunArgs)" />
+    -->
 
     <!-- Manually deploy any VSIX required by our integration tests (https://github.com/dotnet/roslyn/issues/17456) -->
     <Exec Condition="'$(TestVsi)' == 'true'" Command="&quot;$(VsixExpInstallerExe)&quot; $(VsixExpInstallerArgs) $(OutputDirectory)\Vsix\CompilerExtension\Roslyn.Compilers.Extension.vsix" />
