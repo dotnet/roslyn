@@ -4407,7 +4407,7 @@ class C
 {
     void M()
     {
-        var t = new { i = (1 + 2), i = (1 + 2) }; // error already
+        var t = new { i = 1 + 2, i = 1 + 2 }; // error already
     }
 }";
             await TestInRegularAndScriptAsync(code, expected, ignoreTrivia: false);
@@ -4431,7 +4431,7 @@ class C
 {
     void M()
     {
-        var t = new { /*comment*/ i = (1 + 2), j = 3 };
+        var t = new { /*comment*/ i = 1 + 2, j = 3 };
     }
 }";
             await TestInRegularAndScriptAsync(code, expected, ignoreTrivia: false);
@@ -4460,7 +4460,7 @@ class C
     {
         var t = new {
             /*comment*/
-            i = (1 + 2),
+            i = 1 + 2,
             /*comment*/ j = 3
         };
     }
