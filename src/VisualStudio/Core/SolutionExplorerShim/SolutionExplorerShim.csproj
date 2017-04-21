@@ -78,7 +78,7 @@
     <Compile Include="DiagnosticItem\CpsDiagnosticItemProvider.cs" />
     <Compile Include="DiagnosticItem\CpsDiagnosticItemSource.cs" />
     <Compile Include="DiagnosticItem\DiagnosticItem.BrowseObject.cs" />
-    <Compile Include="DiagnosticItem\DiagnosticItemProvider.cs" />
+    <Compile Include="DiagnosticItem\LegacyDiagnosticItemProvider.cs" />
     <Compile Include="AnalyzerReferenceManager.cs" />
     <Compile Include="ContextMenuController.cs" />
     <Compile Include="DiagnosticItem\DiagnosticItemSource.DiagnosticDescriptorComparer.cs" />
@@ -88,8 +88,8 @@
     <Compile Include="IHierarchyItemToProjectIdMap.cs" />
     <Compile Include="ISolutionExplorerWorkspaceProvider.cs" />
     <Compile Include="LocalizableProperties.cs" />
-    <Compile Include="DiagnosticItem\DiagnosticItemSource.cs" />
-    <Compile Include="DiagnosticItem\DiagnosticItem.cs" />
+    <Compile Include="DiagnosticItem\LegacyDiagnosticItemSource.cs" />
+    <Compile Include="DiagnosticItem\LegacyDiagnosticItem.cs" />
     <Compile Include="RuleSetDocumentExtensions.cs" />
     <Compile Include="SolutionExplorerShim.Designer.cs">
       <AutoGen>True</AutoGen>
