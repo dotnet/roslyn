@@ -286,9 +286,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (map.TryGetValue(identity, out symbol, (v1, v2, s) => true))
                 {
                     // TODO: https://github.com/dotnet/roslyn/issues/9004
-                    throw new NotSupportedException($"");
-                    $"
-                    $"Changing the version of an assembly reference is not allowed during debugging: '{identity}' changed version to { symbol.Identity.Version}
+                    throw new NotSupportedException(string.Format(CSharpResources.ChangingReferencedAssemblyVersionNotAllowed, identity, symbol.Identity.Version);
                 }
 
                 return new MissingAssemblySymbol(identity);
