@@ -61,7 +61,7 @@ Del<C, System");
             VisualStudio.InteractiveWindow.Verify.CompletionItemsExist("C:");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18870")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18877")]
         public void VerifyNoCrashOnEnter()
         {
             VisualStudio.Workspace.SetUseSuggestionMode(false);
