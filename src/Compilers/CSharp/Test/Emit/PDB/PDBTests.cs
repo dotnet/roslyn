@@ -4373,6 +4373,94 @@ class C
 </symbols>");
         }
 
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18844"), WorkItem(18844, "https://github.com/dotnet/roslyn/issues/18844")]
+        public void UsingStatement_Embedded()
+        {
+            var source = @"
+class C
+{
+    bool F()
+    {
+        bool x = true;
+        bool value = false;
+        using (var stream = new System.IO.MemoryStream())
+            if (x)
+            {
+                value = true;
+            }
+            else
+                value = false;
+
+        return value;
+    }
+}
+";
+
+            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            var v = CompileAndVerify(c);
+            v.VerifyIL("C.F", @"
+{
+  // Code size       45 (0x2d)
+  .maxstack  1
+  .locals init (bool V_0, //x
+                bool V_1, //value
+                System.IO.MemoryStream V_2, //stream
+                bool V_3,
+                bool V_4)
+  // sequence point: {
+  IL_0000:  nop
+  // sequence point: bool x = true;
+  IL_0001:  ldc.i4.1
+  IL_0002:  stloc.0
+  // sequence point: bool value = false;
+  IL_0003:  ldc.i4.0
+  IL_0004:  stloc.1
+  // sequence point: var stream = new System.IO.MemoryStream()
+  IL_0005:  newobj     ""System.IO.MemoryStream..ctor()""
+  IL_000a:  stloc.2
+  .try
+  {
+    // sequence point: if (x)
+    IL_000b:  ldloc.0
+    IL_000c:  stloc.3
+    // sequence point: <hidden>
+    IL_000d:  ldloc.3
+    IL_000e:  brfalse.s  IL_0016
+    // sequence point: {
+    IL_0010:  nop
+    // sequence point: value = true;
+    IL_0011:  ldc.i4.1
+    IL_0012:  stloc.1
+    // sequence point: }
+    IL_0013:  nop
+    IL_0014:  br.s       IL_0018
+    // sequence point: value = false;
+    IL_0016:  ldc.i4.0
+    IL_0017:  stloc.1
+    // sequence point: <hidden>
+    IL_0018:  leave.s    IL_0025
+  }
+  finally
+  {
+    // sequence point: <hidden>
+    IL_001a:  ldloc.2
+    IL_001b:  brfalse.s  IL_0024
+    IL_001d:  ldloc.2
+    IL_001e:  callvirt   ""void System.IDisposable.Dispose()""
+    IL_0023:  nop
+    IL_0024:  endfinally
+  }
+  // sequence point: return value;
+  IL_0025:  ldloc.1
+  IL_0026:  stloc.s    V_4
+  IL_0028:  br.s       IL_002a
+  // sequence point: }
+  IL_002a:  ldloc.s    V_4
+  IL_002c:  ret
+}
+", sequencePoints: "C.F", source: source);
+        }
+
         #endregion
 
         // LockStatement tested in CodeGenLock

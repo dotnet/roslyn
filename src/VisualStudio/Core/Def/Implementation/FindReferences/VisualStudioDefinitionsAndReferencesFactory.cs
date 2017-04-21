@@ -94,7 +94,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences
                 string filePath,
                 int lineNumber,
                 int charOffset) 
-                : base(tags, displayParts, ImmutableArray<TaggedText>.Empty)
+                : base(tags, displayParts, ImmutableArray<TaggedText>.Empty,
+                       originationParts: default(ImmutableArray<TaggedText>),
+                       sourceSpans: default(ImmutableArray<DocumentSpan>),
+                       properties: null,
+                       displayIfNoReferences: true)
             {
                 _serviceProvider = serviceProvider;
                 _filePath = filePath;

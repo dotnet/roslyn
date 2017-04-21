@@ -960,6 +960,36 @@ var x = $""Hello{123:N2}"";
             edits.VerifyEdits("Update [x = $\"Hello{123:N1}\"]@8 -> [x = $\"Hello{123:N2}\"]@8");
         }
 
+        [Fact]
+        public void MatchCasePattern_UpdateDelete()
+        {
+            var src1 = @"
+switch(shape)
+{
+    case Point p: return 0;
+    case Circle c: return 1;
+}
+";
+
+            var src2 = @"
+switch(shape)
+{
+    case Circle circle: return 1;
+}
+";
+
+            var match = GetMethodMatches(src1, src2, kind: MethodKind.Regular);
+            var actual = ToMatchingPairs(match);
+
+            var expected = new MatchingPairs {
+                { "switch(shape) {     case Point p: return 0;     case Circle c: return 1; }", "switch(shape) {     case Circle circle: return 1; }" },
+                { "case Circle c: return 1;", "case Circle circle: return 1;" },
+                { "return 1;", "return 1;" }
+            };
+
+            expected.AssertEqual(actual);
+        }
+
         #endregion
 
         #region Variable Declaration
@@ -1033,6 +1063,32 @@ var x = $""Hello{123:N2}"";
 
             edits.VerifyEdits(
                 "Update [case 1: f(); break;]@18 -> [case 2: f(); break;]@18");
+        }
+
+        [Fact]
+        public void CasePatternLabel_UpdateDelete()
+        {
+            var src1 = @"
+switch(shape)
+{
+    case Point p: return 0;
+    case Circle c: return 1;
+}
+";
+
+            var src2 = @"
+switch(shape)
+{
+    case Circle circle: return 1;
+}
+";
+
+            var edits = GetMethodEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [case Circle c: return 1;]@55 -> [case Circle circle: return 1;]@26",
+                "Delete [case Point p: return 0;]@26",
+                "Delete [return 0;]@40");
         }
 
         #endregion
