@@ -195,20 +195,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
         private static bool IsTupleInDeconstruction(SyntaxNode tuple)
         {
             Contract.Assert(tuple.IsKind(SyntaxKind.TupleExpression));
-            var parent = tuple.Parent;
+            var currentTuple = tuple;
             do
             {
+                var parent = currentTuple.Parent;
                 if (parent.IsKind(SyntaxKind.SimpleAssignmentExpression))
                 {
                     return true;
                 }
 
-                tuple = parent.Parent;
-                parent = tuple.IsKind(SyntaxKind.TupleExpression) ? parent.Parent.Parent : null;
-            }
-            while (parent != null);
+                if (!parent.IsKind(SyntaxKind.Argument))
+                {
+                    return false;
+                }
 
-            return false;
+                var grandParent = parent.Parent;
+                if (!grandParent.IsKind(SyntaxKind.TupleExpression))
+                {
+                    return false;
+                }
+
+                currentTuple = grandParent;
+            }
+            while (true);
         }
     }
 }
