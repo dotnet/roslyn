@@ -398,7 +398,6 @@
     <Compile Include="Implementation\EndConstructGeneration\IEndConstructGenerationService.cs" />
     <Compile Include="Implementation\ExtractInterface\AbstractExtractInterfaceCommandHandler.cs" />
     <Compile Include="Implementation\ExtractMethod\AbstractExtractMethodCommandHandler.cs" />
-    <Compile Include="FindReferences\AbstractFindReferencesService.cs" />
     <Compile Include="FindReferences\FindReferencesCommandHandler.cs" />
     <Compile Include="FindReferences\IFindReferencesService.cs" />
     <Compile Include="Implementation\ForegroundNotification\ForegroundNotificationService.cs" />
