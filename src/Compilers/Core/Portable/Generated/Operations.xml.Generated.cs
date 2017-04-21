@@ -8,9 +8,9 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents an expression that creates a pointer value by taking the address of a reference.
     /// </summary>
-    internal abstract partial class AddressOfExpressionBase : Operation, IAddressOfExpression
+    internal abstract partial class BaseAddressOfExpression : Operation, IAddressOfExpression
     {
-        protected AddressOfExpressionBase(bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+        protected BaseAddressOfExpression(bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
                     base(OperationKind.AddressOfExpression, isInvalid, syntax, type, constantValue)
         {
         }
@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents an expression that creates a pointer value by taking the address of a reference.
     /// </summary>
-    internal sealed partial class AddressOfExpression : AddressOfExpressionBase, IAddressOfExpression
+    internal sealed partial class AddressOfExpression : BaseAddressOfExpression, IAddressOfExpression
     {
         public AddressOfExpression(IOperation reference, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(isInvalid, syntax, type, constantValue)
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents an expression that creates a pointer value by taking the address of a reference.
     /// </summary>
-    internal sealed partial class LazyAddressOfExpression : AddressOfExpressionBase, IAddressOfExpression
+    internal sealed partial class LazyAddressOfExpression : BaseAddressOfExpression, IAddressOfExpression
     {
         private readonly Lazy<IOperation> _lazyReference;
 
@@ -62,9 +62,9 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents an argument in a method invocation.
     /// </summary>
-    internal abstract partial class ArgumentBase : Operation, IArgument
+    internal abstract partial class BaseArgument : Operation, IArgument
     {
-        protected ArgumentBase(ArgumentKind argumentKind, IParameterSymbol parameter, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+        protected BaseArgument(ArgumentKind argumentKind, IParameterSymbol parameter, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
                     base(OperationKind.Argument, isInvalid, syntax, type, constantValue)
         {
             ArgumentKind = argumentKind;
@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents an argument in a method invocation.
     /// </summary>
-    internal sealed partial class Argument : ArgumentBase, IArgument
+    internal sealed partial class Argument : BaseArgument, IArgument
     {
         public Argument(ArgumentKind argumentKind, IParameterSymbol parameter, IOperation value, IOperation inConversion, IOperation outConversion, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(argumentKind, parameter, isInvalid, syntax, type, constantValue)
@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents an argument in a method invocation.
     /// </summary>
-    internal sealed partial class LazyArgument : ArgumentBase, IArgument
+    internal sealed partial class LazyArgument : BaseArgument, IArgument
     {
         private readonly Lazy<IOperation> _lazyValue;
         private readonly Lazy<IOperation> _lazyInConversion;
@@ -160,9 +160,9 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents the creation of an array instance.
     /// </summary>
-    internal abstract partial class ArrayCreationExpressionBase : Operation, IArrayCreationExpression
+    internal abstract partial class BaseArrayCreationExpression : Operation, IArrayCreationExpression
     {
-        protected ArrayCreationExpressionBase(ITypeSymbol elementType, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+        protected BaseArrayCreationExpression(ITypeSymbol elementType, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
                     base(OperationKind.ArrayCreationExpression, isInvalid, syntax, type, constantValue)
         {
             ElementType = elementType;
@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents the creation of an array instance.
     /// </summary>
-    internal sealed partial class ArrayCreationExpression : ArrayCreationExpressionBase, IArrayCreationExpression
+    internal sealed partial class ArrayCreationExpression : BaseArrayCreationExpression, IArrayCreationExpression
     {
         public ArrayCreationExpression(ITypeSymbol elementType, ImmutableArray<IOperation> dimensionSizes, IArrayInitializer initializer, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(elementType, isInvalid, syntax, type, constantValue)
@@ -213,7 +213,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents the creation of an array instance.
     /// </summary>
-    internal sealed partial class LazyArrayCreationExpression : ArrayCreationExpressionBase, IArrayCreationExpression
+    internal sealed partial class LazyArrayCreationExpression : BaseArrayCreationExpression, IArrayCreationExpression
     {
         private readonly Lazy<ImmutableArray<IOperation>> _lazyDimensionSizes;
         private readonly Lazy<IArrayInitializer> _lazyInitializer;
@@ -237,9 +237,9 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a reference to an array element.
     /// </summary>
-    internal abstract partial class ArrayElementReferenceExpressionBase : Operation, IArrayElementReferenceExpression
+    internal abstract partial class BaseArrayElementReferenceExpression : Operation, IArrayElementReferenceExpression
     {
-        protected ArrayElementReferenceExpressionBase(bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+        protected BaseArrayElementReferenceExpression(bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
                     base(OperationKind.ArrayElementReferenceExpression, isInvalid, syntax, type, constantValue)
         {
         }
@@ -264,7 +264,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a reference to an array element.
     /// </summary>
-    internal sealed partial class ArrayElementReferenceExpression : ArrayElementReferenceExpressionBase, IArrayElementReferenceExpression
+    internal sealed partial class ArrayElementReferenceExpression : BaseArrayElementReferenceExpression, IArrayElementReferenceExpression
     {
         public ArrayElementReferenceExpression(IOperation arrayReference, ImmutableArray<IOperation> indices, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(isInvalid, syntax, type, constantValue)
@@ -285,7 +285,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a reference to an array element.
     /// </summary>
-    internal sealed partial class LazyArrayElementReferenceExpression : ArrayElementReferenceExpressionBase, IArrayElementReferenceExpression
+    internal sealed partial class LazyArrayElementReferenceExpression : BaseArrayElementReferenceExpression, IArrayElementReferenceExpression
     {
         private readonly Lazy<IOperation> _lazyArrayReference;
         private readonly Lazy<ImmutableArray<IOperation>> _lazyIndices;
@@ -309,9 +309,9 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents the initialization of an array instance.
     /// </summary>
-    internal abstract partial class ArrayInitializerBase : Operation, IArrayInitializer
+    internal abstract partial class BaseArrayInitializer : Operation, IArrayInitializer
     {
-        protected ArrayInitializerBase(bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+        protected BaseArrayInitializer(bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
                     base(OperationKind.ArrayInitializer, isInvalid, syntax, type, constantValue)
         {
         }
@@ -332,7 +332,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents the initialization of an array instance.
     /// </summary>
-    internal sealed partial class ArrayInitializer : ArrayInitializerBase, IArrayInitializer
+    internal sealed partial class ArrayInitializer : BaseArrayInitializer, IArrayInitializer
     {
         public ArrayInitializer(ImmutableArray<IOperation> elementValues, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(isInvalid, syntax, type, constantValue)
@@ -348,7 +348,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents the initialization of an array instance.
     /// </summary>
-    internal sealed partial class LazyArrayInitializer : ArrayInitializerBase, IArrayInitializer
+    internal sealed partial class LazyArrayInitializer : BaseArrayInitializer, IArrayInitializer
     {
         private readonly Lazy<ImmutableArray<IOperation>> _lazyElementValues;
 
@@ -365,9 +365,9 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents an assignment expression.
     /// </summary>
-    internal abstract partial class AssignmentExpressionBase : Operation, IAssignmentExpression
+    internal abstract partial class BaseAssignmentExpression : Operation, IAssignmentExpression
     {
-        protected AssignmentExpressionBase(OperationKind kind, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+        protected BaseAssignmentExpression(OperationKind kind, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(kind, isInvalid, syntax, type, constantValue)
         {
         }
@@ -384,7 +384,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents an assignment expression.
     /// </summary>
-    internal sealed partial class AssignmentExpression : AssignmentExpressionBase, IAssignmentExpression
+    internal sealed partial class AssignmentExpression : BaseAssignmentExpression, IAssignmentExpression
     {
         public AssignmentExpression(IOperation target, IOperation value, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(OperationKind.AssignmentExpression, isInvalid, syntax, type, constantValue)
@@ -413,7 +413,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents an assignment expression.
     /// </summary>
-    internal sealed partial class LazyAssignmentExpression : AssignmentExpressionBase, IAssignmentExpression
+    internal sealed partial class LazyAssignmentExpression : BaseAssignmentExpression, IAssignmentExpression
     {
         private readonly Lazy<IOperation> _lazyTarget;
         private readonly Lazy<IOperation> _lazyValue;
@@ -446,9 +446,9 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents an await expression.
     /// </summary>
-    internal abstract partial class AwaitExpressionBase : Operation, IAwaitExpression
+    internal abstract partial class BaseAwaitExpression : Operation, IAwaitExpression
     {
-        protected AwaitExpressionBase(bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+        protected BaseAwaitExpression(bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
                     base(OperationKind.AwaitExpression, isInvalid, syntax, type, constantValue)
         {
         }
@@ -469,7 +469,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents an await expression.
     /// </summary>
-    internal sealed partial class AwaitExpression : AwaitExpressionBase, IAwaitExpression
+    internal sealed partial class AwaitExpression : BaseAwaitExpression, IAwaitExpression
     {
         public AwaitExpression(IOperation awaitedValue, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(isInvalid, syntax, type, constantValue)
@@ -485,7 +485,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents an await expression.
     /// </summary>
-    internal sealed partial class LazyAwaitExpression : AwaitExpressionBase, IAwaitExpression
+    internal sealed partial class LazyAwaitExpression : BaseAwaitExpression, IAwaitExpression
     {
         private readonly Lazy<IOperation> _lazyAwaitedValue;
 
@@ -502,9 +502,9 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents an operation with two operands that produces a result with the same type as at least one of the operands.
     /// </summary>
-    internal abstract partial class BinaryOperatorExpressionBase : Operation, IHasOperatorMethodExpression, IBinaryOperatorExpression
+    internal abstract partial class BaseBinaryOperatorExpression : Operation, IHasOperatorMethodExpression, IBinaryOperatorExpression
     {
-        protected BinaryOperatorExpressionBase(BinaryOperationKind binaryOperationKind, bool usesOperatorMethod, IMethodSymbol operatorMethod, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+        protected BaseBinaryOperatorExpression(BinaryOperationKind binaryOperationKind, bool usesOperatorMethod, IMethodSymbol operatorMethod, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
                     base(OperationKind.BinaryOperatorExpression, isInvalid, syntax, type, constantValue)
         {
             BinaryOperationKind = binaryOperationKind;
@@ -544,7 +544,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents an operation with two operands that produces a result with the same type as at least one of the operands.
     /// </summary>
-    internal sealed partial class BinaryOperatorExpression : BinaryOperatorExpressionBase, IHasOperatorMethodExpression, IBinaryOperatorExpression
+    internal sealed partial class BinaryOperatorExpression : BaseBinaryOperatorExpression, IHasOperatorMethodExpression, IBinaryOperatorExpression
     {
         public BinaryOperatorExpression(BinaryOperationKind binaryOperationKind, IOperation leftOperand, IOperation rightOperand, bool usesOperatorMethod, IMethodSymbol operatorMethod, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(binaryOperationKind, usesOperatorMethod, operatorMethod, isInvalid, syntax, type, constantValue)
@@ -565,7 +565,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents an operation with two operands that produces a result with the same type as at least one of the operands.
     /// </summary>
-    internal sealed partial class LazyBinaryOperatorExpression : BinaryOperatorExpressionBase, IHasOperatorMethodExpression, IBinaryOperatorExpression
+    internal sealed partial class LazyBinaryOperatorExpression : BaseBinaryOperatorExpression, IHasOperatorMethodExpression, IBinaryOperatorExpression
     {
         private readonly Lazy<IOperation> _lazyLeftOperand;
         private readonly Lazy<IOperation> _lazyRightOperand;
@@ -589,9 +589,9 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a block scope.
     /// </summary>
-    internal abstract partial class BlockStatementBase : Operation, IBlockStatement
+    internal abstract partial class BaseBlockStatement : Operation, IBlockStatement
     {
-        protected BlockStatementBase(ImmutableArray<ILocalSymbol> locals, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+        protected BaseBlockStatement(ImmutableArray<ILocalSymbol> locals, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
                     base(OperationKind.BlockStatement, isInvalid, syntax, type, constantValue)
         {
             Locals = locals;
@@ -617,7 +617,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a block scope.
     /// </summary>
-    internal sealed partial class BlockStatement : BlockStatementBase, IBlockStatement
+    internal sealed partial class BlockStatement : BaseBlockStatement, IBlockStatement
     {
         public BlockStatement(ImmutableArray<IOperation> statements, ImmutableArray<ILocalSymbol> locals, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(locals, isInvalid, syntax, type, constantValue)
@@ -633,7 +633,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a block scope.
     /// </summary>
-    internal sealed partial class LazyBlockStatement : BlockStatementBase, IBlockStatement
+    internal sealed partial class LazyBlockStatement : BaseBlockStatement, IBlockStatement
     {
         private readonly Lazy<ImmutableArray<IOperation>> _lazyStatements;
 
@@ -695,9 +695,9 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a C# catch or VB Catch clause.
     /// </summary>
-    internal abstract partial class CatchClauseBase : Operation, ICatchClause
+    internal abstract partial class BaseCatchClause : Operation, ICatchClause
     {
-        protected CatchClauseBase(ITypeSymbol caughtType, ILocalSymbol exceptionLocal, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+        protected BaseCatchClause(ITypeSymbol caughtType, ILocalSymbol exceptionLocal, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
                     base(OperationKind.CatchClause, isInvalid, syntax, type, constantValue)
         {
             CaughtType = caughtType;
@@ -732,7 +732,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a C# catch or VB Catch clause.
     /// </summary>
-    internal sealed partial class CatchClause : CatchClauseBase, ICatchClause
+    internal sealed partial class CatchClause : BaseCatchClause, ICatchClause
     {
         public CatchClause(IBlockStatement handler, ITypeSymbol caughtType, IOperation filter, ILocalSymbol exceptionLocal, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(caughtType, exceptionLocal, isInvalid, syntax, type, constantValue)
@@ -753,7 +753,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a C# catch or VB Catch clause.
     /// </summary>
-    internal sealed partial class LazyCatchClause : CatchClauseBase, ICatchClause
+    internal sealed partial class LazyCatchClause : BaseCatchClause, ICatchClause
     {
         private readonly Lazy<IBlockStatement> _lazyHandler;
         private readonly Lazy<IOperation> _lazyFilter;
@@ -777,9 +777,9 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents an assignment expression that includes a binary operation.
     /// </summary>
-    internal abstract partial class CompoundAssignmentExpressionBase : AssignmentExpressionBase, IHasOperatorMethodExpression, ICompoundAssignmentExpression
+    internal abstract partial class BaseCompoundAssignmentExpression : BaseAssignmentExpression, IHasOperatorMethodExpression, ICompoundAssignmentExpression
     {
-        protected CompoundAssignmentExpressionBase(BinaryOperationKind binaryOperationKind, bool usesOperatorMethod, IMethodSymbol operatorMethod, OperationKind kind, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+        protected BaseCompoundAssignmentExpression(BinaryOperationKind binaryOperationKind, bool usesOperatorMethod, IMethodSymbol operatorMethod, OperationKind kind, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(kind, isInvalid, syntax, type, constantValue)
         {
             BinaryOperationKind = binaryOperationKind;
@@ -803,7 +803,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents an assignment expression that includes a binary operation.
     /// </summary>
-    internal sealed partial class CompoundAssignmentExpression : CompoundAssignmentExpressionBase, IHasOperatorMethodExpression, ICompoundAssignmentExpression
+    internal sealed partial class CompoundAssignmentExpression : BaseCompoundAssignmentExpression, IHasOperatorMethodExpression, ICompoundAssignmentExpression
     {
         public CompoundAssignmentExpression(BinaryOperationKind binaryOperationKind, IOperation target, IOperation value, bool usesOperatorMethod, IMethodSymbol operatorMethod, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(binaryOperationKind, usesOperatorMethod, operatorMethod, OperationKind.CompoundAssignmentExpression, isInvalid, syntax, type, constantValue)
@@ -832,7 +832,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents an assignment expression that includes a binary operation.
     /// </summary>
-    internal sealed partial class LazyCompoundAssignmentExpression : CompoundAssignmentExpressionBase, IHasOperatorMethodExpression, ICompoundAssignmentExpression
+    internal sealed partial class LazyCompoundAssignmentExpression : BaseCompoundAssignmentExpression, IHasOperatorMethodExpression, ICompoundAssignmentExpression
     {
         private readonly Lazy<IOperation> _lazyTarget;
         private readonly Lazy<IOperation> _lazyValue;
@@ -865,9 +865,9 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents an expression that includes a ? or ?. conditional access instance expression.
     /// </summary>
-    internal abstract partial class ConditionalAccessExpressionBase : Operation, IConditionalAccessExpression
+    internal abstract partial class BaseConditionalAccessExpression : Operation, IConditionalAccessExpression
     {
-        protected ConditionalAccessExpressionBase(bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+        protected BaseConditionalAccessExpression(bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
                     base(OperationKind.ConditionalAccessExpression, isInvalid, syntax, type, constantValue)
         {
         }
@@ -892,7 +892,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents an expression that includes a ? or ?. conditional access instance expression.
     /// </summary>
-    internal sealed partial class ConditionalAccessExpression : ConditionalAccessExpressionBase, IConditionalAccessExpression
+    internal sealed partial class ConditionalAccessExpression : BaseConditionalAccessExpression, IConditionalAccessExpression
     {
         public ConditionalAccessExpression(IOperation conditionalValue, IOperation conditionalInstance, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(isInvalid, syntax, type, constantValue)
@@ -913,7 +913,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents an expression that includes a ? or ?. conditional access instance expression.
     /// </summary>
-    internal sealed partial class LazyConditionalAccessExpression : ConditionalAccessExpressionBase, IConditionalAccessExpression
+    internal sealed partial class LazyConditionalAccessExpression : BaseConditionalAccessExpression, IConditionalAccessExpression
     {
         private readonly Lazy<IOperation> _lazyConditionalValue;
         private readonly Lazy<IOperation> _lazyConditionalInstance;
@@ -956,9 +956,9 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a C# ?: or VB If expression.
     /// </summary>
-    internal abstract partial class ConditionalChoiceExpressionBase : Operation, IConditionalChoiceExpression
+    internal abstract partial class BaseConditionalChoiceExpression : Operation, IConditionalChoiceExpression
     {
-        protected ConditionalChoiceExpressionBase(bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+        protected BaseConditionalChoiceExpression(bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
                     base(OperationKind.ConditionalChoiceExpression, isInvalid, syntax, type, constantValue)
         {
         }
@@ -987,7 +987,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a C# ?: or VB If expression.
     /// </summary>
-    internal sealed partial class ConditionalChoiceExpression : ConditionalChoiceExpressionBase, IConditionalChoiceExpression
+    internal sealed partial class ConditionalChoiceExpression : BaseConditionalChoiceExpression, IConditionalChoiceExpression
     {
         public ConditionalChoiceExpression(IOperation condition, IOperation ifTrueValue, IOperation ifFalseValue, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(isInvalid, syntax, type, constantValue)
@@ -1013,7 +1013,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a C# ?: or VB If expression.
     /// </summary>
-    internal sealed partial class LazyConditionalChoiceExpression : ConditionalChoiceExpressionBase, IConditionalChoiceExpression
+    internal sealed partial class LazyConditionalChoiceExpression : BaseConditionalChoiceExpression, IConditionalChoiceExpression
     {
         private readonly Lazy<IOperation> _lazyCondition;
         private readonly Lazy<IOperation> _lazyIfTrueValue;
@@ -1044,9 +1044,9 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a conversion operation.
     /// </summary>
-    internal abstract partial class ConversionExpressionBase : Operation, IHasOperatorMethodExpression, IConversionExpression
+    internal abstract partial class BaseConversionExpression : Operation, IHasOperatorMethodExpression, IConversionExpression
     {
-        protected ConversionExpressionBase(ConversionKind conversionKind, bool isExplicit, bool usesOperatorMethod, IMethodSymbol operatorMethod, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+        protected BaseConversionExpression(ConversionKind conversionKind, bool isExplicit, bool usesOperatorMethod, IMethodSymbol operatorMethod, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
                     base(OperationKind.ConversionExpression, isInvalid, syntax, type, constantValue)
         {
             ConversionKind = conversionKind;
@@ -1087,7 +1087,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a conversion operation.
     /// </summary>
-    internal sealed partial class ConversionExpression : ConversionExpressionBase, IHasOperatorMethodExpression, IConversionExpression
+    internal sealed partial class ConversionExpression : BaseConversionExpression, IHasOperatorMethodExpression, IConversionExpression
     {
         public ConversionExpression(IOperation operand, ConversionKind conversionKind, bool isExplicit, bool usesOperatorMethod, IMethodSymbol operatorMethod, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(conversionKind, isExplicit, usesOperatorMethod, operatorMethod, isInvalid, syntax, type, constantValue)
@@ -1103,7 +1103,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a conversion operation.
     /// </summary>
-    internal sealed partial class LazyConversionExpression : ConversionExpressionBase, IHasOperatorMethodExpression, IConversionExpression
+    internal sealed partial class LazyConversionExpression : BaseConversionExpression, IHasOperatorMethodExpression, IConversionExpression
     {
         private readonly Lazy<IOperation> _lazyOperand;
 
@@ -1178,9 +1178,9 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a binding of an event.
     /// </summary>
-    internal abstract partial class EventAssignmentExpressionBase : Operation, IEventAssignmentExpression
+    internal abstract partial class BaseEventAssignmentExpression : Operation, IEventAssignmentExpression
     {
-        protected EventAssignmentExpressionBase(IEventSymbol @event, bool adds, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+        protected BaseEventAssignmentExpression(IEventSymbol @event, bool adds, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
                     base(OperationKind.EventAssignmentExpression, isInvalid, syntax, type, constantValue)
         {
             Event = @event;
@@ -1218,7 +1218,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a binding of an event.
     /// </summary>
-    internal sealed partial class EventAssignmentExpression : EventAssignmentExpressionBase, IEventAssignmentExpression
+    internal sealed partial class EventAssignmentExpression : BaseEventAssignmentExpression, IEventAssignmentExpression
     {
         public EventAssignmentExpression(IEventSymbol @event, IOperation eventInstance, IOperation handlerValue, bool adds, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(@event, adds, isInvalid, syntax, type, constantValue)
@@ -1241,7 +1241,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a binding of an event.
     /// </summary>
-    internal sealed partial class LazyEventAssignmentExpression : EventAssignmentExpressionBase, IEventAssignmentExpression
+    internal sealed partial class LazyEventAssignmentExpression : BaseEventAssignmentExpression, IEventAssignmentExpression
     {
         private readonly Lazy<IOperation> _lazyEventInstance;
         private readonly Lazy<IOperation> _lazyHandlerValue;
@@ -1326,9 +1326,9 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a C# or VB statement that consists solely of an expression.
     /// </summary>
-    internal abstract partial class ExpressionStatementBase : Operation, IExpressionStatement
+    internal abstract partial class BaseExpressionStatement : Operation, IExpressionStatement
     {
-        protected ExpressionStatementBase(bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+        protected BaseExpressionStatement(bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
                     base(OperationKind.ExpressionStatement, isInvalid, syntax, type, constantValue)
         {
         }
@@ -1349,7 +1349,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a C# or VB statement that consists solely of an expression.
     /// </summary>
-    internal sealed partial class ExpressionStatement : ExpressionStatementBase, IExpressionStatement
+    internal sealed partial class ExpressionStatement : BaseExpressionStatement, IExpressionStatement
     {
         public ExpressionStatement(IOperation expression, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(isInvalid, syntax, type, constantValue)
@@ -1365,7 +1365,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a C# or VB statement that consists solely of an expression.
     /// </summary>
-    internal sealed partial class LazyExpressionStatement : ExpressionStatementBase, IExpressionStatement
+    internal sealed partial class LazyExpressionStatement : BaseExpressionStatement, IExpressionStatement
     {
         private readonly Lazy<IOperation> _lazyExpression;
 
@@ -1496,9 +1496,9 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a C# fixed staement.
     /// </summary>
-    internal abstract partial class FixedStatementBase : Operation, IFixedStatement
+    internal abstract partial class BaseFixedStatement : Operation, IFixedStatement
     {
-        protected FixedStatementBase(bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+        protected BaseFixedStatement(bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
                     base(OperationKind.FixedStatement, isInvalid, syntax, type, constantValue)
         {
         }
@@ -1523,7 +1523,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a C# fixed staement.
     /// </summary>
-    internal sealed partial class FixedStatement : FixedStatementBase, IFixedStatement
+    internal sealed partial class FixedStatement : BaseFixedStatement, IFixedStatement
     {
         public FixedStatement(IVariableDeclarationStatement variables, IOperation body, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(isInvalid, syntax, type, constantValue)
@@ -1544,7 +1544,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a C# fixed staement.
     /// </summary>
-    internal sealed partial class LazyFixedStatement : FixedStatementBase, IFixedStatement
+    internal sealed partial class LazyFixedStatement : BaseFixedStatement, IFixedStatement
     {
         private readonly Lazy<IVariableDeclarationStatement> _lazyVariables;
         private readonly Lazy<IOperation> _lazyBody;
@@ -1751,9 +1751,9 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents an if statement in C# or an If statement in VB.
     /// </summary>
-    internal abstract partial class IfStatementBase : Operation, IIfStatement
+    internal abstract partial class BaseIfStatement : Operation, IIfStatement
     {
-        protected IfStatementBase(bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+        protected BaseIfStatement(bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
                     base(OperationKind.IfStatement, isInvalid, syntax, type, constantValue)
         {
         }
@@ -1782,7 +1782,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents an if statement in C# or an If statement in VB.
     /// </summary>
-    internal sealed partial class IfStatement : IfStatementBase, IIfStatement
+    internal sealed partial class IfStatement : BaseIfStatement, IIfStatement
     {
         public IfStatement(IOperation condition, IOperation ifTrueStatement, IOperation ifFalseStatement, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(isInvalid, syntax, type, constantValue)
@@ -1808,7 +1808,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents an if statement in C# or an If statement in VB.
     /// </summary>
-    internal sealed partial class LazyIfStatement : IfStatementBase, IIfStatement
+    internal sealed partial class LazyIfStatement : BaseIfStatement, IIfStatement
     {
         private readonly Lazy<IOperation> _lazyCondition;
         private readonly Lazy<IOperation> _lazyIfTrueStatement;
@@ -1839,7 +1839,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents an increment expression.
     /// </summary>
-    internal sealed partial class IncrementExpression : CompoundAssignmentExpressionBase, IIncrementExpression
+    internal sealed partial class IncrementExpression : BaseCompoundAssignmentExpression, IIncrementExpression
     {
         public IncrementExpression(UnaryOperationKind incrementOperationKind, BinaryOperationKind binaryOperationKind, IOperation target, IOperation value, bool usesOperatorMethod, IMethodSymbol operatorMethod, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(binaryOperationKind, usesOperatorMethod, operatorMethod, OperationKind.IncrementExpression, isInvalid, syntax, type, constantValue)
@@ -1873,7 +1873,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents an increment expression.
     /// </summary>
-    internal sealed partial class LazyIncrementExpression : CompoundAssignmentExpressionBase, IIncrementExpression
+    internal sealed partial class LazyIncrementExpression : BaseCompoundAssignmentExpression, IIncrementExpression
     {
         private readonly Lazy<IOperation> _lazyTarget;
         private readonly Lazy<IOperation> _lazyValue;
@@ -1911,7 +1911,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a reference to an indexed property.
     /// </summary>
-    internal sealed partial class IndexedPropertyReferenceExpression : PropertyReferenceExpressionBase, IHasArgumentsExpression, IIndexedPropertyReferenceExpression
+    internal sealed partial class IndexedPropertyReferenceExpression : BasePropertyReferenceExpression, IHasArgumentsExpression, IIndexedPropertyReferenceExpression
     {
         public IndexedPropertyReferenceExpression(IPropertySymbol property, IOperation instance, ISymbol member, ImmutableArray<IArgument> argumentsInEvaluationOrder, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(property, member, OperationKind.IndexedPropertyReferenceExpression, isInvalid, syntax, type, constantValue)
@@ -1944,7 +1944,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a reference to an indexed property.
     /// </summary>
-    internal sealed partial class LazyIndexedPropertyReferenceExpression : PropertyReferenceExpressionBase, IHasArgumentsExpression, IIndexedPropertyReferenceExpression
+    internal sealed partial class LazyIndexedPropertyReferenceExpression : BasePropertyReferenceExpression, IHasArgumentsExpression, IIndexedPropertyReferenceExpression
     {
         private readonly Lazy<IOperation> _lazyInstance;
         private readonly Lazy<ImmutableArray<IArgument>> _lazyArgumentsInEvaluationOrder;
@@ -2007,9 +2007,9 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// This interface is reserved for implementation by its associated APIs. We reserve the right to
     /// change it in the future.
     /// </remarks>
-    internal abstract partial class InvalidExpressionBase : Operation, IInvalidExpression
+    internal abstract partial class BaseInvalidExpression : Operation, IInvalidExpression
     {
-        protected InvalidExpressionBase(bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+        protected BaseInvalidExpression(bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
                     base(OperationKind.InvalidExpression, isInvalid, syntax, type, constantValue)
         {
         }
@@ -2031,7 +2031,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// This interface is reserved for implementation by its associated APIs. We reserve the right to
     /// change it in the future.
     /// </remarks>
-    internal sealed partial class InvalidExpression : InvalidExpressionBase, IInvalidExpression
+    internal sealed partial class InvalidExpression : BaseInvalidExpression, IInvalidExpression
     {
         public InvalidExpression(ImmutableArray<IOperation> children, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(isInvalid, syntax, type, constantValue)
@@ -2048,7 +2048,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// This interface is reserved for implementation by its associated APIs. We reserve the right to
     /// change it in the future.
     /// </remarks>
-    internal sealed partial class LazyInvalidExpression : InvalidExpressionBase, IInvalidExpression
+    internal sealed partial class LazyInvalidExpression : BaseInvalidExpression, IInvalidExpression
     {
         private readonly Lazy<ImmutableArray<IOperation>> _lazyChildren;
 
@@ -2065,9 +2065,9 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a syntactically or semantically invalid C# or VB statement.
     /// </summary>
-    internal abstract partial class InvalidStatementBase : Operation, IInvalidStatement
+    internal abstract partial class BaseInvalidStatement : Operation, IInvalidStatement
     {
-        protected InvalidStatementBase(bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+        protected BaseInvalidStatement(bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
                     base(OperationKind.InvalidStatement, isInvalid, syntax, type, constantValue)
         {
         }
@@ -2088,7 +2088,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a syntactically or semantically invalid C# or VB statement.
     /// </summary>
-    internal sealed partial class InvalidStatement : InvalidStatementBase, IInvalidStatement
+    internal sealed partial class InvalidStatement : BaseInvalidStatement, IInvalidStatement
     {
         public InvalidStatement(ImmutableArray<IOperation> children, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(isInvalid, syntax, type, constantValue)
@@ -2104,7 +2104,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a syntactically or semantically invalid C# or VB statement.
     /// </summary>
-    internal sealed partial class LazyInvalidStatement : InvalidStatementBase, IInvalidStatement
+    internal sealed partial class LazyInvalidStatement : BaseInvalidStatement, IInvalidStatement
     {
         private readonly Lazy<ImmutableArray<IOperation>> _lazyChildren;
 
@@ -2121,9 +2121,9 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a C# or VB method invocation.
     /// </summary>
-    internal abstract partial class InvocationExpressionBase : Operation, IHasArgumentsExpression, IInvocationExpression
+    internal abstract partial class BaseInvocationExpression : Operation, IHasArgumentsExpression, IInvocationExpression
     {
-        protected InvocationExpressionBase(IMethodSymbol targetMethod, bool isVirtual, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+        protected BaseInvocationExpression(IMethodSymbol targetMethod, bool isVirtual, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
                     base(OperationKind.InvocationExpression, isInvalid, syntax, type, constantValue)
         {
             TargetMethod = targetMethod;
@@ -2162,7 +2162,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a C# or VB method invocation.
     /// </summary>
-    internal sealed partial class InvocationExpression : InvocationExpressionBase, IHasArgumentsExpression, IInvocationExpression
+    internal sealed partial class InvocationExpression : BaseInvocationExpression, IHasArgumentsExpression, IInvocationExpression
     {
         public InvocationExpression(IMethodSymbol targetMethod, IOperation instance, bool isVirtual, ImmutableArray<IArgument> argumentsInEvaluationOrder, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(targetMethod, isVirtual, isInvalid, syntax, type, constantValue)
@@ -2187,7 +2187,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a C# or VB method invocation.
     /// </summary>
-    internal sealed partial class LazyInvocationExpression : InvocationExpressionBase, IHasArgumentsExpression, IInvocationExpression
+    internal sealed partial class LazyInvocationExpression : BaseInvocationExpression, IHasArgumentsExpression, IInvocationExpression
     {
         private readonly Lazy<IOperation> _lazyInstance;
         private readonly Lazy<ImmutableArray<IArgument>> _lazyArgumentsInEvaluationOrder;
@@ -2215,9 +2215,9 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents an expression that tests if a value is of a specific type.
     /// </summary>
-    internal abstract partial class IsTypeExpressionBase : Operation, IIsTypeExpression
+    internal abstract partial class BaseIsTypeExpression : Operation, IIsTypeExpression
     {
-        protected IsTypeExpressionBase(ITypeSymbol isType, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+        protected BaseIsTypeExpression(ITypeSymbol isType, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
                     base(OperationKind.IsTypeExpression, isInvalid, syntax, type, constantValue)
         {
             IsType = isType;
@@ -2243,7 +2243,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents an expression that tests if a value is of a specific type.
     /// </summary>
-    internal sealed partial class IsTypeExpression : IsTypeExpressionBase, IIsTypeExpression
+    internal sealed partial class IsTypeExpression : BaseIsTypeExpression, IIsTypeExpression
     {
         public IsTypeExpression(IOperation operand, ITypeSymbol isType, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(isType, isInvalid, syntax, type, constantValue)
@@ -2259,7 +2259,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents an expression that tests if a value is of a specific type.
     /// </summary>
-    internal sealed partial class LazyIsTypeExpression : IsTypeExpressionBase, IIsTypeExpression
+    internal sealed partial class LazyIsTypeExpression : BaseIsTypeExpression, IIsTypeExpression
     {
         private readonly Lazy<IOperation> _lazyOperand;
 
@@ -2276,9 +2276,9 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a C# or VB label statement.
     /// </summary>
-    internal abstract partial class LabelStatementBase : Operation, ILabelStatement
+    internal abstract partial class BaseLabelStatement : Operation, ILabelStatement
     {
-        protected LabelStatementBase(ILabelSymbol label, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+        protected BaseLabelStatement(ILabelSymbol label, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
                     base(OperationKind.LabelStatement, isInvalid, syntax, type, constantValue)
         {
             Label = label;
@@ -2304,7 +2304,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a C# or VB label statement.
     /// </summary>
-    internal sealed partial class LabelStatement : LabelStatementBase, ILabelStatement
+    internal sealed partial class LabelStatement : BaseLabelStatement, ILabelStatement
     {
         public LabelStatement(ILabelSymbol label, IOperation labeledStatement, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(label, isInvalid, syntax, type, constantValue)
@@ -2320,7 +2320,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a C# or VB label statement.
     /// </summary>
-    internal sealed partial class LazyLabelStatement : LabelStatementBase, ILabelStatement
+    internal sealed partial class LazyLabelStatement : BaseLabelStatement, ILabelStatement
     {
         private readonly Lazy<IOperation> _lazyLabeledStatement;
 
@@ -2337,9 +2337,9 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a lambda expression.
     /// </summary>
-    internal abstract partial class LambdaExpressionBase : Operation, ILambdaExpression
+    internal abstract partial class BaseLambdaExpression : Operation, ILambdaExpression
     {
-        protected LambdaExpressionBase(IMethodSymbol signature, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+        protected BaseLambdaExpression(IMethodSymbol signature, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
                     base(OperationKind.LambdaExpression, isInvalid, syntax, type, constantValue)
         {
             Signature = signature;
@@ -2365,7 +2365,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a lambda expression.
     /// </summary>
-    internal sealed partial class LambdaExpression : LambdaExpressionBase, ILambdaExpression
+    internal sealed partial class LambdaExpression : BaseLambdaExpression, ILambdaExpression
     {
         public LambdaExpression(IMethodSymbol signature, IBlockStatement body, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(signature, isInvalid, syntax, type, constantValue)
@@ -2381,7 +2381,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a lambda expression.
     /// </summary>
-    internal sealed partial class LazyLambdaExpression : LambdaExpressionBase, ILambdaExpression
+    internal sealed partial class LazyLambdaExpression : BaseLambdaExpression, ILambdaExpression
     {
         private readonly Lazy<IBlockStatement> _lazyBody;
 
@@ -2398,9 +2398,9 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a late-bound reference to a member of a class or struct.
     /// </summary>
-    internal abstract partial class LateBoundMemberReferenceExpressionBase : Operation, ILateBoundMemberReferenceExpression
+    internal abstract partial class BaseLateBoundMemberReferenceExpression : Operation, ILateBoundMemberReferenceExpression
     {
-        protected LateBoundMemberReferenceExpressionBase(string memberName, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+        protected BaseLateBoundMemberReferenceExpression(string memberName, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
                     base(OperationKind.LateBoundMemberReferenceExpression, isInvalid, syntax, type, constantValue)
         {
             MemberName = memberName;
@@ -2426,7 +2426,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a late-bound reference to a member of a class or struct.
     /// </summary>
-    internal sealed partial class LateBoundMemberReferenceExpression : LateBoundMemberReferenceExpressionBase, ILateBoundMemberReferenceExpression
+    internal sealed partial class LateBoundMemberReferenceExpression : BaseLateBoundMemberReferenceExpression, ILateBoundMemberReferenceExpression
     {
         public LateBoundMemberReferenceExpression(IOperation instance, string memberName, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(memberName, isInvalid, syntax, type, constantValue)
@@ -2442,7 +2442,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a late-bound reference to a member of a class or struct.
     /// </summary>
-    internal sealed partial class LazyLateBoundMemberReferenceExpression : LateBoundMemberReferenceExpressionBase, ILateBoundMemberReferenceExpression
+    internal sealed partial class LazyLateBoundMemberReferenceExpression : BaseLateBoundMemberReferenceExpression, ILateBoundMemberReferenceExpression
     {
         private readonly Lazy<IOperation> _lazyInstance;
 
@@ -2507,9 +2507,9 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a C# lock or a VB SyncLock statement.
     /// </summary>
-    internal abstract partial class LockStatementBase : Operation, ILockStatement
+    internal abstract partial class BaseLockStatement : Operation, ILockStatement
     {
-        protected LockStatementBase(bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+        protected BaseLockStatement(bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
                     base(OperationKind.LockStatement, isInvalid, syntax, type, constantValue)
         {
         }
@@ -2534,7 +2534,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a C# lock or a VB SyncLock statement.
     /// </summary>
-    internal sealed partial class LockStatement : LockStatementBase, ILockStatement
+    internal sealed partial class LockStatement : BaseLockStatement, ILockStatement
     {
         public LockStatement(IOperation lockedObject, IOperation body, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(isInvalid, syntax, type, constantValue)
@@ -2555,7 +2555,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a C# lock or a VB SyncLock statement.
     /// </summary>
-    internal sealed partial class LazyLockStatement : LockStatementBase, ILockStatement
+    internal sealed partial class LazyLockStatement : BaseLockStatement, ILockStatement
     {
         private readonly Lazy<IOperation> _lazyLockedObject;
         private readonly Lazy<IOperation> _lazyBody;
@@ -2692,9 +2692,9 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a null-coalescing expression.
     /// </summary>
-    internal abstract partial class NullCoalescingExpressionBase : Operation, INullCoalescingExpression
+    internal abstract partial class BaseNullCoalescingExpression : Operation, INullCoalescingExpression
     {
-        protected NullCoalescingExpressionBase(bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+        protected BaseNullCoalescingExpression(bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
                     base(OperationKind.NullCoalescingExpression, isInvalid, syntax, type, constantValue)
         {
         }
@@ -2719,7 +2719,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a null-coalescing expression.
     /// </summary>
-    internal sealed partial class NullCoalescingExpression : NullCoalescingExpressionBase, INullCoalescingExpression
+    internal sealed partial class NullCoalescingExpression : BaseNullCoalescingExpression, INullCoalescingExpression
     {
         public NullCoalescingExpression(IOperation primaryOperand, IOperation secondaryOperand, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(isInvalid, syntax, type, constantValue)
@@ -2740,7 +2740,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a null-coalescing expression.
     /// </summary>
-    internal sealed partial class LazyNullCoalescingExpression : NullCoalescingExpressionBase, INullCoalescingExpression
+    internal sealed partial class LazyNullCoalescingExpression : BaseNullCoalescingExpression, INullCoalescingExpression
     {
         private readonly Lazy<IOperation> _lazyPrimaryOperand;
         private readonly Lazy<IOperation> _lazySecondaryOperand;
@@ -2764,9 +2764,9 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a new/New expression.
     /// </summary>
-    internal abstract partial class ObjectCreationExpressionBase : Operation, IHasArgumentsExpression, IObjectCreationExpression
+    internal abstract partial class BaseObjectCreationExpression : Operation, IHasArgumentsExpression, IObjectCreationExpression
     {
-        protected ObjectCreationExpressionBase(IMethodSymbol constructor, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+        protected BaseObjectCreationExpression(IMethodSymbol constructor, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
                     base(OperationKind.ObjectCreationExpression, isInvalid, syntax, type, constantValue)
         {
             Constructor = constructor;
@@ -2800,7 +2800,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a new/New expression.
     /// </summary>
-    internal sealed partial class ObjectCreationExpression : ObjectCreationExpressionBase, IHasArgumentsExpression, IObjectCreationExpression
+    internal sealed partial class ObjectCreationExpression : BaseObjectCreationExpression, IHasArgumentsExpression, IObjectCreationExpression
     {
         public ObjectCreationExpression(IMethodSymbol constructor, ImmutableArray<ISymbolInitializer> memberInitializers, ImmutableArray<IArgument> argumentsInEvaluationOrder, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(constructor, isInvalid, syntax, type, constantValue)
@@ -2825,7 +2825,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a new/New expression.
     /// </summary>
-    internal sealed partial class LazyObjectCreationExpression : ObjectCreationExpressionBase, IHasArgumentsExpression, IObjectCreationExpression
+    internal sealed partial class LazyObjectCreationExpression : BaseObjectCreationExpression, IHasArgumentsExpression, IObjectCreationExpression
     {
         private readonly Lazy<ImmutableArray<ISymbolInitializer>> _lazyMemberInitializers;
         private readonly Lazy<ImmutableArray<IArgument>> _lazyArgumentsInEvaluationOrder;
@@ -2950,9 +2950,9 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a parenthesized expression.
     /// </summary>
-    internal abstract partial class ParenthesizedExpressionBase : Operation, IParenthesizedExpression
+    internal abstract partial class BaseParenthesizedExpression : Operation, IParenthesizedExpression
     {
-        protected ParenthesizedExpressionBase(bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+        protected BaseParenthesizedExpression(bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
                     base(OperationKind.ParenthesizedExpression, isInvalid, syntax, type, constantValue)
         {
         }
@@ -2973,7 +2973,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a parenthesized expression.
     /// </summary>
-    internal sealed partial class ParenthesizedExpression : ParenthesizedExpressionBase, IParenthesizedExpression
+    internal sealed partial class ParenthesizedExpression : BaseParenthesizedExpression, IParenthesizedExpression
     {
         public ParenthesizedExpression(IOperation operand, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(isInvalid, syntax, type, constantValue)
@@ -2989,7 +2989,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a parenthesized expression.
     /// </summary>
-    internal sealed partial class LazyParenthesizedExpression : ParenthesizedExpressionBase, IParenthesizedExpression
+    internal sealed partial class LazyParenthesizedExpression : BaseParenthesizedExpression, IParenthesizedExpression
     {
         private readonly Lazy<IOperation> _lazyOperand;
 
@@ -3026,9 +3026,9 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a reference through a pointer.
     /// </summary>
-    internal abstract partial class PointerIndirectionReferenceExpressionBase : Operation, IPointerIndirectionReferenceExpression
+    internal abstract partial class BasePointerIndirectionReferenceExpression : Operation, IPointerIndirectionReferenceExpression
     {
-        protected PointerIndirectionReferenceExpressionBase(bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+        protected BasePointerIndirectionReferenceExpression(bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
                     base(OperationKind.PointerIndirectionReferenceExpression, isInvalid, syntax, type, constantValue)
         {
         }
@@ -3049,7 +3049,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a reference through a pointer.
     /// </summary>
-    internal sealed partial class PointerIndirectionReferenceExpression : PointerIndirectionReferenceExpressionBase, IPointerIndirectionReferenceExpression
+    internal sealed partial class PointerIndirectionReferenceExpression : BasePointerIndirectionReferenceExpression, IPointerIndirectionReferenceExpression
     {
         public PointerIndirectionReferenceExpression(IOperation pointer, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(isInvalid, syntax, type, constantValue)
@@ -3065,7 +3065,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a reference through a pointer.
     /// </summary>
-    internal sealed partial class LazyPointerIndirectionReferenceExpression : PointerIndirectionReferenceExpressionBase, IPointerIndirectionReferenceExpression
+    internal sealed partial class LazyPointerIndirectionReferenceExpression : BasePointerIndirectionReferenceExpression, IPointerIndirectionReferenceExpression
     {
         private readonly Lazy<IOperation> _lazyPointer;
 
@@ -3136,9 +3136,9 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a reference to a property.
     /// </summary>
-    internal abstract partial class PropertyReferenceExpressionBase : MemberReferenceExpression, IPropertyReferenceExpression
+    internal abstract partial class BasePropertyReferenceExpression : MemberReferenceExpression, IPropertyReferenceExpression
     {
-        protected PropertyReferenceExpressionBase(IPropertySymbol property, ISymbol member, OperationKind kind, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+        protected BasePropertyReferenceExpression(IPropertySymbol property, ISymbol member, OperationKind kind, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(member, kind, isInvalid, syntax, type, constantValue)
         {
             Property = property;
@@ -3152,7 +3152,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a reference to a property.
     /// </summary>
-    internal sealed partial class PropertyReferenceExpression : PropertyReferenceExpressionBase, IPropertyReferenceExpression
+    internal sealed partial class PropertyReferenceExpression : BasePropertyReferenceExpression, IPropertyReferenceExpression
     {
         public PropertyReferenceExpression(IPropertySymbol property, IOperation instance, ISymbol member, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(property, member, OperationKind.PropertyReferenceExpression, isInvalid, syntax, type, constantValue)
@@ -3176,7 +3176,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a reference to a property.
     /// </summary>
-    internal sealed partial class LazyPropertyReferenceExpression : PropertyReferenceExpressionBase, IPropertyReferenceExpression
+    internal sealed partial class LazyPropertyReferenceExpression : BasePropertyReferenceExpression, IPropertyReferenceExpression
     {
         private readonly Lazy<IOperation> _lazyInstance;
 
@@ -3324,9 +3324,9 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a C# return or a VB Return statement.
     /// </summary>
-    internal abstract partial class ReturnStatementBase : Operation, IReturnStatement
+    internal abstract partial class BaseReturnStatement : Operation, IReturnStatement
     {
-        protected ReturnStatementBase(bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+        protected BaseReturnStatement(bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
                     base(OperationKind.ReturnStatement, isInvalid, syntax, type, constantValue)
         {
         }
@@ -3347,7 +3347,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a C# return or a VB Return statement.
     /// </summary>
-    internal sealed partial class ReturnStatement : ReturnStatementBase, IReturnStatement
+    internal sealed partial class ReturnStatement : BaseReturnStatement, IReturnStatement
     {
         public ReturnStatement(IOperation returnedValue, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(isInvalid, syntax, type, constantValue)
@@ -3363,7 +3363,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a C# return or a VB Return statement.
     /// </summary>
-    internal sealed partial class LazyReturnStatement : ReturnStatementBase, IReturnStatement
+    internal sealed partial class LazyReturnStatement : BaseReturnStatement, IReturnStatement
     {
         private readonly Lazy<IOperation> _lazyReturnedValue;
 
@@ -3478,9 +3478,9 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a C# case or VB Case statement.
     /// </summary>
-    internal abstract partial class SwitchCaseBase : Operation, ISwitchCase
+    internal abstract partial class BaseSwitchCase : Operation, ISwitchCase
     {
-        protected SwitchCaseBase(bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+        protected BaseSwitchCase(bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
                     base(OperationKind.SwitchCase, isInvalid, syntax, type, constantValue)
         {
         }
@@ -3505,7 +3505,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a C# case or VB Case statement.
     /// </summary>
-    internal sealed partial class SwitchCase : SwitchCaseBase, ISwitchCase
+    internal sealed partial class SwitchCase : BaseSwitchCase, ISwitchCase
     {
         public SwitchCase(ImmutableArray<ICaseClause> clauses, ImmutableArray<IOperation> body, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(isInvalid, syntax, type, constantValue)
@@ -3526,7 +3526,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a C# case or VB Case statement.
     /// </summary>
-    internal sealed partial class LazySwitchCase : SwitchCaseBase, ISwitchCase
+    internal sealed partial class LazySwitchCase : BaseSwitchCase, ISwitchCase
     {
         private readonly Lazy<ImmutableArray<ICaseClause>> _lazyClauses;
         private readonly Lazy<ImmutableArray<IOperation>> _lazyBody;
@@ -3550,9 +3550,9 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a C# switch or VB Select Case statement.
     /// </summary>
-    internal abstract partial class SwitchStatementBase : Operation, ISwitchStatement
+    internal abstract partial class BaseSwitchStatement : Operation, ISwitchStatement
     {
-        protected SwitchStatementBase(bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+        protected BaseSwitchStatement(bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
                     base(OperationKind.SwitchStatement, isInvalid, syntax, type, constantValue)
         {
         }
@@ -3577,7 +3577,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a C# switch or VB Select Case statement.
     /// </summary>
-    internal sealed partial class SwitchStatement : SwitchStatementBase, ISwitchStatement
+    internal sealed partial class SwitchStatement : BaseSwitchStatement, ISwitchStatement
     {
         public SwitchStatement(IOperation value, ImmutableArray<ISwitchCase> cases, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(isInvalid, syntax, type, constantValue)
@@ -3598,7 +3598,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a C# switch or VB Select Case statement.
     /// </summary>
-    internal sealed partial class LazySwitchStatement : SwitchStatementBase, ISwitchStatement
+    internal sealed partial class LazySwitchStatement : BaseSwitchStatement, ISwitchStatement
     {
         private readonly Lazy<IOperation> _lazyValue;
         private readonly Lazy<ImmutableArray<ISwitchCase>> _lazyCases;
@@ -3634,9 +3634,9 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a reference to a local variable synthesized by language analysis.
     /// </summary>
-    internal abstract partial class SyntheticLocalReferenceExpressionBase : Operation, ISyntheticLocalReferenceExpression
+    internal abstract partial class BaseSyntheticLocalReferenceExpression : Operation, ISyntheticLocalReferenceExpression
     {
-        protected SyntheticLocalReferenceExpressionBase(SyntheticLocalKind syntheticLocalKind, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+        protected BaseSyntheticLocalReferenceExpression(SyntheticLocalKind syntheticLocalKind, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
                     base(OperationKind.SyntheticLocalReferenceExpression, isInvalid, syntax, type, constantValue)
         {
             SyntheticLocalKind = syntheticLocalKind;
@@ -3662,7 +3662,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a reference to a local variable synthesized by language analysis.
     /// </summary>
-    internal sealed partial class SyntheticLocalReferenceExpression : SyntheticLocalReferenceExpressionBase, ISyntheticLocalReferenceExpression
+    internal sealed partial class SyntheticLocalReferenceExpression : BaseSyntheticLocalReferenceExpression, ISyntheticLocalReferenceExpression
     {
         public SyntheticLocalReferenceExpression(SyntheticLocalKind syntheticLocalKind, IOperation containingStatement, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(syntheticLocalKind, isInvalid, syntax, type, constantValue)
@@ -3678,7 +3678,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a reference to a local variable synthesized by language analysis.
     /// </summary>
-    internal sealed partial class LazySyntheticLocalReferenceExpression : SyntheticLocalReferenceExpressionBase, ISyntheticLocalReferenceExpression
+    internal sealed partial class LazySyntheticLocalReferenceExpression : BaseSyntheticLocalReferenceExpression, ISyntheticLocalReferenceExpression
     {
         private readonly Lazy<IOperation> _lazyContainingStatement;
 
@@ -3695,9 +3695,9 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a C# throw or a VB Throw statement.
     /// </summary>
-    internal abstract partial class ThrowStatementBase : Operation, IThrowStatement
+    internal abstract partial class BaseThrowStatement : Operation, IThrowStatement
     {
-        protected ThrowStatementBase(bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+        protected BaseThrowStatement(bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
                     base(OperationKind.ThrowStatement, isInvalid, syntax, type, constantValue)
         {
         }
@@ -3718,7 +3718,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a C# throw or a VB Throw statement.
     /// </summary>
-    internal sealed partial class ThrowStatement : ThrowStatementBase, IThrowStatement
+    internal sealed partial class ThrowStatement : BaseThrowStatement, IThrowStatement
     {
         public ThrowStatement(IOperation thrownObject, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(isInvalid, syntax, type, constantValue)
@@ -3734,7 +3734,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a C# throw or a VB Throw statement.
     /// </summary>
-    internal sealed partial class LazyThrowStatement : ThrowStatementBase, IThrowStatement
+    internal sealed partial class LazyThrowStatement : BaseThrowStatement, IThrowStatement
     {
         private readonly Lazy<IOperation> _lazyThrownObject;
 
@@ -3751,9 +3751,9 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a C# try or a VB Try statement.
     /// </summary>
-    internal abstract partial class TryStatementBase : Operation, ITryStatement
+    internal abstract partial class BaseTryStatement : Operation, ITryStatement
     {
-        protected TryStatementBase(bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+        protected BaseTryStatement(bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
                     base(OperationKind.TryStatement, isInvalid, syntax, type, constantValue)
         {
         }
@@ -3782,7 +3782,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a C# try or a VB Try statement.
     /// </summary>
-    internal sealed partial class TryStatement : TryStatementBase, ITryStatement
+    internal sealed partial class TryStatement : BaseTryStatement, ITryStatement
     {
         public TryStatement(IBlockStatement body, ImmutableArray<ICatchClause> catches, IBlockStatement finallyHandler, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(isInvalid, syntax, type, constantValue)
@@ -3808,7 +3808,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a C# try or a VB Try statement.
     /// </summary>
-    internal sealed partial class LazyTryStatement : TryStatementBase, ITryStatement
+    internal sealed partial class LazyTryStatement : BaseTryStatement, ITryStatement
     {
         private readonly Lazy<IBlockStatement> _lazyBody;
         private readonly Lazy<ImmutableArray<ICatchClause>> _lazyCatches;
@@ -3894,9 +3894,9 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents an operation with one operand.
     /// </summary>
-    internal abstract partial class UnaryOperatorExpressionBase : Operation, IHasOperatorMethodExpression, IUnaryOperatorExpression
+    internal abstract partial class BaseUnaryOperatorExpression : Operation, IHasOperatorMethodExpression, IUnaryOperatorExpression
     {
-        protected UnaryOperatorExpressionBase(UnaryOperationKind unaryOperationKind, bool usesOperatorMethod, IMethodSymbol operatorMethod, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+        protected BaseUnaryOperatorExpression(UnaryOperationKind unaryOperationKind, bool usesOperatorMethod, IMethodSymbol operatorMethod, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
                     base(OperationKind.UnaryOperatorExpression, isInvalid, syntax, type, constantValue)
         {
             UnaryOperationKind = unaryOperationKind;
@@ -3932,7 +3932,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents an operation with one operand.
     /// </summary>
-    internal sealed partial class UnaryOperatorExpression : UnaryOperatorExpressionBase, IHasOperatorMethodExpression, IUnaryOperatorExpression
+    internal sealed partial class UnaryOperatorExpression : BaseUnaryOperatorExpression, IHasOperatorMethodExpression, IUnaryOperatorExpression
     {
         public UnaryOperatorExpression(UnaryOperationKind unaryOperationKind, IOperation operand, bool usesOperatorMethod, IMethodSymbol operatorMethod, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(unaryOperationKind, usesOperatorMethod, operatorMethod, isInvalid, syntax, type, constantValue)
@@ -3948,7 +3948,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents an operation with one operand.
     /// </summary>
-    internal sealed partial class LazyUnaryOperatorExpression : UnaryOperatorExpressionBase, IHasOperatorMethodExpression, IUnaryOperatorExpression
+    internal sealed partial class LazyUnaryOperatorExpression : BaseUnaryOperatorExpression, IHasOperatorMethodExpression, IUnaryOperatorExpression
     {
         private readonly Lazy<IOperation> _lazyOperand;
 
@@ -3985,9 +3985,9 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a C# using or VB Using statement.
     /// </summary>
-    internal abstract partial class UsingStatementBase : Operation, IUsingStatement
+    internal abstract partial class BaseUsingStatement : Operation, IUsingStatement
     {
-        protected UsingStatementBase(bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+        protected BaseUsingStatement(bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
                     base(OperationKind.UsingStatement, isInvalid, syntax, type, constantValue)
         {
         }
@@ -4018,7 +4018,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a C# using or VB Using statement.
     /// </summary>
-    internal sealed partial class UsingStatement : UsingStatementBase, IUsingStatement
+    internal sealed partial class UsingStatement : BaseUsingStatement, IUsingStatement
     {
         public UsingStatement(IOperation body, IVariableDeclarationStatement declaration, IOperation value, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(isInvalid, syntax, type, constantValue)
@@ -4046,7 +4046,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a C# using or VB Using statement.
     /// </summary>
-    internal sealed partial class LazyUsingStatement : UsingStatementBase, IUsingStatement
+    internal sealed partial class LazyUsingStatement : BaseUsingStatement, IUsingStatement
     {
         private readonly Lazy<IOperation> _lazyBody;
         private readonly Lazy<IVariableDeclarationStatement> _lazyDeclaration;
@@ -4077,9 +4077,9 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a local variable declaration.
     /// </summary>
-    internal abstract partial class VariableDeclarationBase : Operation, IVariableDeclaration
+    internal abstract partial class BaseVariableDeclaration : Operation, IVariableDeclaration
     {
-        protected VariableDeclarationBase(ImmutableArray<ILocalSymbol> variables, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+        protected BaseVariableDeclaration(ImmutableArray<ILocalSymbol> variables, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
                     base(OperationKind.VariableDeclaration, isInvalid, syntax, type, constantValue)
         {
             Variables = variables;
@@ -4107,7 +4107,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a local variable declaration.
     /// </summary>
-    internal sealed partial class VariableDeclaration : VariableDeclarationBase, IVariableDeclaration
+    internal sealed partial class VariableDeclaration : BaseVariableDeclaration, IVariableDeclaration
     {
         public VariableDeclaration(ImmutableArray<ILocalSymbol> variables, IOperation initializer, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(variables, isInvalid, syntax, type, constantValue)
@@ -4124,7 +4124,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a local variable declaration.
     /// </summary>
-    internal sealed partial class LazyVariableDeclaration : VariableDeclarationBase, IVariableDeclaration
+    internal sealed partial class LazyVariableDeclaration : BaseVariableDeclaration, IVariableDeclaration
     {
         private readonly Lazy<IOperation> _lazyInitializer;
 
@@ -4142,9 +4142,9 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a local variable declaration statement.
     /// </summary>
-    internal abstract partial class VariableDeclarationStatementBase : Operation, IVariableDeclarationStatement
+    internal abstract partial class BaseVariableDeclarationStatement : Operation, IVariableDeclarationStatement
     {
-        protected VariableDeclarationStatementBase(bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+        protected BaseVariableDeclarationStatement(bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
                     base(OperationKind.VariableDeclarationStatement, isInvalid, syntax, type, constantValue)
         {
         }
@@ -4165,7 +4165,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a local variable declaration statement.
     /// </summary>
-    internal sealed partial class VariableDeclarationStatement : VariableDeclarationStatementBase, IVariableDeclarationStatement
+    internal sealed partial class VariableDeclarationStatement : BaseVariableDeclarationStatement, IVariableDeclarationStatement
     {
         public VariableDeclarationStatement(ImmutableArray<IVariableDeclaration> declarations, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(isInvalid, syntax, type, constantValue)
@@ -4181,7 +4181,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a local variable declaration statement.
     /// </summary>
-    internal sealed partial class LazyVariableDeclarationStatement : VariableDeclarationStatementBase, IVariableDeclarationStatement
+    internal sealed partial class LazyVariableDeclarationStatement : BaseVariableDeclarationStatement, IVariableDeclarationStatement
     {
         private readonly Lazy<ImmutableArray<IVariableDeclaration>> _lazyDeclarations;
 
@@ -4280,9 +4280,9 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a VB With statement.
     /// </summary>
-    internal abstract partial class WithStatementBase : Operation, IWithStatement
+    internal abstract partial class BaseWithStatement : Operation, IWithStatement
     {
-        protected WithStatementBase(bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+        protected BaseWithStatement(bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
                     base(OperationKind.WithStatement, isInvalid, syntax, type, constantValue)
         {
         }
@@ -4307,7 +4307,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a VB With statement.
     /// </summary>
-    internal sealed partial class WithStatement : WithStatementBase, IWithStatement
+    internal sealed partial class WithStatement : BaseWithStatement, IWithStatement
     {
         public WithStatement(IOperation body, IOperation value, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(isInvalid, syntax, type, constantValue)
@@ -4328,7 +4328,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a VB With statement.
     /// </summary>
-    internal sealed partial class LazyWithStatement : WithStatementBase, IWithStatement
+    internal sealed partial class LazyWithStatement : BaseWithStatement, IWithStatement
     {
         private readonly Lazy<IOperation> _lazyBody;
         private readonly Lazy<IOperation> _lazyValue;
