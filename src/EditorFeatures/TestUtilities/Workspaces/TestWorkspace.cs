@@ -594,7 +594,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
         public override void OpenDocument(DocumentId documentId, bool activate = true)
         {
-            OnDocumentOpened(documentId, this.CurrentSolution.GetDocument(documentId).GetTextAsync().Result.Container);
+            var testDocument = this.GetTestDocument(documentId);
+            OnDocumentOpened(documentId, testDocument.GetOpenTextContainer());
         }
 
         public override void CloseDocument(DocumentId documentId)
