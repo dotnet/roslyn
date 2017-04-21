@@ -174,7 +174,6 @@
     <Compile Include="BoundTree\Constructors.cs" />
     <Compile Include="BoundTree\DecisionTree.cs" />
     <Compile Include="BoundTree\DecisionTreeBuilder.cs" />
-    <Compile Include="BoundTree\Expression.cs" />
     <Compile Include="BoundTree\BoundDiscardExpression.cs" />
     <Compile Include="BoundTree\VariablePendingInference.cs" />
     <Compile Include="BoundTree\OutDeconstructVarPendingInference.cs" />
