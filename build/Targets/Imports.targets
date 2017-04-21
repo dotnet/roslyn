@@ -236,9 +236,6 @@
   <Import Project="$(MSBuildTargetsFilePath)" Condition="'$(RoslynSdkProject)' != 'true'" />
   <Import Project="$(RoslynNetSdkRootPath)Sdk.targets" Condition="'$(RoslynSdkProject)' == 'true'" />
 
-  <!-- On *nix the NuGet targets aren't imported by default, so we do that here -->
-  <Import Project="$(MSBuildBinPath)\Microsoft.NuGet.targets" Condition="'$(OS)' != 'Windows_NT'" />
-
   <!-- The portable v5.0 framework is delivered over NuGet, so std resolution should be disabled -->
   <Import Project="DisableStandardFrameworkResolution.targets"
           Condition="'$(TargetFrameworkIdentifier)' == '.NETPortable' AND '$(TargetFrameworkVersion)' == 'v5.0'" />
