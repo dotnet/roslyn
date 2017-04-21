@@ -5,11 +5,11 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer
 {
-    internal partial class DiagnosticItemSource : BaseDiagnosticItemSource
+    internal partial class LegacyDiagnosticItemSource : BaseDiagnosticItemSource
     {
         private readonly AnalyzerItem _item;
 
-        public DiagnosticItemSource(AnalyzerItem item, IAnalyzersCommandHandler commandHandler, IDiagnosticAnalyzerService diagnosticAnalyzerService)
+        public LegacyDiagnosticItemSource(AnalyzerItem item, IAnalyzersCommandHandler commandHandler, IDiagnosticAnalyzerService diagnosticAnalyzerService)
             : base(item.AnalyzersFolder.Workspace, item.AnalyzersFolder.ProjectId, commandHandler, diagnosticAnalyzerService)
         {
             _item = item;
@@ -30,7 +30,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
         protected override BaseDiagnosticItem CreateItem(DiagnosticDescriptor diagnostic, ReportDiagnostic effectiveSeverity)
         {
-            return new DiagnosticItem(_item, diagnostic, effectiveSeverity, _commandHandler.DiagnosticContextMenuController);
+            return new LegacyDiagnosticItem(_item, diagnostic, effectiveSeverity, _commandHandler.DiagnosticContextMenuController);
         }
     }
 }

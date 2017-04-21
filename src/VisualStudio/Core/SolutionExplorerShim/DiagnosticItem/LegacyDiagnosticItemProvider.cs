@@ -11,9 +11,9 @@ using Microsoft.VisualStudio.ComponentModelHost;
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer
 {
     [Export(typeof(IAttachedCollectionSourceProvider))]
-    [Name("DiagnosticsItemProvider")]
+    [Name(nameof(LegacyDiagnosticItemProvider)]
     [Order]
-    internal sealed class DiagnosticItemProvider : AttachedCollectionSourceProvider<AnalyzerItem>
+    internal sealed class LegacyDiagnosticItemProvider : AttachedCollectionSourceProvider<AnalyzerItem>
     {
         private readonly IAnalyzersCommandHandler _commandHandler;
         private readonly IServiceProvider _serviceProvider;
@@ -21,7 +21,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         private IDiagnosticAnalyzerService _diagnosticAnalyzerService;
 
         [ImportingConstructor]
-        public DiagnosticItemProvider(
+        public LegacyDiagnosticItemProvider(
             [Import(typeof(AnalyzersCommandHandler))]IAnalyzersCommandHandler commandHandler,
             [Import(typeof(SVsServiceProvider))]IServiceProvider serviceProvider)
         {
@@ -34,7 +34,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             if (relationshipName == KnownRelationships.Contains)
             {
                 IDiagnosticAnalyzerService analyzerService = GetAnalyzerService();
-                return new DiagnosticItemSource(item, _commandHandler, analyzerService);
+                return new LegacyDiagnosticItemSource(item, _commandHandler, analyzerService);
             }
 
             return null;

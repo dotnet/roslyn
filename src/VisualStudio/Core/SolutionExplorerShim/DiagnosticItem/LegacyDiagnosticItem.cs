@@ -15,12 +15,12 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer
 {
-    internal sealed partial class DiagnosticItem : BaseDiagnosticItem
+    internal sealed partial class LegacyDiagnosticItem : BaseDiagnosticItem
     {
         private readonly AnalyzerItem _analyzerItem;
         private readonly IContextMenuController _contextMenuController;
 
-        public DiagnosticItem(AnalyzerItem analyzerItem, DiagnosticDescriptor descriptor, ReportDiagnostic effectiveSeverity, IContextMenuController contextMenuController)
+        public LegacyDiagnosticItem(AnalyzerItem analyzerItem, DiagnosticDescriptor descriptor, ReportDiagnostic effectiveSeverity, IContextMenuController contextMenuController)
             : base(descriptor, effectiveSeverity)
         {
             _analyzerItem = analyzerItem;
