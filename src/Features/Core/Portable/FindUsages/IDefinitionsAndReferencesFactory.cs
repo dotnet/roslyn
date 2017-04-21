@@ -180,6 +180,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
                 showMetadataSymbolsWithoutReferences: false);
 
             var sourceLocations = ArrayBuilder<DocumentSpan>.GetInstance();
+            ImmutableDictionary<string, string> properties = null;
 
             // If it's a namespace, don't create any normal location.  Namespaces
             // come from many different sources, but we'll only show a single 
@@ -192,7 +193,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
                     {
                         return DefinitionItem.CreateMetadataDefinition(
                             tags, displayParts, nameDisplayParts, solution, 
-                            definition, displayIfNoReferences);
+                            definition, properties, displayIfNoReferences);
                     }
                     else if (location.IsInSource)
                     {
@@ -230,12 +231,12 @@ namespace Microsoft.CodeAnalysis.FindUsages
                 return DefinitionItem.CreateNonNavigableItem(
                     tags, displayParts,
                     DefinitionItem.GetOriginationParts(definition),
-                    displayIfNoReferences);
+                    properties, displayIfNoReferences);
             }
 
             return DefinitionItem.Create(
                 tags, displayParts, sourceLocations.ToImmutableAndFree(),
-                nameDisplayParts, displayIfNoReferences);
+                nameDisplayParts, properties, displayIfNoReferences);
         }
 
         public static SourceReferenceItem TryCreateSourceReferenceItem(
