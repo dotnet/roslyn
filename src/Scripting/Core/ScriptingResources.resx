@@ -181,10 +181,10 @@ Script directives:
   #r            Add a metadata reference to specified assembly and all its dependencies, e.g. #r "myLib.dll".
   #load         Load specified script file and execute it, e.g. #load "myScript.csx".</value>
   </data>
-  <data name="AsemblyAlreadyLoaded" xml:space="preserve">
+  <data name="AssemblyAlreadyLoaded" xml:space="preserve">
     <value>Assembly '{0}, Version={1}' has already been loaded from '{2}'. A different assembly with the same name and version can't be loaded: '{3}'.</value>
   </data>
-  <data name="AsemblyAlreadyLoadedNotSigned" xml:space="preserve">
+  <data name="AssemblyAlreadyLoadedNotSigned" xml:space="preserve">
     <value>Assembly '{0}' has already been loaded from '{1}'. A different assembly with the same name can't be loaded unless it's signed: '{2}'.</value>
   </data>
 </root>

@@ -73,18 +73,18 @@ namespace Microsoft.CodeAnalysis.Scripting {
         /// <summary>
         ///   Looks up a localized string similar to Assembly &apos;{0}, Version={1}&apos; has already been loaded from &apos;{2}&apos;. A different assembly with the same name and version can&apos;t be loaded: &apos;{3}&apos;..
         /// </summary>
-        internal static string AsemblyAlreadyLoaded {
+        internal static string AssemblyAlreadyLoaded {
             get {
-                return ResourceManager.GetString("AsemblyAlreadyLoaded", resourceCulture);
+                return ResourceManager.GetString("AssemblyAlreadyLoaded", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Assembly &apos;{0}&apos; has already been loaded from &apos;{1}&apos;. A different assembly with the same name can&apos;t be loaded unless it&apos;s signed: &apos;{2}&apos;..
         /// </summary>
-        internal static string AsemblyAlreadyLoadedNotSigned {
+        internal static string AssemblyAlreadyLoadedNotSigned {
             get {
-                return ResourceManager.GetString("AsemblyAlreadyLoadedNotSigned", resourceCulture);
+                return ResourceManager.GetString("AssemblyAlreadyLoadedNotSigned", resourceCulture);
             }
         }
         

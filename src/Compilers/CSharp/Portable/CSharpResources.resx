@@ -5070,4 +5070,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_VoidInTuple" xml:space="preserve">
     <value>A tuple may not contain a value of type 'void'.</value>
   </data>
+  <data name="ChangingReferencedAssemblyVersionNotAllowed" xml:space="preserve">
+    <value>Changing the version of an assembly reference is not allowed during debugging: '{0}' changed version to {1}</value>
+  </data>
 </root>

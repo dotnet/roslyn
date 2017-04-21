@@ -80,6 +80,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Changing the version of an assembly reference is not allowed during debugging: &apos;{0}&apos; changed version to {1}.
+        /// </summary>
+        internal static string ChangingReferencedAssemblyVersionNotAllowed {
+            get {
+                return ResourceManager.GetString("ChangingReferencedAssemblyVersionNotAllowed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Compilation (C#): .
         /// </summary>
         internal static string CompilationC {
