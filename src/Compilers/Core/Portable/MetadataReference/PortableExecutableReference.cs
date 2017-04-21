@@ -170,6 +170,19 @@ namespace Microsoft.CodeAnalysis
             return GetMetadataNoCopy().Copy();
         }
 
+        /// <summary>
+        /// Returns the <see cref="MetadataId"/> for this reference's <see cref="Metadata"/>.
+        /// This will be equivalent to calling <see cref="GetMetadata()"/>.<see cref="Metadata.Id"/>,
+        /// but can be done more efficiently.
+        /// </summary>
+        /// <exception cref="BadImageFormatException">If the PE image format is invalid.</exception>
+        /// <exception cref="IOException">The metadata image content can't be read.</exception>
+        /// <exception cref="FileNotFoundException">The metadata image is stored in a file that can't be found.</exception>
+        public MetadataId GetMetadataId()
+        {
+            return GetMetadataNoCopy().Id;
+        }
+
         internal static Diagnostic ExceptionToDiagnostic(Exception e, CommonMessageProvider messageProvider, Location location, string display, MetadataImageKind kind)
         {
             if (e is BadImageFormatException)

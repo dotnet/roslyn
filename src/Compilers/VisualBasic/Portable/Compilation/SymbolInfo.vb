@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Friend Shared Function Create(symbols As ImmutableArray(Of ISymbol), reason As CandidateReason) As SymbolInfo
-            symbols = If(symbols.IsDefault, ImmutableArray(Of ISymbol).Empty, symbols)
+            symbols = symbols.NullToEmpty()
             If symbols.IsEmpty AndAlso Not (reason = CandidateReason.None OrElse reason = CandidateReason.LateBound) Then
                 reason = CandidateReason.None
             End If

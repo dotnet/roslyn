@@ -23,12 +23,14 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         public static readonly InvocationReasons ProjectParseOptionChanged =
             new InvocationReasons(
                 ImmutableHashSet.Create<string>(
+                                    PredefinedInvocationReasons.ProjectParseOptionsChanged,
                                     PredefinedInvocationReasons.SyntaxChanged,
                                     PredefinedInvocationReasons.SemanticChanged));
 
         public static readonly InvocationReasons ProjectConfigurationChanged =
             new InvocationReasons(
                 ImmutableHashSet.Create<string>(
+                                    PredefinedInvocationReasons.ProjectConfigurationChanged,
                                     PredefinedInvocationReasons.SyntaxChanged,
                                     PredefinedInvocationReasons.SemanticChanged));
 
@@ -54,7 +56,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             new InvocationReasons(
                 ImmutableHashSet.Create<string>(
                                     PredefinedInvocationReasons.SyntaxChanged,
-                                    PredefinedInvocationReasons.SemanticChanged));
+                                    PredefinedInvocationReasons.SemanticChanged,
+                                    PredefinedInvocationReasons.HighPriority));
 
         public static readonly InvocationReasons AdditionalDocumentChanged =
             new InvocationReasons(
@@ -65,7 +68,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         public static readonly InvocationReasons SyntaxChanged =
             new InvocationReasons(
                 ImmutableHashSet.Create<string>(
-                                    PredefinedInvocationReasons.SyntaxChanged));
+                                    PredefinedInvocationReasons.SyntaxChanged,
+                                    PredefinedInvocationReasons.HighPriority));
 
         public static readonly InvocationReasons SemanticChanged =
             new InvocationReasons(

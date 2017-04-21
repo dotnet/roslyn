@@ -13,7 +13,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public class IncrementalParsingTests
+    public class IncrementalParsingTests : TestBase
     {
         private CSharpParseOptions GetOptions(string[] defines)
         {
@@ -110,16 +110,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var oldTree = this.Parse(text);
             var newTree = oldTree.WithReplaceFirst("foo", "bar");
             Assert.Equal(0, oldTree.GetCompilationUnitRoot().Errors().Length);
-            Assert.NotEqual(0, newTree.GetCompilationUnitRoot().Errors().Length);
+            Assert.Equal(0, newTree.GetCompilationUnitRoot().Errors().Length);
 
             var diffs = SyntaxDifferences.GetRebuiltNodes(oldTree, newTree);
             TestDiffsInOrder(diffs,
                             SyntaxKind.CompilationUnit,
                             SyntaxKind.ClassDeclaration,
-                            SyntaxKind.IdentifierToken,
-                            SyntaxKind.DestructorDeclaration,
-                            SyntaxKind.IdentifierToken,
-                            SyntaxKind.ParameterList);
+                            SyntaxKind.IdentifierToken);
         }
 
         [Fact]
@@ -128,17 +125,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var text = "class foo { ~bar() { } }";
             var oldTree = this.Parse(text);
             var newTree = oldTree.WithReplaceFirst("foo", "bar");
-            Assert.NotEqual(0, oldTree.GetCompilationUnitRoot().Errors().Length);
+            Assert.Equal(0, oldTree.GetCompilationUnitRoot().Errors().Length);
             Assert.Equal(0, newTree.GetCompilationUnitRoot().Errors().Length);
 
             var diffs = SyntaxDifferences.GetRebuiltNodes(oldTree, newTree);
             TestDiffsInOrder(diffs,
                             SyntaxKind.CompilationUnit,
                             SyntaxKind.ClassDeclaration,
-                            SyntaxKind.IdentifierToken,
-                            SyntaxKind.DestructorDeclaration,
-                            SyntaxKind.IdentifierToken,
-                            SyntaxKind.ParameterList);
+                            SyntaxKind.IdentifierToken);
         }
 
         [Fact]
@@ -2347,6 +2341,93 @@ class Program
             CompareIncToFullParseErrors(reparsedTree, parsedTree);
         }
 
+        [WorkItem(6676, "https://github.com/dotnet/roslyn/issues/6676")]
+        [Fact]
+        public void InsertExpressionStatementWithoutSemicolonBefore()
+        {
+            SourceText oldText = SourceText.From(@"System.Console.WriteLine(true)
+");
+            var startTree = SyntaxFactory.ParseSyntaxTree(oldText, options: TestOptions.Script);
+
+            startTree.GetDiagnostics().Verify();
+
+            var newText = oldText.WithChanges(new TextChange(new TextSpan(0, 0), @"System.Console.WriteLine(false)
+"));
+
+            AssertEx.AreEqual(@"System.Console.WriteLine(false)
+System.Console.WriteLine(true)
+",
+newText.ToString());
+
+            var reparsedTree = startTree.WithChangedText(newText);
+            var parsedTree = SyntaxFactory.ParseSyntaxTree(newText, options: TestOptions.Script);
+
+            parsedTree.GetDiagnostics().Verify(
+                // (1,32): error CS1002: ; expected
+                // System.Console.WriteLine(false)
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 32));
+
+            CompareIncToFullParseErrors(reparsedTree, parsedTree);
+        }
+
+        [WorkItem(6676, "https://github.com/dotnet/roslyn/issues/6676")]
+        [Fact]
+        public void InsertExpressionStatementWithoutSemicolonAfter()
+        {
+            SourceText oldText = SourceText.From(@"System.Console.WriteLine(true)
+");
+            var startTree = SyntaxFactory.ParseSyntaxTree(oldText, options: TestOptions.Script);
+
+            startTree.GetDiagnostics().Verify();
+
+            var newText = oldText.WithInsertAt(
+                oldText.Length, 
+                @"System.Console.WriteLine(false)
+");
+
+            AssertEx.Equal(@"System.Console.WriteLine(true)
+System.Console.WriteLine(false)
+", newText.ToString());
+
+            var reparsedTree = startTree.WithChangedText(newText);
+
+            var parsedTree = SyntaxFactory.ParseSyntaxTree(newText, options: TestOptions.Script);
+            parsedTree.GetDiagnostics().Verify(
+                // (1,31): error CS1002: ; expected
+                // System.Console.WriteLine(true)
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 31));
+
+            CompareIncToFullParseErrors(reparsedTree, parsedTree);
+        }
+
+        [WorkItem(6676, "https://github.com/dotnet/roslyn/issues/6676")]
+        [Fact]
+        public void MakeEmbeddedExpressionStatementWithoutSemicolon()
+        {
+            SourceText oldText = SourceText.From(@"System.Console.WriteLine(true)
+");
+            var startTree = SyntaxFactory.ParseSyntaxTree(oldText, options: TestOptions.Script);
+
+            startTree.GetDiagnostics().Verify();
+
+            var newText = oldText.WithChanges(new TextChange(new TextSpan(0, 0), @"if (false)
+"));
+
+            AssertEx.Equal(@"if (false)
+System.Console.WriteLine(true)
+", newText.ToString());
+
+            var reparsedTree = startTree.WithChangedText(newText);
+            var parsedTree = SyntaxFactory.ParseSyntaxTree(newText, options: TestOptions.Script);
+
+            parsedTree.GetDiagnostics().Verify(
+                // (2,31): error CS1002: ; expected
+                // System.Console.WriteLine(true)
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(2, 31));
+
+            CompareIncToFullParseErrors(reparsedTree, parsedTree);
+        }
+
         [WorkItem(531404, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531404")]
         [Fact]
         public void AppendDisabledText()
@@ -2380,7 +2461,7 @@ class Program
 
             var text2 = @"        Console.WriteLine(""\'\0\a\b\";
 
-            var comp = CSharpTestBase.CreateCompilationWithMscorlib(SyntaxFactory.ParseSyntaxTree(String.Empty));
+            var comp = CSharpTestBase.CreateStandardCompilation(SyntaxFactory.ParseSyntaxTree(String.Empty));
 
             var oldTree = comp.SyntaxTrees.First();
             var oldIText = oldTree.GetText();
@@ -2612,6 +2693,70 @@ class D { }
             Assert.Equal(0, newTree.GetCompilationUnitRoot().Errors().Length);
         }
 
+        [Fact]
+        public void Foo()
+        {
+            var oldText = SourceText.From(@"
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+
+    }
+
+    protected abstract int Stuff { get; }
+}
+
+class G: Program
+{
+    protected override int Stuff
+    {
+        get
+        {
+            throw new NotImplementedException();
+        }
+    }
+}");
+            var newText = SourceText.From(@"
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+
+    }
+
+    protected abstract int Stuff { get; }
+}
+
+class G: Program
+{
+    protected override int Stuff =>
+    {
+        get
+        {
+            throw new NotImplementedException();
+        }
+    }
+}
+");
+            var oldTree = SyntaxFactory.ParseSyntaxTree(oldText);
+            var newTree = oldTree.WithChangedText(newText);
+            WalkTreeAndVerify(newTree.GetCompilationUnitRoot(), SyntaxFactory.ParseSyntaxTree(newText).GetCompilationUnitRoot());
+        }
+
+        #endregion
+
+        #region Helper functions
         private void WalkTreeAndVerify(SyntaxNodeOrToken incNode, SyntaxNodeOrToken fullNode)
         {
             var incChildren = incNode.ChildNodesAndTokens();
@@ -2627,9 +2772,6 @@ class D { }
             }
         }
 
-        #endregion
-
-        #region Helper functions
         private static void CommentOutText(SourceText oldText, int locationOfChange, int widthOfChange, out SyntaxTree incrementalTree, out SyntaxTree parsedTree)
         {
             var newText = oldText.WithChanges(

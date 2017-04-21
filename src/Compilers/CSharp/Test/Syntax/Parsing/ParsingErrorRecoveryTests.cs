@@ -17,6 +17,54 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             return SyntaxFactory.ParseCompilationUnit(text, options: options);
         }
 
+        [Theory]
+        [InlineData("public")]
+        [InlineData("internal")]
+        [InlineData("protected")]
+        [InlineData("private")]
+        public void AccessibilityModifierErrorRecovery(string accessibility)
+        {
+            var file = ParseTree($@"
+class C
+{{
+    void M()
+    {{
+        // bad visibility modifier
+        {accessibility} void localFunc() {{}}
+    }}
+    void M2()
+    {{
+        typing
+        {accessibility} void localFunc() {{}}
+    }}
+    void M3()
+    {{
+    // Ambiguous between local func with bad modifier and missing closing
+    // brace on previous method. Parsing currently assumes the former,
+    // assuming the tokens are parseable as a local func.
+    {accessibility} void M4() {{}}
+}}");
+
+            Assert.NotNull(file);
+            file.GetDiagnostics().Verify(
+                // (7,9): error CS0106: The modifier '{accessibility}' is not valid for this item
+                //         {accessibility} void localFunc() {}
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, accessibility).WithArguments(accessibility).WithLocation(7, 9),
+                // (11,15): error CS1002: ; expected
+                //         typing
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(11, 15),
+                // (12,9): error CS0106: The modifier '{accessibility}' is not valid for this item
+                //         {accessibility} void localFunc() {}
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, accessibility).WithArguments(accessibility).WithLocation(12, 9),
+                // (19,5): error CS0106: The modifier '{accessibility}' is not valid for this item
+                //     {accessibility} void M4() {}
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, accessibility).WithArguments(accessibility).WithLocation(19, 5),
+                // (20,2): error CS1513: } expected
+                // }
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(20, 2)
+                );
+        }
+
         [Fact]
         public void TestGlobalAttributeGarbageAfterLocation()
         {
@@ -214,9 +262,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, file.ToFullString());
             Assert.Equal(1, file.AttributeLists.Count);
             Assert.Equal(0, file.Members.Count);
-            Assert.Equal(2, file.Errors().Length);
-            Assert.Equal((int)ErrorCode.ERR_UnexpectedCharacter, file.Errors()[0].Code);
-            Assert.Equal((int)ErrorCode.ERR_SyntaxError, file.Errors()[1].Code);
+            Assert.Equal(3, file.Errors().Length);
+            file.Errors().Verify(
+                // error CS1056: Unexpected character '$'
+                Diagnostic(ErrorCode.ERR_UnexpectedCharacter).WithArguments("$"),
+                // error CS1003: Syntax error, ',' expected
+                Diagnostic(ErrorCode.ERR_SyntaxError).WithArguments(",", ""),
+                // error CS1003: Syntax error, ']' expected
+                Diagnostic(ErrorCode.ERR_SyntaxError).WithArguments("]", "")
+                );
         }
 
         [Fact]
@@ -1816,11 +1870,27 @@ class C
             var agg = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(1, agg.Members.Count);
             Assert.Equal(SyntaxKind.IndexerDeclaration, agg.Members[0].Kind());
-            Assert.Equal(4, file.Errors().Length);
-            Assert.Equal((int)ErrorCode.ERR_IndexerNeedsParam, file.Errors()[0].Code);
-            Assert.Equal((int)ErrorCode.ERR_SyntaxError, file.Errors()[1].Code);
-            Assert.Equal((int)ErrorCode.ERR_LbraceExpected, file.Errors()[2].Code);
-            Assert.Equal((int)ErrorCode.ERR_RbraceExpected, file.Errors()[3].Code);
+            Assert.Equal(3, file.Errors().Length);
+            Assert.Equal((int)ErrorCode.ERR_SyntaxError, file.Errors()[0].Code);
+            Assert.Equal((int)ErrorCode.ERR_LbraceExpected, file.Errors()[1].Code);
+            Assert.Equal((int)ErrorCode.ERR_RbraceExpected, file.Errors()[2].Code);
+
+            CreateStandardCompilation(text).VerifyDiagnostics(
+                // (1,21): error CS1003: Syntax error, ']' expected
+                // class c { int this[ }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "}").WithArguments("]", "}").WithLocation(1, 21),
+                // (1,21): error CS1514: { expected
+                // class c { int this[ }
+                Diagnostic(ErrorCode.ERR_LbraceExpected, "}").WithLocation(1, 21),
+                // (1,22): error CS1513: } expected
+                // class c { int this[ }
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(1, 22),
+                // (1,15): error CS0548: 'c.this': property or indexer must have at least one accessor
+                // class c { int this[ }
+                Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "this").WithArguments("c.this").WithLocation(1, 15),
+                // (1,19): error CS1551: Indexers must have at least one parameter
+                // class c { int this[ }
+                Diagnostic(ErrorCode.ERR_IndexerNeedsParam, "[").WithLocation(1, 19));
         }
 
         [Fact]
@@ -1914,9 +1984,19 @@ class C
             var agg = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(1, agg.Members.Count);
             Assert.Equal(SyntaxKind.IndexerDeclaration, agg.Members[0].Kind());
-            Assert.Equal(2, file.Errors().Length);
-            Assert.Equal((int)ErrorCode.ERR_IndexerNeedsParam, file.Errors()[0].Code);
-            Assert.Equal((int)ErrorCode.ERR_UnexpectedCharacter, file.Errors()[1].Code);
+            Assert.Equal(1, file.Errors().Length);
+            Assert.Equal((int)ErrorCode.ERR_UnexpectedCharacter, file.Errors()[0].Code);
+
+            CreateStandardCompilation(text).VerifyDiagnostics(
+                // (1,21): error CS1056: Unexpected character '$'
+                // class c { int this[ $ ] { } }
+                Diagnostic(ErrorCode.ERR_UnexpectedCharacter, "").WithArguments("$").WithLocation(1, 21),
+                // (1,15): error CS0548: 'c.this': property or indexer must have at least one accessor
+                // class c { int this[ $ ] { } }
+                Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "this").WithArguments("c.this").WithLocation(1, 15),
+                // (1,23): error CS1551: Indexers must have at least one parameter
+                // class c { int this[ $ ] { } }
+                Diagnostic(ErrorCode.ERR_IndexerNeedsParam, "]").WithLocation(1, 23));
         }
 
         [Fact]
@@ -1987,11 +2067,27 @@ class C
             Assert.Equal(2, agg.Members.Count);
             Assert.Equal(SyntaxKind.IndexerDeclaration, agg.Members[0].Kind());
             Assert.Equal(SyntaxKind.MethodDeclaration, agg.Members[1].Kind());
-            Assert.Equal(4, file.Errors().Length);
-            Assert.Equal((int)ErrorCode.ERR_IndexerNeedsParam, file.Errors()[0].Code);
-            Assert.Equal((int)ErrorCode.ERR_SyntaxError, file.Errors()[1].Code);
-            Assert.Equal((int)ErrorCode.ERR_LbraceExpected, file.Errors()[2].Code);
-            Assert.Equal((int)ErrorCode.ERR_RbraceExpected, file.Errors()[3].Code);
+            Assert.Equal(3, file.Errors().Length);
+            Assert.Equal((int)ErrorCode.ERR_SyntaxError, file.Errors()[0].Code);
+            Assert.Equal((int)ErrorCode.ERR_LbraceExpected, file.Errors()[1].Code);
+            Assert.Equal((int)ErrorCode.ERR_RbraceExpected, file.Errors()[2].Code);
+
+            CreateStandardCompilation(text).VerifyDiagnostics(
+                // (1,21): error CS1003: Syntax error, ']' expected
+                // class c { int this[ public void m() { } }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "public").WithArguments("]", "public").WithLocation(1, 21),
+                // (1,21): error CS1514: { expected
+                // class c { int this[ public void m() { } }
+                Diagnostic(ErrorCode.ERR_LbraceExpected, "public").WithLocation(1, 21),
+                // (1,21): error CS1513: } expected
+                // class c { int this[ public void m() { } }
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "public").WithLocation(1, 21),
+                // (1,15): error CS0548: 'c.this': property or indexer must have at least one accessor
+                // class c { int this[ public void m() { } }
+                Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "this").WithArguments("c.this").WithLocation(1, 15),
+                // (1,19): error CS1551: Indexers must have at least one parameter
+                // class c { int this[ public void m() { } }
+                Diagnostic(ErrorCode.ERR_IndexerNeedsParam, "[").WithLocation(1, 19));
         }
 
         [Fact]
@@ -3925,10 +4021,9 @@ class C
             Assert.NotNull(ms.Body);
             Assert.Equal(1, ms.Body.Statements.Count);
             Assert.Equal(SyntaxKind.TryStatement, ms.Body.Statements[0].Kind());
-            Assert.Equal(3, file.Errors().Length);
+            Assert.Equal(2, file.Errors().Length);
             Assert.Equal((int)ErrorCode.ERR_LbraceExpected, file.Errors()[0].Code);
             Assert.Equal((int)ErrorCode.ERR_RbraceExpected, file.Errors()[1].Code);
-            Assert.Equal((int)ErrorCode.ERR_TooManyCatches, file.Errors()[2].Code);
         }
 
         [Fact]
@@ -4061,8 +4156,12 @@ class C
             Assert.NotNull(ms.Body);
             Assert.Equal(1, ms.Body.Statements.Count);
             Assert.Equal(SyntaxKind.DoStatement, ms.Body.Statements[0].Kind());
-            Assert.Equal(1, file.Errors().Length);
-            Assert.Equal((int)ErrorCode.ERR_SyntaxError, file.Errors()[0].Code);
+            file.Errors().Verify(
+                // error CS1003: Syntax error, ']' expected
+                Diagnostic(ErrorCode.ERR_SyntaxError).WithArguments("]", ")").WithLocation(1, 1),
+                // error CS1026: ) expected
+                Diagnostic(ErrorCode.ERR_CloseParenExpected).WithLocation(1, 1)
+                );
         }
 
         [Fact]
@@ -4227,8 +4326,12 @@ class C
             Assert.NotNull(ms.Body);
             Assert.Equal(1, ms.Body.Statements.Count);
             Assert.Equal(SyntaxKind.ForStatement, ms.Body.Statements[0].Kind());
-            Assert.Equal(1, file.Errors().Length);
-            Assert.Equal((int)ErrorCode.ERR_SyntaxError, file.Errors()[0].Code);
+            file.Errors().Verify(
+                // error CS1003: Syntax error, ']' expected
+                Diagnostic(ErrorCode.ERR_SyntaxError).WithArguments("]", ")").WithLocation(1, 1),
+                // error CS1026: ) expected
+                Diagnostic(ErrorCode.ERR_CloseParenExpected).WithLocation(1, 1)
+                );
         }
 
         [Fact]
@@ -5246,20 +5349,20 @@ class C
             Assert.NotNull(ds.Declaration.Variables[0].Initializer);
             Assert.NotEqual(SyntaxKind.None, ds.Declaration.Variables[0].Initializer.EqualsToken.Kind());
             Assert.NotNull(ds.Declaration.Variables[0].Initializer.Value);
-            Assert.Equal(SyntaxKind.ParenthesizedLambdaExpression, ds.Declaration.Variables[0].Initializer.Value.Kind());
-            Assert.Equal(5, file.Errors().Length);
-            Assert.Equal((int)ErrorCode.ERR_TypeExpected, file.Errors()[0].Code);
-            Assert.Equal((int)ErrorCode.ERR_IdentifierExpected, file.Errors()[1].Code);
-            Assert.Equal((int)ErrorCode.ERR_CloseParenExpected, file.Errors()[2].Code);
-            Assert.Equal((int)ErrorCode.ERR_SyntaxError, file.Errors()[3].Code);
-            Assert.Equal((int)ErrorCode.ERR_InvalidExprTerm, file.Errors()[4].Code);
+            Assert.Equal(SyntaxKind.TupleExpression, ds.Declaration.Variables[0].Initializer.Value.Kind());
+            file.Errors().Verify(
+                // error CS1525: Invalid expression term ';'
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm).WithArguments(";").WithLocation(1, 1),
+                // error CS1026: ) expected
+                Diagnostic(ErrorCode.ERR_CloseParenExpected).WithLocation(1, 1)
+                );
         }
 
         [Fact]
         public void TestSemicolonAfterUntypedLambdaParameter()
         {
             var text = "class c { void m() { var x = (y, ; } }";
-            var file = this.ParseTree(text, options: TestOptions.Regular.WithTuplesFeature());
+            var file = this.ParseTree(text, options: TestOptions.Regular);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -5308,7 +5411,7 @@ class C
             Assert.Equal(SyntaxKind.TupleExpression, ds.Declaration.Variables[0].Initializer.Value.Kind());
 
             Assert.Equal(new [] {
-                                (int)ErrorCode.ERR_FeatureIsExperimental,
+                                (int)ErrorCode.ERR_FeatureNotAvailableInVersion6,
                                 (int)ErrorCode.ERR_InvalidExprTerm,
                                 (int)ErrorCode.ERR_CloseParenExpected
                             }, file.Errors().Select(e => e.Code));
@@ -5337,21 +5440,22 @@ class C
             Assert.NotNull(ds.Declaration.Variables[0].Initializer);
             Assert.NotEqual(SyntaxKind.None, ds.Declaration.Variables[0].Initializer.EqualsToken.Kind());
             Assert.NotNull(ds.Declaration.Variables[0].Initializer.Value);
-            Assert.Equal(SyntaxKind.ParenthesizedLambdaExpression, ds.Declaration.Variables[0].Initializer.Value.Kind());
-            Assert.Equal(6, file.Errors().Length);
-            Assert.Equal((int)ErrorCode.ERR_TypeExpected, file.Errors()[0].Code);
-            Assert.Equal((int)ErrorCode.ERR_IdentifierExpected, file.Errors()[1].Code);
-            Assert.Equal((int)ErrorCode.ERR_CloseParenExpected, file.Errors()[2].Code);
-            Assert.Equal((int)ErrorCode.ERR_SyntaxError, file.Errors()[3].Code);
-            Assert.Equal((int)ErrorCode.ERR_InvalidExprTerm, file.Errors()[4].Code);
-            Assert.Equal((int)ErrorCode.ERR_SemicolonExpected, file.Errors()[5].Code);
+            Assert.Equal(SyntaxKind.TupleExpression, ds.Declaration.Variables[0].Initializer.Value.Kind());
+            file.Errors().Verify(
+                // error CS1525: Invalid expression term 'while'
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm).WithArguments("while").WithLocation(1, 1),
+                // error CS1026: ) expected
+                Diagnostic(ErrorCode.ERR_CloseParenExpected).WithLocation(1, 1),
+                // error CS1002: ; expected
+                Diagnostic(ErrorCode.ERR_SemicolonExpected).WithLocation(1, 1)
+                );
         }
 
         [Fact]
         public void TestStatementAfterUntypedLambdaParameter()
         {
             var text = "class c { void m() { var x = (y, while (c) { } } }";
-            var file = this.ParseTree(text, options: TestOptions.Regular.WithTuplesFeature());
+            var file = this.ParseTree(text, options: TestOptions.Regular);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -5381,7 +5485,7 @@ class C
         public void TestStatementAfterUntypedLambdaParameterWithCSharp6()
         {
             var text = "class c { void m() { var x = (y, while (c) { } } }";
-            var file = this.ParseTree(text);
+            var file = this.ParseTree(text, options: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6));
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -5405,7 +5509,7 @@ class C
             Assert.Equal(SyntaxKind.TupleExpression, ds.Declaration.Variables[0].Initializer.Value.Kind());
 
             Assert.Equal(new [] {
-                                (int)ErrorCode.ERR_FeatureIsExperimental,
+                                (int)ErrorCode.ERR_FeatureNotAvailableInVersion6,
                                 (int)ErrorCode.ERR_InvalidExprTerm,
                                 (int)ErrorCode.ERR_CloseParenExpected,
                                 (int)ErrorCode.ERR_SemicolonExpected
@@ -5493,7 +5597,7 @@ class C
             Assert.True(acc.SemicolonToken.IsMissing);
 
             Assert.Equal(2, file.Errors().Length);
-            Assert.Equal((int)ErrorCode.ERR_SemiOrLBraceExpected, file.Errors()[0].Code);
+            Assert.Equal((int)ErrorCode.ERR_SemiOrLBraceOrArrowExpected, file.Errors()[0].Code);
             Assert.Equal((int)ErrorCode.ERR_RbraceExpected, file.Errors()[1].Code);
         }
 
@@ -5604,7 +5708,7 @@ class C
             Assert.False(getBodyStmts[0].ContainsDiagnostics);
 
             Assert.Equal(1, file.Errors().Length);
-            Assert.Equal(ErrorCode.ERR_SemiOrLBraceExpected, (ErrorCode)file.Errors()[0].Code);
+            Assert.Equal(ErrorCode.ERR_SemiOrLBraceOrArrowExpected, (ErrorCode)file.Errors()[0].Code);
         }
 
         [Fact]
@@ -5634,8 +5738,8 @@ class C
             Assert.True(setDecl.SemicolonToken.IsMissing);
 
             Assert.Equal(2, file.Errors().Length);
-            Assert.Equal(ErrorCode.ERR_SemiOrLBraceExpected, (ErrorCode)file.Errors()[0].Code);
-            Assert.Equal(ErrorCode.ERR_SemiOrLBraceExpected, (ErrorCode)file.Errors()[1].Code);
+            Assert.Equal(ErrorCode.ERR_SemiOrLBraceOrArrowExpected, (ErrorCode)file.Errors()[0].Code);
+            Assert.Equal(ErrorCode.ERR_SemiOrLBraceOrArrowExpected, (ErrorCode)file.Errors()[1].Code);
         }
 
         [Fact]
@@ -6617,9 +6721,6 @@ _ _::this
                 // (2,4): error CS1003: Syntax error, '.' expected
                 // _ _::this
                 Diagnostic(ErrorCode.ERR_SyntaxError, "::").WithArguments(".", "::"),
-                // (3,1): error CS1551: Indexers must have at least one parameter
-                // 
-                Diagnostic(ErrorCode.ERR_IndexerNeedsParam, ""),
                 // (2,10): error CS1003: Syntax error, '[' expected
                 // _ _::this
                 Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("[", ""),
@@ -6632,6 +6733,37 @@ _ _::this
                 // (2,10): error CS1513: } expected
                 // _ _::this
                 Diagnostic(ErrorCode.ERR_RbraceExpected, ""));
+
+            CreateStandardCompilation(text).VerifyDiagnostics(
+                // (2,4): error CS1003: Syntax error, '.' expected
+                // _ _::this
+                Diagnostic(ErrorCode.ERR_SyntaxError, "::").WithArguments(".", "::").WithLocation(2, 4),
+                // (2,10): error CS1003: Syntax error, '[' expected
+                // _ _::this
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("[", "").WithLocation(2, 10),
+                // (2,10): error CS1003: Syntax error, ']' expected
+                // _ _::this
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("]", "").WithLocation(2, 10),
+                // (2,10): error CS1514: { expected
+                // _ _::this
+                Diagnostic(ErrorCode.ERR_LbraceExpected, "").WithLocation(2, 10),
+                // (2,10): error CS1513: } expected
+                // _ _::this
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(2, 10),
+                // (2,3): error CS0246: The type or namespace name '_' could not be found (are you missing a using directive or an assembly reference?)
+                // _ _::this
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "_").WithArguments("_").WithLocation(2, 3),
+                // (2,1): error CS0246: The type or namespace name '_' could not be found (are you missing a using directive or an assembly reference?)
+                // _ _::this
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "_").WithArguments("_").WithLocation(2, 1),
+                // error CS1551: Indexers must have at least one parameter
+                Diagnostic(ErrorCode.ERR_IndexerNeedsParam).WithLocation(1, 1),
+                // (2,3): error CS0538: '_' in explicit interface declaration is not an interface
+                // _ _::this
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationNotInterface, "_").WithArguments("_").WithLocation(2, 3),
+                // (2,6): error CS0548: '<invalid-global-code>.this': property or indexer must have at least one accessor
+                // _ _::this
+                Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "this").WithArguments("<invalid-global-code>.this").WithLocation(2, 6));
         }
 
         [WorkItem(649806, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/649806")]
@@ -6662,7 +6794,7 @@ class C
 
                 // (4,17): error CS1043: { or ; expected
                 //     int P { set . } }
-                Diagnostic(ErrorCode.ERR_SemiOrLBraceExpected, "."),
+                Diagnostic(ErrorCode.ERR_SemiOrLBraceOrArrowExpected, "."),
 
                 // We see this diagnostic because we're trying to skip bad tokens in the block and 
                 // the "expected" token (i.e. the one we report when we see something that's not a

@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
     {
         public abstract string Language { get; }
 
-        protected abstract ProjectFile CreateProjectFile(MSB.Evaluation.Project loadedProject);
+        protected abstract ProjectFile CreateProjectFile(LoadedProjectInfo info);
 
         public async Task<IProjectFile> LoadProjectFileAsync(string path, IDictionary<string, string> globalProperties, CancellationToken cancellationToken)
         {
@@ -28,9 +28,9 @@ namespace Microsoft.CodeAnalysis.MSBuild
             }
 
             // load project file async
-            var loadedProject = await LoadProjectAsync(path, globalProperties, cancellationToken).ConfigureAwait(false);
+            var loadedProjectInfo = await LoadProjectAsync(path, globalProperties, cancellationToken).ConfigureAwait(false);
 
-            return this.CreateProjectFile(loadedProject);
+            return this.CreateProjectFile(loadedProjectInfo);
         }
 
         private static readonly XmlReaderSettings s_xmlSettings = new XmlReaderSettings()
@@ -39,31 +39,48 @@ namespace Microsoft.CodeAnalysis.MSBuild
             XmlResolver = null
         };
 
-        private static async Task<MSB.Evaluation.Project> LoadProjectAsync(string path, IDictionary<string, string> globalProperties, CancellationToken cancellationToken)
+        public struct LoadedProjectInfo
+        {
+            public readonly MSB.Evaluation.Project Project;
+            public readonly string ErrorMessage;
+
+            public LoadedProjectInfo(MSB.Evaluation.Project project, string errorMessage)
+            {
+                this.Project = project;
+                this.ErrorMessage = errorMessage;
+            }
+        }
+
+        private static async Task<LoadedProjectInfo> LoadProjectAsync(string path, IDictionary<string, string> globalProperties, CancellationToken cancellationToken)
         {
             var properties = new Dictionary<string, string>(globalProperties ?? ImmutableDictionary<string, string>.Empty);
             properties["DesignTimeBuild"] = "true"; // this will tell msbuild to not build the dependent projects
             properties["BuildingInsideVisualStudio"] = "true"; // this will force CoreCompile task to execute even if all inputs and outputs are up to date
 
-            var xmlReader = XmlReader.Create(await ReadFileAsync(path, cancellationToken).ConfigureAwait(false), s_xmlSettings);
-            var collection = new MSB.Evaluation.ProjectCollection();
-            var xml = MSB.Construction.ProjectRootElement.Create(xmlReader, collection);
+            try
+            {
+                var xmlReader = XmlReader.Create(await ReadFileAsync(path, cancellationToken).ConfigureAwait(false), s_xmlSettings);
+                var collection = new MSB.Evaluation.ProjectCollection();
+                var xml = MSB.Construction.ProjectRootElement.Create(xmlReader, collection);
 
-            // When constructing a project from an XmlReader, MSBuild cannot determine the project file path.  Setting the
-            // path explicitly is necessary so that the reserved properties like $(MSBuildProjectDirectory) will work.
-            xml.FullPath = path;
+                // When constructing a project from an XmlReader, MSBuild cannot determine the project file path.  Setting the
+                // path explicitly is necessary so that the reserved properties like $(MSBuildProjectDirectory) will work.
+                xml.FullPath = path;
 
-            return new MSB.Evaluation.Project(
-                xml,
-                properties,
-                toolsVersion: null,
-                projectCollection: collection);
+                return new LoadedProjectInfo(
+                    new MSB.Evaluation.Project(xml, properties, toolsVersion: null, projectCollection: collection),
+                    errorMessage: null);
+            }
+            catch (Exception e)
+            {
+                return new LoadedProjectInfo(project: null, errorMessage: e.Message);
+            }
         }
 
         public static async Task<string> GetOutputFilePathAsync(string path, IDictionary<string, string> globalProperties, CancellationToken cancellationToken)
         {
-            var project = await LoadProjectAsync(path, globalProperties, cancellationToken).ConfigureAwait(false);
-            return project.GetPropertyValue("TargetPath");
+            var info = await LoadProjectAsync(path, globalProperties, cancellationToken).ConfigureAwait(false);
+            return info.Project?.GetPropertyValue("TargetPath") ?? string.Empty;
         }
 
         private static async Task<MemoryStream> ReadFileAsync(string path, CancellationToken cancellationToken)

@@ -31,6 +31,11 @@ namespace Microsoft.CodeAnalysis
             return DefaultVisit(symbol);
         }
 
+        public virtual TResult VisitDiscard(IDiscardSymbol symbol)
+        {
+            return DefaultVisit(symbol);
+        }
+
         public virtual TResult VisitDynamicType(IDynamicTypeSymbol symbol)
         {
             return DefaultVisit(symbol);

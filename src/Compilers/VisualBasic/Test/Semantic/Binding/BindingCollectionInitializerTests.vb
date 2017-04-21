@@ -1558,5 +1558,44 @@ End Class
             Next
         End Sub
 
+        <Fact()>
+        <WorkItem(12983, "https://github.com/dotnet/roslyn/issues/12983")>
+        Public Sub GetCollectionInitializerSymbolInfo_06()
+            Dim compilation = CreateCompilationWithMscorlib(
+<compilation>
+    <file name="a.vb">
+Option Strict On
+
+Imports System
+Imports System.Collections.Generic
+
+Class C1
+    Public Shared Sub Main()
+        Dim list1 = new List(Of String)
+        Dim list2 = new List(Of String)()
+        
+        Dim list3 = new List(Of String) With { .Count = 3 }
+        Dim list4 = new List(Of String)() With { .Count = 3 }
+        
+        Dim list5 = new List(Of String)  From { 1, 2, 3 }
+        Dim list6 = new List(Of String)() From { 1, 2, 3 }
+    End Sub
+End Class        
+    </file>
+</compilation>)
+
+            Dim tree = compilation.SyntaxTrees.Single()
+            Dim semanticModel = compilation.GetSemanticModel(tree)
+
+            Dim nodes = tree.GetRoot().DescendantNodes().OfType(Of GenericNameSyntax)().ToArray()
+            Assert.Equal(6, nodes.Length)
+
+            For Each name In nodes
+                Assert.Equal("List(Of String)", name.ToString())
+                Assert.Equal("System.Collections.Generic.List(Of System.String)", semanticModel.GetSymbolInfo(name).Symbol.ToTestDisplayString())
+                Assert.Null(semanticModel.GetTypeInfo(name).Type)
+            Next
+        End Sub
+
     End Class
 End Namespace

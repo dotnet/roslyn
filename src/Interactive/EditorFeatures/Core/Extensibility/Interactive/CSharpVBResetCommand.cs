@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -33,7 +33,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Commands
 
         public string Description
         {
-            get { return InteractiveEditorFeaturesResources.ResetCommandDescription; }
+            get { return InteractiveEditorFeaturesResources.Reset_the_execution_environment_to_the_initial_state_keep_history; }
         }
 
         public IEnumerable<string> DetailedDescription
@@ -55,7 +55,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Commands
         {
             get
             {
-                yield return new KeyValuePair<string, string>(NoConfigParameterName, InteractiveEditorFeaturesResources.ResetCommandParametersDescription);
+                yield return new KeyValuePair<string, string>(NoConfigParameterName, InteractiveEditorFeaturesResources.Reset_to_a_clean_environment_only_mscorlib_referenced_do_not_run_initialization_script);
             }
         }
 

@@ -34,35 +34,34 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// <param name="position">The character position within the document.</param>
         /// <param name="workspace">A workspace to provide context.</param>
         /// <param name="cancellationToken">A CancellationToken.</param>
-        public static Task<ISymbol> FindSymbolAtPositionAsync(
+        public static async Task<ISymbol> FindSymbolAtPositionAsync(
             SemanticModel semanticModel,
             int position,
             Workspace workspace,
             CancellationToken cancellationToken = default(CancellationToken))
         {
-            return FindSymbolAtPositionAsync(semanticModel, position, workspace, bindLiteralsToUnderlyingType: false, cancellationToken: cancellationToken);
+            var semanticInfo = await GetSemanticInfoAtPositionAsync(
+                semanticModel, position, workspace, cancellationToken: cancellationToken).ConfigureAwait(false);
+            return semanticInfo.GetAnySymbol(includeType: false);
         }
 
-        internal static async Task<ISymbol> FindSymbolAtPositionAsync(
+        internal static async Task<TokenSemanticInfo> GetSemanticInfoAtPositionAsync(
             SemanticModel semanticModel,
             int position,
             Workspace workspace,
-            bool bindLiteralsToUnderlyingType,
             CancellationToken cancellationToken)
         {
             var syntaxTree = semanticModel.SyntaxTree;
             var syntaxFacts = workspace.Services.GetLanguageServices(semanticModel.Language).GetService<ISyntaxFactsService>();
             var token = await syntaxTree.GetTouchingTokenAsync(position, syntaxFacts.IsBindableToken, cancellationToken, findInsideTrivia: true).ConfigureAwait(false);
 
-            if (token != default(SyntaxToken))
+            if (token != default(SyntaxToken) &&
+                token.Span.IntersectsWith(position))
             {
-                if (token.Span.IntersectsWith(position))
-                {
-                    return semanticModel.GetSymbols(token, workspace, bindLiteralsToUnderlyingType, cancellationToken).FirstOrDefault();
-                }
+                return semanticModel.GetSemanticInfo(token, workspace, cancellationToken);
             }
 
-            return null;
+            return TokenSemanticInfo.Empty;
         }
 
         public static async Task<ISymbol> FindSymbolAtPositionAsync(
@@ -78,12 +77,23 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// Finds the definition symbol declared in source code for a corresponding reference symbol. 
         /// Returns null if no such symbol can be found in the specified solution.
         /// </summary>
-        public static Task<ISymbol> FindSourceDefinitionAsync(
+        public static async Task<ISymbol> FindSourceDefinitionAsync(
             ISymbol symbol, Solution solution, CancellationToken cancellationToken = default(CancellationToken))
         {
+            var result = await FindSourceDefinitionAsync(
+                SymbolAndProjectId.Create(symbol, projectId: null),
+                solution, cancellationToken).ConfigureAwait(false);
+            return result.Symbol;
+        }
+
+        internal static Task<SymbolAndProjectId> FindSourceDefinitionAsync(
+            SymbolAndProjectId symbolAndProjectId, Solution solution, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            var symbol = symbolAndProjectId.Symbol;
             if (symbol != null)
             {
                 symbol = symbol.GetOriginalUnreducedDefinition();
+                symbolAndProjectId = symbolAndProjectId.WithSymbol(symbol);
                 switch (symbol.Kind)
                 {
                     case SymbolKind.Event:
@@ -95,18 +105,19 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     case SymbolKind.Property:
                     case SymbolKind.TypeParameter:
                     case SymbolKind.Namespace:
-                        return FindSourceDefinitionWorkerAsync(symbol, solution, cancellationToken);
+                        return FindSourceDefinitionWorkerAsync(symbolAndProjectId, solution, cancellationToken);
                 }
             }
 
-            return SpecializedTasks.Default<ISymbol>();
+            return SpecializedTasks.Default<SymbolAndProjectId>();
         }
 
-        private static async Task<ISymbol> FindSourceDefinitionWorkerAsync(
-            ISymbol symbol,
+        private static async Task<SymbolAndProjectId> FindSourceDefinitionWorkerAsync(
+            SymbolAndProjectId symbolAndProjectId,
             Solution solution,
             CancellationToken cancellationToken)
         {
+            var symbol = symbolAndProjectId.Symbol;
             // If it's already in source, then we might already be done
             if (InSource(symbol))
             {
@@ -114,7 +125,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 // symbol somewhere else. The common case for this is a merged INamespaceSymbol that spans assemblies.
                 if (symbol.ContainingAssembly == null)
                 {
-                    return symbol;
+                    return symbolAndProjectId;
                 }
 
                 // Just because it's a source symbol doesn't mean we have the final symbol we actually want. In retargeting cases,
@@ -123,16 +134,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 // then we have a retargeting scenario and want to take our usual path below as if it was a metadata reference
                 foreach (var sourceProject in solution.Projects)
                 {
-                    Compilation compilation;
 
                     // If our symbol is actually a "regular" source symbol, then we know the compilation is holding the symbol alive
                     // and thus TryGetCompilation is sufficient. For another example of this pattern, see Solution.GetProject(IAssemblySymbol)
                     // which we happen to call below.
-                    if (sourceProject.TryGetCompilation(out compilation))
+                    if (sourceProject.TryGetCompilation(out var compilation))
                     {
                         if (symbol.ContainingAssembly.Equals(compilation.Assembly))
                         {
-                            return symbol;
+                            return SymbolAndProjectId.Create(symbol, sourceProject.Id);
                         }
                     }
                 }
@@ -140,7 +150,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             else if (!symbol.Locations.Any(loc => loc.IsInMetadata))
             {
                 // We have a symbol that's neither in source nor metadata
-                return null;
+                return default(SymbolAndProjectId);
             }
 
             var project = solution.GetProject(symbol.ContainingAssembly, cancellationToken);
@@ -152,16 +162,16 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                 if (result.Symbol != null && InSource(result.Symbol))
                 {
-                    return result.Symbol;
+                    return SymbolAndProjectId.Create(result.Symbol, project.Id);
                 }
                 else
                 {
-                    return result.CandidateSymbols.FirstOrDefault(InSource);
+                    return SymbolAndProjectId.Create(result.CandidateSymbols.FirstOrDefault(InSource), project.Id);
                 }
             }
             else
             {
-                return null;
+                return default(SymbolAndProjectId);
             }
         }
 
@@ -202,7 +212,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
 
             var key = symbol.GetSymbolKey();
-            return key.Resolve(compilation, cancellationToken: cancellationToken).GetAllSymbols().OfType<TSymbol>();
+
+            // We may be talking about different compilations.  So do not try to resolve locations.
+            return key.Resolve(compilation, resolveLocations: false, cancellationToken: cancellationToken).GetAllSymbols().OfType<TSymbol>();
         }
     }
 }

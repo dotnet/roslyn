@@ -1,13 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGeneration;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -142,9 +136,9 @@ namespace N
     {
         public const string FConst;
         public static string FStatic;
-        public string FAccessE;
-        public string FNotConst;
         public string FNotStatic;
+        public string FNotConst;
+        public string FAccessE;
         protected string FAccessC;
         protected internal string FAccessD;
         internal string FAccessB;
@@ -162,16 +156,16 @@ namespace N
         public int this[int index1, int index2] { get; }
 
         public static int PStatic { get; }
-        public int PAccessE { get; }
         public int PNotStatic { get; }
+        public int PAccessE { get; }
         protected int PAccessD { get; }
         protected internal int PAccessC { get; }
         internal int PAccessB { get; }
         private int PAccessA { get; }
 
         public static event Action EFStatic;
-        public event Action EFAccessE;
         public event Action EFNotStatic;
+        public event Action EFAccessE;
         protected event Action EFAccessC;
         protected internal event Action EFAccessD;
         internal event Action EFAccessB;
@@ -180,14 +174,14 @@ namespace N
         public static int M2Static();
         public static void MStatic();
         public int M2AccessE();
-        public int M2Generic<T>();
-        public int M2Generic<T>(int param);
         public int M2Generic<T1, T2>();
+        public int M2Generic<T>(int param);
+        public int M2Generic<T>();
         public int M2NotStatic();
         public void MAccessE();
-        public void MGeneric<T>();
-        public void MGeneric<T>(int param);
         public void MGeneric<T1, T2>();
+        public void MGeneric<T>(int param);
+        public void MGeneric<T>();
         public void MNotStatic();
         protected int M2AccessD();
         protected void MAccessD();
@@ -201,48 +195,146 @@ namespace N
         public static C operator +(C c);
         public static C operator !(C c);
 
-        public enum EAccessE { }
-        public enum ENameA { }
-        public enum ENameB { }
-        protected enum EAccessD { }
-        protected internal enum EAccessC { }
-        internal enum EAccessB { }
-        private enum EAccessA { }
+        public enum EAccessE
+        {
+        }
 
-        public interface IAccessE { }
-        public interface IGeneric<T> { }
-        public interface IGeneric<T1, T2> { }
-        protected interface IAccessD { }
-        protected internal interface IAccessC { }
-        internal interface IAccessB { }
-        private interface IAccessA { }
+        public enum ENameB
+        {
+        }
 
-        public struct SAccessE { }
-        public struct SGeneric<T> { }
-        public struct SGeneric<T1, T2> { }
-        public struct SNameA { }
-        public struct SNameB { }
-        protected struct SAccessD { }
-        protected internal struct SAccessC { }
-        internal struct SAccessB { }
-        private struct SAccessA { }
+        public enum ENameA
+        {
+        }
 
-        public static class CStatic { }
-        public class CAccessE { }
-        public class CGeneric<T> { }
-        public class CGeneric<T1, T2> { }
-        public class CNotStatic { }
-        protected class CAccessD { }
-        protected internal class CAccessC { }
-        internal class CAccessB { }
-        private class CAccessA { }
+        protected enum EAccessD
+        {
+        }
+
+        protected internal enum EAccessC
+        {
+        }
+
+        internal enum EAccessB
+        {
+        }
+
+        private enum EAccessA
+        {
+        }
+
+        public interface IAccessE
+        {
+        }
+
+        public interface IGeneric<T1, T2>
+        {
+        }
+
+        public interface IGeneric<T>
+        {
+        }
+
+        protected interface IAccessD
+        {
+        }
+
+        protected internal interface IAccessC
+        {
+        }
+
+        internal interface IAccessB
+        {
+        }
+
+        private interface IAccessA
+        {
+        }
+
+        public struct SAccessE
+        {
+        }
+
+        public struct SGeneric<T1, T2>
+        {
+        }
+
+        public struct SGeneric<T>
+        {
+        }
+
+        public struct SNameB
+        {
+        }
+
+        public struct SNameA
+        {
+        }
+
+        protected struct SAccessD
+        {
+        }
+
+        protected internal struct SAccessC
+        {
+        }
+
+        internal struct SAccessB
+        {
+        }
+
+        private struct SAccessA
+        {
+        }
+
+        public static class CStatic
+        {
+        }
+
+        public class CNotStatic
+        {
+        }
+
+        public class CAccessE
+        {
+        }
+
+        public class CGeneric<T1, T2>
+        {
+        }
+
+        public class CGeneric<T>
+        {
+        }
+
+        protected class CAccessD
+        {
+        }
+
+        protected internal class CAccessC
+        {
+        }
+
+        internal class CAccessB
+        {
+        }
+
+        private class CAccessA
+        {
+        }
 
         public delegate void DAccessE();
-        public delegate void DGeneric<T>(T t, int i);
+
         public delegate void DGeneric<T1, T2>(T1 a, T2 b);
+
+        public delegate void DGeneric<T>(T t, int i);
+
         protected delegate void DAccessD();
+
         protected internal delegate void DAccessC();
+
         internal delegate void DAccessB();
+
         private delegate void DAccessA();
     }
 }";
@@ -256,14 +348,13 @@ Namespace N
     Public Class C
         Public Const FConst As String
         Public Shared FStatic As String
-        Public FAccessE As String
-        Public FNotConst As String
         Public FNotStatic As String
+        Public FNotConst As String
+        Public FAccessE As String
         Protected FAccessC As String
         Protected Friend FAccessD As String
         Friend FAccessB As String
         Private FAccessA As String
-
         Public Sub New()
         Public Sub New(a As Integer)
         Public Sub New(a As Integer, b As Integer)
@@ -271,121 +362,144 @@ Namespace N
         Protected Friend Sub New(s As Short)
         Friend Sub New(l As Long)
         Private Sub New(s As String)
-
         Public Shared ReadOnly Property PStatic As Integer
-        Public ReadOnly Property PAccessE As Integer
         Public ReadOnly Property PNotStatic As Integer
-        Default Public ReadOnly Property this[](index As Integer) As Integer
+        Public ReadOnly Property PAccessE As Integer
         Default Public ReadOnly Property this[](index1 As Integer, index2 As Integer) As Integer
+        Default Public ReadOnly Property this[](index As Integer) As Integer
         Protected ReadOnly Property PAccessD As Integer
         Protected Friend ReadOnly Property PAccessC As Integer
         Friend ReadOnly Property PAccessB As Integer
         Private ReadOnly Property PAccessA As Integer
-
         Public Shared Event EFStatic As Action
-        Public Event EFAccessE As Action
         Public Event EFNotStatic As Action
+        Public Event EFAccessE As Action
         Protected Event EFAccessC As Action
         Protected Friend Event EFAccessD As Action
         Friend Event EFAccessB As Action
         Private Event EFAccessA As Action
-
         Public Shared Sub MStatic()
-        Public Sub MAccessE()
-        Public Sub MGeneric(Of T)()
-        Public Sub MGeneric(Of T)(param As Integer)
-        Public Sub MGeneric(Of T1, T2)()
         Public Sub MNotStatic()
+        Public Sub MAccessE()
+        Public Sub MGeneric(Of T1, T2)()
+        Public Sub MGeneric(Of T)(param As Integer)
+        Public Sub MGeneric(Of T)()
         Protected Sub MAccessD()
         Protected Friend Sub MAccessC()
         Friend Sub MAccessB()
         Private Sub MAccessA()
-
         Public Shared Function M2Static() As Integer
-        Public Function M2AccessE() As Integer
-        Public Function M2Generic(Of T)() As Integer
-        Public Function M2Generic(Of T)(param As Integer) As Integer
-        Public Function M2Generic(Of T1, T2)() As Integer
         Public Function M2NotStatic() As Integer
+        Public Function M2AccessE() As Integer
+        Public Function M2Generic(Of T1, T2)() As Integer
+        Public Function M2Generic(Of T)(param As Integer) As Integer
+        Public Function M2Generic(Of T)() As Integer
         Protected Function M2AccessD() As Integer
         Protected Friend Function M2AccessC() As Integer
         Friend Function M2AccessB() As Integer
         Private Function M2AccessA() As Integer
-
         Public Shared Operator +(c As C) As C
         Public Shared Operator Not(c As C) As C
 
         Public Enum EAccessE
         End Enum
-        Public Enum ENameA
-        End Enum
+
         Public Enum ENameB
         End Enum
+
+        Public Enum ENameA
+        End Enum
+
         Protected Enum EAccessD
         End Enum
+
         Protected Friend Enum EAccessC
         End Enum
+
         Friend Enum EAccessB
         End Enum
+
         Private Enum EAccessA
         End Enum
 
         Public Interface IAccessE
         End Interface
-        Public Interface IGeneric(Of T)
-        End Interface
+
         Public Interface IGeneric(Of T1, T2)
         End Interface
+
+        Public Interface IGeneric(Of T)
+        End Interface
+
         Protected Interface IAccessD
         End Interface
+
         Protected Friend Interface IAccessC
         End Interface
+
         Friend Interface IAccessB
         End Interface
+
         Private Interface IAccessA
         End Interface
 
         Public Structure SAccessE
         End Structure
-        Public Structure SGeneric(Of T)
-        End Structure
+
         Public Structure SGeneric(Of T1, T2)
         End Structure
-        Public Structure SNameA
+
+        Public Structure SGeneric(Of T)
         End Structure
+
         Public Structure SNameB
         End Structure
+
+        Public Structure SNameA
+        End Structure
+
         Protected Structure SAccessD
         End Structure
+
         Protected Friend Structure SAccessC
         End Structure
+
         Friend Structure SAccessB
         End Structure
+
         Private Structure SAccessA
         End Structure
 
-        Public Class CAccessE
-        End Class
-        Public Class CGeneric(Of T)
-        End Class
-        Public Class CGeneric(Of T1, T2)
-        End Class
         Public Class CNotStatic
         End Class
+
         Public Class CStatic
         End Class
+
+        Public Class CAccessE
+        End Class
+
+        Public Class CGeneric(Of T1, T2)
+        End Class
+
+        Public Class CGeneric(Of T)
+        End Class
+
         Protected Class CAccessD
         End Class
+
         Protected Friend Class CAccessC
         End Class
+
         Friend Class CAccessB
         End Class
+
         Private Class CAccessA
         End Class
 
         Public Delegate Sub DAccessE()
-        Public Delegate Sub DGeneric(Of T)(t As T, i As Integer)
         Public Delegate Sub DGeneric(Of T1, T2)(a As T1, b As T2)
+        Public Delegate Sub DGeneric(Of T)(t As T, i As Integer)
         Protected Delegate Sub DAccessD()
         Protected Friend Delegate Sub DAccessC()
         Friend Delegate Sub DAccessB()
@@ -594,12 +708,11 @@ namespace N
 
                 var initialVB = "Namespace [|N|] End Namespace";
                 var expectedVB = @"
+Namespace N 
 Namespace N
-Namespace N
-    Public Class A 
+    Public Class A
         Public Shared MustOverride ReadOnly Property Property1 As String
         Public Overridable ReadOnly Property [Property] As String
-
         Public MustOverride Shared Sub Method2()
         Public Overridable Sub Method1()
     End Class

@@ -3,7 +3,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServices
@@ -32,7 +31,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             transitiveNormalAnonymousTypeReferences = OrderAnonymousTypes(transitiveNormalAnonymousTypeReferences, orderSymbol);
 
             IList<SymbolDisplayPart> anonymousTypeParts = new List<SymbolDisplayPart>();
-            anonymousTypeParts.Add(PlainText(FeaturesResources.AnonymousTypes));
+            anonymousTypeParts.Add(PlainText(FeaturesResources.Anonymous_Types_colon));
             anonymousTypeParts.AddRange(LineBreak());
 
             for (int i = 0; i < transitiveNormalAnonymousTypeReferences.Count; i++)
@@ -46,7 +45,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                 anonymousTypeParts.AddRange(Space(count: 4));
                 anonymousTypeParts.Add(Part(SymbolDisplayPartKind.ClassName, anonymousType, anonymousType.Name));
                 anonymousTypeParts.AddRange(Space());
-                anonymousTypeParts.Add(PlainText(FeaturesResources.Is));
+                anonymousTypeParts.Add(PlainText(FeaturesResources.is_));
                 anonymousTypeParts.AddRange(Space());
                 anonymousTypeParts.AddRange(GetAnonymousTypeParts(anonymousType, semanticModel, position, displayService));
             }
@@ -90,9 +89,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             IList<INamedTypeSymbol> transitiveAnonymousTypeReferences,
             ISymbol symbol)
         {
-            if (symbol is IMethodSymbol)
+            if (symbol is IMethodSymbol method)
             {
-                var method = (IMethodSymbol)symbol;
                 return transitiveAnonymousTypeReferences.OrderBy(
                     (n1, n2) =>
                     {
@@ -104,9 +102,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                         return index1 - index2;
                     }).ToList();
             }
-            else if (symbol is IPropertySymbol)
+            else if (symbol is IPropertySymbol property)
             {
-                var property = (IPropertySymbol)symbol;
                 return transitiveAnonymousTypeReferences.OrderBy(
                     (n1, n2) =>
                     {

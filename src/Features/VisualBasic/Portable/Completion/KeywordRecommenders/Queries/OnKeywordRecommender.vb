@@ -21,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Quer
                 ' it if the parser has already placed this On in the tree.
                 For Each joinClause In token.GetAncestors(Of JoinClauseSyntax)()
                     If joinClause.OnKeyword.IsMissing OrElse joinClause.OnKeyword = token Then
-                        Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("On", VBFeaturesResources.OnQueryKeywordToolTip))
+                        Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("On", VBFeaturesResources.Specifies_the_element_keys_used_to_correlate_sequences_for_a_join_operation))
                     End If
                 Next
             End If

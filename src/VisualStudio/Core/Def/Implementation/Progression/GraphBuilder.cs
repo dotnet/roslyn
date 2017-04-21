@@ -138,8 +138,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
         {
             using (_gate.DisposableWait())
             {
-                Project project;
-                _nodeToContextProjectMap.TryGetValue(node, out project);
+                _nodeToContextProjectMap.TryGetValue(node, out var project);
                 return project;
             }
         }
@@ -154,8 +153,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
         {
             using (_gate.DisposableWait())
             {
-                Document document;
-                _nodeToContextDocumentMap.TryGetValue(node, out document);
+                _nodeToContextDocumentMap.TryGetValue(node, out var document);
                 return document;
             }
         }
@@ -164,8 +162,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
         {
             using (_gate.DisposableWait())
             {
-                ISymbol symbol;
-                _nodeToSymbolMap.TryGetValue(node, out symbol);
+                _nodeToSymbolMap.TryGetValue(node, out var symbol);
                 return symbol;
             }
         }
@@ -486,9 +483,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             {
                 node[Properties.IsAnonymous] = true;
             }
-            else if (symbol is IMethodSymbol)
+            else if (symbol is IMethodSymbol methodSymbol)
             {
-                UpdateMethodPropertiesForNode((IMethodSymbol)symbol, node);
+                UpdateMethodPropertiesForNode(methodSymbol, node);
             }
         }
 
@@ -592,7 +589,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                     break;
 
                 default:
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.UnexpectedValue(namedType.TypeKind);
             }
 
             node[DgmlNodeProperties.Icon] = IconHelper.GetIconName(iconGroupName, namedType.DeclaredAccessibility);

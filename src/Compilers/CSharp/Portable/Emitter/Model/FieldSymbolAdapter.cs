@@ -127,14 +127,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        Cci.IMetadataConstant Cci.IFieldDefinition.GetCompileTimeValue(EmitContext context)
+        MetadataConstant Cci.IFieldDefinition.GetCompileTimeValue(EmitContext context)
         {
             CheckDefinitionInvariant();
 
             return GetMetadataConstantValue(context);
         }
 
-        internal Cci.IMetadataConstant GetMetadataConstantValue(EmitContext context)
+        internal MetadataConstant GetMetadataConstantValue(EmitContext context)
         {
             // A constant field of type decimal is not treated as a compile time value in CLR,
             // so check if it is a metadata constant, not just a constant to exclude decimals.

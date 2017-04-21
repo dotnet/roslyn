@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -20,22 +20,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             internal IVisualStudioHostDocument Document { get; set; }
 
             private readonly string _assemblyName;
-            private readonly ParseOptions _parseOptions;
+            private readonly ParseOptions _parseOptionsOpt;
+            private readonly CompilationOptions _compilationOptionsOpt;
             private readonly IEnumerable<MetadataReference> _metadataReferences;
             private readonly VersionStamp _version;
             private readonly Workspace _workspace;
 
-            public HostProject(Workspace workspace, SolutionId solutionId, string languageName, ParseOptions parseOptions, IEnumerable<MetadataReference> metadataReferences)
+            public HostProject(Workspace workspace, SolutionId solutionId, string languageName, ParseOptions parseOptionsOpt, CompilationOptions compilationOptionsOpt, IEnumerable<MetadataReference> metadataReferences)
             {
                 Debug.Assert(workspace != null);
                 Debug.Assert(languageName != null);
-                Debug.Assert(parseOptions != null);
                 Debug.Assert(metadataReferences != null);
 
                 _workspace = workspace;
-                this.Id = ProjectId.CreateNewId(debugName: "Miscellaneous Files");
-                this.Language = languageName;
-                _parseOptions = parseOptions;
+                _parseOptionsOpt = parseOptionsOpt;
+                _compilationOptionsOpt = compilationOptionsOpt;
+
+                Id = ProjectId.CreateNewId(debugName: "Miscellaneous Files");
+                Language = languageName;
 
                 // the assembly name must be unique for each collection of loose files.  since the name doesn't matter
                 // a random GUID can be used.
@@ -48,14 +50,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             public ProjectInfo CreateProjectInfoForCurrentState()
             {
                 var info = ProjectInfo.Create(
-                    this.Id,
+                    Id,
                     _version,
-                    name: ServicesVSResources.MiscellaneousFiles,
+                    name: ServicesVSResources.Miscellaneous_Files,
                     assemblyName: _assemblyName,
-                    language: this.Language,
+                    language: Language,
                     filePath: null,
-                    compilationOptions: null, // we don't have compilation options?
-                    parseOptions: _parseOptions,
+                    compilationOptions: _compilationOptionsOpt,
+                    parseOptions: _parseOptionsOpt,
                     documents: SpecializedCollections.EmptyEnumerable<DocumentInfo>(),
                     projectReferences: SpecializedCollections.EmptyEnumerable<ProjectReference>(),
                     metadataReferences: _metadataReferences,
@@ -75,7 +77,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             public Workspace Workspace => _workspace;
 
-            public string ProjectSystemName => "MiscellaneousFiles";
+            public string DisplayName => "MiscellaneousFiles";
+            public string ProjectSystemName => DisplayName;
 
             public IVisualStudioHostDocument GetDocumentOrAdditionalDocument(DocumentId id)
             {
@@ -108,16 +111,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 }
 
                 return moniker.Equals(Document.Key.Moniker, StringComparison.OrdinalIgnoreCase);
-            }
-
-            public IReadOnlyList<string> GetFolderNames(uint documentItemID)
-            {
-                return SpecializedCollections.EmptyReadOnlyList<string>();
-            }
-
-            public void UpdateGeneratedDocuments(ImmutableArray<DocumentInfo> documentsRemoved, ImmutableArray<DocumentInfo> documentsAdded)
-            {
-                throw new NotImplementedException();
             }
         }
     }

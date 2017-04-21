@@ -2,6 +2,7 @@
 
 Imports System.Text
 Imports Microsoft.CodeAnalysis.Text
+Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class VisualBasicSyntaxTreeTests
@@ -81,6 +82,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
             Assert.Equal(newTree.FilePath, "new.vb")
             Assert.Equal(oldTree.ToString(), newTree.ToString())
+        End Sub
+
+        <Fact, WorkItem(12638, "https://github.com/dotnet/roslyn/issues/12638")>
+        Public Sub WithFilePath_Nothing()
+            Dim oldTree As SyntaxTree = New VisualBasicSyntaxTree.DummySyntaxTree()
+            Assert.Equal(String.Empty, oldTree.WithFilePath(Nothing).FilePath)
+            oldTree = SyntaxFactory.ParseSyntaxTree("", path:="old.vb")
+            Assert.Equal(String.Empty, oldTree.WithFilePath(Nothing).FilePath)
+            Assert.Equal(String.Empty, SyntaxFactory.ParseSyntaxTree("", path:=Nothing).FilePath)
+            Assert.Equal(String.Empty, VisualBasicSyntaxTree.Create(CType(oldTree.GetRoot, VisualBasicSyntaxNode), path:=Nothing).FilePath)
         End Sub
     End Class
 End Namespace

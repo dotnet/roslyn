@@ -4,6 +4,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Composition;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,10 +12,10 @@ using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindSymbols.SymbolTree;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Roslyn.Utilities;
-using static Roslyn.Utilities.PortableShim;
 
 namespace Microsoft.CodeAnalysis.IncrementalCaches
 {
@@ -33,7 +34,7 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
     /// once it is fully indexed, then total results will be returned.
     /// </summary>
     [Shared]
-    [ExportIncrementalAnalyzerProvider(nameof(SymbolTreeInfoIncrementalAnalyzerProvider), new[] { WorkspaceKind.Host })]
+    [ExportIncrementalAnalyzerProvider(nameof(SymbolTreeInfoIncrementalAnalyzerProvider), new[] { WorkspaceKind.Host, WorkspaceKind.RemoteWorkspace })]
     [ExportWorkspaceServiceFactory(typeof(ISymbolTreeInfoCacheService))]
     internal class SymbolTreeInfoIncrementalAnalyzerProvider : IIncrementalAnalyzerProvider, IWorkspaceServiceFactory
     {
@@ -52,6 +53,11 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
         private struct MetadataInfo
         {
             public readonly DateTime TimeStamp;
+
+            /// <summary>
+            /// Note: can be <code>null</code> if were unable to create a SymbolTreeInfo
+            /// (for example, if the metadata was bogus and we couldn't read it in).
+            /// </summary>
             public readonly SymbolTreeInfo SymbolTreeInfo;
 
             /// <summary>
@@ -141,11 +147,9 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                 var key = GetReferenceKey(reference);
                 if (key != null)
                 {
-                    MetadataInfo metadataInfo;
-                    if (_metadataPathToInfo.TryGetValue(key, out metadataInfo))
+                    if (_metadataPathToInfo.TryGetValue(key, out var metadataInfo))
                     {
-                        DateTime writeTime;
-                        if (TryGetLastWriteTime(key, out writeTime) && writeTime == metadataInfo.TimeStamp)
+                        if (TryGetLastWriteTime(key, out var writeTime) && writeTime == metadataInfo.TimeStamp)
                         {
                             return metadataInfo.SymbolTreeInfo;
                         }
@@ -155,7 +159,7 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                 // If we didn't have it in our cache, see if we can load it from disk.
                 // Note: pass 'loadOnly' so we only attempt to load from disk, not to actually
                 // try to create the metadata.
-                var info = await SymbolTreeInfo.GetInfoForMetadataReferenceAsync(
+                var info = await SymbolTreeInfo.TryGetInfoForMetadataReferenceAsync(
                     solution, reference, loadOnly: true, cancellationToken: cancellationToken).ConfigureAwait(false);
                 return info;
             }
@@ -163,8 +167,7 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
             public async Task<SymbolTreeInfo> TryGetSourceSymbolTreeInfoAsync(
                 Project project, CancellationToken cancellationToken)
             {
-                ProjectInfo projectInfo;
-                if (_projectToInfo.TryGetValue(project.Id, out projectInfo))
+                if (_projectToInfo.TryGetValue(project.Id, out var projectInfo))
                 {
                     var version = await project.GetSemanticVersionAsync(cancellationToken).ConfigureAwait(false);
                     if (version == projectInfo.VersionStamp)
@@ -215,6 +218,15 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
 
             private async Task UpdateSymbolTreeInfoAsync(Project project, CancellationToken cancellationToken)
             {
+                if (project.Solution.Workspace.Kind != "Test" &&
+                    project.Solution.Workspace.Kind != WorkspaceKind.RemoteWorkspace &&
+                    project.Solution.Workspace.Options.GetOption(NavigateToOptions.OutOfProcessAllowed))
+                {
+                    // if GoTo feature is set to run on remote host, then we don't need to build inproc cache.
+                    // remote host will build this cache in remote host.
+                    return;
+                }
+
                 if (!project.SupportsCompilation)
                 {
                     return;
@@ -225,9 +237,7 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                 // (The latter happens when something happens to the project like metadata 
                 // changing on disk).
                 var version = await project.GetSemanticVersionAsync(cancellationToken).ConfigureAwait(false);
-
-                ProjectInfo projectInfo;
-                if (!_projectToInfo.TryGetValue(project.Id, out projectInfo) || projectInfo.VersionStamp != version)
+                if (!_projectToInfo.TryGetValue(project.Id, out var projectInfo) || projectInfo.VersionStamp != version)
                 {
                     var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
 
@@ -263,19 +273,20 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                     return;
                 }
 
-                DateTime lastWriteTime;
-                if (!TryGetLastWriteTime(key, out lastWriteTime))
+                if (!TryGetLastWriteTime(key, out var lastWriteTime))
                 {
                     // Couldn't get the write time.  Just ignore this reference.
                     return;
                 }
 
-                MetadataInfo metadataInfo;
-                if (!_metadataPathToInfo.TryGetValue(key, out metadataInfo) || metadataInfo.TimeStamp == lastWriteTime)
+                if (!_metadataPathToInfo.TryGetValue(key, out var metadataInfo) || metadataInfo.TimeStamp == lastWriteTime)
                 {
-                    var info = await SymbolTreeInfo.GetInfoForMetadataReferenceAsync(
+                    var info = await SymbolTreeInfo.TryGetInfoForMetadataReferenceAsync(
                         project.Solution, reference, loadOnly: false, cancellationToken: cancellationToken).ConfigureAwait(false);
 
+                    // Note, getting the info may fail (for example, bogus metadata).  That's ok.  
+                    // We still want to cache that result so that don't try to continuously produce
+                    // this info over and over again.
                     metadataInfo = new MetadataInfo(lastWriteTime, info, metadataInfo.ReferencingProjects ?? new HashSet<ProjectId>());
                     _metadataPathToInfo.AddOrUpdate(key, metadataInfo, (_1, _2) => metadataInfo);
                 }
@@ -286,8 +297,7 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
 
             public override void RemoveProject(ProjectId projectId)
             {
-                ProjectInfo info;
-                _projectToInfo.TryRemove(projectId, out info);
+                _projectToInfo.TryRemove(projectId, out var info);
 
                 RemoveMetadataReferences(projectId);
             }
@@ -301,8 +311,7 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                         if (kvp.Value.ReferencingProjects.Count == 0)
                         {
                             // This metadata dll isn't referenced by any project.  We can just dump it.
-                            MetadataInfo unneeded;
-                            _metadataPathToInfo.TryRemove(kvp.Key, out unneeded);
+                            _metadataPathToInfo.TryRemove(kvp.Key, out var unneeded);
                         }
                     }
                 }

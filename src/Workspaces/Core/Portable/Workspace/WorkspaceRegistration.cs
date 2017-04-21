@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis
         {
         }
 
-        public Workspace Workspace { get { return _registeredWorkspace; } }
+        public Workspace Workspace => _registeredWorkspace;
         public event EventHandler WorkspaceChanged;
 
         internal void SetWorkspaceAndRaiseEvents(Workspace workspace)

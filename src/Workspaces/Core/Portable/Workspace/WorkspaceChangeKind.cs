@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -89,6 +88,11 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// An additional document in the current solution was changed.
         /// </summary>
-        AdditionalDocumentChanged = 16
+        AdditionalDocumentChanged = 16,
+
+        /// <summary>
+        /// The document in the current solution had is info changed; name, folders, filepath
+        /// </summary>
+        DocumentInfoChanged = 17,
     }
 }

@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Differencing
             _newNode = newNode;
         }
 
-        public EditKind Kind { get { return _kind; } }
+        public EditKind Kind => _kind;
 
         /// <summary>
         /// Insert: 
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Differencing
         /// Move, Update: 
         /// Node in the old tree/sequence.
         /// </summary>
-        public TNode OldNode { get { return _oldNode; } }
+        public TNode OldNode => _oldNode;
 
         /// <summary>
         /// Insert: 
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Differencing
         /// Move, Update:
         /// Node in the new tree/sequence.
         /// </summary>
-        public TNode NewNode { get { return _newNode; } }
+        public TNode NewNode => _newNode;
 
         public override bool Equals(object obj)
         {

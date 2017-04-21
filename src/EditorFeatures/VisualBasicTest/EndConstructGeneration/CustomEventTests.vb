@@ -1,20 +1,11 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Threading.Tasks
-Imports Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Microsoft.VisualStudio.Text
-Imports Roslyn.Test.EditorUtilities
-Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGeneration
     Public Class CustomEventTests
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Async Function TestApplyAfterCustomEvent() As Task
-            Await VerifyStatementEndConstructAppliedAsync(
+        Public Sub TestApplyAfterCustomEvent()
+            VerifyStatementEndConstructApplied(
                 before:="Class c1
     Custom Event foo As System.EventHandler
 End Class",
@@ -33,11 +24,11 @@ End Class",
     End Event
 End Class",
                 afterCaret:={3, -1})
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Async Function TestApplyAfterCustomEventWithImportsStatement() As Task
-            Await VerifyStatementEndConstructAppliedAsync(
+        Public Sub TestApplyAfterCustomEventWithImportsStatement()
+            VerifyStatementEndConstructApplied(
                 before:="Imports System
 Class c1
     Custom Event foo As EventHandler
@@ -58,11 +49,11 @@ Class c1
     End Event
 End Class",
                 afterCaret:={4, -1})
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Async Function TestApplyAfterCustomEventWithMissingDelegateType() As Task
-            Await VerifyStatementEndConstructAppliedAsync(
+        Public Sub TestApplyAfterCustomEventWithMissingDelegateType()
+            VerifyStatementEndConstructApplied(
                 before:="Imports System
 Class c1
     Custom Event foo As FooHandler
@@ -83,11 +74,11 @@ Class c1
     End Event
 End Class",
                 afterCaret:={4, -1})
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Async Function TestApplyAfterCustomEventWithNonDelegateType() As Task
-            Await VerifyStatementEndConstructAppliedAsync(
+        Public Sub TestApplyAfterCustomEventWithNonDelegateType()
+            VerifyStatementEndConstructApplied(
                 before:="Imports System
 Class c1
     Custom Event foo As Object
@@ -108,11 +99,11 @@ Class c1
     End Event
 End Class",
                 afterCaret:={4, -1})
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Async Function TestApplyAfterCustomEventWithGenericType() As Task
-            Await VerifyStatementEndConstructAppliedAsync(
+        Public Sub TestApplyAfterCustomEventWithGenericType()
+            VerifyStatementEndConstructApplied(
                 before:="Imports System
 Class c1
     Custom Event foo As EventHandler(Of ConsoleCancelEventArgs)
@@ -133,11 +124,11 @@ Class c1
     End Event
 End Class",
                 afterCaret:={4, -1})
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Async Function DoNotApplyAfterCustomEventAlreadyTerminated() As Threading.Tasks.Task
-            Await VerifyStatementEndConstructNotAppliedAsync(
+        Public Sub DoNotApplyAfterCustomEventAlreadyTerminated()
+            VerifyStatementEndConstructNotApplied(
                 text:="Imports System
 Class c1
     Custom Event foo As EventHandler(Of ConsoleCancelEventArgs)
@@ -153,6 +144,6 @@ Class c1
     End Event
 End Class",
                 caret:={2, -1})
-        End Function
+        End Sub
     End Class
 End Namespace

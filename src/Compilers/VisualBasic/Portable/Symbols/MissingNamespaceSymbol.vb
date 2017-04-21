@@ -51,23 +51,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overrides ReadOnly Property ContainingAssembly As AssemblySymbol
             Get
-                Return ContainingModule.ContainingAssembly
+                Return _containingSymbol.ContainingAssembly
             End Get
         End Property
 
         Friend Overrides ReadOnly Property Extent As NamespaceExtent
             Get
-                Return New NamespaceExtent(ContainingModule)
-            End Get
-        End Property
-
-        Public Overrides ReadOnly Property ContainingModule As ModuleSymbol
-            Get
                 If _containingSymbol.Kind = SymbolKind.NetModule Then
-                    Return DirectCast(_containingSymbol, ModuleSymbol)
+                    Return New NamespaceExtent(DirectCast(_containingSymbol, ModuleSymbol))
                 End If
 
-                Return _containingSymbol.ContainingModule
+                Return DirectCast(_containingSymbol, NamespaceSymbol).Extent
             End Get
         End Property
 

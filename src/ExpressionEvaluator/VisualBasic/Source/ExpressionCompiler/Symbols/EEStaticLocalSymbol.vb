@@ -69,7 +69,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
         Friend Function ToBoundExpression(
             meParameter As BoundExpression,
-            syntax As VisualBasicSyntaxNode,
+            syntax As SyntaxNode,
             isLValue As Boolean) As BoundExpression
 
             Debug.Assert((meParameter Is Nothing) = _field.IsShared)

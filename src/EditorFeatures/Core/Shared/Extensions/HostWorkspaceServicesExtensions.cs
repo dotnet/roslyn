@@ -43,14 +43,12 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
 
         private static string GetDefaultContentTypeName(HostWorkspaceServices workspaceServices, string language)
         {
-            Dictionary<string, string> contentTypeMap;
-            if (!s_hostServicesToContentTypeMap.TryGetValue(workspaceServices, out contentTypeMap))
+            if (!s_hostServicesToContentTypeMap.TryGetValue(workspaceServices, out var contentTypeMap))
             {
                 contentTypeMap = s_hostServicesToContentTypeMap.GetValue(workspaceServices, CreateContentTypeMap);
             }
 
-            string contentTypeName;
-            contentTypeMap.TryGetValue(language, out contentTypeName);
+            contentTypeMap.TryGetValue(language, out var contentTypeName);
             return contentTypeName;
         }
 

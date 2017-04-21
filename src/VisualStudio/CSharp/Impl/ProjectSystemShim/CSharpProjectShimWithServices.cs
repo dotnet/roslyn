@@ -4,6 +4,7 @@ using System;
 using System.Collections.Concurrent;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
@@ -24,7 +25,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
             IVsHierarchy hierarchy,
             IServiceProvider serviceProvider,
             VisualStudioWorkspaceImpl visualStudioWorkspaceOpt,
-            HostDiagnosticUpdateSource hostDiagnosticUpdateSourceOpt)
+            HostDiagnosticUpdateSource hostDiagnosticUpdateSourceOpt,
+            ICommandLineParserService commandLineParserServiceOpt)
             : base(
                   projectRoot,
                   projectTracker,
@@ -33,7 +35,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
                   hierarchy,
                   serviceProvider,
                   visualStudioWorkspaceOpt,
-                  hostDiagnosticUpdateSourceOpt)
+                  hostDiagnosticUpdateSourceOpt,
+                  commandLineParserServiceOpt)
         {
         }
 

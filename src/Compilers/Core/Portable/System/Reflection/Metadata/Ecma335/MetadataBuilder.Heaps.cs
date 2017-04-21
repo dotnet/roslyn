@@ -221,82 +221,44 @@ namespace Roslyn.Reflection.Metadata.Ecma335
         }
 
         /// <exception cref="ImageFormatLimitationException">The remaining space on the heap is too small to fit the string.</exception>
+        public UserStringHandle ReserveUserString(int length, out Blob fixup)
+        {
+            int offset = GetNewUserStringHeapOffset(length);
+            int encodedLength = BlobUtilities.GetUserStringByteLength(length);
+            fixup = _userStringWriter.ReserveBytes(BlobWriterImpl.GetCompressedIntegerSize(encodedLength) + encodedLength);
+            new BlobWriter(fixup).WriteBytes(0, fixup.Length);
+            return MetadataTokens.UserStringHandle(offset);
+        }
+
+        /// <exception cref="ImageFormatLimitationException">The remaining space on the heap is too small to fit the string.</exception>
         public UserStringHandle GetOrAddUserString(string str)
         {
-            int index;
-            if (!_userStrings.TryGetValue(str, out index))
+            int offset;
+            if (!_userStrings.TryGetValue(str, out offset))
             {
                 Debug.Assert(!_streamsAreComplete);
+                offset = GetNewUserStringHeapOffset(str.Length);
 
-                int startPosition = _userStringWriter.Position;
-                int encodedLength = str.Length * 2 + 1;
-                index = startPosition + _userStringHeapStartOffset;
-
-                // Native metadata emitter allows strings to exceed the heap size limit as long 
-                // as the index is within the limits (see https://github.com/dotnet/roslyn/issues/9852)
-                if (index > UserStringHeapSizeLimit)
-                {
-                    ImageFormatLimitationException.ThrowHeapSizeLimitExceeded(HeapIndex.UserString);
-                }
-
-                _userStrings.Add(str, index);
-                _userStringWriter.WriteCompressedInteger(encodedLength);
-                _userStringWriter.WriteUTF16(str);
-
-                // Write out a trailing byte indicating if the string is really quite simple
-                byte stringKind = 0;
-                foreach (char ch in str)
-                {
-                    if (ch >= 0x7F)
-                    {
-                        stringKind = 1;
-                    }
-                    else
-                    {
-                        switch ((int)ch)
-                        {
-                            case 0x1:
-                            case 0x2:
-                            case 0x3:
-                            case 0x4:
-                            case 0x5:
-                            case 0x6:
-                            case 0x7:
-                            case 0x8:
-                            case 0xE:
-                            case 0xF:
-                            case 0x10:
-                            case 0x11:
-                            case 0x12:
-                            case 0x13:
-                            case 0x14:
-                            case 0x15:
-                            case 0x16:
-                            case 0x17:
-                            case 0x18:
-                            case 0x19:
-                            case 0x1A:
-                            case 0x1B:
-                            case 0x1C:
-                            case 0x1D:
-                            case 0x1E:
-                            case 0x1F:
-                            case 0x27:
-                            case 0x2D:
-                                stringKind = 1;
-                                break;
-                            default:
-                                continue;
-                        }
-                    }
-
-                    break;
-                }
-
-                _userStringWriter.WriteByte(stringKind);
+                _userStrings.Add(str, offset);
+                _userStringWriter.WriteUserString(str);
             }
 
-            return MetadataTokens.UserStringHandle(index);
+            return MetadataTokens.UserStringHandle(offset);
+        }
+
+        private int GetNewUserStringHeapOffset(int stringLength)
+        {
+            int startPosition = _userStringWriter.Position;
+            int offset = startPosition + _userStringHeapStartOffset;
+
+            // Native metadata emitter allows strings to exceed the heap size limit as long 
+            // as the index is within the limits (see https://github.com/dotnet/roslyn/issues/9852)
+            if (offset > UserStringHeapSizeLimit)
+            {
+                ImageFormatLimitationException.ThrowHeapSizeLimitExceeded(HeapIndex.UserString);
+            }
+
+            return offset;
         }
 
         internal void CompleteHeaps()

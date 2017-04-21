@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
         /// </summary>
         internal int RunInteractive()
         {
-            ErrorLogger errorLogger = null;
+            StreamErrorLogger errorLogger = null;
             if (_compiler.Arguments.ErrorLogPath != null)
             {
                 errorLogger = _compiler.GetErrorLogger(_console.Error, CancellationToken.None);
@@ -69,6 +69,12 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             Debug.Assert(_compiler.Arguments.IsScriptRunner);
 
             var sourceFiles = _compiler.Arguments.SourceFiles;
+
+            if (_compiler.Arguments.DisplayVersion)
+            {
+                _compiler.PrintVersion(_console.Out);
+                return 0;
+            }
 
             if (sourceFiles.IsEmpty && _compiler.Arguments.DisplayLogo)
             {
@@ -98,7 +104,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                 }
                 else
                 {
-                    code = _compiler.ReadFileContent(sourceFiles[0], diagnosticsInfos);
+                    code = _compiler.TryReadFileContent(sourceFiles[0], diagnosticsInfos);
                 }
             }
 
@@ -143,16 +149,19 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                 references: ImmutableArray.CreateRange(resolvedReferences),
                 namespaces: CommandLineHelpers.GetImports(arguments),
                 metadataResolver: metadataResolver,
-                sourceResolver: sourceResolver);
+                sourceResolver: sourceResolver,
+                emitDebugInformation: false,
+                fileEncoding: null);
         }
 
         internal static MetadataReferenceResolver GetMetadataReferenceResolver(CommandLineArguments arguments, TouchedFileLogger loggerOpt)
         {
             return new RuntimeMetadataReferenceResolver(
-                new RelativePathResolver(arguments.ReferencePaths, arguments.BaseDirectory),
-                null,
-                GacFileResolver.IsAvailable ? new GacFileResolver(preferredCulture: CultureInfo.CurrentCulture) : null,
-                (path, properties) =>
+                pathResolver: new RelativePathResolver(arguments.ReferencePaths, arguments.BaseDirectory),
+                packageResolver: null,
+                gacFileResolver: GacFileResolver.IsAvailable ? new GacFileResolver(preferredCulture: CultureInfo.CurrentCulture) : null,
+                useCoreResolver: !GacFileResolver.IsAvailable,
+                fileReferenceProvider: (path, properties) =>
                 {
                     loggerOpt?.AddRead(path);
                     return MetadataReference.CreateFromFile(path, properties);
@@ -169,7 +178,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             var globals = new CommandLineScriptGlobals(_console.Out, _objectFormatter);
             globals.Args.AddRange(_compiler.Arguments.ScriptArguments);
 
-            var script = Script.CreateInitialScript<int>(_scriptCompiler, code, options, globals.GetType(), assemblyLoaderOpt: null);
+            var script = Script.CreateInitialScript<int>(_scriptCompiler, SourceText.From(code), options, globals.GetType(), assemblyLoaderOpt: null);
             try
             {
                 return script.RunAsync(globals, cancellationToken).Result.ReturnValue;
@@ -190,7 +199,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
 
             if (initialScriptCodeOpt != null)
             {
-                var script = Script.CreateInitialScript<object>(_scriptCompiler, initialScriptCodeOpt, options, globals.GetType(), assemblyLoaderOpt: null);
+                var script = Script.CreateInitialScript<object>(_scriptCompiler, SourceText.From(initialScriptCodeOpt), options, globals.GetType(), assemblyLoaderOpt: null);
                 BuildAndRun(script, globals, ref state, ref options, displayResult: false, cancellationToken: cancellationToken);
             }
 
@@ -242,7 +251,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                 Script<object> newScript;
                 if (state == null)
                 {
-                    newScript = Script.CreateInitialScript<object>(_scriptCompiler, code, options, globals.GetType(), assemblyLoaderOpt: null);
+                    newScript = Script.CreateInitialScript<object>(_scriptCompiler, SourceText.From(code ?? string.Empty), options, globals.GetType(), assemblyLoaderOpt: null);
                 }
                 else
                 {
@@ -360,7 +369,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                 {
                     int notShown = errorsAndWarnings.Length - MaxDisplayCount;
                     _console.ForegroundColor = ConsoleColor.DarkRed;
-                    _console.Error.WriteLine(string.Format((notShown == 1) ? ScriptingResources.PlusAdditionalError : ScriptingResources.PlusAdditionalError, notShown));
+                    _console.Error.WriteLine(string.Format(ScriptingResources.PlusAdditionalError, notShown));
                 }
             }
             finally

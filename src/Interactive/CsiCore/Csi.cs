@@ -1,11 +1,9 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Diagnostics;
 using System.IO;
-using System.Runtime.InteropServices;
+using System.Reflection;
 using Microsoft.CodeAnalysis.Scripting.Hosting;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting
 {
@@ -17,14 +15,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting
         {
             try
             {
-                var responseFile = Path.Combine(AppContext.BaseDirectory, InteractiveResponseFileName);
+                // Note that AppContext.BaseDirectory isn't necessarily the directory containing csi.exe.
+                // For example, when executed via corerun it's the directory containing corerun.
+                string csiDirectory = Path.GetDirectoryName(typeof(Csi).GetTypeInfo().Assembly.ManifestModule.FullyQualifiedName);
+
+                var buildPaths = new BuildPaths(
+                    clientDir: csiDirectory,
+                    workingDir: Directory.GetCurrentDirectory(),
+                    sdkDir: RuntimeMetadataReferenceResolver.GetDesktopFrameworkDirectory(),
+                    tempDir: Path.GetTempPath());
 
                 var compiler = new CSharpInteractiveCompiler(
-                    responseFile: responseFile,
-                    baseDirectory: Directory.GetCurrentDirectory(),
-                    sdkDirectoryOpt: CorLightup.Desktop.TryGetRuntimeDirectory(),
+                    responseFile: Path.Combine(csiDirectory, InteractiveResponseFileName),
+                    buildPaths: buildPaths,
                     args: args,
-                    clientDirectory: AppContext.BaseDirectory,
                     analyzerLoader: new NotImplementedAnalyzerLoader());
 
                 var runner = new CommandLineRunner(

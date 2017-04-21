@@ -7,36 +7,43 @@ using System.Threading.Tasks;
 
 namespace Roslyn.Test.Performance.Utilities
 {
+    /// <summary>
+    /// Global statics shared between the runner and tests.
+    /// </summary>
     public static class RuntimeSettings
     {
-        public static PerfTest[] resultTests = null;
-        public static ILogger logger = new ConsoleAndFileLogger();
-        public static bool isVerbose = true;
-        public static bool isRunnerAttached = false;
+        /// <summary>
+        /// Used as a pseudo-return value for tests to send test objects 
+        /// back to the runner.
+        /// </summary>
+        public static PerfTest[] ResultTests = null;
+        /// <summary>
+        /// The logger that is being used by the process.
+        /// </summary>
+        public static ILogger Logger = new ConsoleAndFileLogger();
+        /// <summary>
+        /// True if the logger should be verbose.
+        /// </summary>
+        public static bool IsVerbose = true;
+        /// <summary>
+        /// True if a runner is orchestrating the test runs.
+        /// </summary>
+        public static bool IsRunnerAttached = false;
     }
 
     public static class TestUtilities
     {
-        public static bool IsRunFromRunner()
-        {
-            return RuntimeSettings.isRunnerAttached;
-        }
-
-        public static bool IsVerbose()
-        {
-            return RuntimeSettings.isVerbose;
-        }
-
-        public static ILogger Logger()
-        {
-            return RuntimeSettings.logger;
-        }
-
+        /// <returns>
+        /// Returns the path to CPC
+        /// </returns>
         public static string GetCPCDirectoryPath()
         {
             return Environment.ExpandEnvironmentVariables(@"%SYSTEMDRIVE%\CPC");
         }
 
+        /// <returns>
+        /// The path to the ViBenchToJson executable.
+        /// </returns>
         public static string GetViBenchToJsonExeFilePath()
         {
             return Path.Combine(GetCPCDirectoryPath(), "ViBenchToJson.exe");
@@ -46,24 +53,50 @@ namespace Roslyn.Test.Performance.Utilities
         // Process spawning and error handling.
         //
 
+        /// <summary>
+        /// The result of a ShellOut completing.
+        /// </summary>
         public class ProcessResult
         {
+            /// <summary>
+            /// The path to the executable that was run.
+            /// </summary>
             public string ExecutablePath { get; set; }
+            /// <summary>
+            /// The arguments that were passed to the process.
+            /// </summary>
             public string Args { get; set; }
+            /// <summary>
+            /// The exit code of the process.
+            /// </summary>
             public int Code { get; set; }
+            /// <summary>
+            /// The entire standard-out of the process.
+            /// </summary>
             public string StdOut { get; set; }
+            /// <summary>
+            /// The entire standard-error of the process.
+            /// </summary>
             public string StdErr { get; set; }
 
+            /// <summary>
+            /// True if the command returned an exit code other
+            /// than zero.
+            /// </summary>
             public bool Failed => Code != 0;
+            /// <summary>
+            /// True if the command returned an exit code of 0.
+            /// </summary>
             public bool Succeeded => !Failed;
         }
 
-        // Shells out, and if the process fails, log the error
-        /// and quit the script.
+        /// <summary>
+        /// Shells out, and if the process fails, log the error and quit the script.
+        /// </summary>
         public static void ShellOutVital(
                 string file,
                 string args,
-                string workingDirectory,
+                string workingDirectory = null,
                 CancellationToken cancellationToken = default(CancellationToken))
         {
             var result = ShellOut(file, args, workingDirectory, cancellationToken);
@@ -74,12 +107,20 @@ namespace Roslyn.Test.Performance.Utilities
             }
         }
 
+        /// <summary>
+        /// Shells out, blocks, and returns the ProcessResult.
+        /// </summary>
         public static ProcessResult ShellOut(
                 string file,
                 string args,
-                string workingDirectory,
+                string workingDirectory = null,
                 CancellationToken cancellationToken = default(CancellationToken))
         {
+            if (workingDirectory == null)
+            {
+                workingDirectory = AppDomain.CurrentDomain.BaseDirectory;
+            }
+
             var tcs = new TaskCompletionSource<ProcessResult>();
             var startInfo = new ProcessStartInfo(file, args);
             startInfo.RedirectStandardOutput = true;
@@ -97,7 +138,7 @@ namespace Roslyn.Test.Performance.Utilities
                 cancellationToken.Register(() => process.Kill());
             }
 
-            if (RuntimeSettings.isVerbose)
+            if (RuntimeSettings.IsVerbose)
             {
                 Log($"running \"{file}\" with arguments \"{args}\" from directory {workingDirectory}");
             }
@@ -137,13 +178,14 @@ namespace Roslyn.Test.Performance.Utilities
             };
         }
 
+        /// <summary>
+        /// Shells out and returns the string gathered from the stdout of the 
+        /// executing process.
+        /// 
+        /// Throws an exception if the process fails.
+        /// </summary>
         public static string StdoutFrom(string program, string args = "", string workingDirectory = null)
         {
-            if (workingDirectory == null)
-            {
-                workingDirectory = AppDomain.CurrentDomain.BaseDirectory;
-            }
-
             var result = ShellOut(program, args, workingDirectory);
             if (result.Failed)
             {
@@ -153,32 +195,40 @@ namespace Roslyn.Test.Performance.Utilities
             return result.StdOut.Trim();
         }
 
-        // Logs a message.
-        //
-        // The actual implementation of this method may change depending on
-        // if the script is being run standalone or through the test runner.
+        /// <summary>
+        /// Logs a message.
+        ///
+        /// The actual implementation of this method may change depending on
+        /// if the script is being run standalone or through the test runner.
+        /// </summary>
         public static void Log(string info)
         {
-            RuntimeSettings.logger.Log(info);
-            RuntimeSettings.logger.Flush();
+            RuntimeSettings.Logger.Log(info);
+            RuntimeSettings.Logger.Flush();
         }
 
-        // Logs the result of a finished process
+        /// <summary>
+        /// Logs the result of a finished process
+        /// </summary>
         public static void LogProcessResult(ProcessResult result)
         {
-            RuntimeSettings.logger.Log(String.Format("The process \"{0}\" {1} with code {2}",
+            RuntimeSettings.Logger.Log(String.Format("The process \"{0}\" {1} with code {2}",
                 $"{result.ExecutablePath} {result.Args}",
                 result.Failed ? "failed" : "succeeded",
                 result.Code));
-            RuntimeSettings.logger.Log($"Standard Out:\n{result.StdOut}");
-            RuntimeSettings.logger.Log($"\nStandard Error:\n{result.StdErr}");
+            RuntimeSettings.Logger.Log($"Standard Out:\n{result.StdOut}");
+            RuntimeSettings.Logger.Log($"\nStandard Error:\n{result.StdErr}");
         }
 
+        /// <summary>
+        /// Either runs the provided tests, or schedules them to be run by the 
+        /// runner. 
+        /// </summary>
         public static void TestThisPlease(params PerfTest[] tests)
         {
-            if (IsRunFromRunner())
+            if (RuntimeSettings.IsRunnerAttached)
             {
-                RuntimeSettings.resultTests = tests;
+                RuntimeSettings.ResultTests = tests;
             }
             else
             {

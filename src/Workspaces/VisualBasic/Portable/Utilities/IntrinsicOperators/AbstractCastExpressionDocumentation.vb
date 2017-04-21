@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Text
@@ -13,9 +13,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities.IntrinsicOperators
         Public Overrides Function GetParameterDocumentation(index As Integer) As String
             Select Case index
                 Case 0
-                    Return VBWorkspaceResources.ExpressionToConvert
+                    Return VBWorkspaceResources.The_expression_to_be_evaluated_and_converted
                 Case 1
-                    Return VBWorkspaceResources.NameOfTypeToConvert
+                    Return VBWorkspaceResources.The_name_of_the_data_type_to_which_the_value_of_expression_will_be_converted
                 Case Else
                     Throw New ArgumentException(NameOf(index))
             End Select
@@ -24,9 +24,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities.IntrinsicOperators
         Public Overrides Function GetParameterName(index As Integer) As String
             Select Case index
                 Case 0
-                    Return VBWorkspaceResources.Expression1
+                    Return VBWorkspaceResources.expression
                 Case 1
-                    Return VBWorkspaceResources.Typename
+                    Return VBWorkspaceResources.typeName
                 Case Else
                     Throw New ArgumentException(NameOf(index))
             End Select

@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return true;
         }
 
-        protected override Task<IEnumerable<Document>> DetermineDocumentsToSearchAsync(
+        protected override Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
             TSymbol symbol,
             Project project,
             IImmutableSet<Document> documents,
@@ -29,24 +29,24 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             var location = symbol.Locations.FirstOrDefault();
             if (location == null || !location.IsInSource)
             {
-                return SpecializedTasks.EmptyEnumerable<Document>();
+                return SpecializedTasks.EmptyImmutableArray<Document>();
             }
 
             var document = project.GetDocument(location.SourceTree);
             if (document == null)
             {
-                return SpecializedTasks.EmptyEnumerable<Document>();
+                return SpecializedTasks.EmptyImmutableArray<Document>();
             }
 
             if (documents != null && !documents.Contains(document))
             {
-                return SpecializedTasks.EmptyEnumerable<Document>();
+                return SpecializedTasks.EmptyImmutableArray<Document>();
             }
 
-            return Task.FromResult(SpecializedCollections.SingletonEnumerable<Document>(document));
+            return Task.FromResult(ImmutableArray.Create(document));
         }
 
-        protected override async Task<IEnumerable<ReferenceLocation>> FindReferencesInDocumentAsync(
+        protected override async Task<ImmutableArray<ReferenceLocation>> FindReferencesInDocumentAsync(
             TSymbol symbol,
             Document document,
             CancellationToken cancellationToken)
@@ -64,23 +64,41 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 var root = await syntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
                 var tokens = root.DescendantTokens();
 
-                return await FindReferencesInTokensWithSymbolNameAsync(symbol, document, tokens, cancellationToken).ConfigureAwait(false);
+                return await FindReferencesInTokensWithSymbolNameAsync(
+                    symbol, document, tokens, cancellationToken).ConfigureAwait(false);
             }
 
-            return SpecializedCollections.EmptyEnumerable<ReferenceLocation>();
+            return ImmutableArray<ReferenceLocation>.Empty;
         }
 
         private static ISymbol GetContainer(ISymbol symbol)
         {
             for (var current = symbol; current != null; current = current.ContainingSymbol)
             {
-                if (current is IFieldSymbol || current is IPropertySymbol)
+                if (current is IPropertySymbol)
                 {
                     return current;
                 }
 
+                // If this is an initializer for a property's backing field, then we want to 
+                // search for results within the property itself.
+                if (current is IFieldSymbol field)
+                {
+                    if (field.IsImplicitlyDeclared &&
+                        field.AssociatedSymbol?.Kind == SymbolKind.Property)
+                    {
+                        return field.AssociatedSymbol;
+                    }
+                    else
+                    {
+                        return field;
+                    }
+                }
+
                 var method = current as IMethodSymbol;
-                if (method != null && (method.MethodKind != MethodKind.AnonymousFunction && method.MethodKind != MethodKind.LocalFunction))
+                if (method != null && 
+                    method.MethodKind != MethodKind.AnonymousFunction && 
+                    method.MethodKind != MethodKind.LocalFunction)
                 {
                     return method;
                 }
@@ -89,12 +107,23 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return null;
         }
 
-        protected Task<IEnumerable<ReferenceLocation>> FindReferencesInTokensWithSymbolNameAsync(
+        protected Task<ImmutableArray<ReferenceLocation>> FindReferencesInTokensWithSymbolNameAsync(
             TSymbol symbol,
             Document document,
             IEnumerable<SyntaxToken> tokens,
-            CancellationToken cancellationToken,
-            Func<SyntaxToken, SyntaxNode> findParentNode = null)
+            CancellationToken cancellationToken)
+        {
+            return FindReferencesInTokensWithSymbolNameAsync(
+                symbol, document, tokens,
+                findParentNode: null, cancellationToken: cancellationToken);
+        }
+
+        protected Task<ImmutableArray<ReferenceLocation>> FindReferencesInTokensWithSymbolNameAsync(
+            TSymbol symbol,
+            Document document,
+            IEnumerable<SyntaxToken> tokens,
+            Func<SyntaxToken, SyntaxNode> findParentNode,
+            CancellationToken cancellationToken)
         {
             var name = symbol.Name;
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
@@ -108,12 +137,23 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 cancellationToken);
         }
 
-        private Task<IEnumerable<ReferenceLocation>> FindReferencesInContainerAsync(
+        private Task<ImmutableArray<ReferenceLocation>> FindReferencesInContainerAsync(
             TSymbol symbol,
             ISymbol container,
             Document document,
-            CancellationToken cancellationToken,
-            Func<SyntaxToken, SyntaxNode> findParentNode = null)
+            CancellationToken cancellationToken)
+        {
+            return FindReferencesInContainerAsync(
+                symbol, container, document,
+                findParentNode: null, cancellationToken: cancellationToken);
+        }
+
+        private Task<ImmutableArray<ReferenceLocation>> FindReferencesInContainerAsync(
+            TSymbol symbol,
+            ISymbol container,
+            Document document,
+            Func<SyntaxToken, SyntaxNode> findParentNode,
+            CancellationToken cancellationToken)
         {
             var service = document.GetLanguageService<ISymbolDeclarationService>();
             var declarations = service.GetDeclarations(container);

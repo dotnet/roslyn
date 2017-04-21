@@ -89,14 +89,11 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     {
                         return false;
                     }
-
                     // see whether we already have semantic model. otherwise, use the expansive full project dependency one
                     // TODO: if there is a reliable way to track changed member, we could use GetSemanticModel here which could
                     //       rebuild compilation from scratch
-                    SemanticModel model;
-                    SyntaxNode declarationNode;
-                    if (!document.TryGetSemanticModel(out model) ||
-                        !changedMember.TryResolve(await document.GetSyntaxRootAsync(this.CancellationToken).ConfigureAwait(false), out declarationNode))
+                    if (!document.TryGetSemanticModel(out var model) ||
+                        !changedMember.TryResolve(await document.GetSyntaxRootAsync(this.CancellationToken).ConfigureAwait(false), out SyntaxNode declarationNode))
                     {
                         return false;
                     }
@@ -228,8 +225,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                             continue;
                         }
 
-                        Compilation compilation;
-                        if (project.TryGetCompilation(out compilation))
+                        if (project.TryGetCompilation(out var compilation))
                         {
                             var assembly = compilation.Assembly;
                             if (assembly != null && !assembly.IsSameAssemblyOrHasFriendAccessTo(internalVisibleToAssembly))
@@ -250,8 +246,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                     using (_workGate.DisposableWait(this.CancellationToken))
                     {
-                        Data data;
-                        if (_pendingWork.TryGetValue(document.Id, out data))
+                        if (_pendingWork.TryGetValue(document.Id, out var data))
                         {
                             // create new async token and dispose old one.
                             var newAsyncToken = this.Listener.BeginAsyncOperation("EnqueueSemanticChange");

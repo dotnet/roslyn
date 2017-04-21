@@ -7,7 +7,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Friend Class SymbolDisplayVisitor
-        Inherits AbstractSymbolDisplayVisitor(Of SemanticModel)
+        Inherits AbstractSymbolDisplayVisitor
 
         Private ReadOnly _escapeKeywordIdentifiers As Boolean
 
@@ -42,7 +42,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         ' in case the display of a symbol is different for a type that acts as a container, use this visitor
-        Protected Overrides Function MakeNotFirstVisitor() As AbstractSymbolDisplayVisitor(Of SemanticModel)
+        Protected Overrides Function MakeNotFirstVisitor() As AbstractSymbolDisplayVisitor
             Return New SymbolDisplayVisitor(
                     Me.builder,
                         Me.format,
@@ -181,10 +181,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim myCaseCorrectedNSName As String = symbol.Name
             Dim myCaseCorrectedParentNSName As String = String.Empty
 
-            If Not symbol.IsGlobalNamespace AndAlso myCaseCorrectedNSName.IsEmpty() Then
-                myCaseCorrectedNSName = StringConstants.NamedSymbolErrorName
-            End If
-
             If Not emittedName.IsEmpty Then
                 Dim nsIdx = emittedName.LastIndexOf("."c)
                 If nsIdx > -1 Then
@@ -243,7 +239,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Public Overrides Sub VisitLocal(symbol As ILocalSymbol)
-            builder.Add(CreatePart(SymbolDisplayPartKind.LocalName, symbol, symbol.Name, False))
+            ' Locals can be synthesized by the compiler in many cases (for example the implicit 
+            ' local in a function that has the same name as the containing function).  In some 
+            ' cases the locals are anonymous (for example, a similar local in an operator).  
+            '
+            ' These anonymous locals should not be exposed through public APIs.  However, for
+            ' testing purposes we occasionally may print them out.  In this case, give them 
+            ' a reasonable name so that tests can clearly describe what these are.
+            Dim name = If(symbol.Name, "<anonymous local>")
+            builder.Add(CreatePart(SymbolDisplayPartKind.LocalName, symbol, name, noEscaping:=False))
 
             If format.LocalOptions.IncludesOption(SymbolDisplayLocalOptions.IncludeType) Then
                 AddSpace()

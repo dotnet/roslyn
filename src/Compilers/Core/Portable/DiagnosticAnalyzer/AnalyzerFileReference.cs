@@ -26,14 +26,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     public sealed class AnalyzerFileReference : AnalyzerReference, IEquatable<AnalyzerReference>
     {
         private static readonly string s_diagnosticAnalyzerAttributeNamespace = typeof(DiagnosticAnalyzerAttribute).Namespace;
-        private static readonly string s_sourceGeneratorAttributeNamespace = typeof(SourceGeneratorAttribute).Namespace;
 
         private delegate bool AttributePredicate(PEModule module, CustomAttributeHandle attribute);
 
         private readonly string _fullPath;
         private readonly IAnalyzerAssemblyLoader _assemblyLoader;
         private readonly Extensions<DiagnosticAnalyzer> _diagnosticAnalyzers;
-        private readonly Extensions<SourceGenerator> _sourceGenerators;
 
         private string _lazyDisplay;
         private object _lazyIdentity;
@@ -60,7 +58,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             _fullPath = fullPath;
             _diagnosticAnalyzers = new Extensions<DiagnosticAnalyzer>(this, IsDiagnosticAnalyzerAttribute);
-            _sourceGenerators = new Extensions<SourceGenerator>(this, IsSourceGeneratorAttribute);
             _assemblyLoader = assemblyLoader;
         }
 
@@ -72,11 +69,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public override ImmutableArray<DiagnosticAnalyzer> GetAnalyzers(string language)
         {
             return _diagnosticAnalyzers.GetExtensions(language);
-        }
-
-        public override ImmutableArray<SourceGenerator> GetSourceGenerators(string language)
-        {
-            return _sourceGenerators.GetExtensions(language);
         }
 
         public override string FullPath
@@ -179,13 +171,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     // TODO: Once we move to CoreCLR we should just call GetType(typeName, throwOnError: true, ignoreCase: false) directly.
                     // For now we fall back to reflection shim in order to report good error message (type load exception).
-                    const bool throwOnError = true;
-                    const bool ignoreCase = false;
-                    type = PortableShim.Assembly.GetType_string_bool_bool(analyzerAssembly, typeName, throwOnError, ignoreCase);
+                    type = analyzerAssembly.GetType(typeName, throwOnError: true, ignoreCase: false);
                 }
                 catch (Exception e)
                 {
-                    this.AnalyzerLoadFailed?.Invoke(this, new AnalyzerLoadFailureEventArgs(AnalyzerLoadFailureEventArgs.FailureErrorCode.UnableToCreateAnalyzer, e.Message, e, typeName));
+                    AnalyzerLoadFailed?.Invoke(this, CreateAnalyzerFailedArgs(e, typeName));
                     reportedError = true;
                     continue;
                 }
@@ -199,7 +189,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
                 catch (Exception e)
                 {
-                    this.AnalyzerLoadFailed?.Invoke(this, new AnalyzerLoadFailureEventArgs(AnalyzerLoadFailureEventArgs.FailureErrorCode.UnableToCreateAnalyzer, e.Message, e, typeName));
+                    AnalyzerLoadFailed?.Invoke(this, CreateAnalyzerFailedArgs(e, typeName));
                     reportedError = true;
                     continue;
                 }
@@ -213,9 +203,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return analyzers.ToImmutable();
         }
 
-        internal void AddGenerators(ImmutableArray<SourceGenerator>.Builder builder, string language)
+        private static AnalyzerLoadFailureEventArgs CreateAnalyzerFailedArgs(Exception e, string typeNameOpt = null)
         {
-            _sourceGenerators.AddExtensions(builder, language);
+            // unwrap:
+            e = (e as TargetInvocationException) ?? e;
+
+            // remove all line breaks from the exception message
+            string message = e.Message.Replace("\r", "").Replace("\n", "");
+
+            var errorCode = (typeNameOpt != null) ?
+                AnalyzerLoadFailureEventArgs.FailureErrorCode.UnableToCreateAnalyzer : 
+                AnalyzerLoadFailureEventArgs.FailureErrorCode.UnableToLoadAnalyzer; 
+
+            return new AnalyzerLoadFailureEventArgs(errorCode, message, e, typeNameOpt);
         }
 
         internal ImmutableDictionary<string, ImmutableHashSet<string>> GetAnalyzerTypeNameMap()
@@ -292,12 +292,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             EntityHandle ctor;
             return peModule.IsTargetAttribute(customAttrHandle, s_diagnosticAnalyzerAttributeNamespace, nameof(DiagnosticAnalyzerAttribute), out ctor);
-        }
-
-        private static bool IsSourceGeneratorAttribute(PEModule peModule, CustomAttributeHandle customAttrHandle)
-        {
-            EntityHandle ctor;
-            return peModule.IsTargetAttribute(customAttrHandle, s_sourceGeneratorAttributeNamespace, nameof(SourceGeneratorAttribute), out ctor);
         }
 
         private static string GetFullyQualifiedTypeName(TypeDefinition typeDef, PEModule peModule)
@@ -403,7 +397,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
                 catch (Exception e)
                 {
-                    _reference.AnalyzerLoadFailed?.Invoke(_reference, new AnalyzerLoadFailureEventArgs(AnalyzerLoadFailureEventArgs.FailureErrorCode.UnableToLoadAnalyzer, e.Message, e));
+                    _reference.AnalyzerLoadFailed?.Invoke(_reference, CreateAnalyzerFailedArgs(e));
                     return;
                 }
 
@@ -454,7 +448,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
                 catch (Exception e)
                 {
-                    _reference.AnalyzerLoadFailed?.Invoke(_reference, new AnalyzerLoadFailureEventArgs(AnalyzerLoadFailureEventArgs.FailureErrorCode.UnableToLoadAnalyzer, e.Message));
+                    _reference.AnalyzerLoadFailed?.Invoke(_reference, CreateAnalyzerFailedArgs(e));
                     return;
                 }
 
@@ -495,13 +489,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     {
                         // TODO: Once we move to CoreCLR we should just call GetType(typeName, throwOnError: true, ignoreCase: false) directly.
                         // For now we fall back to reflection shim in order to report good error message (type load exception).
-                        const bool throwOnError = true;
-                        const bool ignoreCase = false;
-                        type = PortableShim.Assembly.GetType_string_bool_bool(analyzerAssembly, typeName, throwOnError, ignoreCase);
+                        type = analyzerAssembly.GetType(typeName, throwOnError: true, ignoreCase: false);
                     }
                     catch (Exception e)
                     {
-                        _reference.AnalyzerLoadFailed?.Invoke(_reference, new AnalyzerLoadFailureEventArgs(AnalyzerLoadFailureEventArgs.FailureErrorCode.UnableToCreateAnalyzer, e.Message, e, typeName));
+                        _reference.AnalyzerLoadFailed?.Invoke(_reference, CreateAnalyzerFailedArgs(e, typeName));
                         reportedError = true;
                         continue;
                     }
@@ -515,7 +507,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     }
                     catch (Exception e)
                     {
-                        _reference.AnalyzerLoadFailed?.Invoke(_reference, new AnalyzerLoadFailureEventArgs(AnalyzerLoadFailureEventArgs.FailureErrorCode.UnableToCreateAnalyzer, e.Message, e, typeName));
+                        _reference.AnalyzerLoadFailed?.Invoke(_reference, CreateAnalyzerFailedArgs(e, typeName));
                         reportedError = true;
                         continue;
                     }

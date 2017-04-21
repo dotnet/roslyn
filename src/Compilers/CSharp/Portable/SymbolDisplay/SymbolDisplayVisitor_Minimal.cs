@@ -5,7 +5,6 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
@@ -166,7 +165,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return SpecializedCollections.EmptyDictionary<INamespaceOrTypeSymbol, IAliasSymbol>();
             }
 
-            var token = semanticModelOpt.SyntaxTree.GetRoot().FindToken(positionOpt);
+            // Walk up the ancestors from the current position. If this is a speculative
+            // model, walk up the corresponding ancestors in the parent model.
+            SemanticModel semanticModel;
+            int position;
+            if (semanticModelOpt.IsSpeculativeSemanticModel)
+            {
+                semanticModel = semanticModelOpt.ParentModel;
+                position = semanticModelOpt.OriginalPositionForSpeculation;
+            }
+            else
+            {
+                semanticModel = semanticModelOpt;
+                position = positionOpt;
+            }
+ 
+            var token = semanticModel.SyntaxTree.GetRoot().FindToken(position);
             var startNode = token.Parent;
 
             // NOTE(cyrusn): If we're currently in a block of usings, then we want to collect the
@@ -182,7 +196,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 .SelectMany(n => n.Usings)
                 .Concat(GetAncestorsOrThis<CompilationUnitSyntax>(startNode).SelectMany(c => c.Usings))
                 .Where(u => u.Alias != null)
-                .Select(u => semanticModelOpt.GetDeclaredSymbol(u) as IAliasSymbol)
+                .Select(u => semanticModel.GetDeclaredSymbol(u) as IAliasSymbol)
                 .Where(u => u != null);
 
             var builder = ImmutableDictionary.CreateBuilder<INamespaceOrTypeSymbol, IAliasSymbol>();

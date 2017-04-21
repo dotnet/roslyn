@@ -6,13 +6,14 @@ using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 {
-    internal partial class DiagnosticIncrementalAnalyzer : BaseDiagnosticIncrementalAnalyzer
+    internal partial class DiagnosticIncrementalAnalyzer
     {
-        public override async Task SynchronizeWithBuildAsync(Workspace workspace, ImmutableDictionary<ProjectId, ImmutableArray<DiagnosticData>> map)
+        public async Task SynchronizeWithBuildAsync(Workspace workspace, ImmutableDictionary<ProjectId, ImmutableArray<DiagnosticData>> map)
         {
             if (!PreferBuildErrors(workspace))
             {
@@ -60,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             return new ProjectAnalysisData(project.Id, VersionStamp.Default, oldAnalysisData.Result, newResult);
         }
 
-        private ImmutableDictionary<DiagnosticAnalyzer, AnalysisResult> CreateAnalysisResults(
+        private ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> CreateAnalysisResults(
             Project project, ImmutableArray<StateSet> stateSets, ProjectAnalysisData oldAnalysisData, ImmutableArray<DiagnosticData> diagnostics)
         {
             using (var poolObject = SharedPools.Default<HashSet<string>>().GetPooledObject())
@@ -70,14 +71,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 var version = VersionStamp.Default;
                 var lookup = diagnostics.ToLookup(d => d.Id);
 
-                var builder = ImmutableDictionary.CreateBuilder<DiagnosticAnalyzer, AnalysisResult>();
+                var builder = ImmutableDictionary.CreateBuilder<DiagnosticAnalyzer, DiagnosticAnalysisResult>();
                 foreach (var stateSet in stateSets)
                 {
                     var descriptors = HostAnalyzerManager.GetDiagnosticDescriptors(stateSet.Analyzer);
                     var liveDiagnostics = MergeDiagnostics(ConvertToLiveDiagnostics(lookup, descriptors, poolObject.Object), GetDiagnostics(oldAnalysisData.GetResult(stateSet.Analyzer)));
 
                     var group = liveDiagnostics.GroupBy(d => d.DocumentId);
-                    var result = new AnalysisResult(
+                    var result = new DiagnosticAnalysisResult(
                         project.Id,
                         version,
                         documentIds: group.Where(g => g.Key != null).Select(g => g.Key).ToImmutableHashSet(),
@@ -94,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             }
         }
 
-        private ImmutableArray<DiagnosticData> GetDiagnostics(AnalysisResult result)
+        private ImmutableArray<DiagnosticData> GetDiagnostics(DiagnosticAnalysisResult result)
         {
             // PERF: don't allocation anything if not needed
             if (result.IsAggregatedForm || result.IsEmpty)
@@ -110,12 +111,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
         private bool PreferBuildErrors(Workspace workspace)
         {
-            return workspace.Options.GetOption(InternalDiagnosticsOptions.BuildErrorIsTheGod) || workspace.Options.GetOption(InternalDiagnosticsOptions.PreferBuildErrorsOverLiveErrors);
+            return workspace.Options.GetOption(InternalDiagnosticsOptions.PreferBuildErrorsOverLiveErrors);
         }
 
         private bool PreferLiveErrorsOnOpenedFiles(Workspace workspace)
         {
-            return !workspace.Options.GetOption(InternalDiagnosticsOptions.BuildErrorIsTheGod) && workspace.Options.GetOption(InternalDiagnosticsOptions.PreferLiveErrorsOnOpenedFiles);
+            return workspace.Options.GetOption(InternalDiagnosticsOptions.PreferLiveErrorsOnOpenedFiles);
         }
 
         private ImmutableArray<DiagnosticData> MergeDiagnostics(ImmutableArray<DiagnosticData> newDiagnostics, ImmutableArray<DiagnosticData> existingDiagnostics)

@@ -1,5 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
@@ -11,7 +13,6 @@ using Microsoft.CodeAnalysis.CodeFixes.Iterator;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Iterator
@@ -40,9 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Iterator
             }
 
             var type = methodSymbol.ReturnType;
-
-            INamedTypeSymbol ienumerableSymbol, ienumerableGenericSymbol;
-            if (!TryGetIEnumerableSymbols(model, out ienumerableSymbol, out ienumerableGenericSymbol))
+            if (!TryGetIEnumerableSymbols(model, out var ienumerableSymbol, out var ienumerableGenericSymbol))
             {
                 return null;
             }
@@ -101,15 +100,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Iterator
             }
 
             return new MyCodeAction(
-                string.Format(CSharpFeaturesResources.ChangeReturnType,
+                string.Format(CSharpFeaturesResources.Change_return_type_from_0_to_1,
                     type.ToMinimalDisplayString(model, node.SpanStart),
                     ienumerableGenericSymbol.ToMinimalDisplayString(model, node.SpanStart)), newDocument);
         }
 
         private static bool TryGetIEnumerableSymbols(SemanticModel model, out INamedTypeSymbol ienumerableSymbol, out INamedTypeSymbol ienumerableGenericSymbol)
         {
-            ienumerableSymbol = model.Compilation.GetTypeByMetadataName("System.Collections.IEnumerable");
-            ienumerableGenericSymbol = model.Compilation.GetTypeByMetadataName("System.Collections.Generic.IEnumerable`1");
+            ienumerableSymbol = model.Compilation.GetTypeByMetadataName(typeof(IEnumerable).FullName);
+            ienumerableGenericSymbol = model.Compilation.GetTypeByMetadataName(typeof(IEnumerable<>).FullName);
 
             if (ienumerableGenericSymbol == null ||
                 ienumerableSymbol == null)

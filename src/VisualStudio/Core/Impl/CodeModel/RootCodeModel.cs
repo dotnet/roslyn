@@ -16,19 +16,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
     [ComDefaultInterface(typeof(EnvDTE.CodeModel))]
     public sealed class RootCodeModel : AbstractCodeModelObject, ICodeElementContainer<AbstractExternalCodeElement>, EnvDTE.CodeModel, EnvDTE80.CodeModel2
     {
-        internal static EnvDTE.CodeModel Create(CodeModelState state, object parent, ProjectId projectId)
+        internal static EnvDTE.CodeModel Create(CodeModelState state, EnvDTE.Project parent, ProjectId projectId)
         {
             var rootCodeModel = new RootCodeModel(state, parent, projectId);
             return (EnvDTE.CodeModel)ComAggregate.CreateAggregatedObject(rootCodeModel);
         }
 
-        private readonly ParentHandle<object> _parentHandle;
+        private readonly ParentHandle<EnvDTE.Project> _parentHandle;
         private readonly ProjectId _projectId;
 
-        private RootCodeModel(CodeModelState state, object parent, ProjectId projectId)
+        private RootCodeModel(CodeModelState state, EnvDTE.Project parent, ProjectId projectId)
             : base(state)
         {
-            _parentHandle = new ParentHandle<object>(parent);
+            _parentHandle = new ParentHandle<EnvDTE.Project>(parent);
             _projectId = projectId;
         }
 
@@ -44,9 +44,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
         private ComHandle<EnvDTE80.FileCodeModel2, FileCodeModel> GetFileCodeModel(object location)
         {
-            if (location is string)
+            if (location is string locationString)
             {
-                var vsProject = (EnvDTE.Project)_parentHandle.Value;
+                var vsProject = _parentHandle.Value;
                 var vsProjectItems = vsProject.ProjectItems;
 
                 if (vsProjectItems == null)
@@ -54,24 +54,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                     throw Exceptions.ThrowEFail();
                 }
 
-                var locationString = (string)location;
-
                 var project = GetProject();
                 var projectDirectory = Path.GetDirectoryName(project.FilePath);
                 var absoluteFilePath = Path.GetFullPath(Path.Combine(projectDirectory, locationString));
 
-                string fileName = null;
+                var foundFile = false;
                 foreach (var documentId in project.DocumentIds)
                 {
                     var document = project.GetDocument(documentId);
                     if (document.FilePath != null && string.Equals(absoluteFilePath, document.FilePath, StringComparison.OrdinalIgnoreCase))
                     {
-                        var vsProjectItem = vsProjectItems.Item(Path.GetFileName(locationString));
-                        fileName = vsProjectItem.get_FileNames(1);
+                        foundFile = true;
+                        break;
                     }
                 }
 
-                if (fileName == null)
+                if (!foundFile)
                 {
                     // File doesn't belong to the project, prepare & add it to project
                     using (FileUtilities.CreateFileStreamChecked(File.Create, absoluteFilePath))
@@ -80,13 +78,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                     }
 
                     vsProjectItems.AddFromFile(absoluteFilePath);
-                    fileName = absoluteFilePath;
                 }
 
-                var hostProject = ((VisualStudioWorkspaceImpl)Workspace).ProjectTracker.GetProject(_projectId);
+                var hostProject = ((VisualStudioWorkspaceImpl)Workspace).DeferredState.ProjectTracker.GetProject(_projectId);
                 var projectCodeModel = ((IProjectCodeModelProvider)hostProject).ProjectCodeModel;
 
-                return projectCodeModel.GetOrCreateFileCodeModel(fileName);
+                return projectCodeModel.GetOrCreateFileCodeModel(absoluteFilePath);
             }
 
             throw Exceptions.ThrowEInvalidArg();
@@ -94,7 +91,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
         public EnvDTE.Project Parent
         {
-            get { return (EnvDTE.Project)_parentHandle.Value; }
+            get { return _parentHandle.Value; }
         }
 
         public bool IsCaseSensitive

@@ -1,18 +1,13 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Completion.SuggestionMode;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion
@@ -34,7 +29,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion
                 new NamedParameterCompletionProvider(),
                 new KeywordCompletionProvider(),
                 new SymbolCompletionProvider(),
-                new ExplicitInterfaceCompletionProvider(),
+                new ExplicitInterfaceMemberCompletionProvider(),
+                new ExplicitInterfaceTypeCompletionProvider(),
                 new ObjectCreationCompletionProvider(),
                 new ObjectInitializerCompletionProvider(),
                 new SpeculativeTCompletionProvider(),
@@ -44,8 +40,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion
                 new SnippetCompletionProvider(),
                 new ExternAliasCompletionProvider(),
                 new OverrideCompletionProvider(),
-                new PartialCompletionProvider(),
-                new XmlDocCommentCompletionProvider()
+                new PartialMethodCompletionProvider(),
+                new PartialTypeCompletionProvider(),
+                new XmlDocCommentCompletionProvider(),
+                new TupleNameCompletionProvider(),
+                new DeclarationNameCompletionProvider()
             );
 
         private readonly Workspace _workspace;
@@ -57,17 +56,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion
             _workspace = workspace;
         }
 
-        public override string Language
-        {
-            get { return LanguageNames.CSharp; }
-        }
+        public override string Language => LanguageNames.CSharp;
 
         protected override ImmutableArray<CompletionProvider> GetBuiltInProviders()
         {
             return _defaultCompletionProviders;
         }
 
-        public override TextSpan GetDefaultItemSpan(SourceText text, int caretPosition)
+        public override TextSpan GetDefaultCompletionListSpan(SourceText text, int caretPosition)
         {
             return CompletionUtilities.GetCompletionItemSpan(text, caretPosition);
         }
@@ -78,12 +74,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion
         {
             var options = _workspace.Options;
 
-            var rule = options.GetOption(CSharpCompletionOptions.AddNewLineOnEnterAfterFullyTypedWord) 
-                ? EnterKeyRule.AfterFullyTypedWord 
-                : EnterKeyRule.Never;
+            var enterRule = options.GetOption(CompletionOptions.EnterKeyBehavior, LanguageNames.CSharp);
+            var snippetRule = options.GetOption(CompletionOptions.SnippetsBehavior, LanguageNames.CSharp);
+
+            // Although EnterKeyBehavior is a per-language setting, the meaning of an unset setting (Default) differs between C# and VB
+            // In C# the default means Never to maintain previous behavior
+            if (enterRule == EnterKeyRule.Default)
+            {
+                enterRule = EnterKeyRule.Never;
+            }
+
+            if (snippetRule == SnippetsRule.Default)
+            {
+                snippetRule = SnippetsRule.AlwaysInclude;
+            }
 
             // use interlocked + stored rules to reduce # of times this gets created when option is different than default
-            var newRules = _latestRules.WithDefaultEnterKeyRule(rule);
+            var newRules = _latestRules.WithDefaultEnterKeyRule(enterRule)
+                                       .WithSnippetsRule(snippetRule);
 
             Interlocked.Exchange(ref _latestRules, newRules);
 

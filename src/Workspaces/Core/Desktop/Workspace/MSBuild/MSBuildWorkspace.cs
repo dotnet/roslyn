@@ -9,11 +9,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-
-#if !MSBUILD12
 using Microsoft.Build.Construction;
-#endif
-
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
@@ -34,6 +30,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
         private readonly NonReentrantLock _serializationLock = new NonReentrantLock();
 
         private MSBuildProjectLoader _loader;
+        private ImmutableList<WorkspaceDiagnostic> _diagnostics = ImmutableList<WorkspaceDiagnostic>.Empty;
 
         private MSBuildWorkspace(
             HostServices hostServices,
@@ -98,6 +95,20 @@ namespace Microsoft.CodeAnalysis.MSBuild
         public ImmutableDictionary<string, string> Properties
         {
             get { return _loader.Properties; }
+        }
+
+        /// <summary>
+        /// Diagnostics logged while opening solutions, projects and documents.
+        /// </summary>
+        public ImmutableList<WorkspaceDiagnostic> Diagnostics
+        {
+            get { return _diagnostics; }
+        }
+
+        protected internal override void OnWorkspaceFailed(WorkspaceDiagnostic diagnostic)
+        {
+            ImmutableInterlocked.Update(ref _diagnostics, d => d.Add(diagnostic));
+            base.OnWorkspaceFailed(diagnostic);
         }
 
         /// <summary>
@@ -202,7 +213,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
         {
             return this.CurrentSolution.Projects
                 .Where(p => !string.IsNullOrEmpty(p.FilePath))
-                .ToImmutableDictionary(p => p.FilePath, p => p.Id);
+                .ToImmutableDictionary(p => p.FilePath, p => p.Id, PathUtilities.Comparer);
         }
 
         #endregion
@@ -266,8 +277,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 if (this.HasProjectFileChanges(projectChanges))
                 {
                     var projectPath = project.FilePath;
-                    IProjectFileLoader loader;
-                    if (_loader.TryGetLoaderFromProjectPath(projectPath, out loader))
+                    if (_loader.TryGetLoaderFromProjectPath(projectPath, out var loader))
                     {
                         try
                         {
@@ -347,9 +357,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             System.Diagnostics.Debug.Assert(_applyChangesProjectFile != null);
 
             var project = this.CurrentSolution.GetProject(info.Id.ProjectId);
-
-            IProjectFileLoader loader;
-            if (_loader.TryGetLoaderFromProjectPath(project.FilePath, out loader))
+            if (_loader.TryGetLoaderFromProjectPath(project.FilePath, out var loader))
             {
                 var extension = _applyChangesProjectFile.GetDocumentExtension(info.SourceCodeKind);
                 var fileName = Path.ChangeExtension(info.Name, extension);

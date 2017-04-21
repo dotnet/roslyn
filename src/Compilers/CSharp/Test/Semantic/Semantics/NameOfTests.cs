@@ -293,7 +293,7 @@ class Test<T>
                 // (28,20): error CS0103: The name 'List2' does not exist in the current context
                 //         s = nameof(List2<>.Add);
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "List2<>").WithArguments("List2").WithLocation(28, 20),
-                // (31,20): error CS8083: An alias-qualified name is not an expression.
+                // (31,20): error CS8149: An alias-qualified name is not an expression.
                 //         s = nameof(global::Program); // not an expression
                 Diagnostic(ErrorCode.ERR_AliasQualifiedNameNotAnExpression, "global::Program").WithLocation(31, 20),
                 // (32,20): error CS0305: Using the generic type 'Test<T>' requires 1 type arguments
@@ -305,7 +305,7 @@ class Test<T>
                 // (33,20): error CS0841: Cannot use local variable 'b' before it is declared
                 //         s = nameof(b); // cannot use before declaration
                 Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "b").WithArguments("b").WithLocation(33, 20),
-                // (35,20): error CS8084: Type parameters are not allowed on a method group as an argument to 'nameof'.
+                // (35,20): error CS8150: Type parameters are not allowed on a method group as an argument to 'nameof'.
                 //         s = nameof(System.Linq.Enumerable.Select<int, int>); // type parameters not allowed on method group in nameof
                 Diagnostic(ErrorCode.ERR_NameofMethodGroupWithTypeParameters, "System.Linq.Enumerable.Select<int, int>").WithLocation(35, 20),
                 // (43,13): error CS0103: The name 'nameof' does not exist in the current context
@@ -532,7 +532,7 @@ Correct");
         [Fact]
         public void TestNameofLowerLangVersion()
         {
-            var comp = CreateCompilationWithMscorlib(@"
+            var comp = CreateStandardCompilation(@"
 class Program
 {
     Program(string s = nameof(Program))
@@ -541,7 +541,7 @@ class Program
 ", parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp5));
 
             comp.VerifyDiagnostics(
-                // (4,24): error CS8026: Feature 'nameof operator' is not available in C# 5.  Please use language version 6 or greater.
+                // (4,24): error CS8026: Feature 'nameof operator' is not available in C# 5. Please use language version 6 or greater.
                 //     Program(string s = nameof(Program))
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "nameof(Program)").WithArguments("nameof operator", "6").WithLocation(4, 24)
                 );
@@ -610,7 +610,7 @@ class Program
         nameof(N);
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(
+            var compilation = CreateStandardCompilation(
                 source,
                 options: TestOptions.DebugExe,
                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp5));
@@ -634,7 +634,7 @@ class Program
         nameof(N);
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(
+            var compilation = CreateStandardCompilation(
                 source,
                 options: TestOptions.DebugExe,
                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6));
@@ -653,7 +653,7 @@ class Program
         nameof(N);
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(
+            var compilation = CreateStandardCompilation(
                 source,
                 options: TestOptions.DebugExe,
                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6)).VerifyDiagnostics(
@@ -675,11 +675,11 @@ class Program
         nameof(N);
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(
+            var compilation = CreateStandardCompilation(
                 source,
                 options: TestOptions.DebugExe,
                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp5)).VerifyDiagnostics(
-                    // (7,9): error CS8026: Feature 'nameof operator' is not available in C# 5.  Please use language version 6 or greater.
+                    // (7,9): error CS8026: Feature 'nameof operator' is not available in C# 5. Please use language version 6 or greater.
                     //         nameof(N);
                     Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "nameof(N)").WithArguments("nameof operator", "6").WithLocation(7, 9),
                     // (7,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
@@ -701,7 +701,7 @@ class Program
         return 1;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
             var node = tree.GetRoot().DescendantNodes().Where(n => n.ToString() == "SomeClass.Foo").OfType<ExpressionSyntax>().First();
@@ -727,7 +727,7 @@ class Program
         return string.Empty;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
             var node = tree.GetRoot().DescendantNodes().Where(n => n.ToString() == "SomeClass.Foo").OfType<ExpressionSyntax>().First();
@@ -1209,7 +1209,7 @@ class Other {
 }
 ";
             var compilation = CreateCompilationWithMscorlib45(source, null, new CSharpCompilationOptions(OutputKind.ConsoleApplication).WithAllowUnsafe(true));
-            CompileAndVerify(compilation, expectedOutput: 
+            CompileAndVerify(compilation, expectedOutput:
                 "MessageType x MessageType").VerifyDiagnostics();
         }
 
@@ -1257,6 +1257,74 @@ unsafe struct Struct1
                 // (26,23): error CS1503: Argument 1: cannot convert from 'char*' to 'char[]'
                 //         return nameof(myStruct.MessageType);
                 Diagnostic(ErrorCode.ERR_BadArgType, "myStruct.MessageType").WithArguments("1", "char*", "char[]").WithLocation(26, 23));
+        }
+
+
+        [Fact, WorkItem(12696, "https://github.com/dotnet/roslyn/issues/12696")]
+        public void FixedFieldAccessInsideNameOf()
+        {
+            var source =
+@"
+using System;
+
+struct MyType
+{
+  public static string a = nameof(MyType.normalField);
+  public static string b = nameof(MyType.fixedField);
+  public static string c = nameof(fixedField);
+
+  public int normalField;
+  public unsafe fixed short fixedField[6];
+
+  public MyType(int i) {
+      this.normalField = i;
+  }
+}
+
+class EntryPoint
+{
+    public static void Main(string[] args)
+    {
+        Console.Write(MyType.a + "" "");
+        Console.Write(MyType.b + "" "");
+        Console.Write(MyType.c);
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, null, new CSharpCompilationOptions(OutputKind.ConsoleApplication).WithAllowUnsafe(true));
+            CompileAndVerify(compilation, expectedOutput: "normalField fixedField fixedField").VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(12696, "https://github.com/dotnet/roslyn/issues/12696")]
+        public void FixedFieldAccessFromInnerClass()
+        {
+            var source =
+@"
+using System;
+
+public struct MyType
+{
+  public static class Inner
+  {
+     public static string a = nameof(normalField);
+     public static string b = nameof(fixedField);
+  }
+
+  public int normalField;
+  public unsafe fixed short fixedField[6];
+}
+
+class EntryPoint
+{
+    public static void Main(string[] args)
+    {
+        Console.Write(MyType.Inner.a + "" "");
+        Console.Write(MyType.Inner.b);
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, null, new CSharpCompilationOptions(OutputKind.ConsoleApplication).WithAllowUnsafe(true));
+            CompileAndVerify(compilation, expectedOutput: "normalField fixedField").VerifyDiagnostics();
         }
     }
 }

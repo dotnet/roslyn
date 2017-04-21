@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -20,32 +21,31 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // EnC: We need to insert a hidden sequence point to handle function remapping in case 
             // the containing method is edited while methods invoked in the condition are being executed.
+            if (rewrittenCondition != null && this.Instrument)
+            {
+                rewrittenCondition = _instrumenter.InstrumentForStatementCondition(node, rewrittenCondition, _factory);
+            }
+
             return RewriteForStatement(
-                node.Syntax,
-                node.OuterLocals,
+                node,
                 rewrittenInitializer,
-                AddConditionSequencePoint(rewrittenCondition, node),
-                node.Condition?.Syntax,
-                default(TextSpan),
+                rewrittenCondition,
                 rewrittenIncrement,
-                rewrittenBody,
-                node.BreakLabel,
-                node.ContinueLabel, node.HasErrors);
+                rewrittenBody);
         }
 
-        private BoundStatement RewriteForStatement(
-            CSharpSyntaxNode syntax,
+        private BoundStatement RewriteForStatementWithoutInnerLocals(
+            BoundLoopStatement original,
             ImmutableArray<LocalSymbol> outerLocals,
             BoundStatement rewrittenInitializer,
             BoundExpression rewrittenCondition,
-            CSharpSyntaxNode conditionSyntaxOpt,
-            TextSpan conditionSpanOpt,
             BoundStatement rewrittenIncrement,
             BoundStatement rewrittenBody,
             GeneratedLabelSymbol breakLabel,
             GeneratedLabelSymbol continueLabel,
             bool hasErrors)
         {
+            Debug.Assert(original.Kind == BoundKind.ForStatement || original.Kind == BoundKind.ForEachStatement);
             Debug.Assert(rewrittenBody != null);
 
             // The sequence point behavior exhibited here is different from that of the native compiler.  In the native
@@ -67,6 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // we do not generate one sequence point for each statement in the initializers
             // and the incrementors.
 
+            SyntaxNode syntax = original.Syntax;
             var statementBuilder = ArrayBuilder<BoundStatement>.GetInstance();
             if (rewrittenInitializer != null)
             {
@@ -97,11 +98,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             //  initializer;
             //  goto end;
 
-            // Mark the initial jump as hidden.
-            // We do it to tell that this is not a part of previous statement.
-            // This jump may be a target of another jump (for example if loops are nested) and that will make 
-            // impression of the previous statement being re-executed
-            var gotoEnd = new BoundSequencePoint(null, new BoundGotoStatement(syntax, endLabel));
+            BoundStatement gotoEnd = new BoundGotoStatement(syntax, endLabel);
+
+            if (this.Instrument)
+            {
+                // Mark the initial jump as hidden.
+                // We do it to tell that this is not a part of previous statement.
+                // This jump may be a target of another jump (for example if loops are nested) and that will make 
+                // impression of the previous statement being re-executed
+                gotoEnd = new BoundSequencePoint(null, gotoEnd);
+            }
+
             statementBuilder.Add(gotoEnd);
 
             // start:
@@ -131,16 +138,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 branchBack = new BoundGotoStatement(syntax, startLabel);
             }
 
-            if (this.GenerateDebugInfo)
+            if (this.Instrument)
             {
-                if (!conditionSpanOpt.IsEmpty)
+                switch (original.Kind)
                 {
-                    branchBack = new BoundSequencePointWithSpan(syntax, branchBack, conditionSpanOpt);
-                }
-                else
-                {
-                    // hidden sequence point if there is no condition
-                    branchBack = new BoundSequencePoint(conditionSyntaxOpt, branchBack);
+                    case BoundKind.ForEachStatement:
+                        branchBack = _instrumenter.InstrumentForEachStatementConditionalGotoStart((BoundForEachStatement)original, branchBack);
+                        break;
+                    case BoundKind.ForStatement:
+                        branchBack = _instrumenter.InstrumentForStatementConditionalGotoStartOrBreak((BoundForStatement)original, branchBack);
+                        break;
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(original.Kind);
                 }
             }
 
@@ -150,7 +159,109 @@ namespace Microsoft.CodeAnalysis.CSharp
             statementBuilder.Add(new BoundLabelStatement(syntax, breakLabel));
 
             var statements = statementBuilder.ToImmutableAndFree();
-            return new BoundBlock(syntax, outerLocals, ImmutableArray<LocalFunctionSymbol>.Empty, statements, hasErrors);
+            return new BoundBlock(syntax, outerLocals, statements, hasErrors);
+        }
+
+        private BoundStatement RewriteForStatement(
+            BoundForStatement node,
+            BoundStatement rewrittenInitializer,
+            BoundExpression rewrittenCondition,
+            BoundStatement rewrittenIncrement,
+            BoundStatement rewrittenBody)
+        {
+            if (node.InnerLocals.IsEmpty)
+            {
+                return RewriteForStatementWithoutInnerLocals(
+                    node,
+                    node.OuterLocals,
+                    rewrittenInitializer,
+                    rewrittenCondition,
+                    rewrittenIncrement,
+                    rewrittenBody,
+                    node.BreakLabel,
+                    node.ContinueLabel, node.HasErrors);
+            }
+
+            // We need to enter inner_scope-block from the top, that is where an instance of a display class will be created
+            // if any local is captured within a lambda.
+
+            // for (initializer; condition; increment)
+            //   body;
+            //
+            // becomes the following (with block added for locals)
+            //
+            // {
+            //   initializer;
+            // start:
+            //   {
+            //     GotoIfFalse condition break;
+            //     body;
+            // continue:
+            //     increment;
+            //     goto start;
+            //   }
+            // break:
+            // }
+
+            Debug.Assert(rewrittenBody != null);
+
+            SyntaxNode syntax = node.Syntax;
+            var statementBuilder = ArrayBuilder<BoundStatement>.GetInstance();
+
+            //  initializer;
+            if (rewrittenInitializer != null)
+            {
+                statementBuilder.Add(rewrittenInitializer);
+            }
+
+            var startLabel = new GeneratedLabelSymbol("start");
+
+            // start:
+            BoundStatement startLabelStatement = new BoundLabelStatement(syntax, startLabel);
+
+            if (Instrument)
+            {
+                startLabelStatement = new BoundSequencePoint(null, startLabelStatement);
+            }
+
+            statementBuilder.Add(startLabelStatement);
+
+            var blockBuilder = ArrayBuilder<BoundStatement>.GetInstance();
+
+            // GotoIfFalse condition break;
+            if (rewrittenCondition != null)
+            {
+                BoundStatement ifNotConditionGotoBreak = new BoundConditionalGoto(rewrittenCondition.Syntax, rewrittenCondition, false, node.BreakLabel);
+
+                if (this.Instrument)
+                {
+                    ifNotConditionGotoBreak = _instrumenter.InstrumentForStatementConditionalGotoStartOrBreak(node, ifNotConditionGotoBreak);
+                }
+
+                blockBuilder.Add(ifNotConditionGotoBreak);
+            }
+
+            // body;
+            blockBuilder.Add(rewrittenBody);
+
+            // continue:
+            //   increment;
+            blockBuilder.Add(new BoundLabelStatement(syntax, node.ContinueLabel));
+            if (rewrittenIncrement != null)
+            {
+                blockBuilder.Add(rewrittenIncrement);
+            }
+
+            // goto start;
+            blockBuilder.Add(new BoundGotoStatement(syntax, startLabel));
+
+            statementBuilder.Add(new BoundBlock(syntax, node.InnerLocals, blockBuilder.ToImmutableAndFree()));
+
+            // break:
+            statementBuilder.Add(new BoundLabelStatement(syntax, node.BreakLabel));
+
+            var statements = statementBuilder.ToImmutableAndFree();
+            return new BoundBlock(syntax, node.OuterLocals, statements, node.HasErrors);
         }
     }
 }

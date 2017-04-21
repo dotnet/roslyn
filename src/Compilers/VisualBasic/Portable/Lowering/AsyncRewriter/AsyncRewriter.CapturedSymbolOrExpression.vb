@@ -67,7 +67,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Sub
 
             Friend Overloads Overrides Function Materialize(rewriter As AsyncRewriter.AsyncMethodToClassRewriter, isLValue As Boolean) As BoundExpression
-                Dim syntax As VisualBasicSyntaxNode = rewriter.F.Syntax
+                Dim syntax As SyntaxNode = rewriter.F.Syntax
                 Dim framePointer As BoundExpression = rewriter.FramePointer(syntax, Me.Field.ContainingType)
                 Dim proxyFieldParented = Me.Field.AsMember(DirectCast(framePointer.Type, NamedTypeSymbol))
                 Return rewriter.F.Field(framePointer, proxyFieldParented, isLValue)

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
@@ -8,38 +8,44 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editing;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.AddBraces), Shared]
     [ExtensionOrder(After = PredefinedCodeFixProviderNames.AddAwait)]
-    internal class CSharpAddBracesCodeFixProvider : CodeFixProvider
+    internal class CSharpAddBracesCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
-        public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(IDEDiagnosticIds.AddBracesDiagnosticId);
-
-        public override FixAllProvider GetFixAllProvider() => WellKnownFixAllProviders.BatchFixer;
+        public override ImmutableArray<string> FixableDiagnosticIds 
+            => ImmutableArray.Create(IDEDiagnosticIds.AddBracesDiagnosticId);
 
         public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             context.RegisterCodeFix(
-                new MyCodeAction(
-                    FeaturesResources.AddBraces,
-                    c => AddBracesAsync(context, c)),
+                new MyCodeAction(c => FixAsync(context.Document, context.Diagnostics.First(), c)),
                 context.Diagnostics);
 
             return SpecializedTasks.EmptyTask;
         }
 
-        protected async Task<Document> AddBracesAsync(CodeFixContext context, CancellationToken cancellationToken)
+        protected override Task FixAllAsync(
+            Document document, ImmutableArray<Diagnostic> diagnostics, 
+            SyntaxEditor editor, CancellationToken cancellationToken)
         {
-            var root = await context.Document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var diagnostic = context.Diagnostics.First();
-            var diagnosticSpan = diagnostic.Location.SourceSpan;
-            var statement = root.FindNode(diagnosticSpan);
+            var root = editor.OriginalRoot;
+            foreach (var diagnostic in diagnostics)
+            {
+                var statement = root.FindNode(diagnostic.Location.SourceSpan);
 
-            var newRoot = root.ReplaceNode(statement, GetReplacementNode(statement));
-            return context.Document.WithSyntaxRoot(newRoot);
+                // Use the callback version of ReplaceNode so that we see the effects
+                // of other replace calls.  i.e. we may have statements nested in statements,
+                // we need to make sure that any inner edits are seen when we make the outer
+                // replacement.
+                editor.ReplaceNode(statement, (s, g) => GetReplacementNode(s));
+            }
+
+            return SpecializedTasks.EmptyTask;
         }
 
         private SyntaxNode GetReplacementNode(SyntaxNode statement)
@@ -59,7 +65,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
                     return GetNewBlock(statement, forSyntax.Statement);
 
                 case SyntaxKind.ForEachStatement:
-                    var forEachSyntax = (ForEachStatementSyntax)statement;
+                case SyntaxKind.ForEachVariableStatement:
+                    var forEachSyntax = (CommonForEachStatementSyntax)statement;
                     return GetNewBlock(statement, forEachSyntax.Statement);
 
                 case SyntaxKind.WhileStatement:
@@ -82,13 +89,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
             return default(SyntaxNode);
         }
 
-        private SyntaxNode GetNewBlock(SyntaxNode statement, StatementSyntax statementBody) =>
-            statement.ReplaceNode(statementBody, SyntaxFactory.Block(statementBody));
+        private SyntaxNode GetNewBlock(SyntaxNode statement, StatementSyntax statementBody) 
+            => statement.ReplaceNode(statementBody, SyntaxFactory.Block(statementBody));
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument) :
-                base(title, createChangedDocument)
+            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument) :
+                base(FeaturesResources.Add_braces, createChangedDocument, FeaturesResources.Add_braces)
             {
             }
         }

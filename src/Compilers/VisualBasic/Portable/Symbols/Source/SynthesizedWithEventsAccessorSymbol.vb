@@ -49,7 +49,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return ContainingProperty.GetAccessorOverride(getter:=(MethodKind = MethodKind.PropertyGet))
             End Get
         End Property
-        Friend Overrides ReadOnly Property Syntax As VisualBasicSyntaxNode
+        Friend Overrides ReadOnly Property Syntax As SyntaxNode
             Get
                 Dim sourceProperty = TryCast(ContainingProperty, SourcePropertySymbol)
                 If sourceProperty IsNot Nothing Then

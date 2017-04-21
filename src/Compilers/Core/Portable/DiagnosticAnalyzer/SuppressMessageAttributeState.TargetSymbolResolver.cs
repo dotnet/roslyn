@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 "[thiscall]"
             };
 
-            private static readonly ParameterInfo[] s_noParameters = SpecializedCollections.EmptyArray<ParameterInfo>();
+            private static readonly ParameterInfo[] s_noParameters = Array.Empty<ParameterInfo>();
 
             private readonly Compilation _compilation;
             private readonly TargetScope _scope;

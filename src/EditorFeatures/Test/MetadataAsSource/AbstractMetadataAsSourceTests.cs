@@ -14,11 +14,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
 {
     public abstract partial class AbstractMetadataAsSourceTests
     {
-        internal static async Task GenerateAndVerifySourceAsync(string metadataSource, string symbolName, string projectLanguage, string expected, bool compareTokens = true, bool includeXmlDocComments = false)
+        internal static async Task GenerateAndVerifySourceAsync(string metadataSource, string symbolName, string projectLanguage, string expected, bool ignoreTrivia = true, bool includeXmlDocComments = false)
         {
-            using (var context = await TestContext.CreateAsync(projectLanguage, SpecializedCollections.SingletonEnumerable(metadataSource), includeXmlDocComments))
+            using (var context = TestContext.Create(projectLanguage, SpecializedCollections.SingletonEnumerable(metadataSource), includeXmlDocComments))
             {
-                await context.GenerateAndVerifySourceAsync(symbolName, expected, compareTokens);
+                await context.GenerateAndVerifySourceAsync(symbolName, expected, ignoreTrivia);
             }
         }
 
@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
                 @"[assembly: System.Reflection.AssemblyVersion(""2.0.0.0"")] public class D {}"
             };
 
-            using (var context = await TestContext.CreateAsync(projectLanguage))
+            using (var context = TestContext.Create(projectLanguage))
             {
                 var projectId = ProjectId.CreateNewId();
                 var metadataProject = context.CurrentSolution
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
             var metadataSource = @"[assembly: System.Reflection.AssemblyVersion(""2.0.0.0"")] public class C { }";
             var symbolName = "C";
 
-            using (var context = await TestContext.CreateAsync(projectLanguage, SpecializedCollections.SingletonEnumerable(metadataSource)))
+            using (var context = TestContext.Create(projectLanguage, SpecializedCollections.SingletonEnumerable(metadataSource)))
             {
                 var metadataSymbol = await context.ResolveSymbolAsync(symbolName);
                 var metadataSymbolId = metadataSymbol.GetSymbolKey();

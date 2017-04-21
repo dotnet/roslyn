@@ -8,6 +8,6 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
     internal interface IDocumentationCommentFormattingService : ILanguageService
     {
         string Format(string rawXmlText, Compilation compilation = null);
-        IEnumerable<SymbolDisplayPart> Format(string rawXmlText, SemanticModel semanticModel, int position, SymbolDisplayFormat format = null);
+        IEnumerable<TaggedText> Format(string rawXmlText, SemanticModel semanticModel, int position, SymbolDisplayFormat format = null);
     }
 }

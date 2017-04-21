@@ -122,8 +122,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Get
             End Property
 
-            Friend Overrides Function FramePointer(syntax As VisualBasicSyntaxNode, frameClass As NamedTypeSymbol) As BoundExpression
-                Dim oldSyntax As VisualBasicSyntaxNode = Me.F.Syntax
+            Friend Overrides Function FramePointer(syntax As SyntaxNode, frameClass As NamedTypeSymbol) As BoundExpression
+                Dim oldSyntax As SyntaxNode = Me.F.Syntax
                 Me.F.Syntax = syntax
                 Dim result = Me.F.Me()
                 Debug.Assert(frameClass = result.Type)
@@ -177,7 +177,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return node
                 End If
 
-                Dim oldSyntax As VisualBasicSyntaxNode = Me.F.Syntax
+                Dim oldSyntax As SyntaxNode = Me.F.Syntax
                 Me.F.Syntax = node.Syntax
                 Dim result As BoundNode = MyBase.Visit(node)
                 Me.F.Syntax = oldSyntax
@@ -297,7 +297,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Me.Dispatches.Add(finalizer, New List(Of Integer)() From {Me._currentFinalizerState})
 
                         Dim skipFinalizer As GeneratedLabelSymbol = Me.F.GenerateLabel("skipFinalizer")
-                        tryBlock = Me.F.Block(Me.F.HiddenSequencePoint(),
+                        tryBlock = Me.F.Block(SyntheticBoundNodeFactory.HiddenSequencePoint(),
                                               Me.Dispatch(),
                                               Me.F.Goto(skipFinalizer),
                                               Me.F.Label(finalizer),
@@ -308,7 +308,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                               Me.F.Label(skipFinalizer),
                                               tryBlock)
                     Else
-                        tryBlock = Me.F.Block(Me.F.HiddenSequencePoint(), Me.Dispatch(), tryBlock)
+                        tryBlock = Me.F.Block(SyntheticBoundNodeFactory.HiddenSequencePoint(), Me.Dispatch(), tryBlock)
                     End If
 
                     If oldDispatches Is Nothing Then
@@ -326,17 +326,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim catchBlocks As ImmutableArray(Of BoundCatchBlock) = Me.VisitList(node.CatchBlocks)
                 Dim finallyBlockOpt As BoundBlock = If(node.FinallyBlockOpt Is Nothing, Nothing,
                                                        Me.F.Block(
-                                                           Me.F.HiddenSequencePoint(),
+                                                           SyntheticBoundNodeFactory.HiddenSequencePoint(),
                                                            Me.F.If(
                                                                condition:=Me.F.IntLessThan(
                                                                    Me.F.Local(Me.CachedState, False),
                                                                    Me.F.Literal(StateMachineStates.FirstUnusedState)),
                                                                thenClause:=DirectCast(Me.Visit(node.FinallyBlockOpt), BoundBlock)),
-                                                           Me.F.HiddenSequencePoint()))
+                                                           SyntheticBoundNodeFactory.HiddenSequencePoint()))
 
                 Dim result As BoundStatement = node.Update(tryBlock, catchBlocks, finallyBlockOpt, node.ExitLabelOpt)
                 If dispatchLabel IsNot Nothing Then
-                    result = Me.F.Block(Me.F.HiddenSequencePoint(), Me.F.Label(dispatchLabel), result)
+                    result = Me.F.Block(SyntheticBoundNodeFactory.HiddenSequencePoint(), Me.F.Label(dispatchLabel), result)
                 End If
 
                 Return result

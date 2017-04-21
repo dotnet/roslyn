@@ -1,5 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Collections.Immutable
 Imports System.Threading
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
@@ -16,9 +17,9 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
         Public MustOverride ReadOnly Property Name As String Implements ICodeCleanupProvider.Name
 
         Protected MustOverride Function GetRewriterAsync(
-            document As Document, root As SyntaxNode, spans As IEnumerable(Of TextSpan), workspace As Workspace, cancellationToken As CancellationToken) As Task(Of Rewriter)
+            document As Document, root As SyntaxNode, spans As ImmutableArray(Of TextSpan), workspace As Workspace, cancellationToken As CancellationToken) As Task(Of Rewriter)
 
-        Public Async Function CleanupAsync(document As Document, spans As IEnumerable(Of TextSpan), Optional cancellationToken As CancellationToken = Nothing) As Task(Of Document) Implements ICodeCleanupProvider.CleanupAsync
+        Public Async Function CleanupAsync(document As Document, spans As ImmutableArray(Of TextSpan), Optional cancellationToken As CancellationToken = Nothing) As Task(Of Document) Implements ICodeCleanupProvider.CleanupAsync
             Dim root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
             Dim rewriter As Rewriter = Await GetRewriterAsync(document, root, spans, document.Project.Solution.Workspace, cancellationToken).ConfigureAwait(False)
             Dim newRoot = rewriter.Visit(root)
@@ -26,7 +27,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
             Return If(root Is newRoot, document, document.WithSyntaxRoot(newRoot))
         End Function
 
-        Public Async Function CleanupAsync(root As SyntaxNode, spans As IEnumerable(Of TextSpan), workspace As Workspace, Optional cancellationToken As CancellationToken = Nothing) As Task(Of SyntaxNode) Implements ICodeCleanupProvider.CleanupAsync
+        Public Async Function CleanupAsync(root As SyntaxNode, spans As ImmutableArray(Of TextSpan), workspace As Workspace, Optional cancellationToken As CancellationToken = Nothing) As Task(Of SyntaxNode) Implements ICodeCleanupProvider.CleanupAsync
             Dim rewriter As Rewriter = Await GetRewriterAsync(Nothing, root, spans, workspace, cancellationToken).ConfigureAwait(False)
             Return rewriter.Visit(root)
         End Function
@@ -40,7 +41,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
             ' a global state indicating whether the visitor is visiting structured trivia or not
             Protected _underStructuredTrivia As Boolean
 
-            Public Sub New(spans As IEnumerable(Of TextSpan), cancellationToken As CancellationToken)
+            Public Sub New(spans As ImmutableArray(Of TextSpan), cancellationToken As CancellationToken)
                 ' need to visit structured trivia for cases such as "Region"
                 MyBase.New(visitIntoStructuredTrivia:=True)
 
@@ -53,7 +54,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                 ' if there is no overlapping spans, no need to walk down this node
                 ' use full span to include structured trivia
                 Return node IsNot Nothing AndAlso
-                    _spans.GetOverlappingIntervals(node.FullSpan.Start, node.FullSpan.Length).Any()
+                    _spans.GetIntervalsThatOverlapWith(node.FullSpan.Start, node.FullSpan.Length).Any()
             End Function
 
             Public Overrides Function Visit(node As SyntaxNode) As SyntaxNode

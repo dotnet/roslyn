@@ -3,7 +3,7 @@
 using System.Collections.Immutable;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
-using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.DiaSymReader;
 
 namespace Roslyn.Test.PdbUtilities

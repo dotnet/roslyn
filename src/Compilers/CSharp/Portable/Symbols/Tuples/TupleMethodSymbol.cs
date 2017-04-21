@@ -128,6 +128,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public override ImmutableArray<CustomModifier> RefCustomModifiers
+        {
+            get
+            {
+                return _underlyingMethod.RefCustomModifiers;
+            }
+        }
+
         public override ImmutableArray<TypeSymbol> TypeArguments
         {
             get

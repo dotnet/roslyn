@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Stat
 
         Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As IEnumerable(Of RecommendedKeyword)
             If context.IsMultiLineStatementContext Then
-                Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("While", VBFeaturesResources.WhileKeywordToolTip))
+                Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("While", VBFeaturesResources.Runs_a_series_of_statements_as_long_as_a_given_condition_is_true))
             End If
 
             ' Are we after Exit or Continue?
@@ -30,8 +30,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Stat
                 Return SpecializedCollections.SingletonEnumerable(
                             New RecommendedKeyword("While",
                                                    If(targetToken.IsKind(SyntaxKind.ExitKeyword),
-                                                                    VBFeaturesResources.ExitWhileKeywordToolTip,
-                                                                    VBFeaturesResources.ContinueWhileKeywordToolTip)))
+                                                                    VBFeaturesResources.Exits_a_While_loop_and_transfers_execution_immediately_to_the_statement_following_the_End_While_statement,
+                                                                    VBFeaturesResources.Transfers_execution_immediately_to_the_next_iteration_of_the_While_loop)))
             End If
 
             Return SpecializedCollections.EmptyEnumerable(Of RecommendedKeyword)()

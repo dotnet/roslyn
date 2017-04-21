@@ -50,6 +50,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Public Overrides ReadOnly Property RefCustomModifiers As ImmutableArray(Of CustomModifier)
+            Get
+                Return ImmutableArray(Of CustomModifier).Empty
+            End Get
+        End Property
+
         ''' <summary>
         ''' A compile time constant value that should be supplied as the corresponding argument value by callers that do not explicitly specify an argument value for this parameter.
         ''' </summary>
@@ -227,12 +233,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return _name
             End Get
         End Property
-
-        Friend Overrides ReadOnly Property CountOfCustomModifiersPrecedingByRef As UShort
-            Get
-                Return 0
-            End Get
-        End Property
     End Class
 
     ''' <summary>
@@ -273,6 +273,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Me._defaultValue = defaultValue
         End Sub
 
+        Public Shared Function Create(container As MethodSymbol, type As TypeSymbol, ordinal As Integer, isByRef As Boolean, name As String,
+                       customModifiers As ImmutableArray(Of CustomModifier), refCustomModifiers As ImmutableArray(Of CustomModifier)
+        ) As SynthesizedParameterSymbol
+
+            If customModifiers.IsEmpty AndAlso refCustomModifiers.IsEmpty Then
+                Return New SynthesizedParameterSymbol(container, type, ordinal, isByRef, name, isOptional:=False, defaultValue:=Nothing)
+            End If
+
+            Return New SynthesizedParameterSymbolWithCustomModifiers(container, type, ordinal, isByRef, name, customModifiers, refCustomModifiers)
+        End Function
+
         Friend Shared Function CreateSetAccessorValueParameter(setter As MethodSymbol, propertySymbol As PropertySymbol, parameterName As String) As ParameterSymbol
             Dim valueParameterType As TypeSymbol = propertySymbol.Type
             Dim valueParameterCustomModifiers = propertySymbol.TypeCustomModifiers
@@ -281,13 +292,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             If overriddenMethod IsNot Nothing Then
                 Dim overriddenParameter = overriddenMethod.Parameters(propertySymbol.ParameterCount)
 
-                If overriddenParameter.Type.IsSameTypeIgnoringCustomModifiers(valueParameterType) Then
+                If overriddenParameter.Type.IsSameTypeIgnoringAll(valueParameterType) Then
                     valueParameterType = overriddenParameter.Type
                     valueParameterCustomModifiers = overriddenParameter.CustomModifiers
                 End If
             End If
 
-            If valueParameterCustomModifiers.IsDefaultOrEmpty Then
+            If valueParameterCustomModifiers.IsEmpty Then
                 Return New SynthesizedParameterSimpleSymbol(setter,
                                                             valueParameterType,
                                                             propertySymbol.ParameterCount,
@@ -300,7 +311,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                                                      False,
                                                                      parameterName,
                                                                      valueParameterCustomModifiers,
-                                                                     0US)
+                                                                     ImmutableArray(Of CustomModifier).Empty) ' Never ByRef
         End Function
 
         ''' <summary>
@@ -348,7 +359,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Inherits SynthesizedParameterSymbol
 
         Private ReadOnly _customModifiers As ImmutableArray(Of CustomModifier)
-        Private ReadOnly _countOfCustomModifiersPrecedingByRef As UShort
+        Private ReadOnly _refCustomModifiers As ImmutableArray(Of CustomModifier)
 
         ''' <summary>
         ''' Initializes a new instance of the <see cref="SynthesizedParameterSymbolWithCustomModifiers" /> class.
@@ -358,16 +369,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <param name="ordinal">The ordinal number of this parameter</param>
         ''' <param name="isByRef">Whether the parameter is ByRef or not</param>
         ''' <param name="name">The name of this parameter</param>
-        ''' <param name="customModifiers">The custom modifiers of this parameter</param>
+        ''' <param name="customModifiers">The custom modifiers of this parameter type</param>
+        ''' <param name="refCustomModifiers">The custom modifiers of ref modifier</param>
         Public Sub New(container As MethodSymbol, type As TypeSymbol, ordinal As Integer, isByRef As Boolean, name As String,
-                       customModifiers As ImmutableArray(Of CustomModifier), countOfCustomModifiersPrecedingByRef As UShort)
+                       customModifiers As ImmutableArray(Of CustomModifier), refCustomModifiers As ImmutableArray(Of CustomModifier))
             MyBase.New(container, type, ordinal, isByRef, name, isOptional:=False, defaultValue:=Nothing)
 
-            Me._customModifiers = customModifiers.NullToEmpty()
-            Me._countOfCustomModifiersPrecedingByRef = countOfCustomModifiersPrecedingByRef
+            Debug.Assert(Not customModifiers.IsEmpty OrElse Not refCustomModifiers.IsEmpty)
+            Me._customModifiers = customModifiers
+            Me._refCustomModifiers = refCustomModifiers
 
-            Debug.Assert(Me._countOfCustomModifiersPrecedingByRef = 0 OrElse Me.IsByRef)
-            Debug.Assert(Me._countOfCustomModifiersPrecedingByRef <= Me._customModifiers.Length)
+            Debug.Assert(Me._refCustomModifiers.IsEmpty OrElse Me.IsByRef)
         End Sub
 
         ''' <summary>
@@ -379,9 +391,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend Overrides ReadOnly Property CountOfCustomModifiersPrecedingByRef As UShort
+        Public NotOverridable Overrides ReadOnly Property RefCustomModifiers As ImmutableArray(Of CustomModifier)
             Get
-                Return Me._countOfCustomModifiersPrecedingByRef
+                Return Me._refCustomModifiers
             End Get
         End Property
     End Class

@@ -1,12 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -39,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var receiverType = loweredReceiver.Type;
 
             // Check trivial case
-            if (loweredReceiver.IsDefaultValue())
+            if (loweredReceiver.IsDefaultValue() && receiverType.IsReferenceType)
             {
                 return _factory.Default(node.Type);
             }
@@ -151,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         node.Syntax,
                         loweredReceiver,
                         receiverType.IsNullableType() ?
-                                 GetNullableMethod(node.Syntax, loweredReceiver.Type, SpecialMember.System_Nullable_T_get_HasValue) :
+                                 UnsafeGetNullableMethod(node.Syntax, loweredReceiver.Type, SpecialMember.System_Nullable_T_get_HasValue) :
                                  null,
                         loweredAccessExpression,
                         null,
@@ -162,7 +158,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case ConditionalAccessLoweringKind.TernaryCaptureReceiverByVal:
                     // capture the receiver into a temp
-                    loweredReceiver = _factory.Sequence(
+                    loweredReceiver = _factory.MakeSequence(
                                             _factory.AssignmentExpression(_factory.Local(temp), loweredReceiver),
                                             _factory.Local(temp));
 
@@ -186,7 +182,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (temp != null)
                         {
-                            result = _factory.Sequence(temp, result);
+                            result = _factory.MakeSequence(temp, result);
                         }
                     }
                     break;

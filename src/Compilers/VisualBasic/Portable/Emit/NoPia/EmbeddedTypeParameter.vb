@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
             Debug.Assert(underlyingTypeParameter.IsDefinition)
         End Sub
 
-        Protected Overrides Function GetConstraints(context As EmitContext) As IEnumerable(Of Cci.ITypeReference)
+        Protected Overrides Function GetConstraints(context As EmitContext) As IEnumerable(Of Cci.TypeReferenceWithAttributes)
             Return DirectCast(UnderlyingTypeParameter, Cci.IGenericParameter).GetConstraints(context)
         End Function
 

@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.ComponentModel.Composition;
 using System.Windows.Media;
@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
         {
             // NOTE: This is the same color used by the editor for reference highlighting
             this.BackgroundColor = Color.FromRgb(219, 224, 204);
-            this.DisplayName = EditorFeaturesResources.HighlightedWrittenReference;
+            this.DisplayName = EditorFeaturesResources.Highlighted_Written_Reference;
         }
     }
 }

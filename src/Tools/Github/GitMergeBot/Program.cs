@@ -1,215 +1,191 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
 using System.Reflection;
 using System.Threading.Tasks;
+using System.Web.Configuration;
+using LibGit2Sharp;
+using Microsoft.Azure.KeyVault;
+using Microsoft.IdentityModel.Clients.ActiveDirectory;
 using Mono.Options;
-using Octokit;
+
+using static System.Console;
 
 namespace GitMergeBot
 {
-    class Program
+    internal sealed class Program
     {
         static int Main(string[] args)
         {
             var exeName = Assembly.GetExecutingAssembly().GetName().Name;
+            var showHelp = false;
             var options = new Options();
-
-            // default to using an environment variable, but allow an explicitly provided value to override
-            options.AuthToken = Environment.GetEnvironmentVariable("AUTH_CODE");
             var parameters = new OptionSet()
             {
                 $"Usage: {exeName} [options]",
                 "Create a pull request from the specified user and branch to another specified user and branch.",
                 "",
                 "Options:",
-                { "a|auth=", "The GitHub authentication token.", value => options.AuthToken = value },
-                { "r|repo=", "The name of the remote repository.", value => options.RepoName = value },
-                { "s|source=", "The source branch of the merge operation.", value => options.SourceBranch = value },
-                { "d|dest=", "The destination branch of the merge operation.", value => options.DestinationBranch = value },
-                { "su|sourceuser=", "The user hosting the source branch of the merge operation.", value => options.SourceUser = value },
-                { "du|destuser=", "The user hosting the destination branch of the merge operation.", value => options.DestinationUser = value },
+                { "repopath=", "The local path to the repository.", value => options.RepositoryPath = value },
+                { "sourcetype=", "The source repository type.  Valid values are 'GitHub' and 'VisualStudioOnline'.", value => options.SourceRepoType = (RepositoryType)Enum.Parse(typeof(RepositoryType), value) },
+                { "sourcereponame=", "The name of the source repository.", value => options.SourceRepoName = value },
+                { "sourceproject=", "The name of the source project.  Only needed for VisualStudioOnline repos.", value => options.SourceProject = value },
+                { "sourceuserid=", "The source user ID.  Only needed for VisualStudioOnline repos.", value => options.SourceUserId = value },
+                { "sourceuser=", "The source user name.", value => options.SourceUserName = value },
+                { "sourceauthsecret=", "The secret name for the source auth token.", value => options.SourceAuthTokenSecretName = value },
+                { "sourceremote=", "The source remote name.", value => options.SourceRemoteName = value },
+                { "sourcebranch=", "The source branch name.", value => options.SourceBranchName = value },
+                { "pushtodestination=", "If true the PR branch will be pushed to the destination repository; if false the PR branch will be pushed to the source.", value => options.PushBranchToDestination = value != null },
+                { "prbranchsourceremote=", "The name of the remote the PR should initiate from.  Defaults to `sourceremote` parameter.", value => options.PullRequestBranchSourceRemote = value },
+                { "destinationtype=", "The destination repository type.  Valid values are 'GitHub' and 'VisualStudioOnline'.  Defaults to `sourcetype` parameter.", value => options.DestinationRepoType = (RepositoryType)Enum.Parse(typeof(RepositoryType), value) },
+                { "destinationrepoowner=", "", value => options.DestinationRepoOwner = value },
+                { "destinationreponame=", "The name of the destination repository.  Defaults to `sourcereponame` parameter.", value => options.DestinationRepoName = value },
+                { "destinationproject=", "The name of the destination project.  Only needed for VisualStudioOnline repos.", value => options.DestinationProject = value },
+                { "destinationuserid=", "The destination user ID.  Only needed for VisualStudioOnline repos.", value => options.DestinationUserId = value },
+                { "destinationuser=", "The destination user name.  Defaults to `sourceuser` parameter.", value => options.DestinationUserName = value },
+                { "destinationauthsecret=", "The secret name for the destination auth token.  Defaults to `sourceauthsecret` parameter.", value => options.DestinationAuthTokenSecretName = value },
+                { "destinationremote=", "The destination remote name.  Defaults to `sourceremote` parameter.", value => options.DestinationRemoteName = value },
+                { "destinationbranch=", "The destination branch name.  Defaults to `sourcebranch` parameter.", value => options.DestinationBranchName = value },
                 { "f|force", "Force the creation of the PR even if an open PR already exists.", value => options.Force = value != null },
                 { "debug", "Print debugging information about the merge but don't actually create the pull request.", value => options.Debug = value != null },
-                { "h|help", "Show this message and exit.", value => options.ShowHelp = value != null }
+                { "h|?|help", "Show this message and exit.", value => showHelp = value != null }
             };
 
             try
             {
                 parameters.Parse(args);
+                if (showHelp || !options.IsValid)
+                {
+                    parameters.WriteOptionDescriptions(Out);
+                    return options.IsValid ? 0 : 1;
+                }
+
+                var sourceRepository = RepositoryBase.Create(options.SourceRepoType, options.RepositoryPath, options.SourceRepoName, options.SourceProject, options.SourceUserId, options.SourceUserName, options.SourceAuthTokenSecretName, options.SourceRemoteName);
+                var destRepository = RepositoryBase.Create(options.DestinationRepoType, options.RepositoryPath, options.DestinationRepoName, options.DestinationProject, options.DestinationUserId, options.DestinationUserName, options.DestinationAuthTokenSecretName, options.DestinationRemoteName);
+                new Program(sourceRepository, destRepository, options).RunAsync().GetAwaiter().GetResult();
+                return 0;
             }
             catch (OptionException e)
             {
-                Console.WriteLine($"{exeName}: {e.Message}");
-                Console.WriteLine($"Try `{exeName} --help` for more information.");
+                WriteLine($"{exeName}: {e.Message}");
+                WriteLine($"Try `{exeName} --help` for more information.");
                 return 1;
-            }
-
-            if (options.ShowHelp || !options.AreValid)
-            {
-                parameters.WriteOptionDescriptions(Console.Out);
-                return options.AreValid ? 0 : 1;
-            }
-            else
-            {
-                var github = new GitHubClient(new ProductHeaderValue(options.SourceUser));
-                github.Credentials = new Credentials(options.AuthToken);
-                new Program(options).MakePullRequest().GetAwaiter().GetResult();
-                return 0;
             }
         }
 
+        private RepositoryBase _sourceRepo;
+        private RepositoryBase _destRepo;
         private Options _options;
-        private GitHubClient _client;
 
-        private Program(Options options)
+        private Program(RepositoryBase sourceRepository, RepositoryBase destinationRepository, Options options)
         {
+            _sourceRepo = sourceRepository;
+            _destRepo = destinationRepository;
             _options = options;
         }
 
-        public async Task MakePullRequest()
+        public async Task RunAsync()
         {
-            _client = new GitHubClient(new ProductHeaderValue(_options.SourceUser));
-            _client.Credentials = new Credentials(_options.AuthToken);
-            var remoteIntoBranch = await GetShaFromBranch(_options.DestinationUser, _options.RepoName, _options.SourceBranch);
-            var newBranchPrefix = $"merge-{_options.SourceBranch}-into-{_options.DestinationBranch}";
-            if (!_options.Force && await DoesOpenPrAlreadyExist(newBranchPrefix))
+            await _sourceRepo.Initialize();
+            await _destRepo.Initialize();
+
+            // fetch latest sources
+            WriteLine("Fetching.");
+            _sourceRepo.Fetch(_options.PullRequestBranchSourceRemote);
+
+            var (prRepo, prRemoteName, prUserName, prAuthTokenSecretName) = _options.PushBranchToDestination
+                ? (_destRepo, _options.DestinationRemoteName, _options.DestinationUserName, _options.DestinationAuthTokenSecretName)
+                : (_sourceRepo, _options.SourceRemoteName, _options.SourceUserName, _options.SourceAuthTokenSecretName);
+
+            var prPassword = GetSecret(prAuthTokenSecretName).Result;
+
+            // branch from the source
+            var title = $"Merge {_options.SourceBranchName} into {_options.DestinationBranchName}";
+            if (_options.Force || await prRepo.ShouldMakePullRequestAsync(title))
             {
-                Console.WriteLine("Existing merge PRs exist; aboring creation.  Use `--force` option to override.");
+            }
+            else
+            {
+                WriteLine("Existing merge PRs exist; aboring creation.");
                 return;
             }
 
-            var newBranchName = await MakePrBranch(_options.SourceUser, _options.RepoName, remoteIntoBranch, newBranchPrefix);
-            var pullRequest = await SubmitPullRequest(newBranchName);
-
-            // The reason for this delay is twofold:
-            //
-            // * Github has a bug in which it can "create" a pull request without that pull request
-            //   being able to be commented on for a short period of time.
-            // * The Jenkins "comment watcher" has a bug whereby any comment posted shortly after
-            //   pull-request creation is ignored.
-            //
-            // Thus, this delay sidesteps both of those bugs by asking for a VSI test 30 seconds after 
-            // the creation of the PR.  Ugly, yes; but the only *real* way to sidestep this would be to 
-            // 1) Fix github, 2) Fix jenkins, and while those might be lofty goals, they are not in the 
-            // scope of this PR.
-            await Task.Delay(TimeSpan.FromSeconds(30.0));
-
-            await _client.Issue.Comment.Create(_options.DestinationUser, _options.RepoName, pullRequest.Number, "@dotnet-bot test vsi please");
-        }
-
-        /// <returns> The SHA at the tip of `branchName` in the repository `user/repo` </returns>
-        private async Task<string> GetShaFromBranch(string user, string repo, string branchName) 
-        {
-            var refs = await _client.GitDatabase.Reference.Get(user, repo, $"heads/{branchName}");
-            return refs.Object.Sha;
-        }
-
-        /// <returns>True if an existing auto merge PR is still open.</returns>
-        private async Task<bool> DoesOpenPrAlreadyExist(string newBranchPrefix)
-        {
-            return (await GetExistingMergePrs(newBranchPrefix)).Count > 0;
-        }
-
-        /// <returns>The existing open merge PRs.</returns>
-        private async Task<IList<PullRequest>> GetExistingMergePrs(string newBranchPrefix)
-        {
-            var allPullRequests = await _client.PullRequest.GetAllForRepository(_options.DestinationUser, _options.RepoName);
-            var openPrs = allPullRequests.Where(pr => pr.Head.Ref.StartsWith(newBranchPrefix) && pr.User.Login == _options.SourceUser).ToList();
-
-            Console.WriteLine($"Found {openPrs.Count} existing open merge pull requests.");
-            foreach (var pr in openPrs)
-            {
-                Console.WriteLine($"  Open PR: {pr.HtmlUrl}");
-            }
-
-            return openPrs;
-        }
-
-        /// <summary>
-        /// Creates a PR branch on the bot account with the branch head at `sha`.
-        /// </summary>
-        /// <returns> The name of the branch that was created </returns>
-        private async Task<string> MakePrBranch(string user, string repo, string sha, string branchNamePrefix)
-        {
-            var branchName = branchNamePrefix + DateTime.UtcNow.ToString("yyyyMMdd-HHmmss");
-
+            var prBranchName = $"merge-{_options.SourceBranchName}-into-{_options.DestinationBranchName}-{DateTime.UtcNow.ToString("yyyyMMdd-HHmmss")}";
+            var prSourceBranch = $"{_options.PullRequestBranchSourceRemote}/{_options.SourceBranchName}";
+            WriteLine($"Creating branch '{prBranchName}' from '{prSourceBranch}'.");
             if (_options.Debug)
             {
-                WriteDebugLine($"Create remote branch '{user}/{repo}/{branchName}' at {sha}");
+                WriteLine("Debug: Skiping branch creation.");
             }
             else
             {
-                var resp = await _client.Connection.Post<string>(
-                    uri: new Uri($"https://api.github.com/repos/{user}/{repo}/git/refs"),
-                    body: $"{{\"ref\": \"refs/heads/{branchName}\", \"sha\": \"{sha}\"}}",
-                    accepts: "*/*",
-                    contentType: "application/json");
-                var statusCode = resp.HttpResponse.StatusCode;
-                if (statusCode != HttpStatusCode.Created)
+                var prBranch = prRepo.Repository.CreateBranch(prBranchName, prSourceBranch);
+            }
+
+            // push the branch
+            var remote = prRepo.Repository.Network.Remotes[prRemoteName];
+            WriteLine($"Pushing branch '{prBranchName}'.");
+            if (_options.Debug)
+            {
+                WriteLine("Debug: Skipping branch push.");
+            }
+            else
+            {
+                var pushOptions = new PushOptions()
                 {
-                    throw new Exception($"Failed creating a new branch {branchName} on {user}/{repo} with code {statusCode}");
-                }
+                    CredentialsProvider = (url, usernameFromUrl, types) => new UsernamePasswordCredentials()
+                    {
+                        Username = prUserName,
+                        Password = prPassword
+                    }
+                };
+                prRepo.Repository.Network.Push(remote, $"+refs/heads/{prBranchName}:refs/heads/{prBranchName}", pushOptions);
             }
 
-            return branchName;
-        }
-
-        /// <summary>
-        /// Creates a pull request 
-        /// </summary>
-        private async Task<PullRequest> SubmitPullRequest(string newBranchName)
-        {
-            var remoteName = $"{_options.SourceUser}-{_options.RepoName}";
-            var prTitle = $"Merge {_options.SourceBranch} into {_options.DestinationBranch}";
-            var prMessage = $@"
-This is an automatically generated pull request from {_options.SourceBranch} into {_options.DestinationBranch}.
-
-@dotnet/roslyn-infrastructure:
-
-``` bash
-git remote add {remoteName} ""https://github.com/{_options.SourceUser}/{_options.RepoName}.git""
-git fetch {remoteName}
-git fetch upstream
-git checkout {newBranchName}
-git reset --hard upstream/{_options.DestinationBranch}
-git merge upstream/{_options.SourceBranch}
-# Fix merge conflicts
-git commit
-git push {remoteName} {newBranchName} --force
-```
-
-Once the merge can be made and all the tests pass, you are free to merge the pull request.
-".Trim();
-
+            // create PR
+            WriteLine("Creating PR.");
             if (_options.Debug)
             {
-                WriteDebugLine($"Create PR with title: {prTitle}.");
-                WriteDebugLine($"Create PR with body:\r\n{prMessage}");
-                return null;
+                WriteLine("Debug: Skipping PR creation.");
             }
             else
             {
-                return await _client.PullRequest.Create(
-                    owner: _options.DestinationUser,
-                    name: _options.RepoName,
-                    newPullRequest: new NewPullRequest(
-                        title: prTitle,
-                        head: $"{_options.SourceUser}:{newBranchName}",
-                        baseRef: _options.DestinationBranch)
-                        {
-                            Body = prMessage
-                        }
-                    );
+                await _destRepo.CreatePullRequestAsync(title, _options.DestinationRepoOwner, prBranchName, _options.PullRequestBranchSourceRemote, _options.SourceBranchName, _options.DestinationBranchName);
             }
         }
 
-        private void WriteDebugLine(string line)
+        private const string KeyVaultUrl = "https://roslyninfra.vault.azure.net:443";
+
+        //  Use application ID of powershell cmdlets, see http://stackoverflow.com/questions/30096576/using-adal-for-accessing-the-azure-keyvault-on-behalf-of-a-user
+        private const string ApplicationId = "1950a258-227b-4e31-a9cf-717495945fc2";
+
+        /// <summary>
+        /// Gets the specified secret from the key vault;
+        /// </summary>
+        public static async Task<string> GetSecret(string secretName)
         {
-            Console.WriteLine("Debug: " + line);
+            var kv = new KeyVaultClient(new KeyVaultClient.AuthenticationCallback(GetAccessToken));
+            var secret = await kv.GetSecretAsync(KeyVaultUrl, secretName);
+            return secret.Value;
+        }
+
+        private static async Task<string> GetAccessToken(string authority, string resource, string scope)
+        {
+            var context = new AuthenticationContext(authority);
+            AuthenticationResult authResult;
+            if (string.IsNullOrEmpty(WebConfigurationManager.AppSettings["ClientId"]))
+            {
+                // use default domain authentication
+                authResult = await context.AcquireTokenAsync(resource, ApplicationId, new UserCredential());
+            }
+            else
+            {
+                // use client authentication; "ClientId" and "ClientSecret" are only available when run as a web job
+                var credentials = new ClientCredential(WebConfigurationManager.AppSettings["ClientId"], WebConfigurationManager.AppSettings["ClientSecret"]);
+                authResult = await context.AcquireTokenAsync(resource, credentials);
+            }
+
+            return authResult.AccessToken;
         }
     }
 }

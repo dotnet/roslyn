@@ -24,6 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor
     internal sealed class ExportVersionSpecificAttribute : ExportAttribute
     {
         public VisualStudioVersion Version { get; }
+
         public ExportVersionSpecificAttribute(Type contractType, VisualStudioVersion version)
             : base(contractType)
         {

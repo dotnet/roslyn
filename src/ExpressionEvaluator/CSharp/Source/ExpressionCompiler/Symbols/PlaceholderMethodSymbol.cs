@@ -163,6 +163,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { return ImmutableArray<CustomModifier>.Empty; }
         }
 
+        public override ImmutableArray<CustomModifier> RefCustomModifiers
+        {
+            get { return ImmutableArray<CustomModifier>.Empty; }
+        }
+
         public override ImmutableArray<TypeSymbol> TypeArguments
         {
             get { return _typeParameters.Cast<TypeParameterSymbol, TypeSymbol>(); }

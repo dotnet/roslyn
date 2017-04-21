@@ -1,11 +1,9 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.BraceMatching;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -13,10 +11,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceMatching
 {
     public class CSharpBraceMatcherTests : AbstractBraceMatcherTests
     {
-        protected override Task<TestWorkspace> CreateWorkspaceFromCodeAsync(string code, ParseOptions options)
-        {
-            return TestWorkspace.CreateCSharpAsync(code, options);
-        }
+        protected override TestWorkspace CreateWorkspaceFromCode(string code, ParseOptions options)
+            => TestWorkspace.CreateCSharp(code, options);
 
         [Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
         public async Task TestEmptyFile()
@@ -756,7 +752,7 @@ class Program
             var code = @"public class C { $$(int, int, int, int, int, int, int, int) x; }";
             var expected = @"public class C { (int, int, int, int, int, int, int, int[|)|] x; }";
 
-            await TestAsync(code, expected, TestOptions.Regular.WithTuplesFeature());
+            await TestAsync(code, expected, TestOptions.Regular);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
@@ -765,7 +761,7 @@ class Program
             var code = @"public class C { (int, int, int, int, int, int, int, int)$$ x; }";
             var expected = @"public class C { [|(|]int, int, int, int, int, int, int, int) x; }";
 
-            await TestAsync(code, expected, TestOptions.Regular.WithTuplesFeature());
+            await TestAsync(code, expected, TestOptions.Regular);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
@@ -774,7 +770,7 @@ class Program
             var code = @"public class C { var x = $$(1, 2, 3, 4, 5, 6, 7, 8); }";
             var expected = @"public class C { var x = (1, 2, 3, 4, 5, 6, 7, 8[|)|]; }";
 
-            await TestAsync(code, expected, TestOptions.Regular.WithTuplesFeature());
+            await TestAsync(code, expected, TestOptions.Regular);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
@@ -783,7 +779,7 @@ class Program
             var code = @"public class C { var x = (1, 2, 3, 4, 5, 6, 7, 8)$$; }";
             var expected = @"public class C { var x = [|(|]1, 2, 3, 4, 5, 6, 7, 8); }";
 
-            await TestAsync(code, expected, TestOptions.Regular.WithTuplesFeature());
+            await TestAsync(code, expected, TestOptions.Regular);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
@@ -792,7 +788,7 @@ class Program
             var code = @"public class C { var x = $$((1, 1, 1), 2, 3, 4, 5, 6, 7, 8); }";
             var expected = @"public class C { var x = ((1, 1, 1), 2, 3, 4, 5, 6, 7, 8[|)|]; }";
 
-            await TestAsync(code, expected, TestOptions.Regular.WithTuplesFeature());
+            await TestAsync(code, expected, TestOptions.Regular);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
@@ -801,7 +797,7 @@ class Program
             var code = @"public class C { var x = ($$(1, 1, 1), 2, 3, 4, 5, 6, 7, 8); }";
             var expected = @"public class C { var x = ((1, 1, 1[|)|], 2, 3, 4, 5, 6, 7, 8); }";
 
-            await TestAsync(code, expected, TestOptions.Regular.WithTuplesFeature());
+            await TestAsync(code, expected, TestOptions.Regular);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
@@ -810,7 +806,7 @@ class Program
             var code = @"public class C { var x = (1, 2, 3, 4, 5, 6, 7, (8, 8, 8))$$; }";
             var expected = @"public class C { var x = [|(|]1, 2, 3, 4, 5, 6, 7, (8, 8, 8)); }";
 
-            await TestAsync(code, expected, TestOptions.Regular.WithTuplesFeature());
+            await TestAsync(code, expected, TestOptions.Regular);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
@@ -819,7 +815,7 @@ class Program
             var code = @"public class C { var x = ((1, 1, 1)$$, 2, 3, 4, 5, 6, 7, 8); }";
             var expected = @"public class C { var x = ([|(|]1, 1, 1), 2, 3, 4, 5, 6, 7, 8); }";
 
-            await TestAsync(code, expected, TestOptions.Regular.WithTuplesFeature());
+            await TestAsync(code, expected, TestOptions.Regular);
         }
     }
 }

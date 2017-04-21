@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        bool IDiagnosticUpdateSource.SupportGetDiagnostics { get { return true; } }
+        bool IDiagnosticUpdateSource.SupportGetDiagnostics => true;
 
         ImmutableArray<DiagnosticData> IDiagnosticUpdateSource.GetDiagnostics(Workspace workspace, ProjectId projectId, DocumentId documentId, object id, bool includeSuppressedDiagnostics, CancellationToken cancellationToken)
         {

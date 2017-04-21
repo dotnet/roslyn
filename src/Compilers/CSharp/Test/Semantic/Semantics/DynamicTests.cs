@@ -40,10 +40,10 @@ public unsafe class C
         [Fact]
         public void ConversionClassification()
         {
-            var c = CreateCompilationWithMscorlib("", new[] { CSharpRef, SystemCoreRef });
+            var c = CreateStandardCompilation("", new[] { CSharpRef, SystemCoreRef });
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            var dynamicToObject = c.Conversions.ClassifyConversion(DynamicTypeSymbol.Instance, c.GetSpecialType(SpecialType.System_Object), ref useSiteDiagnostics);
-            var objectToDynamic = c.Conversions.ClassifyConversion(c.GetSpecialType(SpecialType.System_Object), DynamicTypeSymbol.Instance, ref useSiteDiagnostics);
+            var dynamicToObject = c.Conversions.ClassifyConversionFromType(DynamicTypeSymbol.Instance, c.GetSpecialType(SpecialType.System_Object), ref useSiteDiagnostics);
+            var objectToDynamic = c.Conversions.ClassifyConversionFromType(c.GetSpecialType(SpecialType.System_Object), DynamicTypeSymbol.Instance, ref useSiteDiagnostics);
 
             Assert.Equal(ConversionKind.Identity, dynamicToObject.Kind);
             Assert.Equal(ConversionKind.Identity, objectToDynamic.Kind);
@@ -235,7 +235,7 @@ class C : B
     public override event Action<object> E { add { } remove { } }
 }
 ";
-            CreateCompilationWithMscorlib(source, new[] { CSharpRef, SystemCoreRef }).VerifyDiagnostics();
+            CreateStandardCompilation(source, new[] { CSharpRef, SystemCoreRef }).VerifyDiagnostics();
         }
 
         [Fact]
@@ -258,7 +258,7 @@ class B : A
     public void I(ref object a) { }
 }
 ";
-            CreateCompilationWithMscorlib(source, new[] { CSharpRef, SystemCoreRef }).VerifyDiagnostics(
+            CreateStandardCompilation(source, new[] { CSharpRef, SystemCoreRef }).VerifyDiagnostics(
                 // (13,17): warning CS0108: 'B.G(object)' hides inherited member 'A.G(dynamic)'. Use the new keyword if hiding was intended.
                 Diagnostic(ErrorCode.WRN_NewRequired, "G").WithArguments("B.G(object)", "A.G(dynamic)"),
                 // (14,17): warning CS0108: 'B.H(dynamic[])' hides inherited member 'A.H(params object[])'. Use the new keyword if hiding was intended.
@@ -588,7 +588,7 @@ class C
     }
 }
 ";
-            CreateCompilationWithMscorlib(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateStandardCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (9,30): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('dynamic')
                 Diagnostic(ErrorCode.ERR_ManagedAddr, "&d").WithArguments("dynamic"),
                 // (10,15): error CS0193: The * or -> operator must be applied to a pointer
@@ -1137,25 +1137,28 @@ public unsafe class C
 
     static void M()
     {
-        var x = s1 ? d1 : s2;  
-        var y = s1 ? d2 : M;  
-        var z = s1 ? M : d2;  
-        var v = s1 ? ptr : d2;  
-        var w = s1 ? d2 : ptr;  
+        var x = s1 ? d1 : s2; // ok
+        var y = s1 ? d2 : M;
+        var z = s1 ? M : d2;
+        var v = s1 ? ptr : d2;
+        var w = s1 ? d2 : ptr;
     }
 }
 ";
             CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (11,17): error CS0172: Type of conditional expression cannot be determined because 'dynamic[]' and 'object[]' implicitly convert to one another
-                Diagnostic(ErrorCode.ERR_AmbigQM, "s1 ? d1 : s2").WithArguments("dynamic[]", "object[]"),
-                // (12,17): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'dynamic' and 'method group'
-                Diagnostic(ErrorCode.ERR_InvalidQM, "s1 ? d2 : M").WithArguments("dynamic", "method group"),
-                // (13,17): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'method group' and 'dynamic'
-                Diagnostic(ErrorCode.ERR_InvalidQM, "s1 ? M : d2").WithArguments("method group", "dynamic"),
-                // (16,17): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'void*' and 'dynamic'
-                Diagnostic(ErrorCode.ERR_InvalidQM, "s1 ? ptr : d2").WithArguments("void*", "dynamic"),
+                // (13,17): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'dynamic' and 'method group'
+                //         var y = s1 ? d2 : M;
+                Diagnostic(ErrorCode.ERR_InvalidQM, "s1 ? d2 : M").WithArguments("dynamic", "method group").WithLocation(13, 17),
+                // (14,17): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'method group' and 'dynamic'
+                //         var z = s1 ? M : d2;
+                Diagnostic(ErrorCode.ERR_InvalidQM, "s1 ? M : d2").WithArguments("method group", "dynamic").WithLocation(14, 17),
+                // (15,17): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'void*' and 'dynamic'
+                //         var v = s1 ? ptr : d2;
+                Diagnostic(ErrorCode.ERR_InvalidQM, "s1 ? ptr : d2").WithArguments("void*", "dynamic").WithLocation(15, 17),
                 // (16,17): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'dynamic' and 'void*'
-                Diagnostic(ErrorCode.ERR_InvalidQM, "s1 ? d2 : ptr").WithArguments("dynamic", "void*"));
+                //         var w = s1 ? d2 : ptr;
+                Diagnostic(ErrorCode.ERR_InvalidQM, "s1 ? d2 : ptr").WithArguments("dynamic", "void*").WithLocation(16, 17)
+                );
         }
 
         #endregion
@@ -1180,7 +1183,7 @@ class C
     static void Main() {}
 }";
 
-            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.UnsafeReleaseDll);
+            var comp = CreateStandardCompilation(source, options: TestOptions.UnsafeReleaseDll);
             comp.VerifyDiagnostics(
                 // (8,23): error CS0307: The property 'N' cannot be used with type arguments
                 //         object x = d1.N<int>; 
@@ -3133,7 +3136,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics();
         }
 
@@ -3186,7 +3189,6 @@ class C
                                     //-thisReference: C
                                     //-fieldAccess: dynamic
                                     //-unaryOperator: bool
-                                    //-sequencePointExpression: bool
         {
         }
     }
@@ -3356,7 +3358,7 @@ class Program
     static T Foo<T>(Func<T, T> x) { throw null; }
 }
 ";
-            CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll.WithAllowUnsafe(true)).VerifyDiagnostics(
+            CreateStandardCompilation(source, options: TestOptions.DebugDll.WithAllowUnsafe(true)).VerifyDiagnostics(
     // (10,33): error CS0411: The type arguments for method 'Program.Foo<T>(Func<T, T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
     //         void* p = Pointer.Unbox(Foo(action));
     Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Foo").WithArguments("Program.Foo<T>(System.Func<T, T>)").WithLocation(10, 33)
@@ -3429,7 +3431,7 @@ class Test
 }
 ";
 
-            var compilation2 = CreateCompilationWithMscorlib(source2, new[] { reference.WithEmbedInteropTypes(true), CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseExe);
+            var compilation2 = CreateStandardCompilation(source2, new[] { reference.WithEmbedInteropTypes(true), CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseExe);
 
             CompileAndVerify(compilation2, expectedOutput: @"4");
         }
@@ -3452,7 +3454,7 @@ class Program
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source, new[] { CSharpRef, SystemCoreRef }, options: TestOptions.DebugDll);
+            var compilation = CreateStandardCompilation(source, new[] { CSharpRef, SystemCoreRef }, options: TestOptions.DebugDll);
             // crash happens during emit if not detected, so VerifyDiagnostics (no Emit) doesn't catch the crash.
             compilation.VerifyEmitDiagnostics(
                 // (7,25): error CS0154: The property or indexer 'Program.I.d' cannot be used in this context because it lacks the get accessor
@@ -3479,7 +3481,7 @@ class Program
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source, new[] { CSharpRef, SystemCoreRef }, options: TestOptions.DebugDll);
+            var compilation = CreateStandardCompilation(source, new[] { CSharpRef, SystemCoreRef }, options: TestOptions.DebugDll);
             compilation.VerifyEmitDiagnostics(
                 // (7,25): error CS0154: The property or indexer 'Program.I.this[string]' cannot be used in this context because it lacks the get accessor
                 //         System.Type t = i[null].GetType();
@@ -3639,7 +3641,7 @@ class Program
 }
 ";
 
-            MetadataReference reference = CompileIL(iLSource, appendDefaultHeader: false, embedInteropTypes: false);
+            MetadataReference reference = CompileIL(iLSource, prependDefaultHeader: false, embedInteropTypes: false);
 
             string consumer1 = @"
 using Microsoft.Office.Interop.Excel;
@@ -3656,7 +3658,7 @@ class Test
 }
 ";
 
-            var compilation1 = CreateCompilationWithMscorlib(consumer1, options: TestOptions.ReleaseExe,
+            var compilation1 = CreateStandardCompilation(consumer1, options: TestOptions.ReleaseExe,
                 references: new MetadataReference[] { reference, CSharpRef, SystemCoreRef });
 
             compilation1.VerifyDiagnostics(
@@ -3679,7 +3681,7 @@ class Test
 }
 ";
 
-            var compilation2 = CreateCompilationWithMscorlib(consumer2, options: TestOptions.ReleaseExe,
+            var compilation2 = CreateStandardCompilation(consumer2, options: TestOptions.ReleaseExe,
                 references: new MetadataReference[] { reference, CSharpRef, SystemCoreRef });
 
             compilation2.VerifyDiagnostics(
@@ -3767,7 +3769,7 @@ class Test
 } // end of class WithIndexer
 ";
 
-            MetadataReference reference = CompileIL(iLSource, appendDefaultHeader: true, embedInteropTypes: false);
+            MetadataReference reference = CompileIL(iLSource, prependDefaultHeader: true, embedInteropTypes: false);
 
             string consumer1 = @"
 class Test
@@ -3780,7 +3782,7 @@ class Test
     }
 }";
 
-            var compilation1 = CreateCompilationWithMscorlib(consumer1, options: TestOptions.ReleaseExe,
+            var compilation1 = CreateStandardCompilation(consumer1, options: TestOptions.ReleaseExe,
                 references: new MetadataReference[] { reference, CSharpRef, SystemCoreRef });
 
             CompileAndVerify(compilation1, expectedOutput: "MIndexer").VerifyDiagnostics();
@@ -3796,7 +3798,7 @@ class Test
     }
 }";
 
-            var compilation2 = CreateCompilationWithMscorlib(consumer2, options: TestOptions.ReleaseExe,
+            var compilation2 = CreateStandardCompilation(consumer2, options: TestOptions.ReleaseExe,
                 references: new MetadataReference[] { reference, CSharpRef, SystemCoreRef });
 
             compilation2.VerifyDiagnostics(

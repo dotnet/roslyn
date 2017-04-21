@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Interop;
 
@@ -14,19 +15,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Colle
         public CodeElementSnapshot(ICodeElements codeElements)
         {
             var count = codeElements.Count;
-            var elementsBuilder = ImmutableArray.CreateBuilder<EnvDTE.CodeElement>(count);
+            var elementsBuilder = ArrayBuilder<EnvDTE.CodeElement>.GetInstance(count);
 
             for (int i = 0; i < count; i++)
             {
                 // We use "i + 1" since CodeModel indices are 1-based
-                EnvDTE.CodeElement element;
-                if (ErrorHandler.Succeeded(codeElements.Item(i + 1, out element)))
+                if (ErrorHandler.Succeeded(codeElements.Item(i + 1, out var element)))
                 {
                     elementsBuilder.Add(element);
                 }
             }
 
-            _elements = elementsBuilder.ToImmutable();
+            _elements = elementsBuilder.ToImmutableAndFree();
         }
 
         public CodeElementSnapshot(ImmutableArray<EnvDTE.CodeElement> elements)

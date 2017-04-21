@@ -5,6 +5,7 @@ using System.IO;
 using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Host
@@ -21,6 +22,13 @@ namespace Microsoft.CodeAnalysis.Host
         public SourceText CreateText(TextReader reader, Encoding encoding, CancellationToken cancellationToken = default(CancellationToken))
         {
             cancellationToken.ThrowIfCancellationRequested();
+
+            var textReaderWithLength = reader as TextReaderWithLength;
+            if (textReaderWithLength != null)
+            {
+                return SourceText.From(textReaderWithLength, textReaderWithLength.Length, encoding);
+            }
+
             return SourceText.From(reader.ReadToEnd(), encoding);
         }
     }

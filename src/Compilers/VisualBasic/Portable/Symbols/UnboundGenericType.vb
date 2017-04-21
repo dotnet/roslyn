@@ -109,11 +109,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend MustOverride Overrides ReadOnly Property TypeArgumentsNoUseSiteDiagnostics As ImmutableArray(Of TypeSymbol)
 
-        Friend NotOverridable Overrides ReadOnly Property TypeArgumentsCustomModifiers As ImmutableArray(Of ImmutableArray(Of CustomModifier))
-            Get
-                Return CreateEmptyTypeArgumentsCustomModifiers()
-            End Get
-        End Property
+        Public NotOverridable Overrides Function GetTypeArgumentCustomModifiers(ordinal As Integer) As ImmutableArray(Of CustomModifier)
+            Return GetEmptyTypeArgumentCustomModifiers(ordinal)
+        End Function
 
         Friend NotOverridable Overrides ReadOnly Property HasTypeArgumentsCustomModifiers As Boolean
             Get
@@ -315,6 +313,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend NotOverridable Overrides Function GetFieldsToEmit() As IEnumerable(Of FieldSymbol)
             Throw ExceptionUtilities.Unreachable
+        End Function
+
+        Friend NotOverridable Overrides Function GetSynthesizedWithEventsOverrides() As IEnumerable(Of PropertySymbol)
+            Return SpecializedCollections.EmptyEnumerable(Of PropertySymbol)()
         End Function
 
         Private NotInheritable Class ConstructedSymbol

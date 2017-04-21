@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Diagnostics.EngineV2;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -52,18 +53,18 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                     _lazyDiagnosticAnalyzerService = new Lazy<IDiagnosticAnalyzerService>(() => GetDiagnosticAnalyzerService(analyzerProviders));
 
-                    // create active file analyzers right away
-                    var activeFileAnalyzers = GetActiveFileIncrementalAnalyzers(_registration, analyzerProviders);
+                    var analyzersGetter = new AnalyzersGetter(analyzerProviders);
 
-                    // create non active file analyzers lazily.
-                    var lazyAllAnalyzers = new Lazy<ImmutableArray<IIncrementalAnalyzer>>(() => GetIncrementalAnalyzers(_registration, analyzerProviders));
+                    // create analyzers lazily.
+                    var lazyActiveFileAnalyzers = new Lazy<ImmutableArray<IIncrementalAnalyzer>>(() => GetIncrementalAnalyzers(_registration, analyzersGetter, onlyHighPriorityAnalyzer: true));
+                    var lazyAllAnalyzers = new Lazy<ImmutableArray<IIncrementalAnalyzer>>(() => GetIncrementalAnalyzers(_registration, analyzersGetter, onlyHighPriorityAnalyzer: false));
 
                     // event and worker queues
                     _documentTracker = _registration.GetService<IDocumentTrackingService>();
 
                     var globalNotificationService = _registration.GetService<IGlobalOperationNotificationService>();
 
-                    _highPriorityProcessor = new HighPriorityProcessor(listener, this, activeFileAnalyzers, highBackOffTimeSpanInMs, shutdownToken);
+                    _highPriorityProcessor = new HighPriorityProcessor(listener, this, lazyActiveFileAnalyzers, highBackOffTimeSpanInMs, shutdownToken);
                     _normalPriorityProcessor = new NormalPriorityProcessor(listener, this, lazyAllAnalyzers, globalNotificationService, normalBackOffTimeSpanInMs, shutdownToken);
                     _lowPriorityProcessor = new LowPriorityProcessor(listener, this, lazyAllAnalyzers, globalNotificationService, lowBackOffTimeSpanInMs, shutdownToken);
                 }
@@ -75,31 +76,12 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     return (IDiagnosticAnalyzerService)analyzerProviders.Where(p => p.Value is IDiagnosticAnalyzerService).SingleOrDefault()?.Value;
                 }
 
-                private static ImmutableArray<IIncrementalAnalyzer> GetActiveFileIncrementalAnalyzers(
-                    Registration registration, IEnumerable<Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>> providers)
+                private ImmutableArray<IIncrementalAnalyzer> GetIncrementalAnalyzers(Registration registration, AnalyzersGetter analyzersGetter, bool onlyHighPriorityAnalyzer)
                 {
-                    var orderedAnalyzers = GetOrderedAnalyzers(registration, providers.Where(p => p.Metadata.HighPriorityForActiveFile));
+                    var orderedAnalyzers = analyzersGetter.GetOrderedAnalyzers(registration.Workspace, onlyHighPriorityAnalyzer);
 
-                    SolutionCrawlerLogger.LogActiveFileAnalyzers(registration.CorrelationId, registration.Workspace, orderedAnalyzers);
+                    SolutionCrawlerLogger.LogAnalyzers(registration.CorrelationId, registration.Workspace, orderedAnalyzers, onlyHighPriorityAnalyzer);
                     return orderedAnalyzers;
-                }
-
-                private static ImmutableArray<IIncrementalAnalyzer> GetIncrementalAnalyzers(
-                    Registration registration, IEnumerable<Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>> providers)
-                {
-                    var orderedAnalyzers = GetOrderedAnalyzers(registration, providers);
-
-                    SolutionCrawlerLogger.LogAnalyzers(registration.CorrelationId, registration.Workspace, orderedAnalyzers);
-                    return orderedAnalyzers;
-                }
-
-                private static ImmutableArray<IIncrementalAnalyzer> GetOrderedAnalyzers(
-                    Registration registration, IEnumerable<Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>> providers)
-                {
-                    // Sort list so BaseDiagnosticIncrementalAnalyzers (if any) come first.  OrderBy orders 'false' keys before 'true'.
-                    return providers.Select(p => p.Value.CreateIncrementalAnalyzer(registration.Workspace))
-                                    .OrderBy(a => !(a is BaseDiagnosticIncrementalAnalyzer))
-                                    .ToImmutableArray();
                 }
 
                 public void Enqueue(WorkItem item)
@@ -111,23 +93,22 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     _lowPriorityProcessor.Enqueue(item);
                 }
 
+                public void AddAnalyzer(IIncrementalAnalyzer analyzer, bool highPriorityForActiveFile)
+                {
+                    if (highPriorityForActiveFile)
+                    {
+                        _highPriorityProcessor.AddAnalyzer(analyzer);
+                    }
+
+                    _normalPriorityProcessor.AddAnalyzer(analyzer);
+                    _lowPriorityProcessor.AddAnalyzer(analyzer);
+                }
+
                 public void Shutdown()
                 {
                     _highPriorityProcessor.Shutdown();
                     _normalPriorityProcessor.Shutdown();
                     _lowPriorityProcessor.Shutdown();
-                }
-
-                // TODO: delete this once prototyping is done
-                public void ChangeDiagnosticsEngine(bool useV2Engine)
-                {
-                    var diagnosticAnalyzer = Analyzers.FirstOrDefault(a => a is BaseDiagnosticIncrementalAnalyzer) as DiagnosticAnalyzerService.IncrementalAnalyzerDelegatee;
-                    if (diagnosticAnalyzer == null)
-                    {
-                        return;
-                    }
-
-                    diagnosticAnalyzer.TurnOff(useV2Engine);
                 }
 
                 public ImmutableArray<IIncrementalAnalyzer> Analyzers => _normalPriorityProcessor.Analyzers;
@@ -194,6 +175,11 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         }
 
                         var local = analyzer;
+                        if (local == null)
+                        {
+                            return;
+                        }
+
                         await GetOrDefaultAsync(value, async (v, c) =>
                         {
                             await runnerAsync(local, v, c).ConfigureAwait(false);
@@ -264,8 +250,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         return null;
                     }
 
-                    SyntaxNode memberNode;
-                    if (!memberPath.TryResolve(root, out memberNode))
+                    if (!memberPath.TryResolve(root, out SyntaxNode memberNode))
                     {
                         return null;
                     }
@@ -319,6 +304,44 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     public static readonly IDisposable Instance = new NullDisposable();
 
                     public void Dispose() { }
+                }
+
+                private class AnalyzersGetter
+                {
+                    private readonly List<Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>> _analyzerProviders;
+                    private readonly Dictionary<Workspace, ImmutableArray<ValueTuple<IIncrementalAnalyzer, bool>>> _analyzerMap;
+
+                    public AnalyzersGetter(IEnumerable<Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>> analyzerProviders)
+                    {
+                        _analyzerMap = new Dictionary<Workspace, ImmutableArray<ValueTuple<IIncrementalAnalyzer, bool>>>();
+                        _analyzerProviders = analyzerProviders.ToList();
+                    }
+
+                    public ImmutableArray<IIncrementalAnalyzer> GetOrderedAnalyzers(Workspace workspace, bool onlyHighPriorityAnalyzer)
+                    {
+                        lock (_analyzerMap)
+                        {
+                            if (!_analyzerMap.TryGetValue(workspace, out var analyzers))
+                            {
+                                // Sort list so DiagnosticIncrementalAnalyzers (if any) come first.  OrderBy orders 'false' keys before 'true'.
+                                analyzers = _analyzerProviders.Select(p => ValueTuple.Create(p.Value.CreateIncrementalAnalyzer(workspace), p.Metadata.HighPriorityForActiveFile))
+                                                .Where(t => t.Item1 != null)
+                                                .OrderBy(t => !(t.Item1 is DiagnosticIncrementalAnalyzer))
+                                                .ToImmutableArray();
+
+                                _analyzerMap[workspace] = analyzers;
+                            }
+
+                            if (onlyHighPriorityAnalyzer)
+                            {
+                                // include only high priority analyzer for active file
+                                return analyzers.Where(t => t.Item2).Select(t => t.Item1).ToImmutableArray();
+                            }
+
+                            // return all analyzers
+                            return analyzers.Select(t => t.Item1).ToImmutableArray();
+                        }
+                    }
                 }
             }
         }

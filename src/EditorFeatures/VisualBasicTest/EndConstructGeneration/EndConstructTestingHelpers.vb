@@ -7,7 +7,6 @@ Imports Microsoft.CodeAnalysis.Editor.Shared.Options
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
-Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.VisualStudio.Composition
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Editor
@@ -41,14 +40,14 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
             workspace.Options = workspace.Options.WithChangedOption(FeatureOnOffOptions.PrettyListing, LanguageNames.VisualBasic, False)
         End Sub
 
-        Private Async Function VerifyTypedCharAppliedAsync(doFunc As Func(Of VisualBasicEndConstructService, ITextView, ITextBuffer, Boolean),
+        Private Sub VerifyTypedCharApplied(doFunc As Func(Of VisualBasicEndConstructService, ITextView, ITextBuffer, Boolean),
                                            before As String,
                                            after As String,
                                            typedChar As Char,
-                                           endCaretPos As Integer()) As Tasks.Task
+                                           endCaretPos As Integer())
             Dim caretPos = before.IndexOf("$$", StringComparison.Ordinal)
             Dim beforeText = before.Replace("$$", "")
-            Using workspace = Await TestWorkspace.CreateVisualBasicAsync(beforeText, exportProvider:=DisabledLineCommitExportProvider)
+            Using workspace = TestWorkspace.CreateVisualBasic(beforeText, exportProvider:=DisabledLineCommitExportProvider)
                 DisableLineCommit(workspace)
 
                 Dim view = workspace.Documents.First().GetTextView()
@@ -70,14 +69,14 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
                 Assert.Equal(endCaretPos(0), actualLine)
                 Assert.Equal(endCaretPos(1), actualCol)
             End Using
-        End Function
+        End Sub
 
-        Private Async Function VerifyAppliedAsync(doFunc As Func(Of VisualBasicEndConstructService, ITextView, ITextBuffer, Boolean),
+        Private Sub VerifyApplied(doFunc As Func(Of VisualBasicEndConstructService, ITextView, ITextBuffer, Boolean),
                                   before As String,
                                   beforeCaret As Integer(),
                                   after As String,
-                                  afterCaret As Integer()) As Tasks.Task
-            Using workspace = Await TestWorkspace.CreateVisualBasicAsync(before, exportProvider:=DisabledLineCommitExportProvider)
+                                  afterCaret As Integer())
+            Using workspace = TestWorkspace.CreateVisualBasic(before, exportProvider:=DisabledLineCommitExportProvider)
                 DisableLineCommit(workspace)
 
                 Dim textView = workspace.Documents.First().GetTextView()
@@ -112,7 +111,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
 
                 Assert.Equal(Of Integer)(afterCaretPoint, textView.GetCaretPoint(subjectBuffer).Value.Position)
             End Using
-        End Function
+        End Sub
 
         Private Function GetSnapshotPointFromArray(view As ITextView, caret As Integer(), startIndex As Integer) As SnapshotPoint
             Dim line = view.TextSnapshot.GetLineFromLineNumber(caret(startIndex))
@@ -124,10 +123,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
             End If
         End Function
 
-        Private Async Function VerifyNotAppliedAsync(doFunc As Func(Of VisualBasicEndConstructService, ITextView, ITextBuffer, Boolean),
+        Private Sub VerifyNotApplied(doFunc As Func(Of VisualBasicEndConstructService, ITextView, ITextBuffer, Boolean),
                                      text As String,
-                                     caret As Integer()) As Tasks.Task
-            Using workspace = Await TestWorkspace.CreateVisualBasicAsync(text)
+                                     caret As Integer())
+            Using workspace = TestWorkspace.CreateVisualBasic(text)
                 Dim textView = workspace.Documents.First().GetTextView()
                 Dim subjectBuffer = workspace.Documents.First().GetTextBuffer()
 
@@ -155,72 +154,72 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
                 ' The caret should not have moved
                 Assert.Equal(Of Integer)(caretPosition, textView.GetCaretPoint(subjectBuffer).Value.Position)
             End Using
-        End Function
+        End Sub
 
-        Public Function VerifyStatementEndConstructAppliedAsync(before As String, beforeCaret As Integer(), after As String, afterCaret As Integer()) As Tasks.Task
-            Return VerifyAppliedAsync(Function(s, v, b) s.TryDoEndConstructForEnterKey(v, b, CancellationToken.None), before, beforeCaret, after, afterCaret)
-        End Function
+        Public Sub VerifyStatementEndConstructApplied(before As String, beforeCaret As Integer(), after As String, afterCaret As Integer())
+            VerifyApplied(Function(s, v, b) s.TryDoEndConstructForEnterKey(v, b, CancellationToken.None), before, beforeCaret, after, afterCaret)
+        End Sub
 
-        Public Async Function VerifyStatementEndConstructNotAppliedAsync(text As String, caret As Integer()) As Tasks.Task
-            Await VerifyNotAppliedAsync(Function(s, v, b) s.TryDoEndConstructForEnterKey(v, b, CancellationToken.None), text, caret)
-        End Function
+        Public Sub VerifyStatementEndConstructNotApplied(text As String, caret As Integer())
+            VerifyNotApplied(Function(s, v, b) s.TryDoEndConstructForEnterKey(v, b, CancellationToken.None), text, caret)
+        End Sub
 
-        Public Function VerifyXmlElementEndConstructAppliedAsync(before As String, beforeCaret As Integer(), after As String, afterCaret As Integer()) As Tasks.Task
-            Return VerifyAppliedAsync(Function(s, v, b) s.TryDoXmlElementEndConstruct(v, b, Nothing), before, beforeCaret, after, afterCaret)
-        End Function
+        Public Sub VerifyXmlElementEndConstructApplied(before As String, beforeCaret As Integer(), after As String, afterCaret As Integer())
+            VerifyApplied(Function(s, v, b) s.TryDoXmlElementEndConstruct(v, b, Nothing), before, beforeCaret, after, afterCaret)
+        End Sub
 
-        Public Async Function VerifyXmlElementEndConstructNotAppliedAsync(text As String, caret As Integer()) As Tasks.Task
-            Await VerifyNotAppliedAsync(Function(s, v, b) s.TryDoXmlElementEndConstruct(v, b, Nothing), text, caret)
-        End Function
+        Public Sub VerifyXmlElementEndConstructNotApplied(text As String, caret As Integer())
+            VerifyNotApplied(Function(s, v, b) s.TryDoXmlElementEndConstruct(v, b, Nothing), text, caret)
+        End Sub
 
-        Public Function VerifyXmlCommentEndConstructAppliedAsync(before As String, beforeCaret As Integer(), after As String, afterCaret As Integer()) As Tasks.Task
-            Return VerifyAppliedAsync(Function(s, v, b) s.TryDoXmlCommentEndConstruct(v, b, Nothing), before, beforeCaret, after, afterCaret)
-        End Function
+        Public Sub VerifyXmlCommentEndConstructApplied(before As String, beforeCaret As Integer(), after As String, afterCaret As Integer())
+            VerifyApplied(Function(s, v, b) s.TryDoXmlCommentEndConstruct(v, b, Nothing), before, beforeCaret, after, afterCaret)
+        End Sub
 
-        Public Async Function VerifyXmlCommentEndConstructNotAppliedAsync(text As String, caret As Integer()) As Tasks.Task
-            Await VerifyNotAppliedAsync(Function(s, v, b) s.TryDoXmlCommentEndConstruct(v, b, Nothing), text, caret)
-        End Function
+        Public Sub VerifyXmlCommentEndConstructNotApplied(text As String, caret As Integer())
+            VerifyNotApplied(Function(s, v, b) s.TryDoXmlCommentEndConstruct(v, b, Nothing), text, caret)
+        End Sub
 
-        Public Function VerifyXmlCDataEndConstructAppliedAsync(before As String, beforeCaret As Integer(), after As String, afterCaret As Integer()) As Tasks.Task
-            Return VerifyAppliedAsync(Function(s, v, b) s.TryDoXmlCDataEndConstruct(v, b, Nothing), before, beforeCaret, after, afterCaret)
-        End Function
+        Public Sub VerifyXmlCDataEndConstructApplied(before As String, beforeCaret As Integer(), after As String, afterCaret As Integer())
+            VerifyApplied(Function(s, v, b) s.TryDoXmlCDataEndConstruct(v, b, Nothing), before, beforeCaret, after, afterCaret)
+        End Sub
 
-        Public Async Function VerifyXmlCDataEndConstructNotAppliedAsync(text As String, caret As Integer()) As Tasks.Task
-            Await VerifyNotAppliedAsync(Function(s, v, b) s.TryDoXmlCDataEndConstruct(v, b, Nothing), text, caret)
-        End Function
+        Public Sub VerifyXmlCDataEndConstructNotApplied(text As String, caret As Integer())
+            VerifyNotApplied(Function(s, v, b) s.TryDoXmlCDataEndConstruct(v, b, Nothing), text, caret)
+        End Sub
 
-        Public Function VerifyXmlEmbeddedExpressionEndConstructAppliedAsync(before As String, beforeCaret As Integer(), after As String, afterCaret As Integer()) As Tasks.Task
-            Return VerifyAppliedAsync(Function(s, v, b) s.TryDoXmlEmbeddedExpressionEndConstruct(v, b, Nothing), before, beforeCaret, after, afterCaret)
-        End Function
+        Public Sub VerifyXmlEmbeddedExpressionEndConstructApplied(before As String, beforeCaret As Integer(), after As String, afterCaret As Integer())
+            VerifyApplied(Function(s, v, b) s.TryDoXmlEmbeddedExpressionEndConstruct(v, b, Nothing), before, beforeCaret, after, afterCaret)
+        End Sub
 
-        Public Async Function VerifyXmlEmbeddedExpressionEndConstructNotAppliedAsync(text As String, caret As Integer()) As Tasks.Task
-            Await VerifyNotAppliedAsync(Function(s, v, b) s.TryDoXmlEmbeddedExpressionEndConstruct(v, b, Nothing), text, caret)
-        End Function
+        Public Sub VerifyXmlEmbeddedExpressionEndConstructNotApplied(text As String, caret As Integer())
+            VerifyNotApplied(Function(s, v, b) s.TryDoXmlEmbeddedExpressionEndConstruct(v, b, Nothing), text, caret)
+        End Sub
 
-        Public Function VerifyXmlProcessingInstructionEndConstructAppliedAsync(before As String, beforeCaret As Integer(), after As String, afterCaret As Integer()) As Tasks.Task
-            Return VerifyAppliedAsync(Function(s, v, b) s.TryDoXmlProcessingInstructionEndConstruct(v, b, Nothing), before, beforeCaret, after, afterCaret)
-        End Function
+        Public Sub VerifyXmlProcessingInstructionEndConstructApplied(before As String, beforeCaret As Integer(), after As String, afterCaret As Integer())
+            VerifyApplied(Function(s, v, b) s.TryDoXmlProcessingInstructionEndConstruct(v, b, Nothing), before, beforeCaret, after, afterCaret)
+        End Sub
 
-        Public Async Function VerifyXmlProcessingInstructionNotAppliedAsync(text As String, caret As Integer()) As Tasks.Task
-            Await VerifyNotAppliedAsync(Function(s, v, b) s.TryDoXmlProcessingInstructionEndConstruct(v, b, Nothing), text, caret)
-        End Function
+        Public Sub VerifyXmlProcessingInstructionNotApplied(text As String, caret As Integer())
+            VerifyNotApplied(Function(s, v, b) s.TryDoXmlProcessingInstructionEndConstruct(v, b, Nothing), text, caret)
+        End Sub
 
-        Public Async Function VerifyEndConstructAppliedAfterCharAsync(before As String, after As String, typedChar As Char, endCaretPos As Integer()) As Tasks.Task
-            Await VerifyTypedCharAppliedAsync(Function(s, v, b) s.TryDo(v, b, typedChar, Nothing), before, after, typedChar, endCaretPos)
-        End Function
+        Public Sub VerifyEndConstructAppliedAfterChar(before As String, after As String, typedChar As Char, endCaretPos As Integer())
+            VerifyTypedCharApplied(Function(s, v, b) s.TryDo(v, b, typedChar, Nothing), before, after, typedChar, endCaretPos)
+        End Sub
 
-        Public Async Function VerifyEndConstructNotAppliedAfterCharAsync(before As String, after As String, typedChar As Char, endCaretPos As Integer()) As Tasks.Task
-            Await VerifyTypedCharAppliedAsync(Function(s, v, b) Not s.TryDo(v, b, typedChar, Nothing), before, after, typedChar, endCaretPos)
-        End Function
+        Public Sub VerifyEndConstructNotAppliedAfterChar(before As String, after As String, typedChar As Char, endCaretPos As Integer())
+            VerifyTypedCharApplied(Function(s, v, b) Not s.TryDo(v, b, typedChar, Nothing), before, after, typedChar, endCaretPos)
+        End Sub
 
-        Public Async Function VerifyAppliedAfterReturnUsingCommandHandlerAsync(
+        Public Sub VerifyAppliedAfterReturnUsingCommandHandler(
             before As String,
             beforeCaret As Integer(),
             after As String,
-            afterCaret As Integer()) As Tasks.Task
+            afterCaret As Integer())
 
             ' create separate composition
-            Using workspace = Await TestWorkspace.CreateVisualBasicAsync(before, exportProvider:=DisabledLineCommitExportProvider)
+            Using workspace = TestWorkspace.CreateVisualBasic(before, exportProvider:=DisabledLineCommitExportProvider)
                 DisableLineCommit(workspace)
 
                 Dim view = workspace.Documents.First().GetTextView()
@@ -252,6 +251,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
                 Dim caretPosition = view.Caret.Position.VirtualBufferPosition
                 Assert.Equal(Of Integer)(afterCaretPoint, If(caretPosition.IsInVirtualSpace, caretPosition.Position + caretPosition.VirtualSpaces, caretPosition.Position))
             End Using
-        End Function
+        End Sub
     End Module
 End Namespace

@@ -30,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.IncorrectExitContinue
 
             Public Overrides ReadOnly Property Title As String
                 Get
-                    Return String.Format(VBFeaturesResources.Insert, SyntaxFacts.GetText(BlockKindToKeywordKind(_createBlockKind)))
+                    Return String.Format(VBFeaturesResources.Insert_0, SyntaxFacts.GetText(BlockKindToKeywordKind(_createBlockKind)))
                 End Get
             End Property
 

@@ -35,14 +35,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
             // break the cycle and the resulting order will end up being unpredictable.
             var actualOrder = ExtensionOrderer.Order(csharpProviders).ToArray();
             Assert.True(actualOrder.Length > 0);
-            Assert.True(actualOrder.IndexOf(p => p.Metadata.Name == PredefinedCodeFixProviderNames.AddUsingOrImport) <
+            Assert.True(actualOrder.IndexOf(p => p.Metadata.Name == PredefinedCodeFixProviderNames.AddImport) <
                 actualOrder.IndexOf(p => p.Metadata.Name == PredefinedCodeFixProviderNames.RenameTracking));
 
             var vbProviders = providersPerLanguage[LanguageNames.VisualBasic];
             ExtensionOrderer.CheckForCycles(vbProviders);
             actualOrder = ExtensionOrderer.Order(vbProviders).ToArray();
             Assert.True(actualOrder.Length > 0);
-            Assert.True(actualOrder.IndexOf(p => p.Metadata.Name == PredefinedCodeFixProviderNames.AddUsingOrImport) <
+            Assert.True(actualOrder.IndexOf(p => p.Metadata.Name == PredefinedCodeFixProviderNames.AddImport) <
                 actualOrder.IndexOf(p => p.Metadata.Name == PredefinedCodeFixProviderNames.RenameTracking));
         }
 

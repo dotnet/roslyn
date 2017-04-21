@@ -6,11 +6,14 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class ScriptParsingTests : ParsingTests
     {
+        public ScriptParsingTests(ITestOutputHelper output) : base(output) { }
+
         #region Helpers
 
         protected override SyntaxTree ParseTree(string text, CSharpParseOptions options)
@@ -1568,9 +1571,30 @@ new public bool this[int index] { get; }
                 new ErrorDescription { Code = 1001, Line = 1, Column = 13 },
                 new ErrorDescription { Code = 1003, Line = 1, Column = 13 },
                 new ErrorDescription { Code = 1003, Line = 1, Column = 17 },
-                new ErrorDescription { Code = 1551, Line = 1, Column = 17 },
                 new ErrorDescription { Code = 1514, Line = 1, Column = 17 },
                 new ErrorDescription { Code = 1513, Line = 1, Column = 17 });
+
+            CreateStandardCompilation(test).VerifyDiagnostics(
+                // (1,13): error CS1003: Syntax error, '[' expected
+                // string this ="";
+                Diagnostic(ErrorCode.ERR_SyntaxError, "=").WithArguments("[", "=").WithLocation(1, 13),
+                // (1,13): error CS1001: Identifier expected
+                // string this ="";
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "=").WithLocation(1, 13),
+                // (1,17): error CS1003: Syntax error, ']' expected
+                // string this ="";
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("]", "").WithLocation(1, 17),
+                // (1,17): error CS1514: { expected
+                // string this ="";
+                Diagnostic(ErrorCode.ERR_LbraceExpected, "").WithLocation(1, 17),
+                // (1,17): error CS1513: } expected
+                // string this ="";
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(1, 17),
+                // (1,8): error CS0548: '<invalid-global-code>.this': property or indexer must have at least one accessor
+                // string this ="";
+                Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "this").WithArguments("<invalid-global-code>.this").WithLocation(1, 8),
+                // error CS1551: Indexers must have at least one parameter
+                Diagnostic(ErrorCode.ERR_IndexerNeedsParam).WithLocation(1, 1));
         }
 
         #endregion
@@ -8299,7 +8323,6 @@ Console.Foo()
                 new ErrorDescription { Code = 1003, Line = 1, Column = 9 },
                 new ErrorDescription { Code = 1031, Line = 1, Column = 9 },
                 new ErrorDescription { Code = 1003, Line = 1, Column = 1 },
-                new ErrorDescription { Code = 1019, Line = 1, Column = 9 },
                 new ErrorDescription { Code = 1026, Line = 1, Column = 9 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_SemicolonExpected, Line = 1, Column = 9 });
         }
@@ -8312,7 +8335,6 @@ Console.Foo()
                 new ErrorDescription { Code = 1003, Line = 1, Column = 9 },
                 new ErrorDescription { Code = 1031, Line = 1, Column = 9 },
                 new ErrorDescription { Code = 1003, Line = 1, Column = 9 },
-                new ErrorDescription { Code = 1019, Line = 1, Column = 9 },
                 new ErrorDescription { Code = 1026, Line = 1, Column = 9 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_SemicolonExpected, Line = 1, Column = 9 });
         }
@@ -8325,7 +8347,6 @@ Console.Foo()
                 new ErrorDescription { Code = 1003, Line = 1, Column = 9 },
                 new ErrorDescription { Code = 1031, Line = 1, Column = 9 },
                 new ErrorDescription { Code = 1003, Line = 1, Column = 9 },
-                new ErrorDescription { Code = 1019, Line = 1, Column = 9 },
                 new ErrorDescription { Code = 1026, Line = 1, Column = 9 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_SemicolonExpected, Line = 1, Column = 9 });
         }

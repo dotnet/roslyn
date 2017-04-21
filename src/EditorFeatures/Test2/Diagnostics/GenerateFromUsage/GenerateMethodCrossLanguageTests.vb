@@ -479,7 +479,7 @@ end class
 Module Program
     Sub Main(args As String())
         Dim list = New List(Of String)
-        list.AddRange($$foo())
+        list.AddRange1($$foo())
     End Sub
 End Module
                 </Document>
@@ -493,7 +493,7 @@ using System.Threading.Tasks;
  
 public static class extensions
 {
-    public static void AddRange<T, U>(this List<T> list, MyStruct<U> items) where U : T
+    public static void AddRange1<T, U>(this List<T> list, MyStruct<U> items) where U : T
     {
     }
 }
@@ -511,7 +511,7 @@ public struct MyStruct<T>
 Module Program
     Sub Main(args As String())
         Dim list = New List(Of String)
-        list.AddRange(foo())
+        list.AddRange1(foo())
     End Sub
 
     Private Function foo() As MyStruct(Of String)
@@ -534,7 +534,7 @@ End Module]]>
 Module Program
     Sub Main(args As String())
         Dim list = New List(Of String)
-        list.AddRange($$foo())
+        list.AddRange1($$foo())
     End Sub
 End Module
                 </Document>
@@ -548,7 +548,7 @@ using System.Threading.Tasks;
 
 public static class extensions
 {
-    public static void AddRange<T, U>(this List<T> list, MyStruct<U> items) where U : AAA, BBB
+    public static void AddRange1<T, U>(this List<T> list, MyStruct<U> items) where U : AAA, BBB
     {
     }
 }
@@ -581,7 +581,7 @@ public class CCC : AAA, BBB
 Module Program
     Sub Main(args As String())
         Dim list = New List(Of String)
-        list.AddRange(foo())
+        list.AddRange1(foo())
     End Sub
 
     Private Function foo() As MyStruct(Of CCC)
@@ -604,7 +604,7 @@ End Module]]>
 Module Program
     Sub Main(args As String())
         Dim list = New List(Of String)
-        list.AddRange($$foo())
+        list.AddRange1($$foo())
     End Sub
 End Module
                 </Document>
@@ -618,7 +618,7 @@ using System.Threading.Tasks;
 
 public static class extensions
 {
-    public static void AddRange<T, U>(this List<T> list, MyStruct<U> items) where U : AAA, BBB
+    public static void AddRange1<T, U>(this List<T> list, MyStruct<U> items) where U : AAA, BBB
     {
     }
 }
@@ -651,7 +651,7 @@ public class CCC : AAA, BBB
 Module Program
     Sub Main(args As String())
         Dim list = New List(Of String)
-        list.AddRange(foo())
+        list.AddRange1(foo())
     End Sub
 
     Private Function foo() As MyStruct(Of CCC)
@@ -674,7 +674,7 @@ End Module]]>
 Module Program
     Sub Main(args As String())
         Dim list = New List(Of String)
-        list.AddRange($$foo())
+        list.AddRange1($$foo())
     End Sub
 End Module
                 </Document>
@@ -688,7 +688,7 @@ using System.Threading.Tasks;
 
 public static class extensions
 {
-    public static void AddRange<T, U>(this List<T> list, MyStruct<U> items) where U : interface1, interface2, interface3
+    public static void AddRange1<T, U>(this List<T> list, MyStruct<U> items) where U : interface1, interface2, interface3
     {
     }
 }
@@ -731,7 +731,7 @@ public class derived2 : interface3
 Module Program
     Sub Main(args As String())
         Dim list = New List(Of String)
-        list.AddRange(foo())
+        list.AddRange1(foo())
     End Sub
 
     Private Function foo() As MyStruct(Of Object)
@@ -842,7 +842,7 @@ End Module]]>
 Module Program
     Sub Main(args As String())
         Dim list = New List(Of String)
-        list.AddRange($$foo())
+        list.AddRange1($$foo())
     End Sub
 End Module
                 </Document>
@@ -856,7 +856,7 @@ using System.Threading.Tasks;
 
 public static class extensions
 {
-    public static void AddRange<T, U>(this List<T> list, MyStruct<U> items) where U : interface1, interface2, interface3
+    public static void AddRange1<T, U>(this List<T> list, MyStruct<U> items) where U : interface1, interface2, interface3
     {
     }
 }
@@ -904,7 +904,7 @@ public class derived3 : derived1, interface3
 Module Program
     Sub Main(args As String())
         Dim list = New List(Of String)
-        list.AddRange(foo())
+        list.AddRange1(foo())
     End Sub
 
     Private Function foo() As MyStruct(Of derived3)
@@ -927,7 +927,7 @@ End Module]]>
 Module Program
     Sub Main(args As String())
         Dim list = New List(Of String)
-        list.AddRange($$foo())
+        list.AddRange1($$foo())
     End Sub
 End Module
                 </Document>
@@ -941,7 +941,7 @@ using System.Threading.Tasks;
 
 public static class extensions
 {
-    public static void AddRange<T, U>(this List<T> list, MyStruct<U> items) where U : interface1, interface2, interface3
+    public static void AddRange1<T, U>(this List<T> list, MyStruct<U> items) where U : interface1, interface2, interface3
     {
     }
 }
@@ -996,7 +996,7 @@ public class outer
 Module Program
     Sub Main(args As String())
         Dim list = New List(Of String)
-        list.AddRange(foo())
+        list.AddRange1(foo())
     End Sub
 
     Private Function foo() As MyStruct(Of outer.inner.derived3)
@@ -1018,7 +1018,7 @@ End Module]]>
                 <Document>Module Program
     Sub Main(args As String())
         Dim list = New List(Of String)
-        list.AddRange($$foo())
+        list.AddRange1($$foo())
     End Sub
 End Module</Document>
             </Project>
@@ -1031,7 +1031,7 @@ using System.Threading.Tasks;
 
 public static class extensions
 {
-    public static void AddRange<T, U>(this List<T> list, MyStruct<U> items) where U : Base1<AAA>, inter1
+    public static void AddRange1<T, U>(this List<T> list, MyStruct<U> items) where U : Base1<AAA>, inter1
     {
     }
 }
@@ -1069,7 +1069,7 @@ public class FinalType<T> : Base1<T>, inter1 where T : AAA
 Module Program
     Sub Main(args As String())
         Dim list = New List(Of String)
-        list.AddRange(foo())
+        list.AddRange1(foo())
     End Sub
 
     Private Function foo() As MyStruct(Of FinalType(Of AAA))

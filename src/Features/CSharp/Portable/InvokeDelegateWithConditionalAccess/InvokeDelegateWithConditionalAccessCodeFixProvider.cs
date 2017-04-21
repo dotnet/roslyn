@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Immutable;
@@ -14,49 +14,63 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(InvokeDelegateWithConditionalAccessCodeFixProvider)), Shared]
-    internal class InvokeDelegateWithConditionalAccessCodeFixProvider : CodeFixProvider
+    internal partial class InvokeDelegateWithConditionalAccessCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
         public override ImmutableArray<string> FixableDiagnosticIds { get; } = ImmutableArray.Create(IDEDiagnosticIds.InvokeDelegateWithConditionalAccessId);
 
-        public override FixAllProvider GetFixAllProvider() => BatchFixAllProvider.Instance;
+        // Filter out the diagnostics we created for the faded out code.  We don't want
+        // to try to fix those as well as the normal diagnostics we created.
+        protected override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic)
+            => !diagnostic.Descriptor.CustomTags.Contains(WellKnownDiagnosticTags.Unnecessary);
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             context.RegisterCodeFix(new MyCodeAction(
-                CSharpFeaturesResources.DelegateInvocationCanBeSimplified,
-                c => UpdateDocumentAsync(context.Document, context.Diagnostics.First(), c),
-               equivalenceKey: nameof(InvokeDelegateWithConditionalAccessCodeFixProvider)),
+                c => FixAsync(context.Document, context.Diagnostics.First(), c)),
                context.Diagnostics);
-            return Task.FromResult(false);
+            return SpecializedTasks.EmptyTask;
         }
 
-        private async Task<Document> UpdateDocumentAsync(
-            Document document, Diagnostic diagnostic, CancellationToken cancellationToken)
+        protected override Task FixAllAsync(
+            Document document, ImmutableArray<Diagnostic> diagnostics, 
+            SyntaxEditor editor, CancellationToken cancellationToken)
         {
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            foreach (var diagnostic in diagnostics)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                AddEdits(editor, diagnostic, cancellationToken);
+            }
 
+            return SpecializedTasks.EmptyTask;
+        }
+
+        private void AddEdits(
+            SyntaxEditor editor, Diagnostic diagnostic, CancellationToken cancellationToken)
+        {
             if (diagnostic.Properties[Constants.Kind] == Constants.VariableAndIfStatementForm)
             {
-                return HandVariableAndIfStatementFormAsync(document, root, diagnostic, cancellationToken);
+                HandleVariableAndIfStatementForm(editor, diagnostic, cancellationToken);
             }
             else
             {
                 Debug.Assert(diagnostic.Properties[Constants.Kind] == Constants.SingleIfStatementForm);
-                return HandleSingleIfStatementForm(document, root, diagnostic, cancellationToken);
+                HandleSingleIfStatementForm(editor, diagnostic, cancellationToken);
             }
         }
 
-        private Document HandleSingleIfStatementForm(
-            Document document,
-            SyntaxNode root,
+        private void HandleSingleIfStatementForm(
+            SyntaxEditor editor,
             Diagnostic diagnostic,
             CancellationToken cancellationToken)
         {
+            var root = editor.OriginalRoot;
+
             var ifStatementLocation = diagnostic.AdditionalLocations[0];
             var expressionStatementLocation = diagnostic.AdditionalLocations[1];
 
@@ -84,13 +98,14 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
             newStatement = newStatement.WithAdditionalAnnotations(Formatter.Annotation);
             cancellationToken.ThrowIfCancellationRequested();
 
-            var newRoot = root.ReplaceNode(ifStatement, newStatement);
-            return document.WithSyntaxRoot(newRoot);
+            editor.ReplaceNode(ifStatement, newStatement);
         }
 
-        private static Document HandVariableAndIfStatementFormAsync(
-            Document document, SyntaxNode root, Diagnostic diagnostic, CancellationToken cancellationToken)
+        private static void HandleVariableAndIfStatementForm(
+            SyntaxEditor editor, Diagnostic diagnostic, CancellationToken cancellationToken)
         {
+            var root = editor.OriginalRoot;
+
             var localDeclarationLocation = diagnostic.AdditionalLocations[0];
             var ifStatementLocation = diagnostic.AdditionalLocations[1];
             var expressionStatementLocation = diagnostic.AdditionalLocations[2];
@@ -115,19 +130,15 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
 
             newStatement = newStatement.WithAdditionalAnnotations(Formatter.Annotation);
 
-            var editor = new SyntaxEditor(root, document.Project.Solution.Workspace);
             editor.ReplaceNode(ifStatement, newStatement);
             editor.RemoveNode(localDeclarationStatement, SyntaxRemoveOptions.KeepLeadingTrivia | SyntaxRemoveOptions.AddElasticMarker);
             cancellationToken.ThrowIfCancellationRequested();
-
-            var newRoot = editor.GetChangedRoot();
-            return document.WithSyntaxRoot(newRoot);
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument, string equivalenceKey)
-                : base(title, createChangedDocument, equivalenceKey)
+            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
+                : base(CSharpFeaturesResources.Delegate_invocation_can_be_simplified, createChangedDocument)
             {
             }
         }

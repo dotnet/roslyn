@@ -3,6 +3,7 @@
 Imports System.Collections.ObjectModel
 Imports System.Text
 Imports Microsoft.CodeAnalysis.Collections
+Imports Microsoft.CodeAnalysis.ExpressionEvaluator
 Imports Microsoft.VisualStudio.Debugger.Clr
 Imports Roslyn.Utilities
 Imports Type = Microsoft.VisualStudio.Debugger.Metadata.Type
@@ -20,8 +21,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
         Private Sub AppendEnumTypeAndName(builder As StringBuilder, typeToDisplayOpt As Type, name As String)
             If typeToDisplayOpt IsNot Nothing Then
-                Dim index As Integer = 0
-                AppendQualifiedTypeName(builder, typeToDisplayOpt, Nothing, index, escapeKeywordIdentifiers:=True, sawInvalidIdentifier:=Nothing)
+                Dim index1 As Integer = 0
+                Dim index2 As Integer = 0
+                AppendQualifiedTypeName(
+                    builder,
+                    typeToDisplayOpt,
+                    Nothing,
+                    index1,
+                    Nothing,
+                    index2,
+                    escapeKeywordIdentifiers:=True,
+                    sawInvalidIdentifier:=Nothing)
                 builder.Append("."c)
             End If
 
@@ -55,40 +65,37 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             Return pooled.ToStringAndFree()
         End Function
 
-        Friend Overrides Function GetArrayIndexExpression(indices() As Integer) As String
-            Debug.Assert(indices IsNot Nothing)
-
-            Dim pooled = PooledStringBuilder.GetInstance()
-            Dim builder = pooled.Builder
-
-            builder.Append("("c)
-            Dim any As Boolean = False
-            For Each index In indices
-                If any Then
-                    builder.Append(", ")
-                End If
-                builder.Append(index)
-                any = True
-            Next
-            builder.Append(")"c)
-
-            Return pooled.ToStringAndFree()
+        Friend Overrides Function GetArrayIndexExpression(indices() As String) As String
+            Return indices.ToCommaSeparatedString("("c, ")"c)
         End Function
 
-        Friend Overrides Function GetCastExpression(argument As String, type As String, parenthesizeArgument As Boolean, parenthesizeEntireExpression As Boolean) As String
+        Friend Overrides Function GetCastExpression(argument As String, type As String, options As DkmClrCastExpressionOptions) As String
             Debug.Assert(Not String.IsNullOrEmpty(argument))
             Debug.Assert(Not String.IsNullOrEmpty(type))
 
             Dim pooled = PooledStringBuilder.GetInstance()
             Dim builder = pooled.Builder
 
-            builder.Append("DirectCast(")
+            If (options And DkmClrCastExpressionOptions.ParenthesizeArgument) <> 0 Then
+                argument = $"({argument})"
+            End If
+
+            If (options And DkmClrCastExpressionOptions.ConditionalCast) <> 0 Then
+                builder.Append("TryCast(")
+            Else
+                builder.Append("DirectCast(")
+            End If
+
             builder.Append(argument)
             builder.Append(", ")
             builder.Append(type)
             builder.Append(")"c)
 
             Return pooled.ToStringAndFree()
+        End Function
+
+        Friend Overrides Function GetTupleExpression(values() As String) As String
+            Return values.ToCommaSeparatedString("("c, ")"c)
         End Function
 
         Friend Overrides Function GetNamesForFlagsEnumValue(fields As ArrayBuilder(Of EnumField), value As Object, underlyingValue As ULong, options As ObjectDisplayOptions, typeToDisplayOpt As Type) As String
@@ -138,7 +145,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             Return Nothing
         End Function
 
-        Friend Overrides Function GetObjectCreationExpression(type As String, arguments As String) As String
+        Friend Overrides Function GetObjectCreationExpression(type As String, arguments As String()) As String
             Debug.Assert(Not String.IsNullOrEmpty(type))
 
             Dim pooled = PooledStringBuilder.GetInstance()
@@ -147,7 +154,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             builder.Append("New ")
             builder.Append(type)
             builder.Append("("c)
-            builder.Append(arguments)
+            builder.AppendCommaSeparatedList(arguments)
             builder.Append(")"c)
 
             Return pooled.ToStringAndFree()

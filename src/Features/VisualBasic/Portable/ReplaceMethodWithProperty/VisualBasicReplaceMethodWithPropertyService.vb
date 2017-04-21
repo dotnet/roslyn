@@ -1,16 +1,13 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System
-Imports System.Collections.Generic
 Imports System.Composition
-Imports System.Linq
 Imports Microsoft.CodeAnalysis.CodeActions
-Imports Microsoft.CodeAnalysis.VisualBasic.Extensions
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.ReplaceMethodWithProperty
+Imports Microsoft.CodeAnalysis.Options
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithProperty
     <ExportLanguageService(GetType(IReplaceMethodWithPropertyService), LanguageNames.VisualBasic), [Shared]>
@@ -42,8 +39,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithP
                 Return Nothing
             End If
 
-            If position > containingMethod.ParameterList.Span.End Then
-                Return Nothing
+            ' Parameter lists in VB are optional and may not be provided.
+            If containingMethod.ParameterList Is Nothing Then
+                If position > containingMethod.Span.End Then
+                    Return Nothing
+                End If
+            Else
+                If position > containingMethod.ParameterList.Span.End Then
+                    Return Nothing
+                End If
             End If
 
             Return containingMethod
@@ -60,6 +64,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithP
         End Sub
 
         Public Sub ReplaceGetMethodWithProperty(
+            documentOptions As DocumentOptionSet,
+            parseOptions As ParseOptions,
             editor As SyntaxEditor,
             semanticModel As SemanticModel,
             getAndSetMethods As GetAndSetMethods,
@@ -173,7 +179,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithP
             Dim parentExpression = If(nameNode.IsRightSideOfDot(), DirectCast(nameNode.Parent, ExpressionSyntax), nameNode)
             Dim root = If(parentExpression.IsParentKind(SyntaxKind.InvocationExpression), parentExpression.Parent, parentExpression)
 
-            editor.ReplaceNode(root, parentExpression.ReplaceNode(nameNode, newName))
+            editor.ReplaceNode(
+                root,
+                Function(c As SyntaxNode, g As SyntaxGenerator)
+                    Dim currentRoot = DirectCast(c, ExpressionSyntax)
+                    Dim expression = If(currentRoot.IsKind(SyntaxKind.InvocationExpression),
+                                        DirectCast(currentRoot, InvocationExpressionSyntax).Expression,
+                                        currentRoot)
+                    Dim rightName = expression.GetRightmostName()
+                    Return expression.ReplaceNode(rightName, newName.WithTrailingTrivia(currentRoot.GetTrailingTrivia()))
+                End Function)
         End Sub
 
         Public Sub ReplaceSetReference(editor As SyntaxEditor, nameToken As SyntaxToken, propertyName As String, nameChanged As Boolean) Implements IReplaceMethodWithPropertyService.ReplaceSetReference
@@ -195,7 +210,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithP
                Not parentExpression.Parent.IsParentKind(SyntaxKind.ExpressionStatement) Then
 
                 ' Wasn't invoked.  Change the name, but report a conflict.
-                Dim annotation = ConflictAnnotation.Create(FeaturesResources.NonInvokedMethodCannotBeReplacedWithProperty)
+                Dim annotation = ConflictAnnotation.Create(FeaturesResources.Non_invoked_method_cannot_be_replaced_with_property)
                 editor.ReplaceNode(nameNode, Function(n, g) newName.WithIdentifier(newName.Identifier.WithAdditionalAnnotations(annotation)))
                 Return
             End If

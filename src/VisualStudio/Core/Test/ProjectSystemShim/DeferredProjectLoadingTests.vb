@@ -12,7 +12,7 @@ Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
     Public Class DeferredProjectLoadingTests
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.ProjectSystemShims)>
         Public Sub SimpleDeferredLoading()
             Using testEnvironment = New TestEnvironment(solutionIsFullyLoaded:=False)
@@ -27,13 +27,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
             End Using
         End Sub
 
-        <Fact, WorkItem(1094112, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1094112")>
+        <WpfFact, WorkItem(1094112, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1094112")>
         <Trait(Traits.Feature, Traits.Features.ProjectSystemShims)>
         Public Sub DoNotDeferLoadIfInNonBackgroundBatch()
             Using testEnvironment = New TestEnvironment(solutionIsFullyLoaded:=False)
-                testEnvironment.GetSolutionLoadEvents().OnBeforeLoadProjectBatch(fIsBackgroundIdleBatch:=False)
+                testEnvironment.ProjectTracker.OnBeforeLoadProjectBatch(fIsBackgroundIdleBatch:=False)
                 CreateVisualBasicProject(testEnvironment, "TestProject")
-                testEnvironment.GetSolutionLoadEvents().OnAfterLoadProjectBatch(fIsBackgroundIdleBatch:=False)
+                testEnvironment.ProjectTracker.OnAfterLoadProjectBatch(fIsBackgroundIdleBatch:=False)
 
                 ' We should have pushed this project to the workspace
                 Assert.Single(testEnvironment.Workspace.CurrentSolution.Projects)
@@ -45,15 +45,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
             End Using
         End Sub
 
-        <Fact, WorkItem(1094112, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1094112")>
+        <WpfFact, WorkItem(1094112, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1094112")>
         <Trait(Traits.Feature, Traits.Features.ProjectSystemShims)>
         Public Sub AddingProjectInBatchDoesntAddAllProjects()
             Using testEnvironment = New TestEnvironment(solutionIsFullyLoaded:=False)
                 CreateVisualBasicProject(testEnvironment, "TestProject1")
 
-                testEnvironment.GetSolutionLoadEvents().OnBeforeLoadProjectBatch(fIsBackgroundIdleBatch:=False)
+                testEnvironment.ProjectTracker.OnBeforeLoadProjectBatch(fIsBackgroundIdleBatch:=False)
                 CreateVisualBasicProject(testEnvironment, "TestProject2")
-                testEnvironment.GetSolutionLoadEvents().OnAfterLoadProjectBatch(fIsBackgroundIdleBatch:=False)
+                testEnvironment.ProjectTracker.OnAfterLoadProjectBatch(fIsBackgroundIdleBatch:=False)
 
                 ' We should have pushed the second project only
                 Assert.Equal("TestProject2", testEnvironment.Workspace.CurrentSolution.Projects.Single().Name)
@@ -65,33 +65,33 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
             End Using
         End Sub
 
-        <Fact, WorkItem(1094112, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1094112")>
+        <WpfFact, WorkItem(1094112, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1094112")>
         <Trait(Traits.Feature, Traits.Features.ProjectSystemShims)>
         Public Sub AddingProjectReferenceInBatchMayPushOtherProjects()
             Using testEnvironment = New TestEnvironment(solutionIsFullyLoaded:=False)
                 Dim project1 = CreateVisualBasicProject(testEnvironment, "TestProject1")
 
                 ' Include a project reference in this batch. This means that project1 must also be pushed
-                testEnvironment.GetSolutionLoadEvents().OnBeforeLoadProjectBatch(fIsBackgroundIdleBatch:=False)
+                testEnvironment.ProjectTracker.OnBeforeLoadProjectBatch(fIsBackgroundIdleBatch:=False)
                 Dim project2 = CreateVisualBasicProject(testEnvironment, "TestProject2")
                 project2.AddProjectReference(project1)
-                testEnvironment.GetSolutionLoadEvents().OnAfterLoadProjectBatch(fIsBackgroundIdleBatch:=False)
+                testEnvironment.ProjectTracker.OnAfterLoadProjectBatch(fIsBackgroundIdleBatch:=False)
 
                 ' We should have pushed both projects
                 Assert.Equal(2, testEnvironment.Workspace.CurrentSolution.Projects.Count())
             End Using
         End Sub
 
-        <Fact, WorkItem(1094112, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1094112")>
+        <WpfFact, WorkItem(1094112, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1094112")>
         <Trait(Traits.Feature, Traits.Features.ProjectSystemShims)>
         Public Sub AddingProjectReferenceAfterBatchMayPushOtherProjects()
             Using testEnvironment = New TestEnvironment(solutionIsFullyLoaded:=False)
                 Dim project1 = CreateVisualBasicProject(testEnvironment, "TestProject1")
 
                 ' Include a project reference in this batch. This means that project1 must also be pushed
-                testEnvironment.GetSolutionLoadEvents().OnBeforeLoadProjectBatch(fIsBackgroundIdleBatch:=False)
+                testEnvironment.ProjectTracker.OnBeforeLoadProjectBatch(fIsBackgroundIdleBatch:=False)
                 Dim project2 = CreateVisualBasicProject(testEnvironment, "TestProject2")
-                testEnvironment.GetSolutionLoadEvents().OnAfterLoadProjectBatch(fIsBackgroundIdleBatch:=False)
+                testEnvironment.ProjectTracker.OnAfterLoadProjectBatch(fIsBackgroundIdleBatch:=False)
 
                 ' We should have pushed the second project only
                 Assert.Equal("TestProject2", testEnvironment.Workspace.CurrentSolution.Projects.Single().Name)

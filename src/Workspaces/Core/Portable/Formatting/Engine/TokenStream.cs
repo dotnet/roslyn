@@ -3,9 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Threading;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -137,13 +135,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             }
         }
 
-        public int TokenCount
-        {
-            get
-            {
-                return _tokens.Count;
-            }
-        }
+        public int TokenCount => _tokens.Count;
 
         public SyntaxToken GetToken(int index)
         {
@@ -317,11 +309,8 @@ namespace Microsoft.CodeAnalysis.Formatting
 
                 // add spaces so far
                 spaces += triviaInfo.Spaces;
-
                 // here, we can't just add token's length since there is token that span multiple lines.
-                int tokenLength;
-                bool multipleLines;
-                GetTokenLength(previousToken.Token, out tokenLength, out multipleLines);
+                GetTokenLength(previousToken.Token, out var tokenLength, out var multipleLines);
 
                 if (multipleLines)
                 {
@@ -448,9 +437,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         public TriviaData GetTriviaDataAtBeginningOfTree()
         {
             Contract.ThrowIfFalse(this.FormatBeginningOfTree);
-
-            TriviaData data;
-            if (_changes.TryGet(Changes.BeginningOfTreeKey, out data))
+            if (_changes.TryGet(Changes.BeginningOfTreeKey, out var data))
             {
                 return data;
             }
@@ -462,9 +449,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         public TriviaData GetTriviaDataAtEndOfTree()
         {
             Contract.ThrowIfFalse(this.FormatEndOfTree);
-
-            TriviaData data;
-            if (_changes.TryGet(Changes.EndOfTreeKey, out data))
+            if (_changes.TryGet(Changes.EndOfTreeKey, out var data))
             {
                 return data;
             }
@@ -476,9 +461,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         public TriviaData GetTriviaData(int pairIndex)
         {
             Contract.ThrowIfFalse(0 <= pairIndex && pairIndex < this.TokenCount - 1);
-
-            TriviaData data;
-            if (_changes.TryGet(pairIndex, out data))
+            if (_changes.TryGet(pairIndex, out var data))
             {
                 return data;
             }
@@ -527,8 +510,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         private int GetTokenIndexInStream(SyntaxToken token)
         {
-            int value;
-            if (_tokenToIndexMap.TryGetValue(token, out value))
+            if (_tokenToIndexMap.TryGetValue(token, out var value))
             {
                 return value;
             }

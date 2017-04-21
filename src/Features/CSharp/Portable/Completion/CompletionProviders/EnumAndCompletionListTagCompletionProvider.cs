@@ -52,8 +52,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     return;
                 }
 
-                var token = tree.FindTokenOnLeftOfPosition(position, cancellationToken);
+                var token = tree.FindTokenOnLeftOfPosition(position, cancellationToken)
+                                .GetPreviousTokenIfTouchingWord(position);
+
                 if (token.IsMandatoryNamedParameterPosition())
+                {
+                    return;
+                }
+
+                // Don't show up within member access
+                // This previously worked because the type inferrer didn't work
+                // in member access expressions.
+                // The regular SymbolCompletionProvider will handle completion after .
+                if (token.IsKind(SyntaxKind.DotToken))
                 {
                     return;
                 }
@@ -103,14 +114,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 var workspace = document.Project.Solution.Workspace;
                 var text = await semanticModel.SyntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
-                var item = SymbolCompletionItem.Create(
+                var item = SymbolCompletionItem.CreateWithSymbolId(
                     displayText: displayText,
-                    insertionText: null,
-                    span: context.DefaultItemSpan,
-                    symbol: alias ?? type,
-                    descriptionPosition: position,
-                    preselect: true,
-                    rules: s_rules);
+                    symbols: ImmutableArray.Create(alias ?? type),
+                    rules: s_rules.WithMatchPriority(MatchPriority.Preselect),
+                    contextPosition: position);
 
                 context.AddItem(item);
             }
@@ -120,13 +128,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
         }
 
-        public override Task<CompletionDescription> GetDescriptionAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
-        {
-            return SymbolCompletionItem.GetDescriptionAsync(item, document, cancellationToken);
-        }
+        protected override Task<CompletionDescription> GetDescriptionWorkerAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
+            => SymbolCompletionItem.GetDescriptionAsync(item, document, cancellationToken);
 
         private static readonly CompletionItemRules s_rules =
-            CompletionItemRules.Default.WithCommitCharacterRules(ImmutableArray.Create(CharacterSetModificationRule.Create(CharacterSetModificationKind.Replace, '.')));
+            CompletionItemRules.Default.WithCommitCharacterRules(ImmutableArray.Create(CharacterSetModificationRule.Create(CharacterSetModificationKind.Replace, '.')))
+                                       .WithMatchPriority(MatchPriority.Preselect)
+                                       .WithSelectionBehavior(CompletionItemSelectionBehavior.HardSelection);
 
         private INamedTypeSymbol GetCompletionListType(ITypeSymbol type, INamedTypeSymbol within, Compilation compilation)
         {

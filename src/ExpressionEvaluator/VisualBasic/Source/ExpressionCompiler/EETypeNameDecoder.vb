@@ -50,7 +50,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         End Function
 
         Protected Overrides Function LookupTopLevelTypeDefSymbol(referencedAssemblyIndex As Integer, ByRef emittedName As MetadataTypeName) As TypeSymbol
-            Dim assembly = Me.Module.GetReferencedAssemblySymbols()(referencedAssemblyIndex)
+            Dim assembly As AssemblySymbol = Me.Module.GetReferencedAssemblySymbol(referencedAssemblyIndex)
+            ' GetReferencedAssemblySymbol should not return Nothing since referencedAssemblyIndex
+            ' was obtained from GetIndexOfReferencedAssembly above.
             Return assembly.LookupTopLevelMetadataType(emittedName, digThroughForwardedTypes:=True)
         End Function
 

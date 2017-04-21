@@ -25,7 +25,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             ProjectId projectId,
             IVsHierarchyItem parentItem,
             IContextMenuController contextMenuController)
-            : base(SolutionExplorerShim.AnalyzersFolderItem_Name)
+            : base(SolutionExplorerShim.Analyzers)
         {
             _workspace = workspace;
             _projectId = projectId;
@@ -91,8 +91,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                 return null;
             }
 
-            EnvDTE.Project project = null;
-            if (hierarchy.TryGetProject(out project))
+            if (hierarchy.TryGetProject(out var project))
             {
                 var vsproject = project.Object as VSProject3;
                 return vsproject;

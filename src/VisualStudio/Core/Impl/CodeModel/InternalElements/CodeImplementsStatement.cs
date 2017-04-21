@@ -70,8 +70,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
                 return false;
             }
 
-            SyntaxNode implementsNode;
-            if (!CodeModelService.TryGetImplementsNode(parentNode, _namespaceName, _ordinal, out implementsNode))
+            if (!CodeModelService.TryGetImplementsNode(parentNode, _namespaceName, _ordinal, out var implementsNode))
             {
                 return false;
             }

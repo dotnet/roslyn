@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -44,15 +44,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting.Indentation
         /// <returns>True if any change is made.</returns>
         protected bool FormatToken(ITextView view, Document document, SyntaxToken token, IEnumerable<IFormattingRule> formattingRules, CancellationToken cancellationToken)
         {
-            var root = document.GetSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken);
-            var formatter = CreateSmartTokenFormatter(document.Options, formattingRules, root);
+            var root = document.GetSyntaxRootSynchronously(cancellationToken);
+            var documentOptions = document.GetOptionsAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+            var formatter = CreateSmartTokenFormatter(documentOptions, formattingRules, root);
             var changes = formatter.FormatTokenAsync(document.Project.Solution.Workspace, token, cancellationToken).WaitAndGetResult(cancellationToken);
             if (changes.Count == 0)
             {
                 return false;
             }
 
-            using (var transaction = CreateEditTransaction(view, EditorFeaturesResources.FormatToken))
+            using (var transaction = CreateEditTransaction(view, EditorFeaturesResources.Format_Token))
             {
                 transaction.MergePolicy = AutomaticCodeChangeMergePolicy.Instance;
 
@@ -94,8 +95,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting.Indentation
             var textView = args.TextView;
             var caretPoint = textView.GetCaretPoint(args.SubjectBuffer);
 
-            if (args.SubjectBuffer.GetOption(FormattingOptions.SmartIndent) != FormattingOptions.IndentStyle.Smart ||
-                !caretPoint.HasValue)
+            if (!caretPoint.HasValue)
             {
                 return;
             }
@@ -103,6 +103,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting.Indentation
             var currentPosition = caretPoint.Value;
             var document = currentPosition.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document == null)
+            {
+                return;
+            }
+
+            var documentOptions = document.GetOptionsAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+            if (documentOptions.GetOption(FormattingOptions.SmartIndent) != FormattingOptions.IndentStyle.Smart)
             {
                 return;
             }
@@ -128,9 +134,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting.Indentation
                 return;
             }
 
-            var indentationService = document.GetLanguageService<IIndentationService>();
-            var indentation = indentationService.GetDesiredIndentationAsync(document,
-                currentPosition.GetContainingLine().LineNumber, cancellationToken).WaitAndGetResult(cancellationToken);
+            var indentationService = document.GetLanguageService<ISynchronousIndentationService>();
+            var indentation = indentationService.GetDesiredIndentation(document,
+                currentPosition.GetContainingLine().LineNumber, cancellationToken);
 
             // looks like we can't.
             if (!indentation.HasValue)
@@ -138,7 +144,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting.Indentation
                 return;
             }
 
-            HandleOurselves(textView, args.SubjectBuffer, indentation.Value.GetIndentation(textView, currentPosition.GetContainingLine()));
+            HandleOurselves(textView, args.SubjectBuffer, indentation.Value.GetIndentation(textView, currentPosition.GetContainingLine()), documentOptions);
         }
 
         private bool RequireReadjustment(ITextView view, ITextBuffer subjectBuffer)
@@ -158,7 +164,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting.Indentation
             return true;
         }
 
-        private void HandleOurselves(ITextView view, ITextBuffer subjectBuffer, int indentation)
+        private void HandleOurselves(ITextView view, ITextBuffer subjectBuffer, int indentation, DocumentOptionSet options)
         {
             var lineInSubjectBuffer = view.GetCaretPoint(subjectBuffer).Value.GetContainingLine();
             var lengthOfLine = lineInSubjectBuffer.GetColumnFromLineOffset(lineInSubjectBuffer.Length, view.Options);
@@ -182,7 +188,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting.Indentation
                 var columnOfFirstNonWhitespace = lineInSubjectBuffer.GetColumnFromLineOffset(firstNonWhitespaceIndex.Value, view.Options);
                 if (columnOfFirstNonWhitespace != indentation)
                 {
-                    ReadjustIndentation(view, subjectBuffer, firstNonWhitespaceIndex.Value, indentation);
+                    ReadjustIndentation(view, subjectBuffer, firstNonWhitespaceIndex.Value, indentation, options);
                     return;
                 }
             }
@@ -213,7 +219,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting.Indentation
         /// <summary>
         /// re-adjust caret position to be the beginning of first text on the line. and make sure the text start at the given indentation
         /// </summary>
-        private static void ReadjustIndentation(ITextView view, ITextBuffer subjectBuffer, int firstNonWhitespaceIndex, int indentation)
+        private static void ReadjustIndentation(ITextView view, ITextBuffer subjectBuffer, int firstNonWhitespaceIndex, int indentation, DocumentOptionSet options)
         {
             var lineInSubjectBuffer = view.GetCaretPoint(subjectBuffer).Value.GetContainingLine();
 
@@ -225,8 +231,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting.Indentation
             {
                 return;
             }
-
-            var options = document.Options;
 
             // and then, insert the text
             document.Project.Solution.Workspace.ApplyTextChanges(document.Id,
@@ -295,8 +299,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting.Indentation
         {
             var position = view.GetCaretPoint(subjectBuffer).Value;
             var line = position.GetContainingLine().AsTextLine();
-            var root = document.GetSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken);
-            var options = document.Options;
+            var root = document.GetSyntaxRootSynchronously(cancellationToken);
+            var options = document.GetOptionsAsync(cancellationToken).WaitAndGetResult(cancellationToken);
             if (!UseSmartTokenFormatter(root, line, formattingRules, options, cancellationToken))
             {
                 return false;
@@ -310,7 +314,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting.Indentation
             }
 
             // when undo, make sure it undo the caret movement I did below
-            using (var transaction = CreateEditTransaction(view, EditorFeaturesResources.SmartIndenting))
+            using (var transaction = CreateEditTransaction(view, EditorFeaturesResources.Smart_Indenting))
             {
                 // if caret position is before the token, make sure we put caret at the beginning of the token so that caret
                 // is at the right position after formatting

@@ -1,10 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.Text;
+using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration
 {
@@ -14,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         protected CodeGenerationTypeSymbol(
             INamedTypeSymbol containingType,
-            IList<AttributeData> attributes,
+            ImmutableArray<AttributeData> attributes,
             Accessibility declaredAccessibility,
             DeclarationModifiers modifiers,
             string name,
@@ -26,53 +23,19 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public abstract TypeKind TypeKind { get; }
 
-        public virtual INamedTypeSymbol BaseType
-        {
-            get
-            {
-                return null;
-            }
-        }
+        public virtual INamedTypeSymbol BaseType => null;
 
         public virtual ImmutableArray<INamedTypeSymbol> Interfaces
-        {
-            get
-            {
-                return ImmutableArray.Create<INamedTypeSymbol>();
-            }
-        }
+            => ImmutableArray.Create<INamedTypeSymbol>();
 
         public ImmutableArray<INamedTypeSymbol> AllInterfaces
-        {
-            get
-            {
-                return ImmutableArray.Create<INamedTypeSymbol>();
-            }
-        }
+            => ImmutableArray.Create<INamedTypeSymbol>();
 
-        public bool IsReferenceType
-        {
-            get
-            {
-                return false;
-            }
-        }
+        public bool IsReferenceType => false;
 
-        public bool IsValueType
-        {
-            get
-            {
-                return false;
-            }
-        }
+        public bool IsValueType => false;
 
-        public bool IsAnonymousType
-        {
-            get
-            {
-                return false;
-            }
-        }
+        public bool IsAnonymousType => false;
 
         public bool IsTupleType => false;
 
@@ -82,33 +45,12 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public INamedTypeSymbol TupleUnderlyingType => null;
 
-        public new ITypeSymbol OriginalDefinition
-        {
-            get
-            {
-                return this;
-            }
-        }
+        public new ITypeSymbol OriginalDefinition => this;
 
-        public ISymbol FindImplementationForInterfaceMember(ISymbol interfaceMember)
-        {
-            return null;
-        }
+        public ISymbol FindImplementationForInterfaceMember(ISymbol interfaceMember) => null;
 
-        public override bool IsNamespace
-        {
-            get
-            {
-                return false;
-            }
-        }
+        public override bool IsNamespace => false;
 
-        public override bool IsType
-        {
-            get
-            {
-                return true;
-            }
-        }
+        public override bool IsType => true;
     }
 }

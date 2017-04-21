@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.Editor.CSharp.ChangeSignature;
 using Microsoft.CodeAnalysis.Editor.Implementation.Interactive;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -240,7 +241,7 @@ class C{i}
 
             var updatedSignature = new[] { 0, 2 };
 
-            using (var testState = await ChangeSignatureTestState.CreateAsync(XElement.Parse(workspaceXml)))
+            using (var testState = ChangeSignatureTestState.Create(XElement.Parse(workspaceXml)))
             {
                 testState.TestChangeSignatureOptionsService.IsCancelled = false;
                 testState.TestChangeSignatureOptionsService.UpdatedSignature = updatedSignature;
@@ -266,12 +267,12 @@ class C{i}
         [WpfFact]
         [Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         [Trait(Traits.Feature, Traits.Features.Interactive)]
-        public async Task ChangeSignatureCommandDisabledInSubmission()
+        public void ChangeSignatureCommandDisabledInSubmission()
         {
             var exportProvider = MinimalTestExportProvider.CreateExportProvider(
                 TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(typeof(InteractiveDocumentSupportsFeatureService)));
 
-            using (var workspace = await TestWorkspace.CreateAsync(XElement.Parse(@"
+            using (var workspace = TestWorkspace.Create(XElement.Parse(@"
                 <Workspace>
                     <Submission Language=""C#"" CommonReferences=""true"">  
                         class C
@@ -290,7 +291,7 @@ class C{i}
 
                 var textView = workspace.Documents.Single().GetTextView();
 
-                var handler = new ChangeSignatureCommandHandler();
+                var handler = new CSharpChangeSignatureCommandHandler(TestWaitIndicator.Default);
                 var delegatedToNext = false;
                 Func<CommandState> nextHandler = () =>
                 {

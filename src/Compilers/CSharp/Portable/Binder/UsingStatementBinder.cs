@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (expressionSyntax != null)
             {
                 var locals = ArrayBuilder<LocalSymbol>.GetInstance();
-                PatternVariableFinder.FindPatternVariables(this, locals, expressionSyntax);
+                ExpressionVariableFinder.FindExpressionVariables(this, locals, expressionSyntax);
                 return locals.ToImmutableAndFree();
             }
             else
@@ -38,12 +38,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var locals = ArrayBuilder<LocalSymbol>.GetInstance(declarationSyntax.Variables.Count);
                 foreach (VariableDeclaratorSyntax declarator in declarationSyntax.Variables)
                 {
-                    locals.Add(MakeLocal(RefKind.None, declarationSyntax, declarator, LocalDeclarationKind.UsingVariable));
+                    locals.Add(MakeLocal(declarationSyntax, declarator, LocalDeclarationKind.UsingVariable));
 
-                    if (declarator.Initializer != null)
-                    {
-                        PatternVariableFinder.FindPatternVariables(this, locals, declarator.Initializer.Value);
-                    }
+                    // also gather expression-declared variables from the bracketed argument lists and the initializers
+                    ExpressionVariableFinder.FindExpressionVariables(this, locals, declarator);
                 }
 
                 return locals.ToImmutableAndFree();
@@ -108,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else
                 {
                     HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                    iDisposableConversion = originalBinder.Conversions.ClassifyImplicitConversion(declType, iDisposable, ref useSiteDiagnostics);
+                    iDisposableConversion = originalBinder.Conversions.ClassifyImplicitConversionFromType(declType, iDisposable, ref useSiteDiagnostics);
                     diagnostics.Add(declarationSyntax, useSiteDiagnostics);
 
                     if (!iDisposableConversion.IsImplicit)
@@ -136,7 +134,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasErrors);
         }
 
-        internal override ImmutableArray<LocalSymbol> GetDeclaredLocalsForScope(CSharpSyntaxNode scopeDesignator)
+        internal override ImmutableArray<LocalSymbol> GetDeclaredLocalsForScope(SyntaxNode scopeDesignator)
         {
             if (_syntax == scopeDesignator)
             {
@@ -149,6 +147,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal override ImmutableArray<LocalFunctionSymbol> GetDeclaredLocalFunctionsForScope(CSharpSyntaxNode scopeDesignator)
         {
             throw ExceptionUtilities.Unreachable;
+        }
+
+        internal override SyntaxNode ScopeDesignator
+        {
+            get
+            {
+                return _syntax;
+            }
         }
     }
 }

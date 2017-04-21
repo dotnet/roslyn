@@ -3,10 +3,6 @@
 Imports System.Collections.Immutable
 Imports System.Runtime.CompilerServices
 Imports System.Runtime.InteropServices
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Xunit
 
 Friend Module Extensions
@@ -20,9 +16,11 @@ Friend Module Extensions
         Return DirectCast(compilation.GetAssemblyOrModuleSymbol(reference), ModuleSymbol)
     End Function
 
+    ' TODO: Remove this method and fix callsites to directly invoke Microsoft.CodeAnalysis.Test.Extensions.SymbolExtensions.ToTestDisplayString().
+    '       https://github.com/dotnet/roslyn/issues/11915
     <Extension>
-    Public Function ToTestDisplayString(Symbol As ISymbol) As String
-        Return Symbol.ToDisplayString(SymbolDisplayFormat.TestFormat)
+    Public Function ToTestDisplayString(symbol As ISymbol) As String
+        Return Test.Extensions.SymbolExtensions.ToTestDisplayString(symbol)
     End Function
 
     Private Function SplitMemberName(qualifiedName As String) As ImmutableArray(Of String)

@@ -823,7 +823,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                                                   diagnostics)
 
                 Case SymbolKind.NamedType
-                    Dim namedType = DirectCast(type, NamedTypeSymbol)
+                    Dim namedType = DirectCast(type.GetTupleUnderlyingTypeOrSelf(), NamedTypeSymbol)
 
                     If Not namedType.IsGenericType Then
                         Return
@@ -1051,7 +1051,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                         For Each constraintInfo As TypeParameterConstraint In param.GetConstraints()
                             If constraintInfo.TypeConstraint IsNot Nothing AndAlso
-                               constraintInfo.TypeConstraint.IsSameTypeIgnoringCustomModifiers(constraint) Then
+                               constraintInfo.TypeConstraint.IsSameTypeIgnoringAll(constraint) Then
                                 location = constraintInfo.LocationOpt
                                 Exit For
                             End If
@@ -1538,7 +1538,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Friend Property StaticInitializers As ArrayBuilder(Of ImmutableArray(Of FieldOrPropertyInitializer))
             Friend Property InstanceInitializers As ArrayBuilder(Of ImmutableArray(Of FieldOrPropertyInitializer))
 
-            Friend ReadOnly DeferredMemberDiagnostic As ArrayBuilder(Of ValueTuple(Of Symbol, Binder)) = ArrayBuilder(Of ValueTuple(Of Symbol, Binder)).GetInstance()
+            Friend ReadOnly DeferredMemberDiagnostic As ArrayBuilder(Of Symbol) = ArrayBuilder(Of Symbol).GetInstance()
 
             Friend StaticSyntaxLength As Integer = 0
             Friend InstanceSyntaxLength As Integer = 0
@@ -2608,17 +2608,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     CreateEvent(eventDecl.EventStatement, eventDecl, binder, diagBag, members)
 
                 Case Else
-                    If binder.BindingTopLevelScriptCode Then
-                        If memberSyntax.Kind = SyntaxKind.EmptyStatement OrElse TypeOf memberSyntax Is ExecutableStatementSyntax Then
-
-                            If reportAsInvalid Then
-                                diagBag.Add(ERRID.ERR_InvalidInNamespace, memberSyntax.GetLocation())
-                            End If
+                    If memberSyntax.Kind = SyntaxKind.EmptyStatement OrElse TypeOf memberSyntax Is ExecutableStatementSyntax Then
+                        If binder.BindingTopLevelScriptCode Then
+                            Debug.Assert(Not reportAsInvalid)
 
                             Dim initializer = Function(precedingInitializersLength As Integer)
                                                   Return New FieldOrPropertyInitializer(binder.GetSyntaxReference(memberSyntax), precedingInitializersLength)
                                               End Function
                             SourceNamedTypeSymbol.AddInitializer(instanceInitializers, initializer, members.InstanceSyntaxLength)
+                        ElseIf reportAsInvalid Then
+                            diagBag.Add(ERRID.ERR_InvalidInNamespace, memberSyntax.GetLocation())
                         End If
                     End If
             End Select
@@ -2922,9 +2921,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return
             End If
 
-            For Each pair In members.DeferredMemberDiagnostic
-                Dim sym As Symbol = pair.Item1
-                Dim binder As Binder = pair.Item2
+            For Each sym As Symbol In members.DeferredMemberDiagnostic
 
                 ' Check name for duplicate type declarations
                 ' First check if the member name conflicts with a type declaration in the container then
@@ -2960,7 +2957,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                              omitDiagnostics As Boolean)
 
             If Not omitDiagnostics Then
-                members.DeferredMemberDiagnostic.Add(ValueTuple.Create(sym, binder))
+                members.DeferredMemberDiagnostic.Add(sym)
             End If
 
             AddSymbolToMembers(sym, members.Members)
@@ -3256,6 +3253,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim syntaxOffset As Integer
             If TryCalculateSyntaxOffsetOfPositionInInitializer(position, tree, isShared, syntaxOffset:=syntaxOffset) Then
                 Return syntaxOffset
+            End If
+
+            If Me._declaration.Declarations.Length >= 1 AndAlso position = Me._declaration.Declarations(0).Location.SourceSpan.Start Then
+                ' With dynamic analysis instrumentation, the introducing declaration of a type can provide
+                ' the syntax associated with both the analysis payload local of a synthesized constructor
+                ' and with the constructor itself. If the synthesized constructor includes an initializer with a lambda,
+                ' that lambda needs a closure that captures the analysis payload of the constructor,
+                ' and the offset of the syntax for the local within the constructor is by definition zero.
+                Return 0
             End If
 
             ' This point should not be reachable. An implicit constructor has no body and no initializer,
@@ -3750,6 +3756,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return ' can't have any conflicts
             End If
 
+            ' Check no duplicate interfaces (ignoring tuple names)
+            Dim declaringSyntax = Me.GetDeclaringSyntaxNode(Of VisualBasicSyntaxNode)()
+            If declaringSyntax IsNot Nothing Then
+                Dim seenInterfaces = New Dictionary(Of NamedTypeSymbol, NamedTypeSymbol)(EqualsIgnoringComparer.InstanceIgnoringTupleNames)
+                For Each [interface] In interfaces
+                    Dim other As NamedTypeSymbol = Nothing
+                    If seenInterfaces.TryGetValue([interface], other) Then
+                        ReportDuplicateInterfaceWithDifferentTupleNames(diagnostics, [interface], other)
+                    Else
+                        seenInterfaces.Add([interface], [interface])
+                    End If
+                Next
+            End If
+
             ' We only need to check pairs of generic interfaces that have the same original definition. Put the interfaces
             ' into buckets by original definition.
             Dim originalDefinitionBuckets As New MultiDictionary(Of NamedTypeSymbol, NamedTypeSymbol)
@@ -3796,6 +3816,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 ' TODO: maybe rewrite these diagnostics to if/elseifs to report just one diagnostic per
                 ' symbol. This would reduce the error count, but may lead to a new diagnostics once the 
                 ' previous one was fixed (byref + return type).
+
+                If (comparisonResults And SymbolComparisonResults.TupleNamesMismatch) <> 0 Then
+                    diagnostics.Add(ErrorFactory.ErrorInfo(ERRID.ERR_DuplicateProcDefWithDifferentTupleNames2, firstMember, secondMember), location)
+                End If
 
                 If (comparisonResults And SymbolComparisonResults.ParameterByrefMismatch) <> 0 Then
                     diagnostics.Add(ErrorFactory.ErrorInfo(ERRID.ERR_OverloadWithByref2, firstMember, secondMember), location)
@@ -3911,6 +3935,52 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
         End Sub
 
+        ''' <summary>
+        ''' Interface1 and Interface2 match except for their tuple names. Report the error in the correct location.
+        ''' </summary>
+        Private Sub ReportDuplicateInterfaceWithDifferentTupleNames(diagnostics As DiagnosticBag, interface1 As NamedTypeSymbol, interface2 As NamedTypeSymbol)
+
+            If GetImplementsLocation(interface1).SourceSpan.Start > GetImplementsLocation(interface2).SourceSpan.Start Then
+                ' Report error on second implement, for consistency.
+                Dim temp = interface1
+                interface1 = interface2
+                interface2 = temp
+            End If
+
+            ' The direct base interfaces that interface1/2 were inherited through.
+            Dim directInterface1 As NamedTypeSymbol = Nothing
+            Dim directInterface2 As NamedTypeSymbol = Nothing
+            Dim location1 As Location = GetImplementsLocation(interface1, directInterface1)
+            Dim location2 As Location = GetImplementsLocation(interface2, directInterface2)
+
+            Dim diag As DiagnosticInfo
+
+            If (directInterface1 = interface1 AndAlso directInterface2 = interface2) Then
+                diag = ErrorFactory.ErrorInfo(If(IsInterface, ERRID.ERR_InterfaceInheritedTwiceWithDifferentTupleNames2, ERRID.ERR_InterfaceImplementedTwiceWithDifferentTupleNames2),
+                                              CustomSymbolDisplayFormatter.ShortNameWithTypeArgsAndContainingTypes(interface2),
+                                              CustomSymbolDisplayFormatter.ShortNameWithTypeArgsAndContainingTypes(interface1))
+            ElseIf (directInterface1 <> interface1 AndAlso directInterface2 = interface2) Then
+                diag = ErrorFactory.ErrorInfo(If(IsInterface, ERRID.ERR_InterfaceInheritedTwiceWithDifferentTupleNames3, ERRID.ERR_InterfaceImplementedTwiceWithDifferentTupleNames3),
+                                              CustomSymbolDisplayFormatter.ShortNameWithTypeArgsAndContainingTypes(interface2),
+                                              CustomSymbolDisplayFormatter.ShortNameWithTypeArgsAndContainingTypes(interface1),
+                                              CustomSymbolDisplayFormatter.ShortNameWithTypeArgsAndContainingTypes(directInterface1))
+            ElseIf (directInterface1 = interface1 AndAlso directInterface2 <> interface2) Then
+                diag = ErrorFactory.ErrorInfo(If(IsInterface, ERRID.ERR_InterfaceInheritedTwiceWithDifferentTupleNamesReverse3, ERRID.ERR_InterfaceImplementedTwiceWithDifferentTupleNamesReverse3),
+                                              CustomSymbolDisplayFormatter.ShortNameWithTypeArgsAndContainingTypes(interface2),
+                                              CustomSymbolDisplayFormatter.ShortNameWithTypeArgsAndContainingTypes(directInterface2),
+                                              CustomSymbolDisplayFormatter.ShortNameWithTypeArgsAndContainingTypes(interface1))
+            Else
+                Debug.Assert(directInterface1 <> interface1 AndAlso directInterface2 <> interface2)
+                diag = ErrorFactory.ErrorInfo(If(IsInterface, ERRID.ERR_InterfaceInheritedTwiceWithDifferentTupleNames4, ERRID.ERR_InterfaceImplementedTwiceWithDifferentTupleNames4),
+                                              CustomSymbolDisplayFormatter.ShortNameWithTypeArgsAndContainingTypes(interface2),
+                                              CustomSymbolDisplayFormatter.ShortNameWithTypeArgsAndContainingTypes(directInterface2),
+                                              CustomSymbolDisplayFormatter.ShortNameWithTypeArgsAndContainingTypes(interface1),
+                                              CustomSymbolDisplayFormatter.ShortNameWithTypeArgsAndContainingTypes(directInterface1))
+            End If
+
+            diagnostics.Add(New VBDiagnostic(diag, location2))
+        End Sub
+
 #End Region
 
 #Region "Attributes"
@@ -3949,5 +4019,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
     End Class
+
+    Friend Class EqualsIgnoringComparer
+        Inherits EqualityComparer(Of TypeSymbol)
+
+        Public Shared ReadOnly Property InstanceIgnoringTupleNames As EqualsIgnoringComparer =
+                New EqualsIgnoringComparer(TypeCompareKind.IgnoreTupleNames)
+
+        Private ReadOnly _comparison As TypeCompareKind
+
+        Public Sub New(comparison As TypeCompareKind)
+            _comparison = comparison
+        End Sub
+
+        Public Overrides Function Equals(type1 As TypeSymbol, type2 As TypeSymbol) As Boolean
+            Return If(type1 Is Nothing,
+                    type2 Is Nothing,
+                    type1.IsSameType(type2, _comparison))
+        End Function
+
+        Public Overrides Function GetHashCode(obj As TypeSymbol) As Integer
+            Return If(obj Is Nothing, 0, obj.GetHashCode())
+        End Function
+    End Class
+
 End Namespace
 

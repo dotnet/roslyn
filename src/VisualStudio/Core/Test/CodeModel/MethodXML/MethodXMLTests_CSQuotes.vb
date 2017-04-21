@@ -7,7 +7,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.MethodXML
     Partial Public Class MethodXMLTests
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
-        Public Async Function TestCSQuotes_ForLoopAndComments() As Task
+        Public Sub TestCSQuotes_ForLoopAndComments()
             Dim definition =
     <Workspace>
         <Project Language="C#" CommonReferences="true">
@@ -48,8 +48,8 @@ public class C
     <Comment> Foo3</Comment>
 </Block>
 
-            Await TestAsync(definition, expected)
-        End Function
+            Test(definition, expected)
+        End Sub
 
     End Class
 End Namespace

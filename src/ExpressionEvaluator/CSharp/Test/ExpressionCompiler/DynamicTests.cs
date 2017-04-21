@@ -1,7 +1,9 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Collections.ObjectModel;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -36,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
         return null;
     }
 }";
-            var comp = CreateCompilationWithMscorlib(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.DebugDll);
+            var comp = CreateStandardCompilation(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.DebugDll);
             WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -46,11 +48,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
                 Assert.Equal(1, locals.Count);
                 var method = testData.Methods.Single().Value.Method;
-                AssertHasDynamicAttribute(method);
+                Assert.NotNull(GetDynamicAttributeIfAny(method));
                 Assert.Equal(TypeKind.Dynamic, method.ReturnType.TypeKind);
                 VerifyCustomTypeInfo(locals[0], "d", 0x01);
                 VerifyLocal(testData, typeName, locals[0], "<>m0", "d", expectedILOpt:
-    @"{
+@"{
   // Code size        2 (0x2)
   .maxstack  1
   .locals init (dynamic V_0) //d
@@ -77,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
         return null;
     }
 }";
-            var comp = CreateCompilationWithMscorlib(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.DebugDll);
+            var comp = CreateStandardCompilation(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.DebugDll);
             WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -87,11 +89,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
                 Assert.Equal(1, locals.Count);
                 var method = testData.Methods.Single().Value.Method;
-                AssertHasDynamicAttribute(method);
+                Assert.NotNull(GetDynamicAttributeIfAny(method));
                 Assert.Equal(TypeKind.Dynamic, ((ArrayTypeSymbol)method.ReturnType).ElementType.TypeKind);
                 VerifyCustomTypeInfo(locals[0], "d", 0x02);
                 VerifyLocal(testData, typeName, locals[0], "<>m0", "d", expectedILOpt:
-    @"{
+@"{
   // Code size        2 (0x2)
   .maxstack  1
   .locals init (dynamic[] V_0) //d
@@ -118,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
         return null;
     }
 }";
-            var comp = CreateCompilationWithMscorlib(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.DebugDll);
+            var comp = CreateStandardCompilation(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.DebugDll);
             WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -128,11 +130,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
                 Assert.Equal(1, locals.Count);
                 var method = testData.Methods.Single().Value.Method;
-                AssertHasDynamicAttribute(method);
+                Assert.NotNull(GetDynamicAttributeIfAny(method));
                 Assert.Equal(TypeKind.Dynamic, ((NamedTypeSymbol)method.ReturnType).TypeArguments.Single().TypeKind);
                 VerifyCustomTypeInfo(locals[0], "d", 0x02);
                 VerifyLocal(testData, typeName, locals[0], "<>m0", "d", expectedILOpt:
-    @"{
+@"{
   // Code size        2 (0x2)
   .maxstack  1
   .locals init (System.Collections.Generic.List<dynamic> V_0) //d
@@ -159,7 +161,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
         return null;
     }
 }";
-            var comp = CreateCompilationWithMscorlib(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.DebugDll);
+            var comp = CreateStandardCompilation(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.DebugDll);
             WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -169,11 +171,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
                 Assert.Equal(1, locals.Count);
                 var method = testData.Methods.Single().Value.Method;
-                AssertHasDynamicAttribute(method);
+                Assert.NotNull(GetDynamicAttributeIfAny(method));
                 Assert.Equal(TypeKind.Dynamic, method.ReturnType.TypeKind);
                 VerifyCustomTypeInfo(locals[0], "d", 0x01);
                 VerifyLocal(testData, typeName, locals[0], "<>m0", "d", expectedFlags: DkmClrCompilationResultFlags.ReadOnlyResult, expectedILOpt:
-    @"{
+@"{
   // Code size        2 (0x2)
   .maxstack  1
   IL_0000:  ldnull
@@ -199,7 +201,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
         return null;
     }
 }";
-            var comp = CreateCompilationWithMscorlib(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.DebugDll);
+            var comp = CreateStandardCompilation(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.DebugDll);
             WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -209,7 +211,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
                 Assert.Equal(1, locals.Count);
                 var method = testData.Methods.Single().Value.Method;
-                AssertHasDynamicAttribute(method);
+                Assert.NotNull(GetDynamicAttributeIfAny(method));
                 Assert.Equal(TypeKind.Dynamic, ((ArrayTypeSymbol)method.ReturnType).ElementType.TypeKind);
                 VerifyCustomTypeInfo(locals[0], "d", 0x02);
                 VerifyLocal(testData, typeName, locals[0], "<>m0", "d", expectedFlags: DkmClrCompilationResultFlags.ReadOnlyResult, expectedILOpt: @"
@@ -244,7 +246,7 @@ class Generic<T>
 {
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.DebugDll);
+            var comp = CreateStandardCompilation(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.DebugDll);
             WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -254,7 +256,7 @@ class Generic<T>
                 var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
                 Assert.Equal(1, locals.Count);
                 var method = testData.Methods.Single().Value.Method;
-                AssertHasDynamicAttribute(method);
+                Assert.NotNull(GetDynamicAttributeIfAny(method));
                 Assert.Equal(TypeKind.Dynamic, ((NamedTypeSymbol)method.ReturnType).TypeArguments.Single().TypeKind);
                 VerifyCustomTypeInfo(locals[0], "d", 0x02);
                 VerifyLocal(testData, typeName, locals[0], "<>m0", "d", expectedFlags: DkmClrCompilationResultFlags.ReadOnlyResult, expectedILOpt: @"
@@ -288,8 +290,13 @@ class Generic<T>
             dynamic[] b = null;
         }
     }
+
+    static dynamic ForceDynamicAttribute() 
+    {
+        return null;
+    }
 }";
-            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            var comp = CreateStandardCompilation(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.DebugDll);
             WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, methodName: "C.M", atLineNumber: 799);
@@ -352,8 +359,13 @@ class Generic<T>
             object[] b = null;
         }
     }
+
+    static dynamic ForceDynamicAttribute() 
+    {
+        return null;
+    }
 }";
-            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            var comp = CreateStandardCompilation(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.DebugDll);
             WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, methodName: "C.M", atLineNumber: 799);
@@ -414,8 +426,13 @@ class Generic<T>
             const dynamic c = null;
         }
     }
+
+    static dynamic ForceDynamicAttribute() 
+    {
+        return null;
+    }
 }";
-            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            var comp = CreateStandardCompilation(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.DebugDll);
             WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, methodName: "C.M", atLineNumber: 799);
@@ -508,8 +525,13 @@ class Generic<T>
             const dynamic[] c = null;
         }
     }
+
+    static dynamic ForceDynamicAttribute() 
+    {
+        return null;
+    }
 }";
-            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            var comp = CreateStandardCompilation(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.DebugDll);
             WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, methodName: "C.M", atLineNumber: 799);
@@ -571,8 +593,13 @@ class Generic<T>
         dynamic c123456789012345678901234567890123456789012345678901234567890123 = null; // 64 chars
         dynamic d = null;
 	}
+
+    static dynamic ForceDynamicAttribute() 
+    {
+        return null;
+    }
 }";
-            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            var comp = CreateStandardCompilation(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.DebugDll);
             WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, methodName: "C.M");
@@ -614,7 +641,7 @@ class Generic<T>
         return null;
     }
 }";
-            var comp = CreateCompilationWithMscorlib(source, new[] { SystemCoreRef, CSharpRef }, TestOptions.DebugDll);
+            var comp = CreateStandardCompilation(source, new[] { SystemCoreRef, CSharpRef }, TestOptions.DebugDll);
             WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -624,7 +651,7 @@ class Generic<T>
                 var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
                 Assert.Equal(1, locals.Count);
                 var method = testData.Methods.Single().Value.Method;
-                AssertHasDynamicAttribute(method);
+                Assert.NotNull(GetDynamicAttributeIfAny(method));
                 Assert.Equal(TypeKind.Dynamic, method.ReturnType.TypeKind);
                 VerifyCustomTypeInfo(locals[0], "d", 0x01);
                 VerifyLocal(testData, typeName, locals[0], "<>m0", "d", expectedILOpt:
@@ -653,7 +680,7 @@ class Generic<T>
         return null;
     }
 }";
-            var comp = CreateCompilationWithMscorlib(source, new[] { SystemCoreRef, CSharpRef }, TestOptions.DebugDll);
+            var comp = CreateStandardCompilation(source, new[] { SystemCoreRef, CSharpRef }, TestOptions.DebugDll);
             WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -663,11 +690,11 @@ class Generic<T>
                 var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
                 Assert.Equal(1, locals.Count);
                 var method = testData.Methods.Single().Value.Method;
-                AssertHasDynamicAttribute(method);
+                Assert.NotNull(GetDynamicAttributeIfAny(method));
                 Assert.Equal(TypeKind.Dynamic, ((ArrayTypeSymbol)method.ReturnType).ElementType.TypeKind);
                 VerifyCustomTypeInfo(locals[0], "d", 0x02);
                 VerifyLocal(testData, typeName, locals[0], "<>m0", "d", expectedILOpt:
-    @"{
+@"{
   // Code size        2 (0x2)
   .maxstack  1
   IL_0000:  ldarg.0
@@ -692,7 +719,7 @@ class Generic<T>
         return null;
     }
 }";
-            var comp = CreateCompilationWithMscorlib(source, new[] { SystemCoreRef, CSharpRef }, TestOptions.DebugDll);
+            var comp = CreateStandardCompilation(source, new[] { SystemCoreRef, CSharpRef }, TestOptions.DebugDll);
             WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -702,11 +729,11 @@ class Generic<T>
                 var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
                 Assert.Equal(1, locals.Count);
                 var method = testData.Methods.Single().Value.Method;
-                AssertHasDynamicAttribute(method);
+                Assert.NotNull(GetDynamicAttributeIfAny(method));
                 Assert.Equal(TypeKind.Dynamic, ((NamedTypeSymbol)method.ReturnType).TypeArguments.Single().TypeKind);
                 VerifyCustomTypeInfo(locals[0], "d", 0x02);
                 VerifyLocal(testData, typeName, locals[0], "<>m0", "d", expectedILOpt:
-    @"{
+@"{
   // Code size        2 (0x2)
   .maxstack  1
   IL_0000:  ldarg.0
@@ -740,7 +767,7 @@ public class Outer<T, U>
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source, new[] { SystemCoreRef, CSharpRef }, TestOptions.DebugDll);
+            var comp = CreateStandardCompilation(source, new[] { SystemCoreRef, CSharpRef }, TestOptions.DebugDll);
             WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -750,10 +777,10 @@ public class Outer<T, U>
                 var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
                 Assert.Equal(1, locals.Count);
                 var method = testData.Methods.Single().Value.Method;
-                AssertHasDynamicAttribute(method);
+                Assert.NotNull(GetDynamicAttributeIfAny(method));
                 VerifyCustomTypeInfo(locals[0], "d", 0x04, 0x03);
                 VerifyLocal(testData, typeName, locals[0], "<>m0", "d", expectedILOpt:
-    @"{
+@"{
   // Code size        2 (0x2)
   .maxstack  1
   IL_0000:  ldarg.0
@@ -788,30 +815,25 @@ public class Outer<T, U>
                 VerifyCustomTypeInfo(result, null);
                 Assert.Equal(resultProperties.Flags, DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult);
                 testData.GetMethodData("<>x.<>m0").VerifyIL(
-    @"{
-  // Code size       57 (0x39)
-  .maxstack  7
+@"{
+  // Code size       60 (0x3c)
+  .maxstack  6
   IL_0000:  ldtoken    ""Outer<dynamic[], object[]>.Inner<Outer<object, dynamic>[], dynamic>""
   IL_0005:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
   IL_000a:  ldstr      ""dd""
-  IL_000f:  ldstr      ""826d6ec1-dc4b-46af-be05-cd3f1a1fd4ac""
+  IL_000f:  ldstr      ""108766ce-df68-46ee-b761-0dcb7ac805f1""
   IL_0014:  newobj     ""System.Guid..ctor(string)""
-  IL_0019:  ldc.i4.2
+  IL_0019:  ldc.i4.3
   IL_001a:  newarr     ""byte""
   IL_001f:  dup
-  IL_0020:  ldc.i4.0
-  IL_0021:  ldc.i4.4
-  IL_0022:  stelem.i1
-  IL_0023:  dup
-  IL_0024:  ldc.i4.1
-  IL_0025:  ldc.i4.3
-  IL_0026:  stelem.i1
-  IL_0027:  call       ""void Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.CreateVariable(System.Type, string, System.Guid, byte[])""
-  IL_002c:  ldstr      ""dd""
-  IL_0031:  call       ""Outer<dynamic[], object[]>.Inner<Outer<object, dynamic>[], dynamic> Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress<Outer<dynamic[], object[]>.Inner<Outer<object, dynamic>[], dynamic>>(string)""
-  IL_0036:  ldarg.0
-  IL_0037:  stind.ref
-  IL_0038:  ret
+  IL_0020:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=3 <PrivateImplementationDetails>.A4E591DA7617172655FE45FC3878ECC8CC0D44B3""
+  IL_0025:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
+  IL_002a:  call       ""void Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.CreateVariable(System.Type, string, System.Guid, byte[])""
+  IL_002f:  ldstr      ""dd""
+  IL_0034:  call       ""Outer<dynamic[], object[]>.Inner<Outer<object, dynamic>[], dynamic> Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress<Outer<dynamic[], object[]>.Inner<Outer<object, dynamic>[], dynamic>>(string)""
+  IL_0039:  ldarg.0
+  IL_003a:  stind.ref
+  IL_003b:  ret
 }");
                 locals.Free();
             });
@@ -826,13 +848,18 @@ public class Outer<T, U>
     static void M()
     {
     }
+
+    static dynamic ForceDynamicAttribute() 
+    {
+        return null;
+    }
 }";
-            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            var comp = CreateStandardCompilation(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.DebugDll);
             WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(
-                runtime,
-                "C.M");
+                    runtime,
+                    "C.M");
                 var aliases = ImmutableArray.Create(
                     Alias(
                         DkmClrAliasKind.Variable,
@@ -863,7 +890,7 @@ public class Outer<T, U>
 
                 VerifyCustomTypeInfo(locals[0], "d1", 0x01);
                 VerifyLocal(testData, typeName, locals[0], "<>m0", "d1", expectedILOpt:
-    @"{
+@"{
   // Code size       11 (0xb)
   .maxstack  1
   IL_0000:  ldstr      ""d1""
@@ -873,7 +900,7 @@ public class Outer<T, U>
 
                 VerifyCustomTypeInfo(locals[1], "d2", 0x84, 0x00); // Note: read flags right-to-left in each byte: 0010 0001 0(000 0000)
                 VerifyLocal(testData, typeName, locals[1], "<>m1", "d2", expectedILOpt:
-    @"{
+@"{
   // Code size       16 (0x10)
   .maxstack  1
   IL_0000:  ldstr      ""d2""
@@ -885,11 +912,14 @@ public class Outer<T, U>
             });
         }
 
-        private static CustomTypeInfo MakeCustomTypeInfo(params bool[] flags)
+        private static ReadOnlyCollection<byte> MakeCustomTypeInfo(params bool[] flags)
         {
             Assert.NotNull(flags);
-            var dynamicFlagsInfo = DynamicFlagsCustomTypeInfo.Create(ImmutableArray.CreateRange(flags));
-            return new CustomTypeInfo(DynamicFlagsCustomTypeInfo.PayloadTypeId, dynamicFlagsInfo.GetCustomTypeInfoPayload());
+            var builder = ArrayBuilder<bool>.GetInstance();
+            builder.AddRange(flags);
+            var bytes = DynamicFlagsCustomTypeInfo.ToBytes(builder);
+            builder.Free();
+            return CustomTypeInfo.Encode(bytes, null);
         }
 
         [Fact]
@@ -903,7 +933,7 @@ public class Outer<T, U>
         dynamic d = 1;
     }
 }";
-            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            var comp = CreateStandardCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -913,23 +943,18 @@ public class Outer<T, U>
                 var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
                 Assert.Equal(1, locals.Count);
                 var method = testData.Methods.Single().Value.Method;
-                AssertHasNoDynamicAttribute(method);
+                Assert.Null(GetDynamicAttributeIfAny(method));
+                VerifyCustomTypeInfo(locals[0], "d", null);
+                VerifyLocal(testData, typeName, locals[0], "<>m0", "d", expectedILOpt:
+@"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (dynamic V_0) //d
+  IL_0000:  ldloc.0
+  IL_0001:  ret
+}");
                 locals.Free();
             });
-        }
-
-        private static void AssertHasDynamicAttribute(IMethodSymbol method)
-        {
-            Assert.Contains(
-                "System.Runtime.CompilerServices.DynamicAttribute",
-                method.GetSynthesizedAttributes(forReturnType: true).Select(a => a.AttributeClass.ToTestDisplayString()));
-        }
-
-        private static void AssertHasNoDynamicAttribute(IMethodSymbol method)
-        {
-            Assert.DoesNotContain(
-                "System.Runtime.CompilerServices.DynamicAttribute",
-                method.GetSynthesizedAttributes(forReturnType: true).Select(a => a.AttributeClass.ToTestDisplayString()));
         }
 
         [Fact]
@@ -945,7 +970,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source, new[] { SystemCoreRef, CSharpRef }, TestOptions.DebugDll);
+            var comp = CreateStandardCompilation(source, new[] { SystemCoreRef, CSharpRef }, TestOptions.DebugDll);
             WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -1025,196 +1050,197 @@ class C
                 var methodData = testData.GetMethodData("<>x.<>c__DisplayClass0_0.<<<>m0>b__0>d.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()");
                 methodData.VerifyIL(@"
 {
-  // Code size      539 (0x21b)
+  // Code size      542 (0x21e)
   .maxstack  10
   .locals init (int V_0,
-                object V_1,
+                <>x.<>c__DisplayClass0_0 V_1,
                 object V_2,
-                System.Runtime.CompilerServices.ICriticalNotifyCompletion V_3,
-                System.Runtime.CompilerServices.INotifyCompletion V_4,
-                System.Exception V_5)
+                object V_3,
+                System.Runtime.CompilerServices.ICriticalNotifyCompletion V_4,
+                System.Runtime.CompilerServices.INotifyCompletion V_5,
+                System.Exception V_6)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""int <>x.<>c__DisplayClass0_0.<<<>m0>b__0>d.<>1__state""
   IL_0006:  stloc.0
+  IL_0007:  ldarg.0
+  IL_0008:  ldfld      ""<>x.<>c__DisplayClass0_0 <>x.<>c__DisplayClass0_0.<<<>m0>b__0>d.<>4__this""
+  IL_000d:  stloc.1
   .try
   {
-    IL_0007:  ldloc.0
-    IL_0008:  brfalse    IL_0185
-    IL_000d:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> <>x.<>c__DisplayClass0_0.<<<>m0>b__0>d.<>o.<>p__0""
-    IL_0012:  brtrue.s   IL_0044
-    IL_0014:  ldc.i4.0
-    IL_0015:  ldstr      ""GetAwaiter""
-    IL_001a:  ldnull
-    IL_001b:  ldtoken    ""C""
-    IL_0020:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
-    IL_0025:  ldc.i4.1
-    IL_0026:  newarr     ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo""
-    IL_002b:  dup
-    IL_002c:  ldc.i4.0
-    IL_002d:  ldc.i4.0
-    IL_002e:  ldnull
-    IL_002f:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
-    IL_0034:  stelem.ref
-    IL_0035:  call       ""System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.InvokeMember(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, string, System.Collections.Generic.IEnumerable<System.Type>, System.Type, System.Collections.Generic.IEnumerable<Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo>)""
-    IL_003a:  call       ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>>.Create(System.Runtime.CompilerServices.CallSiteBinder)""
-    IL_003f:  stsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> <>x.<>c__DisplayClass0_0.<<<>m0>b__0>d.<>o.<>p__0""
-    IL_0044:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> <>x.<>c__DisplayClass0_0.<<<>m0>b__0>d.<>o.<>p__0""
-    IL_0049:  ldfld      ""System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>>.Target""
-    IL_004e:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> <>x.<>c__DisplayClass0_0.<<<>m0>b__0>d.<>o.<>p__0""
-    IL_0053:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> <>x.<>o__0.<>p__0""
-    IL_0058:  brtrue.s   IL_0084
-    IL_005a:  ldc.i4.0
-    IL_005b:  ldtoken    ""C""
-    IL_0060:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
-    IL_0065:  ldc.i4.1
-    IL_0066:  newarr     ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo""
-    IL_006b:  dup
-    IL_006c:  ldc.i4.0
-    IL_006d:  ldc.i4.0
-    IL_006e:  ldnull
-    IL_006f:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
-    IL_0074:  stelem.ref
-    IL_0075:  call       ""System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.Invoke(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, System.Type, System.Collections.Generic.IEnumerable<Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo>)""
-    IL_007a:  call       ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>>.Create(System.Runtime.CompilerServices.CallSiteBinder)""
-    IL_007f:  stsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> <>x.<>o__0.<>p__0""
-    IL_0084:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> <>x.<>o__0.<>p__0""
-    IL_0089:  ldfld      ""System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>>.Target""
-    IL_008e:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> <>x.<>o__0.<>p__0""
-    IL_0093:  ldarg.0
-    IL_0094:  ldfld      ""<>x.<>c__DisplayClass0_0 <>x.<>c__DisplayClass0_0.<<<>m0>b__0>d.<>4__this""
-    IL_0099:  ldfld      ""C <>x.<>c__DisplayClass0_0.<>4__this""
-    IL_009e:  ldfld      ""dynamic C.d""
-    IL_00a3:  callvirt   ""dynamic System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>.Invoke(System.Runtime.CompilerServices.CallSite, dynamic)""
-    IL_00a8:  callvirt   ""dynamic System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>.Invoke(System.Runtime.CompilerServices.CallSite, dynamic)""
-    IL_00ad:  stloc.2
-    IL_00ae:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, bool>> <>x.<>c__DisplayClass0_0.<<<>m0>b__0>d.<>o.<>p__2""
-    IL_00b3:  brtrue.s   IL_00da
-    IL_00b5:  ldc.i4.s   16
-    IL_00b7:  ldtoken    ""bool""
-    IL_00bc:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
-    IL_00c1:  ldtoken    ""C""
-    IL_00c6:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
-    IL_00cb:  call       ""System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.Convert(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, System.Type, System.Type)""
-    IL_00d0:  call       ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, bool>> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, bool>>.Create(System.Runtime.CompilerServices.CallSiteBinder)""
-    IL_00d5:  stsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, bool>> <>x.<>c__DisplayClass0_0.<<<>m0>b__0>d.<>o.<>p__2""
-    IL_00da:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, bool>> <>x.<>c__DisplayClass0_0.<<<>m0>b__0>d.<>o.<>p__2""
-    IL_00df:  ldfld      ""System.Func<System.Runtime.CompilerServices.CallSite, dynamic, bool> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, bool>>.Target""
-    IL_00e4:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, bool>> <>x.<>c__DisplayClass0_0.<<<>m0>b__0>d.<>o.<>p__2""
-    IL_00e9:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> <>x.<>c__DisplayClass0_0.<<<>m0>b__0>d.<>o.<>p__1""
-    IL_00ee:  brtrue.s   IL_011f
-    IL_00f0:  ldc.i4.0
-    IL_00f1:  ldstr      ""IsCompleted""
-    IL_00f6:  ldtoken    ""C""
-    IL_00fb:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
-    IL_0100:  ldc.i4.1
-    IL_0101:  newarr     ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo""
-    IL_0106:  dup
-    IL_0107:  ldc.i4.0
-    IL_0108:  ldc.i4.0
-    IL_0109:  ldnull
-    IL_010a:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
-    IL_010f:  stelem.ref
-    IL_0110:  call       ""System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.GetMember(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, string, System.Type, System.Collections.Generic.IEnumerable<Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo>)""
-    IL_0115:  call       ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>>.Create(System.Runtime.CompilerServices.CallSiteBinder)""
-    IL_011a:  stsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> <>x.<>c__DisplayClass0_0.<<<>m0>b__0>d.<>o.<>p__1""
-    IL_011f:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> <>x.<>c__DisplayClass0_0.<<<>m0>b__0>d.<>o.<>p__1""
-    IL_0124:  ldfld      ""System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>>.Target""
-    IL_0129:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> <>x.<>c__DisplayClass0_0.<<<>m0>b__0>d.<>o.<>p__1""
-    IL_012e:  ldloc.2
-    IL_012f:  callvirt   ""dynamic System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>.Invoke(System.Runtime.CompilerServices.CallSite, dynamic)""
-    IL_0134:  callvirt   ""bool System.Func<System.Runtime.CompilerServices.CallSite, dynamic, bool>.Invoke(System.Runtime.CompilerServices.CallSite, dynamic)""
-    IL_0139:  brtrue.s   IL_019c
-    IL_013b:  ldarg.0
-    IL_013c:  ldc.i4.0
-    IL_013d:  dup
-    IL_013e:  stloc.0
-    IL_013f:  stfld      ""int <>x.<>c__DisplayClass0_0.<<<>m0>b__0>d.<>1__state""
-    IL_0144:  ldarg.0
-    IL_0145:  ldloc.2
-    IL_0146:  stfld      ""object <>x.<>c__DisplayClass0_0.<<<>m0>b__0>d.<>u__1""
-    IL_014b:  ldloc.2
-    IL_014c:  isinst     ""System.Runtime.CompilerServices.ICriticalNotifyCompletion""
-    IL_0151:  stloc.3
-    IL_0152:  ldloc.3
-    IL_0153:  brtrue.s   IL_0170
-    IL_0155:  ldloc.2
-    IL_0156:  castclass  ""System.Runtime.CompilerServices.INotifyCompletion""
-    IL_015b:  stloc.s    V_4
-    IL_015d:  ldarg.0
-    IL_015e:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> <>x.<>c__DisplayClass0_0.<<<>m0>b__0>d.<>t__builder""
-    IL_0163:  ldloca.s   V_4
-    IL_0165:  ldarg.0
-    IL_0166:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object>.AwaitOnCompleted<System.Runtime.CompilerServices.INotifyCompletion, <>x.<>c__DisplayClass0_0.<<<>m0>b__0>d>(ref System.Runtime.CompilerServices.INotifyCompletion, ref <>x.<>c__DisplayClass0_0.<<<>m0>b__0>d)""
-    IL_016b:  ldnull
-    IL_016c:  stloc.s    V_4
-    IL_016e:  br.s       IL_017e
-    IL_0170:  ldarg.0
-    IL_0171:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> <>x.<>c__DisplayClass0_0.<<<>m0>b__0>d.<>t__builder""
-    IL_0176:  ldloca.s   V_3
-    IL_0178:  ldarg.0
-    IL_0179:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object>.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.ICriticalNotifyCompletion, <>x.<>c__DisplayClass0_0.<<<>m0>b__0>d>(ref System.Runtime.CompilerServices.ICriticalNotifyCompletion, ref <>x.<>c__DisplayClass0_0.<<<>m0>b__0>d)""
-    IL_017e:  ldnull
-    IL_017f:  stloc.3
-    IL_0180:  leave      IL_021a
-    IL_0185:  ldarg.0
-    IL_0186:  ldfld      ""object <>x.<>c__DisplayClass0_0.<<<>m0>b__0>d.<>u__1""
-    IL_018b:  stloc.2
-    IL_018c:  ldarg.0
-    IL_018d:  ldnull
-    IL_018e:  stfld      ""object <>x.<>c__DisplayClass0_0.<<<>m0>b__0>d.<>u__1""
-    IL_0193:  ldarg.0
-    IL_0194:  ldc.i4.m1
-    IL_0195:  dup
-    IL_0196:  stloc.0
-    IL_0197:  stfld      ""int <>x.<>c__DisplayClass0_0.<<<>m0>b__0>d.<>1__state""
-    IL_019c:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> <>x.<>c__DisplayClass0_0.<<<>m0>b__0>d.<>o.<>p__3""
-    IL_01a1:  brtrue.s   IL_01d3
-    IL_01a3:  ldc.i4.0
-    IL_01a4:  ldstr      ""GetResult""
-    IL_01a9:  ldnull
-    IL_01aa:  ldtoken    ""C""
-    IL_01af:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
-    IL_01b4:  ldc.i4.1
-    IL_01b5:  newarr     ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo""
-    IL_01ba:  dup
-    IL_01bb:  ldc.i4.0
-    IL_01bc:  ldc.i4.0
-    IL_01bd:  ldnull
-    IL_01be:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
-    IL_01c3:  stelem.ref
-    IL_01c4:  call       ""System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.InvokeMember(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, string, System.Collections.Generic.IEnumerable<System.Type>, System.Type, System.Collections.Generic.IEnumerable<Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo>)""
-    IL_01c9:  call       ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>>.Create(System.Runtime.CompilerServices.CallSiteBinder)""
-    IL_01ce:  stsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> <>x.<>c__DisplayClass0_0.<<<>m0>b__0>d.<>o.<>p__3""
-    IL_01d3:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> <>x.<>c__DisplayClass0_0.<<<>m0>b__0>d.<>o.<>p__3""
-    IL_01d8:  ldfld      ""System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>>.Target""
-    IL_01dd:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> <>x.<>c__DisplayClass0_0.<<<>m0>b__0>d.<>o.<>p__3""
-    IL_01e2:  ldloc.2
-    IL_01e3:  callvirt   ""dynamic System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>.Invoke(System.Runtime.CompilerServices.CallSite, dynamic)""
-    IL_01e8:  ldnull
-    IL_01e9:  stloc.2
-    IL_01ea:  stloc.1
-    IL_01eb:  leave.s    IL_0206
+    IL_000e:  ldloc.0
+    IL_000f:  brfalse    IL_018a
+    IL_0014:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> <>x.<>c__DisplayClass0_0.<<<>m0>b__0>d.<>o.<>p__0""
+    IL_0019:  brtrue.s   IL_004b
+    IL_001b:  ldc.i4.0
+    IL_001c:  ldstr      ""GetAwaiter""
+    IL_0021:  ldnull
+    IL_0022:  ldtoken    ""C""
+    IL_0027:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+    IL_002c:  ldc.i4.1
+    IL_002d:  newarr     ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo""
+    IL_0032:  dup
+    IL_0033:  ldc.i4.0
+    IL_0034:  ldc.i4.0
+    IL_0035:  ldnull
+    IL_0036:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
+    IL_003b:  stelem.ref
+    IL_003c:  call       ""System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.InvokeMember(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, string, System.Collections.Generic.IEnumerable<System.Type>, System.Type, System.Collections.Generic.IEnumerable<Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo>)""
+    IL_0041:  call       ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>>.Create(System.Runtime.CompilerServices.CallSiteBinder)""
+    IL_0046:  stsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> <>x.<>c__DisplayClass0_0.<<<>m0>b__0>d.<>o.<>p__0""
+    IL_004b:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> <>x.<>c__DisplayClass0_0.<<<>m0>b__0>d.<>o.<>p__0""
+    IL_0050:  ldfld      ""System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>>.Target""
+    IL_0055:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> <>x.<>c__DisplayClass0_0.<<<>m0>b__0>d.<>o.<>p__0""
+    IL_005a:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> <>x.<>o__0.<>p__0""
+    IL_005f:  brtrue.s   IL_008b
+    IL_0061:  ldc.i4.0
+    IL_0062:  ldtoken    ""C""
+    IL_0067:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+    IL_006c:  ldc.i4.1
+    IL_006d:  newarr     ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo""
+    IL_0072:  dup
+    IL_0073:  ldc.i4.0
+    IL_0074:  ldc.i4.0
+    IL_0075:  ldnull
+    IL_0076:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
+    IL_007b:  stelem.ref
+    IL_007c:  call       ""System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.Invoke(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, System.Type, System.Collections.Generic.IEnumerable<Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo>)""
+    IL_0081:  call       ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>>.Create(System.Runtime.CompilerServices.CallSiteBinder)""
+    IL_0086:  stsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> <>x.<>o__0.<>p__0""
+    IL_008b:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> <>x.<>o__0.<>p__0""
+    IL_0090:  ldfld      ""System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>>.Target""
+    IL_0095:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> <>x.<>o__0.<>p__0""
+    IL_009a:  ldloc.1
+    IL_009b:  ldfld      ""C <>x.<>c__DisplayClass0_0.<>4__this""
+    IL_00a0:  ldfld      ""dynamic C.d""
+    IL_00a5:  callvirt   ""dynamic System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>.Invoke(System.Runtime.CompilerServices.CallSite, dynamic)""
+    IL_00aa:  callvirt   ""dynamic System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>.Invoke(System.Runtime.CompilerServices.CallSite, dynamic)""
+    IL_00af:  stloc.3
+    IL_00b0:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, bool>> <>x.<>c__DisplayClass0_0.<<<>m0>b__0>d.<>o.<>p__2""
+    IL_00b5:  brtrue.s   IL_00dc
+    IL_00b7:  ldc.i4.s   16
+    IL_00b9:  ldtoken    ""bool""
+    IL_00be:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+    IL_00c3:  ldtoken    ""C""
+    IL_00c8:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+    IL_00cd:  call       ""System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.Convert(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, System.Type, System.Type)""
+    IL_00d2:  call       ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, bool>> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, bool>>.Create(System.Runtime.CompilerServices.CallSiteBinder)""
+    IL_00d7:  stsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, bool>> <>x.<>c__DisplayClass0_0.<<<>m0>b__0>d.<>o.<>p__2""
+    IL_00dc:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, bool>> <>x.<>c__DisplayClass0_0.<<<>m0>b__0>d.<>o.<>p__2""
+    IL_00e1:  ldfld      ""System.Func<System.Runtime.CompilerServices.CallSite, dynamic, bool> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, bool>>.Target""
+    IL_00e6:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, bool>> <>x.<>c__DisplayClass0_0.<<<>m0>b__0>d.<>o.<>p__2""
+    IL_00eb:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> <>x.<>c__DisplayClass0_0.<<<>m0>b__0>d.<>o.<>p__1""
+    IL_00f0:  brtrue.s   IL_0121
+    IL_00f2:  ldc.i4.0
+    IL_00f3:  ldstr      ""IsCompleted""
+    IL_00f8:  ldtoken    ""C""
+    IL_00fd:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+    IL_0102:  ldc.i4.1
+    IL_0103:  newarr     ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo""
+    IL_0108:  dup
+    IL_0109:  ldc.i4.0
+    IL_010a:  ldc.i4.0
+    IL_010b:  ldnull
+    IL_010c:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
+    IL_0111:  stelem.ref
+    IL_0112:  call       ""System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.GetMember(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, string, System.Type, System.Collections.Generic.IEnumerable<Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo>)""
+    IL_0117:  call       ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>>.Create(System.Runtime.CompilerServices.CallSiteBinder)""
+    IL_011c:  stsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> <>x.<>c__DisplayClass0_0.<<<>m0>b__0>d.<>o.<>p__1""
+    IL_0121:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> <>x.<>c__DisplayClass0_0.<<<>m0>b__0>d.<>o.<>p__1""
+    IL_0126:  ldfld      ""System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>>.Target""
+    IL_012b:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> <>x.<>c__DisplayClass0_0.<<<>m0>b__0>d.<>o.<>p__1""
+    IL_0130:  ldloc.3
+    IL_0131:  callvirt   ""dynamic System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>.Invoke(System.Runtime.CompilerServices.CallSite, dynamic)""
+    IL_0136:  callvirt   ""bool System.Func<System.Runtime.CompilerServices.CallSite, dynamic, bool>.Invoke(System.Runtime.CompilerServices.CallSite, dynamic)""
+    IL_013b:  brtrue.s   IL_01a1
+    IL_013d:  ldarg.0
+    IL_013e:  ldc.i4.0
+    IL_013f:  dup
+    IL_0140:  stloc.0
+    IL_0141:  stfld      ""int <>x.<>c__DisplayClass0_0.<<<>m0>b__0>d.<>1__state""
+    IL_0146:  ldarg.0
+    IL_0147:  ldloc.3
+    IL_0148:  stfld      ""object <>x.<>c__DisplayClass0_0.<<<>m0>b__0>d.<>u__1""
+    IL_014d:  ldloc.3
+    IL_014e:  isinst     ""System.Runtime.CompilerServices.ICriticalNotifyCompletion""
+    IL_0153:  stloc.s    V_4
+    IL_0155:  ldloc.s    V_4
+    IL_0157:  brtrue.s   IL_0174
+    IL_0159:  ldloc.3
+    IL_015a:  castclass  ""System.Runtime.CompilerServices.INotifyCompletion""
+    IL_015f:  stloc.s    V_5
+    IL_0161:  ldarg.0
+    IL_0162:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> <>x.<>c__DisplayClass0_0.<<<>m0>b__0>d.<>t__builder""
+    IL_0167:  ldloca.s   V_5
+    IL_0169:  ldarg.0
+    IL_016a:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object>.AwaitOnCompleted<System.Runtime.CompilerServices.INotifyCompletion, <>x.<>c__DisplayClass0_0.<<<>m0>b__0>d>(ref System.Runtime.CompilerServices.INotifyCompletion, ref <>x.<>c__DisplayClass0_0.<<<>m0>b__0>d)""
+    IL_016f:  ldnull
+    IL_0170:  stloc.s    V_5
+    IL_0172:  br.s       IL_0182
+    IL_0174:  ldarg.0
+    IL_0175:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> <>x.<>c__DisplayClass0_0.<<<>m0>b__0>d.<>t__builder""
+    IL_017a:  ldloca.s   V_4
+    IL_017c:  ldarg.0
+    IL_017d:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object>.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.ICriticalNotifyCompletion, <>x.<>c__DisplayClass0_0.<<<>m0>b__0>d>(ref System.Runtime.CompilerServices.ICriticalNotifyCompletion, ref <>x.<>c__DisplayClass0_0.<<<>m0>b__0>d)""
+    IL_0182:  ldnull
+    IL_0183:  stloc.s    V_4
+    IL_0185:  leave      IL_021d
+    IL_018a:  ldarg.0
+    IL_018b:  ldfld      ""object <>x.<>c__DisplayClass0_0.<<<>m0>b__0>d.<>u__1""
+    IL_0190:  stloc.3
+    IL_0191:  ldarg.0
+    IL_0192:  ldnull
+    IL_0193:  stfld      ""object <>x.<>c__DisplayClass0_0.<<<>m0>b__0>d.<>u__1""
+    IL_0198:  ldarg.0
+    IL_0199:  ldc.i4.m1
+    IL_019a:  dup
+    IL_019b:  stloc.0
+    IL_019c:  stfld      ""int <>x.<>c__DisplayClass0_0.<<<>m0>b__0>d.<>1__state""
+    IL_01a1:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> <>x.<>c__DisplayClass0_0.<<<>m0>b__0>d.<>o.<>p__3""
+    IL_01a6:  brtrue.s   IL_01d8
+    IL_01a8:  ldc.i4.0
+    IL_01a9:  ldstr      ""GetResult""
+    IL_01ae:  ldnull
+    IL_01af:  ldtoken    ""C""
+    IL_01b4:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+    IL_01b9:  ldc.i4.1
+    IL_01ba:  newarr     ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo""
+    IL_01bf:  dup
+    IL_01c0:  ldc.i4.0
+    IL_01c1:  ldc.i4.0
+    IL_01c2:  ldnull
+    IL_01c3:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
+    IL_01c8:  stelem.ref
+    IL_01c9:  call       ""System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.InvokeMember(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, string, System.Collections.Generic.IEnumerable<System.Type>, System.Type, System.Collections.Generic.IEnumerable<Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo>)""
+    IL_01ce:  call       ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>>.Create(System.Runtime.CompilerServices.CallSiteBinder)""
+    IL_01d3:  stsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> <>x.<>c__DisplayClass0_0.<<<>m0>b__0>d.<>o.<>p__3""
+    IL_01d8:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> <>x.<>c__DisplayClass0_0.<<<>m0>b__0>d.<>o.<>p__3""
+    IL_01dd:  ldfld      ""System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>>.Target""
+    IL_01e2:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> <>x.<>c__DisplayClass0_0.<<<>m0>b__0>d.<>o.<>p__3""
+    IL_01e7:  ldloc.3
+    IL_01e8:  callvirt   ""dynamic System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>.Invoke(System.Runtime.CompilerServices.CallSite, dynamic)""
+    IL_01ed:  stloc.2
+    IL_01ee:  leave.s    IL_0209
   }
   catch System.Exception
   {
-    IL_01ed:  stloc.s    V_5
-    IL_01ef:  ldarg.0
-    IL_01f0:  ldc.i4.s   -2
-    IL_01f2:  stfld      ""int <>x.<>c__DisplayClass0_0.<<<>m0>b__0>d.<>1__state""
-    IL_01f7:  ldarg.0
-    IL_01f8:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> <>x.<>c__DisplayClass0_0.<<<>m0>b__0>d.<>t__builder""
-    IL_01fd:  ldloc.s    V_5
-    IL_01ff:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object>.SetException(System.Exception)""
-    IL_0204:  leave.s    IL_021a
+    IL_01f0:  stloc.s    V_6
+    IL_01f2:  ldarg.0
+    IL_01f3:  ldc.i4.s   -2
+    IL_01f5:  stfld      ""int <>x.<>c__DisplayClass0_0.<<<>m0>b__0>d.<>1__state""
+    IL_01fa:  ldarg.0
+    IL_01fb:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> <>x.<>c__DisplayClass0_0.<<<>m0>b__0>d.<>t__builder""
+    IL_0200:  ldloc.s    V_6
+    IL_0202:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object>.SetException(System.Exception)""
+    IL_0207:  leave.s    IL_021d
   }
-  IL_0206:  ldarg.0
-  IL_0207:  ldc.i4.s   -2
-  IL_0209:  stfld      ""int <>x.<>c__DisplayClass0_0.<<<>m0>b__0>d.<>1__state""
-  IL_020e:  ldarg.0
-  IL_020f:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> <>x.<>c__DisplayClass0_0.<<<>m0>b__0>d.<>t__builder""
-  IL_0214:  ldloc.1
-  IL_0215:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object>.SetResult(object)""
-  IL_021a:  ret
+  IL_0209:  ldarg.0
+  IL_020a:  ldc.i4.s   -2
+  IL_020c:  stfld      ""int <>x.<>c__DisplayClass0_0.<<<>m0>b__0>d.<>1__state""
+  IL_0211:  ldarg.0
+  IL_0212:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> <>x.<>c__DisplayClass0_0.<<<>m0>b__0>d.<>t__builder""
+  IL_0217:  ldloc.2
+  IL_0218:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object>.SetResult(object)""
+  IL_021d:  ret
 }
 ");
             });
@@ -1235,7 +1261,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source, new[] { SystemCoreRef, CSharpRef }, TestOptions.DebugDll);
+            var comp = CreateStandardCompilation(source, new[] { SystemCoreRef, CSharpRef }, TestOptions.DebugDll);
             WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.Foo");
@@ -1347,7 +1373,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source, new[] { SystemCoreRef, CSharpRef }, TestOptions.DebugDll);
+            var comp = CreateStandardCompilation(source, new[] { SystemCoreRef, CSharpRef }, TestOptions.DebugDll);
             WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -1446,18 +1472,35 @@ class C
         private static void VerifyCustomTypeInfo(LocalAndMethod localAndMethod, string expectedName, params byte[] expectedBytes)
         {
             Assert.Equal(localAndMethod.LocalName, expectedName);
-            VerifyCustomTypeInfo(localAndMethod.GetCustomTypeInfo(), expectedBytes);
+            ReadOnlyCollection<byte> customTypeInfo;
+            Guid customTypeInfoId = localAndMethod.GetCustomTypeInfo(out customTypeInfo);
+            VerifyCustomTypeInfo(customTypeInfoId, customTypeInfo, expectedBytes);
         }
 
         private static void VerifyCustomTypeInfo(CompileResult compileResult, params byte[] expectedBytes)
         {
-            VerifyCustomTypeInfo(compileResult.GetCustomTypeInfo(), expectedBytes);
+            ReadOnlyCollection<byte> customTypeInfo;
+            Guid customTypeInfoId = compileResult.GetCustomTypeInfo(out customTypeInfo);
+            VerifyCustomTypeInfo(customTypeInfoId, customTypeInfo, expectedBytes);
         }
 
-        private static void VerifyCustomTypeInfo(CustomTypeInfo customTypeInfo, byte[] expectedBytes)
+        private static void VerifyCustomTypeInfo(Guid customTypeInfoId, ReadOnlyCollection<byte> customTypeInfo, params byte[] expectedBytes)
         {
-            Assert.Equal(DynamicFlagsCustomTypeInfo.PayloadTypeId, customTypeInfo.PayloadTypeId);
-            Assert.Equal(expectedBytes, customTypeInfo.Payload);
+            if (expectedBytes == null)
+            {
+                Assert.Equal(Guid.Empty, customTypeInfoId);
+                Assert.Null(customTypeInfo);
+            }
+            else
+            {
+                Assert.Equal(CustomTypeInfo.PayloadTypeId, customTypeInfoId);
+                // Include leading count byte.
+                var builder = ArrayBuilder<byte>.GetInstance();
+                builder.Add((byte)expectedBytes.Length);
+                builder.AddRange(expectedBytes);
+                expectedBytes = builder.ToArrayAndFree();
+                Assert.Equal(expectedBytes, customTypeInfo);
+            }
         }
     }
 }

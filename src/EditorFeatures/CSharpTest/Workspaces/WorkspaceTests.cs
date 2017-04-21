@@ -4,7 +4,6 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows.Threading;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
@@ -15,14 +14,37 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
+using System.Composition;
+using Microsoft.VisualStudio.Composition;
 
 namespace Microsoft.CodeAnalysis.UnitTests.Workspaces
 {
     public partial class WorkspaceTests
     {
+        [Shared]
+        [Export(typeof(IAsynchronousOperationListener))]
+        [Export(typeof(IAsynchronousOperationWaiter))]
+        [Feature(FeatureAttribute.Workspace)]
+        private class WorkspaceWaiter : AsynchronousOperationListener
+        {
+            internal WorkspaceWaiter()
+            {
+            }
+        }
+
+        private static Lazy<ExportProvider> s_exportProvider = new Lazy<ExportProvider>(CreateExportProvider);
+
+        private static ExportProvider CreateExportProvider()
+        {
+            var catalog = MinimalTestExportProvider.WithPart(
+                TestExportProvider.CreateAssemblyCatalogWithCSharpAndVisualBasic(),
+                typeof(WorkspaceWaiter));
+            return MinimalTestExportProvider.CreateExportProvider(catalog);
+        }
+
         private TestWorkspace CreateWorkspace(bool disablePartialSolutions = true)
         {
-            return new TestWorkspace(TestExportProvider.ExportProviderWithCSharpAndVisualBasic, disablePartialSolutions: disablePartialSolutions);
+            return new TestWorkspace(s_exportProvider.Value, disablePartialSolutions: disablePartialSolutions);
         }
 
         private static async Task WaitForWorkspaceOperationsToComplete(TestWorkspace workspace)
@@ -365,10 +387,9 @@ class D { }
                 workspace.AddTestProject(project1);
                 workspace.OnDocumentOpened(document.Id, document.GetOpenTextContainer());
 
-                Assert.Throws<ArgumentException>(() => workspace.OnProjectRemoved(project1.Id));
-
-                workspace.OnDocumentClosed(document.Id);
                 workspace.OnProjectRemoved(project1.Id);
+                Assert.False(workspace.IsDocumentOpen(document.Id));
+                Assert.Empty(workspace.CurrentSolution.Projects);
             }
         }
 

@@ -267,7 +267,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.IncorrectExitContinue
                 Case SyntaxKind.GetAccessorBlock, SyntaxKind.SetAccessorBlock
                     Return SyntaxKind.ExitPropertyStatement
                 Case Else
-                    Throw ExceptionUtilities.Unreachable
+                    Throw ExceptionUtilities.UnexpectedValue(blockKind)
             End Select
         End Function
 
@@ -284,7 +284,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.IncorrectExitContinue
                 Case SyntaxKind.WhileBlock
                     Return SyntaxKind.ContinueWhileStatement
                 Case Else
-                    Throw ExceptionUtilities.Unreachable
+                    Throw ExceptionUtilities.UnexpectedValue(blockKind)
             End Select
         End Function
 
@@ -313,7 +313,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.IncorrectExitContinue
         End Sub
 
         Private Function CreateDeleteString(node As SyntaxNode) As String
-            Return String.Format(VBFeaturesResources.DeleteTheStatement, node.ToString().Trim())
+            Return String.Format(VBFeaturesResources.Delete_the_0_statement1, node.ToString().Trim())
         End Function
     End Class
 End Namespace

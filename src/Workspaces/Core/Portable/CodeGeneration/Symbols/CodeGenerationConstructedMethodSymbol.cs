@@ -1,8 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration
 {
@@ -26,38 +24,15 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             _typeArguments = typeArguments;
         }
 
-        public override int Arity
-        {
-            get
-            {
-                return _constructedFrom.Arity;
-            }
-        }
+        public override int Arity => _constructedFrom.Arity;
 
-        public override bool ReturnsVoid
-        {
-            get
-            {
-                return _constructedFrom.ReturnsVoid;
-            }
-        }
+        public override bool ReturnsVoid => _constructedFrom.ReturnsVoid;
 
-        public override bool ReturnsByRef
-        {
-            get
-            {
-                return _constructedFrom.ReturnsByRef;
-            }
-        }
+        public override bool ReturnsByRef => _constructedFrom.ReturnsByRef;
 
-        public override ITypeSymbol ReturnType
-        {
-            get
-            {
+        public override ITypeSymbol ReturnType =>
                 // TODO(cyrusn): Construct this.
-                return _constructedFrom.ReturnType;
-            }
-        }
+                _constructedFrom.ReturnType;
 
         public override ImmutableArray<ITypeSymbol> TypeArguments
         {
@@ -67,13 +42,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             }
         }
 
-        public override ImmutableArray<ITypeParameterSymbol> TypeParameters
-        {
-            get
-            {
-                return _constructedFrom.TypeParameters;
-            }
-        }
+        public override ImmutableArray<ITypeParameterSymbol> TypeParameters => _constructedFrom.TypeParameters;
 
         public override ImmutableArray<IParameterSymbol> Parameters
         {
@@ -84,31 +53,15 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             }
         }
 
-        public override IMethodSymbol ConstructedFrom
-        {
-            get
-            {
-                return _constructedFrom;
-            }
-        }
+        public override IMethodSymbol ConstructedFrom => _constructedFrom;
 
-        public override IMethodSymbol OverriddenMethod
-        {
-            get
-            {
+        public override IMethodSymbol OverriddenMethod =>
                 // TODO(cyrusn): Construct this.
-                return _constructedFrom.OverriddenMethod;
-            }
-        }
+                _constructedFrom.OverriddenMethod;
 
-        public override IMethodSymbol ReducedFrom
-        {
-            get
-            {
+        public override IMethodSymbol ReducedFrom =>
                 // TODO(cyrusn): Construct this.
-                return _constructedFrom.ReducedFrom;
-            }
-        }
+                _constructedFrom.ReducedFrom;
 
         public override ITypeSymbol GetTypeInferredDuringReduction(ITypeParameterSymbol reducedFromTypeParameter)
         {
@@ -121,32 +74,17 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             return null;
         }
 
-        public override ImmutableArray<IMethodSymbol> ExplicitInterfaceImplementations
-        {
-            get
-            {
+        public override ImmutableArray<IMethodSymbol> ExplicitInterfaceImplementations =>
                 // TODO(cyrusn): Construct this.
-                return _constructedFrom.ExplicitInterfaceImplementations;
-            }
-        }
+                _constructedFrom.ExplicitInterfaceImplementations;
 
-        public override IMethodSymbol PartialDefinitionPart
-        {
-            get
-            {
+        public override IMethodSymbol PartialDefinitionPart =>
                 // TODO(cyrusn): Construct this.
-                return _constructedFrom.PartialDefinitionPart;
-            }
-        }
+                _constructedFrom.PartialDefinitionPart;
 
-        public override IMethodSymbol PartialImplementationPart
-        {
-            get
-            {
+        public override IMethodSymbol PartialImplementationPart =>
                 // TODO(cyrusn): Construct this.
-                return _constructedFrom.PartialImplementationPart;
-            }
-        }
+                _constructedFrom.PartialImplementationPart;
 
         protected override CodeGenerationSymbol Clone()
         {

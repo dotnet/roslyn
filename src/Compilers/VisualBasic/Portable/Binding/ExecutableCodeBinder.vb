@@ -21,12 +21,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend MustInherit Class ExecutableCodeBinder
         Inherits Binder
 
-        Private ReadOnly _syntaxRoot As VisualBasicSyntaxNode
+        Private ReadOnly _syntaxRoot As SyntaxNode
         Private ReadOnly _descendantBinderFactory As DescendantBinderFactory
         Private _labelsMap As MultiDictionary(Of String, SourceLabelSymbol)
         Private _labels As ImmutableArray(Of SourceLabelSymbol) = Nothing
 
-        Public Sub New(root As VisualBasicSyntaxNode, containingBinder As Binder)
+        Public Sub New(root As SyntaxNode, containingBinder As Binder)
             MyBase.New(containingBinder)
 
             _syntaxRoot = root
@@ -161,18 +161,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return _descendantBinderFactory.GetBinder(stmtList)
         End Function
 
-        Public Overrides Function GetBinder(node As VisualBasicSyntaxNode) As Binder
+        Public Overrides Function GetBinder(node As SyntaxNode) As Binder
             Return _descendantBinderFactory.GetBinder(node)
         End Function
 
-        Public ReadOnly Property Root As VisualBasicSyntaxNode
+        Public ReadOnly Property Root As SyntaxNode
             Get
                 Return _descendantBinderFactory.Root
             End Get
         End Property
 
         ' Get the map that maps from syntax nodes to binders.
-        Public ReadOnly Property NodeToBinderMap As ImmutableDictionary(Of VisualBasicSyntaxNode, BlockBaseBinder)
+        Public ReadOnly Property NodeToBinderMap As ImmutableDictionary(Of SyntaxNode, BlockBaseBinder)
             Get
                 Return _descendantBinderFactory.NodeToBinderMap
             End Get

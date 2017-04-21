@@ -19,18 +19,13 @@ namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
         public ExportCodeCleanupProvider(string name, params string[] languages)
             : base(typeof(ICodeCleanupProvider))
         {
-            if (languages == null)
-            {
-                throw new ArgumentNullException(nameof(languages));
-            }
-
             if (languages.Length == 0)
             {
                 throw new ArgumentException("languages");
             }
 
             this.Name = name;
-            this.Languages = languages;
+            this.Languages = languages ?? throw new ArgumentNullException(nameof(languages));
         }
     }
 }

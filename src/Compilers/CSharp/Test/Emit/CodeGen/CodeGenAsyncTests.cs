@@ -2013,7 +2013,7 @@ class Test
 
             c.VerifyIL("Test.<F>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext", @"
 {
-  // Code size      188 (0xbc)
+  // Code size      180 (0xb4)
   .maxstack  3
   .locals init (int V_0,
                 int V_1,
@@ -2055,7 +2055,7 @@ class Test
     IL_0058:  ldloca.s   V_2
     IL_005a:  ldarg.0
     IL_005b:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter<int>, Test.<F>d__0>(ref System.Runtime.CompilerServices.TaskAwaiter<int>, ref Test.<F>d__0)""
-    IL_0060:  leave.s    IL_00bb
+    IL_0060:  leave.s    IL_00b3
     IL_0062:  ldarg.0
     IL_0063:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> Test.<F>d__0.<>u__1""
     IL_0068:  stloc.2
@@ -2069,31 +2069,29 @@ class Test
     IL_0079:  stfld      ""int Test.<F>d__0.<>1__state""
     IL_007e:  ldloca.s   V_2
     IL_0080:  call       ""int System.Runtime.CompilerServices.TaskAwaiter<int>.GetResult()""
-    IL_0085:  ldloca.s   V_2
-    IL_0087:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter<int>""
-    IL_008d:  stloc.1
-    IL_008e:  leave.s    IL_00a7
+    IL_0085:  stloc.1
+    IL_0086:  leave.s    IL_009f
   }
   catch System.Exception
   {
-    IL_0090:  stloc.3
+    IL_0088:  stloc.3
+    IL_0089:  ldarg.0
+    IL_008a:  ldc.i4.s   -2
+    IL_008c:  stfld      ""int Test.<F>d__0.<>1__state""
     IL_0091:  ldarg.0
-    IL_0092:  ldc.i4.s   -2
-    IL_0094:  stfld      ""int Test.<F>d__0.<>1__state""
-    IL_0099:  ldarg.0
-    IL_009a:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> Test.<F>d__0.<>t__builder""
-    IL_009f:  ldloc.3
-    IL_00a0:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.SetException(System.Exception)""
-    IL_00a5:  leave.s    IL_00bb
+    IL_0092:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> Test.<F>d__0.<>t__builder""
+    IL_0097:  ldloc.3
+    IL_0098:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.SetException(System.Exception)""
+    IL_009d:  leave.s    IL_00b3
   }
+  IL_009f:  ldarg.0
+  IL_00a0:  ldc.i4.s   -2
+  IL_00a2:  stfld      ""int Test.<F>d__0.<>1__state""
   IL_00a7:  ldarg.0
-  IL_00a8:  ldc.i4.s   -2
-  IL_00aa:  stfld      ""int Test.<F>d__0.<>1__state""
-  IL_00af:  ldarg.0
-  IL_00b0:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> Test.<F>d__0.<>t__builder""
-  IL_00b5:  ldloc.1
-  IL_00b6:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.SetResult(int)""
-  IL_00bb:  ret
+  IL_00a8:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> Test.<F>d__0.<>t__builder""
+  IL_00ad:  ldloc.1
+  IL_00ae:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.SetResult(int)""
+  IL_00b3:  ret
 }
 ");
 
@@ -2163,14 +2161,13 @@ class Test
 
             c.VerifyIL("Test.<F>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext", @"
 {
-  // Code size      196 (0xc4)
+  // Code size      184 (0xb8)
   .maxstack  3
   .locals init (int V_0,
                 int V_1,
                 int V_2,
                 System.Runtime.CompilerServices.TaskAwaiter<int> V_3,
-                int V_4,
-                System.Exception V_5)
+                System.Exception V_4)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""int Test.<F>d__0.<>1__state""
   IL_0006:  stloc.0
@@ -2207,7 +2204,7 @@ class Test
     IL_0058:  ldloca.s   V_3
     IL_005a:  ldarg.0
     IL_005b:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter<int>, Test.<F>d__0>(ref System.Runtime.CompilerServices.TaskAwaiter<int>, ref Test.<F>d__0)""
-    IL_0060:  leave.s    IL_00c3
+    IL_0060:  leave.s    IL_00b7
     IL_0062:  ldarg.0
     IL_0063:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> Test.<F>d__0.<>u__1""
     IL_0068:  stloc.3
@@ -2221,35 +2218,31 @@ class Test
     IL_0079:  stfld      ""int Test.<F>d__0.<>1__state""
     IL_007e:  ldloca.s   V_3
     IL_0080:  call       ""int System.Runtime.CompilerServices.TaskAwaiter<int>.GetResult()""
-    IL_0085:  stloc.s    V_4
-    IL_0087:  ldloca.s   V_3
-    IL_0089:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter<int>""
-    IL_008f:  ldloc.s    V_4
-    IL_0091:  stloc.2
-    IL_0092:  ldloc.2
-    IL_0093:  stloc.1
-    IL_0094:  leave.s    IL_00af
+    IL_0085:  stloc.2
+    IL_0086:  ldloc.2
+    IL_0087:  stloc.1
+    IL_0088:  leave.s    IL_00a3
   }
   catch System.Exception
   {
-    IL_0096:  stloc.s    V_5
-    IL_0098:  ldarg.0
-    IL_0099:  ldc.i4.s   -2
-    IL_009b:  stfld      ""int Test.<F>d__0.<>1__state""
-    IL_00a0:  ldarg.0
-    IL_00a1:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> Test.<F>d__0.<>t__builder""
-    IL_00a6:  ldloc.s    V_5
-    IL_00a8:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.SetException(System.Exception)""
-    IL_00ad:  leave.s    IL_00c3
+    IL_008a:  stloc.s    V_4
+    IL_008c:  ldarg.0
+    IL_008d:  ldc.i4.s   -2
+    IL_008f:  stfld      ""int Test.<F>d__0.<>1__state""
+    IL_0094:  ldarg.0
+    IL_0095:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> Test.<F>d__0.<>t__builder""
+    IL_009a:  ldloc.s    V_4
+    IL_009c:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.SetException(System.Exception)""
+    IL_00a1:  leave.s    IL_00b7
   }
-  IL_00af:  ldarg.0
-  IL_00b0:  ldc.i4.s   -2
-  IL_00b2:  stfld      ""int Test.<F>d__0.<>1__state""
-  IL_00b7:  ldarg.0
-  IL_00b8:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> Test.<F>d__0.<>t__builder""
-  IL_00bd:  ldloc.1
-  IL_00be:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.SetResult(int)""
-  IL_00c3:  ret
+  IL_00a3:  ldarg.0
+  IL_00a4:  ldc.i4.s   -2
+  IL_00a6:  stfld      ""int Test.<F>d__0.<>1__state""
+  IL_00ab:  ldarg.0
+  IL_00ac:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> Test.<F>d__0.<>t__builder""
+  IL_00b1:  ldloc.1
+  IL_00b2:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.SetResult(int)""
+  IL_00b7:  ret
 }
 ");
 
@@ -2322,14 +2315,13 @@ class Test
 
             c.VerifyIL("Test.<F>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext", @"
 {
-  // Code size      216 (0xd8)
+  // Code size      205 (0xcd)
   .maxstack  3
   .locals init (int V_0,
                 int V_1,
                 System.Runtime.CompilerServices.TaskAwaiter<int> V_2,
-                int V_3,
-                Test.<F>d__0 V_4,
-                System.Exception V_5)
+                Test.<F>d__0 V_3,
+                System.Exception V_4)
  ~IL_0000:  ldarg.0
   IL_0001:  ldfld      ""int Test.<F>d__0.<>1__state""
   IL_0006:  stloc.0
@@ -2338,7 +2330,7 @@ class Test
    ~IL_0007:  ldloc.0
     IL_0008:  brfalse.s  IL_000c
     IL_000a:  br.s       IL_000e
-    IL_000c:  br.s       IL_006c
+    IL_000c:  br.s       IL_006b
    -IL_000e:  nop
    -IL_000f:  call       ""System.Threading.Tasks.TaskFactory System.Threading.Tasks.Task.Factory.get""
     IL_0014:  ldsfld     ""System.Func<int> Test.<>c.<>9__0_0""
@@ -2355,7 +2347,7 @@ class Test
     IL_003d:  stloc.2
    ~IL_003e:  ldloca.s   V_2
     IL_0040:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter<int>.IsCompleted.get""
-    IL_0045:  brtrue.s   IL_0088
+    IL_0045:  brtrue.s   IL_0087
     IL_0047:  ldarg.0
     IL_0048:  ldc.i4.0
     IL_0049:  dup
@@ -2365,60 +2357,56 @@ class Test
     IL_0051:  ldloc.2
     IL_0052:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> Test.<F>d__0.<>u__1""
     IL_0057:  ldarg.0
-    IL_0058:  stloc.s    V_4
-    IL_005a:  ldarg.0
-    IL_005b:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> Test.<F>d__0.<>t__builder""
-    IL_0060:  ldloca.s   V_2
-    IL_0062:  ldloca.s   V_4
-    IL_0064:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter<int>, Test.<F>d__0>(ref System.Runtime.CompilerServices.TaskAwaiter<int>, ref Test.<F>d__0)""
-    IL_0069:  nop
-    IL_006a:  leave.s    IL_00d7
-   >IL_006c:  ldarg.0
-    IL_006d:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> Test.<F>d__0.<>u__1""
-    IL_0072:  stloc.2
-    IL_0073:  ldarg.0
-    IL_0074:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter<int> Test.<F>d__0.<>u__1""
-    IL_0079:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter<int>""
-    IL_007f:  ldarg.0
-    IL_0080:  ldc.i4.m1
-    IL_0081:  dup
-    IL_0082:  stloc.0
-    IL_0083:  stfld      ""int Test.<F>d__0.<>1__state""
+    IL_0058:  stloc.3
+    IL_0059:  ldarg.0
+    IL_005a:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> Test.<F>d__0.<>t__builder""
+    IL_005f:  ldloca.s   V_2
+    IL_0061:  ldloca.s   V_3
+    IL_0063:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter<int>, Test.<F>d__0>(ref System.Runtime.CompilerServices.TaskAwaiter<int>, ref Test.<F>d__0)""
+    IL_0068:  nop
+    IL_0069:  leave.s    IL_00cc
+   >IL_006b:  ldarg.0
+    IL_006c:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> Test.<F>d__0.<>u__1""
+    IL_0071:  stloc.2
+    IL_0072:  ldarg.0
+    IL_0073:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter<int> Test.<F>d__0.<>u__1""
+    IL_0078:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter<int>""
+    IL_007e:  ldarg.0
+    IL_007f:  ldc.i4.m1
+    IL_0080:  dup
+    IL_0081:  stloc.0
+    IL_0082:  stfld      ""int Test.<F>d__0.<>1__state""
+    IL_0087:  ldarg.0
     IL_0088:  ldloca.s   V_2
     IL_008a:  call       ""int System.Runtime.CompilerServices.TaskAwaiter<int>.GetResult()""
-    IL_008f:  stloc.3
-    IL_0090:  ldloca.s   V_2
-    IL_0092:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter<int>""
-    IL_0098:  ldarg.0
-    IL_0099:  ldloc.3
-    IL_009a:  stfld      ""int Test.<F>d__0.<>s__1""
-    IL_009f:  ldarg.0
-    IL_00a0:  ldfld      ""int Test.<F>d__0.<>s__1""
-    IL_00a5:  stloc.1
-    IL_00a6:  leave.s    IL_00c2
+    IL_008f:  stfld      ""int Test.<F>d__0.<>s__1""
+    IL_0094:  ldarg.0
+    IL_0095:  ldfld      ""int Test.<F>d__0.<>s__1""
+    IL_009a:  stloc.1
+    IL_009b:  leave.s    IL_00b7
   }
   catch System.Exception
   {
-   ~IL_00a8:  stloc.s    V_5
-    IL_00aa:  ldarg.0
-    IL_00ab:  ldc.i4.s   -2
-    IL_00ad:  stfld      ""int Test.<F>d__0.<>1__state""
-    IL_00b2:  ldarg.0
-    IL_00b3:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> Test.<F>d__0.<>t__builder""
-    IL_00b8:  ldloc.s    V_5
-    IL_00ba:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.SetException(System.Exception)""
-    IL_00bf:  nop
-    IL_00c0:  leave.s    IL_00d7
+   ~IL_009d:  stloc.s    V_4
+    IL_009f:  ldarg.0
+    IL_00a0:  ldc.i4.s   -2
+    IL_00a2:  stfld      ""int Test.<F>d__0.<>1__state""
+    IL_00a7:  ldarg.0
+    IL_00a8:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> Test.<F>d__0.<>t__builder""
+    IL_00ad:  ldloc.s    V_4
+    IL_00af:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.SetException(System.Exception)""
+    IL_00b4:  nop
+    IL_00b5:  leave.s    IL_00cc
   }
- -IL_00c2:  ldarg.0
-  IL_00c3:  ldc.i4.s   -2
-  IL_00c5:  stfld      ""int Test.<F>d__0.<>1__state""
- ~IL_00ca:  ldarg.0
-  IL_00cb:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> Test.<F>d__0.<>t__builder""
-  IL_00d0:  ldloc.1
-  IL_00d1:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.SetResult(int)""
-  IL_00d6:  nop
-  IL_00d7:  ret
+ -IL_00b7:  ldarg.0
+  IL_00b8:  ldc.i4.s   -2
+  IL_00ba:  stfld      ""int Test.<F>d__0.<>1__state""
+ ~IL_00bf:  ldarg.0
+  IL_00c0:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> Test.<F>d__0.<>t__builder""
+  IL_00c5:  ldloc.1
+  IL_00c6:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.SetResult(int)""
+  IL_00cb:  nop
+  IL_00cc:  ret
 }
 ", sequencePoints: "Test+<F>d__0.MoveNext");
 
@@ -2483,7 +2471,7 @@ class Test
 ");
             c.VerifyIL("Test.<F>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext", @"
 {
-  // Code size      194 (0xc2)
+  // Code size      186 (0xba)
   .maxstack  3
   .locals init (int V_0,
                 System.Runtime.CompilerServices.TaskAwaiter<int> V_1,
@@ -2524,7 +2512,7 @@ class Test
     IL_0058:  ldloca.s   V_1
     IL_005a:  ldarg.0
     IL_005b:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter<int>, Test.<F>d__0>(ref System.Runtime.CompilerServices.TaskAwaiter<int>, ref Test.<F>d__0)""
-    IL_0060:  leave.s    IL_00c1
+    IL_0060:  leave.s    IL_00b9
     IL_0062:  ldarg.0
     IL_0063:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> Test.<F>d__0.<>u__1""
     IL_0068:  stloc.1
@@ -2539,31 +2527,29 @@ class Test
     IL_007e:  ldloca.s   V_1
     IL_0080:  call       ""int System.Runtime.CompilerServices.TaskAwaiter<int>.GetResult()""
     IL_0085:  pop
-    IL_0086:  ldloca.s   V_1
-    IL_0088:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter<int>""
-    IL_008e:  ldc.i4.s   42
-    IL_0090:  call       ""void System.Console.WriteLine(int)""
-    IL_0095:  leave.s    IL_00ae
+    IL_0086:  ldc.i4.s   42
+    IL_0088:  call       ""void System.Console.WriteLine(int)""
+    IL_008d:  leave.s    IL_00a6
   }
   catch System.Exception
   {
-    IL_0097:  stloc.2
+    IL_008f:  stloc.2
+    IL_0090:  ldarg.0
+    IL_0091:  ldc.i4.s   -2
+    IL_0093:  stfld      ""int Test.<F>d__0.<>1__state""
     IL_0098:  ldarg.0
-    IL_0099:  ldc.i4.s   -2
-    IL_009b:  stfld      ""int Test.<F>d__0.<>1__state""
-    IL_00a0:  ldarg.0
-    IL_00a1:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Test.<F>d__0.<>t__builder""
-    IL_00a6:  ldloc.2
-    IL_00a7:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)""
-    IL_00ac:  leave.s    IL_00c1
+    IL_0099:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Test.<F>d__0.<>t__builder""
+    IL_009e:  ldloc.2
+    IL_009f:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)""
+    IL_00a4:  leave.s    IL_00b9
   }
+  IL_00a6:  ldarg.0
+  IL_00a7:  ldc.i4.s   -2
+  IL_00a9:  stfld      ""int Test.<F>d__0.<>1__state""
   IL_00ae:  ldarg.0
-  IL_00af:  ldc.i4.s   -2
-  IL_00b1:  stfld      ""int Test.<F>d__0.<>1__state""
-  IL_00b6:  ldarg.0
-  IL_00b7:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Test.<F>d__0.<>t__builder""
-  IL_00bc:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
-  IL_00c1:  ret
+  IL_00af:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Test.<F>d__0.<>t__builder""
+  IL_00b4:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
+  IL_00b9:  ret
 }
 ");
         }
@@ -2622,7 +2608,7 @@ class Test
 }
 ").VerifyIL("Test.<F>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext", @"
 {
-  // Code size      198 (0xc6)
+  // Code size      190 (0xbe)
   .maxstack  3
   .locals init (int V_0,
                 System.Runtime.CompilerServices.TaskAwaiter V_1,
@@ -2663,7 +2649,7 @@ class Test
     IL_0058:  ldloca.s   V_1
     IL_005a:  ldarg.0
     IL_005b:  call       ""void System.Runtime.CompilerServices.AsyncVoidMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter, Test.<F>d__1>(ref System.Runtime.CompilerServices.TaskAwaiter, ref Test.<F>d__1)""
-    IL_0060:  leave.s    IL_00c5
+    IL_0060:  leave.s    IL_00bd
     IL_0062:  ldarg.0
     IL_0063:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter Test.<F>d__1.<>u__1""
     IL_0068:  stloc.1
@@ -2677,33 +2663,31 @@ class Test
     IL_0079:  stfld      ""int Test.<F>d__1.<>1__state""
     IL_007e:  ldloca.s   V_1
     IL_0080:  call       ""void System.Runtime.CompilerServices.TaskAwaiter.GetResult()""
-    IL_0085:  ldloca.s   V_1
-    IL_0087:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter""
-    IL_008d:  ldarg.0
-    IL_008e:  ldfld      ""System.Threading.AutoResetEvent Test.<F>d__1.handle""
-    IL_0093:  callvirt   ""bool System.Threading.EventWaitHandle.Set()""
-    IL_0098:  pop
-    IL_0099:  leave.s    IL_00b2
+    IL_0085:  ldarg.0
+    IL_0086:  ldfld      ""System.Threading.AutoResetEvent Test.<F>d__1.handle""
+    IL_008b:  callvirt   ""bool System.Threading.EventWaitHandle.Set()""
+    IL_0090:  pop
+    IL_0091:  leave.s    IL_00aa
   }
   catch System.Exception
   {
-    IL_009b:  stloc.2
+    IL_0093:  stloc.2
+    IL_0094:  ldarg.0
+    IL_0095:  ldc.i4.s   -2
+    IL_0097:  stfld      ""int Test.<F>d__1.<>1__state""
     IL_009c:  ldarg.0
-    IL_009d:  ldc.i4.s   -2
-    IL_009f:  stfld      ""int Test.<F>d__1.<>1__state""
-    IL_00a4:  ldarg.0
-    IL_00a5:  ldflda     ""System.Runtime.CompilerServices.AsyncVoidMethodBuilder Test.<F>d__1.<>t__builder""
-    IL_00aa:  ldloc.2
-    IL_00ab:  call       ""void System.Runtime.CompilerServices.AsyncVoidMethodBuilder.SetException(System.Exception)""
-    IL_00b0:  leave.s    IL_00c5
+    IL_009d:  ldflda     ""System.Runtime.CompilerServices.AsyncVoidMethodBuilder Test.<F>d__1.<>t__builder""
+    IL_00a2:  ldloc.2
+    IL_00a3:  call       ""void System.Runtime.CompilerServices.AsyncVoidMethodBuilder.SetException(System.Exception)""
+    IL_00a8:  leave.s    IL_00bd
   }
+  IL_00aa:  ldarg.0
+  IL_00ab:  ldc.i4.s   -2
+  IL_00ad:  stfld      ""int Test.<F>d__1.<>1__state""
   IL_00b2:  ldarg.0
-  IL_00b3:  ldc.i4.s   -2
-  IL_00b5:  stfld      ""int Test.<F>d__1.<>1__state""
-  IL_00ba:  ldarg.0
-  IL_00bb:  ldflda     ""System.Runtime.CompilerServices.AsyncVoidMethodBuilder Test.<F>d__1.<>t__builder""
-  IL_00c0:  call       ""void System.Runtime.CompilerServices.AsyncVoidMethodBuilder.SetResult()""
-  IL_00c5:  ret
+  IL_00b3:  ldflda     ""System.Runtime.CompilerServices.AsyncVoidMethodBuilder Test.<F>d__1.<>t__builder""
+  IL_00b8:  call       ""void System.Runtime.CompilerServices.AsyncVoidMethodBuilder.SetResult()""
+  IL_00bd:  ret
 }
 ");
         }
@@ -3124,13 +3108,13 @@ class Driver
 
         [WorkItem(840843, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/840843")]
         [Fact]
-        public void MissingAsyncMethodBuilder()
+        public void MissingAsyncVoidMethodBuilder()
         {
             var source = @"
 class C
 {
     async void M() {}
-    }
+}
 ";
 
             var comp = CSharpTestBaseBase.CreateCompilation(source, new[] { MscorlibRef }, TestOptions.ReleaseDll); // NOTE: 4.0, not 4.5, so it's missing the async helpers.
@@ -3143,15 +3127,804 @@ class C
                 // (4,20): error CS0518: Predefined type 'System.Runtime.CompilerServices.AsyncVoidMethodBuilder' is not defined or imported
                 //     async void M() {}
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "{}").WithArguments("System.Runtime.CompilerServices.AsyncVoidMethodBuilder").WithLocation(4, 20),
-                // (4,20): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.AsyncVoidMethodBuilder.SetException'
+                // (4,20): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.AsyncVoidMethodBuilder.Create'
                 //     async void M() {}
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "{}").WithArguments("System.Runtime.CompilerServices.AsyncVoidMethodBuilder", "SetException").WithLocation(4, 20),
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "{}").WithArguments("System.Runtime.CompilerServices.AsyncVoidMethodBuilder", "Create").WithLocation(4, 20),
                 // (4,20): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext'
                 //     async void M() {}
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "{}").WithArguments("System.Runtime.CompilerServices.IAsyncStateMachine", "MoveNext").WithLocation(4, 20),
                 // (4,20): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.IAsyncStateMachine.SetStateMachine'
                 //     async void M() {}
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "{}").WithArguments("System.Runtime.CompilerServices.IAsyncStateMachine", "SetStateMachine").WithLocation(4, 20));
+        }
+
+        [Fact]
+        public void MissingAsyncTaskMethodBuilder()
+        {
+            var source =
+@"using System.Threading.Tasks;
+class C
+{
+    async Task M() {}
+}";
+            var comp = CSharpTestBaseBase.CreateCompilation(source, new[] { MscorlibRef }, TestOptions.ReleaseDll); // NOTE: 4.0, not 4.5, so it's missing the async helpers.
+            comp.VerifyEmitDiagnostics(
+                // (4,16): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //     async Task M() {}
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(4, 16),
+                // (4,20): error CS0518: Predefined type 'System.Runtime.CompilerServices.AsyncTaskMethodBuilder' is not defined or imported
+                //     async Task M() {}
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "{}").WithArguments("System.Runtime.CompilerServices.AsyncTaskMethodBuilder").WithLocation(4, 20),
+                // (4,20): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.AsyncTaskMethodBuilder.Create'
+                //     async Task M() {}
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "{}").WithArguments("System.Runtime.CompilerServices.AsyncTaskMethodBuilder", "Create").WithLocation(4, 20),
+                // (4,20): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.AsyncTaskMethodBuilder.Task'
+                //     async Task M() {}
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "{}").WithArguments("System.Runtime.CompilerServices.AsyncTaskMethodBuilder", "Task").WithLocation(4, 20),
+                // (4,20): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext'
+                //     async Task M() {}
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "{}").WithArguments("System.Runtime.CompilerServices.IAsyncStateMachine", "MoveNext").WithLocation(4, 20),
+                // (4,20): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.IAsyncStateMachine.SetStateMachine'
+                //     async Task M() {}
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "{}").WithArguments("System.Runtime.CompilerServices.IAsyncStateMachine", "SetStateMachine").WithLocation(4, 20));
+        }
+
+        [Fact]
+        public void MissingAsyncTaskMethodBuilder_T()
+        {
+            var source =
+@"using System.Threading.Tasks;
+class C
+{
+    async Task<int> F() => 3;
+}";
+            var comp = CSharpTestBaseBase.CreateCompilation(source, new[] { MscorlibRef }, TestOptions.ReleaseDll); // NOTE: 4.0, not 4.5, so it's missing the async helpers.
+            comp.VerifyEmitDiagnostics(
+                // (4,21): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //     async Task<int> F() => 3;
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "F").WithLocation(4, 21),
+                // (4,25): error CS0518: Predefined type 'System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1' is not defined or imported
+                //     async Task<int> F() => 3;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "=> 3").WithArguments("System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1").WithLocation(4, 25),
+                // (4,25): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1.Create'
+                //     async Task<int> F() => 3;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "=> 3").WithArguments("System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1", "Create").WithLocation(4, 25),
+                // (4,25): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1.Task'
+                //     async Task<int> F() => 3;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "=> 3").WithArguments("System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1", "Task").WithLocation(4, 25),
+                // (4,25): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext'
+                //     async Task<int> F() => 3;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "=> 3").WithArguments("System.Runtime.CompilerServices.IAsyncStateMachine", "MoveNext").WithLocation(4, 25),
+                // (4,25): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.IAsyncStateMachine.SetStateMachine'
+                //     async Task<int> F() => 3;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "=> 3").WithArguments("System.Runtime.CompilerServices.IAsyncStateMachine", "SetStateMachine").WithLocation(4, 25));
+        }
+
+        private static string AsyncBuilderCode(string builderTypeName, string tasklikeTypeName, string genericTypeParameter = null, bool isStruct = false)
+        {
+            string ofT = genericTypeParameter == null ? "" : "<" + genericTypeParameter + ">";
+            return $@"
+public {(isStruct ? "struct" : "class")} {builderTypeName}{ofT}
+{{
+    public static {builderTypeName}{ofT} Create() => default({builderTypeName}{ofT});
+    public {tasklikeTypeName}{ofT} Task {{ get; }}
+    public void AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : INotifyCompletion where TStateMachine : IAsyncStateMachine {{ }}
+    public void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : ICriticalNotifyCompletion where TStateMachine : IAsyncStateMachine {{ }}
+    public void SetException(System.Exception exception) {{ }}
+    public void SetResult({(genericTypeParameter == null ? "" : genericTypeParameter + " result")}) {{ }}
+    public void SetStateMachine(IAsyncStateMachine stateMachine) {{ }}
+    public void Start<TStateMachine>(ref TStateMachine stateMachine) where TStateMachine : IAsyncStateMachine {{ }}
+}}
+";
+    }
+
+    [Fact]
+        public void PresentAsyncTasklikeBuilderMethod()
+        {
+            var source = @"
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
+class C
+{
+    async ValueTask f() { await (Task)null; }
+    async ValueTask<int> g() { await (Task)null; return 1; }
+}
+[AsyncMethodBuilder(typeof(ValueTaskMethodBuilder))]
+struct ValueTask { }
+[AsyncMethodBuilder(typeof(ValueTaskMethodBuilder<>))]
+struct ValueTask<T> { }
+class ValueTaskMethodBuilder
+{
+    public static ValueTaskMethodBuilder Create() => null;
+    public ValueTask Task { get; }
+    public void AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : INotifyCompletion where TStateMachine : IAsyncStateMachine { }
+    public void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : ICriticalNotifyCompletion where TStateMachine : IAsyncStateMachine { }
+    public void SetException(System.Exception exception) { }
+    public void SetResult() { }
+    public void SetStateMachine(IAsyncStateMachine stateMachine) { }
+    public void Start<TStateMachine>(ref TStateMachine stateMachine) where TStateMachine : IAsyncStateMachine { }
+}
+class ValueTaskMethodBuilder<T>
+{
+    public static ValueTaskMethodBuilder<T> Create() => null;
+    public ValueTask<T> Task { get; }
+    public void AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : INotifyCompletion where TStateMachine : IAsyncStateMachine { }
+    public void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : ICriticalNotifyCompletion where TStateMachine : IAsyncStateMachine { }
+    public void SetException(System.Exception exception) { }
+    public void SetResult(T result) { }
+    public void SetStateMachine(IAsyncStateMachine stateMachine) { }
+    public void Start<TStateMachine>(ref TStateMachine stateMachine) where TStateMachine : IAsyncStateMachine { }
+}
+namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
+";
+            var v = CompileAndVerify(source, null, options: TestOptions.ReleaseDll);
+            v.VerifyIL("C.g",
+@"{
+  // Code size       45 (0x2d)
+  .maxstack  2
+  .locals init (C.<g>d__1 V_0)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  call       ""ValueTaskMethodBuilder<int> ValueTaskMethodBuilder<int>.Create()""
+  IL_0007:  stfld      ""ValueTaskMethodBuilder<int> C.<g>d__1.<>t__builder""
+  IL_000c:  ldloca.s   V_0
+  IL_000e:  ldc.i4.m1
+  IL_000f:  stfld      ""int C.<g>d__1.<>1__state""
+  IL_0014:  ldloc.0
+  IL_0015:  ldfld      ""ValueTaskMethodBuilder<int> C.<g>d__1.<>t__builder""
+  IL_001a:  ldloca.s   V_0
+  IL_001c:  callvirt   ""void ValueTaskMethodBuilder<int>.Start<C.<g>d__1>(ref C.<g>d__1)""
+  IL_0021:  ldloc.0
+  IL_0022:  ldfld      ""ValueTaskMethodBuilder<int> C.<g>d__1.<>t__builder""
+  IL_0027:  callvirt   ""ValueTask<int> ValueTaskMethodBuilder<int>.Task.get""
+  IL_002c:  ret
+}");
+            v.VerifyIL("C.f",
+@"{
+  // Code size       45 (0x2d)
+  .maxstack  2
+  .locals init (C.<f>d__0 V_0)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  call       ""ValueTaskMethodBuilder ValueTaskMethodBuilder.Create()""
+  IL_0007:  stfld      ""ValueTaskMethodBuilder C.<f>d__0.<>t__builder""
+  IL_000c:  ldloca.s   V_0
+  IL_000e:  ldc.i4.m1
+  IL_000f:  stfld      ""int C.<f>d__0.<>1__state""
+  IL_0014:  ldloc.0
+  IL_0015:  ldfld      ""ValueTaskMethodBuilder C.<f>d__0.<>t__builder""
+  IL_001a:  ldloca.s   V_0
+  IL_001c:  callvirt   ""void ValueTaskMethodBuilder.Start<C.<f>d__0>(ref C.<f>d__0)""
+  IL_0021:  ldloc.0
+  IL_0022:  ldfld      ""ValueTaskMethodBuilder C.<f>d__0.<>t__builder""
+  IL_0027:  callvirt   ""ValueTask ValueTaskMethodBuilder.Task.get""
+  IL_002c:  ret
+}");
+        }
+
+        [Fact]
+        public void AsyncTasklikeGenericBuilder()
+        {
+            var source = @"
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
+
+class N
+{
+    class BN { }
+    class BG<U> { }
+
+    [AsyncMethodBuilder(typeof(N.BG<int>))] class T_NIT<V> { }
+    [AsyncMethodBuilder(typeof(N.BG<int>))] class T_NIN { }
+    [AsyncMethodBuilder(typeof(N.BG<>))] class T_NOT<V> { }
+    [AsyncMethodBuilder(typeof(N.BG<>))] class T_NON { }
+    [AsyncMethodBuilder(typeof(N.BN))] class T_NNT<V> { }
+    [AsyncMethodBuilder(typeof(N.BN))] class T_NNN { }
+
+    async T_NIT<int> f1() => await Task.FromResult(1); 
+    async T_NIN f2() => await Task.FromResult(1);      
+    async T_NOT<int> f3() => await Task.FromResult(1); // ok builderType genericity (but missing members)
+    async T_NON f4() => await Task.FromResult(1);      
+    async T_NNT<int> f5() => await Task.FromResult(1); 
+    async T_NNN f6() => await Task.FromResult(1);      // ok builderType genericity (but missing members)
+}
+
+class G<T>
+{
+    class BN { }
+    class BG<U> { }
+
+    [AsyncMethodBuilder(typeof(G<int>.BG<int>))] class T_IIT<V> { }
+    [AsyncMethodBuilder(typeof(G<int>.BG<int>))] class T_IIN { }
+    [AsyncMethodBuilder(typeof(G<int>.BN))] class T_INT<V> { }
+    [AsyncMethodBuilder(typeof(G<int>.BN))] class T_INN { }
+    [AsyncMethodBuilder(typeof(G<>.BG<>))] class T_OOT<V> { }
+    [AsyncMethodBuilder(typeof(G<>.BG<>))] class T_OON { }
+    [AsyncMethodBuilder(typeof(G<>.BN))] class T_ONT<V> { }
+    [AsyncMethodBuilder(typeof(G<>.BN))] class T_ONN { }
+
+    async T_IIT<int> g1() => await Task.FromResult(1);
+    async T_IIN g2() => await Task.FromResult(1);
+    async T_INT<int> g3() => await Task.FromResult(1);
+    async T_INN g4() => await Task.FromResult(1);      // might have been ok builder genericity but we decided not
+    async T_OOT<int> g5() => await Task.FromResult(1);
+    async T_OON g6() => await Task.FromResult(1);
+    async T_ONT<int> g7() => await Task.FromResult(1);
+    async T_ONN g8() => await Task.FromResult(1);
+}
+
+class Program { static void Main() { } }
+
+namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
+";
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            comp.VerifyEmitDiagnostics(
+                // (17,27): error CS1983: The return type of an async method must be void, Task or Task<T>
+                //     async T_NIT<int> f1() => await Task.FromResult(1);
+                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "=> await Task.FromResult(1)").WithLocation(17, 27),
+                // (18,22): error CS1983: The return type of an async method must be void, Task or Task<T>
+                //     async T_NIN f2() => await Task.FromResult(1);
+                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "=> await Task.FromResult(1)").WithLocation(18, 22),
+                // (19,27): error CS0656: Missing compiler required member 'N.BG<int>.Task'
+                //     async T_NOT<int> f3() => await Task.FromResult(1); // ok builderType genericity (but missing members)
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "=> await Task.FromResult(1)").WithArguments("N.BG<int>", "Task").WithLocation(19, 27),
+                // (19,27): error CS0656: Missing compiler required member 'N.BG<int>.Create'
+                //     async T_NOT<int> f3() => await Task.FromResult(1); // ok builderType genericity (but missing members)
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "=> await Task.FromResult(1)").WithArguments("N.BG<int>", "Create").WithLocation(19, 27),
+                // (20,22): error CS1983: The return type of an async method must be void, Task or Task<T>
+                //     async T_NON f4() => await Task.FromResult(1);
+                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "=> await Task.FromResult(1)").WithLocation(20, 22),
+                // (21,27): error CS1983: The return type of an async method must be void, Task or Task<T>
+                //     async T_NNT<int> f5() => await Task.FromResult(1);
+                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "=> await Task.FromResult(1)").WithLocation(21, 27),
+                // (22,22): error CS0656: Missing compiler required member 'N.BN.Task'
+                //     async T_NNN f6() => await Task.FromResult(1);      // ok builderType genericity (but missing members)
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "=> await Task.FromResult(1)").WithArguments("N.BN", "Task").WithLocation(22, 22),
+                // (22,22): error CS0656: Missing compiler required member 'N.BN.Create'
+                //     async T_NNN f6() => await Task.FromResult(1);      // ok builderType genericity (but missing members)
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "=> await Task.FromResult(1)").WithArguments("N.BN", "Create").WithLocation(22, 22),
+                // (39,27): error CS1983: The return type of an async method must be void, Task or Task<T>
+                //     async T_IIT<int> g1() => await Task.FromResult(1);
+                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "=> await Task.FromResult(1)").WithLocation(39, 27),
+                // (40,22): error CS1983: The return type of an async method must be void, Task or Task<T>
+                //     async T_IIN g2() => await Task.FromResult(1);
+                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "=> await Task.FromResult(1)").WithLocation(40, 22),
+                // (41,27): error CS1983: The return type of an async method must be void, Task or Task<T>
+                //     async T_INT<int> g3() => await Task.FromResult(1);
+                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "=> await Task.FromResult(1)").WithLocation(41, 27),
+                // (42,22): error CS1983: The return type of an async method must be void, Task or Task<T>
+                //     async T_INN g4() => await Task.FromResult(1);      // might have been ok builder genericity but we decided not
+                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "=> await Task.FromResult(1)").WithLocation(42, 22),
+                // (43,27): error CS1983: The return type of an async method must be void, Task or Task<T>
+                //     async T_OOT<int> g5() => await Task.FromResult(1);
+                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "=> await Task.FromResult(1)").WithLocation(43, 27),
+                // (44,22): error CS1983: The return type of an async method must be void, Task or Task<T>
+                //     async T_OON g6() => await Task.FromResult(1);
+                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "=> await Task.FromResult(1)").WithLocation(44, 22),
+                // (45,27): error CS1983: The return type of an async method must be void, Task or Task<T>
+                //     async T_ONT<int> g7() => await Task.FromResult(1);
+                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "=> await Task.FromResult(1)").WithLocation(45, 27),
+                // (46,22): error CS1983: The return type of an async method must be void, Task or Task<T>
+                //     async T_ONN g8() => await Task.FromResult(1);
+                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "=> await Task.FromResult(1)").WithLocation(46, 22)
+                );
+        }
+
+        [Fact]
+        public void AsyncTasklikeBadAttributeArgument1()
+        {
+            var source = @"
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
+
+[AsyncMethodBuilder(typeof(void))] class T { }
+
+class Program {
+    static void Main() { }
+    async T f() => await Task.Delay(1);
+}
+
+namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
+";
+
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            comp.VerifyEmitDiagnostics(
+                // (9,17): error CS1983: The return type of an async method must be void, Task or Task<T>
+                //     async T f() => await Task.Delay(1);
+                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "=> await Task.Delay(1)").WithLocation(9, 17)
+                );
+        }
+
+
+        [Fact]
+        public void AsyncTasklikeBadAttributeArgument2()
+        {
+            var source = @"
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
+
+[AsyncMethodBuilder(""hello"")] class T { }
+
+class Program {
+    static void Main() { }
+    async T f() => await Task.Delay(1);
+}
+
+namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
+";
+
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            comp.VerifyEmitDiagnostics(
+                // (5,15): error CS1503: Argument 1: cannot convert from 'string' to 'System.Type'
+                // [AsyncMethodBuilder("hello")] class T { }
+                Diagnostic(ErrorCode.ERR_BadArgType, @"""hello""").WithArguments("1", "string", "System.Type").WithLocation(5, 21),
+                // (9,13): error CS1983: The return type of an async method must be void, Task or Task<T>
+                //     async T f() => await Task.Delay(1);
+                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "f").WithLocation(9, 13)
+                );
+        }
+
+        [Fact]
+        public void AsyncTasklikeBadAttributeArgument3()
+        {
+            var source = @"
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
+
+[AsyncMethodBuilder(typeof(Nonexistent))] class T { }
+
+class Program {
+    static void Main() { }
+    async T f() => await Task.Delay(1);
+}
+
+namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
+";
+
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            comp.VerifyEmitDiagnostics(
+                // (5,22): error CS0246: The type or namespace name 'Nonexistent' could not be found (are you missing a using directive or an assembly reference?)
+                // [AsyncMethodBuilder(typeof(Nonexistent))] class T { }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Nonexistent").WithArguments("Nonexistent").WithLocation(5, 28)
+                );
+        }
+
+        public void AsyncTasklikeBadAttributeArgument4()
+        {
+            var source = @"
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
+
+[AsyncMethodBuilder(null)] class T { }
+
+class Program {
+    static void Main() { }
+    async T f() => await Task.Delay(1);
+}
+
+namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
+";
+
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            comp.VerifyEmitDiagnostics(
+                // (9,17): error CS1983: The return type of an async method must be void, Task or Task<T>
+                //     async T f() => await Task.Delay(1);
+                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "=> await Task.Delay(1)").WithLocation(9, 17)
+                );
+        }
+
+        [Fact]
+        public void AsyncTasklikeMissingBuilderType()
+        {
+            // Builder
+            var libB = @"public class B { }";
+            var cB = CreateCompilationWithMscorlib45(libB);
+            var rB = cB.EmitToImageReference();
+                
+            // Tasklike
+            var libT = @"
+using System.Runtime.CompilerServices;
+
+[AsyncMethodBuilder(typeof(B))] public class T { }
+
+namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
+";
+            var cT = CreateCompilationWithMscorlib45(libT, references: new[] { rB });
+            var rT = cT.EmitToImageReference();
+
+            // Consumer, fails to reference builder
+            var source = @"
+using System.Threading.Tasks;
+
+class Program {
+    static void Main() { }
+    async T f() => await Task.Delay(1);
+}
+";
+            var c = CreateCompilationWithMscorlib45(source, references: new[] { rT });
+            c.VerifyEmitDiagnostics(
+                // (6,17): error CS1983: The return type of an async method must be void, Task or Task<T>
+                //     async T f() => await Task.Delay(1);
+                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "=> await Task.Delay(1)").WithLocation(6, 17)
+                );
+        }
+
+
+        [Fact]
+        public void AsyncTasklikeCreateMethod()
+        {
+            var source = $@"
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
+
+class Program {{
+    static void Main() {{ }}
+    async T0 f0() => await Task.Delay(0);
+    async T1 f1() => await Task.Delay(1);
+    async T2 f2() => await Task.Delay(2);
+    async T3 f3() => await Task.Delay(3);
+    async T4 f4() => await Task.Delay(4);
+    async T5 f5() => await Task.Delay(5);
+    async T6 f6() => await Task.Delay(6);
+    async T7 f7() => await Task.Delay(7);
+    async T8 f8() => await Task.Delay(8);
+}}
+
+[AsyncMethodBuilder(typeof(B0))] public class T0 {{ }}
+[AsyncMethodBuilder(typeof(B1))] public class T1 {{ }}
+[AsyncMethodBuilder(typeof(B2))] public class T2 {{ }}
+[AsyncMethodBuilder(typeof(B3))] public class T3 {{ }}
+[AsyncMethodBuilder(typeof(B4))] public class T4 {{ }}
+[AsyncMethodBuilder(typeof(B5))] public class T5 {{ }}
+[AsyncMethodBuilder(typeof(B6))] public class T6 {{ }}
+[AsyncMethodBuilder(typeof(B7))] public class T7 {{ }}
+[AsyncMethodBuilder(typeof(B8))] public class T8 {{ }}
+
+{AsyncBuilderCode("B0", "T0").Replace("public static B0 Create()", "public static B0 Create()")}
+{AsyncBuilderCode("B1", "T1").Replace("public static B1 Create()", "private static B1 Create()")}
+{AsyncBuilderCode("B2", "T2").Replace("public static B2 Create() => default(B2);", "public static void Create() { }")}
+{AsyncBuilderCode("B3", "T3").Replace("public static B3 Create() => default(B3);", "public static B1 Create() => default(B1);")}
+{AsyncBuilderCode("B4", "T4").Replace("public static B4 Create()", "public static B4 Create(int i)")}
+{AsyncBuilderCode("B5", "T5").Replace("public static B5 Create()", "public static B5 Create<T>()")}
+{AsyncBuilderCode("B6", "T6").Replace("public static B6 Create()", "public static B6 Create(object arg = null)")}
+{AsyncBuilderCode("B7", "T7").Replace("public static B7 Create()", "public static B7 Create(params object[] arg)")}
+{AsyncBuilderCode("B8", "T8").Replace("public static B8 Create()", "public B8 Create()")}
+
+namespace System.Runtime.CompilerServices {{ class AsyncMethodBuilderAttribute : System.Attribute {{ public AsyncMethodBuilderAttribute(System.Type t) {{ }} }} }}
+";
+
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            comp.VerifyEmitDiagnostics(
+                // (8,19): error CS0656: Missing compiler required member 'B1.Create'
+                //     async T1 f1() => await Task.Delay(1);
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "=> await Task.Delay(1)").WithArguments("B1", "Create").WithLocation(8, 19),
+                // (9,19): error CS0656: Missing compiler required member 'B2.Create'
+                //     async T2 f2() => await Task.Delay(2);
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "=> await Task.Delay(2)").WithArguments("B2", "Create").WithLocation(9, 19),
+                // (10,19): error CS0656: Missing compiler required member 'B3.Create'
+                //     async T3 f3() => await Task.Delay(3);
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "=> await Task.Delay(3)").WithArguments("B3", "Create").WithLocation(10, 19),
+                // (11,19): error CS0656: Missing compiler required member 'B4.Create'
+                //     async T4 f4() => await Task.Delay(4);
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "=> await Task.Delay(4)").WithArguments("B4", "Create").WithLocation(11, 19),
+                // (12,19): error CS0656: Missing compiler required member 'B5.Create'
+                //     async T5 f5() => await Task.Delay(5);
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "=> await Task.Delay(5)").WithArguments("B5", "Create").WithLocation(12, 19),
+                // (13,19): error CS0656: Missing compiler required member 'B6.Create'
+                //     async T6 f6() => await Task.Delay(6);
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "=> await Task.Delay(6)").WithArguments("B6", "Create").WithLocation(13, 19),
+                // (14,19): error CS0656: Missing compiler required member 'B7.Create'
+                //     async T7 f7() => await Task.Delay(7);
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "=> await Task.Delay(7)").WithArguments("B7", "Create").WithLocation(14, 19),
+                // (15,19): error CS0656: Missing compiler required member 'B8.Create'
+                //     async T8 f8() => await Task.Delay(8);
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "=> await Task.Delay(8)").WithArguments("B8", "Create").WithLocation(15, 19)
+                );
+        }
+
+        [Fact]
+        public void AsyncInterfaceTasklike()
+        {
+            var source = $@"
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
+
+class Program {{
+    static void Main() {{ }}
+    async I0 f0() => await Task.Delay(0);
+    async I1<int> f1() {{  await Task.Delay(1); return 1; }}
+}}
+
+[AsyncMethodBuilder(typeof(B0))] public interface I0 {{ }}
+[AsyncMethodBuilder(typeof(B1<>))] public interface I1<T> {{ }}
+
+{AsyncBuilderCode("B0", "I0", genericTypeParameter: null)}
+{AsyncBuilderCode("B1", "I1", genericTypeParameter: "T")}
+
+namespace System.Runtime.CompilerServices {{ class AsyncMethodBuilderAttribute : System.Attribute {{ public AsyncMethodBuilderAttribute(System.Type t) {{ }} }} }}
+";
+
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            comp.VerifyEmitDiagnostics(
+                );
+        }
+
+
+        [Fact]
+        public void AsyncTasklikeBuilderAccessibility()
+        {
+            var source = $@"
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
+
+[AsyncMethodBuilder(typeof(B1))] public class T1 {{ }}
+[AsyncMethodBuilder(typeof(B2))] public class T2 {{ }}
+[AsyncMethodBuilder(typeof(B3))] internal class T3 {{ }}
+[AsyncMethodBuilder(typeof(B4))] internal class T4 {{ }}
+
+{AsyncBuilderCode("B1", "T1").Replace("public class B1", "public class B1")}
+{AsyncBuilderCode("B2", "T2").Replace("public class B2", "internal class B2")}
+{AsyncBuilderCode("B3", "T3").Replace("public class B3", "public class B3").Replace("public T3 Task { get; }", "internal T3 Task {get; }")}
+{AsyncBuilderCode("B4", "T4").Replace("public class B4", "internal class B4")}
+
+class Program {{
+    static void Main() {{ }}
+    async T1 f1() => await Task.Delay(1);
+    async T2 f2() => await Task.Delay(2);
+    async T3 f3() => await Task.Delay(3);
+    async T4 f4() => await Task.Delay(4);
+}}
+
+namespace System.Runtime.CompilerServices {{ class AsyncMethodBuilderAttribute : System.Attribute {{ public AsyncMethodBuilderAttribute(System.Type t) {{ }} }} }}
+";
+
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            comp.VerifyEmitDiagnostics(
+                // (66,19): error CS1983: The return type of an async method must be void, Task or Task<T>
+                //     async T2 f2() => await Task.Delay(2);
+                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "=> await Task.Delay(2)").WithLocation(66, 19),
+                // (67,19): error CS1983: The return type of an async method must be void, Task or Task<T>
+                //     async T3 f3() => await Task.Delay(3);
+                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "=> await Task.Delay(3)").WithLocation(67, 19)
+                );
+        }
+
+
+        [Fact]
+        public void AsyncTasklikeLambdaOverloads()
+        {
+            var source = @"
+using System;
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
+class C
+{
+    static void Main()
+    {
+        f(async () => { await (Task)null; });
+        g(async () => { await (Task)null; });
+        k(async () => { await (Task)null; });
+    }
+
+    static void f(Func<MyTask> lambda) { }
+    static void g(Func<Task> lambda) { }
+    static void k<T>(Func<T> lambda) { }
+}
+[AsyncMethodBuilder(typeof(MyTaskBuilder))]
+class MyTask { }
+class MyTaskBuilder
+{
+    public static MyTaskBuilder Create() => null;
+    public void Start<TStateMachine>(ref TStateMachine stateMachine) where TStateMachine : IAsyncStateMachine { }
+    public void SetStateMachine(IAsyncStateMachine stateMachine) { }
+    public void SetResult() { }
+    public void SetException(Exception exception) { }
+    public MyTask Task => default(MyTask);
+    public void AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : INotifyCompletion where TStateMachine : IAsyncStateMachine { }
+    public void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : ICriticalNotifyCompletion where TStateMachine : IAsyncStateMachine { }
+}
+namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
+";
+            var v = CompileAndVerify(source, null, options: TestOptions.ReleaseDll);
+            v.VerifyIL("C.Main", @"
+{
+  // Code size      109 (0x6d)
+  .maxstack  2
+  IL_0000:  ldsfld     ""System.Func<MyTask> C.<>c.<>9__0_0""
+  IL_0005:  dup
+  IL_0006:  brtrue.s   IL_001f
+  IL_0008:  pop
+  IL_0009:  ldsfld     ""C.<>c C.<>c.<>9""
+  IL_000e:  ldftn      ""MyTask C.<>c.<Main>b__0_0()""
+  IL_0014:  newobj     ""System.Func<MyTask>..ctor(object, System.IntPtr)""
+  IL_0019:  dup
+  IL_001a:  stsfld     ""System.Func<MyTask> C.<>c.<>9__0_0""
+  IL_001f:  call       ""void C.f(System.Func<MyTask>)""
+  IL_0024:  ldsfld     ""System.Func<System.Threading.Tasks.Task> C.<>c.<>9__0_1""
+  IL_0029:  dup
+  IL_002a:  brtrue.s   IL_0043
+  IL_002c:  pop
+  IL_002d:  ldsfld     ""C.<>c C.<>c.<>9""
+  IL_0032:  ldftn      ""System.Threading.Tasks.Task C.<>c.<Main>b__0_1()""
+  IL_0038:  newobj     ""System.Func<System.Threading.Tasks.Task>..ctor(object, System.IntPtr)""
+  IL_003d:  dup
+  IL_003e:  stsfld     ""System.Func<System.Threading.Tasks.Task> C.<>c.<>9__0_1""
+  IL_0043:  call       ""void C.g(System.Func<System.Threading.Tasks.Task>)""
+  IL_0048:  ldsfld     ""System.Func<System.Threading.Tasks.Task> C.<>c.<>9__0_2""
+  IL_004d:  dup
+  IL_004e:  brtrue.s   IL_0067
+  IL_0050:  pop
+  IL_0051:  ldsfld     ""C.<>c C.<>c.<>9""
+  IL_0056:  ldftn      ""System.Threading.Tasks.Task C.<>c.<Main>b__0_2()""
+  IL_005c:  newobj     ""System.Func<System.Threading.Tasks.Task>..ctor(object, System.IntPtr)""
+  IL_0061:  dup
+  IL_0062:  stsfld     ""System.Func<System.Threading.Tasks.Task> C.<>c.<>9__0_2""
+  IL_0067:  call       ""void C.k<System.Threading.Tasks.Task>(System.Func<System.Threading.Tasks.Task>)""
+  IL_006c:  ret
+}");
+        }
+
+        [Fact]
+        public void AsyncTasklikeIncompleteBuilder()
+        {
+            var source = @"
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
+class C
+{
+    static void Main() { }
+    async ValueTask0 f() { await Task.Delay(0); }
+    async ValueTask1 g() { await Task.Delay(0); }
+    async ValueTask2 h() { await Task.Delay(0); }
+}
+[AsyncMethodBuilder(typeof(ValueTaskMethodBuilder0))]
+struct ValueTask0 { }
+[AsyncMethodBuilder(typeof(ValueTaskMethodBuilder1))]
+struct ValueTask1 { }
+[AsyncMethodBuilder(typeof(ValueTaskMethodBuilder2))]
+struct ValueTask2 { }
+class ValueTaskMethodBuilder0
+{
+    public static ValueTaskMethodBuilder0 Create() => null;
+    public ValueTask0 Task => default(ValueTask0);
+}
+class ValueTaskMethodBuilder1
+{
+    public static ValueTaskMethodBuilder1 Create() => null;
+    public ValueTask1 Task => default(ValueTask1);
+    public void SetException(System.Exception ex) { }
+}
+class ValueTaskMethodBuilder2
+{
+    public static ValueTaskMethodBuilder2 Create() => null;
+    public ValueTask2 Task => default(ValueTask2);
+    public void SetException(System.Exception ex) { } public void SetResult() { }
+}
+namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
+";
+
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            comp.VerifyEmitDiagnostics(
+                // (7,26): error CS0656: Missing compiler required member 'ValueTaskMethodBuilder0.SetException'
+                //     async ValueTask0 f() { await Task.Delay(0); }
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "{ await Task.Delay(0); }").WithArguments("ValueTaskMethodBuilder0", "SetException").WithLocation(7, 26),
+                // (8,26): error CS0656: Missing compiler required member 'ValueTaskMethodBuilder1.SetResult'
+                //     async ValueTask1 g() { await Task.Delay(0); }
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "{ await Task.Delay(0); }").WithArguments("ValueTaskMethodBuilder1", "SetResult").WithLocation(8, 26),
+                // (9,26): error CS0656: Missing compiler required member 'ValueTaskMethodBuilder2.AwaitOnCompleted'
+                //     async ValueTask2 h() { await Task.Delay(0); }
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "{ await Task.Delay(0); }").WithArguments("ValueTaskMethodBuilder2", "AwaitOnCompleted").WithLocation(9, 26)
+                );
+        }
+
+        [Fact]
+        public void AsyncTasklikeBuilderArityMismatch()
+        {
+            var source = @"
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
+class C {
+    async Mismatch1<int> f() { await (Task)null; return 1; }
+    async Mismatch2 g() { await (Task)null; return 1; }
+}
+[AsyncMethodBuilder(typeof(Mismatch1MethodBuilder))]
+struct Mismatch1<T> { }
+[AsyncMethodBuilder(typeof(Mismatch2MethodBuilder<>))]
+struct Mismatch2 { }
+class Mismatch1MethodBuilder
+{
+    public static Mismatch1MethodBuilder Create() => null;
+}
+class Mismatch2MethodBuilder<T>
+{
+    public static Mismatch2MethodBuilder<T> Create() => null;
+}
+namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
+";
+            var comp = CreateCompilationWithMscorlib45(source);
+            comp.VerifyEmitDiagnostics(
+                // (5,30): error CS1983: The return type of an async method must be void, Task or Task<T>
+                //     async Mismatch1<int> f() { await (Task)null; return 1; }
+                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "{ await (Task)null; return 1; }").WithLocation(5, 30),
+                // (6,45): error CS1997: Since 'C.g()' is an async method that returns 'Task', a return keyword must not be followed by an object expression. Did you intend to return 'Task<T>'?
+                //     async Mismatch2 g() { await (Task)null; return 1; }
+                Diagnostic(ErrorCode.ERR_TaskRetNoObjectRequired, "return").WithArguments("C.g()").WithLocation(6, 45)
+                );
+        }
+
+        // Should check constraints (see https://github.com/dotnet/roslyn/issues/12616).
+        //[Fact]
+        public void AsyncTasklikeBuilderConstraints()
+        {
+            var source1 = @"
+using System;
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
+class C
+{
+    static void Main() { }
+    async MyTask f() { await (Task)null; }
+}
+
+[AsyncMethodBuilder(typeof(MyTaskBuilder))]
+class MyTask { }
+
+interface I { }
+
+class MyTaskBuilder
+{
+    public static MyTaskBuilder Create() => null;
+    public void SetStateMachine(IAsyncStateMachine stateMachine) { }
+    public void Start<TSM>(ref TSM stateMachine) where TSM : I { }
+    public void AwaitOnCompleted<TA, TSM>(ref TA awaiter, ref TSM stateMachine) { }
+    public void AwaitUnsafeOnCompleted<TA, TSM>(ref TA awaiter, ref TSM stateMachine) { }
+    public void SetResult() { }
+    public void SetException(Exception ex) { }
+    public MyTask Task => null;
+}
+
+namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
+";
+
+            var comp1 = CreateCompilation(source1, options: TestOptions.DebugExe);
+            comp1.VerifyEmitDiagnostics(
+                // (8,22): error CS0656: Missing compiler required member 'MyTaskBuilder.Start'
+                //     async MyTask f() { await (Task)null; }
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "{ await (Task)null; }").WithArguments("MyTaskBuilder", "Start").WithLocation(8, 22)
+                );
+
+            var source2 = @"
+using System;
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
+class C
+{
+    static void Main() { }
+    async MyTask f() { await (Task)null; }
+}
+
+[AsyncMethodBuilder(typeof(MyTaskBuilder))]
+class MyTask { }
+
+class MyTaskBuilder
+{
+    public static MyTaskBuilder Create() => null;
+    public void SetStateMachine(IAsyncStateMachine stateMachine) { }
+    public void Start<TSM>(ref TSM stateMachine) where TSM : IAsyncStateMachine { }
+    public void AwaitOnCompleted<TA, TSM>(ref TA awaiter, ref TSM stateMachine) where TA : INotifyCompletion where TSM : IAsyncStateMachine { }
+    public void AwaitUnsafeOnCompleted<TA, TSM>(ref TA awaiter, ref TSM stateMachine) { }
+    public void SetResult() { }
+    public void SetException(Exception ex) { }
+    public MyTask Task => null;
+}
+
+namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
+";
+
+            var comp2 = CreateCompilation(source2, options: TestOptions.DebugExe);
+            comp2.VerifyEmitDiagnostics(
+                // (8,22): error CS0656: Missing compiler required member 'MyTaskBuilder.AwaitUnsafeOnCompleted'
+                //     async MyTask f() { await (Task)null; }
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "{ await (Task)null; }").WithArguments("MyTaskBuilder", "AwaitUnsafeOnCompleted").WithLocation(8, 22)
+                );
         }
 
         [Fact]
@@ -3281,14 +4054,13 @@ class Test
 
             v.VerifyIL("Test.<F>d__2.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
 {
-  // Code size      235 (0xeb)
+  // Code size      224 (0xe0)
   .maxstack  3
   .locals init (int V_0,
                 int V_1,
                 System.Runtime.CompilerServices.TaskAwaiter<int> V_2,
-                int V_3,
-                Test.<F>d__2 V_4,
-                System.Exception V_5)
+                Test.<F>d__2 V_3,
+                System.Exception V_4)
  ~IL_0000:  ldarg.0
   IL_0001:  ldfld      ""int Test.<F>d__2.<>1__state""
   IL_0006:  stloc.0
@@ -3297,7 +4069,7 @@ class Test
    ~IL_0007:  ldloc.0
     IL_0008:  brfalse.s  IL_000c
     IL_000a:  br.s       IL_000e
-    IL_000c:  br.s       IL_006e
+    IL_000c:  br.s       IL_006d
    -IL_000e:  nop
    -IL_000f:  ldarg.0
     IL_0010:  ldc.i4.s   10
@@ -3317,7 +4089,7 @@ class Test
     IL_003f:  stloc.2
    ~IL_0040:  ldloca.s   V_2
     IL_0042:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter<int>.IsCompleted.get""
-    IL_0047:  brtrue.s   IL_008a
+    IL_0047:  brtrue.s   IL_0089
     IL_0049:  ldarg.0
     IL_004a:  ldc.i4.0
     IL_004b:  dup
@@ -3327,65 +4099,61 @@ class Test
     IL_0053:  ldloc.2
     IL_0054:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> Test.<F>d__2.<>u__1""
     IL_0059:  ldarg.0
-    IL_005a:  stloc.s    V_4
-    IL_005c:  ldarg.0
-    IL_005d:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> Test.<F>d__2.<>t__builder""
-    IL_0062:  ldloca.s   V_2
-    IL_0064:  ldloca.s   V_4
-    IL_0066:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter<int>, Test.<F>d__2>(ref System.Runtime.CompilerServices.TaskAwaiter<int>, ref Test.<F>d__2)""
-    IL_006b:  nop
-    IL_006c:  leave.s    IL_00ea
-   >IL_006e:  ldarg.0
-    IL_006f:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> Test.<F>d__2.<>u__1""
-    IL_0074:  stloc.2
-    IL_0075:  ldarg.0
-    IL_0076:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter<int> Test.<F>d__2.<>u__1""
-    IL_007b:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter<int>""
-    IL_0081:  ldarg.0
-    IL_0082:  ldc.i4.m1
-    IL_0083:  dup
-    IL_0084:  stloc.0
-    IL_0085:  stfld      ""int Test.<F>d__2.<>1__state""
+    IL_005a:  stloc.3
+    IL_005b:  ldarg.0
+    IL_005c:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> Test.<F>d__2.<>t__builder""
+    IL_0061:  ldloca.s   V_2
+    IL_0063:  ldloca.s   V_3
+    IL_0065:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter<int>, Test.<F>d__2>(ref System.Runtime.CompilerServices.TaskAwaiter<int>, ref Test.<F>d__2)""
+    IL_006a:  nop
+    IL_006b:  leave.s    IL_00df
+   >IL_006d:  ldarg.0
+    IL_006e:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> Test.<F>d__2.<>u__1""
+    IL_0073:  stloc.2
+    IL_0074:  ldarg.0
+    IL_0075:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter<int> Test.<F>d__2.<>u__1""
+    IL_007a:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter<int>""
+    IL_0080:  ldarg.0
+    IL_0081:  ldc.i4.m1
+    IL_0082:  dup
+    IL_0083:  stloc.0
+    IL_0084:  stfld      ""int Test.<F>d__2.<>1__state""
+    IL_0089:  ldarg.0
     IL_008a:  ldloca.s   V_2
     IL_008c:  call       ""int System.Runtime.CompilerServices.TaskAwaiter<int>.GetResult()""
-    IL_0091:  stloc.3
-    IL_0092:  ldloca.s   V_2
-    IL_0094:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter<int>""
-    IL_009a:  ldarg.0
-    IL_009b:  ldloc.3
-    IL_009c:  stfld      ""int Test.<F>d__2.<>s__2""
-    IL_00a1:  ldarg.0
-    IL_00a2:  ldfld      ""S[] Test.<F>d__2.<>s__3""
-    IL_00a7:  ldc.i4.1
-    IL_00a8:  ldelema    ""S""
-    IL_00ad:  ldarg.0
-    IL_00ae:  ldfld      ""int Test.<F>d__2.<>s__2""
-    IL_00b3:  call       ""int S.Mutate(int)""
-    IL_00b8:  stloc.1
-    IL_00b9:  leave.s    IL_00d5
+    IL_0091:  stfld      ""int Test.<F>d__2.<>s__2""
+    IL_0096:  ldarg.0
+    IL_0097:  ldfld      ""S[] Test.<F>d__2.<>s__3""
+    IL_009c:  ldc.i4.1
+    IL_009d:  ldelema    ""S""
+    IL_00a2:  ldarg.0
+    IL_00a3:  ldfld      ""int Test.<F>d__2.<>s__2""
+    IL_00a8:  call       ""int S.Mutate(int)""
+    IL_00ad:  stloc.1
+    IL_00ae:  leave.s    IL_00ca
   }
   catch System.Exception
   {
-   ~IL_00bb:  stloc.s    V_5
-    IL_00bd:  ldarg.0
-    IL_00be:  ldc.i4.s   -2
-    IL_00c0:  stfld      ""int Test.<F>d__2.<>1__state""
-    IL_00c5:  ldarg.0
-    IL_00c6:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> Test.<F>d__2.<>t__builder""
-    IL_00cb:  ldloc.s    V_5
-    IL_00cd:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.SetException(System.Exception)""
-    IL_00d2:  nop
-    IL_00d3:  leave.s    IL_00ea
+   ~IL_00b0:  stloc.s    V_4
+    IL_00b2:  ldarg.0
+    IL_00b3:  ldc.i4.s   -2
+    IL_00b5:  stfld      ""int Test.<F>d__2.<>1__state""
+    IL_00ba:  ldarg.0
+    IL_00bb:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> Test.<F>d__2.<>t__builder""
+    IL_00c0:  ldloc.s    V_4
+    IL_00c2:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.SetException(System.Exception)""
+    IL_00c7:  nop
+    IL_00c8:  leave.s    IL_00df
   }
- -IL_00d5:  ldarg.0
-  IL_00d6:  ldc.i4.s   -2
-  IL_00d8:  stfld      ""int Test.<F>d__2.<>1__state""
- ~IL_00dd:  ldarg.0
-  IL_00de:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> Test.<F>d__2.<>t__builder""
-  IL_00e3:  ldloc.1
-  IL_00e4:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.SetResult(int)""
-  IL_00e9:  nop
-  IL_00ea:  ret
+ -IL_00ca:  ldarg.0
+  IL_00cb:  ldc.i4.s   -2
+  IL_00cd:  stfld      ""int Test.<F>d__2.<>1__state""
+ ~IL_00d2:  ldarg.0
+  IL_00d3:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> Test.<F>d__2.<>t__builder""
+  IL_00d8:  ldloc.1
+  IL_00d9:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.SetResult(int)""
+  IL_00de:  nop
+  IL_00df:  ret
 }",
             sequencePoints: "Test+<F>d__2.MoveNext");
         }
@@ -4029,12 +4797,222 @@ class C
             compilation.VerifyEmitDiagnostics(
                 // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
                 Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1),
+                // (62,37): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.AsyncTaskMethodBuilder.Create'
+                //     async Task GetNumber(Task task) { await task; }
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "{ await task; }").WithArguments("System.Runtime.CompilerServices.AsyncTaskMethodBuilder", "Create").WithLocation(62, 37),
                 // (62,37): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext'
                 //     async Task GetNumber(Task task) { await task; }
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "{ await task; }").WithArguments("System.Runtime.CompilerServices.IAsyncStateMachine", "MoveNext").WithLocation(62, 37),
                 // (62,37): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.IAsyncStateMachine.SetStateMachine'
                 //     async Task GetNumber(Task task) { await task; }
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "{ await task; }").WithArguments("System.Runtime.CompilerServices.IAsyncStateMachine", "SetStateMachine").WithLocation(62, 37));
+        }
+
+
+        [Fact, WorkItem(16531, "https://github.com/dotnet/roslyn/issues/16531")]
+        public void ArityMismatch()
+        {
+            var source = @"
+using System;
+using System.Threading.Tasks;
+using System.Runtime.CompilerServices;
+
+public class Program
+{
+    public async MyAwesomeType<string> CustomTask() { await Task.Delay(1000); return string.Empty; }
+}
+
+[AsyncMethodBuilder(typeof(CustomAsyncTaskMethodBuilder<,>))]
+public struct MyAwesomeType<T>
+{
+    public T Result { get; set; }
+}
+
+public class CustomAsyncTaskMethodBuilder<T, V>
+{
+    public MyAwesomeType<T> Task => default(MyAwesomeType<T>);
+    public void AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : INotifyCompletion where TStateMachine : IAsyncStateMachine { }
+    public void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : ICriticalNotifyCompletion where TStateMachine : IAsyncStateMachine { }
+    public static CustomAsyncTaskMethodBuilder<T, V> Create() { return default(CustomAsyncTaskMethodBuilder<T, V>); }
+    public void SetException(Exception exception) { }
+    public void SetResult(T t) { }
+    public void SetStateMachine(IAsyncStateMachine stateMachine) { }
+    public void Start<TStateMachine>(ref TStateMachine stateMachine) where TStateMachine : IAsyncStateMachine { }
+}
+
+namespace System.Runtime.CompilerServices
+{
+    public class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(Type type) { } }
+}";
+            var compilation = CreateCompilation(source, options: TestOptions.DebugDll);
+            compilation.VerifyEmitDiagnostics(
+                // (8,53): error CS1983: The return type of an async method must be void, Task or Task<T>
+                //     public async MyAwesomeType<string> CustomTask() { await Task.Delay(1000); return string.Empty; }
+                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "{ await Task.Delay(1000); return string.Empty; }").WithLocation(8, 53)
+                );
+        }
+        
+        [Fact, WorkItem(16493, "https://github.com/dotnet/roslyn/issues/16493")]
+        public void AsyncMethodBuilderReturnsDifferentTypeThanTasklikeType()
+        {
+            var source = @"
+using System;
+using System.Threading.Tasks;
+using System.Runtime.CompilerServices;
+
+public class G<T>
+{
+    public async ValueTask Method() { await Task.Delay(5); return; }
+
+    [AsyncMethodBuilder(typeof(AsyncValueTaskMethodBuilder))]
+    public struct ValueTask
+    {
+    }
+}
+
+public class AsyncValueTaskMethodBuilder
+{
+    public G<int>.ValueTask Task { get => default(G<int>.ValueTask); }
+    public void AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : INotifyCompletion where TStateMachine : IAsyncStateMachine { }
+    public void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : ICriticalNotifyCompletion where TStateMachine : IAsyncStateMachine { }
+    public static AsyncValueTaskMethodBuilder Create() { return default(AsyncValueTaskMethodBuilder); }
+    public void SetException(Exception exception) { }
+    public void SetResult() { }
+    public void SetStateMachine(IAsyncStateMachine stateMachine) { }
+    public void Start<TStateMachine>(ref TStateMachine stateMachine) where TStateMachine : IAsyncStateMachine { }
+}
+
+namespace System.Runtime.CompilerServices
+{
+    public class AsyncMethodBuilderAttribute : System.Attribute
+    {
+        public AsyncMethodBuilderAttribute(Type type) { }
+    }
+}
+";
+            var compilation = CreateCompilation(source, options: TestOptions.DebugDll);
+            compilation.VerifyEmitDiagnostics(
+                // (8,37): error CS8204: For type 'AsyncValueTaskMethodBuilder' to be used as an AsyncMethodBuilder for type 'G<T>.ValueTask', its Task property should return type 'G<T>.ValueTask' instead of type 'G<int>.ValueTask'.
+                //     public async ValueTask Method() { await Task.Delay(5); return; }
+                Diagnostic(ErrorCode.ERR_BadAsyncMethodBuilderTaskProperty, "{ await Task.Delay(5); return; }").WithArguments("AsyncValueTaskMethodBuilder", "G<T>.ValueTask", "G<int>.ValueTask").WithLocation(8, 37)
+                );
+        }
+
+        [Fact, WorkItem(16493, "https://github.com/dotnet/roslyn/issues/16493")]
+        public void AsyncMethodBuilderReturnsDifferentTypeThanTasklikeType2()
+        {
+            var source = @"
+using System;
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
+class C
+{
+    static async MyTask M() { await Task.Delay(5); throw null; }
+}
+[AsyncMethodBuilder(typeof(MyTaskBuilder))]
+class MyTask { }
+class MyTaskBuilder
+{
+    public static MyTaskBuilder Create() => null;
+    public int Task => 0;
+    public void Start<TStateMachine>(ref TStateMachine stateMachine) where TStateMachine : IAsyncStateMachine { }
+    public void SetStateMachine(IAsyncStateMachine stateMachine) { }
+    public void SetResult() { }
+    public void SetException(Exception exception) { }
+    public void AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : INotifyCompletion where TStateMachine : IAsyncStateMachine { }
+    public void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : ICriticalNotifyCompletion where TStateMachine : IAsyncStateMachine { }
+}
+namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
+";
+            var compilation = CreateCompilation(source, options: TestOptions.DebugDll);
+            compilation.VerifyEmitDiagnostics(
+                // (7,29): error CS8204: For type 'MyTaskBuilder' to be used as an AsyncMethodBuilder for type 'MyTask', its Task property should return type 'MyTask' instead of type 'int'.
+                //     static async MyTask M() { await Task.Delay(5); throw null; }
+                Diagnostic(ErrorCode.ERR_BadAsyncMethodBuilderTaskProperty, "{ await Task.Delay(5); throw null; }").WithArguments("MyTaskBuilder", "MyTask", "int").WithLocation(7, 29)
+                );
+        }
+
+        [Fact, WorkItem(18257, "https://github.com/dotnet/roslyn/issues/18257")]
+        public void PatternTempsAreLongLived()
+        {
+            var source = @"using System;
+ 
+public class Foo {}
+ 
+public class C {
+    public static void Main(string[] args)
+    {
+        var c = new C();
+        c.M(new Foo());
+        c.M(new object());
+    }
+    public async void M(object o) {
+        switch (o)
+        {
+            case Foo _:
+                Console.Write(0);
+                break;
+            default:
+                Console.Write(1);
+                break;
+        }
+    }
+}";
+            var expectedOutput = @"01";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            base.CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [Fact, WorkItem(18257, "https://github.com/dotnet/roslyn/issues/18257")]
+        public void PatternTempsSpill()
+        {
+            // This test exercises the spilling machinery of async for pattern-matching temps
+            var source = @"using System;
+using System.Threading.Tasks;
+
+public class C {
+    public class Foo
+    {
+        public int Value;
+    }
+    public static void Main(string[] args)
+    {
+        var c = new C();
+        c.M(new Foo() { Value = 1 });
+        c.M(new Foo() { Value = 2 });
+        c.M(new Foo() { Value = 3 });
+        c.M(new object());
+    }
+    public void M(object o)
+    {
+        MAsync(o).Wait();
+    }
+    public async Task MAsync(object o) {
+        switch (o)
+        {
+            case Foo foo when await Copy(foo.Value) == 1:
+                Console.Write($""{foo.Value}=1 "");
+                break;
+            case Foo foo when await Copy(foo.Value) == 2:
+                Console.Write($""{foo.Value}=2 "");
+                break;
+            case Foo foo:
+                Console.Write($""{foo.Value} "");
+                break;
+            default:
+                Console.Write(""X "");
+                break;
+        }
+    }
+    public async Task<int> Copy(int i)
+    {
+        await Task.Delay(1);
+        return i;
+    }
+}";
+            var expectedOutput = @"1=1 2=2 3 X";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            base.CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
     }
 }

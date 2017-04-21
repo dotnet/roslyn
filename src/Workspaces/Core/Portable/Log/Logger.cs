@@ -340,7 +340,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
             return CreateLogBlock(functionId, logMessage, GetNextUniqueBlockId(), token);
         }
 
-        public static Func<FunctionId, bool> GetLoggingChecker(IOptionService optionService)
+        public static Func<FunctionId, bool> GetLoggingChecker(IGlobalOptionService optionService)
         {
             var functionIds = Enum.GetValues(typeof(FunctionId)).Cast<FunctionId>();
             var functionIdOptions = functionIds.ToDictionary(id => id, id => optionService.GetOption(FunctionIdOptions.GetOption(id)));

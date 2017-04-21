@@ -29,18 +29,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
             IOutliningManagerService outliningManagerService,
             IViewTagAggregatorFactoryService tagAggregatorFactory)
         {
-            if (outliningManagerService == null)
-            {
-                throw new ArgumentNullException(nameof(outliningManagerService));
-            }
-
-            if (tagAggregatorFactory == null)
-            {
-                throw new ArgumentNullException(nameof(tagAggregatorFactory));
-            }
-
-            _outliningManagerService = outliningManagerService;
-            _tagAggregatorFactory = tagAggregatorFactory;
+            _outliningManagerService = outliningManagerService ?? throw new ArgumentNullException(nameof(outliningManagerService));
+            _tagAggregatorFactory = tagAggregatorFactory ?? throw new ArgumentNullException(nameof(tagAggregatorFactory));
         }
 
         public CommandState GetCommandState(NavigateToHighlightedReferenceCommandArgs args, Func<CommandState> nextHandler)

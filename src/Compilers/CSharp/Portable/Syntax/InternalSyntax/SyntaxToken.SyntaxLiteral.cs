@@ -35,9 +35,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 this.ValueField = (T)reader.ReadValue();
             }
 
-            internal override Func<ObjectReader, object> GetReader()
+            static SyntaxTokenWithValue()
             {
-                return r => new SyntaxTokenWithValue<T>(r);
+                ObjectBinder.RegisterTypeReader(typeof(SyntaxTokenWithValue<T>), r => new SyntaxTokenWithValue<T>(r));
             }
 
             internal override void WriteTo(ObjectWriter writer)
@@ -71,12 +71,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 }
             }
 
-            internal override SyntaxToken WithLeadingTrivia(CSharpSyntaxNode trivia)
+            public override SyntaxToken TokenWithLeadingTrivia(GreenNode trivia)
             {
                 return new SyntaxTokenWithValueAndTrivia<T>(this.Kind, this.TextField, this.ValueField, trivia, null, this.GetDiagnostics(), this.GetAnnotations());
             }
 
-            internal override SyntaxToken WithTrailingTrivia(CSharpSyntaxNode trivia)
+            public override SyntaxToken TokenWithTrailingTrivia(GreenNode trivia)
             {
                 return new SyntaxTokenWithValueAndTrivia<T>(this.Kind, this.TextField, this.ValueField, null, trivia, this.GetDiagnostics(), this.GetAnnotations());
             }

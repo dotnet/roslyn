@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
@@ -28,9 +29,9 @@ namespace Microsoft.CodeAnalysis.Simplification
 
         Task<Document> ReduceAsync(
             Document document,
-            IEnumerable<TextSpan> spans,
+            ImmutableArray<TextSpan> spans,
             OptionSet optionSet = null,
-            IEnumerable<AbstractReducer> reducers = null,
+            ImmutableArray<AbstractReducer> reducers = default(ImmutableArray<AbstractReducer>),
             CancellationToken cancellationToken = default(CancellationToken));
     }
 }

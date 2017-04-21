@@ -202,8 +202,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
 
             // Refresh the drop downs to their full information
             _waitIndicator.Wait(
-                EditorFeaturesResources.NavigationBars,
-                EditorFeaturesResources.RefreshingNavigationBars,
+                EditorFeaturesResources.Navigation_Bars,
+                EditorFeaturesResources.Refreshing_navigation_bars,
                 allowCancel: true,
                 action: context => UpdateDropDownsSynchronously(context.CancellationToken));
         }
@@ -236,9 +236,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
                 _selectedItemInfoTask.Wait(cancellationToken);
             }
 
-            IList<NavigationBarProjectItem> projectItems;
-            NavigationBarProjectItem selectedProjectItem;
-            GetProjectItems(out projectItems, out selectedProjectItem);
+            GetProjectItems(out var projectItems, out var selectedProjectItem);
 
             _presenter.PresentItems(
                 projectItems,
@@ -312,21 +310,23 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
 
             if (oldRight != null)
             {
-                newRight = new NavigationBarPresentedItem(oldRight.Text, oldRight.Glyph, oldRight.Spans, oldRight.ChildItems, oldRight.Bolded, oldRight.Grayed || selectedItems.ShowMemberItemGrayed);
-                newRight.TrackingSpans = oldRight.TrackingSpans;
+                newRight = new NavigationBarPresentedItem(oldRight.Text, oldRight.Glyph, oldRight.Spans, oldRight.ChildItems, oldRight.Bolded, oldRight.Grayed || selectedItems.ShowMemberItemGrayed)
+                {
+                    TrackingSpans = oldRight.TrackingSpans
+                };
                 listOfRight.Add(newRight);
             }
 
             if (oldLeft != null)
             {
-                newLeft = new NavigationBarPresentedItem(oldLeft.Text, oldLeft.Glyph, oldLeft.Spans, listOfRight, oldLeft.Bolded, oldLeft.Grayed || selectedItems.ShowTypeItemGrayed);
-                newLeft.TrackingSpans = oldLeft.TrackingSpans;
+                newLeft = new NavigationBarPresentedItem(oldLeft.Text, oldLeft.Glyph, oldLeft.Spans, listOfRight, oldLeft.Bolded, oldLeft.Grayed || selectedItems.ShowTypeItemGrayed)
+                {
+                    TrackingSpans = oldLeft.TrackingSpans
+                };
                 listOfLeft.Add(newLeft);
             }
 
-            IList<NavigationBarProjectItem> projectItems;
-            NavigationBarProjectItem selectedProjectItem;
-            GetProjectItems(out projectItems, out selectedProjectItem);
+            GetProjectItems(out var projectItems, out var selectedProjectItem);
 
             _presenter.PresentItems(
                 projectItems,
@@ -342,8 +342,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
             AssertIsForeground();
 
             _waitIndicator.Wait(
-                EditorFeaturesResources.NavigationBars,
-                EditorFeaturesResources.RefreshingNavigationBars,
+                EditorFeaturesResources.Navigation_Bars,
+                EditorFeaturesResources.Refreshing_navigation_bars,
                 allowCancel: true,
                 action: context => ProcessItemSelectionSynchronously(e.Item, context.CancellationToken));
         }

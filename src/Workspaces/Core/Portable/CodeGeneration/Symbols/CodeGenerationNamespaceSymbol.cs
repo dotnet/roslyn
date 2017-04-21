@@ -3,9 +3,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration
@@ -15,39 +13,21 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         private readonly IList<INamespaceOrTypeSymbol> _members;
 
         public CodeGenerationNamespaceSymbol(string name, IList<INamespaceOrTypeSymbol> members)
-            : base(null, null, Accessibility.NotApplicable, default(DeclarationModifiers), name)
+            : base(null, default(ImmutableArray<AttributeData>), Accessibility.NotApplicable, default(DeclarationModifiers), name)
         {
             _members = members ?? SpecializedCollections.EmptyList<INamespaceOrTypeSymbol>();
         }
 
-        public override bool IsNamespace
-        {
-            get
-            {
-                return true;
-            }
-        }
+        public override bool IsNamespace => true;
 
-        public override bool IsType
-        {
-            get
-            {
-                return false;
-            }
-        }
+        public override bool IsType => false;
 
         protected override CodeGenerationSymbol Clone()
         {
             return new CodeGenerationNamespaceSymbol(this.Name, _members);
         }
 
-        public override SymbolKind Kind
-        {
-            get
-            {
-                return SymbolKind.Namespace;
-            }
-        }
+        public override SymbolKind Kind => SymbolKind.Namespace;
 
         public override void Accept(SymbolVisitor visitor)
         {
@@ -82,23 +62,11 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             }
         }
 
-        public NamespaceKind NamespaceKind
-        {
-            get { return NamespaceKind.Module; }
-        }
+        public NamespaceKind NamespaceKind => NamespaceKind.Module;
 
-        public Compilation ContainingCompilation
-        {
-            get { return null; }
-        }
+        public Compilation ContainingCompilation => null;
 
-        public INamedTypeSymbol ImplicitType
-        {
-            get
-            {
-                return null;
-            }
-        }
+        public INamedTypeSymbol ImplicitType => null;
 
         public ImmutableArray<INamespaceSymbol> ConstituentNamespaces
         {

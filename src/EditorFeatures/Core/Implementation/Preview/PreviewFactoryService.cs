@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
+using Microsoft.CodeAnalysis.Utilities;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Differencing;
 using Microsoft.VisualStudio.Text.Editor;
@@ -48,6 +49,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
             IDifferenceBufferFactoryService differenceBufferService,
             IWpfDifferenceViewerFactoryService differenceViewerService)
         {
+            Contract.ThrowIfTrue(this.ForegroundKind == ForegroundThreadDataKind.Unknown);
+
             _textBufferFactoryService = textBufferFactoryService;
             _contentTypeRegistryService = contentTypeRegistryService;
             _projectionBufferFactoryService = projectionBufferFactoryService;
@@ -131,42 +134,42 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
                     {
                         cancellationToken.ThrowIfCancellationRequested();
                         previewItems.Add(new SolutionPreviewItem(oldProject.Id, null,
-                            string.Format(EditorFeaturesResources.AddingReferenceTo, metadataReference.Display, oldProject.Name)));
+                            string.Format(EditorFeaturesResources.Adding_reference_0_to_1, metadataReference.Display, oldProject.Name)));
                     }
 
                     foreach (var metadataReference in projectChanges.GetRemovedMetadataReferences())
                     {
                         cancellationToken.ThrowIfCancellationRequested();
                         previewItems.Add(new SolutionPreviewItem(oldProject.Id, null,
-                            string.Format(EditorFeaturesResources.RemovingReferenceFrom, metadataReference.Display, oldProject.Name)));
+                            string.Format(EditorFeaturesResources.Removing_reference_0_from_1, metadataReference.Display, oldProject.Name)));
                     }
 
                     foreach (var projectReference in projectChanges.GetAddedProjectReferences())
                     {
                         cancellationToken.ThrowIfCancellationRequested();
                         previewItems.Add(new SolutionPreviewItem(oldProject.Id, null,
-                            string.Format(EditorFeaturesResources.AddingReferenceTo, newSolution.GetProject(projectReference.ProjectId).Name, oldProject.Name)));
+                            string.Format(EditorFeaturesResources.Adding_reference_0_to_1, newSolution.GetProject(projectReference.ProjectId).Name, oldProject.Name)));
                     }
 
                     foreach (var projectReference in projectChanges.GetRemovedProjectReferences())
                     {
                         cancellationToken.ThrowIfCancellationRequested();
                         previewItems.Add(new SolutionPreviewItem(oldProject.Id, null,
-                            string.Format(EditorFeaturesResources.RemovingReferenceFrom, oldSolution.GetProject(projectReference.ProjectId).Name, oldProject.Name)));
+                            string.Format(EditorFeaturesResources.Removing_reference_0_from_1, oldSolution.GetProject(projectReference.ProjectId).Name, oldProject.Name)));
                     }
 
                     foreach (var analyzer in projectChanges.GetAddedAnalyzerReferences())
                     {
                         cancellationToken.ThrowIfCancellationRequested();
                         previewItems.Add(new SolutionPreviewItem(oldProject.Id, null,
-                            string.Format(EditorFeaturesResources.AddingAnalyzerReferenceTo, analyzer.Display, oldProject.Name)));
+                            string.Format(EditorFeaturesResources.Adding_analyzer_reference_0_to_1, analyzer.Display, oldProject.Name)));
                     }
 
                     foreach (var analyzer in projectChanges.GetRemovedAnalyzerReferences())
                     {
                         cancellationToken.ThrowIfCancellationRequested();
                         previewItems.Add(new SolutionPreviewItem(oldProject.Id, null,
-                            string.Format(EditorFeaturesResources.RemovingAnalyzerReferenceFrom, analyzer.Display, oldProject.Name)));
+                            string.Format(EditorFeaturesResources.Removing_analyzer_reference_0_from_1, analyzer.Display, oldProject.Name)));
                     }
                 }
 
@@ -174,21 +177,21 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
                 {
                     cancellationToken.ThrowIfCancellationRequested();
                     previewItems.Add(new SolutionPreviewItem(project.Id, null,
-                        string.Format(EditorFeaturesResources.AddingProject, project.Name)));
+                        string.Format(EditorFeaturesResources.Adding_project_0, project.Name)));
                 }
 
                 foreach (var project in solutionChanges.GetRemovedProjects())
                 {
                     cancellationToken.ThrowIfCancellationRequested();
                     previewItems.Add(new SolutionPreviewItem(project.Id, null,
-                        string.Format(EditorFeaturesResources.RemovingProject, project.Name)));
+                        string.Format(EditorFeaturesResources.Removing_project_0, project.Name)));
                 }
 
                 foreach (var projectChanges in solutionChanges.GetProjectChanges().Where(ProjectReferencesChanged))
                 {
                     cancellationToken.ThrowIfCancellationRequested();
                     previewItems.Add(new SolutionPreviewItem(projectChanges.OldProject.Id, null,
-                        string.Format(EditorFeaturesResources.ChangingProjectReferencesFor, projectChanges.OldProject.Name)));
+                        string.Format(EditorFeaturesResources.Changing_project_references_for_0, projectChanges.OldProject.Name)));
                 }
 
                 changeSummary = new SolutionChangeSummary(oldSolution, newSolution, solutionChanges);
@@ -229,7 +232,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var firstLine = string.Format(EditorFeaturesResources.AddingToWithContent,
+            var firstLine = string.Format(EditorFeaturesResources.Adding_0_to_1_with_content_colon,
                 document.Name, document.Project.Name);
 
             var originalBuffer = _projectionBufferFactoryService.CreatePreviewProjectionBuffer(
@@ -280,7 +283,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var firstLine = string.Format(EditorFeaturesResources.RemovingFromWithContent,
+            var firstLine = string.Format(EditorFeaturesResources.Removing_0_from_1_with_content_colon,
                 document.Name, document.Project.Name);
 
             var span = new SnapshotSpan(oldBuffer.CurrentSnapshot, Span.FromBounds(0, oldBuffer.CurrentSnapshot.Length))
@@ -385,7 +388,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
 
             if (newDocument.SupportsSyntaxTree)
             {
-                var newRoot = newDocument.GetSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+                var newRoot = newDocument.GetSyntaxRootSynchronously(cancellationToken);
                 var conflictNodes = newRoot.GetAnnotatedNodesAndTokens(ConflictAnnotation.Kind);
                 var conflictSpans = conflictNodes.Select(n => n.Span.ToSpan()).ToList();
                 var conflictDescriptions = conflictNodes.SelectMany(n => n.GetAnnotations(ConflictAnnotation.Kind))
@@ -539,7 +542,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
             var contentTypeService = document.Project.LanguageServices.GetService<IContentTypeLanguageService>();
             var contentType = contentTypeService.GetDefaultContentType();
 
-            return _textBufferFactoryService.CreateTextBuffer(document.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken).ToString(), contentType);
+            return _textBufferFactoryService.CreateTextBuffer(
+                document.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken).ToString(), contentType);
         }
 
         private ITextBuffer CreateNewPlainTextBuffer(TextDocument document, CancellationToken cancellationToken)
@@ -548,11 +552,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
 
             var contentType = _textBufferFactoryService.TextContentType;
 
-            return _textBufferFactoryService.CreateTextBuffer(document.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken).ToString(), contentType);
+            return _textBufferFactoryService.CreateTextBuffer(
+                document.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken).ToString(), contentType);
         }
 
-        private async Task<object> CreateNewDifferenceViewerAsync(PreviewWorkspace leftWorkspace, PreviewWorkspace rightWorkspace,
-            IProjectionBuffer originalBuffer, IProjectionBuffer changedBuffer, double zoomLevel, CancellationToken cancellationToken)
+        private async Task<object> CreateNewDifferenceViewerAsync(
+            PreviewWorkspace leftWorkspace, PreviewWorkspace rightWorkspace,
+            IProjectionBuffer originalBuffer, IProjectionBuffer changedBuffer,
+            double zoomLevel, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -562,24 +569,27 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
             Contract.ThrowIfTrue((leftWorkspace == null) && (rightWorkspace == null));
 
             var diffBuffer = _differenceBufferService.CreateDifferenceBuffer(
-                    originalBuffer, changedBuffer,
-                    new StringDifferenceOptions(), disableEditing: true);
+                originalBuffer, changedBuffer,
+                new StringDifferenceOptions(), disableEditing: true);
 
             var diffViewer = _differenceViewerService.CreateDifferenceView(diffBuffer, _previewRoleSet);
 
             diffViewer.Closed += (s, e) =>
             {
-                if (leftWorkspace != null)
-                {
-                    leftWorkspace.Dispose();
-                    leftWorkspace = null;
-                }
+                // Workaround Editor bug.  The editor has an issue where they sometimes crash when 
+                // trying to apply changes to projection buffer.  So, when the user actually invokes
+                // a SuggestedAction we may then edit a text buffer, which the editor will then 
+                // try to propagate through the projections we have here over that buffer.  To ensure
+                // that that doesn't happen, we clear out the projections first so that this crash
+                // won't happen.
+                originalBuffer.DeleteSpans(0, originalBuffer.CurrentSnapshot.SpanCount);
+                changedBuffer.DeleteSpans(0, changedBuffer.CurrentSnapshot.SpanCount);
 
-                if (rightWorkspace != null)
-                {
-                    rightWorkspace.Dispose();
-                    rightWorkspace = null;
-                }
+                leftWorkspace?.Dispose();
+                leftWorkspace = null;
+
+                rightWorkspace?.Dispose();
+                rightWorkspace = null;
             };
 
             const string DiffOverviewMarginName = "deltadifferenceViewerOverview";
@@ -613,17 +623,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
             // We use ConfigureAwait(true) to stay on the UI thread.
             await diffViewer.SizeToFitAsync().ConfigureAwait(true);
 
-            if (leftWorkspace != null)
-            {
-                leftWorkspace.EnableDiagnostic();
-            }
+            leftWorkspace?.EnableDiagnostic();
+            rightWorkspace?.EnableDiagnostic();
 
-            if (rightWorkspace != null)
-            {
-                rightWorkspace.EnableDiagnostic();
-            }
-
-            return diffViewer;
+            return new DifferenceViewerPreview(diffViewer);
         }
 
         private List<LineSpan> CreateLineSpans(ITextSnapshot textSnapshot, NormalizedSpanCollection allSpans, CancellationToken cancellationToken)

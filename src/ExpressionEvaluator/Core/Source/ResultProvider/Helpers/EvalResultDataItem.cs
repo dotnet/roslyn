@@ -66,6 +66,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
     internal enum ExpansionKind
     {
         Default,
+        Explicit, // All interesting fields set explicitly including DisplayName, DisplayValue, DisplayType.
         DynamicView,
         Error,
         NativeView,
@@ -85,7 +86,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         public readonly TypeAndCustomInfo DeclaredTypeAndInfo;
         public readonly bool UseDebuggerDisplay;
         public readonly DkmClrValue Value;
+        public readonly string DisplayName;
         public readonly string DisplayValue; // overrides the "Value" text displayed for certain kinds of DataItems (errors, invalid pointer dereferences, etc)...not to be confused with DebuggerDisplayAttribute Value...
+        public readonly string DisplayType;
         public readonly Expansion Expansion;
         public readonly bool ChildShouldParenthesize;
         public readonly string FullNameWithoutFormatSpecifiers;
@@ -149,7 +152,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             DkmEvaluationResultCategory category,
             DkmEvaluationResultFlags flags,
             string editableValue,
-            DkmInspectionContext inspectionContext)
+            DkmInspectionContext inspectionContext,
+            string displayName = null,
+            string displayType = null)
         {
             Debug.Assert(name != null);
             Debug.Assert(formatSpecifiers != null);
@@ -171,6 +176,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             this.Flags = flags | GetFlags(value, inspectionContext) | ((expansion == null) ? DkmEvaluationResultFlags.None : DkmEvaluationResultFlags.Expandable);
             this.Expansion = expansion;
             this.InspectionContext = inspectionContext;
+            this.DisplayName = displayName;
+            this.DisplayType = displayType;
         }
 
         internal EvalResultDataItem ToDataItem()

@@ -88,8 +88,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
 
         public Icon GetIcon(Glyph glyph)
         {
-            Icon value;
-            if (!_iconCache.TryGetValue(glyph, out value))
+            if (!_iconCache.TryGetValue(glyph, out var value))
             {
                 var bitmapSource = glyph.GetImageSource(_glyphService) as BitmapSource;
                 if (bitmapSource != null)

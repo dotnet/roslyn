@@ -68,7 +68,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation
                 (endToken.Parent.IsParentKind(SyntaxKind.TryStatement) || endToken.Parent.IsParentKind(SyntaxKind.DoStatement));
         }
 
-        public Task<IList<TextChange>> FormatTokenAsync(Workspace workspace, SyntaxToken token, CancellationToken cancellationToken)
+        public async Task<IList<TextChange>> FormatTokenAsync(
+            Workspace workspace, SyntaxToken token, CancellationToken cancellationToken)
         {
             Contract.ThrowIfTrue(token.Kind() == SyntaxKind.None || token.Kind() == SyntaxKind.EndOfFileToken);
 
@@ -77,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation
             if (previousToken.Kind() == SyntaxKind.None)
             {
                 // no previous token. nothing to format
-                return Task.FromResult(SpecializedCollections.EmptyList<TextChange>());
+                return SpecializedCollections.EmptyList<TextChange>();
             }
 
             // This is a heuristic to prevent brace completion from breaking user expectation/muscle memory in common scenarios (see Devdiv:823958).
@@ -100,12 +101,19 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation
             var smartTokenformattingRules = (new SmartTokenFormattingRule()).Concat(_formattingRules);
             var adjustedStartPosition = previousToken.SpanStart;
             var indentStyle = _optionSet.GetOption(FormattingOptions.SmartIndent, LanguageNames.CSharp);
-            if (token.IsKind(SyntaxKind.OpenBraceToken) && token.IsFirstTokenOnLine(token.SyntaxTree.GetText()) && indentStyle != FormattingOptions.IndentStyle.Smart)
+            if (token.IsKind(SyntaxKind.OpenBraceToken) &&
+                indentStyle != FormattingOptions.IndentStyle.Smart)
             {
-                adjustedStartPosition = token.SpanStart;
+                var text = await token.SyntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                if (token.IsFirstTokenOnLine(text))
+                {
+                    adjustedStartPosition = token.SpanStart;
+                }
             }
 
-            return Formatter.GetFormattedTextChangesAsync(_root, new TextSpan[] { TextSpan.FromBounds(adjustedStartPosition, adjustedEndPosition) }, workspace, _optionSet, smartTokenformattingRules, cancellationToken);
+            return await Formatter.GetFormattedTextChangesAsync(_root,
+                new TextSpan[] { TextSpan.FromBounds(adjustedStartPosition, adjustedEndPosition) },
+                workspace, _optionSet, smartTokenformattingRules, cancellationToken).ConfigureAwait(false);
         }
 
         private class NoLineChangeFormattingRule : AbstractFormattingRule

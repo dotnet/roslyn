@@ -20,11 +20,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             // We currently pack everything into a 32 bit int with the following layout:
             //
-            // |   |s|r|q|z|y|xxxxxxxxxxxxxxxxxxxxxx|wwwww|
+            // |   |s|r|q|z|y|xxxxxxxxxxxxxxxxxxxxx|wwwww|
             // 
             // w = method kind.  5 bits.
             //
-            // x = modifiers.  22 bits.
+            // x = modifiers.  21 bits.
             //
             // y = returnsVoid. 1 bit.
             //
@@ -40,13 +40,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             private const int DeclarationModifiersOffset = 5;
 
             private const int MethodKindMask = 0x1F;
-            private const int DeclarationModifiersMask = 0x3FFFFF;
+            private const int DeclarationModifiersMask = 0x1FFFFF;
 
-            private const int ReturnsVoidBit = 1 << 27;
-            private const int IsExtensionMethodBit = 1 << 28;
-            private const int IsMetadataVirtualIgnoringInterfaceChangesBit = 1 << 29;
-            private const int IsMetadataVirtualBit = 1 << 30;
-            private const int IsMetadataVirtualLockedBit = 1 << 31;
+            private const int ReturnsVoidBit = 1 << 26;
+            private const int IsExtensionMethodBit = 1 << 27;
+            private const int IsMetadataVirtualIgnoringInterfaceChangesBit = 1 << 28;
+            private const int IsMetadataVirtualBit = 1 << 29;
+            private const int IsMetadataVirtualLockedBit = 1 << 30;
 
             private int _flags;
 
@@ -172,9 +172,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected ImmutableArray<Location> locations;
         protected string lazyDocComment;
-
-        private SourceMethodSymbol _replacedBy;
-        private SourceMethodSymbol _replaced;
 
         //null if has never been computed. Initial binding diagnostics
         //are stashed here in service of API usage patterns
@@ -514,14 +511,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal sealed override bool IsReplace
-        {
-            get
-            {
-                return (this.DeclarationModifiers & DeclarationModifiers.Replace) != 0;
-            }
-        }
-
         internal sealed override Cci.CallingConvention CallingConvention
         {
             get
@@ -613,6 +602,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public override ImmutableArray<CustomModifier> RefCustomModifiers
+        {
+            get
+            {
+                return ImmutableArray<CustomModifier>.Empty;
+            }
+        }
+
         public sealed override ImmutableArray<TypeSymbol> TypeArguments
         {
             get
@@ -676,36 +673,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 return _lazyOverriddenOrHiddenMembers;
             }
-        }
-
-        public override string MetadataName
-        {
-            get
-            {
-                return (object)_replacedBy == null ?
-                    base.MetadataName :
-                    GeneratedNames.ReplacedMemberName(Name, uniqueId: 0);
-            }
-        }
-
-        internal sealed override Symbol Replaced
-        {
-            get { return _replaced; }
-        }
-
-        internal sealed override Symbol ReplacedBy
-        {
-            get { return _replacedBy; }
-        }
-
-        internal sealed override void SetReplaced(Symbol replaced)
-        {
-            this._replaced = (SourceMethodSymbol)replaced;
-        }
-
-        internal sealed override void SetReplacedBy(Symbol replacedBy)
-        {
-            this._replacedBy = (SourceMethodSymbol)replacedBy;
         }
 
         internal sealed override bool RequiresCompletion
@@ -881,7 +848,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <remarks>
         /// Forces binding and decoding of attributes.
         /// </remarks>
-        internal CommonMethodWellKnownAttributeData GetDecodedWellKnownAttributeData()
+        protected CommonMethodWellKnownAttributeData GetDecodedWellKnownAttributeData()
         {
             var attributesBag = _lazyCustomAttributesBag;
             if (attributesBag == null || !attributesBag.IsDecodedWellKnownAttributeDataComputed)
@@ -958,15 +925,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if (forReturnType)
             {
-                bagCreatedOnThisThread = LoadAndValidateAttributes(this.GetReturnTypeAttributeDeclarations(), ref lazyCustomAttributesBag, symbolPart: AttributeLocation.Return);
+                bagCreatedOnThisThread = LoadAndValidateAttributes(
+                    this.GetReturnTypeAttributeDeclarations(),
+                    ref lazyCustomAttributesBag,
+                    symbolPart: AttributeLocation.Return);
             }
             else
             {
                 bagCreatedOnThisThread = LoadAndValidateAttributes(this.GetAttributeDeclarations(), ref lazyCustomAttributesBag);
             }
 
-            var part = forReturnType ? CompletionPart.ReturnTypeAttributes : CompletionPart.Attributes;
-            state.NotePartComplete(part);
+            if (bagCreatedOnThisThread)
+            {
+                var part = forReturnType ? CompletionPart.ReturnTypeAttributes : CompletionPart.Attributes;
+                state.NotePartComplete(part);
+            }
+
             return lazyCustomAttributesBag;
         }
 
@@ -995,7 +969,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (this.ReturnType.ContainsDynamic())
             {
                 var compilation = this.DeclaringCompilation;
-                AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(this.ReturnType, this.ReturnTypeCustomModifiers.Length));
+                AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(this.ReturnType, this.ReturnTypeCustomModifiers.Length + this.RefCustomModifiers.Length, this.RefKind));
+            }
+
+            if (ReturnType.ContainsTupleNames())
+            {
+                AddSynthesizedAttribute(ref attributes,
+                    DeclaringCompilation.SynthesizeTupleNamesAttribute(ReturnType));
             }
         }
 
@@ -1117,6 +1097,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else if (attribute.IsTargetAttribute(this, AttributeDescription.SpecialNameAttribute))
             {
                 arguments.GetOrCreateData<CommonMethodWellKnownAttributeData>().HasSpecialNameAttribute = true;
+            }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.ExcludeFromCodeCoverageAttribute))
+            {
+                arguments.GetOrCreateData<CommonMethodWellKnownAttributeData>().HasExcludeFromCodeCoverageAttribute = true;
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.ConditionalAttribute))
             {
@@ -1255,6 +1239,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 // DynamicAttribute should not be set explicitly.
                 arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitDynamicAttr, arguments.AttributeSyntaxOpt.Location);
+            }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.TupleElementNamesAttribute))
+            {
+                arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitTupleElementNamesAttribute, arguments.AttributeSyntaxOpt.Location);
             }
         }
 
@@ -1461,6 +1449,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return data != null && data.HasSpecialNameAttribute;
             }
         }
+
+        internal sealed override bool IsDirectlyExcludedFromCodeCoverage =>
+            GetDecodedWellKnownAttributeData()?.HasExcludeFromCodeCoverageAttribute == true;
 
         internal sealed override bool RequiresSecurityObject
         {

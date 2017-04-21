@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <remarks>
         /// Note, there is no guarantee that the factory always gives back the same binder instance for the same node.
         /// </remarks>
-        internal Binder GetBinder(CSharpSyntaxNode node, CSharpSyntaxNode memberDeclarationOpt = null, Symbol memberOpt = null)
+        internal Binder GetBinder(SyntaxNode node, CSharpSyntaxNode memberDeclarationOpt = null, Symbol memberOpt = null)
         {
             int position = node.SpanStart;
 
@@ -112,13 +112,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             return GetBinder(node, position, memberDeclarationOpt, memberOpt);
         }
 
-        internal Binder GetBinder(CSharpSyntaxNode node, int position, CSharpSyntaxNode memberDeclarationOpt = null, Symbol memberOpt = null)
+        internal Binder GetBinder(SyntaxNode node, int position, CSharpSyntaxNode memberDeclarationOpt = null, Symbol memberOpt = null)
         {
             Debug.Assert(node != null);
 
             BinderFactoryVisitor visitor = _binderFactoryVisitorPool.Allocate();
             visitor.Initialize(position, memberDeclarationOpt, memberOpt);
-            Binder result = node.Accept(visitor);
+            Binder result = visitor.Visit(node);
             _binderFactoryVisitorPool.Free(visitor);
 
             return result;

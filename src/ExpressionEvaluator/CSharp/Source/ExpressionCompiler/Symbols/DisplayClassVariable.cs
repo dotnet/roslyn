@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             return SubstituteFields(otherInstance, typeMap);
         }
 
-        internal BoundExpression ToBoundExpression(CSharpSyntaxNode syntax)
+        internal BoundExpression ToBoundExpression(SyntaxNode syntax)
         {
             var expr = this.DisplayClassInstance.ToBoundExpression(syntax);
             var fields = ArrayBuilder<FieldSymbol>.GetInstance();

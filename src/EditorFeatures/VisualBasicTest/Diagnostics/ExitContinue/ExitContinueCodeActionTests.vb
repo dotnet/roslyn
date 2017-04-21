@@ -1,6 +1,5 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeFixes.IncorrectExitContinue
@@ -10,9 +9,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.ExitCo
     Public Class ExitContinueCodeActionTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
-        Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As Tuple(Of DiagnosticAnalyzer, CodeFixProvider)
-            Return New Tuple(Of DiagnosticAnalyzer, CodeFixProvider)(
-                Nothing, New IncorrectExitContinueCodeFixProvider())
+        Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
+            Return (Nothing, New IncorrectExitContinueCodeFixProvider())
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
@@ -35,7 +33,7 @@ Class C
 End Class
 </File>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
@@ -62,7 +60,7 @@ Class C
 End Class
 </File>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
@@ -89,7 +87,7 @@ Class C
 End Class
 </File>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
@@ -116,7 +114,7 @@ Class C
 End Class
 </File>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
@@ -147,7 +145,7 @@ Class C
 Exit Class
 </File>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
@@ -178,7 +176,7 @@ Class C
 End Class
 </File>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
@@ -201,7 +199,7 @@ Class C
 End Class
 </File>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
@@ -224,7 +222,7 @@ Class C
 End Class
 </File>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
@@ -247,7 +245,7 @@ Class C
 End Class
 </File>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
@@ -274,7 +272,7 @@ Class C
 End Class
 </File>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
@@ -301,7 +299,7 @@ Class C
 End Class
 </File>
 
-            Await TestAsync(code, expected, compareTokens:=False, index:=0)
+            Await TestAsync(code, expected, ignoreTrivia:=False, index:=0)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
@@ -328,7 +326,7 @@ Class C
 End Class
 </File>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
@@ -361,7 +359,7 @@ Class C
 End Class
 </File>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
@@ -384,7 +382,7 @@ Class C
 End Class
 </File>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
@@ -415,7 +413,7 @@ Class C
 End Class
 </File>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
@@ -445,7 +443,7 @@ Class C
 End Class
 </File>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
@@ -475,7 +473,7 @@ Class C
 End Class
 </File>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
@@ -505,7 +503,7 @@ Class C
 End Class
 </File>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
@@ -532,7 +530,7 @@ Class C
 End Class
 </File>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
@@ -559,7 +557,7 @@ Class C
 End Class
 </File>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
@@ -586,7 +584,7 @@ Class C
 End Class
 </File>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
@@ -613,7 +611,7 @@ Class C
 End Class
 </File>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
@@ -640,7 +638,7 @@ Class C
 End Class
 </File>
 
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
@@ -667,7 +665,7 @@ Class C
 End Class
 </File>
 
-            Await TestAsync(code, expected, compareTokens:=False, index:=1)
+            Await TestAsync(code, expected, ignoreTrivia:=False, index:=1)
         End Function
 
         <WorkItem(547094, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547094")>
@@ -703,7 +701,7 @@ Class C
     End Function
 End Class
 </File>
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <WorkItem(547110, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547110")>
@@ -742,21 +740,44 @@ Class C
     End Function
 End Class
 </File>
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <WorkItem(547100, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547100")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
         Public Async Function TestNotInValidCaseElse() As Task
-            Await TestMissingAsync(
-NewLines("Imports System \n Imports System.Collections.Generic \n Imports System.Linq \n Module Program \n Sub Main(args As String()) \n For Each a In args \n Select a \n Case Else \n [|Exit Select|] ' here \n End Select \n Next \n End Sub \n End Module"))
+            Await TestMissingInRegularAndScriptAsync(
+"Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+Module Program
+    Sub Main(args As String())
+        For Each a In args
+            Select a
+                Case Else
+                    [|Exit Select|] ' here 
+            End Select
+        Next
+    End Sub
+End Module")
         End Function
 
         <WorkItem(547099, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547099")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
         Public Async Function TestCollapseDuplicateBlockKinds() As Task
             Await TestActionCountAsync(
-NewLines("Imports System \n Imports System.Collections.Generic \n Imports System.Linq \n Module Program \n Sub Main(args As String()) \n Do \n Do While True \n [|Exit Function|] ' here \n Loop \n Loop \n End Sub \n End Module"),
+"Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+Module Program
+    Sub Main(args As String())
+        Do
+            Do While True
+                [|Exit Function|] ' here 
+            Loop
+        Loop
+    End Sub
+End Module",
             3)
         End Function
 
@@ -796,7 +817,7 @@ Class C
     End Function
 End Class
 </File>
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <WorkItem(547092, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547092")>
@@ -825,7 +846,7 @@ Class C
     End Function
 End Class
 </File>
-            Await TestAsync(code, expected, compareTokens:=False)
+            Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
@@ -839,7 +860,7 @@ Class C
 End Class
 </File>
 
-            Await TestExactActionSetOfferedAsync(code.ConvertTestSourceTag(), {String.Format(FeaturesResources.ChangeTo, "Function", "Sub"), String.Format(VBFeaturesResources.DeleteTheStatement, "Exit Function")})
+            Await TestExactActionSetOfferedAsync(code.ConvertTestSourceTag(), {String.Format(FeaturesResources.Change_0_to_1, "Function", "Sub"), String.Format(VBFeaturesResources.Delete_the_0_statement1, "Exit Function")})
         End Function
 
         <WorkItem(531354, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531354")>
@@ -854,7 +875,7 @@ Class C
 End Class
 </File>
 
-            Await TestExactActionSetOfferedAsync(code.ConvertTestSourceTag(), {String.Format(VBFeaturesResources.Insert, "Sub"), String.Format(VBFeaturesResources.DeleteTheStatement, "Exit")})
+            Await TestExactActionSetOfferedAsync(code.ConvertTestSourceTag(), {String.Format(VBFeaturesResources.Insert_0, "Sub"), String.Format(VBFeaturesResources.Delete_the_0_statement1, "Exit")})
         End Function
     End Class
 End Namespace

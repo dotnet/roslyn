@@ -11,7 +11,7 @@ Imports Roslyn.Test.Utilities
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
     Public Class GraphNodeCreationTests
         Private Async Function AssertCreatedNodeIsAsync(code As String, expectedId As String, xml As XElement, Optional language As String = "C#") As Task
-            Using testState = Await ProgressionTestState.CreateAsync(
+            Using testState = ProgressionTestState.Create(
                 <Workspace>
                     <Project Language=<%= language %> CommonReferences="true" FilePath="Z:\Project.csproj">
                         <Document FilePath="Z:\Project.cs">
@@ -181,7 +181,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
 
         <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
         Public Async Function TestSimpleMethodSymbolTest() As Task
-            Using testState = Await ProgressionTestState.CreateAsync(
+            Using testState = ProgressionTestState.Create(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
                             <Document FilePath="Z:\Project.cs"><![CDATA[[
@@ -233,7 +233,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
 
         <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
         Public Async Function TestSimpleIndexerTest() As Task
-            Using testState = Await ProgressionTestState.CreateAsync(
+            Using testState = ProgressionTestState.Create(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
                             <Document FilePath="Z:\Project.cs"><![CDATA[[
@@ -270,7 +270,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
 
         <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
         Public Async Function TestAttributedIndexerTest() As Task
-            Using testState = Await ProgressionTestState.CreateAsync(
+            Using testState = ProgressionTestState.Create(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
                             <Document FilePath="Z:\Project.cs"><![CDATA[[
@@ -308,7 +308,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
 
         <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
         Public Async Function TestParameterWithConversionOperatorTest() As Task
-            Using testState = Await ProgressionTestState.CreateAsync(
+            Using testState = ProgressionTestState.Create(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
                             <Document FilePath="Z:\Project.cs"><![CDATA[[
@@ -341,7 +341,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
 
         <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
         Public Async Function TestLocalVBVariableType() As Task
-            Using testState = Await ProgressionTestState.CreateAsync(
+            Using testState = ProgressionTestState.Create(
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true" FilePath="Z:\Project.vbproj">
                             <Document FilePath="Z:\Project.vb"><![CDATA[[
@@ -374,7 +374,7 @@ End Module
 
         <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
         Public Async Function TestLocalVBRangeTypeVariable() As Task
-            Using testState = Await ProgressionTestState.CreateAsync(
+            Using testState = ProgressionTestState.Create(
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true" FilePath="Z:\Project.vbproj">
                             <Document FilePath="Z:\Project.vb"><![CDATA[[
@@ -407,7 +407,7 @@ End Module
 
         <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
         Public Async Function TestLocalVBVariableWithinBlockType() As Task
-            Using testState = Await ProgressionTestState.CreateAsync(
+            Using testState = ProgressionTestState.Create(
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true" FilePath="Z:\Project.vbproj">
                             <Document FilePath="Z:\Project.vb"><![CDATA[[
@@ -444,7 +444,7 @@ End Module
 
         <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
         Public Async Function TestLocalVariableIndexTest() As Task
-            Using testState = Await ProgressionTestState.CreateAsync(
+            Using testState = ProgressionTestState.Create(
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true" FilePath="Z:\Project.vbproj">
                             <Document FilePath="Z:\Project.vb"><![CDATA[[
@@ -481,7 +481,7 @@ End Module
 
         <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
         Public Async Function TestGenericArgumentsTest() As Task
-            Using testState = Await ProgressionTestState.CreateAsync(
+            Using testState = ProgressionTestState.Create(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
                             <Document FilePath="Z:\Project.cs"><![CDATA[[
@@ -535,7 +535,7 @@ End Module
 
         <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
         Public Async Function TestGenericArgumentsTest2() As Task
-            Using testState = Await ProgressionTestState.CreateAsync(
+            Using testState = ProgressionTestState.Create(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
                             <Document FilePath="Z:\Project.cs"><![CDATA[[
@@ -589,7 +589,7 @@ End Module
 
         <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
         Public Async Function TestGenericCSharpMethodSymbolTest() As Task
-            Using testState = Await ProgressionTestState.CreateAsync(
+            Using testState = ProgressionTestState.Create(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
                             <Document FilePath="Z:\Project.cs"><![CDATA[[
@@ -609,7 +609,7 @@ End Module
 
         <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
         Public Async Function TestGenericCSharpTypeSymbolTest() As Task
-            Using testState = Await ProgressionTestState.CreateAsync(
+            Using testState = ProgressionTestState.Create(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
                             <Document FilePath="Z:\Project.cs"><![CDATA[[
@@ -642,7 +642,7 @@ End Module
 
         <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
         Public Async Function TestGenericCSharpMethodTypeSymbolTest() As Task
-            Using testState = Await ProgressionTestState.CreateAsync(
+            Using testState = ProgressionTestState.Create(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
                             <Document FilePath="Z:\Project.cs"><![CDATA[[
@@ -671,7 +671,7 @@ End Module
 
         <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
         Public Async Function TestGenericVBMethodSymbolTest() As Task
-            Using testState = Await ProgressionTestState.CreateAsync(
+            Using testState = ProgressionTestState.Create(
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true" FilePath="Z:\Project.vbproj">
                             <Document FilePath="Z:\Project.vb">
@@ -694,7 +694,7 @@ End Module
 
         <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
         Public Async Function TestGenericVBTypeSymbolTest() As Task
-            Using testState = Await ProgressionTestState.CreateAsync(
+            Using testState = ProgressionTestState.Create(
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true" FilePath="Z:\Project.vbproj">
                             <Document FilePath="Z:\Project.vb">
@@ -729,7 +729,7 @@ End Module
 
         <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
         Public Async Function TestMultiGenericVBTypeSymbolTest() As Task
-            Using testState = Await ProgressionTestState.CreateAsync(
+            Using testState = ProgressionTestState.Create(
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true" FilePath="Z:\Project.vbproj">
                             <Document FilePath="Z:\Project.vb">
@@ -764,7 +764,7 @@ End Module
 
         <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
         Public Async Function TestFilteringPropertiesTest() As Task
-            Using testState = Await ProgressionTestState.CreateAsync(
+            Using testState = ProgressionTestState.Create(
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true" FilePath="Z:\Project.vbproj">
                             <Document FilePath="Z:\Project.vb">

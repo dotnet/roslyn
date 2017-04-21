@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 {
     public class ProjectCacheHostServiceFactoryTests
     {
-        private void Test(Action<IProjectCacheHostService, ProjectId, ICachedObjectOwner, ObjectReference> action)
+        private void Test(Action<IProjectCacheHostService, ProjectId, ICachedObjectOwner, ObjectReference<object>> action)
         {
             // Putting cacheService.CreateStrongReference in a using statement
             // creates a temporary local that isn't collected in Debug builds
@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             var cacheService = new ProjectCacheService(null, int.MaxValue);
             var projectId = ProjectId.CreateNewId();
             var owner = new Owner();
-            var instance = new ObjectReference();
+            var instance = ObjectReference.CreateFromFactory(() => new object());
 
             action(cacheService, projectId, owner, instance);
         }
@@ -33,19 +33,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         {
             Test((cacheService, projectId, owner, instance) =>
             {
-                ((Action)(() =>
+                using (cacheService.EnableCaching(projectId))
                 {
-                    using (cacheService.EnableCaching(projectId))
-                    {
-                        cacheService.CacheObjectIfCachingEnabledForKey(projectId, (object)owner, instance.Strong);
-                        instance.Strong = null;
-                        CollectGarbage();
-                        Assert.True(instance.Weak.IsAlive);
-                    }
-                })).Invoke();
+                    instance.UseReference(i => cacheService.CacheObjectIfCachingEnabledForKey(projectId, (object)owner, i));
 
-                CollectGarbage();
-                Assert.False(instance.Weak.IsAlive);
+                    instance.AssertHeld();
+                }
+
+                instance.AssertReleased();
+
                 GC.KeepAlive(owner);
             });
         }
@@ -55,19 +51,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         {
             Test((cacheService, projectId, owner, instance) =>
             {
-                ((Action)(() =>
+                using (cacheService.EnableCaching(projectId))
                 {
-                    using (cacheService.EnableCaching(projectId))
-                    {
-                        cacheService.CacheObjectIfCachingEnabledForKey(projectId, owner, instance.Strong);
-                        instance.Strong = null;
-                        CollectGarbage();
-                        Assert.True(instance.Weak.IsAlive);
-                    }
-                })).Invoke();
+                    instance.UseReference(i => cacheService.CacheObjectIfCachingEnabledForKey(projectId, owner, i));
 
-                CollectGarbage();
-                Assert.False(instance.Weak.IsAlive);
+                    instance.AssertHeld();
+                }
+
+                instance.AssertReleased();
+
                 GC.KeepAlive(owner);
             });
         }
@@ -81,9 +73,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 {
                     cacheService.CacheObjectIfCachingEnabledForKey(projectId, (object)owner, instance);
                     owner = null;
-                    instance.Strong = null;
-                    CollectGarbage();
-                    Assert.False(instance.Weak.IsAlive);
+
+                    instance.AssertReleased();
                 }
             });
         }
@@ -97,9 +88,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 {
                     cacheService.CacheObjectIfCachingEnabledForKey(projectId, owner, instance);
                     owner = null;
-                    instance.Strong = null;
-                    CollectGarbage();
-                    Assert.False(instance.Weak.IsAlive);
+
+                    instance.AssertReleased();
                 }
             });
         }
@@ -109,12 +99,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         {
             var workspace = new AdhocWorkspace(MockHostServices.Instance, workspaceKind: WorkspaceKind.Host);
             var cacheService = new ProjectCacheService(workspace, int.MaxValue);
-            var instance = new object();
-            var weak = new WeakReference(instance);
-            cacheService.CacheObjectIfCachingEnabledForKey(ProjectId.CreateNewId(), (object)null, instance);
-            instance = null;
-            CollectGarbage();
-            Assert.True(weak.IsAlive);
+            var reference = ObjectReference.CreateFromFactory(() => new object());
+            reference.UseReference(r => cacheService.CacheObjectIfCachingEnabledForKey(ProjectId.CreateNewId(), (object)null, r));
+            reference.AssertHeld();
+
             GC.KeepAlive(cacheService);
         }
 
@@ -125,39 +113,18 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             var cacheService = new ProjectCacheService(workspace, 10);
             var weak = PutObjectInImplicitCache(cacheService);
 
-            var timeout = TimeSpan.FromSeconds(10);
-            var current = DateTime.UtcNow;
-            do
-            {
-                Thread.Sleep(100);
-                CollectGarbage();
-
-                if (DateTime.UtcNow - current > timeout)
-                {
-                    break;
-                }
-            }
-            while (weak.IsAlive);
-
-            // FailFast (and thereby capture a dump) to investigate what's
-            // rooting the object.
-            if (weak.IsAlive)
-            {
-                CodeAnalysis.Test.Utilities.ExceptionUtilities.FailFast(new Exception("Please investigate why the object wasn't collected!"));
-            }
+            weak.AssertReleased();
 
             GC.KeepAlive(cacheService);
         }
 
-        private static WeakReference PutObjectInImplicitCache(ProjectCacheService cacheService)
+        private static ObjectReference<object> PutObjectInImplicitCache(ProjectCacheService cacheService)
         {
-            var instance = new object();
-            var weak = new WeakReference(instance);
+            var reference = ObjectReference.CreateFromFactory(() => new object());
 
-            cacheService.CacheObjectIfCachingEnabledForKey(ProjectId.CreateNewId(), (object)null, instance);
-            instance = null;
+            reference.UseReference(r => cacheService.CacheObjectIfCachingEnabledForKey(ProjectId.CreateNewId(), (object)null, r));
 
-            return weak;
+            return reference;
         }
 
         [Fact]
@@ -171,14 +138,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
             var solution = workspace.AddSolution(solutionInfo);
 
-            var instance = new object();
-            var weak = new WeakReference(instance);
+            var instanceTracker = ObjectReference.CreateFromFactory(() => new object());
 
             var cacheService = new ProjectCacheService(workspace, int.MaxValue);
             using (var cache = cacheService.EnableCaching(project2.Id))
             {
-                cacheService.CacheObjectIfCachingEnabledForKey(project1.Id, (object)null, instance);
-                instance = null;
+                instanceTracker.UseReference(r => cacheService.CacheObjectIfCachingEnabledForKey(project1.Id, (object)null, r));
                 solution = null;
 
                 workspace.OnProjectRemoved(project1.Id);
@@ -186,8 +151,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             }
 
             // make sure p2p reference doesn't go to implicit cache
-            CollectGarbage();
-            Assert.False(weak.IsAlive);
+            instanceTracker.AssertReleased();
         }
 
         [Fact]
@@ -199,8 +163,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 compilations.Add(CSharpCompilation.Create(i.ToString()));
             }
 
-            var weakFirst = new WeakReference(compilations[0]);
-            var weakLast = new WeakReference(compilations[compilations.Count - 1]);
+            var weakFirst = ObjectReference.Create(compilations[0]);
+            var weakLast = ObjectReference.Create(compilations[compilations.Count - 1]);
 
             var workspace = new AdhocWorkspace(MockHostServices.Instance, workspaceKind: WorkspaceKind.Host);
             var cache = new ProjectCacheService(workspace, int.MaxValue);
@@ -210,10 +174,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             }
 
             compilations = null;
-            CollectGarbage();
 
-            Assert.False(weakFirst.IsAlive);
-            Assert.True(weakLast.IsAlive);
+            weakFirst.AssertReleased();
+            weakLast.AssertHeld();
+
             GC.KeepAlive(cache);
         }
 
@@ -224,8 +188,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             var comp2 = CSharpCompilation.Create("2");
             var comp3 = CSharpCompilation.Create("3");
 
-            var weak3 = new WeakReference(comp3);
-            var weak1 = new WeakReference(comp1);
+            var weak3 = ObjectReference.Create(comp3);
+            var weak1 = ObjectReference.Create(comp1);
 
             var workspace = new AdhocWorkspace(MockHostServices.Instance, workspaceKind: WorkspaceKind.Host);
             var cache = new ProjectCacheService(workspace, int.MaxValue);
@@ -241,10 +205,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             comp2 = null;
             comp3 = null;
 
-            CollectGarbage();
+            weak3.AssertHeld();
+            weak1.AssertHeld();
 
-            Assert.True(weak1.IsAlive);
-            Assert.True(weak3.IsAlive);
             GC.KeepAlive(cache);
         }
 

@@ -25,7 +25,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
             Dim code = <code>
 class 123 { }
                        </code>
-            Using workspace = Await TestWorkspace.CreateCSharpAsync(code.Value)
+            Using workspace = TestWorkspace.CreateCSharp(code.Value)
                 Dim listener = New AsynchronousOperationListener()
                 Dim listeners = AsynchronousOperationListener.CreateListeners(
                     ValueTuple.Create(FeatureAttribute.DiagnosticService, listener),
@@ -38,13 +38,11 @@ class 123 { }
 
                 DiagnosticProvider.Enable(workspace, DiagnosticProvider.Options.Syntax)
 
-                Dim optionsService = workspace.Services.GetService(Of IOptionService)()
-
                 Dim buffer = workspace.Documents.First().GetTextBuffer()
 
                 WpfTestCase.RequireWpfFact("This test uses IForegroundNotificationService")
                 Dim foregroundService = workspace.GetService(Of IForegroundNotificationService)()
-                Dim provider = New DiagnosticsSquiggleTaggerProvider(optionsService, diagnosticService, foregroundService, listeners)
+                Dim provider = New DiagnosticsSquiggleTaggerProvider(diagnosticService, foregroundService, listeners)
                 Dim tagger = provider.CreateTagger(Of IErrorTag)(buffer)
                 Using disposable = TryCast(tagger, IDisposable)
                     Dim analyzer = miscService.CreateIncrementalAnalyzer(workspace)
@@ -73,7 +71,7 @@ class A
 }
                        </code>
 
-            Using workspace = Await TestWorkspace.CreateCSharpAsync(code.Value)
+            Using workspace = TestWorkspace.CreateCSharp(code.Value)
                 Dim listener = New AsynchronousOperationListener()
                 Dim listeners = AsynchronousOperationListener.CreateListeners(
                     ValueTuple.Create(FeatureAttribute.DiagnosticService, listener),
@@ -110,7 +108,7 @@ class A
 }
                        </code>
 
-            Using workspace = Await TestWorkspace.CreateCSharpAsync(code.Value)
+            Using workspace = TestWorkspace.CreateCSharp(code.Value)
                 Dim listener = New AsynchronousOperationListener()
                 Dim listeners = AsynchronousOperationListener.CreateListeners(
                     ValueTuple.Create(FeatureAttribute.DiagnosticService, listener),
@@ -147,7 +145,7 @@ class A
 }
                        </code>
 
-            Using workspace = Await TestWorkspace.CreateCSharpAsync(code.Value)
+            Using workspace = TestWorkspace.CreateCSharp(code.Value)
                 Dim listener = New AsynchronousOperationListener()
                 Dim listeners = AsynchronousOperationListener.CreateListeners(
                     ValueTuple.Create(FeatureAttribute.DiagnosticService, listener),
@@ -184,7 +182,7 @@ class A
 }
                        </code>
 
-            Using workspace = Await TestWorkspace.CreateCSharpAsync(code.Value)
+            Using workspace = TestWorkspace.CreateCSharp(code.Value)
                 Dim listener = New AsynchronousOperationListener()
                 Dim listeners = AsynchronousOperationListener.CreateListeners(
                     ValueTuple.Create(FeatureAttribute.DiagnosticService, listener),
@@ -215,7 +213,7 @@ class A
             Dim code = <code>
 class 123 { }
                        </code>
-            Using workspace = Await TestWorkspace.CreateCSharpAsync(code.Value)
+            Using workspace = TestWorkspace.CreateCSharp(code.Value)
                 Dim miscService = New DefaultDiagnosticAnalyzerService(New MockDiagnosticUpdateSourceRegistrationService())
 
                 DiagnosticProvider.Enable(workspace, DiagnosticProvider.Options.Syntax)
@@ -240,7 +238,7 @@ class 123 { }
 Class 123
 End Class
                        </code>
-            Using workspace = Await TestWorkspace.CreateVisualBasicAsync(code.Value)
+            Using workspace = TestWorkspace.CreateVisualBasic(code.Value)
                 Dim miscService = New DefaultDiagnosticAnalyzerService(New MockDiagnosticUpdateSourceRegistrationService())
 
                 DiagnosticProvider.Enable(workspace, DiagnosticProvider.Options.Syntax)

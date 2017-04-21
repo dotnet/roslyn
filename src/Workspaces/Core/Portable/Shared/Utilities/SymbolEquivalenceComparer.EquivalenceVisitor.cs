@@ -2,14 +2,11 @@
 
 ////#define TRACKDEPTH
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Utilities
@@ -338,6 +335,32 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             private bool HandleNamedTypesWorker(INamedTypeSymbol x, INamedTypeSymbol y, Dictionary<INamedTypeSymbol, INamedTypeSymbol> equivalentTypesWithDifferingAssemblies)
             {
                 Debug.Assert(GetTypeKind(x) == GetTypeKind(y));
+
+                if (x.IsTupleType || y.IsTupleType)
+                {
+                    if (x.IsTupleType != y.IsTupleType)
+                    {
+                        return false;
+                    }
+
+                    var xElements = x.TupleElements;
+                    var yElements = y.TupleElements;
+
+                    if (xElements.Length != yElements.Length)
+                    {
+                        return false;
+                    }
+
+                    for(int i = 0; i < xElements.Length; i++)
+                    {
+                        if (!AreEquivalent(xElements[i].Type, yElements[i].Type, equivalentTypesWithDifferingAssemblies))
+                        {
+                            return false;
+                        }
+                    }
+
+                    return true;
+                }
 
                 if (x.IsDefinition != y.IsDefinition ||
                     IsConstructedFromSelf(x) != IsConstructedFromSelf(y) ||

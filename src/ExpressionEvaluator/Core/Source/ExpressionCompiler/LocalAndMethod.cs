@@ -1,6 +1,8 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
+using System;
+using System.Collections.ObjectModel;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
@@ -23,6 +25,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             this.Flags = flags;
         }
 
-        public abstract CustomTypeInfo GetCustomTypeInfo();
+        public abstract Guid GetCustomTypeInfo(out ReadOnlyCollection<byte> payload);
     }
 }

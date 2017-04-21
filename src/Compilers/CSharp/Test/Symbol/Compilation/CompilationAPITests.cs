@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Reflection.PortableExecutable;
 using System.Text;
 using System.Threading;
@@ -17,6 +18,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -43,29 +45,68 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        [WorkItem(233669, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=233669")]
         public void CompilationName()
         {
             // report an error, rather then silently ignoring the directory
             // (see cli partition II 22.30) 
-            Assert.Throws<ArgumentException>(() => CSharpCompilation.Create(@"C:/foo/Test.exe"));
-            Assert.Throws<ArgumentException>(() => CSharpCompilation.Create(@"C:\foo\Test.exe"));
-            Assert.Throws<ArgumentException>(() => CSharpCompilation.Create(@"\foo/Test.exe"));
-            Assert.Throws<ArgumentException>(() => CSharpCompilation.Create(@"C:Test.exe"));
-            Assert.Throws<ArgumentException>(() => CSharpCompilation.Create(@"Te\0st.exe"));
-            Assert.Throws<ArgumentException>(() => CSharpCompilation.Create(@"   \t  "));
-            Assert.Throws<ArgumentException>(() => CSharpCompilation.Create(@"\uD800"));
-            Assert.Throws<ArgumentException>(() => CSharpCompilation.Create(@""));
-            Assert.Throws<ArgumentException>(() => CSharpCompilation.Create(@" a"));
-            Assert.Throws<ArgumentException>(() => CSharpCompilation.Create(@"\u2000a")); // U+20700 is whitespace
-            Assert.Throws<ArgumentException>(() => CSharpCompilation.Create("..\\..\\RelativePath"));
+            CSharpCompilation.Create(@"C:/foo/Test.exe").VerifyEmitDiagnostics(
+                // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
+                Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1),
+                // error CS8203: Invalid assembly name: Name contains invalid characters.
+                Diagnostic(ErrorCode.ERR_BadAssemblyName).WithArguments("Name contains invalid characters.").WithLocation(1, 1),
+                // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
+                Diagnostic(ErrorCode.ERR_NoEntryPoint).WithLocation(1, 1)
+                );
+            CSharpCompilation.Create(@"C:\foo\Test.exe").GetDeclarationDiagnostics().Verify(
+                // error CS8203: Invalid assembly name: Name contains invalid characters.
+                Diagnostic(ErrorCode.ERR_BadAssemblyName).WithArguments("Name contains invalid characters.").WithLocation(1, 1)
+                );
+            var compilationOptions = TestOptions.DebugDll.WithWarningLevel(0);
+            CSharpCompilation.Create(@"\foo/Test.exe", options: compilationOptions).VerifyEmitDiagnostics(
+                // error CS8203: Invalid assembly name: Name contains invalid characters.
+                Diagnostic(ErrorCode.ERR_BadAssemblyName).WithArguments("Name contains invalid characters.").WithLocation(1, 1)
+                );
+            CSharpCompilation.Create(@"C:Test.exe", options: compilationOptions).VerifyEmitDiagnostics(
+                // error CS8203: Invalid assembly name: Name contains invalid characters.
+                Diagnostic(ErrorCode.ERR_BadAssemblyName).WithArguments("Name contains invalid characters.").WithLocation(1, 1)
+                );
+            CSharpCompilation.Create(@"Te\0st.exe", options: compilationOptions).VerifyEmitDiagnostics(
+                // error CS8203: Invalid assembly name: Name contains invalid characters.
+                Diagnostic(ErrorCode.ERR_BadAssemblyName).WithArguments("Name contains invalid characters.").WithLocation(1, 1)
+                );
+            CSharpCompilation.Create(@"   \t  ", options: compilationOptions).VerifyEmitDiagnostics(
+                // error CS8203: Invalid assembly name: Name cannot start with whitespace.
+                Diagnostic(ErrorCode.ERR_BadAssemblyName).WithArguments("Name cannot start with whitespace.").WithLocation(1, 1)
+                );
+            CSharpCompilation.Create(@"\uD800", options: compilationOptions).VerifyEmitDiagnostics(
+                // error CS8203: Invalid assembly name: Name contains invalid characters.
+                Diagnostic(ErrorCode.ERR_BadAssemblyName).WithArguments("Name contains invalid characters.").WithLocation(1, 1)
+                );
+            CSharpCompilation.Create(@"", options: compilationOptions).VerifyEmitDiagnostics(
+                // error CS8203: Invalid assembly name: Name cannot be empty.
+                Diagnostic(ErrorCode.ERR_BadAssemblyName).WithArguments("Name cannot be empty.").WithLocation(1, 1)
+                );
+            CSharpCompilation.Create(@" a", options: compilationOptions).VerifyEmitDiagnostics(
+                // error CS8203: Invalid assembly name: Name cannot start with whitespace.
+                Diagnostic(ErrorCode.ERR_BadAssemblyName).WithArguments("Name cannot start with whitespace.").WithLocation(1, 1)
+                );
+            CSharpCompilation.Create(@"\u2000a", options: compilationOptions).VerifyEmitDiagnostics( // U+20700 is whitespace
+                // error CS8203: Invalid assembly name: Name contains invalid characters.
+                Diagnostic(ErrorCode.ERR_BadAssemblyName).WithArguments("Name contains invalid characters.").WithLocation(1, 1)
+                );
+            CSharpCompilation.Create("..\\..\\RelativePath", options: compilationOptions).VerifyEmitDiagnostics(
+                // error CS8203: Invalid assembly name: Name contains invalid characters.
+                Diagnostic(ErrorCode.ERR_BadAssemblyName).WithArguments("Name contains invalid characters.").WithLocation(1, 1)
+                );
 
             // other characters than directory and volume separators are ok:
-            CSharpCompilation.Create(@";,*?<>#!@&");
-            CSharpCompilation.Create("foo");
-            CSharpCompilation.Create(".foo");
-            CSharpCompilation.Create("foo "); // can end with whitespace
-            CSharpCompilation.Create("....");
-            CSharpCompilation.Create(null);
+            CSharpCompilation.Create(@";,*?<>#!@&", options: compilationOptions).VerifyEmitDiagnostics();
+            CSharpCompilation.Create("foo", options: compilationOptions).VerifyEmitDiagnostics();
+            CSharpCompilation.Create(".foo", options: compilationOptions).VerifyEmitDiagnostics();
+            CSharpCompilation.Create("foo ", options: compilationOptions).VerifyEmitDiagnostics(); // can end with whitespace
+            CSharpCompilation.Create("....", options: compilationOptions).VerifyEmitDiagnostics();
+            CSharpCompilation.Create(null, options: compilationOptions).VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -112,104 +153,6 @@ namespace A.B {
             var comp1 = CSharpCompilation.Create(asmname, listSyntaxTree, listRef, null);
         }
 
-        [ClrOnlyFact(ClrOnlyReason.Pdb)]
-        public void EmitToMemoryStreams()
-        {
-            var comp = CSharpCompilation.Create("Compilation", options: TestOptions.ReleaseDll);
-
-            using (var output = new MemoryStream())
-            {
-                using (var outputPdb = new MemoryStream())
-                {
-                    using (var outputxml = new MemoryStream())
-                    {
-                        var result = comp.Emit(output, outputPdb, null);
-                        Assert.True(result.Success);
-                        result = comp.Emit(output, outputPdb);
-                        Assert.True(result.Success);
-                        result = comp.Emit(peStream: output, xmlDocumentationStream: null);
-                        Assert.True(result.Success);
-                        result = comp.Emit(peStream: output, pdbStream: outputPdb);
-                        Assert.True(result.Success);
-                        result = comp.Emit(output, outputPdb, null);
-                        Assert.True(result.Success);
-                        result = comp.Emit(output, outputPdb);
-                        Assert.True(result.Success);
-                        result = comp.Emit(output, outputPdb, outputxml);
-                        Assert.True(result.Success);
-                        result = comp.Emit(output, null, null, null);
-                        Assert.True(result.Success);
-                        result = comp.Emit(output);
-                        Assert.True(result.Success);
-                        result = comp.Emit(output, null, outputxml);
-                        Assert.True(result.Success);
-                        result = comp.Emit(output, xmlDocumentationStream: outputxml);
-                        Assert.True(result.Success);
-                        result = comp.Emit(output, xmlDocumentationStream: outputxml);
-                        Assert.True(result.Success);
-                        result = comp.Emit(output, options: null);
-                        Assert.True(result.Success);
-                        result = comp.Emit(output, options: EmitOptions.Default.WithHighEntropyVirtualAddressSpace(true));
-                        Assert.True(result.Success);
-                        result = comp.Emit(output, options: EmitOptions.Default.WithOutputNameOverride("foo"));
-                        Assert.True(result.Success);
-                        result = comp.Emit(output, options: EmitOptions.Default.WithPdbFilePath("foo.pdb"));
-                        Assert.True(result.Success);
-                    }
-                }
-            }
-        }
-
-        [ClrOnlyFact(ClrOnlyReason.Pdb)]
-        public void EmitToBoundedStreams()
-        {
-            var pdbArray = new byte[100000];
-            var pdbStream = new MemoryStream(pdbArray, 1, pdbArray.Length - 10);
-
-            var peArray = new byte[100000];
-            var peStream = new MemoryStream(peArray);
-
-            var c = CSharpCompilation.Create("a",
-                new[] { SyntaxFactory.ParseSyntaxTree("class C { static void Main() {} }") },
-                new[] { MscorlibRef });
-
-            var r = c.Emit(peStream, pdbStream);
-            r.Diagnostics.Verify();
-        }
-
-        [ClrOnlyFact(ClrOnlyReason.Pdb)]
-        public void EmitToStreamWithNonZeroPosition()
-        {
-            var pdbStream = new MemoryStream();
-            pdbStream.WriteByte(0x12);
-            var peStream = new MemoryStream();
-            peStream.WriteByte(0x12);
-
-            var c = CSharpCompilation.Create("a",
-                new[] { SyntaxFactory.ParseSyntaxTree("class C { static void Main() {} }") },
-                new[] { MscorlibRef });
-
-            var r = c.Emit(peStream, pdbStream);
-            r.Diagnostics.Verify();
-
-            AssertEx.Equal(new byte[] { 0x12, (byte)'M', (byte)'i', (byte)'c', (byte)'r', (byte)'o' }, pdbStream.GetBuffer().Take(6).ToArray());
-            AssertEx.Equal(new byte[] { 0x12, (byte)'M', (byte)'Z' }, peStream.GetBuffer().Take(3).ToArray());
-        }
-
-        [ClrOnlyFact(ClrOnlyReason.Pdb)]
-        public void EmitToNonSeekableStreams()
-        {
-            var peStream = new TestStream(canRead: false, canSeek: false, canWrite: true);
-            var pdbStream = new TestStream(canRead: false, canSeek: false, canWrite: true);
-
-            var c = CSharpCompilation.Create("a",
-                new[] { SyntaxFactory.ParseSyntaxTree("class C { static void Main() {} }") },
-                new[] { MscorlibRef });
-
-            var r = c.Emit(peStream, pdbStream);
-            r.Diagnostics.Verify();
-        }
-
         [Fact]
         public void EmitToNonWritableStreams()
         {
@@ -227,7 +170,7 @@ namespace A.B {
         [Fact]
         public void EmitOptionsDiagnostics()
         {
-            var c = CreateCompilationWithMscorlib("class C {}");
+            var c = CreateStandardCompilation("class C {}");
             var stream = new MemoryStream();
 
             var options = new EmitOptions(
@@ -240,35 +183,70 @@ namespace A.B {
 
             result.Diagnostics.Verify(
                 // error CS2042: Invalid debug information format: -1
-                Diagnostic(ErrorCode.ERR_InvalidDebugInformationFormat).WithArguments("-1"),
+                Diagnostic(ErrorCode.ERR_InvalidDebugInformationFormat).WithArguments("-1").WithLocation(1, 1),
                 // error CS2041: Invalid output name: Name cannot start with whitespace.
-                Diagnostic(ErrorCode.ERR_InvalidOutputName).WithArguments(CodeAnalysisResources.NameCannotStartWithWhitespace),
+                Diagnostic(ErrorCode.ERR_InvalidOutputName).WithArguments(CodeAnalysisResources.NameCannotStartWithWhitespace).WithLocation(1, 1),
                 // error CS2024: Invalid file section alignment '513'
-                Diagnostic(ErrorCode.ERR_InvalidFileAlignment).WithArguments("513"),
+                Diagnostic(ErrorCode.ERR_InvalidFileAlignment).WithArguments("513").WithLocation(1, 1),
                 // error CS1773: Invalid version 1000000.-1000000 for /subsystemversion. The version must be 6.02 or greater for ARM or AppContainerExe, and 4.00 or greater otherwise
-                Diagnostic(ErrorCode.ERR_InvalidSubsystemVersion).WithArguments("1000000.-1000000"));
+                Diagnostic(ErrorCode.ERR_InvalidSubsystemVersion).WithArguments("1000000.-1000000").WithLocation(1, 1));
 
             Assert.False(result.Success);
         }
 
-        [ClrOnlyFact(ClrOnlyReason.Pdb)]
-        public void NegEmit()
+        [Fact]
+        public void Emit_BadArgs()
         {
-            var ops = TestOptions.ReleaseDll;
-            var comp = CSharpCompilation.Create("Compilation", null, null, ops);
-            using (MemoryStream output = new MemoryStream())
-            {
-                using (MemoryStream outputPdb = new MemoryStream())
-                {
-                    using (MemoryStream outputxml = new MemoryStream())
-                    {
-                        var result = comp.Emit(output, outputPdb, outputxml);
-                        Assert.True(result.Success);
-                    }
-                }
-            }
+            var comp = CSharpCompilation.Create("Compilation", options: TestOptions.ReleaseDll);
 
-            Assert.Throws<ArgumentNullException>(() => comp.Emit(peStream: null));
+            Assert.Throws<ArgumentNullException>("peStream", () => comp.Emit(peStream: null));
+            Assert.Throws<ArgumentException>("peStream", () => comp.Emit(peStream: new TestStream(canRead: true, canWrite: false, canSeek: true)));
+            Assert.Throws<ArgumentException>("pdbStream", () => comp.Emit(peStream: new MemoryStream(), pdbStream: new TestStream(canRead: true, canWrite: false, canSeek: true)));
+            Assert.Throws<ArgumentException>("pdbStream", () => comp.Emit(peStream: new MemoryStream(), pdbStream: new MemoryStream(), options: EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.Embedded)));
+
+            Assert.Throws<ArgumentException>("sourceLinkStream", () => comp.Emit(
+                peStream: new MemoryStream(), 
+                pdbStream: new MemoryStream(), 
+                options: EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.PortablePdb),
+                sourceLinkStream: new TestStream(canRead: false, canWrite: true, canSeek: true)));
+
+            Assert.Throws<ArgumentException>("sourceLinkStream", () => comp.Emit(
+               peStream: new MemoryStream(),
+               pdbStream: new MemoryStream(),
+               options: EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.Pdb),
+               sourceLinkStream: new MemoryStream()));
+
+            Assert.Throws<ArgumentException>("sourceLinkStream", () => comp.Emit(
+               peStream: new MemoryStream(),
+               pdbStream: null,
+               options: EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.PortablePdb),
+               sourceLinkStream: new MemoryStream()));
+
+            Assert.Throws<ArgumentException>("embeddedTexts", () => comp.Emit(
+                peStream: new MemoryStream(),
+                pdbStream: new MemoryStream(),
+                options: EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.Pdb),
+                embeddedTexts: new[] { EmbeddedText.FromStream("_", new MemoryStream()) }));
+
+            Assert.Throws<ArgumentException>("embeddedTexts", () => comp.Emit(
+                peStream: new MemoryStream(),
+                pdbStream: null,
+                options: EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.PortablePdb),
+                embeddedTexts: new[] { EmbeddedText.FromStream("_", new MemoryStream()) }));
+
+            Assert.Throws<ArgumentException>("win32Resources", () => comp.Emit(
+                peStream: new MemoryStream(),
+                win32Resources: new TestStream(canRead: true, canWrite: false, canSeek: false)));
+
+            Assert.Throws<ArgumentException>("win32Resources", () => comp.Emit(
+                peStream: new MemoryStream(),
+                win32Resources: new TestStream(canRead: false, canWrite: false, canSeek: true)));
+
+            // we don't report an error when we can't write to the XML doc stream:
+            Assert.True(comp.Emit(
+                peStream: new MemoryStream(), 
+                pdbStream: new MemoryStream(), 
+                xmlDocumentationStream: new TestStream(canRead: true, canWrite: false, canSeek: true)).Success);
         }
 
         [Fact]
@@ -435,30 +413,32 @@ namespace A.B {
              options: TestOptions.ReleaseDll,
              syntaxTrees: new SyntaxTree[] { SyntaxFactory.ParseSyntaxTree(
                     "extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}",
-                    options: TestOptions.Regular.WithTuplesFeature()) },
+                    options: TestOptions.Regular) },
              references: new MetadataReference[] { MscorlibRef, mtref }
              );
 
             comp.VerifyDiagnostics(
-    // (1,19): error CS1002: ; expected
-    // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
-    Diagnostic(ErrorCode.ERR_SemicolonExpected, "(").WithLocation(1, 19),
-    // (1,20): error CS1031: Type expected
-    // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
-    Diagnostic(ErrorCode.ERR_TypeExpected, "*").WithLocation(1, 20),
-    // (1,21): error CS1040: Preprocessor directives must appear as the first non-whitespace character on a line
-    // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
-    Diagnostic(ErrorCode.ERR_BadDirectivePlacement, "#").WithLocation(1, 21),
-    // (1,61): error CS1026: ) expected
-    // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
-    Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(1, 61),
-    // (1,14): error CS0430: The extern alias 'Alias' was not specified in a /reference option
-    // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
-    Diagnostic(ErrorCode.ERR_BadExternAlias, "Alias").WithArguments("Alias").WithLocation(1, 14),
-    // (1,1): hidden CS8020: Unused extern alias.
-    // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
-    Diagnostic(ErrorCode.HDN_UnusedExternAlias, "extern alias Alias").WithLocation(1, 1)
-
+                // (1,19): error CS1002: ; expected
+                // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "(").WithLocation(1, 19),
+                // (1,20): error CS1031: Type expected
+                // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
+                Diagnostic(ErrorCode.ERR_TypeExpected, "*").WithLocation(1, 20),
+                // (1,21): error CS1040: Preprocessor directives must appear as the first non-whitespace character on a line
+                // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
+                Diagnostic(ErrorCode.ERR_BadDirectivePlacement, "#").WithLocation(1, 21),
+                // (1,61): error CS8124: Tuple must contain at least two elements.
+                // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
+                Diagnostic(ErrorCode.ERR_TupleTooFewElements, "").WithLocation(1, 61),
+                // (1,61): error CS1026: ) expected
+                // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(1, 61),
+                // (1,14): error CS0430: The extern alias 'Alias' was not specified in a /reference option
+                // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
+                Diagnostic(ErrorCode.ERR_BadExternAlias, "Alias").WithArguments("Alias").WithLocation(1, 14),
+                // (1,1): hidden CS8020: Unused extern alias.
+                // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
+                Diagnostic(ErrorCode.HDN_UnusedExternAlias, "extern alias Alias").WithLocation(1, 1)
                 );
         }
 
@@ -509,15 +489,18 @@ namespace A.B {
                 // (1,19): error CS1002: ; expected
                 // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "(").WithLocation(1, 19),
-                // (1,19): error CS8058: Feature 'tuples' is experimental and unsupported; use '/features:tuples' to enable.
+                // (1,19): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7 or greater.
                 // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "(*#$@^%*&); class D : Alias(*#$@^%*&).C {}").WithArguments("tuples", "tuples").WithLocation(1, 19),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(*#$@^%*&); class D : Alias(*#$@^%*&).C {}").WithArguments("tuples", "7").WithLocation(1, 19),
                 // (1,20): error CS1031: Type expected
                 // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
                 Diagnostic(ErrorCode.ERR_TypeExpected, "*").WithLocation(1, 20),
                 // (1,21): error CS1040: Preprocessor directives must appear as the first non-whitespace character on a line
                 // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
                 Diagnostic(ErrorCode.ERR_BadDirectivePlacement, "#").WithLocation(1, 21),
+                // (1,61): error CS8124: Tuple must contain at least two elements.
+                // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
+                Diagnostic(ErrorCode.ERR_TupleTooFewElements, "").WithLocation(1, 61),
                 // (1,61): error CS1026: ) expected
                 // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(1, 61),
@@ -756,13 +739,13 @@ class D
         [ClrOnlyFact]
         public void MissedModuleA()
         {
-            var netModule1 = CreateCompilationWithMscorlib(
+            var netModule1 = CreateStandardCompilation(
                 options: TestOptions.ReleaseModule,
                 assemblyName: "a1",
                 sources: new string[] { "public class C1 {}" });
             netModule1.VerifyEmitDiagnostics();
 
-            var netModule2 = CreateCompilationWithMscorlib(
+            var netModule2 = CreateStandardCompilation(
                 options: TestOptions.ReleaseModule,
                 assemblyName: "a2",
                 references: new MetadataReference[] { netModule1.EmitToImageReference() },
@@ -776,7 +759,7 @@ public static void M() {
                 });
             netModule2.VerifyEmitDiagnostics();
 
-            var assembly = CreateCompilationWithMscorlib(
+            var assembly = CreateStandardCompilation(
                 options: TestOptions.ReleaseExe,
                 assemblyName: "a",
                 references: new MetadataReference[] { netModule2.EmitToImageReference() },
@@ -791,7 +774,7 @@ var a = new C2();
             assembly.VerifyEmitDiagnostics(
                 Diagnostic(ErrorCode.ERR_MissingNetModuleReference).WithArguments("a1.netmodule"));
 
-            assembly = CreateCompilationWithMscorlib(
+            assembly = CreateStandardCompilation(
                 options: TestOptions.ReleaseExe,
                 assemblyName: "a",
                 references: new MetadataReference[] { netModule1.EmitToImageReference(), netModule2.EmitToImageReference() },
@@ -811,13 +794,13 @@ var a = new C2();
         [Fact]
         public void MissedModuleB_OneError()
         {
-            var netModule1 = CreateCompilationWithMscorlib(
+            var netModule1 = CreateStandardCompilation(
                 options: TestOptions.ReleaseModule,
                 assemblyName: "a1",
                 sources: new string[] { "public class C1 {}" });
             netModule1.VerifyEmitDiagnostics();
 
-            var netModule2 = CreateCompilationWithMscorlib(
+            var netModule2 = CreateStandardCompilation(
                 options: TestOptions.ReleaseModule,
                 assemblyName: "a2",
                 references: new MetadataReference[] { netModule1.EmitToImageReference() },
@@ -831,7 +814,7 @@ public static void M() {
                 });
             netModule2.VerifyEmitDiagnostics();
 
-            var netModule3 = CreateCompilationWithMscorlib(
+            var netModule3 = CreateStandardCompilation(
                 options: TestOptions.ReleaseModule,
                 assemblyName: "a3",
                 references: new MetadataReference[] { netModule1.EmitToImageReference() },
@@ -845,7 +828,7 @@ public static void M() {
                 });
             netModule3.VerifyEmitDiagnostics();
 
-            var assembly = CreateCompilationWithMscorlib(
+            var assembly = CreateStandardCompilation(
                 options: TestOptions.ReleaseExe,
                 assemblyName: "a",
                 references: new MetadataReference[] { netModule2.EmitToImageReference(), netModule3.EmitToImageReference() },
@@ -866,7 +849,7 @@ var a = new C2();
         [Fact]
         public void MissedModuleB_NoErrorForUnmanagedModules()
         {
-            var netModule1 = CreateCompilationWithMscorlib(
+            var netModule1 = CreateStandardCompilation(
                 options: TestOptions.ReleaseModule,
                 assemblyName: "a1",
                 sources: new string[] {
@@ -881,7 +864,7 @@ public class C2 {
                 });
             netModule1.VerifyEmitDiagnostics();
 
-            var assembly = CreateCompilationWithMscorlib(
+            var assembly = CreateStandardCompilation(
                 options: TestOptions.ReleaseExe,
                 assemblyName: "a",
                 references: new MetadataReference[] { netModule1.EmitToImageReference() },
@@ -900,13 +883,13 @@ var a = new C2();
         [Fact()]
         public void MissedModuleC()
         {
-            var netModule1 = CreateCompilationWithMscorlib(
+            var netModule1 = CreateStandardCompilation(
                 options: TestOptions.ReleaseModule,
                 assemblyName: "a1",
                 sources: new string[] { "public class C1 {}" });
             netModule1.VerifyEmitDiagnostics();
 
-            var netModule2 = CreateCompilationWithMscorlib(
+            var netModule2 = CreateStandardCompilation(
                 options: TestOptions.ReleaseModule,
                 assemblyName: "a1",
                 references: new MetadataReference[] { netModule1.EmitToImageReference() },
@@ -920,7 +903,7 @@ public static void M() {
                 });
             netModule2.VerifyEmitDiagnostics();
 
-            var assembly = CreateCompilationWithMscorlib(
+            var assembly = CreateStandardCompilation(
                 options: TestOptions.ReleaseExe,
                 assemblyName: "a",
                 references: new MetadataReference[] { netModule1.EmitToImageReference(), netModule2.EmitToImageReference() },
@@ -1406,7 +1389,7 @@ class A
     static void Main() { }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe);
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics();
 
             var mainMethod = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("A").GetMember<MethodSymbol>("Main");
@@ -1427,7 +1410,7 @@ class A
     static void Main() { }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll);
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll);
             compilation.VerifyDiagnostics();
 
             Assert.Null(compilation.GetEntryPoint(default(CancellationToken)));
@@ -1443,7 +1426,7 @@ class A
     static void Main() { }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseModule);
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseModule);
             compilation.VerifyDiagnostics();
 
             Assert.Null(compilation.GetEntryPoint(default(CancellationToken)));
@@ -1461,7 +1444,7 @@ class A
 ";
             // equivalent of csc with no /moduleassemblyname specified:
             var compilation = CSharpCompilation.Create(assemblyName: null, options: TestOptions.ReleaseModule, syntaxTrees: new[] { Parse(source) }, references: new[] { MscorlibRef });
-            compilation.VerifyDiagnostics();
+            compilation.VerifyEmitDiagnostics();
 
             Assert.Null(compilation.AssemblyName);
             Assert.Equal("?", compilation.Assembly.Name);
@@ -1469,7 +1452,7 @@ class A
 
             // no name is allowed for assembly as well, although it isn't useful:
             compilation = CSharpCompilation.Create(assemblyName: null, options: TestOptions.ReleaseDll, syntaxTrees: new[] { Parse(source) }, references: new[] { MscorlibRef });
-            compilation.VerifyDiagnostics();
+            compilation.VerifyEmitDiagnostics();
 
             Assert.Null(compilation.AssemblyName);
             Assert.Equal("?", compilation.Assembly.Name);
@@ -1485,6 +1468,7 @@ class A
         }
 
         [WorkItem(8506, "https://github.com/dotnet/roslyn/issues/8506")]
+        [WorkItem(17403, "https://github.com/dotnet/roslyn/issues/17403")]
         [Fact]
         public void CrossCorlibSystemObjectReturnType_Script()
         {
@@ -1494,21 +1478,42 @@ class A
             //
             // In the original bug, Xamarin iOS, Android, and Mac Mobile profile corlibs were
             // realistic cross-compilation targets.
-            var compilation = CSharpCompilation.CreateScriptCompilation(
-                "submission-assembly",
-                references: new [] { MinAsyncCorlibRef },
+
+            void AssertCompilationCorlib(CSharpCompilation compilation)
+            {
+                Assert.True(compilation.IsSubmission);
+
+                var taskOfT = compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T);
+                var taskOfObject = taskOfT.Construct(compilation.ObjectType);
+                var entryPoint = compilation.GetEntryPoint(default(CancellationToken));
+
+                Assert.Same(compilation.ObjectType.ContainingAssembly, taskOfT.ContainingAssembly);
+                Assert.Same(compilation.ObjectType.ContainingAssembly, taskOfObject.ContainingAssembly);
+                Assert.Equal(taskOfObject, entryPoint.ReturnType);
+            }
+
+            var firstCompilation = CSharpCompilation.CreateScriptCompilation(
+                "submission-assembly-1",
+                references: new[] { MinAsyncCorlibRef },
                 syntaxTree: Parse("true", options: TestOptions.Script)
             ).VerifyDiagnostics();
 
-            Assert.True(compilation.IsSubmission);
+            AssertCompilationCorlib(firstCompilation);
 
-            var taskOfT = compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T);
-            var taskOfObject = taskOfT.Construct(compilation.ObjectType);
-            var entryPoint = compilation.GetEntryPoint(default(CancellationToken));
+            var secondCompilation = CSharpCompilation.CreateScriptCompilation(
+                "submission-assembly-2",
+                previousScriptCompilation: firstCompilation,
+                syntaxTree: Parse("false", options: TestOptions.Script))
+                .WithScriptCompilationInfo(new CSharpScriptCompilationInfo(firstCompilation, null, null))
+                .VerifyDiagnostics();
 
-            Assert.Same(compilation.ObjectType.ContainingAssembly, taskOfT.ContainingAssembly);
-            Assert.Same(compilation.ObjectType.ContainingAssembly, taskOfObject.ContainingAssembly);
-            Assert.Equal(taskOfObject, entryPoint.ReturnType);
+            AssertCompilationCorlib(secondCompilation);
+
+            Assert.Same(firstCompilation.ObjectType, secondCompilation.ObjectType);
+
+            Assert.Null(new CSharpScriptCompilationInfo(null, null, null)
+                .WithPreviousScriptCompilation(firstCompilation)
+                .ReturnTypeOpt);
         }
 
         [WorkItem(3719, "https://github.com/dotnet/roslyn/issues/3719")]
@@ -1617,7 +1622,7 @@ class B
     static void Main() { }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe.WithMainTypeName("B"));
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseExe.WithMainTypeName("B"));
             compilation.VerifyDiagnostics();
 
             var mainMethod = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("B").GetMember<MethodSymbol>("Main");
@@ -1650,7 +1655,7 @@ using alias=alias;
 class myClass : alias::Uri
 {
 }";
-            var comp = CreateCompilationWithMscorlib(text, references: new MetadataReference[] { alias });
+            var comp = CreateCompilation(text, references: new[] { MscorlibRef, alias });
             Assert.Equal(2, comp.References.Count());
             Assert.Equal("alias", comp.References.Last().Properties.Aliases.Single());
             comp.VerifyDiagnostics(
@@ -1682,7 +1687,7 @@ public class TestClass
 
             // Ask for model diagnostics first.
             {
-                var compilation = CreateCompilationWithMscorlib(sources: new string[] { source1, source2 });
+                var compilation = CreateStandardCompilation(sources: new string[] { source1, source2 });
 
                 var tree2 = compilation.SyntaxTrees[1]; //tree for empty file
                 var model2 = compilation.GetSemanticModel(tree2);
@@ -1696,7 +1701,7 @@ public class TestClass
 
             // Ask for compilation diagnostics first.
             {
-                var compilation = CreateCompilationWithMscorlib(sources: new string[] { source1, source2 });
+                var compilation = CreateStandardCompilation(sources: new string[] { source1, source2 });
 
                 var tree2 = compilation.SyntaxTrees[1]; //tree for empty file
                 var model2 = compilation.GetSemanticModel(tree2);
@@ -1909,8 +1914,8 @@ class C { }", options: TestOptions.Script);
         [Fact]
         public void MetadataConsistencyWhileEvolvingCompilation()
         {
-            var md1 = AssemblyMetadata.CreateFromImage(CreateCompilationWithMscorlib("public class C { }").EmitToArray());
-            var md2 = AssemblyMetadata.CreateFromImage(CreateCompilationWithMscorlib("public class D { }").EmitToArray());
+            var md1 = AssemblyMetadata.CreateFromImage(CreateStandardCompilation("public class C { }").EmitToArray());
+            var md2 = AssemblyMetadata.CreateFromImage(CreateStandardCompilation("public class D { }").EmitToArray());
 
             var reference = new EvolvingTestReference(new[] { md1, md2 });
 
@@ -1999,9 +2004,9 @@ class C { }", options: TestOptions.Script);
             string libSource = @"
 using System.Runtime.Versioning;
 public class C { public static FrameworkName Foo() { return null; }}";
-            var libComp = CreateCompilationWithMscorlib(
+            var libComp = CreateCompilation(
                 libSource,
-                references: new[] { TestReferences.NetFx.v4_0_30319.System },
+                references: new[] { MscorlibRef, TestReferences.NetFx.v4_0_30319.System },
                 options: TestOptions.ReleaseDll);
 
             libComp.VerifyDiagnostics();
@@ -2150,9 +2155,158 @@ public class C { public static FrameworkName Foo() { return null; }}";
             Assert.Throws<InvalidOperationException>(() => CreateSubmission("a + 1", previous: s0));
         }
 
+        [Fact()]
+        public void CreateAnonymousType_IncorrectLengths()
+        {
+            var compilation = CSharpCompilation.Create("HelloWorld");
+            Assert.Throws<ArgumentException>(() =>
+                compilation.CreateAnonymousTypeSymbol(
+                    ImmutableArray.Create((ITypeSymbol)null),
+                    ImmutableArray.Create("m1", "m2")));
+        }
+
+        [Fact()]
+        public void CreateAnonymousType_IncorrectLengths_IsReadOnly()
+        {
+            var compilation = CSharpCompilation.Create("HelloWorld");
+            Assert.Throws<ArgumentException>(() =>
+                compilation.CreateAnonymousTypeSymbol(
+                    ImmutableArray.Create((ITypeSymbol)compilation.GetSpecialType(SpecialType.System_Int32),
+                                          (ITypeSymbol)compilation.GetSpecialType(SpecialType.System_Int32)),
+                    ImmutableArray.Create("m1", "m2"),
+                    ImmutableArray.Create(true)));
+        }
+
+        [Fact()]
+        public void CreateAnonymousType_IncorrectLengths_Locations()
+        {
+            var compilation = CSharpCompilation.Create("HelloWorld");
+            Assert.Throws<ArgumentException>(() =>
+                compilation.CreateAnonymousTypeSymbol(
+                    ImmutableArray.Create((ITypeSymbol)compilation.GetSpecialType(SpecialType.System_Int32),
+                                          (ITypeSymbol)compilation.GetSpecialType(SpecialType.System_Int32)),
+                    ImmutableArray.Create("m1", "m2"),
+                    memberLocations: ImmutableArray.Create(Location.None)));
+        }
+
+        [Fact()]
+        public void CreateAnonymousType_WritableProperty()
+        {
+            var compilation = CSharpCompilation.Create("HelloWorld");
+            Assert.Throws<ArgumentException>(() =>
+                compilation.CreateAnonymousTypeSymbol(
+                    ImmutableArray.Create((ITypeSymbol)compilation.GetSpecialType(SpecialType.System_Int32),
+                                          (ITypeSymbol)compilation.GetSpecialType(SpecialType.System_Int32)),
+                    ImmutableArray.Create("m1", "m2"),
+                    ImmutableArray.Create(false, false)));
+        }
+
+        [Fact()]
+        public void CreateAnonymousType_NullLocations()
+        {
+            var compilation = CSharpCompilation.Create("HelloWorld");
+            Assert.Throws<ArgumentNullException>(() =>
+                compilation.CreateAnonymousTypeSymbol(
+                    ImmutableArray.Create((ITypeSymbol)compilation.GetSpecialType(SpecialType.System_Int32),
+                                          (ITypeSymbol)compilation.GetSpecialType(SpecialType.System_Int32)),
+                    ImmutableArray.Create("m1", "m2"),
+                    memberLocations: ImmutableArray.Create(Location.None, null)));
+        }
+
+        [Fact()]
+        public void CreateAnonymousType_NullArgument1()
+        {
+            var compilation = CSharpCompilation.Create("HelloWorld");
+            Assert.Throws<ArgumentNullException>(() =>
+                compilation.CreateAnonymousTypeSymbol(
+                        default(ImmutableArray<ITypeSymbol>),
+                        ImmutableArray.Create("m1")));
+        }
+
+        [Fact()]
+        public void CreateAnonymousType_NullArgument2()
+        {
+            var compilation = CSharpCompilation.Create("HelloWorld");
+            Assert.Throws<ArgumentNullException>(() =>
+                compilation.CreateAnonymousTypeSymbol(
+                        ImmutableArray.Create((ITypeSymbol)null),
+                        default(ImmutableArray<string>)));
+        }
+
+        [Fact()]
+        public void CreateAnonymousType_NullArgument3()
+        {
+            var compilation = CSharpCompilation.Create("HelloWorld");
+            Assert.Throws<ArgumentNullException>(() =>
+                compilation.CreateAnonymousTypeSymbol(
+                        ImmutableArray.Create((ITypeSymbol)null),
+                        ImmutableArray.Create("m1")));
+        }
+
+        [Fact()]
+        public void CreateAnonymousType_NullArgument4()
+        {
+            var compilation = CSharpCompilation.Create("HelloWorld");
+            Assert.Throws<ArgumentNullException>(() =>
+                compilation.CreateAnonymousTypeSymbol(
+                        ImmutableArray.Create((ITypeSymbol)compilation.GetSpecialType(SpecialType.System_Int32)),
+                        ImmutableArray.Create((string)null)));
+        }
+
+        [Fact()]
+        public void CreateAnonymousType1()
+        {
+            var compilation = CSharpCompilation.Create("HelloWorld");
+            var type = compilation.CreateAnonymousTypeSymbol(
+                        ImmutableArray.Create<ITypeSymbol>(compilation.GetSpecialType(SpecialType.System_Int32)),
+                        ImmutableArray.Create("m1"));
+
+            Assert.True(type.IsAnonymousType);
+            Assert.Equal(1, type.GetMembers().OfType<IPropertySymbol>().Count());
+            Assert.Equal("<anonymous type: int m1>", type.ToDisplayString());
+            Assert.All(type.GetMembers().OfType<IPropertySymbol>().Select(p => p.Locations.FirstOrDefault()), 
+                loc => Assert.Equal(loc, Location.None));
+        }
+
+        [Fact()]
+        public void CreateAnonymousType_Locations()
+        {
+            var compilation = CSharpCompilation.Create("HelloWorld");
+            var tree = CSharpSyntaxTree.ParseText("class C { }");
+            var loc1 = Location.Create(tree, new TextSpan(0, 1));
+            var loc2 = Location.Create(tree, new TextSpan(1, 1));
+
+            var type = compilation.CreateAnonymousTypeSymbol(
+                        ImmutableArray.Create<ITypeSymbol>(compilation.GetSpecialType(SpecialType.System_Int32),
+                                                           compilation.GetSpecialType(SpecialType.System_Int32)),
+                        ImmutableArray.Create("m1", "m2"),
+                        memberLocations: ImmutableArray.Create(loc1, loc2));
+
+            Assert.True(type.IsAnonymousType);
+            Assert.Equal(2, type.GetMembers().OfType<IPropertySymbol>().Count());
+            Assert.Equal(loc1, type.GetMembers("m1").Single().Locations.Single());
+            Assert.Equal(loc2, type.GetMembers("m2").Single().Locations.Single());
+            Assert.Equal("<anonymous type: int m1, int m2>", type.ToDisplayString());
+        }
+
+        [Fact()]
+        public void CreateAnonymousType2()
+        {
+            var compilation = CSharpCompilation.Create("HelloWorld");
+            var type = compilation.CreateAnonymousTypeSymbol(
+                        ImmutableArray.Create<ITypeSymbol>(compilation.GetSpecialType(SpecialType.System_Int32), compilation.GetSpecialType(SpecialType.System_Boolean)),
+                        ImmutableArray.Create("m1", "m2"));
+
+            Assert.True(type.IsAnonymousType);
+            Assert.Equal(2, type.GetMembers().OfType<IPropertySymbol>().Count());
+            Assert.Equal("<anonymous type: int m1, bool m2>", type.ToDisplayString());
+            Assert.All(type.GetMembers().OfType<IPropertySymbol>().Select(p => p.Locations.FirstOrDefault()),
+                loc => Assert.Equal(loc, Location.None));
+        }
+
         #region Script return values
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void ReturnNullAsObject()
         {
             var script = CreateSubmission("return null;", returnType: typeof(object));
@@ -2160,7 +2314,7 @@ public class C { public static FrameworkName Foo() { return null; }}";
             Assert.True(script.HasSubmissionResult());
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void ReturnStringAsObject()
         {
             var script = CreateSubmission("return \"¡Hola!\";", returnType: typeof(object));
@@ -2168,7 +2322,7 @@ public class C { public static FrameworkName Foo() { return null; }}";
             Assert.True(script.HasSubmissionResult());
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void ReturnIntAsObject()
         {
             var script = CreateSubmission("return 42;", returnType: typeof(object));
@@ -2176,7 +2330,7 @@ public class C { public static FrameworkName Foo() { return null; }}";
             Assert.True(script.HasSubmissionResult());
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void TrailingReturnVoidAsObject()
         {
             var script = CreateSubmission("return", returnType: typeof(object));
@@ -2190,7 +2344,7 @@ public class C { public static FrameworkName Foo() { return null; }}";
             Assert.False(script.HasSubmissionResult());
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void ReturnIntAsInt()
         {
             var script = CreateSubmission("return 42;", returnType: typeof(int));
@@ -2198,7 +2352,7 @@ public class C { public static FrameworkName Foo() { return null; }}";
             Assert.True(script.HasSubmissionResult());
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void ReturnNullResultType()
         {
             // test that passing null is the same as passing typeof(object)
@@ -2207,7 +2361,7 @@ public class C { public static FrameworkName Foo() { return null; }}";
             Assert.True(script.HasSubmissionResult());
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void ReturnNoSemicolon()
         {
             var script = CreateSubmission("return 42", returnType: typeof(uint));
@@ -2218,7 +2372,7 @@ public class C { public static FrameworkName Foo() { return null; }}";
             Assert.False(script.HasSubmissionResult());
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void ReturnAwait()
         {
             var script = CreateSubmission("return await System.Threading.Tasks.Task.FromResult(42);", returnType: typeof(int));
@@ -2233,7 +2387,7 @@ public class C { public static FrameworkName Foo() { return null; }}";
             Assert.True(script.HasSubmissionResult());
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void ReturnTaskNoAwait()
         {
             var script = CreateSubmission("return System.Threading.Tasks.Task.FromResult(42);", returnType: typeof(int));
@@ -2244,7 +2398,7 @@ public class C { public static FrameworkName Foo() { return null; }}";
             Assert.True(script.HasSubmissionResult());
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void ReturnInNestedScopes()
         {
             var script = CreateSubmission(@"
@@ -2261,7 +2415,7 @@ else
             Assert.True(script.HasSubmissionResult());
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void ReturnInNestedScopeWithTrailingExpression()
         {
             var script = CreateSubmission(@"
@@ -2289,7 +2443,7 @@ System.Console.WriteLine()", returnType: typeof(object));
             Assert.True(script.HasSubmissionResult());
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void ReturnInNestedScopeNoTrailingExpression()
         {
             var script = CreateSubmission(@"
@@ -2303,7 +2457,7 @@ System.Console.WriteLine();", returnType: typeof(int));
             Assert.True(script.HasSubmissionResult());
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void ReturnInNestedMethod()
         {
             var script = CreateSubmission(@"
@@ -2324,7 +2478,7 @@ TopMethod().ToString()", returnType: typeof(string));
             Assert.True(script.HasSubmissionResult());
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void ReturnInNestedLambda()
         {
             var script = CreateSubmission(@"
@@ -2343,7 +2497,7 @@ System.Func<object> f = () => new System.Exception();
             Assert.True(script.HasSubmissionResult());
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void ReturnInNestedAnonymousMethod()
         {
             var script = CreateSubmission(@"
@@ -2356,7 +2510,7 @@ System.Func<object> f = delegate ()
             Assert.True(script.HasSubmissionResult());
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void LoadedFileWithWrongReturnType()
         {
             var resolver = TestSourceReferenceResolver.Create(
@@ -2374,7 +2528,7 @@ System.Func<object> f = delegate ()
             Assert.True(script.HasSubmissionResult());
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void ReturnVoidInNestedMethodOrLambda()
         {
             var script = CreateSubmission(@"

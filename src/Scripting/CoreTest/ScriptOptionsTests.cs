@@ -3,9 +3,10 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.IO;
-using System.Linq;
 using System.Reflection;
+using System.Text;
+using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.Scripting.Hosting;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -23,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Test
                 AddReferences("System.Linq").
                 AddReferences("System.Linq");
 
-            Assert.Equal(5, options.MetadataReferences.Length);
+            Assert.Equal(GacFileResolver.IsAvailable ? 5 : 29, options.MetadataReferences.Length);
         }
 
         [Fact]
@@ -31,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Test
         {
             var moduleRef = ModuleMetadata.CreateFromImage(TestResources.MetadataTests.NetModule01.ModuleCS00).GetReference();
 
-            var options = ScriptOptions.Default;
+            var options = ScriptOptions.Default.WithReferences(ImmutableArray<MetadataReference>.Empty);
             Assert.Throws<ArgumentNullException>("references", () => options.AddReferences((MetadataReference[])null));
             Assert.Throws<ArgumentNullException>("references[0]", () => options.AddReferences(new MetadataReference[] { null }));
 
@@ -54,15 +55,17 @@ namespace Microsoft.CodeAnalysis.Scripting.Test
         [Fact]
         public void WithReferences()
         {
-            var options = ScriptOptions.Default.WithReferences("System.Linq", "system.linq");
+            var empty = ScriptOptions.Default.WithReferences(ImmutableArray<MetadataReference>.Empty);
+
+            var options = empty.WithReferences("System.Linq", "system.linq");
             Assert.Equal(2, options.MetadataReferences.Length);
 
-            options = ScriptOptions.Default.WithReferences(typeof(int).GetTypeInfo().Assembly, typeof(int).GetTypeInfo().Assembly);
+            options = empty.WithReferences(typeof(int).GetTypeInfo().Assembly, typeof(int).GetTypeInfo().Assembly);
             Assert.Equal(2, options.MetadataReferences.Length);
 
             var assemblyRef = ModuleMetadata.CreateFromImage(TestResources.SymbolsTests.Methods.CSMethods).GetReference();
 
-            options = ScriptOptions.Default.WithReferences(assemblyRef, assemblyRef);
+            options = empty.WithReferences(assemblyRef, assemblyRef);
             Assert.Equal(2, options.MetadataReferences.Length);
         }
 
@@ -71,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Test
         {
             var moduleRef = ModuleMetadata.CreateFromImage(TestResources.MetadataTests.NetModule01.ModuleCS00).GetReference();
 
-            var options = ScriptOptions.Default;
+            var options = ScriptOptions.Default.WithReferences(ImmutableArray<MetadataReference>.Empty);
             Assert.Throws<ArgumentNullException>("references", () => options.WithReferences((MetadataReference[])null));
             Assert.Throws<ArgumentNullException>("references", () => options.WithReferences((IEnumerable<MetadataReference>)null));
             Assert.Throws<ArgumentNullException>("references", () => options.WithReferences(default(ImmutableArray<MetadataReference>)));
@@ -146,6 +149,35 @@ namespace Microsoft.CodeAnalysis.Scripting.Test
             options.WithImports("blah.");
             options.WithImports("b\0lah");
             options.WithImports(".blah");
+        }
+
+        [Fact]
+        public void WithEmitDebugInformation_SetsEmitDebugInformation()
+        {
+            Assert.True(ScriptOptions.Default.WithEmitDebugInformation(true).EmitDebugInformation);
+            Assert.False(ScriptOptions.Default.WithEmitDebugInformation(false).EmitDebugInformation);
+            Assert.False(ScriptOptions.Default.EmitDebugInformation);
+        }
+
+        [Fact]
+        public void WithEmitDebugInformation_SameValueTwice_DoesNotCreateNewInstance()
+        {
+            var options = ScriptOptions.Default.WithEmitDebugInformation(true);
+            Assert.Same(options, options.WithEmitDebugInformation(true));
+        }
+
+        [Fact]
+        public void WithFileEncoding_SetsWithFileEncoding()
+        {
+            var options = ScriptOptions.Default.WithFileEncoding(Encoding.ASCII);
+            Assert.Equal(Encoding.ASCII, options.FileEncoding);
+        }
+
+        [Fact]
+        public void WithFileEncoding_SameValueTwice_DoesNotCreateNewInstance()
+        {
+            var options = ScriptOptions.Default.WithFileEncoding(Encoding.ASCII);
+            Assert.Same(options, options.WithFileEncoding(Encoding.ASCII));
         }
     }
 }

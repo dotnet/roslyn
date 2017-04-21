@@ -3,16 +3,16 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Design;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Packaging;
+using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.SymbolSearch;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Packaging;
+using Microsoft.VisualStudio.LanguageServices.Remote;
 using Microsoft.VisualStudio.LanguageServices.SymbolSearch;
-using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using static Microsoft.CodeAnalysis.Utilities.ForegroundThreadDataKind;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 {
@@ -24,7 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         private MiscellaneousFilesWorkspace _miscellaneousFilesWorkspace;
 
         private PackageInstallerService _packageInstallerService;
-        private SymbolSearchService _symbolSearchService;
+        private VisualStudioSymbolSearchService _symbolSearchService;
 
         public VisualStudioWorkspaceImpl Workspace { get; private set; }
 
@@ -49,15 +49,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 _languageService.Setup();
                 return _languageService.ComAggregate;
             });
-
+            var shell = (IVsShell)this.GetService(typeof(SVsShell));
             // Okay, this is also a bit strange.  We need to get our Interop dll into our process,
             // but we're in the GAC.  Ask the base Roslyn Package to load, and it will take care of
             // it for us.
             // * NOTE * workspace should never be created before loading roslyn package since roslyn package
             //          installs a service roslyn visual studio workspace requires
-            IVsPackage setupPackage;
-            var shell = (IVsShell)this.GetService(typeof(SVsShell));
-            shell.LoadPackage(Guids.RoslynPackageId, out setupPackage);
+            shell.LoadPackage(Guids.RoslynPackageId, out var setupPackage);
 
             _miscellaneousFilesWorkspace = this.ComponentModel.GetService<MiscellaneousFilesWorkspace>();
             if (_miscellaneousFilesWorkspace != null)
@@ -69,11 +67,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             RegisterMiscellaneousFilesWorkspaceInformation(_miscellaneousFilesWorkspace);
 
             this.Workspace = this.CreateWorkspace();
-            if (this.Workspace != null)
+            if (IsInIdeMode(this.Workspace))
             {
                 // make sure solution crawler start once everything has been setup.
                 // this also should be started before any of workspace events start firing
                 this.Workspace.StartSolutionCrawler();
+
+                // start remote host
+                EnableRemoteHostClientService();
+
+                Workspace.AdviseSolutionEvents((IVsSolution)GetService(typeof(SVsSolution)));
             }
 
             // Ensure services that must be created on the UI thread have been.
@@ -89,7 +92,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             // Ensure the nuget package services are initialized after we've loaded
             // the solution.
             _packageInstallerService = Workspace.Services.GetService<IPackageInstallerService>() as PackageInstallerService;
-            _symbolSearchService = Workspace.Services.GetService<ISymbolSearchService>() as SymbolSearchService;
+            _symbolSearchService = Workspace.Services.GetService<ISymbolSearchService>() as VisualStudioSymbolSearchService;
 
             _packageInstallerService?.Connect(this.RoslynLanguageName);
             _symbolSearchService?.Connect(this.RoslynLanguageName);
@@ -125,17 +128,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
         protected override void Dispose(bool disposing)
         {
-            _packageInstallerService?.Disconnect(this.RoslynLanguageName);
-            _symbolSearchService?.Disconnect(this.RoslynLanguageName);
-
             if (_miscellaneousFilesWorkspace != null)
             {
                 _miscellaneousFilesWorkspace.StopSolutionCrawler();
             }
 
-            if (this.Workspace != null)
+            if (IsInIdeMode(this.Workspace))
             {
                 this.Workspace.StopSolutionCrawler();
+
+                DisableRemoteHostClientService();
             }
 
             // If we've created the language service then tell it it's time to clean itself up now.
@@ -149,5 +151,33 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         }
 
         protected abstract string RoslynLanguageName { get; }
+
+        private bool IsInIdeMode(Workspace workspace)
+        {
+            return workspace != null && !IsInCommandLineMode();
+        }
+
+        private bool IsInCommandLineMode()
+        {
+            var shell = (IVsShell)this.GetService(typeof(SVsShell));
+
+            object result;
+            if (ErrorHandler.Succeeded(shell.GetProperty((int)__VSSPROPID.VSSPROPID_IsInCommandLineMode, out result)))
+            {
+                return (bool)result;
+            }
+
+            return false;
+        }
+
+        private void EnableRemoteHostClientService()
+        {
+            ((RemoteHostClientServiceFactory.RemoteHostClientService)this.Workspace.Services.GetService<IRemoteHostClientService>()).Enable();
+        }
+
+        private void DisableRemoteHostClientService()
+        {
+            ((RemoteHostClientServiceFactory.RemoteHostClientService)this.Workspace.Services.GetService<IRemoteHostClientService>()).Disable();
+        }
     }
 }

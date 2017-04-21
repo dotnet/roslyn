@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
@@ -35,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 {
     static string F() { return ""a""; }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.DebugDll);
+            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
 
             var bytes0 = compilation0.EmitToArray();
@@ -106,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
     static void Main() { }
     static string F() { return string.Empty; }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.DebugExe);
+            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugExe);
             var compilation1 = compilation0.WithSource(source1);
 
             // Verify full metadata contains expected rows.
@@ -155,6 +156,70 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             }
         }
 
+        [Fact, CompilerTrait(CompilerFeature.Tuples)]
+        public void ModifyMethod_WithTuples()
+        {
+            var source0 =
+@"class C
+{
+    static void Main() { }
+    static (int, int) F() { return (1, 2); }
+}";
+            var source1 =
+@"class C
+{
+    static void Main() { }
+    static (int, int) F() { return (2, 3); }
+}";
+            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugExe, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var compilation1 = compilation0.WithSource(source1);
+
+            var bytes0 = compilation0.EmitToArray();
+            using (var md0 = ModuleMetadata.CreateFromImage(bytes0))
+            {
+                var reader0 = md0.MetadataReader;
+
+                var method0 = compilation0.GetMember<MethodSymbol>("C.F");
+                var generation0 = EmitBaseline.CreateInitialBaseline(
+                    md0,
+                    EmptyLocalsProvider);
+                var method1 = compilation1.GetMember<MethodSymbol>("C.F");
+
+                var diff1 = compilation1.EmitDifference(
+                    generation0,
+                    ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1)));
+
+                // Verify delta metadata contains expected rows.
+                using (var md1 = diff1.GetMetadata())
+                {
+                    var reader1 = md1.Reader;
+                    var readers = new[] { reader0, reader1 };
+                    EncValidation.VerifyModuleMvid(1, reader0, reader1);
+                    CheckNames(readers, reader1.GetTypeDefNames());
+                    CheckNames(readers, reader1.GetMethodDefNames(), "F");
+                    CheckNames(readers, reader1.GetMemberRefNames(), /*System.ValueTuple.*/".ctor");
+                    CheckEncLog(reader1,
+                        Row(3, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
+                        Row(4, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
+                        Row(6, TableIndex.MemberRef, EditAndContinueOperation.Default),
+                        Row(7, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                        Row(8, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                        Row(2, TableIndex.TypeSpec, EditAndContinueOperation.Default),
+                        Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                        Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default)); // C.F
+                    CheckEncMap(reader1,
+                        Handle(7, TableIndex.TypeRef),
+                        Handle(8, TableIndex.TypeRef),
+                        Handle(2, TableIndex.MethodDef),
+                        Handle(6, TableIndex.MemberRef),
+                        Handle(2, TableIndex.StandAloneSig),
+                        Handle(2, TableIndex.TypeSpec),
+                        Handle(3, TableIndex.AssemblyRef),
+                        Handle(4, TableIndex.AssemblyRef));
+                }
+            }
+        }
+
         [WorkItem(962219, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/962219")]
         [Fact]
         public void PartialMethod()
@@ -168,7 +233,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
     static partial void M1() { }
     static partial void M2() { }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source);
 
             var bytes0 = compilation0.EmitToArray();
@@ -237,7 +302,7 @@ class C
     static void Main() { F2(); }
     [return:A]static object F2(string s2 = ""2"") { return null; }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.DebugExe);
+            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugExe);
             var compilation1 = compilation0.WithSource(source1);
             var compilation2 = compilation0.WithSource(source2);
 
@@ -331,7 +396,7 @@ class C
     string F = ""F"";
     string G = ""G"";
 }";
-            var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.DebugDll);
+            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
 
             // Verify full metadata contains expected rows.
@@ -391,7 +456,7 @@ class C
 {
     object P { get { return 2; } }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.DebugDll);
+            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
 
             var bytes0 = compilation0.EmitToArray();
@@ -462,7 +527,7 @@ class B
     object R { get { return null; } }
     object S { set { } }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.DebugDll);
+            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
             var compilation2 = compilation0.WithSource(source2);
 
@@ -620,7 +685,7 @@ class B
     event D F;
     event D H;
 }";
-            var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.DebugDll);
+            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
             var compilation2 = compilation0.WithSource(source2);
 
@@ -851,7 +916,7 @@ class C
     }
 }
 ");
-            var compilation0 = CreateCompilationWithMscorlib(source0.Tree, options: ComSafeDebugDll);
+            var compilation0 = CreateStandardCompilation(source0.Tree, options: ComSafeDebugDll);
             var compilation1 = compilation0.WithSource(source1.Tree);
 
             var f0 = compilation0.GetMember<MethodSymbol>("C.F");
@@ -916,7 +981,7 @@ class C
         return C.G();
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.DebugDll);
+            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
 
             // Verify full metadata contains expected rows.
@@ -1019,7 +1084,7 @@ class C
         class C4 { }
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.DebugDll);
+            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
 
             var bytes0 = compilation0.EmitToArray();
@@ -1078,7 +1143,7 @@ class C
         return new B<A>.C<B<object>>().F<A>();
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.DebugDll);
+            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
 
             // Verify full metadata contains expected rows.
@@ -1164,7 +1229,7 @@ class C : I
 {
     void I.M() { }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source);
 
             // Verify full metadata contains expected rows.
@@ -1233,7 +1298,7 @@ class B : I
     void I.M() { }
 }";
             var source2 = source1;
-            var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.DebugDll);
+            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
             var compilation2 = compilation0.WithSource(source2);
 
@@ -1306,7 +1371,7 @@ class C : I
     void I.M() { }
 }
 ";
-            var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source);
 
             var bytes0 = compilation0.EmitToArray();
@@ -1373,7 +1438,7 @@ class C
 }
 delegate void D();
 ";
-            var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.DebugDll);
+            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
 
             // Verify full metadata contains expected rows.
@@ -1538,7 +1603,7 @@ class C
     {
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.DebugDll);
+            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
 
             // Verify full metadata contains expected rows.
@@ -1603,7 +1668,7 @@ class C
         E += null;
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.DebugDll);
+            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
 
             // Verify full metadata contains expected rows.
@@ -1660,7 +1725,7 @@ class C
         int[] a = new[] { 1, 2, 3, 4 };
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(Parse(source0, "a.cs"), options: TestOptions.DebugDll);
+            var compilation0 = CreateStandardCompilation(Parse(source0, "a.cs"), options: TestOptions.DebugDll);
             var compilation1 = compilation0.RemoveAllSyntaxTrees().AddSyntaxTrees(Parse(source1, "a.cs"));
 
             var testData0 = new CompilationTestData();
@@ -1764,7 +1829,7 @@ class C
     [DllImport(""msvcrt.dll"")]
     public static extern int puts(string s);
 }";
-            var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.DebugDll);
+            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
             var bytes0 = compilation0.EmitToArray();
             var generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), EmptyLocalsProvider);
@@ -1823,7 +1888,7 @@ class B
     [FieldOffset(0)]internal short F;
     [FieldOffset(4)]internal short G;
 }";
-            var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.DebugDll);
+            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
             var bytes0 = compilation0.EmitToArray();
             var generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), EmptyLocalsProvider);
@@ -1866,7 +1931,7 @@ class B
         [Fact]
         public void NamespacesAndOverloads()
         {
-            var compilation0 = CreateCompilationWithMscorlib(options: TestOptions.DebugDll, text:
+            var compilation0 = CreateStandardCompilation(options: TestOptions.DebugDll, text:
 @"class C { }
 namespace N
 {
@@ -2053,7 +2118,7 @@ class C
     }
 }";
             var options = TestOptions.UnsafeDebugDll;
-            var compilation0 = CreateCompilationWithMscorlib(source, options: options, references: new[] { SystemCoreRef, CSharpRef });
+            var compilation0 = CreateStandardCompilation(source, options: options, references: new[] { SystemCoreRef, CSharpRef });
             var bytes0 = compilation0.EmitToArray();
             var generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), EmptyLocalsProvider);
 
@@ -2449,7 +2514,7 @@ class C
         System.Console.WriteLine(y.C);
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.DebugExe);
+            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugExe);
             var compilation1 = compilation0.WithSource(source1);
 
             var testData0 = new CompilationTestData();
@@ -2519,7 +2584,7 @@ class C
         return F[index] + G[index];
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source);
 
             var testData0 = new CompilationTestData();
@@ -2594,7 +2659,7 @@ class C
         System.Console.WriteLine(a[1]);
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.DebugDll.WithModuleName("MODULE"));
+            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll.WithModuleName("MODULE"));
             var compilation1 = compilation0.WithSource(source1);
             var compilation2 = compilation1.WithSource(source2);
 
@@ -2743,7 +2808,7 @@ class C
     static object F3() { return new[] { 13, 14, 15 }; }
     static object F4() { return new[] { 7, 8, 9 }; }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.DebugDll);
+            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
             var compilation2 = compilation1.WithSource(source2);
 
@@ -2910,7 +2975,7 @@ class C
     }
 }";
             const string ComputeStringHashName = "ComputeStringHash";
-            var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source);
 
             var testData0 = new CompilationTestData();
@@ -2999,7 +3064,7 @@ class C
         return g();
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.DebugDll);
+            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
             var compilation2 = compilation1.WithSource(source2);
 
@@ -3085,7 +3150,7 @@ class C
     static void F() { System.Console.WriteLine(1); }
     static void G() { System.Console.Write(2); }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.DebugDll);
+            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
 
             // Verify full metadata contains expected rows.
@@ -3219,7 +3284,7 @@ class B : A<B>
         M(b);
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.DebugDll);
+            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
             var compilation2 = compilation1.WithSource(source2);
             var compilation3 = compilation2.WithSource(source3);
@@ -3423,7 +3488,7 @@ class B : A<B>
         var b = string.Empty;
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.DebugDll);
+            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
             var compilation2 = compilation1.WithSource(source2);
 
@@ -3506,7 +3571,7 @@ class B : A<B>
         System.Console.WriteLine(y);
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.DebugDll);
+            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
             var method0 = compilation0.GetMember<MethodSymbol>("C.Main");
             var method1 = compilation1.GetMember<MethodSymbol>("C.Main");
@@ -3554,7 +3619,7 @@ class B : A<B>
         using (var x = F()) { }
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source);
 
             var testData0 = new CompilationTestData();
@@ -3749,7 +3814,7 @@ class C
         System.Console.WriteLine(y);
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.DebugDll);
+            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
             var compilation2 = compilation1.WithSource(source2);
             var compilation3 = compilation2.WithSource(source3);
@@ -3877,7 +3942,7 @@ class C
     }
 }
 ");
-            var compilation0 = CreateCompilationWithMscorlib(source0.Tree, options: ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            var compilation0 = CreateStandardCompilation(source0.Tree, options: ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
             var compilation1 = compilation0.WithSource(source1.Tree);
             var compilation2 = compilation1.WithSource(source2.Tree);
 
@@ -3979,7 +4044,7 @@ class C
     }
 }
 ");
-            var compilation0 = CreateCompilationWithMscorlib(source0.Tree, options: ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            var compilation0 = CreateStandardCompilation(source0.Tree, options: ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
             var compilation1 = compilation0.WithSource(source1.Tree);
             var compilation2 = compilation1.WithSource(source2.Tree);
 
@@ -4091,7 +4156,7 @@ namespace M
         }
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.DebugDll);
+            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
 
             var testData0 = new CompilationTestData();
@@ -4203,7 +4268,7 @@ namespace M
             var metadata0 = (MetadataImageReference)CompileIL(ilSource);
             // Still need a compilation with source for the initial
             // generation - to get a MethodSymbol and syntax map.
-            var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.DebugDll);
+            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
 
             var moduleMetadata0 = ((AssemblyMetadata)metadata0.GetMetadataNoCopy()).GetModules()[0];
@@ -4310,7 +4375,7 @@ class B
         return y.B;
     }
 }");
-            var compilation0 = CreateCompilationWithMscorlib(source0.Tree, options: ComSafeDebugDll);
+            var compilation0 = CreateStandardCompilation(source0.Tree, options: ComSafeDebugDll);
             var compilation1 = compilation0.WithSource(source1.Tree);
             var compilation2 = compilation1.WithSource(source2.Tree);
             var compilation3 = compilation2.WithSource(source3.Tree);
@@ -4488,7 +4553,7 @@ class B
         return x;
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.DebugDll);
+            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
             var compilation2 = compilation1.WithSource(source2);
             var compilation3 = compilation2.WithSource(source3);
@@ -4606,7 +4671,7 @@ class B
         return y;
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.DebugDll);
+            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
             var compilation2 = compilation1.WithSource(source2);
             var compilation3 = compilation2.WithSource(source3);
@@ -4802,7 +4867,7 @@ class C
         var <N:1>y = new { Ab = 5 }</N:1>;
     }
 }");
-            var compilation0 = CreateCompilationWithMscorlib(source0.Tree, options: ComSafeDebugDll);
+            var compilation0 = CreateStandardCompilation(source0.Tree, options: ComSafeDebugDll);
             var compilation1 = compilation0.WithSource(source1.Tree);
             var compilation2 = compilation1.WithSource(source2.Tree);
 
@@ -5391,7 +5456,7 @@ class C
             var md0 = ModuleMetadata.CreateFromImage(assemblyBytes);
             // Still need a compilation with source for the initial
             // generation - to get a MethodSymbol and syntax map.
-            var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source);
 
             var method0 = compilation0.GetMember<MethodSymbol>("C.M1");
@@ -5458,10 +5523,10 @@ class C
         return c;
     }
 }";
-            var metadata0 = (MetadataImageReference)CompileIL(ilSource, appendDefaultHeader: false);
+            var metadata0 = (MetadataImageReference)CompileIL(ilSource, prependDefaultHeader: false);
             // Still need a compilation with source for the initial
             // generation - to get a MethodSymbol and syntax map.
-            var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source);
 
             var moduleMetadata0 = ((AssemblyMetadata)metadata0.GetMetadataNoCopy()).GetModules()[0];
@@ -5534,7 +5599,7 @@ class C
         return c.P++;
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source);
 
             var testData0 = new CompilationTestData();
@@ -5600,7 +5665,7 @@ class C
         }
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source);
 
             var testData0 = new CompilationTestData();
@@ -5725,7 +5790,7 @@ class C
             var md0 = ModuleMetadata.CreateFromImage(assemblyBytes);
             // Still need a compilation with source for the initial
             // generation - to get a MethodSymbol and syntax map.
-            var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.DebugDll);
+            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
 
             var method0 = compilation0.GetMember<MethodSymbol>("C.M");
@@ -5782,7 +5847,7 @@ class C
         x.Add(1);
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(source, new[] { CSharpRef, SystemCoreRef }, options: TestOptions.DebugDll);
+            var compilation0 = CreateStandardCompilation(source, new[] { CSharpRef, SystemCoreRef }, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source);
 
             var testData0 = new CompilationTestData();
@@ -5848,7 +5913,7 @@ class B
     static object G = ((dynamic)F).F();
     object x = ((dynamic)F) + 1;
 }";
-            var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll, references: new[] { SystemCoreRef, CSharpRef });
+            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll, references: new[] { SystemCoreRef, CSharpRef });
             var compilation1 = compilation0.WithSource(source);
 
             var testData0 = new CompilationTestData();
@@ -6120,7 +6185,7 @@ class C
         Console.WriteLine(1);
     }
 }");
-            var compilation0 = CreateCompilationWithMscorlib(source0.Tree, options: ComSafeDebugDll);
+            var compilation0 = CreateStandardCompilation(source0.Tree, options: ComSafeDebugDll);
             var compilation1 = compilation0.WithSource(source1.Tree);
             var v0 = CompileAndVerify(compilation0);
             var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
@@ -6236,9 +6301,9 @@ class C
         System.Console.WriteLine(2);
     }
 }");
-            var compilationPIA = CreateCompilationWithMscorlib(sourcePIA, options: TestOptions.DebugDll);
+            var compilationPIA = CreateStandardCompilation(sourcePIA, options: TestOptions.DebugDll);
             var referencePIA = compilationPIA.EmitToImageReference(embedInteropTypes: true);
-            var compilation0 = CreateCompilationWithMscorlib(source0.Tree, options: ComSafeDebugDll, references: new MetadataReference[] { referencePIA });
+            var compilation0 = CreateStandardCompilation(source0.Tree, options: ComSafeDebugDll, references: new MetadataReference[] { referencePIA });
             var compilation1 = compilation0.WithSource(source1.Tree);
 
             var method0 = compilation0.GetMember<MethodSymbol>("C.M");
@@ -6289,9 +6354,9 @@ class C
         M(x);
     }
 }");
-            var compilationPIA = CreateCompilationWithMscorlib(sourcePIA, options: TestOptions.DebugDll);
+            var compilationPIA = CreateStandardCompilation(sourcePIA, options: TestOptions.DebugDll);
             var referencePIA = compilationPIA.EmitToImageReference(embedInteropTypes: true);
-            var compilation0 = CreateCompilationWithMscorlib(source0.Tree, options: ComSafeDebugDll, references: new MetadataReference[] { referencePIA });
+            var compilation0 = CreateStandardCompilation(source0.Tree, options: ComSafeDebugDll, references: new MetadataReference[] { referencePIA });
             var compilation1 = compilation0.WithSource(source1.Tree);
 
             var method0 = compilation0.GetMember<MethodSymbol>("C.M");
@@ -6375,9 +6440,9 @@ public struct S
     {
     }
 }";
-            var compilationPIA = CreateCompilationWithMscorlib(sourcePIA, options: TestOptions.DebugDll);
+            var compilationPIA = CreateStandardCompilation(sourcePIA, options: TestOptions.DebugDll);
             var referencePIA = compilationPIA.EmitToImageReference(embedInteropTypes: true);
-            var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.DebugDll, references: new MetadataReference[] { referencePIA, SystemCoreRef, CSharpRef });
+            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll, references: new MetadataReference[] { referencePIA, SystemCoreRef, CSharpRef });
             var compilation1A = compilation0.WithSource(source1A);
             var compilation1B = compilation0.WithSource(source1B);
 
@@ -6461,9 +6526,9 @@ public interface IB
     }
     enum E { X }
 }";
-            var compilationPIA = CreateCompilationWithMscorlib(sourcePIA, options: TestOptions.DebugDll);
+            var compilationPIA = CreateStandardCompilation(sourcePIA, options: TestOptions.DebugDll);
             var referencePIA = compilationPIA.EmitToImageReference(embedInteropTypes: true);
-            var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll, references: new MetadataReference[] { referencePIA, SystemCoreRef, CSharpRef });
+            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll, references: new MetadataReference[] { referencePIA, SystemCoreRef, CSharpRef });
             var compilation1 = compilation0.WithSource(source);
 
             var bytes0 = compilation0.EmitToArray();
@@ -6522,7 +6587,7 @@ class C
         }
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source);
             var testData0 = new CompilationTestData();
             var bytes0 = compilation0.EmitToArray(testData: testData0);
@@ -6630,7 +6695,7 @@ class C
         return null;
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.DebugDll);
+            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
             var compilation2 = compilation1.WithSource(source2);
             var bytes0 = compilation0.EmitToArray();
@@ -6699,7 +6764,7 @@ class C
 {
     static void Main() { }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.DebugDll);
+            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
 
             // Verify full metadata contains expected rows.
@@ -6752,7 +6817,7 @@ class C
         bool foo = true;
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.DebugDll);
+            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
             var compilation2 = compilation1.WithSource(source2);
             var bytes0 = compilation0.EmitToArray();
@@ -6822,10 +6887,10 @@ public class B
 public class Y : X { }
 ";
 
-            var compilationA0 = CreateCompilationWithMscorlib(sourceA0, options: TestOptions.DebugDll, assemblyName: "LibA");
+            var compilationA0 = CreateStandardCompilation(sourceA0, options: TestOptions.DebugDll, assemblyName: "LibA");
             var compilationA1 = compilationA0.WithSource(sourceA1);
-            var compilationB0 = CreateCompilationWithMscorlib(sourceB0, new[] { compilationA0.ToMetadataReference() }, options: TestOptions.DebugDll, assemblyName: "LibB");
-            var compilationB1 = CreateCompilationWithMscorlib(sourceB1, new[] { compilationA1.ToMetadataReference() }, options: TestOptions.DebugDll, assemblyName: "LibB");
+            var compilationB0 = CreateStandardCompilation(sourceB0, new[] { compilationA0.ToMetadataReference() }, options: TestOptions.DebugDll, assemblyName: "LibB");
+            var compilationB1 = CreateStandardCompilation(sourceB1, new[] { compilationA1.ToMetadataReference() }, options: TestOptions.DebugDll, assemblyName: "LibB");
 
             var bytesA0 = compilationA0.EmitToArray();
             var bytesB0 = compilationB0.EmitToArray();
@@ -6887,10 +6952,10 @@ public class B
     public static void F() { var a = new A(); }
 }";
 
-            var compilationA = CreateCompilationWithMscorlib(sourceA, options: TestOptions.DebugDll, assemblyName: "AssemblyA");
+            var compilationA = CreateStandardCompilation(sourceA, options: TestOptions.DebugDll, assemblyName: "AssemblyA");
             var aRef = compilationA.ToMetadataReference();
 
-            var compilationB0 = CreateCompilationWithMscorlib(sourceB0, new[] { aRef }, options: TestOptions.DebugDll, assemblyName: "AssemblyB");
+            var compilationB0 = CreateStandardCompilation(sourceB0, new[] { aRef }, options: TestOptions.DebugDll, assemblyName: "AssemblyB");
             var compilationB1 = compilationB0.WithSource(sourceB1);
             var compilationB2 = compilationB1.WithSource(sourceB2);
 
@@ -7004,7 +7069,7 @@ public class C
     static int F() {{ return {0}; }}
 }}";
 
-            var compilation0 = CreateCompilationWithMscorlib(String.Format(source, 1), options: TestOptions.DebugDll);
+            var compilation0 = CreateStandardCompilation(String.Format(source, 1), options: TestOptions.DebugDll);
 
             var bytes0 = compilation0.EmitToArray();
             var md0 = ModuleMetadata.CreateFromImage(bytes0);
@@ -7023,6 +7088,100 @@ public class C
                 method0 = method1;
                 generation0 = diff1.NextGeneration;
             }
+        }
+
+        [WorkItem(187868, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/187868")]
+        [Fact]
+        public void PdbReadingErrors()
+        {
+            var source0 = MarkedSource(@"
+using System;
+
+class C
+{
+	static void F() 
+    {
+        <N:0>Console.WriteLine(1);</N:0>
+    }
+}");
+
+            var source1 = MarkedSource(@"
+using System;
+
+class C
+{
+	static void F() 
+    {
+        <N:0>Console.WriteLine(2);</N:0>
+    }
+}");
+            var compilation0 = CreateStandardCompilation(source0.Tree, new[] { SystemCoreRef }, options: TestOptions.DebugDll, assemblyName: "PdbReadingErrorsAssembly");
+            var compilation1 = compilation0.WithSource(source1.Tree);
+
+            var v0 = CompileAndVerify(compilation0);
+            var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
+
+            var f0 = compilation0.GetMember<MethodSymbol>("C.F");
+            var f1 = compilation1.GetMember<MethodSymbol>("C.F");
+
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, methodHandle =>
+            {
+                throw new InvalidDataException("Bad PDB!");
+            });
+
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+
+            // TODO: better error code
+            diff1.EmitResult.Diagnostics.Verify(
+                // (6,14): error CS7038: Failed to emit module 'Unable to read debug information of method 'C.F()' (token 0x06000001) from assembly 'PdbReadingErrorsAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null''.
+                Diagnostic(ErrorCode.ERR_ModuleEmitFailure, "F").WithArguments("Unable to read debug information of method 'C.F()' (token 0x06000001) from assembly 'PdbReadingErrorsAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'").WithLocation(6, 14));
+        }
+
+        [Fact]
+        public void PdbReadingErrors_PassThruExceptions()
+        {
+            var source0 = MarkedSource(@"
+using System;
+
+class C
+{
+	static void F() 
+    {
+        <N:0>Console.WriteLine(1);</N:0>
+    }
+}");
+
+            var source1 = MarkedSource(@"
+using System;
+
+class C
+{
+	static void F() 
+    {
+        <N:0>Console.WriteLine(2);</N:0>
+    }
+}");
+            var compilation0 = CreateStandardCompilation(source0.Tree, new[] { SystemCoreRef }, options: TestOptions.DebugDll, assemblyName: "PdbReadingErrorsAssembly");
+            var compilation1 = compilation0.WithSource(source1.Tree);
+
+            var v0 = CompileAndVerify(compilation0);
+            var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
+
+            var f0 = compilation0.GetMember<MethodSymbol>("C.F");
+            var f1 = compilation1.GetMember<MethodSymbol>("C.F");
+
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, methodHandle =>
+            {
+                throw new ArgumentOutOfRangeException();
+            });
+
+            // the compiler shound't swallow any exceptions but InvalidDataException
+            Assert.Throws<ArgumentOutOfRangeException>(() =>
+                compilation1.EmitDifference(
+                    generation0,
+                    ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true))));
         }
     }
 }

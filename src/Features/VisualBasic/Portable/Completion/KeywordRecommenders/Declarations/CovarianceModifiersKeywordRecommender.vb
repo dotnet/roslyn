@@ -27,8 +27,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Decl
                 Return SpecializedCollections.EmptyEnumerable(Of RecommendedKeyword)()
             End If
 
-            Dim covarianceKeywords = {New RecommendedKeyword("In", VBFeaturesResources.CovarianceInKeywordToolTip),
-                                      New RecommendedKeyword("Out", VBFeaturesResources.CovarianceOutKeywordToolTip)}
+            Dim covarianceKeywords = {New RecommendedKeyword("In", VBFeaturesResources.Use_In_for_a_type_that_will_only_be_used_for_ByVal_arguments_to_functions),
+                                      New RecommendedKeyword("Out", VBFeaturesResources.Use_Out_for_a_type_that_will_only_be_used_as_a_return_from_functions)}
 
             If parent.IsChildNode(Of DelegateStatementSyntax)(Function(declaration) declaration.TypeParameterList) Then
                 Return covarianceKeywords

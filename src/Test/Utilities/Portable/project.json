@@ -1,24 +1,32 @@
-﻿{
+{
   "dependencies": {
-    "Microsoft.CSharp": "4.0.0",
-    "Microsoft.NETCore.Platforms": "1.0.1-rc3-24128-00",
-    "Microsoft.NETCore.Portable.Compatibility": "1.0.0",
-    "System.Collections.Concurrent": "4.0.12-rc3-24128-00",    
-    "System.Console": "4.0.0-rc3-24128-00",
-    "System.Diagnostics.Debug": "4.0.11-rc3-24128-00",
-    "System.Diagnostics.Tools": "4.0.1-rc3-24128-00",
-    "System.IO.FileSystem": "4.0.1-rc3-24128-00",
-    "System.Reflection.TypeExtensions": "4.1.0-rc3-24128-00",
-    "System.Threading.Thread": "4.0.0-rc3-24128-00",
-    "System.Xml.XDocument": "4.0.11-rc3-24128-00",
-    "System.Xml.XmlDocument": "4.0.1-rc3-24128-00"
+    "Microsoft.CodeAnalysis.Test.Resources.Proprietary": "2.0.0-pre-20160714",
+    "Microsoft.CSharp": "4.3.0",
+    "Microsoft.DiaSymReader.Converter.Xml": "1.0.0-beta1-61518-02",
+    "Microsoft.Metadata.Visualizer": "1.0.0-beta1-61531-03",
+    "Microsoft.NETCore.Platforms": "1.1.0",
+    "Microsoft.NETCore.Portable.Compatibility": "1.0.1",
+    "System.AppContext": "4.3.0",
+    "System.Collections.Concurrent": "4.3.0",
+    "System.Console": "4.3.0",
+    "System.Diagnostics.Debug": "4.3.0",
+    "System.Diagnostics.Tools": "4.3.0",
+    "System.Diagnostics.TraceSource": "4.3.0",
+    "System.Diagnostics.Process": "4.3.0",
+    "System.IO.FileSystem": "4.3.0",
+    "System.Net.Primitives": "4.3.0",
+    "System.Reflection.TypeExtensions": "4.3.0",
+    "System.Text.RegularExpressions": "4.3.0",
+    "System.Threading.Thread": "4.3.0",
+    "System.Xml.XDocument": "4.3.0",
+    "System.Xml.XmlDocument": "4.3.0",
+    "xunit": "2.2.0-beta4-build3444",
+    "xunit.runner.console": "2.2.0-beta4-build3444",
+    "xunit.runner.visualstudio": "2.2.0-beta4-build1194"
   },
   "frameworks": {
     "netstandard1.3": {
-      "imports": [
-        "portable-net452",
-        "dotnet"
-      ]
+      "imports": "portable-net452"
     }
   }
 }

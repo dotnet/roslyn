@@ -171,11 +171,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.MoveToTopOfFile
         End Function
 
         Private Function MoveStatement(kind As String, line As Integer) As String
-            Return String.Format(VBFeaturesResources.KindLine, kind, line + 1)
+            Return String.Format(VBFeaturesResources.Move_the_0_statement_to_line_1, kind, line + 1)
         End Function
 
         Private Function DeleteStatement(kind As String) As String
-            Return String.Format(VBFeaturesResources.Kind, kind)
+            Return String.Format(VBFeaturesResources.Delete_the_0_statement2, kind)
         End Function
 
         Private Function DestinationPositionIsHidden(root As CompilationUnitSyntax, destinationLine As Integer, cancellationToken As CancellationToken) As Boolean

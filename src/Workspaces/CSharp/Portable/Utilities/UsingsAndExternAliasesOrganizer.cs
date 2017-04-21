@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -33,8 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 {
                     // If there is a banner comment that precedes the nodes,
                     // then remove it and store it for later.
-                    IEnumerable<SyntaxTrivia> leadingTrivia;
-                    initialList[0] = initialList[0].GetNodeWithoutLeadingBannerAndPreprocessorDirectives(out leadingTrivia);
+                    initialList[0] = initialList[0].GetNodeWithoutLeadingBannerAndPreprocessorDirectives(out var leadingTrivia);
 
                     var comparer = placeSystemNamespaceFirst
                         ? UsingsAndExternAliasesDirectiveComparer.SystemFirstInstance

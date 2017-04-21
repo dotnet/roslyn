@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Runtime.ExceptionServices;
 
 namespace Microsoft.CodeAnalysis.Scripting.Hosting
 {
@@ -29,6 +30,11 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             // Type is null for DynamicMethods and global methods.
             // TODO (tomat): we don't want to include awaiter helpers, shouldn't they be marked by DebuggerHidden in FX?
             if (type == null || IsTaskAwaiter(type) || IsTaskAwaiter(type.DeclaringType))
+            {
+                return false;
+            }
+
+            if (type == typeof(ExceptionDispatchInfo) && method.Name == nameof(ExceptionDispatchInfo.Throw))
             {
                 return false;
             }

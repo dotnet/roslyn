@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
@@ -30,19 +31,39 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LineSeparators
     [ContentType(ContentTypeNames.VisualBasicContentType)]
     internal partial class LineSeparatorTaggerProvider : AsynchronousTaggerProvider<LineSeparatorTag>
     {
+        private readonly IEditorFormatMap _editorFormatMap;
+
         protected override IEnumerable<PerLanguageOption<bool>> PerLanguageOptions => SpecializedCollections.SingletonEnumerable(FeatureOnOffOptions.LineSeparator);
+
+        private readonly object _lineSeperatorTagGate = new object();
+        private LineSeparatorTag _lineSeparatorTag;
 
         [ImportingConstructor]
         public LineSeparatorTaggerProvider(
+            IEditorFormatMapService editorFormatMapService,
             IForegroundNotificationService notificationService,
             [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners)
                 : base(new AggregateAsynchronousOperationListener(asyncListeners, FeatureAttribute.LineSeparators), notificationService)
         {
+            _editorFormatMap = editorFormatMapService.GetEditorFormatMap("text");
+            _editorFormatMap.FormatMappingChanged += OnFormatMappingChanged;
+            _lineSeparatorTag = new LineSeparatorTag(_editorFormatMap);
         }
 
-        protected override ITaggerEventSource CreateEventSource(ITextView textViewOpt, ITextBuffer subjectBuffer)
+        private void OnFormatMappingChanged(object sender, FormatItemsEventArgs e)
         {
-            return TaggerEventSources.OnTextChanged(subjectBuffer, TaggerDelay.NearImmediate);
+            lock (_lineSeperatorTagGate)
+            {
+                _lineSeparatorTag = new LineSeparatorTag(_editorFormatMap);
+            }
+        }
+
+        protected override ITaggerEventSource CreateEventSource(
+            ITextView textView, ITextBuffer subjectBuffer)
+        {
+            return TaggerEventSources.Compose(
+                TaggerEventSources.OnEditorFormatMapChanged(_editorFormatMap, TaggerDelay.NearImmediate),
+                TaggerEventSources.OnTextChanged(subjectBuffer, TaggerDelay.NearImmediate));
         }
 
         protected override async Task ProduceTagsAsync(TaggerContext<LineSeparatorTag> context, DocumentSnapshotSpan documentSnapshotSpan, int? caretPosition)
@@ -54,9 +75,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LineSeparators
                 return;
             }
 
-            if (!document.Options.GetOption(FeatureOnOffOptions.LineSeparator))
+            var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+
+            if (!documentOptions.GetOption(FeatureOnOffOptions.LineSeparator))
             {
                 return;
+            }
+
+            LineSeparatorTag tag;
+            lock (_lineSeperatorTagGate)
+            {
+                tag = _lineSeparatorTag;
             }
 
             using (Logger.LogBlock(FunctionId.Tagger_LineSeparator_TagProducer_ProduceTags, cancellationToken))
@@ -68,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LineSeparators
 
                 foreach (var span in lineSeparatorSpans)
                 {
-                    context.AddTag(new TagSpan<LineSeparatorTag>(span.ToSnapshotSpan(snapshotSpan.Snapshot), LineSeparatorTag.Instance));
+                    context.AddTag(new TagSpan<LineSeparatorTag>(span.ToSnapshotSpan(snapshotSpan.Snapshot), tag));
                 }
             }
         }

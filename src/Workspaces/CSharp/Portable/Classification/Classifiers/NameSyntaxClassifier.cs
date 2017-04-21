@@ -46,8 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
             {
                 var symbolInfo = semanticModel.GetSymbolInfo(name, cancellationToken);
 
-                IEnumerable<ClassifiedSpan> result;
-                if (TryClassifySymbol(name, symbolInfo, semanticModel, cancellationToken, out result) ||
+                if (TryClassifySymbol(name, symbolInfo, semanticModel, cancellationToken, out var result) ||
                     TryClassifyFromIdentifier(name, symbolInfo, out result) ||
                     TryClassifyValueIdentifier(name, symbolInfo, out result) ||
                     TryClassifyNameOfIdentifier(name, symbolInfo, out result))
@@ -84,9 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
             // Only classify if we get one good symbol back, or if it bound to a constructor symbol with
             // overload resolution/accessibility errors, or bound to type/constructor and type wasn't creatable.
             var symbol = TryGetSymbol(name, symbolInfo, semanticModel);
-
-            ClassifiedSpan classifiedSpan;
-            if (TryClassifySymbol(name, symbol, semanticModel, cancellationToken, out classifiedSpan))
+            if (TryClassifySymbol(name, symbol, semanticModel, cancellationToken, out var classifiedSpan))
             {
                 result = SpecializedCollections.SingletonEnumerable(classifiedSpan);
                 return true;
@@ -107,8 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
             var set = new HashSet<ClassifiedSpan>();
             foreach (var symbol in symbolInfo.CandidateSymbols)
             {
-                ClassifiedSpan classifiedSpan;
-                if (TryClassifySymbol(name, symbol, semanticModel, cancellationToken, out classifiedSpan))
+                if (TryClassifySymbol(name, symbol, semanticModel, cancellationToken, out var classifiedSpan))
                 {
                     set.Add(classifiedSpan);
                 }
@@ -138,7 +134,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
                 {
                     symbol = (symbol as IAliasSymbol).Target;
                 }
-                else if (symbol.IsConstructor())
+                else if (symbol.IsConstructor() && name.IsParentKind(SyntaxKind.Attribute))
                 {
                     symbol = symbol.ContainingType;
                 }
@@ -164,9 +160,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
             if (symbol != null)
             {
                 // Use .Equals since we can't rely on object identity for constructed types.
-                if (symbol is ITypeSymbol)
+                if (symbol is ITypeSymbol typeSymbol)
                 {
-                    var classification = GetClassificationForType((ITypeSymbol)symbol);
+                    var classification = GetClassificationForType(typeSymbol);
                     if (classification != null)
                     {
                         var token = name.GetNameToken();
@@ -183,8 +179,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
         private bool IsInVarContext(NameSyntax name)
         {
             return
+                name.CheckParent<RefTypeSyntax>(v => v.Type == name) ||
                 name.CheckParent<VariableDeclarationSyntax>(v => v.Type == name) ||
-                name.CheckParent<ForEachStatementSyntax>(f => f.Type == name);
+                name.CheckParent<ForEachStatementSyntax>(f => f.Type == name) ||
+                name.CheckParent<DeclarationExpressionSyntax>(f => f.Type == name);
         }
 
         private static ISymbol TryGetSymbol(NameSyntax name, SymbolInfo symbolInfo, SemanticModel semanticModel)
@@ -220,6 +218,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
                         // If a constructor wasn't accessible, still classify the type if it's accessible.
                         if (firstSymbol.IsConstructor() && semanticModel.IsAccessible(name.SpanStart, firstSymbol.ContainingType))
                         {
+                            return firstSymbol;
+                        }
+
+                        break;
+
+                    case CandidateReason.WrongArity:
+                        if (name.GetRightmostName().Arity == 0)
+                        {
+                            // When the user writes something like "IList" we don't want to *not* classify 
+                            // just because the type bound to "IList<T>".  This is also important for use
+                            // cases like "Add-using" where it can be confusing when the using is added for
+                            // "using System.Collection.Generic" but then the type name still does not classify.
                             return firstSymbol;
                         }
 
@@ -261,7 +271,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
             out IEnumerable<ClassifiedSpan> result)
         {
             var identifierName = name as IdentifierNameSyntax;
-            if (symbolInfo.Symbol.IsValueParameter())
+            if (symbolInfo.Symbol.IsImplicitValueParameter())
             {
                 result = SpecializedCollections.SingletonEnumerable(
                     new ClassifiedSpan(identifierName.Identifier.Span, ClassificationTypeNames.Keyword));
@@ -290,9 +300,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
 
         private bool IsSymbolCalledVar(ISymbol symbol)
         {
-            if (symbol is INamedTypeSymbol)
+            if (symbol is INamedTypeSymbol namedType)
             {
-                return ((INamedTypeSymbol)symbol).Arity == 0 && symbol.Name == "var";
+                return namedType.Arity == 0 && symbol.Name == "var";
             }
 
             return symbol != null && symbol.Name == "var";

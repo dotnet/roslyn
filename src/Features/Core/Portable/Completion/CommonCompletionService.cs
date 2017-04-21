@@ -1,20 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Completion.Providers;
-using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Shared.Utilities;
-using Microsoft.CodeAnalysis.Snippets;
-using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion
 {
@@ -37,12 +23,12 @@ namespace Microsoft.CodeAnalysis.Completion
             // the snippet item doesn't have its preselect bit set.
             // We'll special case this by not preferring later items
             // if they are snippets and the other candidate is preselected.
-            if (existingItem.Rules.Preselect && IsSnippetItem(item))
+            if (existingItem.Rules.MatchPriority != MatchPriority.Default && IsSnippetItem(item))
             {
                 return existingItem;
             }
 
-            return item;
+            return base.GetBetterItem(item, existingItem);
         }
 
         protected static bool IsKeywordItem(CompletionItem item)

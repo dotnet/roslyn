@@ -10,12 +10,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal sealed class SourceDestructorSymbol : SourceMethodSymbol
     {
         private TypeSymbol _lazyReturnType;
+        private readonly bool _isExpressionBodied;
 
         internal SourceDestructorSymbol(
             SourceMemberContainerTypeSymbol containingType,
             DestructorDeclarationSyntax syntax,
             DiagnosticBag diagnostics) :
-            base(containingType, syntax.GetReference(), syntax.Body?.GetReference(), syntax.Identifier.GetLocation())
+            base(containingType, syntax.GetReference(), syntax.Body?.GetReference() ?? syntax.ExpressionBody?.GetReference() , syntax.Identifier.GetLocation())
         {
             const MethodKind methodKind = MethodKind.Destructor;
             Location location = this.Locations[0];
@@ -24,8 +25,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var declarationModifiers = MakeModifiers(syntax.Modifiers, location, diagnostics, out modifierErrors);
             this.MakeFlags(methodKind, declarationModifiers, returnsVoid: true, isExtensionMethod: false);
 
-            var bodyOpt = syntax.Body;
-            if (bodyOpt != null)
+            if (syntax.Identifier.ValueText != containingType.Name)
+            {
+                diagnostics.Add(ErrorCode.ERR_BadDestructorName, syntax.Identifier.GetLocation());
+            }
+
+            bool hasBlockBody = syntax.Body != null;
+            _isExpressionBodied = !hasBlockBody && syntax.ExpressionBody != null;
+
+            if (hasBlockBody || _isExpressionBodied)
             {
                 if (IsExtern)
                 {
@@ -48,6 +56,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 diagnostics.Add(ErrorCode.ERR_OnlyClassesCanContainDestructors, location, this);
             }
+
+            CheckForBlockAndExpressionBody(
+                syntax.Body, syntax.ExpressionBody, syntax, diagnostics);
         }
 
         protected override void MethodChecks(DiagnosticBag diagnostics)
@@ -117,7 +128,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool IsExpressionBodied
         {
-            get { return false; }
+            get
+            {
+                return _isExpressionBodied;
+            }
         }
 
         internal override OneOrMany<SyntaxList<AttributeListSyntax>> GetAttributeDeclarations()

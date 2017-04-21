@@ -64,15 +64,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         AddSynthesizedAttribute(attributes, compilation.SynthesizeDecimalConstantAttribute(defaultValue.DecimalValue))
                 End Select
             End If
+
+            If Me.Type.ContainsTupleNames() Then
+                AddSynthesizedAttribute(attributes, DeclaringCompilation.SynthesizeTupleNamesAttribute(Type))
+            End If
         End Sub
 
-        Friend Overrides ReadOnly Property CountOfCustomModifiersPrecedingByRef As UShort
-            Get
-                Return 0
-            End Get
-        End Property
-
-        Friend MustOverride Function WithTypeAndCustomModifiers(type As TypeSymbol, customModifiers As ImmutableArray(Of CustomModifier), countOfCustomModifiersPrecedingByRef As UShort) As ParameterSymbol
+        Friend MustOverride Function WithTypeAndCustomModifiers(type As TypeSymbol, customModifiers As ImmutableArray(Of CustomModifier), refCustomModifiers As ImmutableArray(Of CustomModifier)) As ParameterSymbol
 
     End Class
 End Namespace

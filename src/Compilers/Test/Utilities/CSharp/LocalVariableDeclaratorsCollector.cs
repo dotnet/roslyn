@@ -85,6 +85,12 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             base.VisitVariableDeclarator(node);
         }
 
+        public override void VisitSingleVariableDesignation(SingleVariableDesignationSyntax node)
+        {
+            _builder.Add(node);
+            base.VisitSingleVariableDesignation(node);
+        }
+
         public override void VisitCatchDeclaration(CatchDeclarationSyntax node)
         {
             _builder.Add(node);

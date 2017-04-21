@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// resulting tree.
         ///
         /// </summary>
-        private BoundExpression RewriteStringConcatenation(CSharpSyntaxNode syntax, BinaryOperatorKind operatorKind, BoundExpression loweredLeft, BoundExpression loweredRight, TypeSymbol type)
+        private BoundExpression RewriteStringConcatenation(SyntaxNode syntax, BinaryOperatorKind operatorKind, BoundExpression loweredLeft, BoundExpression loweredRight, TypeSymbol type)
         {
             Debug.Assert(
                 operatorKind == BinaryOperatorKind.StringConcatenation ||
@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// folds two concat operands into one expression if possible
         /// otherwise returns null
         /// </summary>
-        private BoundExpression TryFoldTwoConcatOperands(CSharpSyntaxNode syntax, BoundExpression loweredLeft, BoundExpression loweredRight)
+        private BoundExpression TryFoldTwoConcatOperands(SyntaxNode syntax, BoundExpression loweredLeft, BoundExpression loweredRight)
         {
             // both left and right are constants
             var leftConst = loweredLeft.ConstantValue;
@@ -252,7 +252,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Strangely enough there is such a thing as unary concatenation and it must be rewritten.
         /// </summary>
-        private BoundExpression RewriteStringConcatenationOneExpr(CSharpSyntaxNode syntax, BoundExpression loweredOperand)
+        private BoundExpression RewriteStringConcatenationOneExpr(SyntaxNode syntax, BoundExpression loweredOperand)
         {
             if (loweredOperand.Type.SpecialType == SpecialType.System_String)
             {
@@ -260,25 +260,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return _factory.Coalesce(loweredOperand, _factory.Literal(""));
             }
 
-            var method = GetSpecialTypeMethod(syntax, SpecialMember.System_String__ConcatObject);
+            var method = UnsafeGetSpecialTypeMethod(syntax, SpecialMember.System_String__ConcatObject);
             Debug.Assert((object)method != null);
 
             return (BoundExpression)BoundCall.Synthesized(syntax, null, method, loweredOperand);
         }
 
-        private BoundExpression RewriteStringConcatenationTwoExprs(CSharpSyntaxNode syntax, BoundExpression loweredLeft, BoundExpression loweredRight)
+        private BoundExpression RewriteStringConcatenationTwoExprs(SyntaxNode syntax, BoundExpression loweredLeft, BoundExpression loweredRight)
         {
             SpecialMember member = (loweredLeft.Type.SpecialType == SpecialType.System_String && loweredRight.Type.SpecialType == SpecialType.System_String) ?
                 SpecialMember.System_String__ConcatStringString :
                 SpecialMember.System_String__ConcatObjectObject;
 
-            var method = GetSpecialTypeMethod(syntax, member);
+            var method = UnsafeGetSpecialTypeMethod(syntax, member);
             Debug.Assert((object)method != null);
 
             return (BoundExpression)BoundCall.Synthesized(syntax, null, method, loweredLeft, loweredRight);
         }
 
-        private BoundExpression RewriteStringConcatenationThreeExprs(CSharpSyntaxNode syntax, BoundExpression loweredFirst, BoundExpression loweredSecond, BoundExpression loweredThird)
+        private BoundExpression RewriteStringConcatenationThreeExprs(SyntaxNode syntax, BoundExpression loweredFirst, BoundExpression loweredSecond, BoundExpression loweredThird)
         {
             SpecialMember member = (loweredFirst.Type.SpecialType == SpecialType.System_String &&
                                     loweredSecond.Type.SpecialType == SpecialType.System_String &&
@@ -286,16 +286,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 SpecialMember.System_String__ConcatStringStringString :
                 SpecialMember.System_String__ConcatObjectObjectObject;
 
-            var method = GetSpecialTypeMethod(syntax, member);
+            var method = UnsafeGetSpecialTypeMethod(syntax, member);
             Debug.Assert((object)method != null);
 
             return BoundCall.Synthesized(syntax, null, method, ImmutableArray.Create(loweredFirst, loweredSecond, loweredThird));
         }
 
-        private BoundExpression RewriteStringConcatenationManyExprs(CSharpSyntaxNode syntax, ImmutableArray<BoundExpression> loweredArgs)
+        private BoundExpression RewriteStringConcatenationManyExprs(SyntaxNode syntax, ImmutableArray<BoundExpression> loweredArgs)
         {
             Debug.Assert(loweredArgs.Length > 3);
-            Debug.Assert(loweredArgs.All(a => a.Type.SpecialType == SpecialType.System_Object || a.Type.SpecialType == SpecialType.System_String));
+            Debug.Assert(loweredArgs.All(a => a.HasErrors || a.Type.SpecialType == SpecialType.System_Object || a.Type.SpecialType == SpecialType.System_String));
 
             bool isObject = false;
             TypeSymbol elementType = null;
@@ -315,7 +315,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!isObject && loweredArgs.Length == 4)
             {
                 SpecialMember member = SpecialMember.System_String__ConcatStringStringStringString;
-                var method = GetSpecialTypeMethod(syntax, member);
+                var method = UnsafeGetSpecialTypeMethod(syntax, member);
                 Debug.Assert((object)method != null);
 
                 return (BoundExpression)BoundCall.Synthesized(syntax, null, method, loweredArgs);
@@ -326,7 +326,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     SpecialMember.System_String__ConcatObjectArray :
                     SpecialMember.System_String__ConcatStringArray;
 
-                var method = GetSpecialTypeMethod(syntax, member);
+                var method = UnsafeGetSpecialTypeMethod(syntax, member);
                 Debug.Assert((object)method != null);
 
                 var array = _factory.ArrayOrEmpty(elementType, loweredArgs);
@@ -339,13 +339,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Most of the above optimizations are not applicable in expression trees as the operator
         /// must stay a binary operator. We cannot do much beyond constant folding which is done in binder.
         /// </summary>
-        private BoundExpression RewriteStringConcatInExpressionLambda(CSharpSyntaxNode syntax, BinaryOperatorKind operatorKind, BoundExpression loweredLeft, BoundExpression loweredRight, TypeSymbol type)
+        private BoundExpression RewriteStringConcatInExpressionLambda(SyntaxNode syntax, BinaryOperatorKind operatorKind, BoundExpression loweredLeft, BoundExpression loweredRight, TypeSymbol type)
         {
             SpecialMember member = (operatorKind == BinaryOperatorKind.StringConcatenation) ?
                 SpecialMember.System_String__ConcatStringString :
                 SpecialMember.System_String__ConcatObjectObject;
 
-            var method = GetSpecialTypeMethod(syntax, member);
+            var method = UnsafeGetSpecialTypeMethod(syntax, member);
             Debug.Assert((object)method != null);
 
             return new BoundBinaryOperator(syntax, operatorKind, loweredLeft, loweredRight, default(ConstantValue), method, default(LookupResultKind), type);
@@ -356,7 +356,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// If it does, it tries to return a string-based representation instead in order
         /// to avoid allocations.  If it can't, the original expression is returned.
         /// </summary>
-        private BoundExpression ConvertConcatExprToStringIfPossible(CSharpSyntaxNode syntax, BoundExpression expr)
+        private BoundExpression ConvertConcatExprToStringIfPossible(SyntaxNode syntax, BoundExpression expr)
         {
             if (expr.Kind == BoundKind.Conversion)
             {
@@ -382,7 +382,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // If so, we can synthesize a ToString call to avoid boxing.
                         if (ConcatExprCanBeOptimizedWithToString(operand.Type))
                         {
-                            var toString = GetSpecialTypeMethod(syntax, SpecialMember.System_Object__ToString);
+                            var toString = UnsafeGetSpecialTypeMethod(syntax, SpecialMember.System_Object__ToString);
 
                             var type = (NamedTypeSymbol)operand.Type;
                             var toStringMembers = type.GetMembers(toString.Name);

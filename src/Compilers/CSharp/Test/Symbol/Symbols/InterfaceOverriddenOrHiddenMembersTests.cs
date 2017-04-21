@@ -37,8 +37,8 @@ interface I0 : I1, I2
 }
 ";
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
-                // (13,14): warning CS0109: The member 'I0.foo(int)' does not hide an inherited member. The new keyword is not required.
+            CreateStandardCompilation(source).VerifyDiagnostics(
+                // (13,14): warning CS0109: The member 'I0.foo(int)' does not hide an accessible member. The new keyword is not required.
                 //     new void foo(int x);
                 Diagnostic(ErrorCode.WRN_NewNotRequired, "foo").WithArguments("I0.foo(int)"));
         }
@@ -81,7 +81,7 @@ public interface IBottom : ILeft, IRight
 }
 ";
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (9,10): warning CS0108: 'ILeft.M()' hides inherited member 'ITop.M()'. Use the new keyword if hiding was intended.
                 //     void M();
                 Diagnostic(ErrorCode.WRN_NewRequired, "M").WithArguments("ILeft.M()", "ITop.M()"),
@@ -122,7 +122,7 @@ public interface IBottom : ILeft, IRight
 }
 ";
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (9,10): warning CS0108: 'ILeft.M()' hides inherited member 'ITop.M()'. Use the new keyword if hiding was intended.
                 //     void M();
                 Diagnostic(ErrorCode.WRN_NewRequired, "M").WithArguments("ILeft.M()", "ITop.M()"),
@@ -160,7 +160,7 @@ public interface IBottom : ILeft, IRight
 }
 ";
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (19,10): warning CS0108: 'IBottom.M()' hides inherited member 'ITop.M()'. Use the new keyword if hiding was intended.
                 //     void M();
                 Diagnostic(ErrorCode.WRN_NewRequired, "M").WithArguments("IBottom.M()", "ITop.M()"));
@@ -196,7 +196,7 @@ public interface IBottom : ILeft, IRight
 ";
 
             // Also hides IRight.M, but not reported.
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (19,10): warning CS0108: 'IBottom.M()' hides inherited member 'ILeft.M()'. Use the new keyword if hiding was intended.
                 //     void M();
                 Diagnostic(ErrorCode.WRN_NewRequired, "M").WithArguments("IBottom.M()", "ILeft.M()"));
@@ -231,7 +231,7 @@ public interface IBottom : ILeft, IRight
 }
 ";
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (19,10): warning CS0108: 'IBottom.M()' hides inherited member 'ILeft.M()'. Use the new keyword if hiding was intended.
                 //     void M();
                 Diagnostic(ErrorCode.WRN_NewRequired, "M").WithArguments("IBottom.M()", "ILeft.M()"));
@@ -285,7 +285,7 @@ public interface IBottom : ILeft, IRight
 }
 ";
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (9,10): warning CS0108: 'ILeft.M()' hides inherited member 'ITop.M()'. Use the new keyword if hiding was intended.
                 //     void M();
                 Diagnostic(ErrorCode.WRN_NewRequired, "M").WithArguments("ILeft.M()", "ITop.M()"),
@@ -323,7 +323,7 @@ public interface IBottom : ILeft, IRight
 }
 ";
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (19,10): warning CS0108: 'IBottom.M()' hides inherited member 'ITop.M()'. Use the new keyword if hiding was intended.
                 //     void M();
                 Diagnostic(ErrorCode.WRN_NewRequired, "M").WithArguments("IBottom.M()", "ITop.M()"));
@@ -359,7 +359,7 @@ public interface IBottom : ILeft, IRight
 ";
 
             // Also hides IRight.M, but not reported.
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (19,10): warning CS0108: 'IBottom.M()' hides inherited member 'ILeft.M()'. Use the new keyword if hiding was intended.
                 //     void M();
                 Diagnostic(ErrorCode.WRN_NewRequired, "M").WithArguments("IBottom.M()", "ILeft.M()"));
@@ -395,7 +395,7 @@ public interface IBottom : ILeft, IRight
 }
 ";
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (19,10): warning CS0108: 'IBottom.M()' hides inherited member 'ILeft.M()'. Use the new keyword if hiding was intended.
                 //     void M();
                 Diagnostic(ErrorCode.WRN_NewRequired, "M").WithArguments("IBottom.M()", "ILeft.M()"),
@@ -452,7 +452,7 @@ public interface IBottom : ILeft, IRight
 }
 ";
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (9,10): warning CS0108: 'ILeft.M()' hides inherited member 'ITop.M()'. Use the new keyword if hiding was intended.
                 //     void M();
                 Diagnostic(ErrorCode.WRN_NewRequired, "M").WithArguments("ILeft.M()", "ITop.M()"),
@@ -490,7 +490,7 @@ public interface IBottom : ILeft, IRight
 }
 ";
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (19,10): warning CS0108: 'IBottom.M()' hides inherited member 'ITop.M()'. Use the new keyword if hiding was intended.
                 //     void M();
                 Diagnostic(ErrorCode.WRN_NewRequired, "M").WithArguments("IBottom.M()", "ITop.M()"));
@@ -526,7 +526,7 @@ public interface IBottom : ILeft, IRight
 ";
 
             // Also hides IRight.M, but not reported.
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (19,10): warning CS0108: 'IBottom.M()' hides inherited member 'ILeft.M()'. Use the new keyword if hiding was intended.
                 //     void M();
                 Diagnostic(ErrorCode.WRN_NewRequired, "M").WithArguments("IBottom.M()", "ILeft.M()"));
@@ -562,7 +562,7 @@ public interface IBottom : ILeft, IRight
 }
 ";
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (19,10): warning CS0108: 'IBottom.M()' hides inherited member 'ILeft.M()'. Use the new keyword if hiding was intended.
                 //     void M();
                 Diagnostic(ErrorCode.WRN_NewRequired, "M").WithArguments("IBottom.M()", "ILeft.M()"),
@@ -619,7 +619,7 @@ public interface IBottom : ILeft, IRight
 }
 ";
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (9,10): warning CS0108: 'ILeft.M()' hides inherited member 'ITop.M()'. Use the new keyword if hiding was intended.
                 //     void M();
                 Diagnostic(ErrorCode.WRN_NewRequired, "M").WithArguments("ILeft.M()", "ITop.M()"),
@@ -660,7 +660,7 @@ public interface IBottom : ILeft, IRight
 }
 ";
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (19,10): warning CS0108: 'IBottom.M()' hides inherited member 'ILeft.M'. Use the new keyword if hiding was intended.
                 //     void M();
                 Diagnostic(ErrorCode.WRN_NewRequired, "M").WithArguments("IBottom.M()", "ILeft.M"),
@@ -702,7 +702,7 @@ public interface IBottom : ILeft, IRight
 ";
 
             // Also hides IRight.M, but not reported.
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (14,10): warning CS0108: 'IRight.M()' hides inherited member 'ITop.M'. Use the new keyword if hiding was intended.
                 //     void M();
                 Diagnostic(ErrorCode.WRN_NewRequired, "M").WithArguments("IRight.M()", "ITop.M"),
@@ -744,7 +744,7 @@ public interface IBottom : ILeft, IRight
 }
 ";
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (14,9): warning CS0108: 'IRight.M' hides inherited member 'ITop.M'. Use the new keyword if hiding was intended.
                 //     int M { get; set; }
                 Diagnostic(ErrorCode.WRN_NewRequired, "M").WithArguments("IRight.M", "ITop.M"),
@@ -777,7 +777,7 @@ public interface Derived2 : Base
      int M { get; set; }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics(
                 // (5,9): error CS0102: The type 'Base' already contains a definition for 'M'
                 //     int M { get; set; } // NOTE: illegal, since there's already a method M.
@@ -817,7 +817,7 @@ public interface Derived2 : Base
 public class ITest : ITest.Test{
    public interface Test { }
 }";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics();
+            CreateStandardCompilation(source).VerifyDiagnostics();
         }
     }
 }

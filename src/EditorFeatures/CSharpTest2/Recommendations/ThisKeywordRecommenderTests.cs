@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -615,6 +616,21 @@ class C
     int M => this.x;$$
     int p;
 }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task Preselection()
+        {
+            await VerifyKeywordAsync(@"
+class Program
+{
+    void Main(string[] args)
+    {
+        Helper($$)
+    }
+    void Helper(Program x) { }
+}
+", matchPriority: SymbolMatchPriority.Keyword);
         }
     }
 }

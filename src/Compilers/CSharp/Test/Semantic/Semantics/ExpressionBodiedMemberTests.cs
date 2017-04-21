@@ -1,18 +1,20 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
-using System.Linq;
 using Xunit;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.Semantics
 {
     /// <summary>
     /// Contains tests for expression-bodied members in the semantic model.
     /// </summary>
+    [CompilerTrait(CompilerFeature.ExpressionBody)]
     public class ExpressionBodiedMemberTests : SemanticModelTestBase
     {
         [Fact]
@@ -346,6 +348,64 @@ public static class TestExtension
             CompileAndVerify(source, expectedOutput: "GetAction 1");
         }
 
+        [Fact, WorkItem(13691, "https://github.com/dotnet/roslyn/issues/13691")]
+        public void RunCtorProp()
+        {
+            string source = @"
+using System;
+public class Program 
+{
+    static void Main()
+    {
+        var p = new Program();
+        p.Prop = 2;
+    }
+    Program() => Console.Write(1);
+    int Prop { set => Console.Write(value); }
+    ~Program() => Console.Write(string.Empty);
+}
+";
+            CompileAndVerify(source, expectedOutput: "12");
+        }
+
+        [Fact, WorkItem(13691, "https://github.com/dotnet/roslyn/issues/13691")]
+        public void RunCtorWithBase01()
+        {
+            string source = @"
+using System;
+public class Program 
+{
+    static void Main()
+    {
+        var p = new Program();
+    }
+    Program() : base() => Console.Write(1);
+}
+";
+            CompileAndVerify(source, expectedOutput: "1");
+        }
+
+        [Fact, WorkItem(13691, "https://github.com/dotnet/roslyn/issues/13691")]
+        public void RunCtorWithBase02()
+        {
+            string source = @"
+using System;
+public class Base
+{
+    public Base(int i) { Console.Write(i); }
+}
+public class Program : Base
+{
+    static void Main()
+    {
+        var p = new Program();
+    }
+    Program() : base(1) => Console.Write(2);
+}
+";
+            CompileAndVerify(source, expectedOutput: "12");
+        }
+
         [Fact, WorkItem(1069421, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1069421")]
         public void Bug1069421()
         {
@@ -371,7 +431,7 @@ class Program
         [Fact]
         public void Bug1112875()
         {
-            var comp = CreateCompilationWithMscorlib(@"
+            var comp = CreateStandardCompilation(@"
 class Program
 {
     private void M() => (new object());
@@ -386,7 +446,7 @@ class Program
         [Fact, WorkItem(1702, "https://github.com/dotnet/roslyn/issues/1702")]
         public void BlockBodyAndExpressionBody_01()
         {
-            var comp = CreateCompilationWithMscorlib(@"
+            var comp = CreateStandardCompilation(@"
 public class C
 {
     static int P1 {get; set;}
@@ -398,7 +458,7 @@ public class C
 ");
 
             comp.VerifyDiagnostics(
-    // (6,5): error CS8057: Methods cannot combine block bodies with expression bodies.
+    // (6,5): error CS8057: Block bodies and expression bodies cannot both be provided.
     //     static void M1() 
     Diagnostic(ErrorCode.ERR_BlockBodyAndExpressionBody, @"static void M1() 
     { }
@@ -417,7 +477,7 @@ public class C
         [Fact, WorkItem(1702, "https://github.com/dotnet/roslyn/issues/1702")]
         public void BlockBodyAndExpressionBody_02()
         {
-            var comp = CreateCompilationWithMscorlib(@"
+            var comp = CreateStandardCompilation(@"
 public class C
 {
     static int P1 {get; set;}
@@ -429,7 +489,7 @@ public class C
 ");
 
             comp.VerifyDiagnostics(
-    // (6,5): error CS8057: Methods cannot combine block bodies with expression bodies.
+    // (6,5): error CS8057: Block bodies and expression bodies cannot both be provided.
     //     static public int operator + (C x, C y)
     Diagnostic(ErrorCode.ERR_BlockBodyAndExpressionBody, @"static public int operator + (C x, C y)
     { return 1; }
@@ -448,67 +508,85 @@ public class C
         [Fact, WorkItem(1702, "https://github.com/dotnet/roslyn/issues/1702")]
         public void BlockBodyAndExpressionBody_03()
         {
-            var comp = CreateCompilationWithMscorlib(@"
+            var comp = CreateStandardCompilation(@"
 public class C
 {
-    static int P1 {get; set;}
+    int P1 {get; set;}
 
     C()
-    { }
+    { P1 = 1; }
     => P1;
 }
 ");
 
             comp.VerifyDiagnostics(
-    // (8,5): error CS1519: Invalid token '=>' in class, struct, or interface member declaration
-    //     => P1;
-    Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=>").WithArguments("=>").WithLocation(8, 5),
-    // (8,10): error CS1519: Invalid token ';' in class, struct, or interface member declaration
-    //     => P1;
-    Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(8, 10),
-    // (8,10): error CS1519: Invalid token ';' in class, struct, or interface member declaration
-    //     => P1;
-    Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(8, 10)
+    // (5,5): error  CS8057: Block bodies and expression bodies cannot both be provided.
+    Diagnostic(ErrorCode.ERR_BlockBodyAndExpressionBody, @"C()
+    { P1 = 1; }
+    => P1;").WithLocation(6, 5)
                 );
-
             var tree = comp.SyntaxTrees[0];
-            Assert.False(tree.GetRoot().DescendantNodes().OfType<ArrowExpressionClauseSyntax>().Any());
+            var model = comp.GetSemanticModel(tree);
+
+            var node = tree.GetRoot().DescendantNodes().OfType<ArrowExpressionClauseSyntax>().Single().Expression;
+
+            Assert.Equal("P1", node.ToString());
+            Assert.Equal("System.Int32 C.P1 { get; set; }", model.GetSymbolInfo(node).Symbol.ToTestDisplayString());
+
+            Assert.Contains("P1", model.LookupNames(tree.GetRoot().DescendantNodes().OfType<ConstructorDeclarationSyntax>().Single().Body.Position));
+
+            var node2 = tree.GetRoot().DescendantNodes().OfType<ConstructorDeclarationSyntax>().Single()
+                .Body.DescendantNodes().OfType<AssignmentExpressionSyntax>()
+                .Single().Left;
+
+            Assert.Equal("P1", node2.ToString());
+            Assert.Equal("System.Int32 C.P1 { get; set; }", model.GetSymbolInfo(node2).Symbol.ToTestDisplayString());
         }
 
         [Fact, WorkItem(1702, "https://github.com/dotnet/roslyn/issues/1702")]
         public void BlockBodyAndExpressionBody_04()
         {
-            var comp = CreateCompilationWithMscorlib(@"
+            var comp = CreateStandardCompilation(@"
 public class C
 {
-    static int P1 {get; set;}
+    int P1 {get; set;}
 
     ~C()
-    { }
+    { P1 = 1; }
     => P1;
 }
 ");
 
             comp.VerifyDiagnostics(
-    // (8,5): error CS1519: Invalid token '=>' in class, struct, or interface member declaration
-    //     => P1;
-    Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=>").WithArguments("=>").WithLocation(8, 5),
-    // (8,10): error CS1519: Invalid token ';' in class, struct, or interface member declaration
-    //     => P1;
-    Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(8, 10),
-    // (8,10): error CS1519: Invalid token ';' in class, struct, or interface member declaration
-    //     => P1;
-    Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(8, 10)
+                // (6,5): error CS8057: Block bodies and expression bodies cannot both be provided.
+                //     ~C()
+                Diagnostic(ErrorCode.ERR_BlockBodyAndExpressionBody, @"~C()
+    { P1 = 1; }
+    => P1;").WithLocation(6, 5)
                 );
 
             var tree = comp.SyntaxTrees[0];
-            Assert.False(tree.GetRoot().DescendantNodes().OfType<ArrowExpressionClauseSyntax>().Any());
+            var model = comp.GetSemanticModel(tree);
+
+            var node = tree.GetRoot().DescendantNodes().OfType<ArrowExpressionClauseSyntax>().Single().Expression;
+
+            Assert.Equal("P1", node.ToString());
+            Assert.Equal("System.Int32 C.P1 { get; set; }", model.GetSymbolInfo(node).Symbol.ToTestDisplayString());
+
+            Assert.Contains("P1", model.LookupNames(tree.GetRoot().DescendantNodes().OfType<DestructorDeclarationSyntax>().Single().Body.Position));
+
+            var node2 = tree.GetRoot().DescendantNodes().OfType<DestructorDeclarationSyntax>().Single()
+                .Body.DescendantNodes().OfType<AssignmentExpressionSyntax>()
+                .Single().Left;
+
+            Assert.Equal("P1", node2.ToString());
+            Assert.Equal("System.Int32 C.P1 { get; set; }", model.GetSymbolInfo(node2).Symbol.ToTestDisplayString());
         }
 
         [Fact, WorkItem(1702, "https://github.com/dotnet/roslyn/issues/1702")]
         public void BlockBodyAndExpressionBody_05()
         {
-            var comp = CreateCompilationWithMscorlib(@"
+            var comp = CreateStandardCompilation(@"
 public class C
 {
     static int P1 {get; set;}
@@ -523,23 +601,21 @@ public class C
 ");
 
             comp.VerifyDiagnostics(
-    // (10,9): error CS1014: A get or set accessor expected
-    //         => P1;
-    Diagnostic(ErrorCode.ERR_GetOrSetExpected, "=>").WithLocation(10, 9),
-    // (10,12): error CS1014: A get or set accessor expected
-    //         => P1;
-    Diagnostic(ErrorCode.ERR_GetOrSetExpected, "P1").WithLocation(10, 12)
+                // (8,9): error CS8057: Block bodies and expression bodies cannot both be provided.
+                //         get
+                Diagnostic(ErrorCode.ERR_BlockBodyAndExpressionBody, @"get
+        { return 1; }
+        => P1;").WithLocation(8, 9)
                 );
 
             var tree = comp.SyntaxTrees[0];
-            Assert.False(tree.GetRoot().DescendantNodes().OfType<ArrowExpressionClauseSyntax>().Any());
+            Assert.Equal(1, tree.GetRoot().DescendantNodes().OfType<ArrowExpressionClauseSyntax>().Count());
         }
-
 
         [Fact, WorkItem(1702, "https://github.com/dotnet/roslyn/issues/1702")]
         public void BlockBodyAndExpressionBody_06()
         {
-            var comp = CreateCompilationWithMscorlib(@"
+            var comp = CreateStandardCompilation(@"
 public class C
 {
     static int P1 {get; set;}
@@ -552,9 +628,9 @@ public class C
 ");
 
             comp.VerifyDiagnostics(
-    // (6,5): error CS8056: Properties cannot combine accessor lists with expression bodies.
+    // (6,5): error CS8057: Block bodies and expression bodies cannot both be provided.
     //     static public int P2
-    Diagnostic(ErrorCode.ERR_AccessorListAndExpressionBody, @"static public int P2
+    Diagnostic(ErrorCode.ERR_BlockBodyAndExpressionBody, @"static public int P2
     {
     }
     => P1;").WithLocation(6, 5),
@@ -575,7 +651,7 @@ public class C
         [Fact, WorkItem(1702, "https://github.com/dotnet/roslyn/issues/1702")]
         public void BlockBodyAndExpressionBody_07()
         {
-            var comp = CreateCompilationWithMscorlib(@"
+            var comp = CreateStandardCompilation(@"
 public class C
 {
     static int P1 {get; set;}
@@ -587,7 +663,7 @@ public class C
 ");
 
             comp.VerifyDiagnostics(
-    // (6,5): error CS8057: Methods cannot combine block bodies with expression bodies.
+    // (6,5): error CS8057: Block bodies and expression bodies cannot both be provided.
     //     static public explicit operator int (C x)
     Diagnostic(ErrorCode.ERR_BlockBodyAndExpressionBody, @"static public explicit operator int (C x)
     { return 1; }
@@ -606,7 +682,7 @@ public class C
         [Fact, WorkItem(1702, "https://github.com/dotnet/roslyn/issues/1702")]
         public void BlockBodyAndExpressionBody_08()
         {
-            var comp = CreateCompilationWithMscorlib(@"
+            var comp = CreateStandardCompilation(@"
 public class C
 {
     static int P1 {get; set;}
@@ -618,7 +694,7 @@ public class C
 ");
 
             comp.VerifyDiagnostics(
-    // (6,5): error CS8057: Methods cannot combine block bodies with expression bodies.
+    // (6,5): error CS8057: Block bodies and expression bodies cannot both be provided.
     //     static int M1() 
     Diagnostic(ErrorCode.ERR_BlockBodyAndExpressionBody, @"static int M1() 
     { return P1; }
@@ -637,7 +713,7 @@ public class C
         [Fact, WorkItem(1702, "https://github.com/dotnet/roslyn/issues/1702")]
         public void BlockBodyAndExpressionBody_09()
         {
-            var comp = CreateCompilationWithMscorlib(@"
+            var comp = CreateStandardCompilation(@"
 public class C
 {
     static int P1 {get; set;}
@@ -649,7 +725,7 @@ public class C
 ");
 
             comp.VerifyDiagnostics(
-    // (6,5): error CS8057: Methods cannot combine block bodies with expression bodies.
+    // (6,5): error CS8057: Block bodies and expression bodies cannot both be provided.
     //     static public int operator + (C x, C y)
     Diagnostic(ErrorCode.ERR_BlockBodyAndExpressionBody, @"static public int operator + (C x, C y)
     { return P1; }
@@ -668,7 +744,7 @@ public class C
         [Fact, WorkItem(1702, "https://github.com/dotnet/roslyn/issues/1702")]
         public void BlockBodyAndExpressionBody_10()
         {
-            var comp = CreateCompilationWithMscorlib(@"
+            var comp = CreateStandardCompilation(@"
 public class C
 {
     static int P1 {get; set;}
@@ -682,9 +758,9 @@ public class C
 ");
 
             comp.VerifyDiagnostics(
-    // (6,5): error CS8056: Properties cannot combine accessor lists with expression bodies.
+    // (6,5): error CS8057: Block bodies and expression bodies cannot both be provided.
     //     static public int P2
-    Diagnostic(ErrorCode.ERR_AccessorListAndExpressionBody, @"static public int P2
+    Diagnostic(ErrorCode.ERR_BlockBodyAndExpressionBody, @"static public int P2
     {
         get { return P1; }
     }
@@ -703,7 +779,7 @@ public class C
         [Fact, WorkItem(1702, "https://github.com/dotnet/roslyn/issues/1702")]
         public void BlockBodyAndExpressionBody_11()
         {
-            var comp = CreateCompilationWithMscorlib(@"
+            var comp = CreateStandardCompilation(@"
 public class C
 {
     static int P1 {get; set;}
@@ -715,7 +791,7 @@ public class C
 ");
 
             comp.VerifyDiagnostics(
-    // (6,5): error CS8057: Methods cannot combine block bodies with expression bodies.
+    // (6,5): error CS8057: Block bodies and expression bodies cannot both be provided.
     //     static public explicit operator int (C x)
     Diagnostic(ErrorCode.ERR_BlockBodyAndExpressionBody, @"static public explicit operator int (C x)
     { return P1; }
@@ -731,31 +807,247 @@ public class C
             Assert.Equal("System.Int32 C.P1 { get; set; }", model.GetSymbolInfo(node).Symbol.ToTestDisplayString());
         }
 
+        [Fact]
+        public void BlockBodyAndExpressionBody_12()
+        {
+            var comp = CreateStandardCompilation(@"
+public class C
+{
+    static int P1 {get; set;}
+
+    public C()
+    { P1 = 1; }
+    => P1 = 1;
+}
+");
+
+            comp.VerifyDiagnostics(
+                // (6,5): error CS8057: Block bodies and expression bodies cannot both be provided.
+                //     public C()
+                Diagnostic(ErrorCode.ERR_BlockBodyAndExpressionBody, @"public C()
+    { P1 = 1; }
+    => P1 = 1;").WithLocation(6, 5)
+                );
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            var nodes = tree.GetRoot().DescendantNodes().OfType<AssignmentExpressionSyntax>();
+            Assert.Equal(2, nodes.Count());
+
+            foreach (var assign in nodes)
+            {
+                var node = assign.Left;
+                Assert.Equal("P1", node.ToString());
+                Assert.Equal("System.Int32 C.P1 { get; set; }", model.GetSymbolInfo(node).Symbol.ToTestDisplayString());
+            }
+        }
+
+        [Fact]
+        public void BlockBodyAndExpressionBody_13()
+        {
+            var comp = CreateStandardCompilation(@"
+public class C
+{
+    static int P1 {get; set;}
+
+    ~C()
+    { P1 = 1; }
+    => P1 = 1;
+}
+");
+
+            comp.VerifyDiagnostics(
+                // (6,5): error CS8057: Block bodies and expression bodies cannot both be provided.
+                //     public C()
+                Diagnostic(ErrorCode.ERR_BlockBodyAndExpressionBody, @"~C()
+    { P1 = 1; }
+    => P1 = 1;").WithLocation(6, 5));
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            var nodes = tree.GetRoot().DescendantNodes().OfType<AssignmentExpressionSyntax>();
+            Assert.Equal(2, nodes.Count());
+
+            foreach (var assign in nodes)
+            {
+                var node = assign.Left;
+                Assert.Equal("P1", node.ToString());
+                Assert.Equal("System.Int32 C.P1 { get; set; }", model.GetSymbolInfo(node).Symbol.ToTestDisplayString());
+            }
+        }
+
+        [Fact]
+        public void BlockBodyAndExpressionBody_14()
+        {
+            var comp = CreateStandardCompilation(@"
+public class C
+{
+    static int P1 {get; set;}
+
+    int P2
+    {
+        set
+            { P1 = 1; }
+            => P1 = 1;
+    }
+}
+");
+
+            comp.VerifyDiagnostics(
+                // (8,9): error CS8057: Block bodies and expression bodies cannot both be provided.
+                //         set
+                Diagnostic(ErrorCode.ERR_BlockBodyAndExpressionBody, @"set
+            { P1 = 1; }
+            => P1 = 1;").WithLocation(8, 9)
+                );
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            var nodes = tree.GetRoot().DescendantNodes().OfType<AssignmentExpressionSyntax>();
+            Assert.Equal(2, nodes.Count());
+
+            foreach (var assign in nodes)
+            {
+                var node = assign.Left;
+                Assert.Equal("P1", node.ToString());
+                Assert.Equal("System.Int32 C.P1 { get; set; }", model.GetSymbolInfo(node).Symbol.ToTestDisplayString());
+            }
+        }
+
+        [Fact]
+        public void BlockBodyAndExpressionBody_15()
+        {
+            var comp = CreateStandardCompilation(@"
+public class C
+{
+    void Foo()
+    {
+        int Bar() { return 0; } => 0;
+    }
+}
+");
+
+            comp.VerifyDiagnostics(
+                // (6,9): error CS8057: Block bodies and expression bodies cannot both be provided.
+                //         int Bar() { return 0; } => 0;
+                Diagnostic(ErrorCode.ERR_BlockBodyAndExpressionBody, "int Bar() { return 0; } => 0;").WithLocation(6, 9),
+                // (6,13): warning CS0168: The variable 'Bar' is declared but never used
+                //         int Bar() { return 0; } => 0;
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "Bar").WithArguments("Bar").WithLocation(6, 13));
+        }
+
+        [Fact]
+        public void BlockBodyAndExpressionBody_16()
+        {
+            var comp = CreateStandardCompilation(@"
+public class C
+{
+    int this[int i] { get { return 0; } } => 0;
+}
+");
+
+            comp.VerifyDiagnostics(
+                // (4,5): error CS8057: Block bodies and expression bodies cannot both be provided.
+                //     int this[int i] { get { return 0; } } => 0;
+                Diagnostic(ErrorCode.ERR_BlockBodyAndExpressionBody, "int this[int i] { get { return 0; } } => 0;").WithLocation(4, 5));
+        }
+
+        [Fact]
+        public void BlockBodyAndExpressionBody_17()
+        {
+            var comp = CreateStandardCompilation(@"
+public class C
+{
+    int this[int i] { get { return 0; } => 0; }
+}
+");
+
+            comp.VerifyDiagnostics(
+                // (4,23): error CS8057: Block bodies and expression bodies cannot both be provided.
+                //     int this[int i] { get { return 0; } => 0; }
+                Diagnostic(ErrorCode.ERR_BlockBodyAndExpressionBody, "get { return 0; } => 0;").WithLocation(4, 23));
+        }
+
+        [Fact]
+        public void BlockBodyAndExpressionBody_18()
+        {
+            var comp = CreateStandardCompilation(@"
+using System;
+public class C
+{
+    event Action E { add { } => null; remove { } }
+}
+");
+
+            comp.VerifyDiagnostics(
+                // (5,22): error CS8057: Block bodies and expression bodies cannot both be provided.
+                //     event Action E { add { } => null; remove { } }
+                Diagnostic(ErrorCode.ERR_BlockBodyAndExpressionBody, "add { } => null;").WithLocation(5, 22));
+        }
+
         [Fact, WorkItem(971, "https://github.com/dotnet/roslyn/issues/971")]
         public void LookupSymbols()
         {
-            var comp = CreateCompilationWithMscorlib(@"
+            var comp = CreateStandardCompilation(@"
+using System;
 public class C
 {
-    Func<int, int> U() => delegate (int y0) { return 0; } 
-    int V(int y1) => 1;  
+    Func<int, int> U() => delegate (int y0) { return 0; }
+    int V(int y1) => 1;
 }
 
-Func<int, int> W() => delegate (int y2) { return 2; } 
+Func<int, int> W() => delegate (int y2) { return 2; }
+
+public class D
+{
+    public D(int y3) => M(3);
+    public ~D() => M(y4 => 4);
+    public Func<int, int> Prop { get => y5 => 5; }
+    public static void M(int i) {}
+    public static void M(Func<int, int> d) {}
+}
 ");
 
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
 
             var nodes = tree.GetRoot().DescendantNodes().OfType<LiteralExpressionSyntax>().ToArray();
-
-            Assert.Equal(3, nodes.Length);
+            Assert.Equal(6, nodes.Length);
 
             for (int i = 0; i < nodes.Length; i++)
             {
                 Assert.Equal($"{i}", nodes[i].ToString());
                 Assert.Equal($"System.Int32 y{i}", model.LookupSymbols(nodes[i].SpanStart, name: $"y{i}").Single().ToTestDisplayString());
             }
+        }
+
+        [Fact, WorkItem(13578, "https://github.com/dotnet/roslyn/issues/13578")]
+        public void ExpressionBodiesNotSupported()
+        {
+            var source = @"
+using System;
+public class C
+{
+    C() => Console.WriteLine(1);
+    ~C() => Console.WriteLine(2);
+    int P { set => Console.WriteLine(value); }
+}
+";
+            CreateStandardCompilation(source, parseOptions: TestOptions.Regular).VerifyDiagnostics();
+            CreateStandardCompilation(source, parseOptions: TestOptions.Regular6).VerifyDiagnostics(
+                // (5,9): error CS8059: Feature 'expression body constructor and destructor' is not available in C# 6. Please use language version 7 or greater.
+                //     C() => Console.WriteLine(1);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "=> Console.WriteLine(1)").WithArguments("expression body constructor and destructor", "7").WithLocation(5, 9),
+                // (6,10): error CS8059: Feature 'expression body constructor and destructor' is not available in C# 6. Please use language version 7 or greater.
+                //     ~C() => Console.WriteLine(2);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "=> Console.WriteLine(2)").WithArguments("expression body constructor and destructor", "7").WithLocation(6, 10),
+                // (7,17): error CS8059: Feature 'expression body property accessor' is not available in C# 6. Please use language version 7 or greater.
+                //     int P { set => Console.WriteLine(value); }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "=> Console.WriteLine(value)").WithArguments("expression body property accessor", "7").WithLocation(7, 17)
+                );
         }
     }
 }

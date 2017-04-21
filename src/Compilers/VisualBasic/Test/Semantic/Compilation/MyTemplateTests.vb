@@ -139,7 +139,7 @@ End Module
 
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(HasValidFonts))>
         Public Sub MyWinformApp()
             Dim sources = <compilation>
                               <file name="c.vb"><![CDATA[

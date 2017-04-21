@@ -105,7 +105,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend Overrides Function GetBoundMethodBody(diagnostics As DiagnosticBag, Optional ByRef methodBodyBinder As Binder = Nothing) As BoundBlock
+        Friend Overrides Function GetBoundMethodBody(compilationState As TypeCompilationState, diagnostics As DiagnosticBag, Optional ByRef methodBodyBinder As Binder = Nothing) As BoundBlock
             Dim compilation = Me.DeclaringCompilation
             Return ConstructFieldLikeEventAccessorBody(Me.m_propertyOrEvent, Me.MethodKind = MethodKind.EventAdd, compilation, diagnostics)
         End Function
@@ -201,8 +201,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim getOrCreateCall = New BoundCall(
                 syntax:=syntax,
                 method:=getOrCreateMethod,
-                methodGroup:=Nothing,
-                receiver:=Nothing,
+                methodGroupOpt:=Nothing,
+                receiverOpt:=Nothing,
                 arguments:=ImmutableArray.Create(Of BoundExpression)(fieldAccess),
                 constantValueOpt:=Nothing,
                 type:=getOrCreateMethod.ReturnType).MakeCompilerGenerated()
@@ -220,8 +220,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim processHandlerCall = New BoundCall(
                 syntax:=syntax,
                 method:=processHandlerMethod,
-                methodGroup:=Nothing,
-                receiver:=getOrCreateCall,
+                methodGroupOpt:=Nothing,
+                receiverOpt:=getOrCreateCall,
                 arguments:=ImmutableArray.Create(Of BoundExpression)(parameterAccess),
                 constantValueOpt:=Nothing,
                 type:=processHandlerMethod.ReturnType).MakeCompilerGenerated()

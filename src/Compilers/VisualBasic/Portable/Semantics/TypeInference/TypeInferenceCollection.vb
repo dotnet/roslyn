@@ -1,10 +1,12 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Collections.Immutable
 Imports System.Diagnostics
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
+Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
@@ -185,7 +187,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' Rule 4. "Otherwise, fail."
             If numberOfUnstrictCandidates = 0 Then
                 Debug.Assert(numberOfStrictCandidates = 0, "code logic error: since every strict candidate is also an unstrict candidate.")
-                inferenceErrorReasons = inferenceErrorReasons Or inferenceErrorReasons.NoBest
+                inferenceErrorReasons = inferenceErrorReasons Or InferenceErrorReasons.NoBest
                 Return
             End If
 
@@ -200,7 +202,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Next
 
                 Debug.Assert(resultList.Count() = numberOfUnstrictCandidates, "code logic error: we should have >1 unstrict candidates, like we calculated earlier")
-                inferenceErrorReasons = inferenceErrorReasons Or inferenceErrorReasons.Ambiguous
+                inferenceErrorReasons = inferenceErrorReasons Or InferenceErrorReasons.Ambiguous
                 Return
             End If
 
@@ -263,7 +265,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Dim arrayLiteral = arrayLiteralType.ArrayLiteral
                         conversion = Conversions.ClassifyConversion(arrayLiteral, outer.ResultType, arrayLiteral.Binder, useSiteDiagnostics).Key
                         If Conversions.IsWideningConversion(conversion) AndAlso
-                            IsSameTypeIgnoringCustomModifiers(arrayLiteralType, outer.ResultType) Then
+                            IsSameTypeIgnoringAll(arrayLiteralType, outer.ResultType) Then
                             conversion = ConversionKind.Identity
                         End If
                     End If
@@ -301,7 +303,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim inferredType As TypeSymbol = resultList(0).ResultType
 
                     For i As Integer = 1 To resultList.Count - 1
-                        If Not resultList(i).ResultType.IsSameTypeIgnoringCustomModifiers(inferredType) Then
+                        If Not resultList(i).ResultType.IsSameTypeIgnoringAll(inferredType) Then
                             inferredType = Nothing
                             Exit For
                         End If
@@ -338,7 +340,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                                 For Each candidate In resultList
                                     Dim candidateType = DirectCast(candidate.ResultType, ArrayLiteralTypeSymbol)
-                                    If candidateType.ElementType.IsSameTypeIgnoringCustomModifiers(inferredElementType) Then
+                                    If candidateType.ElementType.IsSameTypeIgnoringAll(inferredElementType) Then
                                         Dim candidateLiteral As BoundArrayLiteral = candidateType.ArrayLiteral
                                         If match Is Nothing OrElse
                                             (candidateLiteral.HasDominantType AndAlso
@@ -372,7 +374,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' If there were multiple dominant types out of that set, then return them all and say "ambiguous"
             If resultList.Count > 1 Then
-                inferenceErrorReasons = inferenceErrorReasons Or inferenceErrorReasons.Ambiguous
+                inferenceErrorReasons = inferenceErrorReasons Or InferenceErrorReasons.Ambiguous
                 Return
             End If
 
@@ -390,7 +392,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Next
 
             Debug.Assert(resultList.Count > 0, "code logic error: we already said there were multiple strict candidates")
-            inferenceErrorReasons = inferenceErrorReasons Or inferenceErrorReasons.Ambiguous
+            inferenceErrorReasons = inferenceErrorReasons Or InferenceErrorReasons.Ambiguous
         End Sub
 
         Private Shared Sub AppendArrayElements(source As BoundArrayInitialization, elements As ArrayBuilder(Of BoundExpression))
@@ -445,7 +447,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim arrayLiteral = arrayLiteralType.ArrayLiteral
                     conversion = Conversions.ClassifyConversion(arrayLiteral, candidate, arrayLiteral.Binder, useSiteDiagnostics).Key
                     If Conversions.IsWideningConversion(conversion) Then
-                        If IsSameTypeIgnoringCustomModifiers(arrayLiteralType, candidate) Then
+                        If IsSameTypeIgnoringAll(arrayLiteralType, candidate) Then
                             ' ClassifyConversion returns widening for identity.  For hint satisfaction it should be promoted to Identity
                             conversion = ConversionKind.Identity
                         ElseIf (conversion And ConversionKind.InvolvesNarrowingFromNumericConstant) <> 0 Then
@@ -504,7 +506,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     If Conversions.IsNarrowingConversion(conversion) Then
                         conversion = Nothing
                     End If
-                ElseIf hint.IsSameTypeIgnoringCustomModifiers(candidate) Then
+                ElseIf hint.IsSameTypeIgnoringAll(candidate) Then
                     conversion = ConversionKind.Identity
                 Else
                     conversion = Nothing
@@ -520,7 +522,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     If Conversions.IsNarrowingConversion(conversion) Then
                         conversion = Nothing
                     End If
-                ElseIf candidate.IsSameTypeIgnoringCustomModifiers(hint) Then
+                ElseIf candidate.IsSameTypeIgnoringAll(hint) Then
                     conversion = ConversionKind.Identity
                 Else
                     conversion = Nothing
@@ -562,8 +564,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             ' Don't add error types to the dominant type inference collection.
-            If type.IsErrorType then
-                return
+            If type.IsErrorType Then
+                Return
             End If
 
             ' We will add only unique types into this collection. Otherwise, say, if we added two types
@@ -577,11 +579,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 For Each competitor As DominantTypeData In Me.GetTypeDataList()
 
                     ' Do not merge array literals with other expressions
-                    If TypeOf competitor.ResultType IsNot ArrayLiteralTypeSymbol AndAlso type.IsSameTypeIgnoringCustomModifiers(competitor.ResultType) Then
-
+                    If TypeOf competitor.ResultType IsNot ArrayLiteralTypeSymbol AndAlso type.IsSameTypeIgnoringAll(competitor.ResultType) Then
+                        competitor.ResultType = MergeTupleNames(type, competitor.ResultType)
                         competitor.InferenceRestrictions = Conversions.CombineConversionRequirements(
-                                                            competitor.InferenceRestrictions,
-                                                            conversion)
+                                                        competitor.InferenceRestrictions,
+                                                        conversion)
 
                         ' TODO: should we simply get out of the loop here? For some reason Dev10 continues, I guess it verifies uniqueness this way.
                         Debug.Assert(Not foundInList, "List is supposed to be unique: how can we already find two of the same type in this list.")
@@ -599,6 +601,36 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
         End Sub
 
+        ''' <summary>
+        ''' Returns first Or a modified version Of first With common tuple names from both types.
+        ''' </summary>
+        Friend Shared Function MergeTupleNames(first As TypeSymbol, second As TypeSymbol) As TypeSymbol
+            If first.IsSameType(second, TypeCompareKind.AllIgnoreOptionsForVB And Not TypeCompareKind.IgnoreTupleNames) OrElse
+                Not first.ContainsTupleNames() Then
+
+                Return first
+            End If
+
+            If Not second.ContainsTupleNames() Then
+                Return second
+            End If
+
+            Dim names1 As ImmutableArray(Of String) = VisualBasicCompilation.TupleNamesEncoder.Encode(first)
+            Dim names2 As ImmutableArray(Of String) = VisualBasicCompilation.TupleNamesEncoder.Encode(second)
+
+            Dim mergedNames As ImmutableArray(Of String)
+            If names1.IsDefault OrElse names2.IsDefault Then
+                mergedNames = Nothing
+            Else
+                Debug.Assert(names1.Length = names2.Length)
+                mergedNames = names1.ZipAsArray(names2, Function(n1, n2) If(IdentifierComparison.Equals(n1, n2), n1, Nothing))
+                If mergedNames.All(Function(n) n Is Nothing) Then
+                    mergedNames = Nothing
+                End If
+            End If
+
+            Return TupleTypeDecoder.DecodeTupleTypesIfApplicable(first, mergedNames)
+        End Function
     End Class
 
 End Namespace

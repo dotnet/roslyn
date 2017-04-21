@@ -109,6 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                 {
                     var span = TextSpan.FromBounds(spanStart.Value, spanStart.Value + index);
                     AddClassification(span, ClassificationTypeNames.XmlDocCommentDelimiter);
+
                     spanStart = null;
                 }
                 else if (spanStart == null && !char.IsWhiteSpace(ch))

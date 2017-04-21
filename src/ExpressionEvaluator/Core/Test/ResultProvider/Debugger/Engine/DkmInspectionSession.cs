@@ -34,34 +34,50 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation
             _resultProviders = new Dispatcher<IDkmClrResultProvider>(resultProviders);
         }
 
-        internal T InvokeFormatter<T>(MethodId method, Func<IDkmClrFormatter, T> f)
+        internal T InvokeFormatter<T>(object instance, MethodId method, Func<IDkmClrFormatter, T> f)
         {
-            return _formatters.Invoke(method, f);
+            return _formatters.Invoke(instance, method, f);
         }
 
-        internal T InvokeResultProvider<T>(MethodId method, Func<IDkmClrResultProvider, T> f)
+        internal T InvokeResultProvider<T>(object instance, MethodId method, Func<IDkmClrResultProvider, T> f)
         {
-            return _resultProviders.Invoke(method, f);
+            return _resultProviders.Invoke(instance, method, f);
         }
 
         private sealed class Dispatcher<TInterface>
         {
+            private struct InstanceAndMethod
+            {
+                internal InstanceAndMethod(object instance, MethodId method)
+                {
+                    Instance = instance;
+                    Method = method;
+                }
+                internal readonly object Instance;
+                internal readonly MethodId Method;
+                internal bool Equals(InstanceAndMethod other)
+                {
+                    return Instance == other.Instance && Method == other.Method;
+                }
+            }
+
             private readonly ImmutableArray<TInterface> _implementations;
-            private readonly ArrayBuilder<MethodId> _calls;
+            private readonly ArrayBuilder<InstanceAndMethod> _calls;
 
             internal Dispatcher(ImmutableArray<TInterface> items)
             {
                 _implementations = items;
-                _calls = new ArrayBuilder<MethodId>();
+                _calls = new ArrayBuilder<InstanceAndMethod>();
             }
 
-            internal TResult Invoke<TResult>(MethodId method, Func<TInterface, TResult> f)
+            internal TResult Invoke<TResult>(object instance, MethodId method, Func<TInterface, TResult> f)
             {
                 // If the last n - 1 calls are to the same method,
                 // call the n-th implementation.
+                var instanceAndMethod = new InstanceAndMethod(instance, method);
                 int n = _calls.Count;
                 int index = 0;
-                while ((n - index > 0) && (_calls[n - index - 1] == method))
+                while ((n - index > 0) && _calls[n - index - 1].Equals(instanceAndMethod))
                 {
                     index++;
                 }
@@ -70,7 +86,7 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation
                     throw new InvalidOperationException();
                 }
                 var item = _implementations[index];
-                _calls.Push(method);
+                _calls.Push(instanceAndMethod);
                 try
                 {
                     return f(item);

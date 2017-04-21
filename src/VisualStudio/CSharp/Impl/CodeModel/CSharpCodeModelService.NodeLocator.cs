@@ -37,6 +37,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             {
                 switch (node.Kind())
                 {
+                    case SyntaxKind.ArrowExpressionClause:
+                        return GetStartPoint(text, (ArrowExpressionClauseSyntax)node, part);
                     case SyntaxKind.Attribute:
                         return GetStartPoint(text, (AttributeSyntax)node, part);
                     case SyntaxKind.AttributeArgument:
@@ -83,6 +85,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             {
                 switch (node.Kind())
                 {
+                    case SyntaxKind.ArrowExpressionClause:
+                        return GetEndPoint(text, (ArrowExpressionClauseSyntax)node, part);
                     case SyntaxKind.Attribute:
                         return GetEndPoint(text, (AttributeSyntax)node, part);
                     case SyntaxKind.AttributeArgument:
@@ -209,6 +213,27 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                 return string.IsNullOrWhiteSpace(textBeforeBrace)
                     ? new VirtualTreePoint(closeBrace.SyntaxTree, text, closeBraceLine.Start)
                     : new VirtualTreePoint(closeBrace.SyntaxTree, text, closeBrace.SpanStart);
+            }
+
+            private VirtualTreePoint GetStartPoint(SourceText text, ArrowExpressionClauseSyntax node, EnvDTE.vsCMPart part)
+            {
+                int startPosition;
+
+                switch (part)
+                {
+                    case EnvDTE.vsCMPart.vsCMPartWhole:
+                        startPosition = node.SpanStart;
+                        break;
+
+                    case EnvDTE.vsCMPart.vsCMPartBody:
+                        startPosition = node.Expression.SpanStart;
+                        break;
+
+                    default:
+                        throw Exceptions.ThrowENotImpl();
+                }
+
+                return new VirtualTreePoint(node.SyntaxTree, text, startPosition);
             }
 
             private VirtualTreePoint GetStartPoint(SourceText text, AttributeSyntax node, EnvDTE.vsCMPart part)
@@ -757,6 +782,24 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                 }
 
                 return new VirtualTreePoint(node.SyntaxTree, text, startPosition);
+            }
+
+            private VirtualTreePoint GetEndPoint(SourceText text, ArrowExpressionClauseSyntax node, EnvDTE.vsCMPart part)
+            {
+                int endPosition;
+
+                switch (part)
+                {
+                    case EnvDTE.vsCMPart.vsCMPartWhole:
+                    case EnvDTE.vsCMPart.vsCMPartBody:
+                        endPosition = node.Span.End;
+                        break;
+
+                    default:
+                        throw Exceptions.ThrowENotImpl();
+                }
+
+                return new VirtualTreePoint(node.SyntaxTree, text, endPosition);
             }
 
             private VirtualTreePoint GetEndPoint(SourceText text, AttributeSyntax node, EnvDTE.vsCMPart part)

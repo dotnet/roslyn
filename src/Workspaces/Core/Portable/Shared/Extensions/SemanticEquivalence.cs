@@ -2,11 +2,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions

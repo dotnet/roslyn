@@ -14,6 +14,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         private readonly IServiceProvider _serviceProvider;
         private readonly Func<OptionSet, IServiceProvider, AbstractOptionPreviewViewModel> _createViewModel;
 
+        public static string DescriptionHeader => ServicesVSResources.Description;
+        public static string PreferenceHeader => ServicesVSResources.Preference;
+        public static string SeverityHeader => ServicesVSResources.Severity;
+
         internal GridOptionPreviewControl(IServiceProvider serviceProvider, 
             Func<OptionSet, IServiceProvider, 
             AbstractOptionPreviewViewModel> createViewModel) 

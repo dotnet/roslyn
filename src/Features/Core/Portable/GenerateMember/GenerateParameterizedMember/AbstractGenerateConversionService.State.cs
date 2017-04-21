@@ -1,14 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeGeneration;
-using Microsoft.CodeAnalysis.FindSymbols;
-using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
@@ -59,12 +53,9 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
             private bool TryInitializeExplicitConversion(TService service, SemanticDocument document, SyntaxNode node, CancellationToken cancellationToken)
             {
                 MethodKind = MethodKind.Conversion;
-                SyntaxToken identifierToken;
-                IMethodSymbol methodSymbol;
-                INamedTypeSymbol typeToGenerateIn;
                 if (!service.TryInitializeExplicitConversionState(
                     document, node, ClassInterfaceModuleStructTypes, cancellationToken,
-                    out identifierToken, out methodSymbol, out typeToGenerateIn))
+                    out var identifierToken, out var methodSymbol, out var typeToGenerateIn))
                 {
                     return false;
                 }
@@ -86,12 +77,9 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
             private bool TryInitializeImplicitConversion(TService service, SemanticDocument document, SyntaxNode node, CancellationToken cancellationToken)
             {
                 MethodKind = MethodKind.Conversion;
-                SyntaxToken identifierToken;
-                IMethodSymbol methodSymbol;
-                INamedTypeSymbol typeToGenerateIn;
                 if (!service.TryInitializeImplicitConversionState(
                     document, node, ClassInterfaceModuleStructTypes, cancellationToken,
-                    out identifierToken, out methodSymbol, out typeToGenerateIn))
+                    out var identifierToken, out var methodSymbol, out var typeToGenerateIn))
                 {
                     return false;
                 }

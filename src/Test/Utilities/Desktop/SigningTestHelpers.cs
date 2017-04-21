@@ -19,6 +19,8 @@ namespace Roslyn.Test.Utilities
         internal static string KeyPairFile2 = @"R:\__Test__\KeyPair2_" + Guid.NewGuid() + ".snk";
         internal static string PublicKeyFile2 = @"R:\__Test__\PublicKey2_" + Guid.NewGuid() + ".snk";
 
+        internal static string MaxSizeKeyFile = @"R:\__Test__\MaxSizeKey_" + Guid.NewGuid() + ".snk";
+
         private static bool s_keyInstalled;
         internal const string TestContainerName = "RoslynTestContainer";
 
@@ -55,8 +57,8 @@ namespace Roslyn.Test.Utilities
 
         internal sealed class VirtualizedStrongNameProvider : DesktopStrongNameProvider
         {
-            public VirtualizedStrongNameProvider(ImmutableArray<string> searchPaths)
-                : base(searchPaths)
+            public VirtualizedStrongNameProvider(ImmutableArray<string> searchPaths = default(ImmutableArray<string>), string tempPath = null)
+                : base(searchPaths, tempPath)
             {
             }
 
@@ -87,6 +89,10 @@ namespace Roslyn.Test.Utilities
                 else if (PathEquals(fullPath, PublicKeyFile2))
                 {
                     return TestResources.General.snPublicKey2;
+                }
+                else if (PathEquals(fullPath, MaxSizeKeyFile))
+                {
+                    return TestResources.General.snMaxSizeKey;
                 }
 
                 throw new FileNotFoundException("File not found", fullPath);

@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Completion.FileSystem
             return helper.GetItems(pathThroughLastSlash, documentPath: null);
         }
 
-        public override Task<TextChange?> GetTextChangeAsync(Document document, CompletionItem selectedItem, char? ch, CancellationToken cancellationToken)
+        protected override Task<TextChange?> GetTextChangeAsync(CompletionItem selectedItem, char? ch, CancellationToken cancellationToken)
         {
             // When we commit "\\" when the user types \ we have to adjust for the fact that the
             // controller will automatically append \ after we commit.  Because of that, we don't
@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Completion.FileSystem
                 return Task.FromResult<TextChange?>(new TextChange(selectedItem.Span, "\\"));
             }
 
-            return base.GetTextChangeAsync(document, selectedItem, ch, cancellationToken);
+            return base.GetTextChangeAsync(selectedItem, ch, cancellationToken);
         }
     }
 }

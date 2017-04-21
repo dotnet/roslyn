@@ -55,7 +55,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Exter
         {
             get
             {
-                var builder = ImmutableArray.CreateBuilder<INamedTypeSymbol>();
+                var builder = ArrayBuilder<INamedTypeSymbol>.GetInstance();
 
                 var typeSymbol = TypeSymbol;
                 if (typeSymbol.TypeKind == TypeKind.Interface)
@@ -67,7 +67,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Exter
                     builder.Add(typeSymbol.BaseType);
                 }
 
-                return ExternalTypeCollection.Create(this.State, this, this.ProjectId, builder.ToImmutable());
+                return ExternalTypeCollection.Create(this.State, this, this.ProjectId, 
+                    builder.ToImmutableAndFree());
             }
         }
 

@@ -3,8 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Threading;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -13,7 +11,7 @@ namespace Microsoft.CodeAnalysis
     /// An identifier that can be used to refer to the same <see cref="Project"/> across versions.
     /// </summary>
     [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
-    public sealed class ProjectId : IEquatable<ProjectId>
+    public sealed class ProjectId : IEquatable<ProjectId>, IObjectWritable
     {
         private readonly string _debugName;
 
@@ -22,13 +20,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public Guid Id { get; }
 
-        private ProjectId(string debugName)
-        {
-            this.Id = Guid.NewGuid();
-            _debugName = debugName;
-        }
-
-        internal ProjectId(Guid guid, string debugName)
+        private ProjectId(Guid guid, string debugName)
         {
             this.Id = guid;
             _debugName = debugName;
@@ -40,7 +32,7 @@ namespace Microsoft.CodeAnalysis
         /// <param name="debugName">An optional name to make this id easier to recognize while debugging.</param>
         public static ProjectId CreateNewId(string debugName = null)
         {
-            return new ProjectId(debugName);
+            return new ProjectId(Guid.NewGuid(), debugName);
         }
 
         public static ProjectId CreateFromSerialized(Guid id, string debugName = null)
@@ -53,14 +45,11 @@ namespace Microsoft.CodeAnalysis
             return new ProjectId(id, debugName);
         }
 
+        internal string DebugName => _debugName;
+
         private string GetDebuggerDisplay()
         {
             return string.Format("({0}, #{1} - {2})", this.GetType().Name, this.Id, _debugName);
-        }
-
-        internal string DebugName
-        {
-            get { return _debugName; }
         }
 
         public override string ToString()
@@ -93,6 +82,20 @@ namespace Microsoft.CodeAnalysis
         public override int GetHashCode()
         {
             return this.Id.GetHashCode();
+        }
+
+        void IObjectWritable.WriteTo(ObjectWriter writer)
+        {
+            writer.WriteValue(Id.ToByteArray());
+            writer.WriteString(DebugName);
+        }
+
+        internal static ProjectId ReadFrom(ObjectReader reader)
+        {
+            var guid = new Guid((byte[])reader.ReadValue());
+            var debugName = reader.ReadString();
+
+            return CreateFromSerialized(guid, debugName);
         }
     }
 }

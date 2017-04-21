@@ -489,7 +489,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend Overrides ReadOnly Property Syntax As VisualBasicSyntaxNode
+        Public Overrides ReadOnly Property RefCustomModifiers As ImmutableArray(Of CustomModifier)
+            Get
+                Return _curriedFromMethod.RefCustomModifiers
+            End Get
+        End Property
+
+        Friend Overrides ReadOnly Property Syntax As SyntaxNode
             Get
                 Return _curriedFromMethod.Syntax
             End Get
@@ -843,6 +849,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Public Overrides ReadOnly Property RefCustomModifiers As ImmutableArray(Of CustomModifier)
+            Get
+                Return m_CurriedFromParameter.RefCustomModifiers
+            End Get
+        End Property
+
         Public Overrides ReadOnly Property Ordinal As Integer
             Get
                 Return m_CurriedFromParameter.Ordinal - 1
@@ -900,12 +912,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Overrides ReadOnly Property IsCallerFilePath As Boolean
             Get
                 Return m_CurriedFromParameter.IsCallerFilePath
-            End Get
-        End Property
-
-        Friend NotOverridable Overrides ReadOnly Property CountOfCustomModifiersPrecedingByRef As UShort
-            Get
-                Return m_CurriedFromParameter.CountOfCustomModifiersPrecedingByRef
             End Get
         End Property
 

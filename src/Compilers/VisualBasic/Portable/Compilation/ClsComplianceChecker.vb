@@ -394,7 +394,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Sub CheckEventTypeCompliance(symbol As EventSymbol)
             Dim type = symbol.Type
-            If type.TypeKind = TypeKind.Delegate AndAlso type.IsImplicitlyDeclared Then
+            If type.TypeKind = TypeKind.Delegate AndAlso type.IsImplicitlyDeclared AndAlso TryCast(type, NamedTypeSymbol)?.AssociatedSymbol Is symbol Then
                 Debug.Assert(symbol.DelegateReturnType.SpecialType = SpecialType.System_Void)
                 CheckParameterCompliance(symbol.DelegateParameters, symbol.ContainingType)
             ElseIf ShouldReportNonCompliantType(type, symbol.ContainingType, symbol) Then
@@ -558,6 +558,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Private Sub ReportNonCompliantTypeArguments(type As NamedTypeSymbol, context As NamedTypeSymbol, diagnosticSymbol As Symbol)
+            If type.IsTupleType Then
+                type = type.TupleUnderlyingType
+            End If
+
             For Each typeArg In type.TypeArgumentsNoUseSiteDiagnostics
                 If Not IsCompliantType(typeArg, context) Then
                     Me.AddDiagnostic(diagnosticSymbol, ERRID.WRN_TypeNotCLSCompliant1, typeArg)
@@ -593,6 +597,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If Not IsTrue(GetDeclaredOrInheritedCompliance(type.OriginalDefinition)) Then
                 Return False
+            End If
+
+            If type.IsTupleType Then
+                Return IsCompliantType(type.TupleUnderlyingType)
             End If
 
             ' NOTE: Type arguments are checked separately (see HasNonCompliantTypeArguments)

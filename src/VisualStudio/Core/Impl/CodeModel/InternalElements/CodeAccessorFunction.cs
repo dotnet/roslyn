@@ -35,15 +35,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
             _kind = kind;
         }
 
-        private AbstractCodeMember ParentMember
-        {
-            get { return _parentHandle.Value; }
-        }
+        private AbstractCodeMember ParentMember => _parentHandle.Value;
 
         private bool IsPropertyAccessor()
-        {
-            return _kind == MethodKind.PropertyGet || _kind == MethodKind.PropertySet;
-        }
+            => _kind == MethodKind.PropertyGet || _kind == MethodKind.PropertySet;
 
         internal override bool TryLookupNode(out SyntaxNode node)
         {
@@ -55,53 +50,29 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
                 return false;
             }
 
-            SyntaxNode accessorNode;
-            if (!CodeModelService.TryGetAccessorNode(parentNode, _kind, out accessorNode))
-            {
-                return false;
-            }
-
-            node = accessorNode;
-            return node != null;
+            return CodeModelService.TryGetAutoPropertyExpressionBody(parentNode, out node) ||
+                   CodeModelService.TryGetAccessorNode(parentNode, _kind, out node);
         }
 
         public override EnvDTE.vsCMElement Kind
-        {
-            get { return EnvDTE.vsCMElement.vsCMElementFunction; }
-        }
+            => EnvDTE.vsCMElement.vsCMElementFunction;
 
-        public override object Parent
-        {
-            get { return _parentHandle.Value; }
-        }
+        public override object Parent => _parentHandle.Value;
 
         public override EnvDTE.CodeElements Children
-        {
-            get { return EmptyCollection.Create(this.State, this); }
-        }
+            => EmptyCollection.Create(this.State, this);
 
         protected override string GetName()
-        {
-            return this.ParentMember.Name;
-        }
+            => this.ParentMember.Name;
 
         protected override void SetName(string value)
-        {
-            this.ParentMember.Name = value;
-        }
+            => this.ParentMember.Name = value;
 
         protected override string GetFullName()
-        {
-            return this.ParentMember.FullName;
-        }
+            => this.ParentMember.FullName;
 
         public EnvDTE.CodeElements Attributes
-        {
-            get
-            {
-                return AttributeCollection.Create(this.State, this);
-            }
-        }
+            => AttributeCollection.Create(this.State, this);
 
         public EnvDTE.vsCMAccess Access
         {
@@ -212,10 +183,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
             }
         }
 
-        public bool IsOverloaded
-        {
-            get { return false; }
-        }
+        public bool IsOverloaded => false;
 
         public bool IsShared
         {
@@ -272,12 +240,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
         }
 
         public EnvDTE.CodeElements Overloads
-        {
-            get
-            {
-                throw Exceptions.ThrowEFail();
-            }
-        }
+            => throw Exceptions.ThrowEFail();
 
         public EnvDTE.CodeElements Parameters
         {

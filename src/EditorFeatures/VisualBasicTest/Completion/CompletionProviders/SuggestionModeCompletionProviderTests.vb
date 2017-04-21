@@ -1,7 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
-Imports System.Threading.Tasks
 Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
@@ -290,17 +289,76 @@ End Class
             Await VerifyBuilderAsync(markup)
         End Function
 
-        <WorkItem(1044441, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1044441")>
+        <WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function BuilderInDebugger() As Task
+        Public Async Function NamespaceDeclarationName_Unqualified() As Task
             Dim markup = <a> 
-Class C1
-    Sub Foo()
-        Dim __o = $$
-    End Sub
-End Class
+Namespace $$
+End Namespace
 </a>
-            Await VerifyBuilderAsync(markup, CompletionTrigger.Default, useDebuggerOptions:=True)
+            Await VerifyBuilderAsync(markup, CompletionTrigger.Invoke)
+        End Function
+
+        <WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function NamespaceDeclarationName_Qualified() As Task
+            Dim markup = <a> 
+Namespace A.$$
+End Namespace
+</a>
+            Await VerifyBuilderAsync(markup, CompletionTrigger.Invoke)
+        End Function
+
+        <WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function PartialClassName() As Task
+            Dim markup = <a>Partial Class $$</a>
+            Await VerifyBuilderAsync(markup, CompletionTrigger.Invoke)
+        End Function
+
+        <WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function PartialStructureName() As Task
+            Dim markup = <a>Partial Structure $$</a>
+            Await VerifyBuilderAsync(markup, CompletionTrigger.Invoke)
+        End Function
+
+        <WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function PartialInterfaceName() As Task
+            Dim markup = <a>Partial Interface $$</a>
+            Await VerifyBuilderAsync(markup, CompletionTrigger.Invoke)
+        End Function
+
+        <WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function PartialModuleName() As Task
+            Dim markup = <a>Partial Module $$</a>
+            Await VerifyBuilderAsync(markup, CompletionTrigger.Invoke)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TupleType() As Task
+            Dim markup = <a>
+Class C
+    Sub M()
+        Dim t As (a$$, b)
+    End Sub
+End Class</a>
+
+            Await VerifyNotBuilderAsync(markup)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TupleTypeAfterComma() As Task
+            Dim markup = <a>
+Class C
+    Sub M()
+        Dim t As (a, b$$)
+    End Sub
+End Class</a>
+
+            Await VerifyNotBuilderAsync(markup)
         End Function
 
         Private Function VerifyNotBuilderAsync(markup As XElement, Optional triggerInfo As CompletionTrigger? = Nothing, Optional useDebuggerOptions As Boolean = False) As Task
@@ -318,20 +376,20 @@ End Class
 
             Using workspaceFixture = New VisualBasicTestWorkspaceFixture()
                 Dim options = If(useDebuggerOptions,
-                                 (Await workspaceFixture.GetWorkspaceAsync()).Options.WithDebuggerCompletionOptions(),
-                                 (Await workspaceFixture.GetWorkspaceAsync()).Options)
+                                 (workspaceFixture.GetWorkspace()).Options.WithDebuggerCompletionOptions(),
+                                 (workspaceFixture.GetWorkspace()).Options)
 
-                Dim document1 = Await workspaceFixture.UpdateDocumentAsync(code, SourceCodeKind.Regular)
+                Dim document1 = workspaceFixture.UpdateDocument(code, SourceCodeKind.Regular)
                 Await CheckResultsAsync(document1, position, isBuilder, triggerInfo, options)
 
                 If Await CanUseSpeculativeSemanticModelAsync(document1, position) Then
-                    Dim document2 = Await workspaceFixture.UpdateDocumentAsync(code, SourceCodeKind.Regular, cleanBeforeUpdate:=False)
+                    Dim document2 = workspaceFixture.UpdateDocument(code, SourceCodeKind.Regular, cleanBeforeUpdate:=False)
                     Await CheckResultsAsync(document2, position, isBuilder, triggerInfo, options)
                 End If
             End Using
         End Function
 
-        Private Async Function CheckResultsAsync(document As Document, position As Integer, isBuilder As Boolean, triggerInfo As CompletionTrigger?, options As OptionSet) As Task
+        Private Overloads Async Function CheckResultsAsync(document As Document, position As Integer, isBuilder As Boolean, triggerInfo As CompletionTrigger?, options As OptionSet) As Task
             triggerInfo = If(triggerInfo, CompletionTrigger.CreateInsertionTrigger("a"c))
 
             Dim service = GetCompletionService(document.Project.Solution.Workspace)

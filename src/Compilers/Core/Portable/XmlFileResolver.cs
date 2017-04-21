@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis
 
         protected virtual bool FileExists(string resolvedPath)
         {
-            return PortableShim.File.Exists(resolvedPath);
+            return File.Exists(resolvedPath);
         }
 
         public override bool Equals(object obj)

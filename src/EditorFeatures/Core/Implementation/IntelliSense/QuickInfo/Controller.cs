@@ -77,14 +77,26 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
             }
             else
             {
-                var quickInfoItem = modelOpt.Item;
-
                 // We want the span to actually only go up to the caret.  So get the expected span
                 // and then update its end point accordingly.
-                var triggerSpan = modelOpt.GetCurrentSpanInSnapshot(quickInfoItem.TextSpan, this.SubjectBuffer.CurrentSnapshot);
-                var trackingSpan = triggerSpan.CreateTrackingSpan(SpanTrackingMode.EdgeInclusive);
+                ITrackingSpan trackingSpan;
+                QuickInfoItem item = null;
 
-                sessionOpt.PresenterSession.PresentItem(trackingSpan, quickInfoItem, modelOpt.TrackMouse);
+                // Whether or not we have an item to show, we need to start the session.
+                // If the user Edit.QuickInfo's on a squiggle, they want to see the 
+                // error text even if there's no symbol quickinfo.
+                if (modelOpt.Item != null)
+                {
+                    item = modelOpt.Item;
+                    var triggerSpan = modelOpt.GetCurrentSpanInSnapshot(item.TextSpan, this.SubjectBuffer.CurrentSnapshot);
+                    trackingSpan = triggerSpan.CreateTrackingSpan(SpanTrackingMode.EdgeInclusive);
+                }
+                else
+                {
+                    var caret = this.TextView.GetCaretPoint(this.SubjectBuffer).Value;
+                    trackingSpan = caret.Snapshot.CreateTrackingSpan(caret.Position, 0, SpanTrackingMode.EdgeInclusive, TrackingFidelityMode.Forward);
+                }
+                sessionOpt.PresenterSession.PresentItem(trackingSpan, item, modelOpt.TrackMouse);
             }
         }
 
@@ -158,7 +170,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
                         }
                     }
 
-                    return null;
+                    return new Model(snapshot.Version, null, null, trackMouse);
                 }
             }
             catch (Exception e) when (FatalError.ReportUnlessCanceled(e))

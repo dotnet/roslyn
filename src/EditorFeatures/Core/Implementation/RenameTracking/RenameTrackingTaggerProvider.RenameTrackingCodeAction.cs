@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 _undoHistoryRegistry = undoHistoryRegistry;
             }
 
-            public override string Title { get { return _title; } }
+            public override string Title => _title;
 
             protected override Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
             {
@@ -49,7 +49,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
 
             protected override async Task<IEnumerable<CodeActionOperation>> ComputePreviewOperationsAsync(CancellationToken cancellationToken)
             {
-                if (!_document.Options.GetOption(FeatureOnOffOptions.RenameTrackingPreview) ||
+                var documentOptions = await _document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+                if (!documentOptions.GetOption(FeatureOnOffOptions.RenameTrackingPreview) ||
                     !TryInitializeRenameTrackingCommitter(cancellationToken))
                 {
                     return await SpecializedTasks.EmptyEnumerable<CodeActionOperation>().ConfigureAwait(false);
@@ -63,28 +64,24 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
 
             private bool TryInitializeRenameTrackingCommitter(CancellationToken cancellationToken)
             {
-                SourceText text;
-                StateMachine stateMachine;
-
-                if (_document.TryGetText(out text))
+                if (_document.TryGetText(out var text))
                 {
                     var textBuffer = text.Container.GetTextBuffer();
-                    if (textBuffer.Properties.TryGetProperty(typeof(StateMachine), out stateMachine))
+                    if (textBuffer.Properties.TryGetProperty(typeof(StateMachine), out StateMachine stateMachine))
                     {
-                        TrackingSession trackingSession;
-                        if (!stateMachine.CanInvokeRename(out trackingSession, cancellationToken: cancellationToken))
+                        if (!stateMachine.CanInvokeRename(out var trackingSession, cancellationToken: cancellationToken))
                         {
                             // The rename tracking could be dismissed while a codefix is still cached
                             // in the lightbulb. If this happens, do not perform the rename requested
                             // and instead let the user know their fix will not be applied. 
                             _document.Project.Solution.Workspace.Services.GetService<INotificationService>()
-                                ?.SendNotification(EditorFeaturesResources.TheRenameTrackingSessionWasCancelledAndIsNoLongerAvailable, severity: NotificationSeverity.Error);
+                                ?.SendNotification(EditorFeaturesResources.The_rename_tracking_session_was_cancelled_and_is_no_longer_available, severity: NotificationSeverity.Error);
                             return false;
                         }
 
                         var snapshotSpan = stateMachine.TrackingSession.TrackingSpan.GetSpan(stateMachine.Buffer.CurrentSnapshot);
                         var newName = snapshotSpan.GetText();
-                        var displayText = string.Format(EditorFeaturesResources.RenameTo, stateMachine.TrackingSession.OriginalName, newName);
+                        var displayText = string.Format(EditorFeaturesResources.Rename_0_to_1, stateMachine.TrackingSession.OriginalName, newName);
                         _renameTrackingCommitter = new RenameTrackingCommitter(stateMachine, snapshotSpan, _refactorNotifyServices, _undoHistoryRegistry, displayText);
                         return true;
                     }

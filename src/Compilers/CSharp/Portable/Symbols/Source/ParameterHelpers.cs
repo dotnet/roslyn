@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -16,10 +17,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Binder binder,
             Symbol owner,
             BaseParameterListSyntax syntax,
-            bool allowRefOrOut,
             out SyntaxToken arglistToken,
             DiagnosticBag diagnostics,
-            bool beStrict)
+            bool allowRefOrOut,
+            bool allowThis)
         {
             arglistToken = default(SyntaxToken);
 
@@ -27,15 +28,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             int firstDefault = -1;
 
             var builder = ArrayBuilder<ParameterSymbol>.GetInstance();
-            ImmutableArray<ParameterSymbol> parameters;
+            var mustBeLastParameter = (ParameterSyntax)null;
 
             foreach (var parameterSyntax in syntax.Parameters)
             {
-                SyntaxToken outKeyword;
-                SyntaxToken refKeyword;
-                SyntaxToken paramsKeyword;
-                SyntaxToken thisKeyword;
-                var refKind = GetModifiers(parameterSyntax.Modifiers, out outKeyword, out refKeyword, out paramsKeyword, out thisKeyword);
+                if (mustBeLastParameter == null)
+                {
+                    if (parameterSyntax.Modifiers.Any(SyntaxKind.ParamsKeyword) ||
+                        parameterSyntax.Identifier.Kind() == SyntaxKind.ArgListKeyword)
+                    {
+                        mustBeLastParameter = parameterSyntax;
+                    }
+                }
+
+                CheckParameterModifiers(parameterSyntax, diagnostics);
+
+                var refKind = GetModifiers(parameterSyntax.Modifiers,
+                    out SyntaxToken outKeyword, out SyntaxToken refKeyword,
+                    out SyntaxToken paramsKeyword, out SyntaxToken thisKeyword);
+
+                if (thisKeyword.Kind() != SyntaxKind.None && !allowThis)
+                {
+                    diagnostics.Add(ErrorCode.ERR_ThisInBadContext, thisKeyword.GetLocation());
+                }
 
                 if (parameterSyntax.IsArgList)
                 {
@@ -78,8 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     parameterIndex,
                     (paramsKeyword.Kind() != SyntaxKind.None),
                     parameterIndex == 0 && thisKeyword.Kind() != SyntaxKind.None,
-                    diagnostics,
-                    beStrict);
+                    diagnostics);
 
                 ReportParameterErrors(owner, parameterSyntax, parameter, firstDefault, diagnostics);
 
@@ -87,7 +101,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 ++parameterIndex;
             }
 
-            parameters = builder.ToImmutableAndFree();
+            if (mustBeLastParameter != null && mustBeLastParameter != syntax.Parameters.Last())
+            {
+                diagnostics.Add(
+                    mustBeLastParameter.Identifier.Kind() == SyntaxKind.ArgListKeyword
+                        ? ErrorCode.ERR_VarargsLast
+                        : ErrorCode.ERR_ParamsLast,
+                    mustBeLastParameter.GetLocation());
+            }
+
+            ImmutableArray<ParameterSymbol> parameters = builder.ToImmutableAndFree();
 
             var methodOwner = owner as MethodSymbol;
             var typeParameters = (object)methodOwner != null ?
@@ -96,6 +119,112 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             binder.ValidateParameterNameConflicts(typeParameters, parameters, diagnostics);
             return parameters;
+        }
+
+        private static void CheckParameterModifiers(
+            ParameterSyntax parameter, DiagnosticBag diagnostics)
+        {
+            var seenThis = false;
+            var seenRef = false;
+            var seenOut = false;
+            var seenParams = false;
+
+            foreach (var modifier in parameter.Modifiers)
+            {
+                switch (modifier.Kind())
+                {
+                    case SyntaxKind.ThisKeyword:
+                        if (seenThis)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_DupParamMod, modifier.GetLocation(), SyntaxFacts.GetText(SyntaxKind.ThisKeyword));
+                        }
+                        else if (seenOut)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_BadOutWithThis, modifier.GetLocation());
+                        }
+                        else if (seenRef)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_BadRefWithThis, modifier.GetLocation());
+                        }
+                        else if (seenParams)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_BadParamModThis, modifier.GetLocation());
+                        }
+                        else
+                        {
+                            seenThis = true;
+                        }
+                        break;
+
+                    case SyntaxKind.RefKeyword:
+                        if (seenRef)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_DupParamMod, modifier.GetLocation(), SyntaxFacts.GetText(SyntaxKind.RefKeyword));
+                        }
+                        else if (seenThis)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_BadRefWithThis, modifier.GetLocation());
+                        }
+                        else if (seenParams)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_ParamsCantBeRefOut, modifier.GetLocation());
+                        }
+                        else if (seenOut)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_MultiParamMod, modifier.GetLocation());
+                        }
+                        else
+                        {
+                            seenRef = true;
+                        }
+                        break;
+
+                    case SyntaxKind.OutKeyword:
+                        if (seenOut)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_DupParamMod, modifier.GetLocation(), SyntaxFacts.GetText(SyntaxKind.OutKeyword));
+                        }
+                        else if (seenThis)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_BadOutWithThis, modifier.GetLocation());
+                        }
+                        else if (seenParams)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_ParamsCantBeRefOut, modifier.GetLocation());
+                        }
+                        else if (seenRef)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_MultiParamMod, modifier.GetLocation());
+                        }
+                        else
+                        {
+                            seenOut = true;
+                        }
+                        break;
+
+                    case SyntaxKind.ParamsKeyword:
+                        if (seenParams)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_DupParamMod, modifier.GetLocation(), SyntaxFacts.GetText(SyntaxKind.ParamsKeyword));
+                        }
+                        else if (seenThis)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_BadParamModThis, modifier.GetLocation());
+                        }
+                        else if (seenRef || seenOut || seenThis)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_MultiParamMod, modifier.GetLocation());
+                        }
+                        else
+                        {
+                            seenParams = true;
+                        }
+                        break;
+
+                    default:
+                        throw new InvalidOperationException();
+                }
+            }
         }
 
         private static void ReportParameterErrors(
@@ -178,25 +307,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Conversion conversion = binder.Conversions.ClassifyImplicitConversionFromExpression(defaultExpression, parameterType, ref useSiteDiagnostics);
             diagnostics.Add(defaultExpression.Syntax, useSiteDiagnostics);
 
-            // SPEC VIOLATION: 
-            // By the spec an optional parameter initializer is required to be either:
-            // * a constant,
-            // * new S() where S is a value type
-            // * default(S) where S is a value type.
-            // 
-            // The native compiler considers default(T) to be a valid
-            // initializer regardless of whether T is a value type
-            // reference type, type parameter type, and so on.
-            // We should consider simply allowing this in the spec.
-            //
-            // Also when valuetype S has a parameterless constructor, 
-            // new S() is clearly not a constant expression and should produce an error
-
-            bool isValidDefaultValue = (defaultExpression.ConstantValue != null) ||
-                                        (defaultExpression.Kind == BoundKind.DefaultOperator) ||
-                                        (defaultExpression.Kind == BoundKind.ObjectCreationExpression &&
-                                                ((BoundObjectCreationExpression)defaultExpression).Constructor.IsDefaultValueTypeConstructor());
-
             SyntaxToken outKeyword;
             SyntaxToken refKeyword;
             SyntaxToken paramsKeyword;
@@ -236,7 +346,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     hasErrors = true;
                 }
             }
-            else if (!defaultExpression.HasAnyErrors && !isValidDefaultValue)
+            else if (!defaultExpression.HasAnyErrors && !IsValidDefaultValue(defaultExpression))
             {
                 // error CS1736: Default parameter value for '{0}' must be a compile-time constant
                 diagnostics.Add(ErrorCode.ERR_DefaultValueMustBeConstant, parameterSyntax.Default.Value.Location, parameterSyntax.Identifier.ValueText);
@@ -253,7 +363,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 // error CS1750: A value of type '{0}' cannot be used as a default parameter because there are no standard conversions to type '{1}'
                 diagnostics.Add(ErrorCode.ERR_NoConversionForDefaultParam, parameterSyntax.Identifier.GetLocation(),
-                    defaultExpression.Type ?? defaultExpression.Display, parameterType);
+                    defaultExpression.Display, parameterType);
 
                 hasErrors = true;
             }
@@ -319,6 +429,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return hasErrors;
+        }
+
+        private static bool IsValidDefaultValue(BoundExpression expression)
+        {
+            // SPEC VIOLATION: 
+            // By the spec an optional parameter initializer is required to be either:
+            // * a constant,
+            // * new S() where S is a value type
+            // * default(S) where S is a value type.
+            // 
+            // The native compiler considers default(T) to be a valid
+            // initializer regardless of whether T is a value type
+            // reference type, type parameter type, and so on.
+            // We should consider simply allowing this in the spec.
+            //
+            // Also when valuetype S has a parameterless constructor, 
+            // new S() is clearly not a constant expression and should produce an error
+            return (expression.ConstantValue != null) ||
+                   (expression.Kind == BoundKind.DefaultExpression) ||
+                   (expression.Kind == BoundKind.ObjectCreationExpression &&
+                       IsValidDefaultValue((BoundObjectCreationExpression)expression));
+        }
+
+        private static bool IsValidDefaultValue(BoundObjectCreationExpression expression)
+        {
+            return expression.Constructor.IsDefaultValueTypeConstructor() && expression.InitializerExpressionOpt == null;
         }
 
         internal static MethodSymbol FindContainingGenericMethod(Symbol symbol)

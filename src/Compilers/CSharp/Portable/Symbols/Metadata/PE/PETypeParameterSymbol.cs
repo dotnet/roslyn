@@ -151,20 +151,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
 
             var moduleSymbol = containingType.ContainingPEModule;
-
-            EntityHandle[] constraints;
+            var metadataReader = moduleSymbol.Module.MetadataReader;
+            GenericParameterConstraintHandleCollection constraints;
 
             try
             {
-                constraints = moduleSymbol.Module.GetGenericParamConstraintsOrThrow(_handle);
+                constraints = metadataReader.GetGenericParameter(_handle).GetConstraints();
             }
             catch (BadImageFormatException)
             {
-                constraints = null;
+                constraints = default(GenericParameterConstraintHandleCollection);
                 Interlocked.CompareExchange(ref _lazyBoundsErrorInfo, new CSDiagnosticInfo(ErrorCode.ERR_BindToBogus, this), CSDiagnosticInfo.EmptyErrorInfo);
             }
 
-            if (constraints != null && constraints.Length > 0)
+            if (constraints.Count > 0)
             {
                 var symbolsBuilder = ArrayBuilder<TypeSymbol>.GetInstance();
                 MetadataDecoder tokenDecoder;
@@ -178,22 +178,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     tokenDecoder = new MetadataDecoder(moduleSymbol, containingType);
                 }
 
-                foreach (var constraint in constraints)
+                foreach (var constraintHandle in constraints)
                 {
-                    TypeSymbol typeSymbol = tokenDecoder.GetTypeOfToken(constraint);
+                    var constraint = metadataReader.GetGenericParameterConstraint(constraintHandle);
+                    var constraintTypeHandle = constraint.Type;
+
+                    TypeSymbol typeSymbol = tokenDecoder.GetTypeOfToken(constraintTypeHandle);
 
                     // Drop 'System.Object' constraint type.
-                    if (typeSymbol.SpecialType == Microsoft.CodeAnalysis.SpecialType.System_Object)
+                    if (typeSymbol.SpecialType == SpecialType.System_Object)
                     {
                         continue;
                     }
 
                     // Drop 'System.ValueType' constraint type if the 'valuetype' constraint was also specified.
                     if (((_flags & GenericParameterAttributes.NotNullableValueTypeConstraint) != 0) &&
-                        (typeSymbol.SpecialType == Microsoft.CodeAnalysis.SpecialType.System_ValueType))
+                        (typeSymbol.SpecialType == SpecialType.System_ValueType))
                     {
                         continue;
                     }
+
+                    typeSymbol = TupleTypeDecoder.DecodeTupleTypesIfApplicable(typeSymbol,
+                                                                               constraintHandle,
+                                                                               moduleSymbol);
 
                     symbolsBuilder.Add(typeSymbol);
                 }

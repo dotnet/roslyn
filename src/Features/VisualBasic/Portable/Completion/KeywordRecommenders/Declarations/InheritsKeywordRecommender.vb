@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Decl
         Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As IEnumerable(Of RecommendedKeyword)
             ' Inherits must be the first thing in the class, by rule.
             If context.IsAfterStatementOfKind(SyntaxKind.ClassStatement, SyntaxKind.InterfaceStatement) Then
-                Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("Inherits", VBFeaturesResources.InheritsKeywordToolTip))
+                Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("Inherits", VBFeaturesResources.Causes_the_current_class_or_interface_to_inherit_the_attributes_variables_properties_procedures_and_events_from_another_class_or_set_of_interfaces))
             End If
 
             ' Inherits may also after other Inherits statements in an interface
@@ -23,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Decl
             If context.IsAfterStatementOfKind(SyntaxKind.InheritsStatement) AndAlso
                TypeOf typeBlock Is InterfaceBlockSyntax Then
 
-                Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("Inherits", VBFeaturesResources.InheritsKeywordToolTip))
+                Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("Inherits", VBFeaturesResources.Causes_the_current_class_or_interface_to_inherit_the_attributes_variables_properties_procedures_and_events_from_another_class_or_set_of_interfaces))
             End If
 
             Return SpecializedCollections.EmptyEnumerable(Of RecommendedKeyword)()

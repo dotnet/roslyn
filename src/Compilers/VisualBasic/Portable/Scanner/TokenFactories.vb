@@ -6,7 +6,9 @@
 Option Compare Binary
 
 Imports System.Runtime.CompilerServices
+Imports Microsoft.CodeAnalysis.Syntax.InternalSyntax
 Imports Microsoft.CodeAnalysis.VisualBasic.SyntaxFacts
+Imports CoreInternalSyntax = Microsoft.CodeAnalysis.Syntax.InternalSyntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
     Partial Friend Class Scanner
@@ -65,7 +67,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Return code
             End Function
 
-        Private Shared ReadOnly s_wsListKeyEquality As Func(Of SyntaxListBuilder, SyntaxList(Of VisualBasicSyntaxNode), Boolean) =
+        Private Shared ReadOnly s_wsListKeyEquality As Func(Of SyntaxListBuilder, CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode), Boolean) =
             Function(builder, list)
                 If builder.Count <> list.Count Then
                     Return False
@@ -79,7 +81,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Return True
             End Function
 
-        Private Shared ReadOnly s_wsListFactory As Func(Of SyntaxListBuilder, SyntaxList(Of VisualBasicSyntaxNode)) =
+        Private Shared ReadOnly s_wsListFactory As Func(Of SyntaxListBuilder, CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode)) =
             Function(builder)
                 Return builder.ToList(Of VisualBasicSyntaxNode)()
             End Function
@@ -90,10 +92,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Private Structure TokenParts
             Friend ReadOnly spelling As String
-            Friend ReadOnly pTrivia As VisualBasicSyntaxNode
-            Friend ReadOnly fTrivia As VisualBasicSyntaxNode
+            Friend ReadOnly pTrivia As GreenNode
+            Friend ReadOnly fTrivia As GreenNode
 
-            Friend Sub New(pTrivia As SyntaxList(Of VisualBasicSyntaxNode), fTrivia As SyntaxList(Of VisualBasicSyntaxNode), spelling As String)
+            Friend Sub New(pTrivia As CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode), fTrivia As CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode), spelling As String)
                 Me.spelling = spelling
                 Me.pTrivia = pTrivia.Node
                 Me.fTrivia = fTrivia.Node
@@ -134,7 +136,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Private Shared Function CanCache(trivia As SyntaxListBuilder) As Boolean
             For i = 0 To trivia.Count - 1
                 Dim t = trivia(i)
-                Select Case t.Kind
+                Select Case t.RawKind
                     Case SyntaxKind.WhitespaceTrivia,
                         SyntaxKind.EndOfLineTrivia,
                         SyntaxKind.LineContinuationTrivia,
@@ -220,11 +222,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return SyntaxFactory.SyntaxTrivia(SyntaxKind.CommentTrivia, text)
         End Function
 
-        Friend Function MakeTriviaArray(builder As SyntaxListBuilder) As SyntaxList(Of VisualBasicSyntaxNode)
+        Friend Function MakeTriviaArray(builder As SyntaxListBuilder) As CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode)
             If builder.Count = 0 Then
                 Return Nothing
             End If
-            Dim foundTrivia As SyntaxList(Of VisualBasicSyntaxNode) = Nothing
+            Dim foundTrivia As CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode) = Nothing
             Dim useCache = CanCache(builder)
 
             If useCache Then
@@ -242,7 +244,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                                        isBracketed As Boolean,
                                        BaseSpelling As String,
                                        TypeCharacter As TypeCharacter,
-                                       leadingTrivia As SyntaxList(Of VisualBasicSyntaxNode)) As IdentifierTokenSyntax
+                                       leadingTrivia As CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode)) As IdentifierTokenSyntax
 
             Dim followingTrivia = ScanSingleLineTrivia()
 
@@ -271,8 +273,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                                isBracketed As Boolean,
                                BaseSpelling As String,
                                TypeCharacter As TypeCharacter,
-                               precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode),
-                               followingTrivia As SyntaxList(Of VisualBasicSyntaxNode)) As IdentifierTokenSyntax
+                               precedingTrivia As CoreInternalSyntax.SyntaxList(Of GreenNode),
+                               followingTrivia As CoreInternalSyntax.SyntaxList(Of GreenNode)) As IdentifierTokenSyntax
 
             Dim tp As New TokenParts(precedingTrivia, followingTrivia, spelling)
 
@@ -300,7 +302,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Private Function MakeKeyword(tokenType As SyntaxKind,
                                      spelling As String,
-                                     precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode)) As KeywordSyntax
+                                     precedingTrivia As CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode)) As KeywordSyntax
 
             Dim followingTrivia = ScanSingleLineTrivia()
 
@@ -332,8 +334,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Private Function MakeKeyword(tokenType As SyntaxKind,
                               spelling As String,
-                              precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode),
-                              followingTrivia As SyntaxList(Of VisualBasicSyntaxNode)) As KeywordSyntax
+                              precedingTrivia As CoreInternalSyntax.SyntaxList(Of GreenNode),
+                              followingTrivia As CoreInternalSyntax.SyntaxList(Of GreenNode)) As KeywordSyntax
 
             Dim tp As New TokenParts(precedingTrivia, followingTrivia, spelling)
 
@@ -349,7 +351,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 #End Region
 
 #Region "Punctuation"
-        Friend Function MakePunctuationToken(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode),
+        Friend Function MakePunctuationToken(precedingTrivia As CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode),
                                               spelling As String,
                                               kind As SyntaxKind) As PunctuationSyntax
 
@@ -357,7 +359,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return MakePunctuationToken(kind, spelling, precedingTrivia, followingTrivia)
         End Function
 
-        Private Function MakePunctuationToken(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode),
+        Private Function MakePunctuationToken(precedingTrivia As CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode),
                                               length As Integer,
                                               kind As SyntaxKind) As PunctuationSyntax
 
@@ -368,8 +370,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Function MakePunctuationToken(kind As SyntaxKind,
                                       spelling As String,
-                                      precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode),
-                                      followingTrivia As SyntaxList(Of VisualBasicSyntaxNode)
+                                      precedingTrivia As CoreInternalSyntax.SyntaxList(Of GreenNode),
+                                      followingTrivia As CoreInternalSyntax.SyntaxList(Of GreenNode)
                       ) As PunctuationSyntax
 
             Dim tp As New TokenParts(precedingTrivia, followingTrivia, spelling)
@@ -384,70 +386,70 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return p
         End Function
 
-        Private Function MakeOpenParenToken(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode), charIsFullWidth As Boolean) As PunctuationSyntax
+        Private Function MakeOpenParenToken(precedingTrivia As CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode), charIsFullWidth As Boolean) As PunctuationSyntax
             Dim spelling = If(charIsFullWidth, FULLWIDTH_LEFT_PARENTHESIS_STRING, "(")
             AdvanceChar()
 
             Return MakePunctuationToken(precedingTrivia, spelling, SyntaxKind.OpenParenToken)
         End Function
 
-        Private Function MakeCloseParenToken(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode), charIsFullWidth As Boolean) As PunctuationSyntax
+        Private Function MakeCloseParenToken(precedingTrivia As CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode), charIsFullWidth As Boolean) As PunctuationSyntax
             Dim spelling = If(charIsFullWidth, FULLWIDTH_RIGHT_PARENTHESIS_STRING, ")")
             AdvanceChar()
 
             Return MakePunctuationToken(precedingTrivia, spelling, SyntaxKind.CloseParenToken)
         End Function
 
-        Private Function MakeDotToken(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode), charIsFullWidth As Boolean) As PunctuationSyntax
+        Private Function MakeDotToken(precedingTrivia As CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode), charIsFullWidth As Boolean) As PunctuationSyntax
             Dim spelling = If(charIsFullWidth, FULLWIDTH_FULL_STOP_STRING, ".")
             AdvanceChar()
 
             Return MakePunctuationToken(precedingTrivia, spelling, SyntaxKind.DotToken)
         End Function
 
-        Private Function MakeCommaToken(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode), charIsFullWidth As Boolean) As PunctuationSyntax
+        Private Function MakeCommaToken(precedingTrivia As CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode), charIsFullWidth As Boolean) As PunctuationSyntax
             Dim spelling = If(charIsFullWidth, FULLWIDTH_COMMA_STRING, ",")
             AdvanceChar()
 
             Return MakePunctuationToken(precedingTrivia, spelling, SyntaxKind.CommaToken)
         End Function
 
-        Private Function MakeEqualsToken(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode), charIsFullWidth As Boolean) As PunctuationSyntax
+        Private Function MakeEqualsToken(precedingTrivia As CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode), charIsFullWidth As Boolean) As PunctuationSyntax
             Dim spelling = If(charIsFullWidth, FULLWIDTH_EQUALS_SIGN_STRING, "=")
             AdvanceChar()
 
             Return MakePunctuationToken(precedingTrivia, spelling, SyntaxKind.EqualsToken)
         End Function
 
-        Private Function MakeHashToken(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode), charIsFullWidth As Boolean) As PunctuationSyntax
+        Private Function MakeHashToken(precedingTrivia As CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode), charIsFullWidth As Boolean) As PunctuationSyntax
             Dim spelling = If(charIsFullWidth, FULLWIDTH_NUMBER_SIGN_STRING, "#")
             AdvanceChar()
 
             Return MakePunctuationToken(precedingTrivia, spelling, SyntaxKind.HashToken)
         End Function
 
-        Private Function MakeAmpersandToken(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode), charIsFullWidth As Boolean) As PunctuationSyntax
+        Private Function MakeAmpersandToken(precedingTrivia As CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode), charIsFullWidth As Boolean) As PunctuationSyntax
             Dim spelling = If(charIsFullWidth, FULLWIDTH_AMPERSAND_STRING, "&")
             AdvanceChar()
 
             Return MakePunctuationToken(precedingTrivia, spelling, SyntaxKind.AmpersandToken)
         End Function
 
-        Private Function MakeOpenBraceToken(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode), charIsFullWidth As Boolean) As PunctuationSyntax
+        Private Function MakeOpenBraceToken(precedingTrivia As CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode), charIsFullWidth As Boolean) As PunctuationSyntax
             Dim spelling = If(charIsFullWidth, FULLWIDTH_LEFT_CURLY_BRACKET_STRING, "{")
             AdvanceChar()
 
             Return MakePunctuationToken(precedingTrivia, spelling, SyntaxKind.OpenBraceToken)
         End Function
 
-        Private Function MakeCloseBraceToken(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode), charIsFullWidth As Boolean) As PunctuationSyntax
+        Private Function MakeCloseBraceToken(precedingTrivia As CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode), charIsFullWidth As Boolean) As PunctuationSyntax
             Dim spelling = If(charIsFullWidth, FULLWIDTH_RIGHT_CURLY_BRACKET_STRING, "}")
             AdvanceChar()
 
             Return MakePunctuationToken(precedingTrivia, spelling, SyntaxKind.CloseBraceToken)
         End Function
 
-        Private Function MakeColonToken(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode), charIsFullWidth As Boolean) As PunctuationSyntax
+        Private Function MakeColonToken(precedingTrivia As CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode), charIsFullWidth As Boolean) As PunctuationSyntax
             Debug.Assert(Peek() = If(charIsFullWidth, FULLWIDTH_COLON, ":"c))
             Debug.Assert(Not precedingTrivia.Any())
 
@@ -460,74 +462,74 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return SyntaxFactory.ColonToken
         End Function
 
-        Private Function MakeEmptyToken(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode)) As PunctuationSyntax
+        Private Function MakeEmptyToken(precedingTrivia As CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode)) As PunctuationSyntax
             Return MakePunctuationToken(precedingTrivia, "", SyntaxKind.EmptyToken)
         End Function
 
-        Private Function MakePlusToken(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode), charIsFullWidth As Boolean) As PunctuationSyntax
+        Private Function MakePlusToken(precedingTrivia As CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode), charIsFullWidth As Boolean) As PunctuationSyntax
             Dim spelling = If(charIsFullWidth, FULLWIDTH_PLUS_SIGN_STRING, "+")
             AdvanceChar()
 
             Return MakePunctuationToken(precedingTrivia, spelling, SyntaxKind.PlusToken)
         End Function
 
-        Private Function MakeMinusToken(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode), charIsFullWidth As Boolean) As PunctuationSyntax
+        Private Function MakeMinusToken(precedingTrivia As CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode), charIsFullWidth As Boolean) As PunctuationSyntax
             Dim spelling = If(charIsFullWidth, FULLWIDTH_HYPHEN_MINUS_STRING, "-")
             AdvanceChar()
 
             Return MakePunctuationToken(precedingTrivia, spelling, SyntaxKind.MinusToken)
         End Function
 
-        Private Function MakeAsteriskToken(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode), charIsFullWidth As Boolean) As PunctuationSyntax
+        Private Function MakeAsteriskToken(precedingTrivia As CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode), charIsFullWidth As Boolean) As PunctuationSyntax
             Dim spelling = If(charIsFullWidth, FULLWIDTH_ASTERISK_STRING, "*")
             AdvanceChar()
 
             Return MakePunctuationToken(precedingTrivia, spelling, SyntaxKind.AsteriskToken)
         End Function
 
-        Private Function MakeSlashToken(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode), charIsFullWidth As Boolean) As PunctuationSyntax
+        Private Function MakeSlashToken(precedingTrivia As CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode), charIsFullWidth As Boolean) As PunctuationSyntax
             Dim spelling = If(charIsFullWidth, FULLWIDTH_SOLIDUS_STRING, "/")
             AdvanceChar()
 
             Return MakePunctuationToken(precedingTrivia, spelling, SyntaxKind.SlashToken)
         End Function
 
-        Private Function MakeBackslashToken(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode), charIsFullWidth As Boolean) As PunctuationSyntax
+        Private Function MakeBackslashToken(precedingTrivia As CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode), charIsFullWidth As Boolean) As PunctuationSyntax
             Dim spelling = If(charIsFullWidth, FULLWIDTH_REVERSE_SOLIDUS_STRING, "\")
             AdvanceChar()
 
             Return MakePunctuationToken(precedingTrivia, spelling, SyntaxKind.BackslashToken)
         End Function
 
-        Private Function MakeCaretToken(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode), charIsFullWidth As Boolean) As PunctuationSyntax
+        Private Function MakeCaretToken(precedingTrivia As CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode), charIsFullWidth As Boolean) As PunctuationSyntax
             Dim spelling = If(charIsFullWidth, FULLWIDTH_CIRCUMFLEX_ACCENT_STRING, "^")
             AdvanceChar()
 
             Return MakePunctuationToken(precedingTrivia, spelling, SyntaxKind.CaretToken)
         End Function
 
-        Private Function MakeExclamationToken(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode), charIsFullWidth As Boolean) As PunctuationSyntax
+        Private Function MakeExclamationToken(precedingTrivia As CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode), charIsFullWidth As Boolean) As PunctuationSyntax
             Dim spelling = If(charIsFullWidth, FULLWIDTH_EXCLAMATION_MARK_STRING, "!")
             AdvanceChar()
 
             Return MakePunctuationToken(precedingTrivia, spelling, SyntaxKind.ExclamationToken)
         End Function
 
-        Private Function MakeQuestionToken(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode), charIsFullWidth As Boolean) As PunctuationSyntax
+        Private Function MakeQuestionToken(precedingTrivia As CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode), charIsFullWidth As Boolean) As PunctuationSyntax
             Dim spelling = If(charIsFullWidth, FULLWIDTH_QUESTION_MARK_STRING, "?")
             AdvanceChar()
 
             Return MakePunctuationToken(precedingTrivia, spelling, SyntaxKind.QuestionToken)
         End Function
 
-        Private Function MakeGreaterThanToken(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode), charIsFullWidth As Boolean) As PunctuationSyntax
+        Private Function MakeGreaterThanToken(precedingTrivia As CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode), charIsFullWidth As Boolean) As PunctuationSyntax
             Dim spelling = If(charIsFullWidth, FULLWIDTH_GREATER_THAN_SIGN_STRING, ">")
             AdvanceChar()
 
             Return MakePunctuationToken(precedingTrivia, spelling, SyntaxKind.GreaterThanToken)
         End Function
 
-        Private Function MakeLessThanToken(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode), charIsFullWidth As Boolean) As PunctuationSyntax
+        Private Function MakeLessThanToken(precedingTrivia As CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode), charIsFullWidth As Boolean) As PunctuationSyntax
             Dim spelling = If(charIsFullWidth, FULLWIDTH_LESS_THAN_SIGN_STRING, "<")
             AdvanceChar()
 
@@ -536,7 +538,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         ' ==== TOKENS WITH NOT FIXED SPELLING
 
-        Private Function MakeStatementTerminatorToken(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode), width As Integer) As PunctuationSyntax
+        Private Function MakeStatementTerminatorToken(precedingTrivia As CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode), width As Integer) As PunctuationSyntax
             Debug.Assert(_endOfTerminatorTrivia = _lineBufferOffset + width)
             Debug.Assert(width = 1 OrElse width = 2)
             Debug.Assert(Not precedingTrivia.Any())
@@ -547,67 +549,67 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return SyntaxFactory.StatementTerminatorToken
         End Function
 
-        Private Function MakeAmpersandEqualsToken(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode), length As Integer) As PunctuationSyntax
+        Private Function MakeAmpersandEqualsToken(precedingTrivia As CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode), length As Integer) As PunctuationSyntax
             Return MakePunctuationToken(precedingTrivia, length, SyntaxKind.AmpersandEqualsToken)
         End Function
 
-        Private Function MakeColonEqualsToken(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode), length As Integer) As PunctuationSyntax
+        Private Function MakeColonEqualsToken(precedingTrivia As CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode), length As Integer) As PunctuationSyntax
             Return MakePunctuationToken(precedingTrivia, length, SyntaxKind.ColonEqualsToken)
         End Function
 
-        Private Function MakePlusEqualsToken(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode), length As Integer) As PunctuationSyntax
+        Private Function MakePlusEqualsToken(precedingTrivia As CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode), length As Integer) As PunctuationSyntax
             Return MakePunctuationToken(precedingTrivia, length, SyntaxKind.PlusEqualsToken)
         End Function
 
-        Private Function MakeMinusEqualsToken(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode), length As Integer) As PunctuationSyntax
+        Private Function MakeMinusEqualsToken(precedingTrivia As CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode), length As Integer) As PunctuationSyntax
             Return MakePunctuationToken(precedingTrivia, length, SyntaxKind.MinusEqualsToken)
         End Function
 
-        Private Function MakeAsteriskEqualsToken(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode), length As Integer) As PunctuationSyntax
+        Private Function MakeAsteriskEqualsToken(precedingTrivia As CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode), length As Integer) As PunctuationSyntax
             Return MakePunctuationToken(precedingTrivia, length, SyntaxKind.AsteriskEqualsToken)
         End Function
 
-        Private Function MakeSlashEqualsToken(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode), length As Integer) As PunctuationSyntax
+        Private Function MakeSlashEqualsToken(precedingTrivia As CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode), length As Integer) As PunctuationSyntax
             Return MakePunctuationToken(precedingTrivia, length, SyntaxKind.SlashEqualsToken)
         End Function
 
-        Private Function MakeBackSlashEqualsToken(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode), length As Integer) As PunctuationSyntax
+        Private Function MakeBackSlashEqualsToken(precedingTrivia As CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode), length As Integer) As PunctuationSyntax
             Return MakePunctuationToken(precedingTrivia, length, SyntaxKind.BackslashEqualsToken)
         End Function
 
-        Private Function MakeCaretEqualsToken(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode), length As Integer) As PunctuationSyntax
+        Private Function MakeCaretEqualsToken(precedingTrivia As CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode), length As Integer) As PunctuationSyntax
             Return MakePunctuationToken(precedingTrivia, length, SyntaxKind.CaretEqualsToken)
         End Function
 
-        Private Function MakeGreaterThanEqualsToken(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode), length As Integer) As PunctuationSyntax
+        Private Function MakeGreaterThanEqualsToken(precedingTrivia As CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode), length As Integer) As PunctuationSyntax
             Return MakePunctuationToken(precedingTrivia, length, SyntaxKind.GreaterThanEqualsToken)
         End Function
 
-        Private Function MakeLessThanEqualsToken(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode), length As Integer) As PunctuationSyntax
+        Private Function MakeLessThanEqualsToken(precedingTrivia As CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode), length As Integer) As PunctuationSyntax
             Return MakePunctuationToken(precedingTrivia, length, SyntaxKind.LessThanEqualsToken)
         End Function
 
-        Private Function MakeLessThanGreaterThanToken(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode), length As Integer) As PunctuationSyntax
+        Private Function MakeLessThanGreaterThanToken(precedingTrivia As CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode), length As Integer) As PunctuationSyntax
             Return MakePunctuationToken(precedingTrivia, length, SyntaxKind.LessThanGreaterThanToken)
         End Function
 
-        Private Function MakeLessThanLessThanToken(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode), length As Integer) As PunctuationSyntax
+        Private Function MakeLessThanLessThanToken(precedingTrivia As CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode), length As Integer) As PunctuationSyntax
             Return MakePunctuationToken(precedingTrivia, length, SyntaxKind.LessThanLessThanToken)
         End Function
 
-        Private Function MakeGreaterThanGreaterThanToken(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode), length As Integer) As PunctuationSyntax
+        Private Function MakeGreaterThanGreaterThanToken(precedingTrivia As CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode), length As Integer) As PunctuationSyntax
             Return MakePunctuationToken(precedingTrivia, length, SyntaxKind.GreaterThanGreaterThanToken)
         End Function
 
-        Private Function MakeLessThanLessThanEqualsToken(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode), length As Integer) As PunctuationSyntax
+        Private Function MakeLessThanLessThanEqualsToken(precedingTrivia As CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode), length As Integer) As PunctuationSyntax
             Return MakePunctuationToken(precedingTrivia, length, SyntaxKind.LessThanLessThanEqualsToken)
         End Function
 
-        Private Function MakeGreaterThanGreaterThanEqualsToken(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode), length As Integer) As PunctuationSyntax
+        Private Function MakeGreaterThanGreaterThanEqualsToken(precedingTrivia As CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode), length As Integer) As PunctuationSyntax
             Return MakePunctuationToken(precedingTrivia, length, SyntaxKind.GreaterThanGreaterThanEqualsToken)
         End Function
 
-        Private Function MakeAtToken(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode), charIsFullWidth As Boolean) As PunctuationSyntax
+        Private Function MakeAtToken(precedingTrivia As CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode), charIsFullWidth As Boolean) As PunctuationSyntax
             Dim spelling = If(charIsFullWidth, FULLWIDTH_COMMERCIAL_AT_STRING, "@")
             AdvanceChar()
 
@@ -617,7 +619,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 #End Region
 
 #Region "Literals"
-        Private Function MakeIntegerLiteralToken(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode),
+        Private Function MakeIntegerLiteralToken(precedingTrivia As CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode),
                                          base As LiteralBase,
                                          typeCharacter As TypeCharacter,
                                          integralValue As ULong,
@@ -645,7 +647,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return p
         End Function
 
-        Private Function MakeCharacterLiteralToken(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode), value As Char, length As Integer) As SyntaxToken
+        Private Function MakeCharacterLiteralToken(precedingTrivia As CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode), value As Char, length As Integer) As SyntaxToken
             Dim spelling = GetText(length)
             Dim followingTrivia = ScanSingleLineTrivia()
 
@@ -661,7 +663,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return p
         End Function
 
-        Private Function MakeDateLiteralToken(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode), value As DateTime, length As Integer) As SyntaxToken
+        Private Function MakeDateLiteralToken(precedingTrivia As CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode), value As DateTime, length As Integer) As SyntaxToken
             Dim spelling = GetText(length)
             Dim followingTrivia = ScanSingleLineTrivia()
 
@@ -677,7 +679,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return p
         End Function
 
-        Private Function MakeFloatingLiteralToken(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode),
+        Private Function MakeFloatingLiteralToken(precedingTrivia As CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode),
                                          typeCharacter As TypeCharacter,
                                          floatingValue As Double,
                                          length As Integer) As SyntaxToken
@@ -703,7 +705,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return p
         End Function
 
-        Private Function MakeDecimalLiteralToken(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode),
+        Private Function MakeDecimalLiteralToken(precedingTrivia As CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode),
                                  typeCharacter As TypeCharacter,
                                  decimalValue As Decimal,
                                  length As Integer) As SyntaxToken
@@ -732,7 +734,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         ' BAD TOKEN
 
-        Private Function MakeBadToken(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode), length As Integer, errId As ERRID) As SyntaxToken
+        Private Function MakeBadToken(precedingTrivia As CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode), length As Integer, errId As ERRID) As SyntaxToken
             Dim spelling = GetTextNotInterned(length)
             Dim followingTrivia = ScanSingleLineTrivia()
 
@@ -741,7 +743,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return DirectCast(errResult1, SyntaxToken)
         End Function
 
-        Private Shared Function MakeEofToken(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode)) As SyntaxToken
+        Private Shared Function MakeEofToken(precedingTrivia As CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode)) As SyntaxToken
             Return SyntaxFactory.Token(precedingTrivia.Node, SyntaxKind.EndOfFileToken, Nothing, String.Empty)
         End Function
 
@@ -749,6 +751,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Private Function MakeEofToken() As SyntaxToken
             Return _simpleEof
         End Function
-
     End Class
 End Namespace

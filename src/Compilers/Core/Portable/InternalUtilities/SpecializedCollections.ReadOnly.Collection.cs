@@ -45,13 +45,7 @@ namespace Roslyn.Utilities
                     }
                 }
 
-                public bool IsReadOnly
-                {
-                    get
-                    {
-                        return true;
-                    }
-                }
+                public bool IsReadOnly => true;
 
                 public bool Remove(T item)
                 {

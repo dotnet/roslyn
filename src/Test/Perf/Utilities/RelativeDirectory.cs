@@ -9,80 +9,86 @@ namespace Roslyn.Test.Performance.Utilities
 {
     public class RelativeDirectory
     {
-        string _workingDir;
+        private string _workingDir;
 
-        public RelativeDirectory([CallerFilePath] string workingFile = "")
+
+        public RelativeDirectory()
         {
-            _workingDir = Directory.GetParent(workingFile).FullName;
         }
 
-        public string MyWorkingDirectory => _workingDir;
+        public RelativeDirectory(string workingDir)
+        {
+            _workingDir = workingDir;
+        }
 
+        public void SetWorkingDirectory(string workingDir)
+        {
+            _workingDir = workingDir;
+        }
+
+        private void ThrowIfNotSetup()
+        {
+            if (_workingDir == null)
+            {
+                throw new InvalidOperationException("The test has not been set up correctly.  Avoid doing any directory operations in the constructor.");
+            }
+        }
+
+        /// <summary>
+        /// Returns the current working directory that the test has access to.  
+        /// This is typically the same directory as the script is located in.
+        /// </summary>
+        public string MyWorkingDirectory
+        {
+            get
+            {
+                ThrowIfNotSetup();
+                return _workingDir;
+            }
+        }
+
+        /// <summary>
+        /// Returns a directory that the test can use for temporary file storage.
+        /// </summary>
         public string TempDirectory
         {
             get
             {
+                ThrowIfNotSetup();
                 var tempDirectory = Environment.ExpandEnvironmentVariables(@"%SYSTEMDRIVE%\PerfTemp");
                 Directory.CreateDirectory(tempDirectory);
                 return tempDirectory;
             }
         }
 
-        public string RoslynDirectory
-        {
-            get
-            {
-                var workingDir = MyWorkingDirectory;
-                var binaryDebug = Path.Combine("Binaries", "Debug").ToString();
-                int binaryDebugIndex = workingDir.IndexOf(binaryDebug, StringComparison.OrdinalIgnoreCase);
-                if (binaryDebugIndex != -1)
-                {
-                    return workingDir.Substring(0, binaryDebugIndex);
-                }
-
-                var binaryRelease = Path.Combine("Binaries", "Release").ToString();
-                return workingDir.Substring(0, workingDir.IndexOf(binaryRelease, StringComparison.OrdinalIgnoreCase));
-            }
-        }
-
+        /// <summary>
+        /// Returns the directory that contains built roslyn binaries.  Usually this will be 
+        /// Binaries/Debug or Binaries/Release.
+        /// </summary>
+        /// <returns></returns>
         public string MyBinaries()
         {
+            ThrowIfNotSetup();
             // The exceptation is that scripts calling this are included
             // in a project in the solution and have already been deployed
             // to a binaries folder
 
-            // Debug?
-            var debug = "debug";
-            var debugIndex = _workingDir.IndexOf(debug, StringComparison.CurrentCultureIgnoreCase);
-            if (debugIndex != -1)
+            foreach (var configuration in new string[] {"debug", "release"})
             {
-                return _workingDir.Substring(0, debugIndex + debug.Length);
-            }
-
-            // Release?
-            var release = "release";
-            var releaseIndex = _workingDir.IndexOf(release, StringComparison.CurrentCultureIgnoreCase);
-            if (releaseIndex != -1)
-            {
-                return _workingDir.Substring(0, releaseIndex + release.Length);
+                var configurationIndex = _workingDir.IndexOf(configuration, StringComparison.CurrentCultureIgnoreCase);
+                if (configurationIndex != -1)
+                {
+                    return _workingDir.Substring(0, configurationIndex + configuration.Length);
+                }
             }
 
             throw new Exception("Couldn't find binaries. Are you running from the binaries directory?");
         }
 
-        public string TaoPath => Path.Combine(MyBinaries(), "Tao");
-
-        public string CPCDirectoryPath
-        {
-            get
-            {
-                return Environment.ExpandEnvironmentVariables(@"%SYSTEMDRIVE%\CPC");
-            }
-        }
-
-        public string GetViBenchToJsonExeFilePath => Path.Combine(CPCDirectoryPath, "ViBenchToJson.exe");
-
-
+        /// <returns>
+        /// The path to TAO
+        /// </returns>
+        public string TaoPath => Path.Combine(MyBinaries(), "exes", "EditorTestApp", "Tao");
 
         /// Downloads a zip from azure store and extracts it into
         /// the ./temp directory.
@@ -91,13 +97,14 @@ namespace Roslyn.Test.Performance.Utilities
         /// and extracted, do nothing.
         public void DownloadProject(string name, int version, ILogger logger)
         {
+            ThrowIfNotSetup();
             var zipFileName = $"{name}.{version}.zip";
             var zipPath = Path.Combine(TempDirectory, zipFileName);
             // If we've already downloaded the zip, assume that it
             // has been downloaded *and* extracted.
             if (File.Exists(zipPath))
             {
-                logger.Log($"Didn't download and extract {zipFileName} because one already exists.");
+                logger.Log($"Didn't download and extract {zipFileName} because one already exists at {zipPath}.");
                 return;
             }
 

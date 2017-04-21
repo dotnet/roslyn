@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
                 return false;
             }
 
-            var textView = interactiveWorkspace.Engine.CurrentWindow.TextView;
+            var textView = interactiveWorkspace.Window.TextView;
             var document = interactiveWorkspace.CurrentSolution.GetDocument(documentId);
 
             var textSnapshot = document.GetTextAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None).FindCorrespondingEditorTextSnapshot();

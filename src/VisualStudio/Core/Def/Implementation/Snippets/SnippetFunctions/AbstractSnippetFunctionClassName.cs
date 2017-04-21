@@ -25,9 +25,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
         {
             hasDefaultValue = 0;
             value = string.Empty;
-
-            Document document;
-            if (!TryGetDocument(out document))
+            if (!TryGetDocument(out var document))
             {
                 return VSConstants.E_FAIL;
             }
@@ -38,8 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 return VSConstants.E_FAIL;
             }
 
-            SnapshotSpan subjectBufferFieldSpan;
-            if (!snippetExpansionClient.TryGetSubjectBufferSpan(surfaceBufferFieldSpan[0], out subjectBufferFieldSpan))
+            if (!snippetExpansionClient.TryGetSubjectBufferSpan(surfaceBufferFieldSpan[0], out var subjectBufferFieldSpan))
             {
                 return VSConstants.E_FAIL;
             }

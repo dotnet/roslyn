@@ -142,9 +142,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             }
 
             var trackingPoint = _trackingPoints[index];
-
-            SourceText text;
-            if (!document.TryGetText(out text))
+            if (!document.TryGetText(out var text))
             {
                 return LinePosition.Zero;
             }
@@ -204,13 +202,27 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
         private string Combine(string path1, string path2)
         {
-            string result;
-            if (FilePathUtilities.TryCombine(path1, path2, out result))
+            if (TryCombine(path1, path2, out var result))
             {
                 return result;
             }
 
             return string.Empty;
+        }
+
+        public static bool TryCombine(string path1, string path2, out string result)
+        {
+            try
+            {
+                // don't throw exception when either path1 or path2 contains illegal path char
+                result = System.IO.Path.Combine(path1, path2);
+                return true;
+            }
+            catch
+            {
+                result = null;
+                return false;
+            }
         }
 
         // we don't use these

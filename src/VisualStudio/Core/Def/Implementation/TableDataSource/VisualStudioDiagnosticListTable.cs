@@ -4,7 +4,6 @@ using System;
 using System.ComponentModel;
 using System.ComponentModel.Composition;
 using System.Linq;
-using System.Reflection;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -27,7 +26,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         private readonly IErrorList _errorList;
         private readonly LiveTableDataSource _liveTableSource;
         private readonly BuildTableDataSource _buildTableSource;
-        
+
         private const string TypeScriptLanguageName = "TypeScript";
 
         [ImportingConstructor]
@@ -51,24 +50,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             _errorList.PropertyChanged += OnErrorListPropertyChanged;
             AddInitialTableSource(workspace.CurrentSolution, GetCurrentDataSource());
             SuppressionStateColumnDefinition.SetDefaultFilter(_errorList.TableControl);
-
-            if (ErrorListHasFullSolutionAnalysisButton())
-            {
-                SetupErrorListFullSolutionAnalysis(workspace);
-            }
-        }
-
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        private void SetupErrorListFullSolutionAnalysis(Workspace workspace)
-        {
-            var errorList2 = _errorList as IErrorList2;
-            if (errorList2 != null)
-            {
-                InitializeFullSolutionAnalysisState(workspace, errorList2);
-                errorList2.AnalysisToggleStateChanged += OnErrorListFullSolutionAnalysisToggled;
-                workspace.Services.GetService<IOptionService>().OptionChanged += OnOptionChanged;
-            }                
-
         }
 
         private ITableDataSource GetCurrentDataSource()
@@ -154,54 +135,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             if (e.PropertyName == nameof(IErrorList.AreOtherErrorSourceEntriesShown))
             {
                 AddTableSourceIfNecessary(this.Workspace.CurrentSolution);
-            }
-        }
-
-        private void OnOptionChanged(object sender, OptionChangedEventArgs e)
-        {
-            Contract.ThrowIfFalse(_errorList is IErrorList2);
-
-            if (e.Option == RuntimeOptions.FullSolutionAnalysis || e.Option == ServiceFeatureOnOffOptions.ClosedFileDiagnostic)
-            {
-                var analysisDisabled = !(bool)e.Value;
-                if (analysisDisabled)
-                {
-                    ((IErrorList2)_errorList).AnalysisToggleState = false;
-                }
-            }
-        }
-
-        private void OnErrorListFullSolutionAnalysisToggled(object sender, AnalysisToggleStateChangedEventArgs e)
-        {
-            Workspace.Options = Workspace.Options
-                .WithChangedOption(RuntimeOptions.FullSolutionAnalysis, e.NewState)
-                .WithChangedOption(ServiceFeatureOnOffOptions.ClosedFileDiagnostic, LanguageNames.CSharp, e.NewState)
-                .WithChangedOption(ServiceFeatureOnOffOptions.ClosedFileDiagnostic, LanguageNames.VisualBasic, e.NewState)
-                .WithChangedOption(ServiceFeatureOnOffOptions.ClosedFileDiagnostic, TypeScriptLanguageName, e.NewState);
-        }
-
-        private static void InitializeFullSolutionAnalysisState(Workspace workspace, IErrorList2 errorList2)
-        {
-            // Initialize the error list toggle state based on full solution analysis state for all supported languages.
-            var fullAnalysisState = workspace.Options.GetOption(RuntimeOptions.FullSolutionAnalysis) && 
-                ServiceFeatureOnOffOptions.IsClosedFileDiagnosticsEnabled(workspace.Options, LanguageNames.CSharp) &&
-                ServiceFeatureOnOffOptions.IsClosedFileDiagnosticsEnabled(workspace.Options, LanguageNames.VisualBasic) &&
-                ServiceFeatureOnOffOptions.IsClosedFileDiagnosticsEnabled(workspace.Options, TypeScriptLanguageName);
-            errorList2.AnalysisToggleState = fullAnalysisState;
-        }
-
-        internal static bool ErrorListHasFullSolutionAnalysisButton()
-        {
-            try
-            {
-                // Full solution analysis option has been moved to the error list from Dev14 Update3.
-                // Use reflection to check if the new interface "IErrorList2" exists in Microsoft.VisualStudio.Shell.XX.0.dll.
-                return typeof(ErrorHandler).Assembly.GetType("Microsoft.Internal.VisualStudio.Shell.IErrorList2") != null;
-            }
-            catch (Exception)
-            {
-                // Ignore exceptions.
-                return false;
             }
         }
     }

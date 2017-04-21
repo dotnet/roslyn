@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -11,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 {
     internal partial class ObjectCreationExpressionSignatureHelpProvider
     {
-        private IEnumerable<SignatureHelpItem> GetDelegateTypeConstructors(
+        private IList<SignatureHelpItem> GetDelegateTypeConstructors(
             ObjectCreationExpressionSyntax objectCreationExpression,
             SemanticModel semanticModel,
             ISymbolDisplayService symbolDisplayService,
@@ -37,10 +38,10 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 suffixParts: GetDelegateTypePostambleParts(invokeMethod),
                 parameters: GetDelegateTypeParameters(invokeMethod, semanticModel, position, cancellationToken));
 
-            return SpecializedCollections.SingletonEnumerable(item);
+            return SpecializedCollections.SingletonList(item);
         }
 
-        private IEnumerable<SymbolDisplayPart> GetDelegateTypePreambleParts(IMethodSymbol invokeMethod, SemanticModel semanticModel, int position)
+        private IList<SymbolDisplayPart> GetDelegateTypePreambleParts(IMethodSymbol invokeMethod, SemanticModel semanticModel, int position)
         {
             var result = new List<SymbolDisplayPart>();
 
@@ -50,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             return result;
         }
 
-        private IEnumerable<SignatureHelpParameter> GetDelegateTypeParameters(IMethodSymbol invokeMethod, SemanticModel semanticModel, int position, CancellationToken cancellationToken)
+        private IList<SignatureHelpSymbolParameter> GetDelegateTypeParameters(IMethodSymbol invokeMethod, SemanticModel semanticModel, int position, CancellationToken cancellationToken)
         {
             const string TargetName = "target";
 
@@ -76,16 +77,18 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             parts.Add(Space());
             parts.Add(new SymbolDisplayPart(SymbolDisplayPartKind.ParameterName, null, TargetName));
 
-            yield return new SignatureHelpParameter(
-                TargetName,
-                isOptional: false,
-                documentationFactory: null,
-                displayParts: parts);
+            return SpecializedCollections.SingletonList(
+                new SignatureHelpSymbolParameter(
+                    TargetName,
+                    isOptional: false,
+                    documentationFactory: null,
+                    displayParts: parts));
         }
 
-        private IEnumerable<SymbolDisplayPart> GetDelegateTypePostambleParts(IMethodSymbol invokeMethod)
+        private IList<SymbolDisplayPart> GetDelegateTypePostambleParts(IMethodSymbol invokeMethod)
         {
-            yield return Punctuation(SyntaxKind.CloseParenToken);
+            return SpecializedCollections.SingletonList(
+                Punctuation(SyntaxKind.CloseParenToken));
         }
     }
 }

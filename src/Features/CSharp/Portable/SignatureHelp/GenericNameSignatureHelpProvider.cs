@@ -38,8 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             CancellationToken cancellationToken,
             out SyntaxToken genericIdentifier, out SyntaxToken lessThanToken)
         {
-            GenericNameSyntax name;
-            if (CommonSignatureHelpUtilities.TryGetSyntax(root, position, syntaxFacts, triggerReason, IsTriggerToken, IsArgumentListToken, cancellationToken, out name))
+            if (CommonSignatureHelpUtilities.TryGetSyntax(root, position, syntaxFacts, triggerReason, IsTriggerToken, IsArgumentListToken, cancellationToken, out GenericNameSyntax name))
             {
                 genericIdentifier = name.Identifier;
                 lessThanToken = name.TypeArgumentList.LessThanToken;
@@ -70,10 +69,8 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
         protected override async Task<SignatureHelpItems> GetItemsWorkerAsync(Document document, int position, SignatureHelpTriggerInfo triggerInfo, CancellationToken cancellationToken)
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-
-            SyntaxToken genericIdentifier, lessThanToken;
             if (!TryGetGenericIdentifier(root, position, document.GetLanguageService<ISyntaxFactsService>(), triggerInfo.TriggerReason, cancellationToken,
-                    out genericIdentifier, out lessThanToken))
+                    out var genericIdentifier, out var lessThanToken))
             {
                 return null;
             }
@@ -115,8 +112,8 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 
             var symbolDisplayService = document.Project.LanguageServices.GetService<ISymbolDisplayService>();
             var accessibleSymbols =
-                symbols.Where(s => s.GetArity() > 0)
-                       .Where(s => s is INamedTypeSymbol || s is IMethodSymbol)
+                symbols.WhereAsArray(s => s.GetArity() > 0)
+                       .WhereAsArray(s => s is INamedTypeSymbol || s is IMethodSymbol)
                        .FilterToVisibleAndBrowsableSymbols(document.ShouldHideAdvancedMembers(), semanticModel.Compilation)
                        .Sort(symbolDisplayService, semanticModel, genericIdentifier.SpanStart);
 
@@ -131,21 +128,19 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
 
             return CreateSignatureHelpItems(accessibleSymbols.Select(s =>
-                Convert(s, lessThanToken, semanticModel, symbolDisplayService, anonymousTypeDisplayService, documentationCommentFormattingService, cancellationToken)),
+                Convert(s, lessThanToken, semanticModel, symbolDisplayService, anonymousTypeDisplayService, documentationCommentFormattingService, cancellationToken)).ToList(),
                 textSpan, GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken));
         }
 
         public override SignatureHelpState GetCurrentArgumentState(SyntaxNode root, int position, ISyntaxFactsService syntaxFacts, TextSpan currentSpan, CancellationToken cancellationToken)
         {
-            SyntaxToken genericIdentifier, lessThanToken;
             if (!TryGetGenericIdentifier(root, position, syntaxFacts, SignatureHelpTriggerReason.InvokeSignatureHelpCommand, cancellationToken,
-                    out genericIdentifier, out lessThanToken))
+                    out var genericIdentifier, out var lessThanToken))
             {
                 return null;
             }
 
-            GenericNameSyntax genericName;
-            if (genericIdentifier.TryParseGenericName(cancellationToken, out genericName))
+            if (genericIdentifier.TryParseGenericName(cancellationToken, out var genericName))
             {
                 // Because we synthesized the generic name, it will have an index starting at 0
                 // instead of at the actual position it's at in the text.  Because of this, we need to
@@ -176,9 +171,8 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             var position = lessThanToken.SpanStart;
 
             SignatureHelpItem item;
-            if (symbol is INamedTypeSymbol)
+            if (symbol is INamedTypeSymbol namedType)
             {
-                var namedType = (INamedTypeSymbol)symbol;
                 item = CreateItem(
                     symbol, semanticModel, position,
                     symbolDisplayService, anonymousTypeDisplayService,
@@ -187,7 +181,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                     GetPreambleParts(namedType, semanticModel, position),
                     GetSeparatorParts(),
                     GetPostambleParts(namedType),
-                    namedType.TypeParameters.Select(p => Convert(p, semanticModel, position, documentationCommentFormattingService, cancellationToken)));
+                    namedType.TypeParameters.Select(p => Convert(p, semanticModel, position, documentationCommentFormattingService, cancellationToken)).ToList());
             }
             else
             {
@@ -200,7 +194,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                     GetPreambleParts(method, semanticModel, position),
                     GetSeparatorParts(),
                     GetPostambleParts(method, semanticModel, position),
-                    method.TypeParameters.Select(p => Convert(p, semanticModel, position, documentationCommentFormattingService, cancellationToken)));
+                    method.TypeParameters.Select(p => Convert(p, semanticModel, position, documentationCommentFormattingService, cancellationToken)).ToList());
             }
 
             return item;
@@ -210,14 +204,14 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             SymbolDisplayFormat.MinimallyQualifiedFormat.WithGenericsOptions(
                 SymbolDisplayFormat.MinimallyQualifiedFormat.GenericsOptions | SymbolDisplayGenericsOptions.IncludeVariance);
 
-        private SignatureHelpParameter Convert(
+        private SignatureHelpSymbolParameter Convert(
             ITypeParameterSymbol parameter,
             SemanticModel semanticModel,
             int position,
             IDocumentationCommentFormattingService formatter,
             CancellationToken cancellationToken)
         {
-            return new SignatureHelpParameter(
+            return new SignatureHelpSymbolParameter(
                 parameter.Name,
                 isOptional: false,
                 documentationFactory: parameter.GetDocumentationPartsFactory(semanticModel, position, formatter),

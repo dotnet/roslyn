@@ -2940,7 +2940,7 @@ End Class
 
             ' NOTE: As in dev11, we consider the fact that Derived inherits CLSCompliant(False) from Base
             ' (since it is not from the current assembly).
-            Dim libRef = CompileIL(il.Value, appendDefaultHeader:=False)
+            Dim libRef = CompileIL(il.Value, prependDefaultHeader:=False)
             CreateCompilationWithMscorlibAndReferences(source, {libRef}).AssertTheseDiagnostics(<errors><![CDATA[
 BC40025: Type of member 'B' is not CLS-compliant.
     Public B as Base
@@ -3712,6 +3712,75 @@ BC30371: Module 'DummyModule' cannot be used as a type.
     Public Sub Problem(item As DummyModule)
                                ~~~~~~~~~~~
 ]]></errors>)
+        End Sub
+
+        <Fact>
+        Public Sub TupleDefersClsComplianceToUnderlyingType()
+            Dim libCompliant_vb = "
+Namespace System
+    <CLSCompliant(True)>
+    Public Structure ValueTuple(Of T1, T2)
+        Public Sub New(item1 As T1, item2 As T2)
+        End Sub
+    End Structure
+End Namespace
+"
+
+            Dim libNotCompliant_vb = "
+Namespace System
+    <CLSCompliant(False)>
+    Public Structure ValueTuple(Of T1, T2)
+        Public Sub New(item1 As T1, item2 As T2)
+        End Sub
+    End Structure
+End Namespace
+"
+            Dim source = "
+Imports System
+
+<assembly:CLSCompliant(true)>
+Public Class C
+    Public Function Method() As (Integer, Integer)
+        Throw New Exception()
+    End Function
+    Public Function Method2() As (Bad, Bad)
+        Throw New Exception()
+    End Function
+End Class
+
+<CLSCompliant(false)>
+Public Class Bad
+End Class
+"
+            Dim libCompliant = CreateCompilationWithMscorlib({libCompliant_vb}, options:=TestOptions.ReleaseDll).EmitToImageReference()
+            Dim compCompliant = CreateCompilationWithMscorlib({source}, {libCompliant}, TestOptions.ReleaseDll)
+            compCompliant.AssertTheseDiagnostics(
+                <errors>
+BC40041: Type 'Bad' is not CLS-compliant.
+    Public Function Method2() As (Bad, Bad)
+                    ~~~~~~~
+BC40041: Type 'Bad' is not CLS-compliant.
+    Public Function Method2() As (Bad, Bad)
+                    ~~~~~~~
+                </errors>)
+
+            Dim libNotCompliant = CreateCompilationWithMscorlib({libNotCompliant_vb}, options:=TestOptions.ReleaseDll).EmitToImageReference()
+            Dim compNotCompliant = CreateCompilationWithMscorlib({source}, {libNotCompliant}, TestOptions.ReleaseDll)
+            compNotCompliant.AssertTheseDiagnostics(
+                <errors>
+BC40027: Return type of function 'Method' is not CLS-compliant.
+    Public Function Method() As (Integer, Integer)
+                    ~~~~~~
+BC40027: Return type of function 'Method2' is not CLS-compliant.
+    Public Function Method2() As (Bad, Bad)
+                    ~~~~~~~
+BC40041: Type 'Bad' is not CLS-compliant.
+    Public Function Method2() As (Bad, Bad)
+                    ~~~~~~~
+BC40041: Type 'Bad' is not CLS-compliant.
+    Public Function Method2() As (Bad, Bad)
+                    ~~~~~~~
+                </errors>)
         End Sub
 
     End Class

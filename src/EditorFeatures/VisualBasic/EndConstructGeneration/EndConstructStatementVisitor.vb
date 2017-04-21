@@ -111,10 +111,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
                         Return New SpitLinesResult(
                             {
                                 "",
-                                innerAligningWhitespace & "' " & VBEditorResources.ThisCallIsRequiredByTheDesigner,
+                                innerAligningWhitespace & "' " & VBEditorResources.This_call_is_required_by_the_designer,
                                 innerAligningWhitespace & "InitializeComponent()",
                                 "",
-                                innerAligningWhitespace & "' " & VBEditorResources.AddAnyInitializationAfter,
+                                innerAligningWhitespace & "' " & VBEditorResources.Add_any_initialization_after_the_InitializeComponent_call,
                                 "",
                                 aligningWhitespace & "End Sub"
                              })

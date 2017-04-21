@@ -1,8 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Test.Utilities.Syntax;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
@@ -98,5 +102,80 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
             var line = endLinePosition.Line;
             var lines2 = line + 1;
         }
+
+        [WorkItem(12197, "https://github.com/dotnet/roslyn/issues/12197")]
+        [Fact]
+        public void ThrowInInvocationCompletes()
+        {
+            var code = "SomeMethod(throw new Exception())";
+
+            SyntaxFactory.ParseExpression(code);
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/13719")]
+        public void ReportErrorForIncompleteMember()
+        {
+            var test = @"
+class A
+{
+    [Obsolete(2l)]
+    public int
+}";
+            ParseAndValidate(test,
+                // (6,1): error CS1519: Invalid token '}' in class, struct, or interface member declaration
+                // }
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "}").WithArguments("}").WithLocation(6, 1),
+                // (4,16): warning CS0078: The 'l' suffix is easily confused with the digit '1' -- use 'L' for clarity
+                //     [Obsolete(2l)]
+                Diagnostic(ErrorCode.WRN_LowercaseEllSuffix, "l").WithLocation(4, 16)
+                );
+        }
+
+        [Fact]
+        [WorkItem(217398, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=217398")]
+        public void LexerTooManyBadTokens()
+        {
+            var source = new StringBuilder();
+            for (int i = 0; i <= 200; i++)
+            {
+                source.Append(@"\u003C");
+            }
+            source.Append(@"\u003E\u003E\u003E\u003E");
+
+            var parsedTree = ParseWithRoundTripCheck(source.ToString());
+            IEnumerable<Diagnostic> actualErrors = parsedTree.GetDiagnostics();
+            Assert.Equal("202", actualErrors.Count().ToString());
+            Assert.Equal("(1,1201): error CS1056: Unexpected character '\\u003C'", actualErrors.ElementAt(200).ToString());
+            Assert.Equal("(1,1207): error CS1056: Unexpected character '\\u003E\\u003E\\u003E\\u003E'", actualErrors.ElementAt(201).ToString());
+        }
+
+        [Fact]
+        [WorkItem(217398, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=217398")]
+        public void LexerTooManyBadTokens_LongUnicode()
+        {
+            var source = new StringBuilder();
+            for (int i = 0; i <= 200; i++)
+            {
+                source.Append(@"\U0000003C");
+            }
+            source.Append(@"\u003E\u003E\u003E\u003E");
+
+            var parsedTree = ParseWithRoundTripCheck(source.ToString());
+            IEnumerable<Diagnostic> actualErrors = parsedTree.GetDiagnostics();
+            Assert.Equal("202", actualErrors.Count().ToString());
+            Assert.Equal("(1,2001): error CS1056: Unexpected character '\\U0000003C'", actualErrors.ElementAt(200).ToString());
+            Assert.Equal("(1,2011): error CS1056: Unexpected character '\\u003E\\u003E\\u003E\\u003E'", actualErrors.ElementAt(201).ToString());
+        }
+
+        #region "Helpers"
+
+        public static void ParseAndValidate(string text, params DiagnosticDescription[] expectedErrors)
+        {
+            var parsedTree = ParseWithRoundTripCheck(text);
+            var actualErrors = parsedTree.GetDiagnostics();
+            actualErrors.Verify(expectedErrors);
+        }
+
+        #endregion "Helpers"
     }
 }

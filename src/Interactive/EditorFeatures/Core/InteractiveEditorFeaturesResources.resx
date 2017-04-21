@@ -117,34 +117,34 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="BuildingProject" xml:space="preserve">
+  <data name="Building_Project" xml:space="preserve">
     <value>Building Project</value>
   </data>
-  <data name="CopyToInteractiveDescription" xml:space="preserve">
+  <data name="Copying_selection_to_Interactive_Window" xml:space="preserve">
     <value>Copying selection to Interactive Window.</value>
   </data>
-  <data name="ExecuteInInteractiveDescription" xml:space="preserve">
+  <data name="Executing_selection_in_Interactive_Window" xml:space="preserve">
     <value>Executing selection in Interactive Window.</value>
   </data>
-  <data name="ReferencesCommandDescription" xml:space="preserve">
+  <data name="Print_a_list_of_referenced_assemblies" xml:space="preserve">
     <value>Print a list of referenced assemblies.</value>
   </data>
-  <data name="ReferencesCommandEvaluatorError" xml:space="preserve">
+  <data name="The_references_command_is_not_supported_in_this_Interactive_Window_implementation" xml:space="preserve">
     <value>The references command is not supported in this Interactive Window implementation.</value>
   </data>
-  <data name="ResetCommandDescription" xml:space="preserve">
+  <data name="Reset_the_execution_environment_to_the_initial_state_keep_history" xml:space="preserve">
     <value>Reset the execution environment to the initial state, keep history.</value>
   </data>
-  <data name="ResetCommandParametersDescription" xml:space="preserve">
+  <data name="Reset_to_a_clean_environment_only_mscorlib_referenced_do_not_run_initialization_script" xml:space="preserve">
     <value>Reset to a clean environment (only mscorlib referenced), do not run initialization script.</value>
   </data>
-  <data name="ResettingExecutionEngine" xml:space="preserve">
+  <data name="Resetting_execution_engine" xml:space="preserve">
     <value>Resetting execution engine.</value>
   </data>
-  <data name="ResettingInteractive" xml:space="preserve">
+  <data name="Resetting_Interactive" xml:space="preserve">
     <value>Resetting Interactive</value>
   </data>
-  <data name="WindowSetAgainException" xml:space="preserve">
+  <data name="The_CurrentWindow_property_may_only_be_assigned_once" xml:space="preserve">
     <value>The CurrentWindow property may only be assigned once.</value>
   </data>
 </root>

@@ -23,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     Friend NotInheritable Class IndexedTypeParameterSymbol
         Inherits TypeParameterSymbol
 
-        Private Shared s_parameterPool As TypeParameterSymbol() = SpecializedCollections.EmptyArray(Of TypeParameterSymbol)()
+        Private Shared s_parameterPool As TypeParameterSymbol() = Array.Empty(Of TypeParameterSymbol)()
 
         Private ReadOnly _index As Integer
 

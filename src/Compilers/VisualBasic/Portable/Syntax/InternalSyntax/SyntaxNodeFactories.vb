@@ -5,6 +5,7 @@
 ' code-generated into SyntaxNodes.vb, but some are easier to hand-write.
 '-----------------------------------------------------------------------------------------------------------
 
+Imports Microsoft.CodeAnalysis.Syntax.InternalSyntax
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -13,7 +14,7 @@ Imports InternalSyntax = Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSynta
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
     Friend Partial Class SyntaxFactory
-        Friend Shared Function IntegerLiteralToken(text As String, base As LiteralBase, typeSuffix As TypeCharacter, value As ULong, leadingTrivia As VisualBasicSyntaxNode, trailingTrivia As VisualBasicSyntaxNode) As IntegerLiteralTokenSyntax
+        Friend Shared Function IntegerLiteralToken(text As String, base As LiteralBase, typeSuffix As TypeCharacter, value As ULong, leadingTrivia As GreenNode, trailingTrivia As GreenNode) As IntegerLiteralTokenSyntax
             Debug.Assert(text IsNot Nothing)
             Select Case typeSuffix
                 Case TypeCharacter.ShortLiteral
@@ -54,7 +55,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             End Select
         End Function
 
-        Friend Shared Function FloatingLiteralToken(text As String, typeSuffix As TypeCharacter, value As Double, leadingTrivia As VisualBasicSyntaxNode, trailingTrivia As VisualBasicSyntaxNode) As FloatingLiteralTokenSyntax
+        Friend Shared Function FloatingLiteralToken(text As String, typeSuffix As TypeCharacter, value As Double, leadingTrivia As GreenNode, trailingTrivia As GreenNode) As FloatingLiteralTokenSyntax
             Debug.Assert(text IsNot Nothing)
             Select Case typeSuffix
                 Case TypeCharacter.DoubleLiteral, TypeCharacter.Double, TypeCharacter.None
@@ -69,7 +70,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' Create an identifier node without brackets or type character.
         ''' </summary>
-        Friend Shared Function Identifier(text As String, leadingTrivia As VisualBasicSyntaxNode, trailingTrivia As VisualBasicSyntaxNode) As IdentifierTokenSyntax
+        Friend Shared Function Identifier(text As String, leadingTrivia As GreenNode, trailingTrivia As GreenNode) As IdentifierTokenSyntax
             Debug.Assert(text IsNot Nothing)
             Return New SimpleIdentifierSyntax(SyntaxKind.IdentifierToken, Nothing, Nothing, text, leadingTrivia, trailingTrivia)
         End Function
@@ -77,7 +78,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' Create an identifier node with brackets or type character.
         ''' </summary>
-        Friend Shared Function Identifier(text As String, possibleKeywordKind As SyntaxKind, isBracketed As Boolean, identifierText As String, typeCharacter As TypeCharacter, leadingTrivia As VisualBasicSyntaxNode, trailingTrivia As VisualBasicSyntaxNode) As IdentifierTokenSyntax
+        Friend Shared Function Identifier(text As String, possibleKeywordKind As SyntaxKind, isBracketed As Boolean, identifierText As String, typeCharacter As TypeCharacter, leadingTrivia As GreenNode, trailingTrivia As GreenNode) As IdentifierTokenSyntax
             Debug.Assert(text IsNot Nothing)
             Return New ComplexIdentifierSyntax(SyntaxKind.IdentifierToken, Nothing, Nothing, text, leadingTrivia, trailingTrivia, possibleKeywordKind, isBracketed, identifierText, typeCharacter)
         End Function
@@ -442,7 +443,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return t
         End Function
 
-        Friend Shared Function BadToken(SubKind As SyntaxSubKind, text As String, precedingTrivia As VisualBasicSyntaxNode, followingTrivia As VisualBasicSyntaxNode) As BadTokenSyntax
+        Friend Shared Function BadToken(SubKind As SyntaxSubKind, text As String, precedingTrivia As GreenNode, followingTrivia As GreenNode) As BadTokenSyntax
             Return New BadTokenSyntax(SyntaxKind.BadToken, SubKind, Nothing, Nothing, text, precedingTrivia, followingTrivia)
         End Function
 
@@ -460,7 +461,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return New PunctuationSyntax(SyntaxKind.EndOfFileToken, "", Nothing, Nothing)
         End Function
 
-        Friend Shared Function Identifier(text As String, isBracketed As Boolean, baseText As String, typeCharacter As TypeCharacter, precedingTrivia As VisualBasicSyntaxNode, followingTrivia As VisualBasicSyntaxNode) As IdentifierTokenSyntax
+        Friend Shared Function Identifier(text As String, isBracketed As Boolean, baseText As String, typeCharacter As TypeCharacter, precedingTrivia As GreenNode, followingTrivia As GreenNode) As IdentifierTokenSyntax
             Debug.Assert(text IsNot Nothing)
             Return New ComplexIdentifierSyntax(SyntaxKind.IdentifierToken, Nothing, Nothing, text, precedingTrivia, followingTrivia, SyntaxKind.IdentifierToken, isBracketed, baseText, typeCharacter)
         End Function
@@ -523,7 +524,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return s_omittedArgument
         End Function
 
-        Public Shared Function TypeBlock(ByVal blockKind As SyntaxKind, ByVal begin As TypeStatementSyntax, ByVal [inherits] As SyntaxList(Of InheritsStatementSyntax), ByVal [implements] As SyntaxList(Of ImplementsStatementSyntax), ByVal members As SyntaxList(Of StatementSyntax), ByVal [end] As EndBlockStatementSyntax) As TypeBlockSyntax
+        Public Shared Function TypeBlock(ByVal blockKind As SyntaxKind, ByVal begin As TypeStatementSyntax, ByVal [inherits] As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of InheritsStatementSyntax), ByVal [implements] As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of ImplementsStatementSyntax), ByVal members As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of StatementSyntax), ByVal [end] As EndBlockStatementSyntax) As TypeBlockSyntax
             Select Case blockKind
                 Case SyntaxKind.ModuleBlock
                     Return SyntaxFactory.ModuleBlock(DirectCast(begin, ModuleStatementSyntax), [inherits], [implements], members, [end])
@@ -542,7 +543,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             End Select
         End Function
 
-        Public Shared Function TypeStatement(ByVal statementKind As SyntaxKind, ByVal attributes As SyntaxList(Of VisualBasicSyntaxNode), ByVal modifiers As SyntaxList(Of VisualBasicSyntaxNode), ByVal keyword As KeywordSyntax, ByVal identifier As IdentifierTokenSyntax, ByVal typeParameterList As TypeParameterListSyntax) As TypeStatementSyntax
+        Public Shared Function TypeStatement(ByVal statementKind As SyntaxKind, ByVal attributes As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), ByVal modifiers As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), ByVal keyword As KeywordSyntax, ByVal identifier As IdentifierTokenSyntax, ByVal typeParameterList As TypeParameterListSyntax) As TypeStatementSyntax
             Select Case statementKind
                 Case SyntaxKind.ModuleStatement
                     Return SyntaxFactory.ModuleStatement(attributes, modifiers, keyword, identifier, typeParameterList)

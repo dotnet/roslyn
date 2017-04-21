@@ -1,13 +1,11 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
-Imports System.Threading.Tasks
-Imports System.Windows.Controls
 Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeRefactorings
+Imports Microsoft.CodeAnalysis.Editor.Implementation.Preview
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.VisualStudio.Text.Differencing
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
     Public Class PreviewTests
@@ -20,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
         Private Shared ReadOnly s_addedProjectId As ProjectId = ProjectId.CreateNewId()
         Private Const s_changedDocumentText As String = "Class C : End Class"
 
-        Protected Overrides Function CreateCodeRefactoringProvider(workspace As Workspace) As CodeRefactoringProvider
+        Protected Overrides Function CreateCodeRefactoringProvider(workspace As Workspace, parameters As TestParameters) As CodeRefactoringProvider
             Return New MyCodeRefactoringProvider()
         End Function
 
@@ -66,9 +64,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
             End Class
         End Class
 
-        Private Sub GetMainDocumentAndPreviews(workspace As TestWorkspace, ByRef document As Document, ByRef previews As SolutionPreviewResult)
+        Private Sub GetMainDocumentAndPreviews(parameters As TestParameters, workspace As TestWorkspace, ByRef document As Document, ByRef previews As SolutionPreviewResult)
             document = GetDocument(workspace)
-            Dim provider = CreateCodeRefactoringProvider(workspace)
+            Dim provider = CreateCodeRefactoringProvider(workspace, parameters)
             Dim span = document.GetSyntaxRootAsync().Result.Span
             Dim refactorings = New List(Of CodeAction)()
             Dim context = New CodeRefactoringContext(document, span, Sub(a) refactorings.Add(a), CancellationToken.None)
@@ -78,22 +76,23 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
             previews = editHandler.GetPreviews(workspace, action.GetPreviewOperationsAsync(CancellationToken.None).Result, CancellationToken.None)
         End Sub
 
-        <WpfFact>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/14421")>
         Public Async Function TestPickTheRightPreview_NoPreference() As Task
-            Using workspace = Await CreateWorkspaceFromFileAsync("Class D : End Class", Nothing, Nothing)
+            Dim parameters As New TestParameters()
+            Using workspace = CreateWorkspaceFromFile("Class D : End Class", parameters)
                 Dim document As Document = Nothing
                 Dim previews As SolutionPreviewResult = Nothing
-                GetMainDocumentAndPreviews(workspace, document, previews)
+                GetMainDocumentAndPreviews(parameters, workspace, document, previews)
 
                 ' The changed document comes first.
                 Dim previewObjects = Await previews.GetPreviewsAsync()
                 Dim preview = previewObjects(0)
                 Assert.NotNull(preview)
-                Assert.True(TypeOf preview Is IWpfDifferenceViewer)
-                Dim diffView = DirectCast(preview, IWpfDifferenceViewer)
-                Dim text = diffView.RightView.TextBuffer.AsTextContainer().CurrentText.ToString()
+                Assert.True(TypeOf preview Is DifferenceViewerPreview)
+                Dim diffView = DirectCast(preview, DifferenceViewerPreview)
+                Dim text = diffView.Viewer.RightView.TextBuffer.AsTextContainer().CurrentText.ToString()
                 Assert.Equal(s_changedDocumentText, text)
-                diffView.Close()
+                diffView.Dispose()
 
                 ' Then comes the removed metadata reference.
                 preview = previewObjects(1)

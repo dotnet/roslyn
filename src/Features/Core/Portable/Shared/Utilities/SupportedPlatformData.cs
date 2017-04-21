@@ -1,10 +1,7 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -33,26 +30,26 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 return SpecializedCollections.EmptyList<SymbolDisplayPart>();
             }
 
-            IList<SymbolDisplayPart> builder = new List<SymbolDisplayPart>();
+            var builder = new List<SymbolDisplayPart>();
             builder.AddLineBreak();
 
             var projects = this.CandidateProjects.Select(p => this.Workspace.CurrentSolution.GetProject(p)).OrderBy(p => p.Name);
             foreach (var project in projects)
             {
-                var text = string.Format(FeaturesResources.ProjectAvailability, project.Name, Supported(!this.InvalidProjects.Contains(project.Id)));
+                var text = string.Format(FeaturesResources._0_1, project.Name, Supported(!this.InvalidProjects.Contains(project.Id)));
                 builder.AddText(text);
                 builder.AddLineBreak();
             }
 
             builder.AddLineBreak();
-            builder.AddText(FeaturesResources.UseTheNavigationBarToSwitchContext);
+            builder.AddText(FeaturesResources.You_can_use_the_navigation_bar_to_switch_context);
 
             return builder;
         }
 
         private static string Supported(bool supported)
         {
-            return supported ? FeaturesResources.Available : FeaturesResources.NotAvailable;
+            return supported ? FeaturesResources.Available : FeaturesResources.Not_Available;
         }
 
         public bool HasValidAndInvalidProjects()

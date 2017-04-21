@@ -295,7 +295,7 @@ namespace Microsoft.CodeAnalysis
             return CreateFromAssemblyInternal(assembly, properties, documentation);
         }
 
-        internal static MetadataReference CreateFromAssemblyInternal(
+        internal static PortableExecutableReference CreateFromAssemblyInternal(
             Assembly assembly,
             MetadataReferenceProperties properties,
             DocumentationProvider documentation = null)

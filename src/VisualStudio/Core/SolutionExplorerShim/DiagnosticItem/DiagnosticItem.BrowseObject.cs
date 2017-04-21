@@ -20,7 +20,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                 _diagnosticItem = diagnosticItem;
             }
 
-            [BrowseObjectDisplayName(nameof(SolutionExplorerShim.DiagnosticItemIDDisplayName))]
+            [BrowseObjectDisplayName(nameof(SolutionExplorerShim.ID))]
             public string Id
             {
                 get
@@ -29,7 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                 }
             }
 
-            [BrowseObjectDisplayName(nameof(SolutionExplorerShim.DiagnosticItemTitleDisplayName))]
+            [BrowseObjectDisplayName(nameof(SolutionExplorerShim.Title))]
             public string Title
             {
                 get
@@ -38,7 +38,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                 }
             }
 
-            [BrowseObjectDisplayName(nameof(SolutionExplorerShim.DiagnosticItemDescriptionDisplayName))]
+            [BrowseObjectDisplayName(nameof(SolutionExplorerShim.Description))]
             public string Description
             {
                 get
@@ -47,7 +47,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                 }
             }
 
-            [BrowseObjectDisplayName(nameof(SolutionExplorerShim.DiagnosticItemHelpLinkDisplayName))]
+            [BrowseObjectDisplayName(nameof(SolutionExplorerShim.Help_link))]
             public string HelpLink
             {
                 get
@@ -56,7 +56,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                 }
             }
 
-            [BrowseObjectDisplayName(nameof(SolutionExplorerShim.DiagnosticItemCategoryDisplayName))]
+            [BrowseObjectDisplayName(nameof(SolutionExplorerShim.Category))]
             public string Category
             {
                 get
@@ -65,7 +65,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                 }
             }
 
-            [BrowseObjectDisplayName(nameof(SolutionExplorerShim.DiagnosticItemDefaultSeverityDisplayName))]
+            [BrowseObjectDisplayName(nameof(SolutionExplorerShim.Default_severity))]
             public string DefaultSeverity
             {
                 get
@@ -74,7 +74,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                 }
             }
 
-            [BrowseObjectDisplayName(nameof(SolutionExplorerShim.DiagnosticItemEnabledByDefaultDisplayName))]
+            [BrowseObjectDisplayName(nameof(SolutionExplorerShim.Enabled_by_default))]
             public bool EnabledByDefault
             {
                 get
@@ -83,7 +83,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                 }
             }
 
-            [BrowseObjectDisplayName(nameof(SolutionExplorerShim.DiagnosticItemMessageDisplayName))]
+            [BrowseObjectDisplayName(nameof(SolutionExplorerShim.Message))]
             public string Message
             {
                 get
@@ -92,7 +92,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                 }
             }
 
-            [BrowseObjectDisplayName(nameof(SolutionExplorerShim.DiagnosticItemTagsDisplayName))]
+            [BrowseObjectDisplayName(nameof(SolutionExplorerShim.Tags))]
             public string Tags
             {
                 get
@@ -101,7 +101,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                 }
             }
 
-            [BrowseObjectDisplayName(nameof(SolutionExplorerShim.DiagnosticItemEffectiveSeverityDisplayName))]
+            [BrowseObjectDisplayName(nameof(SolutionExplorerShim.Effective_severity))]
             public string EffectiveSeverity
             {
                 get
@@ -112,7 +112,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
             public override string GetClassName()
             {
-                return SolutionExplorerShim.DiagnosticItem_PropertyWindowClassName;
+                return SolutionExplorerShim.Diagnostic_Properties;
             }
 
             public override string GetComponentName()
@@ -131,13 +131,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                 switch (severity)
                 {
                     case DiagnosticSeverity.Hidden:
-                        return SolutionExplorerShim.Severity_Hidden;
+                        return SolutionExplorerShim.Hidden;
                     case DiagnosticSeverity.Info:
-                        return SolutionExplorerShim.Severity_Info;
+                        return SolutionExplorerShim.Info;
                     case DiagnosticSeverity.Warning:
-                        return SolutionExplorerShim.Severity_Warning;
+                        return SolutionExplorerShim.Warning;
                     case DiagnosticSeverity.Error:
-                        return SolutionExplorerShim.Severity_Error;
+                        return SolutionExplorerShim.Error_;
                     default:
                         throw ExceptionUtilities.UnexpectedValue(severity);
                 }
@@ -148,17 +148,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                 switch (report)
                 {
                     case ReportDiagnostic.Default:
-                        return SolutionExplorerShim.Severity_Default;
+                        return SolutionExplorerShim.Default_;
                     case ReportDiagnostic.Error:
-                        return SolutionExplorerShim.Severity_Error;
+                        return SolutionExplorerShim.Error_;
                     case ReportDiagnostic.Warn:
-                        return SolutionExplorerShim.Severity_Warning;
+                        return SolutionExplorerShim.Warning;
                     case ReportDiagnostic.Info:
-                        return SolutionExplorerShim.Severity_Info;
+                        return SolutionExplorerShim.Info;
                     case ReportDiagnostic.Hidden:
-                        return SolutionExplorerShim.Severity_Hidden;
+                        return SolutionExplorerShim.Hidden;
                     case ReportDiagnostic.Suppress:
-                        return SolutionExplorerShim.Severity_Suppressed;
+                        return SolutionExplorerShim.Suppressed;
                     default:
                         throw ExceptionUtilities.UnexpectedValue(report);
                 }

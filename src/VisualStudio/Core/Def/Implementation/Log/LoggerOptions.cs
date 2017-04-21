@@ -6,12 +6,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 {
     internal static class LoggerOptions
     {
-        public const string FeatureName = "Performance/Loggers";
+        private const string LocalRegistryPath = @"Roslyn\Internal\Performance\Logger\";
 
         [ExportOption]
-        public static readonly Option<bool> EtwLoggerKey = new Option<bool>(FeatureName, "EtwLogger", defaultValue: true);
+        public static readonly Option<bool> EtwLoggerKey = new Option<bool>(nameof(LoggerOptions), nameof(EtwLoggerKey), defaultValue: true,
+            storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + "EtwLogger"));
 
         [ExportOption]
-        public static readonly Option<bool> TraceLoggerKey = new Option<bool>(FeatureName, "TraceLogger");
+        public static readonly Option<bool> TraceLoggerKey = new Option<bool>(nameof(LoggerOptions), nameof(TraceLoggerKey), defaultValue: false,
+            storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + "TraceLoggerKey"));
     }
 }

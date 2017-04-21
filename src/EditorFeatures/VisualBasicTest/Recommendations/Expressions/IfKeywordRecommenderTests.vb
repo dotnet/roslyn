@@ -5,9 +5,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Ex
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function IfHelpTextTest() As Task
             Await VerifyRecommendationDescriptionTextIsAsync(<MethodBody>Return |</MethodBody>, "If",
-$"{String.Format(VBFeaturesResources.Function1, "If")} (+1 {FeaturesResources.Overload})
-{IfConditionReturnsResults}
-If({Condition} As Boolean, {ExpressionIfTrue}, {ExpressionIfFalse}) As {Result}")
+$"{String.Format(VBFeaturesResources._0_function, "If")} (+1 {FeaturesResources.overload})
+{VBWorkspaceResources.If_condition_returns_True_the_function_calculates_and_returns_expressionIfTrue_Otherwise_it_returns_expressionIfFalse}
+If({VBWorkspaceResources.condition} As Boolean, {VBWorkspaceResources.expressionIfTrue}, {VBWorkspaceResources.expressionIfFalse}) As {VBWorkspaceResources.result}")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>

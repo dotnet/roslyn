@@ -61,7 +61,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
         {
             // Determine the position in the buffer at which to end the tracking span representing
             // the part of the imaginary buffer before the text in the view. 
-            var tree = document.GetSyntaxTreeAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
+            var tree = document.GetSyntaxTreeSynchronously(CancellationToken.None);
             var token = tree.FindTokenOnLeftOfPosition(contextPoint, CancellationToken.None);
 
             // Special case to handle class designer because it asks for debugger IntelliSense using

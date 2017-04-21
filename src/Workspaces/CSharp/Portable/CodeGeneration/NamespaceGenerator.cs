@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             var declaration = GenerateNamespaceDeclaration(service, @namespace, options, cancellationToken);
             if (!(declaration is NamespaceDeclarationSyntax))
             {
-                throw new ArgumentException(CSharpWorkspaceResources.NamespaceCanNotBeAddedIn);
+                throw new ArgumentException(CSharpWorkspaceResources.Namespace_can_not_be_added_in_this_destination);
             }
 
             var members = Insert(destination.Members, (NamespaceDeclarationSyntax)declaration, options, availableIndices);
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             var declaration = GenerateNamespaceDeclaration(service, @namespace, options, cancellationToken);
             if (!(declaration is NamespaceDeclarationSyntax))
             {
-                throw new ArgumentException(CSharpWorkspaceResources.NamespaceCanNotBeAddedIn);
+                throw new ArgumentException(CSharpWorkspaceResources.Namespace_can_not_be_added_in_this_destination);
             }
 
             var members = Insert(destination.Members, (NamespaceDeclarationSyntax)declaration, options, availableIndices);
@@ -59,10 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             CancellationToken cancellationToken)
         {
             options = options ?? CodeGenerationOptions.Default;
-
-            string name;
-            INamespaceSymbol innermostNamespace;
-            GetNameAndInnermostNamespace(@namespace, options, out name, out innermostNamespace);
+            GetNameAndInnermostNamespace(@namespace, options, out var name, out var innermostNamespace);
 
             var declaration = GetDeclarationSyntaxWithoutMembers(@namespace, innermostNamespace, name, options);
 
@@ -142,9 +139,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         private static UsingDirectiveSyntax GenerateUsingDirective(ISymbol symbol)
         {
-            if (symbol is IAliasSymbol)
+            if (symbol is IAliasSymbol alias)
             {
-                var alias = (IAliasSymbol)symbol;
                 var name = GenerateName(alias.Target);
                 if (name != null)
                 {
@@ -153,9 +149,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                         name);
                 }
             }
-            else if (symbol is INamespaceOrTypeSymbol)
+            else if (symbol is INamespaceOrTypeSymbol namespaceOrType)
             {
-                var name = GenerateName((INamespaceOrTypeSymbol)symbol);
+                var name = GenerateName(namespaceOrType);
                 if (name != null)
                 {
                     return SyntaxFactory.UsingDirective(name);
@@ -167,9 +163,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         private static NameSyntax GenerateName(INamespaceOrTypeSymbol symbol)
         {
-            if (symbol is ITypeSymbol)
+            if (symbol is ITypeSymbol type)
             {
-                return ((ITypeSymbol)symbol).GenerateTypeSyntax() as NameSyntax;
+                return type.GenerateTypeSyntax() as NameSyntax;
             }
             else
             {

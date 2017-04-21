@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -35,17 +35,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
         private readonly DiagnosticDescriptor _missingAnalyzerReferenceRule = new DiagnosticDescriptor(
             id: IDEDiagnosticIds.MissingAnalyzerReferenceId,
-            title: ServicesVSResources.WRN_MissingAnalyzerReferenceTitle,
-            messageFormat: ServicesVSResources.WRN_MissingAnalyzerReferenceMessage,
-            category: FeaturesResources.ErrorCategory,
+            title: ServicesVSResources.MissingAnalyzerReference,
+            messageFormat: ServicesVSResources.Analyzer_assembly_0_depends_on_1_but_it_was_not_found_Analyzers_may_not_run_correctly_unless_the_missing_assembly_is_added_as_an_analyzer_reference_as_well,
+            category: FeaturesResources.Roslyn_HostError,
             defaultSeverity: DiagnosticSeverity.Warning,
             isEnabledByDefault: true);
 
         private readonly DiagnosticDescriptor _analyzerDependencyConflictRule = new DiagnosticDescriptor(
             id: IDEDiagnosticIds.AnalyzerDependencyConflictId,
-            title: ServicesVSResources.WRN_AnalyzerDependencyConflictTitle,
-            messageFormat: ServicesVSResources.WRN_AnalyzerDependencyConflictMessage,
-            category: FeaturesResources.ErrorCategory,
+            title: ServicesVSResources.AnalyzerDependencyConflict,
+            messageFormat: ServicesVSResources.Analyzer_assemblies_0_and_1_both_have_identity_2_but_different_contents_Only_one_will_be_loaded_and_analyzers_using_these_assemblies_may_not_run_correctly,
+            category: FeaturesResources.Roslyn_HostError,
             defaultSeverity: DiagnosticSeverity.Warning,
             isEnabledByDefault: true);
 
@@ -81,7 +81,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             var conflicts = results.Conflicts;
             var missingDependencies = results.MissingDependencies;
 
-            foreach (var project in _workspace.ProjectTracker.Projects)
+            foreach (var project in _workspace.DeferredState.ProjectTracker.ImmutableProjects)
             {
                 builder.Clear();
 
@@ -91,8 +91,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                         project.CurrentProjectAnalyzersContains(conflict.AnalyzerFilePath2))
                     {
                         var messageArguments = new string[] { conflict.AnalyzerFilePath1, conflict.AnalyzerFilePath2, conflict.Identity.ToString() };
-                        DiagnosticData diagnostic;
-                        if (DiagnosticData.TryCreate(_analyzerDependencyConflictRule, messageArguments, project.Id, _workspace, out diagnostic))
+                        if (DiagnosticData.TryCreate(_analyzerDependencyConflictRule, messageArguments, project.Id, _workspace, out var diagnostic))
                         {
                             builder.Add(diagnostic);
                         }
@@ -104,8 +103,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                     if (project.CurrentProjectAnalyzersContains(missingDependency.AnalyzerPath))
                     {
                         var messageArguments = new string[] { missingDependency.AnalyzerPath, missingDependency.DependencyIdentity.ToString() };
-                        DiagnosticData diagnostic;
-                        if (DiagnosticData.TryCreate(_missingAnalyzerReferenceRule, messageArguments, project.Id, _workspace, out diagnostic))
+                        if (DiagnosticData.TryCreate(_missingAnalyzerReferenceRule, messageArguments, project.Id, _workspace, out var diagnostic))
                         {
                             builder.Add(diagnostic);
                         }
@@ -192,8 +190,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
         private static void AddAssemblyIdentity(List<AssemblyIdentity> list, string dllName)
         {
-            AssemblyIdentity identity;
-            if (!AssemblyIdentity.TryParseDisplayName(dllName, out identity))
+            if (!AssemblyIdentity.TryParseDisplayName(dllName, out var identity))
             {
                 return;
             }
@@ -206,9 +203,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             public AssemblyIdentity ApplyBindingRedirects(AssemblyIdentity originalIdentity)
             {
                 string redirectedAssemblyName = AppDomain.CurrentDomain.ApplyPolicy(originalIdentity.ToString());
-
-                AssemblyIdentity redirectedAssemblyIdentity;
-                if (AssemblyIdentity.TryParseDisplayName(redirectedAssemblyName, out redirectedAssemblyIdentity))
+                if (AssemblyIdentity.TryParseDisplayName(redirectedAssemblyName, out var redirectedAssemblyIdentity))
                 {
                     return redirectedAssemblyIdentity;
                 }

@@ -3174,6 +3174,30 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         EndOfInterpolatedStringToken = 787                              ' PunctuationSyntax : SyntaxToken
 
-    End Enum
+        ''' <summary>
+        ''' Represents tuple literal expression.
+        ''' </summary>
+        TupleExpression = 788
 
+        ''' <summary>
+        ''' Represents tuple type.
+        ''' </summary>
+        TupleType = 789
+
+        ''' <summary>
+        ''' Represents an element of a tuple type supplying only the type
+        ''' </summary>
+        TypedTupleElement = 790
+
+        ''' <summary>
+        ''' Represents an element of a tuple type supplying element name and optionally a type.
+        ''' </summary>
+        NamedTupleElement = 791
+
+        ''' <summary>
+        ''' Trivia created when merge conflict markers (like "&lt;&lt;&lt;&lt;&lt;&lt;&lt;") are detected in source code
+        ''' </summary>
+        ConflictMarkerTrivia = 792
+
+    End Enum
 End Namespace

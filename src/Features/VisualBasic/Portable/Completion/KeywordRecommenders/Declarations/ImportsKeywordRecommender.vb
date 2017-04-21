@@ -32,12 +32,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Decl
 
             ' If we have no left token, then we're at the start of the file
             If targetToken.Kind = SyntaxKind.None Then
-                Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("Imports", VBFeaturesResources.ImportsKeywordToolTip))
+                Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("Imports", VBFeaturesResources.Imports_all_or_specified_elements_of_a_namespace_into_a_file))
             End If
 
             ' Show if after an earlier option statement
             If context.IsAfterStatementOfKind(SyntaxKind.OptionStatement, SyntaxKind.ImportsStatement) Then
-                Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("Imports", VBFeaturesResources.ImportsKeywordToolTip))
+                Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("Imports", VBFeaturesResources.Imports_all_or_specified_elements_of_a_namespace_into_a_file))
             End If
 
             Return SpecializedCollections.EmptyEnumerable(Of RecommendedKeyword)()

@@ -2,7 +2,6 @@
 
 Imports System.Collections.Immutable
 Imports System.Composition
-Imports System.IO
 Imports System.Reflection
 Imports System.Threading
 Imports System.Threading.Tasks
@@ -36,7 +35,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
                            </Project>
                        </Workspace>
 
-            Using workspace = Await TestWorkspace.CreateAsync(test)
+            Using workspace = TestWorkspace.Create(test)
                 Dim project = workspace.CurrentSolution.Projects(0)
                 Dim workspaceDiagnosticAnalyzer = New WorkspaceDiagnosticAnalyzer()
                 Dim workspaceCodeFixProvider = New WorkspaceCodeFixProvider()
@@ -99,7 +98,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
                            </Project>
                        </Workspace>
 
-            Using workspace = Await TestWorkspace.CreateAsync(test)
+            Using workspace = TestWorkspace.Create(test)
                 Dim project = workspace.CurrentSolution.Projects(0)
                 Dim workspaceDiagnosticAnalyzer = New WorkspaceDiagnosticAnalyzer()
                 Dim workspaceCodeFixProvider = New WorkspaceCodeFixProvider()

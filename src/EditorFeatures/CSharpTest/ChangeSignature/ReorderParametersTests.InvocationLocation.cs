@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature;
@@ -119,7 +119,7 @@ class C
     }
 }";
 
-            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, expectedSuccess: false, expectedErrorText: FeaturesResources.TheMemberIsDefinedInMetadata);
+            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, expectedSuccess: false, expectedErrorText: FeaturesResources.The_member_is_defined_in_metadata);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
@@ -134,7 +134,7 @@ class C
     }
 }";
 
-            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, expectedSuccess: false, expectedErrorText: FeaturesResources.TheMemberIsDefinedInMetadata);
+            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, expectedSuccess: false, expectedErrorText: FeaturesResources.The_member_is_defined_in_metadata);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
@@ -149,7 +149,7 @@ class C
     }
 }";
 
-            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, expectedSuccess: false, expectedErrorText: FeaturesResources.TheMemberIsDefinedInMetadata);
+            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, expectedSuccess: false, expectedErrorText: FeaturesResources.The_member_is_defined_in_metadata);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
@@ -161,11 +161,11 @@ class C
     string s = ((System.IFormattable)null).ToString(""test"", null)$$;
 }";
 
-            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, expectedSuccess: false, expectedErrorText: FeaturesResources.YouCanOnlyChangeTheSignatureOfAConstructorIndexerMethodOrDelegate);
+            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, expectedSuccess: false, expectedErrorText: FeaturesResources.You_can_only_change_the_signature_of_a_constructor_indexer_method_or_delegate);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
-        public async Task ReorderMethodParameters_InvokeInMethodBody()
+        public async Task ReorderMethodParameters_InvokeInMethodBody_ViaCommand()
         {
             var markup = @"
 using System;
@@ -176,18 +176,25 @@ class MyClass
         $$
     }
 }";
-            var permutation = new[] { 1, 0 };
-            var updatedCode = @"
+
+            await TestChangeSignatureViaCommandAsync(
+                LanguageNames.CSharp, markup, expectedSuccess: false);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        public async Task ReorderMethodParameters_InvokeInMethodBody_ViaSmartTag()
+        {
+            var markup = @"
 using System;
 class MyClass
 {
-    public void Foo(string y, int x)
+    public void Foo(int x, string y)
     {
-        
+        [||]
     }
 }";
 
-            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
+            await TestMissingAsync(markup);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
@@ -829,14 +836,14 @@ class Program
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
-        public async Task ReorderMethodParameters_CodeRefactoring_AtCallSite()
+        public async Task ReorderMethodParameters_CodeRefactoring_AtCallSite_ViaCommand()
         {
             var markup = @"
 class Program
 {
     void M(int x, int y)
     {
-        M([|5|], 6);
+        M($$5, 6);
     }
 }";
             var permutation = new[] { 1, 0 };
@@ -848,8 +855,25 @@ class Program
         M(6, 5);
     }
 }";
-            await TestChangeSignatureViaCodeActionAsync(markup, expectedCodeAction: true, updatedSignature: permutation, expectedCode: updatedCode);
+            await TestChangeSignatureViaCommandAsync(
+                LanguageNames.CSharp, markup, updatedSignature: permutation, 
+                expectedUpdatedInvocationDocumentCode: updatedCode);
         }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        public async Task ReorderMethodParameters_CodeRefactoring_AtCallSite_ViaCodeAction()
+        {
+            var markup = @"
+class Program
+{
+    void M(int x, int y)
+    {
+        M([||]5, 6);
+    }
+}";
+            await TestMissingAsync(markup);
+        }
+
         #endregion
     }
 }

@@ -17,13 +17,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundStatement labelStatement = new BoundLabelStatement(node.Syntax, node.Label);
 
-            if (this.GenerateDebugInfo)
+            if (this.Instrument)
             {
                 var labeledSyntax = node.Syntax as LabeledStatementSyntax;
                 if (labeledSyntax != null)
                 {
-                    var span = TextSpan.FromBounds(labeledSyntax.Identifier.SpanStart, labeledSyntax.ColonToken.Span.End);
-                    labelStatement = _factory.SequencePointWithSpan(labeledSyntax, span, labelStatement);
+                    labelStatement = _instrumenter.InstrumentLabelStatement(node, labelStatement); 
                 }
             }
 

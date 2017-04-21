@@ -42,13 +42,20 @@ namespace Microsoft.CodeAnalysis.MSBuild
         /// </summary>
         public IReadOnlyList<ProjectFileReference> ProjectReferences { get; }
 
+        /// <summary>
+        /// The error message produced when a failure occurred attempting to get the info. 
+        /// If a failure occurred some or all of the information may be inaccurate or incomplete.
+        /// </summary>
+        public string ErrorMessage { get; }
+
         public ProjectFileInfo(
             string outputPath,
             string assemblyName,
             IEnumerable<string> commandLineArgs,
             IEnumerable<DocumentFileInfo> documents,
             IEnumerable<DocumentFileInfo> additionalDocuments,
-            IEnumerable<ProjectFileReference> projectReferences)
+            IEnumerable<ProjectFileReference> projectReferences,
+            string errorMessage)
         {
             this.OutputFilePath = outputPath;
             this.AssemblyName = assemblyName;
@@ -56,6 +63,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             this.Documents = documents.ToImmutableReadOnlyListOrEmpty();
             this.AdditionalDocuments = additionalDocuments.ToImmutableArrayOrEmpty();
             this.ProjectReferences = projectReferences.ToImmutableReadOnlyListOrEmpty();
+            this.ErrorMessage = errorMessage;
         }
     }
 }

@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CSharp.Emit;
 using Roslyn.Utilities;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Emit;
+using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -33,9 +34,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return null;
         }
 
-        Cci.PrimitiveTypeCode Cci.ITypeReference.TypeCode(EmitContext context)
+        Cci.PrimitiveTypeCode Cci.ITypeReference.TypeCode
         {
-            return Cci.PrimitiveTypeCode.NotPrimitive;
+            get { return Cci.PrimitiveTypeCode.NotPrimitive; }
         }
 
         TypeDefinitionHandle Cci.ITypeReference.TypeDef
@@ -219,7 +220,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        IEnumerable<Cci.ITypeReference> Cci.IGenericParameter.GetConstraints(EmitContext context)
+        IEnumerable<Cci.TypeReferenceWithAttributes> Cci.IGenericParameter.GetConstraints(EmitContext context)
         {
             var moduleBeingBuilt = (PEModuleBuilder)context.Module;
             var seenValueType = false;
@@ -234,16 +235,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         seenValueType = true;
                         break;
                 }
-                yield return moduleBeingBuilt.Translate(type,
-                                                        syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt,
-                                                        diagnostics: context.Diagnostics);
+                var typeRef = moduleBeingBuilt.Translate(type,
+                                                         syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt,
+                                                         diagnostics: context.Diagnostics);
+
+                yield return type.GetTypeRefWithAttributes(this.DeclaringCompilation,
+                                                           typeRef);
             }
             if (this.HasValueTypeConstraint && !seenValueType)
             {
                 // Add System.ValueType constraint to comply with Dev11 output
-                yield return moduleBeingBuilt.GetSpecialType(SpecialType.System_ValueType,
-                                                             syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt,
-                                                             diagnostics: context.Diagnostics);
+                var typeRef = moduleBeingBuilt.GetSpecialType(SpecialType.System_ValueType,
+                                                              syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt,
+                                                              diagnostics: context.Diagnostics);
+
+                yield return new Cci.TypeReferenceWithAttributes(typeRef);
             }
         }
 

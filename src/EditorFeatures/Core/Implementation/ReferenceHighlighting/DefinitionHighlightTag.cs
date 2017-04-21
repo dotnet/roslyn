@@ -6,7 +6,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
 {
     internal class DefinitionHighlightTag : NavigableHighlightTag
     {
-        internal const string TagId = "MarkerFormatDefinition/HighlightedDefinition";
+        public const string TagId = "MarkerFormatDefinition/HighlightedDefinition";
 
         public static readonly DefinitionHighlightTag Instance = new DefinitionHighlightTag();
 

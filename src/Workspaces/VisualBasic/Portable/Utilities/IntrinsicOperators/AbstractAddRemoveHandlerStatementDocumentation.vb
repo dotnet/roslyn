@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Text
@@ -13,9 +13,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities.IntrinsicOperators
         Public Overrides Function GetParameterName(index As Integer) As String
             Select Case index
                 Case 0
-                    Return VBWorkspaceResources.Event1
+                    Return VBWorkspaceResources.event_
                 Case 1
-                    Return VBWorkspaceResources.Handler
+                    Return VBWorkspaceResources.handler
                 Case Else
                     Throw New ArgumentException(NameOf(index))
             End Select

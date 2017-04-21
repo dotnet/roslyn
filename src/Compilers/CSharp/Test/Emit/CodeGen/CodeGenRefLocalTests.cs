@@ -1,8 +1,10 @@
-// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
@@ -23,7 +25,7 @@ class Program
 }
 ";
 
-            CompileAndVerifyExperimental(text, options: TestOptions.DebugDll).VerifyIL("Program.M()", @"
+            CompileAndVerify(text, options: TestOptions.DebugDll).VerifyIL("Program.M()", @"
 {
   // Code size       15 (0xf)
   .maxstack  2
@@ -51,7 +53,7 @@ class Program
 }
 ";
 
-            CompileAndVerifyExperimental(text, options: TestOptions.DebugDll).VerifyIL("Program.M(ref int)", @"
+            CompileAndVerify(text, options: TestOptions.DebugDll).VerifyIL("Program.M(ref int)", @"
 {
   // Code size        4 (0x4)
   .maxstack  1
@@ -77,7 +79,7 @@ class Program
 }
 ";
 
-            CompileAndVerifyExperimental(text, options: TestOptions.DebugDll).VerifyIL("Program.M(out int)", @"
+            CompileAndVerify(text, options: TestOptions.DebugDll).VerifyIL("Program.M(out int)", @"
 {
   // Code size        7 (0x7)
   .maxstack  2
@@ -106,7 +108,7 @@ class Program
 }
 ";
 
-            CompileAndVerifyExperimental(text, options: TestOptions.DebugDll).VerifyIL("Program.M(ref int)", @"
+            CompileAndVerify(text, options: TestOptions.DebugDll).VerifyIL("Program.M(ref int)", @"
 {
   // Code size        6 (0x6)
   .maxstack  1
@@ -137,7 +139,7 @@ class Program
 }
 ";
 
-            CompileAndVerifyExperimental(text, options: TestOptions.DebugDll, verify: false).VerifyIL("Program.M()", @"
+            CompileAndVerify(text, options: TestOptions.DebugDll, verify: false).VerifyIL("Program.M()", @"
 {
   // Code size        8 (0x8)
   .maxstack  1
@@ -170,7 +172,7 @@ class Program
 }
 ";
 
-            var comp = CompileAndVerifyExperimental(text, options: TestOptions.DebugDll, verify: false);
+            var comp = CompileAndVerify(text, options: TestOptions.DebugDll, verify: false);
             comp.VerifyIL("Program.M()", @"
 {
   // Code size        9 (0x9)
@@ -241,7 +243,7 @@ class Program3
 }
 ";
 
-            var comp = CompileAndVerifyExperimental(text, options: TestOptions.DebugDll, verify: false);
+            var comp = CompileAndVerify(text, options: TestOptions.DebugDll, verify: false);
             comp.VerifyIL("Program.M()", @"
 {
   // Code size        9 (0x9)
@@ -331,7 +333,7 @@ class Program3<T>
 }
 ";
 
-            var comp = CompileAndVerifyExperimental(text, options: TestOptions.DebugDll);
+            var comp = CompileAndVerify(text, options: TestOptions.DebugDll);
             comp.VerifyIL("Program<T>.M()", @"
 {
   // Code size       20 (0x14)
@@ -393,7 +395,7 @@ class Program
 }
 ";
 
-            var comp = CompileAndVerifyExperimental(text, options: TestOptions.DebugDll, verify: false);
+            var comp = CompileAndVerify(text, options: TestOptions.DebugDll, verify: false);
             comp.VerifyIL("Program.M()", @"
 {
   // Code size       10 (0xa)
@@ -460,7 +462,7 @@ class Program3
 }
 ";
 
-            var comp = CompileAndVerifyExperimental(text, options: TestOptions.DebugDll, verify: false);
+            var comp = CompileAndVerify(text, options: TestOptions.DebugDll, verify: false);
             comp.VerifyIL("Program.M()", @"
 {
   // Code size       10 (0xa)
@@ -542,7 +544,7 @@ class Program3<T>
 }
 ";
 
-            var comp = CompileAndVerifyExperimental(text, options: TestOptions.DebugDll);
+            var comp = CompileAndVerify(text, options: TestOptions.DebugDll);
             comp.VerifyIL("Program<T>.M()", @"
 {
   // Code size       21 (0x15)
@@ -603,7 +605,7 @@ class Program
 }
 ";
 
-            CompileAndVerifyExperimental(text, options: TestOptions.DebugDll).VerifyIL("Program.M()", @"
+            CompileAndVerify(text, options: TestOptions.DebugDll).VerifyIL("Program.M()", @"
 {
   // Code size        8 (0x8)
   .maxstack  1
@@ -637,7 +639,7 @@ class Program
 }
 ";
 
-            var comp = CompileAndVerifyExperimental(text, options: TestOptions.DebugDll);
+            var comp = CompileAndVerify(text, options: TestOptions.DebugDll);
             comp.VerifyIL("Program.M()", @"
 {
   // Code size        9 (0x9)
@@ -678,7 +680,7 @@ class Program
 }
 ";
 
-            CompileAndVerifyExperimental(text, options: TestOptions.DebugDll).VerifyIL("Program.M()", @"
+            CompileAndVerify(text, options: TestOptions.DebugDll).VerifyIL("Program.M()", @"
 {
   // Code size       15 (0xf)
   .maxstack  2
@@ -713,7 +715,7 @@ class Program
 }
 ";
 
-            var comp = CompileAndVerifyExperimental(text, options: TestOptions.DebugDll);
+            var comp = CompileAndVerify(text, options: TestOptions.DebugDll);
             comp.VerifyIL("Program.M()", @"
 {
   // Code size        9 (0x9)
@@ -764,7 +766,7 @@ class Program2
 }
 ";
 
-            var comp = CompileAndVerifyExperimental(text, options: TestOptions.DebugDll);
+            var comp = CompileAndVerify(text, options: TestOptions.DebugDll);
             comp.VerifyIL("Program2.M(ref Program)", @"
 {
   // Code size       17 (0x11)
@@ -808,7 +810,7 @@ class Program
 }
 ";
 
-            CompileAndVerifyExperimental(text, options: TestOptions.DebugDll, verify: false).VerifyIL("Program.M()", @"
+            CompileAndVerify(text, options: TestOptions.DebugDll, verify: false).VerifyIL("Program.M()", @"
 {
   // Code size       13 (0xd)
   .maxstack  1
@@ -845,7 +847,7 @@ class Program
 }
 ";
 
-            var comp = CompileAndVerifyExperimental(text, options: TestOptions.DebugDll, verify: false);
+            var comp = CompileAndVerify(text, options: TestOptions.DebugDll, verify: false);
             comp.VerifyIL("Program.M()", @"
 {
   // Code size       14 (0xe)
@@ -916,7 +918,7 @@ class Program3
 }
 ";
 
-            var comp = CompileAndVerifyExperimental(text, options: TestOptions.DebugDll, verify: false);
+            var comp = CompileAndVerify(text, options: TestOptions.DebugDll, verify: false);
             comp.VerifyIL("Program.M()", @"
 {
   // Code size       14 (0xe)
@@ -1013,7 +1015,7 @@ class Program3<T>
 }
 ";
 
-            var comp = CompileAndVerifyExperimental(text, options: TestOptions.DebugDll, verify: false);
+            var comp = CompileAndVerify(text, options: TestOptions.DebugDll, verify: false);
             comp.VerifyIL("Program<T>.M()", @"
 {
   // Code size       25 (0x19)
@@ -1083,7 +1085,7 @@ class Program
 }
 ";
 
-            CompileAndVerifyExperimental(text, options: TestOptions.DebugDll, verify: false).VerifyIL("Program.M(ref int, ref int, object)", @"
+            CompileAndVerify(text, options: TestOptions.DebugDll, verify: false).VerifyIL("Program.M(ref int, ref int, object)", @"
 {
   // Code size       16 (0x10)
   .maxstack  3
@@ -1123,7 +1125,7 @@ class Program
 }
 ";
 
-            var comp = CompileAndVerifyExperimental(text, options: TestOptions.DebugDll, verify: false);
+            var comp = CompileAndVerify(text, options: TestOptions.DebugDll, verify: false);
             comp.VerifyIL("Program.M(ref int, ref int, object)", @"
 {
   // Code size       17 (0x11)
@@ -1200,7 +1202,7 @@ class Program3
 }
 ";
 
-            var comp = CompileAndVerifyExperimental(text, options: TestOptions.DebugDll, verify: false);
+            var comp = CompileAndVerify(text, options: TestOptions.DebugDll, verify: false);
             comp.VerifyIL("Program.M(ref int, ref int, object)", @"
 {
   // Code size       17 (0x11)
@@ -1306,7 +1308,7 @@ class Program3<T>
 }
 ";
 
-            var comp = CompileAndVerifyExperimental(text, options: TestOptions.DebugDll, verify: false);
+            var comp = CompileAndVerify(text, options: TestOptions.DebugDll, verify: false);
             comp.VerifyIL("Program<T>.M(ref int, ref int, object)", @"
 {
   // Code size       28 (0x1c)
@@ -1386,7 +1388,7 @@ class Program
 }
 ";
 
-            CompileAndVerifyExperimental(text, options: TestOptions.DebugDll).VerifyIL("Program.M(D)", @"
+            CompileAndVerify(text, options: TestOptions.DebugDll).VerifyIL("Program.M(D)", @"
 {
   // Code size        9 (0x9)
   .maxstack  1
@@ -1415,7 +1417,7 @@ class Program
 }
 ";
 
-            CompileAndVerifyExperimental(text, options: TestOptions.DebugDll, verify: false).VerifyIL("Program.M(D, ref int, ref int, object)", @"
+            CompileAndVerify(text, options: TestOptions.DebugDll, verify: false).VerifyIL("Program.M(D, ref int, ref int, object)", @"
 {
   // Code size       17 (0x11)
   .maxstack  4
@@ -1467,7 +1469,7 @@ class Program
 }
 ";
 
-            CompileAndVerifyExperimental(text, options: TestOptions.UnsafeDebugDll).VerifyIL("Program.Main()", @"
+            CompileAndVerify(text, options: TestOptions.UnsafeDebugDll).VerifyIL("Program.Main()", @"
 {
   // Code size       51 (0x33)
   .maxstack  3
@@ -1536,7 +1538,7 @@ class Program
 }
 ";
 
-            CompileAndVerifyExperimental(text, options: TestOptions.UnsafeDebugDll).VerifyIL("Program.Main()", @"
+            CompileAndVerify(text, options: TestOptions.UnsafeDebugDll).VerifyIL("Program.Main()", @"
 {
   // Code size       41 (0x29)
   .maxstack  2
@@ -1587,15 +1589,152 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6));
+            var comp = CreateStandardCompilation(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6));
             comp.VerifyDiagnostics(
-                // (6,9): error CS8058: Feature 'byref locals and returns' is experimental and unsupported; use '/features:refLocalsAndReturns' to enable.
+                // (6,9): error CS8059: Feature 'byref locals and returns' is not available in C# 6. Please use language version 7 or greater.
                 //         ref int rl = ref (new int[1])[0];
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "ref").WithArguments("byref locals and returns", "refLocalsAndReturns").WithLocation(6, 9),
-                // (6,22): error CS8058: Feature 'byref locals and returns' is experimental and unsupported; use '/features:refLocalsAndReturns' to enable.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "ref int").WithArguments("byref locals and returns", "7").WithLocation(6, 9),
+                // (6,22): error CS8059: Feature 'byref locals and returns' is not available in C# 6. Please use language version 7 or greater.
                 //         ref int rl = ref (new int[1])[0];
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "ref").WithArguments("byref locals and returns", "refLocalsAndReturns").WithLocation(6, 22)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "ref").WithArguments("byref locals and returns", "7").WithLocation(6, 22)
                 );
+        }
+
+        [Fact]
+        public void RefVarSemanticModel()
+        {
+            var text = @"
+class Program
+{
+    static void M()
+    {
+        int i = 0;
+        ref var x = ref i;
+    }
+}
+";
+            var comp = CreateStandardCompilation(text);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+
+            var xDecl = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().ElementAt(1);
+            Assert.Equal("System.Int32 x", model.GetDeclaredSymbol(xDecl).ToTestDisplayString());
+
+            var refVar = tree.GetRoot().DescendantNodes().OfType<RefTypeSyntax>().Single();
+            var type = refVar.Type;
+            Assert.Equal("System.Int32", model.GetTypeInfo(type).Type.ToTestDisplayString());
+            Assert.Equal("System.Int32", model.GetSymbolInfo(type).Symbol.ToTestDisplayString());
+            Assert.Null(model.GetAliasInfo(type));
+
+            Assert.Null(model.GetSymbolInfo(refVar).Symbol);
+            Assert.Null(model.GetTypeInfo(refVar).Type);
+        }
+
+        [Fact]
+        public void RefAliasVarSemanticModel()
+        {
+            var text = @"
+using var = C;
+class C
+{
+    static void M()
+    {
+        C i = null;
+        ref var x = ref i;
+    }
+}
+";
+            var comp = CreateStandardCompilation(text);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+
+            var xDecl = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().ElementAt(1);
+            Assert.Equal("C x", model.GetDeclaredSymbol(xDecl).ToTestDisplayString());
+
+            var refVar = tree.GetRoot().DescendantNodes().OfType<RefTypeSyntax>().Single();
+            var type = refVar.Type;
+            Assert.Equal("C", model.GetTypeInfo(type).Type.ToTestDisplayString());
+            Assert.Equal("C", model.GetSymbolInfo(type).Symbol.ToTestDisplayString());
+            var alias = model.GetAliasInfo(type);
+            Assert.Equal(SymbolKind.NamedType, alias.Target.Kind);
+            Assert.Equal("C", alias.Target.ToDisplayString());
+
+            Assert.Null(model.GetSymbolInfo(refVar).Symbol);
+            Assert.Null(model.GetTypeInfo(refVar).Type);
+        }
+
+        [Fact]
+        public void RefIntSemanticModel()
+        {
+            var text = @"
+class Program
+{
+    static void M()
+    {
+        int i = 0;
+        ref System.Int32 x = ref i;
+    }
+}
+";
+            var comp = CreateStandardCompilation(text);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+
+            var xDecl = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().ElementAt(1);
+            Assert.Equal("System.Int32 x", model.GetDeclaredSymbol(xDecl).ToTestDisplayString());
+
+            var refInt = tree.GetRoot().DescendantNodes().OfType<RefTypeSyntax>().Single();
+            var type = refInt.Type;
+            Assert.Equal("System.Int32", model.GetTypeInfo(type).Type.ToTestDisplayString());
+            Assert.Equal("System.Int32", model.GetSymbolInfo(type).Symbol.ToTestDisplayString());
+            Assert.Null(model.GetAliasInfo(type));
+
+            Assert.Null(model.GetSymbolInfo(refInt).Symbol);
+            Assert.Null(model.GetTypeInfo(refInt).Type);
+        }
+
+        [WorkItem(17395, "https://github.com/dotnet/roslyn/issues/17453")]
+        [Fact]
+        public void Regression17395()
+        {
+            var source = @"
+using System;
+
+public class C 
+{            
+    public void F()
+    {
+        ref int[] a = ref {1,2,3};
+        Console.WriteLine(a[0]);
+
+        ref var b = ref {4, 5, 6};
+        Console.WriteLine(b[0]);
+
+        ref object c = ref {7,8,9};
+        Console.WriteLine(c);
+    }        
+}
+";
+
+            var c = CreateStandardCompilation(source);
+
+            c.VerifyDiagnostics(
+                // (8,27): error CS1510: A ref or out value must be an assignable variable
+                //         ref int[] a = ref {1,2,3};
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "{1,2,3}"),
+                // (11,17): error CS0820: Cannot initialize an implicitly-typed variable with an array initializer
+                //         ref var b = ref {4, 5, 6};
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedArrayInitializer, "b = ref {4, 5, 6}").WithLocation(11, 17),
+                // (14,28): error CS0622: Can only use array initializer expressions to assign to array types. Try using a new expression instead.
+                //         ref object c = ref {7,8,9};
+                Diagnostic(ErrorCode.ERR_ArrayInitToNonArrayType, "{7,8,9}").WithLocation(14, 28)
+            );
         }
     }
 }

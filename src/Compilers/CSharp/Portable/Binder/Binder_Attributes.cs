@@ -265,7 +265,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private AnalyzedAttributeArguments BindAttributeArguments(AttributeArgumentListSyntax attributeArgumentList, NamedTypeSymbol attributeType, DiagnosticBag diagnostics)
+        private AnalyzedAttributeArguments BindAttributeArguments(
+            AttributeArgumentListSyntax attributeArgumentList,
+            NamedTypeSymbol attributeType,
+            DiagnosticBag diagnostics)
         {
             var boundConstructorArguments = AnalyzedArguments.GetInstance();
             var boundNamedArguments = ImmutableArray<BoundExpression>.Empty;
@@ -279,20 +282,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // matching Dev10 compiler behavior.
                 bool hadError = false;
 
+                var shouldHaveName = false;
+
                 foreach (var argument in attributeArgumentList.Arguments)
                 {
                     if (argument.NameEquals == null)
                     {
+                        if (shouldHaveName)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_NamedArgumentExpected, argument.Expression.GetLocation());
+                        }
+
                         // Constructor argument
                         hadError |= this.BindArgumentAndName(
                             boundConstructorArguments,
                             diagnostics,
                             hadError,
                             argument,
-                            argument.Expression,
+                            BindArgumentExpression(diagnostics, argument.Expression, RefKind.None, allowArglist: false),
                             argument.NameColon,
-                            refKind: RefKind.None,
-                            allowArglist: false);
+                            refKind: RefKind.None);
 
                         if (boundNamedArgumentsBuilder != null)
                         {
@@ -303,6 +312,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else
                     {
+                        shouldHaveName = true;
+
                         // Named argument
                         // TODO: use fully qualified identifier name for boundNamedArgumentsSet
                         string argumentName = argument.NameEquals.Name.Identifier.ValueText;
@@ -824,7 +835,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null; // ignoring, since already bound argument and parameter
-                Conversion conversion = conversions.ClassifyConversion(argumentType, parameter.Type, ref useSiteDiagnostics, builtinOnly: true);
+                Conversion conversion = conversions.ClassifyBuiltInConversion(argumentType, parameter.Type, ref useSiteDiagnostics);
 
                 // NOTE: Won't always succeed, even though we've performed overload resolution.
                 // For example, passing int[] to params object[] actually treats the int[] as an element of the object[].

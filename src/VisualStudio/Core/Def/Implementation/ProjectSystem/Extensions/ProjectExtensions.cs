@@ -54,6 +54,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.E
             return project.ProjectItems.FindItem(itemName, comparer);
         }
 
+        public static ProjectItem FindItemByPath(this EnvDTE.Project project, string itemFilePath, StringComparer comparer)
+        {
+            return project.ProjectItems.FindItemByPath(itemFilePath, comparer);
+        }
+
         public static bool TryGetFullPath(this EnvDTE.Project project, out string fullPath)
         {
             fullPath = project.Properties.Item("FullPath").Value as string;

@@ -16,8 +16,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Iterator
         public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
-            SyntaxNode node = null;
-            if (!TryGetNode(root, context.Span, out node))
+            if (!TryGetNode(root, context.Span, out var node))
             {
                 return;
             }

@@ -7,10 +7,8 @@ Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Packaging
-Imports Microsoft.CodeAnalysis.Shared.Options
 Imports Microsoft.CodeAnalysis.SymbolSearch
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddImport
+Imports Microsoft.CodeAnalysis.VisualBasic.AddImport
 Imports Moq
 Imports ProviderData = System.Tuple(Of Microsoft.CodeAnalysis.Packaging.IPackageInstallerService, Microsoft.CodeAnalysis.SymbolSearch.ISymbolSearchService)
 
@@ -24,22 +22,20 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeActions.AddImp
             Private Shared ReadOnly NugetPackageSources As ImmutableArray(Of PackageSource) =
                 ImmutableArray.Create(New PackageSource(NugetOrgSource, "http://nuget.org"))
 
-            Protected Overrides Async Function CreateWorkspaceFromFileAsync(definition As String, parseOptions As ParseOptions, compilationOptions As CompilationOptions) As Task(Of TestWorkspace)
-                Dim workspace = Await MyBase.CreateWorkspaceFromFileAsync(definition, parseOptions, compilationOptions)
+            Protected Overrides Function CreateWorkspaceFromFile(initialMarkup As String, parameters As TestParameters) As TestWorkspace
+                Dim workspace = MyBase.CreateWorkspaceFromFile(initialMarkup, parameters)
                 workspace.Options = workspace.Options.
-                    WithChangedOption(AddImportOptions.SuggestForTypesInNuGetPackages, LanguageNames.VisualBasic, True).
-                    WithChangedOption(AddImportOptions.SuggestForTypesInReferenceAssemblies, LanguageNames.VisualBasic, True)
+                    WithChangedOption(SymbolSearchOptions.SuggestForTypesInNuGetPackages, LanguageNames.VisualBasic, True).
+                    WithChangedOption(SymbolSearchOptions.SuggestForTypesInReferenceAssemblies, LanguageNames.VisualBasic, True)
                 Return workspace
             End Function
 
-            Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace, fixProviderData As Object) As Tuple(Of DiagnosticAnalyzer, CodeFixProvider)
-                Dim data = DirectCast(fixProviderData, ProviderData)
-                Return Tuple.Create(Of DiagnosticAnalyzer, CodeFixProvider)(
-                    Nothing,
-                    New VisualBasicAddImportCodeFixProvider(data.Item1, data.Item2))
+            Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace, parameters As TestParameters) As (DiagnosticAnalyzer, CodeFixProvider)
+                Dim data = DirectCast(parameters.fixProviderData, ProviderData)
+                Return (Nothing, New VisualBasicAddImportCodeFixProvider(data.Item1, data.Item2))
             End Function
 
-            Protected Overrides Function MassageActions(actions As IList(Of CodeAction)) As IList(Of CodeAction)
+            Protected Overrides Function MassageActions(actions As ImmutableArray(Of CodeAction)) As ImmutableArray(Of CodeAction)
                 Return FlattenActions(actions)
             End Function
 
@@ -50,12 +46,14 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeActions.AddImp
                 Dim installerServiceMock = New Mock(Of IPackageInstallerService)(MockBehavior.Loose)
                 installerServiceMock.SetupGet(Function(i) i.IsEnabled).Returns(True)
                 installerServiceMock.SetupGet(Function(i) i.PackageSources).Returns(NugetPackageSources)
+                installerServiceMock.Setup(Function(s) s.TryInstallPackage(It.IsAny(Of Workspace), It.IsAny(Of DocumentId), It.IsAny(Of String), "NuGetPackage", It.IsAny(Of String), It.IsAny(Of Boolean), It.IsAny(Of CancellationToken))).
+                                     Returns(True)
 
                 Dim packageServiceMock = New Mock(Of ISymbolSearchService)()
-                packageServiceMock.Setup(Function(s) s.FindPackagesWithType(NugetOrgSource, "NuGetType", 0, It.IsAny(Of CancellationToken)())).
+                packageServiceMock.Setup(Function(s) s.FindPackagesWithTypeAsync(NugetOrgSource, "NuGetType", 0, It.IsAny(Of CancellationToken)())).
                     Returns(CreateSearchResult("NuGetPackage", "NuGetType", CreateNameParts("NuGetNamespace")))
 
-                Await TestAsync(
+                Await TestInRegularAndScriptAsync(
 "
 Class C
     Dim n As [|NuGetType|]
@@ -75,12 +73,14 @@ End Class", fixProviderData:=New ProviderData(installerServiceMock.Object, packa
                 Dim installerServiceMock = New Mock(Of IPackageInstallerService)(MockBehavior.Loose)
                 installerServiceMock.SetupGet(Function(i) i.IsEnabled).Returns(True)
                 installerServiceMock.SetupGet(Function(i) i.PackageSources).Returns(NugetPackageSources)
+                installerServiceMock.Setup(Function(s) s.TryInstallPackage(It.IsAny(Of Workspace), It.IsAny(Of DocumentId), It.IsAny(Of String), "NuGetPackage", It.IsAny(Of String), It.IsAny(Of Boolean), It.IsAny(Of CancellationToken))).
+                                     Returns(True)
 
                 Dim packageServiceMock = New Mock(Of ISymbolSearchService)()
-                packageServiceMock.Setup(Function(s) s.FindPackagesWithType(NugetOrgSource, "NuGetType", 0, It.IsAny(Of CancellationToken)())).
+                packageServiceMock.Setup(Function(s) s.FindPackagesWithTypeAsync(NugetOrgSource, "NuGetType", 0, It.IsAny(Of CancellationToken)())).
                     Returns(CreateSearchResult("NuGetPackage", "NuGetType", CreateNameParts("NS1", "NS2")))
 
-                Await TestAsync(
+                Await TestInRegularAndScriptAsync(
 "
 Class C
     Dim n As [|NuGetType|]
@@ -88,6 +88,31 @@ End Class",
 "
 Imports NS1.NS2
 
+Class C
+    Dim n As NuGetType
+End Class", fixProviderData:=New ProviderData(installerServiceMock.Object, packageServiceMock.Object))
+            End Function
+
+            <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
+            Public Async Function TestFailedInstallDoesNotChangeFile() As Task
+                ' Make a loose mock for the installer service.  We don't care what this test
+                ' calls on it.
+                Dim installerServiceMock = New Mock(Of IPackageInstallerService)(MockBehavior.Loose)
+                installerServiceMock.SetupGet(Function(i) i.IsEnabled).Returns(True)
+                installerServiceMock.SetupGet(Function(i) i.PackageSources).Returns(NugetPackageSources)
+                installerServiceMock.Setup(Function(s) s.TryInstallPackage(It.IsAny(Of Workspace), It.IsAny(Of DocumentId), It.IsAny(Of String), "NuGetPackage", It.IsAny(Of String), It.IsAny(Of Boolean), It.IsAny(Of CancellationToken))).
+                                     Returns(False)
+
+                Dim packageServiceMock = New Mock(Of ISymbolSearchService)()
+                packageServiceMock.Setup(Function(s) s.FindPackagesWithTypeAsync(NugetOrgSource, "NuGetType", 0, It.IsAny(Of CancellationToken)())).
+                    Returns(CreateSearchResult("NuGetPackage", "NuGetType", CreateNameParts("NS1", "NS2")))
+
+                Await TestInRegularAndScriptAsync(
+"
+Class C
+    Dim n As [|NuGetType|]
+End Class",
+"
 Class C
     Dim n As NuGetType
 End Class", fixProviderData:=New ProviderData(installerServiceMock.Object, packageServiceMock.Object))
@@ -104,15 +129,15 @@ End Class", fixProviderData:=New ProviderData(installerServiceMock.Object, packa
                     Returns(True)
 
                 Dim packageServiceMock = New Mock(Of ISymbolSearchService)()
-                packageServiceMock.Setup(Function(s) s.FindPackagesWithType(NugetOrgSource, "NuGetType", 0, It.IsAny(Of CancellationToken)())).
+                packageServiceMock.Setup(Function(s) s.FindPackagesWithTypeAsync(NugetOrgSource, "NuGetType", 0, It.IsAny(Of CancellationToken)())).
                     Returns(CreateSearchResult("NuGetPackage", "NuGetType", CreateNameParts("NS1", "NS2")))
 
-                Await TestMissingAsync(
+                Await TestMissingInRegularAndScriptAsync(
 "
 Class C
     Dim n As [|NuGetType|]
 End Class",
-fixProviderData:=New ProviderData(installerServiceMock.Object, packageServiceMock.Object))
+New TestParameters(fixProviderData:=New ProviderData(installerServiceMock.Object, packageServiceMock.Object)))
             End Function
 
             <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
@@ -123,10 +148,10 @@ fixProviderData:=New ProviderData(installerServiceMock.Object, packageServiceMoc
                 installerServiceMock.SetupGet(Function(i) i.IsEnabled).Returns(True)
                 installerServiceMock.SetupGet(Function(i) i.PackageSources).Returns(NugetPackageSources)
                 installerServiceMock.Setup(Function(s) s.GetInstalledVersions("NuGetPackage")).
-                    Returns({"1.0", "2.0"})
+                    Returns(ImmutableArray.Create("1.0", "2.0"))
 
                 Dim packageServiceMock = New Mock(Of ISymbolSearchService)()
-                packageServiceMock.Setup(Function(s) s.FindPackagesWithType(NugetOrgSource, "NuGetType", 0, It.IsAny(Of CancellationToken)())).
+                packageServiceMock.Setup(Function(s) s.FindPackagesWithTypeAsync(NugetOrgSource, "NuGetType", 0, It.IsAny(Of CancellationToken)())).
                     Returns(CreateSearchResult("NuGetPackage", "NuGetType", CreateNameParts("NS1", "NS2")))
 
                 Dim data = New ProviderData(installerServiceMock.Object, packageServiceMock.Object)
@@ -136,8 +161,7 @@ Class C
     Dim n As [|NuGetType|]
 End Class",
 "Use local version '1.0'",
-index:=0,
-fixProviderData:=data)
+parameters:=New TestParameters(fixProviderData:=data))
 
                 Await TestSmartTagTextAsync(
 "
@@ -146,7 +170,7 @@ Class C
 End Class",
 "Use local version '2.0'",
 index:=1,
-fixProviderData:=data)
+parameters:=New TestParameters(fixProviderData:=data))
 
                 Await TestSmartTagTextAsync(
 "
@@ -155,7 +179,7 @@ Class C
 End Class",
 "Find and install latest version",
 index:=2,
-fixProviderData:=data)
+parameters:=New TestParameters(fixProviderData:=data))
             End Function
 
             <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
@@ -163,14 +187,14 @@ fixProviderData:=data)
                 Dim installerServiceMock = New Mock(Of IPackageInstallerService)(MockBehavior.Loose)
                 installerServiceMock.SetupGet(Function(i) i.IsEnabled).Returns(True)
                 installerServiceMock.SetupGet(Function(i) i.PackageSources).Returns(NugetPackageSources)
-                installerServiceMock.Setup(Function(s) s.TryInstallPackage(
-                    It.IsAny(Of Workspace), It.IsAny(Of DocumentId), It.IsAny(Of String), "NuGetPackage", Nothing, It.IsAny(Of CancellationToken)))
+                installerServiceMock.Setup(Function(s) s.TryInstallPackage(It.IsAny(Of Workspace), It.IsAny(Of DocumentId), It.IsAny(Of String), "NuGetPackage", Nothing, It.IsAny(Of Boolean), It.IsAny(Of CancellationToken))).
+                                     Returns(True)
 
                 Dim packageServiceMock = New Mock(Of ISymbolSearchService)()
-                packageServiceMock.Setup(Function(s) s.FindPackagesWithType(NugetOrgSource, "NuGetType", 0, It.IsAny(Of CancellationToken)())).
+                packageServiceMock.Setup(Function(s) s.FindPackagesWithTypeAsync(NugetOrgSource, "NuGetType", 0, It.IsAny(Of CancellationToken)())).
                     Returns(CreateSearchResult("NuGetPackage", "NuGetType", CreateNameParts("NuGetNamespace")))
 
-                Await TestAsync(
+                Await TestInRegularAndScriptAsync(
 "
 Class C
     Dim n As [|NuGetType|]
@@ -190,15 +214,15 @@ End Class", fixProviderData:=New ProviderData(installerServiceMock.Object, packa
                 installerServiceMock.SetupGet(Function(i) i.IsEnabled).Returns(True)
                 installerServiceMock.SetupGet(Function(i) i.PackageSources).Returns(NugetPackageSources)
                 installerServiceMock.Setup(Function(s) s.GetInstalledVersions("NuGetPackage")).
-                    Returns({"1.0"})
-                installerServiceMock.Setup(Function(s) s.TryInstallPackage(
-                    It.IsAny(Of Workspace), It.IsAny(Of DocumentId), It.IsAny(Of String), "NuGetPackage", "1.0", It.IsAny(Of CancellationToken)))
+                    Returns(ImmutableArray.Create("1.0"))
+                installerServiceMock.Setup(Function(s) s.TryInstallPackage(It.IsAny(Of Workspace), It.IsAny(Of DocumentId), It.IsAny(Of String), "NuGetPackage", "1.0", It.IsAny(Of Boolean), It.IsAny(Of CancellationToken))).
+                                     Returns(True)
 
                 Dim packageServiceMock = New Mock(Of ISymbolSearchService)()
-                packageServiceMock.Setup(Function(s) s.FindPackagesWithType(NugetOrgSource, "NuGetType", 0, It.IsAny(Of CancellationToken)())).
+                packageServiceMock.Setup(Function(s) s.FindPackagesWithTypeAsync(NugetOrgSource, "NuGetType", 0, It.IsAny(Of CancellationToken)())).
                     Returns(CreateSearchResult("NuGetPackage", "NuGetType", CreateNameParts("NuGetNamespace")))
 
-                Await TestAsync(
+                Await TestInRegularAndScriptAsync(
 "
 Class C
     Dim n As [|NuGetType|]
@@ -212,16 +236,17 @@ End Class", fixProviderData:=New ProviderData(installerServiceMock.Object, packa
                 installerServiceMock.Verify()
             End Function
 
-            Private Function CreateSearchResult(packageName As String, typeName As String, nameParts As IReadOnlyList(Of String)) As IEnumerable(Of PackageWithTypeResult)
+            Private Function CreateSearchResult(packageName As String, typeName As String, nameParts As IReadOnlyList(Of String)) As Task(Of ImmutableArray(Of PackageWithTypeResult))
                 Return CreateSearchResult(New PackageWithTypeResult(
                     packageName:=packageName,
                     typeName:=typeName,
                     version:=Nothing,
+                    rank:=0,
                     containingNamespaceNames:=nameParts))
             End Function
 
-            Private Function CreateSearchResult(ParamArray results As PackageWithTypeResult()) As IEnumerable(Of PackageWithTypeResult)
-                Return results
+            Private Function CreateSearchResult(ParamArray results As PackageWithTypeResult()) As Task(Of ImmutableArray(Of PackageWithTypeResult))
+                Return Task.FromResult(ImmutableArray.Create(results))
             End Function
 
             Private Function CreateNameParts(ParamArray parts As String()) As IReadOnlyList(Of String)

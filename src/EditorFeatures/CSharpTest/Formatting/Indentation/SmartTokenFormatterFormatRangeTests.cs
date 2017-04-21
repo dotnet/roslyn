@@ -5,21 +5,16 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.Editor.Commands;
-using Microsoft.CodeAnalysis.Editor.CSharp.Formatting;
 using Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation;
 using Microsoft.CodeAnalysis.Editor.Implementation.Formatting;
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -40,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
             var code = @"        using System;$$";
             var expected = @"        using System;";
 
-            Assert.NotNull(await Record.ExceptionAsync(async () => await AutoFormatOnSemicolonAsync(code, expected, SyntaxKind.None)));
+            Assert.NotNull(await Record.ExceptionAsync(() => AutoFormatOnSemicolonAsync(code, expected, SyntaxKind.None)));
         }
 
         [WpfFact]
@@ -2735,19 +2730,19 @@ class Program{
         [WpfFact]
         [WorkItem(620568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/620568")]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
-        public async Task SkippedTokens1()
+        public void SkippedTokens1()
         {
             var code = @";$$*";
 
             var expected = @";*";
 
-            await AutoFormatTokenAsync(code, expected);
+            AutoFormatToken(code, expected);
         }
 
         [WpfFact]
         [WorkItem(530830, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530830")]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
-        public async Task AutoPropertyAccessor()
+        public void AutoPropertyAccessor()
         {
             var code = @"class C
 {
@@ -2759,13 +2754,13 @@ class Program{
     int Prop {          get;
 }";
 
-            await AutoFormatTokenAsync(code, expected);
+            AutoFormatToken(code, expected);
         }
 
         [WpfFact]
         [WorkItem(530830, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530830")]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
-        public async Task AutoPropertyAccessor2()
+        public void AutoPropertyAccessor2()
         {
             var code = @"class C
 {
@@ -2777,13 +2772,13 @@ class Program{
     int Prop {          get;                set;
 }";
 
-            await AutoFormatTokenAsync(code, expected);
+            AutoFormatToken(code, expected);
         }
 
         [WpfFact]
         [WorkItem(530830, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530830")]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
-        public async Task AutoPropertyAccessor3()
+        public void AutoPropertyAccessor3()
         {
             var code = @"class C
 {
@@ -2795,13 +2790,13 @@ class Program{
     int Prop { get; set; }
 }";
 
-            await AutoFormatTokenAsync(code, expected);
+            AutoFormatToken(code, expected);
         }
 
         [WpfFact]
         [WorkItem(784674, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/784674")]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
-        public async Task AutoPropertyAccessor4()
+        public void AutoPropertyAccessor4()
         {
             var code = @"class C
 {
@@ -2813,13 +2808,13 @@ class Program{
     int Prop { get; }
 }";
 
-            await AutoFormatTokenAsync(code, expected);
+            AutoFormatToken(code, expected);
         }
 
         [WpfFact]
         [WorkItem(924469, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/924469")]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
-        public async Task AutoPropertyAccessor5()
+        public void AutoPropertyAccessor5()
         {
             var code = @"class C
 {
@@ -2830,13 +2825,13 @@ class Program{
 {
     int Prop { get; set; }
 }";
-            await AutoFormatTokenAsync(code, expected);
+            AutoFormatToken(code, expected);
         }
 
         [WpfFact]
         [WorkItem(924469, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/924469")]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
-        public async Task AutoPropertyAccessor6()
+        public void AutoPropertyAccessor6()
         {
             var code = @"class C
 {
@@ -2848,13 +2843,13 @@ class Program{
     int Prop { get; set; }
 }";
 
-            await AutoFormatTokenAsync(code, expected);
+            AutoFormatToken(code, expected);
         }
 
         [WpfFact]
         [WorkItem(924469, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/924469")]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
-        public async Task AutoPropertyAccessor7()
+        public void AutoPropertyAccessor7()
         {
             var code = @"class C
 {
@@ -2866,13 +2861,13 @@ class Program{
     int Prop     { get; set; }    
 }";
 
-            await AutoFormatTokenAsync(code, expected);
+            AutoFormatToken(code, expected);
         }
 
         [WpfFact]
         [WorkItem(912965, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/912965")]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
-        public async Task NestedUsingStatement()
+        public void NestedUsingStatement()
         {
             var code = @"class C
 {
@@ -2892,13 +2887,13 @@ class Program{
     }
 }";
 
-            await AutoFormatTokenAsync(code, expected);
+            AutoFormatToken(code, expected);
         }
 
         [WpfFact]
         [WorkItem(912965, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/912965")]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
-        public async Task NestedNotUsingStatement()
+        public void NestedNotUsingStatement()
         {
             var code = @"class C
 {
@@ -2918,12 +2913,12 @@ class Program{
     }
 }";
 
-            await AutoFormatTokenAsync(code, expected);
+            AutoFormatToken(code, expected);
         }
 
         [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
-        public async Task UsingStatementWithNestedFixedStatement()
+        public void UsingStatementWithNestedFixedStatement()
         {
             var code = @"class C
 {
@@ -2947,12 +2942,12 @@ class Program{
     }
 }";
 
-            await AutoFormatTokenAsync(code, expected);
+            AutoFormatToken(code, expected);
         }
 
         [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
-        public async Task FixedStatementWithNestedUsingStatement()
+        public void FixedStatementWithNestedUsingStatement()
         {
             var code = @"class C
 {
@@ -2972,12 +2967,12 @@ class Program{
     }
 }";
 
-            await AutoFormatTokenAsync(code, expected);
+            AutoFormatToken(code, expected);
         }
 
         [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
-        public async Task FixedStatementWithNestedFixedStatement()
+        public void FixedStatementWithNestedFixedStatement()
         {
             var code = @"class C
 {
@@ -3001,12 +2996,12 @@ class Program{
     }
 }";
 
-            await AutoFormatTokenAsync(code, expected);
+            AutoFormatToken(code, expected);
         }
 
         [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
-        public async Task FixedStatementWithNestedNotFixedStatement()
+        public void FixedStatementWithNestedNotFixedStatement()
         {
             var code = @"class C
 {
@@ -3030,12 +3025,12 @@ class Program{
     }
 }";
 
-            await AutoFormatTokenAsync(code, expected);
+            AutoFormatToken(code, expected);
         }
 
         [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
-        public async Task NotFixedStatementWithNestedFixedStatement()
+        public void NotFixedStatementWithNestedFixedStatement()
         {
             var code = @"class C
 {
@@ -3059,13 +3054,13 @@ class Program{
     }
 }";
 
-            await AutoFormatTokenAsync(code, expected);
+            AutoFormatToken(code, expected);
         }
 
         [WpfFact]
         [WorkItem(954386, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/954386")]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
-        public async Task FormattingRangeForFirstStatementOfBlock()
+        public void FormattingRangeForFirstStatementOfBlock()
         {
             var code = @"class C
 {
@@ -3082,13 +3077,13 @@ class Program{
     }
 }";
 
-            await AutoFormatTokenAsync(code, expected);
+            AutoFormatToken(code, expected);
         }
 
         [WpfFact]
         [WorkItem(954386, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/954386")]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
-        public async Task FormattingRangeForFirstMemberofType()
+        public void FormattingRangeForFirstMemberofType()
         {
             var code = @"class C
 {int s;$$
@@ -3105,13 +3100,13 @@ class Program{
     }
 }";
 
-            await AutoFormatTokenAsync(code, expected);
+            AutoFormatToken(code, expected);
         }
 
         [WpfFact]
         [WorkItem(954386, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/954386")]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
-        public async Task FormattingRangeForFirstMethodMemberofType()
+        public void FormattingRangeForFirstMethodMemberofType()
         {
             var code = @"interface C
 {void s();$$
@@ -3122,13 +3117,66 @@ class Program{
     void s();
 }";
 
-            await AutoFormatTokenAsync(code, expected);
+            AutoFormatToken(code, expected);
+        }
+
+        [WpfFact]
+        [WorkItem(17257, "https://github.com/dotnet/roslyn/issues/17257")]
+        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
+        public void FormattingRangeForConstructor()
+        {
+            var code = @"class C
+{public C()=>f=1;$$
+}";
+
+            var expected = @"class C
+{
+    public C() => f = 1;
+}";
+
+            AutoFormatToken(code, expected);
+        }
+
+        [WpfFact]
+        [WorkItem(17257, "https://github.com/dotnet/roslyn/issues/17257")]
+        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
+        public void FormattingRangeForDestructor()
+        {
+            var code = @"class C
+{~C()=>f=1;$$
+}";
+
+            var expected = @"class C
+{
+    ~C() => f = 1;
+}";
+
+            AutoFormatToken(code, expected);
+        }
+
+        [WpfFact]
+        [WorkItem(17257, "https://github.com/dotnet/roslyn/issues/17257")]
+        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
+        public void FormattingRangeForOperator()
+        {
+            var code = @"class C
+{public static C operator +(C left, C right)=>field=1;$$
+    static int field;
+}";
+
+            var expected = @"class C
+{
+    public static C operator +(C left, C right) => field = 1;
+    static int field;
+}";
+
+            AutoFormatToken(code, expected);
         }
 
         [WpfFact]
         [WorkItem(954386, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/954386")]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
-        public async Task FormattingRangeForFirstMemberOfNamespace()
+        public void FormattingRangeForFirstMemberOfNamespace()
         {
             var code = @"namespace C
 {delegate void s();$$
@@ -3139,13 +3187,13 @@ class Program{
     delegate void s();
 }";
 
-            await AutoFormatTokenAsync(code, expected);
+            AutoFormatToken(code, expected);
         }
 
         [WorkItem(981821, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/981821")]
         [WpfFact]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
-        public async Task FormatDirectiveTriviaAlwaysToColumnZero()
+        public void FormatDirectiveTriviaAlwaysToColumnZero()
         {
             var code = @"class Program
 {
@@ -3167,13 +3215,13 @@ class Program{
 }
 ";
 
-            await AutoFormatTokenAsync(code, expected);
+            AutoFormatToken(code, expected);
         }
 
         [WorkItem(981821, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/981821")]
         [WpfFact]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
-        public async Task FormatDirectiveTriviaAlwaysToColumnZeroWithCode()
+        public void FormatDirectiveTriviaAlwaysToColumnZeroWithCode()
         {
             var code = @"class Program
 {
@@ -3197,13 +3245,13 @@ class Program{
 }
 ";
 
-            await AutoFormatTokenAsync(code, expected);
+            AutoFormatToken(code, expected);
         }
 
         [WorkItem(981821, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/981821")]
         [WpfFact]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
-        public async Task FormatDirectiveTriviaAlwaysToColumnZeroWithBrokenElseDirective()
+        public void FormatDirectiveTriviaAlwaysToColumnZeroWithBrokenElseDirective()
         {
             var code = @"class Program
 {
@@ -3225,12 +3273,12 @@ class Program{
 }
 ";
 
-            await AutoFormatTokenAsync(code, expected);
+            AutoFormatToken(code, expected);
         }
 
-        internal static async Task AutoFormatTokenAsync(string markup, string expected)
+        internal static void AutoFormatToken(string markup, string expected)
         {
-            using (var workspace = await TestWorkspace.CreateCSharpAsync(markup))
+            using (var workspace = TestWorkspace.CreateCSharp(markup))
             {
                 var subjectDocument = workspace.Documents.Single();
 
@@ -3273,7 +3321,7 @@ class Program{
 
         private async Task AutoFormatOnMarkerAsync(string initialMarkup, string expected, SyntaxKind tokenKind, SyntaxKind startTokenKind)
         {
-            using (var workspace = await TestWorkspace.CreateCSharpAsync(initialMarkup))
+            using (var workspace = TestWorkspace.CreateCSharp(initialMarkup))
             {
                 var tuple = GetService(workspace);
                 var testDocument = workspace.Documents.Single();

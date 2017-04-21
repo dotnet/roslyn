@@ -17,8 +17,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Opti
             End If
 
             If context.TargetToken.IsKind(SyntaxKind.ExplicitKeyword) Then
-                Return {New RecommendedKeyword("On", VBFeaturesResources.OnOptionKeywordToolTip),
-                        New RecommendedKeyword("Off", VBFeaturesResources.OffOptionKeywordToolTip)}
+                Return {New RecommendedKeyword("On", VBFeaturesResources.Turns_a_compiler_option_on),
+                        New RecommendedKeyword("Off", VBFeaturesResources.Turns_a_compiler_option_off)}
             Else
                 Return SpecializedCollections.EmptyEnumerable(Of RecommendedKeyword)()
             End If

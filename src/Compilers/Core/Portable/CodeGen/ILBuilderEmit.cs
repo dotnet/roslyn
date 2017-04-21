@@ -4,15 +4,11 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Reflection;
 using System.Reflection.Metadata;
-using System.Reflection.Metadata.Ecma335;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeGen
 {
-    using Roslyn.Reflection;
-    
     internal partial class ILBuilder
     {
         internal void AdjustStack(int stackAdjustment)
@@ -47,10 +43,32 @@ namespace Microsoft.CodeAnalysis.CodeGen
             this.GetCurrentWriter().WriteUInt32(token);
         }
 
-        internal void EmitToken(Microsoft.Cci.IReference value, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
+        internal void EmitToken(Cci.IReference value, SyntaxNode syntaxNode, DiagnosticBag diagnostics, bool encodeAsRawToken = false)
         {
             uint token = module?.GetFakeSymbolTokenForIL(value, syntaxNode, diagnostics) ?? 0xFFFF;
+            // Setting the high bit indicates that the token value is to be interpreted literally rather than as a handle.
+            if (encodeAsRawToken)
+            {
+                token |= Cci.MetadataWriter.LiteralMethodDefinitionToken;
+            }
             this.GetCurrentWriter().WriteUInt32(token);
+        }
+
+        internal void EmitGreatestMethodToken()
+        {
+            // A magic value indicates that the token value is to be the literal value of the greatest method defnition token.
+            this.GetCurrentWriter().WriteUInt32(Cci.MetadataWriter.LiteralGreatestMethodDefinitionToken);
+        }
+
+        internal void EmitModuleVersionIdStringToken()
+        {
+            // A magic value indicates that the token value is to refer to a string constant for the spelling of the current module's MVID.
+            this.GetCurrentWriter().WriteUInt32(Cci.MetadataWriter.ModuleVersionIdStringToken);
+        }
+
+        internal void EmitSourceDocumentIndexToken(Cci.DebugSourceDocument document)
+        {
+            this.GetCurrentWriter().WriteUInt32((module?.GetSourceDocumentIndexForIL(document) ?? 0xFFFF) | Cci.MetadataWriter.SourceDocumentIndex);
         }
 
         internal void EmitArrayBlockInitializer(ImmutableArray<byte> data, SyntaxNode syntaxNode, DiagnosticBag diagnostics)

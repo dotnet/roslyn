@@ -57,7 +57,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 type = substituted.Type;
 
-                if (substituted.CustomModifiers.IsDefaultOrEmpty)
+                if (substituted.CustomModifiers.IsEmpty && 
+                    this._underlyingParameter.CustomModifiers.IsEmpty &&
+                    this._underlyingParameter.RefCustomModifiers.IsEmpty)
                 {
                     _mapOrType = type;
                 }
@@ -72,6 +74,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 var map = _mapOrType as TypeMap;
                 return map != null ? map.SubstituteCustomModifiers(this._underlyingParameter.Type, this._underlyingParameter.CustomModifiers) : this._underlyingParameter.CustomModifiers;
+            }
+        }
+
+        public override ImmutableArray<CustomModifier> RefCustomModifiers
+        {
+            get
+            {
+                var map = _mapOrType as TypeMap;
+                return map != null ? map.SubstituteCustomModifiers(this._underlyingParameter.RefCustomModifiers) : this._underlyingParameter.RefCustomModifiers;
             }
         }
 

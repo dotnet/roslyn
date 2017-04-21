@@ -41,7 +41,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                 _tracker.SelectedHierarchy != null)
             {
                 referenceManager.ShowReferenceManager(this,
-                                                      SolutionExplorerShim.AddAnalyzer,
+                                                      SolutionExplorerShim.Add_Analyzer,
                                                       null,
                                                       VSConstants.FileReferenceProvider_Guid,
                                                       fForceShowDefaultProvider: false);
@@ -58,9 +58,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             // The items selected in Solution Explorer should correspond to exactly one
             // IVsHierarchy, otherwise we shouldn't have even tried to show the dialog.
             Debug.Assert(_tracker.SelectedHierarchy != null);
-
-            EnvDTE.Project project = null;
-            if (_tracker.SelectedHierarchy.TryGetProject(out project))
+            if (_tracker.SelectedHierarchy.TryGetProject(out var project))
             {
                 var vsproject = project.Object as VSProject3;
 
@@ -93,7 +91,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         {
             // Return just the File provider context so that just the browse tab shows up.
             var context = GetReferenceManager().CreateProviderContext(VSConstants.FileReferenceProvider_Guid) as IVsFileReferenceProviderContext;
-            context.BrowseFilter = string.Format("{0} (*.dll)\0*.dll\0", SolutionExplorerShim.AnalyzerFiles);
+            context.BrowseFilter = string.Format("{0} (*.dll)\0*.dll\0", SolutionExplorerShim.Analyzer_Files);
             return new[] { context };
         }
 

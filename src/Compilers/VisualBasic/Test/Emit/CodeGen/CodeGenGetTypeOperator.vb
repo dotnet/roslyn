@@ -312,35 +312,66 @@ Class2`2[T,U]
     <file name="a.vb">
 Imports System
 
-Class BaseNonGeneric
+Class C
     Public Class E
     End Class
 
+    Public Class E(Of V)
+    End Class
+
     Public Shared Sub Main()
-        Console.WriteLine(GetType(DerivedGeneric(Of ).E))
+        Dim t1 = GetType(D(Of ).E)
+        Console.WriteLine(t1)
+
+        Dim t2 = GetType(F(Of ).E)
+        Dim t3 = GetType(G(Of ).E)
+        Console.WriteLine(t2)
+        Console.WriteLine(t3)
+        Console.WriteLine(t2.Equals(t3))
+
+        Dim t4 = GetType(D(Of ).E(Of ))
+        Console.WriteLine(t4)
+
+        Dim t5 = GetType(F(Of ).E(Of ))
+        Dim t6 = GetType(G(Of ).E(Of ))
+        Console.WriteLine(t5)
+        Console.WriteLine(t6)
+        Console.WriteLine(t5.Equals(t6))
     End Sub
 End Class
 
-Class DerivedGeneric(Of T) 
-    Inherits BaseNonGeneric
+Class C(Of U)
+    Public Class E
+    End Class
+
+    Public Class E(Of V)
+    End Class
+End Class
+
+Class D(Of T) 
+    Inherits C
+End Class
+
+Class F(Of T) 
+    Inherits C(Of T)
+End Class
+
+Class G(Of T) 
+    Inherits C(Of Integer)
 End Class
     </file>
-</compilation>)
+</compilation>, options:=TestOptions.ReleaseExe)
 
-            Const bug9850IsFixed = False
-
-            If bug9850IsFixed Then
-                CompileAndVerify(compilation, expectedOutput:=<![CDATA[
-BaseNonGeneric+E
+            CompileAndVerify(compilation, expectedOutput:=<![CDATA[
+C+E
+C`1+E[U]
+C`1+E[U]
+True
+C+E`1[V]
+C`1+E`1[U,V]
+C`1+E`1[U,V]
+True
 ]]>)
-            Else
-                compilation.AssertTheseDiagnostics(
-    <expected>
-BC30002: Type 'DerivedGeneric.E' is not defined.
-        Console.WriteLine(GetType(DerivedGeneric(Of ).E))
-                                  ~~~~~~~~~~~~~~~~~~~~~
-</expected>)
-            End If
         End Sub
 
         <Fact>

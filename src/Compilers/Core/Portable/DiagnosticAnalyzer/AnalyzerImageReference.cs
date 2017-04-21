@@ -42,11 +42,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return _analyzers;
         }
 
-        public override ImmutableArray<SourceGenerator> GetSourceGenerators(string language)
-        {
-            return ImmutableArray<SourceGenerator>.Empty;
-        }
-
         public override string FullPath
         {
             get

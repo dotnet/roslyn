@@ -325,7 +325,7 @@ public static class MyExtension
 }";
 
             var expectedOrderedItems = new List<SignatureHelpTestItem>();
-            expectedOrderedItems.Add(new SignatureHelpTestItem($"({CSharpFeaturesResources.Extension}) int string.ExtensionMethod(int x)", string.Empty, string.Empty, currentParameterIndex: 0));
+            expectedOrderedItems.Add(new SignatureHelpTestItem($"({CSharpFeaturesResources.extension}) int string.ExtensionMethod(int x)", string.Empty, string.Empty, currentParameterIndex: 0));
 
             // TODO: Once we do the work to allow extension methods in nested types, we should change this.
             await TestAsync(markup, expectedOrderedItems, sourceCodeKind: SourceCodeKind.Regular);
@@ -524,15 +524,15 @@ class Program
                 new SignatureHelpTestItem(
 $@"void List<'a>.Add('a item)
 
-{FeaturesResources.AnonymousTypes}
-    'a {FeaturesResources.Is} new {{ string Name, int Age }}",
+{FeaturesResources.Anonymous_Types_colon}
+    'a {FeaturesResources.is_} new {{ string Name, int Age }}",
                     methodDocumentation: string.Empty,
                     parameterDocumentation: string.Empty,
                     currentParameterIndex: 0,
                     description: $@"
 
-{FeaturesResources.AnonymousTypes}
-    'a {FeaturesResources.Is} new {{ string Name, int Age }}")
+{FeaturesResources.Anonymous_Types_colon}
+    'a {FeaturesResources.is_} new {{ string Name, int Age }}")
             };
 
             await TestAsync(markup, expectedOrderedItems);
@@ -1556,11 +1556,11 @@ class C
 }";
 
             var description = $@"
-{WorkspacesResources.Usage}
+{WorkspacesResources.Usage_colon}
   await Foo();";
 
             var expectedOrderedItems = new List<SignatureHelpTestItem>();
-            expectedOrderedItems.Add(new SignatureHelpTestItem($"({CSharpFeaturesResources.Awaitable}) Task C.Foo()", methodDocumentation: description, currentParameterIndex: 0));
+            expectedOrderedItems.Add(new SignatureHelpTestItem($"({CSharpFeaturesResources.awaitable}) Task C.Foo()", methodDocumentation: description, currentParameterIndex: 0));
 
             await TestSignatureHelpWithMscorlib45Async(markup, expectedOrderedItems, "C#");
         }
@@ -1579,11 +1579,11 @@ class C
 }";
 
             var description = $@"
-{WorkspacesResources.Usage}
+{WorkspacesResources.Usage_colon}
   Task<int> x = await Foo();";
 
             var expectedOrderedItems = new List<SignatureHelpTestItem>();
-            expectedOrderedItems.Add(new SignatureHelpTestItem($"({CSharpFeaturesResources.Awaitable}) Task<Task<int>> C.Foo()", methodDocumentation: description, currentParameterIndex: 0));
+            expectedOrderedItems.Add(new SignatureHelpTestItem($"({CSharpFeaturesResources.awaitable}) Task<Task<int>> C.Foo()", methodDocumentation: description, currentParameterIndex: 0));
 
             await TestSignatureHelpWithMscorlib45Async(markup, expectedOrderedItems, "C#");
         }
@@ -1672,7 +1672,7 @@ class Program
             var expectedOrderedItems = new List<SignatureHelpTestItem>
             {
                 new SignatureHelpTestItem("void IFoo.Bar<T>()", currentParameterIndex: 0),
-                new SignatureHelpTestItem($"({CSharpFeaturesResources.Extension}) void IFoo.Bar<T1, T2>()", currentParameterIndex: 0),
+                new SignatureHelpTestItem($"({CSharpFeaturesResources.extension}) void IFoo.Bar<T1, T2>()", currentParameterIndex: 0),
             };
 
             // Extension methods are supported in Interactive/Script (yet).
@@ -1727,7 +1727,7 @@ class C
         <Document IsLinkFile=""true"" LinkAssemblyName=""Proj1"" LinkFilePath=""SourceDocument""/>
     </Project>
 </Workspace>";
-            var expectedDescription = new SignatureHelpTestItem($"void C.bar()\r\n\r\n{string.Format(FeaturesResources.ProjectAvailability, "Proj1", FeaturesResources.Available)}\r\n{string.Format(FeaturesResources.ProjectAvailability, "Proj2", FeaturesResources.NotAvailable)}\r\n\r\n{FeaturesResources.UseTheNavigationBarToSwitchContext}", currentParameterIndex: 0);
+            var expectedDescription = new SignatureHelpTestItem($"void C.bar()\r\n\r\n{string.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available)}\r\n{string.Format(FeaturesResources._0_1, "Proj2", FeaturesResources.Not_Available)}\r\n\r\n{FeaturesResources.You_can_use_the_navigation_bar_to_switch_context}", currentParameterIndex: 0);
             await VerifyItemWithReferenceWorkerAsync(markup, new[] { expectedDescription }, false);
         }
 
@@ -1763,7 +1763,7 @@ class C
     </Project>
 </Workspace>";
 
-            var expectedDescription = new SignatureHelpTestItem($"void C.bar()\r\n\r\n{string.Format(FeaturesResources.ProjectAvailability, "Proj1", FeaturesResources.Available)}\r\n{string.Format(FeaturesResources.ProjectAvailability, "Proj3", FeaturesResources.NotAvailable)}\r\n\r\n{FeaturesResources.UseTheNavigationBarToSwitchContext}", currentParameterIndex: 0);
+            var expectedDescription = new SignatureHelpTestItem($"void C.bar()\r\n\r\n{string.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available)}\r\n{string.Format(FeaturesResources._0_1, "Proj3", FeaturesResources.Not_Available)}\r\n\r\n{FeaturesResources.You_can_use_the_navigation_bar_to_switch_context}", currentParameterIndex: 0);
             await VerifyItemWithReferenceWorkerAsync(markup, new[] { expectedDescription }, false);
         }
 
@@ -2021,6 +2021,78 @@ class B : A
 ";
 
             await TestAsync(markup, new[] { new SignatureHelpTestItem("void List<int>.Add(int item)") });
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public async Task TypingTupleDoesNotDismiss1()
+        {
+            var markup = @"
+class C
+{
+    int Foo(object x)
+    {
+        [|Foo(($$)|];
+    }
+}";
+
+            var expectedOrderedItems = new List<SignatureHelpTestItem>();
+            expectedOrderedItems.Add(new SignatureHelpTestItem("int C.Foo(object x)", currentParameterIndex: 0));
+
+            await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public async Task TypingTupleDoesNotDismiss2()
+        {
+            var markup = @"
+class C
+{
+    int Foo(object x)
+    {
+        [|Foo((1,$$)|];
+    }
+}";
+
+            var expectedOrderedItems = new List<SignatureHelpTestItem>();
+            expectedOrderedItems.Add(new SignatureHelpTestItem("int C.Foo(object x)", currentParameterIndex: 0));
+
+            await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public async Task TypingTupleDoesNotDismiss3()
+        {
+            var markup = @"
+class C
+{
+    int Foo(object x)
+    {
+        [|Foo((1, ($$)|];
+    }
+}";
+
+            var expectedOrderedItems = new List<SignatureHelpTestItem>();
+            expectedOrderedItems.Add(new SignatureHelpTestItem("int C.Foo(object x)", currentParameterIndex: 0));
+
+            await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public async Task TypingTupleDoesNotDismiss4()
+        {
+            var markup = @"
+class C
+{
+    int Foo(object x)
+    {
+        [|Foo((1, (2,$$)|];
+    }
+}";
+
+            var expectedOrderedItems = new List<SignatureHelpTestItem>();
+            expectedOrderedItems.Add(new SignatureHelpTestItem("int C.Foo(object x)", currentParameterIndex: 0));
+
+            await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: true);
         }
     }
 }

@@ -18,13 +18,8 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
         public ExportFormattingRule(string name, string language)
             : base(typeof(IFormattingRule))
         {
-            if (language == null)
-            {
-                throw new ArgumentNullException(nameof(language));
-            }
-
             this.Name = name;
-            this.Language = language;
+            this.Language = language ?? throw new ArgumentNullException(nameof(language));
         }
     }
 }

@@ -6,7 +6,7 @@ Imports Microsoft.CodeAnalysis.FindSymbols
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
     Partial Public Class FindReferencesTests
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestLinkedFiles_Methods() As Task
             Dim definition =
 <Workspace>
@@ -24,7 +24,7 @@ class C
         <Document IsLinkFile="true" LinkAssemblyName="CSProj1" LinkFilePath="C.cs"/>
     </Project>
 </Workspace>
-            Using workspace = Await TestWorkspace.CreateAsync(definition)
+            Using workspace = TestWorkspace.Create(definition)
                 Dim invocationDocument = workspace.Documents.Single(Function(d) Not d.IsLinkFile)
                 Dim invocationPosition = invocationDocument.CursorPosition.Value
 
@@ -41,7 +41,7 @@ class C
             End Using
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestLinkedFiles_ClassWithSameSpanAsCompilationUnit() As Task
             Dim definition =
 <Workspace>
@@ -56,7 +56,7 @@ End Class
         <Document IsLinkFile="true" LinkAssemblyName="VBProj1" LinkFilePath="C.vb"/>
     </Project>
 </Workspace>
-            Using workspace = Await TestWorkspace.CreateAsync(definition)
+            Using workspace = TestWorkspace.Create(definition)
                 Dim invocationDocument = workspace.Documents.Single(Function(d) Not d.IsLinkFile)
                 Dim invocationPosition = invocationDocument.CursorPosition.Value
 
@@ -75,7 +75,7 @@ End Class
             End Using
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestLinkedFiles_ReferencesBeforeAndAfterRemovingLinkedDocument() As Task
             Dim definition =
 <Workspace>
@@ -93,7 +93,7 @@ End Class
     </Project>
 </Workspace>
 
-            Using workspace = Await TestWorkspace.CreateAsync(definition)
+            Using workspace = TestWorkspace.Create(definition)
                 Dim invocationDocument = workspace.Documents.Single(Function(d) Not d.IsLinkFile)
                 Dim invocationPosition = invocationDocument.CursorPosition.Value
                 Dim linkedDocument = workspace.Documents.Single(Function(d) d.IsLinkFile)
@@ -130,7 +130,7 @@ End Class
             End Using
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Function TestLinkedFiles_LinkedFilesWithSameAssemblyNameNoReferences() As Task
             Dim definition =
 <Workspace>
@@ -147,10 +147,10 @@ class {|Definition:$$C|}
     </Project>
 </Workspace>
 
-            Return TestAsync(definition)
+            Return TestAPIAndFeature(definition)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Function TestLinkedFiles_LinkedFilesWithSameAssemblyNameWithReferences() As Task
             Dim definition =
 <Workspace>
@@ -183,7 +183,7 @@ public class D : [|$$C|]
     </Project>
 </Workspace>
 
-            Return TestAsync(definition)
+            Return TestAPIAndFeature(definition)
         End Function
     End Class
 End Namespace

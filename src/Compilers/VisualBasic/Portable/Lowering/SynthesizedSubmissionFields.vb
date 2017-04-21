@@ -40,7 +40,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend ReadOnly Property FieldSymbols As IEnumerable(Of FieldSymbol)
             Get
                 Return If(_previousSubmissionFieldMap Is Nothing,
-                          SpecializedCollections.EmptyArray(Of FieldSymbol)(),
+                          Array.Empty(Of FieldSymbol)(),
                           DirectCast(_previousSubmissionFieldMap.Values, IEnumerable(Of FieldSymbol)))
             End Get
         End Property

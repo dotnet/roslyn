@@ -1411,22 +1411,20 @@ End Module
     ]]></file>
 </compilation>, expectedOutput:="Success").VerifyIL("M1.Main", <![CDATA[
 {
-  // Code size       31 (0x1f)
+  // Code size       28 (0x1c)
   .maxstack  2
   .locals init (Integer V_0)
   IL_0000:  ldc.i4.0
   IL_0001:  stloc.0
   IL_0002:  ldloc.0
-  IL_0003:  brfalse.s  IL_0009
-  IL_0005:  ldloc.0
-  IL_0006:  ldc.i4.1
-  IL_0007:  bne.un.s   IL_0014
-  IL_0009:  ldstr      "Success"
-  IL_000e:  call       "Sub System.Console.WriteLine(String)"
-  IL_0013:  ret
-  IL_0014:  ldstr      "Fail"
-  IL_0019:  call       "Sub System.Console.WriteLine(String)"
-  IL_001e:  ret
+  IL_0003:  ldc.i4.1
+  IL_0004:  bgt.un.s   IL_0011
+  IL_0006:  ldstr      "Success"
+  IL_000b:  call       "Sub System.Console.WriteLine(String)"
+  IL_0010:  ret
+  IL_0011:  ldstr      "Fail"
+  IL_0016:  call       "Sub System.Console.WriteLine(String)"
+  IL_001b:  ret
 }
 ]]>)
             VerifySynthesizedStringHashMethod(compVerifier, expected:=False)
@@ -1453,26 +1451,27 @@ End Module
     ]]></file>
 </compilation>, expectedOutput:="Success").VerifyIL("M1.Main", <![CDATA[
 {
-  // Code size       55 (0x37)
-  .maxstack  1
+  // Code size       44 (0x2c)
+  .maxstack  2
   .locals init (Integer V_0)
   IL_0000:  ldc.i4.0
   IL_0001:  stloc.0
   IL_0002:  ldloc.0
-  IL_0003:  switch    (
-  IL_0021,
-  IL_0016,
-  IL_0016)
-  IL_0014:  br.s       IL_002c
-  IL_0016:  ldstr      "Fail"
+  IL_0003:  brfalse.s  IL_0016
+  IL_0005:  ldloc.0
+  IL_0006:  ldc.i4.1
+  IL_0007:  sub
+  IL_0008:  ldc.i4.1
+  IL_0009:  bgt.un.s   IL_0021
+  IL_000b:  ldstr      "Fail"
+  IL_0010:  call       "Sub System.Console.WriteLine(String)"
+  IL_0015:  ret
+  IL_0016:  ldstr      "Success"
   IL_001b:  call       "Sub System.Console.WriteLine(String)"
   IL_0020:  ret
-  IL_0021:  ldstr      "Success"
+  IL_0021:  ldstr      "Fail"
   IL_0026:  call       "Sub System.Console.WriteLine(String)"
   IL_002b:  ret
-  IL_002c:  ldstr      "Fail"
-  IL_0031:  call       "Sub System.Console.WriteLine(String)"
-  IL_0036:  ret
 }
 ]]>)
             VerifySynthesizedStringHashMethod(compVerifier, expected:=False)
@@ -1499,7 +1498,7 @@ End Module
     ]]></file>
 </compilation>, expectedOutput:="Success").VerifyIL("M1.Main", <![CDATA[
 {
-  // Code size       61 (0x3d)
+  // Code size       49 (0x31)
   .maxstack  2
   .locals init (Integer V_0)
   IL_0000:  ldc.i4.0
@@ -1507,21 +1506,23 @@ End Module
   IL_0002:  ldloc.0
   IL_0003:  ldc.i4.1
   IL_0004:  sub
-  IL_0005:  switch    (
-  IL_001c,
-  IL_001c,
-  IL_0027,
-  IL_0027)
-  IL_001a:  br.s       IL_0032
-  IL_001c:  ldstr      "Fail"
-  IL_0021:  call       "Sub System.Console.WriteLine(String)"
-  IL_0026:  ret
-  IL_0027:  ldstr      "Fail"
-  IL_002c:  call       "Sub System.Console.WriteLine(String)"
-  IL_0031:  ret
-  IL_0032:  ldstr      "Success"
-  IL_0037:  call       "Sub System.Console.WriteLine(String)"
-  IL_003c:  ret
+  IL_0005:  ldc.i4.1
+  IL_0006:  ble.un.s   IL_0010
+  IL_0008:  ldloc.0
+  IL_0009:  ldc.i4.3
+  IL_000a:  sub
+  IL_000b:  ldc.i4.1
+  IL_000c:  ble.un.s   IL_001b
+  IL_000e:  br.s       IL_0026
+  IL_0010:  ldstr      "Fail"
+  IL_0015:  call       "Sub System.Console.WriteLine(String)"
+  IL_001a:  ret
+  IL_001b:  ldstr      "Fail"
+  IL_0020:  call       "Sub System.Console.WriteLine(String)"
+  IL_0025:  ret
+  IL_0026:  ldstr      "Success"
+  IL_002b:  call       "Sub System.Console.WriteLine(String)"
+  IL_0030:  ret
 }
 ]]>)
             VerifySynthesizedStringHashMethod(compVerifier, expected:=False)

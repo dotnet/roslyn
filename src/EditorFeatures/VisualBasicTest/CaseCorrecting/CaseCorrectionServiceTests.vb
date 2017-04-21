@@ -1,33 +1,27 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Collections.Immutable
 Imports System.Threading
-Imports System.Threading.Tasks
 Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CaseCorrection
-Imports Microsoft.CodeAnalysis.Editor.Commands
+Imports Microsoft.CodeAnalysis.CodeCleanup
+Imports Microsoft.CodeAnalysis.CodeCleanup.Providers
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.Text.Shared.Extensions
-Imports Microsoft.VisualStudio.Text.Editor
-Imports Moq
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CaseCorrecting
     Public Class CaseCorrectionServiceTests
         Private Async Function TestAsync(input As XElement, expected As XElement, Optional interProject As Boolean = False) As Tasks.Task
             If (interProject) Then
                 Await TestAsync(input, expected.NormalizedValue)
-                Await TestAsync(input, expected.NormalizedValue)
             Else
-                Await TestAsync(input.NormalizedValue, expected.NormalizedValue)
                 Await TestAsync(input.NormalizedValue, expected.NormalizedValue)
             End If
         End Function
 
         Private Async Function TestAsync(input As String, expected As String) As Tasks.Task
-            Using workspace = Await TestWorkspace.CreateVisualBasicAsync(input)
+            Using workspace = TestWorkspace.CreateVisualBasic(input)
                 Await TestAsync(expected, workspace)
             End Using
         End Function
@@ -38,7 +32,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CaseCorrecting
             Dim document = workspace.CurrentSolution.GetDocument(hostDocument.Id)
             Dim span = (Await document.GetSyntaxRootAsync()).FullSpan
 
-            Dim newDocument = Await CaseCorrector.CaseCorrectAsync(document, span, CancellationToken.None)
+            Dim service = document.GetLanguageService(Of ICodeCleanerService)
+            Dim newDocument = Await service.CleanupAsync(
+                document, ImmutableArray.Create(span),
+                ImmutableArray.Create(Of ICodeCleanupProvider)(New CaseCorrectionCodeCleanupProvider()),
+                CancellationToken.None)
+
             newDocument.Project.Solution.Workspace.ApplyDocumentChanges(newDocument, CancellationToken.None)
 
             Dim actual = buffer.CurrentSnapshot.GetText()
@@ -46,7 +45,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CaseCorrecting
         End Function
 
         Private Async Function TestAsync(input As XElement, expected As String) As Tasks.Task
-            Using workspace = Await TestWorkspace.CreateAsync(input)
+            Using workspace = TestWorkspace.Create(input)
                 Await TestAsync(expected, workspace)
             End Using
         End Function
@@ -1176,6 +1175,44 @@ End Module
 Module M
     Dim s = NameOf(M)
 End Module
+</Code>
+
+            Await TestAsync(input, expected)
+        End Function
+
+        <WorkItem(397014, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=397014")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CaseCorrection)>
+        Public Async Function AvoidNodesWithSyntaxErrorsAndStringLiterals() As Task
+            Dim input = <Code>
+Class C
+    Private Sub Test() 
+        Dim sql As New System.Text.StringBuilder 
+
+        sql.AppendLine("	SELECT *") 
+        sql.AppendLine("	, Table.Column1" 
+        sql.AppendLine(", Table.Column2 
+        sql.AppendLine(", Table.Column3") 
+        sql.AppendLine("	, Table.Column4 AS ColumnAlias") 
+        sql.AppendLine("	, Table.Column5 AS ColumnAlias2") 
+        sql.AppendLine("FROM	Table('Parameter')") 
+    End Sub 
+End Class
+</Code>
+
+            Dim expected = <Code>
+Class C
+    Private Sub Test() 
+        Dim sql As New System.Text.StringBuilder 
+
+        sql.AppendLine("	SELECT *") 
+        sql.AppendLine("	, Table.Column1" 
+        sql.AppendLine(", Table.Column2 
+        sql.AppendLine(", Table.Column3") 
+        sql.AppendLine("	, Table.Column4 AS ColumnAlias") 
+        sql.AppendLine("	, Table.Column5 AS ColumnAlias2") 
+        sql.AppendLine("FROM	Table('Parameter')") 
+    End Sub 
+End Class
 </Code>
 
             Await TestAsync(input, expected)

@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return ContainingModule.ContainingAssembly;
+                return _containingSymbol.ContainingAssembly;
             }
         }
 
@@ -64,20 +64,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return new NamespaceExtent(ContainingModule);
-            }
-        }
-
-        internal override ModuleSymbol ContainingModule
-        {
-            get
-            {
                 if (_containingSymbol.Kind == SymbolKind.NetModule)
                 {
-                    return (ModuleSymbol)_containingSymbol;
+                    return new NamespaceExtent((ModuleSymbol)_containingSymbol);
                 }
 
-                return _containingSymbol.ContainingModule;
+                return ((NamespaceSymbol)_containingSymbol).Extent;
             }
         }
 

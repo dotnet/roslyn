@@ -5,10 +5,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion;
 using Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion.Sessions;
 using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.BraceCompletion;
-using Microsoft.VisualStudio.Text.Editor;
-using Microsoft.VisualStudio.Text.Operations;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion.Sessions
 {

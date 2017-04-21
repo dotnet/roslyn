@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
             Assert.Equal(2, output.Length);
             Assert.Equal("Microsoft (R) Roslyn C# Compiler version " + FileVersionInfo.GetVersionInfo(_host.GetType().Assembly.Location).FileVersion, output[0]);
             // "Type "#help" for more information."
-            Assert.Equal(FeaturesResources.TypeHelpForMoreInformation, output[1]);
+            Assert.Equal(FeaturesResources.Type_Sharphelp_for_more_information, output[1]);
 
             // remove logo:
             ClearOutput();
@@ -240,7 +240,7 @@ foo(0,1,2,3,4,5,6,7,8,9)
 
             // Hosting process exited with exit code ###.
             var errorOutput = ReadErrorOutputToEnd().Trim();
-            Assert.Equal("Process is terminated due to StackOverflowException.\n" + string.Format(FeaturesResources.HostingProcessExitedWithExitCode, process.ExitCode), errorOutput);
+            Assert.Equal("Process is terminated due to StackOverflowException.\n" + string.Format(FeaturesResources.Hosting_process_exited_with_exit_code_0, process.ExitCode), errorOutput);
 
             Execute(@"1+1");
 
@@ -373,8 +373,8 @@ while(true) {}
             Assert.False(result.Success);
 
             var errorOut = ReadErrorOutputToEnd().Trim();
-            Assert.Contains(FeaturesResources.SpecifiedFileNotFound, errorOut, StringComparison.Ordinal);
-            Assert.Contains(FeaturesResources.SearchedInDirectory, errorOut, StringComparison.Ordinal);
+            Assert.Contains(FeaturesResources.Specified_file_not_found, errorOut, StringComparison.Ordinal);
+            Assert.Contains(FeaturesResources.Searched_in_directory_colon, errorOut, StringComparison.Ordinal);
         }
 
         [Fact]
@@ -658,7 +658,7 @@ WriteLine(5);
             var dir = Temp.CreateDirectory();
 
             var source1 = "public class C { public int X = 1; }";
-            var c1 = CreateCompilationWithMscorlib(source1, assemblyName: "C");
+            var c1 = CreateStandardCompilation(source1, assemblyName: "C");
             var file = dir.CreateFile("c.dll").WriteAllBytes(c1.EmitToArray());
 
             // use:
@@ -670,7 +670,7 @@ new C().X
 
             // update:
             var source2 = "public class D { public int Y = 2; }";
-            var c2 = CreateCompilationWithMscorlib(source2, assemblyName: "C");
+            var c2 = CreateStandardCompilation(source2, assemblyName: "C");
             file.WriteAllBytes(c2.EmitToArray());
 
             // add the reference again:
@@ -697,11 +697,11 @@ new D().Y
             var dir2 = dir.CreateDirectory("2");
 
             var source1 = "public class C1 { }";
-            var c1 = CreateCompilationWithMscorlib(source1, assemblyName: "C");
+            var c1 = CreateStandardCompilation(source1, assemblyName: "C");
             var file1 = dir1.CreateFile("c.dll").WriteAllBytes(c1.EmitToArray());
 
             var source2 = "public class C2 { }";
-            var c2 = CreateCompilationWithMscorlib(source2, assemblyName: "C");
+            var c2 = CreateStandardCompilation(source2, assemblyName: "C");
             var file2 = dir2.CreateFile("c.dll").WriteAllBytes(c2.EmitToArray());
 
             Execute($@"
@@ -731,11 +731,11 @@ new D().Y
             var dir2 = dir.CreateDirectory("2");
 
             var source1 = @"[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")] public class C1 { }";
-            var c1 = CreateCompilationWithMscorlib(source1, assemblyName: "C");
+            var c1 = CreateStandardCompilation(source1, assemblyName: "C");
             var file1 = dir1.CreateFile("c.dll").WriteAllBytes(c1.EmitToArray());
 
             var source2 = @"[assembly: System.Reflection.AssemblyVersion(""2.0.0.0"")] public class C2 { }";
-            var c2 = CreateCompilationWithMscorlib(source2, assemblyName: "C");
+            var c2 = CreateStandardCompilation(source2, assemblyName: "C");
             var file2 = dir2.CreateFile("c.dll").WriteAllBytes(c2.EmitToArray());
 
             Execute($@"

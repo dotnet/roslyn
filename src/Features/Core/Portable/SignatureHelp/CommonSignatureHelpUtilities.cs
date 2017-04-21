@@ -22,8 +22,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             Func<TArgumentList, IEnumerable<string>> getArgumentNames)
             where TArgumentList : SyntaxNode
         {
-            int argumentIndex;
-            if (TryGetCurrentArgumentIndex(argumentList, position, getOpenToken, getCloseToken, getArgumentsWithSeparators, out argumentIndex))
+            if (TryGetCurrentArgumentIndex(argumentList, position, getOpenToken, getCloseToken, getArgumentsWithSeparators, out var argumentIndex))
             {
                 var argumentNames = getArgumentNames(argumentList).ToList();
                 var argumentCount = argumentNames.Count;

@@ -34,7 +34,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Some nodes have special binder's for their contents 
         ''' </summary>
-        Public Overrides Function GetBinder(node As VisualBasicSyntaxNode) As Binder
+        Public Overrides Function GetBinder(node As SyntaxNode) As Binder
             ' TODO (tomat): this is a temporary workaround, we need a special script class binder
             ' Return Me so that identifiers in top-level statements bind to the members of the script class.
             Return If(_typeSymbol.IsScriptClass, Me, m_containingBinder.GetBinder(node))

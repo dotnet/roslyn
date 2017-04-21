@@ -12,20 +12,12 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public override BoundNode VisitBlock(BoundBlock node)
         {
-            if (node.WasCompilerGenerated || !this.GenerateDebugInfo || node.Syntax.Kind() == SyntaxKind.ArrowExpressionClause)
+            if (!this.Instrument || (node != _rootStatement && (node.WasCompilerGenerated || node.Syntax.Kind() != SyntaxKind.Block)))
             {
                 return node.Update(node.Locals, node.LocalFunctions, VisitList(node.Statements));
             }
 
-            BlockSyntax syntax = node.Syntax as BlockSyntax;
-
             var builder = ArrayBuilder<BoundStatement>.GetInstance();
-
-            if (syntax != null)
-            {
-                var oBspan = syntax.OpenBraceToken.Span;
-                builder.Add(new BoundSequencePointWithSpan(syntax, null, oBspan));
-            }
 
             for (int i = 0; i < node.Statements.Length; i++)
             {
@@ -33,22 +25,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (stmt != null) builder.Add(stmt);
             }
 
-            // no need to mark "}" on the outermost block
-            // as it cannot leave it normally. The block will have "return" at the end.
-            if (syntax != null && (syntax.Parent == null || !(syntax.Parent.IsAnonymousFunction() || syntax.Parent is BaseMethodDeclarationSyntax)))
+            LocalSymbol synthesizedLocal;
+            BoundStatement prologue = _instrumenter.CreateBlockPrologue(node, out synthesizedLocal);
+            if (prologue != null)
             {
-                var cBspan = syntax.CloseBraceToken.Span;
-                builder.Add(new BoundSequencePointWithSpan(syntax, null, cBspan));
+                builder.Insert(0, prologue);
             }
 
-            return new BoundBlock(node.Syntax, node.Locals, node.LocalFunctions, builder.ToImmutableAndFree(), node.HasErrors);
+            BoundStatement epilogue = _instrumenter.CreateBlockEpilogue(node);
+            if (epilogue != null)
+            {
+                builder.Add(epilogue);
+            }
+
+            return new BoundBlock(node.Syntax, synthesizedLocal == null ? node.Locals : node.Locals.Add(synthesizedLocal), node.LocalFunctions, builder.ToImmutableAndFree(), node.HasErrors);
         }
 
         public override BoundNode VisitNoOpStatement(BoundNoOpStatement node)
         {
-            return (node.WasCompilerGenerated || !this.GenerateDebugInfo)
-                ? new BoundBlock(node.Syntax, ImmutableArray<LocalSymbol>.Empty, ImmutableArray<LocalFunctionSymbol>.Empty, ImmutableArray<BoundStatement>.Empty)
-                : AddSequencePoint(node);
+            return (node.WasCompilerGenerated || !this.Instrument)
+                ? new BoundBlock(node.Syntax, ImmutableArray<LocalSymbol>.Empty, ImmutableArray<BoundStatement>.Empty)
+                : _instrumenter.InstrumentNoOpStatement(node, node);
         }
     }
 }

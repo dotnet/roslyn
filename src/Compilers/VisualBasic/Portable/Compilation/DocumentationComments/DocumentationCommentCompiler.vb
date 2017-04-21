@@ -68,14 +68,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     writer = New StreamWriter(xmlDocStream, New UTF8Encoding(True, False), bufferSize:=&H400, leaveOpen:=True)
                 End If
 
-                Using writer
-                    ' TODO: get preferred culture from compilation(?)
-                    Dim compiler As New DocumentationCommentCompiler(If(assemblyName, compilation.SourceAssembly.Name), compilation, writer, True, False,
+                Try
+                    Using writer
+                        ' TODO: get preferred culture from compilation(?)
+                        Dim compiler As New DocumentationCommentCompiler(If(assemblyName, compilation.SourceAssembly.Name), compilation, writer, True, False,
                             diagnostics, filterTree, filterSpanWithinTree, preferredCulture:=Nothing, cancellationToken:=cancellationToken)
 
-                    compiler.Visit(compilation.SourceAssembly.GlobalNamespace)
-                    Debug.Assert(compiler._writer.IndentDepth = 0)
-                End Using
+                        compiler.Visit(compilation.SourceAssembly.GlobalNamespace)
+                        Debug.Assert(compiler._writer.IndentDepth = 0)
+                        writer?.Flush()
+                    End Using
+                Catch ex As Exception
+                    diagnostics.Add(ERRID.ERR_DocFileGen, Location.None, ex.Message)
+                End Try
 
                 For Each tree In compilation.SyntaxTrees
                     MislocatedDocumentationCommentFinder.ReportUnprocessed(tree, filterSpanWithinTree, diagnostics, cancellationToken)

@@ -7,7 +7,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.MethodXML
     Partial Public Class MethodXMLTests
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
-        Public Async Function TestCSEvents_AddDelegate() As Task
+        Public Sub TestCSEvents_AddDelegate()
             Dim definition =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -53,11 +53,11 @@ public class C
     </ExpressionStatement>
 </Block>
 
-            Await TestAsync(definition, expected)
-        End Function
+            Test(definition, expected)
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
-        Public Async Function TestCSEvents_AddDelegateForNonExistentEventHandler1() As Task
+        Public Sub TestCSEvents_AddDelegateForNonExistentEventHandler1()
             Dim definition =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -100,11 +100,11 @@ public class C
     </ExpressionStatement>
 </Block>
 
-            Await TestAsync(definition, expected)
-        End Function
+            Test(definition, expected)
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
-        Public Async Function TestCSEvents_AddDelegateForNonExistentEventHandler2() As Task
+        Public Sub TestCSEvents_AddDelegateForNonExistentEventHandler2()
             Dim definition =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -151,11 +151,11 @@ public class C
     </ExpressionStatement>
 </Block>
 
-            Await TestAsync(definition, expected)
-        End Function
+            Test(definition, expected)
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
-        Public Async Function TestCSEvents_AddDelegateForNonExistentEventHandler3() As Task
+        Public Sub TestCSEvents_AddDelegateForNonExistentEventHandler3()
             Dim definition =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -206,8 +206,8 @@ public class C
     </ExpressionStatement>
 </Block>
 
-            Await TestAsync(definition, expected)
-        End Function
+            Test(definition, expected)
+        End Sub
 
     End Class
 End Namespace

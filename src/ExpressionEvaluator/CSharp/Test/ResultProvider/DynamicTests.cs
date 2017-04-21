@@ -2,11 +2,11 @@
 
 using System;
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Debugger.Clr;
 using Microsoft.VisualStudio.Debugger.Evaluation;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
         {
             var value = CreateDkmClrValue(new object());
             var rootExpr = "d";
-            var evalResult = FormatResult(rootExpr, rootExpr, value, declaredType: new DkmClrType((TypeImpl)typeof(object)), declaredTypeInfo: new[] { true });
+            var evalResult = FormatResult(rootExpr, rootExpr, value, declaredType: new DkmClrType((TypeImpl)typeof(object)), declaredTypeInfo: MakeCustomTypeInfo(true));
             Verify(evalResult,
                 EvalResult(rootExpr, "{object}", "dynamic {object}", rootExpr));
         }
@@ -62,7 +62,7 @@ class C<T, U>
             var typeC_Constructed2 = typeC.MakeGenericType(typeof(object), typeC_Constructed1); // C<dynamic, C<object, dynamic>> (i.e. T = dynamic, U = C<object, dynamic>)
             var value = CreateDkmClrValue(Activator.CreateInstance(typeC_Constructed2));
             var rootExpr = "c";
-            var evalResult = FormatResult(rootExpr, rootExpr, value, new DkmClrType((TypeImpl)typeC_Constructed2), new[] { false, true, false, false, true });
+            var evalResult = FormatResult(rootExpr, rootExpr, value, new DkmClrType((TypeImpl)typeC_Constructed2), MakeCustomTypeInfo(false, true, false, false, true));
             Verify(evalResult,
                 EvalResult(rootExpr, "{C<object, C<object, object>>}", "C<dynamic, C<object, dynamic>> {C<object, C<object, object>>}", rootExpr, DkmEvaluationResultFlags.Expandable));
             var children = GetChildren(evalResult);
@@ -91,7 +91,7 @@ class Outer<T>
             var typeInner_Constructed = typeInner.MakeGenericType(typeof(object), typeof(object)); // Outer<dynamic>.Inner<object>
             var value = CreateDkmClrValue(Activator.CreateInstance(typeInner_Constructed));
             var rootExpr = "i";
-            var evalResult = FormatResult(rootExpr, rootExpr, value, new DkmClrType((TypeImpl)typeInner_Constructed), new[] { false, true, false });
+            var evalResult = FormatResult(rootExpr, rootExpr, value, new DkmClrType((TypeImpl)typeInner_Constructed), MakeCustomTypeInfo(false, true, false));
             Verify(evalResult,
                 EvalResult(rootExpr, "{Outer<object>.Inner<object>}", "Outer<dynamic>.Inner<object> {Outer<object>.Inner<object>}", rootExpr, DkmEvaluationResultFlags.Expandable));
             var children = GetChildren(evalResult);
@@ -126,7 +126,7 @@ class D<T, U, V>
             var typeC_Constructed = typeC.MakeGenericType(typeD_Constructed); // C<D<object, dynamic, int>>
             var value = CreateDkmClrValue(Activator.CreateInstance(typeC_Constructed));
             var rootExpr = "c";
-            var evalResult = FormatResult(rootExpr, rootExpr, value, new DkmClrType((TypeImpl)typeC_Constructed), new[] { false, false, false, true, false });
+            var evalResult = FormatResult(rootExpr, rootExpr, value, new DkmClrType((TypeImpl)typeC_Constructed), MakeCustomTypeInfo(false, false, false, true, false));
             Verify(evalResult,
                 EvalResult(rootExpr, "{C<D<object, object, int>>}", "C<D<object, dynamic, int>> {C<D<object, object, int>>}", rootExpr, DkmEvaluationResultFlags.Expandable));
             var children = GetChildren(evalResult);
@@ -171,7 +171,7 @@ class C<T, U> : I<long, T>, I<bool, U>
             var typeC_Constructed = typeC.MakeGenericType(typeof(object), typeof(object)); // C<dynamic, object>
             var value = CreateDkmClrValue(Activator.CreateInstance(typeC_Constructed));
             var rootExpr = "c";
-            var evalResult = FormatResult(rootExpr, rootExpr, value, new DkmClrType((TypeImpl)typeC_Constructed), new[] { false, true, false });
+            var evalResult = FormatResult(rootExpr, rootExpr, value, new DkmClrType((TypeImpl)typeC_Constructed), MakeCustomTypeInfo(false, true, false));
             Verify(evalResult,
                 EvalResult(rootExpr, "{C<object, object>}", "C<dynamic, object> {C<object, object>}", rootExpr, DkmEvaluationResultFlags.Expandable));
             var children = GetChildren(evalResult);
@@ -206,7 +206,7 @@ class Derived<T, U> : Base<T, U, object, dynamic>
             var typeDerived_Constructed = typeDerived.MakeGenericType(typeof(object), typeof(object)); // Derived<dynamic, object>
             var value = CreateDkmClrValue(Activator.CreateInstance(typeDerived_Constructed));
             var rootExpr = "d";
-            var evalResult = FormatResult(rootExpr, rootExpr, value, new DkmClrType((TypeImpl)typeDerived_Constructed), new[] { false, true, false });
+            var evalResult = FormatResult(rootExpr, rootExpr, value, new DkmClrType((TypeImpl)typeDerived_Constructed), MakeCustomTypeInfo(false, true, false));
             Verify(evalResult,
                 EvalResult(rootExpr, "{Derived<object, object>}", "Derived<dynamic, object> {Derived<object, object>}", rootExpr, DkmEvaluationResultFlags.Expandable));
 
@@ -228,7 +228,7 @@ class Derived<T, U> : Base<T, U, object, dynamic>
         {
             var value = CreateDkmClrValue(new object[1]);
             var rootExpr = "d";
-            var evalResult = FormatResult(rootExpr, rootExpr, value, declaredType: new DkmClrType((TypeImpl)typeof(object[])), declaredTypeInfo: new[] { false, true });
+            var evalResult = FormatResult(rootExpr, rootExpr, value, declaredType: new DkmClrType((TypeImpl)typeof(object[])), declaredTypeInfo: MakeCustomTypeInfo(false, true));
             Verify(evalResult,
                 EvalResult(rootExpr, "{object[1]}", "dynamic[] {object[]}", rootExpr, DkmEvaluationResultFlags.Expandable));
             var children = GetChildren(evalResult);
@@ -250,7 +250,7 @@ class Derived<T, U> : Base<T, U, object, dynamic>
             var assembly = ReflectionUtilities.Load(assemblyBytes);
             var reflectionType = assembly.GetType(ExpressionCompilerConstants.TypeVariablesClassName).MakeGenericType(new[] { typeof(object), typeof(object), typeof(object[]) });
             var value = CreateDkmClrValue(value: null, type: reflectionType, valueFlags: DkmClrValueFlags.Synthetic);
-            var evalResult = FormatResult("typevars", "typevars", value, new DkmClrType((TypeImpl)reflectionType), new[] { false, true, false, false, true });
+            var evalResult = FormatResult("typevars", "typevars", value, new DkmClrType((TypeImpl)reflectionType), MakeCustomTypeInfo(false, true, false, false, true));
             Verify(evalResult,
                 EvalResult("Type variables", "", "", null, DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Data));
             var children = GetChildren(evalResult);
@@ -258,6 +258,33 @@ class Derived<T, U> : Base<T, U, object, dynamic>
                 EvalResult("T", "dynamic", "dynamic", null, DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Data),
                 EvalResult("U", "object", "object", null, DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Data),
                 EvalResult("V", "dynamic[]", "dynamic[]", null, DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Data));
+        }
+
+        [WorkItem(13554, "https://github.com/dotnet/roslyn/issues/13554")]
+        [Fact(Skip = "13554")]
+        public void DynamicBaseTypeArgument()
+        {
+            var source =
+@"class A<T>
+{
+#pragma warning disable 0169
+    internal T F;
+#pragma warning restore 0169
+}
+class B : A<dynamic>
+{
+    B() { F = 1; }
+}";
+            var runtime = new DkmClrRuntimeInstance(ReflectionUtilities.GetMscorlib(GetAssembly(source)));
+            using (runtime.Load())
+            {
+                var type = runtime.GetType("B");
+                var value = type.Instantiate();
+                var evalResult = FormatResult("o", value);
+                var children = GetChildren(evalResult);
+                Verify(children,
+                    EvalResult("F", "1", "dynamic {int}", "o.F"));
+            }
         }
     }
 }

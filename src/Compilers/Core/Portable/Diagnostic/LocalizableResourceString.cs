@@ -13,12 +13,17 @@ namespace Microsoft.CodeAnalysis
     /// <summary>
     /// A localizable resource string that may possibly be formatted differently depending on culture.
     /// </summary>
-    public sealed class LocalizableResourceString : LocalizableString, IObjectReadable, IObjectWritable
+    public sealed class LocalizableResourceString : LocalizableString, IObjectWritable
     {
         private readonly string _nameOfLocalizableResource;
         private readonly ResourceManager _resourceManager;
         private readonly Type _resourceSource;
         private readonly string[] _formatArguments;
+
+        static LocalizableResourceString()
+        {
+            ObjectBinder.RegisterTypeReader(typeof(LocalizableResourceString), reader => new LocalizableResourceString(reader));
+        }
 
         /// <summary>
         /// Creates a localizable resource string with no formatting arguments.
@@ -27,7 +32,7 @@ namespace Microsoft.CodeAnalysis
         /// <param name="resourceManager"><see cref="ResourceManager"/> for the calling assembly.</param>
         /// <param name="resourceSource">Type handling assembly's resource management. Typically, this is the static class generated for the resources file from which resources are accessed.</param>
         public LocalizableResourceString(string nameOfLocalizableResource, ResourceManager resourceManager, Type resourceSource)
-            : this(nameOfLocalizableResource, resourceManager, resourceSource, SpecializedCollections.EmptyArray<string>())
+            : this(nameOfLocalizableResource, resourceManager, resourceSource, Array.Empty<string>())
         {
         }
 
@@ -68,14 +73,14 @@ namespace Microsoft.CodeAnalysis
 
         private LocalizableResourceString(ObjectReader reader)
         {
-            _resourceSource = (Type)reader.ReadValue();
+            _resourceSource = reader.ReadType();
             _nameOfLocalizableResource = reader.ReadString();
             _resourceManager = new ResourceManager(_resourceSource);
 
-            var length = (int)reader.ReadCompressedUInt();
+            var length = reader.ReadInt32();
             if (length == 0)
             {
-                _formatArguments = SpecializedCollections.EmptyArray<string>();
+                _formatArguments = Array.Empty<string>();
             }
             else
             {
@@ -89,17 +94,12 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        Func<ObjectReader, object> IObjectReadable.GetReader()
-        {
-            return reader => new LocalizableResourceString(reader);
-        }
-
         void IObjectWritable.WriteTo(ObjectWriter writer)
         {
-            writer.WriteValue(_resourceSource);
+            writer.WriteType(_resourceSource);
             writer.WriteString(_nameOfLocalizableResource);
-            var length = (uint)_formatArguments.Length;
-            writer.WriteCompressedUInt(length);
+            var length = _formatArguments.Length;
+            writer.WriteInt32(length);
             for (int i = 0; i < length; i++)
             {
                 writer.WriteString(_formatArguments[i]);

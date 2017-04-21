@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -37,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (eventAccess.EventSymbol.IsWindowsRuntimeEvent)
                         {
                             Debug.Assert(node.RefKind == RefKind.None);
-                            return VisitWindowsRuntimeEventFieldAssignmentOperator(node.Syntax, eventAccess, node.Right);
+                            return VisitWindowsRuntimeEventFieldAssignmentOperator(node.Syntax, eventAccess, loweredRight);
                         }
                         goto default;
                     }
@@ -78,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Generates a lowered form of the assignment operator for the given left and right sub-expressions.
         /// Left and right sub-expressions must be in lowered form.
         /// </summary>
-        private BoundExpression MakeAssignmentOperator(CSharpSyntaxNode syntax, BoundExpression rewrittenLeft, BoundExpression rewrittenRight, TypeSymbol type,
+        private BoundExpression MakeAssignmentOperator(SyntaxNode syntax, BoundExpression rewrittenLeft, BoundExpression rewrittenRight, TypeSymbol type,
             bool used, bool isChecked, bool isCompoundAssignment)
         {
             switch (rewrittenLeft.Kind)
@@ -102,6 +103,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                         rewrittenRight,
                         isCompoundAssignment,
                         isChecked).ToExpression();
+
+                case BoundKind.EventAccess:
+                    var eventAccess = (BoundEventAccess)rewrittenLeft;
+                    Debug.Assert(eventAccess.IsUsableAsField);
+                    if (eventAccess.EventSymbol.IsWindowsRuntimeEvent)
+                    {
+                        const bool isDynamic = false;
+                        return RewriteWindowsRuntimeEventAssignmentOperator(eventAccess.Syntax,
+                                                                            eventAccess.EventSymbol,
+                                                                            EventAssignmentKind.Assignment,
+                                                                            isDynamic,
+                                                                            eventAccess.ReceiverOpt,
+                                                                            rewrittenRight);
+                    }
+
+                    // Only Windows Runtime field-like events can come through here:
+                    // - Assignment operation is not supported for custom (non-field like) events.
+                    // - Access to regular field-like events is expected to be lowered to at least a field access
+                    //   when we reach here.
+                    throw ExceptionUtilities.Unreachable;
 
                 default:
                     return MakeStaticAssignmentOperator(syntax, rewrittenLeft, rewrittenRight, RefKind.None, type, used);
@@ -135,7 +156,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Generates a lowered form of the assignment operator for the given left and right sub-expressions.
         /// Left and right sub-expressions must be in lowered form.
         /// </summary>
-        private BoundExpression MakeStaticAssignmentOperator(CSharpSyntaxNode syntax, BoundExpression rewrittenLeft, BoundExpression rewrittenRight, RefKind refKind, TypeSymbol type, bool used)
+        private BoundExpression MakeStaticAssignmentOperator(SyntaxNode syntax, BoundExpression rewrittenLeft, BoundExpression rewrittenRight, RefKind refKind, TypeSymbol type, bool used)
         {
             switch (rewrittenLeft.Kind)
             {
@@ -195,6 +216,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                             refKind: refKind);
                     }
 
+                case BoundKind.DiscardExpression:
+                    {
+                        return EnsureNotAssignableIfUsedAsMethodReceiver(rewrittenRight);
+                    }
+
                 default:
                     {
                         Debug.Assert(refKind == RefKind.None);
@@ -208,7 +234,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private BoundExpression MakePropertyAssignment(
-            CSharpSyntaxNode syntax,
+            SyntaxNode syntax,
             BoundExpression rewrittenReceiver,
             PropertySymbol property,
             ImmutableArray<BoundExpression> rewrittenArguments,

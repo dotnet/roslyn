@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                     F.Parameter(text),
                                                     F.SpecialMethod(SpecialMember.System_String__Chars),
                                                     F.Local(i)),
-                                                ConversionKind.ImplicitNumeric),
+                                                Conversion.ImplicitNumeric),
                                             F.Local(hashCode)),
                                         F.Literal(16777619))),
                                 F.Assignment(

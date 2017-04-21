@@ -35,6 +35,6 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Suppress a diagnostic.
         /// </summary>
-        Suppress = 5
+        Suppress = 5,
     }
 }

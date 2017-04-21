@@ -126,6 +126,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         <Extension()>
+        Public Function IsPropertyReturnsByRef(node As BoundExpression) As Boolean
+            Return node.Kind = BoundKind.PropertyAccess AndAlso
+                DirectCast(node, BoundPropertyAccess).PropertySymbol.ReturnsByRef
+        End Function
+
+        <Extension()>
         Public Function IsLateBound(node As BoundExpression) As Boolean
             Select Case node.Kind
                 Case BoundKind.LateMemberAccess,
@@ -272,11 +278,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Select Case node.Kind
                 Case BoundKind.XmlMemberAccess
                     Dim memberAccess = DirectCast(node, BoundXmlMemberAccess)
-                    Dim expr = memberAccess.MemberAccess.SetAccessKind(newAccessKind)
-                    Return memberAccess.Update(expr)
+                    Return memberAccess.SetAccessKind(newAccessKind)
 
                 Case BoundKind.PropertyAccess
                     Dim propertyAccess = DirectCast(node, BoundPropertyAccess)
+                    Debug.Assert(Not propertyAccess.PropertySymbol.ReturnsByRef OrElse (newAccessKind And PropertyAccessKind.Set) = 0)
                     Return propertyAccess.SetAccessKind(newAccessKind)
 
                 Case Else
@@ -296,6 +302,36 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(node.Kind)
+            End Select
+        End Function
+
+        <Extension()>
+        Public Function SetAccessKind(node As BoundXmlMemberAccess, newAccessKind As PropertyAccessKind) As BoundXmlMemberAccess
+            Dim expr = node.MemberAccess.SetAccessKind(newAccessKind)
+            Return node.Update(expr)
+        End Function
+
+        <Extension()>
+        Public Function SetGetSetAccessKindIfAppropriate(node As BoundExpression) As BoundExpression
+            Select Case node.Kind
+                Case BoundKind.XmlMemberAccess
+                    Dim memberAccess = DirectCast(node, BoundXmlMemberAccess)
+                    Return memberAccess.SetAccessKind(PropertyAccessKind.Get Or PropertyAccessKind.Set)
+
+                Case BoundKind.PropertyAccess
+                    Dim propertyAccess = DirectCast(node, BoundPropertyAccess)
+                    Dim accessKind = If(propertyAccess.PropertySymbol.ReturnsByRef, PropertyAccessKind.Get, PropertyAccessKind.Get Or PropertyAccessKind.Set)
+                    Return propertyAccess.SetAccessKind(accessKind)
+
+                Case BoundKind.LateMemberAccess
+                    Return DirectCast(node, BoundLateMemberAccess).SetAccessKind(LateBoundAccessKind.Get Or LateBoundAccessKind.Set)
+
+                Case BoundKind.LateInvocation
+                    Return DirectCast(node, BoundLateInvocation).SetAccessKind(LateBoundAccessKind.Get Or LateBoundAccessKind.Set)
+
+                Case Else
+                    Return node
+
             End Select
         End Function
 

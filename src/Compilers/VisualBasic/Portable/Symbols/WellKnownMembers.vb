@@ -8,7 +8,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Public Partial Class VisualBasicCompilation
+    Partial Public Class VisualBasicCompilation
 
         Private ReadOnly _wellKnownMemberSignatureComparer As New WellKnownMembersSignatureComparer(Me)
 
@@ -126,7 +126,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ''' <summary>
         ''' Synthesizes a custom attribute. 
-        ''' Returns null if the <paramref name="constructor"/> symbol is missing,
+        ''' Returns Nothing if the <paramref name="constructor"/> symbol is missing,
         ''' or any of the members in <paramref name="namedArguments" /> are missing.
         ''' The attribute is synthesized only if present.
         ''' </summary>
@@ -136,15 +136,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' If the well-known member does Not exist in the compilation then no attribute
         ''' will be synthesized.
         ''' </param>
+        ''' <param name="isOptionalUse">
+        ''' Indicates if this particular attribute application should be considered optional.
+        ''' </param>
         Friend Function TrySynthesizeAttribute(
             constructor As WellKnownMember,
             Optional arguments As ImmutableArray(Of TypedConstant) = Nothing,
-            Optional namedArguments As ImmutableArray(Of KeyValuePair(Of WellKnownMember, TypedConstant)) = Nothing) As SynthesizedAttributeData
+            Optional namedArguments As ImmutableArray(Of KeyValuePair(Of WellKnownMember, TypedConstant)) = Nothing,
+            Optional isOptionalUse As Boolean = False
+        ) As SynthesizedAttributeData
 
             Dim constructorSymbol = TryCast(GetWellKnownTypeMember(constructor), MethodSymbol)
             If constructorSymbol Is Nothing OrElse
                Binder.GetUseSiteErrorForWellKnownTypeMember(constructorSymbol, constructor, False) IsNot Nothing Then
-                Return ReturnNothingOrThrowIfAttributeNonOptional(constructor)
+                Return ReturnNothingOrThrowIfAttributeNonOptional(constructor, isOptionalUse)
             End If
 
             If arguments.IsDefault Then
@@ -172,8 +177,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New SynthesizedAttributeData(constructorSymbol, arguments, namedStringArguments)
         End Function
 
-        Private Function ReturnNothingOrThrowIfAttributeNonOptional(constructor As WellKnownMember) As SynthesizedAttributeData
-            If WellKnownMembers.IsSynthesizedAttributeOptional(constructor) Then
+        Private Shared Function ReturnNothingOrThrowIfAttributeNonOptional(constructor As WellKnownMember, Optional isOptionalUse As Boolean = False) As SynthesizedAttributeData
+            If isOptionalUse OrElse WellKnownMembers.IsSynthesizedAttributeOptional(constructor) Then
                 Return Nothing
             Else
                 Throw ExceptionUtilities.Unreachable
@@ -340,8 +345,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return DirectCast(type, NamedTypeSymbol).IsOrDerivedFromWellKnownClass(WellKnownType.System_Attribute, Me, useSiteDiagnostics:=Nothing)
         End Function
 
+        ''' <summary>
+        ''' In case duplicate types are encountered, returns an error type.
+        ''' But if the IgnoreCorLibraryDuplicatedTypes compilation option is set, any duplicate type found in corlib is ignored and doesn't count as a duplicate.
+        ''' </summary>
         Friend Function GetWellKnownType(type As WellKnownType) As NamedTypeSymbol
-            Debug.Assert(type >= WellKnownType.First AndAlso type <= WellKnownType.Last AndAlso type <> WellKnownType.ExtSentinel)
+            Debug.Assert(type.IsWellKnownType())
             Dim index As Integer = type - WellKnownType.First
 
             If _lazyWellKnownTypes Is Nothing OrElse _lazyWellKnownTypes(index) Is Nothing Then
@@ -356,12 +365,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If IsTypeMissing(type) Then
                     result = Nothing
                 Else
-                    result = Me.Assembly.GetTypeByMetadataName(mdName, includeReferences:=True, isWellKnownType:=True, useCLSCompliantNameArityEncoding:=True)
+                    result = Me.Assembly.GetTypeByMetadataName(mdName, includeReferences:=True, isWellKnownType:=True, useCLSCompliantNameArityEncoding:=True,
+                                                               ignoreCorLibraryDuplicatedTypes:=Me.Options.IgnoreCorLibraryDuplicatedTypes)
                 End If
 
                 If result Is Nothing Then
                     Dim emittedName As MetadataTypeName = MetadataTypeName.FromFullName(mdName, useCLSCompliantNameArityEncoding:=True)
-                    result = New MissingMetadataTypeSymbol.TopLevel(Assembly.Modules(0), emittedName)
+
+                    If type.IsValueTupleType() Then
+                        result = New MissingMetadataTypeSymbol.TopLevelWithCustomErrorInfo(Assembly.Modules(0), emittedName,
+                                       Function(t) ErrorFactory.ErrorInfo(ERRID.ERR_ValueTupleTypeRefResolutionError1, t))
+                    Else
+                        result = New MissingMetadataTypeSymbol.TopLevel(Assembly.Modules(0), emittedName)
+                    End If
                 End If
 
                 If (Interlocked.CompareExchange(_lazyWellKnownTypes(index), result, Nothing) IsNot Nothing) Then
@@ -639,15 +655,76 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Sub
 
             Protected Overrides Function MatchTypeToTypeId(type As TypeSymbol, typeId As Integer) As Boolean
-                Dim result As Boolean = False
-
-                If typeId >= WellKnownType.First AndAlso typeId <= WellKnownType.Last Then
-                    result = (type Is _compilation.GetWellKnownType(CType(typeId, WellKnownType)))
-                Else
-                    result = MyBase.MatchTypeToTypeId(type, typeId)
+                Dim wellKnownId = CType(typeId, WellKnownType)
+                If wellKnownId.IsWellKnownType() Then
+                    Return type Is _compilation.GetWellKnownType(wellKnownId)
                 End If
 
-                Return result
+                Return MyBase.MatchTypeToTypeId(type, typeId)
+            End Function
+        End Class
+
+        Friend Function SynthesizeTupleNamesAttribute(type As TypeSymbol) As SynthesizedAttributeData
+            Debug.Assert(type IsNot Nothing)
+            Debug.Assert(type.ContainsTuple())
+
+            Dim stringType = GetSpecialType(SpecialType.System_String)
+            Debug.Assert(stringType IsNot Nothing)
+            Dim names As ImmutableArray(Of TypedConstant) = TupleNamesEncoder.Encode(type, stringType)
+
+            Debug.Assert(Not names.IsDefault, "should not need the attribute when no tuple names")
+
+            Dim stringArray = ArrayTypeSymbol.CreateSZArray(stringType, ImmutableArray(Of CustomModifier).Empty, stringType.ContainingAssembly)
+            Dim args = ImmutableArray.Create(New TypedConstant(stringArray, names))
+            Return TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_TupleElementNamesAttribute__ctorTransformNames, args)
+        End Function
+
+        Friend Class TupleNamesEncoder
+            Public Shared Function Encode(type As TypeSymbol) As ImmutableArray(Of String)
+                Dim namesBuilder = ArrayBuilder(Of String).GetInstance()
+
+                If Not TryGetNames(type, namesBuilder) Then
+                    namesBuilder.Free()
+                    Return Nothing
+                End If
+
+                Return namesBuilder.ToImmutableAndFree()
+            End Function
+
+            Public Shared Function Encode(type As TypeSymbol, stringType As TypeSymbol) As ImmutableArray(Of TypedConstant)
+                Dim namesBuilder = ArrayBuilder(Of String).GetInstance()
+
+                If Not TryGetNames(type, namesBuilder) Then
+                    namesBuilder.Free()
+                    Return Nothing
+                End If
+
+                Dim names = namesBuilder.SelectAsArray(Function(name, constantType)
+                                                           Return New TypedConstant(constantType, TypedConstantKind.Primitive, name)
+                                                       End Function,
+                                                       stringType)
+
+                namesBuilder.Free()
+                Return names
+            End Function
+
+            Friend Shared Function TryGetNames(type As TypeSymbol, namesBuilder As ArrayBuilder(Of String)) As Boolean
+                type.VisitType(Function(t As TypeSymbol, builder As ArrayBuilder(Of String)) AddNames(t, builder), namesBuilder)
+                Return namesBuilder.Any(Function(name) name IsNot Nothing)
+            End Function
+
+            Private Shared Function AddNames(type As TypeSymbol, namesBuilder As ArrayBuilder(Of String)) As Boolean
+                If type.IsTupleType Then
+                    If type.TupleElementNames.IsDefaultOrEmpty Then
+                        ' If none of the tuple elements have names, put
+                        ' null placeholders in.
+                        namesBuilder.AddMany(Nothing, type.TupleElementTypes.Length)
+                    Else
+                        namesBuilder.AddRange(type.TupleElementNames)
+                    End If
+                End If
+                ' Always recur into nested types
+                Return False
             End Function
         End Class
     End Class

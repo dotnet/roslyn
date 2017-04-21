@@ -181,7 +181,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Shared Function Token(kind As SyntaxKind, Optional text As String = Nothing) As SyntaxToken
             VerifySyntaxKindOfToken(kind)
-            Return CType(InternalSyntax.SyntaxFactory.Token(DirectCast(ElasticMarker.UnderlyingNode, InternalSyntax.VisualBasicSyntaxNode), kind, DirectCast(ElasticMarker.UnderlyingNode, InternalSyntax.VisualBasicSyntaxNode), text), SyntaxToken)
+            Return CType(InternalSyntax.SyntaxFactory.Token(ElasticMarker.UnderlyingNode, kind, ElasticMarker.UnderlyingNode, text), SyntaxToken)
         End Function
 
         Friend Shared Function Token(kind As SyntaxKind, trailing As SyntaxTrivia, Optional text As String = Nothing) As SyntaxToken
@@ -190,12 +190,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Shared Function Token(kind As SyntaxKind, trailing As SyntaxTriviaList, Optional text As String = Nothing) As SyntaxToken
             VerifySyntaxKindOfToken(kind)
-            Return CType(InternalSyntax.SyntaxFactory.Token(DirectCast(ElasticMarker.UnderlyingNode, InternalSyntax.VisualBasicSyntaxNode), kind, DirectCast(trailing.Node, InternalSyntax.VisualBasicSyntaxNode), text), SyntaxToken)
+            Return CType(InternalSyntax.SyntaxFactory.Token(ElasticMarker.UnderlyingNode, kind, trailing.Node, text), SyntaxToken)
         End Function
 
         Public Shared Function Token(leading As SyntaxTriviaList, kind As SyntaxKind, Optional text As String = Nothing) As SyntaxToken
             VerifySyntaxKindOfToken(kind)
-            Return CType(InternalSyntax.SyntaxFactory.Token(DirectCast(leading.Node, InternalSyntax.VisualBasicSyntaxNode), kind, DirectCast(ElasticMarker.UnderlyingNode, InternalSyntax.VisualBasicSyntaxNode), text), SyntaxToken)
+            Return CType(InternalSyntax.SyntaxFactory.Token(leading.Node, kind, ElasticMarker.UnderlyingNode, text), SyntaxToken)
         End Function
 
         Friend Shared Function Token(leading As SyntaxTrivia, kind As SyntaxKind, trailing As SyntaxTrivia, Optional text As String = Nothing) As SyntaxToken
@@ -204,7 +204,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Shared Function Token(leading As SyntaxTriviaList, kind As SyntaxKind, trailing As SyntaxTriviaList, Optional text As String = Nothing) As SyntaxToken
             VerifySyntaxKindOfToken(kind)
-            Return CType(InternalSyntax.SyntaxFactory.Token(DirectCast(leading.Node, InternalSyntax.VisualBasicSyntaxNode), kind, DirectCast(trailing.Node, InternalSyntax.VisualBasicSyntaxNode), text), SyntaxToken)
+            Return CType(InternalSyntax.SyntaxFactory.Token(leading.Node, kind, trailing.Node, text), SyntaxToken)
         End Function
 
         ''' <summary> Creates a token with kind IntegerLiteralToken from a 4-byte signed integer value. </summary> 
@@ -226,7 +226,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="trailing">A list of trivia immediately following the token.</param>
         Public Shared Function Literal(leading As SyntaxTriviaList, text As String, value As Integer, trailing As SyntaxTriviaList) As SyntaxToken
             Return CType(InternalSyntax.SyntaxFactory.IntegerLiteralToken(text, If(text.StartsWith("&H", StringComparison.OrdinalIgnoreCase), LiteralBase.Hexadecimal, If(text.StartsWith("&O", StringComparison.OrdinalIgnoreCase), LiteralBase.Octal, If(text.StartsWith("&B", StringComparison.OrdinalIgnoreCase), LiteralBase.Binary, LiteralBase.Decimal))), If(text.EndsWith("I", StringComparison.OrdinalIgnoreCase), TypeCharacter.IntegerLiteral, TypeCharacter.None), CULng(value),
-                        DirectCast(leading.Node, InternalSyntax.VisualBasicSyntaxNode), DirectCast(trailing.Node, InternalSyntax.VisualBasicSyntaxNode)), SyntaxToken)
+                        leading.Node, trailing.Node), SyntaxToken)
         End Function
 
         ''' <summary> Creates a token with kind IntegerLiteralToken from a 4-byte unsigned integer
@@ -250,7 +250,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="trailing">A list of trivia immediately following the token.</param>
         Public Shared Function Literal(leading As SyntaxTriviaList, text As String, value As UInteger, trailing As SyntaxTriviaList) As SyntaxToken
             Return CType(InternalSyntax.SyntaxFactory.IntegerLiteralToken(text, If(text.StartsWith("&H", StringComparison.OrdinalIgnoreCase), LiteralBase.Hexadecimal, If(text.StartsWith("&O", StringComparison.OrdinalIgnoreCase), LiteralBase.Octal, If(text.StartsWith("&B", StringComparison.OrdinalIgnoreCase), LiteralBase.Binary, LiteralBase.Decimal))), If(text.EndsWith("UI", StringComparison.OrdinalIgnoreCase), TypeCharacter.UIntegerLiteral, TypeCharacter.None), value,
-                    DirectCast(leading.Node, InternalSyntax.VisualBasicSyntaxNode), DirectCast(trailing.Node, InternalSyntax.VisualBasicSyntaxNode)), SyntaxToken)
+                    leading.Node, trailing.Node), SyntaxToken)
         End Function
 
         ''' <summary> Creates a token with kind IntegerLiteralToken from an 8-byte signed integer value. </summary>
@@ -273,7 +273,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="trailing">A list of trivia immediately following the token.</param>
         Public Shared Function Literal(leading As SyntaxTriviaList, text As String, value As Long, trailing As SyntaxTriviaList) As SyntaxToken
             Return CType(InternalSyntax.SyntaxFactory.IntegerLiteralToken(text, If(text.StartsWith("&H", StringComparison.OrdinalIgnoreCase), LiteralBase.Hexadecimal, If(text.StartsWith("&O", StringComparison.OrdinalIgnoreCase), LiteralBase.Octal, If(text.StartsWith("&B", StringComparison.OrdinalIgnoreCase), LiteralBase.Binary, LiteralBase.Decimal))), If(text.EndsWith("L", StringComparison.OrdinalIgnoreCase), TypeCharacter.LongLiteral, TypeCharacter.None), CULng(value),
-                    DirectCast(leading.Node, InternalSyntax.VisualBasicSyntaxNode), DirectCast(trailing.Node, InternalSyntax.VisualBasicSyntaxNode)), SyntaxToken)
+                    leading.Node, trailing.Node), SyntaxToken)
         End Function
 
         ''' <summary> Creates a token with kind IntegerLiteralToken from an 8-byte unsigned integer value. </summary>
@@ -296,7 +296,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="trailing">A list of trivia immediately following the token.</param>
         Public Shared Function Literal(leading As SyntaxTriviaList, text As String, value As ULong, trailing As SyntaxTriviaList) As SyntaxToken
             Return CType(InternalSyntax.SyntaxFactory.IntegerLiteralToken(text, If(text.StartsWith("&H", StringComparison.OrdinalIgnoreCase), LiteralBase.Hexadecimal, If(text.StartsWith("&O", StringComparison.OrdinalIgnoreCase), LiteralBase.Octal, If(text.StartsWith("&B", StringComparison.OrdinalIgnoreCase), LiteralBase.Binary, LiteralBase.Decimal))), If(text.EndsWith("UL", StringComparison.OrdinalIgnoreCase), TypeCharacter.ULongLiteral, TypeCharacter.None), value,
-                    DirectCast(leading.Node, InternalSyntax.VisualBasicSyntaxNode), DirectCast(trailing.Node, InternalSyntax.VisualBasicSyntaxNode)), SyntaxToken)
+                    leading.Node, trailing.Node), SyntaxToken)
         End Function
 
         ''' <summary> Creates a token with kind FloatingLiteralToken from a 4-byte floating point value. </summary>
@@ -319,7 +319,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="trailing">A list of trivia immediately following the token.</param>
         Public Shared Function Literal(leading As SyntaxTriviaList, text As String, value As Single, trailing As SyntaxTriviaList) As SyntaxToken
             Return CType(InternalSyntax.SyntaxFactory.FloatingLiteralToken(text, If(text.EndsWith("F", StringComparison.Ordinal), TypeCharacter.Single, TypeCharacter.None), value,
-                    DirectCast(leading.Node, InternalSyntax.VisualBasicSyntaxNode), DirectCast(trailing.Node, InternalSyntax.VisualBasicSyntaxNode)), SyntaxToken)
+                    leading.Node, trailing.Node), SyntaxToken)
         End Function
 
         ''' <summary> Creates a token with kind FloatingLiteralToken from an 8-byte floating point value. </summary>
@@ -342,7 +342,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="trailing">A list of trivia immediately following the token.</param>
         Public Shared Function Literal(leading As SyntaxTriviaList, text As String, value As Double, trailing As SyntaxTriviaList) As SyntaxToken
             Return CType(InternalSyntax.SyntaxFactory.FloatingLiteralToken(text, If(text.EndsWith("R", StringComparison.OrdinalIgnoreCase), TypeCharacter.DoubleLiteral, TypeCharacter.None), value,
-                    DirectCast(leading.Node, InternalSyntax.VisualBasicSyntaxNode), DirectCast(trailing.Node, InternalSyntax.VisualBasicSyntaxNode)), SyntaxToken)
+                    leading.Node, trailing.Node), SyntaxToken)
         End Function
 
         ''' <summary> Creates a token with kind DecimalLiteralToken from a decimal value. </summary>
@@ -365,7 +365,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="trailing">A list of trivia immediately following the token.</param>
         Public Shared Function Literal(leading As SyntaxTriviaList, text As String, value As Decimal, trailing As SyntaxTriviaList) As SyntaxToken
             Return CType(InternalSyntax.SyntaxFactory.DecimalLiteralToken(text, If(text.EndsWith("M", StringComparison.OrdinalIgnoreCase), TypeCharacter.DecimalLiteral, TypeCharacter.None), value,
-                        DirectCast(leading.Node, InternalSyntax.VisualBasicSyntaxNode), DirectCast(trailing.Node, InternalSyntax.VisualBasicSyntaxNode)), SyntaxToken)
+                        leading.Node, trailing.Node), SyntaxToken)
         End Function
 
         ''' <summary> Creates a token with kind StringLiteralToken from a string value. </summary>
@@ -388,7 +388,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="trailing">A list of trivia immediately following the token.</param>
         Public Shared Function Literal(leading As SyntaxTriviaList, text As String, value As String, trailing As SyntaxTriviaList) As SyntaxToken
             Return CType(InternalSyntax.SyntaxFactory.StringLiteralToken(text, value,
-                    DirectCast(leading.Node, InternalSyntax.VisualBasicSyntaxNode), DirectCast(trailing.Node, InternalSyntax.VisualBasicSyntaxNode)), SyntaxToken)
+                    leading.Node, trailing.Node), SyntaxToken)
         End Function
 
         ''' <summary> Creates a token with kind CharacterLiteralToken from a character value. </summary>
@@ -411,7 +411,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="trailing">A list of trivia immediately following the token.</param>
         Public Shared Function Literal(leading As SyntaxTriviaList, text As String, value As Char, trailing As SyntaxTriviaList) As SyntaxToken
             Return CType(InternalSyntax.SyntaxFactory.CharacterLiteralToken(text, value,
-                    DirectCast(leading.Node, InternalSyntax.VisualBasicSyntaxNode), DirectCast(trailing.Node, InternalSyntax.VisualBasicSyntaxNode)), SyntaxToken)
+                    leading.Node, trailing.Node), SyntaxToken)
         End Function
 
         Public Shared Function TypeBlock(ByVal blockKind As SyntaxKind, ByVal begin As TypeStatementSyntax, Optional ByVal [inherits] As SyntaxList(Of InheritsStatementSyntax) = Nothing, Optional ByVal [implements] As SyntaxList(Of ImplementsStatementSyntax) = Nothing, Optional ByVal members As SyntaxList(Of StatementSyntax) = Nothing, Optional ByVal [end] As EndBlockStatementSyntax = Nothing) As TypeBlockSyntax
@@ -848,8 +848,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 InternalSyntax.SyntaxFactory.DocumentationCommentLineBreakToken(
                     text,
                     value,
-                    DirectCast(leading.Node, InternalSyntax.VisualBasicSyntaxNode),
-                    DirectCast(trailing.Node, InternalSyntax.VisualBasicSyntaxNode)))
+                    leading.Node,
+                    trailing.Node))
         End Function
 
         ''' <summary>
@@ -864,8 +864,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 InternalSyntax.SyntaxFactory.DocumentationCommentLineBreakToken(
                     text,
                     text,
-                    DirectCast(ElasticMarker.UnderlyingNode, InternalSyntax.VisualBasicSyntaxNode),
-                    DirectCast(ElasticMarker.UnderlyingNode, InternalSyntax.VisualBasicSyntaxNode)))
+                    ElasticMarker.UnderlyingNode,
+                    ElasticMarker.UnderlyingNode))
 
             If continueXmlDocumentationComment Then
                 token = token.WithTrailingTrivia(token.TrailingTrivia.Add(DocumentationCommentExteriorTrivia("''' ")))
@@ -909,7 +909,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="text">The raw text of the literal.</param>
         ''' <param name="value">The text used within the xml text literal.</param>
         Public Shared Function XmlTextLiteral(text As String, value As String) As SyntaxToken
-            Return New SyntaxToken(Syntax.InternalSyntax.SyntaxFactory.XmlTextLiteralToken(text, value, DirectCast(ElasticMarker.UnderlyingNode, InternalSyntax.VisualBasicSyntaxNode), DirectCast(ElasticMarker.UnderlyingNode, InternalSyntax.VisualBasicSyntaxNode)))
+            Return New SyntaxToken(Syntax.InternalSyntax.SyntaxFactory.XmlTextLiteralToken(text, value, ElasticMarker.UnderlyingNode, ElasticMarker.UnderlyingNode))
         End Function
 
         ''' <summary>

@@ -346,7 +346,7 @@ End Class
             ' test late bind
             ' call ToString() on object defeat the purpose
             Dim currCulture = Threading.Thread.CurrentThread.CurrentCulture
-            Threading.Thread.CurrentThread.CurrentCulture = New System.Globalization.CultureInfo("en-US")
+            Threading.Thread.CurrentThread.CurrentCulture = System.Globalization.CultureInfo.InvariantCulture
             Try
                 'Declare static local which is late bound
                 Dim compilationDef = CreateCompilationWithMscorlibAndVBRuntime(

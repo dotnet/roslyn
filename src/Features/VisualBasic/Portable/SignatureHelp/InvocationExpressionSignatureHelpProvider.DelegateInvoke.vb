@@ -36,7 +36,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             Return SpecializedCollections.SingletonEnumerable(item)
         End Function
 
-        Private Function GetDelegateInvokePreambleParts(invokeMethod As IMethodSymbol, semanticModel As SemanticModel, position As Integer) As IEnumerable(Of SymbolDisplayPart)
+        Private Function GetDelegateInvokePreambleParts(invokeMethod As IMethodSymbol, semanticModel As SemanticModel, position As Integer) As IList(Of SymbolDisplayPart)
             Dim displayParts = New List(Of SymbolDisplayPart)()
 
             If invokeMethod.ContainingType.IsAnonymousType Then
@@ -49,11 +49,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             Return displayParts
         End Function
 
-        Private Function GetDelegateInvokeParameters(invokeMethod As IMethodSymbol, semanticModel As SemanticModel, position As Integer, documentationCommentFormattingService As IDocumentationCommentFormattingService, cancellationToken As CancellationToken) As IEnumerable(Of SignatureHelpParameter)
-            Dim parameters = New List(Of SignatureHelpParameter)
+        Private Function GetDelegateInvokeParameters(invokeMethod As IMethodSymbol, semanticModel As SemanticModel, position As Integer, documentationCommentFormattingService As IDocumentationCommentFormattingService, cancellationToken As CancellationToken) As IList(Of SignatureHelpSymbolParameter)
+            Dim parameters = New List(Of SignatureHelpSymbolParameter)
             For Each parameter In invokeMethod.Parameters
                 cancellationToken.ThrowIfCancellationRequested()
-                parameters.Add(New SignatureHelpParameter(
+                parameters.Add(New SignatureHelpSymbolParameter(
                     parameter.Name,
                     isOptional:=False,
                     documentationFactory:=parameter.GetDocumentationPartsFactory(semanticModel, position, documentationCommentFormattingService),
@@ -65,7 +65,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
 
         Private Function GetDelegateInvokePostambleParts(invokeMethod As IMethodSymbol,
                                                          semanticModel As SemanticModel,
-                                                         position As Integer) As IEnumerable(Of SymbolDisplayPart)
+                                                         position As Integer) As IList(Of SymbolDisplayPart)
             Dim parts = New List(Of SymbolDisplayPart)
 
             parts.Add(Punctuation(SyntaxKind.CloseParenToken))
@@ -81,4 +81,3 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
         End Function
     End Class
 End Namespace
-

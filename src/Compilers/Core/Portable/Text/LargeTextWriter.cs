@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Text
         public override SourceText ToSourceText()
         {
             this.Flush();
-            return new LargeText(_chunks.ToImmutableAndFree(), _encoding, default(ImmutableArray<byte>), _checksumAlgorithm);
+            return new LargeText(_chunks.ToImmutableAndFree(), _encoding, default(ImmutableArray<byte>), _checksumAlgorithm, default(ImmutableArray<byte>));
         }
 
         public override Encoding Encoding

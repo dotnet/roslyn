@@ -144,12 +144,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
             End Get
         End Property
 
-        Protected Overrides ReadOnly Property CallingConvention As Cci.CallingConvention
-            Get
-                Return UnderlyingMethod.CallingConvention
-            End Get
-        End Property
-
         Protected Overrides ReadOnly Property UnderlyingMethodSignature As Cci.ISignature
             Get
                 Return DirectCast(UnderlyingMethod, Cci.ISignature)

@@ -21,8 +21,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 return true;
             }
 
-            return !context.TargetToken.IsKindOrHasMatchingText(SyntaxKind.PartialKeyword)
-                && InMemberDeclarationContext(position, context, cancellationToken);
+            if (context.TargetToken.IsKindOrHasMatchingText(SyntaxKind.PartialKeyword))
+            {
+                return false;
+            }
+
+            return InMemberDeclarationContext(position, context, cancellationToken)
+                || context.SyntaxTree.IsLocalFunctionDeclarationContext(position, cancellationToken);
         }
 
         private static bool InMemberDeclarationContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)

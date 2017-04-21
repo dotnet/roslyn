@@ -2,7 +2,6 @@
 
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
-Imports System.Text.RegularExpressions
 Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Text
@@ -109,7 +108,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 If fieldsCount = 0 Then
                     ' ERR_AnonymousTypeNeedField must have been reported in Parser
-                    Return BadExpression(owningSyntax, ImmutableArray(Of BoundNode).Empty, ErrorTypeSymbol.UnknownResultType)
+                    Return BadExpression(owningSyntax, ImmutableArray(Of BoundExpression).Empty, ErrorTypeSymbol.UnknownResultType)
                 End If
 
                 Return New AnonymousTypeCreationBinder(containingBinder, initializerSyntax, diagnostics).

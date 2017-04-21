@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -18,15 +19,15 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
     {
         protected internal class State
         {
-            public IList<TArgumentSyntax> Arguments { get; private set; }
+            public ImmutableArray<TArgumentSyntax> Arguments { get; private set; }
 
-            public IList<TAttributeArgumentSyntax> AttributeArguments { get; private set; }
+            public ImmutableArray<TAttributeArgumentSyntax> AttributeArguments { get; private set; }
 
             // The type we're creating a constructor for.  Will be a class or struct type.
             public INamedTypeSymbol TypeToGenerateIn { get; private set; }
 
             public IList<RefKind> ParameterRefKinds { get; private set; }
-            public IList<ITypeSymbol> ParameterTypes { get; private set; }
+            public ImmutableArray<ITypeSymbol> ParameterTypes { get; private set; }
 
             public IMethodSymbol DelegatedConstructorOpt { get; private set; }
 
@@ -90,7 +91,9 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                     return false;
                 }
 
-                this.ParameterTypes = this.ParameterTypes ?? GetParameterTypes(service, document, cancellationToken);
+                this.ParameterTypes = this.ParameterTypes.IsDefault
+                    ? GetParameterTypes(service, document, cancellationToken)
+                    : this.ParameterTypes;
                 this.ParameterRefKinds = this.ParameterRefKinds ?? this.Arguments.Select(service.GetRefKind).ToList();
 
                 return !ClashesWithExistingConstructor(document, cancellationToken);
@@ -105,12 +108,12 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
 
             private bool Matches(IMethodSymbol ctor, ISyntaxFactsService service)
             {
-                if (ctor.Parameters.Length != this.ParameterTypes.Count)
+                if (ctor.Parameters.Length != this.ParameterTypes.Length)
                 {
                     return false;
                 }
 
-                for (int i = 0; i < this.ParameterTypes.Count; i++)
+                for (int i = 0; i < this.ParameterTypes.Length; i++)
                 {
                     var ctorParameter = ctor.Parameters[i];
                     var result = SymbolEquivalenceComparer.Instance.Equals(ctorParameter.Type, this.ParameterTypes[i]) &&
@@ -135,15 +138,15 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
 
             private string GetParameterName(ISyntaxFactsService service, int index)
             {
-                if (index >= this.Arguments?.Count)
+                if (this.Arguments.IsDefault || index >= this.Arguments.Length)
                 {
                     return string.Empty;
                 }
 
-                return service.GetNameForArgument(this.Arguments?[index]);
+                return service.GetNameForArgument(this.Arguments[index]);
             }
 
-            internal List<ITypeSymbol> GetParameterTypes(
+            internal ImmutableArray<ITypeSymbol> GetParameterTypes(
                 TService service,
                 SemanticDocument document,
                 CancellationToken cancellationToken)
@@ -154,7 +157,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                     ? this.AttributeArguments.Select(a => service.GetAttributeArgumentType(semanticModel, a, cancellationToken))
                     : this.Arguments.Select(a => service.GetArgumentType(semanticModel, a, cancellationToken));
 
-                return allTypes.Select(t => FixType(t, semanticModel, allTypeParameters)).ToList();
+                return allTypes.Select(t => FixType(t, semanticModel, allTypeParameters)).ToImmutableArray();
             }
 
             private ITypeSymbol FixType(ITypeSymbol typeSymbol, SemanticModel semanticModel, IEnumerable<ITypeParameterSymbol> allTypeParameters)
@@ -171,11 +174,8 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 SyntaxNode constructorInitializer,
                 CancellationToken cancellationToken)
             {
-                SyntaxToken token;
-                IList<TArgumentSyntax> arguments;
-                INamedTypeSymbol typeToGenerateIn;
                 if (!service.TryInitializeConstructorInitializerGeneration(document, constructorInitializer, cancellationToken,
-                    out token, out arguments, out typeToGenerateIn))
+                    out var token, out var arguments, out var typeToGenerateIn))
                 {
                     return false;
                 }
@@ -202,15 +202,12 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 SyntaxNode simpleName,
                 CancellationToken cancellationToken)
             {
-                SyntaxToken token;
-                INamedTypeSymbol typeToGenerateIn;
-                IMethodSymbol constructor;
                 if (service.TryInitializeClassDeclarationGenerationState(document, simpleName, cancellationToken,
-                    out token, out constructor, out typeToGenerateIn))
+                    out var token, out var constructor, out var typeToGenerateIn))
                 {
                     this.Token = token;
                     this.DelegatedConstructorOpt = constructor;
-                    this.ParameterTypes = constructor.Parameters.Select(p => p.Type).ToList();
+                    this.ParameterTypes = constructor.Parameters.Select(p => p.Type).ToImmutableArray();
                     this.ParameterRefKinds = constructor.Parameters.Select(p => p.RefKind).ToList();
                 }
                 cancellationToken.ThrowIfCancellationRequested();
@@ -224,18 +221,14 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 SyntaxNode simpleName,
                 CancellationToken cancellationToken)
             {
-                SyntaxToken token;
-                IList<TArgumentSyntax> arguments;
-                IList<TAttributeArgumentSyntax> attributeArguments;
-                INamedTypeSymbol typeToGenerateIn;
                 if (service.TryInitializeSimpleNameGenerationState(document, simpleName, cancellationToken,
-                    out token, out arguments, out typeToGenerateIn))
+                    out var token, out var arguments, out var typeToGenerateIn))
                 {
                     this.Token = token;
                     this.Arguments = arguments;
                 }
                 else if (service.TryInitializeSimpleAttributeNameGenerationState(document, simpleName, cancellationToken,
-                    out token, out arguments, out attributeArguments, out typeToGenerateIn))
+                    out token, out arguments, out var attributeArguments, out typeToGenerateIn))
                 {
                     this.Token = token;
                     this.AttributeArguments = attributeArguments;

@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Decl
         Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As IEnumerable(Of RecommendedKeyword)
             If context.IsMultiLineStatementContext Then
                 Return SpecializedCollections.SingletonEnumerable(
-                            New RecommendedKeyword("Const", VBFeaturesResources.ConstKeywordToolTip))
+                            New RecommendedKeyword("Const", VBFeaturesResources.Declares_and_defines_one_or_more_constants))
             End If
 
             Return SpecializedCollections.EmptyEnumerable(Of RecommendedKeyword)()

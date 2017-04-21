@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.Options
 {
@@ -23,15 +24,14 @@ namespace Microsoft.CodeAnalysis.Options
         /// <summary>
         /// The type of the option value.
         /// </summary>
-        public Type Type
-        {
-            get { return typeof(T); }
-        }
+        public Type Type => typeof(T);
 
         /// <summary>
         /// The default option value.
         /// </summary>
         public T DefaultValue { get; }
+
+        public ImmutableArray<OptionStorageLocation> StorageLocations { get; }
 
         public PerLanguageOption(string feature, string name, T defaultValue)
         {
@@ -50,20 +50,15 @@ namespace Microsoft.CodeAnalysis.Options
             this.DefaultValue = defaultValue;
         }
 
-        Type IOption.Type
+        public PerLanguageOption(string feature, string name, T defaultValue, params OptionStorageLocation[] storageLocations)
+            : this(feature, name, defaultValue)
         {
-            get { return typeof(T); }
+            StorageLocations = storageLocations.ToImmutableArray();
         }
 
-        object IOption.DefaultValue
-        {
-            get { return this.DefaultValue; }
-        }
+        object IOption.DefaultValue => this.DefaultValue;
 
-        bool IOption.IsPerLanguage
-        {
-            get { return true; }
-        }
+        bool IOption.IsPerLanguage => true;
 
         public override string ToString()
         {

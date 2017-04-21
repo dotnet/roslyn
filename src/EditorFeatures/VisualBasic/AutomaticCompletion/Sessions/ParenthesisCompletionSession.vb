@@ -2,11 +2,8 @@
 
 Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Microsoft.VisualStudio.Text.Editor
-Imports Microsoft.VisualStudio.Text.Operations
 Imports Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
 Imports Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion.Sessions
-Imports Microsoft.VisualStudio.Text
 Imports System.Threading
 Imports Microsoft.VisualStudio.Text.BraceCompletion
 

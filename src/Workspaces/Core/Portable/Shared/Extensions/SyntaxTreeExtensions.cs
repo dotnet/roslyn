@@ -115,20 +115,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return true;
         }
 
-        /// <summary>
-        /// Returns <c>true</c> if the provided position is in a hidden region inaccessible to the user.
-        /// </summary>
-        public static bool IsHiddenPosition(this SyntaxTree tree, int position, CancellationToken cancellationToken = default(CancellationToken))
-        {
-            if (!tree.HasHiddenRegions())
-            {
-                return false;
-            }
-
-            var lineVisibility = tree.GetLineVisibility(position, cancellationToken);
-            return lineVisibility == LineVisibility.Hidden || lineVisibility == LineVisibility.BeforeFirstLineDirective;
-        }
-
         public static async Task<bool> IsBeforeFirstTokenAsync(
             this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
         {

@@ -69,10 +69,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         {
             foreach (var optionKey in this.Options.GetChangedOptions(_originalOptions))
             {
-                if (ShouldPersistOption(optionKey))
-                {
-                    optionSet = optionSet.WithChangedOption(optionKey, this.Options.GetOption(optionKey));
-                }
+                optionSet = optionSet.WithChangedOption(optionKey, this.Options.GetOption(optionKey));
             }
 
             return optionSet;
@@ -176,7 +173,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                 LineSpan.FromBounds(startLine, endLine));
 
             var textView = _textEditorFactoryService.CreateTextView(projection,
-              _textEditorFactoryService.CreateTextViewRoleSet(PredefinedTextViewRoles.Analyzable));
+              _textEditorFactoryService.CreateTextViewRoleSet(PredefinedTextViewRoles.Interactive));
 
             this.TextViewHost = _textEditorFactoryService.CreateTextViewHost(textView, setFocus: false);
 
@@ -203,7 +200,5 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         {
             UpdatePreview(text);
         }
-
-        internal abstract bool ShouldPersistOption(OptionKey optionKey);
     }
 }

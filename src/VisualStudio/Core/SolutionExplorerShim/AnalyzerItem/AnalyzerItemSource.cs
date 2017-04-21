@@ -2,12 +2,14 @@
 
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.ComponentModel;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.VisualStudio.Language.Intellisense;
+using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Shell;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer
@@ -90,7 +92,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                                         .Where(item => !_analyzerReferences.Contains(item.AnalyzerReference))
                                         .ToArray();
 
-                var referencesToAdd = _analyzerReferences
+                var referencesToAdd = GetFilteredAnalyzers(_analyzerReferences, project)
                                         .Where(r => !_analyzerItems.Any(item => item.AnalyzerReference == r))
                                         .ToArray();
 
@@ -158,7 +160,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                     if (project != null)
                     {
                         _analyzerReferences = project.AnalyzerReferences;
-                        var initialSet = _analyzerReferences
+                        var initialSet = GetFilteredAnalyzers(_analyzerReferences, project)
                                             .OrderBy(ar => ar.Display)
                                             .Select(ar => new AnalyzerItem(_analyzersFolder, ar, _commandHandler.AnalyzerContextMenuController));
                         _analyzerItems.AddRange(initialSet);
@@ -179,6 +181,50 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             {
                 return _analyzersFolder;
             }
+        }
+
+        private ImmutableHashSet<string> GetAnalyzersWithLoadErrors()
+        {
+            var vsWorkspace = _analyzersFolder.Workspace as VisualStudioWorkspaceImpl;
+            if (vsWorkspace != null)
+            {
+                var vsProject = vsWorkspace.DeferredState?.ProjectTracker.GetProject(_analyzersFolder.ProjectId);
+                var vsAnalyzersMap = vsProject?.GetProjectAnalyzersMap();
+
+                if (vsAnalyzersMap != null)
+                {
+                    return vsAnalyzersMap.Where(kvp => kvp.Value.HasLoadErrors).Select(kvp => kvp.Key).ToImmutableHashSet();
+                }
+            }
+
+            return ImmutableHashSet<string>.Empty;
+        }
+
+        private ImmutableArray<AnalyzerReference> GetFilteredAnalyzers(IEnumerable<AnalyzerReference> analyzerReferences, Project project)
+        {
+            var analyzersWithLoadErrors = GetAnalyzersWithLoadErrors();
+
+            // Filter out analyzer dependencies which have no diagnostic analyzers, but still retain the unresolved analyzers and analyzers with load errors.
+            var builder = ArrayBuilder<AnalyzerReference>.GetInstance();
+            foreach (var analyzerReference in analyzerReferences)
+            {
+                // Analyzer dependency:
+                // 1. Must be an Analyzer file reference (we don't understand other analyzer dependencies).
+                // 2. Mush have no diagnostic analyzers.
+                // 3. Must have non-null full path.
+                // 4. Must not have any assembly or analyzer load failures.
+                if (analyzerReference is AnalyzerFileReference &&
+                    analyzerReference.GetAnalyzers(project.Language).IsDefaultOrEmpty &&
+                    analyzerReference.FullPath != null &&
+                    !analyzersWithLoadErrors.Contains(analyzerReference.FullPath))
+                {
+                    continue;
+                }
+
+                builder.Add(analyzerReference);
+            }
+
+            return builder.ToImmutableAndFree();
         }
     }
 }

@@ -23,9 +23,6 @@ namespace Microsoft.CodeAnalysis.Editor.Commands
         /// <summary>
         /// The character that was typed.
         /// </summary>
-        public char TypedChar
-        {
-            get { return _typedChar; }
-        }
+        public char TypedChar => _typedChar;
     }
 }

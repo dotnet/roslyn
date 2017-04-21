@@ -15,5 +15,10 @@ namespace Microsoft.CodeAnalysis.Emit
         {
             return value >= DebugInformationFormat.Pdb && value <= DebugInformationFormat.Embedded;
         }
+
+        internal static bool IsPortable(this DebugInformationFormat value)
+        {
+            return value == DebugInformationFormat.PortablePdb || value == DebugInformationFormat.Embedded;
+        }
     }
 }

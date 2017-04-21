@@ -125,7 +125,7 @@ public class MemberInitializerTest
 }
 ";
             // TODO: This should produce no diagnostics.
-            CreateCompilationWithMscorlib(source, references: new MetadataReference[] { SystemCoreRef, CSharpRef }).VerifyDiagnostics();
+            CreateStandardCompilation(source, references: new MetadataReference[] { SystemCoreRef, CSharpRef }).VerifyDiagnostics();
         }
 
         [Fact]
@@ -508,7 +508,7 @@ class MyList<T> : ICollection<T>
     #endregion
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (7,41): error CS1061: 'MyList<string>' does not contain a definition for 'Add' and no extension method 'Add' accepting a first argument of type 'MyList<string>' could be found (are you missing a using directive or an assembly reference?)
                 //         var coll = new MyList<string> { "str" };
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, @"""str""").WithArguments("MyList<string>", "Add").WithLocation(7, 41));
@@ -542,7 +542,7 @@ public class A : IEnumerable<int>
     IEnumerator IEnumerable.GetEnumerator() { return null; }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (12,17): error CS0118: 'Add' is a field but is used like a method
                 Diagnostic(ErrorCode.ERR_BadSKknown, @"""""").WithArguments("Add", "field", "method"));
         }
@@ -569,7 +569,7 @@ public class A : IEnumerable<int>
     IEnumerator IEnumerable.GetEnumerator() { return null; }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (12,17): error CS0118: 'Add' is a property but is used like a method
                 Diagnostic(ErrorCode.ERR_BadSKknown, @"""""").WithArguments("Add", "property", "method"));
         }
@@ -590,7 +590,7 @@ public class X
         var i = new MemberInitializerTest() { z = null };
     }
 }";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (11,47): error CS0070: The event 'MemberInitializerTest.z' can only appear on the left hand side of += or -= (except when used from within the type 'MemberInitializerTest')
                 //         var i = new MemberInitializerTest() { z = null };
                 Diagnostic(ErrorCode.ERR_BadEventUsage, "z").WithArguments("MemberInitializerTest.z", "MemberInitializerTest").WithLocation(11, 47),
@@ -611,7 +611,7 @@ public class MemberInitializerTest
     }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (6,29): error CS0117: 'int' does not contain a definition for 'x'
                 //         var i = new int() { x = 0 };
                 Diagnostic(ErrorCode.ERR_NoSuchMember, "x").WithArguments("int", "x").WithLocation(6, 29));
@@ -631,7 +631,7 @@ public class MemberInitializerTest
     }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (8,58): error CS0120: An object reference is required for the non-static field, method, or property 'MemberInitializerTest.x'
                 //         var i = new MemberInitializerTest() { x = 1, y = x };
                 Diagnostic(ErrorCode.ERR_ObjectRequired, "x").WithArguments("MemberInitializerTest.x").WithLocation(8, 58));
@@ -656,7 +656,7 @@ public class Test
     }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (13,47): error CS0122: 'MemberInitializerTest.x' is inaccessible due to its protection level
                 //         var i = new MemberInitializerTest() { x = 1, y = 2, z = 3 };
                 Diagnostic(ErrorCode.ERR_BadAccess, "x").WithArguments("MemberInitializerTest.x").WithLocation(13, 47),
@@ -678,7 +678,7 @@ public class MemberInitializerTest
     }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (7,17): error CS0144: Cannot create an instance of the abstract class or interface 'I'
                 //         var i = new I() { }; // CS0144
                 Diagnostic(ErrorCode.ERR_NoNewAbstract, "new I() { }").WithArguments("I").WithLocation(7, 17));
@@ -705,7 +705,7 @@ public class Test
     }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (15,30): error CS0154: The property or indexer 'Test.Prop' cannot be used in this context because it lacks the get accessor
                 //         var i = new Test() { Prop = { x = 1, y = 2 } };
                 Diagnostic(ErrorCode.ERR_PropertyLacksGet, "Prop").WithArguments("Test.Prop").WithLocation(15, 30));
@@ -724,7 +724,7 @@ public class MemberInitializerTest
     }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (7,69): error CS0165: Use of unassigned local variable 'm'
                 //         MemberInitializerTest m = new MemberInitializerTest() { x = m.x };
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "m").WithArguments("m").WithLocation(7, 69));
@@ -748,7 +748,7 @@ public struct Test
     }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (12,47): error CS0191: A readonly field cannot be assigned to (except in a constructor or a variable initializer)
                 //         var i = new MemberInitializerTest() { x = 1 };
                 Diagnostic(ErrorCode.ERR_AssgReadonly, "x").WithLocation(12, 47));
@@ -772,7 +772,7 @@ public struct Test
     }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (12,47): error CS0200: Property or indexer 'MemberInitializerTest.y' cannot be assigned to -- it is read only
                 //         var i = new MemberInitializerTest() { y = 2 };
                 Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "y").WithArguments("MemberInitializerTest.y").WithLocation(12, 47));
@@ -790,7 +790,7 @@ public class MemberInitializerTest
     }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (6,21): error CS0246: The type or namespace name 'X' could not be found (are you missing a using directive or an assembly reference?)
                 //         var i = new X() { x = 0 };
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "X").WithArguments("X").WithLocation(6, 21));
@@ -832,7 +832,7 @@ public class MemberInitializerTest<T>
     }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (6,17): error CS0304: Cannot create an instance of the variable type 'T' because it does not have the new() constraint
                 //         var i = new T() { x = 0 }; // CS0304
                 Diagnostic(ErrorCode.ERR_NoNewTyvar, "new T() { x = 0 }").WithArguments("T").WithLocation(6, 17),
@@ -868,7 +868,7 @@ class Test
     }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (21,35): error CS0411: The type arguments for method 'Gen<int>.Add<U>(int)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         var coll = new Gen<int> { 1 };
                 Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "1").WithArguments("Gen<int>.Add<U>(int)").WithLocation(21, 35));
@@ -887,7 +887,7 @@ public class MemberInitializerTest
     }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (7,52): error CS0747: Invalid initializer member declarator
                 //         var i = new MemberInitializerTest { x = 0, y++ };
                 Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "y++").WithLocation(7, 52),
@@ -910,7 +910,7 @@ public class MemberInitializerTest
     }    
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (8,54): error CS0747: Invalid initializer member declarator
                 //         var i = new MemberInitializerTest() { x = 0, Foo() = new MemberInitializerTest() };
                 Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "Foo() = new MemberInitializerTest()").WithLocation(8, 54),
@@ -935,7 +935,7 @@ public class MemberInitializerTest
     }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (10,36): error CS0747: Invalid initializer member declarator
                 //         var i = new List<int> { 1, Foo().x = 1};
                 Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "Foo().x = 1").WithLocation(10, 36));
@@ -954,7 +954,7 @@ public class MemberInitializerTest
     }    
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (7,54): error CS1912: Duplicate initialization of member 'x'
                 //         var i = new MemberInitializerTest() { x = 1, x = 2 };
                 Diagnostic(ErrorCode.ERR_MemberAlreadyInitialized, "x").WithArguments("x").WithLocation(7, 54));
@@ -973,7 +973,7 @@ public class MemberInitializerTest
     }    
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (7,47): error CS1913: Member 'Foo' cannot be initialized. It is not a field or property.
                 //         var i = new MemberInitializerTest() { Foo = new MemberInitializerTest() };
                 Diagnostic(ErrorCode.ERR_MemberCannotBeInitialized, "Foo").WithArguments("Foo").WithLocation(7, 47));
@@ -993,7 +993,7 @@ public class MemberInitializerTest
     }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (8,27): error CS1914: Static field or property 'X.x' cannot be assigned in an object initializer
                 //         var i = new X() { x = 0 };
                 Diagnostic(ErrorCode.ERR_StaticMemberInObjectInitializer, "x").WithArguments("X.x").WithLocation(8, 27));
@@ -1014,7 +1014,7 @@ public class MemberInitializerTest
     }    
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (9,47): error CS1914: Static field or property 'MemberInitializerTest.x' cannot be assigned in an object initializer
                 //         var i = new MemberInitializerTest() { x = 1, Prop = 1 };
                 Diagnostic(ErrorCode.ERR_StaticMemberInObjectInitializer, "x").WithArguments("MemberInitializerTest.x").WithLocation(9, 47),
@@ -1042,7 +1042,7 @@ public struct MemberInitializerTest2
     public int y;
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (8,47): error CS1917: Members of readonly field 'MemberInitializerTest.x' of type 'MemberInitializerTest2' cannot be assigned with an object initializer because it is of a value type
                 //         var i = new MemberInitializerTest() { x = { y = 1 } };
                 Diagnostic(ErrorCode.ERR_ReadonlyValueTypeInObjectInitializer, "x").WithArguments("MemberInitializerTest.x", "MemberInitializerTest2").WithLocation(8, 47));
@@ -1068,7 +1068,7 @@ public struct MemberInitializerTest2
     public int x;
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (9,54): error CS1918: Members of property 'MemberInitializerTest.Prop' of type 'MemberInitializerTest2' cannot be assigned with an object initializer because it is of a value type
                 //         var i = new MemberInitializerTest() { x = 1, Prop = { x = 1 } };
                 Diagnostic(ErrorCode.ERR_ValueTypePropertyInObjectInitializer, "Prop").WithArguments("MemberInitializerTest.Prop", "MemberInitializerTest2").WithLocation(9, 54));
@@ -1092,7 +1092,7 @@ public class MemberInitializerTest
     }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (11,47): error CS1920: Element initializer cannot be empty
                 //         i = new MemberInitializerTest { y = { { } } };  // CS1920
                 Diagnostic(ErrorCode.ERR_EmptyElementInitializer, "{ }").WithLocation(11, 47),
@@ -1123,7 +1123,7 @@ class Test : IEnumerable
     }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (11,33): error CS1921: The best overloaded method match for 'Test.Add(int)' has wrong signature for the initializer element. The initializable Add must be an accessible instance method.
                 //         var coll = new Test() { 1 };
                 Diagnostic(ErrorCode.ERR_InitializerAddHasWrongSignature, "1").WithArguments("Test.Add(int)").WithLocation(11, 33));
@@ -1155,7 +1155,7 @@ public class A
     public string Prop2 { get; set; }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (6,24): error CS1922: Cannot initialize type 'B' with a collection initializer because it does not implement 'System.Collections.IEnumerable'
                 //         B coll = new B { 1 };
                 Diagnostic(ErrorCode.ERR_CollectionInitRequiresIEnumerable, "{ 1 }").WithArguments("B").WithLocation(6, 24),
@@ -1193,7 +1193,7 @@ public class B
     }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (8,24): error CS1922: Cannot initialize type 'B' with a collection initializer because it does not implement 'System.Collections.IEnumerable'
                 //         B coll = new B { 1 };
                 Diagnostic(ErrorCode.ERR_CollectionInitRequiresIEnumerable, "{ 1 }").WithArguments("B").WithLocation(8, 24));
@@ -1212,7 +1212,7 @@ public class MemberInitializerTest
     }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (7,43): error CS1922: Cannot initialize type 'MemberInitializerTest' with a collection initializer because it does not implement 'System.Collections.IEnumerable'
                 //         var i = new MemberInitializerTest { y++ };
                 Diagnostic(ErrorCode.ERR_CollectionInitRequiresIEnumerable, "{ y++ }").WithArguments("MemberInitializerTest").WithLocation(7, 43),
@@ -1234,7 +1234,7 @@ public class MemberInitializerTest
     }    
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (7,45): error CS1922: Cannot initialize type 'MemberInitializerTest' with a collection initializer because it does not implement 'System.Collections.IEnumerable'
                 //         var i = new MemberInitializerTest() { Foo() = new MemberInitializerTest() };
                 Diagnostic(ErrorCode.ERR_CollectionInitRequiresIEnumerable, "{ Foo() = new MemberInitializerTest() }").WithArguments("MemberInitializerTest").WithLocation(7, 45),
@@ -1266,7 +1266,7 @@ class Test
     }
 }
 ";
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            CreateStandardCompilation(text).VerifyDiagnostics(
     // (14,39): error CS1950: The best overloaded Add method 'TestClass.Add(int)' for the collection initializer has some invalid arguments
     //         TestClass t = new TestClass { "hi" }; // CS1950
     Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, @"""hi""").WithArguments("TestClass.Add(int)"),
@@ -1299,7 +1299,7 @@ class Test : IEnumerable
     }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (11,33): error CS1954: The best overloaded method match 'Test.Add(ref int)' for the collection initializer element cannot be used. Collection initializer 'Add' methods cannot have ref or out parameters.
                 //         var coll = new Test() { 1 };
                 Diagnostic(ErrorCode.ERR_InitializerAddHasParamModifiers, "1").WithArguments("Test.Add(ref int)").WithLocation(11, 33));
@@ -1345,7 +1345,7 @@ class Program
         MyList<MyClass> myList = new MyList<MyClass> { new MyClass { tree = ""maple"" } }; // CS1954
     }
 }";
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            CreateStandardCompilation(text).VerifyDiagnostics(
     // (35,56): error CS1954: The best overloaded method match 'MyList<MyClass>.Add(ref MyClass)' for the collection initializer element cannot be used. Collection initializer 'Add' methods cannot have ref or out parameters.
     //         MyList<MyClass> myList = new MyList<MyClass> { new MyClass { tree = "maple" } }; // CS1954
     Diagnostic(ErrorCode.ERR_InitializerAddHasParamModifiers, @"new MyClass { tree = ""maple"" }").WithArguments("MyList<MyClass>.Add(ref MyClass)"),
@@ -1368,7 +1368,7 @@ public class MemberInitializerTest
     }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (8,23): error CS1958: Object and collection initializer expressions may not be applied to a delegate creation expression
                 //         D<int> genD = new D<int>(GenericMethod<int>) { }; // CS1958
                 Diagnostic(ErrorCode.ERR_ObjectOrCollectionInitializerWithDelegateCreation, "new D<int>(GenericMethod<int>) { }").WithLocation(8, 23));
@@ -1465,7 +1465,7 @@ public class E : IEnumerable
     }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (9,27): error CS1061: 'B' does not contain a definition for 'Add' and no extension method 'Add' accepting a first argument of type 'B' could be found (are you missing a using directive or an assembly reference?)
                 //         B coll1 = new B { 1 };
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "1").WithArguments("B", "Add").WithLocation(9, 27),
@@ -1500,7 +1500,7 @@ class Program
     }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (10,37): error CS0747: Invalid initializer member declarator
                 //         var p = new Test() { x = 1, { 1 }, { x = 1 } };
                 Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "{ 1 }").WithLocation(10, 37),
@@ -1528,7 +1528,7 @@ class Program
     }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (9,13): error CS1003: Syntax error, ',' expected
                 //         var x = 1;
                 Diagnostic(ErrorCode.ERR_SyntaxError, "x").WithArguments(",", "").WithLocation(9, 13),
@@ -1562,7 +1562,7 @@ class Test
     new List<int>() { { { 1 } } };
   }
 }";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (6,25): error CS1513: } expected
                 //     new List<int>() { { { 1 } } };
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "{").WithLocation(6, 25),
@@ -1596,7 +1596,7 @@ class Program
 {
     const int value = new int { };
 }";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (4,23): error CS0133: The expression being assigned to 'Program.value' must be constant
                 //     const int value = new int { };
                 Diagnostic(ErrorCode.ERR_NotConstantExpression, "new int { }").WithArguments("Program.value"));
@@ -1616,7 +1616,7 @@ class A
         var x = new List<int> { Count = { } };      // CS1918
     }
 }";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (8,33): error CS1918: Members of property 'System.Collections.Generic.List<int>.Count' of type 'int' cannot be assigned with an object initializer because it is of a value type
                 //         var x = new List<int> { Count = { } };      // CS1918
                 Diagnostic(ErrorCode.ERR_ValueTypePropertyInObjectInitializer, "Count").WithArguments("System.Collections.Generic.List<int>.Count", "int"));
@@ -1652,7 +1652,7 @@ namespace N
         }
     }
 }";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (19,17): error CS1917: Members of readonly field 'N.C.StructField' of type 'N.Struct' cannot be assigned with an object initializer because it is of a value type
                 //                 StructField = { },      // CS1917
                 Diagnostic(ErrorCode.ERR_ReadonlyValueTypeInObjectInitializer, "StructField").WithArguments("N.C.StructField", "N.Struct"),
@@ -1694,7 +1694,7 @@ public class A : IEnumerable
             yield return list[i];
     }
 }";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (9,36): error CS1525: Invalid expression term '{'
                 //         var a = new A { 5, { 1, 2, {1, 2} }, 3 };
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "{").WithArguments("{"),
@@ -1736,7 +1736,7 @@ class C
         }
     }
 }";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (6,21): error CS0826: No best type found for implicitly-typed array
                 //         var array = new[] { Main() };
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new[] { Main() }"));
@@ -1767,7 +1767,7 @@ partial class C : IEnumerable
         k = j;
     }
 }";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (16,13): error CS0165: Use of unassigned local variable 'i'
                 //         k = i;
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "i").WithArguments("i"),
@@ -1867,7 +1867,7 @@ class Test
 	}
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (47,21): error CS1918: Members of property 'B.A' of type 'A' cannot be assigned with an object initializer because it is of a value type
                 //         b = new B { A = {4, 5, 6} };      // Dev10 incorrectly generates CS1918 here, we follow the spec and allow this to compile.
                 Diagnostic(ErrorCode.ERR_ValueTypePropertyInObjectInitializer, "A").WithArguments("B.A", "A"));
@@ -1894,7 +1894,7 @@ class X : List<int>
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
 
             var tree = compilation.SyntaxTrees.Single();
             var semanticModel = compilation.GetSemanticModel(tree);
@@ -1942,7 +1942,7 @@ class X : Base
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
 
             var tree = compilation.SyntaxTrees.Single();
             var semanticModel = compilation.GetSemanticModel(tree);
@@ -1987,7 +1987,7 @@ class Y
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
 
             compilation.VerifyDiagnostics(
     // (5,14): error CS0535: 'Base' does not implement interface member 'IEnumerable<int>.GetEnumerator()'
@@ -2035,7 +2035,7 @@ class X : List<int>
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
 
             var tree = compilation.SyntaxTrees.Single();
             var semanticModel = compilation.GetSemanticModel(tree);
@@ -2072,7 +2072,7 @@ class X : List<int>
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
 
             var tree = compilation.SyntaxTrees.Single();
             var semanticModel = compilation.GetSemanticModel(tree);
@@ -2113,7 +2113,7 @@ class Test
     };
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
 
             var tree = compilation.SyntaxTrees.Single();
             var semanticModel = compilation.GetSemanticModel(tree);
@@ -2163,7 +2163,7 @@ class Test2
     public Test P { get; set; }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
 
             var tree = compilation.SyntaxTrees.Single();
             var semanticModel = compilation.GetSemanticModel(tree);
@@ -2207,7 +2207,7 @@ class C : System.Collections.Generic.List<C>
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
 
             var tree = compilation.SyntaxTrees.Single();
             var semanticModel = compilation.GetSemanticModel(tree);
@@ -2245,7 +2245,7 @@ class C
 }
 ";
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (4,11): warning CS0414: The field 'C.a' is assigned but its value is never used
                 //     int[] a;
                 Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "a").WithArguments("C.a").WithLocation(4, 11));
@@ -2266,7 +2266,7 @@ class C
 }
 ";
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (4,12): warning CS0414: The field 'C.a' is assigned but its value is never used
                 //     int[,] a;
                 Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "a").WithArguments("C.a").WithLocation(4, 12));
@@ -2287,7 +2287,7 @@ class C
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
 
             var tree = compilation.SyntaxTrees.Single();
             var semanticModel = compilation.GetSemanticModel(tree);
@@ -2344,6 +2344,45 @@ public class Cc{
 }
 ";
             CompileAndVerify(source, new[] { CSharpRef, SystemCoreRef }, expectedOutput: "Initialized");
+        }
+
+        [WorkItem(12983, "https://github.com/dotnet/roslyn/issues/12983")]
+        [Fact]
+        public void GetCollectionInitializerSymbolInfo_06()
+        {
+            var source = @"
+using System;
+using System.Collections.Generic;
+ 
+class X
+{
+    public static void Main()
+    {
+        var list1 = new List<string>;
+        var list2 = new List<string>();
+
+        var list3 = new List<string> { Count = 3 };
+        var list4 = new List<string>() { Count = 3 };
+
+        var list5 = new List<string> { 1, 2, 3 };
+        var list6 = new List<string>() { 1, 2, 3 };
+    }
+}
+";
+            var compilation = CreateStandardCompilation(source);
+
+            var tree = compilation.SyntaxTrees.Single();
+            var semanticModel = compilation.GetSemanticModel(tree);
+
+            var nodes = tree.GetRoot().DescendantNodes().OfType<GenericNameSyntax>().ToArray();
+            Assert.Equal(6, nodes.Length);
+
+            foreach (var name in nodes)
+            {
+                Assert.Equal("List<string>", name.ToString());
+                Assert.Equal("System.Collections.Generic.List<System.String>", semanticModel.GetSymbolInfo(name).Symbol.ToTestDisplayString());
+                Assert.Null(semanticModel.GetTypeInfo(name).Type);
+            }
         }
     }
 }

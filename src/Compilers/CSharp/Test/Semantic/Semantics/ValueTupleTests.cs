@@ -6,7 +6,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.Semantics
 {
-    class ValueTupleTests : CompilingTestBase
+    public class ValueTupleTests : CompilingTestBase
     {
         [Fact]
         public void TestWellKnownMembersForValueTuple()
@@ -75,7 +75,7 @@ namespace System
         public TRest Rest;
     }
 }";
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateStandardCompilation(source);
             Assert.Equal("T1 System.ValueTuple<T1>.Item1",
                 comp.GetWellKnownTypeMember(WellKnownMember.System_ValueTuple_T1__Item1).ToTestDisplayString());
 
@@ -154,13 +154,13 @@ namespace System
             Assert.Equal("T7 System.ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>.Item7",
                 comp.GetWellKnownTypeMember(WellKnownMember.System_ValueTuple_TRest__Item7).ToTestDisplayString());
             Assert.Equal("TRest System.ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>.Rest",
-                comp.GetWellKnownTypeMember(WellKnownMember.System_ValueTuple_TRest__Item7).ToTestDisplayString());
+                comp.GetWellKnownTypeMember(WellKnownMember.System_ValueTuple_TRest__Rest).ToTestDisplayString());
         }
 
         [Fact]
         public void TestMissingWellKnownMembersForValueTuple()
         {
-            var comp = CreateCompilationWithMscorlib("");
+            var comp = CreateStandardCompilation("");
             Assert.True(comp.GetWellKnownType(WellKnownType.System_ValueTuple_T1).IsErrorType());
             Assert.Null(comp.GetWellKnownTypeMember(WellKnownMember.System_ValueTuple_T1__Item1));
 

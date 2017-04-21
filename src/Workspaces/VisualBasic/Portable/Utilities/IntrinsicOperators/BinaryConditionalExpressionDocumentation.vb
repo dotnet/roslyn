@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Text
@@ -12,16 +12,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities.IntrinsicOperators
 
         Public Overrides ReadOnly Property DocumentationText As String
             Get
-                Return VBWorkspaceResources.ExpressionEvalReturns
+                Return VBWorkspaceResources.If_expression_evaluates_to_a_reference_or_Nullable_value_that_is_not_Nothing_the_function_returns_that_value_Otherwise_it_calculates_and_returns_expressionIfNothing
             End Get
         End Property
 
         Public Overrides Function GetParameterDocumentation(index As Integer) As String
             Select Case index
                 Case 0
-                    Return VBWorkspaceResources.ReturnedIfINotNothing
+                    Return VBWorkspaceResources.Returned_if_it_evaluates_to_a_reference_or_nullable_type_that_is_not_Nothing
                 Case 1
-                    Return VBWorkspaceResources.ReturnedIfNothing
+                    Return VBWorkspaceResources.Evaluated_and_returned_if_expression_evaluates_to_Nothing
                 Case Else
                     Throw New ArgumentException(NameOf(index))
             End Select
@@ -30,9 +30,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities.IntrinsicOperators
         Public Overrides Function GetParameterName(index As Integer) As String
             Select Case index
                 Case 0
-                    Return VBWorkspaceResources.Expression1
+                    Return VBWorkspaceResources.expression
                 Case 1
-                    Return VBWorkspaceResources.ExpressionIfNothing
+                    Return VBWorkspaceResources.expressionIfNothing
                 Case Else
                     Throw New ArgumentException(NameOf(index))
             End Select
@@ -50,7 +50,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities.IntrinsicOperators
             End Get
         End Property
 
-        Public Overrides ReadOnly Property PrefixParts As IEnumerable(Of SymbolDisplayPart)
+        Public Overrides ReadOnly Property PrefixParts As IList(Of SymbolDisplayPart)
             Get
                 Return {New SymbolDisplayPart(SymbolDisplayPartKind.Keyword, Nothing, "If"),
                         New SymbolDisplayPart(SymbolDisplayPartKind.Punctuation, Nothing, "(")}

@@ -20,12 +20,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Opti
 
             ' If we have no left token, then we're at the start of the file
             If targetToken.Kind = SyntaxKind.None Then
-                Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("Option", VBFeaturesResources.OptionKeywordToolTip))
+                Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("Option", VBFeaturesResources.Introduces_a_statement_that_specifies_a_compiler_option_that_applies_to_the_entire_source_file))
             End If
 
             ' Show if after an earlier option statement
             If context.IsAfterStatementOfKind(SyntaxKind.OptionStatement) Then
-                Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("Option", VBFeaturesResources.OptionKeywordToolTip))
+                Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("Option", VBFeaturesResources.Introduces_a_statement_that_specifies_a_compiler_option_that_applies_to_the_entire_source_file))
             End If
 
             Return SpecializedCollections.EmptyEnumerable(Of RecommendedKeyword)()

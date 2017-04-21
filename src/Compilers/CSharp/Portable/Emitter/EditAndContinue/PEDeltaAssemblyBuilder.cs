@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return Translate(visited ?? type, null, diagnostics);
         }
 
-        private EmitBaseline.MetadataSymbols GetOrCreateMetadataSymbols(EmitBaseline initialBaseline, CSharpCompilation compilation)
+        private static EmitBaseline.MetadataSymbols GetOrCreateMetadataSymbols(EmitBaseline initialBaseline, CSharpCompilation compilation)
         {
             if (initialBaseline.LazyMetadataSymbols != null)
             {

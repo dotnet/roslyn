@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -26,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Some syntactic forms have an "implicit" receiver.  When we encounter them, we set this to the
             // syntax.  That way, in case we need to report an error about the receiver, we can use this
             // syntax for the location when the receiver was implicit.
-            private CSharpSyntaxNode _syntaxWithReceiver;
+            private SyntaxNode _syntaxWithReceiver;
 
             /// <summary>
             /// Set to true while we are analyzing the interior of an expression lambda.
@@ -58,12 +59,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// <summary>
             /// The syntax nodes associated with each captured variable.
             /// </summary>
-            public MultiDictionary<Symbol, CSharpSyntaxNode> CapturedVariables = new MultiDictionary<Symbol, CSharpSyntaxNode>();
+            public MultiDictionary<Symbol, SyntaxNode> CapturedVariables = new MultiDictionary<Symbol, SyntaxNode>();
 
             /// <summary>
             /// For each lambda in the code, the set of variables that it captures.
             /// </summary>
-            public MultiDictionary<MethodSymbol, Symbol> CapturedVariablesByLambda = new MultiDictionary<MethodSymbol, Symbol>();
+            public OrderedMultiDictionary<MethodSymbol, Symbol> CapturedVariablesByLambda = new OrderedMultiDictionary<MethodSymbol, Symbol>();
 
             /// <summary>
             /// If a local function is in the set, at some point in the code it is converted to a delegate and should then not be optimized to a struct closure.
@@ -72,7 +73,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             public readonly HashSet<MethodSymbol> MethodsConvertedToDelegates = new HashSet<MethodSymbol>();
 
             /// <summary>
-            /// Any scope that a method in <see cref="MethodsConvertedToDelegates"/> closes over. If a scope is in this set, don't use a struct closure.
+            /// True if the method signature can't be rewritten to contain ref/out parameters.
+            /// </summary>
+            public bool CanTakeRefParameters(MethodSymbol closure) => !(closure.IsAsync
+                                                                        || closure.IsIterator
+                                                                        // We can't rewrite delegate signatures
+                                                                        || MethodsConvertedToDelegates.Contains(closure));
+
+            /// <summary>
+            /// Any scope that a method that <see cref="CanTakeRefParameters(MethodSymbol)"/> doesn't close over.
+            /// If a scope is in this set, don't use a struct closure.
             /// </summary>
             public readonly HashSet<BoundNode> ScopesThatCantBeStructs = new HashSet<BoundNode>();
 
@@ -219,21 +229,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                var capturedVariablesNew = new MultiDictionary<Symbol, CSharpSyntaxNode>();
-                foreach (var old in CapturedVariables)
-                {
-                    var method = old.Key as MethodSymbol;
-                    // don't add if it's a method that only captures 'this'
-                    if (method == null || capturesVariable.Contains(method))
-                    {
-                        foreach (var oldValue in old.Value)
-                        {
-                            capturedVariablesNew.Add(old.Key, oldValue);
-                        }
-                    }
-                }
-                CapturedVariables = capturedVariablesNew;
-                var capturedVariablesByLambdaNew = new MultiDictionary<MethodSymbol, Symbol>();
+                var capturedVariablesByLambdaNew = new OrderedMultiDictionary<MethodSymbol, Symbol>();
                 foreach (var old in CapturedVariablesByLambda)
                 {
                     if (capturesVariable.Contains(old.Key))
@@ -263,22 +259,43 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 foreach (var kvp in CapturedVariablesByLambda)
                 {
-                    // get innermost and outermost scopes from which a lambda captures
+                    var lambda = kvp.Key;
+                    var capturedVars = kvp.Value;
 
+                    var allCapturedVars = ArrayBuilder<Symbol>.GetInstance(capturedVars.Count);
+                    allCapturedVars.AddRange(capturedVars);
+
+                    // If any of the captured variables are local functions we'll need
+                    // to add the captured variables of that local function to the current
+                    // set. This has the effect of ensuring that if the local function
+                    // captures anything "above" the current scope then parent frame
+                    // is itself captured (so that the current lambda can call that
+                    // local function).
+                    foreach (var captured in capturedVars)
+                    {
+                        var capturedLocalFunction = captured as LocalFunctionSymbol;
+                        if (capturedLocalFunction != null)
+                        {
+                            allCapturedVars.AddRange(
+                                CapturedVariablesByLambda[capturedLocalFunction]);
+                        }
+                    }
+
+                    // get innermost and outermost scopes from which a lambda captures
                     int innermostScopeDepth = -1;
                     BoundNode innermostScope = null;
 
                     int outermostScopeDepth = int.MaxValue;
                     BoundNode outermostScope = null;
 
-                    foreach (var variables in kvp.Value)
+                    foreach (var captured in allCapturedVars)
                     {
                         BoundNode curBlock = null;
                         int curBlockDepth;
 
-                        if (!VariableScope.TryGetValue(variables, out curBlock))
+                        if (!VariableScope.TryGetValue(captured, out curBlock))
                         {
-                            // this is something that is not defined in a block, like "Me"
+                            // this is something that is not defined in a block, like "this"
                             // Since it is defined outside of the method, the depth is -1
                             curBlockDepth = -1;
                         }
@@ -300,22 +317,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
 
+                    allCapturedVars.Free();
+
                     // 1) if there is innermost scope, lambda goes there as we cannot go any higher.
                     // 2) scopes in [innermostScope, outermostScope) chain need to have access to the parent scope.
                     //
                     // Example: 
-                    //   if a lambda captures a method//s parameter and Me, 
+                    //   if a lambda captures a method's parameter and `this`, 
                     //   its innermost scope depth is 0 (method locals and parameters) 
                     //   and outermost scope is -1
-                    //   Such lambda will be placed in a closure frame that corresponds to the method//s outer block
-                    //   and this frame will also lift original Me as a field when created by its parent.
+                    //   Such lambda will be placed in a closure frame that corresponds to the method's outer block
+                    //   and this frame will also lift original `this` as a field when created by its parent.
                     //   Note that it is completely irrelevant how deeply the lexical scope of the lambda was originally nested.
                     if (innermostScope != null)
                     {
-                        LambdaScopes.Add(kvp.Key, innermostScope);
+                        LambdaScopes.Add(lambda, innermostScope);
 
                         // Disable struct closures on methods converted to delegates, as well as on async and iterator methods.
-                        var markAsNoStruct = MethodsConvertedToDelegates.Contains(kvp.Key) || kvp.Key.IsAsync || kvp.Key.IsIterator;
+                        var markAsNoStruct = !CanTakeRefParameters(lambda);
                         if (markAsNoStruct)
                         {
                             ScopesThatCantBeStructs.Add(innermostScope);
@@ -512,7 +531,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
 
-            private void ReferenceVariable(CSharpSyntaxNode syntax, Symbol symbol)
+            private void ReferenceVariable(SyntaxNode syntax, Symbol symbol)
             {
                 var localSymbol = symbol as LocalSymbol;
                 if ((object)localSymbol != null && localSymbol.IsConst)
@@ -536,7 +555,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            private BoundNode VisitSyntaxWithReceiver(CSharpSyntaxNode syntax, BoundNode receiver)
+            private BoundNode VisitSyntaxWithReceiver(SyntaxNode syntax, BoundNode receiver)
             {
                 var previousSyntax = _syntaxWithReceiver;
                 _syntaxWithReceiver = syntax;
@@ -547,37 +566,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public override BoundNode VisitMethodGroup(BoundMethodGroup node)
             {
-                // We only get here in error cases, as normally the enclosing node is a method group conversion
-                // whose visit (below) doesn't call this.  So we don't know which method is to be selected, and
-                // therefore don't know if the receiver is used. Assume if the receiver was provided, it is used.
-                var receiverOpt = node.ReceiverOpt;
-                if (receiverOpt != null)
-                {
-                    return VisitSyntaxWithReceiver(node.Syntax, receiverOpt);
-                }
-                return null;
-            }
-
-            public override BoundNode VisitConversion(BoundConversion node)
-            {
-                if (node.ConversionKind == ConversionKind.MethodGroup)
-                {
-                    if (node.SymbolOpt?.MethodKind == MethodKind.LocalFunction)
-                    {
-                        // Use OriginalDefinition to strip generic type parameters
-                        ReferenceVariable(node.Syntax, node.SymbolOpt.OriginalDefinition);
-                        MethodsConvertedToDelegates.Add(node.SymbolOpt.OriginalDefinition);
-                    }
-                    if (node.IsExtensionMethod || ((object)node.SymbolOpt != null && !node.SymbolOpt.IsStatic))
-                    {
-                        return VisitSyntaxWithReceiver(node.Syntax, ((BoundMethodGroup)node.Operand).ReceiverOpt);
-                    }
-                    return null;
-                }
-                else
-                {
-                    return base.VisitConversion(node);
-                }
+                throw ExceptionUtilities.Unreachable;
             }
 
             public override BoundNode VisitPropertyAccess(BoundPropertyAccess node)

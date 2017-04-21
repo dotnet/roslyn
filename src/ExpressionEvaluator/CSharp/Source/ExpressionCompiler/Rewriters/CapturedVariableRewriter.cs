@@ -1,6 +1,5 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -12,28 +11,28 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
     internal sealed class CapturedVariableRewriter : BoundTreeRewriterWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
     {
         internal static BoundNode Rewrite(
-            ParameterSymbol targetMethodThisParameter,
+            GenerateThisReference getThisReference,
             Conversions conversions,
             ImmutableDictionary<string, DisplayClassVariable> displayClassVariables,
             BoundNode node,
             DiagnosticBag diagnostics)
         {
-            var rewriter = new CapturedVariableRewriter(targetMethodThisParameter, conversions, displayClassVariables, diagnostics);
+            var rewriter = new CapturedVariableRewriter(getThisReference, conversions, displayClassVariables, diagnostics);
             return rewriter.Visit(node);
         }
 
-        private readonly ParameterSymbol _targetMethodThisParameter;
+        private readonly GenerateThisReference _getThisReference;
         private readonly Conversions _conversions;
         private readonly ImmutableDictionary<string, DisplayClassVariable> _displayClassVariables;
         private readonly DiagnosticBag _diagnostics;
 
         private CapturedVariableRewriter(
-            ParameterSymbol targetMethodThisParameter,
+            GenerateThisReference getThisReference,
             Conversions conversions,
             ImmutableDictionary<string, DisplayClassVariable> displayClassVariables,
             DiagnosticBag diagnostics)
         {
-            _targetMethodThisParameter = targetMethodThisParameter;
+            _getThisReference = getThisReference;
             _conversions = conversions;
             _displayClassVariables = displayClassVariables;
             _diagnostics = diagnostics;
@@ -65,112 +64,66 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         public override BoundNode VisitParameter(BoundParameter node)
         {
-            return RewriteParameter(node.Syntax, node.ParameterSymbol, node);
+            var parameter = node.ParameterSymbol;
+            var variable = this.GetVariable(parameter.Name);
+            if (variable == null)
+            {
+                return node;
+            }
+            return variable.ToBoundExpression(node.Syntax);
         }
 
         public override BoundNode VisitMethodGroup(BoundMethodGroup node)
         {
-            if ((node.Flags & BoundMethodGroupFlags.HasImplicitReceiver) == BoundMethodGroupFlags.HasImplicitReceiver &&
-                (object)_targetMethodThisParameter == null)
-            {
-                // This can happen in static contexts.
-                // NOTE: LocalRewriter has already been run, so the receiver has already been replaced with an
-                // appropriate type expression, if this is a static context.
-                // NOTE: Don't go through VisitThisReference, because it'll produce a diagnostic.
-                return node.Update(
-                    node.TypeArgumentsOpt,
-                    node.Name,
-                    node.Methods,
-                    node.LookupSymbolOpt,
-                    node.LookupError,
-                    node.Flags,
-                    receiverOpt: null,
-                    resultKind: node.ResultKind);
-            }
-            else
-            {
-                return base.VisitMethodGroup(node);
-            }
+            throw ExceptionUtilities.Unreachable;
         }
 
         public override BoundNode VisitThisReference(BoundThisReference node)
         {
-            return RewriteParameter(node.Syntax, _targetMethodThisParameter, node);
+            var rewrittenThis = GenerateThisReference(node);
+            Debug.Assert(rewrittenThis.Type.Equals(node.Type, TypeCompareKind.IgnoreDynamicAndTupleNames));
+            return rewrittenThis;
         }
 
         public override BoundNode VisitBaseReference(BoundBaseReference node)
         {
             var syntax = node.Syntax;
-            var rewrittenParameter = RewriteParameter(syntax, _targetMethodThisParameter, node);
-
+            var rewrittenThis = GenerateThisReference(node);
             var baseType = node.Type;
             HashSet<DiagnosticInfo> unusedUseSiteDiagnostics = null;
-            var conversion = _conversions.ClassifyImplicitConversionFromExpression(rewrittenParameter, baseType, ref unusedUseSiteDiagnostics);
+            var conversion = _conversions.ClassifyImplicitConversionFromExpression(rewrittenThis, baseType, ref unusedUseSiteDiagnostics);
             Debug.Assert(unusedUseSiteDiagnostics == null || !conversion.IsValid || unusedUseSiteDiagnostics.All(d => d.Severity < DiagnosticSeverity.Error));
 
             // It would be nice if we could just call BoundConversion.Synthesized, but it doesn't seem worthwhile to
             // introduce a bunch of new overloads to accommodate isBaseConversion.
             return new BoundConversion(
                 syntax,
-                rewrittenParameter,
-                conversion.Kind,
-                conversion.ResultKind,
+                rewrittenThis,
+                conversion,
                 isBaseConversion: true,
-                symbolOpt: conversion.Method,
                 @checked: false,
                 explicitCastInCode: false,
-                isExtensionMethod: conversion.IsExtensionMethod,
-                isArrayIndex: conversion.IsArrayIndex,
                 constantValueOpt: null,
                 type: baseType,
                 hasErrors: !conversion.IsValid)
             { WasCompilerGenerated = true };
         }
 
-        private BoundExpression RewriteParameter(CSharpSyntaxNode syntax, ParameterSymbol symbol, BoundExpression node)
+        private BoundExpression GenerateThisReference(BoundExpression node)
         {
-            // This can happen in error scenarios (e.g. user binds "this" in a lambda in a static method).
-            if ((object)symbol == null)
+            var syntax = node.Syntax;
+            var rewrittenThis = _getThisReference(syntax);
+            if (rewrittenThis != null)
             {
-                ReportMissingThis(node.Kind, syntax);
-                return node;
+                return rewrittenThis;
             }
-
-            var variable = this.GetVariable(symbol.Name);
-            if (variable == null)
-            {
-                var typeNameKind = GeneratedNames.GetKind(symbol.Type.Name);
-                if (typeNameKind != GeneratedNameKind.None &&
-                    typeNameKind != GeneratedNameKind.AnonymousType)
-                {
-                    // The state machine case is for async lambdas.  The state machine
-                    // will have a hoisted "this" field if it needs to access the
-                    // containing display class, but the display class may not have a
-                    // "this" field.
-                    Debug.Assert(typeNameKind == GeneratedNameKind.LambdaDisplayClass ||
-                        typeNameKind == GeneratedNameKind.StateMachineType,
-                        $"Unexpected typeNameKind '{typeNameKind}'");
-                    ReportMissingThis(node.Kind, syntax);
-                    return node;
-                }
-
-                return (node as BoundParameter) ?? new BoundParameter(syntax, symbol);
-            }
-
-            var result = variable.ToBoundExpression(syntax);
-            Debug.Assert(node.Kind == BoundKind.BaseReference
-                ? result.Type.BaseType.Equals(node.Type, ignoreDynamic: true)
-                : result.Type.Equals(node.Type, ignoreDynamic: true));
-            return result;
-        }
-
-        private void ReportMissingThis(BoundKind boundKind, CSharpSyntaxNode syntax)
-        {
+            var boundKind = node.Kind;
             Debug.Assert(boundKind == BoundKind.ThisReference || boundKind == BoundKind.BaseReference);
             var errorCode = boundKind == BoundKind.BaseReference
                 ? ErrorCode.ERR_BaseInBadContext
                 : ErrorCode.ERR_ThisInBadContext;
             _diagnostics.Add(new CSDiagnostic(new CSDiagnosticInfo(errorCode), syntax.Location));
+            return node;
         }
 
         private DisplayClassVariable GetVariable(string name)

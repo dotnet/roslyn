@@ -21,6 +21,12 @@ namespace Microsoft.CodeAnalysis.MSBuild
         string FilePath { get; }
 
         /// <summary>
+        /// The error message produced when a failure occurred attempting to access the project file. 
+        /// If a failure occurred the projectd file info will be inaccessible.
+        /// </summary>
+        string ErrorMessage { get; }
+
+        /// <summary>
         /// Gets the project file info asynchronously.
         /// </summary>
         Task<ProjectFileInfo> GetProjectFileInfoAsync(CancellationToken cancellationToken);

@@ -58,7 +58,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         protected override TypeSymbol LookupTopLevelTypeDefSymbol(int referencedAssemblyIndex, ref MetadataTypeName emittedName)
         {
-            var assembly = this.Module.GetReferencedAssemblySymbols()[referencedAssemblyIndex];
+            var assembly = this.Module.GetReferencedAssemblySymbol(referencedAssemblyIndex);
+            // GetReferencedAssemblySymbol should not return null since referencedAssemblyIndex
+            // was obtained from GetIndexOfReferencedAssembly above.
             return assembly.LookupTopLevelMetadataType(ref emittedName, digThroughForwardedTypes: true);
         }
 

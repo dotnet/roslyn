@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
+using Microsoft.VisualStudio.Shell;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation
 {
@@ -19,11 +20,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
         [ImportingConstructor]
         public VisualStudioErrorReportingServiceFactory(
-            VisualStudioWorkspaceImpl workspace,
+            SVsServiceProvider serviceProvider,
             IForegroundNotificationService foregroundNotificationService,
             [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners)
         {
-            _singleton = new VisualStudioErrorReportingService(workspace, foregroundNotificationService, new AggregateAsynchronousOperationListener(asyncListeners, FeatureAttribute.InfoBar));
+            _singleton = new VisualStudioErrorReportingService(serviceProvider, foregroundNotificationService, new AggregateAsynchronousOperationListener(asyncListeners, FeatureAttribute.InfoBar));
         }
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)

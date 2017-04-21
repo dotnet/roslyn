@@ -3,7 +3,6 @@
 Imports System.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.GenerateMember.GenerateEnumMember
-Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax

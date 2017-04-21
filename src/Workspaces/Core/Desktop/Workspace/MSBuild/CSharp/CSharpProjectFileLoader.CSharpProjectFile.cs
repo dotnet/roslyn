@@ -23,8 +23,8 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private class CSharpProjectFile : ProjectFile
         {
-            public CSharpProjectFile(CSharpProjectFileLoader loader, MSB.Evaluation.Project project)
-                : base(loader, project)
+            public CSharpProjectFile(CSharpProjectFileLoader loader, MSB.Evaluation.Project project, string errorMessage)
+                : base(loader, project, errorMessage)
             {
             }
 
@@ -48,15 +48,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var compilerInputs = new CSharpCompilerInputs(this);
 
-                var executedProject = await this.BuildAsync("Csc", compilerInputs, cancellationToken).ConfigureAwait(false);
+                var buildInfo = await this.BuildAsync("Csc", compilerInputs, cancellationToken).ConfigureAwait(false);
 
-                if (!compilerInputs.Initialized)
+                if (!compilerInputs.Initialized && buildInfo.Project != null)
                 {
                     // if msbuild didn't reach the CSC task for some reason, attempt to initialize using the variables that were defined so far.
-                    this.InitializeFromModel(compilerInputs, executedProject);
+                    this.InitializeFromModel(compilerInputs, buildInfo.Project);
                 }
 
-                return CreateProjectFileInfo(compilerInputs, executedProject);
+                return CreateProjectFileInfo(compilerInputs, buildInfo);
             }
 
             protected override ProjectFileReference CreateProjectFileReference(ProjectItemInstance reference)
@@ -67,9 +67,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new ProjectFileReference(filePath, aliases);
             }
 
-            private ProjectFileInfo CreateProjectFileInfo(CSharpCompilerInputs compilerInputs, MSB.Execution.ProjectInstance executedProject)
+            private ProjectFileInfo CreateProjectFileInfo(CSharpCompilerInputs compilerInputs, BuildInfo buildInfo)
             {
-                string projectDirectory = executedProject.Directory;
+                var outputPath = Path.Combine(this.GetOutputDirectory(), compilerInputs.OutputFileName);
+                var assemblyName = this.GetAssemblyName();
+
+                var project = buildInfo.Project;
+                if (project == null)
+                {
+                    return new ProjectFileInfo(
+                        outputPath,
+                        assemblyName,
+                        commandLineArgs: SpecializedCollections.EmptyEnumerable<string>(),
+                        documents: SpecializedCollections.EmptyEnumerable<DocumentFileInfo>(),
+                        additionalDocuments: SpecializedCollections.EmptyEnumerable<DocumentFileInfo>(),
+                        projectReferences: SpecializedCollections.EmptyEnumerable<ProjectFileReference>(),
+                        errorMessage: buildInfo.ErrorMessage);
+                }
+
+                string projectDirectory = project.Directory;
                 string directorySeparator = Path.DirectorySeparatorChar.ToString();
                 if (!projectDirectory.EndsWith(directorySeparator, StringComparison.OrdinalIgnoreCase))
                 {
@@ -77,16 +93,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 var docs = compilerInputs.Sources
-                       .Where(s => !Path.GetFileName(s.ItemSpec).StartsWith("TemporaryGeneratedFile_", StringComparison.Ordinal))
-                       .Select(s => MakeDocumentFileInfo(projectDirectory, s))
-                       .ToImmutableArray();
+                        .Where(s => !Path.GetFileName(s.ItemSpec).StartsWith("TemporaryGeneratedFile_", StringComparison.Ordinal))
+                        .Select(s => MakeDocumentFileInfo(projectDirectory, s))
+                        .ToImmutableArray();
 
                 var additionalDocs = compilerInputs.AdditionalSources
                         .Select(s => MakeDocumentFileInfo(projectDirectory, s))
                         .ToImmutableArray();
-
-                var outputPath = Path.Combine(this.GetOutputDirectory(), compilerInputs.OutputFileName);
-                var assemblyName = this.GetAssemblyName();
 
                 return new ProjectFileInfo(
                     outputPath,
@@ -94,7 +107,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     compilerInputs.CommandLineArgs,
                     docs,
                     additionalDocs,
-                    this.GetProjectReferences(executedProject));
+                    this.GetProjectReferences(buildInfo.Project),
+                    buildInfo.ErrorMessage);
             }
 
             private DocumentFileInfo MakeDocumentFileInfo(string projectDirectory, ITaskItem item)
@@ -181,19 +195,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 compilerInputs.SetAnalyzers(this.GetAnalyzerReferencesFromModel(executedProject).ToArray());
                 compilerInputs.SetAdditionalFiles(this.GetAdditionalFilesFromModel(executedProject).ToArray());
                 compilerInputs.SetSources(this.GetDocumentsFromModel(executedProject).ToArray());
-
-                string errorMessage;
-                int errorCode;
-                compilerInputs.EndInitialization(out errorMessage, out errorCode);
+                compilerInputs.EndInitialization(out var errorMessage, out var errorCode);
             }
 
             private class CSharpCompilerInputs :
-#if !MSBUILD12
                 MSB.Tasks.Hosting.ICscHostObject4,
                 MSB.Tasks.Hosting.IAnalyzerHostObject
-#else
-                MSB.Tasks.Hosting.ICscHostObject4
-#endif
             {
                 private readonly CSharpProjectFile _projectFile;
 
@@ -250,6 +257,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                         else if (string.Equals(_debugType, "full", StringComparison.OrdinalIgnoreCase))
                         {
                             this.CommandLineArgs.Add("/debug:full");
+                        }
+                        else if (string.Equals(_debugType, "portable", StringComparison.OrdinalIgnoreCase))
+                        {
+                            this.CommandLineArgs.Add("/debug:portable");
+                        }
+                        else if (string.Equals(_debugType, "embedded", StringComparison.OrdinalIgnoreCase))
+                        {
+                            this.CommandLineArgs.Add("/debug:embedded");
                         }
                     }
 
@@ -706,7 +721,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (treatWarningsAsErrors)
                     {
-                        this.CommandLineArgs.Add("/warningaserror");
+                        this.CommandLineArgs.Add("/warnaserror");
                     }
 
                     return true;

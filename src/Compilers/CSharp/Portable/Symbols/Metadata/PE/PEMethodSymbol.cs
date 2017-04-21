@@ -501,6 +501,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         public override ImmutableArray<CustomModifier> ReturnTypeCustomModifiers => Signature.ReturnParam.CustomModifiers;
 
+        public override ImmutableArray<CustomModifier> RefCustomModifiers => Signature.ReturnParam.RefCustomModifiers;
+
         /// <summary>
         /// Associate the method with a particular property. Returns
         /// false if the method is already associated with a property or event.
@@ -553,7 +555,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             SignatureHeader signatureHeader;
             BadImageFormatException mrEx;
-            ParamInfo<TypeSymbol>[] paramInfo = new MetadataDecoder(moduleSymbol, this).GetSignatureForMethod(_handle, out signatureHeader, out mrEx, allowByRefReturn: true);
+            ParamInfo<TypeSymbol>[] paramInfo = new MetadataDecoder(moduleSymbol, this).GetSignatureForMethod(_handle, out signatureHeader, out mrEx);
             bool makeBad = (mrEx != null);
 
             // If method is not generic, let's assign empty list for type parameters
@@ -588,7 +590,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
 
             // Dynamify object type if necessary
-            paramInfo[0].Type = paramInfo[0].Type.AsDynamicIfNoPia(_containingType);
+            var returnType = paramInfo[0].Type.AsDynamicIfNoPia(_containingType);
+
+            // Check for tuple type
+            returnType = TupleTypeDecoder.DecodeTupleTypesIfApplicable(returnType, paramInfo[0].Handle, moduleSymbol);
+
+            paramInfo[0].Type = returnType;
 
             var returnParam = PEParameterSymbol.Create(moduleSymbol, this, 0, paramInfo[0], out isBadParameter);
 

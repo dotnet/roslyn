@@ -1,10 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Shared.Collections;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Formatting
@@ -27,12 +25,6 @@ namespace Microsoft.CodeAnalysis.Formatting
             _edgeExclusivePredicate = ContainsEdgeExclusive;
             _edgeInclusivePredicate = ContainsEdgeInclusive;
             _containPredicate = (value, start, end) => Contains(value, start, end, Introspector);
-        }
-
-        public void AddIntervalInPlace(T value)
-        {
-            var newNode = new Node(value);
-            this.root = Insert(root, newNode, Introspector);
         }
 
         public T GetSmallestEdgeExclusivelyContainingInterval(int start, int length)

@@ -1,11 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CSharp.CodeFixes.RemoveUnnecessaryCast;
-using Microsoft.CodeAnalysis.CSharp.Diagnostics.RemoveUnnecessaryCast;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -180,7 +175,7 @@ class Program3
     </Project>
 </Workspace>";
 
-            await TestAsync(input, expected, compareTokens: false, fixAllActionEquivalenceKey: null);
+            await TestInRegularAndScriptAsync(input, expected, ignoreTrivia: false, fixAllActionEquivalenceKey: null);
         }
 
         [Fact]
@@ -324,7 +319,7 @@ class Program3
     </Project>
 </Workspace>";
 
-            await TestAsync(input, expected, compareTokens: false, fixAllActionEquivalenceKey: null);
+            await TestInRegularAndScriptAsync(input, expected, ignoreTrivia: false, fixAllActionEquivalenceKey: null);
         }
 
         [Fact]
@@ -468,7 +463,7 @@ class Program3
     </Project>
 </Workspace>";
 
-            await TestAsync(input, expected, compareTokens: false, fixAllActionEquivalenceKey: null);
+            await TestInRegularAndScriptAsync(input, expected, ignoreTrivia: false, fixAllActionEquivalenceKey: null);
         }
         #endregion
     }

@@ -522,5 +522,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
         Public Overrides Function GetDocumentationCommentXml(Optional preferredCulture As CultureInfo = Nothing, Optional expandIncludes As Boolean = False, Optional cancellationToken As CancellationToken = Nothing) As String
             Return _underlyingType.GetDocumentationCommentXml(preferredCulture, expandIncludes, cancellationToken)
         End Function
+
+        Friend Overrides Iterator Function GetSynthesizedWithEventsOverrides() As IEnumerable(Of PropertySymbol)
+            For Each underlying As PropertySymbol In _underlyingType.GetSynthesizedWithEventsOverrides()
+                Yield RetargetingTranslator.Retarget(underlying)
+            Next
+        End Function
     End Class
 End Namespace

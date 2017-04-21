@@ -29,10 +29,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 _lifetimeMap = lifetimeMap;
             }
 
+            public IEnumerable<ITemporaryStreamStorage> GetStorages()
+            {
+                return _storages;
+            }
+
             public override AssemblyMetadata GetValue(CancellationToken cancellationToken)
             {
-                AssemblyMetadata value;
-                if (_weakValue.TryGetTarget(out value))
+                if (_weakValue.TryGetTarget(out var value))
                 {
                     return value;
                 }
@@ -42,14 +46,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             private AssemblyMetadata RecoverMetadata()
             {
-                var moduleBuilder = ImmutableArray.CreateBuilder<ModuleMetadata>(_storages.Count);
+                var moduleBuilder = ArrayBuilder<ModuleMetadata>.GetInstance(_storages.Count);
 
                 foreach (var storage in _storages)
                 {
                     moduleBuilder.Add(GetModuleMetadata(storage));
                 }
 
-                var metadata = AssemblyMetadata.Create(moduleBuilder.ToImmutable());
+                var metadata = AssemblyMetadata.Create(moduleBuilder.ToImmutableAndFree());
                 _weakValue.SetTarget(metadata);
 
                 return metadata;

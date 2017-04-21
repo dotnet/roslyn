@@ -1,9 +1,11 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -14,21 +16,21 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal sealed class CSharpSimplifyTypeNamesDiagnosticAnalyzer : SimplifyTypeNamesDiagnosticAnalyzerBase<SyntaxKind>
+    internal sealed class CSharpSimplifyTypeNamesDiagnosticAnalyzer 
+        : SimplifyTypeNamesDiagnosticAnalyzerBase<SyntaxKind>
     {
-        private static readonly SyntaxKind[] s_kindsOfInterest = new[]
-        {
-            SyntaxKind.QualifiedName,
-            SyntaxKind.AliasQualifiedName,
-            SyntaxKind.GenericName,
-            SyntaxKind.IdentifierName,
-            SyntaxKind.SimpleMemberAccessExpression,
-            SyntaxKind.QualifiedCref
-        };
+        private static readonly ImmutableArray<SyntaxKind> s_kindsOfInterest =
+            ImmutableArray.Create(
+                SyntaxKind.QualifiedName,
+                SyntaxKind.AliasQualifiedName,
+                SyntaxKind.GenericName,
+                SyntaxKind.IdentifierName,
+                SyntaxKind.SimpleMemberAccessExpression,
+                SyntaxKind.QualifiedCref);
 
-        public override void Initialize(AnalysisContext analysisContext)
+        public CSharpSimplifyTypeNamesDiagnosticAnalyzer()
+            : base(s_kindsOfInterest)
         {
-            analysisContext.RegisterSyntaxNodeAction(AnalyzeNode, s_kindsOfInterest);
         }
 
         protected override void AnalyzeNode(SyntaxNodeAnalysisContext context)
@@ -45,10 +47,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             }
 
             Diagnostic diagnostic;
+            var options = context.Options;
+            var cancellationToken = context.CancellationToken;
             Func<SyntaxNode, bool> descendIntoChildren = n =>
             {
                 if (!IsRegularCandidate(n) ||
-                    !TrySimplifyTypeNameExpression(context.SemanticModel, n, context.Options, out diagnostic, context.CancellationToken))
+                    !TrySimplifyTypeNameExpression(context.SemanticModel, n, options, out diagnostic, cancellationToken))
                 {
                     return true;
                 }
@@ -60,16 +64,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             // find regular node first - search from top to down. once found one, don't get into its children
             foreach (var candidate in context.Node.DescendantNodesAndSelf(descendIntoChildren))
             {
-                context.CancellationToken.ThrowIfCancellationRequested();
+                cancellationToken.ThrowIfCancellationRequested();
             }
 
             // now search structure trivia
             foreach (var candidate in context.Node.DescendantNodesAndSelf(descendIntoChildren: n => !IsCrefCandidate(n), descendIntoTrivia: true))
             {
-                context.CancellationToken.ThrowIfCancellationRequested();
+                cancellationToken.ThrowIfCancellationRequested();
 
                 if (IsCrefCandidate(candidate) &&
-                    TrySimplifyTypeNameExpression(context.SemanticModel, candidate, context.Options, out diagnostic, context.CancellationToken))
+                    TrySimplifyTypeNameExpression(context.SemanticModel, candidate, options, out diagnostic, cancellationToken))
                 {
                     context.ReportDiagnostic(diagnostic);
                 }
@@ -110,9 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
                 }
 
                 var crefSyntax = (CrefSyntax)node;
-
-                CrefSyntax replacementNode;
-                if (!crefSyntax.TryReduceOrSimplifyExplicitName(model, out replacementNode, out issueSpan, optionSet, cancellationToken))
+                if (!crefSyntax.TryReduceOrSimplifyExplicitName(model, out var replacementNode, out issueSpan, optionSet, cancellationToken))
                 {
                     return false;
                 }
@@ -130,14 +132,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
                 var expressionToCheck = expression.Kind() == SyntaxKind.AsExpression || expression.Kind() == SyntaxKind.IsExpression
                     ? ((BinaryExpressionSyntax)expression).Right
                     : expression;
-
-                ExpressionSyntax replacementSyntax;
-                if (!expressionToCheck.TryReduceOrSimplifyExplicitName(model, out replacementSyntax, out issueSpan, optionSet, cancellationToken))
+                if (!expressionToCheck.TryReduceOrSimplifyExplicitName(model, out var replacementSyntax, out issueSpan, optionSet, cancellationToken))
                 {
                     return false;
                 }
 
-                if (expression.Kind() == SyntaxKind.SimpleMemberAccessExpression)
+                // set proper diagnostic ids.
+                if (replacementSyntax.HasAnnotations(nameof(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration)))
+                {
+                    diagnosticId = IDEDiagnosticIds.PreferIntrinsicPredefinedTypeInDeclarationsDiagnosticId;
+                }
+                else if (replacementSyntax.HasAnnotations(nameof(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess)))
+                {
+                    diagnosticId = IDEDiagnosticIds.PreferIntrinsicPredefinedTypeInMemberAccessDiagnosticId;
+                }
+                else if (expression.Kind() == SyntaxKind.SimpleMemberAccessExpression)
                 {
                     var memberAccess = (MemberAccessExpressionSyntax)expression;
                     diagnosticId = memberAccess.Expression.Kind() == SyntaxKind.ThisExpression ?

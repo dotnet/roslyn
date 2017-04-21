@@ -42,6 +42,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
         private bool CanHandle(string errorId)
         {
+            // make sure we have error id, otherwise, we simple don't support
+            // this error
+            if (errorId == null)
+            {
+                // record NFW to see who violates contract.
+                WatsonReporter.Report(new Exception("errorId is null"));
+                return false;
+            }
+
             // we accept all compiler diagnostics
             if (errorId.StartsWith(_errorCodePrefix))
             {
@@ -57,8 +66,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             var documentErrorsMap = new Dictionary<DocumentId, HashSet<DiagnosticData>>();
 
             var errors = new ExternalError[1];
-            uint fetched;
-            while (pErrors.Next(1, errors, out fetched) == VSConstants.S_OK && fetched == 1)
+            while (pErrors.Next(1, errors, out var fetched) == VSConstants.S_OK && fetched == 1)
             {
                 var error = errors[0];
 
@@ -158,7 +166,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                ((iEndLine < iStartLine) ||
                 (iEndLine == iStartLine && iEndColumn < iStartColumn)))
             {
-                throw new ArgumentException(ServicesVSResources.EndPositionMustBeGreaterThanStart);
+                throw new ArgumentException(ServicesVSResources.End_position_must_be_start_position);
             }
 
             var priority = (VSTASKPRIORITY)nPriority;
@@ -175,10 +183,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                     severity = DiagnosticSeverity.Info;
                     break;
                 default:
-                    throw new ArgumentException(ServicesVSResources.NotAValidValue, nameof(nPriority));
+                    throw new ArgumentException(ServicesVSResources.Not_a_valid_value, nameof(nPriority));
             }
 
-            if (iStartLine < 0 || iStartColumn < 0)
+            if (bstrFileName == null || iStartLine < 0 || iStartColumn < 0)
             {
                 // we now takes care of errors that is not belong to file as well.
                 var projectDiagnostic = GetDiagnosticData(
@@ -257,8 +265,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 if (prefix.Equals("CS", StringComparison.OrdinalIgnoreCase) || prefix.Equals("BC", StringComparison.OrdinalIgnoreCase))
                 {
                     var suffix = errorId.Substring(2);
-                    int id;
-                    return int.TryParse(suffix, out id);
+                    return int.TryParse(suffix, out var id);
                 }
             }
 

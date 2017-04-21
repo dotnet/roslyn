@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseImplicit
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
         public async Task TestFixAllInDocumentScope_PreferImplicitTypeEverywhere()
         {
-            var fixAllActionId = CSharpFeaturesResources.UseImplicitType;
+            var fixAllActionId = CSharpFeaturesResources.use_var_instead_of_explicit_type;
             var input = @"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
@@ -123,7 +123,7 @@ class Program2
     </Project>
 </Workspace>";
 
-            await TestAsync(input, expected, options: ImplicitTypeEverywhere(), fixAllActionEquivalenceKey: fixAllActionId);
+            await TestInRegularAndScriptAsync(input, expected, options: ImplicitTypeEverywhere(), fixAllActionEquivalenceKey: fixAllActionId);
         }
 
         [Fact]
@@ -131,7 +131,7 @@ class Program2
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
         public async Task TestFixAllInProject_PreferImplicitTypeEverywhere()
         {
-            var fixAllActionId = CSharpFeaturesResources.UseImplicitType;
+            var fixAllActionId = CSharpFeaturesResources.use_var_instead_of_explicit_type;
             var input = @"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
@@ -238,7 +238,7 @@ class Program2
     </Project>
 </Workspace>";
 
-            await TestAsync(input, expected, options: ImplicitTypeEverywhere(), fixAllActionEquivalenceKey: fixAllActionId);
+            await TestInRegularAndScriptAsync(input, expected, options: ImplicitTypeEverywhere(), fixAllActionEquivalenceKey: fixAllActionId);
         }
 
         [Fact]
@@ -246,7 +246,7 @@ class Program2
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
         public async Task TestFixAllInSolution_PreferImplicitTypeEverywhere()
         {
-            var fixAllActionId = CSharpFeaturesResources.UseImplicitType;
+            var fixAllActionId = CSharpFeaturesResources.use_var_instead_of_explicit_type;
             var input = @"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
@@ -353,7 +353,7 @@ class Program2
     </Project>
 </Workspace>";
 
-            await TestAsync(input, expected, options: ImplicitTypeEverywhere(), fixAllActionEquivalenceKey: fixAllActionId);
+            await TestInRegularAndScriptAsync(input, expected, options: ImplicitTypeEverywhere(), fixAllActionEquivalenceKey: fixAllActionId);
         }
 
         [Fact]
@@ -361,7 +361,7 @@ class Program2
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
         public async Task TestFixAllInDocumentScope_PreferBuiltInTypes()
         {
-            var fixAllActionId = CSharpFeaturesResources.UseImplicitType;
+            var fixAllActionId = CSharpFeaturesResources.use_var_instead_of_explicit_type;
             var input = @"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
@@ -404,7 +404,7 @@ class Program
     </Project>
 </Workspace>";
 
-            await TestAsync(input, expected, options: ImplicitTypeButKeepIntrinsics(), fixAllActionEquivalenceKey: fixAllActionId);
+            await TestInRegularAndScriptAsync(input, expected, options: ImplicitTypeButKeepIntrinsics(), fixAllActionEquivalenceKey: fixAllActionId);
         }
 
         #endregion

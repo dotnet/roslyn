@@ -76,18 +76,15 @@ namespace Microsoft.CodeAnalysis.SemanticModelWorkspaceService
                 // we have compilation set check whether it is something we can use
                 if (version.Equals(compilationSet.Version))
                 {
-                    Compilation oldCompilation;
-                    if (!compilationSet.Compilation.TryGetValue(out oldCompilation))
+                    if (!compilationSet.Compilation.TryGetValue(out var oldCompilation))
                     {
                         await AddVersionCacheAsync(document.Project, version, cancellationToken).ConfigureAwait(false);
 
                         // get the base one
                         return await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                     }
-
                     // first check whether the set has this document
-                    SyntaxTree oldTree;
-                    if (!compilationSet.Trees.TryGetValue(document.Id, out oldTree))
+                    if (!compilationSet.Trees.TryGetValue(document.Id, out var oldTree))
                     {
                         // noop.
                         return await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
@@ -135,9 +132,7 @@ namespace Microsoft.CodeAnalysis.SemanticModelWorkspaceService
                     }
 
                     var oldModel = oldCompilation.GetSemanticModel(oldTree);
-
-                    SemanticModel model;
-                    if (!semanticFactsService.TryGetSpeculativeSemanticModel(oldModel, oldMember, member, out model))
+                    if (!semanticFactsService.TryGetSpeculativeSemanticModel(oldModel, oldMember, member, out var model))
                     {
                         return await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                     }
@@ -168,11 +163,8 @@ namespace Microsoft.CodeAnalysis.SemanticModelWorkspaceService
             private async Task UpdateVersionCacheAsync(Project project, VersionStamp version, CompilationSet primarySet, CancellationToken cancellationToken)
             {
                 var versionMap = GetVersionMapFromBranch(project.Solution.Workspace, project.Solution.BranchId);
-
-                CompilationSet compilationSet;
-                Compilation compilation;
-                if (!AlreadyHasLatestCompilationSet(versionMap, project.Id, version, out compilationSet) ||
-                    !compilationSet.Compilation.TryGetValue(out compilation))
+                if (!AlreadyHasLatestCompilationSet(versionMap, project.Id, version, out var compilationSet) ||
+                    !compilationSet.Compilation.TryGetValue(out var compilation))
                 {
                     var newSet = await CompilationSet.CreateAsync(project, compilationSet ?? primarySet, cancellationToken).ConfigureAwait(false);
 
@@ -206,9 +198,7 @@ namespace Microsoft.CodeAnalysis.SemanticModelWorkspaceService
             private static SemanticModel GetCachedSemanticModel(
                 ConditionalWeakTable<SyntaxNode, WeakReference<SemanticModel>> nodeMap, SyntaxNode newMember)
             {
-                SemanticModel model;
-                WeakReference<SemanticModel> cached;
-                if (!nodeMap.TryGetValue(newMember, out cached) || !cached.TryGetTarget(out model))
+                if (!nodeMap.TryGetValue(newMember, out var cached) || !cached.TryGetTarget(out var model))
                 {
                     return null;
                 }
@@ -238,9 +228,7 @@ namespace Microsoft.CodeAnalysis.SemanticModelWorkspaceService
                 // noop. put one
                 var weakReference = new WeakReference<SemanticModel>(speculativeSemanticModel);
                 var cached = nodeMap.GetValue(newMember, _ => weakReference);
-
-                SemanticModel cachedModel;
-                if (cached.TryGetTarget(out cachedModel))
+                if (cached.TryGetTarget(out var cachedModel))
                 {
                     return cachedModel;
                 }
@@ -254,10 +242,8 @@ namespace Microsoft.CodeAnalysis.SemanticModelWorkspaceService
             private Dictionary<ProjectId, CompilationSet> GetVersionMapFromBranchOrPrimary(Workspace workspace, BranchId branchId)
             {
                 var branchMap = GetBranchMap(workspace);
-
                 // check whether we already have one
-                Dictionary<ProjectId, CompilationSet> versionMap;
-                if (branchMap.TryGetValue(branchId, out versionMap))
+                if (branchMap.TryGetValue(branchId, out var versionMap))
                 {
                     return versionMap;
                 }
@@ -281,8 +267,7 @@ namespace Microsoft.CodeAnalysis.SemanticModelWorkspaceService
 
             private ConditionalWeakTable<BranchId, Dictionary<ProjectId, CompilationSet>> GetBranchMap(Workspace workspace)
             {
-                ConditionalWeakTable<BranchId, Dictionary<ProjectId, CompilationSet>> branchMap;
-                if (!s_map.TryGetValue(workspace, out branchMap))
+                if (!s_map.TryGetValue(workspace, out var branchMap))
                 {
                     var newBranchMap = new ConditionalWeakTable<BranchId, Dictionary<ProjectId, CompilationSet>>();
 
@@ -449,10 +434,8 @@ namespace Microsoft.CodeAnalysis.SemanticModelWorkspaceService
                         }
 
                         var documentId = oldIdAndTree.Key;
-
                         // check whether the tree has been updated
-                        SyntaxTree currentTree;
-                        if (!map.TryGetValue(documentId, out currentTree) ||
+                        if (!map.TryGetValue(documentId, out var currentTree) ||
                             currentTree != oldIdAndTree.Value)
                         {
                             continue;
@@ -468,8 +451,7 @@ namespace Microsoft.CodeAnalysis.SemanticModelWorkspaceService
                 private static ImmutableDictionary<DocumentId, SyntaxTree> AddOrUpdateNewTreeToOldMap(
                     Project newProject, Compilation newCompilation, CompilationSet oldSet, CancellationToken cancellationToken)
                 {
-                    Compilation oldCompilation;
-                    if (!oldSet.Compilation.TryGetValue(out oldCompilation))
+                    if (!oldSet.Compilation.TryGetValue(out var oldCompilation))
                     {
                         return ImmutableDictionary.CreateRange(GetNewTreeMap(newProject, newCompilation));
                     }
@@ -491,8 +473,8 @@ namespace Microsoft.CodeAnalysis.SemanticModelWorkspaceService
                         // Document once https://github.com/dotnet/roslyn/issues/5260 is fixed.
                         if (documentId == null)
                         {
-                            Debug.Assert(newProject.Solution.Workspace.Kind == "Interactive");
-                            continue;
+                            Debug.Assert(newProject.Solution.Workspace.Kind == WorkspaceKind.Interactive || newProject.Solution.Workspace.Kind == WorkspaceKind.MiscellaneousFiles);
+                            continue;                                
                         }
 
                         map = map.SetItem(documentId, newTree);

@@ -27,10 +27,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             this.FullWidth = this.Text.Length;
         }
 
-        internal override Func<ObjectReader, object> GetReader()
+        static SyntaxTrivia()
         {
-            return r => new SyntaxTrivia(r);
+            ObjectBinder.RegisterTypeReader(typeof(SyntaxTrivia), r => new SyntaxTrivia(r));
         }
+
+        public override bool IsTrivia => true;
 
         internal override void WriteTo(ObjectWriter writer)
         {
@@ -97,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             visitor.VisitTrivia(this);
         }
 
-        protected internal override void WriteTo(System.IO.TextWriter writer, bool leading, bool trailing)
+        protected override void WriteTriviaTo(System.IO.TextWriter writer)
         {
             writer.Write(Text);
         }

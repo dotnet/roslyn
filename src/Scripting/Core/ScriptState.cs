@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Scripting
 
         private ImmutableArray<ScriptVariable> CreateVariables()
         {
-            var result = ImmutableArray.CreateBuilder<ScriptVariable>();
+            var result = ArrayBuilder<ScriptVariable>.GetInstance();
 
             var executionState = ExecutionState;
 
@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Scripting
                 }
             }
 
-            return result.ToImmutable();
+            return result.ToImmutableAndFree();
         }
 
         private IReadOnlyDictionary<string, int> GetVariableMap()

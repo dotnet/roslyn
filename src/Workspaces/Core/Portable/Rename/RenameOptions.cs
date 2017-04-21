@@ -6,11 +6,9 @@ namespace Microsoft.CodeAnalysis.Rename
 {
     public static class RenameOptions
     {
-        internal const string RenameFeatureName = "Rename";
-
-        public static Option<bool> RenameOverloads { get; } = new Option<bool>(RenameFeatureName, "RenameOverloads", defaultValue: false);
-        public static Option<bool> RenameInStrings { get; } = new Option<bool>(RenameFeatureName, "RenameInStrings", defaultValue: false);
-        public static Option<bool> RenameInComments { get; } = new Option<bool>(RenameFeatureName, "RenameInComments", defaultValue: false);
-        public static Option<bool> PreviewChanges { get; } = new Option<bool>(RenameFeatureName, "PreviewChanges", defaultValue: false);
+        public static Option<bool> RenameOverloads { get; } = new Option<bool>(nameof(RenameOptions), nameof(RenameOverloads), defaultValue: false);
+        public static Option<bool> RenameInStrings { get; } = new Option<bool>(nameof(RenameOptions), nameof(RenameInStrings), defaultValue: false);
+        public static Option<bool> RenameInComments { get; } = new Option<bool>(nameof(RenameOptions), nameof(RenameInComments), defaultValue: false);
+        public static Option<bool> PreviewChanges { get; } = new Option<bool>(nameof(RenameOptions), nameof(PreviewChanges), defaultValue: false);
     }
 }

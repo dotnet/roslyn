@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                                     cancellationToken As CancellationToken) As CompilationUnitSyntax
             Dim declaration = GenerateNamespaceDeclaration(service, [namespace], options, cancellationToken)
             If Not TypeOf declaration Is NamespaceBlockSyntax Then
-                Throw New ArgumentException(VBWorkspaceResources.NamespaceCannotBeAdded)
+                Throw New ArgumentException(VBWorkspaceResources.Namespace_can_not_be_added_in_this_destination)
             End If
 
             Dim members = Insert(destination.Members, DirectCast(declaration, StatementSyntax), options, availableIndices)
@@ -33,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                                     cancellationToken As CancellationToken) As NamespaceBlockSyntax
             Dim declaration = GenerateNamespaceDeclaration(service, [namespace], options, cancellationToken)
             If Not TypeOf declaration Is NamespaceBlockSyntax Then
-                Throw New ArgumentException(VBWorkspaceResources.NamespaceCannotBeAdded)
+                Throw New ArgumentException(VBWorkspaceResources.Namespace_can_not_be_added_in_this_destination)
             End If
 
             Dim members = Insert(destination.Members, DirectCast(declaration, StatementSyntax), options, availableIndices)

@@ -15,26 +15,19 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
 
             public InterpolatedStringSplitter(
                 Document document, int position,
-                SyntaxTree syntaxTree, SyntaxNode root, SourceText sourceText,
+                SyntaxNode root, SourceText sourceText,
                 InterpolatedStringExpressionSyntax interpolatedStringExpression,
                 bool useTabs, int tabSize, CancellationToken cancellationToken)
-                : base(document, position, syntaxTree, root, sourceText, useTabs, tabSize, cancellationToken)
+                : base(document, position, root, sourceText, useTabs, tabSize, cancellationToken)
             {
                 _interpolatedStringExpression = interpolatedStringExpression;
             }
 
             protected override SyntaxNode GetNodeToReplace() => _interpolatedStringExpression;
 
+            // Don't offer on $@"" strings.  They support newlines directly in their content.
             protected override bool CheckToken()
-            {
-                if (_interpolatedStringExpression.StringStartToken.Kind() == SyntaxKind.InterpolatedVerbatimStringStartToken)
-                {
-                    // Don't offer on $@"" strings.  They support newlines directly in their content.
-                    return false;
-                }
-
-                return true;
-            }
+                => _interpolatedStringExpression.StringStartToken.Kind() != SyntaxKind.InterpolatedVerbatimStringStartToken;
 
             protected override BinaryExpressionSyntax CreateSplitString()
             {

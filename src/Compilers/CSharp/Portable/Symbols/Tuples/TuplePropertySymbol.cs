@@ -52,6 +52,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public override ImmutableArray<CustomModifier> RefCustomModifiers
+        {
+            get
+            {
+                return _underlyingProperty.RefCustomModifiers;
+            }
+        }
+
         public override ImmutableArray<ParameterSymbol> Parameters
         {
             get

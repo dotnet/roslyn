@@ -1,24 +1,23 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
     internal static partial class ISymbolExtensions
     {
-        public static bool IsValueParameter(this ISymbol symbol)
+        public static bool IsImplicitValueParameter(this ISymbol symbolOpt)
         {
-            if (symbol is IParameterSymbol)
+            if (symbolOpt is IParameterSymbol && symbolOpt.IsImplicitlyDeclared)
             {
-                var method = symbol.ContainingSymbol as IMethodSymbol;
+                var method = symbolOpt.ContainingSymbol as IMethodSymbol;
                 if (method != null)
                 {
                     if (method.MethodKind == MethodKind.EventAdd ||
                         method.MethodKind == MethodKind.EventRemove ||
                         method.MethodKind == MethodKind.PropertySet)
                     {
-                        return symbol.Name == "value";
+                        // the name is value in C#, and Value in VB
+                        return symbolOpt.Name == "value" || symbolOpt.Name == "Value";
                     }
                 }
             }

@@ -282,7 +282,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                                             null,
                                                                             id: i,
                                                                             type: manager.System_String),
-                                                 ConversionKind.ImplicitReference);
+                                                 Conversion.ImplicitReference);
                     }
                     formatString.Builder.Append(" }}");
 

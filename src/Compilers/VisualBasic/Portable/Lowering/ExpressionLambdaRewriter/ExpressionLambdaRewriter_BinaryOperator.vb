@@ -102,8 +102,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim opKind As BinaryOperatorKind = operand.OperatorKind And BinaryOperatorKind.OpMask
 
             ' See comment in DiagnosticsPass.VisitUserDefinedShortCircuitingOperator
-            Debug.Assert(operand.Call.Method.ReturnType.IsSameTypeIgnoringCustomModifiers(operand.Call.Method.Parameters(0).Type) AndAlso
-                         operand.Call.Method.ReturnType.IsSameTypeIgnoringCustomModifiers(operand.Call.Method.Parameters(1).Type))
+            Debug.Assert(operand.Call.Method.ReturnType.IsSameTypeIgnoringAll(operand.Call.Method.Parameters(0).Type) AndAlso
+                         operand.Call.Method.ReturnType.IsSameTypeIgnoringAll(operand.Call.Method.Parameters(1).Type))
 
             opKind = If(opKind = BinaryOperatorKind.And, BinaryOperatorKind.AndAlso, BinaryOperatorKind.OrElse)
 
@@ -590,7 +590,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Me._factory.WellKnownMember(Of MethodSymbol)(wellKnownHelper)
         End Function
 
-        Private Function GetBinaryOperatorMethodName(opKind As BinaryOperatorKind, isChecked As Boolean) As String
+        Private Shared Function GetBinaryOperatorMethodName(opKind As BinaryOperatorKind, isChecked As Boolean) As String
             Select Case (opKind And BinaryOperatorKind.OpMask)
                 Case BinaryOperatorKind.Add
                     Return If(isChecked, "AddChecked", "Add")
@@ -638,7 +638,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Select
         End Function
 
-        Private Function AdjustCallArgumentForLiftedOperator(oldArg As BoundExpression, parameterType As TypeSymbol) As BoundExpression
+        Private Shared Function AdjustCallArgumentForLiftedOperator(oldArg As BoundExpression, parameterType As TypeSymbol) As BoundExpression
             Debug.Assert(oldArg.Type.IsNullableType)
             Debug.Assert(Not parameterType.IsNullableType)
             Debug.Assert(oldArg.Type.GetNullableUnderlyingTypeOrSelf() = parameterType)
@@ -687,15 +687,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim methodReturnType As TypeSymbol = [call].Method.ReturnType
             Debug.Assert(resultType.GetNullableUnderlyingTypeOrSelf().
-                         IsSameTypeIgnoringCustomModifiers(methodReturnType.GetNullableUnderlyingTypeOrSelf))
+                         IsSameTypeIgnoringAll(methodReturnType.GetNullableUnderlyingTypeOrSelf))
 
             [call] = [call].Update([call].Method,
                                    [call].MethodGroupOpt,
                                    [call].ReceiverOpt,
                                    newArgs.AsImmutableOrNull,
                                    [call].ConstantValueOpt,
-                                   [call].SuppressObjectClone,
-                                   methodReturnType)
+                                   isLValue:=[call].IsLValue,
+                                   suppressObjectClone:=[call].SuppressObjectClone,
+                                   type:=methodReturnType)
 
             If resultType.IsNullableType <> methodReturnType.IsNullableType Then
                 Return Me._factory.Convert(resultType, [call])

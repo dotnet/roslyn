@@ -65,6 +65,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     return GeneratedNames.MakeHoistedLocalFieldName(local.SynthesizedKind, uniqueId++);
                 }
+
+                if (local.SynthesizedKind == SynthesizedLocalKind.InstrumentationPayload)
+                {
+                    return GeneratedNames.MakeSynthesizedInstrumentationPayloadLocalFieldName(uniqueId++);
+                }
+
+                if (local.SynthesizedKind == SynthesizedLocalKind.UserDefined && local.ScopeDesignatorOpt?.Kind() == SyntaxKind.SwitchSection)
+                {
+                    return GeneratedNames.MakeHoistedLocalFieldName(local.SynthesizedKind, uniqueId++, local.Name);
+                }
             }
 
             Debug.Assert(variable.Name != null);

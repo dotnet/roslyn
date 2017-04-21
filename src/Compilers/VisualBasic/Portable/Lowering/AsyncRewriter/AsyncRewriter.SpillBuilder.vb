@@ -97,18 +97,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
             End Sub
 
-            Private Sub EnsureArrayBuilder(Of T)(<[In], Out> ByRef array As ArrayBuilder(Of T))
+            Private Shared Sub EnsureArrayBuilder(Of T)(<[In], Out> ByRef array As ArrayBuilder(Of T))
                 If array Is Nothing Then
                     array = ArrayBuilder(Of T).GetInstance()
                 End If
             End Sub
 
-            Private Sub Add(Of T)(<[In], Out> ByRef array As ArrayBuilder(Of T), element As T)
+            Private Shared Sub Add(Of T)(<[In], Out> ByRef array As ArrayBuilder(Of T), element As T)
                 EnsureArrayBuilder(array)
                 array.Add(element)
             End Sub
 
-            Private Sub AddRange(Of T)(<[In], Out> ByRef array As ArrayBuilder(Of T), other As ArrayBuilder(Of T))
+            Private Shared Sub AddRange(Of T)(<[In], Out> ByRef array As ArrayBuilder(Of T), other As ArrayBuilder(Of T))
                 If other Is Nothing OrElse other.Count = 0 Then
                     Return
                 End If
@@ -117,7 +117,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 array.AddRange(other)
             End Sub
 
-            Private Sub AddRange(Of T)(<[In], Out> ByRef array As ArrayBuilder(Of T), other As ImmutableArray(Of T))
+            Private Shared Sub AddRange(Of T)(<[In], Out> ByRef array As ArrayBuilder(Of T), other As ImmutableArray(Of T))
                 If other.IsEmpty Then
                     Return
                 End If

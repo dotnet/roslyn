@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
         internal CoreAssemblyLoaderImpl(InteractiveAssemblyLoader loader)
             : base(loader)
         {
-            _inMemoryAssemblyContext = new LoadContext(this, null);
+            _inMemoryAssemblyContext = new LoadContext(Loader, null);
         }
 
         public override Assembly LoadFromStream(Stream peStream, Stream pdbStream)
@@ -25,7 +25,11 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
 
         public override AssemblyAndLocation LoadFromPath(string path)
         {
-            var assembly = new LoadContext(this, Path.GetDirectoryName(path)).LoadFromAssemblyPath(path);
+            // Create a new context that knows the directory where the assembly was loaded from
+            // and uses it to resolve dependencies of the assembly. We could create one context per directory,
+            // but there is no need to reuse contexts.
+            var assembly = new LoadContext(Loader, Path.GetDirectoryName(path)).LoadFromAssemblyPath(path);
+
             return new AssemblyAndLocation(assembly, path, fromGac: false);
         }
 
@@ -37,30 +41,33 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
         private sealed class LoadContext : AssemblyLoadContext
         {
             private readonly string _loadDirectoryOpt;
-            private readonly CoreAssemblyLoaderImpl _loader;
+            private readonly InteractiveAssemblyLoader _loader;
 
-            internal LoadContext(CoreAssemblyLoaderImpl loader, string loadDirectoryOpt)
+            internal LoadContext(InteractiveAssemblyLoader loader, string loadDirectoryOpt)
             {
                 Debug.Assert(loader != null);
+
                 _loader = loader;
                 _loadDirectoryOpt = loadDirectoryOpt;
+
+                // CoreCLR resolves assemblies in steps:
+                //
+                //   1) Call AssemblyLoadContext.Load -- our context returns null
+                //   2) TPA list
+                //   3) Default.Resolving event
+                //   4) AssemblyLoadContext.Resolving event -- hooked below
+                // 
+                // What we want is to let the default context load assemblies it knows about (this includes already loaded assemblies,
+                // assemblies in AppPath, platform assemblies, assemblies explciitly resolved by the App by hooking Default.Resolving, etc.).
+                // Only if the assembly can't be resolved that way, the interactive resolver steps in.
+                //
+                // This order is necessary to avoid loading assemblies twice (by the host App and by interactive loader).
+
+                Resolving += (_, assemblyName) => 
+                    _loader.ResolveAssembly(AssemblyIdentity.FromAssemblyReference(assemblyName), _loadDirectoryOpt); 
             }
 
-            protected override Assembly Load(AssemblyName assemblyName)
-            {
-                return _loader.Loader.ResolveAssembly(AssemblyIdentity.FromAssemblyReference(assemblyName), _loadDirectoryOpt) ??
-                       Default.LoadFromAssemblyName(assemblyName);
-            }
-
-            public new Assembly LoadFromStream(Stream assembly, Stream assemblySymbols)
-            {
-                return base.LoadFromStream(assembly, assemblySymbols);
-            }
-
-            public new Assembly LoadFromAssemblyPath(string assemblyPath)
-            {
-                return base.LoadFromAssemblyPath(assemblyPath);
-            }
+            protected override Assembly Load(AssemblyName assemblyName) => null;
         }
     }
 }

@@ -1,11 +1,8 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -17,13 +14,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Invert
             string initial,
             string expected)
         {
-            await TestAsync(CreateTreeText(initial), CreateTreeText(expected), index: 0);
+            await TestInRegularAndScriptAsync(CreateTreeText(initial), CreateTreeText(expected));
         }
 
-        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace)
-        {
-            return new InvertIfCodeRefactoringProvider();
-        }
+        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
+            => new InvertIfCodeRefactoringProvider();
 
         private string CreateTreeText(string initial)
         {
@@ -276,21 +271,40 @@ else
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
         public async Task TestMissingOnNonEmptySpan()
         {
-            await TestMissingAsync(
-@"class C { void F() { [|if (a) { a(); } else { b(); }|] } }");
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void F()
+    {
+        [|if (a)
+        {
+            a();
+        }
+        else
+        {
+            b();
+        }|]
+    }
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
         public async Task TestOverlapsHiddenPosition1()
         {
-            await TestMissingAsync(
-@"
-class C 
+            await TestMissingInRegularAndScriptAsync(
+@"class C
 {
     void F()
     {
 #line hidden
-        [||]if (a) { a(); } else { b(); }
+        [||]if (a)
+        {
+            a();
+        }
+        else
+        {
+            b();
+        }
 #line default
     }
 }");
@@ -299,9 +313,8 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
         public async Task TestOverlapsHiddenPosition2()
         {
-            await TestMissingAsync(
-@"
-class C 
+            await TestMissingInRegularAndScriptAsync(
+@"class C
 {
     void F()
     {
@@ -312,7 +325,7 @@ class C
 #line default
         }
         else
-        { 
+        {
             b();
         }
     }
@@ -322,9 +335,8 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
         public async Task TestOverlapsHiddenPosition3()
         {
-            await TestMissingAsync(
-@"
-class C 
+            await TestMissingInRegularAndScriptAsync(
+@"class C
 {
     void F()
     {
@@ -333,7 +345,7 @@ class C
             a();
         }
         else
-        { 
+        {
 #line hidden
             b();
 #line default
@@ -345,9 +357,8 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
         public async Task TestOverlapsHiddenPosition4()
         {
-            await TestMissingAsync(
-@"
-class C 
+            await TestMissingInRegularAndScriptAsync(
+@"class C
 {
     void F()
     {
@@ -357,7 +368,7 @@ class C
             a();
         }
         else
-        { 
+        {
             b();
 #line default
         }
@@ -368,9 +379,8 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
         public async Task TestOverlapsHiddenPosition5()
         {
-            await TestMissingAsync(
-@"
-class C 
+            await TestMissingInRegularAndScriptAsync(
+@"class C
 {
     void F()
     {
@@ -380,7 +390,7 @@ class C
 #line hidden
         }
         else
-        { 
+        {
 #line default
             b();
         }
@@ -391,7 +401,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
         public async Task TestOverlapsHiddenPosition6()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"
 #line hidden
 class C 
@@ -426,13 +436,13 @@ class C
             a();
         }
     }
-}", compareTokens: false);
+}", ignoreTrivia: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
         public async Task TestOverlapsHiddenPosition7()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"
 #line hidden
 class C 
@@ -471,7 +481,7 @@ class C
 #line hidden
     }
 }
-#line default", compareTokens: false);
+#line default", ignoreTrivia: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]

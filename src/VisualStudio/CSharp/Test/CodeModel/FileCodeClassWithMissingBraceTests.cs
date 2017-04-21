@@ -44,16 +44,16 @@ class Baz
         {
         }
 
-        private async Task<CodeClass> GetCodeClassAsync(params object[] path)
+        private CodeClass GetCodeClass(params object[] path)
         {
-            return (CodeClass)await GetCodeElementAsync(path);
+            return (CodeClass)GetCodeElement(path);
         }
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public async Task GetEndPoint_Body_BeforeNamespace()
+        public void GetEndPoint_Body_BeforeNamespace()
         {
-            CodeClass testObject = await GetCodeClassAsync("Foo");
+            CodeClass testObject = GetCodeClass("Foo");
 
             TextPoint endPoint = testObject.GetEndPoint(vsCMPart.vsCMPartBody);
 
@@ -63,9 +63,9 @@ class Baz
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public async Task GetEndPoint_Body_BeforeOtherClass()
+        public void GetEndPoint_Body_BeforeOtherClass()
         {
-            CodeClass testObject = await GetCodeClassAsync("Foo", "Bar");
+            CodeClass testObject = GetCodeClass("Foo", "Bar");
 
             TextPoint endPoint = testObject.GetEndPoint(vsCMPart.vsCMPartBody);
 
@@ -75,9 +75,9 @@ class Baz
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public async Task GetEndPoint_Body_Eof()
+        public void GetEndPoint_Body_Eof()
         {
-            CodeClass testObject = await GetCodeClassAsync("Baz");
+            CodeClass testObject = GetCodeClass("Baz");
 
             TextPoint endPoint = testObject.GetEndPoint(vsCMPart.vsCMPartBody);
 

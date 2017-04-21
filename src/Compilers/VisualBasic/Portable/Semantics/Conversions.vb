@@ -301,6 +301,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         WideningNumeric = [Widening] Or Numeric
         NarrowingNumeric = [Narrowing] Or Numeric
 
+        ''' <summary>
+        ''' Can be combined with <see cref="ConversionKind.Tuple"/> to indicate that the underlying value conversion is a predefined tuple conversion
+        ''' </summary>
         Nullable = 1 << 4
         WideningNullable = [Widening] Or Nullable
         NarrowingNullable = [Narrowing] Or Nullable
@@ -383,6 +386,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ' Interpolated string conversions
         InterpolatedString = [Widening] Or (1 << 25)
 
+        ' Tuple conversions
+        ''' <summary>
+        ''' Can be combined with <see cref="ConversionKind.Nullable"/> to indicate that the underlying value conversion is a predefined tuple conversion
+        ''' </summary>
+        Tuple = (1 << 26)
+        WideningTuple = [Widening] Or Tuple
+        NarrowingTuple = [Narrowing] Or Tuple
+        WideningNullableTuple = WideningNullable Or Tuple
+        NarrowingNullableTuple = NarrowingNullable Or Tuple
+
         ' Bits 28 - 31 are reserved for failure flags.
     End Enum
 
@@ -413,6 +426,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Error_SubToFunction = &H2000
         Error_ReturnTypeMismatch = &H4000
         Error_OverloadResolution = &H8000
+        Error_StubNotSupported = &H10000
 
         AllErrorReasons = Error_ByRefByValMismatch Or
                           Error_Unspecified Or
@@ -420,7 +434,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                           Error_RestrictedType Or
                           Error_SubToFunction Or
                           Error_ReturnTypeMismatch Or
-                          Error_OverloadResolution
+                          Error_OverloadResolution Or
+                          Error_StubNotSupported
     End Enum
 
     ''' <summary>
@@ -564,7 +579,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     If sourceIsEnum Then
                         If targetIsEnum Then
-                            If Not (Conversions.IsIdentityConversion(conv) AndAlso sourceEnum.IsSameTypeIgnoringCustomModifiers(targetEnum)) Then
+                            If Not (Conversions.IsIdentityConversion(conv) AndAlso sourceEnum.IsSameTypeIgnoringAll(targetEnum)) Then
                                 '•	From an enumerated type to another enumerated type. 
                                 conv = ConversionKind.NarrowingNumeric Or ConversionKind.InvolvesEnumTypeConversions
                             End If
@@ -625,7 +640,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 '•	From a type T? to a type S?, where there is a widening conversion from the type T to the type S.
                                 conv = ConversionKind.WideningNullable
                             Else
-                                Debug.Assert(Conversions.IsIdentityConversion(conv) AndAlso sourceNullable.IsSameTypeIgnoringCustomModifiers(targetNullable))
+                                Debug.Assert(Conversions.IsIdentityConversion(conv) AndAlso sourceNullable.IsSameTypeIgnoringAll(targetNullable))
                             End If
 
                         Else
@@ -955,11 +970,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return Nothing 'ConversionKind.NoConversion
             End If
 
-            Dim sourceType As TypeSymbol = source.Type
+            Dim sourceType As TypeSymbol = If(source.Kind = BoundKind.TupleLiteral,
+                                                DirectCast(source, BoundTupleLiteral).InferredType,
+                                                source.Type)
 
             If sourceType Is Nothing Then
-
-                userDefinedConversionsMightStillBeApplicable = source.GetMostEnclosedParenthesizedExpression().Kind = BoundKind.ArrayLiteral
+                Dim mostEnclosing = source.GetMostEnclosedParenthesizedExpression().Kind
+                userDefinedConversionsMightStillBeApplicable = mostEnclosing = BoundKind.ArrayLiteral OrElse
+                                                               mostEnclosing = BoundKind.TupleLiteral
 
                 ' The node doesn't have a type yet and reclassification failed.
                 Return Nothing ' No conversion
@@ -1038,6 +1056,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case BoundKind.InterpolatedStringExpression
                     Return ClassifyInterpolatedStringConversion(DirectCast(source, BoundInterpolatedStringExpression), destination, binder)
 
+                Case BoundKind.TupleLiteral
+                    Return ClassifyTupleConversion(DirectCast(source, BoundTupleLiteral), destination, binder, useSiteDiagnostics)
             End Select
 
             Return Nothing 'ConversionKind.NoConversion
@@ -1202,6 +1222,79 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         End Function
 
+        Public Shared Function ClassifyTupleConversion(source As BoundTupleLiteral, destination As TypeSymbol, binder As Binder, <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As ConversionKind
+            If source.Type = destination Then
+                Return ConversionKind.Identity
+            End If
+
+            Dim arguments = source.Arguments
+
+            Dim wideningConversion = ConversionKind.WideningTuple
+            Dim narrowingConversion = ConversionKind.NarrowingTuple
+
+            If destination.IsNullableType Then
+                destination = destination.GetNullableUnderlyingType()
+
+                wideningConversion = ConversionKind.WideningNullableTuple
+                narrowingConversion = ConversionKind.NarrowingNullableTuple
+            End If
+
+            ' tuple literal converts to its inferred type 
+            If source.InferredType?.IsSameTypeIgnoringAll(destination) Then
+                Return wideningConversion
+            End If
+
+            ' Now we can try element-wise conversion
+
+            ' check if the type is actually compatible type for a tuple of given cardinality
+            If Not destination.IsTupleOrCompatibleWithTupleOfCardinality(arguments.Length) Then
+                Return Nothing 'ConversionKind.NoConversion
+            End If
+
+            Dim targetElementTypes As ImmutableArray(Of TypeSymbol) = destination.GetElementTypesOfTupleOrCompatible()
+            Debug.Assert(arguments.Count = targetElementTypes.Length)
+
+            ' check arguments against flattened list of target element types 
+            Dim result As ConversionKind = wideningConversion
+
+            ' Note, as an optimization this local may accumulate flags other than ConversionKind.InvolvesNarrowingFromNumericConstant,
+            ' but we are going to pay attention only to that bit at the end.
+            Dim involvesNarrowingFromNumericConstant As ConversionKind = Nothing
+            Dim allNarrowingIsFromNumericConstant = ConversionKind.InvolvesNarrowingFromNumericConstant
+
+            Dim maxDelegateRelaxationLevel = ConversionKind.DelegateRelaxationLevelNone
+
+            For i As Integer = 0 To arguments.Length - 1
+                Dim argument = arguments(i)
+                Dim targetElementType = targetElementTypes(i)
+
+                If argument.HasErrors OrElse targetElementType.IsErrorType Then
+                    Return Nothing 'ConversionKind.NoConversion
+                End If
+
+                Dim elementConversion = ClassifyConversion(argument, targetElementType, binder, useSiteDiagnostics).Key
+
+                If NoConversion(elementConversion) Then
+                    Return Nothing 'ConversionKind.NoConversion
+                End If
+
+                Dim elementDelegateRelaxationLevel = elementConversion And ConversionKind.DelegateRelaxationLevelMask
+                If elementDelegateRelaxationLevel > maxDelegateRelaxationLevel Then
+                    maxDelegateRelaxationLevel = elementDelegateRelaxationLevel
+                End If
+
+                involvesNarrowingFromNumericConstant = involvesNarrowingFromNumericConstant Or elementConversion
+
+                If IsNarrowingConversion(elementConversion) Then
+                    allNarrowingIsFromNumericConstant = allNarrowingIsFromNumericConstant And elementConversion
+                    result = narrowingConversion
+                End If
+            Next
+
+            Debug.Assert((allNarrowingIsFromNumericConstant And Not ConversionKind.InvolvesNarrowingFromNumericConstant) = 0)
+            Return result Or (involvesNarrowingFromNumericConstant And allNarrowingIsFromNumericConstant) Or maxDelegateRelaxationLevel
+        End Function
+
         Private Shared Function ClassifyArrayInitialization(source As BoundArrayInitialization, targetElementType As TypeSymbol, binder As Binder, <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As ConversionKind
             ' Now we have to check that every element converts to TargetElementType.
             ' It's tempting to say "if the dominant type converts to TargetElementType, then it must be true that
@@ -1288,7 +1381,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim invokeParam = invokeParams(i)
 
                 If lambdaParam.IsByRef <> invokeParam.IsByRef OrElse
-                   Not lambdaParam.Type.IsSameTypeIgnoringCustomModifiers(invokeParam.Type) Then
+                   Not lambdaParam.Type.IsSameTypeIgnoringAll(invokeParam.Type) Then
                     Return Nothing ' No conversion
                 End If
             Next
@@ -1309,15 +1402,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Return conv.Key And (Not ConversionKind.Identity) Or (ConversionKind.Widening Or ConversionKind.Lambda) Or conversionKindExpressionTree
                     ElseIf NoConversion(conv.Key) Then
                         Return conv.Key Or (ConversionKind.Lambda Or ConversionKind.FailedDueToQueryLambdaBodyMismatch) Or conversionKindExpressionTree
-                    ElseIf conv.Value IsNot Nothing Then
-                        Debug.Assert((conv.Key And ConversionKind.UserDefined) <> 0)
-                        Return (conv.Key And (Not (ConversionKind.UserDefined Or ConversionKind.Nullable))) Or ConversionKind.Lambda Or conversionKindExpressionTree
                     Else
-                        Debug.Assert((conv.Key And ConversionKind.UserDefined) = 0)
-                        Return conv.Key Or ConversionKind.Lambda Or conversionKindExpressionTree
+                        Debug.Assert(((conv.Key And ConversionKind.UserDefined) <> 0) = (conv.Value IsNot Nothing))
+                        Return (conv.Key And (Not (ConversionKind.UserDefined Or ConversionKind.Nullable Or ConversionKind.Tuple))) Or ConversionKind.Lambda Or conversionKindExpressionTree
                     End If
                 End If
-            ElseIf invoke.ReturnType.IsSameTypeIgnoringCustomModifiers(source.LambdaSymbol.ReturnType) Then
+            ElseIf invoke.ReturnType.IsSameTypeIgnoringAll(source.LambdaSymbol.ReturnType) Then
                 Return ConversionKind.Widening Or ConversionKind.Lambda Or conversionKindExpressionTree
             End If
 
@@ -1457,7 +1547,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim invokeParam = invokeParams(i)
 
                 If lambdaParam.IsByRef <> invokeParam.IsByRef OrElse
-                   (lambdaParam.Type IsNot Nothing AndAlso Not lambdaParam.Type.IsSameTypeIgnoringCustomModifiers(invokeParam.Type)) Then
+                   (lambdaParam.Type IsNot Nothing AndAlso Not lambdaParam.Type.IsSameTypeIgnoringAll(invokeParam.Type)) Then
                     Return Nothing ' No conversion
                 End If
             Next
@@ -1472,7 +1562,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If anonymousType.Properties.Length <> 1 OrElse
                anonymousType.Properties(0).SetMethod IsNot Nothing OrElse
                Not anonymousType.Properties(0).Name.Equals(StringConstants.ItAnonymous) OrElse
-               Not invokeParams(1).Type.IsSameTypeIgnoringCustomModifiers(anonymousType.Properties(0).Type) Then
+               Not invokeParams(1).Type.IsSameTypeIgnoringAll(anonymousType.Properties(0).Type) Then
                 Return Nothing ' No conversion
             End If
 
@@ -2010,7 +2100,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If sourceType Is Nothing Then
                 source = source.GetMostEnclosedParenthesizedExpression()
-                sourceType = If(source.Kind <> BoundKind.ArrayLiteral, source.Type, New ArrayLiteralTypeSymbol(DirectCast(source, BoundArrayLiteral)))
+                If source.Kind = BoundKind.ArrayLiteral Then
+                    sourceType = New ArrayLiteralTypeSymbol(DirectCast(source, BoundArrayLiteral))
+                ElseIf source.Kind = BoundKind.TupleLiteral Then
+                    sourceType = DirectCast(source, BoundTupleLiteral).InferredType
+                    If sourceType Is Nothing Then
+                        Return Nothing
+                    End If
+                Else
+                    sourceType = source.Type
+                End If
             End If
 
             Debug.Assert(sourceType IsNot Nothing)
@@ -2121,6 +2220,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return result
             End If
 
+            'Tuple conversions
+            result = ClassifyTupleConversion(source, destination, useSiteDiagnostics)
+            If ConversionExists(result) Then
+                Return result
+            End If
+
             'Value Type conversions
             result = ClassifyValueTypeConversion(source, destination, useSiteDiagnostics)
             If ConversionExists(result) Then
@@ -2179,7 +2284,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             '•	From an anonymous delegate type generated for a lambda method reclassification to any delegate type with an identical signature.
 
             'From a type to itself
-            If source.IsSameTypeIgnoringCustomModifiers(destination) Then
+            If source.IsSameTypeIgnoringAll(destination) Then
                 Return ConversionKind.Identity
             End If
 
@@ -2374,7 +2479,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return Nothing 'ConversionKind.NoConversion
             End If
 
-            If arrayElement.IsSameTypeIgnoringCustomModifiers(dstUnderlyingElement) Then
+            If arrayElement.IsSameTypeIgnoringAll(dstUnderlyingElement) Then
                 Return ConversionKind.WideningReference
             End If
 
@@ -2395,7 +2500,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Shared Function HasWideningDirectCastConversionButNotEnumTypeConversion(source As TypeSymbol, destination As TypeSymbol, <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As Boolean
             If source.IsErrorType() OrElse destination.IsErrorType Then
-                Return source.IsSameTypeIgnoringCustomModifiers(destination)
+                Return source.IsSameTypeIgnoringAll(destination)
             End If
 
             Dim conv As ConversionKind = ClassifyDirectCastConversion(source, destination, useSiteDiagnostics)
@@ -2560,7 +2665,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         If (_conv And ConversionKind.VarianceConversionAmbiguity) <> 0 Then
                             Debug.Assert(IsNarrowingConversion(_conv))
 
-                        ElseIf Not _match.IsSameTypeIgnoringCustomModifiers(source) Then
+                        ElseIf Not _match.IsSameTypeIgnoringAll(source) Then
                             ' ambiguity
                             _conv = ConversionKind.Narrowing Or ConversionKind.VarianceConversionAmbiguity
                         Else
@@ -2588,7 +2693,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Debug.Assert(Conversions.IsInterfaceType(destination) OrElse Conversions.IsDelegateType(destination))
             Debug.Assert(Conversions.IsInterfaceType(source) = Conversions.IsInterfaceType(destination))
 
-            If Not source.OriginalDefinition.IsSameTypeIgnoringCustomModifiers(destination.OriginalDefinition) Then
+            If Not source.OriginalDefinition.IsSameTypeIgnoringAll(destination.OriginalDefinition) Then
                 Return Nothing ' Incompatible.
             End If
 
@@ -2653,7 +2758,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim sourceArg As TypeSymbol = sourceArguments(i)
                     Dim destinationArg As TypeSymbol = destinationArguments(i)
 
-                    If sourceArg.IsSameTypeIgnoringCustomModifiers(destinationArg) Then
+                    If sourceArg.IsSameTypeIgnoringAll(destinationArg) Then
                         Continue For
                     End If
 
@@ -2829,7 +2934,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             '§8.9 Narrowing Conversions
             '•	From an anonymous delegate type generated for a lambda method reclassification to any narrower delegate type.
 
-            Debug.Assert(Not source.IsSameTypeIgnoringCustomModifiers(destination))
+            Debug.Assert(Not source.IsSameTypeIgnoringAll(destination))
 
             If source.IsAnonymousType AndAlso source.IsDelegateType() AndAlso destination.IsDelegateType() Then
                 Dim delegateInvoke As MethodSymbol = DirectCast(destination, NamedTypeSymbol).DelegateInvokeMethod
@@ -2982,7 +3087,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             '   •	SE is the underlying type of TE.
 
             'Shouldn't get here for identity conversion
-            Debug.Assert(Not srcElem.IsSameTypeIgnoringCustomModifiers(dstElem))
+            Debug.Assert(Not srcElem.IsSameTypeIgnoringAll(dstElem))
 
             Dim srcElemIsValueType As Boolean = srcElem.IsValueType
             Dim dstElemIsValueType As Boolean = dstElem.IsValueType
@@ -3325,7 +3430,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     For Each [interface] In destination.AllInterfacesWithDefinitionUseSiteDiagnostics(useSiteDiagnostics)
                         If [interface].IsErrorType() Then
                             Continue For
-                        ElseIf [interface].IsSameTypeIgnoringCustomModifiers(source) Then
+                        ElseIf [interface].IsSameTypeIgnoringAll(source) Then
                             ' From an interface type to a value type, provided the value type implements the interface type.
                             ' Note, variance is not taken into consideration here.
                             Return ConversionKind.NarrowingValue
@@ -3376,6 +3481,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
             End If
 
+            Const preserveConversionKindFromUnderlyingPredefinedConversion As ConversionKind = ConversionKind.Tuple Or ConversionKind.DelegateRelaxationLevelMask
+
             If srcIsNullable Then
 
                 Dim conv As ConversionKind
@@ -3384,19 +3491,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     'From a type T? to a type S?
                     conv = ClassifyPredefinedConversion(srcUnderlying, dstUnderlying, useSiteDiagnostics)
                     Debug.Assert((conv And ConversionKind.VarianceConversionAmbiguity) = 0)
+                    Debug.Assert((conv And ConversionKind.DelegateRelaxationLevelMask) = 0 OrElse (conv And ConversionKind.Tuple) <> 0)
 
                     If IsWideningConversion(conv) Then
                         'From a type T? to a type S?, where there is a widening conversion from the type T to the type S.
-                        Return ConversionKind.WideningNullable
+                        Return ConversionKind.WideningNullable Or (conv And preserveConversionKindFromUnderlyingPredefinedConversion)
                     ElseIf IsNarrowingConversion(conv) Then
                         'From a type T? to a type S?, where there is a narrowing conversion from the type T to the type S.
-                        Return ConversionKind.NarrowingNullable
+                        Return ConversionKind.NarrowingNullable Or (conv And preserveConversionKindFromUnderlyingPredefinedConversion)
                     End If
 
                 ElseIf IsInterfaceType(destination) Then
                     ' !!! Note that the spec doesn't mention anything about variance, but 
                     ' !!! it appears to be taken into account by Dev10 compiler.
                     conv = ClassifyDirectCastConversion(srcUnderlying, destination, useSiteDiagnostics)
+                    Debug.Assert((conv And ConversionKind.Tuple) = 0)
 
                     If IsWideningConversion(conv) Then
                         'From a type T? to an interface type that the type T implements.
@@ -3406,37 +3515,91 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Return ConversionKind.NarrowingNullable
                     End If
 
-                ElseIf srcUnderlying.IsSameTypeIgnoringCustomModifiers(destination) Then
+                ElseIf srcUnderlying.IsSameTypeIgnoringAll(destination) Then
                     'From a type T? to a type T.
                     Return ConversionKind.NarrowingNullable
-                ElseIf ConversionExists(ClassifyPredefinedConversion(srcUnderlying, destination, useSiteDiagnostics)) Then
-                    'From a type S? to a type T, where there is a conversion from the type S to the type T.
-                    Return ConversionKind.NarrowingNullable
+                Else
+                    conv = ClassifyPredefinedConversion(srcUnderlying, destination, useSiteDiagnostics)
+                    Debug.Assert((conv And ConversionKind.DelegateRelaxationLevelMask) = 0 OrElse (conv And ConversionKind.Tuple) <> 0)
+
+                    If ConversionExists(conv) Then
+                        'From a type S? to a type T, where there is a conversion from the type S to the type T.
+                        Return ConversionKind.NarrowingNullable Or (conv And preserveConversionKindFromUnderlyingPredefinedConversion)
+                    End If
                 End If
 
             Else
                 Debug.Assert(dstIsNullable)
                 'From a type T to a type S?
 
-                If source.IsSameTypeIgnoringCustomModifiers(dstUnderlying) Then
+                If source.IsSameTypeIgnoringAll(dstUnderlying) Then
                     'From a type T to the type T?.
                     Return ConversionKind.WideningNullable
                 End If
 
                 Dim conv = ClassifyPredefinedConversion(source, dstUnderlying, useSiteDiagnostics)
                 Debug.Assert((conv And ConversionKind.VarianceConversionAmbiguity) = 0)
+                Debug.Assert((conv And ConversionKind.DelegateRelaxationLevelMask) = 0 OrElse (conv And ConversionKind.Tuple) <> 0)
 
                 If IsWideningConversion(conv) Then
                     'From a type T to a type S?, where there is a widening conversion from the type T to the type S.
-                    Return ConversionKind.WideningNullable
+                    Return ConversionKind.WideningNullable Or (conv And preserveConversionKindFromUnderlyingPredefinedConversion)
                 ElseIf IsNarrowingConversion(conv) Then
                     'From a type T to a type S?, where there is a narrowing conversion from the type T to the type S.
-                    Return ConversionKind.NarrowingNullable
+                    Return ConversionKind.NarrowingNullable Or (conv And preserveConversionKindFromUnderlyingPredefinedConversion)
                 End If
 
             End If
 
             Return Nothing 'ConversionKind.NoConversion
+        End Function
+
+        Private Shared Function ClassifyTupleConversion(source As TypeSymbol, destination As TypeSymbol, <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As ConversionKind
+
+            If Not source.IsTupleType Then
+                Return Nothing  'ConversionKind.NoConversion
+            End If
+
+            Dim sourceElementTypes = DirectCast(source, TupleTypeSymbol).TupleElementTypes
+
+            ' check if the type is actually compatible type for a tuple of given cardinality
+            If Not destination.IsTupleOrCompatibleWithTupleOfCardinality(sourceElementTypes.Length) Then
+                Return Nothing 'ConversionKind.NoConversion
+            End If
+
+            Dim targetElementTypes As ImmutableArray(Of TypeSymbol) = destination.GetElementTypesOfTupleOrCompatible()
+            Debug.Assert(sourceElementTypes.Count = targetElementTypes.Length)
+
+            ' check arguments against flattened list of target element types 
+            Dim result As ConversionKind = ConversionKind.WideningTuple
+            Dim maxDelegateRelaxationLevel = ConversionKind.DelegateRelaxationLevelNone
+
+            For i As Integer = 0 To sourceElementTypes.Length - 1
+                Dim argumentType = sourceElementTypes(i)
+                Dim targetType = targetElementTypes(i)
+
+                If argumentType.IsErrorType OrElse targetType.IsErrorType Then
+                    Return Nothing 'ConversionKind.NoConversion
+                End If
+
+                Dim elementConversion = ClassifyConversion(argumentType, targetType, useSiteDiagnostics).Key
+
+                If NoConversion(elementConversion) Then
+                    Return Nothing 'ConversionKind.NoConversion
+                End If
+
+                Debug.Assert((elementConversion And ConversionKind.InvolvesNarrowingFromNumericConstant) = 0)
+                Dim elementDelegateRelaxationLevel = elementConversion And ConversionKind.DelegateRelaxationLevelMask
+                If elementDelegateRelaxationLevel > maxDelegateRelaxationLevel Then
+                    maxDelegateRelaxationLevel = elementDelegateRelaxationLevel
+                End If
+
+                If IsNarrowingConversion(elementConversion) Then
+                    result = ConversionKind.NarrowingTuple
+                End If
+            Next
+
+            Return result Or maxDelegateRelaxationLevel
         End Function
 
         Public Shared Function ClassifyStringConversion(source As TypeSymbol, destination As TypeSymbol) As ConversionKind
@@ -3603,13 +3766,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Continue For
                     End If
 
-                    If constraint.IsSameTypeIgnoringCustomModifiers(destination) Then
+                    If constraint.IsSameTypeIgnoringAll(destination) Then
                         'From a type parameter to an interface type constraint
                         'From a type parameter to a class constraint
                         'From a type parameter T to a type parameter constraint TX
                         Return ConversionKind.WideningTypeParameter
                     ElseIf constraint.TypeKind = TypeKind.Enum AndAlso
-                       DirectCast(constraint, NamedTypeSymbol).EnumUnderlyingType.IsSameTypeIgnoringCustomModifiers(destination) Then
+                       DirectCast(constraint, NamedTypeSymbol).EnumUnderlyingType.IsSameTypeIgnoringAll(destination) Then
                         ' !!! Spec doesn't mention this, but Dev10 allows conversion 
                         ' !!! to the underlying type of the enum
                         Return ConversionKind.WideningTypeParameter Or ConversionKind.InvolvesEnumTypeConversions
@@ -3768,12 +3931,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Continue For
                     End If
 
-                    If constraint.IsSameTypeIgnoringCustomModifiers(source) Then
+                    If constraint.IsSameTypeIgnoringAll(source) Then
                         'From a class constraint to a type parameter.
                         'From a type parameter constraint TX to a type parameter T
                         Return ConversionKind.NarrowingTypeParameter
                     ElseIf constraint.TypeKind = TypeKind.Enum AndAlso
-                       DirectCast(constraint, NamedTypeSymbol).EnumUnderlyingType.IsSameTypeIgnoringCustomModifiers(source) Then
+                       DirectCast(constraint, NamedTypeSymbol).EnumUnderlyingType.IsSameTypeIgnoringAll(source) Then
                         ' !!! Spec doesn't mention this, but Dev10 allows conversion 
                         ' !!! from the underlying type of the enum
                         Return ConversionKind.NarrowingTypeParameter Or ConversionKind.InvolvesEnumTypeConversions
@@ -3852,9 +4015,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         '''     Return ConvertFrom(...)
         ''' End ... 
         ''' </summary>
+        Public Shared Function ClassifyMethodConversionBasedOnReturn(
+            returnTypeOfConvertFromMethod As TypeSymbol,
+            convertFromMethodIsByRef As Boolean,
+            returnTypeOfConvertToMethod As TypeSymbol,
+            convertToMethodIsByRef As Boolean,
+            <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)
+        ) As MethodConversionKind
+            If convertToMethodIsByRef <> convertFromMethodIsByRef Then
+                Return MethodConversionKind.Error_ByRefByValMismatch
+            End If
+
+            Return ClassifyMethodConversionBasedOnReturnType(returnTypeOfConvertFromMethod, returnTypeOfConvertToMethod, convertFromMethodIsByRef, useSiteDiagnostics)
+        End Function
+
         Public Shared Function ClassifyMethodConversionBasedOnReturnType(
             returnTypeOfConvertFromMethod As TypeSymbol,
             returnTypeOfConvertToMethod As TypeSymbol,
+            isRefReturning As Boolean,
             <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)
         ) As MethodConversionKind
             Debug.Assert(returnTypeOfConvertFromMethod IsNot Nothing)
@@ -3885,8 +4063,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim typeConversion As ConversionKind = ClassifyConversion(returnTypeOfConvertFromMethod, returnTypeOfConvertToMethod, useSiteDiagnostics).Key
 
-            Dim result As MethodConversionKind
+            If isRefReturning AndAlso Not IsIdentityConversion(typeConversion) Then
+                Return MethodConversionKind.Error_ReturnTypeMismatch
+            End If
 
+            Dim result As MethodConversionKind
             If IsNarrowingConversion(typeConversion) Then
                 result = MethodConversionKind.ReturnIsWidening
 
@@ -3967,11 +4148,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ) As MethodConversionKind
 
             ' determine conversions based on return type
-            Dim methodConversions = Conversions.ClassifyMethodConversionBasedOnReturnType(lambdaOrDelegateInvokeSymbol.ReturnType, toMethodSignature.ReturnType, useSiteDiagnostics)
+            Dim methodConversions = Conversions.ClassifyMethodConversionBasedOnReturn(lambdaOrDelegateInvokeSymbol.ReturnType, lambdaOrDelegateInvokeSymbol.ReturnsByRef,
+                                                                                      toMethodSignature.ReturnType, toMethodSignature.ReturnsByRef, useSiteDiagnostics)
 
             ' determine conversions based on arguments
             methodConversions = methodConversions Or ClassifyMethodConversionForLambdaOrAnonymousDelegateBasedOnParameters(toMethodSignature, lambdaOrDelegateInvokeSymbol.Parameters, useSiteDiagnostics)
 
+            Debug.Assert(Not lambdaOrDelegateInvokeSymbol.ReturnsByRef) ' No interaction of ByRef return with other relaxations
             Return methodConversions
         End Function
 
@@ -4004,7 +4187,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Else
                 For parameterIndex As Integer = 0 To parameters.Length - 1
                     ' Check ByRef
-                    If toMethodSignature.IsByRef(parameterIndex) <> parameters(parameterIndex).IsByRef Then
+                    If toMethodSignature.ParameterIsByRef(parameterIndex) <> parameters(parameterIndex).IsByRef Then
                         methodConversions = methodConversions Or MethodConversionKind.Error_ByRefByValMismatch
                     End If
 
@@ -4019,7 +4202,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                      toParameterType)
 
                         ' Check copy back conversion.
-                        If toMethodSignature.IsByRef(parameterIndex) Then
+                        If toMethodSignature.ParameterIsByRef(parameterIndex) Then
                             methodConversions = methodConversions Or
                                                 Conversions.ClassifyMethodConversionBasedOnArgumentConversion(
                                                                          Conversions.ClassifyConversion(lambdaParameterType, toParameterType, useSiteDiagnostics).Key,
@@ -4061,7 +4244,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Debug.Assert(conversion.Operand.IsNothingLiteral() OrElse conversion.Operand.Kind = BoundKind.Lambda)
                 methodConversion = MethodConversionKind.Identity
             Else
-                methodConversion = ClassifyMethodConversionBasedOnReturnType(operandType, conversion.Type, useSiteDiagnostics)
+                methodConversion = ClassifyMethodConversionBasedOnReturnType(operandType, conversion.Type, isRefReturning:=False, useSiteDiagnostics:=useSiteDiagnostics)
             End If
 
             Return DetermineDelegateRelaxationLevel(methodConversion)
@@ -4372,6 +4555,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         Friend Overrides Function InternalSubstituteTypeParameters(substitution As TypeSubstitution) As TypeWithModifiers
+            Throw ExceptionUtilities.Unreachable
+        End Function
+
+        Friend Overrides Function WithElementType(elementType As TypeSymbol) As ArrayTypeSymbol
             Throw ExceptionUtilities.Unreachable
         End Function
     End Class

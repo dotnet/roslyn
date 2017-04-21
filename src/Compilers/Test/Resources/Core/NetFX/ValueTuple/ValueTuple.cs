@@ -1,20 +1,55 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
-// The .NET Foundation licenses this file to you under the MIT license.
-// See the LICENSE file in the project root for more information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections;
-using System.Collections.Generic;
-using System.Diagnostics;
+namespace System.Numerics.Hashing
+{
+    internal static class HashHelpers
+    {
+        public static readonly int RandomSeed = new Random().Next(Int32.MinValue, Int32.MaxValue);
+
+        public static int Combine(int h1, int h2)
+        {
+            // RyuJIT optimizes this to use the ROL instruction
+            // Related GitHub pull request: dotnet/coreclr#1830
+            uint rol5 = ((uint)h1 << 5) | ((uint)h1 >> 27);
+            return ((int)rol5 + h1) ^ h2;
+        }
+    }
+}
+
+namespace System.Runtime.CompilerServices
+{
+    /// <summary>
+    /// This interface is required for types that want to be indexed into by dynamic patterns.
+    /// </summary>
+    public interface ITuple
+    {
+        /// <summary>
+        /// The number of positions in this data structure.
+        /// </summary>
+        int Length { get; }
+
+        /// <summary>
+        /// Get the element at position <param name="index"/>.
+        /// </summary>
+        object this[int index] { get; }
+    }
+}
 
 namespace System
 {
+    using System.Collections;
+    using System.Collections.Generic;
+    using System.Diagnostics.Contracts;
+    using System.Runtime.InteropServices;
+    using System.Runtime.CompilerServices;
+    using HashHelpers = System.Numerics.Hashing.HashHelpers;
+
     /// <summary>
     /// Helper so we can call some tuple methods recursively without knowing the underlying types.
     /// </summary>
-    internal interface ITupleInternal
+    internal interface IValueTupleInternal : ITuple
     {
         int GetHashCode(IEqualityComparer comparer);
-        int Size { get; }
         string ToStringEnd();
     }
 
@@ -26,8 +61,9 @@ namespace System
     /// - they are mutable rather than readonly, and
     /// - their members (such as Item1, Item2, etc) are fields rather than properties.
     /// </summary>
+    [Serializable]
     public struct ValueTuple
-        : IEquatable<ValueTuple>, IStructuralEquatable, IStructuralComparable, IComparable, IComparable<ValueTuple>, ITupleInternal
+        : IEquatable<ValueTuple>, IStructuralEquatable, IStructuralComparable, IComparable, IComparable<ValueTuple>, IValueTupleInternal, ITuple
     {
         /// <summary>
         /// Returns a value that indicates whether the current <see cref="ValueTuple"/> instance is equal to a specified object.
@@ -58,7 +94,7 @@ namespace System
 
             if (!(other is ValueTuple))
             {
-                throw new ArgumentException(SR.ArgumentException_ValueTupleIncorrectType, nameof(other));
+                throw new ArgumentException();
             }
 
             return 0;
@@ -83,7 +119,7 @@ namespace System
 
             if (!(other is ValueTuple))
             {
-                throw new ArgumentException(SR.ArgumentException_ValueTupleIncorrectType, nameof(other));
+                throw new ArgumentException();
             }
 
             return 0;
@@ -101,7 +137,7 @@ namespace System
             return 0;
         }
 
-        int ITupleInternal.GetHashCode(IEqualityComparer comparer)
+        int IValueTupleInternal.GetHashCode(IEqualityComparer comparer)
         {
             return 0;
         }
@@ -118,12 +154,26 @@ namespace System
             return "()";
         }
 
-        string ITupleInternal.ToStringEnd()
+        string IValueTupleInternal.ToStringEnd()
         {
             return ")";
         }
 
-        int ITupleInternal.Size => 0;
+        /// <summary>
+        /// The number of positions in this data structure.
+        /// </summary>
+        int ITuple.Length => 0;
+
+        /// <summary>
+        /// Get the element at position <param name="index"/>.
+        /// </summary>
+        object ITuple.this[int index]
+        {
+            get
+            {
+                throw new IndexOutOfRangeException();
+            }
+        }
 
         /// <summary>Creates a new struct 0-tuple.</summary>
         /// <returns>A 0-tuple.</returns>
@@ -229,7 +279,7 @@ namespace System
         /// <typeparam name="T5">The type of the fifth component of the tuple.</typeparam>
         /// <typeparam name="T6">The type of the sixth component of the tuple.</typeparam>
         /// <typeparam name="T7">The type of the seventh component of the tuple.</typeparam>
-        /// <typeparam name="T8">The type of the eigth component of the tuple.</typeparam>
+        /// <typeparam name="T8">The type of the eighth component of the tuple.</typeparam>
         /// <param name="item1">The value of the first component of the tuple.</param>
         /// <param name="item2">The value of the second component of the tuple.</param>
         /// <param name="item3">The value of the third component of the tuple.</param>
@@ -242,47 +292,47 @@ namespace System
         public static ValueTuple<T1, T2, T3, T4, T5, T6, T7, ValueTuple<T8>> Create<T1, T2, T3, T4, T5, T6, T7, T8>(T1 item1, T2 item2, T3 item3, T4 item4, T5 item5, T6 item6, T7 item7, T8 item8) =>
             new ValueTuple<T1, T2, T3, T4, T5, T6, T7, ValueTuple<T8>>(item1, item2, item3, item4, item5, item6, item7, ValueTuple.Create(item8));
 
-        // From System.Web.Util.HashCodeCombiner
         internal static int CombineHashCodes(int h1, int h2)
         {
-            return (((h1 << 5) + h1) ^ h2);
+            return HashHelpers.Combine(HashHelpers.Combine(HashHelpers.RandomSeed, h1), h2);
         }
 
         internal static int CombineHashCodes(int h1, int h2, int h3)
         {
-            return CombineHashCodes(CombineHashCodes(h1, h2), h3);
+            return HashHelpers.Combine(CombineHashCodes(h1, h2), h3);
         }
 
         internal static int CombineHashCodes(int h1, int h2, int h3, int h4)
         {
-            return CombineHashCodes(CombineHashCodes(h1, h2), CombineHashCodes(h3, h4));
+            return HashHelpers.Combine(CombineHashCodes(h1, h2, h3), h4);
         }
 
         internal static int CombineHashCodes(int h1, int h2, int h3, int h4, int h5)
         {
-            return CombineHashCodes(CombineHashCodes(h1, h2, h3, h4), h5);
+            return HashHelpers.Combine(CombineHashCodes(h1, h2, h3, h4), h5);
         }
 
         internal static int CombineHashCodes(int h1, int h2, int h3, int h4, int h5, int h6)
         {
-            return CombineHashCodes(CombineHashCodes(h1, h2, h3, h4), CombineHashCodes(h5, h6));
+            return HashHelpers.Combine(CombineHashCodes(h1, h2, h3, h4, h5), h6);
         }
 
         internal static int CombineHashCodes(int h1, int h2, int h3, int h4, int h5, int h6, int h7)
         {
-            return CombineHashCodes(CombineHashCodes(h1, h2, h3, h4), CombineHashCodes(h5, h6, h7));
+            return HashHelpers.Combine(CombineHashCodes(h1, h2, h3, h4, h5, h6), h7);
         }
 
         internal static int CombineHashCodes(int h1, int h2, int h3, int h4, int h5, int h6, int h7, int h8)
         {
-            return CombineHashCodes(CombineHashCodes(h1, h2, h3, h4), CombineHashCodes(h5, h6, h7, h8));
+            return HashHelpers.Combine(CombineHashCodes(h1, h2, h3, h4, h5, h6, h7), h8);
         }
     }
 
     /// <summary>Represents a 1-tuple, or singleton, as a value type.</summary>
     /// <typeparam name="T1">The type of the tuple's only component.</typeparam>
+    [Serializable]
     public struct ValueTuple<T1>
-        : IEquatable<ValueTuple<T1>>, IStructuralEquatable, IStructuralComparable, IComparable, IComparable<ValueTuple<T1>>, ITupleInternal
+        : IEquatable<ValueTuple<T1>>, IStructuralEquatable, IStructuralComparable, IComparable, IComparable<ValueTuple<T1>>, IValueTupleInternal, ITuple
     {
         /// <summary>
         /// The current <see cref="ValueTuple{T1}"/> instance's first component.
@@ -346,7 +396,7 @@ namespace System
 
             if (!(other is ValueTuple<T1>))
             {
-                throw new ArgumentException(SR.ArgumentException_ValueTupleIncorrectType, nameof(other));
+                throw new ArgumentException();
             }
 
             var objTuple = (ValueTuple<T1>)other;
@@ -373,7 +423,7 @@ namespace System
 
             if (!(other is ValueTuple<T1>))
             {
-                throw new ArgumentException(SR.ArgumentException_ValueTupleIncorrectType, nameof(other));
+                throw new ArgumentException();
             }
 
             var objTuple = (ValueTuple<T1>)other;
@@ -387,7 +437,7 @@ namespace System
         /// <returns>A 32-bit signed integer hash code.</returns>
         public override int GetHashCode()
         {
-            return EqualityComparer<T1>.Default.GetHashCode(Item1);
+            return Item1?.GetHashCode() ?? 0;
         }
 
         int IStructuralEquatable.GetHashCode(IEqualityComparer comparer)
@@ -395,7 +445,7 @@ namespace System
             return comparer.GetHashCode(Item1);
         }
 
-        int ITupleInternal.GetHashCode(IEqualityComparer comparer)
+        int IValueTupleInternal.GetHashCode(IEqualityComparer comparer)
         {
             return comparer.GetHashCode(Item1);
         }
@@ -414,12 +464,30 @@ namespace System
             return "(" + Item1?.ToString() + ")";
         }
 
-        string ITupleInternal.ToStringEnd()
+        string IValueTupleInternal.ToStringEnd()
         {
             return Item1?.ToString() + ")";
         }
 
-        int ITupleInternal.Size => 1;
+        /// <summary>
+        /// The number of positions in this data structure.
+        /// </summary>
+        int ITuple.Length => 1;
+
+        /// <summary>
+        /// Get the element at position <param name="index"/>.
+        /// </summary>
+        object ITuple.this[int index]
+        {
+            get
+            {
+                if (index != 0)
+                {
+                    throw new IndexOutOfRangeException();
+                }
+                return Item1;
+            }
+        }
     }
 
     /// <summary>
@@ -427,8 +495,10 @@ namespace System
     /// </summary>
     /// <typeparam name="T1">The type of the tuple's first component.</typeparam>
     /// <typeparam name="T2">The type of the tuple's second component.</typeparam>
+    [Serializable]
+    [StructLayout(LayoutKind.Auto)]
     public struct ValueTuple<T1, T2>
-        : IEquatable<ValueTuple<T1, T2>>, IStructuralEquatable, IStructuralComparable, IComparable, IComparable<ValueTuple<T1, T2>>, ITupleInternal
+        : IEquatable<ValueTuple<T1, T2>>, IStructuralEquatable, IStructuralComparable, IComparable, IComparable<ValueTuple<T1, T2>>, IValueTupleInternal, ITuple
     {
         /// <summary>
         /// The current <see cref="ValueTuple{T1, T2}"/> instance's first component.
@@ -519,7 +589,7 @@ namespace System
 
             if (!(other is ValueTuple<T1, T2>))
             {
-                throw new ArgumentException(SR.ArgumentException_ValueTupleIncorrectType, nameof(other));
+                throw new ArgumentException();
             }
 
             return CompareTo((ValueTuple<T1, T2>)other);
@@ -547,7 +617,7 @@ namespace System
 
             if (!(other is ValueTuple<T1, T2>))
             {
-                throw new ArgumentException(SR.ArgumentException_ValueTupleIncorrectType, nameof(other));
+                throw new ArgumentException();
             }
 
             var objTuple = (ValueTuple<T1, T2>)other;
@@ -564,8 +634,8 @@ namespace System
         /// <returns>A 32-bit signed integer hash code.</returns>
         public override int GetHashCode()
         {
-            return ValueTuple.CombineHashCodes(EqualityComparer<T1>.Default.GetHashCode(Item1),
-                                               EqualityComparer<T2>.Default.GetHashCode(Item2));
+            return ValueTuple.CombineHashCodes(Item1?.GetHashCode() ?? 0,
+                                               Item2?.GetHashCode() ?? 0);
         }
 
         int IStructuralEquatable.GetHashCode(IEqualityComparer comparer)
@@ -579,7 +649,7 @@ namespace System
                                                comparer.GetHashCode(Item2));
         }
 
-        int ITupleInternal.GetHashCode(IEqualityComparer comparer)
+        int IValueTupleInternal.GetHashCode(IEqualityComparer comparer)
         {
             return GetHashCodeCore(comparer);
         }
@@ -599,12 +669,34 @@ namespace System
             return "(" + Item1?.ToString() + ", " + Item2?.ToString() + ")";
         }
 
-        string ITupleInternal.ToStringEnd()
+        string IValueTupleInternal.ToStringEnd()
         {
             return Item1?.ToString() + ", " + Item2?.ToString() + ")";
         }
 
-        int ITupleInternal.Size => 2;
+        /// <summary>
+        /// The number of positions in this data structure.
+        /// </summary>
+        int ITuple.Length => 2;
+
+        /// <summary>
+        /// Get the element at position <param name="index"/>.
+        /// </summary>
+        object ITuple.this[int index]
+        {
+            get
+            {
+                switch (index)
+                {
+                    case 0:
+                        return Item1;
+                    case 1:
+                        return Item2;
+                    default:
+                        throw new IndexOutOfRangeException();
+                }
+            }
+        }
     }
 
     /// <summary>
@@ -613,8 +705,10 @@ namespace System
     /// <typeparam name="T1">The type of the tuple's first component.</typeparam>
     /// <typeparam name="T2">The type of the tuple's second component.</typeparam>
     /// <typeparam name="T3">The type of the tuple's third component.</typeparam>
+    [Serializable]
+    [StructLayout(LayoutKind.Auto)]
     public struct ValueTuple<T1, T2, T3>
-        : IEquatable<ValueTuple<T1, T2, T3>>, IStructuralEquatable, IStructuralComparable, IComparable, IComparable<ValueTuple<T1, T2, T3>>, ITupleInternal
+        : IEquatable<ValueTuple<T1, T2, T3>>, IStructuralEquatable, IStructuralComparable, IComparable, IComparable<ValueTuple<T1, T2, T3>>, IValueTupleInternal, ITuple
     {
         /// <summary>
         /// The current <see cref="ValueTuple{T1, T2, T3}"/> instance's first component.
@@ -694,7 +788,7 @@ namespace System
 
             if (!(other is ValueTuple<T1, T2, T3>))
             {
-                throw new ArgumentException(SR.ArgumentException_ValueTupleIncorrectType, nameof(other));
+                throw new ArgumentException();
             }
 
             return CompareTo((ValueTuple<T1, T2, T3>)other);
@@ -725,7 +819,7 @@ namespace System
 
             if (!(other is ValueTuple<T1, T2, T3>))
             {
-                throw new ArgumentException(SR.ArgumentException_ValueTupleIncorrectType, nameof(other));
+                throw new ArgumentException();
             }
 
             var objTuple = (ValueTuple<T1, T2, T3>)other;
@@ -745,9 +839,9 @@ namespace System
         /// <returns>A 32-bit signed integer hash code.</returns>
         public override int GetHashCode()
         {
-            return ValueTuple.CombineHashCodes(EqualityComparer<T1>.Default.GetHashCode(Item1),
-                                               EqualityComparer<T2>.Default.GetHashCode(Item2),
-                                               EqualityComparer<T3>.Default.GetHashCode(Item3));
+            return ValueTuple.CombineHashCodes(Item1?.GetHashCode() ?? 0,
+                                               Item2?.GetHashCode() ?? 0,
+                                               Item3?.GetHashCode() ?? 0);
         }
 
         int IStructuralEquatable.GetHashCode(IEqualityComparer comparer)
@@ -762,7 +856,7 @@ namespace System
                                                comparer.GetHashCode(Item3));
         }
 
-        int ITupleInternal.GetHashCode(IEqualityComparer comparer)
+        int IValueTupleInternal.GetHashCode(IEqualityComparer comparer)
         {
             return GetHashCodeCore(comparer);
         }
@@ -780,12 +874,36 @@ namespace System
             return "(" + Item1?.ToString() + ", " + Item2?.ToString() + ", " + Item3?.ToString() + ")";
         }
 
-        string ITupleInternal.ToStringEnd()
+        string IValueTupleInternal.ToStringEnd()
         {
             return Item1?.ToString() + ", " + Item2?.ToString() + ", " + Item3?.ToString() + ")";
         }
 
-        int ITupleInternal.Size => 3;
+        /// <summary>
+        /// The number of positions in this data structure.
+        /// </summary>
+        int ITuple.Length => 3;
+
+        /// <summary>
+        /// Get the element at position <param name="index"/>.
+        /// </summary>
+        object ITuple.this[int index]
+        {
+            get
+            {
+                switch (index)
+                {
+                    case 0:
+                        return Item1;
+                    case 1:
+                        return Item2;
+                    case 2:
+                        return Item3;
+                    default:
+                        throw new IndexOutOfRangeException();
+                }
+            }
+        }
     }
 
     /// <summary>
@@ -795,8 +913,10 @@ namespace System
     /// <typeparam name="T2">The type of the tuple's second component.</typeparam>
     /// <typeparam name="T3">The type of the tuple's third component.</typeparam>
     /// <typeparam name="T4">The type of the tuple's fourth component.</typeparam>
+    [Serializable]
+    [StructLayout(LayoutKind.Auto)]
     public struct ValueTuple<T1, T2, T3, T4>
-        : IEquatable<ValueTuple<T1, T2, T3, T4>>, IStructuralEquatable, IStructuralComparable, IComparable, IComparable<ValueTuple<T1, T2, T3, T4>>, ITupleInternal
+        : IEquatable<ValueTuple<T1, T2, T3, T4>>, IStructuralEquatable, IStructuralComparable, IComparable, IComparable<ValueTuple<T1, T2, T3, T4>>, IValueTupleInternal, ITuple
     {
         /// <summary>
         /// The current <see cref="ValueTuple{T1, T2, T3, T4}"/> instance's first component.
@@ -884,7 +1004,7 @@ namespace System
 
             if (!(other is ValueTuple<T1, T2, T3, T4>))
             {
-                throw new ArgumentException(SR.ArgumentException_ValueTupleIncorrectType, nameof(other));
+                throw new ArgumentException();
             }
 
             return CompareTo((ValueTuple<T1, T2, T3, T4>)other);
@@ -918,7 +1038,7 @@ namespace System
 
             if (!(other is ValueTuple<T1, T2, T3, T4>))
             {
-                throw new ArgumentException(SR.ArgumentException_ValueTupleIncorrectType, nameof(other));
+                throw new ArgumentException();
             }
 
             var objTuple = (ValueTuple<T1, T2, T3, T4>)other;
@@ -941,10 +1061,10 @@ namespace System
         /// <returns>A 32-bit signed integer hash code.</returns>
         public override int GetHashCode()
         {
-            return ValueTuple.CombineHashCodes(EqualityComparer<T1>.Default.GetHashCode(Item1),
-                                               EqualityComparer<T2>.Default.GetHashCode(Item2),
-                                               EqualityComparer<T3>.Default.GetHashCode(Item3),
-                                               EqualityComparer<T4>.Default.GetHashCode(Item4));
+            return ValueTuple.CombineHashCodes(Item1?.GetHashCode() ?? 0,
+                                               Item2?.GetHashCode() ?? 0,
+                                               Item3?.GetHashCode() ?? 0,
+                                               Item4?.GetHashCode() ?? 0);
         }
 
         int IStructuralEquatable.GetHashCode(IEqualityComparer comparer)
@@ -960,7 +1080,7 @@ namespace System
                                                comparer.GetHashCode(Item4));
         }
 
-        int ITupleInternal.GetHashCode(IEqualityComparer comparer)
+        int IValueTupleInternal.GetHashCode(IEqualityComparer comparer)
         {
             return GetHashCodeCore(comparer);
         }
@@ -978,12 +1098,38 @@ namespace System
             return "(" + Item1?.ToString() + ", " + Item2?.ToString() + ", " + Item3?.ToString() + ", " + Item4?.ToString() + ")";
         }
 
-        string ITupleInternal.ToStringEnd()
+        string IValueTupleInternal.ToStringEnd()
         {
             return Item1?.ToString() + ", " + Item2?.ToString() + ", " + Item3?.ToString() + ", " + Item4?.ToString() + ")";
         }
 
-        int ITupleInternal.Size => 4;
+        /// <summary>
+        /// The number of positions in this data structure.
+        /// </summary>
+        int ITuple.Length => 4;
+
+        /// <summary>
+        /// Get the element at position <param name="index"/>.
+        /// </summary>
+        object ITuple.this[int index]
+        {
+            get
+            {
+                switch (index)
+                {
+                    case 0:
+                        return Item1;
+                    case 1:
+                        return Item2;
+                    case 2:
+                        return Item3;
+                    case 3:
+                        return Item4;
+                    default:
+                        throw new IndexOutOfRangeException();
+                }
+            }
+        }
     }
 
     /// <summary>
@@ -994,8 +1140,10 @@ namespace System
     /// <typeparam name="T3">The type of the tuple's third component.</typeparam>
     /// <typeparam name="T4">The type of the tuple's fourth component.</typeparam>
     /// <typeparam name="T5">The type of the tuple's fifth component.</typeparam>
+    [Serializable]
+    [StructLayout(LayoutKind.Auto)]
     public struct ValueTuple<T1, T2, T3, T4, T5>
-        : IEquatable<ValueTuple<T1, T2, T3, T4, T5>>, IStructuralEquatable, IStructuralComparable, IComparable, IComparable<ValueTuple<T1, T2, T3, T4, T5>>, ITupleInternal
+        : IEquatable<ValueTuple<T1, T2, T3, T4, T5>>, IStructuralEquatable, IStructuralComparable, IComparable, IComparable<ValueTuple<T1, T2, T3, T4, T5>>, IValueTupleInternal, ITuple
     {
         /// <summary>
         /// The current <see cref="ValueTuple{T1, T2, T3, T4, T5}"/> instance's first component.
@@ -1091,7 +1239,7 @@ namespace System
 
             if (!(other is ValueTuple<T1, T2, T3, T4, T5>))
             {
-                throw new ArgumentException(SR.ArgumentException_ValueTupleIncorrectType, nameof(other));
+                throw new ArgumentException();
             }
 
             return CompareTo((ValueTuple<T1, T2, T3, T4, T5>)other);
@@ -1128,7 +1276,7 @@ namespace System
 
             if (!(other is ValueTuple<T1, T2, T3, T4, T5>))
             {
-                throw new ArgumentException(SR.ArgumentException_ValueTupleIncorrectType, nameof(other));
+                throw new ArgumentException();
             }
 
             var objTuple = (ValueTuple<T1, T2, T3, T4, T5>)other;
@@ -1154,11 +1302,11 @@ namespace System
         /// <returns>A 32-bit signed integer hash code.</returns>
         public override int GetHashCode()
         {
-            return ValueTuple.CombineHashCodes(EqualityComparer<T1>.Default.GetHashCode(Item1),
-                                               EqualityComparer<T2>.Default.GetHashCode(Item2),
-                                               EqualityComparer<T3>.Default.GetHashCode(Item3),
-                                               EqualityComparer<T4>.Default.GetHashCode(Item4),
-                                               EqualityComparer<T5>.Default.GetHashCode(Item5));
+            return ValueTuple.CombineHashCodes(Item1?.GetHashCode() ?? 0,
+                                               Item2?.GetHashCode() ?? 0,
+                                               Item3?.GetHashCode() ?? 0,
+                                               Item4?.GetHashCode() ?? 0,
+                                               Item5?.GetHashCode() ?? 0);
         }
 
         int IStructuralEquatable.GetHashCode(IEqualityComparer comparer)
@@ -1175,7 +1323,7 @@ namespace System
                                                comparer.GetHashCode(Item5));
         }
 
-        int ITupleInternal.GetHashCode(IEqualityComparer comparer)
+        int IValueTupleInternal.GetHashCode(IEqualityComparer comparer)
         {
             return GetHashCodeCore(comparer);
         }
@@ -1193,12 +1341,40 @@ namespace System
             return "(" + Item1?.ToString() + ", " + Item2?.ToString() + ", " + Item3?.ToString() + ", " + Item4?.ToString() + ", " + Item5?.ToString() + ")";
         }
 
-        string ITupleInternal.ToStringEnd()
+        string IValueTupleInternal.ToStringEnd()
         {
             return Item1?.ToString() + ", " + Item2?.ToString() + ", " + Item3?.ToString() + ", " + Item4?.ToString() + ", " + Item5?.ToString() + ")";
         }
 
-        int ITupleInternal.Size => 5;
+        /// <summary>
+        /// The number of positions in this data structure.
+        /// </summary>
+        int ITuple.Length => 5;
+
+        /// <summary>
+        /// Get the element at position <param name="index"/>.
+        /// </summary>
+        object ITuple.this[int index]
+        {
+            get
+            {
+                switch (index)
+                {
+                    case 0:
+                        return Item1;
+                    case 1:
+                        return Item2;
+                    case 2:
+                        return Item3;
+                    case 3:
+                        return Item4;
+                    case 4:
+                        return Item5;
+                    default:
+                        throw new IndexOutOfRangeException();
+                }
+            }
+        }
     }
 
     /// <summary>
@@ -1210,8 +1386,10 @@ namespace System
     /// <typeparam name="T4">The type of the tuple's fourth component.</typeparam>
     /// <typeparam name="T5">The type of the tuple's fifth component.</typeparam>
     /// <typeparam name="T6">The type of the tuple's sixth component.</typeparam>
+    [Serializable]
+    [StructLayout(LayoutKind.Auto)]
     public struct ValueTuple<T1, T2, T3, T4, T5, T6>
-        : IEquatable<ValueTuple<T1, T2, T3, T4, T5, T6>>, IStructuralEquatable, IStructuralComparable, IComparable, IComparable<ValueTuple<T1, T2, T3, T4, T5, T6>>, ITupleInternal
+        : IEquatable<ValueTuple<T1, T2, T3, T4, T5, T6>>, IStructuralEquatable, IStructuralComparable, IComparable, IComparable<ValueTuple<T1, T2, T3, T4, T5, T6>>, IValueTupleInternal, ITuple
     {
         /// <summary>
         /// The current <see cref="ValueTuple{T1, T2, T3, T4, T5, T6}"/> instance's first component.
@@ -1315,7 +1493,7 @@ namespace System
 
             if (!(other is ValueTuple<T1, T2, T3, T4, T5, T6>))
             {
-                throw new ArgumentException(SR.ArgumentException_ValueTupleIncorrectType, nameof(other));
+                throw new ArgumentException();
             }
 
             return CompareTo((ValueTuple<T1, T2, T3, T4, T5, T6>)other);
@@ -1355,7 +1533,7 @@ namespace System
 
             if (!(other is ValueTuple<T1, T2, T3, T4, T5, T6>))
             {
-                throw new ArgumentException(SR.ArgumentException_ValueTupleIncorrectType, nameof(other));
+                throw new ArgumentException();
             }
 
             var objTuple = (ValueTuple<T1, T2, T3, T4, T5, T6>)other;
@@ -1384,12 +1562,12 @@ namespace System
         /// <returns>A 32-bit signed integer hash code.</returns>
         public override int GetHashCode()
         {
-            return ValueTuple.CombineHashCodes(EqualityComparer<T1>.Default.GetHashCode(Item1),
-                                               EqualityComparer<T2>.Default.GetHashCode(Item2),
-                                               EqualityComparer<T3>.Default.GetHashCode(Item3),
-                                               EqualityComparer<T4>.Default.GetHashCode(Item4),
-                                               EqualityComparer<T5>.Default.GetHashCode(Item5),
-                                               EqualityComparer<T6>.Default.GetHashCode(Item6));
+            return ValueTuple.CombineHashCodes(Item1?.GetHashCode() ?? 0,
+                                               Item2?.GetHashCode() ?? 0,
+                                               Item3?.GetHashCode() ?? 0,
+                                               Item4?.GetHashCode() ?? 0,
+                                               Item5?.GetHashCode() ?? 0,
+                                               Item6?.GetHashCode() ?? 0);
         }
 
         int IStructuralEquatable.GetHashCode(IEqualityComparer comparer)
@@ -1407,7 +1585,7 @@ namespace System
                                                comparer.GetHashCode(Item6));
         }
 
-        int ITupleInternal.GetHashCode(IEqualityComparer comparer)
+        int IValueTupleInternal.GetHashCode(IEqualityComparer comparer)
         {
             return GetHashCodeCore(comparer);
         }
@@ -1425,12 +1603,42 @@ namespace System
             return "(" + Item1?.ToString() + ", " + Item2?.ToString() + ", " + Item3?.ToString() + ", " + Item4?.ToString() + ", " + Item5?.ToString() + ", " + Item6?.ToString() + ")";
         }
 
-        string ITupleInternal.ToStringEnd()
+        string IValueTupleInternal.ToStringEnd()
         {
             return Item1?.ToString() + ", " + Item2?.ToString() + ", " + Item3?.ToString() + ", " + Item4?.ToString() + ", " + Item5?.ToString() + ", " + Item6?.ToString() + ")";
         }
 
-        int ITupleInternal.Size => 6;
+        /// <summary>
+        /// The number of positions in this data structure.
+        /// </summary>
+        int ITuple.Length => 6;
+
+        /// <summary>
+        /// Get the element at position <param name="index"/>.
+        /// </summary>
+        object ITuple.this[int index]
+        {
+            get
+            {
+                switch (index)
+                {
+                    case 0:
+                        return Item1;
+                    case 1:
+                        return Item2;
+                    case 2:
+                        return Item3;
+                    case 3:
+                        return Item4;
+                    case 4:
+                        return Item5;
+                    case 5:
+                        return Item6;
+                    default:
+                        throw new IndexOutOfRangeException();
+                }
+            }
+        }
     }
 
     /// <summary>
@@ -1443,8 +1651,10 @@ namespace System
     /// <typeparam name="T5">The type of the tuple's fifth component.</typeparam>
     /// <typeparam name="T6">The type of the tuple's sixth component.</typeparam>
     /// <typeparam name="T7">The type of the tuple's seventh component.</typeparam>
+    [Serializable]
+    [StructLayout(LayoutKind.Auto)]
     public struct ValueTuple<T1, T2, T3, T4, T5, T6, T7>
-        : IEquatable<ValueTuple<T1, T2, T3, T4, T5, T6, T7>>, IStructuralEquatable, IStructuralComparable, IComparable, IComparable<ValueTuple<T1, T2, T3, T4, T5, T6, T7>>, ITupleInternal
+        : IEquatable<ValueTuple<T1, T2, T3, T4, T5, T6, T7>>, IStructuralEquatable, IStructuralComparable, IComparable, IComparable<ValueTuple<T1, T2, T3, T4, T5, T6, T7>>, IValueTupleInternal, ITuple
     {
         /// <summary>
         /// The current <see cref="ValueTuple{T1, T2, T3, T4, T5, T6, T7}"/> instance's first component.
@@ -1556,7 +1766,7 @@ namespace System
 
             if (!(other is ValueTuple<T1, T2, T3, T4, T5, T6, T7>))
             {
-                throw new ArgumentException(SR.ArgumentException_ValueTupleIncorrectType, nameof(other));
+                throw new ArgumentException();
             }
 
             return CompareTo((ValueTuple<T1, T2, T3, T4, T5, T6, T7>)other);
@@ -1599,7 +1809,7 @@ namespace System
 
             if (!(other is ValueTuple<T1, T2, T3, T4, T5, T6, T7>))
             {
-                throw new ArgumentException(SR.ArgumentException_ValueTupleIncorrectType, nameof(other));
+                throw new ArgumentException();
             }
 
             var objTuple = (ValueTuple<T1, T2, T3, T4, T5, T6, T7>)other;
@@ -1631,13 +1841,13 @@ namespace System
         /// <returns>A 32-bit signed integer hash code.</returns>
         public override int GetHashCode()
         {
-            return ValueTuple.CombineHashCodes(EqualityComparer<T1>.Default.GetHashCode(Item1),
-                                               EqualityComparer<T2>.Default.GetHashCode(Item2),
-                                               EqualityComparer<T3>.Default.GetHashCode(Item3),
-                                               EqualityComparer<T4>.Default.GetHashCode(Item4),
-                                               EqualityComparer<T5>.Default.GetHashCode(Item5),
-                                               EqualityComparer<T6>.Default.GetHashCode(Item6),
-                                               EqualityComparer<T7>.Default.GetHashCode(Item7));
+            return ValueTuple.CombineHashCodes(Item1?.GetHashCode() ?? 0,
+                                                Item2?.GetHashCode() ?? 0,
+                                                Item3?.GetHashCode() ?? 0,
+                                                Item4?.GetHashCode() ?? 0,
+                                                Item5?.GetHashCode() ?? 0,
+                                                Item6?.GetHashCode() ?? 0,
+                                                Item7?.GetHashCode() ?? 0);
         }
 
         int IStructuralEquatable.GetHashCode(IEqualityComparer comparer)
@@ -1656,7 +1866,7 @@ namespace System
                                                comparer.GetHashCode(Item7));
         }
 
-        int ITupleInternal.GetHashCode(IEqualityComparer comparer)
+        int IValueTupleInternal.GetHashCode(IEqualityComparer comparer)
         {
             return GetHashCodeCore(comparer);
         }
@@ -1674,12 +1884,44 @@ namespace System
             return "(" + Item1?.ToString() + ", " + Item2?.ToString() + ", " + Item3?.ToString() + ", " + Item4?.ToString() + ", " + Item5?.ToString() + ", " + Item6?.ToString() + ", " + Item7?.ToString() + ")";
         }
 
-        string ITupleInternal.ToStringEnd()
+        string IValueTupleInternal.ToStringEnd()
         {
             return Item1?.ToString() + ", " + Item2?.ToString() + ", " + Item3?.ToString() + ", " + Item4?.ToString() + ", " + Item5?.ToString() + ", " + Item6?.ToString() + ", " + Item7?.ToString() + ")";
         }
 
-        int ITupleInternal.Size => 7;
+        /// <summary>
+        /// The number of positions in this data structure.
+        /// </summary>
+        int ITuple.Length => 7;
+
+        /// <summary>
+        /// Get the element at position <param name="index"/>.
+        /// </summary>
+        object ITuple.this[int index]
+        {
+            get
+            {
+                switch (index)
+                {
+                    case 0:
+                        return Item1;
+                    case 1:
+                        return Item2;
+                    case 2:
+                        return Item3;
+                    case 3:
+                        return Item4;
+                    case 4:
+                        return Item5;
+                    case 5:
+                        return Item6;
+                    case 6:
+                        return Item7;
+                    default:
+                        throw new IndexOutOfRangeException();
+                }
+            }
+        }
     }
 
     /// <summary>
@@ -1692,10 +1934,12 @@ namespace System
     /// <typeparam name="T5">The type of the tuple's fifth component.</typeparam>
     /// <typeparam name="T6">The type of the tuple's sixth component.</typeparam>
     /// <typeparam name="T7">The type of the tuple's seventh component.</typeparam>
-    /// <typeparam name="TRest">The type of the tuple's eigth component.</typeparam>
+    /// <typeparam name="TRest">The type of the tuple's eighth component.</typeparam>
+    [Serializable]
+    [StructLayout(LayoutKind.Auto)]
     public struct ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>
-        : IEquatable<ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>>, IStructuralEquatable, IStructuralComparable, IComparable, IComparable<ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>>, ITupleInternal
-        where TRest : struct
+    : IEquatable<ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>>, IStructuralEquatable, IStructuralComparable, IComparable, IComparable<ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>>, IValueTupleInternal, ITuple
+    where TRest : struct
     {
         /// <summary>
         /// The current <see cref="ValueTuple{T1, T2, T3, T4, T5, T6, T7, TRest}"/> instance's first component.
@@ -1726,7 +1970,7 @@ namespace System
         /// </summary>
         public T7 Item7;
         /// <summary>
-        /// The current <see cref="ValueTuple{T1, T2, T3, T4, T5, T6, T7, TRest}"/> instance's eigth component.
+        /// The current <see cref="ValueTuple{T1, T2, T3, T4, T5, T6, T7, TRest}"/> instance's eighth component.
         /// </summary>
         public TRest Rest;
 
@@ -1743,9 +1987,9 @@ namespace System
         /// <param name="rest">The value of the tuple's eight component.</param>
         public ValueTuple(T1 item1, T2 item2, T3 item3, T4 item4, T5 item5, T6 item6, T7 item7, TRest rest)
         {
-            if (!(rest is ITupleInternal))
+            if (!(rest is IValueTupleInternal))
             {
-                throw new ArgumentException(SR.ArgumentException_ValueTupleLastArgumentNotAValueTuple);
+                throw new ArgumentException();
             }
 
             Item1 = item1;
@@ -1820,7 +2064,7 @@ namespace System
 
             if (!(other is ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>))
             {
-                throw new ArgumentException(SR.ArgumentException_ValueTupleIncorrectType, nameof(other));
+                throw new ArgumentException();
             }
 
             return CompareTo((ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>)other);
@@ -1866,7 +2110,7 @@ namespace System
 
             if (!(other is ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>))
             {
-                throw new ArgumentException(SR.ArgumentException_ValueTupleIncorrectType, nameof(other));
+                throw new ArgumentException();
             }
 
             var objTuple = (ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>)other;
@@ -1902,19 +2146,19 @@ namespace System
         public override int GetHashCode()
         {
             // We want to have a limited hash in this case.  We'll use the last 8 elements of the tuple
-            ITupleInternal rest = Rest as ITupleInternal;
+            IValueTupleInternal rest = Rest as IValueTupleInternal;
             if (rest == null)
             {
-                return ValueTuple.CombineHashCodes(EqualityComparer<T1>.Default.GetHashCode(Item1),
-                                                   EqualityComparer<T2>.Default.GetHashCode(Item2),
-                                                   EqualityComparer<T3>.Default.GetHashCode(Item3),
-                                                   EqualityComparer<T4>.Default.GetHashCode(Item4),
-                                                   EqualityComparer<T5>.Default.GetHashCode(Item5),
-                                                   EqualityComparer<T6>.Default.GetHashCode(Item6),
-                                                   EqualityComparer<T7>.Default.GetHashCode(Item7));
+                return ValueTuple.CombineHashCodes(Item1?.GetHashCode() ?? 0,
+                                                 Item2?.GetHashCode() ?? 0,
+                                                 Item3?.GetHashCode() ?? 0,
+                                                 Item4?.GetHashCode() ?? 0,
+                                                 Item5?.GetHashCode() ?? 0,
+                                                 Item6?.GetHashCode() ?? 0,
+                                                 Item7?.GetHashCode() ?? 0);
             }
 
-            int size = rest.Size;
+            int size = rest.Length;
             if (size >= 8) { return rest.GetHashCode(); }
 
             // In this case, the rest member has less than 8 elements so we need to combine some our elements with the elements in rest
@@ -1922,51 +2166,51 @@ namespace System
             switch (k)
             {
                 case 1:
-                    return ValueTuple.CombineHashCodes(EqualityComparer<T7>.Default.GetHashCode(Item7),
+                    return ValueTuple.CombineHashCodes(Item7?.GetHashCode() ?? 0,
                                                        rest.GetHashCode());
                 case 2:
-                    return ValueTuple.CombineHashCodes(EqualityComparer<T6>.Default.GetHashCode(Item6),
-                                                       EqualityComparer<T7>.Default.GetHashCode(Item7),
+                    return ValueTuple.CombineHashCodes(Item6?.GetHashCode() ?? 0,
+                                                       Item7?.GetHashCode() ?? 0,
                                                        rest.GetHashCode());
                 case 3:
-                    return ValueTuple.CombineHashCodes(EqualityComparer<T5>.Default.GetHashCode(Item5),
-                                                       EqualityComparer<T6>.Default.GetHashCode(Item6),
-                                                       EqualityComparer<T7>.Default.GetHashCode(Item7),
+                    return ValueTuple.CombineHashCodes(Item5?.GetHashCode() ?? 0,
+                                                       Item6?.GetHashCode() ?? 0,
+                                                       Item7?.GetHashCode() ?? 0,
                                                        rest.GetHashCode());
                 case 4:
-                    return ValueTuple.CombineHashCodes(EqualityComparer<T4>.Default.GetHashCode(Item4),
-                                                       EqualityComparer<T5>.Default.GetHashCode(Item5),
-                                                       EqualityComparer<T6>.Default.GetHashCode(Item6),
-                                                       EqualityComparer<T7>.Default.GetHashCode(Item7),
+                    return ValueTuple.CombineHashCodes(Item4?.GetHashCode() ?? 0,
+                                                       Item5?.GetHashCode() ?? 0,
+                                                       Item6?.GetHashCode() ?? 0,
+                                                       Item7?.GetHashCode() ?? 0,
                                                        rest.GetHashCode());
                 case 5:
-                    return ValueTuple.CombineHashCodes(EqualityComparer<T3>.Default.GetHashCode(Item3),
-                                                       EqualityComparer<T4>.Default.GetHashCode(Item4),
-                                                       EqualityComparer<T5>.Default.GetHashCode(Item5),
-                                                       EqualityComparer<T6>.Default.GetHashCode(Item6),
-                                                       EqualityComparer<T7>.Default.GetHashCode(Item7),
+                    return ValueTuple.CombineHashCodes(Item3?.GetHashCode() ?? 0,
+                                                       Item4?.GetHashCode() ?? 0,
+                                                       Item5?.GetHashCode() ?? 0,
+                                                       Item6?.GetHashCode() ?? 0,
+                                                       Item7?.GetHashCode() ?? 0,
                                                        rest.GetHashCode());
                 case 6:
-                    return ValueTuple.CombineHashCodes(EqualityComparer<T2>.Default.GetHashCode(Item2),
-                                                       EqualityComparer<T3>.Default.GetHashCode(Item3),
-                                                       EqualityComparer<T4>.Default.GetHashCode(Item4),
-                                                       EqualityComparer<T5>.Default.GetHashCode(Item5),
-                                                       EqualityComparer<T6>.Default.GetHashCode(Item6),
-                                                       EqualityComparer<T7>.Default.GetHashCode(Item7),
+                    return ValueTuple.CombineHashCodes(Item2?.GetHashCode() ?? 0,
+                                                       Item3?.GetHashCode() ?? 0,
+                                                       Item4?.GetHashCode() ?? 0,
+                                                       Item5?.GetHashCode() ?? 0,
+                                                       Item6?.GetHashCode() ?? 0,
+                                                       Item7?.GetHashCode() ?? 0,
                                                        rest.GetHashCode());
                 case 7:
                 case 8:
-                    return ValueTuple.CombineHashCodes(EqualityComparer<T1>.Default.GetHashCode(Item1),
-                                                       EqualityComparer<T2>.Default.GetHashCode(Item2),
-                                                       EqualityComparer<T3>.Default.GetHashCode(Item3),
-                                                       EqualityComparer<T4>.Default.GetHashCode(Item4),
-                                                       EqualityComparer<T5>.Default.GetHashCode(Item5),
-                                                       EqualityComparer<T6>.Default.GetHashCode(Item6),
-                                                       EqualityComparer<T7>.Default.GetHashCode(Item7),
+                    return ValueTuple.CombineHashCodes(Item1?.GetHashCode() ?? 0,
+                                                       Item2?.GetHashCode() ?? 0,
+                                                       Item3?.GetHashCode() ?? 0,
+                                                       Item4?.GetHashCode() ?? 0,
+                                                       Item5?.GetHashCode() ?? 0,
+                                                       Item6?.GetHashCode() ?? 0,
+                                                       Item7?.GetHashCode() ?? 0,
                                                        rest.GetHashCode());
             }
 
-            Debug.Assert(false, "Missed all cases for computing ValueTuple hash code");
+            Contract.Assert(false, "Missed all cases for computing ValueTuple hash code");
             return -1;
         }
 
@@ -1978,7 +2222,7 @@ namespace System
         private int GetHashCodeCore(IEqualityComparer comparer)
         {
             // We want to have a limited hash in this case.  We'll use the last 8 elements of the tuple
-            ITupleInternal rest = Rest as ITupleInternal;
+            IValueTupleInternal rest = Rest as IValueTupleInternal;
             if (rest == null)
             {
                 return ValueTuple.CombineHashCodes(comparer.GetHashCode(Item1), comparer.GetHashCode(Item2), comparer.GetHashCode(Item3),
@@ -1986,7 +2230,7 @@ namespace System
                                                    comparer.GetHashCode(Item7));
             }
 
-            int size = rest.Size;
+            int size = rest.Length;
             if (size >= 8) { return rest.GetHashCode(comparer); }
 
             // In this case, the rest member has less than 8 elements so we need to combine some our elements with the elements in rest
@@ -2017,11 +2261,11 @@ namespace System
                                                        comparer.GetHashCode(Item7), rest.GetHashCode(comparer));
             }
 
-            Debug.Assert(false, "Missed all cases for computing ValueTuple hash code");
+            Contract.Assert(false, "Missed all cases for computing ValueTuple hash code");
             return -1;
         }
 
-        int ITupleInternal.GetHashCode(IEqualityComparer comparer)
+        int IValueTupleInternal.GetHashCode(IEqualityComparer comparer)
         {
             return GetHashCodeCore(comparer);
         }
@@ -2036,7 +2280,7 @@ namespace System
         /// </remarks>
         public override string ToString()
         {
-            ITupleInternal rest = Rest as ITupleInternal;
+            IValueTupleInternal rest = Rest as IValueTupleInternal;
             if (rest == null)
             {
                 return "(" + Item1?.ToString() + ", " + Item2?.ToString() + ", " + Item3?.ToString() + ", " + Item4?.ToString() + ", " + Item5?.ToString() + ", " + Item6?.ToString() + ", " + Item7?.ToString() + ", " + Rest.ToString() + ")";
@@ -2047,9 +2291,9 @@ namespace System
             }
         }
 
-        string ITupleInternal.ToStringEnd()
+        string IValueTupleInternal.ToStringEnd()
         {
-            ITupleInternal rest = Rest as ITupleInternal;
+            IValueTupleInternal rest = Rest as IValueTupleInternal;
             if (rest == null)
             {
                 return Item1?.ToString() + ", " + Item2?.ToString() + ", " + Item3?.ToString() + ", " + Item4?.ToString() + ", " + Item5?.ToString() + ", " + Item6?.ToString() + ", " + Item7?.ToString() + ", " + Rest.ToString() + ")";
@@ -2060,12 +2304,53 @@ namespace System
             }
         }
 
-        int ITupleInternal.Size
+        /// <summary>
+        /// The number of positions in this data structure.
+        /// </summary>
+        int ITuple.Length
         {
             get
             {
-                ITupleInternal rest = Rest as ITupleInternal;
-                return rest == null ? 8 : 7 + rest.Size;
+                IValueTupleInternal rest = Rest as IValueTupleInternal;
+                return rest == null ? 8 : 7 + rest.Length;
+            }
+        }
+
+        /// <summary>
+        /// Get the element at position <param name="index"/>.
+        /// </summary>
+        object ITuple.this[int index]
+        {
+            get
+            {
+                switch (index)
+                {
+                    case 0:
+                        return Item1;
+                    case 1:
+                        return Item2;
+                    case 2:
+                        return Item3;
+                    case 3:
+                        return Item4;
+                    case 4:
+                        return Item5;
+                    case 5:
+                        return Item6;
+                    case 6:
+                        return Item7;
+                }
+
+                IValueTupleInternal rest = Rest as IValueTupleInternal;
+                if (rest == null)
+                {
+                    if (index == 7)
+                    {
+                        return Rest;
+                    }
+                    throw new IndexOutOfRangeException();
+                }
+                return rest[index - 7];
             }
         }
     }

@@ -1,7 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
-using Microsoft.CodeAnalysis.Differencing;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Emit;
 using Roslyn.Test.Utilities;
@@ -45,7 +44,7 @@ class C
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.Delete, "class C", FeaturesResources.Method));
+                Diagnostic(RudeEditKind.Delete, "class C", FeaturesResources.method));
         }
 
         [Fact]
@@ -58,7 +57,7 @@ class C
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.MethodBodyDelete, "int M()", FeaturesResources.Method));
+                Diagnostic(RudeEditKind.MethodBodyDelete, "int M()", FeaturesResources.method));
         }
 
         [Fact]
@@ -71,7 +70,7 @@ class C
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.MethodBodyDelete, "int M()", FeaturesResources.Method));
+                Diagnostic(RudeEditKind.MethodBodyDelete, "int M()", FeaturesResources.method));
         }
 
         [Fact]
@@ -222,7 +221,7 @@ class C
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.GenericMethodUpdate, "static void Swap<T>(T lhs, T rhs)", FeaturesResources.Method));
+                Diagnostic(RudeEditKind.GenericMethodUpdate, "static void Swap<T>(T lhs, T rhs)", FeaturesResources.method));
         }
 
         // Async
@@ -520,7 +519,7 @@ class C
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.Delete, "int P", CSharpFeaturesResources.PropertySetter));
+                Diagnostic(RudeEditKind.Delete, "int P", CSharpFeaturesResources.property_setter));
         }
 
         [Fact]
@@ -598,7 +597,7 @@ class C
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.Delete, "int this[int a]", CSharpFeaturesResources.IndexerSetter));
+                Diagnostic(RudeEditKind.Delete, "int this[int a]", CSharpFeaturesResources.indexer_setter));
         }
 
         [Fact]
@@ -648,7 +647,7 @@ class SampleCollection<T>
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.GenericTypeUpdate, "set", CSharpFeaturesResources.IndexerSetter));
+                Diagnostic(RudeEditKind.GenericTypeUpdate, "set", CSharpFeaturesResources.indexer_setter));
         }
 
         [WorkItem(750244, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/750244")]
@@ -702,7 +701,7 @@ class SampleCollection<T>
 
             edits.VerifyRudeDiagnostics(active,
                 Diagnostic(RudeEditKind.ActiveStatementUpdate, @"stringCollection[1] = ""hello"";"),
-                Diagnostic(RudeEditKind.GenericTypeUpdate, "set", CSharpFeaturesResources.IndexerSetter));
+                Diagnostic(RudeEditKind.GenericTypeUpdate, "set", CSharpFeaturesResources.indexer_setter));
         }
 
         [Fact]
@@ -752,7 +751,7 @@ class SampleCollection<T>
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.GenericTypeUpdate, "get", CSharpFeaturesResources.IndexerGetter));
+                Diagnostic(RudeEditKind.GenericTypeUpdate, "get", CSharpFeaturesResources.indexer_getter));
         }
 
         [WorkItem(750244, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/750244")]
@@ -804,7 +803,7 @@ class SampleCollection<T>
 
             edits.VerifyRudeDiagnostics(active,
                 Diagnostic(RudeEditKind.ActiveStatementUpdate, "Console.WriteLine(stringCollection[1]);"),
-                Diagnostic(RudeEditKind.GenericTypeUpdate, "get", CSharpFeaturesResources.IndexerGetter));
+                Diagnostic(RudeEditKind.GenericTypeUpdate, "get", CSharpFeaturesResources.indexer_getter));
         }
 
         [Fact]
@@ -854,7 +853,7 @@ class SampleCollection<T>
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.GenericTypeUpdate, "set", CSharpFeaturesResources.IndexerSetter));
+                Diagnostic(RudeEditKind.GenericTypeUpdate, "set", CSharpFeaturesResources.indexer_setter));
         }
 
         [Fact]
@@ -953,7 +952,7 @@ class SampleCollection<T>
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.GenericTypeUpdate, "get", CSharpFeaturesResources.IndexerGetter));
+                Diagnostic(RudeEditKind.GenericTypeUpdate, "get", CSharpFeaturesResources.indexer_getter));
         }
 
         [Fact]

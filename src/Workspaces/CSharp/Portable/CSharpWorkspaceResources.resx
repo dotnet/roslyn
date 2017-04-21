@@ -1,6 +1,4 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -119,31 +117,31 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="NoAvailableLocationFoundTo" xml:space="preserve">
+  <data name="No_available_location_found_to_add_statements_to" xml:space="preserve">
     <value>No available location found to add statements to.</value>
   </data>
-  <data name="NamespaceCanNotBeAddedIn" xml:space="preserve">
+  <data name="Namespace_can_not_be_added_in_this_destination" xml:space="preserve">
     <value>Namespace can not be added in this destination.</value>
   </data>
-  <data name="ExpectedStringOrCharLiteral" xml:space="preserve">
+  <data name="Expected_string_or_char_literal" xml:space="preserve">
     <value>Expected string or char literal</value>
   </data>
-  <data name="NodeDoesNotDescendFromRoo" xml:space="preserve">
+  <data name="Node_does_not_descend_from_root" xml:space="preserve">
     <value>Node does not descend from root.</value>
   </data>
-  <data name="NodeNotInParentsChildLis" xml:space="preserve">
+  <data name="Node_not_in_parent_s_child_list" xml:space="preserve">
     <value>Node not in parent's child list</value>
   </data>
-  <data name="TriviaIsNotAssociatedWith" xml:space="preserve">
+  <data name="Trivia_is_not_associated_with_token" xml:space="preserve">
     <value>Trivia is not associated with token</value>
   </data>
-  <data name="CannotRetrieveTheSpanOfA" xml:space="preserve">
+  <data name="Cannot_retrieve_the_Span_of_a_null_syntax_reference" xml:space="preserve">
     <value>Cannot retrieve the Span of a null syntax reference.</value>
   </data>
-  <data name="OnlyAttributesConstructorI" xml:space="preserve">
+  <data name="Only_attributes_constructor_initializers_expressions_or_statements_can_be_made_explicit" xml:space="preserve">
     <value>Only attributes, constructor initializers, expressions or statements can be made explicit</value>
   </data>
-  <data name="ImplementInterface" xml:space="preserve">
+  <data name="Implement_Interface" xml:space="preserve">
     <value>Implement Interface</value>
   </data>
 </root>

@@ -23,6 +23,8 @@
         <InterfaceGroup Priority="Low">
           <NoFilter/>
           <Interface Name="IDkmClrFormatter"/>
+          <Interface Name="IDkmClrFormatter2"/>
+          <Interface Name="IDkmClrFullNameProvider"/>
         </InterfaceGroup>
       </Implements>
     </Class>

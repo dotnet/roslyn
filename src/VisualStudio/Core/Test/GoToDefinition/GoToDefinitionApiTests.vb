@@ -2,9 +2,8 @@
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Editor
+Imports Microsoft.CodeAnalysis.Editor.GoToDefinition
 Imports Microsoft.CodeAnalysis.Editor.Host
-Imports Microsoft.CodeAnalysis.Editor.Implementation.GoToDefinition
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities.GoToHelpers
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Roslyn.Test.Utilities
@@ -13,7 +12,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.GoToDefinition
     Public Class GoToDefinitionApiTests
 
         Private Async Function TestAsync(workspaceDefinition As XElement, expectSuccess As Boolean) As Tasks.Task
-            Using workspace = Await TestWorkspace.CreateAsync(workspaceDefinition, exportProvider:=GoToTestHelpers.ExportProvider)
+            Using workspace = TestWorkspace.Create(workspaceDefinition, exportProvider:=GoToTestHelpers.ExportProvider)
                 Dim solution = workspace.CurrentSolution
                 Dim cursorDocument = workspace.Documents.First(Function(d) d.CursorPosition.HasValue)
                 Dim cursorPosition = cursorDocument.CursorPosition.Value
@@ -35,11 +34,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.GoToDefinition
 
                 Assert.NotNull(symbolInfo.Symbol)
 
-                Dim presenter = New MockNavigableItemsPresenter(Sub() Exit Sub)
+                Dim presenter = New MockStreamingFindUsagesPresenter(Sub () Exit sub)
 
                 WpfTestCase.RequireWpfFact($"{NameOf(GoToDefinitionHelpers)}.{NameOf(GoToDefinitionHelpers.TryGoToDefinition)} assumes it's on the UI thread with a WaitAndGetResult call")
                 Dim success = GoToDefinitionHelpers.TryGoToDefinition(
-                    symbolInfo.Symbol, document.Project, {}, {New Lazy(Of INavigableItemsPresenter)(Function() presenter)}, thirdPartyNavigationAllowed:=True, throwOnHiddenDefinition:=False, cancellationToken:=CancellationToken.None)
+                    symbolInfo.Symbol, document.Project,
+                    {New Lazy(Of IStreamingFindUsagesPresenter)(Function() presenter)},
+                    thirdPartyNavigationAllowed:=True, throwOnHiddenDefinition:=False,
+                    cancellationToken:=CancellationToken.None)
 
                 Assert.Equal(expectSuccess, success)
             End Using

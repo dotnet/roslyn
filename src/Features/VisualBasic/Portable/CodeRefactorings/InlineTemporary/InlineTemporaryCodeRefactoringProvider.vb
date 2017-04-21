@@ -65,7 +65,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InlineTemporary
             End If
 
             context.RegisterRefactoring(
-                New MyCodeAction(VBFeaturesResources.InlineTemporaryVariable, Function(c) InlineTemporaryAsync(document, modifiedIdentifier, c)))
+                New MyCodeAction(VBFeaturesResources.Inline_temporary_variable, Function(c) InlineTemporaryAsync(document, modifiedIdentifier, c)))
         End Function
 
         Private Async Function GetReferencesAsync(
@@ -489,7 +489,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InlineTemporary
             ' Replace the conflicting inlined nodes with the original nodes annotated with conflict annotation.
             Dim conflictAnnotationAdder = Function(oldNode As SyntaxNode, newNode As SyntaxNode) As SyntaxNode
                                               Return newNode _
-                                                  .WithAdditionalAnnotations(ConflictAnnotation.Create(VBFeaturesResources.ConflictsDetected))
+                                                  .WithAdditionalAnnotations(ConflictAnnotation.Create(VBFeaturesResources.Conflict_s_detected))
                                           End Function
             Return Await inlinedDocument.ReplaceNodesAsync(replacementNodesWithChangedSemantics.Keys, conflictAnnotationAdder, cancellationToken).ConfigureAwait(False)
         End Function

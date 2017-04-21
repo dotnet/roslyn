@@ -3,7 +3,6 @@
 using System;
 using System.Threading;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Formatting
@@ -27,13 +26,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 _original = original;
             }
 
-            public override bool ContainsChanges
-            {
-                get
-                {
-                    return false;
-                }
-            }
+            public override bool ContainsChanges => false;
 
             public override TriviaData WithSpace(int space, FormattingContext context, ChainedFormattingRules formattingRules)
             {

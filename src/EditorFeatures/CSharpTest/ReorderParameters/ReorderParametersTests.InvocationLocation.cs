@@ -117,7 +117,7 @@ class C
     }
 }";
 
-            TestReorderParameters(LanguageNames.CSharp, markup, expectedSuccess: false, expectedErrorText: FeaturesResources.TheMemberIsDefinedInMetadata);
+            TestReorderParameters(LanguageNames.CSharp, markup, expectedSuccess: false, expectedErrorText: FeaturesResources.The_member_is_defined_in_metadata);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.ReorderParameters)]
@@ -132,7 +132,7 @@ class C
     }
 }";
 
-            TestReorderParameters(LanguageNames.CSharp, markup, expectedSuccess: false, expectedErrorText: FeaturesResources.TheMemberIsDefinedInMetadata);
+            TestReorderParameters(LanguageNames.CSharp, markup, expectedSuccess: false, expectedErrorText: FeaturesResources.The_member_is_defined_in_metadata);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.ReorderParameters)]
@@ -147,7 +147,7 @@ class C
     }
 }";
 
-            TestReorderParameters(LanguageNames.CSharp, markup, expectedSuccess: false, expectedErrorText: FeaturesResources.TheMemberIsDefinedInMetadata);
+            TestReorderParameters(LanguageNames.CSharp, markup, expectedSuccess: false, expectedErrorText: FeaturesResources.The_member_is_defined_in_metadata);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.ReorderParameters)]
@@ -159,7 +159,7 @@ class C
     string s = ((System.IFormattable)null).ToString(""test"", null)$$;
 }";
 
-            TestReorderParameters(LanguageNames.CSharp, markup, expectedSuccess: false, expectedErrorText: FeaturesResources.YouCanOnlyChangeTheSignatureOfAConstructorIndexerMethodOrDelegate);
+            TestReorderParameters(LanguageNames.CSharp, markup, expectedSuccess: false, expectedErrorText: FeaturesResources.You_can_only_change_the_signature_of_a_constructor_indexer_method_or_delegate);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.ReorderParameters)]

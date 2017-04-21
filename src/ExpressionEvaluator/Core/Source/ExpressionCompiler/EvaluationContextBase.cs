@@ -46,9 +46,16 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             out string typeName,
             CompilationTestData testData);
 
-        internal string GetErrorMessageAndMissingAssemblyIdentities(DiagnosticBag diagnostics, DiagnosticFormatter formatter, CultureInfo preferredUICulture, AssemblyIdentity linqLibrary, out bool useReferencedModulesOnly, out ImmutableArray<AssemblyIdentity> missingAssemblyIdentities)
+        internal string GetErrorMessageAndMissingAssemblyIdentities(
+            DiagnosticBag diagnostics,
+            DiagnosticFormatter formatter,
+            CultureInfo preferredUICulture,
+            AssemblyIdentity linqLibrary,
+            out bool useReferencedModulesOnly,
+            out ImmutableArray<AssemblyIdentity> missingAssemblyIdentities)
         {
             var errors = diagnostics.AsEnumerable().Where(d => d.Severity == DiagnosticSeverity.Error);
+            missingAssemblyIdentities = default(ImmutableArray<AssemblyIdentity>);
             foreach (var error in errors)
             {
                 missingAssemblyIdentities = this.GetMissingAssemblyIdentities(error, linqLibrary);
@@ -67,11 +74,18 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
             var firstError = errors.FirstOrDefault();
             Debug.Assert(firstError != null);
+            return GetErrorMessage(firstError, formatter, preferredUICulture);
+        }
 
-            var simpleMessage = firstError as SimpleMessageDiagnostic;
+        internal static string GetErrorMessage(
+            Diagnostic error,
+            DiagnosticFormatter formatter,
+            CultureInfo preferredUICulture)
+        {
+            var simpleMessage = error as SimpleMessageDiagnostic;
             return (simpleMessage != null) ?
                 simpleMessage.GetMessage() :
-                formatter.Format(firstError, preferredUICulture ?? CultureInfo.CurrentUICulture);
+                formatter.Format(error, preferredUICulture ?? CultureInfo.CurrentUICulture);
         }
 
         internal abstract bool HasDuplicateTypesOrAssemblies(Diagnostic diagnostic);

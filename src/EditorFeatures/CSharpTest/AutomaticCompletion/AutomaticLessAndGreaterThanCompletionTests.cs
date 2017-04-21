@@ -1,12 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.ComponentModel.Composition.Hosting;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion;
 using Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion;
 using Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -15,27 +12,27 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
     public class AutomaticLessAndGreaterThanCompletionTests : AbstractAutomaticBraceCompletionTests
     {
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public async Task Creation()
+        public void Creation()
         {
-            using (var session = await CreateSessionAsync("$$"))
+            using (var session = CreateSession("$$"))
             {
                 Assert.NotNull(session);
             }
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public async Task InvalidLocation_TopLevel()
+        public void InvalidLocation_TopLevel()
         {
-            using (var session = await CreateSessionAsync("$$"))
+            using (var session = CreateSession("$$"))
             {
                 Assert.NotNull(session);
             }
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public async Task InvalidLocation_TopLevel2()
+        public void InvalidLocation_TopLevel2()
         {
-            using (var session = await CreateSessionAsync("using System;$$"))
+            using (var session = CreateSession("using System;$$"))
             {
                 Assert.NotNull(session);
                 CheckStart(session.Session, expectValidSession: false);
@@ -43,11 +40,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public async Task Class_TypeParameter()
+        public void Class_TypeParameter()
         {
             var code = @"class C$$";
 
-            using (var session = await CreateSessionAsync(code))
+            using (var session = CreateSession(code))
             {
                 Assert.NotNull(session);
                 CheckStart(session.Session);
@@ -55,14 +52,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public async Task Method_TypeParameter()
+        public void Method_TypeParameter()
         {
             var code = @"class C
 {
     void Method$$
 }";
 
-            using (var session = await CreateSessionAsync(code))
+            using (var session = CreateSession(code))
             {
                 Assert.NotNull(session);
                 CheckStart(session.Session);
@@ -70,11 +67,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public async Task Class_TypeParameter_Delete()
+        public void Class_TypeParameter_Delete()
         {
             var code = @"class C$$";
 
-            using (var session = await CreateSessionAsync(code))
+            using (var session = CreateSession(code))
             {
                 Assert.NotNull(session);
                 CheckStart(session.Session);
@@ -83,11 +80,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public async Task Class_TypeParameter_Tab()
+        public void Class_TypeParameter_Tab()
         {
             var code = @"class C$$";
 
-            using (var session = await CreateSessionAsync(code))
+            using (var session = CreateSession(code))
             {
                 Assert.NotNull(session);
                 CheckStart(session.Session);
@@ -96,11 +93,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public async Task Class_TypeParameter_GreaterThan()
+        public void Class_TypeParameter_GreaterThan()
         {
             var code = @"class C$$";
 
-            using (var session = await CreateSessionAsync(code))
+            using (var session = CreateSession(code))
             {
                 Assert.NotNull(session);
                 CheckStart(session.Session);
@@ -109,11 +106,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public async Task Multiple_Invalid()
+        public void Multiple_Invalid()
         {
             var code = @"class C<$$>";
 
-            using (var session = await CreateSessionAsync(code))
+            using (var session = CreateSession(code))
             {
                 Assert.NotNull(session);
                 CheckStart(session.Session, expectValidSession: false);
@@ -121,14 +118,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public async Task Multiple_Nested()
+        public void Multiple_Nested()
         {
             var code = @"class C<T>
 {
     C<C$$>
 }";
 
-            using (var session = await CreateSessionAsync(code))
+            using (var session = CreateSession(code))
             {
                 Assert.NotNull(session);
                 CheckStart(session.Session);
@@ -136,7 +133,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public async Task TypeArgument_Invalid()
+        public void TypeArgument_Invalid()
         {
             var code = @"class C
 {
@@ -146,7 +143,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
         var b = i $$
     }
 }";
-            using (var session = await CreateSessionAsync(code))
+            using (var session = CreateSession(code))
             {
                 Assert.NotNull(session);
                 CheckStart(session.Session, expectValidSession: false);
@@ -154,7 +151,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public async Task TypeArgument1()
+        public void TypeArgument1()
         {
             var code = @"class C
 {
@@ -163,7 +160,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
         var a = new List$$
     }
 }";
-            using (var session = await CreateSessionAsync(code))
+            using (var session = CreateSession(code))
             {
                 Assert.NotNull(session);
                 CheckStart(session.Session);
@@ -171,7 +168,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public async Task TypeArgument2()
+        public void TypeArgument2()
         {
             var code = @"class C
 {
@@ -180,7 +177,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
         var a = typeof(List$$
     }
 }";
-            using (var session = await CreateSessionAsync(code))
+            using (var session = CreateSession(code))
             {
                 Assert.NotNull(session);
                 CheckStart(session.Session);
@@ -189,13 +186,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
 
         [WorkItem(531637, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531637")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public async Task TypeParameterReturnType()
+        public void TypeParameterReturnType()
         {
             var code = @"class C
 {
     List$$
 }";
-            using (var session = await CreateSessionAsync(code))
+            using (var session = CreateSession(code))
             {
                 Assert.NotNull(session);
                 CheckStart(session.Session);
@@ -206,13 +203,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
 
         [WorkItem(531637, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531637")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public async Task TypeParameterInDecl()
+        public void TypeParameterInDecl()
         {
             var code = @"class C
 {
     void List$$
 }";
-            using (var session = await CreateSessionAsync(code))
+            using (var session = CreateSession(code))
             {
                 Assert.NotNull(session);
                 CheckStart(session.Session);
@@ -223,13 +220,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
 
         [WorkItem(531637, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531637")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public async Task TypeParameterInDeclWithAsync()
+        public void TypeParameterInDeclWith()
         {
             var code = @"class C
 {
     async Task$$
 }";
-            using (var session = await CreateSessionAsync(code))
+            using (var session = CreateSession(code))
             {
                 Assert.NotNull(session);
                 CheckStart(session.Session);
@@ -240,7 +237,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
 
         [WorkItem(530864, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530864")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public async Task TypeArgumentWithUsing()
+        public void TypeArgumentWithUsing()
         {
             var code = @"using System.Collections.Generic;
 
@@ -251,7 +248,7 @@ class C
         List$$
     }
 }";
-            using (var session = await CreateSessionAsync(code))
+            using (var session = CreateSession(code))
             {
                 Assert.NotNull(session);
                 CheckStart(session.Session);
@@ -262,7 +259,7 @@ class C
 
         [WorkItem(530864, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530864")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public async Task TypeArgumentNoUsing()
+        public void TypeArgumentNoUsing()
         {
             var code = @"class C
 {
@@ -271,7 +268,7 @@ class C
         List$$
     }
 }";
-            using (var session = await CreateSessionAsync(code))
+            using (var session = CreateSession(code))
             {
                 Assert.NotNull(session);
                 CheckStart(session.Session, expectValidSession: false);
@@ -280,7 +277,7 @@ class C
 
         [WorkItem(1628, "https://github.com/dotnet/roslyn/issues/1628")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public async Task NotInLessThanComparisonOperation()
+        public void NotInLessThanComparisonOperation()
         {
             var code = @"using System.Linq;
 class C
@@ -290,7 +287,7 @@ class C
         var a = args[0]$$
     }
 }";
-            using (var session = await CreateSessionAsync(code))
+            using (var session = CreateSession(code))
             {
                 Assert.NotNull(session);
                 CheckStart(session.Session, expectValidSession: false);
@@ -299,7 +296,7 @@ class C
 
         [WorkItem(1628, "https://github.com/dotnet/roslyn/issues/1628")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public async Task NotInLessThanComparisonOperationAfterConditionalAccessExpression()
+        public void NotInLessThanComparisonOperationAfterConditionalAccessExpression()
         {
             var code = @"using System.Linq;
 class C
@@ -309,7 +306,7 @@ class C
         var a = args?.First()$$
     }
 }";
-            using (var session = await CreateSessionAsync(code))
+            using (var session = CreateSession(code))
             {
                 Assert.NotNull(session);
                 CheckStart(session.Session, expectValidSession: false);
@@ -318,7 +315,7 @@ class C
 
         [WorkItem(1628, "https://github.com/dotnet/roslyn/issues/1628")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public async Task TypeArgumentInConditionalAccessExpressionSimple()
+        public void TypeArgumentInConditionalAccessExpressionSimple()
         {
             var code = @"using System.Linq;
 class C
@@ -328,7 +325,7 @@ class C
         args?.OfType$$
     }
 }";
-            using (var session = await CreateSessionAsync(code))
+            using (var session = CreateSession(code))
             {
                 Assert.NotNull(session);
                 CheckStart(session.Session);
@@ -337,7 +334,7 @@ class C
 
         [WorkItem(1628, "https://github.com/dotnet/roslyn/issues/1628")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public async Task TypeArgumentInConditionalAccessExpressionNested()
+        public void TypeArgumentInConditionalAccessExpressionNested()
         {
             var code = @"class C
 {
@@ -358,7 +355,7 @@ class Inner<V>
 {
     public void Method<X>() { }
 }";
-            using (var session = await CreateSessionAsync(code))
+            using (var session = CreateSession(code))
             {
                 Assert.NotNull(session);
                 CheckStart(session.Session);
@@ -369,7 +366,7 @@ class Inner<V>
 
         [WorkItem(1628, "https://github.com/dotnet/roslyn/issues/1628")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public async Task TypeArgumentInConditionalAccessExpressionDeeplyNested()
+        public void TypeArgumentInConditionalAccessExpressionDeeplyNested()
         {
             var code = @"class C
 {
@@ -398,7 +395,7 @@ internal class Inner
     public Inner() { }
     public void DoSomething<V>() { }
 }";
-            using (var session = await CreateSessionAsync(code))
+            using (var session = CreateSession(code))
             {
                 Assert.NotNull(session);
                 CheckStart(session.Session);
@@ -407,7 +404,7 @@ internal class Inner
 
         [WorkItem(1628, "https://github.com/dotnet/roslyn/issues/1628")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public async Task TypeArgumentInConditionalAccessExpressionWithLambdas()
+        public void TypeArgumentInConditionalAccessExpressionWithLambdas()
         {
             var code = @"using System;
 using System.Collections.Generic;
@@ -434,17 +431,17 @@ public class Inner
 {
     public void Method<U>() { }
 }";
-            using (var session = await CreateSessionAsync(code))
+            using (var session = CreateSession(code))
             {
                 Assert.NotNull(session);
                 CheckStart(session.Session);
             }
         }
 
-        internal async Task<Holder> CreateSessionAsync(string code)
+        internal Holder CreateSession(string code)
         {
             return CreateSession(
-                await TestWorkspace.CreateCSharpAsync(code),
+                TestWorkspace.CreateCSharp(code),
                 BraceCompletionSessionProvider.LessAndGreaterThan.OpenCharacter, BraceCompletionSessionProvider.LessAndGreaterThan.CloseCharacter);
         }
     }

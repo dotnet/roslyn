@@ -25,8 +25,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                     _selectedParameter = selectedParameter;
                 }
 
-                public int? SelectedParameter { get { return _selectedParameter; } }
-                public SignatureHelpItem SelectedItem { get { return _selectedItem; } }
+                public int? SelectedParameter => _selectedParameter;
+                public SignatureHelpItem SelectedItem => _selectedItem;
             }
 
             internal static class DefaultSignatureHelpSelector
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
 
                 private static int GetSelectedParameter(SignatureHelpItem bestItem, int parameterIndex, string parameterName, bool isCaseSensitive)
                 {
-                    if (parameterName != null)
+                    if (!string.IsNullOrEmpty(parameterName))
                     {
                         var comparer = isCaseSensitive ? StringComparer.Ordinal : StringComparer.OrdinalIgnoreCase;
                         var index = bestItem.Parameters.IndexOf(p => comparer.Equals(p.Name, parameterName));

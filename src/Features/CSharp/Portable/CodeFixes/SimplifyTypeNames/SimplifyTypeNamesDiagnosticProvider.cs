@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.SimplifyTypeNames
         internal static readonly DiagnosticDescriptor DiagnosticMD = new DiagnosticDescriptor(DiagnosticId,
                                                                                               DiagnosticKind.Unnecessary,
                                                                                               CSharpFeaturesResources.SimplifyTypeName,
-                                                                                              CSharpFeaturesResources.NameCanBeSimplified,
+                                                                                              CSharpFeaturesResources.Name_can_be_simplified,
                                                                                               "Internal",
                                                                                               DiagnosticSeverity.None);
 

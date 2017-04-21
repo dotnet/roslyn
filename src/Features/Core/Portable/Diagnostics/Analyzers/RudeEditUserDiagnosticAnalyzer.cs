@@ -13,13 +13,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
     [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
     internal class RudeEditDiagnosticAnalyzer : DocumentDiagnosticAnalyzer, IBuiltInAnalyzer
     {
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
-        {
-            get
-            {
-                return RudeEditDiagnosticDescriptors.AllDescriptors;
-            }
-        }
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => RudeEditDiagnosticDescriptors.AllDescriptors;
+        public bool OpenFileOnly(Workspace workspace) => false;
 
         public override Task<ImmutableArray<Diagnostic>> AnalyzeSyntaxAsync(Document document, CancellationToken cancellationToken)
         {
@@ -60,9 +55,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 throw ExceptionUtilities.Unreachable;
             }
         }
+
         public DiagnosticAnalyzerCategory GetAnalyzerCategory()
-        {
-            return DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
-        }
+            => DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
     }
 }

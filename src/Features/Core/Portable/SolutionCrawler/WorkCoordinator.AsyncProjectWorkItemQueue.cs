@@ -22,13 +22,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 {
                 }
 
-                protected override int WorkItemCount_NoLock
-                {
-                    get
-                    {
-                        return _projectWorkQueue.Count;
-                    }
-                }
+                protected override int WorkItemCount_NoLock => _projectWorkQueue.Count;
 
                 public override Task WaitAsync(CancellationToken cancellationToken)
                 {
@@ -75,12 +69,10 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 {
                     var key = item.ProjectId;
                     Cancel_NoLock(key);
-
                     // now document work
-                    var existingWorkItem = default(WorkItem);
 
                     // see whether we need to update
-                    if (_projectWorkQueue.TryGetValue(key, out existingWorkItem))
+                    if (_projectWorkQueue.TryGetValue(key, out var existingWorkItem))
                     {
                         // replace it.
                         _projectWorkQueue[key] = existingWorkItem.With(item.InvocationReasons, item.ActiveMember, item.Analyzers, item.IsRetry, item.AsyncToken);

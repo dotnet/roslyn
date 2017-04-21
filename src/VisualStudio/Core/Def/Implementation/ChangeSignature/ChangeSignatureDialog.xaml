@@ -7,7 +7,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:imaging="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.Imaging"
     xmlns:imagecatalog="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.ImageCatalog"
-    xmlns:vs="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.14.0"
+    xmlns:vs="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
     xmlns:imagingPlatformUI="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Imaging"
     Height="420" Width="560"
     MinHeight="420" MinWidth="560"
@@ -241,7 +241,7 @@
                                  AutomationProperties.Name="{Binding MoveUpAutomationText}"
                                  Margin="9 0 0 0"
                                  IsEnabled="{Binding CanMoveUp, Mode=OneWay}" 
-                                 AutomationProperties.AutomationId="Up"
+                                 AutomationProperties.AutomationId="UpButton"
                                  Height="Auto" Width="Auto"
                                  Command="{StaticResource MoveUp}">
                     <imaging:CrispImage Name="UpArrowImage" 
@@ -254,7 +254,7 @@
                                  AutomationProperties.Name="{Binding MoveDownAutomationText}"
                                  Margin="9 9 0 0"
                                  IsEnabled="{Binding CanMoveDown, Mode=OneWay}" 
-                                 AutomationProperties.AutomationId="Down"
+                                 AutomationProperties.AutomationId="DownButton"
                                  Height="Auto" Width="Auto"
                                  Command="{StaticResource MoveDown}">
                     <imaging:CrispImage Name="DownArrowImage" 
@@ -269,7 +269,7 @@
                         IsEnabled="{Binding CanRemove, Mode=OneWay}" 
                         AutomationProperties.Name="{Binding RemoveAutomationText}"
                         Click="Remove_Click" 
-                        AutomationProperties.AutomationId="Remove" 
+                        AutomationProperties.AutomationId="RemoveButton" 
                         Content="{Binding ElementName=dialog, Path=Remove}" 
                         Height="Auto" Width="Auto">
                 </vs:DialogButton>
@@ -278,7 +278,7 @@
                         Margin="9 9 0 0"
                         IsEnabled="{Binding CanRestore, Mode=OneWay}" 
                         Click="Restore_Click" 
-                        AutomationProperties.AutomationId="Restore" 
+                        AutomationProperties.AutomationId="RestoreButton" 
                         AutomationProperties.Name="{Binding RestoreAutomationText}"
                         Content="{Binding ElementName=dialog, Path=Restore}" 
                         Height="Auto" Width="Auto"/>
@@ -297,7 +297,7 @@
                     HorizontalAlignment="Right" 
                     Margin="0, 11, 0, 0"
                     Orientation="Horizontal" Width="153">
-            <vs:DialogButton x:Uid="OkButton" 
+            <vs:DialogButton x:Uid="OKButton" 
                     Content="{Binding ElementName=dialog, Path=OK}" 
                     Margin="0, 0, 0, 0" 
                     Padding="{StaticResource ResourceKey=okCancelButtonPadding}"

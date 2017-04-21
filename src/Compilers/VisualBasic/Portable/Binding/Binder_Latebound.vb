@@ -12,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
     Partial Friend Class Binder
 
-        Private Function BindLateBoundMemberAccess(node As VisualBasicSyntaxNode,
+        Private Function BindLateBoundMemberAccess(node As SyntaxNode,
                                            name As String,
                                            typeArguments As TypeArgumentListSyntax,
                                            receiver As BoundExpression,
@@ -23,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return BindLateBoundMemberAccess(node, name, boundTypeArguments, receiver, containerType, diagnostics)
         End Function
 
-        Private Function BindLateBoundMemberAccess(node As VisualBasicSyntaxNode,
+        Private Function BindLateBoundMemberAccess(node As SyntaxNode,
                                            name As String,
                                            boundTypeArguments As BoundTypeArguments,
                                            receiver As BoundExpression,
@@ -39,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ReportDiagnostic(diagnostics, node, ERRID.ERR_StrictDisallowsLateBinding)
                 End If
 
-                Dim children = ArrayBuilder(Of BoundNode).GetInstance
+                Dim children = ArrayBuilder(Of BoundExpression).GetInstance
                 If receiver IsNot Nothing Then
                     children.Add(receiver)
                 End If
@@ -70,7 +70,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New BoundLateMemberAccess(node, name, containerType, receiver, boundTypeArguments, LateBoundAccessKind.Unknown, objType)
         End Function
 
-        Private Function BindLateBoundInvocation(node As VisualBasicSyntaxNode,
+        Private Function BindLateBoundInvocation(node As SyntaxNode,
                                    group As BoundMethodOrPropertyGroup,
                                    isDefaultMemberAccess As Boolean,
                                    arguments As ImmutableArray(Of BoundExpression),
@@ -92,7 +92,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 receiver = Nothing
             End If
 
-            Dim memberSyntax As VisualBasicSyntaxNode
+            Dim memberSyntax As SyntaxNode
             Dim invocationSyntax = TryCast(node, InvocationExpressionSyntax)
             If invocationSyntax IsNot Nothing Then
                 memberSyntax = If(invocationSyntax.Expression, group.Syntax)
@@ -110,7 +110,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return BindLateBoundInvocation(node, group, lateMember, arguments, argumentNames, diagnostics)
         End Function
 
-        Friend Function BindLateBoundInvocation(node As VisualBasicSyntaxNode,
+        Friend Function BindLateBoundInvocation(node As SyntaxNode,
                                            groupOpt As BoundMethodOrPropertyGroup,
                                            receiver As BoundExpression,
                                            arguments As ImmutableArray(Of BoundExpression),
@@ -128,7 +128,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If receiver.IsNothingLiteral Then
                 ReportDiagnostic(diagnostics, node, ERRID.ERR_IllegalCallOrIndex)
 
-                Return BadExpression(node, StaticCast(Of BoundNode).From(arguments), ErrorTypeSymbol.UnknownResultType)
+                Return BadExpression(node, arguments, ErrorTypeSymbol.UnknownResultType)
             End If
 
             If OptionStrict = VisualBasic.OptionStrict.On Then
@@ -137,7 +137,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' "Option Strict On disallows late binding."
                 ReportDiagnostic(diagnostics, GetLocationForOverloadResolutionDiagnostic(node, groupOpt), ERRID.ERR_StrictDisallowsLateBinding)
 
-                Dim children = ArrayBuilder(Of BoundNode).GetInstance
+                Dim children = ArrayBuilder(Of BoundExpression).GetInstance
                 If receiver IsNot Nothing Then
                     children.Add(receiver)
                 End If

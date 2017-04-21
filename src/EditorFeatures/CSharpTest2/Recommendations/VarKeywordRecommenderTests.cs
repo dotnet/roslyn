@@ -80,16 +80,18 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotInCastType()
+        public async Task TestInCastType()
         {
-            await VerifyAbsenceAsync(AddInsideMethod(
+            // Could be a deconstruction
+            await VerifyKeywordAsync(AddInsideMethod(
 @"var str = (($$"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotInCastType2()
+        public async Task TestInCastType2()
         {
-            await VerifyAbsenceAsync(AddInsideMethod(
+            // Could be a deconstruction
+            await VerifyKeywordAsync(AddInsideMethod(
 @"var str = (($$)items) as string;"));
         }
 
@@ -231,6 +233,23 @@ $$"));
             await VerifyAbsenceAsync(
 @"class C {
     const $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(12121, "https://github.com/dotnet/roslyn/issues/12121")]
+        public async Task TestAfterOutKeywordInArgument()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"M(out $$"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(12121, "https://github.com/dotnet/roslyn/issues/12121")]
+        public async Task TestAfterOutKeywordInParameter()
+        {
+            await VerifyAbsenceAsync(
+@"class C {
+     void M1(out $$");
         }
     }
 }

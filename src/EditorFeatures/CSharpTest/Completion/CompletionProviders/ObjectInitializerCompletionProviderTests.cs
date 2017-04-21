@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
+using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -568,7 +569,7 @@ class d
     }
 }";
 
-            using (var workspace = await TestWorkspace.CreateCSharpAsync(markup))
+            using (var workspace = TestWorkspace.CreateCSharp(markup))
             {
                 var hostDocument = workspace.Documents.Single();
                 var position = hostDocument.CursorPosition.Value;
@@ -579,16 +580,14 @@ class d
                 var completionList = await GetCompletionListAsync(service, document, position, triggerInfo);
                 var item = completionList.Items.First();
 
-                var completionRules = CompletionHelper.GetHelper(document, service);
-
-                Assert.False(completionRules.SendEnterThroughToEditor(item, string.Empty, workspace.Options), "Expected false from SendEnterThroughToEditor()");
+                Assert.False(Controller.SendEnterThroughToEditor(service.GetRules(), item, string.Empty), "Expected false from SendEnterThroughToEditor()");
             }
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task TestTrigger()
+        public void TestTrigger()
         {
-            await TestCommonIsTextualTriggerCharacterAsync();
+            TestCommonIsTextualTriggerCharacter();
         }
 
         [WorkItem(530828, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530828")]
@@ -770,7 +769,7 @@ class Program
 
         private async Task VerifyExclusiveAsync(string markup, bool exclusive)
         {
-            using (var workspace = await TestWorkspace.CreateCSharpAsync(markup))
+            using (var workspace = TestWorkspace.CreateCSharp(markup))
             {
                 var hostDocument = workspace.Documents.Single();
                 var position = hostDocument.CursorPosition.Value;

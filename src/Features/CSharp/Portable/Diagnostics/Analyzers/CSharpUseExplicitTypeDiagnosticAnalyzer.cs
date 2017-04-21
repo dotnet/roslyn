@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading;
 using Microsoft.CodeAnalysis;
@@ -16,10 +16,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
     internal sealed class CSharpUseExplicitTypeDiagnosticAnalyzer : CSharpTypeStyleDiagnosticAnalyzerBase
     {
         private static readonly LocalizableString s_Title =
-            new LocalizableResourceString(nameof(CSharpFeaturesResources.UseExplicitTypeDiagnosticTitle), CSharpFeaturesResources.ResourceManager, typeof(CSharpFeaturesResources));
+            new LocalizableResourceString(nameof(CSharpFeaturesResources.Use_explicit_type), CSharpFeaturesResources.ResourceManager, typeof(CSharpFeaturesResources));
 
         private static readonly LocalizableString s_Message =
-            new LocalizableResourceString(nameof(CSharpFeaturesResources.UseExplicitType), CSharpFeaturesResources.ResourceManager, typeof(CSharpFeaturesResources));
+            new LocalizableResourceString(nameof(CSharpFeaturesResources.Use_explicit_type_instead_of_var), CSharpFeaturesResources.ResourceManager, typeof(CSharpFeaturesResources));
 
         public CSharpUseExplicitTypeDiagnosticAnalyzer()
             : base(diagnosticId: IDEDiagnosticIds.UseExplicitTypeDiagnosticId,
@@ -69,7 +69,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
             {
                 // check assignment for variable declarations.
                 var variable = ((VariableDeclarationSyntax)typeName.Parent).Variables.First();
-                if (!AssignmentSupportsStylePreference(variable.Identifier, typeName, variable.Initializer, semanticModel, optionSet, cancellationToken))
+                if (!AssignmentSupportsStylePreference(
+                        variable.Identifier, typeName, variable.Initializer.Value,
+                        semanticModel, optionSet, cancellationToken))
+                {
+                    return false;
+                }
+            }
+            else if (typeName.Parent.IsKind(SyntaxKind.ForEachStatement))
+            {
+                var foreachStatement = (ForEachStatementSyntax)typeName.Parent;
+                if (!AssignmentSupportsStylePreference(
+                        foreachStatement.Identifier, typeName, foreachStatement.Expression, 
+                        semanticModel, optionSet, cancellationToken))
                 {
                     return false;
                 }
@@ -86,7 +98,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
         /// false, if explicit typing cannot be used.
         /// true, otherwise.
         /// </returns>
-        protected override bool AssignmentSupportsStylePreference(SyntaxToken identifier, TypeSyntax typeName, EqualsValueClauseSyntax initializer, SemanticModel semanticModel, OptionSet optionSet, CancellationToken cancellationToken)
+        protected override bool AssignmentSupportsStylePreference(
+            SyntaxToken identifier,
+            TypeSyntax typeName,
+            ExpressionSyntax initializer,
+            SemanticModel semanticModel,
+            OptionSet optionSet,
+            CancellationToken cancellationToken)
         {
             // is or contains an anonymous type
             // cases :
@@ -99,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
             }
 
             // cannot find type if initializer resolves to an ErrorTypeSymbol
-            var initializerTypeInfo = semanticModel.GetTypeInfo(initializer.Value, cancellationToken);
+            var initializerTypeInfo = semanticModel.GetTypeInfo(initializer, cancellationToken);
             return !initializerTypeInfo.Type.IsErrorType();
         }
     }

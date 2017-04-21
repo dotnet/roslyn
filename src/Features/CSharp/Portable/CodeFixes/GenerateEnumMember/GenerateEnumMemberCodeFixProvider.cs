@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateEnumMember
             get { return ImmutableArray.Create(CS0117); }
         }
 
-        protected override Task<IEnumerable<CodeAction>> GetCodeActionsAsync(Document document, SyntaxNode node, CancellationToken cancellationToken)
+        protected override Task<ImmutableArray<CodeAction>> GetCodeActionsAsync(Document document, SyntaxNode node, CancellationToken cancellationToken)
         {
             var service = document.GetLanguageService<IGenerateEnumMemberService>();
             return service.GenerateEnumMemberAsync(document, node, cancellationToken);

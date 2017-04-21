@@ -2,6 +2,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -13,7 +14,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (recursionDepth > MaxUncheckedRecursionDepth)
             {
-                Roslyn.Utilities.PortableShim.RuntimeHelpers.EnsureSufficientExecutionStack();
+                RuntimeHelpers.EnsureSufficientExecutionStack();
             }
         }
 

@@ -6,6 +6,9 @@ using System.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
+    using System.Reflection;
+    using Microsoft.CodeAnalysis.Syntax.InternalSyntax;
+
     internal class DirectiveParser : SyntaxParser
     {
         private const int MAX_DIRECTIVE_IDENTIFIER_WIDTH = 128;
@@ -146,7 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
             else
             {
-                eod = eod.WithLeadingTrivia(SyntaxList.Concat(SyntaxFactory.DisabledText(expr.ToFullString()), eod.GetLeadingTrivia()));
+                eod = eod.TokenWithLeadingTrivia(SyntaxList.Concat(SyntaxFactory.DisabledText(expr.ToFullString()), eod.GetLeadingTrivia()));
                 if (_context.HasUnfinishedRegion())
                 {
                     return this.AddError(SyntaxFactory.BadDirectiveTrivia(hash, keyword, eod, isActive), ErrorCode.ERR_EndRegionDirectiveExpected);
@@ -306,7 +309,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 //could be negative if part of the error text comes from the trailing trivia of the keyword token
                 int triviaOffset = eod.GetLeadingTriviaWidth() - triviaWidth;
 
-                eod = this.AddError(eod, triviaOffset, triviaWidth, isError ? ErrorCode.ERR_ErrorDirective : ErrorCode.WRN_WarningDirective, triviaBuilder.ToString());
+                string errorText = triviaBuilder.ToString();
+                eod = this.AddError(eod, triviaOffset, triviaWidth, isError ? ErrorCode.ERR_ErrorDirective : ErrorCode.WRN_WarningDirective, errorText);
+
+                if (isError)
+                {
+                    if (errorText.Equals("version", StringComparison.Ordinal))
+                    {
+                        Assembly assembly = typeof(CSharpCompiler).GetTypeInfo().Assembly;
+                        string version = CommonCompiler.GetAssemblyFileVersion(assembly);
+                        eod = this.AddError(eod, triviaOffset, triviaWidth, ErrorCode.ERR_CompilerAndLanguageVersion, version,
+                            this.Options.SpecifiedLanguageVersion.ToDisplayString());
+                    }
+                    else
+                    {
+                        const string versionMarker = "version:";
+                        if (errorText.StartsWith(versionMarker, StringComparison.Ordinal) &&
+                            LanguageVersionFacts.TryParse(errorText.Substring(versionMarker.Length), out var languageVersion))
+                        {
+                            ErrorCode error = this.Options.LanguageVersion.GetErrorCode();
+                            eod = this.AddError(eod, triviaOffset, triviaWidth, error, "version", new CSharpRequiredLanguageVersion(languageVersion));
+                        }
+                    }
+                }
             }
 
             if (isError)
@@ -547,7 +572,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             if (builder != null)
             {
-                endOfDirective = endOfDirective.WithLeadingTrivia(SyntaxFactory.PreprocessingMessage(builder.ToString()));
+                endOfDirective = endOfDirective.TokenWithLeadingTrivia(
+                    SyntaxFactory.PreprocessingMessage(builder.ToString()));
             }
 
             return endOfDirective;
@@ -592,7 +618,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             if (!skippedTokens.IsNull)
             {
-                endOfDirective = endOfDirective.WithLeadingTrivia(SyntaxFactory.SkippedTokensTrivia(skippedTokens.ToList()));
+                endOfDirective = endOfDirective.TokenWithLeadingTrivia(
+                    SyntaxFactory.SkippedTokensTrivia(skippedTokens.ToList()));
             }
 
             return endOfDirective;

@@ -1,6 +1,5 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Interactive
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
@@ -555,7 +554,8 @@ End Interface
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
         Public Async Function TestExtractInterface_CodeGen_TypeParameters1() As Task
-            Dim markup = <text>Imports System.Collections.Generic
+            Dim markup =
+"Imports System.Collections.Generic
 Public Class TestClass(Of A, B, C, D, E As F, F, G, H, NO1)$$
     Public Sub Foo1(a As A)
     End Sub
@@ -582,8 +582,10 @@ Public Class TestClass(Of A, B, C, D, E As F, F, G, H, NO1)$$
     Public Sub Bar1()
         Dim x As NO1 = Nothing
     End Sub
-End Class</text>.NormalizedValue()
-            Dim expectedInterfaceCode = <text>Imports System.Collections.Generic
+End Class"
+
+            Dim expectedInterfaceCode =
+"Imports System.Collections.Generic
 
 Public Interface ITestClass(Of A, B, C, E As F, F, G, H)
     WriteOnly Property Prop As List(Of E)
@@ -591,10 +593,11 @@ Public Interface ITestClass(Of A, B, C, E As F, F, G, H)
     Event Foo4 As Action
     Sub Foo1(a As A)
     Sub Foo3(list As List(Of C))
-    Function Foo2() As B
     Sub Bar1()
+    Function Foo2() As B
 End Interface
-</text>.NormalizedValue()
+"
+
             Await TestExtractInterfaceCommandVisualBasicAsync(markup, expectedSuccess:=True, expectedInterfaceCode:=expectedInterfaceCode)
         End Function
 
@@ -1174,7 +1177,7 @@ Partial Class C
     End Property
 End Class</text>.NormalizedValue()
 
-            Dim workspace = Await TestWorkspace.CreateAsync(workspaceXml, exportProvider:=ExtractInterfaceTestState.ExportProvider)
+            Dim workspace = TestWorkspace.Create(workspaceXml, exportProvider:=ExtractInterfaceTestState.ExportProvider)
             Using testState = New ExtractInterfaceTestState(workspace)
                 Dim result = testState.ExtractViaCommand()
                 Assert.True(result.Succeeded)
@@ -1256,11 +1259,11 @@ End Namespace
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.ExtractInterface)>
         <Trait(Traits.Feature, Traits.Features.Interactive)>
-        Public Async Function TestExtractInterfaceCommandDisabledInSubmission() As Task
+        Public Sub TestExtractInterfaceCommandDisabledInSubmission()
             Dim exportProvider = MinimalTestExportProvider.CreateExportProvider(
                 TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(GetType(InteractiveDocumentSupportsFeatureService)))
 
-            Using workspace = Await TestWorkspace.CreateAsync(
+            Using workspace = TestWorkspace.Create(
                 <Workspace>
                     <Submission Language="Visual Basic" CommonReferences="true">  
                         Public Class C
@@ -1289,10 +1292,10 @@ End Namespace
                 Assert.True(delegatedToNext)
                 Assert.False(state.IsAvailable)
             End Using
-        End Function
+        End Sub
 
         Private Shared Async Function TestTypeDiscoveryAsync(markup As String, typeDiscoveryRule As TypeDiscoveryRule, expectedExtractable As Boolean) As System.Threading.Tasks.Task
-            Using testState = Await ExtractInterfaceTestState.CreateAsync(markup, LanguageNames.VisualBasic, compilationOptions:=Nothing)
+            Using testState = ExtractInterfaceTestState.Create(markup, LanguageNames.VisualBasic, compilationOptions:=Nothing)
                 Dim result = Await testState.GetTypeAnalysisResultAsync(typeDiscoveryRule)
                 Assert.Equal(expectedExtractable, result.CanExtractInterface)
             End Using

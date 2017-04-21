@@ -2,6 +2,7 @@
 
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using Microsoft.VisualStudio.Debugger.Clr;
 using Microsoft.VisualStudio.Debugger.ComponentInterfaces;
 using Microsoft.VisualStudio.Debugger.Evaluation;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
@@ -74,7 +75,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         {
             var indices = GetIndices(index);
             var fullNameProvider = resultProvider.FullNameProvider;
-            var name = fullNameProvider.GetClrArrayIndexExpression(inspectionContext, indices);
+            var name = fullNameProvider.GetClrArrayIndexExpression(inspectionContext, GetIndicesAsStrings(indices));
             var element = value.GetArrayElement(indices, inspectionContext);
             var fullName = GetFullName(inspectionContext, parent, name, fullNameProvider);
             return resultProvider.CreateDataItem(
@@ -111,6 +112,17 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             return indices;
         }
 
+        private static string[] GetIndicesAsStrings(int[] indices)
+        {
+            var n = indices.Length;
+            var strings = new string[n];
+            for (int i = 0; i < n; i++)
+            {
+                strings[i] = indices[i].ToString();
+            }
+            return strings;
+        }
+
         private static ReadOnlyCollection<int> CalculateDivisors(ReadOnlyCollection<int> sizes)
         {
             var n = sizes.Count;
@@ -138,12 +150,17 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
             if (parent.ChildShouldParenthesize)
             {
-                parentFullName = $"({parentFullName})";
+                parentFullName = parentFullName.Parenthesize();
             }
             var parentRuntimeType = parent.Value.Type;
             if (!parent.DeclaredTypeAndInfo.Type.Equals(parentRuntimeType.GetLmrType()))
             {
-                parentFullName = fullNameProvider.GetClrCastExpression(inspectionContext, parentFullName, parentRuntimeType, customTypeInfo: null, parenthesizeArgument: false, parenthesizeEntireExpression: true);
+                parentFullName = fullNameProvider.GetClrCastExpression(
+                    inspectionContext,
+                    parentFullName,
+                    parentRuntimeType,
+                    customTypeInfo: null,
+                    castExpressionOptions: DkmClrCastExpressionOptions.ParenthesizeEntireExpression);
                 if (parentFullName == null)
                 {
                     return null; // Contains invalid identifier.

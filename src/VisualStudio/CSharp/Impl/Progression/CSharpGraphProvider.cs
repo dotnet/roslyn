@@ -12,7 +12,7 @@ using Microsoft.VisualStudio.Shell;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.Progression
 {
-    [GraphProvider(Name = "CSharpRoslynProvider", IntellisenseType = Guids.CSharpProjectRootIdString)]
+    [GraphProvider(Name = "CSharpRoslynProvider", ProjectCapability = "CSharp")]
     internal sealed class CSharpGraphProvider : AbstractGraphProvider
     {
         [ImportingConstructor]

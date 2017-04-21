@@ -280,6 +280,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     End If
                 End If
             End If
+
+            If Me.Type.ContainsTupleNames() Then
+                AddSynthesizedAttribute(attributes, DeclaringCompilation.SynthesizeTupleNamesAttribute(Type))
+            End If
         End Sub
 
         Friend NotOverridable Overrides Function EarlyDecodeWellKnownAttribute(ByRef arguments As EarlyDecodeWellKnownAttributeArguments(Of EarlyWellKnownAttributeBinder, NamedTypeSymbol, AttributeSyntax, AttributeLocation)) As VisualBasicAttributeData
@@ -305,6 +309,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Dim attrData = arguments.Attribute
             Debug.Assert(arguments.SymbolPart = AttributeLocation.None)
+
+            If attrData.IsTargetAttribute(Me, AttributeDescription.TupleElementNamesAttribute) Then
+                arguments.Diagnostics.Add(ERRID.ERR_ExplicitTupleElementNamesAttribute, arguments.AttributeSyntaxOpt.Location)
+            End If
 
             If attrData.IsTargetAttribute(Me, AttributeDescription.SpecialNameAttribute) Then
                 arguments.GetOrCreateData(Of CommonFieldWellKnownAttributeData)().HasSpecialNameAttribute = True

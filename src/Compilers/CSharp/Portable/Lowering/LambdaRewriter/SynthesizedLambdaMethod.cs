@@ -37,6 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                        | (lambdaNode.Symbol.IsAsync ? DeclarationModifiers.Async : 0))
         {
             _topLevelMethod = topLevelMethod;
+            ClosureKind = closureKind;
 
             TypeMap typeMap;
             ImmutableArray<TypeParameterSymbol> typeParameters;
@@ -57,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     typeMap = TypeMap.Empty.WithConcatAlphaRename(lambdaNode.Symbol, this, out typeParameters, out constructedFromTypeParameters, null);
                     break;
                 default:
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.UnexpectedValue(closureKind);
             }
 
             if (!structClosures.IsDefaultOrEmpty && typeParameters.Length != 0)
@@ -141,5 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         // The lambda method body needs to be updated when the containing top-level method body is updated.
         bool ISynthesizedMethodBodyImplementationSymbol.HasMethodBodyDependency => true;
+
+        public ClosureKind ClosureKind { get; }
     }
 }

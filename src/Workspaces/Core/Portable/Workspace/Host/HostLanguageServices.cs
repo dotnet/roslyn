@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Host
             var service = GetService<TLanguageService>();
             if (service == null)
             {
-                throw new InvalidOperationException(WorkspacesResources.WorkspaceServicesUnavailable);
+                throw new InvalidOperationException(WorkspacesResources.Service_of_type_0_is_required_to_accomplish_the_task_but_is_not_available_from_the_workspace);
             }
 
             return service;

@@ -27,7 +27,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ' TODO (tomat): Consider changing this to an empty name. This name shouldn't ever leak to the user in error messages.
         Friend Shared ReadOnly ImplicitTypeName As String = "<invalid-global-code>"
 
-        Private Shared ReadOnly s_EmptyTypeSymbols() As TypeSymbol = {}
+        Private Shared ReadOnly s_EmptyTypeSymbols() As TypeSymbol = Array.Empty(Of TypeSymbol)
 
         Private _lazyAllInterfaces As ImmutableArray(Of NamedTypeSymbol)
         Private _lazyInterfacesAndTheirBaseInterfaces As ImmutableHashSet(Of NamedTypeSymbol)
@@ -129,6 +129,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' list. This is not quite the same as "all interfaces of which this type is a proper
         ''' subtype" because it does not take into account variance: AllInterfaces for
         ''' IEnumerable(Of String) will not include IEnumerable(Of Object).
+        '''
+        ''' Note: When interfaces specified on the same inheritance level differ by tuple names only,
+        ''' only the last one will be listed here.
         ''' </summary>
         Public ReadOnly Property AllInterfaces As ImmutableArray(Of NamedTypeSymbol)
             Get
@@ -164,10 +167,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' long dependency cycles removed. Consequently, it is possible (and we do) use the
         ''' simplest version of Tarjan's topological sorting algorithm.
         Protected Overridable Function MakeAllInterfaces() As ImmutableArray(Of NamedTypeSymbol)
-            'TODO: Might want to use different implementation for substituted type (see C# code)
-
             Dim result = ArrayBuilder(Of NamedTypeSymbol).GetInstance()
-            Dim visited = New HashSet(Of NamedTypeSymbol)()
+            Dim visited = New HashSet(Of NamedTypeSymbol)(EqualsIgnoringComparer.InstanceIgnoringTupleNames)
 
             Dim baseType = Me
 
@@ -399,6 +400,68 @@ Done:
             Return result
         End Function
 
+        Public Overridable ReadOnly Property IsTupleType() As Boolean
+            Get
+                Return False
+            End Get
+        End Property
+
+        Public Overridable ReadOnly Property TupleUnderlyingType() As NamedTypeSymbol
+            Get
+                Return Nothing
+            End Get
+        End Property
+
+        Public Overridable ReadOnly Property TupleElements As ImmutableArray(Of FieldSymbol)
+            Get
+                Return Nothing
+            End Get
+        End Property
+
+        Public Overridable ReadOnly Property TupleElementTypes() As ImmutableArray(Of TypeSymbol)
+            Get
+                Return Nothing
+            End Get
+        End Property
+
+        Public Overridable ReadOnly Property TupleElementNames() As ImmutableArray(Of String)
+            Get
+                Return Nothing
+            End Get
+        End Property
+
+        ''' <summary>
+        ''' Verify if the given type can be used to back a tuple type 
+        ''' and return cardinality of that tuple type in <paramref name="tupleCardinality"/>. 
+        ''' </summary>
+        ''' <param name="tupleCardinality">If method returns true, contains cardinality of the compatible tuple type.</param>
+        ''' <returns></returns>
+        Public Overridable Function IsTupleCompatible(<Out> ByRef tupleCardinality As Integer) As Boolean
+            tupleCardinality = 0
+            Return False
+        End Function
+
+        ''' <summary>
+        ''' Verify if the given type can be used to back a tuple type. 
+        ''' </summary>
+        Public Function IsTupleCompatible() As Boolean
+            Dim countOfItems As Integer
+            Return IsTupleCompatible(countOfItems)
+        End Function
+
+        ''' <summary>
+        ''' Verify if the given type is a tuple of a given cardinality, or can be used to back a tuple type 
+        ''' with the given cardinality. 
+        ''' </summary>
+        Public Function IsTupleOrCompatibleWithTupleOfCardinality(targetCardinality As Integer) As Boolean
+            If (IsTupleType) Then
+                Return TupleElementTypes.Length = targetCardinality
+            End If
+
+            Dim countOfItems As Integer
+            Return IsTupleCompatible(countOfItems) AndAlso countOfItems = targetCardinality
+        End Function
+
 #Region "Use-Site Diagnostics"
 
         ''' <summary>
@@ -454,13 +517,13 @@ Done:
 
         Private ReadOnly Property ITypeSymbol_IsTupleSymbol As Boolean Implements ITypeSymbol.IsTupleType
             Get
-                Return False
+                Return Me.IsTupleType
             End Get
         End Property
 
         Private ReadOnly Property ITypeSymbol_TypeKind As TypeKind Implements ITypeSymbol.TypeKind
             Get
-                Return Me.TypeKind.ToCommon()
+                Return Me.TypeKind
             End Get
         End Property
 

@@ -1,0 +1,15 @@
+﻿<VSTemplate Version="3.0.0" xmlns="http://schemas.microsoft.com/developer/vstemplate/2005" Type="Item">
+  <TemplateData>
+    <!-- The TemplateID needs to be one of those recognized by VS in order for the ItemTemplate to appear in a portable project-->
+    <TemplateID>Microsoft.VisualBasic.Internal.AssemblyInfo</TemplateID>
+    <DefaultName>Analyzer.vb</DefaultName>
+    <Name>Analyzer</Name>
+    <Description>Create a Visual Basic diagnostic analyzer.</Description>
+    <ProjectType>VisualBasic</ProjectType>
+    <SortOrder>10</SortOrder>
+    <Icon></Icon>
+  </TemplateData>
+  <TemplateContent>
+    <ProjectItem SubType="Code" TargetFileName="$fileinputname$.vb" ReplaceParameters="true">Analyzer.vb</ProjectItem>
+  </TemplateContent>
+</VSTemplate>

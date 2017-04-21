@@ -3,30 +3,37 @@ extern alias PortableTestUtils;
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Scripting;
 using Microsoft.CodeAnalysis.Scripting;
 using Microsoft.CodeAnalysis.Scripting.Hosting;
 using Microsoft.CodeAnalysis.Scripting.Test;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
-using TestBase = PortableTestUtils::Roslyn.Test.Utilities.TestBase;
 using AssertEx = PortableTestUtils::Roslyn.Test.Utilities.AssertEx;
+using TestBase = PortableTestUtils::Roslyn.Test.Utilities.TestBase;
+using WorkItemAttribute = PortableTestUtils::Roslyn.Test.Utilities.WorkItemAttribute;
 
 namespace Microsoft.CodeAnalysis.CSharp.Scripting.Test
 {
     using static TestCompilationFactory;
     using DiagnosticExtensions = PortableTestUtils::Microsoft.CodeAnalysis.DiagnosticExtensions;
+    using TestReferences = PortableTestUtils::TestReferences;
 
     public class InteractiveSessionTests : TestBase
     {
+        private static readonly CSharpCompilationOptions s_signedDll =
+           new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, cryptoPublicKey: TestResources.TestKeys.PublicKey_ce65828c82a341f2);
+
+        private static readonly CSharpCompilationOptions s_signedDll2 =
+            new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, cryptoPublicKey: TestResources.TestKeys.PublicKey_ce65828c82a341f2);
+
         [Fact]
         public async Task CompilationChain_GlobalImportsRebinding()
         {
@@ -362,8 +369,11 @@ new C()
         [Fact]
         public void References_Versioning_WeakNames1()
         {
-            var c1 = Temp.CreateFile(extension: ".dll").WriteAllBytes(CreateCSharpCompilationWithMscorlib(@"[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")] public class C {}", assemblyName: "C").EmitToArray());
-            var c2 = Temp.CreateFile(extension: ".dll").WriteAllBytes(CreateCSharpCompilationWithMscorlib(@"[assembly: System.Reflection.AssemblyVersion(""2.0.0.0"")] public class C {}", assemblyName: "C").EmitToArray());
+            var c1 = Temp.CreateFile(extension: ".dll").WriteAllBytes(
+                CreateCSharpCompilation(@"[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")] public class C {}", new[] { TestReferences.NetFx.v4_0_30319.mscorlib }, assemblyName: "C").EmitToArray());
+
+            var c2 = Temp.CreateFile(extension: ".dll").WriteAllBytes(
+                CreateCSharpCompilation(@"[assembly: System.Reflection.AssemblyVersion(""2.0.0.0"")] public class C {}", new[] { TestReferences.NetFx.v4_0_30319.mscorlib }, assemblyName: "C").EmitToArray());
 
             var result = CSharpScript.EvaluateAsync($@"
 #r ""{c1.Path}""
@@ -378,8 +388,11 @@ new C()
         [Fact]
         public void References_Versioning_WeakNames2()
         {
-            var c1 = Temp.CreateFile(extension: ".dll").WriteAllBytes(CreateCSharpCompilationWithMscorlib(@"[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")] public class C {}", assemblyName: "C").EmitToArray());
-            var c2 = Temp.CreateFile(extension: ".dll").WriteAllBytes(CreateCSharpCompilationWithMscorlib(@"[assembly: System.Reflection.AssemblyVersion(""2.0.0.0"")] public class C {}", assemblyName: "C").EmitToArray());
+            var c1 = Temp.CreateFile(extension: ".dll").WriteAllBytes(
+                CreateCSharpCompilation(@"[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")] public class C {}", new[] { TestReferences.NetFx.v4_0_30319.mscorlib }, assemblyName: "C").EmitToArray());
+
+            var c2 = Temp.CreateFile(extension: ".dll").WriteAllBytes(
+                CreateCSharpCompilation(@"[assembly: System.Reflection.AssemblyVersion(""2.0.0.0"")] public class C {}", new[] { TestReferences.NetFx.v4_0_30319.mscorlib }, assemblyName: "C").EmitToArray());
 
             var result = CSharpScript.Create($@"
 #r ""{c1.Path}""
@@ -395,8 +408,11 @@ new C()
         [Fact]
         public void References_Versioning_WeakNames3()
         {
-            var c1 = Temp.CreateFile(extension: ".dll").WriteAllBytes(CreateCSharpCompilationWithMscorlib(@"[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")] public class C {}", assemblyName: "C").EmitToArray());
-            var c2 = Temp.CreateFile(extension: ".dll").WriteAllBytes(CreateCSharpCompilationWithMscorlib(@"[assembly: System.Reflection.AssemblyVersion(""2.0.0.0"")] public class C {}", assemblyName: "C").EmitToArray());
+            var c1 = Temp.CreateFile(extension: ".dll").WriteAllBytes(
+                CreateCSharpCompilation(@"[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")] public class C {}", new[] { TestReferences.NetFx.v4_0_30319.mscorlib }, assemblyName: "C").EmitToArray());
+
+            var c2 = Temp.CreateFile(extension: ".dll").WriteAllBytes(
+                CreateCSharpCompilation(@"[assembly: System.Reflection.AssemblyVersion(""2.0.0.0"")] public class C {}", new[] { TestReferences.NetFx.v4_0_30319.mscorlib }, assemblyName: "C").EmitToArray());
 
             var script0 = CSharpScript.Create($@"
 #r ""{c1.Path}""
@@ -545,7 +561,7 @@ x
         [Fact]
         public void HostObjectInInMemoryAssembly()
         {
-            var lib = CreateCSharpCompilationWithMscorlib("public class C { public int X = 1, Y = 2; }", "HostLib");
+            var lib = CreateCSharpCompilation("public class C { public int X = 1, Y = 2; }", new[] { TestReferences.NetFx.v4_0_30319.mscorlib }, "HostLib");
             var libImage = lib.EmitToArray();
             var libRef = MetadataImageReference.CreateFromImage(libImage);
 
@@ -566,6 +582,542 @@ x
                 int result = script.RunAsync(globals).Result.ReturnValue;
                 Assert.Equal(3, result);
             }
+        }
+
+
+        [Fact]
+        public async Task SharedLibCopy_Identical_Weak()
+        {
+            string libBaseName = "LibBase_" + Guid.NewGuid();
+            string lib1Name = "Lib1_" + Guid.NewGuid();
+            string lib2Name = "Lib2_" + Guid.NewGuid();
+
+            var libBase = CreateCSharpCompilation(@"
+public class LibBase
+{
+    public readonly int X = 1;
+}
+", new[] { TestReferences.NetFx.v4_0_30319.mscorlib }, libBaseName);
+
+            var lib1 = CreateCSharpCompilation(@"
+public class Lib1
+{
+    public LibBase libBase = new LibBase();
+}
+", new MetadataReference[] { TestReferences.NetFx.v4_0_30319.mscorlib, libBase.ToMetadataReference() }, lib1Name);
+
+            var lib2 = CreateCSharpCompilation(@"
+public class Lib2
+{
+    public LibBase libBase = new LibBase();
+}
+", new MetadataReference[] { TestReferences.NetFx.v4_0_30319.mscorlib, libBase.ToMetadataReference() }, lib2Name);
+
+            var libBaseImage = libBase.EmitToArray();
+            var lib1Image = lib1.EmitToArray();
+            var lib2Image = lib2.EmitToArray();
+
+            var root = Temp.CreateDirectory();
+            var dir1 = root.CreateDirectory("1");
+            var file1 = dir1.CreateFile(lib1Name + ".dll").WriteAllBytes(lib1Image);
+            var fileBase1 = dir1.CreateFile(libBaseName + ".dll").WriteAllBytes(libBaseImage);
+
+            var dir2 = root.CreateDirectory("2");
+            var file2 = dir2.CreateFile(lib2Name + ".dll").WriteAllBytes(lib2Image);
+            var fileBase2 = dir2.CreateFile(libBaseName + ".dll").WriteAllBytes(libBaseImage);
+
+            var s0 = await CSharpScript.RunAsync($@"#r ""{file1.Path}""");
+            var s1 = await s0.ContinueWithAsync($@"var l1 = new Lib1();");
+            var s2 = await s1.ContinueWithAsync($@"#r ""{file2.Path}""");
+            var s3 = await s2.ContinueWithAsync($@"var l2 = new Lib2();");
+            var s4 = await s3.ContinueWithAsync($@"l2.libBase.X");
+
+            var c4 = s4.Script.GetCompilation();
+            c4.VerifyAssemblyAliases(
+                lib2Name,
+                lib1Name,
+                "mscorlib",
+                libBaseName + ": <implicit>,global");
+
+            var libBaseRefAndSymbol = c4.GetBoundReferenceManager().GetReferencedAssemblies().ToArray()[3];
+            Assert.Equal(fileBase1.Path, ((PortableExecutableReference)libBaseRefAndSymbol.Key).FilePath);
+        }
+
+        [Fact]
+        public async Task SharedLibCopy_Identical_Strong()
+        {
+            string libBaseName = "LibBase_" + Guid.NewGuid();
+            string lib1Name = "Lib1_" + Guid.NewGuid();
+            string lib2Name = "Lib2_" + Guid.NewGuid();
+
+            var libBase = CreateCSharpCompilation(@"
+public class LibBase
+{
+    public readonly int X = 1;
+}
+", new[] { TestReferences.NetFx.v4_0_30319.mscorlib }, libBaseName, s_signedDll);
+
+            var lib1 = CreateCSharpCompilation(@"
+public class Lib1
+{
+    public LibBase libBase = new LibBase();
+}
+", new MetadataReference[] { TestReferences.NetFx.v4_0_30319.mscorlib, libBase.ToMetadataReference() }, lib1Name);
+
+            var lib2 = CreateCSharpCompilation(@"
+public class Lib2
+{
+    public LibBase libBase = new LibBase();
+}
+", new MetadataReference[] { TestReferences.NetFx.v4_0_30319.mscorlib, libBase.ToMetadataReference() }, lib2Name);
+
+            var libBaseImage = libBase.EmitToArray();
+            var lib1Image = lib1.EmitToArray();
+            var lib2Image = lib2.EmitToArray();
+
+            var root = Temp.CreateDirectory();
+            var dir1 = root.CreateDirectory("1");
+            var file1 = dir1.CreateFile(lib1Name + ".dll").WriteAllBytes(lib1Image);
+            var fileBase1 = dir1.CreateFile(libBaseName + ".dll").WriteAllBytes(libBaseImage);
+
+            var dir2 = root.CreateDirectory("2");
+            var file2 = dir2.CreateFile(lib2Name + ".dll").WriteAllBytes(lib2Image);
+            var fileBase2 = dir2.CreateFile(libBaseName + ".dll").WriteAllBytes(libBaseImage);
+
+            var s0 = await CSharpScript.RunAsync($@"#r ""{file1.Path}""");
+            var s1 = await s0.ContinueWithAsync($@"var l1 = new Lib1();");
+            var s2 = await s1.ContinueWithAsync($@"#r ""{file2.Path}""");
+            var s3 = await s2.ContinueWithAsync($@"var l2 = new Lib2();");
+            var s4 = await s3.ContinueWithAsync($@"l2.libBase.X");
+
+            var c4 = s4.Script.GetCompilation();
+            c4.VerifyAssemblyAliases(
+                lib2Name,
+                lib1Name,
+                "mscorlib",
+                libBaseName + ": <implicit>,global");
+
+            var libBaseRefAndSymbol = c4.GetBoundReferenceManager().GetReferencedAssemblies().ToArray()[3];
+            Assert.Equal(fileBase1.Path, ((PortableExecutableReference)libBaseRefAndSymbol.Key).FilePath);
+        }
+
+        [Fact]
+        public async Task SharedLibCopy_SameVersion_Weak_DifferentContent()
+        {
+            string libBaseName = "LibBase_" + Guid.NewGuid();
+            string lib1Name = "Lib1_" + Guid.NewGuid();
+            string lib2Name = "Lib2_" + Guid.NewGuid();
+
+            var libBase1 = CreateCSharpCompilation(@"
+public class LibBase
+{
+    public readonly int X = 1;
+}
+", new[] { TestReferences.NetFx.v4_0_30319.mscorlib }, libBaseName);
+
+            var libBase2 = CreateCSharpCompilation(@"
+public class LibBase
+{
+    public readonly int X = 2;
+}
+", new[] { TestReferences.NetFx.v4_0_30319.mscorlib }, libBaseName);
+
+            var lib1 = CreateCSharpCompilation(@"
+public class Lib1
+{
+    public LibBase libBase = new LibBase();
+}
+", new MetadataReference[] { TestReferences.NetFx.v4_0_30319.mscorlib, libBase1.ToMetadataReference() }, lib1Name);
+
+            var lib2 = CreateCSharpCompilation(@"
+public class Lib2
+{
+    public LibBase libBase = new LibBase();
+}
+", new MetadataReference[] { TestReferences.NetFx.v4_0_30319.mscorlib, libBase1.ToMetadataReference() }, lib2Name);
+
+            var libBase1Image = libBase1.EmitToArray();
+            var libBase2Image = libBase2.EmitToArray();
+            var lib1Image = lib1.EmitToArray();
+            var lib2Image = lib2.EmitToArray();
+
+            var root = Temp.CreateDirectory();
+            var dir1 = root.CreateDirectory("1");
+            var file1 = dir1.CreateFile(lib1Name + ".dll").WriteAllBytes(lib1Image);
+            var fileBase1 = dir1.CreateFile(libBaseName + ".dll").WriteAllBytes(libBase1Image);
+
+            var dir2 = root.CreateDirectory("2");
+            var file2 = dir2.CreateFile(lib2Name + ".dll").WriteAllBytes(lib2Image);
+            var fileBase2 = dir2.CreateFile(libBaseName + ".dll").WriteAllBytes(libBase2Image);
+
+            var s0 = await CSharpScript.RunAsync($@"#r ""{file1.Path}""");
+            var s1 = await s0.ContinueWithAsync($@"var l1 = new Lib1();");
+            var s2 = await s1.ContinueWithAsync($@"#r ""{file2.Path}""");
+
+            bool exceptionSeen = false;
+            try
+            {
+                await s2.ContinueWithAsync($@"var l2 = new Lib2();");
+            }
+            catch (FileLoadException fileLoadEx) when (fileLoadEx.InnerException is InteractiveAssemblyLoaderException)
+            {
+                exceptionSeen = true;
+            }
+
+            Assert.True(exceptionSeen);
+        }
+
+        [Fact]
+        public async Task SharedLibCopy_SameVersion_Strong_DifferentContent()
+        {
+            string libBaseName = "LibBase_" + Guid.NewGuid();
+            string lib1Name = "Lib1_" + Guid.NewGuid();
+            string lib2Name = "Lib2_" + Guid.NewGuid();
+
+            var libBase1 = CreateCSharpCompilation(@"
+[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")]
+public class LibBase
+{
+    public readonly int X = 1;
+}
+", new[] { TestReferences.NetFx.v4_0_30319.mscorlib }, libBaseName, s_signedDll);
+
+            var libBase2 = CreateCSharpCompilation(@"
+[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")]
+public class LibBase
+{
+    public readonly int X = 2;
+}
+", new[] { TestReferences.NetFx.v4_0_30319.mscorlib }, libBaseName, s_signedDll);
+
+            var lib1 = CreateCSharpCompilation(@"
+public class Lib1
+{
+    public LibBase libBase = new LibBase();
+}
+", new MetadataReference[] { TestReferences.NetFx.v4_0_30319.mscorlib, libBase1.ToMetadataReference() }, lib1Name);
+
+            var lib2 = CreateCSharpCompilation(@"
+public class Lib2
+{
+    public LibBase libBase = new LibBase();
+}
+", new MetadataReference[] { TestReferences.NetFx.v4_0_30319.mscorlib, libBase1.ToMetadataReference() }, lib2Name);
+
+            var libBase1Image = libBase1.EmitToArray();
+            var libBase2Image = libBase2.EmitToArray();
+            var lib1Image = lib1.EmitToArray();
+            var lib2Image = lib2.EmitToArray();
+
+            var root = Temp.CreateDirectory();
+            var dir1 = root.CreateDirectory("1");
+            var file1 = dir1.CreateFile(lib1Name + ".dll").WriteAllBytes(lib1Image);
+            var fileBase1 = dir1.CreateFile(libBaseName + ".dll").WriteAllBytes(libBase1Image);
+
+            var dir2 = root.CreateDirectory("2");
+            var file2 = dir2.CreateFile(lib2Name + ".dll").WriteAllBytes(lib2Image);
+            var fileBase2 = dir2.CreateFile(libBaseName + ".dll").WriteAllBytes(libBase2Image);
+
+            var s0 = await CSharpScript.RunAsync($@"#r ""{file1.Path}""");
+            var s1 = await s0.ContinueWithAsync($@"new Lib1().libBase.X");
+            var s2 = await s1.ContinueWithAsync($@"#r ""{file2.Path}""");
+
+            bool exceptionSeen = false;
+            try
+            {
+                await s2.ContinueWithAsync($@"new Lib2().libBase.X");
+            }
+            catch (FileLoadException fileLoadEx) when (fileLoadEx.InnerException is InteractiveAssemblyLoaderException)
+            {
+                exceptionSeen = true;
+            }
+
+            Assert.True(exceptionSeen);
+        }
+
+        [Fact]
+        public async Task SharedLibCopy_SameVersion_StrongWeak_DifferentContent()
+        {
+            string libBaseName = "LibBase_" + Guid.NewGuid();
+            string lib1Name = "Lib1_" + Guid.NewGuid();
+            string lib2Name = "Lib2_" + Guid.NewGuid();
+
+            var libBase1 = CreateCSharpCompilation(@"
+[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")]
+public class LibBase
+{
+    public readonly int X = 1;
+}
+", new[] { TestReferences.NetFx.v4_0_30319.mscorlib }, libBaseName, s_signedDll);
+
+            var libBase2 = CreateCSharpCompilation(@"
+[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")]
+public class LibBase
+{
+    public readonly int X = 2;
+}
+", new[] { TestReferences.NetFx.v4_0_30319.mscorlib }, libBaseName);
+
+            var lib1 = CreateCSharpCompilation(@"
+public class Lib1
+{
+    public LibBase libBase = new LibBase();
+}
+", new MetadataReference[] { TestReferences.NetFx.v4_0_30319.mscorlib, libBase1.ToMetadataReference() }, lib1Name);
+
+            var lib2 = CreateCSharpCompilation(@"
+public class Lib2
+{
+    public LibBase libBase = new LibBase();
+}
+", new MetadataReference[] { TestReferences.NetFx.v4_0_30319.mscorlib, libBase1.ToMetadataReference() }, lib2Name);
+
+            var libBase1Image = libBase1.EmitToArray();
+            var libBase2Image = libBase2.EmitToArray();
+            var lib1Image = lib1.EmitToArray();
+            var lib2Image = lib2.EmitToArray();
+
+            var root = Temp.CreateDirectory();
+            var dir1 = root.CreateDirectory("1");
+            var file1 = dir1.CreateFile(lib1Name + ".dll").WriteAllBytes(lib1Image);
+            var fileBase1 = dir1.CreateFile(libBaseName + ".dll").WriteAllBytes(libBase1Image);
+
+            var dir2 = root.CreateDirectory("2");
+            var file2 = dir2.CreateFile(lib2Name + ".dll").WriteAllBytes(lib2Image);
+            var fileBase2 = dir2.CreateFile(libBaseName + ".dll").WriteAllBytes(libBase2Image);
+
+            var s0 = await CSharpScript.RunAsync($@"#r ""{file1.Path}""");
+            var s1 = await s0.ContinueWithAsync($@"new Lib1().libBase.X");
+            var s2 = await s1.ContinueWithAsync($@"#r ""{file2.Path}""");
+
+            bool exceptionSeen = false;
+            try
+            {
+                await s2.ContinueWithAsync($@"new Lib2().libBase.X");
+            }
+            catch (FileLoadException fileLoadEx) when (fileLoadEx.InnerException is InteractiveAssemblyLoaderException)
+            {
+                exceptionSeen = true;
+            }
+
+            Assert.True(exceptionSeen);
+        }
+
+        [Fact]
+        public async Task SharedLibCopy_SameVersion_StrongDifferentPKT_DifferentContent()
+        {
+            string libBaseName = "LibBase_" + Guid.NewGuid();
+            string lib1Name = "Lib1_" + Guid.NewGuid();
+            string lib2Name = "Lib2_" + Guid.NewGuid();
+
+            var libBase1 = CreateCSharpCompilation(@"
+[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")]
+public class LibBase
+{
+    public readonly int X = 1;
+}
+", new[] { TestReferences.NetFx.v4_0_30319.mscorlib }, libBaseName, s_signedDll);
+
+            var libBase2 = CreateCSharpCompilation(@"
+[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")]
+public class LibBase
+{
+    public readonly int X = 2;
+}
+", new[] { TestReferences.NetFx.v4_0_30319.mscorlib }, libBaseName, s_signedDll2);
+
+            var lib1 = CreateCSharpCompilation(@"
+public class Lib1
+{
+    public LibBase libBase = new LibBase();
+}
+", new MetadataReference[] { TestReferences.NetFx.v4_0_30319.mscorlib, libBase1.ToMetadataReference() }, lib1Name);
+
+            var lib2 = CreateCSharpCompilation(@"
+public class Lib2
+{
+    public LibBase libBase = new LibBase();
+}
+", new MetadataReference[] { TestReferences.NetFx.v4_0_30319.mscorlib, libBase1.ToMetadataReference() }, lib2Name);
+
+            var libBase1Image = libBase1.EmitToArray();
+            var libBase2Image = libBase2.EmitToArray();
+            var lib1Image = lib1.EmitToArray();
+            var lib2Image = lib2.EmitToArray();
+
+            var root = Temp.CreateDirectory();
+            var dir1 = root.CreateDirectory("1");
+            var file1 = dir1.CreateFile(lib1Name + ".dll").WriteAllBytes(lib1Image);
+            var fileBase1 = dir1.CreateFile(libBaseName + ".dll").WriteAllBytes(libBase1Image);
+
+            var dir2 = root.CreateDirectory("2");
+            var file2 = dir2.CreateFile(lib2Name + ".dll").WriteAllBytes(lib2Image);
+            var fileBase2 = dir2.CreateFile(libBaseName + ".dll").WriteAllBytes(libBase2Image);
+
+            var s0 = await CSharpScript.RunAsync($@"#r ""{file1.Path}""");
+            var s1 = await s0.ContinueWithAsync($@"new Lib1().libBase.X");
+            var s2 = await s1.ContinueWithAsync($@"#r ""{file2.Path}""");
+
+            bool exceptionSeen = false;
+            try
+            {
+                await s2.ContinueWithAsync($@"new Lib2().libBase.X");
+            }
+            catch (FileLoadException fileLoadEx) when (fileLoadEx.InnerException is InteractiveAssemblyLoaderException)
+            {
+                exceptionSeen = true;
+            }
+
+            Assert.True(exceptionSeen);
+        }
+
+        [Fact]
+        public async Task SharedLibCopy_DifferentVersion_Weak()
+        {
+            string libBaseName = "LibBase_" + Guid.NewGuid();
+            string lib1Name = "Lib1_" + Guid.NewGuid();
+            string lib2Name = "Lib2_" + Guid.NewGuid();
+
+            var libBase1 = CreateCSharpCompilation(@"
+[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")]
+public class LibBase
+{
+    public readonly int X = 1;
+}
+", new[] { TestReferences.NetFx.v4_0_30319.mscorlib }, libBaseName);
+
+            var libBase2 = CreateCSharpCompilation(@"
+[assembly: System.Reflection.AssemblyVersion(""2.0.0.0"")]
+public class LibBase
+{
+    public readonly int X = 2;
+}
+", new[] { TestReferences.NetFx.v4_0_30319.mscorlib }, libBaseName);
+
+            var lib1 = CreateCSharpCompilation(@"
+public class Lib1
+{
+    public LibBase libBase = new LibBase();
+}
+", new MetadataReference[] { TestReferences.NetFx.v4_0_30319.mscorlib, libBase1.ToMetadataReference() }, lib1Name);
+
+            var lib2 = CreateCSharpCompilation(@"
+public class Lib2
+{
+    public LibBase libBase = new LibBase();
+}
+", new MetadataReference[] { TestReferences.NetFx.v4_0_30319.mscorlib, libBase2.ToMetadataReference() }, lib2Name);
+
+            var libBase1Image = libBase1.EmitToArray();
+            var libBase2Image = libBase2.EmitToArray();
+            var lib1Image = lib1.EmitToArray();
+            var lib2Image = lib2.EmitToArray();
+
+            var root = Temp.CreateDirectory();
+            var dir1 = root.CreateDirectory("1");
+            var file1 = dir1.CreateFile(lib1Name + ".dll").WriteAllBytes(lib1Image);
+            var fileBase1 = dir1.CreateFile(libBaseName + ".dll").WriteAllBytes(libBase1Image);
+
+            var dir2 = root.CreateDirectory("2");
+            var file2 = dir2.CreateFile(lib2Name + ".dll").WriteAllBytes(lib2Image);
+            var fileBase2 = dir2.CreateFile(libBaseName + ".dll").WriteAllBytes(libBase2Image);
+
+            var s0 = await CSharpScript.RunAsync($@"#r ""{file1.Path}""");
+            var s1 = await s0.ContinueWithAsync($@"var l1 = new Lib1().libBase.X;");
+            var s2 = await s1.ContinueWithAsync($@"#r ""{file2.Path}""");
+
+            bool exceptionSeen = false;
+            try
+            {
+                await s2.ContinueWithAsync($@"var l2 = new Lib2().libBase.X;");
+            }
+            catch (FileLoadException fileLoadEx) when (fileLoadEx.InnerException is InteractiveAssemblyLoaderException)
+            {
+                exceptionSeen = true;
+            }
+
+            Assert.True(exceptionSeen);
+        }
+
+        [Fact]
+        public async Task SharedLibCopy_DifferentVersion_Strong()
+        {
+            string libBaseName = "LibBase_" + Guid.NewGuid();
+            string lib1Name = "Lib1_" + Guid.NewGuid();
+            string lib2Name = "Lib2_" + Guid.NewGuid();
+
+            var libBase1 = CreateCSharpCompilation(@"
+[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")]
+public class LibBase
+{
+    public readonly int X = 1;
+}
+", new[] { TestReferences.NetFx.v4_0_30319.mscorlib }, libBaseName, s_signedDll);
+
+            var libBase2 = CreateCSharpCompilation(@"
+[assembly: System.Reflection.AssemblyVersion(""2.0.0.0"")]
+public class LibBase
+{
+    public readonly int X = 2;
+}
+", new[] { TestReferences.NetFx.v4_0_30319.mscorlib }, libBaseName, s_signedDll);
+
+            var lib1 = CreateCSharpCompilation(@"
+public class Lib1
+{
+    public LibBase libBase = new LibBase();
+}
+", new MetadataReference[] { TestReferences.NetFx.v4_0_30319.mscorlib, libBase1.ToMetadataReference() }, lib1Name);
+
+            var lib2 = CreateCSharpCompilation(@"
+public class Lib2
+{
+    public LibBase libBase = new LibBase();
+}
+", new MetadataReference[] { TestReferences.NetFx.v4_0_30319.mscorlib, libBase2.ToMetadataReference() }, lib2Name);
+
+            var libBase1Image = libBase1.EmitToArray();
+            var libBase2Image = libBase2.EmitToArray();
+            var lib1Image = lib1.EmitToArray();
+            var lib2Image = lib2.EmitToArray();
+
+            var root = Temp.CreateDirectory();
+            var dir1 = root.CreateDirectory("1");
+            var file1 = dir1.CreateFile(lib1Name + ".dll").WriteAllBytes(lib1Image);
+            var fileBase1 = dir1.CreateFile(libBaseName + ".dll").WriteAllBytes(libBase1Image);
+
+            var dir2 = root.CreateDirectory("2");
+            var file2 = dir2.CreateFile(lib2Name + ".dll").WriteAllBytes(lib2Image);
+            var fileBase2 = dir2.CreateFile(libBaseName + ".dll").WriteAllBytes(libBase2Image);
+
+            var s0 = await CSharpScript.RunAsync($@"#r ""{file1.Path}""");
+            var s1 = await s0.ContinueWithAsync($@"new Lib1().libBase.X");
+            Assert.Equal(1, s1.ReturnValue);
+            var s2 = await s1.ContinueWithAsync($@"#r ""{file2.Path}""");
+            var s3 = await s2.ContinueWithAsync($@"new Lib2().libBase.X");
+            Assert.Equal(2, s3.ReturnValue);
+        }
+
+        [Fact, WorkItem(6457, "https://github.com/dotnet/roslyn/issues/6457")]
+        public async Task MissingReferencesReuse()
+        {
+            var source = @"
+public class C
+{
+    public System.Diagnostics.Process P;
+}
+";
+
+            var lib = CSharpCompilation.Create(
+                "Lib",
+                new[] { SyntaxFactory.ParseSyntaxTree(source) },
+                new[] { TestReferences.NetFx.v4_0_30319.mscorlib, TestReferences.NetFx.v4_0_30319.System },
+                new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+
+            var libFile = Temp.CreateFile("lib").WriteAllBytes(lib.EmitToArray());
+
+            var s0 = await CSharpScript.RunAsync("C c;", ScriptOptions.Default.WithReferences(libFile.Path));
+            var s1 = await s0.ContinueWithAsync("c = new C()");
         }
     }
 }

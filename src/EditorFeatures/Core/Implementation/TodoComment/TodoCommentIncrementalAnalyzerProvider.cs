@@ -7,7 +7,6 @@ using System.Composition;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.Common;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
@@ -71,8 +70,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
 
         private TodoCommentIncrementalAnalyzer TryGetAnalyzer(Workspace workspace)
         {
-            TodoCommentIncrementalAnalyzer analyzer;
-            if (s_analyzers.TryGetValue(workspace, out analyzer))
+            if (s_analyzers.TryGetValue(workspace, out var analyzer))
             {
                 return analyzer;
             }

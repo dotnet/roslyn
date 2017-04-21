@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
             public bool IsConstant { get; private set; }
             public bool IsIndexer { get; private set; }
             public bool IsContainedInUnsafeType { get; private set; }
-            public IList<IParameterSymbol> Parameters { get; private set; }
+            public ImmutableArray<IParameterSymbol> Parameters { get; private set; }
 
             // Just the name of the method.  i.e. "Foo" in "Foo" or "X.Foo"
             public SyntaxToken IdentifierToken { get; private set; }
@@ -135,12 +135,9 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 SyntaxNode propertyDeclaration,
                 CancellationToken cancellationToken)
             {
-                SyntaxToken identifierToken;
-                IPropertySymbol propertySymbol;
-                INamedTypeSymbol typeToGenerateIn;
                 if (!service.TryInitializeExplicitInterfaceState(
                     document, propertyDeclaration, cancellationToken,
-                    out identifierToken, out propertySymbol, out typeToGenerateIn))
+                    out var identifierToken, out var propertySymbol, out var typeToGenerateIn))
                 {
                     return false;
                 }
@@ -183,13 +180,9 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 TSimpleNameSyntax simpleName,
                 CancellationToken cancellationToken)
             {
-                SyntaxToken identifierToken;
-                TExpressionSyntax simpleNameOrMemberAccessExpression;
-                bool isInExecutableBlock;
-                bool isInConditionalAccessExpression;
                 if (!service.TryInitializeIdentifierNameState(
                     document, simpleName, cancellationToken,
-                    out identifierToken, out simpleNameOrMemberAccessExpression, out isInExecutableBlock, out isInConditionalAccessExpression))
+                    out var identifierToken, out var simpleNameOrMemberAccessExpression, out var isInExecutableBlock, out var isInConditionalAccessExpression))
                 {
                     return false;
                 }
@@ -240,10 +233,8 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 // to generate a method here.  Determine where the user wants to generate the method
                 // into, and if it's valid then proceed.
                 cancellationToken.ThrowIfCancellationRequested();
-                INamedTypeSymbol typeToGenerateIn;
-                bool isStatic;
                 if (!service.TryDetermineTypeToGenerateIn(document, this.ContainingType, this.SimpleNameOrMemberAccessExpressionOpt, cancellationToken,
-                    out typeToGenerateIn, out isStatic))
+                    out var typeToGenerateIn, out var isStatic))
                 {
                     return false;
                 }
@@ -270,9 +261,9 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
             {
                 var typeInference = document.Project.LanguageServices.GetService<ITypeInferenceService>();
                 var inferredType = typeInference.InferType(
-                    document.SemanticModel, this.SimpleNameOrMemberAccessExpressionOpt,
-                    objectAsDefault: true,
-                    cancellationToken: cancellationToken);
+                    document.SemanticModel, this.SimpleNameOrMemberAccessExpressionOpt, objectAsDefault: true,
+                    nameOpt: this.IdentifierToken.ValueText, cancellationToken: cancellationToken);
+
                 var compilation = document.SemanticModel.Compilation;
                 inferredType = inferredType.SpecialType == SpecialType.System_Void
                     ? compilation.ObjectType

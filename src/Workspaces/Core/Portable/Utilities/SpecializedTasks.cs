@@ -11,11 +11,21 @@ namespace Roslyn.Utilities
     {
         public static readonly Task<bool> True = Task.FromResult<bool>(true);
         public static readonly Task<bool> False = Task.FromResult<bool>(false);
-        public static readonly Task EmptyTask = Empty<object>.Default;
+        public static readonly Task EmptyTask = Task.CompletedTask;
 
         public static Task<T> Default<T>()
         {
             return Empty<T>.Default;
+        }
+
+        public static Task<T> DefaultOrResult<T>(T value)
+        {
+            if (EqualityComparer<T>.Default.Equals(value, default(T)))
+            {
+                return Default<T>();
+            }
+
+            return Task.FromResult(value);
         }
 
         public static Task<ImmutableArray<T>> EmptyImmutableArray<T>()

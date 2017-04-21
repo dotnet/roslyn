@@ -3,7 +3,6 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Host
@@ -72,9 +71,7 @@ namespace Microsoft.CodeAnalysis.Host
         public override T GetValue(CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-
-            T instance;
-            if (!_weakInstance.TryGetTarget(out instance))
+            if (!_weakInstance.TryGetTarget(out var instance))
             {
                 Task saveTask = null;
                 using (this.Gate.DisposableWait(cancellationToken))
@@ -94,8 +91,7 @@ namespace Microsoft.CodeAnalysis.Host
 
         public override async Task<T> GetValueAsync(CancellationToken cancellationToken)
         {
-            T instance;
-            if (!_weakInstance.TryGetTarget(out instance))
+            if (!_weakInstance.TryGetTarget(out var instance))
             {
                 Task saveTask = null;
                 using (await this.Gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))

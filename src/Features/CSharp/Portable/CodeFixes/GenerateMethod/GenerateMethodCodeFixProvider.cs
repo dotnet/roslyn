@@ -49,8 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateMethod
     }
 
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.GenerateMethod), Shared]
-    [ExtensionOrder(Before = PredefinedCodeFixProviderNames.PopulateSwitch)]
-    [ExtensionOrder(After = PredefinedCodeFixProviderNames.GenerateEnumMember)]
+    [ExtensionOrder(After = PredefinedCodeFixProviderNames.GenerateEnumMember, Before = PredefinedCodeFixProviderNames.PopulateSwitch)]
     internal class GenerateMethodCodeFixProvider : AbstractGenerateMemberCodeFixProvider
     {
         public override ImmutableArray<string> FixableDiagnosticIds { get; } = 
@@ -84,7 +83,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateMethod
             return node;
         }
 
-        protected override Task<IEnumerable<CodeAction>> GetCodeActionsAsync(Document document, SyntaxNode node, CancellationToken cancellationToken)
+        protected override Task<ImmutableArray<CodeAction>> GetCodeActionsAsync(
+            Document document, SyntaxNode node, CancellationToken cancellationToken)
         {
             var service = document.GetLanguageService<IGenerateParameterizedMemberService>();
             return service.GenerateMethodAsync(document, node, cancellationToken);

@@ -6,8 +6,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SymbolDisplay
 {
-    internal abstract partial class AbstractSymbolDisplayVisitor<TSemanticModel> : SymbolVisitor
-        where TSemanticModel : SemanticModel
+    internal abstract partial class AbstractSymbolDisplayVisitor : SymbolVisitor
     {
         protected abstract bool ShouldRestrictMinimallyQualifyLookupToNamespacesAndTypes();
 

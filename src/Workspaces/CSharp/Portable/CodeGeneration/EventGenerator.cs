@@ -77,7 +77,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             var declaration = GenerateEventDeclaration(@event, GetDestination(destination), options);
 
             var members = Insert(destination.Members, declaration, options, availableIndices,
-                after: list => AfterMember(list, declaration), before: list => BeforeMember(list, declaration));
+                after: list => AfterMember(list, declaration), 
+                before: list => BeforeMember(list, declaration));
 
             // Find the best place to put the field.  It should go after the last field if we already
             // have fields, or at the beginning of the file if we don't.

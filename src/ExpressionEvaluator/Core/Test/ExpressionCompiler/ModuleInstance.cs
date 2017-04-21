@@ -2,12 +2,9 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Diagnostics;
-using System.Linq;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Reflection.PortableExecutable;
-using System.Runtime.InteropServices;
 using Microsoft.DiaSymReader;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
@@ -40,24 +37,36 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
             _includeLocalSignatures = includeLocalSignatures;
         }
 
-        public static ModuleInstance Create(IntPtr metadataAddress, int metadataLength, Guid moduleVersionId)
+        public unsafe static ModuleInstance Create(
+            PEMemoryBlock metadata,
+            Guid moduleVersionId,
+            ISymUnmanagedReader symReader = null)
+        {
+            return Create((IntPtr)metadata.Pointer, metadata.Length, moduleVersionId, symReader);
+        }
+
+        public static ModuleInstance Create(
+            IntPtr metadataAddress,
+            int metadataLength,
+            Guid moduleVersionId,
+            ISymUnmanagedReader symReader = null)
         {
             return new ModuleInstance(
                 metadata: null,
                 moduleVersionId: moduleVersionId,
                 metadataLength: metadataLength,
                 metadataAddress: metadataAddress,
-                symReader: null,
+                symReader: symReader,
                 includeLocalSignatures: false);
         }
 
-        public unsafe static ModuleInstance Create(PortableExecutableReference reference)
+        public static ModuleInstance Create(PortableExecutableReference reference)
         {
             // make a copy of the metadata, so that we don't dispose the metadata of a reference that are shared accross tests:
             return Create(reference.GetMetadata(), symReader: null, includeLocalSignatures: false);
         }
 
-        public unsafe static ModuleInstance Create(ImmutableArray<byte> assemblyImage, ISymUnmanagedReader symReader, bool includeLocalSignatures = true)
+        public static ModuleInstance Create(ImmutableArray<byte> assemblyImage, ISymUnmanagedReader symReader, bool includeLocalSignatures = true)
         {
             // create a new instance of metadata, the resulting object takes an ownership:
             return Create(AssemblyMetadata.CreateFromImage(assemblyImage), symReader, includeLocalSignatures);

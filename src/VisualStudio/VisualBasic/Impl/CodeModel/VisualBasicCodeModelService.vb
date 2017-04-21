@@ -1048,6 +1048,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
             Return GetExternalSymbolFullName(symbol)
         End Function
 
+        Public Overrides Function IsExpressionBodiedProperty(node As SyntaxNode) As Boolean
+            Return False
+        End Function
+
+        Public Overrides Function TryGetAutoPropertyExpressionBody(parentNode As SyntaxNode, ByRef accessorNode As SyntaxNode) As Boolean
+            Return False
+        End Function
+
         Public Overrides Function IsAccessorNode(node As SyntaxNode) As Boolean
             Select Case node.Kind
                 Case SyntaxKind.GetAccessorBlock,
@@ -2179,7 +2187,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 If trivia.Kind = SyntaxKind.CommentTrivia Then
                     firstCommentFound = True
                     commentList.Add(trivia)
-                ElseIf Not firstCommentFound AndAlso trivia.IsWhitespace() Then
+                ElseIf Not firstCommentFound AndAlso trivia.IsWhitespaceOrEndOfLine() Then
                     Continue For
                 ElseIf firstCommentFound AndAlso trivia.Kind = SyntaxKind.EndOfLineTrivia AndAlso nextTrivia.Kind = SyntaxKind.CommentTrivia Then
                     Continue For

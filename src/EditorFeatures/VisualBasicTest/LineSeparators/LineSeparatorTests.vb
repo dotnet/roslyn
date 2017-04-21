@@ -1,17 +1,11 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.LineSeparators
 Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.VisualStudio.Text
-Imports Roslyn.Test.EditorUtilities
-Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineSeparators
     Public Class LineSeparatorTests
@@ -290,7 +284,7 @@ End Class")
         End Function
 
         Private Async Function GetSpansForAsync(content As String) As Tasks.Task(Of IEnumerable(Of TextSpan))
-            Using workspace = Await TestWorkspace.CreateVisualBasicAsync(content)
+            Using workspace = TestWorkspace.CreateVisualBasic(content)
                 Dim document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id)
                 Dim spans = Await New VisualBasicLineSeparatorService().GetLineSeparatorsAsync(document,
                     (Await document.GetSyntaxRootAsync()).FullSpan)

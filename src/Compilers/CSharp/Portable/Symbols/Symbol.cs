@@ -9,7 +9,6 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.Collections;
-using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
@@ -392,67 +391,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Returns true if this symbol was declared with the <c>replace</c> modifier.
-        /// </summary>
-        /// <remarks>
-        /// Set for original definitions from source only.
-        /// </remarks>
-        internal virtual bool IsReplace
-        {
-            get { return false; }
-        }
-
-        /// <summary>
-        /// The symbol that this symbol replaces where this symbol was defined with the
-        /// <c>replace</c> modifier.
-        /// </summary>
-        /// <remarks>
-        /// The <see cref="Replaced"/> and <see cref="ReplacedBy"/> symbols reference each other.
-        /// The <see cref="ReplacedBy"/> symbol is included in <see cref="NamedTypeSymbol.GetMembers()"/>
-        /// on the containing type while the <see cref="Replaced"/> symbol is only available from
-        /// <see cref="Replaced"/>.
-        /// The <see cref="Replaced"/> and <see cref="ReplacedBy"/> properties are set for original
-        /// definitions from source only and should only be used for symbols defined in the
-        /// <see cref="Compilation.Assembly"/>. Specifically, the property values are not guaranteed
-        /// for symbols from a <see cref="CompilationReference"/> since the properties will be set
-        /// for source symbols but not set for retargeting symbols.
-        /// </remarks>
-        internal virtual Symbol Replaced
-        {
-            get { return null; }
-        }
-
-        /// <summary>
-        /// The symbol that this symbol is replaced by where the other symbol was defined
-        /// with the <c>replace</c> modifier. 
-        /// </summary>
-        /// <remarks>
-        /// The <see cref="Replaced"/> and <see cref="ReplacedBy"/> symbols reference each other.
-        /// The <see cref="ReplacedBy"/> symbol is included in <see cref="NamedTypeSymbol.GetMembers()"/>
-        /// on the containing type while the <see cref="Replaced"/> symbol is only available from
-        /// <see cref="Replaced"/>.
-        /// The <see cref="Replaced"/> and <see cref="ReplacedBy"/> properties are set for original
-        /// definitions from source only and should only be used for symbols defined in the
-        /// <see cref="Compilation.Assembly"/>. Specifically, the property values are not guaranteed
-        /// for symbols from a <see cref="CompilationReference"/> since the properties will be set
-        /// for source symbols but not set for retargeting symbols.
-        /// </remarks>
-        internal virtual Symbol ReplacedBy
-        {
-            get { return null; }
-        }
-
-        internal virtual void SetReplaced(Symbol replaced)
-        {
-            throw ExceptionUtilities.Unreachable;
-        }
-
-        internal virtual void SetReplacedBy(Symbol replacedBy)
-        {
-            throw ExceptionUtilities.Unreachable;
-        }
-
-        /// <summary>
         /// Returns true if this symbol can be referenced by its name in code. Examples of symbols
         /// that cannot be referenced by name are:
         ///    constructors, destructors, operators, explicit interface implementations,
@@ -526,6 +464,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case SymbolKind.Assembly:
                     case SymbolKind.DynamicType:
                     case SymbolKind.NetModule:
+                    case SymbolKind.Discard:
                         return false;
 
                     default:
@@ -814,7 +753,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return $"{this.Kind} {this.ToDisplayString(SymbolDisplayFormat.TestFormat)}";
         }
 
-        internal void AddDeclarationDiagnostics(DiagnosticBag diagnostics)
+        internal virtual void AddDeclarationDiagnostics(DiagnosticBag diagnostics)
         {
             if (!diagnostics.IsEmptyWithoutResolution)
             {
@@ -977,6 +916,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal bool DeriveUseSiteDiagnosticFromParameter(ref DiagnosticInfo result, ParameterSymbol param)
         {
             return DeriveUseSiteDiagnosticFromType(ref result, param.Type) ||
+                   DeriveUseSiteDiagnosticFromCustomModifiers(ref result, param.RefCustomModifiers) ||
                    DeriveUseSiteDiagnosticFromCustomModifiers(ref result, param.CustomModifiers);
         }
 
@@ -1045,6 +985,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             foreach (var parameter in parameters)
             {
                 if (parameter.Type.GetUnificationUseSiteDiagnosticRecursive(ref result, owner, ref checkedTypes) ||
+                    GetUnificationUseSiteDiagnosticRecursive(ref result, parameter.RefCustomModifiers, owner, ref checkedTypes) ||
                     GetUnificationUseSiteDiagnosticRecursive(ref result, parameter.CustomModifiers, owner, ref checkedTypes))
                 {
                     return true;
@@ -1145,6 +1086,29 @@ namespace Microsoft.CodeAnalysis.CSharp
             SymbolDisplayFormat format = null)
         {
             return SymbolDisplay.ToMinimalDisplayParts(this, semanticModel, position, format);
+        }
+
+        protected static void ReportErrorIfHasConstraints(
+            SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, DiagnosticBag diagnostics)
+        {
+            if (constraintClauses.Count > 0)
+            {
+                diagnostics.Add(
+                    ErrorCode.ERR_ConstraintOnlyAllowedOnGenericDecl,
+                    constraintClauses[0].WhereKeyword.GetLocation());
+            }
+        }
+
+        internal static void CheckForBlockAndExpressionBody(
+            CSharpSyntaxNode block,
+            CSharpSyntaxNode expression,
+            CSharpSyntaxNode syntax,
+            DiagnosticBag diagnostics)
+        {
+            if (block != null && expression != null)
+            {
+                diagnostics.Add(ErrorCode.ERR_BlockBodyAndExpressionBody, syntax.GetLocation());
+            }
         }
 
         #region ISymbol Members

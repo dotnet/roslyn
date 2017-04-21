@@ -19,6 +19,9 @@ x64/
 # Enable "build/" folder in the NuGet Packages folder since NuGet packages use it for MSBuild targets
 !packages/*/build/
 
+# Prevent accidental re-checkin of NuGet.exe
+NuGet.exe
+
 # NuGet restore semaphore
 build/ToolsetPackages/toolsetpackages.semaphore
 
@@ -72,6 +75,7 @@ ipch/
 *.sdf
 *.cachefile
 *.VC.opendb
+*.VC.db
 
 # Visual Studio profiler
 *.psess
@@ -172,3 +176,6 @@ $RECYCLE.BIN/
 
 # Mac desktop service store files
 .DS_Store
+
+# Visual Studio Code
+.vscode/

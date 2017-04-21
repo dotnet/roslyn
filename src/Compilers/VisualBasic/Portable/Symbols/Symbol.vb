@@ -1,19 +1,13 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Collections.Generic
 Imports System.Collections.Immutable
 Imports System.Globalization
 Imports System.Runtime.InteropServices
-Imports System.Text
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 Imports Display = Microsoft.CodeAnalysis.VisualBasic.SymbolDisplay
-Imports Microsoft.CodeAnalysis.Diagnostics
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
@@ -875,10 +869,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If errorInfo IsNot Nothing Then
                 Select Case errorInfo.Code
-                    Case ERRID.ERR_UnreferencedModuleBase3,
-                         ERRID.ERR_UnreferencedModuleImplements3
-                        errorInfo = ErrorFactory.ErrorInfo(ERRID.ERR_UnreferencedModule3, errorInfo.Arguments(0), errorInfo.Arguments(1))
-
                     Case ERRID.ERR_UnsupportedType1
 
                         Select Case Me.Kind
@@ -928,19 +918,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return errorInfo
             End If
 
-            Dim modifiersErrorInfo As DiagnosticInfo = DeriveUseSiteErrorInfoFromCustomModifiers(param.CustomModifiers)
+            Dim refModifiersErrorInfo As DiagnosticInfo = DeriveUseSiteErrorInfoFromCustomModifiers(param.RefCustomModifiers)
 
-            If modifiersErrorInfo IsNot Nothing Then
-                If modifiersErrorInfo.Code = highestPriorityUseSiteError Then
-                    Return modifiersErrorInfo
-                End If
-
-                If errorInfo Is Nothing Then
-                    Return modifiersErrorInfo
-                End If
+            If refModifiersErrorInfo IsNot Nothing AndAlso refModifiersErrorInfo.Code = highestPriorityUseSiteError Then
+                Return refModifiersErrorInfo
             End If
 
-            Return errorInfo
+            Dim modifiersErrorInfo As DiagnosticInfo = DeriveUseSiteErrorInfoFromCustomModifiers(param.CustomModifiers)
+
+            If modifiersErrorInfo IsNot Nothing AndAlso modifiersErrorInfo.Code = highestPriorityUseSiteError Then
+                Return modifiersErrorInfo
+            End If
+
+            Return If(errorInfo, If(refModifiersErrorInfo, modifiersErrorInfo))
         End Function
 
         Friend Function DeriveUseSiteErrorInfoFromParameters(parameters As ImmutableArray(Of ParameterSymbol)) As DiagnosticInfo
@@ -1012,7 +1002,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Overloads Shared Function GetUnificationUseSiteDiagnosticRecursive(parameters As ImmutableArray(Of ParameterSymbol), owner As Symbol, ByRef checkedTypes As HashSet(Of TypeSymbol)) As DiagnosticInfo
             For Each parameter In parameters
                 Dim info = If(parameter.Type.GetUnificationUseSiteDiagnosticRecursive(owner, checkedTypes),
-                              GetUnificationUseSiteDiagnosticRecursive(parameter.CustomModifiers, owner, checkedTypes))
+                              If(GetUnificationUseSiteDiagnosticRecursive(parameter.RefCustomModifiers, owner, checkedTypes),
+                                    GetUnificationUseSiteDiagnosticRecursive(parameter.CustomModifiers, owner, checkedTypes)))
 
                 If info IsNot Nothing Then
                     Return info

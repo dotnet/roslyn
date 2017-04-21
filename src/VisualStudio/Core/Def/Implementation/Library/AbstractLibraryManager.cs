@@ -19,8 +19,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library
             var vsShell = serviceProvider.GetService(typeof(SVsShell)) as IVsShell;
             if (vsShell != null)
             {
-                object varImageList;
-                int hresult = vsShell.GetProperty((int)__VSSPROPID.VSSPROPID_ObjectMgrTypesImgList, out varImageList);
+                int hresult = vsShell.GetProperty((int)__VSSPROPID.VSSPROPID_ObjectMgrTypesImgList, out var varImageList);
                 if (ErrorHandler.Succeeded(hresult) && varImageList != null)
                 {
                     _imageListPtr = (IntPtr)(int)varImageList;

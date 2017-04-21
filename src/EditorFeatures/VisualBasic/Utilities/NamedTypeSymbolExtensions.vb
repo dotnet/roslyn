@@ -2,7 +2,6 @@
 
 Imports System.Runtime.CompilerServices
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Utilities
     Friend Module NamedTypeSymbolExtensions

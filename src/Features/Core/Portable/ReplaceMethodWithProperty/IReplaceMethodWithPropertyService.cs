@@ -2,6 +2,7 @@
 
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
 {
@@ -12,7 +13,11 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
         void ReplaceGetReference(SyntaxEditor editor, SyntaxToken nameToken, string propertyName, bool nameChanged);
         void ReplaceSetReference(SyntaxEditor editor, SyntaxToken nameToken, string propertyName, bool nameChanged);
 
-        void ReplaceGetMethodWithProperty(SyntaxEditor editor, SemanticModel semanticModel, GetAndSetMethods getAndSetMethods, string propertyName, bool nameChanged);
+        void ReplaceGetMethodWithProperty(
+            DocumentOptionSet documentOptions, ParseOptions parseOptions,
+            SyntaxEditor editor, SemanticModel semanticModel,
+            GetAndSetMethods getAndSetMethods, string propertyName, bool nameChanged);
+
         void RemoveSetMethod(SyntaxEditor editor, SyntaxNode setMethodDeclaration);
     }
 

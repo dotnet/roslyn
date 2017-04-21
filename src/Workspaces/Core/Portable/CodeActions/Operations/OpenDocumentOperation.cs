@@ -15,19 +15,11 @@ namespace Microsoft.CodeAnalysis.CodeActions
 
         public OpenDocumentOperation(DocumentId documentId, bool activateIfAlreadyOpen = false)
         {
-            if (documentId == null)
-            {
-                throw new ArgumentNullException(nameof(documentId));
-            }
-
-            _documentId = documentId;
+            _documentId = documentId ?? throw new ArgumentNullException(nameof(documentId));
             _activate = activateIfAlreadyOpen;
         }
 
-        public DocumentId DocumentId
-        {
-            get { return _documentId; }
-        }
+        public DocumentId DocumentId => _documentId;
 
         public override void Apply(Workspace workspace, CancellationToken cancellationToken)
         {

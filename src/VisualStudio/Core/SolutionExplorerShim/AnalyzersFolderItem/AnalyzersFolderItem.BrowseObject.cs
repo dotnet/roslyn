@@ -18,7 +18,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
             public override string GetClassName()
             {
-                return SolutionExplorerShim.AnalyzersFolderItem_PropertyWindowClassName;
+                return SolutionExplorerShim.Folder_Properties;
             }
 
             public override string GetComponentName()

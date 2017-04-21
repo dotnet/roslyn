@@ -50,7 +50,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary> 
         ''' The root node of the syntax tree that this binding is based on.
         ''' </summary> 
-        Friend Overrides ReadOnly Property Root As VisualBasicSyntaxNode
+        Friend Overrides ReadOnly Property Root As SyntaxNode
             Get
                 Return DirectCast(_syntaxTree.GetRoot(), VisualBasicSyntaxNode)
             End Get
@@ -166,7 +166,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return model
         End Function
 
-        Friend Function GetMemberSemanticModel(node As VisualBasicSyntaxNode) As MemberSemanticModel
+        Friend Function GetMemberSemanticModel(node As SyntaxNode) As MemberSemanticModel
             Return GetMemberSemanticModel(node.SpanStart)
         End Function
 
@@ -351,7 +351,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Friend Overrides Function GetOperationWorker(node As VisualBasicSyntaxNode, options As GetOperationOptions, cancellationToken As CancellationToken) As IOperation
-            Dim model As MemberSemanticModel = Me.GetMemberSemanticModel(node)
+            Dim model As MemberSemanticModel
+
+            Dim methodBlock = TryCast(node, MethodBlockBaseSyntax)
+            If methodBlock IsNot Nothing Then
+                ' Trying to get the MemberSemanticModel for a MethodBlock will end up returning
+                ' nothing.  That's because trying to get Binder for the MethodBlock will actually
+                ' return the binder for the containing type.  To avoid this we ask for the model
+                ' passing in a position at the end of the method's starting block-statement.
+                ' This will cause it to try to get the interior MemberSemanticModel.
+                model = GetMemberSemanticModel(methodBlock.BlockStatement.EndPosition)
+            Else
+                model = Me.GetMemberSemanticModel(node)
+            End If
 
             If model IsNot Nothing Then
                 Return model.GetOperationWorker(node, options, cancellationToken)
@@ -864,7 +876,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Private Function CheckSymbolLocationsAgainstSyntax(symbol As NamedTypeSymbol, nodeToCheck As VisualBasicSyntaxNode) As NamedTypeSymbol
             For Each location In symbol.Locations
-                If location.SourceTree Is Me.SyntaxTree AndAlso nodeToCheck.Span.Contains(location.SourceSpan.Start) Then
+                If location.SourceTree Is Me.SyntaxTree AndAlso nodeToCheck.Span.Contains(location.SourceSpan) Then
                     Return symbol
                 End If
             Next
@@ -1063,7 +1075,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Case SymbolKind.Method
                                 Return GetParameterSymbol(DirectCast(symbol, MethodSymbol).Parameters, parameter)
                             Case SymbolKind.Event
-                                Return GetParameterSymbol(DirectCast(symbol, EventSymbol).DelegateParameters, parameter)
+                                Dim eventSymbol As EventSymbol = DirectCast(symbol, EventSymbol)
+                                Dim type = TryCast(eventSymbol.Type, NamedTypeSymbol)
+
+                                If type?.AssociatedSymbol Is eventSymbol Then
+                                    Return GetParameterSymbol(type.DelegateInvokeMethod.Parameters, parameter)
+                                End If
+
+                                Return Nothing
+
                             Case SymbolKind.Property
                                 Return GetParameterSymbol(DirectCast(symbol, PropertySymbol).Parameters, parameter)
                             Case SymbolKind.NamedType
@@ -1310,7 +1330,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim aliasName As String = declarationSyntax.Alias.Identifier.ValueText
 
             If Not String.IsNullOrEmpty(aliasName) Then
-                Dim sourceFile = Me._sourceModule.GetSourceFile(Me.SyntaxTree)
+                Dim sourceFile = Me._sourceModule.TryGetSourceFile(Me.SyntaxTree)
+                Debug.Assert(sourceFile IsNot Nothing)
 
                 Dim aliasImports As IReadOnlyDictionary(Of String, AliasAndImportsClausePosition) = sourceFile.AliasImportsOpt
                 Dim symbol As AliasAndImportsClausePosition = Nothing

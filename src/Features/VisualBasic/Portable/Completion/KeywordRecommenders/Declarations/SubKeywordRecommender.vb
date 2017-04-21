@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Decl
                 If modifiers.CouldApplyToOneOf(PossibleDeclarationTypes.Method) AndAlso
                    modifiers.IteratorKeyword.Kind = SyntaxKind.None Then
 
-                    Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("Sub", VBFeaturesResources.SubKeywordToolTip))
+                    Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("Sub", VBFeaturesResources.Declares_the_name_parameters_and_code_that_define_a_Sub_procedure_that_is_a_procedure_that_does_not_return_a_value_to_the_calling_code))
                 End If
             End If
 
@@ -31,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Decl
             If targetToken.IsKindOrHasMatchingText(SyntaxKind.ExitKeyword) AndAlso
                context.IsInStatementBlockOfKind(SyntaxKind.SubBlock, SyntaxKind.MultiLineSubLambdaExpression) AndAlso
                Not context.IsInStatementBlockOfKind(SyntaxKind.FinallyBlock) Then
-                Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("Sub", VBFeaturesResources.ExitSubKeywordToolTip))
+                Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("Sub", VBFeaturesResources.Exits_a_Sub_procedure_and_transfers_execution_immediately_to_the_statement_following_the_call_to_the_Sub_procedure))
             End If
 
             Return SpecializedCollections.EmptyEnumerable(Of RecommendedKeyword)()

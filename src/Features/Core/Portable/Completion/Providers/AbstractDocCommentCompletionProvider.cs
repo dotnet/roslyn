@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using System.Collections.Immutable;
@@ -82,66 +83,105 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 return;
             }
 
-            var items = await GetItemsWorkerAsync(context.Document, context.Position, context.DefaultItemSpan, context.Trigger, context.CancellationToken).ConfigureAwait(false);
+            var items = await GetItemsWorkerAsync(
+                context.Document, context.Position, context.Trigger, context.CancellationToken).ConfigureAwait(false);
+
             if (items != null)
             {
                 context.AddItems(items);
             }
         }
 
-        protected abstract Task<IEnumerable<CompletionItem>> GetItemsWorkerAsync(Document document, int position, TextSpan span, CompletionTrigger trigger, CancellationToken cancellationToken);
+        protected abstract Task<IEnumerable<CompletionItem>> GetItemsWorkerAsync(Document document, int position, CompletionTrigger trigger, CancellationToken cancellationToken);
 
-        protected CompletionItem GetItem(string n, TextSpan span)
+        protected CompletionItem GetItem(string n)
         {
             if (_tagMap.ContainsKey(n))
             {
                 var value = _tagMap[n];
-                return CreateCompletionItem(span, n, value[0], value[1]);
+                return CreateCompletionItem(n, value[0], value[1]);
             }
 
-            return CreateCompletionItem(span, n);
+            return CreateCompletionItem(n);
         }
 
-        protected IEnumerable<CompletionItem> GetAttributeItem(string n, TextSpan span)
+        protected IEnumerable<CompletionItem> GetAttributeItem(string n)
         {
-            var items = _attributeMap.Where(x => x[0] == n).Select(x => CreateCompletionItem(span, x[1], x[2], x[3]));
+            var items = _attributeMap.Where(x => x[0] == n).Select(x => CreateCompletionItem(x[1], x[2], x[3]));
 
-            return items.Any() ? items : SpecializedCollections.SingletonEnumerable(CreateCompletionItem(span, n));
+            return items.Any() ? items : SpecializedCollections.SingletonEnumerable(CreateCompletionItem(n));
         }
 
-        protected IEnumerable<CompletionItem> GetAlwaysVisibleItems(TextSpan itemSpan)
+        protected IEnumerable<CompletionItem> GetAlwaysVisibleItems()
         {
-            return new[] { SeeTagName, SeeAlsoTagName, CDataPrefixTagName, CommentPrefixTagName }
-                .Select(t => GetItem(t, itemSpan));
+            return new[] { SeeTagName, SeeAlsoTagName, CDataPrefixTagName, CommentPrefixTagName }.Select(GetItem);
         }
 
-        protected IEnumerable<CompletionItem> GetNestedTags(TextSpan itemSpan)
+        protected IEnumerable<string> NestedTagNames
         {
-            return new[] { CTagName, CodeTagName, ParaTagName, ListTagName, ParamRefTagName, TypeParamRefTagName }
-                .Select(t => GetItem(t, itemSpan));
+            get { return new[] { CTagName, CodeTagName, ParaTagName, ListTagName }; }
         }
 
-        protected IEnumerable<CompletionItem> GetTopLevelRepeatableItems(TextSpan itemSpan)
+        protected IEnumerable<CompletionItem> GetNestedTags(ISymbol declaredSymbol)
         {
-            return new[] { ExceptionTagName, IncludeTagName, PermissionTagName }
-                .Select(t => GetItem(t, itemSpan));
+            return NestedTagNames.Select(GetItem)
+                                 .Concat(GetParamRefItems(declaredSymbol))
+                                 .Concat(GetTypeParamRefItems(declaredSymbol));
         }
 
-        protected IEnumerable<CompletionItem> GetListItems(TextSpan span)
+        private IEnumerable<CompletionItem> GetParamRefItems(ISymbol declaredSymbol)
         {
-            return new[] { ListHeaderTagName, TermTagName, ItemTagName, DescriptionTagName }
-                .Select(t => GetItem(t, span));
+            var parameters = declaredSymbol?.GetParameters().Select(p => p.Name).ToSet();
+
+            if (parameters == null)
+            {
+                return SpecializedCollections.EmptyEnumerable<CompletionItem>();
+            }
+
+            return parameters.Select(p => CreateCompletionItem(
+                displayText: FormatParameter(ParamRefTagName, p),
+                beforeCaretText: FormatParameterRefTag(ParamRefTagName, p),
+                afterCaretText: string.Empty));
         }
 
-        protected IEnumerable<CompletionItem> GetListHeaderItems(TextSpan span)
+        private IEnumerable<CompletionItem> GetTypeParamRefItems(ISymbol declaredSymbol)
         {
-            return new[] { TermTagName, DescriptionTagName }
-                .Select(t => GetItem(t, span));
+            var typeParameters = declaredSymbol?.GetTypeParameters().Select(t => t.Name).ToSet();
+
+            if (typeParameters == null)
+            {
+                return SpecializedCollections.EmptyEnumerable<CompletionItem>();
+            }
+
+            return typeParameters.Select(t => CreateCompletionItem(
+                displayText: FormatParameter(TypeParamRefTagName, t),
+                beforeCaretText: FormatParameterRefTag(TypeParamRefTagName, t),
+                afterCaretText: string.Empty));
+        }
+
+        protected IEnumerable<CompletionItem> GetTopLevelRepeatableItems()
+        {
+            return new[] { ExceptionTagName, IncludeTagName, PermissionTagName }.Select(GetItem);
+        }
+
+        protected IEnumerable<CompletionItem> GetListItems()
+        {
+            return new[] { ListHeaderTagName, TermTagName, ItemTagName, DescriptionTagName }.Select(GetItem);
+        }
+
+        protected IEnumerable<CompletionItem> GetListHeaderItems()
+        {
+            return new[] { TermTagName, DescriptionTagName }.Select(GetItem);
         }
 
         protected string FormatParameter(string kind, string name)
         {
             return $"{kind} {NameAttributeName}=\"{name}\"";
+        }
+
+        private string FormatParameterRefTag(string kind, string name)
+        {
+            return $"<{kind} {NameAttributeName}=\"{name}\"/>";
         }
 
         public override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitChar = default(char?), CancellationToken cancellationToken = default(CancellationToken))
@@ -168,7 +208,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             replacementText += afterCaretText;
 
-            return CompletionChange.Create(ImmutableArray.Create(new TextChange(replacementSpan, replacementText)), newPosition, includesCommitCharacter: true);
+            return CompletionChange.Create(
+                new TextChange(replacementSpan, replacementText),
+                newPosition, includesCommitCharacter: true);
         }
 
         private TextSpan ComputeReplacementSpan(CompletionItem completionItem, SourceText text)
@@ -178,15 +220,15 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return TextSpan.FromBounds(text[currentSpan.Start - 1] == '<' && beforeCaretText[0] == '<' ? currentSpan.Start - 1 : currentSpan.Start, currentSpan.End);
         }
 
-        protected CompletionItem CreateCompletionItem(TextSpan span, string displayText)
+        protected CompletionItem CreateCompletionItem(string displayText)
         {
-            return CreateCompletionItem(span, displayText, displayText, string.Empty);
+            return CreateCompletionItem(displayText, displayText, string.Empty);
         }
 
-        protected CompletionItem CreateCompletionItem(TextSpan span, string displayText, string beforeCaretText, string afterCaretText)
+        protected CompletionItem CreateCompletionItem(string displayText, string beforeCaretText, string afterCaretText)
         {
             return XmlDocCommentCompletionItem.Create(
-                span, displayText, beforeCaretText, afterCaretText, 
+                displayText, beforeCaretText, afterCaretText, 
                 rules: GetCompletionItemRules(displayText));
         }
 

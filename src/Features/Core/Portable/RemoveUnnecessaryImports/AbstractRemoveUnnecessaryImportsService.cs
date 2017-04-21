@@ -1,40 +1,55 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
 {
-    internal abstract class AbstractRemoveUnnecessaryImportsService<T> : ILanguageService, IEqualityComparer<T> where T : SyntaxNode
+    internal abstract class AbstractRemoveUnnecessaryImportsService<T> : 
+        IRemoveUnnecessaryImportsService, 
+        IUnnecessaryImportsService, 
+        IEqualityComparer<T> where T : SyntaxNode
     {
-        protected abstract IEnumerable<T> GetUnusedUsings(SemanticModel model, SyntaxNode root, CancellationToken cancellationToken);
+        public Task<Document> RemoveUnnecessaryImportsAsync(Document document, CancellationToken cancellationToken)
+            => RemoveUnnecessaryImportsAsync(document, predicate: null, cancellationToken: cancellationToken);
 
-        protected async Task<HashSet<T>> GetCommonUnnecessaryImportsOfAllContextAsync(Document document, CancellationToken cancellationToken)
+        public abstract Task<Document> RemoveUnnecessaryImportsAsync(Document fromDocument, Func<SyntaxNode, bool> predicate, CancellationToken cancellationToken);
+
+        public ImmutableArray<SyntaxNode> GetUnnecessaryImports(
+            SemanticModel model, CancellationToken cancellationToken)
+        {
+            var root = model.SyntaxTree.GetRoot(cancellationToken);
+            return GetUnnecessaryImports(model, root, predicate: null, cancellationToken: cancellationToken).CastArray<SyntaxNode>();
+        }
+
+        protected abstract ImmutableArray<T> GetUnnecessaryImports(
+            SemanticModel model, SyntaxNode root, 
+            Func<SyntaxNode, bool> predicate, CancellationToken cancellationToken);
+
+        protected async Task<HashSet<T>> GetCommonUnnecessaryImportsOfAllContextAsync(
+            Document document, Func<SyntaxNode, bool> predicate, CancellationToken cancellationToken)
         {
             var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-            var unnecessaryImports = new HashSet<T>(GetUnnecessaryImportsOrEmpty(model, root, cancellationToken), this);
+            var unnecessaryImports = new HashSet<T>(this);
+            unnecessaryImports.AddRange(GetUnnecessaryImports(
+                model, root, predicate, cancellationToken));
             foreach (var current in document.GetLinkedDocuments())
             {
                 var currentModel = await current.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                 var currentRoot = await current.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-                unnecessaryImports.IntersectWith(GetUnnecessaryImportsOrEmpty(currentModel, currentRoot, cancellationToken));
+                unnecessaryImports.IntersectWith(GetUnnecessaryImports(
+                    currentModel, currentRoot, predicate, cancellationToken));
             }
 
             return unnecessaryImports;
-        }
-
-        private IEnumerable<T> GetUnnecessaryImportsOrEmpty(SemanticModel model, SyntaxNode root, CancellationToken cancellationToken)
-        {
-            var imports = GetUnusedUsings(model, root, cancellationToken) ?? SpecializedCollections.EmptyEnumerable<T>();
-            return imports.Cast<T>();
         }
 
         bool IEqualityComparer<T>.Equals(T x, T y)

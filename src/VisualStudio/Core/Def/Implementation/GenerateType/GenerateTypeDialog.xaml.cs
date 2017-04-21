@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -32,16 +32,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
         internal static event Action TEST_DialogLoaded;
 
         // Expose localized strings for binding
-        public string GenerateTypeDialogTitle { get { return ServicesVSResources.GenerateType; } }
-        public string TypeDetails { get { return ServicesVSResources.TypeDetails; } }
-        public string Access { get { return ServicesVSResources.Access; } }
-        public string Kind { get { return ServicesVSResources.Kind; } }
-        public string NameLabel { get { return ServicesVSResources.Name; } }
-        public string Location { get { return ServicesVSResources.Location; } }
-        public string Project { get { return ServicesVSResources.Project; } }
-        public string FileName { get { return ServicesVSResources.FileName; } }
-        public string CreateNewFile { get { return ServicesVSResources.CreateNewFile; } }
-        public string AddToExistingFile { get { return ServicesVSResources.AddToExistingFile; } }
+        public string GenerateTypeDialogTitle { get { return ServicesVSResources.Generate_Type; } }
+        public string TypeDetails { get { return ServicesVSResources.Type_Details_colon; } }
+        public string Access { get { return ServicesVSResources.Access_colon; } }
+        public string Kind { get { return ServicesVSResources.Kind_colon; } }
+        public string NameLabel { get { return ServicesVSResources.Name_colon1; } }
+        public string Location { get { return ServicesVSResources.Location_colon; } }
+        public string Project { get { return ServicesVSResources.Project_colon; } }
+        public string FileName { get { return ServicesVSResources.File_Name_colon; } }
+        public string CreateNewFile { get { return ServicesVSResources.Create_new_file; } }
+        public string AddToExistingFile { get { return ServicesVSResources.Add_to_existing_file; } }
         public string OK { get { return ServicesVSResources.OK; } }
         public string Cancel { get { return ServicesVSResources.Cancel; } }
 

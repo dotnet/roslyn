@@ -14,8 +14,14 @@
         <StackPanel x:Uid="StackPanel_1">
             <GroupBox x:Uid="GroupBox_1" Header="General">
                 <StackPanel x:Uid="StackPanel_2">
-                    <CheckBox x:Name="FormatOnSemicolonCheckBox" x:Uid="FormatOnSemicolonCheckBox" />
-                    <CheckBox x:Name="FormatOnCloseBraceCheckBox" x:Uid="FormatOnCloseBraceCheckBox" />
+                    <CheckBox x:Name="FormatWhenTypingCheckBox" x:Uid="FormatWhenTypingCheckBox" 
+                              Checked="FormatWhenTypingCheckBox_Checked" 
+                              Unchecked="FormatWhenTypingCheckBox_Unchecked"/>
+                    <StackPanel Margin="15, 0, 0, 0">
+                        <CheckBox x:Name="FormatOnSemicolonCheckBox" x:Uid="FormatOnSemicolonCheckBox" />
+                        <CheckBox x:Name="FormatOnCloseBraceCheckBox" x:Uid="FormatOnCloseBraceCheckBox" />
+                    </StackPanel>
+                    <CheckBox x:Name="FormatOnReturnCheckBox" x:Uid="FormatOnReturnCheckBox" />
                     <CheckBox x:Name="FormatOnPasteCheckBox" x:Uid="FormatOnPasteCheckBox" />
                 </StackPanel>
             </GroupBox>

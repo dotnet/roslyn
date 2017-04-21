@@ -28,13 +28,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                     arrowExpr = (ArrowExpressionClauseSyntax)node;
                     break;
                 case SyntaxKind.MethodDeclaration:
-                    arrowExpr = ((MethodDeclarationSyntax)node).ExpressionBody;
-                    break;
                 case SyntaxKind.OperatorDeclaration:
-                    arrowExpr = ((OperatorDeclarationSyntax)node).ExpressionBody;
-                    break;
                 case SyntaxKind.ConversionOperatorDeclaration:
-                    arrowExpr = ((ConversionOperatorDeclarationSyntax)node).ExpressionBody;
+                case SyntaxKind.ConstructorDeclaration:
+                case SyntaxKind.DestructorDeclaration:
+                    arrowExpr = ((BaseMethodDeclarationSyntax)node).ExpressionBody;
+                    break;
+                case SyntaxKind.GetAccessorDeclaration:
+                case SyntaxKind.SetAccessorDeclaration:
+                case SyntaxKind.AddAccessorDeclaration:
+                case SyntaxKind.RemoveAccessorDeclaration:
+                case SyntaxKind.UnknownAccessorDeclaration:
+                    arrowExpr = ((AccessorDeclarationSyntax)node).ExpressionBody;
                     break;
                 case SyntaxKind.PropertyDeclaration:
                     arrowExpr = ((PropertyDeclarationSyntax)node).ExpressionBody;
@@ -42,9 +47,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.IndexerDeclaration:
                     arrowExpr = ((IndexerDeclarationSyntax)node).ExpressionBody;
                     break;
-                case SyntaxKind.ConstructorDeclaration:
-                case SyntaxKind.DestructorDeclaration:
-                    return null;
                 default:
                     // Don't throw, just use for the assert in case this is used in the semantic model
                     ExceptionUtilities.UnexpectedValue(node.Kind());
@@ -63,6 +65,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static SyntaxToken NormalizeWhitespace(this SyntaxToken token, string indentation, bool elasticTrivia)
         {
             return SyntaxNormalizer.Normalize(token, indentation, Microsoft.CodeAnalysis.SyntaxNodeExtensions.DefaultEOL, elasticTrivia);
+        }
+
+        /// <summary>
+        /// Return the identifier of an out declaration argument expression.
+        /// </summary>
+        internal static SyntaxToken Identifier(this DeclarationExpressionSyntax self)
+        {
+            return ((SingleVariableDesignationSyntax)self.Designation).Identifier;
         }
 
         /// <summary>
@@ -186,7 +196,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return SyntaxFacts.IsInTypeOnlyContext(typeNode) && IsInContextWhichNeedsDynamicAttribute(typeNode);
         }
 
-        internal static CSharpSyntaxNode SkipParens(this CSharpSyntaxNode expression)
+        internal static SyntaxNode SkipParens(this SyntaxNode expression)
         {
             while (expression != null && expression.Kind() == SyntaxKind.ParenthesizedExpression)
             {
@@ -194,6 +204,27 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return expression;
+        }
+
+        /// <summary>
+        /// Returns true if the expression on the left-hand-side of an assignment causes the assignment to be a deconstruction.
+        /// </summary>
+        internal static bool IsDeconstructionLeft(this ExpressionSyntax node)
+        {
+            switch (node.Kind())
+            {
+                case SyntaxKind.TupleExpression:
+                    return true;
+                case SyntaxKind.DeclarationExpression:
+                    return ((DeclarationExpressionSyntax)node).Designation.Kind() == SyntaxKind.ParenthesizedVariableDesignation;
+                default:
+                    return false;
+            }
+        }
+
+        internal static bool IsDeconstruction(this AssignmentExpressionSyntax self)
+        {
+            return self.Left.IsDeconstructionLeft();
         }
 
         private static bool IsInContextWhichNeedsDynamicAttribute(CSharpSyntaxNode node)
@@ -232,7 +263,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             this IndexerDeclarationSyntax syntax,
             SyntaxList<AttributeListSyntax> attributeLists,
             SyntaxTokenList modifiers,
-            SyntaxToken refKeyword,
             TypeSyntax type,
             ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier,
             SyntaxToken thisKeyword,
@@ -242,30 +272,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return syntax.Update(
                 attributeLists,
                 modifiers,
-                refKeyword,
-                type,
-                explicitInterfaceSpecifier,
-                thisKeyword,
-                parameterList,
-                accessorList,
-                default(ArrowExpressionClauseSyntax),
-                default(SyntaxToken));
-        }
-
-        public static IndexerDeclarationSyntax Update(
-            this IndexerDeclarationSyntax syntax,
-            SyntaxList<AttributeListSyntax> attributeLists,
-            SyntaxTokenList modifiers,
-            TypeSyntax type,
-            ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier,
-            SyntaxToken thisKeyword,
-            BracketedParameterListSyntax parameterList,
-            AccessorListSyntax accessorList)
-        {
-            return syntax.Update(
-                attributeLists,
-                modifiers,
-                default(SyntaxToken),
                 type,
                 explicitInterfaceSpecifier,
                 thisKeyword,
@@ -302,7 +308,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             this MethodDeclarationSyntax syntax,
             SyntaxList<AttributeListSyntax> attributeLists,
             SyntaxTokenList modifiers,
-            SyntaxToken refKeyword,
             TypeSyntax returnType,
             ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier,
             SyntaxToken identifier,
@@ -315,7 +320,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return syntax.Update(
                 attributeLists,
                 modifiers,
-                refKeyword,
                 returnType,
                 explicitInterfaceSpecifier,
                 identifier,
@@ -327,32 +331,61 @@ namespace Microsoft.CodeAnalysis.CSharp
                 semicolonToken);
         }
 
-        public static MethodDeclarationSyntax Update(
-            this MethodDeclarationSyntax syntax,
-            SyntaxList<AttributeListSyntax> attributeLists,
-            SyntaxTokenList modifiers,
-            TypeSyntax returnType,
-            ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier,
-            SyntaxToken identifier,
-            TypeParameterListSyntax typeParameterList,
-            ParameterListSyntax parameterList,
-            SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses,
-            BlockSyntax block,
-            SyntaxToken semicolonToken)
+        /// <summary>
+        /// If this declaration or identifier is part of a deconstruction, find the deconstruction.
+        /// If found, returns either an assignment expression or a foreach variable statement.
+        /// Returns null otherwise.
+        /// </summary>
+        internal static CSharpSyntaxNode GetContainingDeconstruction(this ExpressionSyntax expr)
         {
-            return syntax.Update(
-                attributeLists,
-                modifiers,
-                default(SyntaxToken),
-                returnType,
-                explicitInterfaceSpecifier,
-                identifier,
-                typeParameterList,
-                parameterList,
-                constraintClauses,
-                block,
-                default(ArrowExpressionClauseSyntax),
-                semicolonToken);
+            var kind = expr.Kind();
+            if (kind != SyntaxKind.TupleExpression && kind != SyntaxKind.DeclarationExpression && kind != SyntaxKind.IdentifierName)
+            {
+                return null;
+            }
+
+            while (true)
+            {
+                Debug.Assert(expr.Kind() == SyntaxKind.TupleExpression || expr.Kind() == SyntaxKind.DeclarationExpression || expr.Kind() == SyntaxKind.IdentifierName);
+                var parent = expr.Parent;
+                if (parent == null) { return null; }
+
+                switch (parent.Kind())
+                {
+                    case SyntaxKind.Argument:
+                        if (parent.Parent?.Kind() == SyntaxKind.TupleExpression)
+                        {
+                            expr = (TupleExpressionSyntax)parent.Parent;
+                            continue;
+                        }
+                        return null;
+                    case SyntaxKind.SimpleAssignmentExpression:
+                        if ((object)((AssignmentExpressionSyntax)parent).Left == expr)
+                        {
+                            return parent;
+                        }
+                        return null;
+                    case SyntaxKind.ForEachVariableStatement:
+                        if ((object)((ForEachVariableStatementSyntax)parent).Variable == expr)
+                        {
+                            return parent;
+                        }
+                        return null;
+                    default:
+                        return null;
+                }
+            }
+        }
+
+        internal static bool IsOutDeclaration(this DeclarationExpressionSyntax p)
+        {
+            return p.Parent?.Kind() == SyntaxKind.Argument
+                && ((ArgumentSyntax)p.Parent).RefOrOutKeyword.Kind() == SyntaxKind.OutKeyword;
+        }
+
+        internal static bool IsOutVarDeclaration(this DeclarationExpressionSyntax p)
+        {
+            return p.Designation.Kind() == SyntaxKind.SingleVariableDesignation && p.IsOutDeclaration();
         }
     }
 }

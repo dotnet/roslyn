@@ -298,10 +298,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // we could eliminate methods based on the number of arguments, but then we wouldn't be able to
             // fall back on them if no other candidates were available.
 
-            var refKind = parameter.RefKind;
-            return !isMethodGroupConversion && parameter.IsOptional &&
-                (refKind == RefKind.None ||
-                 (refKind == RefKind.Ref && parameter.ContainingSymbol.ContainingType.IsComImport));
+            return !isMethodGroupConversion && parameter.IsOptional;
         }
 
         private static int? NameUsedForPositional(AnalyzedArguments arguments, ParameterMap argsToParameters)

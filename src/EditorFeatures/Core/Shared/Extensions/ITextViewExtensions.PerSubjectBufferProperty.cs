@@ -70,8 +70,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
 
             public static void RemoveValue(TTextView textView, ITextBuffer subjectBuffer, object key)
             {
-                PerSubjectBufferProperty<TProperty, TTextView> properties;
-                if (textView.Properties.TryGetProperty(typeof(PerSubjectBufferProperty<TProperty, TTextView>), out properties))
+                if (textView.Properties.TryGetProperty(typeof(PerSubjectBufferProperty<TProperty, TTextView>), out PerSubjectBufferProperty<TProperty, TTextView> properties))
                 {
                     properties.Remove(subjectBuffer, key);
                 }
@@ -98,8 +97,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
             {
                 foreach (var buffer in e.RemovedBuffers)
                 {
-                    Dictionary<object, TProperty> value;
-                    if (_subjectBufferMap.TryGetValue(buffer, out value))
+                    if (_subjectBufferMap.TryGetValue(buffer, out var value))
                     {
                         _subjectBufferMap.Remove(buffer);
                         _buffersRemovedFromTextViewBufferGraph.Add(buffer, value);
@@ -108,8 +106,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
 
                 foreach (var buffer in e.AddedBuffers)
                 {
-                    Dictionary<object, TProperty> value;
-                    if (_buffersRemovedFromTextViewBufferGraph.TryGetValue(buffer, out value))
+                    if (_buffersRemovedFromTextViewBufferGraph.TryGetValue(buffer, out var value))
                     {
                         _subjectBufferMap[buffer] = value;
                         _buffersRemovedFromTextViewBufferGraph.Remove(buffer);
@@ -119,8 +116,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
 
             public bool TryGetValue(ITextBuffer subjectBuffer, object key, out TProperty value)
             {
-                Dictionary<object, TProperty> bufferMap;
-                if (_subjectBufferMap.TryGetValue(subjectBuffer, out bufferMap))
+                if (_subjectBufferMap.TryGetValue(subjectBuffer, out var bufferMap))
                 {
                     return bufferMap.TryGetValue(key, out value);
                 }
@@ -142,8 +138,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
 
             public void Remove(ITextBuffer subjectBuffer, object key)
             {
-                Dictionary<object, TProperty> bufferMap;
-                if (_subjectBufferMap.TryGetValue(subjectBuffer, out bufferMap))
+                if (_subjectBufferMap.TryGetValue(subjectBuffer, out var bufferMap))
                 {
                     bufferMap.Remove(key);
                     if (!bufferMap.Any())

@@ -4,14 +4,13 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Runtime.CompilerServices;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Utilities
 {
     using SymbolMap = ImmutableDictionary<INamespaceOrTypeSymbol, IAliasSymbol>;
-    using TreeMap = ConcurrentDictionary<ValueTuple<SyntaxTree, int>, ImmutableDictionary<INamespaceOrTypeSymbol, IAliasSymbol>>;
+    using TreeMap = ConcurrentDictionary<(SyntaxTree tree, int namespaceId), ImmutableDictionary<INamespaceOrTypeSymbol, IAliasSymbol>>;
 
     internal static class AliasSymbolCache
     {
@@ -28,11 +27,8 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             // currently it can't be checked since it is not exposed to common layer yet.
             // once exposed, this method itself will make sure it use original semantic model
             aliasSymbol = null;
-
-            TreeMap treeMap;
-            SymbolMap symbolMap;
-            if (!s_treeAliasMap.TryGetValue(semanticModel.Compilation, out treeMap) ||
-                !treeMap.TryGetValue(ValueTuple.Create(semanticModel.SyntaxTree, namespaceId), out symbolMap))
+            if (!s_treeAliasMap.TryGetValue(semanticModel.Compilation, out var treeMap) ||
+                !treeMap.TryGetValue((semanticModel.SyntaxTree, namespaceId), out var symbolMap))
             {
                 return false;
             }
@@ -47,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             var treeMap = s_treeAliasMap.GetValue(semanticModel.Compilation, s_createTreeMap);
 
             // check again to see whether somebody has beaten us
-            var key = ValueTuple.Create(semanticModel.SyntaxTree, namespaceId);
+            var key = (tree: semanticModel.SyntaxTree, namespaceId: namespaceId);
             if (treeMap.ContainsKey(key))
             {
                 return;

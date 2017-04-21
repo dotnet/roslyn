@@ -5,7 +5,7 @@ Imports System.Threading.Tasks
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
     Partial Public Class FindReferencesTests
         <WorkItem(541167, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541167")>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestExtensionMethodToDelegateConversion() As Task
             Dim input =
 <Workspace>
@@ -24,11 +24,11 @@ class Program
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
         <WorkItem(541697, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541697")>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestReducedExtensionMethod1() As Task
             Dim input =
 <Workspace>
@@ -56,11 +56,11 @@ public static class MyExtension
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
         <WorkItem(541697, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541697")>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestReducedExtensionMethod2() As Task
             Dim input =
 <Workspace>
@@ -88,12 +88,12 @@ public static class MyExtension
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
 #Region "Normal Visual Basic Tests"
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestVisualBasicFindReferencesOnExtensionMethod() As Task
             Dim input =
 <Workspace>
@@ -125,7 +125,7 @@ End Module]]>
     </Project>
 </Workspace>
 
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
 #End Region

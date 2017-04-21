@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editting
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editing
 {
     public class SymbolEditorTests
     {

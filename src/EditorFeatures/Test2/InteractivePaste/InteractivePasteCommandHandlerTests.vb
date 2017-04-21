@@ -10,17 +10,20 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InteractivePaste
     Public Class InteractivePasteCommandhandlerTests
+        Const ClipboardLineBasedCutCopyTag As String = "VisualStudioEditorOperationsLineCutCopyClipboardTag"
+        Const BoxSelectionCutCopyTag As String = "MSDEVColumnSelect"
+
         Private Function CreateCommandHandler(workspace As TestWorkspace) As InteractivePasteCommandHandler
             Dim handler = New InteractivePasteCommandHandler(workspace.GetService(Of IEditorOperationsFactoryService),
                                                              workspace.GetService(Of ITextUndoHistoryRegistry))
-            handler.RoslynClipBoard = New MockClipboard()
+            handler.RoslynClipboard = New MockClipboard()
             Return handler
         End Function
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Interactive)>
-        Public Async Function PasteCommandWithInteractiveFormat() As System.Threading.Tasks.Task
-            Using workspace = Await TestWorkspace.CreateAsync(
+        Public Sub PasteCommandWithInteractiveFormat()
+            Using workspace = TestWorkspace.Create(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
                             <Document/>
@@ -32,26 +35,30 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InteractivePaste
                 Dim handler = CreateCommandHandler(workspace)
                 Dim clipboard = DirectCast(handler.RoslynClipboard, MockClipboard)
 
-                Dim blocks = New BufferBlock() _
-                {
-                    New BufferBlock(ReplSpanKind.Output, "a" & vbCrLf & "bc"),
-                    New BufferBlock(ReplSpanKind.Prompt, "> "),
-                    New BufferBlock(ReplSpanKind.Prompt, "< "),
-                    New BufferBlock(ReplSpanKind.Input, "12"),
-                    New BufferBlock(ReplSpanKind.StandardInput, "3")
-                }
-                CopyToClipboard(clipboard, blocks, includeRepl:=True, isLineCopy:=False, isBoxCopy:=False)
+
+                Dim json = "
+                [
+                    {""content"":""a\u000d\u000abc"",""kind"":1},
+                    {""content"":""> "",""kind"":0},
+                    {""content"":""< "",""kind"":0},
+                    {""content"":""12"",""kind"":2},
+                    {""content"":""3"",""kind"":3},
+                ]"
+
+                Dim text = $"a{vbCrLf}bc123"
+
+                CopyToClipboard(clipboard, text, json, includeRepl:=True, isLineCopy:=False, isBoxCopy:=False)
 
                 handler.ExecuteCommand(New PasteCommandArgs(textView, textView.TextBuffer), Sub() Throw New Exception("The operation should have been handled."))
 
                 Assert.Equal("a" & vbCrLf & "bc123", textView.TextBuffer.CurrentSnapshot.GetText())
             End Using
-        End Function
+        End Sub
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Interactive)>
-        Public Async Function PasteCommandWithOutInteractiveFormat() As System.Threading.Tasks.Task
-            Using workspace = Await TestWorkspace.CreateAsync(
+        Public Sub PasteCommandWithOutInteractiveFormat()
+            Using workspace = TestWorkspace.Create(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
                             <Document/>
@@ -64,26 +71,28 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InteractivePaste
                 Dim handler = CreateCommandHandler(workspace)
                 Dim clipboard = DirectCast(handler.RoslynClipboard, MockClipboard)
 
-                Dim blocks = New BufferBlock() _
-                {
-                    New BufferBlock(ReplSpanKind.Output, "a" & vbCrLf & "bc"),
-                    New BufferBlock(ReplSpanKind.Prompt, "> "),
-                    New BufferBlock(ReplSpanKind.Prompt, "< "),
-                    New BufferBlock(ReplSpanKind.Input, "12"),
-                    New BufferBlock(ReplSpanKind.StandardInput, "3")
-                }
-                CopyToClipboard(clipboard, blocks, includeRepl:=False, isLineCopy:=False, isBoxCopy:=False)
+                Dim json = "
+[
+    {""content"":""a\u000d\u000abc"",""kind"":1},
+    {""content"":""> "",""kind"":0},
+    {""content"":""< "",""kind"":0},
+    {""content"":""12"",""kind"":2},
+    {""content"":""3"",""kind"":3}]
+]"
+                Dim text = $"a{vbCrLf}bc123"
+
+                CopyToClipboard(clipboard, Text, json, includeRepl:=False, isLineCopy:=False, isBoxCopy:=False)
 
                 handler.ExecuteCommand(New PasteCommandArgs(textView, textView.TextBuffer), Sub() editorOperations.InsertText("p"))
 
                 Assert.Equal("p", textView.TextBuffer.CurrentSnapshot.GetText())
             End Using
-        End Function
+        End Sub
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Interactive)>
-        Public Async Function PasteCommandWithInteractiveFormatAsLineCopy() As System.Threading.Tasks.Task
-            Using workspace = Await TestWorkspace.CreateAsync(
+        Public Sub PasteCommandWithInteractiveFormatAsLineCopy()
+            Using workspace = TestWorkspace.Create(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
                             <Document/>
@@ -102,24 +111,26 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InteractivePaste
                 Dim handler = CreateCommandHandler(workspace)
                 Dim clipboard = DirectCast(handler.RoslynClipboard, MockClipboard)
 
-                Dim blocks = New BufferBlock() _
-                {
-                    New BufferBlock(ReplSpanKind.Prompt, "> "),
-                    New BufferBlock(ReplSpanKind.Input, "InsertedLine"),
-                    New BufferBlock(ReplSpanKind.Output, vbCrLf)
-                }
-                CopyToClipboard(clipboard, blocks, includeRepl:=True, isLineCopy:=True, isBoxCopy:=False)
+                Dim json = "
+[
+    {""content"":""> "",""kind"":0},
+    {""content"":""InsertedLine"",""kind"":2},
+    {""content"":""\u000d\u000a"",""kind"":4}]
+]"
+                Dim text = $"InsertedLine{vbCrLf}"
+
+                CopyToClipboard(clipboard, text, json, includeRepl:=True, isLineCopy:=True, isBoxCopy:=False)
 
                 handler.ExecuteCommand(New PasteCommandArgs(textView, textView.TextBuffer), Sub() Throw New Exception("The operation should have been handled."))
 
                 Assert.Equal("line1" & vbCrLf & "InsertedLine" & vbCrLf & "    line2", textView.TextBuffer.CurrentSnapshot.GetText())
             End Using
-        End Function
+        End Sub
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Interactive)>
-        Public Async Function PasteCommandWithInteractiveFormatAsBoxCopy() As System.Threading.Tasks.Task
-            Using workspace = Await TestWorkspace.CreateAsync(
+        Public Sub PasteCommandWithInteractiveFormatAsBoxCopy()
+            Using workspace = TestWorkspace.Create(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
                             <Document/>
@@ -140,27 +151,29 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InteractivePaste
                 Dim handler = CreateCommandHandler(workspace)
                 Dim clipboard = DirectCast(handler.RoslynClipboard, MockClipboard)
 
-                Dim blocks = New BufferBlock() _
-                {
-                    New BufferBlock(ReplSpanKind.Prompt, "> "),
-                    New BufferBlock(ReplSpanKind.Input, "BoxLine1"),
-                    New BufferBlock(ReplSpanKind.LineBreak, vbCrLf),
-                    New BufferBlock(ReplSpanKind.Prompt, "> "),
-                    New BufferBlock(ReplSpanKind.Input, "BoxLine2"),
-                    New BufferBlock(ReplSpanKind.LineBreak, vbCrLf)
-                }
-                CopyToClipboard(clipboard, blocks, includeRepl:=True, isLineCopy:=False, isBoxCopy:=True)
+                Dim json = "
+[
+    {""content"":""> "",""kind"":0},
+    {""content"":""BoxLine1"",""kind"":2},
+    {""content"":""\u000d\u000a"",""kind"":4},
+    {""content"":""> "",""kind"":0},
+    {""content"":""BoxLine2"",""kind"":2},
+    {""content"":""\u000d\u000a"",""kind"":4}]
+]"
+                Dim text = $"BoxLine1{vbCrLf}BoxLine2{vbCrLf}"
+
+                CopyToClipboard(clipboard, text, json, includeRepl:=True, isLineCopy:=False, isBoxCopy:=True)
 
                 handler.ExecuteCommand(New PasteCommandArgs(textView, textView.TextBuffer), Sub() Throw New Exception("The operation should have been handled."))
 
                 Assert.Equal("lineBoxLine11" & vbCrLf & "    BoxLine2line2", textView.TextBuffer.CurrentSnapshot.GetText())
             End Using
-        End Function
+        End Sub
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Interactive)>
-        Public Async Function PasteCommandWithInteractiveFormatAsBoxCopyOnBlankLine() As System.Threading.Tasks.Task
-            Using workspace = Await TestWorkspace.CreateAsync(
+        Public Sub PasteCommandWithInteractiveFormatAsBoxCopyOnBlankLine()
+            Using workspace = TestWorkspace.Create(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
                             <Document/>
@@ -182,44 +195,46 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InteractivePaste
                 Dim handler = CreateCommandHandler(workspace)
                 Dim clipboard = DirectCast(handler.RoslynClipboard, MockClipboard)
 
-                Dim blocks = New BufferBlock() _
-                {
-                    New BufferBlock(ReplSpanKind.Prompt, "> "),
-                    New BufferBlock(ReplSpanKind.Input, "BoxLine1"),
-                    New BufferBlock(ReplSpanKind.LineBreak, vbCrLf),
-                    New BufferBlock(ReplSpanKind.Prompt, "> "),
-                    New BufferBlock(ReplSpanKind.Input, "BoxLine2"),
-                    New BufferBlock(ReplSpanKind.LineBreak, vbCrLf)
-                }
-                CopyToClipboard(clipboard, blocks, includeRepl:=True, isLineCopy:=False, isBoxCopy:=True)
+                Dim json = "
+                [
+                    {""content"":""> "",""kind"":0},
+                    {""content"":""BoxLine1"",""kind"":2},
+                    {""content"":""\u000d\u000a"",""kind"":4},
+                    {""content"":""> "",""kind"":0},
+                    {""content"":""BoxLine2"",""kind"":2},
+                    {""content"":""\u000d\u000a"",""kind"":4}
+                ]"
+
+                Dim text = $"> BoxLine1{vbCrLf}> BoxLine2{vbCrLf}"
+
+                CopyToClipboard(clipboard, text, json, includeRepl:=True, isLineCopy:=False, isBoxCopy:=True)
 
                 handler.ExecuteCommand(New PasteCommandArgs(textView, textView.TextBuffer), Sub() Throw New Exception("The operation should have been handled."))
 
                 Assert.Equal("BoxLine1" & vbCrLf & "BoxLine2" & vbCrLf & "line1" & vbCrLf & "    line2", textView.TextBuffer.CurrentSnapshot.GetText())
             End Using
-        End Function
+        End Sub
 
-        Private Sub CopyToClipboard(clipboard As MockClipboard, blocks As BufferBlock(), includeRepl As Boolean, isLineCopy As Boolean, isBoxCopy As Boolean)
+        Private Sub CopyToClipboard(clipboard As MockClipboard, text As String, json As String, includeRepl As Boolean, isLineCopy As Boolean, isBoxCopy As Boolean)
             clipboard.Clear()
+
             Dim data = New DataObject()
             Dim builder = New StringBuilder()
-            For Each block As BufferBlock In blocks
-                builder.Append(block.Content)
-            Next
-            Dim text = builder.ToString()
+
             data.SetData(DataFormats.UnicodeText, text)
             data.SetData(DataFormats.StringFormat, text)
             If includeRepl Then
-                data.SetData(InteractiveWindow.ClipboardFormat, BufferBlock.Serialize(blocks))
+                data.SetData(InteractiveClipboardFormat.Tag, json)
             End If
             If isLineCopy Then
-                data.SetData(InteractiveWindow.ClipboardLineBasedCutCopyTag, True)
+                data.SetData(ClipboardLineBasedCutCopyTag, True)
             End If
             If isBoxCopy Then
-                data.SetData(InteractiveWindow.BoxSelectionCutCopyTag, True)
+                data.SetData(BoxSelectionCutCopyTag, True)
             End If
             clipboard.SetDataObject(data)
         End Sub
+
 
         Private Class MockClipboard
             Implements InteractivePasteCommandHandler.IRoslynClipboard

@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis
             ImmutableArray<byte> publicKeyOrToken,
             bool hasPublicKey)
         {
-            Debug.Assert(IsValidName(name));
+            Debug.Assert(name != null);
             Debug.Assert(IsValid(version));
             Debug.Assert(IsValidCultureName(cultureName));
             Debug.Assert((hasPublicKey && MetadataHelpers.IsValidPublicKey(publicKeyOrToken)) || (!hasPublicKey && (publicKeyOrToken.IsDefaultOrEmpty || publicKeyOrToken.Length == PublicKeyTokenSize)));
@@ -171,16 +171,16 @@ namespace Microsoft.CodeAnalysis
 
         // constructor used by metadata reader:
         internal AssemblyIdentity(
+            bool noThrow,
             string name,
-            Version version,
-            string cultureName,
-            ImmutableArray<byte> publicKeyOrToken,
-            bool hasPublicKey,
-            bool isRetargetable,
-            AssemblyContentType contentType,
-            bool noThrow)
+            Version version = null,
+            string cultureName = null,
+            ImmutableArray<byte> publicKeyOrToken = default(ImmutableArray<byte>),
+            bool hasPublicKey = false,
+            bool isRetargetable = false,
+            AssemblyContentType contentType = AssemblyContentType.Default)
         {
-            Debug.Assert(!string.IsNullOrEmpty(name));
+            Debug.Assert(name != null);
             Debug.Assert((hasPublicKey && MetadataHelpers.IsValidPublicKey(publicKeyOrToken)) || (!hasPublicKey && (publicKeyOrToken.IsDefaultOrEmpty || publicKeyOrToken.Length == PublicKeyTokenSize)));
             Debug.Assert(noThrow);
 
@@ -219,7 +219,7 @@ namespace Microsoft.CodeAnalysis
             else
             {
                 publicKey = ImmutableArray<byte>.Empty;
-                publicKeyToken = publicKeyOrToken.IsDefault ? ImmutableArray<byte>.Empty : publicKeyOrToken;
+                publicKeyToken = publicKeyOrToken.NullToEmpty();
             }
         }
 

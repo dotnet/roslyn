@@ -3,8 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Threading;
-using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -12,7 +11,7 @@ namespace Microsoft.CodeAnalysis
     /// An identifier that can be used to refer to the same Solution across versions. 
     /// </summary>
     [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
-    public sealed class SolutionId : IEquatable<SolutionId>
+    public sealed class SolutionId : IEquatable<SolutionId>, IObjectWritable
     {
         /// <summary>
         /// The unique id of the solution.
@@ -21,9 +20,9 @@ namespace Microsoft.CodeAnalysis
 
         private readonly string _debugName;
 
-        private SolutionId(string debugName)
+        private SolutionId(Guid id, string debugName)
         {
-            this.Id = Guid.NewGuid();
+            this.Id = id;
             _debugName = debugName;
         }
 
@@ -33,10 +32,22 @@ namespace Microsoft.CodeAnalysis
         /// <param name="debugName">An optional name to make this id easier to recognize while debugging.</param>
         public static SolutionId CreateNewId(string debugName = null)
         {
+            return CreateFromSerialized(Guid.NewGuid(), debugName);
+        }
+
+        public static SolutionId CreateFromSerialized(Guid id, string debugName = null)
+        {
+            if (id == Guid.Empty)
+            {
+                throw new ArgumentException(nameof(id));
+            }
+
             debugName = debugName ?? "unsaved";
 
-            return new SolutionId(debugName);
+            return new SolutionId(id, debugName);
         }
+
+        internal string DebugName => _debugName;
 
         private string GetDebuggerDisplay()
         {
@@ -68,6 +79,20 @@ namespace Microsoft.CodeAnalysis
         public override int GetHashCode()
         {
             return this.Id.GetHashCode();
+        }
+
+        void IObjectWritable.WriteTo(ObjectWriter writer)
+        {
+            writer.WriteValue(Id.ToByteArray());
+            writer.WriteString(DebugName);
+        }
+
+        internal static SolutionId ReadFrom(ObjectReader reader)
+        {
+            var guid = new Guid((byte[])reader.ReadValue());
+            var debugName = reader.ReadString();
+
+            return CreateFromSerialized(guid, debugName);
         }
     }
 }

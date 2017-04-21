@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -26,6 +25,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 {
                     _owner = owner;
                     _stateMap = new ConcurrentDictionary<ProjectId, Entry>(concurrencyLevel: 2, capacity: 10);
+                }
+
+                public IEnumerable<StateSet> GetStateSets()
+                {
+                    // return existing state sets
+                    return _stateMap.Values.SelectMany(e => e.AnalyzerMap.Values).ToImmutableArray();
                 }
 
                 public IEnumerable<StateSet> GetStateSets(ProjectId projectId)
@@ -55,9 +60,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 public StateSet GetOrCreateStateSet(Project project, DiagnosticAnalyzer analyzer)
                 {
                     var map = GetOrCreateAnalyzerMap(project);
-
-                    StateSet set;
-                    if (map.TryGetValue(analyzer, out set))
+                    if (map.TryGetValue(analyzer, out var set))
                     {
                         return set;
                     }
@@ -72,8 +75,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         return;
                     }
 
-                    Entry unused;
-                    _stateMap.TryRemove(projectId, out unused);
+                    _stateMap.TryRemove(projectId, out var unused);
                 }
 
                 private ImmutableDictionary<DiagnosticAnalyzer, StateSet> GetOrUpdateAnalyzerMap(Project project)
@@ -101,8 +103,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 private ImmutableDictionary<DiagnosticAnalyzer, StateSet> GetCachedAnalyzerMap(ProjectId projectId)
                 {
-                    Entry entry;
-                    if (_stateMap.TryGetValue(projectId, out entry))
+                    if (_stateMap.TryGetValue(projectId, out var entry))
                     {
                         return entry.AnalyzerMap;
                     }
@@ -120,8 +121,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 private ImmutableDictionary<DiagnosticAnalyzer, StateSet> GetAnalyzerMap(Project project)
                 {
-                    Entry entry;
-                    if (_stateMap.TryGetValue(project.Id, out entry) && entry.AnalyzerReferences.Equals(project.AnalyzerReferences))
+                    if (_stateMap.TryGetValue(project.Id, out var entry) && entry.AnalyzerReferences.Equals(project.AnalyzerReferences))
                     {
                         return entry.AnalyzerMap;
                     }
@@ -150,8 +150,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     ImmutableDictionary<object, ImmutableArray<DiagnosticAnalyzer>> newMapPerReference,
                     ImmutableDictionary<DiagnosticAnalyzer, StateSet> newMap)
                 {
-                    Entry entry;
-                    if (!_stateMap.TryGetValue(project.Id, out entry))
+                    if (!_stateMap.TryGetValue(project.Id, out var entry))
                     {
                         // no previous references and we still don't have any references
                         if (newMap.Count == 0)
@@ -196,10 +195,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     foreach (var reference in references)
                     {
                         var referenceIdentity = _owner.AnalyzerManager.GetAnalyzerReferenceIdentity(reference);
-
                         // check duplication
-                        ImmutableArray<DiagnosticAnalyzer> analyzers;
-                        if (!mapPerReference.TryGetValue(referenceIdentity, out analyzers))
+                        if (!mapPerReference.TryGetValue(referenceIdentity, out var analyzers))
                         {
                             continue;
                         }
@@ -207,8 +204,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         // okay, this is real reference. get stateset
                         foreach (var analyzer in analyzers)
                         {
-                            StateSet set;
-                            if (!map.TryGetValue(analyzer, out set))
+                            if (!map.TryGetValue(analyzer, out var set))
                             {
                                 continue;
                             }

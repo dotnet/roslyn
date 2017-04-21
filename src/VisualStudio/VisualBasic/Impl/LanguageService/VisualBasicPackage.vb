@@ -57,7 +57,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
     <ProvideService(GetType(IVbCompilerService), ServiceName:="Visual Basic Project System Shim")>
     <ProvideService(GetType(IVbTempPECompilerFactory), ServiceName:="Visual Basic TempPE Compiler Factory Service")>
     Friend Class VisualBasicPackage
-        Inherits AbstractPackage(Of VisualBasicPackage, VisualBasicLanguageService, VisualBasicProject)
+        Inherits AbstractPackage(Of VisualBasicPackage, VisualBasicLanguageService)
         Implements IVbCompilerService
         Implements IVsUserSettingsQuery
 
@@ -156,8 +156,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
             miscellaneousFilesWorkspace.RegisterLanguage(
                 Guids.VisualBasicLanguageServiceId,
                 LanguageNames.VisualBasic,
-                ".vbx",
-                VisualBasicParseOptions.Default)
+                ".vbx")
         End Sub
 
         Protected Overrides ReadOnly Property RoslynLanguageName As String

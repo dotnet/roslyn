@@ -4,7 +4,6 @@ Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Utilities
 
@@ -27,9 +26,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             MyBase.New(containingBinder)
             _containingMethod = containingMethod
             _allowImplicitDeclarations = allowImplicitDeclarations
-
-            Dim compilation = containingBinder.Compilation
-            Dim sourceAssembly = compilation.SourceAssembly
 
             _implicitDeclarations = New Dictionary(Of String, LocalSymbol)(CaseInsensitiveComparison.Comparer)
             For Each [alias] As [Alias] In aliases

@@ -1,7 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
@@ -105,7 +106,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             _triggerDocument = triggerSpan.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (_triggerDocument == null)
             {
-                throw new InvalidOperationException(EditorFeaturesResources.TheTriggerspanIsNotIncludedInWorkspace);
+                throw new InvalidOperationException(EditorFeaturesResources.The_triggerSpan_is_not_included_in_the_given_workspace);
             }
 
             _inlineRenameSessionDurationLogBlock = Logger.LogBlock(FunctionId.Rename_InlineSession, CancellationToken.None);
@@ -150,13 +151,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             }
         }
 
-        public string OriginalSymbolName
-        {
-            get
-            {
-                return _renameInfo.DisplayName;
-            }
-        }
+        public string OriginalSymbolName => _renameInfo.DisplayName;
 
         private void InitializeOpenBuffers(SnapshotSpan triggerSpan)
         {
@@ -166,8 +161,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 foreach (var d in _workspace.GetOpenDocumentIds())
                 {
                     var document = _baseSolution.GetDocument(d);
-                    SourceText text;
-                    Contract.ThrowIfFalse(document.TryGetText(out text));
+                    Contract.ThrowIfFalse(document.TryGetText(out var text));
                     Contract.ThrowIfNull(text);
 
                     var textSnapshot = text.FindCorrespondingEditorTextSnapshot();
@@ -250,22 +244,23 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             var asyncToken = _asyncListener.BeginAsyncOperation("UpdateReferencesTask");
             _allRenameLocationsTask = allRenameLocationsTask;
             allRenameLocationsTask.SafeContinueWith(
-                t => RaiseSessionSpansUpdated(t.Result.Locations),
+                t => RaiseSessionSpansUpdated(t.Result.Locations.ToImmutableArray()),
                 _cancellationTokenSource.Token,
                 TaskContinuationOptions.OnlyOnRanToCompletion,
                 ForegroundTaskScheduler).CompletesAsyncOperation(asyncToken);
 
             UpdateConflictResolutionTask();
+            QueueApplyReplacements();
         }
 
-        public Workspace Workspace { get { return _workspace; } }
-        public OptionSet OptionSet { get { return _optionSet; } }
-        public bool HasRenameOverloads { get { return _renameInfo.HasOverloads; } }
-        public bool ForceRenameOverloads { get { return _renameInfo.ForceRenameOverloads; } }
+        public Workspace Workspace => _workspace;
+        public OptionSet OptionSet => _optionSet;
+        public bool HasRenameOverloads => _renameInfo.HasOverloads;
+        public bool ForceRenameOverloads => _renameInfo.ForceRenameOverloads;
 
         public IInlineRenameUndoManager UndoManager { get; }
 
-        public event EventHandler<IList<InlineRenameLocation>> ReferenceLocationsChanged;
+        public event EventHandler<ImmutableArray<InlineRenameLocation>> ReferenceLocationsChanged;
         public event EventHandler<IInlineRenameReplacementInfo> ReplacementsComputed;
         public event EventHandler ReplacementTextChanged;
 
@@ -326,7 +321,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         {
             if (_dismissed)
             {
-                throw new InvalidOperationException(EditorFeaturesResources.ThisSessionHasAlreadyBeenDismissed);
+                throw new InvalidOperationException(EditorFeaturesResources.This_session_has_already_been_dismissed);
             }
         }
 
@@ -341,14 +336,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             }
         }
 
-        private void RaiseSessionSpansUpdated(IList<InlineRenameLocation> locations)
+        private void RaiseSessionSpansUpdated(ImmutableArray<InlineRenameLocation> locations)
         {
             AssertIsForeground();
             SetReferenceLocations(locations);
             ReferenceLocationsChanged?.Invoke(this, locations);
         }
 
-        private void SetReferenceLocations(IEnumerable<InlineRenameLocation> locations)
+        private void SetReferenceLocations(ImmutableArray<InlineRenameLocation> locations)
         {
             AssertIsForeground();
 
@@ -380,12 +375,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         {
             AssertIsForeground();
             VerifyNotDismissed();
-            this.ReplacementText = replacementText;
+            this.ReplacementText = _renameInfo.GetFinalSymbolName(replacementText);
+
+            var asyncToken = _asyncListener.BeginAsyncOperation(nameof(ApplyReplacementText));
 
             Action propagateEditAction = delegate
             {
+                AssertIsForeground();
+
                 if (_dismissed)
                 {
+                    asyncToken.Dispose();
                     return;
                 }
 
@@ -399,7 +399,28 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 }
 
                 _isApplyingEdit = false;
+
+                // We already kicked off UpdateConflictResolutionTask below (outside the delegate).
+                // Now that we are certain the replacement text has been propagated to all of the
+                // open buffers, it is safe to actually apply the replacements it has calculated.
+                // See https://devdiv.visualstudio.com/DevDiv/_workitems?_a=edit&id=227513
+                QueueApplyReplacements();
+
+                asyncToken.Dispose();
             };
+
+            // Start the conflict resolution task but do not apply the results immediately. The
+            // buffer changes performed in propagateEditAction can cause source control modal
+            // dialogs to show. Those dialogs pump, and yield the UI thread to whatever work is
+            // waiting to be done there, including our ApplyReplacements work. If ApplyReplacements
+            // starts running on the UI thread while propagateEditAction is still updating buffers
+            // on the UI thread, we crash because we try to enumerate the undo stack while an undo
+            // transaction is still in process. Therefore, we defer QueueApplyReplacements until
+            // after the buffers have been edited, and any modal dialogs have been completed.
+            // In addition to avoiding the crash, this also ensures that the resolved conflict text
+            // is applied after the simple text change is propagated.
+            // See https://devdiv.visualstudio.com/DevDiv/_workitems?_a=edit&id=227513
+            UpdateConflictResolutionTask();
 
             if (propagateEditImmediately)
             {
@@ -410,8 +431,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 // When responding to a text edit, we delay propagating the edit until the first transaction completes.
                 Dispatcher.CurrentDispatcher.BeginInvoke(propagateEditAction, DispatcherPriority.Send, null);
             }
-
-            UpdateConflictResolutionTask();
         }
 
         private void UpdateConflictResolutionTask()
@@ -421,6 +440,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             _conflictResolutionTaskCancellationSource.Cancel();
             _conflictResolutionTaskCancellationSource = new CancellationTokenSource();
 
+            // If the replacement text is empty, we do not update the results of the conflict
+            // resolution task. We instead wait for a non-empty identifier.
             if (this.ReplacementText == string.Empty)
             {
                 return;
@@ -430,30 +451,32 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             var optionSet = _optionSet;
             var cancellationToken = _conflictResolutionTaskCancellationSource.Token;
 
+            var asyncToken = _asyncListener.BeginAsyncOperation(nameof(UpdateConflictResolutionTask));
+
             _conflictResolutionTask = _allRenameLocationsTask.SafeContinueWithFromAsync(
-               t => UpdateConflictResolutionTask(t.Result, replacementText, optionSet, cancellationToken),
+               t => t.Result.GetReplacementsAsync(replacementText, optionSet, cancellationToken),
                cancellationToken,
                TaskContinuationOptions.OnlyOnRanToCompletion,
                TaskScheduler.Default);
 
-            var asyncToken = _asyncListener.BeginAsyncOperation("UpdateConflictResolutionTask");
             _conflictResolutionTask.CompletesAsyncOperation(asyncToken);
         }
 
-        private Task<IInlineRenameReplacementInfo> UpdateConflictResolutionTask(IInlineRenameLocationSet locations, string replacementText, OptionSet optionSet, CancellationToken cancellationToken)
+        private void QueueApplyReplacements()
         {
-            var conflictResolutionTask = Task.Run(async () =>
-                await locations.GetReplacementsAsync(replacementText, optionSet, cancellationToken).ConfigureAwait(false),
-                cancellationToken);
+            // If the replacement text is empty, we do not update the results of the conflict
+            // resolution task. We instead wait for a non-empty identifier.
+            if (this.ReplacementText == string.Empty)
+            {
+                return;
+            }
 
-            var asyncToken = _asyncListener.BeginAsyncOperation("UpdateConflictResolutionTask");
-            conflictResolutionTask.SafeContinueWith(
-                t => ApplyReplacements(t.Result, cancellationToken),
-                cancellationToken,
+            var asyncToken = _asyncListener.BeginAsyncOperation(nameof(QueueApplyReplacements));
+            _conflictResolutionTask.SafeContinueWith(
+                t => ApplyReplacements(t.Result, _conflictResolutionTaskCancellationSource.Token),
+                _conflictResolutionTaskCancellationSource.Token,
                 TaskContinuationOptions.OnlyOnRanToCompletion,
                 ForegroundTaskScheduler).CompletesAsyncOperation(asyncToken);
-
-            return conflictResolutionTask;
         }
 
         private void ApplyReplacements(IInlineRenameReplacementInfo replacementInfo, CancellationToken cancellationToken)
@@ -546,7 +569,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             var result = _waitIndicator.Wait(
                 title: EditorFeaturesResources.Rename,
-                message: EditorFeaturesResources.ComputingRenameInformation,
+                message: EditorFeaturesResources.Computing_Rename_information,
                 allowCancel: true,
                 action: waitContext => CommitCore(waitContext, previewChanges));
 
@@ -574,7 +597,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
         private void CommitCore(IWaitContext waitContext, bool previewChanges)
         {
-            using (Logger.LogBlock(previewChanges ? FunctionId.Rename_CommitCoreWithPreview : FunctionId.Rename_CommitCore, waitContext.CancellationToken))
+            var eventName = previewChanges ? FunctionId.Rename_CommitCoreWithPreview : FunctionId.Rename_CommitCore;
+            using (Logger.LogBlock(eventName, KeyValueLogMessage.Create(LogType.UserAction), waitContext.CancellationToken))
             {
                 _conflictResolutionTask.Wait(waitContext.CancellationToken);
                 waitContext.AllowCancel = false;
@@ -585,9 +609,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                     var previewService = _workspace.Services.GetService<IPreviewDialogService>();
 
                     newSolution = previewService.PreviewChanges(
-                        string.Format(EditorFeaturesResources.PreviewChangesOf, EditorFeaturesResources.Rename),
+                        string.Format(EditorFeaturesResources.Preview_Changes_0, EditorFeaturesResources.Rename),
                         "vs.csharp.refactoring.rename",
-                        string.Format(EditorFeaturesResources.RenameToTitle, this.OriginalSymbolName, _renameInfo.GetFinalSymbolName(this.ReplacementText)),
+                        string.Format(EditorFeaturesResources.Rename_0_to_1_colon, this.OriginalSymbolName, this.ReplacementText),
                         _renameInfo.FullDisplayName,
                         _renameInfo.Glyph,
                         _conflictResolutionTask.Result.NewSolution,
@@ -602,7 +626,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
                 // The user hasn't cancelled by now, so we're done waiting for them. Off to
                 // rename!
-                waitContext.Message = EditorFeaturesResources.UpdatingFiles;
+                waitContext.Message = EditorFeaturesResources.Updating_files;
 
                 Dismiss(rollbackTemporaryEdits: true);
                 CancelAllOpenDocumentTrackingTasks();
@@ -624,13 +648,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             {
                 var notificationService = _workspace.Services.GetService<INotificationService>();
                 notificationService.SendNotification(
-                    EditorFeaturesResources.RenameOperationWasCancelled,
-                    EditorFeaturesResources.RenameSymbol,
+                    EditorFeaturesResources.Rename_operation_was_cancelled_or_is_not_valid,
+                    EditorFeaturesResources.Rename_Symbol,
                     NotificationSeverity.Error);
                 return;
             }
 
-            using (var undoTransaction = _workspace.OpenGlobalUndoTransaction(EditorFeaturesResources.FontAndColors_InlineRename))
+            using (var undoTransaction = _workspace.OpenGlobalUndoTransaction(EditorFeaturesResources.Inline_Rename))
             {
                 var finalSolution = newSolution.Workspace.CurrentSolution;
                 foreach (var id in changedDocumentIDs)
@@ -643,7 +667,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                     var newDocument = newSolution.GetDocument(id);
                     if (newDocument.SupportsSyntaxTree)
                     {
-                        var root = newDocument.GetSyntaxRootAsync(waitContext.CancellationToken).WaitAndGetResult(waitContext.CancellationToken);
+                        var root = newDocument.GetSyntaxRootSynchronously(waitContext.CancellationToken);
                         finalSolution = finalSolution.WithDocumentSyntaxRoot(id, root);
                     }
                     else
@@ -659,8 +683,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                     {
                         var notificationService = _workspace.Services.GetService<INotificationService>();
                         notificationService.SendNotification(
-                            EditorFeaturesResources.RenameOperationWasNotProperlyCompleted,
-                            EditorFeaturesResources.RenameSymbol,
+                            EditorFeaturesResources.Rename_operation_was_not_properly_completed_Some_file_might_not_have_been_updated,
+                            EditorFeaturesResources.Rename_Symbol,
                             NotificationSeverity.Information);
                     }
 
@@ -672,9 +696,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         internal bool TryGetContainingEditableSpan(SnapshotPoint point, out SnapshotSpan editableSpan)
         {
             editableSpan = default(SnapshotSpan);
-
-            OpenTextBufferManager bufferManager;
-            if (!_openTextBuffers.TryGetValue(point.Snapshot.TextBuffer, out bufferManager))
+            if (!_openTextBuffers.TryGetValue(point.Snapshot.TextBuffer, out var bufferManager))
             {
                 return false;
             }

@@ -1,6 +1,5 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ChangeSignature
@@ -28,6 +27,35 @@ Class C
     Implements I
 
     Public Sub Foo(y As String, x As Integer) Implements I.Foo
+    End Sub
+End Class]]></Text>.NormalizedValue()
+
+            Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=permutation, expectedUpdatedInvocationDocumentCode:=updatedCode)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        Public Async Function TestReorderParameters_Cascade_ToImplementedMethod_WithTuples() As Task
+            Dim markup = <Text><![CDATA[
+Interface I
+    Sub Foo(x As (Integer, Integer), y As (String, String))
+End Interface
+
+Class C
+    Implements I
+
+    $$Public Sub Foo(x As (Integer, Integer), y As (String, String)) Implements I.Foo
+    End Sub
+End Class]]></Text>.NormalizedValue()
+            Dim permutation = {1, 0}
+            Dim updatedCode = <Text><![CDATA[
+Interface I
+    Sub Foo(y As (String, String), x As (Integer, Integer))
+End Interface
+
+Class C
+    Implements I
+
+    Public Sub Foo(y As (String, String), x As (Integer, Integer)) Implements I.Foo
     End Sub
 End Class]]></Text>.NormalizedValue()
 

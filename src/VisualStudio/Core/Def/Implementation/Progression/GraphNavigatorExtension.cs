@@ -81,7 +81,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             }
         }
 
-        private void NavigateOnForegroundThread(SourceLocation sourceLocation, SymbolKey? symbolId, Project project, Document document)
+        private void NavigateOnForegroundThread(
+            SourceLocation sourceLocation, SymbolKey? symbolId, Project project, Document document)
         {
             AssertIsForeground();
 
@@ -95,7 +96,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                 if (symbol != null &&
                     !(symbol is ITypeSymbol) &&
                     !symbol.IsConstructor() &&
-                    symbolNavigationService.TrySymbolNavigationNotify(symbol, project.Solution))
+                    symbolNavigationService.TrySymbolNavigationNotify(symbol, project.Solution, CancellationToken.None))
                 {
                     return;
                 }

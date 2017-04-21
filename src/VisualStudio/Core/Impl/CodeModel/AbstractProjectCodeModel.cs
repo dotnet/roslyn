@@ -11,18 +11,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
     internal abstract class AbstractProjectCodeModel
     {
         private readonly NonReentrantLock _guard = new NonReentrantLock();
-        private readonly IServiceProvider _serviceProvider;
-        private readonly AbstractProject _vsProject;
-        private readonly VisualStudioWorkspace _visualStudioWorkspace;
-
+                
         private CodeModelProjectCache _codeModelCache;
 
-        public AbstractProjectCodeModel(AbstractProject project, VisualStudioWorkspace visualStudioWorkspace, IServiceProvider serviceProvider)
+        public AbstractProjectCodeModel(AbstractProject project, VisualStudioWorkspaceImpl visualStudioWorkspace, IServiceProvider serviceProvider)
         {
-            _vsProject = project;
-            _visualStudioWorkspace = visualStudioWorkspace;
-            _serviceProvider = serviceProvider;
+            VSProject = project;
+            VisualStudioWorkspace = visualStudioWorkspace;
+            ServiceProvider = serviceProvider;
         }
+
+        protected AbstractProject VSProject { get; }
+        protected VisualStudioWorkspaceImpl VisualStudioWorkspace { get; }
+        protected IServiceProvider ServiceProvider { get; }
 
         internal void OnProjectClosed()
         {
@@ -31,26 +32,26 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
         internal CodeModelProjectCache GetCodeModelCache()
         {
-            Contract.ThrowIfNull(_vsProject);
-            Contract.ThrowIfNull(_visualStudioWorkspace);
+            Contract.ThrowIfNull(VSProject);
+            Contract.ThrowIfNull(VisualStudioWorkspace);
 
             using (_guard.DisposableWait())
             {
                 if (_codeModelCache == null)
                 {
-                    var project = _visualStudioWorkspace.CurrentSolution.GetProject(_vsProject.Id);
-                    if (project == null && !_vsProject.PushingChangesToWorkspaceHosts)
+                    var project = VisualStudioWorkspace.CurrentSolution.GetProject(VSProject.Id);
+                    if (project == null && !VSProject.PushingChangesToWorkspaceHosts)
                     {
                         // if this project hasn't been pushed yet, push it now so that the user gets a useful experience here.
-                        _vsProject.StartPushingToWorkspaceAndNotifyOfOpenDocuments();
+                        VSProject.StartPushingToWorkspaceAndNotifyOfOpenDocuments();
 
                         // re-check to see whether we now has the project in the workspace
-                        project = _visualStudioWorkspace.CurrentSolution.GetProject(_vsProject.Id);
+                        project = VisualStudioWorkspace.CurrentSolution.GetProject(VSProject.Id);
                     }
 
                     if (project != null)
                     {
-                        _codeModelCache = new CodeModelProjectCache(_vsProject, _serviceProvider, project.LanguageServices, _visualStudioWorkspace);
+                        _codeModelCache = new CodeModelProjectCache(VSProject, ServiceProvider, project.LanguageServices, VisualStudioWorkspace);
                     }
                 }
 
@@ -65,7 +66,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
         public bool TryGetCachedFileCodeModel(string fileName, out ComHandle<EnvDTE80.FileCodeModel2, FileCodeModel> fileCodeModelHandle)
         {
-            var handle = GetCodeModelCache().GetComHandleForFileCodeModel(fileName);
+            var handle = GetCodeModelCache()?.GetComHandleForFileCodeModel(fileName);
 
             fileCodeModelHandle = handle != null
                 ? handle.Value
@@ -74,12 +75,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             return handle != null;
         }
 
-        public ComHandle<EnvDTE80.FileCodeModel2, FileCodeModel> GetOrCreateFileCodeModel(string fileName)
+        public ComHandle<EnvDTE80.FileCodeModel2, FileCodeModel> GetOrCreateFileCodeModel(string filePath)
         {
-            return GetCodeModelCache().GetOrCreateFileCodeModel(fileName);
+            return GetCodeModelCache().GetOrCreateFileCodeModel(filePath);
         }
 
-        internal abstract bool CanCreateFileCodeModelThroughProject(string fileName);
-        internal abstract object CreateFileCodeModelThroughProject(string fileName);
+        internal abstract bool CanCreateFileCodeModelThroughProject(string filePath);
+        internal abstract object CreateFileCodeModelThroughProject(string filePath);
     }
 }

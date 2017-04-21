@@ -282,8 +282,7 @@ namespace Microsoft.CodeAnalysis.Editing
 
         public static bool TryParse(string value, out DeclarationModifiers modifiers)
         {
-            Modifiers mods;
-            if (Enum.TryParse(value, out mods))
+            if (Enum.TryParse(value, out Modifiers mods))
             {
                 modifiers = new DeclarationModifiers(mods);
                 return true;

@@ -15,11 +15,17 @@
 
     <Grid>
         <Grid.Resources>
+            <options:ColumnToTabStopConverter x:Key="ColumnToTabStopConverter" />
             <Style x:Key="DataGridStyle" TargetType="DataGrid">
                 <Setter Property="CellStyle">
                     <Setter.Value>
                         <Style TargetType="DataGridCell">
                             <Setter Property="BorderThickness" Value="1" />
+                            <Setter Property="IsTabStop" 
+                                    Value="{Binding 
+                                        Path=Column, 
+                                        Converter={StaticResource ColumnToTabStopConverter},
+                                        RelativeSource={RelativeSource Self}}"/>
                         </Style>
                     </Setter.Value>
                 </Setter>
@@ -30,6 +36,7 @@
         </Grid.Resources>
         <Grid.RowDefinitions>
             <RowDefinition Height="*" />
+            <RowDefinition Height="5" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
         <DataGrid
@@ -80,25 +87,28 @@
                 </GroupStyle>
             </DataGrid.GroupStyle>
             <DataGrid.Columns>
-                <DataGridTextColumn
+                <DataGridTemplateColumn
                     x:Name="description" 
-                    Header="Description"
-                    Binding="{Binding Description, Mode=OneWay}" 
+                    Header="{x:Static local:GridOptionPreviewControl.DescriptionHeader}"
                     Width="4.5*"
                     IsReadOnly="True">
-                    <DataGridTextColumn.ElementStyle>
-                        <Style TargetType="TextBlock">
-                            <Setter Property="Margin" Value="{Binding DescriptionMargin, Converter={StaticResource MarginConverter}}" />
-                            <Setter Property="Padding" Value="{StaticResource ResourceKey=cellPadding}" />
-                            <Setter Property="VerticalAlignment" Value="Center"/>
-                            <Setter Property="HorizontalAlignment" Value="Left" />
-                            <Setter Property="TextWrapping" Value="Wrap" />
-                        </Style>
-                    </DataGridTextColumn.ElementStyle>
-                </DataGridTextColumn>
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <local:TextBlockWithDataItemControlType
+                                Text="{Binding Description, Mode=OneWay}"
+                                Margin="{Binding DescriptionMargin, Converter={StaticResource MarginConverter}}"
+                                Padding="{StaticResource ResourceKey=cellPadding}"
+                                VerticalAlignment="Center"
+                                HorizontalAlignment="Left"
+                                TextWrapping="Wrap"
+                                AutomationProperties.Name="{Binding GroupNameAndDescription}"
+                                Focusable="True"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
                 <DataGridTemplateColumn 
                     x:Name="preference" 
-                    Header="Preference"
+                    Header="{x:Static local:GridOptionPreviewControl.PreferenceHeader}"
                     Width="3*">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
@@ -107,13 +117,19 @@
                                     DisplayMemberPath="Name"
                                     SelectedItem="{Binding SelectedPreference, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
                                     VerticalContentAlignment="Center"
-                                    HorizontalContentAlignment="Left"/>
+                                    HorizontalContentAlignment="Left">
+                                <ComboBox.ItemContainerStyle>
+                                    <Style TargetType="ComboBoxItem">
+                                        <Setter Property="AutomationProperties.Name" Value="{Binding Name}" />
+                                    </Style>
+                                </ComboBox.ItemContainerStyle>
+                            </ComboBox>
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
                 <DataGridTemplateColumn 
                     x:Name="severity" 
-                    Header="Severity"
+                    Header="{x:Static local:GridOptionPreviewControl.SeverityHeader}"
                     Width="2.5*">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
@@ -142,14 +158,19 @@
                                         </Grid>
                                     </DataTemplate>
                                 </ComboBox.ItemTemplate>
+                                <ComboBox.ItemContainerStyle>
+                                    <Style TargetType="ComboBoxItem">
+                                        <Setter Property="AutomationProperties.Name" Value="{Binding Name}" />
+                                    </Style>
+                                </ComboBox.ItemContainerStyle>
                             </ComboBox>
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
             </DataGrid.Columns>
         </DataGrid>
-        
-        <Border Grid.Row="1" BorderBrush="Gray" BorderThickness="1">
+        <GridSplitter Grid.Row="1" HorizontalAlignment="Stretch"></GridSplitter>
+        <Border Grid.Row="2" BorderBrush="Gray" BorderThickness="1">
             <ContentControl Name="EditorControl" Content="{Binding TextViewHost, Mode=OneWay}" Focusable="False"></ContentControl>
         </Border>
     </Grid>

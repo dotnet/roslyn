@@ -24,11 +24,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
             return this.WithSemicolonToken(semicolon);
         }
+    }
 
-        public PropertyDeclarationSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, TypeSyntax type, ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier, SyntaxToken identifier, AccessorListSyntax accessorList, ArrowExpressionClauseSyntax expressionBody, EqualsValueClauseSyntax initializer, SyntaxToken semicolonToken)
-        {
-            return Update(attributeLists, modifiers, this.RefKeyword, type, explicitInterfaceSpecifier, identifier, accessorList, expressionBody, initializer, semicolonToken);
-        }
+    // backwards compatibility for API extension
+    public sealed partial class AccessorDeclarationSyntax : CSharpSyntaxNode
+    {
+        public AccessorDeclarationSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken keyword, BlockSyntax body, SyntaxToken semicolonToken)
+            => Update(attributeLists, modifiers, keyword, body, default(ArrowExpressionClauseSyntax), semicolonToken);
     }
 }
 
@@ -36,19 +38,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     public partial class SyntaxFactory
     {
-        public static PropertyDeclarationSyntax PropertyDeclaration(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, TypeSyntax type, ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier, SyntaxToken identifier, AccessorListSyntax accessorList, ArrowExpressionClauseSyntax expressionBody, EqualsValueClauseSyntax initializer, SyntaxToken semicolonToken)
+        /// <summary>Creates a new AccessorDeclarationSyntax instance.</summary>
+        public static AccessorDeclarationSyntax AccessorDeclaration(SyntaxKind kind, BlockSyntax body)
         {
-            return PropertyDeclaration(
-                attributeLists,
-                modifiers,
-                refKeyword: default(SyntaxToken),
-                type: type,
-                explicitInterfaceSpecifier: explicitInterfaceSpecifier, 
-                identifier: identifier, 
-                accessorList: accessorList, 
-                expressionBody: expressionBody, 
-                initializer: initializer, 
-                semicolonToken: semicolonToken);
+            return SyntaxFactory.AccessorDeclaration(kind, default(SyntaxList<AttributeListSyntax>), default(SyntaxTokenList), SyntaxFactory.Token(GetAccessorDeclarationKeywordKind(kind)), body, default(ArrowExpressionClauseSyntax), default(SyntaxToken));
         }
     }
 }

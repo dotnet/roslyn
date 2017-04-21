@@ -10,97 +10,312 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Lambda
 {
     public class LambdaSimplifierTests : AbstractCSharpCodeActionTest
     {
-        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace)
-        {
-            return new LambdaSimplifierCodeRefactoringProvider();
-        }
+        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
+            => new LambdaSimplifierCodeRefactoringProvider();
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
         public async Task TestFixAll1()
         {
-            await TestAsync(
-@"using System; class C { void Foo() { Bar(s [||]=> Quux(s)); } void Bar(Func<int,string> f); string Quux(int i); }",
-@"using System; class C { void Foo() { Bar(Quux); } void Bar(Func<int,string> f); string Quux(int i); }",
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void Foo()
+    {
+        Bar(s [||]=> Quux(s));
+    }
+
+    void Bar(Func<int, string> f);
+    string Quux(int i);
+}",
+@"using System;
+
+class C
+{
+    void Foo()
+    {
+        Bar(Quux);
+    }
+
+    void Bar(Func<int, string> f);
+    string Quux(int i);
+}",
                 index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
         public async Task TestFixCoContravariance1()
         {
-            await TestAsync(
-@"using System; class C { void Foo() { Bar(s [||]=> Quux(s)); } void Bar(Func<object,string> f); string Quux(object o); }",
-@"using System; class C { void Foo() { Bar(Quux); } void Bar(Func<object,string> f); string Quux(object o); }",
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void Foo()
+    {
+        Bar(s [||]=> Quux(s));
+    }
+
+    void Bar(Func<object, string> f);
+    string Quux(object o);
+}",
+@"using System;
+
+class C
+{
+    void Foo()
+    {
+        Bar(Quux);
+    }
+
+    void Bar(Func<object, string> f);
+    string Quux(object o);
+}",
                 index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
         public async Task TestFixCoContravariance2()
         {
-            await TestAsync(
-@"using System; class C { void Foo() { Bar(s [||]=> Quux(s)); } void Bar(Func<string, object> f); string Quux(object o); }",
-@"using System; class C { void Foo() { Bar(Quux); } void Bar(Func<string, object> f); string Quux(object o); }",
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void Foo()
+    {
+        Bar(s [||]=> Quux(s));
+    }
+
+    void Bar(Func<string, object> f);
+    string Quux(object o);
+}",
+@"using System;
+
+class C
+{
+    void Foo()
+    {
+        Bar(Quux);
+    }
+
+    void Bar(Func<string, object> f);
+    string Quux(object o);
+}",
                 index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
         public async Task TestFixCoContravariance3()
         {
-            await TestMissingAsync(
-@"using System; class C { void Foo() { Bar(s [||]=> Quux(s)); } void Bar(Func<string, string> f); object Quux(object o); }");
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void Foo()
+    {
+        Bar(s [||]=> Quux(s));
+    }
+
+    void Bar(Func<string, string> f);
+    object Quux(object o);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
         public async Task TestFixCoContravariance4()
         {
-            await TestMissingAsync(
-@"using System; class C { void Foo() { Bar(s [||]=> Quux(s)); } void Bar(Func<object, object> f); string Quux(string o); }");
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void Foo()
+    {
+        Bar(s [||]=> Quux(s));
+    }
+
+    void Bar(Func<object, object> f);
+    string Quux(string o);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
         public async Task TestFixCoContravariance5()
         {
-            await TestMissingAsync(
-@"using System; class C { void Foo() { Bar(s [||]=> Quux(s)); } void Bar(Func<object, string> f); object Quux(string o); }");
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void Foo()
+    {
+        Bar(s [||]=> Quux(s));
+    }
+
+    void Bar(Func<object, string> f);
+    object Quux(string o);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
         public async Task TestFixAll2()
         {
-            await TestAsync(
-@"using System; class C { void Foo() { Bar((s1, s2) [||]=> Quux(s1, s2)); } void Bar(Func<int,bool,string> f); string Quux(int i, bool b); }",
-@"using System; class C { void Foo() { Bar(Quux); } void Bar(Func<int,bool,string> f); string Quux(int i, bool b); }",
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void Foo()
+    {
+        Bar((s1, s2) [||]=> Quux(s1, s2));
+    }
+
+    void Bar(Func<int, bool, string> f);
+    string Quux(int i, bool b);
+}",
+@"using System;
+
+class C
+{
+    void Foo()
+    {
+        Bar(Quux);
+    }
+
+    void Bar(Func<int, bool, string> f);
+    string Quux(int i, bool b);
+}",
                 index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
         public async Task TestFixAll3()
         {
-            await TestAsync(
-@"using System; class C { void Foo() { Bar((s1, s2) [||]=> { return Quux(s1, s2); }); } void Bar(Func<int,bool,string> f); string Quux(int i, bool b); }",
-@"using System; class C { void Foo() { Bar(Quux); } void Bar(Func<int,bool,string> f); string Quux(int i, bool b); }",
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void Foo()
+    {
+        Bar((s1, s2) [||]=> {
+            return Quux(s1, s2);
+        });
+    }
+
+    void Bar(Func<int, bool, string> f);
+    string Quux(int i, bool b);
+}",
+@"using System;
+
+class C
+{
+    void Foo()
+    {
+        Bar(Quux);
+    }
+
+    void Bar(Func<int, bool, string> f);
+    string Quux(int i, bool b);
+}",
                 index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
         public async Task TestFixAll4()
         {
-            await TestAsync(
-@"using System; class C { void Foo() { Bar((s1, s2) [||]=> { return this.Quux(s1, s2); }); } void Bar(Func<int,bool,string> f); string Quux(int i, bool b); }",
-@"using System; class C { void Foo() { Bar(this.Quux); } void Bar(Func<int,bool,string> f); string Quux(int i, bool b); }",
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void Foo()
+    {
+        Bar((s1, s2) [||]=> {
+            return this.Quux(s1, s2);
+        });
+    }
+
+    void Bar(Func<int, bool, string> f);
+    string Quux(int i, bool b);
+}",
+@"using System;
+
+class C
+{
+    void Foo()
+    {
+        Bar(this.Quux);
+    }
+
+    void Bar(Func<int, bool, string> f);
+    string Quux(int i, bool b);
+}",
                 index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
         public async Task TestFixOneOrAll()
         {
-            await TestAsync(
-@"using System; class C { void Foo() { Bar(s [||]=> Quux(s)); Bar(s => Quux(s)); } void Bar(Func<int,string> f); string Quux(int i); }",
-@"using System; class C { void Foo() { Bar(Quux); Bar(s => Quux(s)); } void Bar(Func<int,string> f); string Quux(int i); }",
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void Foo()
+    {
+        Bar(s [||]=> Quux(s));
+        Bar(s => Quux(s));
+    }
+
+    void Bar(Func<int, string> f);
+    string Quux(int i);
+}",
+@"using System;
+
+class C
+{
+    void Foo()
+    {
+        Bar(Quux);
+        Bar(s => Quux(s));
+    }
+
+    void Bar(Func<int, string> f);
+    string Quux(int i);
+}",
                 index: 0);
 
-            await TestAsync(
-@"using System; class C { void Foo() { Bar(s [||]=> Quux(s)); Bar(s => Quux(s)); } void Bar(Func<int,string> f); string Quux(int i); }",
-@"using System; class C { void Foo() { Bar(Quux); Bar(Quux); } void Bar(Func<int,string> f); string Quux(int i); }",
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void Foo()
+    {
+        Bar(s [||]=> Quux(s));
+        Bar(s => Quux(s));
+    }
+
+    void Bar(Func<int, string> f);
+    string Quux(int i);
+}",
+@"using System;
+
+class C
+{
+    void Foo()
+    {
+        Bar(Quux);
+        Bar(Quux);
+    }
+
+    void Bar(Func<int, string> f);
+    string Quux(int i);
+}",
                 index: 1);
         }
 
@@ -108,15 +323,23 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Lambda
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
         public async Task TestMissingOnAmbiguity1()
         {
-            await TestMissingAsync(
-@"
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
 
-using System;
 class A
 {
-    static void Foo<T>(T x) where T : class { }
-    static void Bar(Action<int> x) { }
-    static void Bar(Action<string> x) { }
+    static void Foo<T>(T x) where T : class
+    {
+    }
+
+    static void Bar(Action<int> x)
+    {
+    }
+
+    static void Bar(Action<string> x)
+    {
+    }
+
     static void Main()
     {
         Bar(x => [||]Foo(x));
@@ -128,9 +351,9 @@ class A
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
         public async Task TestMissingOnLambdaWithDynamic_1()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System;
- 
+
 class Program
 {
     static void Main()
@@ -152,20 +375,20 @@ class C<T>
         Console.WriteLine(""Foo(object x, object y)"");
     }
 
-        static void Foo(object x, T y)
-        {
-            Console.WriteLine(""Foo(object x, T y)"");
-        }
-    }");
+    static void Foo(object x, T y)
+    {
+        Console.WriteLine(""Foo(object x, T y)"");
+    }
+}");
         }
 
         [WorkItem(627092, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/627092")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
         public async Task TestMissingOnLambdaWithDynamic_2()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System;
- 
+
 class Program
 {
     static void Main()
@@ -192,11 +415,11 @@ class Casd<T>
         Console.WriteLine(""Foo(object x, object y)"");
     }
 
-        static void Foo(object x, T y)
-        {
-            Console.WriteLine(""Foo(object x, T y)"");
-        }
-    }");
+    static void Foo(object x, T y)
+    {
+        Console.WriteLine(""Foo(object x, T y)"");
+    }
+}");
         }
 
         [WorkItem(544625, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544625")]
@@ -235,25 +458,59 @@ class C
     public static bool operator >(Func<string> y, C x) { return true; }
 }";
 
-            await TestAsync(code, expected, compareTokens: false);
+            await TestInRegularAndScriptAsync(code, expected, ignoreTrivia: false);
         }
 
         [WorkItem(545856, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545856")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
         public async Task TestWarningOnSideEffects()
         {
-            await TestAsync(
-@"using System ; class C { void Main ( ) { Func < string > a = ( ) [||]=> new C ( ) . ToString ( ) ; } } ",
-@"using System ; class C { void Main ( ) { Func < string > a = {|Warning:new C ()|} . ToString ; } } ");
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void Main()
+    {
+        Func<string> a = () [||]=> new C().ToString();
+    }
+}",
+@"using System;
+
+class C
+{
+    void Main()
+    {
+        Func<string> a = {|Warning:new C()|}.ToString;
+    }
+}");
         }
 
         [WorkItem(545994, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545994")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
         public async Task TestNonReturnBlockSyntax()
         {
-            await TestAsync(
-@"using System ; class Program { static void Main ( ) { Action a = [||]( ) => { Console . WriteLine ( ) ; } ; } } ",
-@"using System ; class Program { static void Main ( ) { Action a = Console . WriteLine ; } } ");
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class Program
+{
+    static void Main()
+    {
+        Action a = [||]() => {
+            Console.WriteLine();
+        };
+    }
+}",
+@"using System;
+
+class Program
+{
+    static void Main()
+    {
+        Action a = Console.WriteLine;
+    }
+}");
         }
     }
 }

@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Roslyn.Test.Utilities;
 using Xunit;
-using static Roslyn.Utilities.PortableShim;
+using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
 {
@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
     string x = @""/// <summary>$$
 /// </summary>"";
 }";
-            using (var workspace = await TestWorkspace.CreateCSharpAsync(code))
+            using (var workspace = TestWorkspace.CreateCSharp(code))
             {
                 var document = workspace.Documents.First();
                 var subjectBuffer = document.TextBuffer;
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 {
                     actualVersionNumber = e.Span.Snapshot.Version.VersionNumber;
                     actualLength = e.Span.Length;
-                    callstacks.Add(StackTrace.GetString());
+                    callstacks.Add(new StackTrace().ToString());
                     checkpoint.Release();
                 };
 

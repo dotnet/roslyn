@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -9,6 +10,49 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
+    internal struct TokenSemanticInfo
+    {
+        public static readonly TokenSemanticInfo Empty = new TokenSemanticInfo(
+            null, null, ImmutableArray<ISymbol>.Empty, null);
+
+        public readonly ISymbol DeclaredSymbol;
+        public readonly IAliasSymbol AliasSymbol;
+        public readonly ImmutableArray<ISymbol> ReferencedSymbols;
+        public readonly ITypeSymbol Type;
+
+        public TokenSemanticInfo(
+            ISymbol declaredSymbol, 
+            IAliasSymbol aliasSymbol,
+            ImmutableArray<ISymbol> referencedSymbols,
+            ITypeSymbol type)
+        {
+            DeclaredSymbol = declaredSymbol;
+            AliasSymbol = aliasSymbol;
+            ReferencedSymbols = referencedSymbols;
+            Type = type;
+        }
+
+        public ImmutableArray<ISymbol> GetSymbols(bool includeType)
+        {
+            var result = ArrayBuilder<ISymbol>.GetInstance();
+            result.AddIfNotNull(DeclaredSymbol);
+            result.AddIfNotNull(AliasSymbol);
+            result.AddRange(ReferencedSymbols);
+
+            if (includeType)
+            {
+                result.AddIfNotNull(Type);
+            }
+
+            return result.ToImmutableAndFree();
+        }
+
+        public ISymbol GetAnySymbol(bool includeType)
+        {
+            return GetSymbols(includeType).FirstOrDefault();
+        }
+    }
+
     internal static class SemanticModelExtensions
     {
         public static SemanticMap GetSemanticMap(this SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken)
@@ -36,9 +80,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                  symbol != null;
                  symbol = symbol.ContainingSymbol)
             {
-                if (symbol is TSymbol)
+                if (symbol is TSymbol tSymbol)
                 {
-                    return (TSymbol)symbol;
+                    return tSymbol;
                 }
             }
 
@@ -71,111 +115,98 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return typeInfo.Type ?? symbolInfo.GetAnySymbol().ConvertToType(semanticModel.Compilation);
         }
 
-        public static IEnumerable<ISymbol> GetSymbols(
+        public static TokenSemanticInfo GetSemanticInfo(
             this SemanticModel semanticModel,
             SyntaxToken token,
             Workspace workspace,
-            bool bindLiteralsToUnderlyingType,
             CancellationToken cancellationToken)
         {
             var languageServices = workspace.Services.GetLanguageServices(token.Language);
             var syntaxFacts = languageServices.GetService<ISyntaxFactsService>();
             if (!syntaxFacts.IsBindableToken(token))
             {
-                return SpecializedCollections.EmptyEnumerable<ISymbol>();
+                return TokenSemanticInfo.Empty;
             }
 
             var semanticFacts = languageServices.GetService<ISemanticFactsService>();
 
-            return GetSymbolsEnumerable(
-                            semanticModel, semanticFacts, syntaxFacts,
-                            token, bindLiteralsToUnderlyingType, cancellationToken)
-                           .WhereNotNull()
-                           .Select(MapSymbol);
+            return GetSemanticInfo(
+                semanticModel, semanticFacts, syntaxFacts,
+                token, cancellationToken);
         }
 
-        private static ISymbol MapSymbol(ISymbol symbol)
+        private static ISymbol MapSymbol(ISymbol symbol, ITypeSymbol type)
         {
-            return symbol.IsConstructor() && symbol.ContainingType.IsAnonymousType
-                ? symbol.ContainingType
-                : symbol;
+            if (symbol.IsConstructor() && symbol.ContainingType.IsAnonymousType)
+            {
+                return symbol.ContainingType;
+            }
+
+            if (symbol.IsThisParameter())
+            {
+                // Map references to this/base to the actual type that those correspond to.
+                return type;
+            }
+
+            if (symbol.IsFunctionValue() &&
+                symbol.ContainingSymbol is IMethodSymbol method)
+            {
+                if (method?.AssociatedSymbol != null)
+                {
+                    return method.AssociatedSymbol;
+                }
+                else
+                {
+                    return method;
+                }
+            }
+
+            return symbol;
         }
 
-        private static IEnumerable<ISymbol> GetSymbolsEnumerable(
+        private static TokenSemanticInfo GetSemanticInfo(
             SemanticModel semanticModel,
             ISemanticFactsService semanticFacts,
             ISyntaxFactsService syntaxFacts,
             SyntaxToken token,
-            bool bindLiteralsToUnderlyingType,
             CancellationToken cancellationToken)
         {
-            var declaredSymbol = semanticFacts.GetDeclaredSymbol(semanticModel, token, cancellationToken);
-            if (declaredSymbol != null)
-            {
-                yield return declaredSymbol;
-                yield break;
-            }
-
-            var aliasInfo = semanticModel.GetAliasInfo(token.Parent, cancellationToken);
-            if (aliasInfo != null)
-            {
-                yield return aliasInfo;
-            }
+            var aliasSymbol = semanticModel.GetAliasInfo(token.Parent, cancellationToken);
 
             var bindableParent = syntaxFacts.GetBindableParent(token);
-            var allSymbols = semanticModel.GetSymbolInfo(bindableParent, cancellationToken).GetBestOrAllSymbols().ToList();
             var type = semanticModel.GetTypeInfo(bindableParent, cancellationToken).Type;
 
-            if (type != null && allSymbols.Count == 0)
-            {
-                if ((bindLiteralsToUnderlyingType && syntaxFacts.IsLiteral(token)) ||
-                    syntaxFacts.IsAwaitKeyword(token))
-                {
-                    yield return type;
-                }
+            var declaredSymbol = MapSymbol(semanticFacts.GetDeclaredSymbol(semanticModel, token, cancellationToken), type);
+            var allSymbols = semanticModel.GetSymbolInfo(bindableParent, cancellationToken)
+                                          .GetBestOrAllSymbols()
+                                          .WhereAsArray(s => !s.Equals(declaredSymbol))
+                                          .SelectAsArray(s => MapSymbol(s, type));
 
+            // NOTE(cyrusn): This is a workaround to how the semantic model binds and returns
+            // information for VB event handlers.  Namely, if you have:
+            //
+            // Event X]()
+            // Sub Foo()
+            //      Dim y = New $$XEventHandler(AddressOf bar)
+            // End Sub
+            //
+            // Only GetTypeInfo will return any information for XEventHandler.  So, in this
+            // case, we upgrade the type to be the symbol we return.
+            if (type != null && allSymbols.Length == 0)
+            {
                 if (type.Kind == SymbolKind.NamedType)
                 {
                     var namedType = (INamedTypeSymbol)type;
                     if (namedType.TypeKind == TypeKind.Delegate ||
                         namedType.AssociatedSymbol != null)
                     {
-                        yield return type;
+                        allSymbols = ImmutableArray.Create<ISymbol>(type);
+                        type = null;
                     }
                 }
             }
 
-            foreach (var symbol in allSymbols)
-            {
-                if (symbol.IsThisParameter() && type != null)
-                {
-                    yield return type;
-                }
-                else if (symbol.IsFunctionValue())
-                {
-                    var method = symbol.ContainingSymbol as IMethodSymbol;
-
-                    if (method != null)
-                    {
-                        if (method.AssociatedSymbol != null)
-                        {
-                            yield return method.AssociatedSymbol;
-                        }
-                        else
-                        {
-                            yield return method;
-                        }
-                    }
-                    else
-                    {
-                        yield return symbol;
-                    }
-                }
-                else
-                {
-                    yield return symbol;
-                }
-            }
+            return new TokenSemanticInfo(declaredSymbol, aliasSymbol, allSymbols, type);
         }
 
         public static SemanticModel GetOriginalSemanticModel(this SemanticModel semanticModel)

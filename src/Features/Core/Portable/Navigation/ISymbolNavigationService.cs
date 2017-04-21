@@ -21,9 +21,11 @@ namespace Microsoft.CodeAnalysis.Navigation
 
         /// <returns>True if the navigation was handled, indicating that the caller should not 
         /// perform the navigation.</returns>
-        bool TrySymbolNavigationNotify(ISymbol symbol, Solution solution);
+        bool TrySymbolNavigationNotify(ISymbol symbol, Solution solution, CancellationToken cancellationToken);
 
         /// <returns>True if the navigation would be handled.</returns>
-        bool WouldNavigateToSymbol(ISymbol symbol, Solution solution, out string filePath, out int lineNumber, out int charOffset);
+        bool WouldNavigateToSymbol(
+            ISymbol symbol, Solution solution, CancellationToken cancellationToken,
+            out string filePath, out int lineNumber, out int charOffset);
     }
 }

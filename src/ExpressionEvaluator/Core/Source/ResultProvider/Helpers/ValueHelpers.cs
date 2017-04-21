@@ -1,8 +1,10 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.VisualStudio.Debugger.Evaluation;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
 using System.Diagnostics;
+using System.Text;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
@@ -37,6 +39,39 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         {
             // Note: GetMemberValue() may return special value when func-eval of properties is disabled.
             return value.GetMemberValue(member.Name, (int)member.MemberType, member.DeclaringType.FullName, inspectionContext);
+        }
+
+        internal static string Parenthesize(this string expr)
+        {
+            return $"({expr})";
+        }
+
+        internal static string ToCommaSeparatedString(this string[] values, char openParen, char closeParen)
+        {
+            Debug.Assert(values != null);
+
+            var pooled = PooledStringBuilder.GetInstance();
+            var builder = pooled.Builder;
+
+            builder.Append(openParen);
+            builder.AppendCommaSeparatedList(values);
+            builder.Append(closeParen);
+
+            return pooled.ToStringAndFree();
+        }
+
+        internal static void AppendCommaSeparatedList(this StringBuilder builder, string[] values)
+        {
+            bool any = false;
+            foreach (var value in values)
+            {
+                if (any)
+                {
+                    builder.Append(", ");
+                }
+                builder.Append(value);
+                any = true;
+            }
         }
     }
 }

@@ -18,9 +18,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Debugging
         internal static async Task<BreakpointResolutionResult> GetBreakpointAsync(Document document, int position, CancellationToken cancellationToken)
         {
             var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-
-            TextSpan span;
-            if (!BreakpointSpans.TryGetBreakpointSpan(tree, position, cancellationToken, out span))
+            if (!BreakpointSpans.TryGetBreakpointSpan(tree, position, cancellationToken, out var span))
             {
                 return null;
             }

@@ -154,7 +154,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Me.F.Try(
                         Me.F.Block(
                             ImmutableArray(Of LocalSymbol).Empty,
-                            Me.F.HiddenSequencePoint(),
+                            SyntheticBoundNodeFactory.HiddenSequencePoint(),
                             Me.Dispatch(),
                             rewrittenBody
                         ),
@@ -162,7 +162,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Me.F.Catch(
                                 exceptionLocal,
                                 Me.F.Block(
-                                    Me.F.HiddenSequencePoint(),
+                                    SyntheticBoundNodeFactory.HiddenSequencePoint(),
                                     Me.F.Assignment(Me.F.Field(Me.F.Me(), Me.StateField, True), Me.F.Literal(StateMachineStates.FinishedStateMachine)),
                                     Me.F.ExpressionStatement(
                                         Me._owner.GenerateMethodCall(
@@ -185,7 +185,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     bodyBuilder.Add(stateDone)
                 Else
                     bodyBuilder.Add(Me.F.SequencePointWithSpan(block, block.EndBlockStatement.Span, stateDone))
-                    bodyBuilder.Add(Me.F.HiddenSequencePoint())
+                    bodyBuilder.Add(SyntheticBoundNodeFactory.HiddenSequencePoint())
                 End If
 
                 ' STMT: builder.SetResult([RetVal])
@@ -196,7 +196,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Me._owner._builderType,
                             "SetResult",
                             If(Me._asyncMethodKind = AsyncMethodKind.GenericTaskFunction,
-                               {Me.F.Local(Me._exprRetValue, False)}, SpecializedCollections.EmptyArray(Of BoundExpression)()))))
+                               {Me.F.Local(Me._exprRetValue, False)}, Array.Empty(Of BoundExpression)()))))
 
                 ' STMT:   ReturnLabel: ' for the forced exit from the method, such as return from catch block above
                 bodyBuilder.Add(Me.F.Label(Me._exitLabel))

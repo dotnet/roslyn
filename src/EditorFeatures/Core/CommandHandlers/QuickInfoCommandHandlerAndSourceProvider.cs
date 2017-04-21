@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
             AssertIsForeground();
 
             // check whether this feature is on.
-            if (!args.SubjectBuffer.GetOption(InternalFeatureOnOffOptions.QuickInfo))
+            if (!args.SubjectBuffer.GetFeatureOnOffOption(InternalFeatureOnOffOptions.QuickInfo))
             {
                 controller = null;
                 return false;
@@ -89,9 +89,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
             where TCommandArgs : CommandArgs
         {
             AssertIsForeground();
-
-            Controller controller;
-            if (!TryGetController(args, out controller))
+            if (!TryGetController(args, out var controller))
             {
                 commandHandler = null;
                 return false;
@@ -107,9 +105,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
             where TCommandArgs : CommandArgs
         {
             AssertIsForeground();
-
-            ICommandHandler<TCommandArgs> commandHandler;
-            return TryGetControllerCommandHandler(args, out commandHandler)
+            return TryGetControllerCommandHandler(args, out var commandHandler)
                 ? commandHandler.GetCommandState(args, nextHandler)
                 : nextHandler();
         }
@@ -120,9 +116,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
             where TCommandArgs : CommandArgs
         {
             AssertIsForeground();
-
-            ICommandHandler<TCommandArgs> commandHandler;
-            if (!TryGetControllerCommandHandler(args, out commandHandler))
+            if (!TryGetControllerCommandHandler(args, out var commandHandler))
             {
                 nextHandler();
             }
@@ -151,8 +145,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
 
         internal bool TryHandleEscapeKey(EscapeKeyCommandArgs commandArgs)
         {
-            Controller controller;
-            if (!TryGetController(commandArgs, out controller))
+            if (!TryGetController(commandArgs, out var controller))
             {
                 return false;
             }

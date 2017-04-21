@@ -3,8 +3,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Formatting
 {
@@ -70,10 +68,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 return _enumerator.MoveNext();
             }
 
-            public SyntaxTrivia Current
-            {
-                get { return _enumerator.Current; }
-            }
+            public SyntaxTrivia Current => _enumerator.Current;
 
             void IDisposable.Dispose()
             {

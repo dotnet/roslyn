@@ -9,6 +9,7 @@ using System.Linq;
 using System.Reflection.Metadata;
 using Microsoft.VisualStudio.Debugger;
 using Microsoft.VisualStudio.Debugger.Clr;
+using Microsoft.VisualStudio.Debugger.Clr.NativeCompilation;
 using Microsoft.VisualStudio.Debugger.Evaluation;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
 using Roslyn.Utilities;
@@ -17,8 +18,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
     internal static class DkmUtilities
     {
-        private static readonly Guid s_symUnmanagedReaderClassId = Guid.Parse("B4CE6286-2A6B-3712-A3B7-1EE1DAD467B5");
-
         internal unsafe delegate IntPtr GetMetadataBytesPtrFunction(AssemblyIdentity assemblyIdentity, out uint uSize);
 
         // Return the set of managed module instances from the AppDomain.
@@ -56,6 +55,11 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     ptr = module.GetMetaDataBytesPtr(out size);
                     Debug.Assert(size > 0);
                     block = GetMetadataBlock(ptr, size);
+                }
+                catch (NotImplementedException e) when (module is DkmClrNcModuleInstance)
+                {
+                    // DkmClrNcModuleInstance.GetMetaDataBytesPtr not implemented in Dev14.
+                    throw new NotImplementedMetadataException(e);
                 }
                 catch (Exception e) when (MetadataUtilities.IsBadOrMissingMetadataException(e, module.FullName))
                 {
@@ -140,7 +144,14 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         internal static object GetSymReader(this DkmClrModuleInstance clrModule)
         {
             var module = clrModule.Module; // Null if there are no symbols.
-            return (module == null) ? null : module.GetSymbolInterface(s_symUnmanagedReaderClassId);
+            if (module == null)
+            {
+                return null;
+            }
+            // Use DkmClrModuleInstance.GetSymUnmanagedReader()
+            // rather than DkmModule.GetSymbolInterface() since the
+            // latter does not handle .NET Native modules.
+            return clrModule.GetSymUnmanagedReader();
         }
 
         internal static DkmCompiledClrInspectionQuery ToQueryResult(
@@ -158,6 +169,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             Debug.Assert(compResult.TypeName != null);
             Debug.Assert(compResult.MethodName != null);
 
+            ReadOnlyCollection<byte> customTypeInfo;
+            Guid customTypeInfoId = compResult.GetCustomTypeInfo(out customTypeInfo);
+
             return DkmCompiledClrInspectionQuery.Create(
                 runtimeInstance,
                 Binary: new ReadOnlyCollection<byte>(compResult.Assembly),
@@ -171,7 +185,12 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 Access: resultProperties.AccessType,
                 StorageType: resultProperties.StorageType,
                 TypeModifierFlags: resultProperties.ModifierFlags,
-                CustomTypeInfo: compResult.GetCustomTypeInfo().ToDkmClrCustomTypeInfo());
+                CustomTypeInfo: customTypeInfo.ToCustomTypeInfo(customTypeInfoId));
+        }
+
+        internal static DkmClrCustomTypeInfo ToCustomTypeInfo(this ReadOnlyCollection<byte> payload, Guid payloadTypeId)
+        {
+            return (payload == null) ? null : DkmClrCustomTypeInfo.Create(payloadTypeId, payload);
         }
 
         internal static ResultProperties GetResultProperties<TSymbol>(this TSymbol symbol, DkmClrCompilationResultFlags flags, bool isConstant)

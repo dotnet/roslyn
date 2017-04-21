@@ -4,6 +4,9 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Preview
 {
     internal static class PredefinedPreviewTaggerKeys
     {
+        public static readonly object DefinitionHighlightingSpansKey = new object();
+        public static readonly object ReferenceHighlightingSpansKey = new object();
+        public static readonly object WrittenReferenceHighlightingSpansKey = new object();
         public static readonly object ConflictSpansKey = new object();
         public static readonly object WarningSpansKey = new object();
         public static readonly object SuppressDiagnosticsSpansKey = new object();

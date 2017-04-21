@@ -54,7 +54,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ' Initializers are expressions and so contain no descendant binders, except for lambda bodies, which are handled
         ' elsewhere (in MemberSemanticModel).
-        Public Overrides Function GetBinder(node As VisualBasicSyntaxNode) As Binder
+        Public Overrides Function GetBinder(node As SyntaxNode) As Binder
             Return Nothing
         End Function
 

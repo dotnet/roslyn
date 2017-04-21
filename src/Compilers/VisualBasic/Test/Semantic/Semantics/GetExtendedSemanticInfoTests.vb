@@ -2067,16 +2067,16 @@ End Module
 Module Mod1
     Sub Main()
         Dim scen3(, 5,6,) As Integer
-        Dim x((,)) As Integer 'BIND:"("'BIND:"("
+        Dim x((,)) As Integer 'BIND:"(,)"
     End Sub
 End Module
     ]]></file>
 </compilation>)
 
-            Dim semanticInfo = CompilationUtils.GetSemanticInfoSummary(Of ParenthesizedExpressionSyntax)(compilation, "a.vb")
+            Dim semanticInfo = CompilationUtils.GetSemanticInfoSummary(Of TupleExpressionSyntax)(compilation, "a.vb")
 
-            Assert.Equal("?", semanticInfo.Type.ToTestDisplayString())
-            Assert.Equal(TypeKind.Error, semanticInfo.Type.TypeKind)
+            Assert.Equal("(?, ?)", semanticInfo.Type.ToTestDisplayString())
+            Assert.Equal(TypeKind.Struct, semanticInfo.Type.TypeKind)
             Assert.Equal("System.Int32", semanticInfo.ConvertedType.ToTestDisplayString())
             Assert.Equal(TypeKind.Structure, semanticInfo.ConvertedType.TypeKind)
             Assert.Equal(Nothing, semanticInfo.ImplicitConversion.Kind)
@@ -2640,7 +2640,7 @@ End Module
             Assert.Null(semanticInfo.Symbol)
             Assert.Equal(CandidateReason.OverloadResolutionFailure, semanticInfo.CandidateReason)
             Assert.Equal(12, semanticInfo.CandidateSymbols.Length)
-            Dim sortedCandidates = semanticInfo.CandidateSymbols.AsEnumerable().OrderBy(Function(s) s.ToTestDisplayString()).ToArray()
+            Dim sortedCandidates = semanticInfo.CandidateSymbols.AsEnumerable().OrderBy(Function(s) s.ToTestDisplayString(), StringComparer.InvariantCulture).ToArray()
             Assert.Equal("Sub System.Console.WriteLine(buffer As System.Char())", sortedCandidates(0).ToTestDisplayString())
             Assert.Equal(SymbolKind.Method, sortedCandidates(0).Kind)
             Assert.Equal("Sub System.Console.WriteLine(value As System.Boolean)", sortedCandidates(1).ToTestDisplayString())
@@ -2667,7 +2667,7 @@ End Module
             Assert.Equal(SymbolKind.Method, sortedCandidates(11).Kind)
 
             Assert.Equal(19, semanticInfo.MemberGroup.Length)
-            Dim sortedMethodGroup = semanticInfo.MemberGroup.AsEnumerable().OrderBy(Function(s) s.ToTestDisplayString()).ToArray()
+            Dim sortedMethodGroup = semanticInfo.MemberGroup.AsEnumerable().OrderBy(Function(s) s.ToTestDisplayString(), StringComparer.InvariantCulture).ToArray()
             Assert.Equal("Sub System.Console.WriteLine()", sortedMethodGroup(0).ToTestDisplayString())
             Assert.Equal("Sub System.Console.WriteLine(buffer As System.Char())", sortedMethodGroup(1).ToTestDisplayString())
             Assert.Equal("Sub System.Console.WriteLine(buffer As System.Char(), index As System.Int32, count As System.Int32)", sortedMethodGroup(2).ToTestDisplayString())

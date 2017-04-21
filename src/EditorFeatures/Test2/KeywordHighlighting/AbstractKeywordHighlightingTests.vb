@@ -7,19 +7,15 @@ Imports Microsoft.CodeAnalysis.Editor.Shared.Extensions
 Imports Microsoft.CodeAnalysis.Editor.Shared.Options
 Imports Microsoft.CodeAnalysis.Editor.Tagging
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.CodeAnalysis.Shared.Extensions
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.VisualStudio.Text
-Imports Microsoft.VisualStudio.Text.Tagging
-Imports Roslyn.Test.Utilities
 Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.KeywordHighlighting
 
     Public MustInherit Class AbstractKeywordHighlightingTests
         Protected Async Function VerifyHighlightsAsync(test As XElement, Optional optionIsEnabled As Boolean = True) As Tasks.Task
-            Using workspace = Await TestWorkspace.CreateAsync(test)
+            Using workspace = TestWorkspace.Create(test)
                 Dim testDocument = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue)
                 Dim buffer = testDocument.TextBuffer
                 Dim snapshot = testDocument.InitialTextSnapshot

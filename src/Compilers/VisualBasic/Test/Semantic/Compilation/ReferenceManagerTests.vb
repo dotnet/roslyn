@@ -559,14 +559,8 @@ End Class
             CompileAndVerify(main, verify:=False, validator:=
                 Sub(assembly)
                     Dim reader = assembly.GetMetadataReader()
-                    Dim refs As List(Of String) = New List(Of String)()
 
-                    For Each assemblyRef In reader.AssemblyReferences
-                        Dim row = reader.GetAssemblyReference(assemblyRef)
-                        refs.Add(reader.GetString(row.Name) & " " & row.Version.Major & "." & row.Version.Minor)
-                    Next
-
-                    AssertEx.SetEqual({"mscorlib 4.0", "RefLibV1 1.0", "Lib 2.0"}, refs)
+                    AssertEx.SetEqual({"mscorlib 4.0", "RefLibV1 1.0", "Lib 2.0"}, reader.DumpAssemblyReferences())
                 End Sub)
         End Sub
 
@@ -1259,28 +1253,28 @@ End Module
             ' ref only specifies name
             If True Then
                 Dim il = String.Format(ilTemplate.Value, "")
-                Dim ilRef = CompileIL(il, appendDefaultHeader:=False)
+                Dim ilRef = CompileIL(il, prependDefaultHeader:=False)
                 CreateCompilationWithMscorlibAndVBRuntimeAndReferences(vb, {ilRef}).VerifyDiagnostics()
             End If
 
             ' public key specified by ref, but not def
             If True Then
                 Dim il = String.Format(ilTemplate.Value, "  .publickeytoken = (31 BF 38 56 AD 36 4E 35 )                         // 1.8V.6N5")
-                Dim ilRef = CompileIL(il, appendDefaultHeader:=False)
+                Dim ilRef = CompileIL(il, prependDefaultHeader:=False)
                 CreateCompilationWithMscorlibAndVBRuntimeAndReferences(vb, {ilRef}).VerifyDiagnostics()
             End If
 
             ' version specified by ref, but not def
             If True Then
                 Dim il = String.Format(ilTemplate.Value, "  .ver 4:0:0:0")
-                Dim ilRef = CompileIL(il, appendDefaultHeader:=False)
+                Dim ilRef = CompileIL(il, prependDefaultHeader:=False)
                 CreateCompilationWithMscorlibAndVBRuntimeAndReferences(vb, {ilRef}).VerifyDiagnostics()
             End If
 
             ' culture specified by ref, but not def
             If True Then
                 Dim il = String.Format(ilTemplate.Value, "  .locale = (65 00 6E 00 2D 00 63 00 61 00 00 00 )             // e.n.-.c.a...")
-                Dim ilRef = CompileIL(il, appendDefaultHeader:=False)
+                Dim ilRef = CompileIL(il, prependDefaultHeader:=False)
                 CreateCompilationWithMscorlibAndVBRuntimeAndReferences(vb, {ilRef}).VerifyDiagnostics()
             End If
         End Sub
@@ -1370,7 +1364,7 @@ End Namespace
                 </compilation>
 
 
-            Dim ilRef = CompileIL(il.Value, appendDefaultHeader:=False)
+            Dim ilRef = CompileIL(il.Value, prependDefaultHeader:=False)
             Dim oldRef = CreateCompilationWithMscorlibAndVBRuntime(oldVb).ToMetadataReference()
 
             Dim comp = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(newVb, {ilRef, oldRef})

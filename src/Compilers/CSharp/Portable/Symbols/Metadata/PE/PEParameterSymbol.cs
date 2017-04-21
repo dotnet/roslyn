@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             ParamInfo<TypeSymbol> parameter,
             out bool isBad)
         {
-            return Create(moduleSymbol, containingSymbol, ordinal, parameter.IsByRef, parameter.CountOfCustomModifiersPrecedingByRef, parameter.Type, parameter.Handle, parameter.CustomModifiers, out isBad);
+            return Create(moduleSymbol, containingSymbol, ordinal, parameter.IsByRef, parameter.RefCustomModifiers, parameter.Type, parameter.Handle, parameter.CustomModifiers, out isBad);
         }
 
         /// <summary>
@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             ParamInfo<TypeSymbol> parameter,
             out bool isBad)
         {
-            return Create(moduleSymbol, containingSymbol, ordinal, parameter.IsByRef, parameter.CountOfCustomModifiersPrecedingByRef, parameter.Type, handle, parameter.CustomModifiers, out isBad);
+            return Create(moduleSymbol, containingSymbol, ordinal, parameter.IsByRef, parameter.RefCustomModifiers, parameter.Type, handle, parameter.CustomModifiers, out isBad);
         }
 
         private PEParameterSymbol(
@@ -196,7 +196,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
                 refKind = isByRef ? RefKind.Ref : RefKind.None;
 
-                type = TupleTypeSymbol.TransformToTupleIfCompatible(type); // temporary shallow unification
+                type = TupleTypeSymbol.TransformToTupleIfCompatible(type);
                 _type = type;
 
                 _lazyCustomAttributes = ImmutableArray<CSharpAttributeData>.Empty;
@@ -224,7 +224,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 // CONSIDER: Can we make parameter type computation lazy?
                 type = DynamicTypeDecoder.TransformType(type, countOfCustomModifiers, handle, moduleSymbol, refKind);
 
-                _type = TupleTypeSymbol.TransformToTupleIfCompatible(type); // temporary shallow unification
+                _type = TupleTypeDecoder.DecodeTupleTypesIfApplicable(type, handle, moduleSymbol);
             }
 
             bool hasNameInMetadata = !string.IsNullOrEmpty(_name);
@@ -253,42 +253,43 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             Symbol containingSymbol,
             int ordinal,
             bool isByRef,
-            ushort countOfCustomModifiersPrecedingByRef,
+            ImmutableArray<ModifierInfo<TypeSymbol>> refCustomModifiers,
             TypeSymbol type,
             ParameterHandle handle,
             ImmutableArray<ModifierInfo<TypeSymbol>> customModifiers,
             out bool isBad)
         {
-            if (customModifiers.IsDefaultOrEmpty)
+            if (customModifiers.IsDefaultOrEmpty && refCustomModifiers.IsDefaultOrEmpty)
             {
                 return new PEParameterSymbol(moduleSymbol, containingSymbol, ordinal, isByRef, type, handle, 0, out isBad);
             }
 
-            return new PEParameterSymbolWithCustomModifiers(moduleSymbol, containingSymbol, ordinal, isByRef, countOfCustomModifiersPrecedingByRef, type, handle, customModifiers, out isBad);
+            return new PEParameterSymbolWithCustomModifiers(moduleSymbol, containingSymbol, ordinal, isByRef, refCustomModifiers, type, handle, customModifiers, out isBad);
         }
 
         private sealed class PEParameterSymbolWithCustomModifiers : PEParameterSymbol
         {
             private readonly ImmutableArray<CustomModifier> _customModifiers;
-            private readonly ushort _countOfCustomModifiersPrecedingByRef;
+            private readonly ImmutableArray<CustomModifier> _refCustomModifiers;
 
             public PEParameterSymbolWithCustomModifiers(
                 PEModuleSymbol moduleSymbol,
                 Symbol containingSymbol,
                 int ordinal,
                 bool isByRef,
-                ushort countOfCustomModifiersPrecedingByRef,
+                ImmutableArray<ModifierInfo<TypeSymbol>> refCustomModifiers,
                 TypeSymbol type,
                 ParameterHandle handle,
                 ImmutableArray<ModifierInfo<TypeSymbol>> customModifiers,
                 out bool isBad) :
-                    base(moduleSymbol, containingSymbol, ordinal, isByRef, type, handle, customModifiers.Length, out isBad)
+                    base(moduleSymbol, containingSymbol, ordinal, isByRef, type, handle,
+                         refCustomModifiers.NullToEmpty().Length + customModifiers.NullToEmpty().Length, 
+                         out isBad)
             {
                 _customModifiers = CSharpCustomModifier.Convert(customModifiers);
-                _countOfCustomModifiersPrecedingByRef = countOfCustomModifiersPrecedingByRef;
+                _refCustomModifiers = CSharpCustomModifier.Convert(refCustomModifiers);
 
-                Debug.Assert(_countOfCustomModifiersPrecedingByRef == 0 || isByRef);
-                Debug.Assert(_countOfCustomModifiersPrecedingByRef <= _customModifiers.Length);
+                Debug.Assert(_refCustomModifiers.IsEmpty || isByRef);
             }
 
             public override ImmutableArray<CustomModifier> CustomModifiers
@@ -299,11 +300,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 }
             }
 
-            internal override ushort CountOfCustomModifiersPrecedingByRef
+            public override ImmutableArray<CustomModifier> RefCustomModifiers
             {
                 get
                 {
-                    return _countOfCustomModifiersPrecedingByRef;
+                    return _refCustomModifiers;
                 }
             }
         }
@@ -602,11 +603,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        internal override ushort CountOfCustomModifiersPrecedingByRef
+        public override ImmutableArray<CustomModifier> RefCustomModifiers
         {
             get
             {
-                return 0;
+                return ImmutableArray<CustomModifier>.Empty;
             }
         }
 

@@ -11,7 +11,7 @@ Imports Microsoft.VisualStudio.Shell
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Progression
 
-    <GraphProvider(Name:="VisualBasicRoslynProvider", IntellisenseType:=Guids.VbCompilerProjectIdString)>
+    <GraphProvider(Name:="VisualBasicRoslynProvider", ProjectCapability:="VB")>
     Friend NotInheritable Class VisualBasicGraphProvider
         Inherits AbstractGraphProvider
 

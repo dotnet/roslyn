@@ -77,37 +77,54 @@ namespace Microsoft.CodeAnalysis
         /// <param name="parent">The parent of this rule set include</param>
         private string GetIncludePath(RuleSet parent)
         {
-            List<string> found = new List<string>();
-            string expandedPath = PortableShim.Environment.ExpandEnvironmentVariables(_includePath);
-
-            // If a full path is specified then use it
-            if (Path.IsPathRooted(expandedPath))
-            {
-                if (PortableShim.File.Exists(expandedPath))
-                {
-                    found.Add(expandedPath);
-                }
-            }
-
-            // If the current rule set is backed by a file then try to find the include file relative to it
-            if (parent != null && !string.IsNullOrEmpty(parent.FilePath))
-            {
-                string local = Path.Combine(Path.GetDirectoryName(parent.FilePath), expandedPath);
-                if (PortableShim.File.Exists(local))
-                {
-                    found.Add(local);
-                }
-            }
+            var resolvedIncludePath = ResolveIncludePath(_includePath, parent?.FilePath);
 
             // If we still couldn't find it then throw an exception;
-            if (found.Count == 0)
+            if (resolvedIncludePath == null)
             {
                 throw new FileNotFoundException(string.Format(CodeAnalysisResources.FailedToResolveRuleSetName, _includePath), _includePath);
             }
 
             // Return the canonical full path
-            Debug.Assert(found.Count > 0);
-            return PortableShim.Path.GetFullPath(found[0]);
+            return Path.GetFullPath(resolvedIncludePath);
+        }
+
+        private static string ResolveIncludePath(string includePath, string parentRulesetPath)
+        {
+            var resolvedIncludePath = ResolveIncludePathCore(includePath, parentRulesetPath);
+            if (resolvedIncludePath == null && PathUtilities.IsUnixLikePlatform)
+            {
+                // Attempt to resolve legacy ruleset includes after replacing Windows style directory separator char with current plaform's directory separator char.
+                includePath = includePath.Replace('\\', Path.DirectorySeparatorChar);
+                resolvedIncludePath = ResolveIncludePathCore(includePath, parentRulesetPath);
+            }
+
+            return resolvedIncludePath;
+        }
+
+        private static string ResolveIncludePathCore(string includePath, string parentRulesetPath)
+        {
+            includePath = Environment.ExpandEnvironmentVariables(includePath);
+            
+            // If a full path is specified then use it
+            if (Path.IsPathRooted(includePath))
+            {
+                if (File.Exists(includePath))
+                {
+                    return includePath;
+                }
+            }
+            else if (!string.IsNullOrEmpty(parentRulesetPath))
+            {
+                // Otherwise, try to find the include file relative to the parent ruleset.
+                includePath = PathUtilities.CombinePathsUnchecked(Path.GetDirectoryName(parentRulesetPath), includePath);
+                if (File.Exists(includePath))
+                {
+                    return includePath;
+                }
+            }
+
+            return null;
         }
     }
 }

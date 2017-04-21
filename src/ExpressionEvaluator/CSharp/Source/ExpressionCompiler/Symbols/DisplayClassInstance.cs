@@ -1,8 +1,8 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using System.Diagnostics;
 using System;
+using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 {
@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         internal abstract DisplayClassInstance ToOtherMethod(MethodSymbol method, TypeMap typeMap);
 
-        internal abstract BoundExpression ToBoundExpression(CSharpSyntaxNode syntax);
+        internal abstract BoundExpression ToBoundExpression(SyntaxNode syntax);
     }
 
     internal sealed class DisplayClassInstanceFromLocal : DisplayClassInstance
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             return new DisplayClassInstanceFromLocal(otherInstance);
         }
 
-        internal override BoundExpression ToBoundExpression(CSharpSyntaxNode syntax)
+        internal override BoundExpression ToBoundExpression(SyntaxNode syntax)
         {
             return new BoundLocal(syntax, this.Local, constantValueOpt: null, type: this.Local.Type) { WasCompilerGenerated = true };
         }
@@ -60,6 +60,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         {
             Debug.Assert((object)parameter != null);
             Debug.Assert(parameter.Name.EndsWith("this", StringComparison.Ordinal) ||
+                parameter.Name.Equals("", StringComparison.Ordinal) || // unnamed
+                parameter.Name.Equals("value", StringComparison.Ordinal) || // display class instance passed to local function as parameter
                 GeneratedNames.GetKind(parameter.Name) == GeneratedNameKind.TransparentIdentifier);
             this.Parameter = parameter;
         }
@@ -84,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             return new DisplayClassInstanceFromParameter(otherParameter);
         }
 
-        internal override BoundExpression ToBoundExpression(CSharpSyntaxNode syntax)
+        internal override BoundExpression ToBoundExpression(SyntaxNode syntax)
         {
             return new BoundParameter(syntax, this.Parameter) { WasCompilerGenerated = true };
         }

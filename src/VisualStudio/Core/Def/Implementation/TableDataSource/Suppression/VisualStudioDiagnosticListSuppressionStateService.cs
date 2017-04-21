@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -118,11 +118,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
         private bool ProcessEntries(IEnumerable<ITableEntryHandle> entryHandles, bool added)
         {
-            bool isRoslynEntry, isSuppressedEntry, isCompilerDiagnosticEntry, isNoLocationDiagnosticEntry;
             var hasSuppressionStateEntry = false;
             foreach (var entryHandle in entryHandles)
             {
-                if (EntrySupportsSuppressionState(entryHandle, out isRoslynEntry, out isSuppressedEntry, out isCompilerDiagnosticEntry, out isNoLocationDiagnosticEntry))
+                if (EntrySupportsSuppressionState(entryHandle, out var isRoslynEntry, out var isSuppressedEntry, out var isCompilerDiagnosticEntry, out var isNoLocationDiagnosticEntry))
                 {
                     hasSuppressionStateEntry = true;
                     HandleSuppressionStateEntry(isRoslynEntry, isSuppressedEntry, isCompilerDiagnosticEntry, isNoLocationDiagnosticEntry, added);
@@ -138,12 +137,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
         private static bool EntrySupportsSuppressionState(ITableEntryHandle entryHandle, out bool isRoslynEntry, out bool isSuppressedEntry, out bool isCompilerDiagnosticEntry, out bool isNoLocationDiagnosticEntry)
         {
-            string filePath;
-            isNoLocationDiagnosticEntry = !entryHandle.TryGetValue(StandardTableColumnDefinitions.DocumentName, out filePath) ||
+            isNoLocationDiagnosticEntry = !entryHandle.TryGetValue(StandardTableColumnDefinitions.DocumentName, out string filePath) ||
                 string.IsNullOrEmpty(filePath);
-
-            int index;
-            var roslynSnapshot = GetEntriesSnapshot(entryHandle, out index);
+            var roslynSnapshot = GetEntriesSnapshot(entryHandle, out var index);
             if (roslynSnapshot == null)
             {
                 isRoslynEntry = false;
@@ -168,10 +164,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
         private static bool IsNonRoslynEntrySupportingSuppressionState(ITableEntryHandle entryHandle, out bool isSuppressedEntry)
         {
-            string suppressionStateValue;
-            if (entryHandle.TryGetValue(SuppressionStateColumnDefinition.ColumnName, out suppressionStateValue))
+            if (entryHandle.TryGetValue(SuppressionStateColumnDefinition.ColumnName, out string suppressionStateValue))
             {
-                isSuppressedEntry = suppressionStateValue == ServicesVSResources.SuppressionStateSuppressed;
+                isSuppressedEntry = suppressionStateValue == ServicesVSResources.Suppressed;
                 return true;
             }
 
@@ -194,14 +189,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
         private static AbstractTableEntriesSnapshot<DiagnosticData> GetEntriesSnapshot(ITableEntryHandle entryHandle)
         {
-            int index;
-            return GetEntriesSnapshot(entryHandle, out index);
+            return GetEntriesSnapshot(entryHandle, out var index);
         }
 
         private static AbstractTableEntriesSnapshot<DiagnosticData> GetEntriesSnapshot(ITableEntryHandle entryHandle, out int index)
         {
-            ITableEntriesSnapshot snapshot;
-            if (!entryHandle.TryGetSnapshot(out snapshot, out index))
+            if (!entryHandle.TryGetSnapshot(out var snapshot, out index))
             {
                 return null;
             }
@@ -215,7 +208,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         /// </summary>
         public async Task<ImmutableArray<DiagnosticData>> GetSelectedItemsAsync(bool isAddSuppression, CancellationToken cancellationToken)
         {
-            var builder = ImmutableArray.CreateBuilder<DiagnosticData>();
+            var builder = ArrayBuilder<DiagnosticData>.GetInstance();
+
             Dictionary<string, Project> projectNameToProjectMapOpt = null;
             Dictionary<Project, ImmutableDictionary<string, Document>> filePathToDocumentMapOpt = null;
 
@@ -224,8 +218,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 cancellationToken.ThrowIfCancellationRequested();
 
                 DiagnosticData diagnosticData = null;
-                int index;
-                var roslynSnapshot = GetEntriesSnapshot(entryHandle, out index);
+                var roslynSnapshot = GetEntriesSnapshot(entryHandle, out var index);
                 if (roslynSnapshot != null)
                 {
                     diagnosticData = roslynSnapshot.GetItem(index)?.Primary;
@@ -233,21 +226,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 else if (!isAddSuppression)
                 {
                     // For suppression removal, we also need to handle FxCop entries.
-                    bool isSuppressedEntry;
-                    if (!IsNonRoslynEntrySupportingSuppressionState(entryHandle, out isSuppressedEntry) ||
+                    if (!IsNonRoslynEntrySupportingSuppressionState(entryHandle, out var isSuppressedEntry) ||
                         !isSuppressedEntry)
                     {
                         continue;
                     }
 
-                    string errorCode = null, category = null, message = null, filePath = null, projectName = null;
+                    string filePath = null;
                     int line = -1; // FxCop only supports line, not column.
                     DiagnosticDataLocation location = null;
 
-                    if (entryHandle.TryGetValue(StandardTableColumnDefinitions.ErrorCode, out errorCode) && !string.IsNullOrEmpty(errorCode) &&
-                        entryHandle.TryGetValue(StandardTableColumnDefinitions.ErrorCategory, out category) && !string.IsNullOrEmpty(category) &&
-                        entryHandle.TryGetValue(StandardTableColumnDefinitions.Text, out message) && !string.IsNullOrEmpty(message) &&
-                        entryHandle.TryGetValue(StandardTableColumnDefinitions.ProjectName, out projectName) && !string.IsNullOrEmpty(projectName))
+                    if (entryHandle.TryGetValue(StandardTableColumnDefinitions.ErrorCode, out string errorCode) && !string.IsNullOrEmpty(errorCode) &&
+                        entryHandle.TryGetValue(StandardTableColumnDefinitions.ErrorCategory, out string category) && !string.IsNullOrEmpty(category) &&
+                        entryHandle.TryGetValue(StandardTableColumnDefinitions.Text, out string message) && !string.IsNullOrEmpty(message) &&
+                        entryHandle.TryGetValue(StandardTableColumnDefinitions.ProjectName, out string projectName) && !string.IsNullOrEmpty(projectName))
                     {
                         if (projectNameToProjectMapOpt == null)
                         {
@@ -259,9 +251,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                         }
 
                         cancellationToken.ThrowIfCancellationRequested();
-
-                        Project project;
-                        if (!projectNameToProjectMapOpt.TryGetValue(projectName, out project))
+                        if (!projectNameToProjectMapOpt.TryGetValue(projectName, out var project))
                         {
                             // bail out
                             continue;
@@ -278,9 +268,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                                 continue;
                             }
 
-                            ImmutableDictionary<string, Document> filePathMap;
                             filePathToDocumentMapOpt = filePathToDocumentMapOpt ?? new Dictionary<Project, ImmutableDictionary<string, Document>>();
-                            if (!filePathToDocumentMapOpt.TryGetValue(project, out filePathMap))
+                            if (!filePathToDocumentMapOpt.TryGetValue(project, out var filePathMap))
                             {
                                 filePathMap = await GetFilePathToDocumentMapAsync(project, cancellationToken).ConfigureAwait(false);
                                 filePathToDocumentMapOpt[project] = filePathMap;
@@ -331,7 +320,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 }
             }
 
-            return builder.ToImmutable();
+            return builder.ToImmutableAndFree();
         }
 
         private static async Task<ImmutableDictionary<string, Document>> GetFilePathToDocumentMapAsync(Project project, CancellationToken cancellationToken)

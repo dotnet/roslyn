@@ -196,18 +196,17 @@ namespace A
 
             ' Only 2 Projects can be selected because CS2 and CS3 will introduce cyclic dependency
             Assert.Equal(2, viewModel.ProjectList.Count)
-            Assert.Equal(2, viewModel.DocumentList.Count)
+            Assert.Equal(2, viewModel.GetDocumentList(CancellationToken.None).Count)
 
             viewModel.DocumentSelectIndex = 1
 
             Dim projectToSelect = viewModel.ProjectList.Where(Function(p) p.Name = "VB1").Single().Project
 
             Dim monitor = New PropertyChangedTestMonitor(viewModel)
-            monitor.AddExpectation(Function() viewModel.DocumentList)
 
             ' Check to see if the values are reset when there is a change in the project selection
             viewModel.SelectedProject = projectToSelect
-            Assert.Equal(2, viewModel.DocumentList.Count())
+            Assert.Equal(2, viewModel.GetDocumentList(CancellationToken.None).Count())
             Assert.Equal(0, viewModel.DocumentSelectIndex)
             Assert.Equal(1, viewModel.ProjectSelectIndex)
 
@@ -249,7 +248,7 @@ namespace A
 
 
             ' Check if the option for Existing File is disabled
-            Assert.Equal(0, viewModel.DocumentList.Count())
+            Assert.Equal(0, viewModel.GetDocumentList(CancellationToken.None).Count())
             Assert.Equal(False, viewModel.IsExistingFileEnabled)
 
             ' Select the project CS1 which has documents
@@ -257,7 +256,7 @@ namespace A
             viewModel.SelectedProject = projectToSelect
 
             ' Check if the option for Existing File is enabled
-            Assert.Equal(2, viewModel.DocumentList.Count())
+            Assert.Equal(2, viewModel.GetDocumentList(CancellationToken.None).Count())
             Assert.Equal(True, viewModel.IsExistingFileEnabled)
         End Function
 
@@ -587,7 +586,7 @@ class Program
             Dim viewModel = Await GetViewModelAsync(workspaceXml, LanguageNames.CSharp)
 
             Dim expectedDocuments = {"Test1.cs", "Test2.cs", "AssemblyInfo.cs", "Test3.cs"}
-            Assert.Equal(expectedDocuments, viewModel.DocumentList.Select(Function(d) d.Document.Name).ToArray())
+            Assert.Equal(expectedDocuments, viewModel.GetDocumentList(CancellationToken.None).Select(Function(d) d.Document.Name).ToArray())
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
@@ -852,7 +851,7 @@ namespace A
             Optional projectRootFilePath As String = Nothing) As Tasks.Task(Of GenerateTypeDialogViewModel)
 
             Dim workspaceXml = If(content.Name.LocalName = "Workspace", content, GetOneProjectWorkspace(content, languageName, projectName, documentName, projectRootFilePath))
-            Using workspace = Await TestWorkspace.CreateAsync(workspaceXml)
+            Using workspace = TestWorkspace.Create(workspaceXml)
                 Dim testDoc = workspace.Documents.SingleOrDefault(Function(d) d.CursorPosition.HasValue)
                 Assert.NotNull(testDoc)
                 Dim document = workspace.CurrentSolution.GetDocument(testDoc.Id)
@@ -874,7 +873,6 @@ namespace A
                     New TestNotificationService(),
                     testProjectManagementService,
                     syntaxFactsService,
-                    workspace.Services.GetService(Of IGeneratedCodeRecognitionService)(),
                     New GenerateTypeDialogOptions(isPublicOnlyAccessibility, typeKindvalue, isAttribute),
                     typeName,
                     If(document.Project.Language = LanguageNames.CSharp, ".cs", ".vb"),

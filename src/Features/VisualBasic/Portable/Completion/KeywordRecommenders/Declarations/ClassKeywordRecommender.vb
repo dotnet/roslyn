@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Decl
                 Dim modifiers = context.ModifierCollectionFacts
                 If modifiers.CouldApplyToOneOf(PossibleDeclarationTypes.Class) Then
                     Return SpecializedCollections.SingletonEnumerable(
-                                New RecommendedKeyword("Class", VBFeaturesResources.ClassKeywordToolTip))
+                                New RecommendedKeyword("Class", VBFeaturesResources.Declares_the_name_of_a_class_and_introduces_the_definitions_of_the_variables_properties_and_methods_that_make_up_the_class))
                 End If
             End If
 

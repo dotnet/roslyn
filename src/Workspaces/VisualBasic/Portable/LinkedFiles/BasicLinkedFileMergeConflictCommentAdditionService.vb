@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Composition
 Imports System.Text
@@ -21,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 {2}
 ",
                     header,
-                    WorkspacesResources.AddedHeader,
+                    WorkspacesResources.Added_colon,
                     GetCommentedText(afterString))
             ElseIf afterString Is Nothing Then
                 ' Removed code
@@ -31,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 {2}
 ",
                     header,
-                    WorkspacesResources.RemovedHeader,
+                    WorkspacesResources.Removed_colon,
                     GetCommentedText(beforeString))
             Else
                 Return String.Format("
@@ -42,9 +42,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 {4}
 ",
                     header,
-                    WorkspacesResources.BeforeHeader,
+                    WorkspacesResources.Before_colon,
                     GetCommentedText(beforeString),
-                    WorkspacesResources.AfterHeader,
+                    WorkspacesResources.After_colon,
                     GetCommentedText(afterString))
 
             End If

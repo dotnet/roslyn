@@ -30,8 +30,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 return needMoreTime;
             }
 
-            Document document;
-            if (!TryGetDocument(out document))
+            if (!TryGetDocument(out var document))
             {
                 // file is removed from the solution. this can happen if a fireevent is enqueued to foreground notification service
                 // but the file itself is removed from the solution before it has a chance to run
@@ -64,8 +63,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 return needMoreTime;
             }
 
-            ComHandle<EnvDTE80.FileCodeModel2, FileCodeModel> fileCodeModelHandle;
-            if (!provider.ProjectCodeModel.TryGetCachedFileCodeModel(this.Workspace.GetFilePath(GetDocumentId()), out fileCodeModelHandle))
+            if (!provider.ProjectCodeModel.TryGetCachedFileCodeModel(this.Workspace.GetFilePath(GetDocumentId()), out var fileCodeModelHandle))
             {
                 return needMoreTime;
             }
@@ -74,9 +72,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
             foreach (var codeModelEvent in eventQueue)
             {
-                EnvDTE.CodeElement element;
-                object parentElement;
-                GetElementsForCodeModelEvent(codeModelEvent, out element, out parentElement);
+                GetElementsForCodeModelEvent(codeModelEvent, out var element, out var parentElement);
 
                 if (codeModelEvent.Type == CodeModelEventType.Add)
                 {
@@ -319,9 +315,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 return null;
             }
 
-            string name;
-            int ordinal;
-            CodeModelService.GetAttributeNameAndOrdinal(parentNode, node, out name, out ordinal);
+            CodeModelService.GetAttributeNameAndOrdinal(parentNode, node, out var name, out var ordinal);
 
             if (eventType == CodeModelEventType.Remove)
             {
@@ -385,9 +379,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 return null;
             }
 
-            SyntaxNode attributeNode;
-            int ordinal;
-            CodeModelService.GetAttributeArgumentParentAndIndex(codeModelEvent.Node, out attributeNode, out ordinal);
+            CodeModelService.GetAttributeArgumentParentAndIndex(codeModelEvent.Node, out var attributeNode, out var ordinal);
 
             if (codeModelEvent.Type == CodeModelEventType.Remove)
             {

@@ -324,7 +324,7 @@ class C
                 Diagnostic(ErrorCode.WRN_UnreferencedEvent, "d2").WithArguments("A.d2")
             });
 
-            var verifier = CompileAndVerifyOnWin8Only(
+            var verifier = this.CompileAndVerifyOnWin8Only(
                 src,
                 additionalRefs: new[] {
                     MscorlibRef_v4_0_30316_17626,
@@ -2485,7 +2485,7 @@ public class abcdef{
     }
 } ";
 
-            var cv = CompileAndVerifyOnWin8Only(text);
+            var cv = this.CompileAndVerifyOnWin8Only(text);
 
             cv.VerifyIL("abcdef.foo()", @"
 {
@@ -2545,7 +2545,7 @@ public class abcdef{
                                 }
                             } ";
 
-            var cv = CompileAndVerifyOnWin8Only(text);
+            var cv = this.CompileAndVerifyOnWin8Only(text);
 
             var ExpectedIl =
 @"
@@ -2609,7 +2609,7 @@ public class abcdef{
     }
 }";
 
-            var cv = CompileAndVerifyOnWin8Only(text);
+            var cv = this.CompileAndVerifyOnWin8Only(text);
 
             cv.VerifyIL("abcdef.foo()", @"
 {
@@ -3230,7 +3230,7 @@ class C
 ";
 
             // NB: not referencing WinRtRefs
-            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseWinMD);
+            var comp = CreateStandardCompilation(source, options: TestOptions.ReleaseWinMD);
             comp.VerifyDiagnostics(
                 // Add accessor signature:
                 // (4,25): error CS0518: Predefined type 'System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken' is not defined or imported
@@ -3287,7 +3287,7 @@ class C
     }
 }
 ";
-            CreateCompilationWithMscorlib(source, WinRtRefs, TestOptions.ReleaseWinMD).VerifyDiagnostics(
+            CreateStandardCompilation(source, WinRtRefs, TestOptions.ReleaseWinMD).VerifyDiagnostics(
                 // (9,17): error CS7084: A Windows Runtime event may not be passed as an out or ref parameter.
                 //         Ref(ref Instance);
                 Diagnostic(ErrorCode.ERR_WinRtEventPassedByRef, "Instance").WithArguments("C.Instance"),
@@ -3336,7 +3336,7 @@ namespace System.Runtime.InteropServices.WindowsRuntime
     }
 }
 ";
-            CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseWinMD).VerifyEmitDiagnostics(
+            CreateStandardCompilation(source, options: TestOptions.ReleaseWinMD).VerifyEmitDiagnostics(
                 // (4,32): error CS0656: Missing compiler required member 'System.Runtime.InteropServices.WindowsRuntime.EventRegistrationTokenTable`1.AddEventHandler'
                 //     public event System.Action E;
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "E").WithArguments("System.Runtime.InteropServices.WindowsRuntime.EventRegistrationTokenTable`1", "AddEventHandler"),

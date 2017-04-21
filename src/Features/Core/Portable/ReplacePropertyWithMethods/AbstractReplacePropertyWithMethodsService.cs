@@ -1,7 +1,7 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -20,17 +20,23 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
     {
         public abstract SyntaxNode GetPropertyDeclaration(SyntaxToken token);
         public abstract SyntaxNode GetPropertyNodeToReplace(SyntaxNode propertyDeclaration);
-        public abstract IList<SyntaxNode> GetReplacementMembers(Document document, IPropertySymbol property, SyntaxNode propertyDeclaration, IFieldSymbol propertyBackingField, string desiredGetMethodName, string desiredSetMethodName, CancellationToken cancellationToken);
+        public abstract Task<IList<SyntaxNode>> GetReplacementMembersAsync(Document document, IPropertySymbol property, SyntaxNode propertyDeclaration, IFieldSymbol propertyBackingField, string desiredGetMethodName, string desiredSetMethodName, CancellationToken cancellationToken);
 
         protected abstract TExpressionSyntax UnwrapCompoundAssignment(SyntaxNode compoundAssignment, TExpressionSyntax readExpression);
 
         protected static SyntaxNode GetFieldReference(SyntaxGenerator generator, IFieldSymbol propertyBackingField)
         {
-            var through = propertyBackingField.IsStatic
-                ? generator.TypeExpression(propertyBackingField.ContainingType)
-                : generator.ThisExpression();
+            var memberName = generator.IdentifierName(propertyBackingField.Name);
+            if (propertyBackingField.IsStatic)
+            {
+                return propertyBackingField.ContainingType == null
+                    ? memberName
+                    : generator.MemberAccessExpression(
+                        generator.TypeExpression(propertyBackingField.ContainingType),
+                        memberName);
+            }
 
-            return generator.MemberAccessExpression(through, propertyBackingField.Name);
+            return generator.MemberAccessExpression(generator.ThisExpression(), memberName);
         }
 
         public async Task ReplaceReferenceAsync(
@@ -96,7 +102,7 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
 
                 _identifierName = (TIdentifierNameSyntax)nameToken.Parent;
                 _expression = _identifierName;
-                if (_syntaxFacts.IsMemberAccessExpressionName(_expression))
+                if (_syntaxFacts.IsNameOfMemberAccessExpression(_expression))
                 {
                     _expression = _expression.Parent as TExpressionSyntax;
                 }

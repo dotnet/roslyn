@@ -27,7 +27,7 @@
   - [ ] `replace` for extension methods
   - [ ] `replace` partial methods
   - [ ] `replace` external method
-- [ ] Add `Replaced` and `ReplacedBy` to ISymbol
+- [ ] Add `Replaced` and `ReplacedBy` to `ISymbol`
 - [ ] Report diagnostics
   - [ ] Report error for multiple `replace`
   - [ ] Report error for signature mismatch
@@ -41,5 +41,10 @@
   - [ ] Drop original methods that are not called in optimized builds (P2)
 - [ ] IDE
   - [ ] Include diagnostics from `SourceGenerator.Execute` in Errors list (P2)  
+- [ ] EnC
+  - [ ] Changes that add/remove `replace` are considered rude edits
 - [ ] EE
   - [ ] Bind `original` to mangled method or accessor
+- [ ] VB
+  - [ ] `Replace` keyword in parser and syntax
+  - [ ] Implement `Replaced` and `ReplacedBy` on `Symbol`

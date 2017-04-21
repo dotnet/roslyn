@@ -117,7 +117,7 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="TextContainerNotFromTextBuffer" xml:space="preserve">
+  <data name="textContainer_is_not_a_SourceTextContainer_that_was_created_from_an_ITextBuffer" xml:space="preserve">
     <value>textContainer is not a SourceTextContainer that was created from an ITextBuffer.</value>
   </data>
 </root>

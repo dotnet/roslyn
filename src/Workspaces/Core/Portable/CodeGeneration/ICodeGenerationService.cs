@@ -1,11 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration
 {
@@ -120,6 +118,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         /// Adds the statements to destination.
         /// </summary>
         TDeclarationNode AddStatements<TDeclarationNode>(TDeclarationNode destination, IEnumerable<SyntaxNode> statements, CodeGenerationOptions options = null, CancellationToken cancellationToken = default(CancellationToken)) where TDeclarationNode : SyntaxNode;
+
+        Task<Document> AddImportsAsync(Document document, CodeGenerationOptions options, CancellationToken cancellationToken);
 
         /// <summary>
         /// Adds a field with the provided signature into destination.

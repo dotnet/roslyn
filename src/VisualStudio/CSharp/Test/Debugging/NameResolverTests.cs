@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
     {
         private async Task TestAsync(string text, string searchText, params string[] expectedNames)
         {
-            using (var workspace = await TestWorkspace.CreateCSharpAsync(text))
+            using (var workspace = TestWorkspace.CreateCSharp(text))
             {
                 var nameResolver = new BreakpointResolver(workspace.CurrentSolution, searchText);
                 var results = await nameResolver.DoAsync(CancellationToken.None);
@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
         [Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
         public async Task TestCSharpLanguageDebugInfoCreateNameResolver()
         {
-            using (var workspace = await TestWorkspace.CreateCSharpAsync(" "))
+            using (var workspace = TestWorkspace.CreateCSharp(" "))
             {
                 var debugInfo = new CSharpBreakpointResolutionService();
                 var results = await debugInfo.ResolveBreakpointsAsync(workspace.CurrentSolution, "foo", CancellationToken.None);
@@ -483,14 +483,20 @@ class G<T>
   void Foo() { };
 }";
             await TestAsync(text, "Foo;", "C.Foo()");
-            await TestAsync(text, "Foo();", "C.Foo()");
+            await TestAsync(text, 
+@"Foo();", "C.Foo()");
             await TestAsync(text, "  Foo;", "C.Foo()");
             await TestAsync(text, "  Foo;;");
             await TestAsync(text, "  Foo; ;");
-            await TestAsync(text, "Foo(); ", "C.Foo()");
-            await TestAsync(text, " Foo (  )  ; ", "C.Foo()");
-            await TestAsync(text, "Foo(); // comment", "C.Foo()");
-            await TestAsync(text, "/*comment*/Foo(/* params */); /* comment", "C.Foo()");
+            await TestAsync(text, 
+@"Foo();", "C.Foo()");
+            await TestAsync(text, 
+@"Foo();", "C.Foo()");
+            await TestAsync(text, 
+@"Foo(); // comment", "C.Foo()");
+            await TestAsync(text, 
+@"/*comment*/
+           Foo(/* params */); /* comment", "C.Foo()");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]

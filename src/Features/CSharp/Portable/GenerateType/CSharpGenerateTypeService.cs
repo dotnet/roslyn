@@ -23,6 +23,7 @@ using Microsoft.CodeAnalysis.Shared.Options;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Utilities;
+using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.CSharp.GenerateType
 {
@@ -396,7 +397,8 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
 
                     // Get the Method symbol for the Delegate to be created
                     if (generateTypeServiceStateOptions.IsDelegateAllowed &&
-                        objectCreationExpressionOpt.ArgumentList.Arguments.Count == 1)
+                        objectCreationExpressionOpt.ArgumentList.Arguments.Count == 1 &&
+                        objectCreationExpressionOpt.ArgumentList.Arguments[0].Expression.Kind() != SyntaxKind.DeclarationExpression)
                     {
                         generateTypeServiceStateOptions.DelegateCreationMethodSymbol = GetMethodSymbolIfPresent(semanticModel, objectCreationExpressionOpt.ArgumentList.Arguments[0].Expression, cancellationToken);
                     }
@@ -494,7 +496,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
                 state.NameOrMemberAccessExpression as TypeSyntax, cancellationToken);
         }
 
-        protected override IList<ITypeParameterSymbol> GetTypeParameters(
+        protected override ImmutableArray<ITypeParameterSymbol> GetTypeParameters(
             State state,
             SemanticModel semanticModel,
             CancellationToken cancellationToken)
@@ -508,7 +510,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
                 return this.GetTypeParameters(state, semanticModel, typeArguments, cancellationToken);
             }
 
-            return SpecializedCollections.EmptyList<ITypeParameterSymbol>();
+            return ImmutableArray<ITypeParameterSymbol>.Empty;
         }
 
         protected override bool TryGetArgumentList(ObjectCreationExpressionSyntax objectCreationExpression, out IList<ArgumentSyntax> argumentList)
@@ -675,10 +677,10 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
 
         private void GetNamespaceContainers(NameSyntax name, List<string> namespaceContainers)
         {
-            if (name is QualifiedNameSyntax)
+            if (name is QualifiedNameSyntax qualifiedName)
             {
-                GetNamespaceContainers(((QualifiedNameSyntax)name).Left, namespaceContainers);
-                namespaceContainers.Add(((QualifiedNameSyntax)name).Right.Identifier.ValueText);
+                GetNamespaceContainers(qualifiedName.Left, namespaceContainers);
+                namespaceContainers.Add(qualifiedName.Right.Identifier.ValueText);
             }
             else
             {
@@ -831,9 +833,8 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
                 root = modifiedRoot;
             }
 
-            if (root is CompilationUnitSyntax)
+            if (root is CompilationUnitSyntax compilationRoot)
             {
-                var compilationRoot = (CompilationUnitSyntax)root;
                 var usingDirective = SyntaxFactory.UsingDirective(SyntaxFactory.ParseName(includeUsingsOrImports));
 
                 // Check if the usings is already present
@@ -850,7 +851,8 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
                     return updatedSolution;
                 }
 
-                var placeSystemNamespaceFirst = document.Options.GetOption(OrganizerOptions.PlaceSystemNamespaceFirst);
+                var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+                var placeSystemNamespaceFirst = documentOptions.GetOption(GenerationOptions.PlaceSystemNamespaceFirst);
                 var addedCompilationRoot = compilationRoot.AddUsingDirectives(new[] { usingDirective }, placeSystemNamespaceFirst, Formatter.Annotation);
                 updatedSolution = updatedSolution.WithDocumentSyntaxRoot(document.Id, addedCompilationRoot, PreservationMode.PreserveIdentity);
             }
@@ -885,22 +887,23 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
             SimpleNameSyntax propertyName, ITypeSymbol propertyType)
         {
             return CodeGenerationSymbolFactory.CreatePropertySymbol(
-                attributes: SpecializedCollections.EmptyList<AttributeData>(),
+                attributes: ImmutableArray<AttributeData>.Empty,
                 accessibility: Accessibility.Public,
                 modifiers: new DeclarationModifiers(),
                 explicitInterfaceSymbol: null,
                 name: propertyName.Identifier.ValueText,
                 type: propertyType,
-                parameters: null,
+                returnsByRef: false,
+                parameters: default(ImmutableArray<IParameterSymbol>),
                 getMethod: s_accessor,
                 setMethod: s_accessor,
                 isIndexer: false);
         }
 
         private static readonly IMethodSymbol s_accessor = CodeGenerationSymbolFactory.CreateAccessorSymbol(
-                    attributes: null,
-                    accessibility: Accessibility.Public,
-                    statements: null);
+            attributes: default(ImmutableArray<AttributeData>),
+            accessibility: Accessibility.Public,
+            statements: default(ImmutableArray<SyntaxNode>));
 
         internal override bool TryGenerateProperty(
             SimpleNameSyntax propertyName,
@@ -946,7 +949,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
                 newObjectCreation = (ObjectCreationExpressionSyntax)newNode.GetAnnotatedNodes(s_annotation).Single();
                 var symbolInfo = speculativeModel.GetSymbolInfo(newObjectCreation, cancellationToken);
                 var parameterTypes = newObjectCreation.ArgumentList.Arguments.Select(
-                    a => speculativeModel.GetTypeInfo(a.Expression, cancellationToken).ConvertedType).ToList();
+                    a => a.DetermineParameterType(speculativeModel, cancellationToken)).ToList();
 
                 return GenerateConstructorHelpers.GetDelegatingConstructor(
                     document, symbolInfo, candidates, namedType, parameterTypes);

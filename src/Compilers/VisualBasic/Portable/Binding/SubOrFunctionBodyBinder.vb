@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private ReadOnly _methodSymbol As MethodSymbol
         Protected ReadOnly _parameterMap As Dictionary(Of String, Symbol)
 
-        Public Sub New(methodOrLambdaSymbol As MethodSymbol, root As VisualBasicSyntaxNode, containingBinder As Binder)
+        Public Sub New(methodOrLambdaSymbol As MethodSymbol, root As SyntaxNode, containingBinder As Binder)
             MyBase.New(root, containingBinder)
 
             _methodSymbol = methodOrLambdaSymbol

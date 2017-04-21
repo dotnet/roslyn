@@ -81,7 +81,7 @@
     <Rule Id="RS0027" Action="Error" />
   </Rules>
   <Rules AnalyzerId="System.Collections.Immutable.Analyzers" RuleNamespace="System.Collections.Immutable.Analyzers">
-    <Rule Id="RS0012" Action="Warning" />
+    <Rule Id="RS0012" Action="None" />
   </Rules>
   <Rules AnalyzerId="System.Runtime.Analyzers" RuleNamespace="System.Runtime.Analyzers">
     <Rule Id="CA1305" Action="None" />
@@ -89,7 +89,7 @@
     <Rule Id="CA1308" Action="None" />
     <Rule Id="CA1810" Action="None" />
     <Rule Id="CA1816" Action="None" />
-    <Rule Id="CA1825" Action="Warning" />
+    <Rule Id="CA1825" Action="None" />
     <Rule Id="CA2002" Action="None" />
     <Rule Id="CA2207" Action="None" />
     <Rule Id="CA2208" Action="None" />
@@ -97,7 +97,7 @@
     <Rule Id="CA2219" Action="None" />
     <Rule Id="CA2241" Action="None" />
     <Rule Id="CA2242" Action="None" />
-    <Rule Id="RS0014" Action="Warning" />
+    <Rule Id="RS0014" Action="None" />
   </Rules>
   <Rules AnalyzerId="System.Runtime.InteropServices.Analyzers" RuleNamespace="System.Runtime.InteropServices.Analyzers">
     <Rule Id="CA1401" Action="None" />

@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging.Tags
         {
             // this.Border = new Pen(Brushes.Yellow, thickness: 1.5);
             this.BackgroundColor = Colors.Yellow;
-            this.DisplayName = EditorFeaturesResources.Warning;
+            this.DisplayName = EditorFeaturesResources.Preview_Warning;
             this.ZOrder = 10;
         }
     }

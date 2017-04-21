@@ -8,16 +8,11 @@ namespace Microsoft.VisualStudio.Debugger
 {
     public class DkmRuntimeInstance
     {
-        internal static readonly DkmProcess DefaultProcess = new DkmProcess();
-        internal static readonly DkmProcess ProcessWithNativeDebugging = new DkmProcess(enableNativeDebugging: true);
-
         public readonly DkmProcess Process;
 
         public DkmRuntimeInstance(bool enableNativeDebugging)
         {
-            Process = enableNativeDebugging ?
-                ProcessWithNativeDebugging :
-                DefaultProcess;
+            Process = new DkmProcess(enableNativeDebugging);
         }
     }
 }

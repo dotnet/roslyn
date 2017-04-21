@@ -10,8 +10,10 @@ Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.SyntaxFacts
 Imports Roslyn.Test.Utilities
 Imports Xunit
+Imports Microsoft.CodeAnalysis.Collections
 
 Friend Module ParserTestUtilities
+    Friend ReadOnly Property PooledStringBuilderPool As ObjectPool(Of PooledStringBuilder) = PooledStringBuilder.CreatePool(64)
 
     ' TODO (tomat): only checks error codes; we should also check error span and arguments
     Public Function ParseAndVerify(code As XCData, Optional expectedErrors As XElement = Nothing) As SyntaxTree
@@ -75,10 +77,10 @@ Friend Module ParserTestUtilities
 
         ' Verify Errors
         If expectedDiagnostics Is Nothing Then
-            Dim errors As New StringBuilder()
-            AppendSyntaxErrors(tree.GetDiagnostics(), errors)
-            Assert.False(root.ContainsDiagnostics, errors.ToString())
-            Assert.Equal(root.ContainsDiagnostics, errors.Length > 0)
+            Dim errors = PooledStringBuilderPool.Allocate()
+            AppendSyntaxErrors(tree.GetDiagnostics(), errors.Builder)
+            Assert.Equal(root.ContainsDiagnostics, errors.Builder.Length > 0)
+            Assert.False(root.ContainsDiagnostics, errors.ToStringAndFree())
         Else
             Assert.True(root.ContainsDiagnostics, "Tree was expected to contain errors.")
             If errorCodesOnly Then
@@ -100,7 +102,7 @@ Friend Module ParserTestUtilities
     End Function
 
     Public Function Parse(source As String, fileName As String, Optional options As VisualBasicParseOptions = Nothing) As SyntaxTree
-        Dim tree = VisualBasicSyntaxTree.ParseText(SourceText.From(source), options:=If(options, VisualBasicParseOptions.Default), path:=fileName)
+        Dim tree = VisualBasicSyntaxTree.ParseText(SourceText.From(source, Encoding.UTF8), options:=If(options, VisualBasicParseOptions.Default), path:=fileName)
         Dim root = tree.GetRoot()
         ' Verify FullText
         Assert.Equal(source, root.ToFullString)
@@ -549,28 +551,30 @@ Public Module VerificationHelpers
 #Region "Private Helpers"
 
     Private Function GetErrorString(id As Integer, message As String, start As String, [end] As String) As String
-        Dim errorString As New StringBuilder()
-        errorString.Append(vbTab)
-        errorString.Append("<error id=""")
-        errorString.Append(id)
-        errorString.Append("""")
-        If message IsNot Nothing Then
-            errorString.Append(" message=""")
-            errorString.Append(message)
-            errorString.Append("""")
-        End If
-        If start IsNot Nothing Then
-            errorString.Append(" start=""")
-            errorString.Append(start)
-            errorString.Append("""")
-        End If
-        If [end] IsNot Nothing Then
-            errorString.Append(" end=""")
-            errorString.Append([end])
-            errorString.Append("""")
-        End If
-        errorString.Append("/>")
-        Return errorString.ToString()
+        Dim errorString = PooledStringBuilderPool.Allocate()
+        With errorString.Builder
+            .Append(vbTab)
+            .Append("<error id=""")
+            .Append(id)
+            .Append("""")
+            If message IsNot Nothing Then
+                .Append(" message=""")
+                .Append(message)
+                .Append("""")
+            End If
+            If start IsNot Nothing Then
+                .Append(" start=""")
+                .Append(start)
+                .Append("""")
+            End If
+            If [end] IsNot Nothing Then
+                .Append(" end=""")
+                .Append([end])
+                .Append("""")
+            End If
+            .Append("/>")
+        End With
+        Return errorString.ToStringAndFree()
     End Function
 
     Private Function AreErrorsEquivalent(syntaxError As Diagnostic, xmlError As XElement) As Boolean
@@ -629,15 +633,21 @@ Public Module VerificationHelpers
         Next
 
         If errorScenarioFailed Then
-            Dim errorMessage As New StringBuilder()
-            errorMessage.AppendLine()
-            errorMessage.AppendLine("Expected Subset:")
-            For Each e In expectedErrors.<error>
-                errorMessage.AppendLine(GetErrorString(CInt(e.@id), If(e.@message, "?"), If(e.@start, "?"), If(e.@end, "?")))
-            Next
-            errorMessage.AppendLine("Actual Errors (on " & node.Kind().ToString & node.Span.ToString & ")")
-            AppendSyntaxErrors(tree.GetDiagnostics(node), errorMessage)
-            Assert.False(errorScenarioFailed, errorMessage.ToString())
+            Dim errorMessage = PooledStringBuilderPool.Allocate()
+            With errorMessage.Builder
+                .AppendLine()
+                .AppendLine("Expected Subset:")
+                For Each e In expectedErrors.<error>
+                    .AppendLine(GetErrorString(CInt(e.@id), If(e.@message, "?"), If(e.@start, "?"), If(e.@end, "?")))
+                Next
+                .AppendLine("Actual Errors (on " & node.Kind().ToString & node.Span.ToString & ")")
+                AppendSyntaxErrors(tree.GetDiagnostics(node), errorMessage.Builder)
+            End With
+            If errorScenarioFailed Then
+                Assert.False(errorScenarioFailed, errorMessage.ToStringAndFree())
+            Else
+                errorMessage.Free()
+            End If
         End If
     End Sub
 

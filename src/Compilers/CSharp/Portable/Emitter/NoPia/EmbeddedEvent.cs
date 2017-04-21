@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
             }
         }
 
-        protected override Cci.ITypeReference GetType(PEModuleBuilder moduleBuilder, CSharpSyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics)
+        protected override Cci.ITypeReference GetType(PEModuleBuilder moduleBuilder, SyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics)
         {
             return moduleBuilder.Translate(UnderlyingEvent.Type, syntaxNodeOpt, diagnostics);
         }
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
             }
         }
 
-        protected override void EmbedCorrespondingComEventInterfaceMethodInternal(CSharpSyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics, bool isUsedForComAwareEventBinding)
+        protected override void EmbedCorrespondingComEventInterfaceMethodInternal(SyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics, bool isUsedForComAwareEventBinding)
         {
             // If the event happens to belong to a class with a ComEventInterfaceAttribute, there will also be
             // a paired method living on its source interface. The ComAwareEventInfo class expects to find this 
@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
             }
         }
 
-        private bool EmbedMatchingInterfaceMethods(NamedTypeSymbol sourceInterface, CSharpSyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics)
+        private bool EmbedMatchingInterfaceMethods(NamedTypeSymbol sourceInterface, SyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics)
         {
             bool foundMatch = false;
             foreach (Symbol m in sourceInterface.GetMembers(UnderlyingEvent.MetadataName))

@@ -1,11 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers
 {
@@ -13,8 +11,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
     {
         public static CompletionItem Create(
             string displayText,
-            TextSpan span,
-            Glyph? glyph,
             DeclarationModifiers modifiers,
             int line,
             ISymbol symbol,
@@ -27,12 +23,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 .Add("Modifiers", modifiers.ToString())
                 .Add("TokenSpanEnd", token.Span.End.ToString());
 
-            return SymbolCompletionItem.Create(
+            return SymbolCompletionItem.CreateWithSymbolId(
                 displayText: displayText,
-                span: span,
-                symbol: symbol,
-                glyph: glyph,
-                descriptionPosition: descriptionPosition,
+                symbols: ImmutableArray.Create(symbol),
+                contextPosition: descriptionPosition,
                 properties: props,
                 rules: rules);
         }
@@ -42,17 +36,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return SymbolCompletionItem.GetDescriptionAsync(item, document, cancellationToken);
         }
 
-        public static Task<ImmutableArray<ISymbol>> GetSymbolsAsync(CompletionItem item, Document document, CancellationToken cancellationToken)
-        {
-            return SymbolCompletionItem.GetSymbolsAsync(item, document, cancellationToken);
-        }
-
         public static DeclarationModifiers GetModifiers(CompletionItem item)
         {
-            string text;
-            DeclarationModifiers modifiers;
-            if (item.Properties.TryGetValue("Modifiers", out text)
-                && DeclarationModifiers.TryParse(text, out modifiers))
+            if (item.Properties.TryGetValue("Modifiers", out var text) &&
+                DeclarationModifiers.TryParse(text, out var modifiers))
             {
                 return modifiers;
             }
@@ -62,10 +49,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         public static int GetLine(CompletionItem item)
         {
-            string text;
-            int number;
-            if (item.Properties.TryGetValue("Line", out text)
-                && int.TryParse(text, out number))
+            if (item.Properties.TryGetValue("Line", out var text)
+                && int.TryParse(text, out var number))
             {
                 return number;
             }
@@ -75,10 +60,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         public static int GetTokenSpanEnd(CompletionItem item)
         {
-            string text;
-            int number;
-            if (item.Properties.TryGetValue("TokenSpanEnd", out text)
-                && int.TryParse(text, out number))
+            if (item.Properties.TryGetValue("TokenSpanEnd", out var text)
+                && int.TryParse(text, out var number))
             {
                 return number;
             }

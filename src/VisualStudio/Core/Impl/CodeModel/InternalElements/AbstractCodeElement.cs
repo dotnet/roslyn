@@ -56,8 +56,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
 
         internal bool IsValidNode()
         {
-            SyntaxNode node;
-            if (!TryLookupNode(out node))
+            if (!TryLookupNode(out var node))
             {
                 return false;
             }
@@ -73,8 +72,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
 
         internal virtual SyntaxNode LookupNode()
         {
-            SyntaxNode node;
-            if (!TryLookupNode(out node))
+            if (!TryLookupNode(out var node))
             {
                 throw Exceptions.ThrowEFail();
             }
@@ -154,7 +152,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
         {
             get
             {
-                var point = FileCodeModel.EnsureEditor(() => CodeModelService.GetStartPoint(LookupNode()));
+                var point = CodeModelService.GetStartPoint(LookupNode());
                 if (point == null)
                 {
                     return null;
@@ -180,7 +178,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
 
         public virtual EnvDTE.TextPoint GetStartPoint(EnvDTE.vsCMPart part)
         {
-            var point = FileCodeModel.EnsureEditor(() => CodeModelService.GetStartPoint(LookupNode(), part));
+            var point = CodeModelService.GetStartPoint(LookupNode(), part);
             if (point == null)
             {
                 return null;

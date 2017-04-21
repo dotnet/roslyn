@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Decl
             End If
 
             If context.TargetToken.IsChildToken(Of DeclareStatementSyntax)(Function(declaration) declaration.Identifier) Then
-                Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("Lib", VBFeaturesResources.LibKeywordToolTip))
+                Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("Lib", VBFeaturesResources.Introduces_a_clause_that_identifies_the_external_file_DLL_or_code_resource_containing_an_external_procedure))
             Else
                 Return SpecializedCollections.EmptyEnumerable(Of RecommendedKeyword)()
             End If

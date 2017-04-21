@@ -50,7 +50,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Function RewriteInterpolatedStringConversion(conversion As BoundConversion) As BoundExpression
 
-            Debug.Assert(conversion.ConversionKind = ConversionKind.InterpolatedString)
+            Debug.Assert((conversion.ConversionKind And ConversionKind.InterpolatedString) = ConversionKind.InterpolatedString)
 
             Dim targetType = conversion.Type
             Dim node = DirectCast(conversion.Operand, BoundInterpolatedStringExpression)
@@ -184,7 +184,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
 ReturnBadExpression:
             ReportDiagnostic(node, ErrorFactory.ErrorInfo(ERRID.ERR_InterpolatedStringFactoryError, factoryType.Name, factoryMethodName), _diagnostics)
-            Return factory.Convert(targetType, factory.BadExpression(MyBase.VisitInterpolatedStringExpression(node)))
+            Return factory.Convert(targetType, factory.BadExpression(DirectCast(MyBase.VisitInterpolatedStringExpression(node), BoundExpression)))
 
         End Function
 

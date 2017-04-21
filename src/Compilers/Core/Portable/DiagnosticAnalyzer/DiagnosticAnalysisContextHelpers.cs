@@ -2,7 +2,10 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Reflection;
+using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -70,6 +73,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
             }
         }
+        
+        internal static void VerifyIOperationFeatureFlag(bool isIOperationFeatureEnabled)
+        {
+            if (!isIOperationFeatureEnabled)
+            {
+                throw new InvalidOperationException(CodeAnalysisResources.IOperationFeatureDisabled);
+            }
+        }
 
         private static void VerifyDiagnosticLocationInCompilation(string id, Location location, Compilation compilation)
         {
@@ -85,6 +96,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             if (action == null)
             {
                 throw new ArgumentNullException(nameof(action));
+            }
+
+            // Disallow async methods to be registered.
+            if (action.GetMethodInfo().IsDefined(typeof(AsyncStateMachineAttribute)))
+            {
+                throw new ArgumentException(CodeAnalysisResources.AsyncAnalyzerActionCannotBeRegistered, nameof(action));
             }
         }
 

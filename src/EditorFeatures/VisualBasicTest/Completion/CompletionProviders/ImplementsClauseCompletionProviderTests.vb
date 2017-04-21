@@ -1,6 +1,5 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
@@ -640,11 +639,11 @@ End Interface
                     </Project>
                 </Workspace>
 
-            Using workspace = Await TestWorkspace.CreateAsync(element)
+            Using workspace = TestWorkspace.Create(element)
                 Dim position = workspace.Documents.Single().CursorPosition.Value
                 Dim document = workspace.CurrentSolution.GetDocument(workspace.Documents.Single().Id)
                 Dim service = GetCompletionService(workspace)
-                Dim completionList = Await GetCompletionListAsync(service, document, position, CompletionTrigger.Default)
+                Dim completionList = Await GetCompletionListAsync(service, document, position, CompletionTrigger.Invoke)
                 AssertEx.Any(completionList.Items, Function(c) c.DisplayText = "Workcover")
             End Using
         End Function
@@ -721,6 +720,24 @@ Class D
 End Class</text>.Value
 
             Await VerifyItemExistsAsync(text, "Quux")
+        End Function
+
+        <WorkItem(402811, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=402811")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function DoNotCrashWithOnlyDotTyped() As Task
+            Dim text = <text>Interface I
+    Sub Foo()
+    Sub Quux()
+End Interface
+
+Class B
+    Implements I
+
+    Public Sub Foo Implements .$$
+
+   </text>.Value
+
+            Await VerifyNoItemsExistAsync(text)
         End Function
     End Class
 End Namespace

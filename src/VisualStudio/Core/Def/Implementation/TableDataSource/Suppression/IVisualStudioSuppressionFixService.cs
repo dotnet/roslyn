@@ -7,7 +7,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
     /// <summary>
     /// Service to allow adding or removing bulk suppressions (in source or suppressions file).
     /// </summary>
-    /// <remarks>TODO: Move to the core platform layer.</remarks>
+    /// <remarks>*** NOTE: These internal APIs are used in the VSO repo in Microsoft.VisualStudio.CodeAnalysis.MenuHandlers ***</remarks>
     internal interface IVisualStudioSuppressionFixService
     {
         /// <summary>

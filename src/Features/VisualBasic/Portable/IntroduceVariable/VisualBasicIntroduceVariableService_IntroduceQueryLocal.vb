@@ -8,12 +8,17 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
     Friend Partial Class VisualBasicIntroduceVariableService
-        Protected Overrides Function IntroduceQueryLocalAsync(document As SemanticDocument,
-                                                         expression As ExpressionSyntax,
-                                                         allOccurrences As Boolean,
-                                                         cancellationToken As CancellationToken) As Task(Of Document)
+        Protected Overrides Function IntroduceQueryLocalAsync(
+                document As SemanticDocument,
+                expression As ExpressionSyntax,
+                allOccurrences As Boolean,
+                cancellationToken As CancellationToken) As Task(Of Document)
 
-            Dim newLocalNameToken = GenerateUniqueLocalName(document, expression, isConstant:=False, cancellationToken:=cancellationToken)
+            Dim oldOutermostQuery = expression.GetAncestorsOrThis(Of QueryExpressionSyntax)().LastOrDefault()
+
+            Dim newLocalNameToken = GenerateUniqueLocalName(
+                document, expression, isConstant:=False,
+                container:=oldOutermostQuery, cancellationToken:=cancellationToken)
             Dim newLocalName = SyntaxFactory.IdentifierName(newLocalNameToken)
 
             Dim letClause = SyntaxFactory.LetClause(
@@ -22,7 +27,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
                             SyntaxFactory.ModifiedIdentifier(newLocalNameToken.WithAdditionalAnnotations(RenameAnnotation.Create()))),
                         expression)).WithAdditionalAnnotations(Formatter.Annotation)
 
-            Dim oldOutermostQuery = expression.GetAncestorsOrThis(Of QueryExpressionSyntax)().LastOrDefault()
             Dim matches = FindMatches(document, expression, document, oldOutermostQuery, allOccurrences, cancellationToken)
             Dim innermostClauses = New HashSet(Of QueryClauseSyntax)(
                 matches.Select(Function(expr) expr.GetAncestor(Of QueryClauseSyntax)()))

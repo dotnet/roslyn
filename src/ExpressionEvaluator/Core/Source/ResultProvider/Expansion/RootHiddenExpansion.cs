@@ -9,18 +9,18 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
     {
         internal static Expansion CreateExpansion(
             MemberAndDeclarationInfo members,
-            DynamicFlagsMap dynamicFlagsMap)
+            CustomTypeInfoTypeArgumentMap customTypeInfoMap)
         {
-            return new RootHiddenExpansion(members, dynamicFlagsMap);
+            return new RootHiddenExpansion(members, customTypeInfoMap);
         }
 
         private readonly MemberAndDeclarationInfo _member;
-        private readonly DynamicFlagsMap _dynamicFlagsMap;
+        private readonly CustomTypeInfoTypeArgumentMap _customTypeInfoMap;
 
-        internal RootHiddenExpansion(MemberAndDeclarationInfo member, DynamicFlagsMap dynamicFlagsMap)
+        internal RootHiddenExpansion(MemberAndDeclarationInfo member, CustomTypeInfoTypeArgumentMap customTypeInfoMap)
         {
             _member = member;
-            _dynamicFlagsMap = dynamicFlagsMap;
+            _customTypeInfoMap = customTypeInfoMap;
         }
 
         internal override void GetRows(
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     _member,
                     memberValue,
                     parent,
-                    _dynamicFlagsMap,
+                    _customTypeInfoMap,
                     ExpansionFlags.IncludeBaseMembers | ExpansionFlags.IncludeResultsView);
                 var expansion = other.Expansion;
                 if (expansion != null)

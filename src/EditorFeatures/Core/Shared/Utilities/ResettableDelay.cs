@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
             }
         }
 
-        public Task Task { get { return _taskCompletionSource.Task; } }
+        public Task Task => _taskCompletionSource.Task;
 
         public void Reset()
         {

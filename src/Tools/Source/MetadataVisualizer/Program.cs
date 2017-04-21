@@ -21,7 +21,7 @@ internal class Program : IDisposable
         public MetadataReader MetadataReader;
         public PEReader PEReaderOpt;
         public byte[] DeltaILOpt;
-        public object memoryOwner;
+        public IDisposable MemoryOwner;
     }
 
     private readonly Arguments _arguments;
@@ -73,35 +73,85 @@ internal class Program : IDisposable
         }
     }
 
+    private static bool IsPE(Stream stream)
+    {
+        long oldPosition = stream.Position;
+        bool result = stream.ReadByte() == 'M' && stream.ReadByte() == 'Z';
+        stream.Position = oldPosition;
+        return result;
+    }
+
+    private static bool IsManagedMetadata(Stream stream)
+    {
+        long oldPosition = stream.Position;
+        bool result = stream.ReadByte() == 'B' && stream.ReadByte() == 'S' && stream.ReadByte() == 'J' && stream.ReadByte() == 'B';
+        stream.Position = oldPosition;
+        return result;
+    }
+
+    private static GenerationData ReadFile(string path, bool embeddedPdb)
+    {
+        try
+        {
+            var generation = new GenerationData();
+            var stream = File.OpenRead(path);
+
+            if (IsPE(stream))
+            {
+                var peReader = new PEReader(stream);
+                generation.PEReaderOpt = peReader;
+
+                if (embeddedPdb)
+                {
+                    var embeddedEntries = peReader.ReadDebugDirectory().Where(entry => entry.Type == DebugDirectoryEntryType.EmbeddedPortablePdb).ToArray();
+                    if (embeddedEntries.Length == 0)
+                    {
+                        throw new InvalidDataException("No embedded pdb found");
+                    }
+
+                    if (embeddedEntries.Length > 1)
+                    {
+                        throw new InvalidDataException("Multiple entries in Debug Directory Table of type EmbeddedPortablePdb");
+                    }
+
+                    var provider = peReader.ReadEmbeddedPortablePdbDebugDirectoryData(embeddedEntries[0]);
+                    generation.MetadataReader = provider.GetMetadataReader();
+                    generation.MemoryOwner = provider;
+                }
+                else
+                {
+                    generation.MetadataReader = peReader.GetMetadataReader();
+                    generation.MemoryOwner = peReader;
+                }
+            }
+            else if (IsManagedMetadata(stream))
+            {
+                var mdProvider = MetadataReaderProvider.FromMetadataStream(stream);
+                generation.MetadataReader = mdProvider.GetMetadataReader();
+                generation.MemoryOwner = mdProvider;
+            }
+            else
+            {
+                throw new NotSupportedException("File format not supported");
+            }
+
+            return generation;
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine($"Error reading '{path}': {e.Message}");
+            return null;
+        }
+    }
+
     private unsafe int RunOne()
     {
         var generations = new List<GenerationData>();
 
         // gen 0:
-        var generation = new GenerationData();
-        try
+        var generation = ReadFile(_arguments.Path, embeddedPdb: _arguments.DisplayEmbeddedPdb);
+        if (generation == null)
         {
-            var peStream = File.OpenRead(_arguments.Path);
-            var peReader = new PEReader(peStream);
-            try
-            {
-                // first try if we have a full PE image:
-                generation.MetadataReader = peReader.GetMetadataReader();
-                generation.PEReaderOpt = peReader;
-            }
-            catch (Exception e) when (e is InvalidOperationException || e is BadImageFormatException)
-            {
-                // try metadata only:
-
-                var data = peReader.GetEntireImage();
-                generation.MetadataReader = new MetadataReader(data.Pointer, data.Length);
-            }
-
-            generation.memoryOwner = peReader;
-        }
-        catch (Exception e)
-        {
-            Console.WriteLine("Error reading '{0}': {1}", _arguments.Path, e.Message);
             return 1;
         }
 
@@ -114,19 +164,7 @@ internal class Program : IDisposable
             var metadataPath = delta.Item1;
             var ilPathOpt = delta.Item2;
 
-            generation = new GenerationData();
-            try
-            {
-                var mdBytes = File.ReadAllBytes(metadataPath);
-                GCHandle pinnedMetadataBytes = GCHandle.Alloc(mdBytes, GCHandleType.Pinned);
-                generation.memoryOwner = pinnedMetadataBytes;
-                generation.MetadataReader = new MetadataReader((byte*)pinnedMetadataBytes.AddrOfPinnedObject(), mdBytes.Length);
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine("Error reading '{0}': {1}", metadataPath, e.Message);
-                return 1;
-            }
+            generation = ReadFile(metadataPath, embeddedPdb: false);
 
             if (ilPathOpt != null)
             {
@@ -136,7 +174,7 @@ internal class Program : IDisposable
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine("Error reading '{0}': {1}", ilPathOpt, e.Message);
+                    Console.WriteLine($"Error reading '{ilPathOpt}': {e.Message}");
                     return 1;
                 }
             }
@@ -164,12 +202,20 @@ internal class Program : IDisposable
             var generation = generations[generationIndex];
             var mdReader = generation.MetadataReader;
 
+            if (generation.PEReaderOpt != null)
+            {
+                VisualizeDebugDirectory(generation.PEReaderOpt, _writer);
+            }
+
             visualizer.VisualizeHeaders();
 
-            _writer.WriteLine(">>>");
-            _writer.WriteLine(string.Format(">>> Generation {0}:", generationIndex));
-            _writer.WriteLine(">>>");
-            _writer.WriteLine();
+            if (generations.Count > 1)
+            {
+                _writer.WriteLine(">>>");
+                _writer.WriteLine($">>> Generation {generationIndex}:");
+                _writer.WriteLine(">>>");
+                _writer.WriteLine();
+            }
 
             if (_arguments.DisplayMetadata)
             {
@@ -183,6 +229,39 @@ internal class Program : IDisposable
 
             VisualizeMemberRefs(mdReader);
         }
+    }
+
+    private static void VisualizeDebugDirectory(PEReader peReader, TextWriter writer)
+    {
+        var entries = peReader.ReadDebugDirectory();
+
+        if (entries.Length == 0)
+        {
+            return;
+        }
+
+        writer.WriteLine("Debug Directory:");
+        foreach (var entry in entries)
+        {
+            writer.WriteLine($"  {entry.Type} stamp=0x{entry.Stamp:X8}, version=(0x{entry.MajorVersion:X4}, 0x{entry.MinorVersion:X4}), size={entry.DataSize}");
+
+            try
+            {
+                switch (entry.Type)
+                {
+                    case DebugDirectoryEntryType.CodeView:
+                        var codeView = peReader.ReadCodeViewDebugDirectoryData(entry);
+                        writer.WriteLine($"    path='{codeView.Path}', guid={{{codeView.Guid}}}, age={codeView.Age}");
+                        break;
+                }
+            }
+            catch (BadImageFormatException)
+            {
+                writer.WriteLine("<bad data>");
+            }
+        }
+
+        writer.WriteLine();
     }
 
     private static unsafe void VisualizeGenerationIL(MetadataVisualizer visualizer, int generationIndex, GenerationData generation, MetadataReader mdReader)

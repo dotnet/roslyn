@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
 
@@ -24,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             public override ExpressionSyntax DefaultVisit(ISymbol symbol)
             {
-                return symbol.Accept(TypeSyntaxGeneratorVisitor.Instance);
+                return symbol.Accept(TypeSyntaxGeneratorVisitor.Create());
             }
 
             private TExpressionSyntax AddInformationTo<TExpressionSyntax>(TExpressionSyntax syntax, ISymbol symbol)
@@ -38,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             public override ExpressionSyntax VisitNamedType(INamedTypeSymbol symbol)
             {
-                var typeSyntax = TypeSyntaxGeneratorVisitor.Instance.CreateSimpleTypeSyntax(symbol);
+                var typeSyntax = TypeSyntaxGeneratorVisitor.Create().CreateSimpleTypeSyntax(symbol);
                 if (!(typeSyntax is SimpleNameSyntax))
                 {
                     return typeSyntax;

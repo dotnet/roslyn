@@ -96,34 +96,22 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 #endif
         }
 
-        private TagSource CreateTagSource(ITextView textViewOpt, ITextBuffer subjectBuffer)
+        internal IAccurateTagger<T> CreateTaggerWorker<T>(ITextView textViewOpt, ITextBuffer subjectBuffer) where T : ITag
         {
-            return new TagSource(textViewOpt, subjectBuffer, this, _asyncListener, _notificationService);
-        }
-
-        internal IAccurateTagger<T> GetOrCreateTagger<T>(ITextView textViewOpt, ITextBuffer subjectBuffer) where T : ITag
-        {
-            if (!subjectBuffer.GetOption(EditorComponentOnOffOptions.Tagger))
+            if (!subjectBuffer.GetFeatureOnOffOption(EditorComponentOnOffOptions.Tagger))
             {
                 return null;
             }
 
             var tagSource = GetOrCreateTagSource(textViewOpt, subjectBuffer);
-            return tagSource == null
-                ? null
-                : new Tagger(_asyncListener, _notificationService, tagSource, subjectBuffer) as IAccurateTagger<T>;
+            return new Tagger(_asyncListener, _notificationService, tagSource, subjectBuffer) as IAccurateTagger<T>;
         }
 
         private TagSource GetOrCreateTagSource(ITextView textViewOpt, ITextBuffer subjectBuffer)
         {
-            TagSource tagSource;
-            if (!this.TryRetrieveTagSource(textViewOpt, subjectBuffer, out tagSource))
+            if (!this.TryRetrieveTagSource(textViewOpt, subjectBuffer, out var tagSource))
             {
-                tagSource = this.CreateTagSource(textViewOpt, subjectBuffer);
-                if (tagSource == null)
-                {
-                    return null;
-                }
+                tagSource = new TagSource(textViewOpt, subjectBuffer, this, _asyncListener, _notificationService);
 
                 this.StoreTagSource(textViewOpt, subjectBuffer, tagSource);
                 tagSource.Disposed += (s, e) => this.RemoveTagSource(textViewOpt, subjectBuffer);

@@ -4,16 +4,13 @@ using System.Composition;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.GenerateMember.GenerateVariable;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
@@ -24,19 +21,13 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateVariable
         AbstractGenerateVariableService<CSharpGenerateVariableService, SimpleNameSyntax, ExpressionSyntax>
     {
         protected override bool IsExplicitInterfaceGeneration(SyntaxNode node)
-        {
-            return node is PropertyDeclarationSyntax;
-        }
+            => node is PropertyDeclarationSyntax;
 
         protected override bool IsIdentifierNameGeneration(SyntaxNode node)
-        {
-            return node is IdentifierNameSyntax;
-        }
+            => node is IdentifierNameSyntax identifier && !identifier.Identifier.CouldBeKeyword();
 
         protected override bool ContainingTypesOrSelfHasUnsafeKeyword(INamedTypeSymbol containingType)
-        {
-            return containingType.ContainingTypesOrSelfHasUnsafeKeyword();
-        }
+            => containingType.ContainingTypesOrSelfHasUnsafeKeyword();
 
         protected override bool TryInitializeExplicitInterfaceState(
             SemanticDocument document, SyntaxNode node, CancellationToken cancellationToken,

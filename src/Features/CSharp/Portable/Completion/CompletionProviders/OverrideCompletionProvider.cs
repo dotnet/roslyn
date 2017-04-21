@@ -1,8 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
@@ -47,10 +45,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
             nextToken = startToken;
             returnType = null;
-            if (startToken.Parent is TypeSyntax)
+            if (startToken.Parent is TypeSyntax typeSyntax)
             {
-                var typeSyntax = (TypeSyntax)startToken.Parent;
-
                 // 'partial' is actually an identifier.  If we see it just bail.  This does mean
                 // we won't handle overrides that actually return a type called 'partial'.  And
                 // not a single tear was shed.
@@ -159,21 +155,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return token.GetPreviousTokenIfTouchingWord(position);
         }
 
-        public override ISet<ISymbol> FilterOverrides(ISet<ISymbol> members, ITypeSymbol returnType)
+        public override ImmutableArray<ISymbol> FilterOverrides(ImmutableArray<ISymbol> members, ITypeSymbol returnType)
         {
-            var filteredMembers = new HashSet<ISymbol>(
-                from m in members
-                where SymbolEquivalenceComparer.Instance.Equals(GetReturnType(m), returnType)
-                select m);
+            var filteredMembers = members.WhereAsArray(m =>
+                SymbolEquivalenceComparer.Instance.Equals(GetReturnType(m), returnType));
 
             // Don't filter by return type if we would then have nothing to show.
             // This way, the user gets completion even if they speculatively typed the wrong return type
-            if (filteredMembers.Count > 0)
-            {
-                members = filteredMembers;
-            }
-
-            return members;
+            return filteredMembers.Length > 0 ? filteredMembers : members;
         }
 
         protected override int GetTargetCaretPosition(SyntaxNode caretTarget)
@@ -183,10 +172,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             {
                 return caretTarget.GetLocation().SourceSpan.End;
             }
-            else if (caretTarget is MethodDeclarationSyntax)
+            else if (caretTarget is MethodDeclarationSyntax methodDeclaration)
             {
-                var methodDeclaration = (MethodDeclarationSyntax)caretTarget;
-
                 // abstract override blah(); : move to the end of the line
                 if (methodDeclaration.Body == null)
                 {
@@ -199,14 +186,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     return lastStatement.GetLocation().SourceSpan.End;
                 }
             }
-            else if (caretTarget is BasePropertyDeclarationSyntax)
+            else if (caretTarget is BasePropertyDeclarationSyntax propertyDeclaration)
             {
                 // property: no accessors; move to the end of the declaration
-                var propertyDeclaration = (BasePropertyDeclarationSyntax)caretTarget;
                 if (propertyDeclaration.AccessorList != null && propertyDeclaration.AccessorList.Accessors.Any())
                 {
                     // move to the end of the last statement of the first accessor
-                    var firstAccessorStatement = propertyDeclaration.AccessorList.Accessors.First().Body.Statements.Last();
+                    var firstAccessor = propertyDeclaration.AccessorList.Accessors[0];
+                    var firstAccessorStatement = (SyntaxNode)firstAccessor.Body?.Statements.LastOrDefault() ??
+                        firstAccessor.ExpressionBody.Expression;
                     return firstAccessorStatement.GetLocation().SourceSpan.End;
                 }
                 else

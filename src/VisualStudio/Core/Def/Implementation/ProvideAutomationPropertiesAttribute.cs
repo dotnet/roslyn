@@ -21,19 +21,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
         public ProvideAutomationPropertiesAttribute(string category, string page, string packageGuid, int profileNodeLabelId, int profileNodeDescriptionId, string resourcePackageGuid = null)
         {
-            if (category == null)
-            {
-                throw new ArgumentNullException(nameof(category));
-            }
-
-            if (page == null)
-            {
-                throw new ArgumentNullException(nameof(page));
-            }
-
             this.PackageGuid = Guid.Parse(packageGuid);
-            this.Category = category;
-            this.Page = page;
+            this.Category = category ?? throw new ArgumentNullException(nameof(category));
+            this.Page = page ?? throw new ArgumentNullException(nameof(page));
             this.ProfileNodeLabelId = profileNodeLabelId;
             this.ProfileNodeDescriptionId = profileNodeDescriptionId;
 

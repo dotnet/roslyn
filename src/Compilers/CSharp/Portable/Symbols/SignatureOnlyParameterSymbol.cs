@@ -2,6 +2,7 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -13,20 +14,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         private readonly TypeSymbol _type;
         private readonly ImmutableArray<CustomModifier> _customModifiers;
+        private readonly ImmutableArray<CustomModifier> _refCustomModifiers;
         private readonly bool _isParams;
         private readonly RefKind _refKind;
 
         public SignatureOnlyParameterSymbol(
             TypeSymbol type,
             ImmutableArray<CustomModifier> customModifiers,
+            ImmutableArray<CustomModifier> refCustomModifiers,
             bool isParams,
             RefKind refKind)
         {
             Debug.Assert(type != null);
             Debug.Assert(!customModifiers.IsDefault);
+            Debug.Assert(!refCustomModifiers.IsDefault);
 
             _type = type;
             _customModifiers = customModifiers;
+            _refCustomModifiers = refCustomModifiers;
             _isParams = isParams;
             _refKind = refKind;
         }
@@ -34,6 +39,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override TypeSymbol Type { get { return _type; } }
 
         public override ImmutableArray<CustomModifier> CustomModifiers { get { return _customModifiers; } }
+
+        public override ImmutableArray<CustomModifier> RefCustomModifiers { get { return _refCustomModifiers; } }
 
         public override bool IsParams { get { return _isParams; } }
 
@@ -70,8 +77,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool IsCallerMemberName { get { throw ExceptionUtilities.Unreachable; } }
 
-        internal sealed override ushort CountOfCustomModifiersPrecedingByRef { get { return 0; } }
-
         public override Symbol ContainingSymbol { get { throw ExceptionUtilities.Unreachable; } }
 
         public override ImmutableArray<Location> Locations { get { throw ExceptionUtilities.Unreachable; } }
@@ -94,7 +99,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var other = obj as SignatureOnlyParameterSymbol;
             return (object)other != null &&
                 _type == other._type &&
-                _customModifiers.Equals(other._customModifiers) &&
+                _customModifiers.SequenceEqual(other._customModifiers) &&
+                _refCustomModifiers.SequenceEqual(other._refCustomModifiers) &&
                 _isParams == other._isParams &&
                 _refKind == other._refKind;
         }
@@ -104,10 +110,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return Hash.Combine(
                 _type.GetHashCode(),
                 Hash.Combine(
-                    Hash.CombineValues(_customModifiers),
-                    Hash.Combine(
-                        _isParams.GetHashCode(),
-                        _refKind.GetHashCode())));
+                    _isParams.GetHashCode(),
+                    _refKind.GetHashCode()));
         }
     }
 }

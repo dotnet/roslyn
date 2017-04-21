@@ -2,13 +2,13 @@
 
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.CodeStyle
-Imports Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.EncapsulateField
+Imports Microsoft.CodeAnalysis.EncapsulateField
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings.EncapsulateField
     Public Class EncapsulateFieldTests
         Inherits AbstractVisualBasicCodeActionTest
 
-        Protected Overrides Function CreateCodeRefactoringProvider(workspace As Workspace) As CodeRefactoringProvider
+        Protected Overrides Function CreateCodeRefactoringProvider(workspace As Workspace, parameters As TestParameters) As CodeRefactoringProvider
             Return New EncapsulateFieldRefactoringProvider()
         End Function
 
@@ -46,7 +46,7 @@ Class C
     End Sub
 End Class</File>.ConvertTestSourceTag()
 
-            Await TestAsync(text, expected, compareTokens:=False, index:=0)
+            Await TestInRegularAndScriptAsync(text, expected, ignoreTrivia:=False)
 
         End Function
 
@@ -79,7 +79,7 @@ Class C
     End Sub
 End Class</File>.ConvertTestSourceTag()
 
-            Await TestAsync(text, expected, compareTokens:=False)
+            Await TestInRegularAndScriptAsync(text, expected, ignoreTrivia:=False)
 
         End Function
 
@@ -112,7 +112,7 @@ Class C(Of T)
     End Sub
 End Class</File>.ConvertTestSourceTag()
 
-            Await TestAsync(text, expected, compareTokens:=False)
+            Await TestInRegularAndScriptAsync(text, expected, ignoreTrivia:=False)
 
         End Function
 
@@ -145,7 +145,7 @@ Class C
     End Sub
 End Class</File>.ConvertTestSourceTag()
 
-            Await TestAsync(text, expected, compareTokens:=False, index:=1)
+            Await TestInRegularAndScriptAsync(text, expected, ignoreTrivia:=False, index:=1)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)>
@@ -177,7 +177,7 @@ Class C
     End Sub
 End Class</File>.ConvertTestSourceTag()
 
-            Await TestAsync(text, expected, compareTokens:=False, index:=0)
+            Await TestInRegularAndScriptAsync(text, expected, ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)>
@@ -220,7 +220,7 @@ Class C
     End Sub
 End Class</File>.ConvertTestSourceTag()
 
-            Await TestAsync(text, expected, compareTokens:=False, index:=0)
+            Await TestInRegularAndScriptAsync(text, expected, ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)>
@@ -265,7 +265,7 @@ Class C
     End Sub
 End Class</File>.ConvertTestSourceTag()
 
-            Await TestAsync(text, expected, compareTokens:=False, index:=1)
+            Await TestInRegularAndScriptAsync(text, expected, ignoreTrivia:=False, index:=1)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)>
@@ -286,7 +286,7 @@ Class Program
     End Property
 End Class</File>.ConvertTestSourceTag()
 
-            Await TestAsync(text, expected, compareTokens:=False, index:=0)
+            Await TestInRegularAndScriptAsync(text, expected, ignoreTrivia:=False)
 
         End Function
 
@@ -311,7 +311,7 @@ Class C
     End Property
 End Class</File>.ConvertTestSourceTag()
 
-            Await TestAsync(text, expected, compareTokens:=False, index:=0)
+            Await TestInRegularAndScriptAsync(text, expected, ignoreTrivia:=False)
 
         End Function
 
@@ -336,7 +336,7 @@ Class C
     End Property
 End Class</File>.ConvertTestSourceTag()
 
-            Await TestAsync(text, expected, compareTokens:=False, index:=0, options:=[Option](CodeStyleOptions.QualifyFieldAccess, True, NotificationOption.Error))
+            Await TestInRegularAndScriptAsync(text, expected, ignoreTrivia:=False, options:=[Option](CodeStyleOptions.QualifyFieldAccess, True, NotificationOption.Error))
 
         End Function
 
@@ -361,7 +361,7 @@ Class C
     End Property
 End Class</File>.ConvertTestSourceTag()
 
-            Await TestAsync(text, expected, compareTokens:=False, index:=0)
+            Await TestInRegularAndScriptAsync(text, expected, ignoreTrivia:=False)
 
         End Function
 
@@ -388,7 +388,7 @@ Class D
 End Class
 </File>.ConvertTestSourceTag()
 
-            Await TestAsync(text, expected, compareTokens:=False)
+            Await TestInRegularAndScriptAsync(text, expected, ignoreTrivia:=False)
         End Function
 
         <WorkItem(694262, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/694262")>
@@ -415,7 +415,7 @@ Class AA
 End Class
 </File>.ConvertTestSourceTag()
 
-            Await TestAsync(text, expected, compareTokens:=False)
+            Await TestInRegularAndScriptAsync(text, expected, ignoreTrivia:=False)
         End Function
 
         <WorkItem(694241, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/694241")>
@@ -458,7 +458,7 @@ Class AA
 End Class
 </File>.ConvertTestSourceTag()
 
-            Await TestAsync(text, expected, compareTokens:=False)
+            Await TestInRegularAndScriptAsync(text, expected, ignoreTrivia:=False)
         End Function
 
         <WorkItem(695046, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/695046")>
@@ -494,7 +494,7 @@ Class C
     End Property
 End Class</File>.ConvertTestSourceTag()
 
-            Await TestAsync(text, expected, compareTokens:=False)
+            Await TestInRegularAndScriptAsync(text, expected, ignoreTrivia:=False)
         End Function
 
         <WorkItem(707080, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/707080")>
@@ -527,7 +527,7 @@ Public Class Class1
     End Sub
 End Class</File>.ConvertTestSourceTag()
 
-            Await TestAsync(text, expected, compareTokens:=False)
+            Await TestInRegularAndScriptAsync(text, expected, ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)>
@@ -581,7 +581,7 @@ Class D
     End Property
 End Class</File>.ConvertTestSourceTag()
 
-            Await TestAsync(text, expected, compareTokens:=False)
+            Await TestInRegularAndScriptAsync(text, expected, ignoreTrivia:=False)
         End Function
 
         <WorkItem(1096007, "https://github.com/dotnet/roslyn/issues/282")>
@@ -590,7 +590,7 @@ End Class</File>.ConvertTestSourceTag()
             Dim globalField = <File>
 Dim [|x|] = 1
 </File>.ConvertTestSourceTag()
-            Await TestMissingAsync(globalField)
+            Await TestMissingInRegularAndScriptAsync(globalField)
 
 
             Dim namespaceField = <File>
@@ -598,21 +598,21 @@ Namespace N
     Dim [|x|] = 1
 End Namespace            
 </File>.ConvertTestSourceTag()
-            Await TestMissingAsync(namespaceField)
+            Await TestMissingInRegularAndScriptAsync(namespaceField)
 
             Dim enumField = <File>
 Enum E
      [|x|] = 1
 End Enum
 </File>.ConvertTestSourceTag()
-            Await TestMissingAsync(enumField)
+            Await TestMissingInRegularAndScriptAsync(enumField)
 
         End Function
 
         <WorkItem(7090, "https://github.com/dotnet/roslyn/issues/7090")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)>
         Public Async Function ApplyCurrentMePrefixStyle() As Task
-            Await TestAsync("
+            Await TestInRegularAndScriptAsync("
 Class C
     Dim [|i|] As Integer
 End Class

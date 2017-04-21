@@ -1,10 +1,11 @@
 ﻿{
-  "dependencies": { },
+  "dependencies": { 
+     "Microsoft.ServiceHub.Client": "1.0.177-rc-g56d40a8a02"
+  },
   "frameworks": {
-    "net46": {}
+    "net46": { }
   },
   "runtimes": {
-    "win7-x86": { },
-    "win7-x64": { }
+    "win7-x86": { }
   }
 }

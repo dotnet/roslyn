@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -84,7 +84,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 PopulateInitialData(workspace, _todoListProvider);
             }
 
-            public override string DisplayName => ServicesVSResources.TodoTableSourceName;
+            public override string DisplayName => ServicesVSResources.CSharp_VB_Todo_List_Table_Data_Source;
             public override string SourceTypeIdentifier => StandardTableDataSources.CommentTableDataSource;
             public override string Identifier => _identifier;
             public override object GetItemKey(object data) => ((UpdatedEventArgs)data).DocumentId;

@@ -89,8 +89,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 : base(containingType)
             {
                 _parameters = ImmutableArray.Create<ParameterSymbol>(
-                   new SynthesizedParameterSymbol(this, objectType, 0, RefKind.None, "object"),
-                   new SynthesizedParameterSymbol(this, intPtrType, 1, RefKind.None, "method"));
+                   SynthesizedParameterSymbol.Create(this, objectType, 0, RefKind.None, "object"),
+                   SynthesizedParameterSymbol.Create(this, intPtrType, 1, RefKind.None, "method"));
             }
 
             public override ImmutableArray<ParameterSymbol> Parameters
@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // we don't need to distinguish between out and ref since this is an internal synthesized symbol:
                     var refKind = !byRefParameters.IsNull && byRefParameters[i] ? RefKind.Ref : RefKind.None;
 
-                    parameters[i] = new SynthesizedParameterSymbol(this, typeParams[i], i, refKind);
+                    parameters[i] = SynthesizedParameterSymbol.Create(this, typeParams[i], i, refKind);
                 }
 
                 _parameters = parameters.AsImmutableOrNull();
@@ -250,6 +250,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             public override ImmutableArray<CustomModifier> ReturnTypeCustomModifiers
+            {
+                get { return ImmutableArray<CustomModifier>.Empty; }
+            }
+
+            public override ImmutableArray<CustomModifier> RefCustomModifiers
             {
                 get { return ImmutableArray<CustomModifier>.Empty; }
             }

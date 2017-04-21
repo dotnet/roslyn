@@ -9,8 +9,7 @@ Imports Microsoft.VisualStudio.Composition
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
     Public Class NavigationBarControllerTests
-        Friend ReadOnly ExportProvider As ExportProvider = MinimalTestExportProvider.CreateExportProvider(
-            TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithPart(GetType(NavigationBarWaiter)))
+        Friend ReadOnly ExportProvider As ExportProvider = MinimalTestExportProvider.CreateExportProvider(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithPart(GetType(NavigationBarWaiter)).WithPart(GetType(WorkspaceWaiter)))
 
         <[Shared]>
         <Export(GetType(IAsynchronousOperationListener))>
@@ -21,9 +20,18 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
             Inherits AsynchronousOperationListener
         End Class
 
+        <[Shared]>
+        <Export(GetType(IAsynchronousOperationListener))>
+        <Export(GetType(IAsynchronousOperationWaiter))>
+        <Export(GetType(NavigationBarWaiter))>
+        <Feature(FeatureAttribute.Workspace)>
+        Private Class WorkspaceWaiter
+            Inherits AsynchronousOperationListener
+        End Class
+
         <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(544957, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544957")>
-        Public Async Function TestDoNotRecomputeAfterFullRecompute() As Task
-            Using workspace = Await TestWorkspace.CreateAsync(
+        Public Sub TestDoNotRecomputeAfterFullRecompute()
+            Using workspace = TestWorkspace.Create(
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>class C { }</Document>
@@ -52,11 +60,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
 
                 Assert.False(presentItemsCalled, "The presenter should not have been called a second time.")
             End Using
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(544957, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544957")>
         Public Async Function ProjectionBuffersWork() As Task
-            Using workspace = Await TestWorkspace.CreateAsync(
+            Using workspace = TestWorkspace.Create(
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>{|Document:class C { $$ }|}</Document>
@@ -85,8 +93,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar)>
-        Public Async Function TestNavigationBarInCSharpLinkedFiles() As Task
-            Using workspace = Await TestWorkspace.CreateAsync(
+        Public Sub TestNavigationBarInCSharpLinkedFiles()
+            Using workspace = TestWorkspace.Create(
                 <Workspace>
                     <Project Language="C#" CommonReferences="true" AssemblyName="CSProj" PreprocessorSymbols="Proj1">
                         <Document FilePath="C.cs">
@@ -139,11 +147,11 @@ class C
                 Assert.Equal("M2(int x)", memberName)
                 Assert.Equal(projectGlyph, Glyph.CSharpProject)
             End Using
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar)>
-        Public Async Function TestNavigationBarInVisualBasicLinkedFiles() As Task
-            Using workspace = Await TestWorkspace.CreateAsync(
+        Public Sub TestNavigationBarInVisualBasicLinkedFiles()
+            Using workspace = TestWorkspace.Create(
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true" AssemblyName="VBProj" PreprocessorSymbols="Proj1=True">
                         <Document FilePath="C.vb">
@@ -199,11 +207,11 @@ End Class
                 Assert.DoesNotContain("M1", memberNames)
                 Assert.Equal(projectGlyph, Glyph.BasicProject)
             End Using
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar)>
-        Public Async Function TestProjectItemsAreSortedCSharp() As Task
-            Using workspace = Await TestWorkspace.CreateAsync(
+        Public Sub TestProjectItemsAreSortedCSharp()
+            Using workspace = TestWorkspace.Create(
                 <Workspace>
                     <Project Language="C#" CommonReferences="true" AssemblyName="BProj">
                         <Document FilePath="C.cs">
@@ -242,11 +250,11 @@ class C
                 mockPresenter.RaiseDropDownFocused()
                 Assert.True(actualProjectNames.SequenceEqual(expectedProjectNames))
             End Using
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar)>
-        Public Async Function TestProjectItemsAreSortedVisualBasic() As Task
-            Using workspace = Await TestWorkspace.CreateAsync(
+        Public Sub TestProjectItemsAreSortedVisualBasic()
+            Using workspace = TestWorkspace.Create(
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true" AssemblyName="VBProj">
                         <Document FilePath="C.vb">
@@ -281,11 +289,11 @@ End Class
                 mockPresenter.RaiseDropDownFocused()
                 Assert.True(actualProjectNames.SequenceEqual(expectedProjectNames))
             End Using
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar)>
         Public Async Function TestNavigationBarRefreshesAfterProjectRename() As Task
-            Using workspace = Await TestWorkspace.CreateAsync(
+            Using workspace = TestWorkspace.Create(
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true" AssemblyName="VBProj">
                         <Document FilePath="C.vb">

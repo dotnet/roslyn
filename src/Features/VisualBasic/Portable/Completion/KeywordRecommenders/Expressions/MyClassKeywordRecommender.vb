@@ -24,11 +24,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Expr
                     Return SpecializedCollections.EmptyEnumerable(Of RecommendedKeyword)()
                 End If
 
-                Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword(SyntaxFacts.GetText(SyntaxKind.MyClassKeyword), VBFeaturesResources.MyClassKeywordToolTip))
+                Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword(SyntaxFacts.GetText(SyntaxKind.MyClassKeyword), VBFeaturesResources.Provides_a_way_to_refer_to_the_class_instance_members_as_originally_implemented_ignoring_any_derived_class_overrides))
             End If
 
             If context.IsAccessibleEventContext(startAtEnclosingBaseType:=False, cancellationToken:=cancellationToken) Then
-                Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword(SyntaxFacts.GetText(SyntaxKind.MyClassKeyword), VBFeaturesResources.MyClassKeywordToolTip))
+                Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword(SyntaxFacts.GetText(SyntaxKind.MyClassKeyword), VBFeaturesResources.Provides_a_way_to_refer_to_the_class_instance_members_as_originally_implemented_ignoring_any_derived_class_overrides))
             End If
 
             Return SpecializedCollections.EmptyEnumerable(Of RecommendedKeyword)()

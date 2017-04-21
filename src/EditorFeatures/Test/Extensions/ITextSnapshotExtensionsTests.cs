@@ -169,9 +169,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
         public void GetLineAndColumnTest()
         {
             var snapshot = GetSampleCodeSnapshot();
-            int line;
-            int col;
-            snapshot.GetLineAndColumn(16, out line, out col);
+            snapshot.GetLineAndColumn(16, out var line, out var col);
             Assert.Equal(3, line);
             Assert.Equal(1, col);
         }

@@ -50,7 +50,7 @@ start:
         ''' <remarks>
         ''' This method should be kept consistent with ComputeStringHash
         ''' </remarks>
-        Friend Overrides Function GetBoundMethodBody(diagnostics As DiagnosticBag, Optional ByRef methodBodyBinder As Binder = Nothing) As BoundBlock
+        Friend Overrides Function GetBoundMethodBody(compilationState As TypeCompilationState, diagnostics As DiagnosticBag, Optional ByRef methodBodyBinder As Binder = Nothing) As BoundBlock
             Dim F = New SyntheticBoundNodeFactory(Me, Me, Me.Syntax, Nothing, diagnostics)
             F.CurrentMethod = Me
 

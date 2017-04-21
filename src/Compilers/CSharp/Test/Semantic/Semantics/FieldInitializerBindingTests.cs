@@ -237,7 +237,7 @@ class C
 
         private static void CompileAndCheckInitializers(string source, IEnumerable<ExpectedInitializer> expectedInstanceInitializers, IEnumerable<ExpectedInitializer> expectedStaticInitializers)
         {
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
             var syntaxTree = compilation.SyntaxTrees.First();
             var typeSymbol = (SourceNamedTypeSymbol)compilation.GlobalNamespace.GetMembers("C").Single();
 

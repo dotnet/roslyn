@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
     internal class CSharpFlagsEnumGenerator : AbstractFlagsEnumGenerator
     {
         internal static readonly CSharpFlagsEnumGenerator Instance = new CSharpFlagsEnumGenerator();
-        private static readonly SyntaxGenerator s_generatorInstance = new CSharpSyntaxGenerator();
+        private static readonly SyntaxGenerator s_generatorInstance = CSharpSyntaxGenerator.Instance;
 
         private CSharpFlagsEnumGenerator()
         {
@@ -41,8 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 return expression;
             }
 
-            var factory = new CSharpSyntaxGenerator();
-            return factory.CastExpression(enumType, expression);
+            return CSharpSyntaxGenerator.Instance.CastExpression(enumType, expression);
         }
 
         protected override SyntaxGenerator GetSyntaxGenerator()

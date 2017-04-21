@@ -3,7 +3,6 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.LanguageServices;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration
 {
@@ -250,9 +249,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         /// Returns the document in the new solution where the destination symbol is declared.
         /// </summary>
         public static Task<Document> AddMemberDeclarationsAsync(Solution solution, INamedTypeSymbol destination, IEnumerable<ISymbol> members, CodeGenerationOptions options = default(CodeGenerationOptions), CancellationToken cancellationToken = default(CancellationToken))
-        {
-            return GetCodeGenerationService(solution.Workspace, destination.Language).AddMembersAsync(solution, destination, members, options, cancellationToken);
-        }
+            => GetCodeGenerationService(solution.Workspace, destination.Language).AddMembersAsync(solution, destination, members, options, cancellationToken);
 
         /// <summary>
         /// Returns <c>true</c> if additional declarations can be added to the destination symbol's declaration.

@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return _result;
         }
 
-        protected override void ReportUnassigned(Symbol symbol, CSharpSyntaxNode node)
+        protected override void ReportUnassigned(Symbol symbol, SyntaxNode node)
         {
             // TODO: how to handle fields of structs?
             if (symbol.Kind != SymbolKind.Field)
@@ -57,13 +57,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        protected override void ReportUnassignedOutParameter(ParameterSymbol parameter, CSharpSyntaxNode node, Location location)
+        protected override void ReportUnassignedOutParameter(ParameterSymbol parameter, SyntaxNode node, Location location)
         {
             _result.Add(parameter);
             base.ReportUnassignedOutParameter(parameter, node, location);
         }
 
-        protected override void ReportUnassigned(FieldSymbol fieldSymbol, int unassignedSlot, CSharpSyntaxNode node)
+        protected override void ReportUnassigned(FieldSymbol fieldSymbol, int unassignedSlot, SyntaxNode node)
         {
             Symbol variable = GetNonFieldSymbol(unassignedSlot);
             if ((object)variable != null) _result.Add(variable);

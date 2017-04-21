@@ -1006,6 +1006,49 @@ name: LambdaCaller
         }
 
         [Fact]
+        public void TestCallerMemberName_LocalFunction()
+        {
+            string source = @"
+using System.Runtime.CompilerServices;
+using System;
+
+class D
+{
+    public void LocalFunctionCaller()
+    {
+        void Local()
+        {
+            void LocalNested() => Test.Log();
+            LocalNested();
+        }
+        Local();
+    }
+}
+
+class Test
+{
+    public static int Log([CallerMemberName] string callerName = """")
+    {
+        Console.WriteLine(""name: "" + callerName);
+        return 1;
+    }
+
+    public static void Main()
+    {
+        var d = new D();
+        d.LocalFunctionCaller();
+    }
+}";
+
+            var expected = @"
+name: LocalFunctionCaller
+";
+
+            var compilation = CreateCompilationWithMscorlib45(source, references: new MetadataReference[] { SystemRef }, options: TestOptions.ReleaseExe);
+            CompileAndVerify(compilation, expectedOutput: expected);
+        }
+
+        [Fact]
         public void TestCallerMemberName_Operator()
         {
             string source = @"

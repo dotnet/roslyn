@@ -13,10 +13,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             DeclarationModifiers allowedModifiers,
             Location errorLocation,
             DiagnosticBag diagnostics,
-            out bool modifierErrors,
-            bool ignoreParameterModifiers = false)
+            out bool modifierErrors)
         {
-            var result = modifiers.ToDeclarationModifiers(ignoreParameterModifiers);
+            var result = modifiers.ToDeclarationModifiers();
             result = CheckModifiers(result, allowedModifiers, errorLocation, diagnostics, out modifierErrors);
 
             if ((result & DeclarationModifiers.AccessibilityMask) == 0)
@@ -59,10 +58,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (isMethod && ((result & (DeclarationModifiers.Partial | DeclarationModifiers.Private)) == (DeclarationModifiers.Partial | DeclarationModifiers.Private)))
             {
                 diagnostics.Add(ErrorCode.ERR_PartialMethodInvalidModifier, errorLocation);
-            }
-            if ((result & (DeclarationModifiers.Partial | DeclarationModifiers.Replace)) == (DeclarationModifiers.Partial | DeclarationModifiers.Replace))
-            {
-                diagnostics.Add(ErrorCode.ERR_PartialReplace, errorLocation);
             }
             return result;
         }
@@ -107,8 +102,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return SyntaxFacts.GetText(SyntaxKind.VirtualKeyword);
                 case DeclarationModifiers.Override:
                     return SyntaxFacts.GetText(SyntaxKind.OverrideKeyword);
-                case DeclarationModifiers.Replace:
-                    return SyntaxFacts.GetText(SyntaxKind.ReplaceKeyword);
                 case DeclarationModifiers.Async:
                     return SyntaxFacts.GetText(SyntaxKind.AsyncKeyword);
                 default:
@@ -116,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private static DeclarationModifiers ToDeclarationModifier(SyntaxKind kind, bool ignoreParameterModifiers)
+        private static DeclarationModifiers ToDeclarationModifier(SyntaxKind kind)
         {
             switch (kind)
             {
@@ -150,35 +143,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return DeclarationModifiers.Virtual;
                 case SyntaxKind.OverrideKeyword:
                     return DeclarationModifiers.Override;
-                case SyntaxKind.ReplaceKeyword:
-                    return DeclarationModifiers.Replace;
                 case SyntaxKind.ConstKeyword:
                     return DeclarationModifiers.Const;
                 case SyntaxKind.FixedKeyword:
                     return DeclarationModifiers.Fixed;
                 case SyntaxKind.VolatileKeyword:
                     return DeclarationModifiers.Volatile;
-                case SyntaxKind.ThisKeyword:
-                case SyntaxKind.RefKeyword:
-                case SyntaxKind.OutKeyword:
-                case SyntaxKind.ParamsKeyword:
-                    if (ignoreParameterModifiers)
-                    {
-                        return DeclarationModifiers.None;
-                    }
-                    goto default;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(kind);
             }
         }
 
-        public static DeclarationModifiers ToDeclarationModifiers(this SyntaxTokenList modifiers, bool ignoreParameterModifiers = false)
+        public static DeclarationModifiers ToDeclarationModifiers(this SyntaxTokenList modifiers)
         {
             var result = DeclarationModifiers.None;
 
             foreach (var modifier in modifiers)
             {
-                DeclarationModifiers one = ToDeclarationModifier(modifier.ContextualKind(), ignoreParameterModifiers);
+                DeclarationModifiers one = ToDeclarationModifier(modifier.ContextualKind());
                 result |= one;
             }
 

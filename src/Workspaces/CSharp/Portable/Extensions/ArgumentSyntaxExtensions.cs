@@ -99,21 +99,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             return null;
         }
-
-        public static ITypeSymbol DetermineParameterType(
-            this ArgumentSyntax argument,
-            SemanticModel semanticModel,
-            CancellationToken cancellationToken)
-        {
-            // If a parameter appears to have a void return type, then just use 'object'
-            // instead.
-            var typeInfo = semanticModel.GetTypeInfo(argument.Expression, cancellationToken);
-            if (typeInfo.Type != null && typeInfo.Type.SpecialType == SpecialType.System_Void)
-            {
-                return semanticModel.Compilation.ObjectType;
-            }
-
-            return semanticModel.GetType(argument.Expression, cancellationToken);
-        }
     }
 }

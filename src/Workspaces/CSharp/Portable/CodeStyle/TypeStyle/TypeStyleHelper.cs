@@ -190,17 +190,28 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle
             ITypeSymbol typeInDeclaration, 
             ITypeSymbol containingType)
         {
-            var returnType = methodSymbol.ReturnType;
+            var returnType = UnwrapTupleType(methodSymbol.ReturnType);
 
-            if (typeInDeclaration?.GetTypeArguments().Length > 0 ||
+            if (UnwrapTupleType(typeInDeclaration)?.GetTypeArguments().Length > 0 ||
                 containingType.GetTypeArguments().Length > 0)
             {
-                return containingType.Name.Equals(returnType.Name);
+                return UnwrapTupleType(containingType).Name.Equals(returnType.Name);
             }
             else
             {
-                return containingType.Equals(returnType);
+                return UnwrapTupleType(containingType).Equals(returnType);
             }
+        }
+
+        private static ITypeSymbol UnwrapTupleType(ITypeSymbol symbol)
+        {
+            if (symbol is null)
+                return null;
+
+            if (!(symbol is INamedTypeSymbol namedTypeSymbol))
+                return symbol;
+
+            return namedTypeSymbol.TupleUnderlyingType ?? symbol;
         }
 
         private static ExpressionSyntax GetRightmostInvocationExpression(ExpressionSyntax node)
@@ -250,6 +261,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle
             }
 
             return stylePreferences;
+        }
+
+        public static bool IsPredefinedType(TypeSyntax type)
+        {
+            var predefinedType = type as PredefinedTypeSyntax;
+
+            return predefinedType != null
+                ? SyntaxFacts.IsPredefinedType(predefinedType.Keyword.Kind())
+                : false;
         }
     }
 }

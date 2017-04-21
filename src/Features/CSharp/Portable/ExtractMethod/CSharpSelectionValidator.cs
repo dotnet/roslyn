@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -37,6 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             var text = this.SemanticDocument.Text;
             var root = this.SemanticDocument.Root;
             var model = this.SemanticDocument.SemanticModel;
+            var doc = this.SemanticDocument;
 
             // go through pipe line and calculate information about the user selection
             var selectionInfo = GetInitialSelectionInfo(root, text, cancellationToken);
@@ -44,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             selectionInfo = AdjustFinalTokensBasedOnContext(selectionInfo, model, cancellationToken);
             selectionInfo = AssignFinalSpan(selectionInfo, text, cancellationToken);
             selectionInfo = ApplySpecialCases(selectionInfo, text, cancellationToken);
-            selectionInfo = CheckErrorCasesAndAppendDescriptions(selectionInfo, root, cancellationToken);
+            selectionInfo = CheckErrorCasesAndAppendDescriptions(selectionInfo, root, model, cancellationToken);
 
             // there was a fatal error that we couldn't even do negative preview, return error result
             if (selectionInfo.Status.FailedWithNoBestEffortSuggestion())
@@ -58,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 var statementRange = GetStatementRangeContainedInSpan<StatementSyntax>(root, controlFlowSpan, cancellationToken);
                 if (statementRange == null)
                 {
-                    selectionInfo = selectionInfo.WithStatus(s => s.With(OperationStatusFlag.None, CSharpFeaturesResources.CantDetermineValidRangeOfStatements));
+                    selectionInfo = selectionInfo.WithStatus(s => s.With(OperationStatusFlag.None, CSharpFeaturesResources.Can_t_determine_valid_range_of_statements_to_extract));
                     return new ErrorSelectionResult(selectionInfo.Status);
                 }
 
@@ -68,8 +70,28 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     // check control flow only if we are extracting statement level, not expression
                     // level. you can not have goto that moves control out of scope in expression level
                     // (even in lambda)
-                    selectionInfo = selectionInfo.WithStatus(s => s.With(OperationStatusFlag.BestEffort, CSharpFeaturesResources.NotAllCodePathReturns));
+                    selectionInfo = selectionInfo.WithStatus(s => s.With(OperationStatusFlag.BestEffort, CSharpFeaturesResources.Not_all_code_paths_return));
                 }
+            }
+
+            // Warn if local functions are in selection since data flow analysis
+            // cannot correctly analyze them
+            // https://github.com/dotnet/roslyn/issues/14214
+            if (SpanInvolvesLocalFunction(selectionInfo.FinalSpan, model, root))
+            {
+                selectionInfo = selectionInfo.WithStatus(s => s.With(
+                    OperationStatusFlag.Succeeded | OperationStatusFlag.BestEffort,
+                    CSharpFeaturesResources.Warning_Extracting_a_local_function_reference_may_produce_invalid_code));
+                var commonRoot = selectionInfo.CommonRootFromOriginalSpan;
+                var annotated = commonRoot.WithAdditionalAnnotations(
+                        WarningAnnotation.Create(CSharpFeaturesResources.Warning_Extracting_a_local_function_reference_may_produce_invalid_code));
+                doc = await doc.WithSyntaxRootAsync(
+                    root.ReplaceNode(commonRoot, annotated),
+                    cancellationToken).ConfigureAwait(false);
+                selectionInfo.FirstTokenInOriginalSpan = doc.Root.FindToken(selectionInfo.FirstTokenInOriginalSpan.SpanStart);
+                selectionInfo.LastTokenInOriginalSpan = doc.Root.FindToken(selectionInfo.LastTokenInOriginalSpan.SpanStart);
+                selectionInfo.FirstTokenInFinalSpan = doc.Root.FindToken(selectionInfo.FirstTokenInFinalSpan.SpanStart);
+                selectionInfo.LastTokenInFinalSpan = doc.Root.FindToken(selectionInfo.LastTokenInFinalSpan.SpanStart);
             }
 
             return await CSharpSelectionResult.CreateAsync(
@@ -78,10 +100,38 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 selectionInfo.FinalSpan,
                 this.Options,
                 selectionInfo.SelectionInExpression,
-                this.SemanticDocument,
+                doc,
                 selectionInfo.FirstTokenInFinalSpan,
                 selectionInfo.LastTokenInFinalSpan,
                 cancellationToken).ConfigureAwait(false);
+        }
+
+        private static bool SpanInvolvesLocalFunction(TextSpan finalSpan, SemanticModel model, SyntaxNode root)
+        {
+            var nodes = root.DescendantNodes(finalSpan).Where(n => finalSpan.Contains(n.Span));
+            foreach (var node in nodes)
+            {
+                if (node.IsKind(SyntaxKind.LocalFunctionStatement))
+                {
+                    return true;
+                }
+
+                if (node is IdentifierNameSyntax id)
+                {
+                    var symbolInfo = model.GetSymbolInfo(id);
+                    if (symbolInfo.Symbol is IMethodSymbol method &&
+                        method.MethodKind == MethodKind.LocalFunction)
+                    {
+                        return true;
+                    }
+                }
+
+                if (node.HasAncestor<LocalFunctionStatementSyntax>())
+                {
+                    return true;
+                }
+            }
+            return false;
         }
 
         private SelectionInfo ApplySpecialCases(SelectionInfo selectionInfo, SourceText text, CancellationToken cancellationToken)
@@ -144,7 +194,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             if (firstValidNode == null)
             {
                 // couldn't find any valid node
-                return selectionInfo.WithStatus(s => new OperationStatus(OperationStatusFlag.None, CSharpFeaturesResources.SelectionDoesNotContainAValidNode))
+                return selectionInfo.WithStatus(s => new OperationStatus(OperationStatusFlag.None, CSharpFeaturesResources.Selection_does_not_contain_a_valid_node))
                                     .With(s => s.FirstTokenInFinalSpan = default(SyntaxToken))
                                     .With(s => s.LastTokenInFinalSpan = default(SyntaxToken));
             }
@@ -166,14 +216,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
             if (firstTokenInSelection.Kind() == SyntaxKind.None || lastTokenInSelection.Kind() == SyntaxKind.None)
             {
-                return new SelectionInfo { Status = new OperationStatus(OperationStatusFlag.None, CSharpFeaturesResources.InvalidSelection), OriginalSpan = adjustedSpan };
+                return new SelectionInfo { Status = new OperationStatus(OperationStatusFlag.None, CSharpFeaturesResources.Invalid_selection), OriginalSpan = adjustedSpan };
             }
 
             if (!adjustedSpan.Contains(firstTokenInSelection.Span) && !adjustedSpan.Contains(lastTokenInSelection.Span))
             {
                 return new SelectionInfo
                 {
-                    Status = new OperationStatus(OperationStatusFlag.None, CSharpFeaturesResources.SelectionDoesNotContainAValidToken),
+                    Status = new OperationStatus(OperationStatusFlag.None, CSharpFeaturesResources.Selection_does_not_contain_a_valid_token),
                     OriginalSpan = adjustedSpan,
                     FirstTokenInOriginalSpan = firstTokenInSelection,
                     LastTokenInOriginalSpan = lastTokenInSelection
@@ -184,7 +234,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             {
                 return new SelectionInfo
                 {
-                    Status = new OperationStatus(OperationStatusFlag.None, CSharpFeaturesResources.NoValidSelectionToPerformExtraction),
+                    Status = new OperationStatus(OperationStatusFlag.None, CSharpFeaturesResources.No_valid_selection_to_perform_extraction),
                     OriginalSpan = adjustedSpan,
                     FirstTokenInOriginalSpan = firstTokenInSelection,
                     LastTokenInOriginalSpan = lastTokenInSelection
@@ -196,7 +246,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             {
                 return new SelectionInfo
                 {
-                    Status = new OperationStatus(OperationStatusFlag.None, CSharpFeaturesResources.NoCommonRootNodeForExtraction),
+                    Status = new OperationStatus(OperationStatusFlag.None, CSharpFeaturesResources.No_common_root_node_for_extraction),
                     OriginalSpan = adjustedSpan,
                     FirstTokenInOriginalSpan = firstTokenInSelection,
                     LastTokenInOriginalSpan = lastTokenInSelection
@@ -208,7 +258,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             {
                 return new SelectionInfo
                 {
-                    Status = new OperationStatus(OperationStatusFlag.None, CSharpFeaturesResources.NoValidSelectionToPerformExtraction),
+                    Status = new OperationStatus(OperationStatusFlag.None, CSharpFeaturesResources.No_valid_selection_to_perform_extraction),
                     OriginalSpan = adjustedSpan,
                     FirstTokenInOriginalSpan = firstTokenInSelection,
                     LastTokenInOriginalSpan = lastTokenInSelection
@@ -226,7 +276,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             };
         }
 
-        private SelectionInfo CheckErrorCasesAndAppendDescriptions(SelectionInfo selectionInfo, SyntaxNode root, CancellationToken cancellationToken)
+        private static SelectionInfo CheckErrorCasesAndAppendDescriptions(
+            SelectionInfo selectionInfo,
+            SyntaxNode root,
+            SemanticModel model,
+            CancellationToken cancellationToken)
         {
             if (selectionInfo.Status.FailedWithNoBestEffortSuggestion())
             {
@@ -235,7 +289,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
             if (selectionInfo.FirstTokenInFinalSpan.IsMissing || selectionInfo.LastTokenInFinalSpan.IsMissing)
             {
-                selectionInfo = selectionInfo.WithStatus(s => s.With(OperationStatusFlag.None, CSharpFeaturesResources.ContainsInvalidSelection));
+                selectionInfo = selectionInfo.WithStatus(s => s.With(OperationStatusFlag.None, CSharpFeaturesResources.Contains_invalid_selection));
             }
 
             // get the node that covers the selection
@@ -243,35 +297,35 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
             if ((selectionInfo.SelectionInExpression || selectionInfo.SelectionInSingleStatement) && commonNode.HasDiagnostics())
             {
-                selectionInfo = selectionInfo.WithStatus(s => s.With(OperationStatusFlag.None, CSharpFeaturesResources.TheSelectionContainsSyntacticErrors));
+                selectionInfo = selectionInfo.WithStatus(s => s.With(OperationStatusFlag.None, CSharpFeaturesResources.The_selection_contains_syntactic_errors));
             }
 
             var tokens = root.DescendantTokens(selectionInfo.FinalSpan);
             if (tokens.ContainPreprocessorCrossOver(selectionInfo.FinalSpan))
             {
-                selectionInfo = selectionInfo.WithStatus(s => s.With(OperationStatusFlag.BestEffort, CSharpFeaturesResources.SelectionCanNotCrossOverPreprocessorDirectives));
+                selectionInfo = selectionInfo.WithStatus(s => s.With(OperationStatusFlag.BestEffort, CSharpFeaturesResources.Selection_can_not_cross_over_preprocessor_directives));
             }
 
             // TODO : check whether this can be handled by control flow analysis engine
             if (tokens.Any(t => t.Kind() == SyntaxKind.YieldKeyword))
             {
-                selectionInfo = selectionInfo.WithStatus(s => s.With(OperationStatusFlag.BestEffort, CSharpFeaturesResources.SelectionCanNotContainAYieldStatement));
+                selectionInfo = selectionInfo.WithStatus(s => s.With(OperationStatusFlag.BestEffort, CSharpFeaturesResources.Selection_can_not_contain_a_yield_statement));
             }
 
             // TODO : check behavior of control flow analysis engine around exception and exception handling.
             if (tokens.ContainArgumentlessThrowWithoutEnclosingCatch(selectionInfo.FinalSpan))
             {
-                selectionInfo = selectionInfo.WithStatus(s => s.With(OperationStatusFlag.BestEffort, CSharpFeaturesResources.SelectionCanNotContainThrowStatement));
+                selectionInfo = selectionInfo.WithStatus(s => s.With(OperationStatusFlag.BestEffort, CSharpFeaturesResources.Selection_can_not_contain_throw_statement));
             }
 
             if (selectionInfo.SelectionInExpression && commonNode.PartOfConstantInitializerExpression())
             {
-                selectionInfo = selectionInfo.WithStatus(s => s.With(OperationStatusFlag.None, CSharpFeaturesResources.SelectionCanNotBePartOfConstInitializerExpr));
+                selectionInfo = selectionInfo.WithStatus(s => s.With(OperationStatusFlag.None, CSharpFeaturesResources.Selection_can_not_be_part_of_constant_initializer_expression));
             }
 
             if (commonNode.IsUnsafeContext())
             {
-                selectionInfo = selectionInfo.WithStatus(s => s.With(s.Flag, CSharpFeaturesResources.TheSelectedCodeIsInsideAnUnsafeContext));
+                selectionInfo = selectionInfo.WithStatus(s => s.With(s.Flag, CSharpFeaturesResources.The_selected_code_is_inside_an_unsafe_context));
             }
 
             // For now patterns are being blanket disabled for extract method.  This issue covers designing extractions for them
@@ -279,7 +333,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             // https://github.com/dotnet/roslyn/issues/9244
             if (commonNode.Kind() == SyntaxKind.IsPatternExpression)
             {
-                selectionInfo = selectionInfo.WithStatus(s => s.With(OperationStatusFlag.None, CSharpFeaturesResources.SelectionCanNotContainPattern));
+                selectionInfo = selectionInfo.WithStatus(s => s.With(OperationStatusFlag.None, CSharpFeaturesResources.Selection_can_not_contain_a_pattern_expression));
             }
 
             var selectionChanged = selectionInfo.FirstTokenInOriginalSpan != selectionInfo.FirstTokenInFinalSpan || selectionInfo.LastTokenInOriginalSpan != selectionInfo.LastTokenInFinalSpan;
@@ -311,7 +365,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
             if (range == null)
             {
-                return selectionInfo.WithStatus(s => s.With(OperationStatusFlag.None, CSharpFeaturesResources.NoValidStatementRangeToExtractOut));
+                return selectionInfo.WithStatus(s => s.With(OperationStatusFlag.None, CSharpFeaturesResources.No_valid_statement_range_to_extract));
             }
 
             var statement1 = (StatementSyntax)range.Item1;
@@ -431,7 +485,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             }
 
             // make sure this method doesn't have return type.
-            return method.ReturnType.TypeSwitch((PredefinedTypeSyntax p) => p.Keyword.Kind() == SyntaxKind.VoidKeyword);
+            return method.ReturnType is PredefinedTypeSyntax p &&
+                p.Keyword.Kind() == SyntaxKind.VoidKeyword;
         }
 
         private static TextSpan GetAdjustedSpan(SourceText text, TextSpan textSpan)

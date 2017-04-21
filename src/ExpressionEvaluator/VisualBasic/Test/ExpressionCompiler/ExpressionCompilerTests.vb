@@ -1813,7 +1813,7 @@ End Class"
     End Sub
 End Class"
             Dim xmlReferences = GetAllXmlReferences()
-            Dim moduleOptions = New VisualBasicCompilationOptions(OutputKind.NetModule, optimizationLevel:=OptimizationLevel.Debug).WithExtendedCustomDebugInformation(True)
+            Dim moduleOptions = New VisualBasicCompilationOptions(OutputKind.NetModule, optimizationLevel:=OptimizationLevel.Debug)
 
             Dim tree1 = VisualBasicSyntaxTree.ParseText(String.Format(sourceTemplate, 1))
             Dim tree2 = VisualBasicSyntaxTree.ParseText(String.Format(sourceTemplate, 2))

@@ -21,11 +21,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
         internal readonly IGlyphService GlyphService;
         
         private readonly ITextView _textView;
-        private readonly ITextBuffer _subjectBuffer;
 
         public event EventHandler<EventArgs> Dismissed;
-        public event EventHandler<PresentationItemEventArgs> ItemCommitted;
-        public event EventHandler<PresentationItemEventArgs> ItemSelected;
+        public event EventHandler<CompletionItemEventArgs> ItemCommitted;
+        public event EventHandler<CompletionItemEventArgs> ItemSelected;
         public event EventHandler<CompletionItemFilterStateChangedEventArgs> FilterStateChanged;
 
         private readonly ICompletionSet _completionSet;
@@ -38,10 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
         // this scenario.
         private bool _isDismissed;
 
-        public ITextBuffer SubjectBuffer
-        {
-            get { return _subjectBuffer; }
-        }
+        public ITextBuffer SubjectBuffer { get; }
 
         public CompletionPresenterSession(
             ICompletionSetFactory completionSetFactory,
@@ -53,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
             _completionBroker = completionBroker;
             this.GlyphService = glyphService;
             _textView = textView;
-            _subjectBuffer = subjectBuffer;
+            SubjectBuffer = subjectBuffer;
 
             _completionSet = completionSetFactory.CreateCompletionSet(this, textView, subjectBuffer);
             _completionSet.SelectionStatusChanged += OnCompletionSetSelectionStatusChanged;
@@ -61,13 +57,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
 
         public void PresentItems(
             ITrackingSpan triggerSpan,
-            IList<PresentationItem> completionItems,
-            PresentationItem selectedItem,
-            PresentationItem suggestionModeItem,
+            IList<CompletionItem> completionItems,
+            CompletionItem selectedItem,
+            CompletionItem suggestionModeItem,
             bool suggestionMode,
             bool isSoftSelected,
             ImmutableArray<CompletionItemFilter> completionItemFilters,
-            IReadOnlyDictionary<CompletionItem, string> completionItemToFilterText)
+            string filterText)
         {
             AssertIsForeground();
 
@@ -87,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
             {
                 _completionSet.SetCompletionItems(
                     completionItems, selectedItem, suggestionModeItem, suggestionMode, 
-                    isSoftSelected, completionItemFilters, completionItemToFilterText);
+                    isSoftSelected, completionItemFilters, filterText);
             }
             finally
             {
@@ -132,13 +128,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
             this.Dismissed?.Invoke(this, new EventArgs());
         }
 
-        internal void OnCompletionItemCommitted(PresentationItem presentationItem)
+        internal void OnCompletionItemCommitted(CompletionItem completionItem)
         {
             AssertIsForeground();
-            this.ItemCommitted?.Invoke(this, new PresentationItemEventArgs(presentationItem));
+            this.ItemCommitted?.Invoke(this, new CompletionItemEventArgs(completionItem));
         }
 
-        private void OnCompletionSetSelectionStatusChanged(object sender, ValueChangedEventArgs<CompletionSelectionStatus> eventArgs)
+        private void OnCompletionSetSelectionStatusChanged(
+            object sender, ValueChangedEventArgs<CompletionSelectionStatus> eventArgs)
         {
             AssertIsForeground();
 
@@ -147,11 +144,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
                 return;
             }
 
-            var item = _completionSet.GetPresentationItem(eventArgs.NewValue.Completion);
-            var itemSelected = this.ItemSelected;
-            if (itemSelected != null && item != null)
+            var item = _completionSet.GetCompletionItem(eventArgs.NewValue.Completion);
+            if (item != null)
             {
-                itemSelected(this, new PresentationItemEventArgs(item));
+                this.ItemSelected?.Invoke(this, new CompletionItemEventArgs(item));
             }
         }
 

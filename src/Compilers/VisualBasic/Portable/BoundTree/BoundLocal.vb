@@ -8,11 +8,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
     Friend Partial Class BoundLocal
 
-        Public Sub New(syntax As VisualBasicSyntaxNode, localSymbol As LocalSymbol, type As TypeSymbol, hasErrors As Boolean)
+        Public Sub New(syntax As SyntaxNode, localSymbol As LocalSymbol, type As TypeSymbol, hasErrors As Boolean)
             Me.New(syntax, localSymbol, Not localSymbol.IsReadOnly, type:=type, hasErrors:=hasErrors)
         End Sub
 
-        Public Sub New(syntax As VisualBasicSyntaxNode, localSymbol As LocalSymbol, type As TypeSymbol)
+        Public Sub New(syntax As SyntaxNode, localSymbol As LocalSymbol, type As TypeSymbol)
             Me.New(syntax, localSymbol, Not localSymbol.IsReadOnly, type:=type)
         End Sub
 

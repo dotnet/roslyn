@@ -15,11 +15,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
-    internal static class MetadataUtilities
+    internal static partial class MetadataUtilities
     {
-        internal const uint COR_E_BADIMAGEFORMAT = 0x8007000b;
-        internal const uint CORDBG_E_MISSING_METADATA = 0x80131c35;
-
         /// <summary>
         /// Group module metadata into assemblies.
         /// If <paramref name="moduleVersionId"/> is set, the
@@ -42,11 +39,35 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             // Windows.*.winmd into a single fake Windows.winmd at runtime.
             // All other (application) winmds are left as is.
             var runtimeWinMdBuilder = ArrayBuilder<ModuleMetadata>.GetInstance();
+            AssemblyIdentity corLibrary = null;
             foreach (var block in metadataBlocks)
             {
                 var metadata = ModuleMetadata.CreateFromMetadata(block.Pointer, block.Size, includeEmbeddedInteropTypes: true);
                 try
                 {
+                    var reader = metadata.MetadataReader;
+                    if (corLibrary == null)
+                    {
+                        bool hasNoAssemblyRefs = reader.AssemblyReferences.Count == 0;
+                        // .NET Native uses a corlib with references
+                        // (see https://github.com/dotnet/roslyn/issues/13275).
+                        if (hasNoAssemblyRefs || metadata.Name.Equals("System.Private.CoreLib.dll", StringComparison.OrdinalIgnoreCase))
+                        {
+                            // If this assembly declares System.Object, assume it is the corlib.
+                            // (Note, it is order dependent which assembly we treat as corlib
+                            // if there are multiple assemblies that meet these requirements.
+                            // That should be acceptable for evaluating expressions in the EE though.) 
+                            if (reader.DeclaresTheObjectClass())
+                            {
+                                corLibrary = reader.ReadAssemblyIdentityOrThrow();
+                                // Compiler layer requires corlib to have no AssemblyRefs.
+                                if (!hasNoAssemblyRefs)
+                                {
+                                    metadata = ModuleMetadata.CreateFromMetadata(block.Pointer, block.Size, includeEmbeddedInteropTypes: true, ignoreAssemblyRefs: true);
+                                }
+                            }
+                        }
+                    }
                     if (IsWindowsComponent(metadata.MetadataReader, metadata.Name))
                     {
                         runtimeWinMdBuilder.Add(metadata);
@@ -86,7 +107,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             // Build assembly references from modules in primary module manifests.
             var referencesBuilder = ArrayBuilder<MetadataReference>.GetInstance();
             var identitiesBuilder = (identityComparer == null) ? null : ArrayBuilder<AssemblyIdentity>.GetInstance();
-            AssemblyIdentity corLibrary = null;
             AssemblyIdentity intrinsicsAssembly = null;
 
             foreach (var metadata in metadataBuilder)
@@ -100,15 +120,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     var reader = metadata.MetadataReader;
                     var identity = reader.ReadAssemblyIdentityOrThrow();
                     identitiesBuilder.Add(identity);
-                    // If this assembly has no references, and declares
-                    // System.Object, assume it is the COR library.
-                    if ((corLibrary == null) &&
-                        (reader.AssemblyReferences.Count == 0) &&
-                        reader.DeclaresTheObjectClass())
-                    {
-                        corLibrary = identity;
-                    }
-                    else if ((intrinsicsAssembly == null) &&
+                    if ((intrinsicsAssembly == null) &&
                         reader.DeclaresType((r, t) => r.IsPublicNonInterfaceType(t, ExpressionCompilerConstants.IntrinsicAssemblyNamespace, ExpressionCompilerConstants.IntrinsicAssemblyTypeName)))
                     {
                         intrinsicsAssembly = identity;
@@ -380,30 +392,22 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             return builder.ToImmutableAndFree();
         }
 
-        private static bool IsBadMetadataException(Exception e)
+        internal static ImmutableArray<int> GetSynthesizedMethods(byte[] assembly, string methodName)
         {
-            return GetHResult(e) == COR_E_BADIMAGEFORMAT;
-        }
-
-        internal static bool IsBadOrMissingMetadataException(Exception e, string moduleName)
-        {
-            Debug.Assert(moduleName != null);
-            switch (GetHResult(e))
+            var builder = ArrayBuilder<int>.GetInstance();
+            using (var metadata = ModuleMetadata.CreateFromStream(new MemoryStream(assembly)))
             {
-                case COR_E_BADIMAGEFORMAT:
-                    Debug.WriteLine($"Module '{moduleName}' contains corrupt metadata.");
-                    return true;
-                case CORDBG_E_MISSING_METADATA:
-                    Debug.WriteLine($"Module '{moduleName}' is missing metadata.");
-                    return true;
-                default:
-                    return false;
+                var reader = metadata.MetadataReader;
+                foreach (var handle in reader.MethodDefinitions)
+                {
+                    var methodDef = reader.GetMethodDefinition(handle);
+                    if (reader.StringComparer.Equals(methodDef.Name, methodName))
+                    {
+                        builder.Add(reader.GetToken(handle));
+                    }
+                }
             }
-        }
-
-        private static uint GetHResult(Exception e)
-        {
-            return unchecked((uint)e.HResult);
+            return builder.ToImmutableAndFree();
         }
     }
 }

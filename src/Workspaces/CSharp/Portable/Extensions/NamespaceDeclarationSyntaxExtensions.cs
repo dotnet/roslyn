@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             bool placeSystemNamespaceFirst,
             params SyntaxAnnotation[] annotations)
         {
-            if (!usingDirectives.Any())
+            if (usingDirectives.Count == 0)
             {
                 return namespaceDeclaration;
             }

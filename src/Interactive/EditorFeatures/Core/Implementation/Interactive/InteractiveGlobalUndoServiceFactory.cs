@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
             {
                 if (!CanUndo(workspace))
                 {
-                    throw new ArgumentException(EditorFeaturesResources.GivenWorkspaceDoesntSupportUndo);
+                    throw new ArgumentException(EditorFeaturesResources.Given_Workspace_doesn_t_support_Undo);
                 }
 
                 ITextUndoHistory textUndoHistory = GetHistory(workspace);
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
             private ITextUndoHistory GetHistory(Workspace workspace)
             {
                 var interactiveWorkspace = (InteractiveWorkspace)workspace;
-                var textBuffer = interactiveWorkspace.Engine.CurrentWindow.TextView.TextBuffer;
+                var textBuffer = interactiveWorkspace.Window.TextView.TextBuffer;
                 ITextUndoHistory textUndoHistory;
 
                 Contract.ThrowIfFalse(_undoHistoryRegistry.TryGetHistory(textBuffer, out textUndoHistory));

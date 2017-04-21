@@ -8,7 +8,6 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SymbolId
@@ -125,13 +124,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SymbolId
             foreach (var node in symbol.DeclaringSyntaxReferences.Select(d => d.GetSyntax()))
             {
                 BlockSyntax body = null;
-                if (node is BaseMethodDeclarationSyntax)
+                if (node is BaseMethodDeclarationSyntax baseMethod)
                 {
-                    body = (node as BaseMethodDeclarationSyntax).Body;
+                    body = baseMethod.Body;
                 }
-                else if (node is AccessorDeclarationSyntax)
+                else if (node is AccessorDeclarationSyntax accessor)
                 {
-                    body = (node as AccessorDeclarationSyntax).Body;
+                    body = accessor.Body;
                 }
 
                 if (body != null || body.Statements.Any())
@@ -301,13 +300,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SymbolId
                 foreach (var node in symbol.DeclaringSyntaxReferences.Select(d => d.GetSyntax()))
                 {
                     BlockSyntax body = null;
-                    if (node is BaseMethodDeclarationSyntax)
+                    if (node is BaseMethodDeclarationSyntax baseMethod)
                     {
-                        body = (node as BaseMethodDeclarationSyntax).Body;
+                        body = baseMethod.Body;
                     }
-                    else if (node is AccessorDeclarationSyntax)
+                    else if (node is AccessorDeclarationSyntax accessor)
                     {
-                        body = (node as AccessorDeclarationSyntax).Body;
+                        body = accessor.Body;
                     }
 
                     var model = _compilation.GetSemanticModel(node.SyntaxTree);

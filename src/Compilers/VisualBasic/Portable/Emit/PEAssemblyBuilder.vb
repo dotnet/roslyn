@@ -2,6 +2,7 @@
 
 Imports System.Collections.Immutable
 Imports System.Reflection
+Imports Microsoft.Cci
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
@@ -9,7 +10,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
     Friend MustInherit Class PEAssemblyBuilderBase
         Inherits PEModuleBuilder
-        Implements Cci.IAssembly
+        Implements Cci.IAssemblyReference
 
         Protected ReadOnly m_SourceAssembly As SourceAssemblySymbol
         Private ReadOnly _additionalTypes As ImmutableArray(Of NamedTypeSymbol)
@@ -46,15 +47,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             m_AssemblyOrModuleSymbolToModuleRefMap.Add(sourceAssembly, Me)
         End Sub
 
-        Public Overrides Sub Dispatch(visitor As Cci.MetadataVisitor)
-            visitor.Visit(DirectCast(Me, Cci.IAssembly))
-        End Sub
+        Public Overrides ReadOnly Property SourceAssemblyOpt As ISourceAssemblySymbolInternal
+            Get
+                Return m_SourceAssembly
+            End Get
+        End Property
 
         Friend Overrides Function GetAdditionalTopLevelTypes() As ImmutableArray(Of NamedTypeSymbol)
             Return Me._additionalTypes
         End Function
 
-        Private Function IAssemblyGetFiles(context As EmitContext) As IEnumerable(Of Cci.IFileReference) Implements Cci.IAssembly.GetFiles
+        Public NotOverridable Overrides Function GetFiles(context As EmitContext) As IEnumerable(Of Cci.IFileReference)
             If _lazyFiles.IsDefault Then
                 Dim builder = ArrayBuilder(Of Cci.IFileReference).GetInstance()
                 Try
@@ -72,7 +75,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
                     ' Dev12 compilers don't report ERR_CryptoHashFailed if there are no files to be hashed.
                     If ImmutableInterlocked.InterlockedInitialize(_lazyFiles, builder.ToImmutable()) AndAlso _lazyFiles.Length > 0 Then
-                        If Not CryptographicHashProvider.IsSupportedAlgorithm(m_SourceAssembly.AssemblyHashAlgorithm) Then
+                        If Not CryptographicHashProvider.IsSupportedAlgorithm(m_SourceAssembly.HashAlgorithm) Then
                             context.Diagnostics.Add(New VBDiagnostic(ErrorFactory.ErrorInfo(ERRID.ERR_CryptoHashFailed), NoLocation.Singleton))
                         End If
                     End If
@@ -89,30 +92,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             builder.Free()
             Return False
         End Function
-
-        Private ReadOnly Property IAssemblyFlags As AssemblyFlags Implements Cci.IAssembly.Flags
-            Get
-                Dim result As AssemblyFlags = m_SourceAssembly.Flags And Not AssemblyFlags.PublicKey
-
-                If Not m_SourceAssembly.PublicKey.IsDefaultOrEmpty Then
-                    result = result Or AssemblyFlags.PublicKey
-                End If
-
-                Return result
-            End Get
-        End Property
-
-        Private ReadOnly Property IAssemblySignatureKey As String Implements Cci.IAssembly.SignatureKey
-            Get
-                Return m_SourceAssembly.AssemblySignatureKeyAttributeSetting
-            End Get
-        End Property
-
-        Private ReadOnly Property IAssemblyPublicKey As ImmutableArray(Of Byte) Implements Cci.IAssembly.PublicKey
-            Get
-                Return m_SourceAssembly.Identity.PublicKey
-            End Get
-        End Property
 
         Protected Overrides Sub AddEmbeddedResourcesFromAddedModules(builder As ArrayBuilder(Of Cci.ManagedResource), diagnostics As DiagnosticBag)
             Dim modules = m_SourceAssembly.Modules
@@ -135,27 +114,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Next
         End Sub
 
-        Private ReadOnly Property Identity As AssemblyIdentity Implements Cci.IAssemblyReference.Identity
-            Get
-                Return m_SourceAssembly.Identity
-            End Get
-        End Property
-
-        Private ReadOnly Property AssemblyVersionPattern As Version Implements Cci.IAssemblyReference.AssemblyVersionPattern
-            Get
-                Return m_SourceAssembly.AssemblyVersionPattern
-            End Get
-        End Property
-
-        Friend Overrides ReadOnly Property Name As String
+        Public Overrides ReadOnly Property Name As String
             Get
                 Return _metadataName
             End Get
         End Property
 
-        Private ReadOnly Property IAssemblyHashAlgorithm As AssemblyHashAlgorithm Implements Cci.IAssembly.HashAlgorithm
+        Public ReadOnly Property Identity As AssemblyIdentity Implements IAssemblyReference.Identity
             Get
-                Return m_SourceAssembly.AssemblyHashAlgorithm
+                Return m_SourceAssembly.Identity
+            End Get
+        End Property
+
+        Public ReadOnly Property AssemblyVersionPattern As Version Implements IAssemblyReference.AssemblyVersionPattern
+            Get
+                Return m_SourceAssembly.AssemblyVersionPattern
             End Get
         End Property
     End Class

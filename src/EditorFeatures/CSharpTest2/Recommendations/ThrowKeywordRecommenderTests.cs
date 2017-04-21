@@ -143,5 +143,55 @@ $$"));
     if (caseOrDefaultKeyword.Kind != SyntaxKind.CaseKeyword && caseOrDefaultKeyword.Kind != SyntaxKind.DefaultKeyword) 
       $$"));
         }
+
+        [WorkItem(9099, "https://github.com/dotnet/roslyn/issues/9099")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterArrow()
+        {
+            await VerifyKeywordAsync(
+@"class C
+{
+    void Foo() => $$
+");
+        }
+
+        [WorkItem(9099, "https://github.com/dotnet/roslyn/issues/9099")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterQuestionQuestion()
+        {
+            await VerifyKeywordAsync(
+@"class C
+{
+    public C(object o)
+    {
+        _o = o ?? $$
+");
+        }
+
+        [WorkItem(9099, "https://github.com/dotnet/roslyn/issues/9099")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInConditional1()
+        {
+            await VerifyKeywordAsync(
+@"class C
+{
+    public C(object o)
+    {
+        var v= true ? $$
+");
+        }
+
+        [WorkItem(9099, "https://github.com/dotnet/roslyn/issues/9099")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInConditional2()
+        {
+            await VerifyKeywordAsync(
+@"class C
+{
+    public C(object o)
+    {
+        var v= true ? 0 : $$
+");
+        }
     }
 }

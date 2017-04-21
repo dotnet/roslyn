@@ -136,6 +136,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     @interface.CheckAllConstraints(conversions, location, diagnostics);
                 }
+
+                if (interfaces.Count > 1)
+                {
+                    var seenInterfaces = new Dictionary<NamedTypeSymbol, NamedTypeSymbol>(EqualsIgnoringComparer.InstanceIgnoringTupleNames);
+                    foreach (var @interface in interfaces)
+                    {
+                        NamedTypeSymbol other;
+                        if (seenInterfaces.TryGetValue(@interface, out other))
+                        {
+                            diagnostics.Add(ErrorCode.ERR_DuplicateInterfaceWithTupleNamesInBaseList, location, @interface, other, this);
+                        }
+                        else
+                        {
+                            seenInterfaces.Add(@interface, @interface);
+                        }
+                    }
+                }
             }
         }
 
@@ -342,6 +359,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 i++;
                 var typeSyntax = baseTypeSyntax.Type;
+                if (typeSyntax.Kind() != SyntaxKind.PredefinedType && !SyntaxFacts.IsName(typeSyntax.Kind()))
+                {
+                    diagnostics.Add(ErrorCode.ERR_BadBaseType, typeSyntax.GetLocation());
+                }
+
                 var location = new SourceLocation(typeSyntax);
 
                 TypeSymbol baseType;

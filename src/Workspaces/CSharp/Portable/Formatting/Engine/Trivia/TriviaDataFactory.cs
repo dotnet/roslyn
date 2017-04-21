@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -93,12 +94,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
         private bool ContainsOnlyWhitespace(Analyzer.AnalysisResult result)
         {
-            if (result.HasComments || result.HasPreprocessor || result.HasSkippedTokens || result.HasSkippedOrDisabledText)
-            {
-                return false;
-            }
-
-            return true;
+            return
+                !result.HasComments &&
+                !result.HasPreprocessor &&
+                !result.HasSkippedTokens &&
+                !result.HasSkippedOrDisabledText &&
+                !result.HasConflictMarker;
         }
 
         private TriviaData GetWhitespaceOnlyTriviaInfo(SyntaxToken token1, SyntaxToken token2, Analyzer.AnalysisResult result)

@@ -95,8 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 public override bool TryGetRoot(out CSharpSyntaxNode root)
                 {
-                    CompilationUnitSyntax node;
-                    bool status = _recoverableRoot.TryGetValue(out node);
+                    bool status = _recoverableRoot.TryGetValue(out var node);
                     root = node;
                     CacheRootNode(node);
                     return status;
@@ -145,8 +144,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 public override SyntaxTree WithRootAndOptions(SyntaxNode root, ParseOptions options)
                 {
-                    CSharpSyntaxNode oldRoot;
-                    if (ReferenceEquals(_info.Options, options) && this.TryGetRoot(out oldRoot) && ReferenceEquals(root, oldRoot))
+                    if (ReferenceEquals(_info.Options, options) && this.TryGetRoot(out var oldRoot) && ReferenceEquals(root, oldRoot))
                     {
                         return this;
                     }

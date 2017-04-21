@@ -3116,7 +3116,7 @@ class C
 }
 ]]>
                 </text>
-            Await TestAsync(input, expected, QualifyPropertyAccessOptionWithNotification(LanguageNames.CSharp, NotificationOption.Info))
+            Await TestAsync(input, expected, QualifyPropertyAccessOptionWithNotification(LanguageNames.CSharp, NotificationOption.Suggestion))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
@@ -4204,7 +4204,7 @@ End Module
         </Document>
     </Project>
 </Workspace>
-            Using workspace = Await TestWorkspace.CreateAsync(input)
+            Using workspace = TestWorkspace.Create(input)
                 Dim hostDocument = workspace.Documents.Single()
                 Dim document = workspace.CurrentSolution.Projects.Single().Documents.Single()
                 Dim root = Await document.GetSyntaxRootAsync()
@@ -5689,7 +5689,7 @@ Class C
 End Class
 ]]>
                 </text>
-            Await TestAsync(input, expected, QualifyPropertyAccessOptionWithNotification(LanguageNames.VisualBasic, NotificationOption.Info))
+            Await TestAsync(input, expected, QualifyPropertyAccessOptionWithNotification(LanguageNames.VisualBasic, NotificationOption.Suggestion))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
@@ -5846,7 +5846,7 @@ End Class
             Return New Dictionary(Of OptionKey, Object) From {{New OptionKey(CodeStyleOptions.QualifyPropertyAccess, languageName), New CodeStyleOption(Of Boolean)(True, notification)}}
         End Function
 
-        Shared DontPreferIntrinsicPredefinedTypeKeywordInDeclaration As Dictionary(Of OptionKey, Object) = New Dictionary(Of OptionKey, Object) From {{New OptionKey(SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, LanguageNames.VisualBasic), False}}
+        Shared DontPreferIntrinsicPredefinedTypeKeywordInDeclaration As Dictionary(Of OptionKey, Object) = New Dictionary(Of OptionKey, Object) From {{New OptionKey(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, LanguageNames.VisualBasic), CodeStyleOption(Of Boolean).Default}}
 
 #End Region
 

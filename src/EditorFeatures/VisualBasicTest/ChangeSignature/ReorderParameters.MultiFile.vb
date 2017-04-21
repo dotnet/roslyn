@@ -1,6 +1,5 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.VisualStudio.Text.Operations
@@ -49,7 +48,7 @@ class C
     }
 }]]></Text>.NormalizedValue()
 
-            Using testState = Await ChangeSignatureTestState.CreateAsync(workspace)
+            Using testState = ChangeSignatureTestState.Create(workspace)
                 Dim history = testState.Workspace.GetService(Of ITextUndoHistoryRegistry)().RegisterHistory(testState.Workspace.Documents.First().GetTextBuffer())
                 testState.TestChangeSignatureOptionsService.IsCancelled = False
                 testState.TestChangeSignatureOptionsService.UpdatedSignature = permutation
@@ -103,7 +102,7 @@ class C
     }
 }]]></Text>.NormalizedValue()
 
-            Using testState = Await ChangeSignatureTestState.CreateAsync(workspace)
+            Using testState = ChangeSignatureTestState.Create(workspace)
                 Dim history = testState.Workspace.GetService(Of ITextUndoHistoryRegistry)().RegisterHistory(testState.Workspace.Documents.First().GetTextBuffer())
                 testState.TestChangeSignatureOptionsService.IsCancelled = False
                 testState.TestChangeSignatureOptionsService.UpdatedSignature = permutation

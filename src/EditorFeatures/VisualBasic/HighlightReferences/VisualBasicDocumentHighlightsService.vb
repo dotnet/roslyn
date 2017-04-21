@@ -2,7 +2,6 @@
 
 Imports System.Composition
 Imports Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
-Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.HighlightReferences

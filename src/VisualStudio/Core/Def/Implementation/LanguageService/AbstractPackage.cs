@@ -21,7 +21,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             var defaultForegroundThreadData = ForegroundThreadData.CreateDefault(
                 defaultKind: ForegroundThreadDataKind.ForcedByPackageInitialize);
             ForegroundThreadAffinitizedObject.CurrentForegroundThreadData = defaultForegroundThreadData;
-            ForegroundObject = new ForegroundThreadAffinitizedObject(defaultForegroundThreadData);
+            ForegroundObject = new ForegroundThreadAffinitizedObject();
         }
 
         protected void LoadComponentsInUIContextOnceSolutionFullyLoaded()

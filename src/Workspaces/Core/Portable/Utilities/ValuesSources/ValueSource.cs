@@ -18,8 +18,7 @@ namespace Roslyn.Utilities
         {
             get
             {
-                T tmp;
-                return this.TryGetValue(out tmp);
+                return this.TryGetValue(out var tmp);
             }
         }
 

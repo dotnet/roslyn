@@ -80,9 +80,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
                 case BraceCompletionSessionProvider.Parenthesis.OpenCharacter: return new ParenthesisCompletionSession(syntaxFactsService);
                 case BraceCompletionSessionProvider.SingleQuote.OpenCharacter: return new CharLiteralCompletionSession(syntaxFactsService);
                 case BraceCompletionSessionProvider.LessAndGreaterThan.OpenCharacter: return new LessAndGreaterThanCompletionSession(syntaxFactsService);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(openingBrace);
             }
-
-            throw ExceptionUtilities.Unreachable;
         }
     }
 }

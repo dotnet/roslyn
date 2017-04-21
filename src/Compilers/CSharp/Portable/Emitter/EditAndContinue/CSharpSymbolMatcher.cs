@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                         return null;
                     }
 
-                    return this.VisitTypeMembers(otherContainer, nestedType, GetNestedTypes, (a, b) => StringOrdinalComparer.Equals(a.Name, b.Name));
+                    return VisitTypeMembers(otherContainer, nestedType, GetNestedTypes, (a, b) => StringOrdinalComparer.Equals(a.Name, b.Name));
                 }
 
                 var member = def as Cci.ITypeDefinitionMember;
@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     var field = def as Cci.IFieldDefinition;
                     if (field != null)
                     {
-                        return this.VisitTypeMembers(otherContainer, field, GetFields, (a, b) => StringOrdinalComparer.Equals(a.Name, b.Name));
+                        return VisitTypeMembers(otherContainer, field, GetFields, (a, b) => StringOrdinalComparer.Equals(a.Name, b.Name));
                     }
                 }
 
@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 return _lazyTopLevelTypes;
             }
 
-            private T VisitTypeMembers<T>(
+            private static T VisitTypeMembers<T>(
                 Cci.ITypeDefinition otherContainer,
                 T member,
                 Func<Cci.ITypeDefinition, IEnumerable<T>> getMembers,
@@ -490,6 +490,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     var typeMap = new TypeMap(otherTypeParameters, otherTypeArguments, allowAlpha: true);
                     return typeMap.SubstituteNamedType(otherDef);
                 }
+                else if (sourceType.IsTupleType)
+                {
+                    var otherDef = (NamedTypeSymbol)this.Visit(sourceType.TupleUnderlyingType);
+                    if ((object)otherDef == null || !otherDef.IsTupleOrCompatibleWithTupleOfCardinality(sourceType.TupleElementTypes.Length))
+                    {
+                        return null;
+                    }
+
+                    return TupleTypeSymbol.Create(otherDef, sourceType.TupleElementNames);
+                }
 
                 Debug.Assert(sourceType.IsDefinition);
 
@@ -695,7 +705,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
                 return _comparer.Equals(method.ReturnType, other.ReturnType) &&
                     method.Parameters.SequenceEqual(other.Parameters, AreParametersEqual) &&
-                    method.TypeArguments.SequenceEqual(other.TypeArguments, AreTypesEqual);
+                    method.TypeParameters.SequenceEqual(other.TypeParameters, AreTypesEqual);
             }
 
             private static MethodSymbol SubstituteTypeParameters(MethodSymbol method)
@@ -718,6 +728,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 // TODO: Test with overloads (from PE base class?) that have modifiers.
                 Debug.Assert(!type.HasTypeArgumentsCustomModifiers);
                 Debug.Assert(!other.HasTypeArgumentsCustomModifiers);
+
+                // Tuple types should be unwrapped to their underlying type before getting here (see MatchSymbols.VisitNamedType)
+                Debug.Assert(!type.IsTupleType);
+                Debug.Assert(!other.IsTupleType);
+
                 return type.TypeArgumentsNoUseSiteDiagnostics.SequenceEqual(other.TypeArgumentsNoUseSiteDiagnostics, AreTypesEqual);
             }
 
@@ -745,7 +760,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     property.Parameters.SequenceEqual(other.Parameters, AreParametersEqual);
             }
 
-            private bool AreTypeParametersEqual(TypeParameterSymbol type, TypeParameterSymbol other)
+            private static bool AreTypeParametersEqual(TypeParameterSymbol type, TypeParameterSymbol other)
             {
                 Debug.Assert(type.Ordinal == other.Ordinal);
                 Debug.Assert(StringOrdinalComparer.Equals(type.Name, other.Name));
@@ -824,7 +839,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     var visitedSource = (TypeSymbol)_matcher.Visit(source);
                     var visitedOther = (_deepTranslatorOpt != null) ? (TypeSymbol)_deepTranslatorOpt.Visit(other) : other;
 
-                    return visitedSource?.Equals(visitedOther, ignoreDynamic: true) == true;
+                    return visitedSource?.Equals(visitedOther, TypeCompareKind.IgnoreDynamicAndTupleNames) == true;
                 }
             }
         }

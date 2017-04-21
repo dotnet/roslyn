@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Quer
 
         Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As IEnumerable(Of RecommendedKeyword)
             If context.IsQueryOperatorContext Then
-                Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("Distinct", VBFeaturesResources.DistinctQueryKeywordToolTip))
+                Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("Distinct", VBFeaturesResources.Restricts_the_values_of_a_query_result_to_eliminate_duplicate_values))
             End If
 
             Return SpecializedCollections.EmptyEnumerable(Of RecommendedKeyword)()

@@ -18,9 +18,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                     Return DirectCast(node, StructureBlockSyntax).WithInherits(list)
                 Case SyntaxKind.ClassBlock
                     Return DirectCast(node, ClassBlockSyntax).WithInherits(list)
+                Case Else
+                    Throw ExceptionUtilities.UnexpectedValue(node.Kind)
             End Select
-
-            Throw ExceptionUtilities.Unreachable
         End Function
 
         <Extension>
@@ -34,9 +34,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                     Return DirectCast(node, StructureBlockSyntax).WithImplements(list)
                 Case SyntaxKind.ClassBlock
                     Return DirectCast(node, ClassBlockSyntax).WithImplements(list)
+                Case Else
+                    Throw ExceptionUtilities.UnexpectedValue(node.Kind)
             End Select
-
-            Throw ExceptionUtilities.Unreachable
         End Function
 
         <Extension>
@@ -50,9 +50,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                     Return DirectCast(node, StructureBlockSyntax).AddMembers(members)
                 Case SyntaxKind.ClassBlock
                     Return DirectCast(node, ClassBlockSyntax).AddMembers(members)
+                Case Else
+                    Throw ExceptionUtilities.UnexpectedValue(node.Kind)
             End Select
-
-            Throw ExceptionUtilities.Unreachable
         End Function
 
         <Extension>
@@ -66,9 +66,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                     Return DirectCast(node, StructureBlockSyntax).WithMembers(members)
                 Case SyntaxKind.ClassBlock
                     Return DirectCast(node, ClassBlockSyntax).WithMembers(members)
+                Case Else
+                    Throw ExceptionUtilities.UnexpectedValue(node.Kind)
             End Select
-
-            Throw ExceptionUtilities.Unreachable
         End Function
 
         <Extension>
@@ -82,9 +82,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                     Return DirectCast(node, StructureBlockSyntax).WithBlockStatement(DirectCast([begin], StructureStatementSyntax))
                 Case SyntaxKind.ClassBlock
                     Return DirectCast(node, ClassBlockSyntax).WithBlockStatement(DirectCast([begin], ClassStatementSyntax))
+                Case Else
+                    Throw ExceptionUtilities.UnexpectedValue(node.Kind)
             End Select
-
-            Throw ExceptionUtilities.Unreachable
         End Function
 
         <Extension>
@@ -98,9 +98,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                     Return DirectCast(node, StructureBlockSyntax).WithEndBlockStatement([end])
                 Case SyntaxKind.ClassBlock
                     Return DirectCast(node, ClassBlockSyntax).WithEndBlockStatement([end])
+                Case Else
+                    Throw ExceptionUtilities.UnexpectedValue(node.Kind)
             End Select
-
-            Throw ExceptionUtilities.Unreachable
         End Function
 
         <Extension>

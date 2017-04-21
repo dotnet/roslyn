@@ -558,7 +558,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         private SourceText CreateLargeText(params char[][] chunks)
         {
-            return new LargeText(ImmutableArray.Create(chunks), Encoding.UTF8, default(ImmutableArray<byte>), SourceHashAlgorithm.Sha256);
+            return new LargeText(ImmutableArray.Create(chunks), Encoding.UTF8, default(ImmutableArray<byte>), SourceHashAlgorithm.Sha256, default(ImmutableArray<byte>));
         }
 
         private ImmutableArray<char[]> GetChunks(SourceText text)
@@ -597,6 +597,193 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             Assert.Equal(1, GetChunks(newText).Length);
             Assert.NotSame(chunk1, GetChunks(newText)[0]);
+        }
+
+        [Fact]
+        [WorkItem(10452, "https://github.com/dotnet/roslyn/issues/10452")]
+        public void TestEmptyChangeAfterChange()
+        {
+            var original = SourceText.From("Hello World");
+            var change1 = original.WithChanges(new TextChange(new TextSpan(5, 6), string.Empty)); // prepare a ChangedText instance
+            var change2 = change1.WithChanges(); // this should not cause exception
+
+            Assert.Same(change1, change2); // this was a no-op and returned the same instance
+        }
+
+        [Fact]
+        [WorkItem(10452, "https://github.com/dotnet/roslyn/issues/10452")]
+        public void TestEmptyChangeAfterChange2()
+        {
+            var original = SourceText.From("Hello World");
+            var change1 = original.WithChanges(new TextChange(new TextSpan(5, 6), string.Empty)); // prepare a ChangedText instance
+            var change2 = change1.WithChanges(new TextChange(new TextSpan(2, 0), string.Empty)); // this should not cause exception
+
+            Assert.Same(change1, change2); // this was a no-op and returned the same instance
+        }
+
+        [Fact]
+        public void TestMergeChanges_Overlapping_NewInsideOld()
+        {
+            var original = SourceText.From("Hello World");
+            var change1 = original.WithChanges(new TextChange(new TextSpan(6, 0), "Cruel "));
+            var change2 = change1.WithChanges(new TextChange(new TextSpan(7, 3), "oo"));
+            Assert.Equal("Hello Cool World", change2.ToString());
+
+            var changes = change2.GetTextChanges(original);
+            Assert.Equal(1, changes.Count);
+            Assert.Equal(new TextSpan(6, 0), changes[0].Span);
+            Assert.Equal("Cool ", changes[0].NewText);
+        }
+
+        [Fact]
+        public void TestMergeChanges_Overlapping_OldInsideNew()
+        {
+            var original = SourceText.From("Hello World");
+            var change1 = original.WithChanges(new TextChange(new TextSpan(6, 0), "Cruel "));
+            var change2 = change1.WithChanges(new TextChange(new TextSpan(2, 14), "ar"));
+            Assert.Equal("Heard", change2.ToString());
+
+            var changes = change2.GetTextChanges(original);
+            Assert.Equal(1, changes.Count);
+            Assert.Equal(new TextSpan(2, 8), changes[0].Span);
+            Assert.Equal("ar", changes[0].NewText);
+        }
+
+        [Fact]
+        public void TestMergeChanges_Overlapping_NewBeforeOld()
+        {
+            var original = SourceText.From("Hello World");
+            var change1 = original.WithChanges(new TextChange(new TextSpan(6, 0), "Cruel "));
+            var change2 = change1.WithChanges(new TextChange(new TextSpan(4, 6), " Bel"));
+            Assert.Equal("Hell Bell World", change2.ToString());
+
+            var changes = change2.GetTextChanges(original);
+            Assert.Equal(1, changes.Count);
+            Assert.Equal(new TextSpan(4, 2), changes[0].Span);
+            Assert.Equal(" Bell ", changes[0].NewText);
+        }
+
+        [Fact]
+        public void TestMergeChanges_Overlapping_OldBeforeNew()
+        {
+            var original = SourceText.From("Hello World");
+            var change1 = original.WithChanges(new TextChange(new TextSpan(6, 0), "Cruel "));
+            var change2 = change1.WithChanges(new TextChange(new TextSpan(7, 6), "wazy V"));
+            Assert.Equal("Hello Cwazy Vorld", change2.ToString());
+
+            var changes = change2.GetTextChanges(original);
+            Assert.Equal(1, changes.Count);
+            Assert.Equal(new TextSpan(6, 1), changes[0].Span);
+            Assert.Equal("Cwazy V", changes[0].NewText);
+        }
+
+        [Fact]
+        public void TestMergeChanges_AfterAdjacent()
+        {
+            var original = SourceText.From("Hell");
+            var change1 = original.WithChanges(new TextChange(new TextSpan(4, 0), "o "));
+            var change2 = change1.WithChanges(new TextChange(new TextSpan(6, 0), "World"));
+            Assert.Equal("Hello World", change2.ToString());
+
+            var changes = change2.GetTextChanges(original);
+            Assert.Equal(1, changes.Count);
+            Assert.Equal(new TextSpan(4, 0), changes[0].Span);
+            Assert.Equal("o World", changes[0].NewText);
+        }
+
+        [Fact]
+        public void TestMergeChanges_AfterSeparated()
+        {
+            var original = SourceText.From("Hell ");
+            var change1 = original.WithChanges(new TextChange(new TextSpan(4, 0), "o"));
+            var change2 = change1.WithChanges(new TextChange(new TextSpan(6, 0), "World"));
+            Assert.Equal("Hello World", change2.ToString());
+
+            var changes = change2.GetTextChanges(original);
+            Assert.Equal(2, changes.Count);
+            Assert.Equal(new TextSpan(4, 0), changes[0].Span);
+            Assert.Equal("o", changes[0].NewText);
+            Assert.Equal(new TextSpan(5, 0), changes[1].Span);
+            Assert.Equal("World", changes[1].NewText);
+        }
+
+        [Fact]
+        public void TestMergeChanges_BeforeSeparated()
+        {
+            var original = SourceText.From("Hell Word");
+            var change1 = original.WithChanges(new TextChange(new TextSpan(8, 0), "l"));
+            var change2 = change1.WithChanges(new TextChange(new TextSpan(4, 0), "o"));
+            Assert.Equal("Hello World", change2.ToString());
+
+            var changes = change2.GetTextChanges(original);
+            Assert.Equal(2, changes.Count);
+            Assert.Equal(new TextSpan(4, 0), changes[0].Span);
+            Assert.Equal("o", changes[0].NewText);
+            Assert.Equal(new TextSpan(8, 0), changes[1].Span);
+            Assert.Equal("l", changes[1].NewText);
+        }
+
+        [Fact]
+        public void TestMergeChanges_BeforeAdjacent()
+        {
+            var original = SourceText.From("Hell");
+            var change1 = original.WithChanges(new TextChange(new TextSpan(4, 0), " World"));
+            Assert.Equal("Hell World", change1.ToString());
+            var change2 = change1.WithChanges(new TextChange(new TextSpan(4, 0), "o"));
+            Assert.Equal("Hello World", change2.ToString());
+
+            var changes = change2.GetTextChanges(original);
+            Assert.Equal(1, changes.Count);
+            Assert.Equal(new TextSpan(4, 0), changes[0].Span);
+            Assert.Equal("o World", changes[0].NewText);
+        }
+
+        [Fact]
+        public void TestMergeChanges_NoMiddleMan()
+        {
+            var original = SourceText.From("Hell");
+
+            var final = GetChangesWithoutMiddle(
+                original,
+                c => c.WithChanges(new TextChange(new TextSpan(4, 0), "o ")),
+                c => c.WithChanges(new TextChange(new TextSpan(6, 0), "World")));
+
+            Assert.Equal("Hello World", final.ToString());
+
+            var changes = final.GetTextChanges(original);
+            Assert.Equal(1, changes.Count);
+            Assert.Equal(new TextSpan(4, 0), changes[0].Span);
+            Assert.Equal("o World", changes[0].NewText);
+        }
+
+        private SourceText GetChangesWithoutMiddle(
+            SourceText original,
+            Func<SourceText, SourceText> fnChange1,
+            Func<SourceText, SourceText> fnChange2)
+        {
+            WeakReference change1;
+            SourceText change2;
+            GetChangesWithoutMiddle_Helper(original, fnChange1, fnChange2, out change1, out change2);
+
+            while (change1.IsAlive)
+            {
+                GC.Collect(2);
+                GC.WaitForFullGCComplete();
+            }
+
+            return change2;
+        }
+
+        private void GetChangesWithoutMiddle_Helper(
+            SourceText original,
+            Func<SourceText, SourceText> fnChange1,
+            Func<SourceText, SourceText> fnChange2,
+            out WeakReference change1,
+            out SourceText change2)
+        {
+            var c1 = fnChange1(original);
+            change1 = new WeakReference(c1);
+            change2 = fnChange2(c1);
         }
     }
 }

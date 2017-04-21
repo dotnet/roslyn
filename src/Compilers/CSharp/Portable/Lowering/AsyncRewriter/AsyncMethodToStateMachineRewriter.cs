@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 : null;
 
             _dynamicFactory = new LoweredDynamicOperationFactory(F, methodOrdinal);
-            _awaiterFields = new Dictionary<TypeSymbol, FieldSymbol>(TypeSymbol.EqualsIgnoringDynamicComparer);
+            _awaiterFields = new Dictionary<TypeSymbol, FieldSymbol>(TypeSymbol.EqualsIgnoringDynamicAndTupleNamesComparer);
             _nextAwaiterId = slotAllocatorOpt?.PreviousAwaiterSlotCount ?? 0;
         }
 
@@ -125,6 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             bodyBuilder.Add(F.HiddenSequencePoint());
             bodyBuilder.Add(F.Assignment(F.Local(cachedState), F.Field(F.This(), stateField)));
+            bodyBuilder.Add(CacheThisIfNeeded());
 
             var exceptionLocal = F.SynthesizedLocal(F.WellKnownType(WellKnownType.System_Exception));
             bodyBuilder.Add(
@@ -194,13 +195,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var locals = ArrayBuilder<LocalSymbol>.GetInstance();
             locals.Add(cachedState);
+            if ((object)cachedThis != null)
+            {
+                locals.Add(cachedThis);
+            }
+
             if ((object)_exprRetValue != null) locals.Add(_exprRetValue);
 
             var newBody =
                 F.SequencePoint(
                     body.Syntax,
                     F.Block(
-                        locals.ToImmutableAndFree(), 
+                        locals.ToImmutableAndFree(),
                         newStatements));
 
             if (rootScopeHoistedLocals.Length > 0)
@@ -242,7 +248,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             BoundExpression expr = (BoundExpression)this.Visit(node.Expression);
-            return (expr != null) ? node.Update(expr) : (BoundStatement)F.Block();
+            return (expr != null) ? node.Update(expr) : (BoundStatement)F.StatementList();
         }
 
         public override BoundNode VisitAwaitExpression(BoundAwaitExpression node)
@@ -292,30 +298,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 WellKnownMemberNames.GetResult,
                 resultsDiscarded: resultPlace == null);
 
-            var nullAwaiter = F.AssignmentExpression(F.Local(awaiterTemp), F.NullOrDefault(awaiterTemp.Type));
-            if (resultPlace != null && type.SpecialType != SpecialType.System_Void)
-            {
-                // $resultTemp = $awaiterTemp.GetResult();
-                // $awaiterTemp = null;
-                // $resultTemp
-                LocalSymbol resultTemp = F.SynthesizedLocal(type);
-                return F.Block(
-                    ImmutableArray.Create(awaiterTemp, resultTemp),
-                    awaitIfIncomplete,
-                    F.Assignment(F.Local(resultTemp), getResultCall),
-                    F.ExpressionStatement(nullAwaiter),
-                    F.Assignment(resultPlace, F.Local(resultTemp)));
-            }
-            else
-            {
-                // $awaiterTemp.GetResult();
-                // $awaiterTemp = null;
-                return F.Block(
-                    ImmutableArray.Create(awaiterTemp),
-                    awaitIfIncomplete,
-                    F.ExpressionStatement(getResultCall),
-                    F.ExpressionStatement(nullAwaiter));
-            }
+            // [$resultPlace = ] $awaiterTemp.GetResult();
+            BoundStatement getResultStatement = resultPlace != null && type.SpecialType != SpecialType.System_Void ?
+                F.Assignment(resultPlace, getResultCall):
+                F.ExpressionStatement(getResultCall);
+
+            return F.Block(
+                ImmutableArray.Create(awaiterTemp),
+                awaitIfIncomplete,
+                getResultStatement);
         }
 
         private BoundExpression MakeCallMaybeDynamic(
@@ -477,7 +468,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         F.Assignment(
                             F.Local(notifyCompletionTemp),
                                 // Use reference conversion rather than dynamic conversion:
-                                F.Convert(notifyCompletionTemp.Type, F.Local(awaiterTemp), ConversionKind.ExplicitReference)),
+                                F.Convert(notifyCompletionTemp.Type, F.Local(awaiterTemp), Conversion.ExplicitReference)),
                         F.ExpressionStatement(
                             F.Call(
                                 F.Field(F.This(), _asyncMethodBuilderField),
@@ -517,7 +508,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             LocalSymbol thisTemp = (F.CurrentType.TypeKind == TypeKind.Class) ? F.SynthesizedLocal(F.CurrentType) : null;
 
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            var useUnsafeOnCompleted = F.Compilation.Conversions.ClassifyImplicitConversion(
+            var useUnsafeOnCompleted = F.Compilation.Conversions.ClassifyImplicitConversionFromType(
                 loweredAwaiterType,
                 F.Compilation.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_ICriticalNotifyCompletion),
                 ref useSiteDiagnostics).IsImplicit;

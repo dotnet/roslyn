@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis
                 if (_text == null)
                 {
                     var diagnostics = new List<DiagnosticInfo>();
-                    _text = _compiler.ReadFileContent(_sourceFile, diagnostics);
+                    _text = _compiler.TryReadFileContent(_sourceFile, diagnostics);
                     _diagnostics = diagnostics;
                 }
             }

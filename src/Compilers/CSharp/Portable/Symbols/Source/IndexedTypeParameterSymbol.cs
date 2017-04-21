@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </summary>
     internal sealed class IndexedTypeParameterSymbol : TypeParameterSymbol
     {
-        private static TypeParameterSymbol[] s_parameterPool = SpecializedCollections.EmptyArray<TypeParameterSymbol>();
+        private static TypeParameterSymbol[] s_parameterPool = Array.Empty<TypeParameterSymbol>();
 
         private readonly int _index;
 
@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         // These object are unique (per index).
-        internal override bool Equals(TypeSymbol t2, bool ignoreCustomModifiersAndArraySizesAndLowerBounds, bool ignoreDynamic)
+        internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison)
         {
             return ReferenceEquals(this, t2);
         }

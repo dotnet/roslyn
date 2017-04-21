@@ -9,8 +9,8 @@ Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.VisualStudio.ComponentModelHost
+Imports Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Venus
-Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
 Imports Microsoft.VisualStudio.Shell.Interop
 Imports IVsTextBufferCoordinator = Microsoft.VisualStudio.TextManager.Interop.IVsTextBufferCoordinator
 Imports VsTextSpan = Microsoft.VisualStudio.TextManager.Interop.TextSpan
@@ -18,12 +18,12 @@ Imports VsTextSpan = Microsoft.VisualStudio.TextManager.Interop.TextSpan
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Venus
 
     Friend Class VisualBasicContainedLanguage
-        Inherits ContainedLanguage(Of VisualBasicPackage, VisualBasicLanguageService, VisualBasicProject)
+        Inherits ContainedLanguage(Of VisualBasicPackage, VisualBasicLanguageService)
         Implements IVsContainedLanguageStaticEventBinding
 
         Public Sub New(bufferCoordinator As IVsTextBufferCoordinator,
                 componentModel As IComponentModel,
-                project As VisualBasicProject,
+                project As AbstractProject,
                 hierarchy As IVsHierarchy,
                 itemid As UInteger,
                 languageService As VisualBasicLanguageService,
@@ -36,10 +36,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Venus
                                               pszObjectName As String,
                                               pszNameOfEvent As String) As Integer Implements IVsContainedLanguageStaticEventBinding.AddStaticEventBinding
             Me.ComponentModel.GetService(Of IWaitIndicator)().Wait(
-                BasicVSResources.Intellisense,
+                BasicVSResources.IntelliSense,
                 allowCancel:=False,
                 action:=Sub(c)
-                            Dim visualStudioWorkspace = ComponentModel.GetService(Of visualStudioWorkspace)()
+                            Dim visualStudioWorkspace = ComponentModel.GetService(Of VisualStudioWorkspace)()
                             Dim document = GetThisDocument()
                             ContainedLanguageStaticEventBinding.AddStaticEventBinding(
                                 document, visualStudioWorkspace, pszClassName, pszUniqueMemberID, pszObjectName, pszNameOfEvent, c.CancellationToken)
@@ -91,7 +91,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Venus
                                                         ppbstrMemberIDs As IntPtr) As Integer Implements IVsContainedLanguageStaticEventBinding.GetStaticEventBindingsForObject
             Dim members As Integer
             Me.ComponentModel.GetService(Of IWaitIndicator)().Wait(
-                BasicVSResources.Intellisense,
+                BasicVSResources.IntelliSense,
                 allowCancel:=False,
                 action:=Sub(c)
                             Dim eventNamesAndMemberNamesAndIds = ContainedLanguageStaticEventBinding.GetStaticEventBindings(
@@ -112,10 +112,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Venus
                                                  pszNameOfEvent As String) As Integer Implements IVsContainedLanguageStaticEventBinding.RemoveStaticEventBinding
 
             Me.ComponentModel.GetService(Of IWaitIndicator)().Wait(
-                BasicVSResources.Intellisense,
+                BasicVSResources.IntelliSense,
                 allowCancel:=False,
                 action:=Sub(c)
-                            Dim visualStudioWorkspace = ComponentModel.GetService(Of visualStudioWorkspace)()
+                            Dim visualStudioWorkspace = ComponentModel.GetService(Of VisualStudioWorkspace)()
                             Dim document = GetThisDocument()
                             ContainedLanguageStaticEventBinding.RemoveStaticEventBinding(
                                 document, visualStudioWorkspace, pszClassName, pszUniqueMemberID, pszObjectName, pszNameOfEvent, c.CancellationToken)

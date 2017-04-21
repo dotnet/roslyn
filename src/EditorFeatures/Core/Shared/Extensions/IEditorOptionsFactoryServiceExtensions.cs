@@ -20,8 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
 
         public static IEditorOptions GetEditorOptions(this IEditorOptionsFactoryService editorOptionsFactory, Document document)
         {
-            SourceText text;
-            if (document.TryGetText(out text))
+            if (document.TryGetText(out var text))
             {
                 return editorOptionsFactory.GetEditorOptions(text);
             }

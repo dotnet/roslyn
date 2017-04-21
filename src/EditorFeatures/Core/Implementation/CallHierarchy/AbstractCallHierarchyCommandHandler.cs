@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
 
         private void AddRootNode(ViewCallHierarchyCommandArgs args)
         {
-            _waitIndicator.Wait(EditorFeaturesResources.CallHierarchy, EditorFeaturesResources.ComputingCallHierarchyInformation, allowCancel: true, action: waitcontext =>
+            _waitIndicator.Wait(EditorFeaturesResources.Call_Hierarchy, EditorFeaturesResources.Computing_Call_Hierarchy_Information, allowCancel: true, action: waitcontext =>
                 {
                     var cancellationToken = waitcontext.CancellationToken;
                     var document = args.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
                     else
                     {
                         var notificationService = document.Project.Solution.Workspace.Services.GetService<INotificationService>();
-                        notificationService.SendNotification(EditorFeaturesResources.CursorMustBeOnAMemberName, severity: NotificationSeverity.Information);
+                        notificationService.SendNotification(EditorFeaturesResources.Cursor_must_be_on_a_member_name, severity: NotificationSeverity.Information);
                     }
                 });
         }

@@ -22,13 +22,7 @@ namespace Roslyn.Utilities
             _releaser = releaser;
         }
 
-        public T Object
-        {
-            get
-            {
-                return _pooledObject;
-            }
-        }
+        public T Object => _pooledObject;
 
         public void Dispose()
         {

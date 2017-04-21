@@ -43,22 +43,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                         Debug.Assert(OverloadResolution.CanLiftType(parameter.Type))
                         Debug.Assert(argument.Type.IsNullableType() AndAlso
-                                     argument.Type.GetNullableUnderlyingType().IsSameTypeIgnoringCustomModifiers(parameter.Type))
+                                     argument.Type.GetNullableUnderlyingType().IsSameTypeIgnoringAll(parameter.Type))
                     Next
 
                     Debug.Assert(underlyingCall.Type.IsNullableType())
-                    Debug.Assert(underlyingCall.Type.IsSameTypeIgnoringCustomModifiers(underlyingCall.Method.ReturnType) OrElse
+                    Debug.Assert(underlyingCall.Type.IsSameTypeIgnoringAll(underlyingCall.Method.ReturnType) OrElse
                                  (OverloadResolution.CanLiftType(underlyingCall.Method.ReturnType) AndAlso
-                                  underlyingCall.Type.GetNullableUnderlyingType().IsSameTypeIgnoringCustomModifiers(underlyingCall.Method.ReturnType)))
+                                  underlyingCall.Type.GetNullableUnderlyingType().IsSameTypeIgnoringAll(underlyingCall.Method.ReturnType)))
                 Else
                     For i As Integer = 0 To underlyingCall.Arguments.Length - 1
                         Dim argument As BoundExpression = underlyingCall.Arguments(i)
                         Dim parameter As ParameterSymbol = underlyingCall.Method.Parameters(i)
 
-                        Debug.Assert(argument.Type.IsSameTypeIgnoringCustomModifiers(parameter.Type))
+                        Debug.Assert(argument.Type.IsSameTypeIgnoringAll(parameter.Type))
                     Next
 
-                    Debug.Assert(underlyingCall.Type.IsSameTypeIgnoringCustomModifiers(underlyingCall.Method.ReturnType))
+                    Debug.Assert(underlyingCall.Type.IsSameTypeIgnoringAll(underlyingCall.Method.ReturnType))
                 End If
             End If
         End Sub

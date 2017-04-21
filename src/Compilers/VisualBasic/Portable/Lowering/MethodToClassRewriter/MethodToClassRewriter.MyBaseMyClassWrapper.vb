@@ -80,7 +80,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim isMyBase As Boolean = Not methodContainingType.Equals(containingType)
             Debug.Assert(isMyBase OrElse receiver.Kind = BoundKind.MyClassReference)
 
-            Dim syntax As VisualBasicSyntaxNode = Me.CurrentMethod.Syntax
+            Dim syntax As SyntaxNode = Me.CurrentMethod.Syntax
 
 
             ' generate and register wrapper method
@@ -165,7 +165,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Friend Sub New(containingType As InstanceTypeSymbol,
                            methodToWrap As MethodSymbol,
                            wrapperName As String,
-                           syntax As VisualBasicSyntaxNode)
+                           syntax As SyntaxNode)
 
                 MyBase.New(syntax, containingType, wrapperName, False)
 

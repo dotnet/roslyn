@@ -133,6 +133,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { throw ExceptionUtilities.Unreachable; }
         }
 
+        public override ImmutableArray<CustomModifier> RefCustomModifiers
+        {
+            get { throw ExceptionUtilities.Unreachable; }
+        }
+
         public override ImmutableArray<TypeSymbol> TypeArguments
         {
             get { return ImmutableArray<TypeSymbol>.Empty; }

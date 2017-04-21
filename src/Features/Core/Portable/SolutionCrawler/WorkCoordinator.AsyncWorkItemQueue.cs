@@ -155,8 +155,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                 protected void Cancel_NoLock(object key)
                 {
-                    CancellationTokenSource source;
-                    if (_cancellationMap.TryGetValue(key, out source))
+                    if (_cancellationMap.TryGetValue(key, out var source))
                     {
                         source.Cancel();
                         _cancellationMap.Remove(key);

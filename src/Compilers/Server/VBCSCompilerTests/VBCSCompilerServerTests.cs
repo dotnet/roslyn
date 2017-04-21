@@ -1,10 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CommandLine;
+using Roslyn.Test.Utilities;
 using System;
-using System.Collections;
+using System.Collections.Specialized;
+using System.IO;
 using System.IO.Pipes;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
@@ -13,11 +14,26 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 {
     public class VBCSCompilerServerTests
     {
+        public class StartupTests : VBCSCompilerServerTests
+        {
+            [Fact]
+            [WorkItem(217709, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/217709")]
+            public async Task ShadowCopyAnalyzerAssemblyLoaderMissingDirectory()
+            {
+                var baseDirectory = Path.Combine(Path.GetTempPath(), TestBase.GetUniqueName());
+                var loader = new ShadowCopyAnalyzerAssemblyLoader(baseDirectory);
+                var task = loader.DeleteLeftoverDirectoriesTask;
+                await task;
+                Assert.False(task.IsFaulted);
+            }
+        }
+
         public class ShutdownTests : VBCSCompilerServerTests
         {
             private static Task<int> RunShutdownAsync(string pipeName, bool waitForProcess = true, TimeSpan? timeout = null, CancellationToken cancellationToken = default(CancellationToken))
             {
-                return new DesktopBuildServerController().RunShutdownAsync(pipeName, waitForProcess, timeout, cancellationToken);
+                var appSettings = new NameValueCollection();
+                return new DesktopBuildServerController(appSettings).RunShutdownAsync(pipeName, waitForProcess, timeout, cancellationToken);
             }
 
             [Fact]
@@ -53,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 using (var doneMre = new ManualResetEvent(initialState: false))
                 {
                     var pipeName = Guid.NewGuid().ToString();
-                    var mutexName = DesktopBuildClient.GetServerMutexName(pipeName);
+                    var mutexName = BuildServerConnection.GetServerMutexName(pipeName);
                     bool created = false;
                     bool connected = false;
 
@@ -102,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 using (var doneMre = new ManualResetEvent(initialState: false))
                 {
                     var pipeName = Guid.NewGuid().ToString();
-                    var mutexName = DesktopBuildClient.GetServerMutexName(pipeName);
+                    var mutexName = BuildServerConnection.GetServerMutexName(pipeName);
                     bool created = false;
                     bool connected = false;
 

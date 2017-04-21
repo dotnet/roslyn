@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Stat
                 Return SpecializedCollections.SingletonEnumerable(
                     CreateRecommendedKeywordForIntrinsicOperator(
                         SyntaxKind.MidKeyword,
-                        VBFeaturesResources.MidStatement,
+                        VBFeaturesResources.Mid_statement,
                         Glyph.Keyword,
                         New MidAssignmentDocumentation()))
             End If

@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly RefKind _refKind;
 
         private ImmutableArray<MethodSymbol> _lazyExplicitInterfaceImplementations;
-        private ImmutableArray<CustomModifier> _lazyReturnTypeCustomModifiers;
+        private CustomModifiersTuple _lazyCustomModifiers;
         private ImmutableArray<ParameterSymbol> _lazyParameters;
         private TypeSymbol _lazyReturnType;
         private bool _lazyIsVararg;
@@ -95,25 +95,49 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             this.MakeFlags(methodKind, declarationModifiers, returnsVoid, isExtensionMethod, isMetadataVirtualIgnoringModifiers);
 
-            _typeParameters = (syntax.Arity == 0) ?
-                ImmutableArray<TypeParameterSymbol>.Empty :
-                MakeTypeParameters(syntax, diagnostics);
+            if (syntax.Arity == 0)
+            {
+                _typeParameters = ImmutableArray<TypeParameterSymbol>.Empty;
+                ReportErrorIfHasConstraints(syntax.ConstraintClauses, diagnostics);
+            }
+            else
+            {
+                _typeParameters = MakeTypeParameters(syntax, diagnostics);
+            }
 
             bool hasBlockBody = syntax.Body != null;
             _isExpressionBodied = !hasBlockBody && syntax.ExpressionBody != null;
+            syntax.ReturnType.SkipRef(out _refKind);
 
             if (hasBlockBody || _isExpressionBodied)
             {
                 CheckModifiersForBody(location, diagnostics);
             }
 
-            _refKind = syntax.RefKeyword.Kind().GetRefKind();
-
             var info = ModifierUtils.CheckAccessibility(this.DeclarationModifiers);
             if (info != null)
             {
                 diagnostics.Add(info, location);
             }
+
+            // When a generic method overrides a generic method declared in a base class, or is an 
+            // explicit interface member implementation of a method in a base interface, the method
+            // shall not specify any type-parameter-constraints-clauses. In these cases, the type 
+            // parameters of the method inherit constraints from the method being overridden or 
+            // implemented
+            if (syntax.ConstraintClauses.Count > 0)
+            {
+                if (syntax.ExplicitInterfaceSpecifier != null ||
+                    syntax.Modifiers.Any(SyntaxKind.OverrideKeyword))
+                {
+                    diagnostics.Add(
+                        ErrorCode.ERR_OverrideWithConstraints, 
+                        syntax.ConstraintClauses[0].WhereKeyword.GetLocation());
+                }
+            }
+
+            CheckForBlockAndExpressionBody(
+                syntax.Body, syntax.ExpressionBody, syntax, diagnostics);
         }
 
         public override bool ReturnsVoid
@@ -136,9 +160,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // instance). Constraints are checked in AfterAddingTypeMembersChecks.
             var signatureBinder = withTypeParamsBinder.WithAdditionalFlagsAndContainingMemberOrLambda(BinderFlags.SuppressConstraintChecks, this);
 
-            _lazyParameters = ParameterHelpers.MakeParameters(signatureBinder, this, syntax.ParameterList, true, out arglistToken, diagnostics, false);
+            _lazyParameters = ParameterHelpers.MakeParameters(
+                signatureBinder, this, syntax.ParameterList, out arglistToken,
+                allowRefOrOut: true,
+                allowThis: true,
+                diagnostics: diagnostics);
+
             _lazyIsVararg = (arglistToken.Kind() == SyntaxKind.ArgListKeyword);
-            _lazyReturnType = signatureBinder.BindType(syntax.ReturnType, diagnostics);
+            RefKind refKind;
+            var returnTypeSyntax = syntax.ReturnType.SkipRef(out refKind);
+            _lazyReturnType = signatureBinder.BindType(returnTypeSyntax, diagnostics);
 
             if (_lazyReturnType.IsRestrictedType())
             {
@@ -157,7 +188,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var returnsVoid = _lazyReturnType.SpecialType == SpecialType.System_Void;
             if (this.RefKind != RefKind.None && returnsVoid)
             {
-                diagnostics.Add(ErrorCode.ERR_VoidReturningMethodCannotReturnByRef, syntax.RefKeyword.GetLocation());
+                Debug.Assert(returnTypeSyntax.HasErrors);
             }
 
             // set ReturnsVoid flag
@@ -267,6 +298,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // implementation) with the correct custom modifiers 
             // (see SourceNamedTypeSymbol.ImplementInterfaceMember).
 
+            // This value may not be correct, but we need something while we compute overridden/implemented method.
+            // May be re-assigned below.
+            Debug.Assert(_lazyCustomModifiers == null);
+            _lazyCustomModifiers = CustomModifiersTuple.Empty;
+
             // Note: we're checking if the syntax indicates explicit implementation rather,
             // than if explicitInterfaceType is null because we don't want to look for an
             // overridden property if this is supposed to be an explicit implementation.
@@ -274,11 +310,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 Debug.Assert(_lazyExplicitInterfaceImplementations.IsDefault);
                 _lazyExplicitInterfaceImplementations = ImmutableArray<MethodSymbol>.Empty;
-
-                // This value may not be correct, but we need something while we compute this.OverriddenMethod.
-                // May be re-assigned below.
-                Debug.Assert(_lazyReturnTypeCustomModifiers.IsDefault);
-                _lazyReturnTypeCustomModifiers = ImmutableArray<CustomModifier>.Empty;
 
                 // If this method is an override, we may need to copy custom modifiers from
                 // the overridden method (so that the runtime will recognize it as an override).
@@ -296,7 +327,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     if ((object)overriddenMethod != null)
                     {
-                        CustomModifierUtils.CopyMethodCustomModifiers(overriddenMethod, this, out _lazyReturnType, out _lazyReturnTypeCustomModifiers, out _lazyParameters, alsoCopyParamsModifier: true);
+                        CustomModifierUtils.CopyMethodCustomModifiers(overriddenMethod, this, out _lazyReturnType, 
+                                                                      out _lazyCustomModifiers, 
+                                                                      out _lazyParameters, alsoCopyParamsModifier: true);
                     }
                 }
             }
@@ -310,15 +343,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     Debug.Assert(_lazyExplicitInterfaceImplementations.IsDefault);
                     _lazyExplicitInterfaceImplementations = ImmutableArray.Create<MethodSymbol>(implementedMethod);
 
-                    CustomModifierUtils.CopyMethodCustomModifiers(implementedMethod, this, out _lazyReturnType, out _lazyReturnTypeCustomModifiers, out _lazyParameters, alsoCopyParamsModifier: false);
+                    CustomModifierUtils.CopyMethodCustomModifiers(implementedMethod, this, out _lazyReturnType, 
+                                                                  out _lazyCustomModifiers,
+                                                                  out _lazyParameters, alsoCopyParamsModifier: false);
                 }
                 else
                 {
                     Debug.Assert(_lazyExplicitInterfaceImplementations.IsDefault);
                     _lazyExplicitInterfaceImplementations = ImmutableArray<MethodSymbol>.Empty;
-
-                    Debug.Assert(_lazyReturnTypeCustomModifiers.IsDefault);
-                    _lazyReturnTypeCustomModifiers = ImmutableArray<CustomModifier>.Empty;
                 }
             }
 
@@ -326,25 +358,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         // This is also used for async lambdas.  Probably not the best place to locate this method, but where else could it go?
-        internal static void ReportAsyncParameterErrors(MethodSymbol method, DiagnosticBag diagnostics, Location location)
+        internal static void ReportAsyncParameterErrors(ImmutableArray<ParameterSymbol> parameters, DiagnosticBag diagnostics, Location location)
         {
-            if (method.IsAsync)
+            foreach (var parameter in parameters)
             {
-                foreach (var parameter in method.Parameters)
+                var loc = parameter.Locations.Any() ? parameter.Locations[0] : location;
+                if (parameter.RefKind != RefKind.None)
                 {
-                    var loc = parameter.Locations.Any() ? parameter.Locations[0] : location;
-                    if (parameter.RefKind != RefKind.None)
-                    {
-                        diagnostics.Add(ErrorCode.ERR_BadAsyncArgType, loc);
-                    }
-                    else if (parameter.Type.IsUnsafe())
-                    {
-                        diagnostics.Add(ErrorCode.ERR_UnsafeAsyncArgType, loc);
-                    }
-                    else if (parameter.Type.IsRestrictedType())
-                    {
-                        diagnostics.Add(ErrorCode.ERR_BadSpecialByRefLocal, loc, parameter.Type);
-                    }
+                    diagnostics.Add(ErrorCode.ERR_BadAsyncArgType, loc);
+                }
+                else if (parameter.Type.IsUnsafe())
+                {
+                    diagnostics.Add(ErrorCode.ERR_UnsafeAsyncArgType, loc);
+                }
+                else if (parameter.Type.IsRestrictedType())
+                {
+                    diagnostics.Add(ErrorCode.ERR_BadSpecialByRefLocal, loc, parameter.Type);
                 }
             }
         }
@@ -357,28 +386,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (!this.IsAsync)
             {
-                if (state.NotePartComplete(CompletionPart.StartAsyncMethodChecks))
-                {
-                    if (IsPartialDefinition && (object)PartialImplementationPart == null)
-                    {
-                        DeclaringCompilation.SymbolDeclaredEvent(this);
-                    }
-
-                    state.NotePartComplete(CompletionPart.FinishAsyncMethodChecks);
-                }
-                else
-                {
-                    state.SpinWaitComplete(CompletionPart.FinishAsyncMethodChecks, cancellationToken);
-                }
-
+                CompleteAsyncMethodChecks(diagnosticsOpt: null, cancellationToken: cancellationToken);
                 return;
             }
 
             DiagnosticBag diagnostics = DiagnosticBag.GetInstance();
             Location errorLocation = this.Locations[0];
 
-            Debug.Assert(this.RefKind == RefKind.None);
-            if (!this.IsGenericTaskReturningAsync(this.DeclaringCompilation) && !this.IsTaskReturningAsync(this.DeclaringCompilation) && !this.IsVoidReturningAsync())
+            if (this.RefKind != RefKind.None)
+            {
+                var returnTypeSyntax = GetSyntax().ReturnType;
+                if (!returnTypeSyntax.HasErrors)
+                {
+                    var refKeyword = returnTypeSyntax.GetFirstToken();
+                    diagnostics.Add(ErrorCode.ERR_UnexpectedToken, refKeyword.GetLocation(), refKeyword.ToString());
+                }
+            }
+            else if (!this.IsGenericTaskReturningAsync(this.DeclaringCompilation) && !this.IsTaskReturningAsync(this.DeclaringCompilation) && !this.IsVoidReturningAsync())
             {
                 // The return type of an async method must be void, Task or Task<T>
                 diagnostics.Add(ErrorCode.ERR_BadAsyncReturn, errorLocation);
@@ -401,28 +425,38 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (diagnostics.IsEmptyWithoutResolution)
             {
-                ReportAsyncParameterErrors(this, diagnostics, errorLocation);
+                ReportAsyncParameterErrors(_lazyParameters, diagnostics, errorLocation);
             }
 
+            CompleteAsyncMethodChecks(diagnostics, cancellationToken);
+            diagnostics.Free();
+        }
+
+        private void CompleteAsyncMethodChecks(DiagnosticBag diagnosticsOpt, CancellationToken cancellationToken)
+        {
             if (state.NotePartComplete(CompletionPart.StartAsyncMethodChecks))
             {
-                AddDeclarationDiagnostics(diagnostics);
-                if (IsPartialDefinition) DeclaringCompilation.SymbolDeclaredEvent(this);
+                if (diagnosticsOpt != null)
+                {
+                    AddDeclarationDiagnostics(diagnosticsOpt);
+                }
+                if (IsPartialDefinition && (object)PartialImplementationPart == null)
+                {
+                    DeclaringCompilation.SymbolDeclaredEvent(this);
+                }
                 state.NotePartComplete(CompletionPart.FinishAsyncMethodChecks);
             }
             else
             {
                 state.SpinWaitComplete(CompletionPart.FinishAsyncMethodChecks, cancellationToken);
             }
-
-            diagnostics.Free();
         }
 
         protected override void MethodChecks(DiagnosticBag diagnostics)
         {
             var syntax = GetSyntax();
-            var withTypeParamsBinder = this.DeclaringCompilation.GetBinderFactory(syntax.SyntaxTree).GetBinder(syntax.ReturnType, syntax, this);
-            MethodChecks(syntax, withTypeParamsBinder, diagnostics);
+            var withTypeParametersBinder = this.DeclaringCompilation.GetBinderFactory(syntax.SyntaxTree).GetBinder(syntax.ReturnType, syntax, this);
+            MethodChecks(syntax, withTypeParametersBinder, diagnostics);
         }
 
         internal MethodDeclarationSyntax GetSyntax()
@@ -530,7 +564,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override RefKind RefKind
         {
-            get { return _refKind; }
+            get
+            {
+                return _refKind;
+            }
         }
 
         public override TypeSymbol ReturnType
@@ -663,7 +700,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 LazyMethodChecks();
-                return _lazyReturnTypeCustomModifiers;
+                return _lazyCustomModifiers.TypeCustomModifiers;
+            }
+        }
+
+        public override ImmutableArray<CustomModifier> RefCustomModifiers
+        {
+            get
+            {
+                LazyMethodChecks();
+                return _lazyCustomModifiers.RefCustomModifiers;
             }
         }
 
@@ -741,8 +787,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (!isInterface)
             {
                 allowedModifiers |= DeclarationModifiers.Extern |
-                    DeclarationModifiers.Async |
-                    DeclarationModifiers.Replace;
+                    DeclarationModifiers.Async;
             }
 
             var mods = ModifierUtils.MakeAndCheckNontypeMemberModifiers(modifiers, defaultAccess, allowedModifiers, location, diagnostics, out modifierErrors);
@@ -788,6 +833,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             for (int ordinal = 0; ordinal < typeParameters.Count; ordinal++)
             {
                 var parameter = typeParameters[ordinal];
+                if (parameter.VarianceKeyword.Kind() != SyntaxKind.None)
+                {
+                    diagnostics.Add(ErrorCode.ERR_IllegalVarianceSyntax, parameter.VarianceKeyword.GetLocation());
+                }
+
                 var identifier = parameter.Identifier;
                 var location = identifier.GetLocation();
                 var name = identifier.ValueText;

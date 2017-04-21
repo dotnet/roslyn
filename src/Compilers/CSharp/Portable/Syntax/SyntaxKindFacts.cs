@@ -195,6 +195,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.InterpolatedStringTextToken:
                 case SyntaxKind.InterpolatedStringEndToken:
                 case SyntaxKind.LoadKeyword:
+                case SyntaxKind.UnderscoreToken:
                     return true;
                 default:
                     return false;
@@ -213,6 +214,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.MultiLineDocumentationCommentTrivia:
                 case SyntaxKind.DisabledTextTrivia:
                 case SyntaxKind.DocumentationCommentExteriorTrivia:
+                case SyntaxKind.ConflictMarkerTrivia:
                     return true;
                 default:
                     return IsPreprocessorDirective(kind);
@@ -411,6 +413,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SyntaxKind.PostDecrementExpression;
                 default:
                     return SyntaxKind.None;
+            }
+        }
+
+        internal static bool IsIncrementOrDecrementOperator(SyntaxKind token)
+        {
+            switch (token)
+            {
+                case SyntaxKind.PlusPlusToken:
+                case SyntaxKind.MinusMinusToken:
+                    return true;
+                default:
+                    return false;
             }
         }
 
@@ -1077,8 +1091,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.AsyncKeyword:
                 case SyntaxKind.AwaitKeyword:
                 case SyntaxKind.WhenKeyword:
-                case SyntaxKind.ReplaceKeyword:
-                case SyntaxKind.OriginalKeyword:
+                case SyntaxKind.UnderscoreToken:
                     return true;
                 default:
                     return false;
@@ -1178,10 +1191,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SyntaxKind.WhenKeyword;
                 case "nameof":
                     return SyntaxKind.NameOfKeyword;
-                case "replace":
-                    return SyntaxKind.ReplaceKeyword;
-                case "original":
-                    return SyntaxKind.OriginalKeyword;
+                case "_":
+                    return SyntaxKind.UnderscoreToken;
                 default:
                     return SyntaxKind.None;
             }
@@ -1579,16 +1590,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return "await";
                 case SyntaxKind.WhenKeyword:
                     return "when";
-                case SyntaxKind.ReplaceKeyword:
-                    return "replace";
-                case SyntaxKind.OriginalKeyword:
-                    return "original";
                 case SyntaxKind.InterpolatedVerbatimStringStartToken:
                     return "$@\"";
                 case SyntaxKind.InterpolatedStringStartToken:
                     return "$\"";
                 case SyntaxKind.InterpolatedStringEndToken:
                     return "\"";
+                case SyntaxKind.UnderscoreToken:
+                    return "_";
                 default:
                     return string.Empty;
             }

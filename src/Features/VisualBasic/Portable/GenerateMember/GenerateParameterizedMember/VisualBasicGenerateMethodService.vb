@@ -1,12 +1,9 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Collections.Generic
 Imports System.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.CodeGeneration
 Imports Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
-Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
@@ -155,7 +152,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateMember.GenerateMethod
             Return New VisualBasicGenerateParameterizedMemberService(Of VisualBasicGenerateMethodService).InvocationExpressionInfo(document, state)
         End Function
 
-        Protected Overrides Function CanGenerateMethodForSimpleNameOrMemberAccessExpression(typeInferenceService As ITypeInferenceService, semanticModel As SemanticModel, expression As ExpressionSyntax, cancellationToken As CancellationToken) As ITypeSymbol
+        Protected Overrides Function DetermineReturnTypeForSimpleNameOrMemberAccessExpression(typeInferenceService As ITypeInferenceService, semanticModel As SemanticModel, expression As ExpressionSyntax, cancellationToken As CancellationToken) As ITypeSymbol
             Return typeInferenceService.InferType(semanticModel, expression, True, cancellationToken)
         End Function
     End Class

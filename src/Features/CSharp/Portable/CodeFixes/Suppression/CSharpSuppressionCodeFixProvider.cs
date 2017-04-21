@@ -61,21 +61,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Suppression
             return triviaList;
         }
 
-        protected override string DefaultFileExtension
-        {
-            get
-            {
-                return ".cs";
-            }
-        }
+        protected override string DefaultFileExtension => ".cs";
 
-        protected override string SingleLineCommentStart
-        {
-            get
-            {
-                return "//";
-            }
-        }
+        protected override string SingleLineCommentStart => "//";
 
         protected override bool IsAttributeListWithAssemblyAttributes(SyntaxNode node)
         {
@@ -141,7 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Suppression
             var ruleId = SyntaxFactory.LiteralExpression(SyntaxKind.StringLiteralExpression, SyntaxFactory.Literal(ruleIdText));
             var ruleIdArgument = SyntaxFactory.AttributeArgument(ruleId);
 
-            var justificationExpr = SyntaxFactory.LiteralExpression(SyntaxKind.StringLiteralExpression, SyntaxFactory.Literal(FeaturesResources.SuppressionPendingJustification));
+            var justificationExpr = SyntaxFactory.LiteralExpression(SyntaxKind.StringLiteralExpression, SyntaxFactory.Literal(FeaturesResources.Pending));
             var justificationArgument = SyntaxFactory.AttributeArgument(SyntaxFactory.NameEquals("Justification"), nameColon: null, expression: justificationExpr);
 
             var attributeArgumentList = SyntaxFactory.AttributeArgumentList().AddArguments(categoryArgument, ruleIdArgument, justificationArgument);

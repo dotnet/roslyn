@@ -24,9 +24,9 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
         private readonly NameValueCollection _appSettings;
 
-        internal DesktopBuildServerController(NameValueCollection appSettings = null)
+        internal DesktopBuildServerController(NameValueCollection appSettings)
         {
-            _appSettings = appSettings ?? ConfigurationManager.AppSettings;
+            _appSettings = appSettings;
         }
 
         protected override IClientConnectionHost CreateClientConnectionHost(string pipeName)
@@ -80,13 +80,13 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         protected override string GetDefaultPipeName()
         {
             var clientDirectory = AppDomain.CurrentDomain.BaseDirectory;
-            return DesktopBuildClient.GetPipeNameForPath(clientDirectory);
+            return BuildServerConnection.GetPipeNameForPathOpt(clientDirectory);
         }
 
         protected override bool? WasServerRunning(string pipeName)
         {
-            string mutexName = DesktopBuildClient.GetServerMutexName(pipeName);
-            return DesktopBuildClient.WasServerMutexOpen(mutexName);
+            string mutexName = BuildServerConnection.GetServerMutexName(pipeName);
+            return BuildServerConnection.WasServerMutexOpen(mutexName);
         }
 
         protected override int RunServerCore(string pipeName, IClientConnectionHost connectionHost, IDiagnosticListener listener, TimeSpan? keepAlive, CancellationToken cancellationToken)
@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             // Grab the server mutex to prevent multiple servers from starting with the same
             // pipename and consuming excess resources. If someone else holds the mutex
             // exit immediately with a non-zero exit code
-            var mutexName = DesktopBuildClient.GetServerMutexName(pipeName);
+            var mutexName = BuildServerConnection.GetServerMutexName(pipeName);
             bool holdsMutex;
             using (var serverMutex = new Mutex(initiallyOwned: true,
                                                name: mutexName,
@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
         internal static new int RunServer(string pipeName, IClientConnectionHost clientConnectionHost = null, IDiagnosticListener listener = null, TimeSpan? keepAlive = null, CancellationToken cancellationToken = default(CancellationToken))
         {
-            BuildServerController controller = new DesktopBuildServerController();
+            BuildServerController controller = new DesktopBuildServerController(new NameValueCollection());
             return controller.RunServer(pipeName, clientConnectionHost, listener, keepAlive, cancellationToken);
         }
     }

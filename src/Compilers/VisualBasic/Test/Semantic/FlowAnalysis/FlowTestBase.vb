@@ -25,8 +25,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
                 If sourceSymbol Is Nothing OrElse method.IsPartialWithoutImplementation Then
                     Continue For
                 End If
-                Dim boundBody = sourceSymbol.GetBoundMethodBody(New DiagnosticBag())
+                Dim compilationState As New TypeCompilationState(compilation, Nothing, initializeComponentOpt:=Nothing)
+                Dim boundBody = sourceSymbol.GetBoundMethodBody(compilationState, New DiagnosticBag())
                 FlowAnalysisPass.Analyze(sourceSymbol, boundBody, diagnostics)
+
+                Debug.Assert(Not compilationState.HasSynthesizedMethods)
             Next
             Return diagnostics.ToReadOnlyAndFree()
         End Function
@@ -74,17 +77,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         Protected Function CompileAndGetModelAndSpan(program As XElement, startNodes As List(Of VisualBasicSyntaxNode), endNodes As List(Of VisualBasicSyntaxNode), ilSource As XCData, errors As XElement, Optional parseOptions As VisualBasicParseOptions = Nothing) As VisualBasicCompilation
             Debug.Assert(program.<file>.Count = 1, "Only one file can be in the compilation.")
-            Dim spans As IEnumerable(Of IEnumerable(Of TextSpan)) = Nothing
-            Dim comp = CompilationUtils.CreateCompilationWithCustomILSource(program,
-                                                                            If(ilSource IsNot Nothing, ilSource.Value, Nothing),
-                                                                            options:=Nothing,
-                                                                            spans:=spans,
-                                                                            includeVbRuntime:=True,
-                                                                            includeSystemCore:=True,
-                                                                            parseOptions:=parseOptions)
-            If errors IsNot Nothing Then
-                CompilationUtils.AssertTheseDiagnostics(comp, errors)
+
+            Dim references = {MscorlibRef, MsvbRef, SystemCoreRef}
+            If ilSource IsNot Nothing Then
+                Dim ilImage As ImmutableArray(Of Byte) = Nothing
+                references = references.Concat(CreateReferenceFromIlCode(ilSource?.Value, appendDefaultHeader:=True, ilImage:=ilImage)).ToArray()
             End If
+
+            Dim assemblyName As String = Nothing
+            Dim spans As IEnumerable(Of IEnumerable(Of TextSpan)) = Nothing
+            Dim trees = ParseSouceXml(program, parseOptions, assemblyName, spans)
+
+            Dim comp = CreateCompilation(trees, references, Nothing, assemblyName)
+
+            If errors IsNot Nothing Then
+                AssertTheseDiagnostics(comp, errors)
+            End If
+
             Debug.Assert(spans.Count = 1 AndAlso spans(0).Count = 1, "Exactly one region must be selected")
             Dim span = spans.Single.Single
             FindRegionNodes(comp.SyntaxTrees(0), span, startNodes, endNodes)

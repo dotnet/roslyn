@@ -181,6 +181,34 @@ namespace Microsoft.CodeAnalysis
                 return true;
             }
 
+            public static bool StartsWith(string value, string possibleStart)
+            {
+                if ((object)value == possibleStart)
+                {
+                    return true;
+                }
+
+                if ((object)value == null || (object)possibleStart == null)
+                {
+                    return false;
+                }
+
+                if (value.Length < possibleStart.Length)
+                {
+                    return false;
+                }
+
+                for(int i = 0; i < possibleStart.Length; i++)
+                {
+                    if (!AreEqualLowerUnicode(value[i], possibleStart[i]))
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+
             public override int GetHashCode(string str)
             {
                 int hashCode = Hash.FnvOffsetBias;
@@ -219,6 +247,14 @@ namespace Microsoft.CodeAnalysis
         /// <param name="possibleEnd"></param>
         /// <returns></returns>
         public static bool EndsWith(string value, string possibleEnd) => OneToOneUnicodeComparer.EndsWith(value, possibleEnd);
+
+        /// <summary>
+        /// Determines if the string 'value' starts with string 'possibleStart'.
+        /// </summary>
+        /// <param name="value"></param>
+        /// <param name="possibleStart"></param>
+        /// <returns></returns>
+        public static bool StartsWith(string value, string possibleStart) => OneToOneUnicodeComparer.StartsWith(value, possibleStart);
 
         /// <summary>
         /// Compares two VB identifiers according to the VB identifier comparison rules.

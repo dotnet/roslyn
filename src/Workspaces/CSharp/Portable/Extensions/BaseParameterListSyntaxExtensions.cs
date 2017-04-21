@@ -20,9 +20,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     return ((BracketedParameterListSyntax)parameterList).WithParameters(parameters);
                 case SyntaxKind.ParameterList:
                     return ((ParameterListSyntax)parameterList).WithParameters(parameters);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(parameterList.Kind());
             }
-
-            throw ExceptionUtilities.Unreachable;
         }
     }
 }

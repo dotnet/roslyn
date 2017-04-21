@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
 {
     internal interface IImplementAbstractClassService : ILanguageService
     {
-        bool CanImplementAbstractClass(Document document, SemanticModel model, SyntaxNode node, CancellationToken cancellationToken);
-        Task<Document> ImplementAbstractClassAsync(Document document, SemanticModel model, SyntaxNode node, CancellationToken cancellationToken);
+        Task<bool> CanImplementAbstractClassAsync(Document document, SyntaxNode classNode, CancellationToken cancellationToken);
+        Task<Document> ImplementAbstractClassAsync(Document document, SyntaxNode classNode, CancellationToken cancellationToken);
     }
 }

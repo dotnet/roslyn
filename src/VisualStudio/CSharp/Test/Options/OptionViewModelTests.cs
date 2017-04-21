@@ -43,9 +43,9 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.Options
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Options)]
-        public async Task TestCheckBox()
+        public void TestCheckBox()
         {
-            using (var workspace = await TestWorkspace.CreateCSharpAsync(""))
+            using (var workspace = TestWorkspace.CreateCSharp(""))
             {
                 var serviceProvider = new MockServiceProvider(workspace.ExportProvider);
                 using (var viewModel = new SpacingViewModel(workspace.Options, serviceProvider))
@@ -69,9 +69,9 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.Options
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Options)]
-        public async Task TestOptionLoading()
+        public void TestOptionLoading()
         {
-            using (var workspace = await TestWorkspace.CreateCSharpAsync(""))
+            using (var workspace = TestWorkspace.CreateCSharp(""))
             {
                 var optionSet = workspace.Options.WithChangedOption(CSharpFormattingOptions.SpacingAfterMethodDeclarationName, true);
 
@@ -86,9 +86,9 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.Options
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Options)]
-        public async Task TestOptionSaving()
+        public void TestOptionSaving()
         {
-            using (var workspace = await TestWorkspace.CreateCSharpAsync(""))
+            using (var workspace = TestWorkspace.CreateCSharp(""))
             {
                 var serviceProvider = new MockServiceProvider(workspace.ExportProvider);
                 using (var viewModel = new SpacingViewModel(workspace.Options, serviceProvider))

@@ -1,15 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration
@@ -17,11 +15,14 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
     internal abstract partial class AbstractCodeGenerationService : ICodeGenerationService
     {
         private readonly ISymbolDeclarationService _symbolDeclarationService;
+        protected readonly Workspace Workspace;
 
         protected AbstractCodeGenerationService(
-            ISymbolDeclarationService symbolDeclarationService)
+            ISymbolDeclarationService symbolDeclarationService,
+            Workspace workspace)
         {
             _symbolDeclarationService = symbolDeclarationService;
+            Workspace = workspace;
         }
 
         public TDeclarationNode AddEvent<TDeclarationNode>(TDeclarationNode destination, IEventSymbol @event, CodeGenerationOptions options, CancellationToken cancellationToken) where TDeclarationNode : SyntaxNode
@@ -104,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             if (!(destination is TDeclarationNode))
             {
                 throw new ArgumentException(
-                    string.Format(WorkspacesResources.InvalidDestinationNode, typeof(TDeclarationNode).Name, destination.GetType().Name),
+                    string.Format(WorkspacesResources.Destination_type_must_be_a_0_but_given_one_is_1, typeof(TDeclarationNode).Name, destination.GetType().Name),
                     nameof(destination));
             }
         }
@@ -122,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 !(destination is TDeclarationNode2))
             {
                 throw new ArgumentException(
-                    string.Format(WorkspacesResources.InvalidDestinationNode2,
+                    string.Format(WorkspacesResources.Destination_type_must_be_a_0_or_a_1_but_given_one_is_2,
                         typeof(TDeclarationNode1).Name, typeof(TDeclarationNode2).Name, destination.GetType().Name),
                     nameof(destination));
             }
@@ -143,7 +144,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 !(destination is TDeclarationNode3))
             {
                 throw new ArgumentException(
-                    string.Format(WorkspacesResources.InvalidDestinationNode3,
+                    string.Format(WorkspacesResources.Destination_type_must_be_a_0_1_or_2_but_given_one_is_3,
                         typeof(TDeclarationNode1).Name, typeof(TDeclarationNode2).Name, typeof(TDeclarationNode3).Name, destination.GetType().Name),
                     nameof(destination));
             }
@@ -161,7 +162,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 !(destination is TDeclarationNode4))
             {
                 throw new ArgumentException(
-                    string.Format(WorkspacesResources.InvalidDestinationNode3,
+                    string.Format(WorkspacesResources.Destination_type_must_be_a_0_1_or_2_but_given_one_is_3,
                         typeof(TDeclarationNode1).Name, typeof(TDeclarationNode2).Name, typeof(TDeclarationNode3).Name, typeof(TDeclarationNode4).Name),
                     nameof(destination));
             }
@@ -177,15 +178,14 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         {
             options = options ?? CodeGenerationOptions.Default;
 
-            var result = await this.FindMostRelevantDeclarationAsync(solution, destination, options, cancellationToken).ConfigureAwait(false);
-            SyntaxNode destinationDeclaration = result.Item1;
-            IList<bool> availableIndices = result.Item2;
+            var (destinationDeclaration, availableIndices) =
+                await this.FindMostRelevantDeclarationAsync(solution, destination, options, cancellationToken).ConfigureAwait(false);
 
             if (destinationDeclaration == null)
             {
-                throw new ArgumentException(WorkspacesResources.CouldNotFindLocationToGen);
+                throw new ArgumentException(WorkspacesResources.Could_not_find_location_to_generation_symbol_into);
             }
-
+            
             var transformedDeclaration = declarationTransform(destinationDeclaration, options, availableIndices, cancellationToken);
 
             var destinationTree = destinationDeclaration.SyntaxTree;
@@ -198,10 +198,18 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
             if (options.AddImports)
             {
-                var adder = this.CreateImportsAdder(newDocument);
-                newDocument = await adder.AddAsync(members, options.PlaceSystemNamespaceFirst, options, cancellationToken).ConfigureAwait(false);
+                newDocument = await AddImportsAsync(
+                    newDocument, options, cancellationToken).ConfigureAwait(false);
             }
 
+            return newDocument;
+        }
+
+        public async Task<Document> AddImportsAsync(Document document, CodeGenerationOptions options, CancellationToken cancellationToken)
+        {
+            options = options ?? CodeGenerationOptions.Default;
+            var adder = this.CreateImportsAdder(document);
+            var newDocument = await adder.AddAsync(options.PlaceSystemNamespaceFirst, options, cancellationToken).ConfigureAwait(false);
             return newDocument;
         }
 
@@ -219,58 +227,98 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 options = CreateOptionsForMultipleMembers(options);
             }
 
-            var currentDestination = destination;
-
             // Filter out the members that are implicitly declared.  They're implicit, hence we do
             // not want an explicit declaration.
             var filteredMembers = membersList.Where(m => !m.IsImplicitlyDeclared);
 
-            if (options.AutoInsertionLocation)
+            return options.AutoInsertionLocation
+                ? AddMembersToAppropiateLocationInDestination(destination, filteredMembers, availableIndices, options, cancellationToken)
+                : AddMembersToEndOfDestination(destination, filteredMembers, availableIndices, options, cancellationToken);
+        }
+
+        private TDeclarationSyntax AddMembersToEndOfDestination<TDeclarationSyntax>(
+            TDeclarationSyntax destination,
+            IEnumerable<ISymbol> members,
+            IList<bool> availableIndices,
+            CodeGenerationOptions options,
+            CancellationToken cancellationToken)
+            where TDeclarationSyntax : SyntaxNode
+        {
+            var newMembers = new List<SyntaxNode>();
+            var codeGenerationDestination = GetDestination(destination);
+            foreach (var member in members)
             {
-                foreach (var member in filteredMembers)
+                cancellationToken.ThrowIfCancellationRequested();
+                var newMember = GetNewMember(options, codeGenerationDestination, member, cancellationToken);
+
+                if (newMember != null)
                 {
-                    cancellationToken.ThrowIfCancellationRequested();
-                    currentDestination = member.TypeSwitch(
-                        (IEventSymbol @event) => this.AddEvent(currentDestination, @event, options, availableIndices),
-                        (IFieldSymbol field) => this.AddField(currentDestination, field, options, availableIndices),
-                        (IPropertySymbol property) => this.AddProperty(currentDestination, property, options, availableIndices),
-                        (IMethodSymbol method) => this.AddMethod(currentDestination, method, options, availableIndices),
-                        (INamedTypeSymbol namedType) => this.AddNamedType(currentDestination, namedType, options, availableIndices, cancellationToken),
-                        (INamespaceSymbol @namespace) => this.AddNamespace(currentDestination, @namespace, options, availableIndices, cancellationToken),
-                        _ => currentDestination);
+                    newMembers.Add(newMember);
                 }
             }
-            else
+
+            // Metadata as source generates complete declarations and doesn't modify
+            // existing ones. We can take the members to generate, sort them once,
+            // and then add them in that order to the end of the destination.
+            if (!GeneratingEnum(members) && options.SortMembers)
             {
-                var newMembers = new List<SyntaxNode>();
-                var codeGenerationDestination = GetDestination(destination);
-                foreach (var member in filteredMembers)
-                {
-                    cancellationToken.ThrowIfCancellationRequested();
-                    var newMember = member.TypeSwitch(
-                        (IEventSymbol @event) => this.CreateEventDeclaration(@event, codeGenerationDestination, options),
-                        (IFieldSymbol field) => this.CreateFieldDeclaration(field, codeGenerationDestination, options),
-                        (IPropertySymbol property) => this.CreatePropertyDeclaration(property, codeGenerationDestination, options),
-                        (IMethodSymbol method) => this.CreateMethodDeclaration(method, codeGenerationDestination, options),
-                        (INamedTypeSymbol namedType) => this.CreateNamedTypeDeclaration(namedType, codeGenerationDestination, options, cancellationToken),
-                        (INamespaceSymbol @namespace) => this.CreateNamespaceDeclaration(@namespace, codeGenerationDestination, options, cancellationToken),
-                        _ => null);
+                newMembers.Sort(GetMemberComparer());
+            }
 
-                    if (newMember != null)
-                    {
-                        newMembers.Add(newMember);
-                    }
-                }
+            return this.AddMembers(destination, newMembers);
+        }
 
-                // Metadata as source generates complete declarations and doesn't modify
-                // existing ones. We can take the members to generate, sort them once,
-                // and then add them in that order to the end of the destination.
-                if (!GeneratingEnum(members))
-                {
-                    newMembers.Sort(GetMemberComparer());
-                }
+        private TDeclarationSyntax AddMembersToAppropiateLocationInDestination<TDeclarationSyntax>(
+            TDeclarationSyntax destination,
+            IEnumerable<ISymbol> members,
+            IList<bool> availableIndices,
+            CodeGenerationOptions options,
+            CancellationToken cancellationToken)
+            where TDeclarationSyntax  : SyntaxNode
+        {
+            var currentDestination = destination;
 
-                currentDestination = this.AddMembers(currentDestination, newMembers);
+            foreach (var member in members)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                currentDestination = UpdateDestination(availableIndices, options, currentDestination, member, cancellationToken);
+            }
+
+            return currentDestination;
+        }
+
+        private SyntaxNode GetNewMember(
+            CodeGenerationOptions options, CodeGenerationDestination codeGenerationDestination,
+            ISymbol member, CancellationToken cancellationToken)
+        {
+            switch (member)
+            {
+                case IEventSymbol @event: return this.CreateEventDeclaration(@event, codeGenerationDestination, options);
+                case IFieldSymbol field: return this.CreateFieldDeclaration(field, codeGenerationDestination, options);
+                case IPropertySymbol property: return this.CreatePropertyDeclaration(property, codeGenerationDestination, options);
+                case IMethodSymbol method: return this.CreateMethodDeclaration(method, codeGenerationDestination, options);
+                case INamedTypeSymbol namedType: return this.CreateNamedTypeDeclaration(namedType, codeGenerationDestination, options, cancellationToken);
+                case INamespaceSymbol @namespace: return this.CreateNamespaceDeclaration(@namespace, codeGenerationDestination, options, cancellationToken);
+            }
+
+            return null;
+        }
+
+        private TDeclarationNode UpdateDestination<TDeclarationNode>(
+            IList<bool> availableIndices,
+            CodeGenerationOptions options,
+            TDeclarationNode currentDestination,
+            ISymbol member,
+            CancellationToken cancellationToken) where TDeclarationNode : SyntaxNode
+        {
+            switch (member)
+            {
+                case IEventSymbol @event: return this.AddEvent(currentDestination, @event, options, availableIndices);
+                case IFieldSymbol field: return this.AddField(currentDestination, field, options, availableIndices);
+                case IPropertySymbol property: return this.AddProperty(currentDestination, property, options, availableIndices);
+                case IMethodSymbol method: return this.AddMethod(currentDestination, method, options, availableIndices);
+                case INamedTypeSymbol namedType: return this.AddNamedType(currentDestination, namedType, options, availableIndices, cancellationToken);
+                case INamespaceSymbol @namespace: return this.AddNamespace(currentDestination, @namespace, options, availableIndices, cancellationToken);
             }
 
             return currentDestination;
@@ -303,11 +351,14 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 generateMethodBodies: options.GenerateMethodBodies,
                 generateDocumentationComments: options.GenerateDocumentationComments,
                 autoInsertionLocation: options.AutoInsertionLocation,
-                reuseSyntax: options.ReuseSyntax);
+                reuseSyntax: options.ReuseSyntax,
+                sortMembers: options.SortMembers);
             return options;
         }
 
-        public Task<Document> AddEventAsync(Solution solution, INamedTypeSymbol destination, IEventSymbol @event, CodeGenerationOptions options, CancellationToken cancellationToken)
+        public virtual Task<Document> AddEventAsync(
+            Solution solution, INamedTypeSymbol destination, IEventSymbol @event,
+            CodeGenerationOptions options, CancellationToken cancellationToken)
         {
             return GetEditAsync(
                 solution,
@@ -386,9 +437,9 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 throw new ArgumentNullException(nameof(namespaceOrType));
             }
 
-            if (namespaceOrType is INamespaceSymbol)
+            if (namespaceOrType is INamespaceSymbol namespaceSymbol)
             {
-                return AddNamespaceAsync(solution, destination, (INamespaceSymbol)namespaceOrType, options, cancellationToken);
+                return AddNamespaceAsync(solution, destination, namespaceSymbol, options, cancellationToken);
             }
             else
             {
@@ -401,17 +452,17 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         {
             if (location == null)
             {
-                throw new ArgumentException(WorkspacesResources.InvalidLocationForCodeGen);
+                throw new ArgumentException(WorkspacesResources.No_location_provided_to_add_statements_to);
             }
 
             if (!location.IsInSource)
             {
-                throw new ArgumentException(WorkspacesResources.InvalidNonSourceLocationForCodeGen);
+                throw new ArgumentException(WorkspacesResources.Destination_location_was_not_in_source);
             }
 
             if (location.SourceTree != destinationMember.SyntaxTree)
             {
-                throw new ArgumentException(WorkspacesResources.DestinationLocationFromDifferentTree);
+                throw new ArgumentException(WorkspacesResources.Destination_location_was_from_a_different_tree);
             }
         }
 

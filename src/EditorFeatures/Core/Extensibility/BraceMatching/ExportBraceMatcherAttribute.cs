@@ -14,12 +14,7 @@ namespace Microsoft.CodeAnalysis.Editor
         public ExportBraceMatcherAttribute(string language)
             : base(typeof(IBraceMatcher))
         {
-            if (language == null)
-            {
-                throw new ArgumentNullException(nameof(language));
-            }
-
-            this.Language = language;
+            this.Language = language ?? throw new ArgumentNullException(nameof(language));
         }
     }
 }

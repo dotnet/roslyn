@@ -37,26 +37,21 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private static BoundExpression RewriteConditionalOperator(
-            CSharpSyntaxNode syntax,
+            SyntaxNode syntax,
             BoundExpression rewrittenCondition,
             BoundExpression rewrittenConsequence,
             BoundExpression rewrittenAlternative,
             ConstantValue constantValueOpt,
             TypeSymbol rewrittenType)
         {
-            // NOTE: This optimization assumes that a constant has no side effects. In the future we 
-            // might wish to represent nodes that are known to the optimizer as having constant
-            // values as a sequence of side effects and a constant value; in that case the result
-            // of this should be a sequence containing the side effect and the consequence or alternative.
-
             ConstantValue conditionConstantValue = rewrittenCondition.ConstantValue;
             if (conditionConstantValue == ConstantValue.True)
             {
-                return rewrittenConsequence;
+                return EnsureNotAssignableIfUsedAsMethodReceiver(rewrittenConsequence);
             }
             else if (conditionConstantValue == ConstantValue.False)
             {
-                return rewrittenAlternative;
+                return EnsureNotAssignableIfUsedAsMethodReceiver(rewrittenAlternative);
             }
             else
             {

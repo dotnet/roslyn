@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
@@ -29,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         // Contains variables that are captured but can't be hoisted since their type can't be allocated on heap.
         // The value is a list of all uses of each such variable.
-        private MultiDictionary<Symbol, CSharpSyntaxNode> _lazyDisallowedCaptures;
+        private MultiDictionary<Symbol, SyntaxNode> _lazyDisallowedCaptures;
 
         private bool _seenYieldInCurrentTry;
 
@@ -89,9 +88,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(variablesToHoist.Count == 0);
 
                 // In debug build we hoist all locals and parameters:
-                variablesToHoist.AddRange(from v in allVariables
-                                          where v.Symbol != null && HoistInDebugBuild(v.Symbol)
-                                          select v.Symbol);
+                foreach (var v in allVariables)
+                {
+                    var symbol = v.Symbol;
+                    if ((object)symbol != null && HoistInDebugBuild(symbol))
+                    {
+                        variablesToHoist.Add(symbol);
+                    }
+                }
             }
 
             return variablesToHoist;
@@ -110,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 LocalSymbol local = (LocalSymbol)symbol;
 
-                if (local.IsConst)
+                if (local.IsConst || local.IsPinned)
                 {
                     return false;
                 }
@@ -186,7 +190,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return base.Scan(ref badRegion);
         }
 
-        private void CaptureVariable(Symbol variable, CSharpSyntaxNode syntax)
+        private void CaptureVariable(Symbol variable, SyntaxNode syntax)
         {
             var type = (variable.Kind == SymbolKind.Local) ? ((LocalSymbol)variable).Type : ((ParameterSymbol)variable).Type;
             if (type.IsRestrictedType())
@@ -199,7 +203,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (_lazyDisallowedCaptures == null)
                 {
-                    _lazyDisallowedCaptures = new MultiDictionary<Symbol, CSharpSyntaxNode>();
+                    _lazyDisallowedCaptures = new MultiDictionary<Symbol, SyntaxNode>();
                 }
 
                 _lazyDisallowedCaptures.Add(variable, syntax);
@@ -212,12 +216,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override void EnterParameter(ParameterSymbol parameter)
         {
+            // Async and iterators should never have ref parameters aside from `this`
+            Debug.Assert(parameter.IsThis || parameter.RefKind == RefKind.None);
+
             // parameters are NOT initially assigned here - if that is a problem, then
             // the parameters must be captured.
             GetOrCreateSlot(parameter);
         }
 
-        protected override void ReportUnassigned(Symbol symbol, CSharpSyntaxNode node)
+        protected override void ReportUnassigned(Symbol symbol, SyntaxNode node)
         {
             if (symbol is LocalSymbol || symbol is ParameterSymbol)
             {
@@ -232,7 +239,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.State;
         }
 
-        protected override void ReportUnassigned(FieldSymbol fieldSymbol, int unassignedSlot, CSharpSyntaxNode node)
+        protected override void ReportUnassigned(FieldSymbol fieldSymbol, int unassignedSlot, SyntaxNode node)
         {
             CaptureVariable(GetNonFieldSymbol(unassignedSlot), node);
         }
@@ -377,7 +384,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return base.VisitParameter(node);
             }
 
-            private void Capture(Symbol s, CSharpSyntaxNode syntax)
+            private void Capture(Symbol s, SyntaxNode syntax)
             {
                 if ((object)s != null && !_localsInScope.Contains(s))
                 {

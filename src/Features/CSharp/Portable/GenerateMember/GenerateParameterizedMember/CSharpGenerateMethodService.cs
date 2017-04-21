@@ -21,19 +21,13 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateMethod
         AbstractGenerateMethodService<CSharpGenerateMethodService, SimpleNameSyntax, ExpressionSyntax, InvocationExpressionSyntax>
     {
         protected override bool IsExplicitInterfaceGeneration(SyntaxNode node)
-        {
-            return node is MethodDeclarationSyntax;
-        }
+            => node is MethodDeclarationSyntax;
 
         protected override bool IsSimpleNameGeneration(SyntaxNode node)
-        {
-            return node is SimpleNameSyntax;
-        }
+            => node is SimpleNameSyntax;
 
         protected override bool ContainingTypesOrSelfHasUnsafeKeyword(INamedTypeSymbol containingType)
-        {
-            return containingType.ContainingTypesOrSelfHasUnsafeKeyword();
-        }
+            => containingType.ContainingTypesOrSelfHasUnsafeKeyword();
 
         protected override AbstractInvocationInfo CreateInvocationMethodInfo(SemanticDocument document, AbstractGenerateParameterizedMemberService<CSharpGenerateMethodService, SimpleNameSyntax, ExpressionSyntax, InvocationExpressionSyntax>.State state)
         {
@@ -41,14 +35,10 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateMethod
         }
 
         protected override bool AreSpecialOptionsActive(SemanticModel semanticModel)
-        {
-            return CSharpCommonGenerationServiceMethods.AreSpecialOptionsActive(semanticModel);
-        }
+            => CSharpCommonGenerationServiceMethods.AreSpecialOptionsActive(semanticModel);
 
         protected override bool IsValidSymbol(ISymbol symbol, SemanticModel semanticModel)
-        {
-            return CSharpCommonGenerationServiceMethods.IsValidSymbol(symbol, semanticModel);
-        }
+            => CSharpCommonGenerationServiceMethods.IsValidSymbol(symbol, semanticModel);
 
         protected override bool TryInitializeExplicitInterfaceState(
             SemanticDocument document,
@@ -154,7 +144,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateMethod
             return false;
         }
 
-        protected override ITypeSymbol CanGenerateMethodForSimpleNameOrMemberAccessExpression(
+        protected override ITypeSymbol DetermineReturnTypeForSimpleNameOrMemberAccessExpression(
             ITypeInferenceService typeInferenceService,
             SemanticModel semanticModel,
             ExpressionSyntax expression,

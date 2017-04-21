@@ -23,6 +23,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
     {
         private const string ColonString = ":";
 
+        // Explicitly remove ":" from the set of filter characters because (by default)
+        // any character that appears in DisplayText gets treated as a filter char.
+        private static readonly CompletionItemRules s_rules = CompletionItemRules.Default
+            .WithFilterCharacterRule(CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, ':'));
+
         internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
         {
             return CompletionUtilities.IsTriggerCharacter(text, characterPosition, options);
@@ -90,21 +95,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 // exact match.
                 var escapedName = parameter.Name.ToIdentifierToken().ToString();
 
-                context.AddItem(SymbolCompletionItem.Create(
+                context.AddItem(SymbolCompletionItem.CreateWithSymbolId(
                     displayText: escapedName + ColonString,
-                    insertionText: null,
-                    span: context.DefaultItemSpan,
-                    symbol: parameter,
-                    descriptionPosition: token.SpanStart,
-                    filterText: escapedName,
-                    rules: CompletionItemRules.Default));
+                    symbols: ImmutableArray.Create(parameter),
+                    rules: s_rules.WithMatchPriority(SymbolMatchPriority.PreferNamedArgument),
+                    contextPosition: token.SpanStart,
+                    filterText: escapedName));
             }
         }
 
-        public override Task<CompletionDescription> GetDescriptionAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
-        {
-            return SymbolCompletionItem.GetDescriptionAsync(item, document, cancellationToken);
-        }
+        protected override Task<CompletionDescription> GetDescriptionWorkerAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
+            => SymbolCompletionItem.GetDescriptionAsync(item, document, cancellationToken);
 
         private bool IsValid(ImmutableArray<IParameterSymbol> parameterList, ISet<string> existingNamedParameters)
         {
@@ -127,11 +128,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             SyntaxNode invocableNode,
             CancellationToken cancellationToken)
         {
-            return invocableNode.TypeSwitch(
-                (InvocationExpressionSyntax invocationExpression) => GetInvocationExpressionParameterLists(semanticModel, position, invocationExpression, cancellationToken),
-                (ConstructorInitializerSyntax constructorInitializer) => GetConstructorInitializerParameterLists(semanticModel, position, constructorInitializer, cancellationToken),
-                (ElementAccessExpressionSyntax elementAccessExpression) => GetElementAccessExpressionParameterLists(semanticModel, position, elementAccessExpression, cancellationToken),
-                (ObjectCreationExpressionSyntax objectCreationExpression) => GetObjectCreationExpressionParameterLists(semanticModel, position, objectCreationExpression, cancellationToken));
+            switch (invocableNode)
+            {
+                case InvocationExpressionSyntax invocationExpression: return GetInvocationExpressionParameterLists(semanticModel, position, invocationExpression, cancellationToken);
+                case ConstructorInitializerSyntax constructorInitializer: return GetConstructorInitializerParameterLists(semanticModel, position, constructorInitializer, cancellationToken);
+                case ElementAccessExpressionSyntax elementAccessExpression: return GetElementAccessExpressionParameterLists(semanticModel, position, elementAccessExpression, cancellationToken);
+                case ObjectCreationExpressionSyntax objectCreationExpression: return GetObjectCreationExpressionParameterLists(semanticModel, position, objectCreationExpression, cancellationToken);
+                default: return null;
+            }
         }
 
         private IEnumerable<ImmutableArray<IParameterSymbol>> GetObjectCreationExpressionParameterLists(
@@ -235,7 +239,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return obj.Name.GetHashCode();
         }
 
-        public override Task<TextChange?> GetTextChangeAsync(Document document, CompletionItem selectedItem, char? ch, CancellationToken cancellationToken)
+        protected override Task<TextChange?> GetTextChangeAsync(CompletionItem selectedItem, char? ch, CancellationToken cancellationToken)
         {
             return Task.FromResult<TextChange?>(new TextChange(
                 selectedItem.Span,

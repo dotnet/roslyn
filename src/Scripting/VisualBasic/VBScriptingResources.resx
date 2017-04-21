@@ -130,6 +130,7 @@ If script-file is specified executes the script, otherwise launches an interacti
 
 Options:
   /help                          Display this usage message (Short form: /?)
+  /version                       Display the version and exit
   /reference:<alias>=<file>      Reference metadata from the specified assembly file using the given alias (Short form: /r)
   /reference:<file list>         Reference metadata from the specified assembly files (Short form: /r)
   /referencePath:<path list>     List of paths where to look for metadata references specified as unrooted paths. (Short form: /rp)

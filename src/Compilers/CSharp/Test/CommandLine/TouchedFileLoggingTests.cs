@@ -217,9 +217,7 @@ public class C { }").Path;
                 var cmd = new CSharpCompilerServer(
                     DesktopCompilerServerHost.SharedAssemblyReferenceProvider,
                     new[] { "/nologo", "/touchedfiles:" + touchedBase, source1 },
-                    null,
-                    _baseDirectory,
-                    RuntimeEnvironment.GetRuntimeDirectory(),
+                    new BuildPaths(null, _baseDirectory, RuntimeEnvironment.GetRuntimeDirectory(), Path.GetTempPath()),
                     s_libDirectory,
                     new TestAnalyzerAssemblyLoader());
 

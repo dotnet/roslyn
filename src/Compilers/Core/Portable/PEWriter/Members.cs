@@ -8,6 +8,7 @@ using System.Reflection;
 using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGen;
+using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Emit;
 using Roslyn.Utilities;
 using EmitContext = Microsoft.CodeAnalysis.Emit.EmitContext;
@@ -119,7 +120,7 @@ namespace Microsoft.Cci
         /// The compile time value of the field. This value should be used directly in IL, rather than a reference to the field.
         /// If the field does not have a valid compile time value, Dummy.Constant is returned.
         /// </summary>
-        IMetadataConstant GetCompileTimeValue(EmitContext context);
+        MetadataConstant GetCompileTimeValue(EmitContext context);
 
         /// <summary>
         /// Mapped field data, or null if the field is not mapped.
@@ -229,7 +230,7 @@ namespace Microsoft.Cci
         /// <summary>
         /// The compile time value of the definition, if it is a local constant.
         /// </summary>
-        IMetadataConstant CompileTimeValue
+        MetadataConstant CompileTimeValue
         {
             get;
         }
@@ -257,11 +258,6 @@ namespace Microsoft.Cci
         LocalSlotConstraints Constraints { get; }
 
         /// <summary>
-        /// True if the local variable is of type Dynamic.
-        /// </summary>
-        bool IsDynamic { get; }
-
-        /// <summary>
         /// Each local has an attributes field in the PDB.  To match the native compiler,
         /// we emit <see cref="LocalVariableAttributes.DebuggerHidden"/> for locals that should 
         /// definitely not bind in the debugger and <see cref="LocalVariableAttributes.None"/>
@@ -276,9 +272,14 @@ namespace Microsoft.Cci
         LocalVariableAttributes PdbAttributes { get; }
 
         /// <summary>
-        /// Should return the synthesized dynamic attributes of the local definition if any. Else null.
+        /// The synthesized dynamic attributes of the local definition if any, or empty.
         /// </summary>
-        ImmutableArray<TypedConstant> DynamicTransformFlags { get; }
+        ImmutableArray<bool> DynamicTransformFlags { get; }
+
+        /// <summary>
+        /// The tuple element names of the local definition if any, or empty.
+        /// </summary>
+        ImmutableArray<string> TupleElementNames { get; }
 
         /// <summary>
         /// The type of the local.
@@ -474,6 +475,8 @@ namespace Microsoft.Cci
 
         ImmutableArray<ClosureDebugInfo> ClosureDebugInfo { get; }
         ImmutableArray<LambdaDebugInfo> LambdaDebugInfo { get; }
+
+        DynamicAnalysisMethodBodyData DynamicAnalysisData { get; }
     }
 
     /// <summary>
@@ -652,7 +655,7 @@ namespace Microsoft.Cci
         /// A compile time constant value that should be supplied as the corresponding argument value by callers that do not explicitly specify an argument value for this parameter.
         /// Null if the parameter doesn't have default value.
         /// </summary>
-        IMetadataConstant GetDefaultValue(EmitContext context);
+        MetadataConstant GetDefaultValue(EmitContext context);
 
         /// <summary>
         /// True if the parameter has a default value that should be supplied as the argument value by a caller for which the argument value has not been explicitly specified.
@@ -716,7 +719,7 @@ namespace Microsoft.Cci
         /// <summary>
         /// A compile time constant value that provides the default value for the property. (Who uses this and why?)
         /// </summary>
-        IMetadataConstant DefaultValue
+        MetadataConstant DefaultValue
         {
             get;
             // ^ requires this.HasDefaultValue;
@@ -775,9 +778,17 @@ namespace Microsoft.Cci
         ImmutableArray<IParameterTypeInformation> GetParameters(EmitContext context);
 
         /// <summary>
-        /// Returns the list of custom modifiers, if any, associated with the returned value. Evaluate this property only if ReturnValueIsModified is true.
+        /// Returns the list of custom modifiers, if any, associated with the return type. 
         /// </summary>
         ImmutableArray<ICustomModifier> ReturnValueCustomModifiers
+        {
+            get;
+        }
+
+        /// <summary>
+        /// Returns the list of custom modifiers, if any, associated with the ref modifier. 
+        /// </summary>
+        ImmutableArray<ICustomModifier> RefCustomModifiers
         {
             get;
         }

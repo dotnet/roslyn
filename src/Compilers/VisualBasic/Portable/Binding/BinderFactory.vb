@@ -43,16 +43,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me._binderFactoryVisitorPool = New ObjectPool(Of BinderFactoryVisitor)(Function() New BinderFactoryVisitor(Me))
         End Sub
 
-        Private Function MakeBinder(node As VisualBasicSyntaxNode, position As Integer) As Binder
-            If SyntaxFacts.InSpanOrEffectiveTrailingOfNode(node, position) OrElse node.Kind = SyntaxKind.CompilationUnit Then
+        Private Function MakeBinder(node As SyntaxNode, position As Integer) As Binder
+            If SyntaxFacts.InSpanOrEffectiveTrailingOfNode(node, position) OrElse
+               node.Kind = SyntaxKind.CompilationUnit Then
+
                 Dim visitor = _binderFactoryVisitorPool.Allocate()
                 visitor.Position = position
-                Dim result = node.Accept(visitor)
+                Dim result = visitor.Visit(node)
                 _binderFactoryVisitorPool.Free(visitor)
                 Return result
-            Else
-                Return Nothing
             End If
+
+            Return Nothing
         End Function
 
         ' Get binder for interior of a namespace block
@@ -83,12 +85,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ' Find the binder to use for a position in the tree. The position should have been adjusted
         ' already to be at the start of a token.
-        Public Function GetBinderForPosition(node As VisualBasicSyntaxNode, position As Integer) As Binder
+        Public Function GetBinderForPosition(node As SyntaxNode, position As Integer) As Binder
             Return GetBinderAtOrAbove(node, position)
         End Function
 
         ' Find the binder for a node or above at a given position
-        Private Function GetBinderAtOrAbove(node As VisualBasicSyntaxNode, position As Integer) As Binder
+        Private Function GetBinderAtOrAbove(node As SyntaxNode, position As Integer) As Binder
             ' Go up the tree until we find a node that has a corresponding binder.
             Do
                 Dim binder As Binder = MakeBinder(node, position)
@@ -121,7 +123,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Debug.Assert(containingBinder Is Nothing OrElse parentNode Is Nothing)
 
             Dim binder As Binder = Nothing
-            Dim nodeUsagePair = ValueTuple.Create(node, CByte(usage))
+            Dim nodeUsagePair = (node, CByte(usage))
 
             If Not _cache.TryGetValue(nodeUsagePair, binder) Then
                 ' Didn't find it in the cache, so we need to create it. But we need the containing binder first.
@@ -340,6 +342,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Select Case methodSyntax.Kind
                             Case SyntaxKind.SubNewStatement,
                                 SyntaxKind.FunctionStatement,
+                                SyntaxKind.OperatorStatement,
                                 SyntaxKind.SubStatement,
                                 SyntaxKind.DeclareFunctionStatement,
                                 SyntaxKind.DeclareSubStatement

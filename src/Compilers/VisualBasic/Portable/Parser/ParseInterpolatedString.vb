@@ -1,7 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Runtime.CompilerServices
 Imports System.Runtime.InteropServices
+Imports Microsoft.CodeAnalysis.Syntax.InternalSyntax
 Imports InternalSyntaxFactory = Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.SyntaxFactory
 
 '
@@ -235,32 +235,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 closeBraceToken = DirectCast(CurrentToken, PunctuationSyntax)
                 GetNextToken(ScannerState.InterpolatedStringContent)
 
-            ElseIf CurrentToken.Kind = SyntaxKind.EndOfInterpolatedStringToken
+            ElseIf CurrentToken.Kind = SyntaxKind.EndOfInterpolatedStringToken Then
                 GetNextToken(ScannerState.VB)
 
                 closeBraceToken = DirectCast(HandleUnexpectedToken(SyntaxKind.CloseBraceToken), PunctuationSyntax)
             Else
                 ' Content rules will either resync at a } or at the closing ".
-                ResetCurrentToken(ScannerState.InterpolatedStringFormatString)
-
-                Dim skippedToken As SyntaxToken = Nothing
-
-                If CurrentToken.Kind = SyntaxKind.InterpolatedStringText Then
-                    skippedToken = CurrentToken
-                    GetNextToken(ScannerState.InterpolatedStringPunctuation)
+                If Not IsValidStatementTerminator(CurrentToken) Then
+                    ResetCurrentToken(ScannerState.InterpolatedStringFormatString)
                 End If
 
-                If CurrentToken.Kind = SyntaxKind.CloseBraceToken Then
-                    closeBraceToken = DirectCast(CurrentToken, PunctuationSyntax)
+                Debug.Assert(CurrentToken.Kind <> SyntaxKind.CloseBraceToken)
+                closeBraceToken = DirectCast(HandleUnexpectedToken(SyntaxKind.CloseBraceToken), PunctuationSyntax)
+
+                If CurrentToken.Kind = SyntaxKind.InterpolatedStringTextToken Then
+                    ResetCurrentToken(ScannerState.InterpolatedStringContent)
                     GetNextToken(ScannerState.InterpolatedStringContent)
-                Else
-                    closeBraceToken = DirectCast(HandleUnexpectedToken(SyntaxKind.CloseBraceToken), PunctuationSyntax)
                 End If
-
-                If skippedToken IsNot Nothing Then
-                    closeBraceToken = AddLeadingSyntax(closeBraceToken, skippedToken, ERRID.ERR_Syntax)
-                End If
-
             End If
 
             Return SyntaxFactory.Interpolation(openBraceToken, expression, alignmentClauseOpt, formatStringClauseOpt, closeBraceToken)
@@ -279,7 +270,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Return token
             End If
 
-            Dim triviaList As New SyntaxList(Of VisualBasicSyntaxNode)(token.GetTrailingTrivia())
+            Dim triviaList As New CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of VisualBasicSyntaxNode)(token.GetTrailingTrivia())
 
             Dim indexOfFirstColon As Integer = -1
             Dim newTrailingTrivia As GreenNode

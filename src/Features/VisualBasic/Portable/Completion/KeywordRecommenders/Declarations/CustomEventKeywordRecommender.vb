@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Decl
                 If modifiers.CouldApplyToOneOf(PossibleDeclarationTypes.Event) AndAlso
                    modifiers.CustomKeyword.Kind = SyntaxKind.None Then
                     Return SpecializedCollections.SingletonEnumerable(
-                                New RecommendedKeyword("Custom Event", VBFeaturesResources.CustomEventKeywordToolTip))
+                                New RecommendedKeyword("Custom Event", VBFeaturesResources.Specifies_that_an_event_has_additional_specialized_code_for_adding_handlers_removing_handlers_and_raising_events))
                 End If
             End If
 

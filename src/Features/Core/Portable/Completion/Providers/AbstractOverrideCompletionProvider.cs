@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -21,12 +22,12 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         }
 
         public abstract SyntaxToken FindStartingToken(SyntaxTree tree, int position, CancellationToken cancellationToken);
-        public abstract ISet<ISymbol> FilterOverrides(ISet<ISymbol> members, ITypeSymbol returnType);
+        public abstract ImmutableArray<ISymbol> FilterOverrides(ImmutableArray<ISymbol> members, ITypeSymbol returnType);
         public abstract bool TryDetermineModifiers(SyntaxToken startToken, SourceText text, int startLine, out Accessibility seenAccessibility, out DeclarationModifiers modifiers);
 
         public override async Task ProvideCompletionsAsync(CompletionContext context)
         {
-            var state = await ItemGetter.CreateAsync(this, context.Document, context.Position, context.DefaultItemSpan, context.CancellationToken).ConfigureAwait(false);
+            var state = await ItemGetter.CreateAsync(this, context.Document, context.Position, context.CancellationToken).ConfigureAwait(false);
             var items = await state.GetItemsAsync().ConfigureAwait(false);
 
             if (items?.Any() == true)
@@ -36,29 +37,16 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             }
         }
 
-        protected override async Task<ISymbol> GenerateMemberAsync(ISymbol newOverriddenMember, INamedTypeSymbol newContainingType, Document newDocument, CompletionItem completionItem, CancellationToken cancellationToken)
+        protected override Task<ISymbol> GenerateMemberAsync(ISymbol newOverriddenMember, INamedTypeSymbol newContainingType, Document newDocument, CompletionItem completionItem, CancellationToken cancellationToken)
         {
             // Figure out what to insert, and do it. Throw if we've somehow managed to get this far and can't.
             var syntaxFactory = newDocument.GetLanguageService<SyntaxGenerator>();
-            var codeGenService = newDocument.GetLanguageService<ICodeGenerationService>();
 
             var itemModifiers = MemberInsertionCompletionItem.GetModifiers(completionItem);
             var modifiers = itemModifiers.WithIsUnsafe(itemModifiers.IsUnsafe | newOverriddenMember.IsUnsafe());
-            if (newOverriddenMember.Kind == SymbolKind.Method)
-            {
-                return await syntaxFactory.OverrideMethodAsync((IMethodSymbol)newOverriddenMember,
-                    modifiers, newContainingType, newDocument, cancellationToken).ConfigureAwait(false);
-            }
-            else if (newOverriddenMember.Kind == SymbolKind.Property)
-            {
-                return await syntaxFactory.OverridePropertyAsync((IPropertySymbol)newOverriddenMember,
-                    modifiers, newContainingType, newDocument, cancellationToken).ConfigureAwait(false);
-            }
-            else
-            {
-                return syntaxFactory.OverrideEvent((IEventSymbol)newOverriddenMember,
-                    modifiers, newContainingType);
-            }
+
+            return syntaxFactory.OverrideAsync(
+                newOverriddenMember, newContainingType, newDocument, modifiers, cancellationToken);
         }
 
         public abstract bool TryDetermineReturnType(
@@ -67,34 +55,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             CancellationToken cancellationToken,
             out ITypeSymbol returnType,
             out SyntaxToken nextToken);
-
-        public bool IsOverridable(ISymbol member, INamedTypeSymbol containingType)
-        {
-            if (member.IsAbstract || member.IsVirtual || member.IsOverride)
-            {
-                if (member.IsSealed)
-                {
-                    return false;
-                }
-
-                if (!member.IsAccessibleWithin(containingType))
-                {
-                    return false;
-                }
-
-                switch (member.Kind)
-                {
-                    case SymbolKind.Event:
-                        return true;
-                    case SymbolKind.Method:
-                        return ((IMethodSymbol)member).MethodKind == MethodKind.Ordinary;
-                    case SymbolKind.Property:
-                        return !((IPropertySymbol)member).IsWithEvents;
-                }
-            }
-
-            return false;
-        }
 
         protected bool IsOnStartLine(int position, SourceText text, int startLine)
         {
@@ -112,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 case SymbolKind.Property:
                     return ((IPropertySymbol)symbol).Type;
                 default:
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.UnexpectedValue(symbol.Kind);
             }
         }
     }

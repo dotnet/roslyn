@@ -34,13 +34,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// in the future, if we decide to change the UI to depict the true mapping between fixes and diagnostics
         /// or if we decide to use some other heuristic to determine the <see cref="PrimaryDiagnostic"/>.
         /// </remarks>
-        internal Diagnostic PrimaryDiagnostic
-        {
-            get
-            {
-                return Diagnostics[0];
-            }
-        }
+        internal Diagnostic PrimaryDiagnostic => Diagnostics[0];
 
         internal CodeFix(Project project, CodeAction action, Diagnostic diagnostic)
         {
