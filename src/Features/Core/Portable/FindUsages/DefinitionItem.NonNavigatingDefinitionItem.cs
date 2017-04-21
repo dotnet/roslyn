@@ -19,10 +19,11 @@ namespace Microsoft.CodeAnalysis.FindUsages
                 ImmutableArray<string> tags,
                 ImmutableArray<TaggedText> displayParts,
                 ImmutableArray<TaggedText> originationParts,
+                ImmutableDictionary<string, string> properties,
                 bool displayIfNoReferences)
                 : base(tags, displayParts, ImmutableArray<TaggedText>.Empty,
-                      originationParts, ImmutableArray<DocumentSpan>.Empty,
-                      displayIfNoReferences)
+                       originationParts, ImmutableArray<DocumentSpan>.Empty,
+                       properties, displayIfNoReferences)
             {
             }
 
