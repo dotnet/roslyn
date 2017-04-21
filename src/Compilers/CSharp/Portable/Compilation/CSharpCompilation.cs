@@ -1474,7 +1474,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (candidate.IsAsync)
                     {
                         // PROTOTYPE(async-main): Get the diagnostic to point to a smaller syntax piece.
-                        CheckFeatureAvailability(candidate.DeclaringSyntaxReferences.Single().GetSyntax(), MessageID.IDS_FeatureAsyncMain, diagnostics);
+                        // PROTOTYPE(async-main): Switch diagnostics around if the type is not Task or Task<T>
+                        CheckFeatureAvailability(candidate.ExtractReturnTypeSyntax(), MessageID.IDS_FeatureAsyncMain, diagnostics);
                     }
 
                     viableEntryPoints.Add(candidate);

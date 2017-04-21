@@ -304,6 +304,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static CSharpSyntaxNode ExtractReturnTypeSyntax(this MethodSymbol method)
         {
+            method = method?.PartialImplementationPart ?? method;
+            if ((object)method == null)
+            {
+                return (CSharpSyntaxNode)CSharpSyntaxTree.Dummy.GetRoot();
+            }
+
             foreach (var reference in method.DeclaringSyntaxReferences)
             {
                 var methodDeclaration = reference.GetSyntax() as MethodDeclarationSyntax;
@@ -312,7 +318,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return methodDeclaration.ReturnType;
                 }
             }
-            return CSharpSyntaxTree.Dummy.GetRoot() as CSharpSyntaxNode;
+
+            return (CSharpSyntaxNode)CSharpSyntaxTree.Dummy.GetRoot();
         }
     }
 }

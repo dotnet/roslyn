@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert((object)containingType != null);
 
             _containingType = containingType;
-            _returnType = returnType;
+            //_returnType = returnType;
         }
 
         internal override bool GenerateDebugInfo
@@ -353,6 +353,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Debug.Assert(userMain.ParameterCount == 0 || userMain.ParameterCount == 1);
 
                 _userMainReturnTypeSyntax = userMain.ExtractReturnTypeSyntax();
+                // PROTOTYPE(async-main): we might need to adjust the containing member of the binder to be the Main method.
                 var binder = compilation.GetBinder(_userMainReturnTypeSyntax);
                 _parameters = SynthesizedParameterSymbol.DeriveParameters(userMain, this);
 
@@ -373,15 +374,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         resultKind: LookupResultKind.Viable,
                         type: userMain.ReturnType)
                 { WasCompilerGenerated = true };
-
+    
+                // PROTOTYPE(async-main): lower the tree.
                 var success = binder.GetAwaitableExpressionInfo(userMainInvocation, out _, out _, out _, out _getAwaiterGetResultCall, _userMainReturnTypeSyntax, diagnosticBag);
                 _returnType = _getAwaiterGetResultCall.Type;
 
-#if Debug
-                var systemVoid = compilation.GetSpecialType(SpecialType.System_Void);
-                var systemInt = compilation.GetSpecialType(SpecialType.System_Int32);
-                Debug.Assert(ReturnType == systemVoid || ReturnType -= systemInt));
-#endif
+                Debug.Assert(
+                    ReturnType.SpecialType == SpecialType.System_Void ||
+                    ReturnType.SpecialType == SpecialType.System_Int32);
             }
 
             public override string Name => MainName;

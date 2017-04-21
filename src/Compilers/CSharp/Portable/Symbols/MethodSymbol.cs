@@ -608,16 +608,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
 
-            var dumbInstance = new BoundLiteral(CSharpSyntaxTree.Dummy.GetRoot(), ConstantValue.Null, ReturnType);
             var syntax = this.ExtractReturnTypeSyntax();
+            var dumbInstance = new BoundLiteral(syntax, ConstantValue.Null, ReturnType);
+            // PROTOTYPE(async-main): We might need to adjust the containing member of the binder to be the Main method
             var binder = compilation.GetBinder(syntax);
             BoundExpression result;
             var success = binder.GetAwaitableExpressionInfo(dumbInstance, out _, out _, out _, out result, syntax, diagnostics);
 
-            return
-                success &&
-                (result.Type.SpecialType == SpecialType.System_Void ||
-                 result.Type.SpecialType == SpecialType.System_Int32);
+            return success && 
+                (result.Type.SpecialType == SpecialType.System_Void || result.Type.SpecialType == SpecialType.System_Int32);
         }
 
         /// <summary>
