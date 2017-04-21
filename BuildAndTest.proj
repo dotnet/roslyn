@@ -17,7 +17,7 @@
     <RunTestArgs>$(RunTestArgs) -nocache</RunTestArgs>
     <IncludePattern Condition="'$(IncludePattern)' == '' AND '$(TestVsi)' != 'true'">*.UnitTests.dll</IncludePattern>
     <IncludePattern Condition="'$(IncludePattern)' == '' AND '$(TestVsi)' == 'true'">*.IntegrationTests.dll</IncludePattern>
-    <OutputDirectory>Binaries\$(Configuration)</OutputDirectory>
+    <OutputDirectory>$(MSBuildThisFileDirectory)Binaries\$(Configuration)\</OutputDirectory>
     <RunTestArgs>$(RunTestArgs) -log:&quot;$(OutputDirectory)\runtests.log&quot;</RunTestArgs>
     <CoreClrTestDirectory>$(OutputDirectory)\CoreClrTest</CoreClrTestDirectory>
     <MSBuildCommonProperties>
@@ -25,6 +25,8 @@
       TreatWarningsAsErrors=true;
       DeployExtension=false;
     </MSBuildCommonProperties>
+    <TestDesktop Condition="'$(TestDesktop)' == ''">true</TestDesktop>
+    <TestCoreClr Condition="'$(TestCoreClr)' == ''">true</TestCoreClr>
   </PropertyGroup>
 
   <Target Name="Build">
@@ -63,7 +65,7 @@
              Targets="Rebuild" />
   </Target>
 
-  <Target 
+  <Target
     Name="Test" 
     DependsOnTargets="DeployRoslynVsix"
     Condition="'$(TestDesktop)' == 'true' or '$(TestCoreClr)' == 'true' or '$(TestVsi)' == 'true'">
@@ -79,27 +81,40 @@
           SkipUnchangedFiles="true"
           UseHardlinksIfPossible="true" />
 
-    <MakeDir Directories="$(CoreClrTestDirectory)\xUnitResults" />
+    <MakeDir Directories="$(CoreClrTestDirectory)/xUnitResults" />
+
+    <!-- Publish binaries for CoreClr test -->
+    <MSBuild BuildInParallel="true"
+             Projects="src/Test/DeployCoreClrTestRuntime/DeployCoreClrTestRuntime.csproj"
+             Properties="RuntimeIdentifier=win7-x64;PublishDir=$(CoreClrTestDirectory)"
+             Targets="Publish" />
 
     <ItemGroup>
 
       <!-- MakeConst unit tests tracked by https://github.com/dotnet/roslyn/issues/5918 -->
       <TestAssemblies Condition="'$(Test64)' != 'true'"
-                      Include="$(OutputDirectory)\UnitTests*\**\$(IncludePattern);" />
+                      Include="$(OutputDirectory)UnitTests*\**\$(IncludePattern);" />
 
       <TestAssemblies Condition="'$(Test64)' == 'true'"
-                      Include="$(OutputDirectory)\UnitTests*\**\$(IncludePattern);"
-                      Exclude="$(OutputDirectory)\UnitTests*\**\Roslyn.Interactive*" />
+                      Include="$(OutputDirectory)UnitTests*\**\$(IncludePattern);"
+                      Exclude="$(OutputDirectory)UnitTests*\**\Roslyn.Interactive*" />
 
       <CoreTestAssemblies Include="$(CoreClrTestDirectory)\$(IncludePattern)" />
     </ItemGroup>
 
     <PropertyGroup>
-      <CoreRunExe>$(CoreClrTestDirectory)\CoreRun.exe</CoreRunExe>
-      <CoreRunArgs>$(CoreClrTestDirectory)\xunit.console.netcore.exe @(CoreTestAssemblies, ' ') -parallel all -xml $(CoreClrTestDirectory)\xUnitResults\TestResults.xml</CoreRunArgs>
-      <RunTestsExe>Binaries\$(Configuration)\Exes\RunTests\RunTests.exe</RunTestsExe>
-      <RunTestsArgs>$(NuGetPackageRoot)\xunit.runner.console\$(xunitrunnerconsoleVersion)\tools $(RunTestArgs) @(TestAssemblies, ' ')</RunTestsArgs>
+      <CoreRunExe>$(CoreClrTestDirectory)/CoreRun.exe</CoreRunExe>
+      <CoreRunArgs>$(CoreClrTestDirectory)/xunit.console.netcore.exe @(CoreTestAssemblies, ' ') -parallel all -xml $(CoreClrTestDirectory)/xUnitResults/TestResults.xml</CoreRunArgs>
+      <RunTestsExe>Binaries/$(Configuration)/Exes/RunTests/RunTests.exe</RunTestsExe>
+      <RunTestsArgs>$(NuGetPackageRoot)/xunit.runner.console/$(xunitrunnerconsoleVersion)/tools $(RunTestArgs) @(TestAssemblies, ' ')</RunTestsArgs>
+      <VsixExpInstallerExe>$(NuGetPackageRoot)/roslyntools.microsoft.vsixexpinstaller/$(RoslynToolsMicrosoftVSIXExpInstallerVersion)/tools/VsixExpInstaller.exe</VsixExpInstallerExe>
+      <VsixExpInstallerArgs>-rootSuffix:RoslynDev -vsInstallDir:"$([System.IO.Path]::GetFullPath('$(MSBuildBinPath)/../../..'))"</VsixExpInstallerArgs>
     </PropertyGroup>
+
+    <!-- Publish binaries for CoreClr test -->
+    <MSBuild Projects="src/Test/DeployCoreClrTestRuntime/DeployCoreClrTestRuntime.csproj"
+             Properties="RuntimeIdentifier=win7-x64"
+             Targets="Publish" />
 
     <!-- Run CoreClr tests -->
     <Exec Condition="'$(TestCoreClr)' == 'true'" Command="&quot;$(CoreRunExe)&quot; $(CoreRunArgs)" />
