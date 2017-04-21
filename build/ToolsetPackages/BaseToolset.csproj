@@ -15,7 +15,7 @@
     <PackageReference Include="Microsoft.Net.Compilers" Version="$(MicrosoftNetCompilersVersion)" />
     <PackageReference Include="Microsoft.Net.RoslynDiagnostics" Version="$(MicrosoftNetRoslynDiagnosticsVersion)" />
     <PackageReference Include="FakeSign" Version="$(FakeSignVersion)" />
-    <PackageReference Include="xunit" Vresion="$(xunitVersion)" />
+    <PackageReference Include="xunit" Version="$(xunitVersion)" />
     <PackageReference Include="xunit.runner.console" Version="$(xunitrunnerconsoleVersion)" />
     <PackageReference Include="xunit.runner.visualstudio" Version="$(xunitrunnervisualstudioVersion)" />
     <PackageReference Include="Roslyn.Build.Util" Version="$(RoslynBuildUtilVersion)" />

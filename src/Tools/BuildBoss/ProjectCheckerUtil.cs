@@ -52,6 +52,7 @@ namespace BuildBoss
                 
                 allGood &= CheckRoslynProjectType(textWriter);
                 allGood &= CheckProjectReferences(textWriter);
+                allGood &= CheckPackageReferences(textWriter);
                 allGood &= CheckDeploymentSettings(textWriter);
             }
 
@@ -143,6 +144,25 @@ namespace BuildBoss
             allGood &= CheckProjectReferencesComplete(textWriter, declaredList);
             allGood &= CheckUnitTestReferenceRestriction(textWriter, declaredList);
             allGood &= CheckTransitiveReferences(textWriter, declaredList);
+
+            return allGood;
+        }
+
+        private bool CheckPackageReferences(TextWriter textWriter)
+        {
+            var allGood = true;
+            foreach (var packageRef in _projectUtil.GetPackageReferences())
+            {
+                var name = packageRef.Name.Replace(".", "");
+                var floatingName = $"$({name}Version)";
+                var fixedName = $"$({name}FixedVersion)";
+                if (packageRef.Version != floatingName && packageRef.Version != fixedName)
+                {
+                    textWriter.WriteLine($"PackageReference {packageRef.Name} has incorrect version {packageRef.Version}");
+                    textWriter.WriteLine($"Allowed values are {floatingName} or {fixedName}");
+                    allGood = false;
+                }
+            }
 
             return allGood;
         }
