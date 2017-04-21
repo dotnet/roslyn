@@ -1406,6 +1406,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Unable to read debug information of method &apos;{0}&apos; (token 0x{1}) from assembly &apos;{2}&apos;.
+        /// </summary>
+        internal static string UnableToReadDebugInfo {
+            get {
+                return ResourceManager.GetString("UnableToReadDebugInfo", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to A node in the list is not of the expected type..
         /// </summary>
         internal static string UnexpectedTypeOfNodeInList {

@@ -594,4 +594,7 @@
   <data name="Stream_contains_invalid_data" xml:space="preserve">
     <value>Stream contains invalid data</value>
   </data>
+  <data name="UnableToReadDebugInfo" xml:space="preserve">
+    <value>Unable to read debug information of method '{0}' (token 0x{1}) from assembly '{2}'</value>
+  </data>
 </root>

@@ -233,12 +233,17 @@ namespace Microsoft.CodeAnalysis.Emit
                 }
                 catch (InvalidDataException)
                 {
-                    // TODO: localize message & use better error code (https://github.com/dotnet/roslyn/issues/11512): 
+                    string message = string.Format(CodeAnalysisResources.AbsolutePathExpected,
+                        MessageProvider.GetErrorDisplayString(method),
+                        MetadataTokens.GetToken(previousHandle).ToString("X8"),
+                        MessageProvider.GetErrorDisplayString(method.ContainingAssembly));
+
+                    //TODO: use better error code (https://github.com/dotnet/roslyn/issues/11512)
                     diagnostics.Add(MessageProvider.CreateDiagnostic(
                         MessageProvider.ERR_ModuleEmitFailure,
                         method.Locations.First(),
-                        $"Unable to read debug information of method '{MessageProvider.GetErrorDisplayString(method)}' (token 0x{MetadataTokens.GetToken(previousHandle):X8}) " + 
-                        $"from assembly '{MessageProvider.GetErrorDisplayString(method.ContainingAssembly)}'"));
+                        message
+                    ));
 
                     return null;
                 }
