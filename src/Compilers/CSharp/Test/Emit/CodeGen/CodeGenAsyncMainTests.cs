@@ -454,7 +454,10 @@ class A
             compilation.VerifyDiagnostics(
                 // (6,5): error CS8107: Feature 'async main' is not available in C# 7. Please use language version 7.1 or greater.
                 //     async static Task Main(string[] args)
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, @"Task").WithArguments("async main", "7.1").WithLocation(6, 18));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, @"async static Task Main(string[] args)
+    {
+        await Task.Factory.StartNew(() => { });
+    }").WithArguments("async main", "7.1").WithLocation(6, 5));
         }
 
         [Fact]
@@ -520,9 +523,12 @@ class A
 }";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
             compilation.VerifyDiagnostics(
-                // (6,5): error CS8107: Feature 'async main' is not available in C# 7. Please use language version 7.1 or greater.
-                //     async static void Main()
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, @"void").WithArguments("async main", "7.1").WithLocation(6, 18));
+            // (6,5): error CS8107: Feature 'async main' is not available in C# 7. Please use language version 7.1 or greater.
+            //     async static void Main()
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, @"async static void Main()
+    {
+        await Task.Factory.StartNew(() => { });
+    }").WithArguments("async main", "7.1").WithLocation(6, 5));
         }
 
         [Fact]
