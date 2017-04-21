@@ -94,7 +94,16 @@ namespace Microsoft.CodeAnalysis.Remote
         public async Task<Session> TryCreateServiceSessionAsync(string serviceName, Solution solution, object callbackTarget, CancellationToken cancellationToken)
         {
             var snapshot = await GetPinnedScopeAsync(solution, cancellationToken).ConfigureAwait(false);
-            return await TryCreateServiceSessionAsync(serviceName, snapshot, callbackTarget, cancellationToken).ConfigureAwait(false);
+
+            try
+            {
+                return await TryCreateServiceSessionAsync(serviceName, snapshot, callbackTarget, cancellationToken).ConfigureAwait(false);
+            }
+            catch (Exception)
+            {
+                snapshot?.Dispose();
+                throw;
+            }
         }
 
         protected abstract void OnConnected();
@@ -104,6 +113,7 @@ namespace Microsoft.CodeAnalysis.Remote
         [Obsolete]
         protected virtual Task<Session> CreateServiceSessionAsync(string serviceName, PinnedRemotableDataScope snapshot, object callbackTarget, CancellationToken cancellationToken)
         {
+            snapshot?.Dispose();
             return SpecializedTasks.Default<Session>();
         }
 
@@ -212,6 +222,7 @@ namespace Microsoft.CodeAnalysis.Remote
             protected override Task<Session> TryCreateServiceSessionAsync(
                 string serviceName, PinnedRemotableDataScope snapshot, object callbackTarget, CancellationToken cancellationToken)
             {
+                snapshot?.Dispose();
                 return SpecializedTasks.Default<Session>();
             }
 
