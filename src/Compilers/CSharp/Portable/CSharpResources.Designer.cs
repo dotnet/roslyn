@@ -5912,6 +5912,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to &apos;{0}&apos; is a local function and must therefore always have a body..
+        /// </summary>
+        internal static string ERR_LocalFunctionMissingBody {
+            get {
+                return ResourceManager.GetString("ERR_LocalFunctionMissingBody", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to A local or parameter named &apos;{0}&apos; cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter.
         /// </summary>
         internal static string ERR_LocalIllegallyOverrides {

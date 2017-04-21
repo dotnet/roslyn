@@ -5073,4 +5073,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ChangingReferencedAssemblyVersionNotAllowed" xml:space="preserve">
     <value>Changing the version of an assembly reference is not allowed during debugging: '{0}' changed version to {1}</value>
   </data>
+  <data name="ERR_LocalFunctionMissingBody" xml:space="preserve">
+    <value>'{0}' is a local function and must therefore always have a body.</value>
+  </data>
 </root>
