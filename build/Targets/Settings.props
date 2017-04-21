@@ -12,9 +12,6 @@
     <RepoRoot>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\..\'))</RepoRoot>
     <NuGetToolPath>$(RepoRoot)nuget.exe</NuGetToolPath>
     <ToolsetPackagesDir>$(RepoRoot)build\ToolsetPackages\</ToolsetPackagesDir>
-    <ToolsetPackagesSemaphore>$(ToolsetPackagesDir)toolsetpackages.semaphore</ToolsetPackagesSemaphore>
-    <ToolsetCompilerPackageName>Microsoft.Net.Compilers</ToolsetCompilerPackageName>
-    <ToolsetCompilerPackageVersion>2.0.1</ToolsetCompilerPackageVersion>
     <VSIXExpInstallerPackageName>RoslynTools.Microsoft.VSIXExpInstaller</VSIXExpInstallerPackageName>
     <VSIXExpInstallerPackageVersion>0.2.1-beta</VSIXExpInstallerPackageVersion>
     <RoslynDiagnosticsNugetPackageVersion>2.0.0-beta1-61628-06</RoslynDiagnosticsNugetPackageVersion>
@@ -31,13 +28,15 @@
     <BaseIntermediateOutputPath>$(BaseIntermediateOutputPath)$(MSBuildProjectName)\</BaseIntermediateOutputPath>
     <IntermediateOutputPath>$(BaseIntermediateOutputPath)$(Configuration)</IntermediateOutputPath>
 
-    <NetStandard20RefPath>$(NuGetPackageRoot)/NETStandard.Library/$(NETStandardLibraryFixedVersion)/build/netstandard2.0/ref/</NetStandard20RefPath>
-    <MicrosoftCSharpRefPath>$(NuGetPackageRoot)/Microsoft.CSharp/$(MicrosoftCSharpVersion)/ref/netstandard1.0/</MicrosoftCSharpRefPath>
+    <NetStandard20RefPath>$(NuGetPackageRoot)/netstandard.library/$(NETStandardLibraryFixedVersion)/build/netstandard2.0/ref/</NetStandard20RefPath>
+    <MicrosoftCSharpRefPath>$(NuGetPackageRoot)/microsoft.csharp/$(MicrosoftCSharpVersion)/ref/netstandard1.0/</MicrosoftCSharpRefPath>
 
-    <!-- Workaround until we move to Microsoft.Net.Compilers.nupkg with this fix: https://github.com/dotnet/roslyn/commit/05c12ebfcdd08a02dbceded5327a8da7a7df23be:
-         Use the Microsoft.Net.Compilers.props file with the fix checked into the repo instead of the one that comes along with the nuget package:
-         $(NuGetPackageRoot)\Microsoft.Net.Compilers\$(ToolsetCompilerPackageVersion)\build\Microsoft.Net.Compilers.props -->
-    <ToolsetCompilerPropsFilePath>$(MSBuildThisFileDirectory)Microsoft.Net.Compilers.props</ToolsetCompilerPropsFilePath>
+    <ToolsetPackagesSemaphore>$(ToolsetPackagesDir)toolsetpackages.semaphore</ToolsetPackagesSemaphore>
+    <ToolsetCompilerPackageName Condition="'$(OS)' == 'Windows_NT'">Microsoft.Net.Compilers</ToolsetCompilerPackageName>
+    <ToolsetCompilerPackageName Condition="'$(OS)' != 'Windows_NT'">Microsoft.NETCore.Compilers</ToolsetCompilerPackageName>
+    <ToolsetCompilerPackageVersion Condition="'$(OS)' == 'Windows_NT'">$(MicrosoftNetCompilersVersion)</ToolsetCompilerPackageVersion>
+    <ToolsetCompilerPackageVersion Condition="'$(OS)' != 'Windows_NT'">$(MicrosoftNETCoreCompilersVersion)</ToolsetCompilerPackageVersion>
+    <ToolsetCompilerPropsFilePath>$(NuGetPackageRoot)/$(ToolsetCompilerPackageName.ToLower())/$(ToolsetCompilerPackageVersion)/build/$(ToolsetCompilerPackageName).props</ToolsetCompilerPropsFilePath>
     <TargetFrameworkRootPath>$(NuGetPackageRoot)\RoslynTools.ReferenceAssemblies\$(RoslynToolsReferenceAssembliesVersion)\tools\Framework</TargetFrameworkRootPath>
 
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">15.0</VisualStudioVersion>
@@ -74,8 +73,8 @@
          https://github.com/dotnet/sdk/issues/1083#issuecomment-292013375 
 
          This needs to be conditional to support a fresh restore -->
-    <!-- <RoslynNetSdkRootPath>$(NuGetPackageRoot)\Microsoft.Net.Sdk\$(MicrosoftNetSdkVersion)\Sdk\</RoslynNetSdkRootPath>  -->
-    <RoslynNetSdkRootPath>$(MSBuildSDKsPath)\Microsoft.Net.Sdk\Sdk\</RoslynNetSdkRootPath> 
+    <!-- <RoslynNetSdkRootPath>$(NuGetPackageRoot)\Microsoft.NET.Sdk\$(MicrosoftNetSdkVersion)\Sdk\</RoslynNetSdkRootPath>  -->
+    <RoslynNetSdkRootPath>$(MSBuildSDKsPath)\Microsoft.NET.Sdk\Sdk\</RoslynNetSdkRootPath> 
     <RestoreProjectStyle>PackageReference</RestoreProjectStyle>
   </PropertyGroup>
 
@@ -224,16 +223,6 @@
              AssemblyFile="$(BootstrapBuildPath)\Microsoft.Build.Tasks.CodeAnalysis.dll"
              Condition="'$(BootstrapBuildPath)' != ''" />
 
-  <!--
-    Roslyn uses the WriteCodeFragment task to output generated assembly attributes.  In MSBuild 14.0 update 1 this task
-    produces non-deterministic output.  This is fixed in update 2 but until that is released we use a hand patched
-    version of the Task that is deterministic.
-
-    MSBuild bug: https://github.com/Microsoft/msbuild/issues/408
-    Bug tracking removing this: https://github.com/dotnet/roslyn/issues/8421
-  -->
-  <UsingTask TaskName="Roslyn.MSBuild.Util.WriteCodeFragmentEx" AssemblyFile="$(RoslynBuildUtilFilePath)" />
-
   <!-- This file is imported by all projects at the beginning of the project files -->
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props"
           Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props') AND '$(RoslynSdkProject)' != 'true'" />
@@ -244,13 +233,9 @@
 
   <ImportGroup Label="WindowsImports" Condition="'$(OS)' == 'Windows_NT'">
     <Import Project="$(NuGetPackageRoot)\Microsoft.VSSDK.BuildTools\$(VisualStudioBuildToolsVersion)\build\Microsoft.VsSDK.BuildTools.props" />
-    <Import Project="$(ToolsetCompilerPropsFilePath)" Condition="Exists('$(ToolsetCompilerPropsFilePath)') AND '$(BootstrapBuildPath)' == ''" />
   </ImportGroup>
 
-  <ImportGroup Label="WindowsImports" Condition="'$(OS)' != 'Windows_NT'">
-    <!-- NuGet props aren't imported by default on *nix so we do that here -->
-    <Import Project="$(MSBuildBinPath)\Microsoft.NuGet.props" Condition="'$(OS)' != 'Windows_NT'" />
-  </ImportGroup>
+  <Import Project="$(ToolsetCompilerPropsFilePath)" Condition="Exists('$(ToolsetCompilerPropsFilePath)') AND '$(BootstrapBuildPath)' == ''" />
 
   <!-- The Sdk props will set the rootnamespace to the assembly name when the property
        is empty.  Need to override this after  -->
