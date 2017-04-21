@@ -605,9 +605,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return false;
             }
 
+            if (!(ReturnType is NamedTypeSymbol namedType))
+            {
+                return false;
+            }
+
             // Early bail so we only even check things that are System.Threading.Tasks.Task(<T>)
-            if (ReturnType is NamedTypeSymbol namedType &&
-                !(namedType.ConstructedFrom == compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task) ||
+            if (!(namedType.ConstructedFrom == compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task) ||
                   namedType.ConstructedFrom == compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T)))
             {
                 return false;
