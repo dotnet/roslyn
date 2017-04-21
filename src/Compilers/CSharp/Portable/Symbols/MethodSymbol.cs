@@ -599,6 +599,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal bool ReturnsAwaitableToVoidOrInt(CSharpCompilation compilation, DiagnosticBag diagnostics)
         {
+            // Common case optimization
+            if (ReturnType.SpecialType == SpecialType.System_Void || ReturnType.SpecialType == SpecialType.System_Int32)
+            {
+                return false;
+            }
+
             // Early bail so we only even check things that are System.Threading.Tasks.Task(<T>)
             if (ReturnType is NamedTypeSymbol namedType &&
                 !(namedType.ConstructedFrom == compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task) ||

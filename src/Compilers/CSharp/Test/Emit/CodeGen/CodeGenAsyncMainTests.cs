@@ -17,7 +17,7 @@ using System;
 
 namespace System.Runtime.CompilerServices {
     public interface INotifyCompletion {
-        public void OnCompleted(Action action);
+        void OnCompleted(Action action);
     }
 }
 
@@ -41,9 +41,6 @@ static class Program {
 }";
             var sourceCompilation = CreateCompilationWithMscorlib(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
             sourceCompilation.VerifyEmitDiagnostics(
-                // (7,21): error CS0106: The modifier 'public' is not valid for this item
-                //         public void OnCompleted(Action action);
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "OnCompleted").WithArguments("public"),
                 // (25,12): warning CS0436: The type 'Task<T>' in '' conflicts with the imported type 'Task<TResult>' in 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'. Using the type defined in ''.
                 //     static Task<int> Main() {
                 Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Task<int>").WithArguments("", "System.Threading.Tasks.Task<T>", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "System.Threading.Tasks.Task<TResult>"),

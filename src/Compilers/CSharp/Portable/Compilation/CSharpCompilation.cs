@@ -1471,6 +1471,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         continue;
                     }
 
+                    // PROTOTYPE(async-main): CheckFeatureAvailability should be called on non-async methods 
+                    // that return Task or Task<T>
                     if (candidate.IsAsync)
                     {
                         // PROTOTYPE(async-main): Get the diagnostic to point to a smaller syntax piece.

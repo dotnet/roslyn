@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert((object)containingType != null);
 
             _containingType = containingType;
-            //_returnType = returnType;
+            _returnType = returnType;
         }
 
         internal override bool GenerateDebugInfo
