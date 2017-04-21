@@ -1685,21 +1685,53 @@ class C
     public extern object P6 { get; } // no error
 }
 ";
-            DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
-                new ErrorDescription { Code = (int)ErrorCode.ERR_BadMemberFlag, Line = 3, Column = 23 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_BadMemberFlag, Line = 3, Column = 23 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_BadMemberFlag, Line = 4, Column = 18 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_BadMemberFlag, Line = 4, Column = 30 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_BadMemberFlag, Line = 5, Column = 27 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_BadMemberFlag, Line = 5, Column = 27 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_BadMemberFlag, Line = 6, Column = 21 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_BadMemberFlag, Line = 7, Column = 21 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_BadMemberFlag, Line = 11, Column = 29 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_BadMemberFlag, Line = 12, Column = 30 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_BadMemberFlag, Line = 13, Column = 25 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_BadMemberFlag, Line = 14, Column = 21 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_BadMemberFlag, Line = 15, Column = 64 },
-                new ErrorDescription { Code = (int)ErrorCode.WRN_ExternMethodNoImplementation, Line = 16, Column = 31, IsWarning = true });
+            CreateStandardCompilation(text, parseOptions: TestOptions.Regular7).VerifyDiagnostics(
+                // (3,23): error CS8503: The modifier 'static' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                //     public static int P1 { get; }
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P1").WithArguments("static", "7", "7.1").WithLocation(3, 23),
+                // (3,23): error CS8503: The modifier 'public' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                //     public static int P1 { get; }
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P1").WithArguments("public", "7", "7.1").WithLocation(3, 23),
+                // (3,28): error CS0501: 'I.P1.get' must declare a body because it is not marked abstract, extern, or partial
+                //     public static int P1 { get; }
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "get").WithArguments("I.P1.get").WithLocation(3, 28),
+                // (4,18): error CS8503: The modifier 'abstract' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                //     abstract int P2 { static set; }
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P2").WithArguments("abstract", "7", "7.1").WithLocation(4, 18),
+                // (4,30): error CS0106: The modifier 'static' is not valid for this item
+                //     abstract int P2 { static set; }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "set").WithArguments("static").WithLocation(4, 30),
+                // (5,27): error CS0106: The modifier 'abstract' is not valid for this item
+                //     int P4 { new abstract get; }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "get").WithArguments("abstract").WithLocation(5, 27),
+                // (5,27): error CS0106: The modifier 'new' is not valid for this item
+                //     int P4 { new abstract get; }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "get").WithArguments("new").WithLocation(5, 27),
+                // (6,21): error CS0106: The modifier 'static' is not valid for this item
+                //     int P5 { static set; }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "set").WithArguments("static").WithLocation(6, 21),
+                // (7,21): error CS0106: The modifier 'sealed' is not valid for this item
+                //     int P6 { sealed get; }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "get").WithArguments("sealed").WithLocation(7, 21),
+                // (11,29): error CS0106: The modifier 'virtual' is not valid for this item
+                //     public int P1 { virtual get { return 0; } }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "get").WithArguments("virtual").WithLocation(11, 29),
+                // (12,30): error CS0106: The modifier 'static' is not valid for this item
+                //     internal int P2 { static set { } }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "set").WithArguments("static").WithLocation(12, 30),
+                // (13,25): error CS0106: The modifier 'new' is not valid for this item
+                //     static int P3 { new get { return 0; } }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "get").WithArguments("new").WithLocation(13, 25),
+                // (14,21): error CS0106: The modifier 'sealed' is not valid for this item
+                //     int P4 { sealed get { return 0; } }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "get").WithArguments("sealed").WithLocation(14, 21),
+                // (15,64): error CS0106: The modifier 'extern' is not valid for this item
+                //     protected internal object P5 { get { return null; } extern set; }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "set").WithArguments("extern").WithLocation(15, 64),
+                // (16,31): warning CS0626: Method, operator, or accessor 'C.P6.get' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                //     public extern object P6 { get; } // no error
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "get").WithArguments("C.P6.get").WithLocation(16, 31)
+                );
         }
 
         [WorkItem(539584, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539584")]
@@ -1799,6 +1831,39 @@ struct Foo
                 // (15,35): error CS0106: The modifier 'sealed' is not valid for this item
                 //      public sealed override string ToString() => null;
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "ToString").WithArguments("sealed").WithLocation(15, 35));
+        }
+
+        [Fact]
+        public void CS0106ERR_BadMemberFlag06()
+        {
+            var text =
+@"interface I
+{
+    int P1 { get; }
+    int P2 { get; set; }
+}
+class C : I
+{
+    private int I.P1 
+    { 
+        get { return 0; } 
+    }
+
+    int I.P2 
+    { 
+        private get { return 0; } 
+        set {}
+    }
+}
+";
+            CreateStandardCompilation(text).VerifyDiagnostics(
+                // (8,19): error CS0106: The modifier 'private' is not valid for this item
+                //     private int I.P1 
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P1").WithArguments("private").WithLocation(8, 19),
+                // (15,17): error CS0106: The modifier 'private' is not valid for this item
+                //         private get { return 0; } 
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "get").WithArguments("private").WithLocation(15, 17)
+                );
         }
 
         [Fact]
@@ -3034,12 +3099,15 @@ class MyClass2 : MyClass
                 // (3,17): error CS8503: The modifier 'sealed' is not valid for this item in C# 7. Please use language version 7.1 or greater.
                 //     sealed void M();
                 Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "M").WithArguments("sealed", "7", "7.1").WithLocation(3, 17),
-                // (4,19): error CS0106: The modifier 'sealed' is not valid for this item
+                // (4,19): error CS8503: The modifier 'sealed' is not valid for this item in C# 7. Please use language version 7.1 or greater.
                 //     sealed object P { get; }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P").WithArguments("sealed").WithLocation(4, 19),
-                // (3,17): error CS0238: 'I.M()' cannot be sealed because it is not an override
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P").WithArguments("sealed", "7", "7.1").WithLocation(4, 19),
+                // (4,23): error CS0501: 'I.P.get' must declare a body because it is not marked abstract, extern, or partial
+                //     sealed object P { get; }
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "get").WithArguments("I.P.get").WithLocation(4, 23),
+                // (3,17): error CS0501: 'I.M()' must declare a body because it is not marked abstract, extern, or partial
                 //     sealed void M();
-                Diagnostic(ErrorCode.ERR_SealedNonOverride, "M").WithArguments("I.M()").WithLocation(3, 17)
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "M").WithArguments("I.M()").WithLocation(3, 17)
                 );
         }
 
@@ -3913,10 +3981,18 @@ namespace N
     int Q { private get; set; } // CS0275
     object R { get; internal set; } // CS0275
 }
-")
+", parseOptions: TestOptions.Regular7)
                 .VerifyDiagnostics(
-                    Diagnostic(ErrorCode.ERR_PropertyAccessModInInterface, "get").WithArguments("I.Q.get"),
-                    Diagnostic(ErrorCode.ERR_PropertyAccessModInInterface, "set").WithArguments("I.R.set"));
+                // (4,21): error CS8503: The modifier 'private' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                //     int Q { private get; set; } // CS0275
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "get").WithArguments("private", "7", "7.1").WithLocation(4, 21),
+                // (4,21): error CS0442: 'I.Q.get': abstract properties cannot have private accessors
+                //     int Q { private get; set; } // CS0275
+                Diagnostic(ErrorCode.ERR_PrivateAbstractAccessor, "get").WithArguments("I.Q.get").WithLocation(4, 21),
+                // (5,30): error CS8503: The modifier 'internal' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                //     object R { get; internal set; } // CS0275
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "set").WithArguments("internal", "7", "7.1").WithLocation(5, 30)
+                );
         }
 
         [Fact]
@@ -3929,12 +4005,18 @@ namespace N
     int this[char x] { private get; set; } // CS0275
     object this[string x] { get; internal set; } // CS0275
 }
-")
+", parseOptions: TestOptions.Regular7)
                 .VerifyDiagnostics(
-                    // (4,32): error CS0275: 'I.this[char].get': accessibility modifiers may not be used on accessors in an interface
-                    Diagnostic(ErrorCode.ERR_PropertyAccessModInInterface, "get").WithArguments("I.this[char].get"),
-                    // (5,43): error CS0275: 'I.this[string].set': accessibility modifiers may not be used on accessors in an interface
-                    Diagnostic(ErrorCode.ERR_PropertyAccessModInInterface, "set").WithArguments("I.this[string].set"));
+                // (4,32): error CS8503: The modifier 'private' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                //     int this[char x] { private get; set; } // CS0275
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "get").WithArguments("private", "7", "7.1").WithLocation(4, 32),
+                // (4,32): error CS0442: 'I.this[char].get': abstract properties cannot have private accessors
+                //     int this[char x] { private get; set; } // CS0275
+                Diagnostic(ErrorCode.ERR_PrivateAbstractAccessor, "get").WithArguments("I.this[char].get").WithLocation(4, 32),
+                // (5,43): error CS8503: The modifier 'internal' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                //     object this[string x] { get; internal set; } // CS0275
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "set").WithArguments("internal", "7", "7.1").WithLocation(5, 43)
+                );
         }
 
         [WorkItem(538620, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538620")]

@@ -261,8 +261,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else
             {
-                _getMethod = CreateAccessorSymbol(getSyntax, explicitlyImplementedProperty, aliasQualifierOpt, isAutoProperty, diagnostics);
-                _setMethod = CreateAccessorSymbol(setSyntax, explicitlyImplementedProperty, aliasQualifierOpt, isAutoProperty, diagnostics);
+                _getMethod = CreateAccessorSymbol(getSyntax, explicitlyImplementedProperty, aliasQualifierOpt, isAutoProperty, isExplicitInterfaceImplementation, diagnostics);
+                _setMethod = CreateAccessorSymbol(setSyntax, explicitlyImplementedProperty, aliasQualifierOpt, isAutoProperty, isExplicitInterfaceImplementation, diagnostics);
 
                 if ((getSyntax == null) || (setSyntax == null))
                 {
@@ -747,23 +747,41 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // Check that the set of modifiers is allowed
             var allowedModifiers = DeclarationModifiers.Unsafe;
+            var defaultInterfaceImplementationModifiers = DeclarationModifiers.None;
+
             if (!isExplicitInterfaceImplementation)
             {
-                allowedModifiers |= DeclarationModifiers.New;
+                allowedModifiers |= DeclarationModifiers.New |
+                                    DeclarationModifiers.Sealed |
+                                    DeclarationModifiers.Abstract |
+                                    DeclarationModifiers.Virtual;
+
+                if (!isIndexer)
+                {
+                    allowedModifiers |= DeclarationModifiers.Static;
+                }
 
                 if (!isInterface)
                 {
                     allowedModifiers |=
                         DeclarationModifiers.AccessibilityMask |
-                        DeclarationModifiers.Sealed |
-                        DeclarationModifiers.Abstract |
-                        DeclarationModifiers.Virtual |
                         DeclarationModifiers.Override;
+                }
+                else
+                {
+                    const DeclarationModifiers allowedAccess = (DeclarationModifiers.AccessibilityMask & ~(DeclarationModifiers.Protected | DeclarationModifiers.ProtectedInternal));
 
-                    if (!isIndexer)
-                    {
-                        allowedModifiers |= DeclarationModifiers.Static;
-                    }
+                    // This is needed to make sure we can detect 'public' modifier specified explicitly and
+                    // check it agains language version below.
+                    defaultAccess = DeclarationModifiers.None;
+
+                    allowedModifiers |= allowedAccess | DeclarationModifiers.Extern;
+                    defaultInterfaceImplementationModifiers |= DeclarationModifiers.Sealed |
+                                                               DeclarationModifiers.Abstract |
+                                                               (isIndexer ? 0 : DeclarationModifiers.Static) |
+                                                               DeclarationModifiers.Virtual |
+                                                               DeclarationModifiers.Extern |
+                                                               allowedAccess;
                 }
             }
 
@@ -777,12 +795,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             this.CheckUnsafeModifier(mods, diagnostics);
 
-            // Let's overwrite modifiers for interface methods with what they are supposed to be. 
+            ModifierUtils.ReportDefaultInterfaceImplementationModifiers(accessorsHaveImplementation, mods,
+                                                                        defaultInterfaceImplementationModifiers,
+                                                                        location, diagnostics);
+
+            // Let's overwrite modifiers for interface properties with what they are supposed to be. 
             // Proper errors must have been reported by now.
             if (isInterface)
             {
-                mods = (mods & ~DeclarationModifiers.AccessibilityMask) | DeclarationModifiers.Public | 
-                    (accessorsHaveImplementation ? DeclarationModifiers.Virtual : DeclarationModifiers.Abstract);
+                mods = ModifierUtils.AdjustModifiersForAnInterfaceMember(mods, accessorsHaveImplementation);
             }
 
             if (isIndexer)
@@ -883,14 +904,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         // Create AccessorSymbol for AccessorDeclarationSyntax
         private SourcePropertyAccessorSymbol CreateAccessorSymbol(AccessorDeclarationSyntax syntaxOpt,
-            PropertySymbol explicitlyImplementedPropertyOpt, string aliasQualifierOpt, bool isAutoPropertyAccessor, DiagnosticBag diagnostics)
+            PropertySymbol explicitlyImplementedPropertyOpt, string aliasQualifierOpt, bool isAutoPropertyAccessor, bool isExplicitInterfaceImplementation, DiagnosticBag diagnostics)
         {
             if (syntaxOpt == null)
             {
                 return null;
             }
             return SourcePropertyAccessorSymbol.CreateAccessorSymbol(_containingType, this, _modifiers, _sourceName, syntaxOpt,
-                explicitlyImplementedPropertyOpt, aliasQualifierOpt, isAutoPropertyAccessor, diagnostics);
+                explicitlyImplementedPropertyOpt, aliasQualifierOpt, isAutoPropertyAccessor, isExplicitInterfaceImplementation, diagnostics);
         }
 
         private void CheckAccessibilityMoreRestrictive(SourcePropertyAccessorSymbol accessor, DiagnosticBag diagnostics)

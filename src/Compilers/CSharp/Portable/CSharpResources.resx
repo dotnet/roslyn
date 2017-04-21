@@ -1071,9 +1071,6 @@
   <data name="ERR_DuplicatePropertyAccessMods" xml:space="preserve">
     <value>Cannot specify accessibility modifiers for both accessors of the property or indexer '{0}'</value>
   </data>
-  <data name="ERR_PropertyAccessModInInterface" xml:space="preserve">
-    <value>'{0}': accessibility modifiers may not be used on accessors in an interface</value>
-  </data>
   <data name="ERR_AccessModMissingAccessor" xml:space="preserve">
     <value>'{0}': accessibility modifiers on accessors may only be used if the property or indexer has both a get and a set accessor</value>
   </data>

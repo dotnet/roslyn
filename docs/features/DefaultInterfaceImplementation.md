@@ -33,5 +33,11 @@ class Test1 : I1
 
 - Using **public**, **internal**, **private**, **static**, **virtual**, **sealed**, **abstract**, **extern** and **async** modifiers with interface methods.
 
+- Using **public**, **internal**, **private**, **static**, **virtual**, **sealed**, **abstract** and **extern** modifiers with interface properties.
+
+- Using **public**, **internal**, **private**, **virtual**, **sealed**, **abstract** and **extern** modifiers with interface indexers.
+
+- Using **internal** and **private** modifiers with interface property/indexer accessors.
+
 
 **Open issues and work items** are tracked in https://github.com/dotnet/roslyn/issues/17952.
