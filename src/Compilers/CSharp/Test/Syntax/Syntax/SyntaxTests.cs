@@ -169,24 +169,24 @@ void foo()
         public void ExtractAnonymousTypeMemberName(string source, string expected)
         {
             var expr = SyntaxFactory.ParseExpression(source, options: TestOptions.Regular);
-            var actual = SyntaxFacts.TryGetInferredMemberName(expr).ValueText;
+            var actual = SyntaxFacts.TryGetInferredMemberName(expr);
             Assert.Equal(expected, actual);
         }
 
         [Theory]
-        [InlineData("Item0", false, -1)]
-        [InlineData("Item1", true, 0)]
-        [InlineData("Item2", true, 1)]
-        [InlineData("Item10", true, 9)]
-        [InlineData("Rest", true, -1)]
-        [InlineData("ToString", true, -1)]
-        [InlineData("GetHashCode", true, -1)]
-        [InlineData("item1", false, -1)]
-        [InlineData("item10", false, -1)]
-        [InlineData("Alice", false, -1)]
-        public void GetTupleElementNameInfo(string elementName, bool isReserved, int index)
+        [InlineData("Item0", false)]
+        [InlineData("Item1", true)]
+        [InlineData("Item2", true)]
+        [InlineData("Item10", true)]
+        [InlineData("Rest", true)]
+        [InlineData("ToString", true)]
+        [InlineData("GetHashCode", true)]
+        [InlineData("item1", false)]
+        [InlineData("item10", false)]
+        [InlineData("Alice", false)]
+        public void IsReservedTupleElementName(string elementName, bool isReserved)
         {
-            Assert.Equal((isReserved, index), SyntaxFacts.GetTupleElementNameInfo(elementName));
+            Assert.Equal(isReserved, SyntaxFacts.IsReservedTupleElementName(elementName));
         }
     }
 }

@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    nameToken = expression.TryGetInferredMemberName();
+                    nameToken = expression.ExtractAnonymousTypeMemberName();
                 }
 
                 hasError = hasError || expression.HasErrors;

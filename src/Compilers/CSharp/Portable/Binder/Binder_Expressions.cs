@@ -956,7 +956,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static string InferTupleElementName(ExpressionSyntax element)
         {
-            SyntaxToken nameToken = element.TryGetInferredMemberName();
+            SyntaxToken nameToken = element.ExtractAnonymousTypeMemberName();
             if (nameToken.Kind() == SyntaxKind.IdentifierToken)
             {
                 string name = nameToken.ValueText;

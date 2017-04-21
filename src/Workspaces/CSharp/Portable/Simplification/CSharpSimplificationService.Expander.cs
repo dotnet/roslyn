@@ -254,30 +254,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
             public override SyntaxNode VisitArgument(ArgumentSyntax node)
             {
                 _cancellationToken.ThrowIfCancellationRequested();
-                string inferredName = null;
-                if (node.Parent.IsKind(SyntaxKind.TupleExpression))
-                {
-                    var tuple = (TupleExpressionSyntax)node.Parent;
-                    if (!IsTupleInDeconstruction(tuple))
-                    {
-                        inferredName = node.Expression.TryGetInferredMemberName().ValueText;
-                        if (!CanMakeNameExplicitInTuple(tuple, inferredName))
-                        {
-                            inferredName = null;
-                        }
-                    }
-                }
 
                 var newArgument = (ArgumentSyntax)base.VisitArgument(node);
 
-                if (inferredName != null && node.NameColon == null)
+                if (node.NameColon == null
+                    && node.Parent is TupleExpressionSyntax tuple
+                    && !IsTupleInDeconstruction(tuple)) // The language currently does not allow explicit element names in deconstruction
                 {
-                    var identifier = SyntaxFactory.Identifier(inferredName);
-                    identifier = TryEscapeIdentifierToken(identifier, node, _semanticModel);
-                    newArgument = newArgument.WithLeadingTrivia(SyntaxTriviaList.Empty)
-                        .WithNameColon(SyntaxFactory.NameColon(SyntaxFactory.IdentifierName(identifier)))
-                        .WithAdditionalAnnotations(Simplifier.Annotation)
-                        .WithLeadingTrivia(node.GetLeadingTrivia());
+                    var inferredName = node.Expression.TryGetInferredMemberName();
+                    if (CanMakeNameExplicitInTuple(tuple, inferredName))
+                    {
+                        var identifier = SyntaxFactory.Identifier(inferredName);
+                        identifier = TryEscapeIdentifierToken(identifier, node, _semanticModel);
+
+                        newArgument = newArgument
+                            .WithoutLeadingTrivia()
+                            .WithNameColon(SyntaxFactory.NameColon(SyntaxFactory.IdentifierName(identifier)))
+                            .WithAdditionalAnnotations(Simplifier.Annotation)
+                            .WithLeadingTrivia(node.GetLeadingTrivia());
+                    }
                 }
 
                 var argumentType = _semanticModel.GetTypeInfo(node.Expression).ConvertedType;
@@ -296,7 +291,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
 
             private static bool CanMakeNameExplicitInTuple(TupleExpressionSyntax tuple, string name)
             {
-                if (name == null || SyntaxFacts.IsReservedTupleElementName(name, out _))
+                if (name == null || SyntaxFacts.IsReservedTupleElementName(name))
                 {
                     return false;
                 }
@@ -311,7 +306,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                     }
                     else
                     {
-                        elementName = argument.Expression.TryGetInferredMemberName().ValueText;
+                        elementName = argument.Expression?.TryGetInferredMemberName();
                     }
 
                     if (elementName?.Equals(name, StringComparison.Ordinal) == true)
@@ -323,7 +318,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                         }
                         found = true;
                     }
-
                 }
 
                 return true;
@@ -331,18 +325,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
 
             public override SyntaxNode VisitAnonymousObjectMemberDeclarator(AnonymousObjectMemberDeclaratorSyntax node)
             {
-                var inferredName = node.Expression.TryGetInferredMemberName().ValueText;
-
                 var newDeclarator = (AnonymousObjectMemberDeclaratorSyntax)base.VisitAnonymousObjectMemberDeclarator(node);
-                if (inferredName != null && node.NameEquals == null)
+                if (node.NameEquals == null)
                 {
-                    var identifier = SyntaxFactory.Identifier(inferredName);
-                    identifier = TryEscapeIdentifierToken(identifier, node, _semanticModel);
-                    newDeclarator = newDeclarator
-                        .WithLeadingTrivia(SyntaxTriviaList.Empty)
-                        .WithNameEquals(SyntaxFactory.NameEquals(SyntaxFactory.IdentifierName(identifier))
-                            .WithLeadingTrivia(node.GetLeadingTrivia()))
-                        .WithAdditionalAnnotations(Simplifier.Annotation);
+                    var inferredName = node.Expression.TryGetInferredMemberName();
+                    if (inferredName != null)
+                    {
+                        var identifier = SyntaxFactory.Identifier(inferredName);
+                        identifier = TryEscapeIdentifierToken(identifier, node, _semanticModel);
+
+                        newDeclarator = newDeclarator
+                            .WithoutLeadingTrivia()
+                            .WithNameEquals(SyntaxFactory.NameEquals(SyntaxFactory.IdentifierName(identifier))
+                                .WithLeadingTrivia(node.GetLeadingTrivia()))
+                            .WithAdditionalAnnotations(Simplifier.Annotation);
+                    }
                 }
 
                 return newDeclarator;

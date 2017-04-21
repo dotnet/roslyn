@@ -191,6 +191,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
             }
         }
 
+        // Is the tuple on either side of a deconstruction (top-level or nested)?
         private static bool IsTupleInDeconstruction(SyntaxNode tuple)
         {
             Contract.Assert(tuple.IsKind(SyntaxKind.TupleExpression));
@@ -201,11 +202,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 {
                     return true;
                 }
-            }
-            while ((tuple = parent.Parent).IsKind(SyntaxKind.TupleExpression)
-                && (parent = parent.Parent.Parent) != null);
 
-            return false;
+                tuple = parent.Parent;
+                if (tuple.IsKind(SyntaxKind.TupleExpression))
+                {
+                    parent = parent.Parent.Parent;
+                    if (parent == null)
+                    {
+                        return false;
+                    }
+                }
+                else
+                {
+                    return false;
+                }
+            }
+            while (true);
         }
     }
 }

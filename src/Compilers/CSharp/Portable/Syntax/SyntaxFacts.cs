@@ -429,64 +429,25 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// Given an initializer expression infer the name of anonymous property or tuple element.
-        /// Returns default(SyntaxToken) if unsuccessful
+        /// Returns null if unsuccessful
         /// </summary>
-        public static SyntaxToken TryGetInferredMemberName(this ExpressionSyntax input)
+        public static string TryGetInferredMemberName(this ExpressionSyntax input)
         {
-            while (true)
-            {
-                switch (input.Kind())
-                {
-                    case SyntaxKind.IdentifierName:
-                        return ((IdentifierNameSyntax)input).Identifier;
-
-                    case SyntaxKind.SimpleMemberAccessExpression:
-                        input = ((MemberAccessExpressionSyntax)input).Name;
-                        continue;
-
-                    case SyntaxKind.ConditionalAccessExpression:
-                        input = ((ConditionalAccessExpressionSyntax)input).WhenNotNull;
-                        if (input.Kind() == SyntaxKind.MemberBindingExpression)
-                        {
-                            return ((MemberBindingExpressionSyntax)input).Name.Identifier;
-                        }
-
-                        continue;
-
-                    default:
-                        return default(SyntaxToken);
-                }
-            }
+            var nameToken = input.ExtractAnonymousTypeMemberName();
+            return nameToken.Kind() == SyntaxKind.IdentifierToken ? nameToken.ValueText : null;
         }
 
         /// <summary>
-        /// Checks whether the element name is reserved and, if it is, which index it's reserved for.
+        /// Checks whether the element name is reserved.
         ///
         /// For example:
-        /// "Item3" is reserved at index 2.
-        /// "Rest", "ToString" and other members of System.ValueTuple are reserved in any position (index returned as -1).
-        /// Names that are not reserved return false (and index is irrelevant).
+        /// "Item3" is reserved (at certain positions).
+        /// "Rest", "ToString" and other members of System.ValueTuple are reserved (in any position).
+        /// Names that are not reserved return false.
         /// </summary>
-        public static bool IsReservedTupleElementName(string elementName, out int index)
+        public static bool IsReservedTupleElementName(string elementName)
         {
-            int reserved = TupleTypeSymbol.IsElementNameReserved(elementName);
-            switch (reserved)
-            {
-                case -1:
-                    index = -1;
-                    return false;
-
-                case 0:
-                    index = -1;
-                    return true;
-
-                case int position when (position > 0):
-                    index = position - 1;
-                    return true;
-
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(reserved);
-            }
+            return TupleTypeSymbol.IsElementNameReserved(elementName) != -1;
         }
     }
 }
