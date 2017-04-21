@@ -33,8 +33,5 @@
   <ItemGroup>
     <InternalsVisibleToRazor Include="Microsoft.VisualStudio.LanguageServices.Razor" />
   </ItemGroup>
-  <ItemGroup>
-    <None Include="project.json" />
-  </ItemGroup>
   <Import Project="..\..\..\build\Targets\Imports.targets" />
 </Project>
