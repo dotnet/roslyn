@@ -367,6 +367,7 @@
 
   <PropertyGroup>
     <PrepareResourcesDependsOn>DeployPortableOnDeveloperBuild;$(PrepareResourcesDependsOn)</PrepareResourcesDependsOn>
+    <PrepareForBuildDependsOn>RemoveDuplicateXUnitContent;$(PrepareForBuildDependsOn)</PrepareForBuildDependsOn>
     <TargetFrameworkMonikerAssemblyAttributesPath>$(IntermediateOutputPath)$(TargetFrameworkMoniker).AssemblyAttributes$(DefaultLanguageSourceExtension)</TargetFrameworkMonikerAssemblyAttributesPath>
     <PostCompileBinaryModificationSentinelFile>$(IntermediateOutputPath)$(TargetFileName).pcbm</PostCompileBinaryModificationSentinelFile>
     <OptimizationDataFolderPath>$(NuGetPackageRoot)\RoslynDependencies.OptimizationData\2.0.0-rc-61101-16\content\OptimizationData</OptimizationDataFolderPath>
@@ -453,8 +454,40 @@
                                TargetMonikers=".NETFramework,Version=v4.6">
       <Output TaskParameter="ResolvedCopyLocalItems" ItemName="ReferenceCopyLocalPaths" />
     </ResolveNuGetPackageAssets>
+
+    <!-- Desktop tests need to load the Desktop version of the TestUtilities via reflection at runtime without
+         referencing the assembly at compile time. However, it looks like adding a project-to-project reference 
+         with ReferenceOutputputAssembly=false and Private=true does not copy the assembly to the output
+         (https://github.com/Microsoft/msbuild/issues/1916). Therefore, we reference the assembly but do the
+         copying ourselves, by adding the output path of the project (GetTargetPath) manually to the set of copied
+         assemblies (ReferenceCopyLocalPaths) -->
+    <MSBuild Projects="$(MSBuildThisFileDirectory)..\..\src\Test\Utilities\Desktop\TestUtilities.Desktop.csproj"
+             Targets="GetTargetPath"
+             BuildInParallel="true">
+
+      <Output TaskParameter="TargetOutputs" ItemName="ReferenceCopyLocalPaths" />
+    </MSBuild>
   </Target>
 
   <!-- Returns the current build version. Used in .vsixmanifests to substitute our build version into them -->
   <Target Name="GetBuildVersion" Outputs="$(VsixVersion)" />
+
+  <!-- 
+    In order to leverage LUT testing we need to have both of the follownig packages in 
+    our build.  
+
+        - xunit.runner.desktop
+        - xunit
+
+    Both of these include xunit.abstractions.dll in different forms: content and reference
+    respectively.  This creates a double write violation in our build.  The content item
+    is unnecessary for us since we reference the xunit package hence remove it here. 
+
+    https://github.com/dotnet/roslyn/issues/18753
+  -->
+  <Target Name="RemoveDuplicateXUnitContent">
+    <ItemGroup>
+      <Content Remove="@(Content)" Condition="'%(Filename)%(Extension)' == 'xunit.abstractions.dll'" />
+    </ItemGroup>
+  </Target>
 </Project>

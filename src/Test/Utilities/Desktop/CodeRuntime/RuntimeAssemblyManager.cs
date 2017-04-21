@@ -376,7 +376,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.CodeRuntime
 
             object result = null;
             string stdOut, stdErr;
-            ConsoleOutput.Capture(() =>
+            DesktopRuntimeEnvironment.Capture(() =>
             {
                 var count = entryPoint.GetParameters().Length;
                 object[] args;

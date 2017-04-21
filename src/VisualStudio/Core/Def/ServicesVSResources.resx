@@ -900,4 +900,7 @@ Additional information: {1}</value>
   <data name="VisualStudioWorkspace_TryApplyChanges_cannot_be_called_from_a_background_thread" xml:space="preserve">
     <value>VisualStudioWorkspace.TryApplyChanges cannot be called from a background thread.</value>
   </data>
+  <data name="Options" xml:space="preserve">
+    <value>Options</value>
+  </data>
 </root>

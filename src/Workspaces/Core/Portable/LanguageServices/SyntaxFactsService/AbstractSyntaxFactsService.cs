@@ -10,6 +10,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using System.Text;
 
 namespace Microsoft.CodeAnalysis.LanguageServices
 {
@@ -386,5 +387,25 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         }
 
         protected abstract bool ContainsInterleavedDirective(TextSpan span, SyntaxToken token, CancellationToken cancellationToken);
+
+        public string GetBannerText(SyntaxNode documentationCommentTriviaSyntax, CancellationToken cancellationToken)
+            => DocumentationCommentService.GetBannerText(documentationCommentTriviaSyntax, cancellationToken);
+
+        protected abstract IDocumentationCommentService DocumentationCommentService { get; }
+
+        protected static void AppendTokens(SyntaxNode node, StringBuilder builder)
+        {
+            foreach (var child in node.ChildNodesAndTokens())
+            {
+                if (child.IsToken)
+                {
+                    builder.Append(child.AsToken().Text);
+                }
+                else
+                {
+                    AppendTokens(child.AsNode(), builder);
+                }
+            }
+        }
     }
 }

@@ -3,7 +3,6 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Roslyn.Test.Utilities;
-using Roslyn.VisualStudio.IntegrationTests.Extensions;
 using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
@@ -27,8 +26,8 @@ Class Program
     Sub Main(ByVal args As String$$())
     End Sub
 End Class");
-            this.InvokeQuickInfo();
-            Assert.Equal("Class\u200e System.String\r\nRepresents text as a sequence of UTF-16 code units.To browse the .NET Framework source code for this type, see the Reference Source.", Editor.GetQuickInfo());
+            VisualStudio.Editor.InvokeQuickInfo();
+            Assert.Equal("Class\u200e System.String\r\nRepresents text as a sequence of UTF-16 code units.To browse the .NET Framework source code for this type, see the Reference Source.", VisualStudio.Editor.GetQuickInfo());
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -43,9 +42,9 @@ Class العربية123
          Dim foo as العربية123$$
     End Sub
 End Class");
-            this.InvokeQuickInfo();
+            VisualStudio.Editor.InvokeQuickInfo();
             Assert.Equal(@"Class" + '\u200e' + @" TestProj.العربية123
-This is an XML doc comment defined in code.", Editor.GetQuickInfo());
+This is an XML doc comment defined in code.", VisualStudio.Editor.GetQuickInfo());
         }
     }
 }

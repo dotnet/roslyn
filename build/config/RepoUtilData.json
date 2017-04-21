@@ -31,6 +31,7 @@
       "path": "build\\Targets\\Dependencies.props",
       "values": [
         "Microsoft.Dia.*",
+        "Microsoft.Metadata.*",
         "System.*",
         "Microsoft.CodeAnalysis.Analyzers",
         "Microsoft.VisualBasic",
@@ -48,7 +49,9 @@
         "^Microsoft.?Build.*",
         "GitLink",
         "Microsoft.NETCore.Runtime.CoreCLR",
-        "Microsoft.VSSDK.BuildTools"
+        "Microsoft.VSSDK.BuildTools",
+        "NETStandard.Library",
+        "FakeSign"
       ]
     }
   },
@@ -60,5 +63,10 @@
     "^src\\\\Dependencies.*",
     ".*NuSpec.loc.*",
     ".*Templates.*"
+  ],
+
+  "projectJsonExcludes": [
+    "^build\\\\MSBuildToolset.*",
+    "^src\\\\Tools\\\\Source\\\\CompilerGeneratorTools.*"
   ]
 }

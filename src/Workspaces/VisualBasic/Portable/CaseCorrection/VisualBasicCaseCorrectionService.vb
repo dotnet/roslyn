@@ -1,6 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Concurrent
+Imports System.Collections.Immutable
 Imports System.Threading
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
@@ -24,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CaseCorrection
 
         Protected Overrides Sub AddReplacements(semanticModel As SemanticModel,
                                                 root As SyntaxNode,
-                                                spans As IEnumerable(Of TextSpan),
+                                                spans As ImmutableArray(Of TextSpan),
                                                 workspace As Workspace,
                                                 replacements As ConcurrentDictionary(Of SyntaxToken, SyntaxToken),
                                                 cancellationToken As CancellationToken)

@@ -5426,10 +5426,10 @@
     <value>Tuple element names must be unique.</value>
   </data>
   <data name="WRN_TupleLiteralNameMismatch" xml:space="preserve">
-    <value>The tuple element name '{0}' is ignored because a different name is specified by the target type '{1}'.</value>
+    <value>The tuple element name '{0}' is ignored because a different name or no name is specified by the target type '{1}'.</value>
   </data>
   <data name="WRN_TupleLiteralNameMismatch_Title" xml:space="preserve">
-    <value>The tuple element name is ignored because a different name is specified by the assignment target.</value>
+    <value>The tuple element name is ignored because a different name or no name is specified by the assignment target.</value>
   </data>
   <data name="ERR_TupleReservedElementName" xml:space="preserve">
     <value>Tuple element name '{0}' is only allowed at position {1}.</value>

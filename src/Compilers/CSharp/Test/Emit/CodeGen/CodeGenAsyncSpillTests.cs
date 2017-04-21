@@ -599,7 +599,7 @@ public class Test
 
             v.VerifyIL("Test.<F>d__2.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext", @"
 {
-  // Code size      300 (0x12c)
+  // Code size      290 (0x122)
   .maxstack  5
   .locals init (int V_0,
                 int V_1,
@@ -671,7 +671,7 @@ public class Test
     IL_007f:  ldloca.s   V_5
     IL_0081:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter<int>, Test.<F>d__2>(ref System.Runtime.CompilerServices.TaskAwaiter<int>, ref Test.<F>d__2)""
     IL_0086:  nop
-    IL_0087:  leave      IL_012b
+    IL_0087:  leave      IL_0121
    >IL_008c:  ldarg.0
     IL_008d:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> Test.<F>d__2.<>u__1""
     IL_0092:  stloc.s    V_4
@@ -683,64 +683,60 @@ public class Test
     IL_00a2:  dup
     IL_00a3:  stloc.0
     IL_00a4:  stfld      ""int Test.<F>d__2.<>1__state""
-    IL_00a9:  ldloca.s   V_4
-    IL_00ab:  call       ""int System.Runtime.CompilerServices.TaskAwaiter<int>.GetResult()""
-    IL_00b0:  stloc.3
-    IL_00b1:  ldloca.s   V_4
-    IL_00b3:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter<int>""
-    IL_00b9:  ldarg.0
-    IL_00ba:  ldloc.3
-    IL_00bb:  stfld      ""int Test.<F>d__2.<>s__3""
-    IL_00c0:  ldarg.0
-    IL_00c1:  ldarg.0
-    IL_00c2:  ldfld      ""int[] Test.<F>d__2.<>s__5""
-    IL_00c7:  ldc.i4.3
-    IL_00c8:  ldarg.0
-    IL_00c9:  ldfld      ""int Test.<F>d__2.<>s__2""
-    IL_00ce:  ldarg.0
-    IL_00cf:  ldfld      ""int Test.<F>d__2.<>s__3""
-    IL_00d4:  add
-    IL_00d5:  dup
-    IL_00d6:  stloc.3
-    IL_00d7:  stelem.i4
-    IL_00d8:  ldloc.3
-    IL_00d9:  stfld      ""int Test.<F>d__2.<>s__4""
-    IL_00de:  ldarg.0
-    IL_00df:  ldfld      ""int Test.<F>d__2.<>s__1""
-    IL_00e4:  ldarg.0
-    IL_00e5:  ldfld      ""int Test.<F>d__2.<>s__4""
-    IL_00ea:  ldc.i4.4
-    IL_00eb:  call       ""int Test.H(int, int, int)""
-    IL_00f0:  pop
-    IL_00f1:  ldarg.0
-    IL_00f2:  ldnull
-    IL_00f3:  stfld      ""int[] Test.<F>d__2.<>s__5""
-   -IL_00f8:  ldc.i4.1
-    IL_00f9:  stloc.1
-    IL_00fa:  leave.s    IL_0116
+    IL_00a9:  ldarg.0
+    IL_00aa:  ldloca.s   V_4
+    IL_00ac:  call       ""int System.Runtime.CompilerServices.TaskAwaiter<int>.GetResult()""
+    IL_00b1:  stfld      ""int Test.<F>d__2.<>s__3""
+    IL_00b6:  ldarg.0
+    IL_00b7:  ldarg.0
+    IL_00b8:  ldfld      ""int[] Test.<F>d__2.<>s__5""
+    IL_00bd:  ldc.i4.3
+    IL_00be:  ldarg.0
+    IL_00bf:  ldfld      ""int Test.<F>d__2.<>s__2""
+    IL_00c4:  ldarg.0
+    IL_00c5:  ldfld      ""int Test.<F>d__2.<>s__3""
+    IL_00ca:  add
+    IL_00cb:  dup
+    IL_00cc:  stloc.3
+    IL_00cd:  stelem.i4
+    IL_00ce:  ldloc.3
+    IL_00cf:  stfld      ""int Test.<F>d__2.<>s__4""
+    IL_00d4:  ldarg.0
+    IL_00d5:  ldfld      ""int Test.<F>d__2.<>s__1""
+    IL_00da:  ldarg.0
+    IL_00db:  ldfld      ""int Test.<F>d__2.<>s__4""
+    IL_00e0:  ldc.i4.4
+    IL_00e1:  call       ""int Test.H(int, int, int)""
+    IL_00e6:  pop
+    IL_00e7:  ldarg.0
+    IL_00e8:  ldnull
+    IL_00e9:  stfld      ""int[] Test.<F>d__2.<>s__5""
+   -IL_00ee:  ldc.i4.1
+    IL_00ef:  stloc.1
+    IL_00f0:  leave.s    IL_010c
   }
   catch System.Exception
   {
-   ~IL_00fc:  stloc.s    V_6
-    IL_00fe:  ldarg.0
-    IL_00ff:  ldc.i4.s   -2
-    IL_0101:  stfld      ""int Test.<F>d__2.<>1__state""
-    IL_0106:  ldarg.0
-    IL_0107:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> Test.<F>d__2.<>t__builder""
-    IL_010c:  ldloc.s    V_6
-    IL_010e:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.SetException(System.Exception)""
-    IL_0113:  nop
-    IL_0114:  leave.s    IL_012b
+   ~IL_00f2:  stloc.s    V_6
+    IL_00f4:  ldarg.0
+    IL_00f5:  ldc.i4.s   -2
+    IL_00f7:  stfld      ""int Test.<F>d__2.<>1__state""
+    IL_00fc:  ldarg.0
+    IL_00fd:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> Test.<F>d__2.<>t__builder""
+    IL_0102:  ldloc.s    V_6
+    IL_0104:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.SetException(System.Exception)""
+    IL_0109:  nop
+    IL_010a:  leave.s    IL_0121
   }
- -IL_0116:  ldarg.0
-  IL_0117:  ldc.i4.s   -2
-  IL_0119:  stfld      ""int Test.<F>d__2.<>1__state""
- ~IL_011e:  ldarg.0
-  IL_011f:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> Test.<F>d__2.<>t__builder""
-  IL_0124:  ldloc.1
-  IL_0125:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.SetResult(int)""
-  IL_012a:  nop
-  IL_012b:  ret
+ -IL_010c:  ldarg.0
+  IL_010d:  ldc.i4.s   -2
+  IL_010f:  stfld      ""int Test.<F>d__2.<>1__state""
+ ~IL_0114:  ldarg.0
+  IL_0115:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> Test.<F>d__2.<>t__builder""
+  IL_011a:  ldloc.1
+  IL_011b:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.SetResult(int)""
+  IL_0120:  nop
+  IL_0121:  ret
 }", sequencePoints: "Test+<F>d__2.MoveNext");
         }
 

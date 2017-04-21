@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                 using (Logger.LogBlock(FunctionId.SuggestedActions_GetSuggestedActions, cancellationToken))
                 {
-                    var document = GetMatchingDocumentAsync(range.Snapshot, cancellationToken).WaitAndGetResult(cancellationToken);
+                    var document = range.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
                     if (document == null)
                     {
                         // this is here to fail test and see why it is failed.
@@ -288,7 +288,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 if (!action.PerformFinalApplicabilityCheck)
                 {
                     // If we don't even need to perform the final applicability check,
-                    // then the code actoin is applicable.
+                    // then the code action is applicable.
                     return true;
                 }
 
@@ -548,7 +548,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                     var filteredRefactorings = FilterOnUIThread(refactorings, workspace);
 
-                    return filteredRefactorings.SelectAsArray(r => OrganizeRefactorings(workspace, r));
+                    // Refactorings are given the span the user currently has selected.  That
+                    // way they can be accurately sorted against other refactorings/fixes that
+                    // are of the same priority.  i.e. refactorings are LowPriority by default.
+                    // But we still want them to come first over a low-pri code fix that is
+                    // further away.  A good example of this is "Add null parameter check" which
+                    // should be higher in the list when the caret is on a parameter, vs the 
+                    // code-fix for "use expression body" which is given the entire span of a 
+                    // method.
+                    return filteredRefactorings.SelectAsArray(
+                        r => OrganizeRefactorings(workspace, r, selection.Value.ToSpan()));
                 }
 
                 return ImmutableArray<SuggestedActionSet>.Empty;
@@ -562,7 +571,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             /// Priority for all <see cref="SuggestedActionSet"/>s containing refactorings is set to <see cref="SuggestedActionSetPriority.Low"/>
             /// and should show up after fixes but before suppression fixes in the light bulb menu.
             /// </remarks>
-            private SuggestedActionSet OrganizeRefactorings(Workspace workspace, CodeRefactoring refactoring)
+            private SuggestedActionSet OrganizeRefactorings(
+                Workspace workspace, CodeRefactoring refactoring, Span applicableSpan)
             {
                 var refactoringSuggestedActions = ArrayBuilder<SuggestedAction>.GetInstance();
 
@@ -573,10 +583,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 }
 
                 return new SuggestedActionSet(
-                    refactoringSuggestedActions.ToImmutableAndFree(), SuggestedActionSetPriority.Low);
+                    refactoringSuggestedActions.ToImmutableAndFree(),
+                    SuggestedActionSetPriority.Low,
+                    applicableSpan);
             }
 
-            public async Task<bool> HasSuggestedActionsAsync(ISuggestedActionCategorySet requestedActionCategories, SnapshotSpan range, CancellationToken cancellationToken)
+            public async Task<bool> HasSuggestedActionsAsync(
+                ISuggestedActionCategorySet requestedActionCategories,
+                SnapshotSpan range,
+                CancellationToken cancellationToken)
             {
                 // Explicitly hold onto below fields in locals and use these locals throughout this code path to avoid crashes
                 // if these fields happen to be cleared by Dispose() below. This is required since this code path involves
@@ -592,7 +607,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                 using (var asyncToken = provider.OperationListener.BeginAsyncOperation("HasSuggestedActionsAsync"))
                 {
-                    var document = await GetMatchingDocumentAsync(range.Snapshot, cancellationToken).ConfigureAwait(false);
+                    var document = range.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
                     if (document == null)
                     {
                         // this is here to fail test and see why it is failed.
@@ -708,44 +723,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 }
 
                 return translatedSpan.Span.ToTextSpan();
-            }
-
-            private static async Task<Document> GetMatchingDocumentAsync(ITextSnapshot givenSnapshot, CancellationToken cancellationToken)
-            {
-                var buffer = givenSnapshot.TextBuffer;
-                if (buffer == null)
-                {
-                    return null;
-                }
-
-                var workspace = buffer.GetWorkspace();
-                if (workspace == null)
-                {
-                    return null;
-                }
-
-                var documentId = workspace.GetDocumentIdInCurrentContext(buffer.AsTextContainer());
-                if (documentId == null)
-                {
-                    return null;
-                }
-
-                var document = workspace.CurrentSolution.GetDocument(documentId);
-                if (document == null)
-                {
-                    return null;
-                }
-
-                var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                cancellationToken.ThrowIfCancellationRequested();
-
-                var snapshot = sourceText.FindCorrespondingEditorTextSnapshot();
-                if (snapshot == null || snapshot.Version.ReiteratedVersionNumber != givenSnapshot.Version.ReiteratedVersionNumber)
-                {
-                    return null;
-                }
-
-                return document;
             }
 
             private void OnTextViewClosed(object sender, EventArgs e)

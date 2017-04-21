@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeCleanup
         public async Task CodeCleaners_NoSpans()
         {
             var document = CreateDocument("class C { }", LanguageNames.CSharp);
-            var cleanDocument = await CodeCleaner.CleanupAsync(document, SpecializedCollections.EmptyEnumerable<TextSpan>());
+            var cleanDocument = await CodeCleaner.CleanupAsync(document, ImmutableArray<TextSpan>.Empty);
 
             Assert.Equal(document, cleanDocument);
         }
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeCleanup
         public async Task CodeCleaners_Spans()
         {
             var document = CreateDocument("class C { }", LanguageNames.CSharp);
-            var cleanDocument = await CodeCleaner.CleanupAsync(document, SpecializedCollections.SingletonEnumerable(
+            var cleanDocument = await CodeCleaner.CleanupAsync(document, ImmutableArray.Create(
                 (await document.GetSyntaxRootAsync()).FullSpan));
 
             Assert.Equal(document, cleanDocument);
@@ -310,7 +310,7 @@ End Module";
 
             var expectedResult = namedSpans.ContainsKey("r") ? namedSpans["r"] as IEnumerable<TextSpan> : SpecializedCollections.EmptyEnumerable<TextSpan>();
 
-            VerifyRange(codeWithoutMarker, SpecializedCollections.EmptyEnumerable<ICodeCleanupProvider>(), namedSpans["b"], ref expectedResult, language);
+            VerifyRange(codeWithoutMarker, ImmutableArray<ICodeCleanupProvider>.Empty, namedSpans["b"], ref expectedResult, language);
         }
 
         private void VerifyRange(string codeWithMarker, ICodeCleanupProvider transformer, ref IEnumerable<TextSpan> expectedResult, string language = LanguageNames.CSharp)
@@ -318,10 +318,10 @@ End Module";
             MarkupTestFile.GetSpans(codeWithMarker, 
                 out var codeWithoutMarker, out IDictionary<string, ImmutableArray<TextSpan>> namedSpans);
 
-            VerifyRange(codeWithoutMarker, SpecializedCollections.SingletonEnumerable(transformer), namedSpans["b"], ref expectedResult, language);
+            VerifyRange(codeWithoutMarker, ImmutableArray.Create(transformer), namedSpans["b"], ref expectedResult, language);
         }
 
-        private void VerifyRange(string code, IEnumerable<ICodeCleanupProvider> codeCleanups, IEnumerable<TextSpan> spans, ref IEnumerable<TextSpan> expectedResult, string language)
+        private void VerifyRange(string code, ImmutableArray<ICodeCleanupProvider> codeCleanups, ImmutableArray<TextSpan> spans, ref IEnumerable<TextSpan> expectedResult, string language)
         {
             var result = default(IEnumerable<TextSpan>);
             var spanCodeCleanup = new SimpleCodeCleanupProvider("TestCodeCleanup", (d, s, c) =>

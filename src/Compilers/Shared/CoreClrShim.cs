@@ -4,13 +4,15 @@ using Roslyn.Utilities;
 using System;
 using System.Reflection;
 
-namespace Microsoft.CodeAnalysis.Scripting
+namespace Microsoft.CodeAnalysis
 {
     /// <summary>
     /// Shim for APIs available only on CoreCLR.
     /// </summary>
-    internal class CoreClrShim
+    internal static class CoreClrShim
     {
+        internal static bool IsRunningOnCoreClr => AssemblyLoadContext.Type != null;
+
         internal static class AssemblyLoadContext
         {
             internal static readonly Type Type = ReflectionUtilities.TryGetType(

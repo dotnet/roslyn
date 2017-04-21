@@ -21,6 +21,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
     /// </summary>
     internal sealed partial class PatternMatcher : IDisposable
     {
+        public const int NoBonus = 0;
         public const int CamelCaseContiguousBonus = 1;
         public const int CamelCaseMatchesFromStartBonus = 2;
         public const int CamelCaseMaxWeight = CamelCaseContiguousBonus + CamelCaseMatchesFromStartBonus;
@@ -35,40 +36,28 @@ namespace Microsoft.CodeAnalysis.PatternMatching
         private readonly PatternSegment[] _dotSeparatedPatternSegments;
 
         private readonly Dictionary<string, StringBreaks> _stringToWordSpans = new Dictionary<string, StringBreaks>();
-        private readonly Func<string, StringBreaks> _breakIntoWordSpans = StringBreaker.BreakIntoWordParts;
+        private static readonly Func<string, StringBreaks> _breakIntoWordSpans = StringBreaker.BreakIntoWordParts;
 
         // PERF: Cache the culture's compareInfo to avoid the overhead of asking for them repeatedly in inner loops
         private readonly CompareInfo _compareInfo;
-
-        /// <summary>
-        /// Construct a new PatternMatcher using the calling thread's culture for string searching and comparison.
-        /// </summary>
-        public PatternMatcher(
-            string pattern,
-            bool verbatimIdentifierPrefixIsWordCharacter = false,
-            bool allowFuzzyMatching = false)
-            : this(pattern, CultureInfo.CurrentCulture, verbatimIdentifierPrefixIsWordCharacter, allowFuzzyMatching)
-        {
-        }
 
         /// <summary>
         /// Construct a new PatternMatcher using the specified culture.
         /// </summary>
         /// <param name="pattern">The pattern to make the pattern matcher for.</param>
         /// <param name="culture">The culture to use for string searching and comparison.</param>
-        /// <param name="verbatimIdentifierPrefixIsWordCharacter">Whether to consider "@" as a word character</param>
         /// <param name="allowFuzzyMatching">Whether or not close matches should count as matches.</param>
         public PatternMatcher(
             string pattern,
-            CultureInfo culture,
-            bool verbatimIdentifierPrefixIsWordCharacter,
-            bool allowFuzzyMatching)
+            CultureInfo culture = null,
+            bool allowFuzzyMatching = false)
         {
+            culture = culture ?? CultureInfo.CurrentCulture;
             pattern = pattern.Trim();
             _compareInfo = culture.CompareInfo;
             _allowFuzzyMatching = allowFuzzyMatching;
 
-            _fullPatternSegment = new PatternSegment(pattern, verbatimIdentifierPrefixIsWordCharacter, allowFuzzyMatching);
+            _fullPatternSegment = new PatternSegment(pattern, allowFuzzyMatching);
 
             if (pattern.IndexOf('.') < 0)
             {
@@ -80,7 +69,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
             else
             {
                 _dotSeparatedPatternSegments = pattern.Split(s_dotCharacterArray, StringSplitOptions.RemoveEmptyEntries)
-                                                .Select(text => new PatternSegment(text.Trim(), verbatimIdentifierPrefixIsWordCharacter, allowFuzzyMatching))
+                                                .Select(text => new PatternSegment(text.Trim(), allowFuzzyMatching))
                                                 .ToArray();
             }
 
@@ -90,10 +79,17 @@ namespace Microsoft.CodeAnalysis.PatternMatching
         public void Dispose()
         {
             _fullPatternSegment.Dispose();
+
             foreach (var segment in _dotSeparatedPatternSegments)
             {
                 segment.Dispose();
             }
+
+            foreach (var kvp in _stringToWordSpans)
+            {
+                kvp.Value.Dispose();
+            }
+            _stringToWordSpans.Clear();
         }
 
         public bool IsDottedPattern => _dotSeparatedPatternSegments.Length > 1;
@@ -333,8 +329,24 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                     //    Note: We only have a substring match if the lowercase part is prefix match of some
                     //    word part. That way we don't match something like 'Class' when the user types 'a'.
                     //    But we would match 'FooAttribute' (since 'Attribute' starts with 'a').
+                    //
+                    //    Also, if we matched at location right after punctuation, then this is a good
+                    //    substring match.  i.e. if the user is testing mybutton against _myButton
+                    //    then this should hit. As we really are finding the match at the beginning of 
+                    //    a word.
+                    if (char.IsPunctuation(candidate[caseInsensitiveIndex - 1]) ||
+                        char.IsPunctuation(patternChunk.Text[0]))
+                    {
+                        return new PatternMatch(
+                            PatternMatchKind.Substring, punctuationStripped,
+                            isCaseSensitive: PartStartsWith(
+                                candidate, new TextSpan(caseInsensitiveIndex, patternChunk.Text.Length),
+                                patternChunk.Text, CompareOptions.None),
+                            matchedSpan: GetMatchedSpan(includeMatchSpans, caseInsensitiveIndex, patternChunk.Text.Length));
+                    }
+
                     var wordSpans = GetWordSpans(candidate);
-                    for (int i = 0; i < wordSpans.Count; i++)
+                    for (int i = 0, n = wordSpans.GetCount(); i < n; i++)
                     {
                         var span = wordSpans[i];
                         if (PartStartsWith(candidate, span, patternChunk.Text, CompareOptions.IgnoreCase))
@@ -400,13 +412,6 @@ namespace Microsoft.CodeAnalysis.PatternMatching
             }
 
             return null;
-        }
-
-        private ImmutableArray<TextSpan> GetMatchedSpans(bool includeMatchSpans, List<TextSpan> matchedSpans)
-        {
-            return includeMatchSpans
-                ? new NormalizedTextSpanCollection(matchedSpans).ToImmutableArray()
-                : ImmutableArray<TextSpan>.Empty;
         }
 
         private static TextSpan? GetMatchedSpan(bool includeMatchSpans, int start, int length)
@@ -567,10 +572,8 @@ namespace Microsoft.CodeAnalysis.PatternMatching
             }
         }
 
-        private static bool IsWordChar(char ch, bool verbatimIdentifierPrefixIsWordCharacter)
-        {
-            return char.IsLetterOrDigit(ch) || ch == '_' || (verbatimIdentifierPrefixIsWordCharacter && ch == '@');
-        }
+        private static bool IsWordChar(char ch)
+            => char.IsLetterOrDigit(ch) || ch == '_';
 
         /// <summary>
         /// Do the two 'parts' match? i.e. Does the candidate part start with the pattern part?
@@ -619,30 +622,30 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                 {
                     return new PatternMatch(
                         PatternMatchKind.CamelCase, punctuationStripped, isCaseSensitive: false, camelCaseWeight: camelCaseWeight,
-                        matchedSpans: GetMatchedSpans(includeMatchSpans, matchedSpans));
+                        matchedSpans: matchedSpans);
                 }
             }
             else
             {
                 //   f) If the word was not entirely lowercase, then attempt a normal camel cased match.
                 //      i.e. CoFiPro would match CodeFixProvider, but CofiPro would not.  
-                if (patternChunk.CharacterSpans.Count > 0)
+                if (patternChunk.CharacterSpans.GetCount() > 0)
                 {
                     var candidateParts = GetWordSpans(candidate);
                     var camelCaseWeight = TryUpperCaseCamelCaseMatch(candidate, includeMatchSpans, candidateParts, patternChunk, CompareOptions.None, out var matchedSpans);
                     if (camelCaseWeight.HasValue)
                     {
                         return new PatternMatch(
-                            PatternMatchKind.CamelCase, punctuationStripped, isCaseSensitive: true, camelCaseWeight: camelCaseWeight,
-                            matchedSpans: GetMatchedSpans(includeMatchSpans, matchedSpans));
+                            PatternMatchKind.CamelCase, punctuationStripped, isCaseSensitive: true,
+                            camelCaseWeight: camelCaseWeight, matchedSpans: matchedSpans);
                     }
 
                     camelCaseWeight = TryUpperCaseCamelCaseMatch(candidate, includeMatchSpans, candidateParts, patternChunk, CompareOptions.IgnoreCase, out matchedSpans);
                     if (camelCaseWeight.HasValue)
                     {
                         return new PatternMatch(
-                            PatternMatchKind.CamelCase, punctuationStripped, isCaseSensitive: false, camelCaseWeight: camelCaseWeight,
-                            matchedSpans: GetMatchedSpans(includeMatchSpans, matchedSpans));
+                            PatternMatchKind.CamelCase, punctuationStripped, isCaseSensitive: false, 
+                            camelCaseWeight: camelCaseWeight, matchedSpans: matchedSpans);
                     }
                 }
             }
@@ -655,7 +658,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
             bool includeMatchedSpans,
             StringBreaks candidateParts,
             TextChunk patternChunk,
-            out List<TextSpan> matchedSpans)
+            out ImmutableArray<TextSpan> matchedSpans)
         {
             var matcher = new AllLowerCamelCaseMatcher(candidate, includeMatchedSpans, candidateParts, patternChunk);
             return matcher.TryMatch(out matchedSpans);
@@ -667,9 +670,8 @@ namespace Microsoft.CodeAnalysis.PatternMatching
             StringBreaks candidateParts,
             TextChunk patternChunk,
             CompareOptions compareOption,
-            out List<TextSpan> matchedSpans)
+            out ImmutableArray<TextSpan> matchedSpans)
         {
-            matchedSpans = null;
             var patternChunkCharacterSpans = patternChunk.CharacterSpans;
 
             // Note: we may have more pattern parts than candidate parts.  This is because multiple
@@ -682,10 +684,14 @@ namespace Microsoft.CodeAnalysis.PatternMatching
             int? firstMatch = null;
             bool? contiguous = null;
 
+            var patternChunkCharacterSpansCount = patternChunkCharacterSpans.GetCount();
+            var candidatePartsCount = candidateParts.GetCount();
+
+            var result = ArrayBuilder<TextSpan>.GetInstance();
             while (true)
             {
                 // Let's consider our termination cases
-                if (currentChunkSpan == patternChunkCharacterSpans.Count)
+                if (currentChunkSpan == patternChunkCharacterSpansCount)
                 {
                     Contract.Requires(firstMatch.HasValue);
                     Contract.Requires(contiguous.HasValue);
@@ -705,12 +711,17 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                         weight += CamelCaseMatchesFromStartBonus;
                     }
 
+                    matchedSpans = includeMatchedSpans
+                        ? new NormalizedTextSpanCollection(result).ToImmutableArray()
+                        : ImmutableArray<TextSpan>.Empty;
+                    result.Free();
                     return weight;
                 }
-                else if (currentCandidate == candidateParts.Count)
+                else if (currentCandidate == candidatePartsCount)
                 {
                     // No match, since we still have more of the pattern to hit
-                    matchedSpans = null;
+                    matchedSpans = ImmutableArray<TextSpan>.Empty;
+                    result.Free();
                     return null;
                 }
 
@@ -721,7 +732,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                 // will be Simple/UI/Element, and the pattern parts will be Si/U/I.  We'll match 'Si'
                 // against 'Simple' first.  Then we'll match 'U' against 'UI'. However, we want to
                 // still keep matching pattern parts against that candidate part. 
-                for (; currentChunkSpan < patternChunkCharacterSpans.Count; currentChunkSpan++)
+                for (; currentChunkSpan < patternChunkCharacterSpansCount; currentChunkSpan++)
                 {
                     var patternChunkCharacterSpan = patternChunkCharacterSpans[currentChunkSpan];
 
@@ -744,8 +755,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
 
                     if (includeMatchedSpans)
                     {
-                        matchedSpans = matchedSpans ?? new List<TextSpan>();
-                        matchedSpans.Add(new TextSpan(candidatePart.Start, patternChunkCharacterSpan.Length));
+                        result.Add(new TextSpan(candidatePart.Start, patternChunkCharacterSpan.Length));
                     }
 
                     gotOneMatchThisCandidate = true;

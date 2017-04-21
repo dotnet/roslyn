@@ -1465,6 +1465,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ExpressionTreeContainsDiscard = 8207,
         ERR_PatternDynamicType = 8208,
         ERR_VoidAssignment = 8209,
+        ERR_VoidInTuple = 8210,
         #endregion more stragglers for C# 7
 
         ERR_Merge_conflict_marker_encountered = 8300,
@@ -1472,5 +1473,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_FeatureNotAvailableInVersion7_1 = 8302,
         ERR_LanguageVersionCannotHaveLeadingZeroes = 8303,
         ERR_CompilerAndLanguageVersion = 8304,
+
+        ERR_BadDynamicMethodArgDefaultLiteral = 9000,
+        ERR_DefaultLiteralNotValid = 9001,
+        WRN_DefaultInSwitch = 9002,
     }
 }
