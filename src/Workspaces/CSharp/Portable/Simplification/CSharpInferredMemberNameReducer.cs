@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 return node;
             }
 
-            var inferredName = node.Expression.ExtractAnonymousTypeMemberName().ValueText;
+            var inferredName = node.Expression.TryGetInferredMemberName().ValueText;
 
             if (inferredName == null || inferredName != node.NameColon.Name.Identifier.ValueText)
             {
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 return node;
             }
 
-            var inferredName = node.Expression.ExtractAnonymousTypeMemberName().ValueText;
+            var inferredName = node.Expression.TryGetInferredMemberName().ValueText;
 
             if (inferredName == null || inferredName != node.NameEquals.Name.Identifier.ValueText)
             {

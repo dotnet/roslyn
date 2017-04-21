@@ -169,7 +169,7 @@ void foo()
         public void ExtractAnonymousTypeMemberName(string source, string expected)
         {
             var expr = SyntaxFactory.ParseExpression(source, options: TestOptions.Regular);
-            var actual = SyntaxFacts.ExtractAnonymousTypeMemberName(expr).ValueText;
+            var actual = SyntaxFacts.TryGetInferredMemberName(expr).ValueText;
             Assert.Equal(expected, actual);
         }
 

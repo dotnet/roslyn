@@ -541,7 +541,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                nameToken = ((ExpressionSyntax)variableSyntax).ExtractAnonymousTypeMemberName();
+                nameToken = ((ExpressionSyntax)variableSyntax).TryGetInferredMemberName();
             }
 
             string name = nameToken.ValueText;

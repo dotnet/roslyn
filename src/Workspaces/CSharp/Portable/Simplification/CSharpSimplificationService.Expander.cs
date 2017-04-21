@@ -260,7 +260,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                     var tuple = (TupleExpressionSyntax)node.Parent;
                     if (!IsTupleInDeconstruction(tuple))
                     {
-                        inferredName = node.Expression.ExtractAnonymousTypeMemberName().ValueText;
+                        inferredName = node.Expression.TryGetInferredMemberName().ValueText;
                         if (!CanMakeNameExplicitInTuple(tuple, inferredName))
                         {
                             inferredName = null;
@@ -311,7 +311,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                     }
                     else
                     {
-                        elementName = argument.Expression.ExtractAnonymousTypeMemberName().ValueText;
+                        elementName = argument.Expression.TryGetInferredMemberName().ValueText;
                     }
 
                     if (elementName?.Equals(name, StringComparison.Ordinal) == true)
@@ -331,7 +331,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
 
             public override SyntaxNode VisitAnonymousObjectMemberDeclarator(AnonymousObjectMemberDeclaratorSyntax node)
             {
-                var inferredName = node.Expression.ExtractAnonymousTypeMemberName().ValueText;
+                var inferredName = node.Expression.TryGetInferredMemberName().ValueText;
 
                 var newDeclarator = (AnonymousObjectMemberDeclaratorSyntax)base.VisitAnonymousObjectMemberDeclarator(node);
                 if (inferredName != null && node.NameEquals == null)
