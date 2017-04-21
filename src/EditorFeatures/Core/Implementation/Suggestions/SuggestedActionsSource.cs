@@ -647,6 +647,23 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     //
                     // This work must happen on the UI thread as it needs to access the _textView's mutable
                     // state.
+                    //
+                    // Note: we may be called in one of two VS scenarios:
+                    //      1) User has moved caret to a new line.  In this case VS will call into us in the
+                    //         bg to see if we have any suggested actions for this line.  In order to figure
+                    //         this out, we need to see what selectoin the user has (for refactorings), which
+                    //         necessitates going back to the fg.
+                    //
+                    //      2) User moves to a line and immediately hits ctrl-dot.  In this case, on the UI
+                    //         thread VS will kick us off and then immediately block to get the results so
+                    //         that they can expand the lightbulb.  In this case we cannot do BG work first,
+                    //         then call back into the UI thread to try to get the user selection.  This will
+                    //         deadlock as the UI thread is blocked on us.  
+                    //
+                    // There are two solution to '2'.  Either introduce reentrancy (which we really don't
+                    // like to do), or just ensure that we acquire and get the users selection up front.
+                    // This means that when we're called from the UI therad, we never try to go back to the
+                    // UI thread.
                     TextSpan? selection = null;
                     if (IsForeground())
                     {
