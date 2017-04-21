@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
 using System.Threading;
@@ -38,8 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
         public static DefinitionItem ToDefinitionItem(
             this ISymbol definition,
             Solution solution,
-            bool includeHiddenLocations,
-            HashSet<DocumentSpan> uniqueSpans = null)
+            bool includeHiddenLocations)
         {
             // Ensure we're working with the original definition for the symbol. I.e. When we're 
             // creating definition items, we want to create them for types like Dictionary<TKey,TValue>
@@ -83,19 +83,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                         var document = solution.GetDocument(location.SourceTree);
                         if (document != null)
                         {
-                            var documentLocation = new DocumentSpan(document, location.SourceSpan);
-                            if (sourceLocations.Count == 0)
-                            {
-                                sourceLocations.Add(documentLocation);
-                            }
-                            else
-                            {
-                                if (uniqueSpans == null ||
-                                    uniqueSpans.Add(documentLocation))
-                                {
-                                    sourceLocations.Add(documentLocation);
-                                }
-                            }
+                            sourceLocations.Add(new DocumentSpan(document, location.SourceSpan));
                         }
                     }
                 }
