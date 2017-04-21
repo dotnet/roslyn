@@ -830,18 +830,15 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal void OnDocumentTextChanged(DocumentId documentId, SourceText newText, PreservationMode mode)
         {
-            using (_serializationLock.DisposableWait())
-            {
-                CheckDocumentIsInCurrentSolution(documentId);
-
-                var oldSolution = this.CurrentSolution;
-                var newSolution = this.SetCurrentSolution(oldSolution.WithDocumentText(documentId, newText, mode));
-
-                var newDocument = newSolution.GetDocument(documentId);
-                this.OnDocumentTextChanged(newDocument);
-
-                this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.DocumentChanged, oldSolution, newSolution, documentId: documentId);
-            }
+            OnAnyDocumentTextChanged(
+                documentId,
+                newText,
+                mode,
+                CheckDocumentIsInCurrentSolution,
+                (solution, docId) => solution.GetRelatedDocumentIds(docId),
+                (solution, docId, text, preservationMode) => solution.WithDocumentText(docId, text, preservationMode),
+                WorkspaceChangeKind.DocumentChanged,
+                isCodeDocument: true);
         }
 
         /// <summary>
@@ -849,16 +846,76 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal void OnAdditionalDocumentTextChanged(DocumentId documentId, SourceText newText, PreservationMode mode)
         {
+            OnAnyDocumentTextChanged(
+                documentId,
+                newText,
+                mode,
+                CheckAdditionalDocumentIsInCurrentSolution,
+                (solution, docId) => ImmutableArray.Create(docId),
+                (solution, docId, text, preservationMode) => solution.WithAdditionalDocumentText(docId, text, preservationMode),
+                WorkspaceChangeKind.AdditionalDocumentChanged,
+                isCodeDocument: false);
+        }
+
+        /// <summary>
+        /// When a <see cref="Document"/>s text is changed, we need to make sure all of the linked
+        /// files also have their content updated in the new solution before applying it to the
+        /// workspace to avoid the workspace having solutions with linked files where the contents
+        /// do not match.
+        /// </summary>
+        private void OnAnyDocumentTextChanged(
+            DocumentId documentId, 
+            SourceText newText, 
+            PreservationMode mode, 
+            Action<DocumentId> checkIsInCurrentSolution,
+            Func<Solution, DocumentId, ImmutableArray<DocumentId>> getRelatedDocuments,
+            Func<Solution, DocumentId, SourceText, PreservationMode, Solution> updateSolutionWithText,
+            WorkspaceChangeKind changeKind,
+            bool isCodeDocument)
+        {
             using (_serializationLock.DisposableWait())
             {
-                CheckAdditionalDocumentIsInCurrentSolution(documentId);
+                checkIsInCurrentSolution(documentId);
 
-                var oldSolution = this.CurrentSolution;
-                var newSolution = this.SetCurrentSolution(oldSolution.WithAdditionalDocumentText(documentId, newText, mode));
+                var originalSolution = CurrentSolution;
+                var updatedSolution = CurrentSolution;
+                var previousSolution = updatedSolution;
 
-                var newDocument = newSolution.GetAdditionalDocument(documentId);
+                var linkedDocuments = getRelatedDocuments(updatedSolution, documentId);
+                var updatedDocumentIds = new List<DocumentId>();
 
-                this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.AdditionalDocumentChanged, oldSolution, newSolution, documentId: documentId);
+                foreach (var linkedDocument in linkedDocuments)
+                {
+                    previousSolution = updatedSolution;
+                    updatedSolution = updateSolutionWithText(updatedSolution, linkedDocument, newText, mode);
+                    if (previousSolution != updatedSolution)
+                    {
+                        updatedDocumentIds.Add(linkedDocument);
+                    }
+                }
+
+                if (updatedDocumentIds.Count > 0)
+                {
+                    var newSolution = SetCurrentSolution(updatedSolution);
+
+                    if (isCodeDocument)
+                    {
+                        foreach (var updatedDocumentId in updatedDocumentIds)
+                        {
+                            var newDocument = newSolution.GetDocument(updatedDocumentId);
+                            OnDocumentTextChanged(newDocument);
+                        }
+                    }
+
+                    foreach (var updatedDocumentInfo in updatedDocumentIds)
+                    {
+                        RaiseWorkspaceChangedEventAsync(
+                            changeKind,
+                            originalSolution,
+                            newSolution,
+                            documentId: updatedDocumentInfo);
+                    }
+                }
             }
         }
 
