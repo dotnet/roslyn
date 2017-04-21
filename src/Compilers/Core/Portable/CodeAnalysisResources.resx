@@ -597,4 +597,16 @@
   <data name="UnableToReadDebugInfo" xml:space="preserve">
     <value>Unable to read debug information of method '{0}' (token 0x{1}) from assembly '{2}'</value>
   </data>
+  <data name="CannotCallWhenQueueIsCompleted" xml:space="preserve">
+    <value>Cannot call {0} when the queue is already completed.</value>
+  </data>
+  <data name="CannotEnqueueDataAfterPromiseNotToEnqueue" xml:space="preserve">
+    <value>Cannot enqueue data after PromiseNotToEnqueue.</value>
+  </data>
+  <data name="NonReadOnlyMembersAreNotSupportedInCSharp" xml:space="preserve">
+    <value>Non-ReadOnly members are not supported in C# anonymous types.</value>
+  </data>
+  <data name="ParentMustNotBeNullUnlessSpeculativeSemanticModel" xml:space="preserve">
+    <value>The parent of {0} must not be null unless this is a speculative semantic model.</value>
+  </data>
 </root>

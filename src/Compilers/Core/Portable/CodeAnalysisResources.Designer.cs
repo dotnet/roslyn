@@ -243,6 +243,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Cannot call {0} when the queue is already completed..
+        /// </summary>
+        internal static string CannotCallWhenQueueIsCompleted {
+            get {
+                return ResourceManager.GetString("CannotCallWhenQueueIsCompleted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Can&apos;t create a reference to a module..
         /// </summary>
         internal static string CannotCreateReferenceToModule {
@@ -266,6 +275,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string CannotEmbedInteropTypesFromModule {
             get {
                 return ResourceManager.GetString("CannotEmbedInteropTypesFromModule", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cannot enqueue data after PromiseNotToEnqueue..
+        /// </summary>
+        internal static string CannotEnqueueDataAfterPromiseNotToEnqueue {
+            get {
+                return ResourceManager.GetString("CannotEnqueueDataAfterPromiseNotToEnqueue", resourceCulture);
             }
         }
         
@@ -974,6 +992,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Non-ReadOnly members are not supported in C# anonymous types..
+        /// </summary>
+        internal static string NonReadOnlyMembersAreNotSupportedInCSharp {
+            get {
+                return ResourceManager.GetString("NonReadOnlyMembersAreNotSupportedInCSharp", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to A value in the pathMap is null..
         /// </summary>
         internal static string NullValueInPathMap {
@@ -997,6 +1024,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Parameter {
             get {
                 return ResourceManager.GetString("Parameter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The parent of {0} must not be null unless this is a speculative semantic model..
+        /// </summary>
+        internal static string ParentMustNotBeNullUnlessSpeculativeSemanticModel {
+            get {
+                return ResourceManager.GetString("ParentMustNotBeNullUnlessSpeculativeSemanticModel", resourceCulture);
             }
         }
         

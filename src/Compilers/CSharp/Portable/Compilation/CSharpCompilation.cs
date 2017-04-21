@@ -2770,7 +2770,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!memberIsReadOnly.IsDefault && memberIsReadOnly.Any(v => !v))
             {
-                throw new ArgumentException($"Non-ReadOnly members are not supported in C# anonymous types.");
+                throw new ArgumentException(CodeAnalysisResources.NonReadOnlyMembersAreNotSupportedInCSharp);
             }
 
             var fields = ArrayBuilder<AnonymousTypeField>.GetInstance();
