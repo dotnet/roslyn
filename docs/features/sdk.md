@@ -33,6 +33,7 @@ be removed + fixed before merging
 This set of Jenkins legs is considered functional and must pass on every merge:
 
 - Unit tests debug / release on x86 / amd64 
+- Build correctness
 
 ## Big Items
 
@@ -42,4 +43,5 @@ These are the big items that are broken and need some wokr
 - RepoUtil: needs to understand PackageReference and can be massively simplified now
 - Bootstrap build
 - CoreCLR unit tests
+- Delete the DeployCompilerGeneratorToolsRuntime project.  Not neeeded anymor 
 

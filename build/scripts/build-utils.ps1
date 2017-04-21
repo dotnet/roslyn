@@ -259,7 +259,12 @@ function Clear-PackageCache() {
 # Restore a single project
 function Restore-Project([string]$fileName, [string]$nuget, [string]$msbuildDir) {
     $nugetConfig = Join-Path $repoDir "nuget.config"
-    $filePath = Join-Path $repoDir $fileName
+
+    $filePath = $fileName
+    if (-not (Test-Path $filePath)) {
+        $filePath = Join-Path $repoDir $fileName
+    }
+
     Exec-Block { & $nuget restore -verbosity quiet -configfile $nugetConfig -MSBuildPath $msbuildDir -Project2ProjectTimeOut 1200 $filePath }
 }
 
