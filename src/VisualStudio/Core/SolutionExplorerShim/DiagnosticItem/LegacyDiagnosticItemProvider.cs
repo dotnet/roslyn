@@ -11,7 +11,7 @@ using Microsoft.VisualStudio.ComponentModelHost;
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer
 {
     [Export(typeof(IAttachedCollectionSourceProvider))]
-    [Name(nameof(LegacyDiagnosticItemProvider)]
+    [Name(nameof(LegacyDiagnosticItemProvider))]
     [Order]
     internal sealed class LegacyDiagnosticItemProvider : AttachedCollectionSourceProvider<AnalyzerItem>
     {
