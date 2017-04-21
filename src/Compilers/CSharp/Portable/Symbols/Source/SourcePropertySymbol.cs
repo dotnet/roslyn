@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (this.ReturnsByRefReadonly)
                 {
-                    this.DeclaringCompilation.EnsureReadOnlyAttributeExists();
+                    this.DeclaringCompilation.EnsureIsReadOnlyAttributeExists();
                 }
             }
 
@@ -1097,7 +1097,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             
             if (this.ReturnsByRefReadonly)
             {
-                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeReadOnlyAttribute());
+                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeIsReadOnlyAttribute());
             }
         }
 
@@ -1202,9 +1202,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // DynamicAttribute should not be set explicitly.
                 arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitDynamicAttr, arguments.AttributeSyntaxOpt.Location);
             }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.ReadOnlyAttribute))
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.IsReadOnlyAttribute))
             {
-                // ReadOnlyAttribute should not be set explicitly.
+                // IsReadOnlyAttribute should not be set explicitly.
                 arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitReadOnlyAttr, arguments.AttributeSyntaxOpt.Location);
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.TupleElementNamesAttribute))

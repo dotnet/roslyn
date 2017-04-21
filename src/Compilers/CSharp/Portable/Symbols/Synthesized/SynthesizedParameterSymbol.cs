@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (this.RefKind == RefKind.RefReadOnly)
             {
-                this.DeclaringCompilation.EnsureReadOnlyAttributeExists();
+                this.DeclaringCompilation.EnsureIsReadOnlyAttributeExists();
             }
         }
 
@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (this.RefKind == RefKind.RefReadOnly)
             {
-                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeReadOnlyAttribute());
+                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeIsReadOnlyAttribute());
             }
         }
     }

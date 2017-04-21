@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var text = @"
 namespace System.Runtime.CompilerServices
 {
-    public class ReadOnlyAttribute : System.Attribute { }
+    public class IsReadOnlyAttribute : System.Attribute { }
 }
 class Test
 {
@@ -36,8 +36,8 @@ class Test
                 var parameter = method.GetParameters().Single();
                 Assert.Equal(RefKind.RefReadOnly, parameter.RefKind);
 
-                AssertReferencedReadOnlyAttribute(parameter.GetAttributes(), module.ContainingAssembly.Name);
-                AssertReferencedReadOnlyAttribute(method.GetReturnTypeAttributes(), module.ContainingAssembly.Name);
+                AssertReferencedIsReadOnlyAttribute(parameter.GetAttributes(), module.ContainingAssembly.Name);
+                AssertReferencedIsReadOnlyAttribute(method.GetReturnTypeAttributes(), module.ContainingAssembly.Name);
             });
         }
 
@@ -47,7 +47,7 @@ class Test
             var codeA = @"
 namespace System.Runtime.CompilerServices
 {
-    public class ReadOnlyAttribute : System.Attribute { }
+    public class IsReadOnlyAttribute : System.Attribute { }
 }";
 
             var referenceA = CreateCompilationWithMscorlib(codeA).VerifyDiagnostics().ToMetadataReference();
@@ -68,8 +68,8 @@ class Test
                 var parameter = method.GetParameters().Single();
                 Assert.Equal(RefKind.RefReadOnly, parameter.RefKind);
 
-                AssertReferencedReadOnlyAttribute(parameter.GetAttributes(), referenceA.Compilation.AssemblyName);
-                AssertReferencedReadOnlyAttribute(method.GetReturnTypeAttributes(), referenceA.Compilation.AssemblyName);
+                AssertReferencedIsReadOnlyAttribute(parameter.GetAttributes(), referenceA.Compilation.AssemblyName);
+                AssertReferencedIsReadOnlyAttribute(method.GetReturnTypeAttributes(), referenceA.Compilation.AssemblyName);
             });
         }
 
@@ -79,7 +79,7 @@ class Test
             var text = @"
 namespace System.Runtime.CompilerServices
 {
-    public class ReadOnlyAttribute : System.Attribute { }
+    public class IsReadOnlyAttribute : System.Attribute { }
 }
 class Test
 {
@@ -101,7 +101,7 @@ class Test
                     Assert.Equal(RefKind.RefReadOnly, property.RefKind);
                     Assert.True(property.ReturnsByRefReadonly);
 
-                    AssertReferencedReadOnlyAttribute(property.GetAttributes(), module.ContainingAssembly.Name);
+                    AssertReferencedIsReadOnlyAttribute(property.GetAttributes(), module.ContainingAssembly.Name);
                 }
             });
         }
@@ -112,7 +112,7 @@ class Test
             var codeA = @"
 namespace System.Runtime.CompilerServices
 {
-    public class ReadOnlyAttribute : System.Attribute { }
+    public class IsReadOnlyAttribute : System.Attribute { }
 }";
 
             var referenceA = CreateCompilationWithMscorlib(codeA).VerifyDiagnostics().ToMetadataReference();
@@ -138,7 +138,7 @@ class Test
                     Assert.Equal(RefKind.RefReadOnly, property.RefKind);
                     Assert.True(property.ReturnsByRefReadonly);
 
-                    AssertReferencedReadOnlyAttribute(property.GetAttributes(), referenceA.Compilation.AssemblyName);
+                    AssertReferencedIsReadOnlyAttribute(property.GetAttributes(), referenceA.Compilation.AssemblyName);
                 }
             });
         }
@@ -149,7 +149,7 @@ class Test
             var text = @"
 namespace System.Runtime.CompilerServices
 {
-    public class ReadOnlyAttribute : System.Attribute { }
+    public class IsReadOnlyAttribute : System.Attribute { }
 }
 class Test
 {
@@ -166,8 +166,8 @@ class Test
                 var parameter = indexer.GetParameters().Single();
                 Assert.Equal(RefKind.RefReadOnly, parameter.RefKind);
                 
-                AssertReferencedReadOnlyAttribute(parameter.GetAttributes(), module.ContainingAssembly.Name);
-                AssertReferencedReadOnlyAttribute(indexer.GetAttributes(), module.ContainingAssembly.Name);
+                AssertReferencedIsReadOnlyAttribute(parameter.GetAttributes(), module.ContainingAssembly.Name);
+                AssertReferencedIsReadOnlyAttribute(indexer.GetAttributes(), module.ContainingAssembly.Name);
             });
         }
 
@@ -177,7 +177,7 @@ class Test
             var codeA = @"
 namespace System.Runtime.CompilerServices
 {
-    public class ReadOnlyAttribute : System.Attribute { }
+    public class IsReadOnlyAttribute : System.Attribute { }
 }";
 
             var referenceA = CreateCompilationWithMscorlib(codeA).VerifyDiagnostics().ToMetadataReference();
@@ -198,8 +198,8 @@ class Test
                 var parameter = indexer.GetParameters().Single();
                 Assert.Equal(RefKind.RefReadOnly, parameter.RefKind);
 
-                AssertReferencedReadOnlyAttribute(parameter.GetAttributes(), referenceA.Compilation.AssemblyName);
-                AssertReferencedReadOnlyAttribute(indexer.GetAttributes(), referenceA.Compilation.AssemblyName);
+                AssertReferencedIsReadOnlyAttribute(parameter.GetAttributes(), referenceA.Compilation.AssemblyName);
+                AssertReferencedIsReadOnlyAttribute(indexer.GetAttributes(), referenceA.Compilation.AssemblyName);
             });
         }
 
@@ -209,7 +209,7 @@ class Test
             var text = @"
 namespace System.Runtime.CompilerServices
 {
-    public class ReadOnlyAttribute : System.Attribute { }
+    public class IsReadOnlyAttribute : System.Attribute { }
 }
 public delegate ref readonly int D(ref readonly int x);
 ";
@@ -223,8 +223,8 @@ public delegate ref readonly int D(ref readonly int x);
                 var parameter = method.GetParameters().Single();
                 Assert.Equal(RefKind.RefReadOnly, parameter.RefKind);
 
-                AssertReferencedReadOnlyAttribute(parameter.GetAttributes(), module.ContainingAssembly.Name);
-                AssertReferencedReadOnlyAttribute(method.GetReturnTypeAttributes(), module.ContainingAssembly.Name);
+                AssertReferencedIsReadOnlyAttribute(parameter.GetAttributes(), module.ContainingAssembly.Name);
+                AssertReferencedIsReadOnlyAttribute(method.GetReturnTypeAttributes(), module.ContainingAssembly.Name);
             });
         }
 
@@ -234,7 +234,7 @@ public delegate ref readonly int D(ref readonly int x);
             var codeA = @"
 namespace System.Runtime.CompilerServices
 {
-    public class ReadOnlyAttribute : System.Attribute { }
+    public class IsReadOnlyAttribute : System.Attribute { }
 }";
 
             var referenceA = CreateCompilationWithMscorlib(codeA).VerifyDiagnostics().ToMetadataReference();
@@ -252,8 +252,8 @@ public delegate ref readonly int D(ref readonly int x);
                 var parameter = method.GetParameters().Single();
                 Assert.Equal(RefKind.RefReadOnly, parameter.RefKind);
 
-                AssertReferencedReadOnlyAttribute(parameter.GetAttributes(), referenceA.Compilation.AssemblyName);
-                AssertReferencedReadOnlyAttribute(method.GetReturnTypeAttributes(), referenceA.Compilation.AssemblyName);
+                AssertReferencedIsReadOnlyAttribute(parameter.GetAttributes(), referenceA.Compilation.AssemblyName);
+                AssertReferencedIsReadOnlyAttribute(method.GetReturnTypeAttributes(), referenceA.Compilation.AssemblyName);
             });
         }
 
@@ -263,7 +263,7 @@ public delegate ref readonly int D(ref readonly int x);
             var text = @"
 namespace System.Runtime.CompilerServices
 {
-    public class ReadOnlyAttribute : System.Attribute { }
+    public class IsReadOnlyAttribute : System.Attribute { }
 }
 public class Test
 {
@@ -287,8 +287,8 @@ public class Test
                 var parameter = method.GetParameters().Single();
                 Assert.Equal(RefKind.RefReadOnly, parameter.RefKind);
 
-                AssertReferencedReadOnlyAttribute(parameter.GetAttributes(), module.ContainingAssembly.Name);
-                AssertReferencedReadOnlyAttribute(method.GetReturnTypeAttributes(), module.ContainingAssembly.Name);
+                AssertReferencedIsReadOnlyAttribute(parameter.GetAttributes(), module.ContainingAssembly.Name);
+                AssertReferencedIsReadOnlyAttribute(method.GetReturnTypeAttributes(), module.ContainingAssembly.Name);
             });
         }
 
@@ -298,7 +298,7 @@ public class Test
             var codeA = @"
 namespace System.Runtime.CompilerServices
 {
-    public class ReadOnlyAttribute : System.Attribute { }
+    public class IsReadOnlyAttribute : System.Attribute { }
 }";
 
             var referenceA = CreateCompilationWithMscorlib(codeA).VerifyDiagnostics().ToMetadataReference();
@@ -325,8 +325,8 @@ public class Test
                 var parameter = method.GetParameters().Single();
                 Assert.Equal(RefKind.RefReadOnly, parameter.RefKind);
 
-                AssertReferencedReadOnlyAttribute(parameter.GetAttributes(), referenceA.Compilation.AssemblyName);
-                AssertReferencedReadOnlyAttribute(method.GetReturnTypeAttributes(), referenceA.Compilation.AssemblyName);
+                AssertReferencedIsReadOnlyAttribute(parameter.GetAttributes(), referenceA.Compilation.AssemblyName);
+                AssertReferencedIsReadOnlyAttribute(method.GetReturnTypeAttributes(), referenceA.Compilation.AssemblyName);
             });
         }
 
@@ -336,7 +336,7 @@ public class Test
             var text = @"
 namespace System.Runtime.CompilerServices
 {
-    public class ReadOnlyAttribute : System.Attribute { }
+    public class IsReadOnlyAttribute : System.Attribute { }
 }
 
 delegate ref readonly int D(ref readonly int x);
@@ -362,8 +362,8 @@ class Test
                 var parameter = method.GetParameters().Single();
                 Assert.Equal(RefKind.RefReadOnly, parameter.RefKind);
 
-                AssertReferencedReadOnlyAttribute(parameter.GetAttributes(), module.ContainingAssembly.Name);
-                AssertReferencedReadOnlyAttribute(method.GetReturnTypeAttributes(), module.ContainingAssembly.Name);
+                AssertReferencedIsReadOnlyAttribute(parameter.GetAttributes(), module.ContainingAssembly.Name);
+                AssertReferencedIsReadOnlyAttribute(method.GetReturnTypeAttributes(), module.ContainingAssembly.Name);
             });
         }
 
@@ -373,7 +373,7 @@ class Test
             var codeA = @"
 namespace System.Runtime.CompilerServices
 {
-    public class ReadOnlyAttribute : System.Attribute { }
+    public class IsReadOnlyAttribute : System.Attribute { }
 }";
 
             var referenceA = CreateCompilationWithMscorlib(codeA).VerifyDiagnostics().ToMetadataReference();
@@ -402,18 +402,18 @@ class Test
                 var parameter = method.GetParameters().Single();
                 Assert.Equal(RefKind.RefReadOnly, parameter.RefKind);
 
-                AssertReferencedReadOnlyAttribute(parameter.GetAttributes(), referenceA.Compilation.AssemblyName);
-                AssertReferencedReadOnlyAttribute(method.GetReturnTypeAttributes(), referenceA.Compilation.AssemblyName);
+                AssertReferencedIsReadOnlyAttribute(parameter.GetAttributes(), referenceA.Compilation.AssemblyName);
+                AssertReferencedIsReadOnlyAttribute(method.GetReturnTypeAttributes(), referenceA.Compilation.AssemblyName);
             });
         }
         
         [Fact]
-        public void ReadOnlyAttributeIsDisallowedEverywhereInSource_Delegates()
+        public void IsReadOnlyAttributeIsDisallowedEverywhereInSource_Delegates()
         {
             var codeA = @"
 namespace System.Runtime.CompilerServices
 {
-    public class ReadOnlyAttribute : System.Attribute { }
+    public class IsReadOnlyAttribute : System.Attribute { }
 }";
 
             var referenceA = CreateCompilationWithMscorlib(codeA).VerifyDiagnostics().ToMetadataReference();
@@ -421,26 +421,26 @@ namespace System.Runtime.CompilerServices
             var codeB = @"
 using System.Runtime.CompilerServices;
 
-[ReadOnly]
-public delegate ref readonly int D([ReadOnly] ref readonly int x);
+[IsReadOnly]
+public delegate ref readonly int D([IsReadOnly]ref readonly int x);
 ";
 
             CreateCompilationWithMscorlib(codeB, references: new[] { referenceA }).VerifyDiagnostics(
-                // (4,2): error CS8412: Do not use 'System.Runtime.CompilerServices.ReadOnlyAttribute'. This is reserved for compiler usage.
-                // [ReadOnly]
-                Diagnostic(ErrorCode.ERR_ExplicitReadOnlyAttr, "ReadOnly").WithLocation(4, 2),
-                // (5,37): error CS8412: Do not use 'System.Runtime.CompilerServices.ReadOnlyAttribute'. This is reserved for compiler usage.
-                // public delegate ref readonly int D([ReadOnly] ref readonly int x);
-                Diagnostic(ErrorCode.ERR_ExplicitReadOnlyAttr, "ReadOnly").WithLocation(5, 37));
+                // (4,2): error CS8412: Do not use 'System.Runtime.CompilerServices.IsReadOnlyAttribute'. This is reserved for compiler usage.
+                // [IsReadOnly]
+                Diagnostic(ErrorCode.ERR_ExplicitReadOnlyAttr, "IsReadOnly").WithLocation(4, 2),
+                // (5,37): error CS8412: Do not use 'System.Runtime.CompilerServices.IsReadOnlyAttribute'. This is reserved for compiler usage.
+                // public delegate ref readonly int D([IsReadOnly]ref readonly int x);
+                Diagnostic(ErrorCode.ERR_ExplicitReadOnlyAttr, "IsReadOnly").WithLocation(5, 37));
         }
 
         [Fact]
-        public void ReadOnlyAttributeIsDisallowedEverywhereInSource_Types()
+        public void IsReadOnlyAttributeIsDisallowedEverywhereInSource_Types()
         {
             var codeA = @"
 namespace System.Runtime.CompilerServices
 {
-    public class ReadOnlyAttribute : System.Attribute { }
+    public class IsReadOnlyAttribute : System.Attribute { }
 }";
 
             var referenceA = CreateCompilationWithMscorlib(codeA).VerifyDiagnostics().ToMetadataReference();
@@ -448,25 +448,25 @@ namespace System.Runtime.CompilerServices
             var codeB = @"
 using System.Runtime.CompilerServices;
 
-[ReadOnly]
+[IsReadOnly]
 public class Test
 {
 }
 ";
 
             CreateCompilationWithMscorlib(codeB, references: new[] { referenceA }).VerifyDiagnostics(
-                // (4,2): error CS8412: Do not use 'System.Runtime.CompilerServices.ReadOnlyAttribute'. This is reserved for compiler usage.
-                // [ReadOnly]
-                Diagnostic(ErrorCode.ERR_ExplicitReadOnlyAttr, "ReadOnly").WithLocation(4, 2));
+                // (4,2): error CS8412: Do not use 'System.Runtime.CompilerServices.IsReadOnlyAttribute'. This is reserved for compiler usage.
+                // [IsReadOnly]
+                Diagnostic(ErrorCode.ERR_ExplicitReadOnlyAttr, "IsReadOnly").WithLocation(4, 2));
         }
 
         [Fact]
-        public void ReadOnlyAttributeIsDisallowedEverywhereInSource_Fields()
+        public void IsReadOnlyAttributeIsDisallowedEverywhereInSource_Fields()
         {
             var codeA = @"
 namespace System.Runtime.CompilerServices
 {
-    public class ReadOnlyAttribute : System.Attribute { }
+    public class IsReadOnlyAttribute : System.Attribute { }
 }";
 
             var referenceA = CreateCompilationWithMscorlib(codeA).VerifyDiagnostics().ToMetadataReference();
@@ -476,7 +476,7 @@ using System.Runtime.CompilerServices;
 
 public class Test
 {
-    [ReadOnly]
+    [IsReadOnly]
     private int x = 0;
 
     public int X => x;
@@ -484,18 +484,18 @@ public class Test
 ";
 
             CreateCompilationWithMscorlib(codeB, references: new[] { referenceA }).VerifyDiagnostics(
-                // (6,6): error CS8412: Do not use 'System.Runtime.CompilerServices.ReadOnlyAttribute'. This is reserved for compiler usage.
-                //     [ReadOnly]
-                Diagnostic(ErrorCode.ERR_ExplicitReadOnlyAttr, "ReadOnly").WithLocation(6, 6));
+                // (6,6): error CS8412: Do not use 'System.Runtime.CompilerServices.IsReadOnlyAttribute'. This is reserved for compiler usage.
+                //     [IsReadOnly]
+                Diagnostic(ErrorCode.ERR_ExplicitReadOnlyAttr, "IsReadOnly").WithLocation(6, 6));
         }
 
         [Fact]
-        public void ReadOnlyAttributeIsDisallowedEverywhereInSource_Properties()
+        public void IsReadOnlyAttributeIsDisallowedEverywhereInSource_Properties()
         {
             var codeA = @"
 namespace System.Runtime.CompilerServices
 {
-    public class ReadOnlyAttribute : System.Attribute { }
+    public class IsReadOnlyAttribute : System.Attribute { }
 }";
 
             var referenceA = CreateCompilationWithMscorlib(codeA).VerifyDiagnostics().ToMetadataReference();
@@ -507,24 +507,24 @@ public class Test
 {
     private int x = 0;
 
-    [ReadOnly]
+    [IsReadOnly]
     public ref readonly int Property => ref x;
 }
 ";
 
             CreateCompilationWithMscorlib(codeB, references: new[] { referenceA }).VerifyDiagnostics(
-                // (8,6): error CS8412: Do not use 'System.Runtime.CompilerServices.ReadOnlyAttribute'. This is reserved for compiler usage.
-                //     [ReadOnly]
-                Diagnostic(ErrorCode.ERR_ExplicitReadOnlyAttr, "ReadOnly").WithLocation(8, 6));
+                // (8,6): error CS8412: Do not use 'System.Runtime.CompilerServices.IsReadOnlyAttribute'. This is reserved for compiler usage.
+                //     [IsReadOnly]
+                Diagnostic(ErrorCode.ERR_ExplicitReadOnlyAttr, "IsReadOnly").WithLocation(8, 6));
         }
 
         [Fact]
-        public void ReadOnlyAttributeIsDisallowedEverywhereInSource_Methods()
+        public void IsReadOnlyAttributeIsDisallowedEverywhereInSource_Methods()
         {
             var codeA = @"
 namespace System.Runtime.CompilerServices
 {
-    public class ReadOnlyAttribute : System.Attribute { }
+    public class IsReadOnlyAttribute : System.Attribute { }
 }";
 
             var referenceA = CreateCompilationWithMscorlib(codeA).VerifyDiagnostics().ToMetadataReference();
@@ -534,9 +534,9 @@ using System.Runtime.CompilerServices;
 
 public class Test
 {
-    [ReadOnly]
-    [return: ReadOnly]
-    public ref readonly int Method([ReadOnly] ref readonly int x)
+    [IsReadOnly]
+    [return: IsReadOnly]
+    public ref readonly int Method([IsReadOnly]ref readonly int x)
     {
         return ref x;
     }
@@ -544,24 +544,24 @@ public class Test
 ";
 
             CreateCompilationWithMscorlibAndSystemCore(codeB, references: new[] { referenceA }).VerifyDiagnostics(
-                // (6,6): error CS8412: Do not use 'System.Runtime.CompilerServices.ReadOnlyAttribute'. This is reserved for compiler usage.
-                //     [ReadOnly]
-                Diagnostic(ErrorCode.ERR_ExplicitReadOnlyAttr, "ReadOnly").WithLocation(6, 6),
-                // (7,14): error CS8412: Do not use 'System.Runtime.CompilerServices.ReadOnlyAttribute'. This is reserved for compiler usage.
-                //     [return: ReadOnly]
-                Diagnostic(ErrorCode.ERR_ExplicitReadOnlyAttr, "ReadOnly").WithLocation(7, 14),
-                // (8,37): error CS8412: Do not use 'System.Runtime.CompilerServices.ReadOnlyAttribute'. This is reserved for compiler usage.
-                //     public ref readonly int Method([ReadOnly] ref readonly int x)
-                Diagnostic(ErrorCode.ERR_ExplicitReadOnlyAttr, "ReadOnly").WithLocation(8, 37));
+                // (6,6): error CS8412: Do not use 'System.Runtime.CompilerServices.IsReadOnlyAttribute'. This is reserved for compiler usage.
+                //     [IsReadOnly]
+                Diagnostic(ErrorCode.ERR_ExplicitReadOnlyAttr, "IsReadOnly").WithLocation(6, 6),
+                // (7,14): error CS8412: Do not use 'System.Runtime.CompilerServices.IsReadOnlyAttribute'. This is reserved for compiler usage.
+                //     [return: IsReadOnly]
+                Diagnostic(ErrorCode.ERR_ExplicitReadOnlyAttr, "IsReadOnly").WithLocation(7, 14),
+                // (8,37): error CS8412: Do not use 'System.Runtime.CompilerServices.IsReadOnlyAttribute'. This is reserved for compiler usage.
+                //     public ref readonly int Method([IsReadOnly]ref readonly int x)
+                Diagnostic(ErrorCode.ERR_ExplicitReadOnlyAttr, "IsReadOnly").WithLocation(8, 37));
         }
 
         [Fact]
-        public void ReadOnlyAttributeIsDisallowedEverywhereInSource_Indexers()
+        public void IsReadOnlyAttributeIsDisallowedEverywhereInSource_Indexers()
         {
             var codeA = @"
 namespace System.Runtime.CompilerServices
 {
-    public class ReadOnlyAttribute : System.Attribute { }
+    public class IsReadOnlyAttribute : System.Attribute { }
 }";
 
             var referenceA = CreateCompilationWithMscorlib(codeA).VerifyDiagnostics().ToMetadataReference();
@@ -571,22 +571,22 @@ using System.Runtime.CompilerServices;
 
 public class Test
 {
-    [ReadOnly]
-    public ref readonly int this[[ReadOnly] ref readonly int x] { get { return ref x; } }
+    [IsReadOnly]
+    public ref readonly int this[[IsReadOnly]ref readonly int x] { get { return ref x; } }
 }
 ";
 
             CreateCompilationWithMscorlib(codeB, references: new[] { referenceA }).VerifyDiagnostics(
-                // (6,6): error CS8412: Do not use 'System.Runtime.CompilerServices.ReadOnlyAttribute'. This is reserved for compiler usage.
-                //     [ReadOnly]
-                Diagnostic(ErrorCode.ERR_ExplicitReadOnlyAttr, "ReadOnly").WithLocation(6, 6),
-                // (7,35): error CS8412: Do not use 'System.Runtime.CompilerServices.ReadOnlyAttribute'. This is reserved for compiler usage.
-                //     public ref readonly int this[[ReadOnly] ref readonly int x] { get { return ref x; } }
-                Diagnostic(ErrorCode.ERR_ExplicitReadOnlyAttr, "ReadOnly").WithLocation(7, 35));
+                // (6,6): error CS8412: Do not use 'System.Runtime.CompilerServices.IsReadOnlyAttribute'. This is reserved for compiler usage.
+                //     [IsReadOnly]
+                Diagnostic(ErrorCode.ERR_ExplicitReadOnlyAttr, "IsReadOnly").WithLocation(6, 6),
+                // (7,35): error CS8412: Do not use 'System.Runtime.CompilerServices.IsReadOnlyAttribute'. This is reserved for compiler usage.
+                //     public ref readonly int this[[IsReadOnly]ref readonly int x] { get { return ref x; } }
+                Diagnostic(ErrorCode.ERR_ExplicitReadOnlyAttr, "IsReadOnly").WithLocation(7, 35));
         }
 
         [Fact]
-        public void ReadOnlyAttributeIsGeneratedIfItDoesNotExist()
+        public void IsReadOnlyAttributeIsGeneratedIfItDoesNotExist()
         {
             var code = @"
 public class Test
@@ -603,18 +603,18 @@ public class Test
                 var parameter = method.GetParameters().Single();
                 Assert.Equal(RefKind.RefReadOnly, parameter.RefKind);
 
-                AssertReferencedReadOnlyAttribute(parameter.GetAttributes(), module.ContainingAssembly.Name);
-                AssertReferencedReadOnlyAttribute(method.GetReturnTypeAttributes(), module.ContainingAssembly.Name);
+                AssertReferencedIsReadOnlyAttribute(parameter.GetAttributes(), module.ContainingAssembly.Name);
+                AssertReferencedIsReadOnlyAttribute(method.GetReturnTypeAttributes(), module.ContainingAssembly.Name);
 
                 AssertGeneratedEmbeddedAttribute(module.ContainingAssembly, WellKnownType.Microsoft_CodeAnalysis_EmbeddedAttribute);
-                AssertGeneratedEmbeddedAttribute(module.ContainingAssembly, WellKnownType.System_Runtime_CompilerServices_ReadOnlyAttribute);
+                AssertGeneratedEmbeddedAttribute(module.ContainingAssembly, WellKnownType.System_Runtime_CompilerServices_IsReadOnlyAttribute);
             });
         }
 
-        private void AssertReferencedReadOnlyAttribute(ImmutableArray<CSharpAttributeData> attributes, string assemblyName)
+        private void AssertReferencedIsReadOnlyAttribute(ImmutableArray<CSharpAttributeData> attributes, string assemblyName)
         {
             var attributeType = attributes.Single().AttributeClass;
-            Assert.Equal("ReadOnlyAttribute", attributeType.Name);
+            Assert.Equal("IsReadOnlyAttribute", attributeType.Name);
             Assert.Equal(assemblyName, attributeType.ContainingAssembly.Name);
         }
 
@@ -622,7 +622,9 @@ public class Test
         {
             var expectedTypeName = WellKnownTypes.GetMetadataName(type);
             var typeSymbol = assembly.GlobalNamespace.GetMember(expectedTypeName);
+
             Assert.NotNull(typeSymbol);
+            Assert.Equal(Accessibility.Internal, typeSymbol.DeclaredAccessibility);
 
             var attributes = typeSymbol.GetAttributes().Select(attribute => attribute.AttributeClass.Name).ToArray();
             Assert.Equal(2, attributes.Length);

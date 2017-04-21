@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private Symbol[] _lazyWellKnownTypeMembers;
 
-        internal bool NeedsGeneratedReadOnlyAttribute { get; private set; }
+        internal bool NeedsGeneratedIsReadOnlyAttribute { get; private set; }
 
         /// <summary>
         /// Lookup member declaration in well known type used by this Compilation.
@@ -417,12 +417,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return TrySynthesizeAttribute(WellKnownMember.System_Diagnostics_DebuggerStepThroughAttribute__ctor);
         }
 
-        internal void EnsureReadOnlyAttributeExists()
+        internal void EnsureIsReadOnlyAttributeExists()
         {
-            var attributeSymbol = GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_ReadOnlyAttribute);
+            var attributeSymbol = GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_IsReadOnlyAttribute);
             if (attributeSymbol == null || attributeSymbol is MissingMetadataTypeSymbol)
             {
-                NeedsGeneratedReadOnlyAttribute = true;
+                NeedsGeneratedIsReadOnlyAttribute = true;
             }
         }
 

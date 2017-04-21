@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             if (returnInfo.IsByRef)
             {
-                if (moduleSymbol.Module.HasReadOnlyAttribute(handle))
+                if (moduleSymbol.Module.HasIsReadOnlyAttribute(handle))
                 {
                     _refKind = RefKind.RefReadOnly;
                 }

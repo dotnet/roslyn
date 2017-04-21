@@ -264,7 +264,7 @@ namespace Microsoft.CodeAnalysis
 
         Microsoft_CodeAnalysis_Runtime_Instrumentation,
 
-        System_Runtime_CompilerServices_ReadOnlyAttribute,
+        System_Runtime_CompilerServices_IsReadOnlyAttribute,
         Microsoft_CodeAnalysis_EmbeddedAttribute,
 
         NextAvailable,
@@ -524,7 +524,7 @@ namespace Microsoft.CodeAnalysis
 
             "Microsoft.CodeAnalysis.Runtime.Instrumentation",
 
-            "System.Runtime.CompilerServices.ReadOnlyAttribute",
+            "System.Runtime.CompilerServices.IsReadOnlyAttribute",
             "Microsoft.CodeAnalysis.EmbeddedAttribute",
         };
 

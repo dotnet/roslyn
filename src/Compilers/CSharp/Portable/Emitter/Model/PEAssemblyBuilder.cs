@@ -161,27 +161,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return base.SynthesizeEmbeddedAttribute();
         }
 
-        internal override SynthesizedAttributeData SynthesizeReadOnlyAttribute()
+        internal override SynthesizedAttributeData SynthesizeIsReadOnlyAttribute()
         {
-            if (_embeddedAttributesConstructors.TryGetValue(WellKnownMember.System_Runtime_CompilerServices_ReadOnlyAttribute__ctor, out var constructor))
+            if (_embeddedAttributesConstructors.TryGetValue(WellKnownMember.System_Runtime_CompilerServices_IsReadOnlyAttribute__ctor, out var constructor))
             {
                 return new SynthesizedAttributeData(constructor, ImmutableArray<TypedConstant>.Empty, ImmutableArray<KeyValuePair<string, TypedConstant>>.Empty);
             }
 
-            return base.SynthesizeReadOnlyAttribute();
+            return base.SynthesizeIsReadOnlyAttribute();
         }
 
         private void CreateEmbeddedAttributesIfNeeded()
         {
-            if(_sourceAssembly.DeclaringCompilation.NeedsGeneratedReadOnlyAttribute)
+            if(_sourceAssembly.DeclaringCompilation.NeedsGeneratedIsReadOnlyAttribute)
             {
                 CreateEmbeddedAttributeIfNeeded(
                     WellKnownType.Microsoft_CodeAnalysis_EmbeddedAttribute,
                     WellKnownMember.Microsoft_CodeAnalysis_EmbeddedAttribute__ctor);
 
                 CreateEmbeddedAttributeIfNeeded(
-                    WellKnownType.System_Runtime_CompilerServices_ReadOnlyAttribute,
-                    WellKnownMember.System_Runtime_CompilerServices_ReadOnlyAttribute__ctor);
+                    WellKnownType.System_Runtime_CompilerServices_IsReadOnlyAttribute,
+                    WellKnownMember.System_Runtime_CompilerServices_IsReadOnlyAttribute__ctor);
             }
         }
 

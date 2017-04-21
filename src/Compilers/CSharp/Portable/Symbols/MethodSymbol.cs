@@ -1202,7 +1202,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (this.ReturnsByRefReadonly)
             {
-                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeReadOnlyAttribute());
+                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeIsReadOnlyAttribute());
             }
         }
 

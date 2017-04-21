@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (this.ReturnsByRefReadonly)
             {
-                this.DeclaringCompilation.EnsureReadOnlyAttributeExists();
+                this.DeclaringCompilation.EnsureIsReadOnlyAttributeExists();
             }
         }
 

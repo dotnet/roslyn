@@ -4094,7 +4094,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Do not use &apos;System.Runtime.CompilerServices.ReadOnlyAttribute&apos;. This is reserved for compiler usage..
+        ///   Looks up a localized string similar to Do not use &apos;System.Runtime.CompilerServices.IsReadOnlyAttribute&apos;. This is reserved for compiler usage..
         /// </summary>
         internal static string ERR_ExplicitReadOnlyAttr {
             get {

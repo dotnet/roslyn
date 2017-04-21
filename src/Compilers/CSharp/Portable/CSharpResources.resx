@@ -5069,6 +5069,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Compiler version: '{0}'. Language version: {1}.</value>
   </data>
   <data name="ERR_ExplicitReadOnlyAttr" xml:space="preserve">
-    <value>Do not use 'System.Runtime.CompilerServices.ReadOnlyAttribute'. This is reserved for compiler usage.</value>
+    <value>Do not use 'System.Runtime.CompilerServices.IsReadOnlyAttribute'. This is reserved for compiler usage.</value>
   </data>
 </root>
