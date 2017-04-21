@@ -21,7 +21,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             _workspace = workspace;
         }
 
-        public bool TryGetProjectId(IVsHierarchyItem hierarchyItem, out ProjectId projectId)
+        public bool TryGetProjectId(IVsHierarchyItem hierarchyItem, string targetFrameworkMoniker, out ProjectId projectId)
         {
             if (_workspace.DeferredState == null)
             {
@@ -41,8 +41,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             var project = _workspace.DeferredState.ProjectTracker.ImmutableProjects
                     .Where(p =>
                     {
-                        return p.Hierarchy.TryGetCanonicalName((uint)VSConstants.VSITEMID.Root, out string projectCanonicalName)
-                            && projectCanonicalName.Equals(nestedCanonicalName, System.StringComparison.OrdinalIgnoreCase);
+                        if (p.Hierarchy.TryGetCanonicalName((uint)VSConstants.VSITEMID.Root, out string projectCanonicalName)
+                            && projectCanonicalName.Equals(nestedCanonicalName, System.StringComparison.OrdinalIgnoreCase))
+                        {
+                            if (targetFrameworkMoniker == null)
+                            {
+                                return true;
+                            }
+
+                            return p.Hierarchy.TryGetTargetFrameworkMoniker((uint)VSConstants.VSITEMID.Root, out string projectTargetFrameworkMoniker)
+                                && projectTargetFrameworkMoniker.Equals(targetFrameworkMoniker);
+                        }
+
+                        return false;
                     })
                     .SingleOrDefault();
 

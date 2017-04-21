@@ -1,12 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.ComponentModel;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.Internal.VisualStudio.PlatformUI;
-using Microsoft.VisualStudio.Language.Intellisense;
+using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Shell;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer
@@ -92,7 +91,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                 return null;
             }
 
-            return project.AnalyzerReferences.SingleOrDefault(r => r.FullPath.Equals(_item.CanonicalName, StringComparison.OrdinalIgnoreCase));
+            if (!_item.HierarchyIdentity.NestedHierarchy.TryGetItemName(_item.HierarchyIdentity.NestedItemID, out string name))
+            {
+                return null;
+            }
+
+            return project.AnalyzerReferences.FirstOrDefault(r => r.Display.Equals(name));
         }
     }
 }

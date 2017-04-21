@@ -43,12 +43,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                 item.HierarchyIdentity.NestedHierarchy != null &&
                 relationshipName == KnownRelationships.Contains)
             {
-                if (NestedHierarchyHasProjectTreeCapability(item, "AnalyzerSubTreeNode"))
+                if (NestedHierarchyHasProjectTreeCapability(item, "AnalyzerDependency"))
                 {
-                    var projectRootItem = FindProjectRootItem(item);
+                    var projectRootItem = FindProjectRootItem(item, out string targetFrameworkMoniker);
                     if (projectRootItem != null)
                     {
-                        return CreateCollectionSourceCore(projectRootItem, item);
+                        return CreateCollectionSourceCore(projectRootItem, item, targetFrameworkMoniker);
                     }
                 }
             }
@@ -56,10 +56,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             return null;
         }
 
-        private IVsHierarchyItem FindProjectRootItem(IVsHierarchyItem item)
+        /// <summary>
+        /// Starting at the given item, walks up the tree to find the item representing the project root.
+        /// If the item is located under a target-framwork specific node, the corresponding 
+        /// TargetFrameworkMoniker will be found as well.
+        /// </summary>
+        private static IVsHierarchyItem FindProjectRootItem(IVsHierarchyItem item, out string targetFrameworkMoniker)
         {
+            targetFrameworkMoniker = null;
+
             for (var parent = item; parent != null; parent = parent.Parent)
             {
+                if (targetFrameworkMoniker == null)
+                {
+                    targetFrameworkMoniker = GetTargetFrameworkMoniker(parent, targetFrameworkMoniker);
+                }
+
                 if (NestedHierarchyHasProjectTreeCapability(parent, "ProjectRoot"))
                 {
                     return parent;
@@ -69,15 +81,43 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             return null;
         }
 
+        /// <summary>
+        /// Given an item determines if it represents a particular target frmework.
+        /// If so, it returns the corresponding TargetFrameworkMoniker.
+        /// </summary>
+        private static string GetTargetFrameworkMoniker(IVsHierarchyItem item, string targetFrameworkMoniker)
+        {
+            var hierarchy = item.HierarchyIdentity.NestedHierarchy;
+            var itemId = item.HierarchyIdentity.NestedItemID;
+
+            var projectTreeCapabilities = GetProjectTreeCapabilities(hierarchy, itemId);
+
+            bool isTargetNode = false;
+            string potentialTFM = null;
+            foreach (var capability in projectTreeCapabilities)
+            {
+                if (capability.Equals("TargetNode"))
+                {
+                    isTargetNode = true;
+                }
+                else if (capability.StartsWith("$TFM:"))
+                {
+                    potentialTFM = capability.Substring("$TFM:".Length);
+                }
+            }
+
+            return isTargetNode ? potentialTFM : null;
+        }
+
         // This method is separate from CreateCollectionSource and marked with
         // MethodImplOptions.NoInlining because we don't want calls to CreateCollectionSource
         // to cause Roslyn assemblies to load where they aren't needed.
         [MethodImpl(MethodImplOptions.NoInlining)]
-        private IAttachedCollectionSource CreateCollectionSourceCore(IVsHierarchyItem projectRootItem, IVsHierarchyItem item)
+        private IAttachedCollectionSource CreateCollectionSourceCore(IVsHierarchyItem projectRootItem, IVsHierarchyItem item, string targetFrameworkMoniker)
         {
             var hierarchyMapper = TryGetProjectMap();
             if (hierarchyMapper != null &&
-                hierarchyMapper.TryGetProjectId(projectRootItem, out var projectId))
+                hierarchyMapper.TryGetProjectId(projectRootItem, targetFrameworkMoniker, out var projectId))
             {
                 var workspace = TryGetWorkspace();
                 var analyzerService = GetAnalyzerService();
