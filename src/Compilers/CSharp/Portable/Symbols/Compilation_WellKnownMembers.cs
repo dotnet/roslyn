@@ -419,7 +419,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal void EnsureReadOnlyAttributeExists()
         {
-            if (GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_ReadOnlyAttribute) == null)
+            var attributeSymbol = GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_ReadOnlyAttribute);
+            if (attributeSymbol == null || attributeSymbol is MissingMetadataTypeSymbol)
             {
                 NeedsGeneratedReadOnlyAttribute = true;
             }

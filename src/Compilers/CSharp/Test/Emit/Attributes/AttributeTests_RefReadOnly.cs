@@ -7,6 +7,7 @@ using Roslyn.Test.Utilities;
 using System.Collections.Immutable;
 using System.Linq;
 using Xunit;
+using System;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -35,8 +36,8 @@ class Test
                 var parameter = method.GetParameters().Single();
                 Assert.Equal(RefKind.RefReadOnly, parameter.RefKind);
 
-                AssertSingleReadOnlyAttribute(parameter.GetAttributes(), module.ContainingAssembly.Name);
-                AssertSingleReadOnlyAttribute(method.GetReturnTypeAttributes(), module.ContainingAssembly.Name);
+                AssertReferencedReadOnlyAttribute(parameter.GetAttributes(), module.ContainingAssembly.Name);
+                AssertReferencedReadOnlyAttribute(method.GetReturnTypeAttributes(), module.ContainingAssembly.Name);
             });
         }
 
@@ -67,8 +68,8 @@ class Test
                 var parameter = method.GetParameters().Single();
                 Assert.Equal(RefKind.RefReadOnly, parameter.RefKind);
 
-                AssertSingleReadOnlyAttribute(parameter.GetAttributes(), referenceA.Compilation.AssemblyName);
-                AssertSingleReadOnlyAttribute(method.GetReturnTypeAttributes(), referenceA.Compilation.AssemblyName);
+                AssertReferencedReadOnlyAttribute(parameter.GetAttributes(), referenceA.Compilation.AssemblyName);
+                AssertReferencedReadOnlyAttribute(method.GetReturnTypeAttributes(), referenceA.Compilation.AssemblyName);
             });
         }
 
@@ -100,7 +101,7 @@ class Test
                     Assert.Equal(RefKind.RefReadOnly, property.RefKind);
                     Assert.True(property.ReturnsByRefReadonly);
 
-                    AssertSingleReadOnlyAttribute(property.GetAttributes(), module.ContainingAssembly.Name);
+                    AssertReferencedReadOnlyAttribute(property.GetAttributes(), module.ContainingAssembly.Name);
                 }
             });
         }
@@ -137,7 +138,7 @@ class Test
                     Assert.Equal(RefKind.RefReadOnly, property.RefKind);
                     Assert.True(property.ReturnsByRefReadonly);
 
-                    AssertSingleReadOnlyAttribute(property.GetAttributes(), referenceA.Compilation.AssemblyName);
+                    AssertReferencedReadOnlyAttribute(property.GetAttributes(), referenceA.Compilation.AssemblyName);
                 }
             });
         }
@@ -165,8 +166,8 @@ class Test
                 var parameter = indexer.GetParameters().Single();
                 Assert.Equal(RefKind.RefReadOnly, parameter.RefKind);
                 
-                AssertSingleReadOnlyAttribute(parameter.GetAttributes(), module.ContainingAssembly.Name);
-                AssertSingleReadOnlyAttribute(indexer.GetAttributes(), module.ContainingAssembly.Name);
+                AssertReferencedReadOnlyAttribute(parameter.GetAttributes(), module.ContainingAssembly.Name);
+                AssertReferencedReadOnlyAttribute(indexer.GetAttributes(), module.ContainingAssembly.Name);
             });
         }
 
@@ -197,8 +198,8 @@ class Test
                 var parameter = indexer.GetParameters().Single();
                 Assert.Equal(RefKind.RefReadOnly, parameter.RefKind);
 
-                AssertSingleReadOnlyAttribute(parameter.GetAttributes(), referenceA.Compilation.AssemblyName);
-                AssertSingleReadOnlyAttribute(indexer.GetAttributes(), referenceA.Compilation.AssemblyName);
+                AssertReferencedReadOnlyAttribute(parameter.GetAttributes(), referenceA.Compilation.AssemblyName);
+                AssertReferencedReadOnlyAttribute(indexer.GetAttributes(), referenceA.Compilation.AssemblyName);
             });
         }
 
@@ -222,8 +223,8 @@ public delegate ref readonly int D(ref readonly int x);
                 var parameter = method.GetParameters().Single();
                 Assert.Equal(RefKind.RefReadOnly, parameter.RefKind);
 
-                AssertSingleReadOnlyAttribute(parameter.GetAttributes(), module.ContainingAssembly.Name);
-                AssertSingleReadOnlyAttribute(method.GetReturnTypeAttributes(), module.ContainingAssembly.Name);
+                AssertReferencedReadOnlyAttribute(parameter.GetAttributes(), module.ContainingAssembly.Name);
+                AssertReferencedReadOnlyAttribute(method.GetReturnTypeAttributes(), module.ContainingAssembly.Name);
             });
         }
 
@@ -251,8 +252,8 @@ public delegate ref readonly int D(ref readonly int x);
                 var parameter = method.GetParameters().Single();
                 Assert.Equal(RefKind.RefReadOnly, parameter.RefKind);
 
-                AssertSingleReadOnlyAttribute(parameter.GetAttributes(), referenceA.Compilation.AssemblyName);
-                AssertSingleReadOnlyAttribute(method.GetReturnTypeAttributes(), referenceA.Compilation.AssemblyName);
+                AssertReferencedReadOnlyAttribute(parameter.GetAttributes(), referenceA.Compilation.AssemblyName);
+                AssertReferencedReadOnlyAttribute(method.GetReturnTypeAttributes(), referenceA.Compilation.AssemblyName);
             });
         }
 
@@ -286,8 +287,8 @@ public class Test
                 var parameter = method.GetParameters().Single();
                 Assert.Equal(RefKind.RefReadOnly, parameter.RefKind);
 
-                AssertSingleReadOnlyAttribute(parameter.GetAttributes(), module.ContainingAssembly.Name);
-                AssertSingleReadOnlyAttribute(method.GetReturnTypeAttributes(), module.ContainingAssembly.Name);
+                AssertReferencedReadOnlyAttribute(parameter.GetAttributes(), module.ContainingAssembly.Name);
+                AssertReferencedReadOnlyAttribute(method.GetReturnTypeAttributes(), module.ContainingAssembly.Name);
             });
         }
 
@@ -324,8 +325,8 @@ public class Test
                 var parameter = method.GetParameters().Single();
                 Assert.Equal(RefKind.RefReadOnly, parameter.RefKind);
 
-                AssertSingleReadOnlyAttribute(parameter.GetAttributes(), referenceA.Compilation.AssemblyName);
-                AssertSingleReadOnlyAttribute(method.GetReturnTypeAttributes(), referenceA.Compilation.AssemblyName);
+                AssertReferencedReadOnlyAttribute(parameter.GetAttributes(), referenceA.Compilation.AssemblyName);
+                AssertReferencedReadOnlyAttribute(method.GetReturnTypeAttributes(), referenceA.Compilation.AssemblyName);
             });
         }
 
@@ -361,8 +362,8 @@ class Test
                 var parameter = method.GetParameters().Single();
                 Assert.Equal(RefKind.RefReadOnly, parameter.RefKind);
 
-                AssertSingleReadOnlyAttribute(parameter.GetAttributes(), module.ContainingAssembly.Name);
-                AssertSingleReadOnlyAttribute(method.GetReturnTypeAttributes(), module.ContainingAssembly.Name);
+                AssertReferencedReadOnlyAttribute(parameter.GetAttributes(), module.ContainingAssembly.Name);
+                AssertReferencedReadOnlyAttribute(method.GetReturnTypeAttributes(), module.ContainingAssembly.Name);
             });
         }
 
@@ -401,8 +402,8 @@ class Test
                 var parameter = method.GetParameters().Single();
                 Assert.Equal(RefKind.RefReadOnly, parameter.RefKind);
 
-                AssertSingleReadOnlyAttribute(parameter.GetAttributes(), referenceA.Compilation.AssemblyName);
-                AssertSingleReadOnlyAttribute(method.GetReturnTypeAttributes(), referenceA.Compilation.AssemblyName);
+                AssertReferencedReadOnlyAttribute(parameter.GetAttributes(), referenceA.Compilation.AssemblyName);
+                AssertReferencedReadOnlyAttribute(method.GetReturnTypeAttributes(), referenceA.Compilation.AssemblyName);
             });
         }
         
@@ -584,11 +585,51 @@ public class Test
                 Diagnostic(ErrorCode.ERR_ExplicitReadOnlyAttr, "ReadOnly").WithLocation(7, 35));
         }
 
-        private void AssertSingleReadOnlyAttribute(ImmutableArray<CSharpAttributeData> attributes, string assemblyName)
+        [Fact]
+        public void ReadOnlyAttributeIsGeneratedIfItDoesNotExist()
+        {
+            var code = @"
+public class Test
+{
+	public ref readonly int M(ref readonly int p) => ref p;
+}";
+
+            CompileAndVerify(code, verify: false, symbolValidator: module =>
+            {
+                var method = module.GlobalNamespace.GetMember<MethodSymbol>("Test.M");
+                Assert.Equal(RefKind.RefReadOnly, method.RefKind);
+                Assert.True(method.ReturnsByRefReadonly);
+
+                var parameter = method.GetParameters().Single();
+                Assert.Equal(RefKind.RefReadOnly, parameter.RefKind);
+
+                AssertReferencedReadOnlyAttribute(parameter.GetAttributes(), module.ContainingAssembly.Name);
+                AssertReferencedReadOnlyAttribute(method.GetReturnTypeAttributes(), module.ContainingAssembly.Name);
+
+                AssertGeneratedEmbeddedAttribute(module.ContainingAssembly, WellKnownType.Microsoft_CodeAnalysis_EmbeddedAttribute);
+                AssertGeneratedEmbeddedAttribute(module.ContainingAssembly, WellKnownType.System_Runtime_CompilerServices_ReadOnlyAttribute);
+            });
+        }
+
+        private void AssertReferencedReadOnlyAttribute(ImmutableArray<CSharpAttributeData> attributes, string assemblyName)
         {
             var attributeType = attributes.Single().AttributeClass;
-            Assert.Equal("ReadOnlyAttribute", attributeType.MetadataName);
+            Assert.Equal("ReadOnlyAttribute", attributeType.Name);
             Assert.Equal(assemblyName, attributeType.ContainingAssembly.Name);
+        }
+
+        private void AssertGeneratedEmbeddedAttribute(AssemblySymbol assembly, WellKnownType type)
+        {
+            var expectedTypeName = WellKnownTypes.GetMetadataName(type);
+            var typeSymbol = assembly.GlobalNamespace.GetMember(expectedTypeName);
+            Assert.NotNull(typeSymbol);
+
+            var attributes = typeSymbol.GetAttributes().Select(attribute => attribute.AttributeClass.Name).ToArray();
+            Assert.Equal(2, attributes.Length);
+
+            Array.Sort(attributes);
+            Assert.Equal("CompilerGeneratedAttribute", attributes[0]);
+            Assert.Equal("EmbeddedAttribute", attributes[1]);
         }
     }
 }

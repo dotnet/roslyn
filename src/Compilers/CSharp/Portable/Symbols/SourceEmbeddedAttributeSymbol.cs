@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _name = nameParts.Last();
             _baseType = compilation.GetWellKnownType(WellKnownType.System_Attribute);
 
-            Constructor = new SynthesizedInstanceConstructor(this);
+            Constructor = new SourceEmbeddedAttributeConstructorSymbol(this);
             _members = ImmutableArray.Create<Symbol>(Constructor);
             _module = compilation.SourceModule;
 
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public SynthesizedInstanceConstructor Constructor { get; private set; }
+        public SourceEmbeddedAttributeConstructorSymbol Constructor { get; private set; }
 
         public override int Arity => 0;
 
@@ -70,6 +70,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override Symbol ContainingSymbol => _namespace;
 
         internal override ModuleSymbol ContainingModule => _module;
+
+        public override AssemblySymbol ContainingAssembly => _module.ContainingAssembly;
 
         public override NamespaceSymbol ContainingNamespace => _namespace;
 
@@ -155,6 +157,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             AddSynthesizedAttribute(
                 ref attributes,
                 moduleBuilder.SynthesizeEmbeddedAttribute());
+        }
+
+        internal sealed class SourceEmbeddedAttributeConstructorSymbol : SynthesizedInstanceConstructor
+        {
+            public SourceEmbeddedAttributeConstructorSymbol(NamedTypeSymbol containingType)
+                : base(containingType)
+            {
+            }
+
+            internal override void GenerateMethodBody(TypeCompilationState compilationState, DiagnosticBag diagnostics)
+            {
+                var factory = new SyntheticBoundNodeFactory(this, this.GetNonNullSyntaxNode(), compilationState, diagnostics);
+                factory.CurrentMethod = this;
+                factory.CloseMethod(factory.Block());
+            }
         }
     }
 }

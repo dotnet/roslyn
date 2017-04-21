@@ -60,24 +60,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         public override ISourceAssemblySymbolInternal SourceAssemblyOpt => _sourceAssembly;
 
-        internal override IEnumerable<INamespaceTypeDefinition> GetTopLevelTypesCore(EmitContext context)
+        internal override ImmutableArray<NamedTypeSymbol> GetAdditionalTopLevelTypes()
         {
             CreateEmbeddedAttributesIfNeeded();
 
+            if (_embeddedAttributesConstructors.Count == 0)
+            {
+                return _additionalTypes;
+            }
+
+            var builder = ArrayBuilder<NamedTypeSymbol>.GetInstance();
+            builder.AddRange(_additionalTypes);
+
             foreach (var constructor in _embeddedAttributesConstructors.Values)
             {
-                yield return constructor.ContainingType;
+                builder.Add(constructor.ContainingType);
             }
 
-            foreach (var type in base.GetTopLevelTypesCore(context))
-            {
-                yield return type;
-            }
-        }
-
-        internal override ImmutableArray<NamedTypeSymbol> GetAdditionalTopLevelTypes()
-        {
-            return _additionalTypes;
+            return builder.ToImmutableAndFree();
         }
 
         public sealed override IEnumerable<Cci.IFileReference> GetFiles(EmitContext context)
