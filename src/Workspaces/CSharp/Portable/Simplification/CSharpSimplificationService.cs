@@ -207,34 +207,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
 
             return false;
         }
-
-        // This code is copied from the compiler
-        internal static SyntaxToken ExtractAnonymousTypeMemberName(ExpressionSyntax input)
-        {
-            while (true)
-            {
-                switch (input.Kind())
-                {
-                    case SyntaxKind.IdentifierName:
-                        return ((IdentifierNameSyntax)input).Identifier;
-
-                    case SyntaxKind.SimpleMemberAccessExpression:
-                        input = ((MemberAccessExpressionSyntax)input).Name;
-                        continue;
-
-                    case SyntaxKind.ConditionalAccessExpression:
-                        input = ((ConditionalAccessExpressionSyntax)input).WhenNotNull;
-                        if (input.Kind() == SyntaxKind.MemberBindingExpression)
-                        {
-                            return ((MemberBindingExpressionSyntax)input).Name.Identifier;
-                        }
-
-                        continue;
-
-                    default:
-                        return default(SyntaxToken);
-                }
-            }
-        }
     }
 }

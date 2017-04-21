@@ -260,7 +260,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                     var tuple = (TupleExpressionSyntax)node.Parent;
                     if (!IsTupleInDeconstruction(tuple))
                     {
-                        inferredName = ExtractAnonymousTypeMemberName(node.Expression).ValueText;
+                        inferredName = node.Expression.ExtractAnonymousTypeMemberName().ValueText;
                         if (!CanMakeNameExplicitInTuple(tuple, inferredName))
                         {
                             inferredName = null;
@@ -296,7 +296,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
 
             private static bool CanMakeNameExplicitInTuple(TupleExpressionSyntax tuple, string name)
             {
-                if (name == null || IsTupleElementNameReserved(name) != -1)
+                if (name == null || SyntaxFacts.IsTupleElementNameReserved(name) != -1)
                 {
                     return false;
                 }
@@ -311,7 +311,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                     }
                     else
                     {
-                        elementName = ExtractAnonymousTypeMemberName(argument.Expression).ValueText;
+                        elementName = argument.Expression.ExtractAnonymousTypeMemberName().ValueText;
                     }
 
                     if (elementName?.Equals(name, StringComparison.Ordinal) == true)
@@ -329,60 +329,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 return true;
             }
 
-            // This code is roughly copied from the compiler
-            private static int IsTupleElementNameReserved(string elementName)
-            {
-                if (IsElementNameForbidden(elementName))
-                {
-                    return 0;
-                }
-
-                return MatchesCanonicalElementName(elementName);
-
-                bool IsElementNameForbidden(string name)
-                {
-                    switch (name)
-                    {
-                        case "CompareTo":
-                        case "Deconstruct":
-                        case "Equals":
-                        case "GetHashCode":
-                        case "Rest":
-                        case "ToString":
-                            return true;
-
-                        default:
-                            return false;
-                    }
-                }
-
-                int MatchesCanonicalElementName(string name)
-                {
-                    if (name.StartsWith("Item", StringComparison.Ordinal))
-                    {
-                        string tail = name.Substring(4);
-                        int number;
-                        if (int.TryParse(tail, out number))
-                        {
-                            if (number > 0 && String.Equals(name, TupleMemberName(number), StringComparison.Ordinal))
-                            {
-                                return number;
-                            }
-                        }
-                    }
-
-                    return -1;
-                }
-
-                string TupleMemberName(int position)
-                {
-                    return "Item" + position;
-                }
-            }
-
             public override SyntaxNode VisitAnonymousObjectMemberDeclarator(AnonymousObjectMemberDeclaratorSyntax node)
             {
-                var inferredName = ExtractAnonymousTypeMemberName(node.Expression).ValueText;
+                var inferredName = node.Expression.ExtractAnonymousTypeMemberName().ValueText;
 
                 var newDeclarator = (AnonymousObjectMemberDeclaratorSyntax)base.VisitAnonymousObjectMemberDeclarator(node);
                 if (inferredName != null && node.NameEquals == null)

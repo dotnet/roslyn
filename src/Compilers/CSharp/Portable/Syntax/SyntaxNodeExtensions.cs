@@ -116,38 +116,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        /// <summary>
-        /// Given an initializer expression infer the name of anonymous property.
-        /// Returns default(SyntaxToken) if unsuccessful
-        /// </summary>
-        internal static SyntaxToken ExtractAnonymousTypeMemberName(this ExpressionSyntax input)
-        {
-            while (true)
-            {
-                switch (input.Kind())
-                {
-                    case SyntaxKind.IdentifierName:
-                        return ((IdentifierNameSyntax)input).Identifier;
-
-                    case SyntaxKind.SimpleMemberAccessExpression:
-                        input = ((MemberAccessExpressionSyntax)input).Name;
-                        continue;
-
-                    case SyntaxKind.ConditionalAccessExpression:
-                        input = ((ConditionalAccessExpressionSyntax)input).WhenNotNull;
-                        if (input.Kind() == SyntaxKind.MemberBindingExpression)
-                        {
-                            return ((MemberBindingExpressionSyntax)input).Name.Identifier;
-                        }
-
-                        continue;
-
-                    default:
-                        return default(SyntaxToken);
-                }
-            }
-        }
-
         internal static TypeSyntax SkipRef(this TypeSyntax syntax, out RefKind refKind)
         {
             refKind = RefKind.None;

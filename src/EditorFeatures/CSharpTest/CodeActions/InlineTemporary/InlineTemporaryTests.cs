@@ -4414,6 +4414,32 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task ExplicitAnonymousTypeMemberNameAdded_AssignmentEpression()
+        {
+            var code = @"
+class C
+{
+    void M()
+    {
+        int j = 0;
+        int [||]i = j = 1;
+        var t = new { i, k = 3 };
+    }
+}";
+
+            var expected = @"
+class C
+{
+    void M()
+    {
+        int j = 0;
+        var t = new { i = j = 1, k = 3 };
+    }
+}";
+            await TestInRegularAndScriptAsync(code, expected, ignoreTrivia: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task ExplicitAnonymousTypeMemberNameAdded_Comment()
         {
             var code = @"

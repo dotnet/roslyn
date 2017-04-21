@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxKind;
@@ -424,6 +425,51 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             parent = node.Parent as DeclarationExpressionSyntax;
             return node == parent?.Type;
+        }
+
+        /// <summary>
+        /// Given an initializer expression infer the name of anonymous property.
+        /// Returns default(SyntaxToken) if unsuccessful
+        /// </summary>
+        public static SyntaxToken ExtractAnonymousTypeMemberName(this ExpressionSyntax input)
+        {
+            while (true)
+            {
+                switch (input.Kind())
+                {
+                    case SyntaxKind.IdentifierName:
+                        return ((IdentifierNameSyntax)input).Identifier;
+
+                    case SyntaxKind.SimpleMemberAccessExpression:
+                        input = ((MemberAccessExpressionSyntax)input).Name;
+                        continue;
+
+                    case SyntaxKind.ConditionalAccessExpression:
+                        input = ((ConditionalAccessExpressionSyntax)input).WhenNotNull;
+                        if (input.Kind() == SyntaxKind.MemberBindingExpression)
+                        {
+                            return ((MemberBindingExpressionSyntax)input).Name.Identifier;
+                        }
+
+                        continue;
+
+                    default:
+                        return default(SyntaxToken);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Checks whether the field name is reserved and tells us which position it's reserved for.
+        ///
+        /// For example:
+        /// Returns 3 for "Item3".
+        /// Returns 0 for "Rest", "ToString" and other members of System.ValueTuple.
+        /// Returns -1 for names that aren't reserved.
+        /// </summary>
+        public static int IsTupleElementNameReserved(string elementName)
+        {
+            return TupleTypeSymbol.IsElementNameReserved(elementName);
         }
     }
 }
