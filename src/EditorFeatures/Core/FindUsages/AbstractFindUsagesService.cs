@@ -92,11 +92,21 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                 return null;
             }
 
-            return await FindSymbolReferencesAsync(
+            return await FindSymbolReferencesWorkerAsync(
                 context, symbolAndProject?.symbol, symbolAndProject?.project, cancellationToken).ConfigureAwait(false);
         }
 
-        public static async Task<FindReferencesProgressAdapter> FindSymbolReferencesAsync(
+        /// <summary>
+        /// Public helper that we use from features like ObjectBrowser which start with a symbol
+        /// and want to push all the references to it into the Streaming-Find-References window.
+        /// </summary>
+        public static Task FindSymbolReferencesAsync(
+            IFindUsagesContext context, ISymbol symbol, Project project, CancellationToken cancellationToken)
+        {
+            return FindSymbolReferencesWorkerAsync(context, symbol, project, cancellationToken);
+        }
+
+        private static async Task<FindReferencesProgressAdapter> FindSymbolReferencesWorkerAsync(
             IFindUsagesContext context, ISymbol symbol, Project project, CancellationToken cancellationToken)
         {
             context.SetSearchTitle(string.Format(EditorFeaturesResources._0_references,
