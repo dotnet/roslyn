@@ -54,9 +54,6 @@
     "System.Xml.XPath.XDocument": "4.3.0"
   },
   "frameworks": {
-    "netstandard1.6": {
-      "imports": "portable-net452"
-    },
     "NETCoreApp1.0": {
       "imports": "portable-net452"
     }
