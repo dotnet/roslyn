@@ -463,13 +463,27 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Checks whether the field name is reserved and tells us which position it's reserved for.
         ///
         /// For example:
-        /// Returns 3 for "Item3".
-        /// Returns 0 for "Rest", "ToString" and other members of System.ValueTuple.
-        /// Returns -1 for names that aren't reserved.
+        /// "Item3" is reserved at index 2.
+        /// "Rest", "ToString" and other members of System.ValueTuple are reserved in any position (index returned as -1).
+        /// Names that are not reserved also return index as -1.
         /// </summary>
-        public static int IsTupleElementNameReserved(string elementName)
+        public static (bool isReserved, int index) GetTupleElementNameInfo(string elementName)
         {
-            return TupleTypeSymbol.IsElementNameReserved(elementName);
+            int reserved = TupleTypeSymbol.IsElementNameReserved(elementName);
+            switch (reserved)
+            {
+                case -1:
+                    return (isReserved: false, index: -1);
+
+                case 0:
+                    return (isReserved: true, index: -1);
+
+                case int position when (position > 0):
+                    return (isReserved: true, index: position - 1);
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(reserved);
+            }
         }
     }
 }

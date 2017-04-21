@@ -156,5 +156,37 @@ void foo()
             var span = section.Span;
             Assert.Equal(default(TextSpan), span);
         }
+
+        [Theory]
+        [InlineData("x", "x")]
+        [InlineData("x.y", "y")]
+        [InlineData("x?.y", "y")]
+        [InlineData("this.y", "y")]
+        [InlineData("M()", null)]
+        [InlineData("x.M()", null)]
+        [InlineData("default(x)", null)]
+        [InlineData("typeof(x)", null)]
+        public void ExtractAnonymousTypeMemberName(string source, string expected)
+        {
+            var expr = SyntaxFactory.ParseExpression(source, options: TestOptions.Regular);
+            var actual = SyntaxFacts.ExtractAnonymousTypeMemberName(expr).ValueText;
+            Assert.Equal(expected, actual);
+        }
+
+        [Theory]
+        [InlineData("Item0", false, -1)]
+        [InlineData("Item1", true, 0)]
+        [InlineData("Item2", true, 1)]
+        [InlineData("Item10", true, 9)]
+        [InlineData("Rest", true, -1)]
+        [InlineData("ToString", true, -1)]
+        [InlineData("GetHashCode", true, -1)]
+        [InlineData("item1", false, -1)]
+        [InlineData("item10", false, -1)]
+        [InlineData("Alice", false, -1)]
+        public void GetTupleElementNameInfo(string elementName, bool isReserved, int index)
+        {
+            Assert.Equal((isReserved, index), SyntaxFacts.GetTupleElementNameInfo(elementName));
+        }
     }
 }

@@ -296,7 +296,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
 
             private static bool CanMakeNameExplicitInTuple(TupleExpressionSyntax tuple, string name)
             {
-                if (name == null || SyntaxFacts.IsTupleElementNameReserved(name) != -1)
+                if (name == null || SyntaxFacts.GetTupleElementNameInfo(name).isReserved)
                 {
                     return false;
                 }
