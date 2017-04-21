@@ -87,6 +87,9 @@ function Run-GetText() {
 # they are in a published / runnable state.
 function Build-Tools() {
     $msbuild = Ensure-MSBuild
+    $msbuildDir = Split-Path -parent $msbuild
+    $nuget = Ensure-NuGet
+
     $list = @(
         'boundTreeGenerator;BoundTreeGenerator;BoundTreeGenerator\CompilersBoundTreeGenerator.csproj',
         'csharpErrorFactsGenerator;CSharpErrorFactsGenerator;CSharpErrorFactsGenerator\CSharpErrorFactsGenerator.csproj',
@@ -103,7 +106,7 @@ function Build-Tools() {
             $proj = $all[2]
             $fileName = [IO.Path]::GetFileNameWithoutExtension($proj)
             Write-Host "Building $fileName"
-            Exec-Command $msbuild "/t:Restore /v:m $proj" | Out-Null
+            Restore-Project $proj -nuget $nuget -msbuildDir $msbuildDir
             Exec-Command $msbuild "/t:Publish /p:Configuration=Debug /p:RuntimeIdentifier=win7-x64 /v:m $proj" | Out-Null
 
             $exePath = Join-Path $binariesDir "Debug\Exes\$fileName\netcoreapp1.1\win7-x64\publish\$($exeName).exe"
