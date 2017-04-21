@@ -1095,5 +1095,23 @@ class D
                 VerifyNavigateToResultItem(item, "ToError", "ToError()", MatchKind.Regular, NavigateToItemKind.Method);
             });
         }
+
+        [WorkItem(18843, "https://github.com/dotnet/roslyn/issues/18843")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        public async Task Test__arglist()
+        {
+            await TestAsync(
+@"class C
+{
+    public void ToError(__arglist)
+    {
+    }
+}", async w =>
+{
+    SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupMethod, StandardGlyphItem.GlyphItemPublic);
+    var item = (await _aggregator.GetItemsAsync("ToError")).Single();
+    VerifyNavigateToResultItem(item, "ToError", "[|ToError|](__arglist)", MatchKind.Exact, NavigateToItemKind.Method);
+});
+        }
     }
 }
