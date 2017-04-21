@@ -44,6 +44,7 @@ function Exec-Command([string]$command, [string]$commandArgs) {
     $startInfo.RedirectStandardOutput = $true
     $startInfo.UseShellExecute = $false
     $startInfo.CreateNoWindow = $true
+    $startInfo.WorkingDirectory = Get-Location
 
     $process = New-Object System.Diagnostics.Process
     $process.StartInfo = $startInfo
