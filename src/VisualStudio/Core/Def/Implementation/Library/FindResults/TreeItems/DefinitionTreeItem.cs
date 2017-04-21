@@ -49,7 +49,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindRes
 
         public override int GoToSource()
         {
-            return _definitionItem.TryNavigateTo()
+            return _definitionItem.TryNavigateTo(isPreview: true)
                 ? VSConstants.S_OK
                 : VSConstants.E_FAIL;
         }

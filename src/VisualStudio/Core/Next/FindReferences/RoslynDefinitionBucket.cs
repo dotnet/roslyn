@@ -34,9 +34,9 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 DefinitionItem = definitionItem;
             }
 
-            public bool TryNavigateTo()
+            public bool TryNavigateTo(bool isPreview)
             {
-                return DefinitionItem.TryNavigateTo();
+                return DefinitionItem.TryNavigateTo(isPreview);
             }
 
             public override bool TryGetValue(string key, out object content)

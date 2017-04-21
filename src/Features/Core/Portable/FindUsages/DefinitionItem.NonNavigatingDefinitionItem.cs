@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
             }
 
             public override bool CanNavigateTo() => false;
-            public override bool TryNavigateTo() => false;
+            public override bool TryNavigateTo(bool isPreview) => false;
         }
     }
 }

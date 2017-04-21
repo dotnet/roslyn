@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
         }
 
         public abstract bool CanNavigateTo();
-        public abstract bool TryNavigateTo();
+        public abstract bool TryNavigateTo(bool isPreview);
 
         public static DefinitionItem Create(
             ImmutableArray<string> tags,

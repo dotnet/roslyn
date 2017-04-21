@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
             }
 
             public override bool CanNavigateTo() => SourceSpans[0].CanNavigateTo();
-            public override bool TryNavigateTo() => SourceSpans[0].TryNavigateTo();
+            public override bool TryNavigateTo(bool isPreview) => SourceSpans[0].TryNavigateTo(isPreview);
         }
     }
 }

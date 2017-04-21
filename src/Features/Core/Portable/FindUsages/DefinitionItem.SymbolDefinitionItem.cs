@@ -48,11 +48,11 @@ namespace Microsoft.CodeAnalysis.FindUsages
             public override bool CanNavigateTo()
                 => TryNavigateTo((symbol, project, service) => true);
 
-            public override bool TryNavigateTo()
+            public override bool TryNavigateTo(bool isPreview)
             {
                 return TryNavigateTo((symbol, project, service) =>
                     service.TryNavigateToSymbol(
-                        symbol, project, project.Solution.Options.WithChangedOption(NavigationOptions.PreferProvisionalTab, true)));
+                        symbol, project, project.Solution.Options.WithChangedOption(NavigationOptions.PreferProvisionalTab, isPreview)));
             }
 
             private bool TryNavigateTo(Func<ISymbol, Project, ISymbolNavigationService, bool> action)
