@@ -133,12 +133,12 @@ function Create-Directory([string]$dir) {
 # Return the version of the NuGet package as used in this repo
 function Get-PackageVersion([string]$name) {
     $name = $name.Replace(".", "")
-    $deps = Join-Path $repoDir "build\Targets\Dependencies.props"
+    $deps = Join-Path $repoDir "build\Targets\Packages.props"
     $nodeName = "$($name)Version"
     $x = [xml](Get-Content -raw $deps)
     $node = $x.Project.PropertyGroup[$nodeName]
     if ($node -eq $null) { 
-        throw "Cannot find package $name in Dependencies.props"
+        throw "Cannot find package $name in Packages.props"
     }
 
     return $node.InnerText
