@@ -188,7 +188,24 @@ foreach_variable_statement // new
 
 **References**
 
-[C# Design Notes for Apr 12-22, 2016](https://github.com/dotnet/roslyn/issues/11031)
+[C# Design NOtes for Oct 25-26, 2016](https://github.com/dotnet/csharplang/blob/master/meetings/2016/LDM-2016-10-25-26.md)
+
+[C# Design Notes for Sep 6, 2016](https://github.com/dotnet/csharplang/blob/master/meetings/2016/LDM-2016-09-06.md)
+
+[C# Design Notes for July 13, 2016](https://github.com/dotnet/csharplang/blob/master/meetings/2016/LDM-2016-07-13.md)
+
+[C# Design Notes for May 3-4, 2016](https://github.com/dotnet/csharplang/blob/master/meetings/2016/LDM-2016-05-03-04.md)
+
+[C# Design Notes for Apr 12-22, 2016](https://github.com/dotnet/csharplang/blob/master/meetings/2016/LDM-2016-04-12-22.md)
+
+[Design for declaration expressions](https://github.com/dotnet/csharplang/issues/365)
 
 The [What's new in C# 7.0](https://blogs.msdn.microsoft.com/dotnet/2016/08/24/whats-new-in-csharp-7-0) post has a section on deconstructions.
 
+**Possible future expansions**
+- deconstruction in [let and from clause](https://github.com/dotnet/csharplang/issues/189) 
+- deconstruction in [lambda argument lists](https://github.com/dotnet/csharplang/issues/258)
+- [deconstruction patterns](https://github.com/dotnet/csharplang/issues/277)
+- allowing deconstructions with [mix of assignment and declaration](https://github.com/dotnet/csharplang/issues/125), thus also allowing deconstruction-declarations in expression contexts
+
+See [C# Lang](https://github.com/dotnet/csharplang) repo for more up-to-date proposals and discussions.

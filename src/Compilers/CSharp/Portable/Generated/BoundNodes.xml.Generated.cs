@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         SourceDocumentIndex,
         MethodInfo,
         FieldInfo,
-        DefaultOperator,
+        DefaultExpression,
         IsOperator,
         AsOperator,
         SizeOfOperator,
@@ -481,7 +481,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundBadExpression : BoundExpression
     {
-        public BoundBadExpression(SyntaxNode syntax, LookupResultKind resultKind, ImmutableArray<Symbol> symbols, ImmutableArray<BoundNode> childBoundNodes, TypeSymbol type, bool hasErrors = false)
+        public BoundBadExpression(SyntaxNode syntax, LookupResultKind resultKind, ImmutableArray<Symbol> symbols, ImmutableArray<BoundExpression> childBoundNodes, TypeSymbol type, bool hasErrors = false)
             : base(BoundKind.BadExpression, syntax, type, hasErrors || childBoundNodes.HasErrors())
         {
 
@@ -499,14 +499,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public ImmutableArray<Symbol> Symbols { get; }
 
-        public ImmutableArray<BoundNode> ChildBoundNodes { get; }
+        public ImmutableArray<BoundExpression> ChildBoundNodes { get; }
 
         public override BoundNode Accept(BoundTreeVisitor visitor)
         {
             return visitor.VisitBadExpression(this);
         }
 
-        public BoundBadExpression Update(LookupResultKind resultKind, ImmutableArray<Symbol> symbols, ImmutableArray<BoundNode> childBoundNodes, TypeSymbol type)
+        public BoundBadExpression Update(LookupResultKind resultKind, ImmutableArray<Symbol> symbols, ImmutableArray<BoundExpression> childBoundNodes, TypeSymbol type)
         {
             if (resultKind != this.ResultKind || symbols != this.Symbols || childBoundNodes != this.ChildBoundNodes || type != this.Type)
             {
@@ -1764,16 +1764,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    internal sealed partial class BoundDefaultOperator : BoundExpression
+    internal sealed partial class BoundDefaultExpression : BoundExpression
     {
-        public BoundDefaultOperator(SyntaxNode syntax, ConstantValue constantValueOpt, TypeSymbol type, bool hasErrors)
-            : base(BoundKind.DefaultOperator, syntax, type, hasErrors)
+        public BoundDefaultExpression(SyntaxNode syntax, ConstantValue constantValueOpt, TypeSymbol type, bool hasErrors)
+            : base(BoundKind.DefaultExpression, syntax, type, hasErrors)
         {
             this.ConstantValueOpt = constantValueOpt;
         }
 
-        public BoundDefaultOperator(SyntaxNode syntax, ConstantValue constantValueOpt, TypeSymbol type)
-            : base(BoundKind.DefaultOperator, syntax, type)
+        public BoundDefaultExpression(SyntaxNode syntax, ConstantValue constantValueOpt, TypeSymbol type)
+            : base(BoundKind.DefaultExpression, syntax, type)
         {
             this.ConstantValueOpt = constantValueOpt;
         }
@@ -1783,14 +1783,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode Accept(BoundTreeVisitor visitor)
         {
-            return visitor.VisitDefaultOperator(this);
+            return visitor.VisitDefaultExpression(this);
         }
 
-        public BoundDefaultOperator Update(ConstantValue constantValueOpt, TypeSymbol type)
+        public BoundDefaultExpression Update(ConstantValue constantValueOpt, TypeSymbol type)
         {
             if (constantValueOpt != this.ConstantValueOpt || type != this.Type)
             {
-                var result = new BoundDefaultOperator(this.Syntax, constantValueOpt, type, this.HasErrors);
+                var result = new BoundDefaultExpression(this.Syntax, constantValueOpt, type, this.HasErrors);
                 result.WasCompilerGenerated = this.WasCompilerGenerated;
                 return result;
             }
@@ -6150,8 +6150,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return VisitMethodInfo(node as BoundMethodInfo, arg);
                 case BoundKind.FieldInfo: 
                     return VisitFieldInfo(node as BoundFieldInfo, arg);
-                case BoundKind.DefaultOperator: 
-                    return VisitDefaultOperator(node as BoundDefaultOperator, arg);
+                case BoundKind.DefaultExpression: 
+                    return VisitDefaultExpression(node as BoundDefaultExpression, arg);
                 case BoundKind.IsOperator: 
                     return VisitIsOperator(node as BoundIsOperator, arg);
                 case BoundKind.AsOperator: 
@@ -6534,7 +6534,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return this.DefaultVisit(node, arg);
         }
-        public virtual R VisitDefaultOperator(BoundDefaultOperator node, A arg)
+        public virtual R VisitDefaultExpression(BoundDefaultExpression node, A arg)
         {
             return this.DefaultVisit(node, arg);
         }
@@ -7134,7 +7134,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return this.DefaultVisit(node);
         }
-        public virtual BoundNode VisitDefaultOperator(BoundDefaultOperator node)
+        public virtual BoundNode VisitDefaultExpression(BoundDefaultExpression node)
         {
             return this.DefaultVisit(node);
         }
@@ -7771,7 +7771,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return null;
         }
-        public override BoundNode VisitDefaultOperator(BoundDefaultOperator node)
+        public override BoundNode VisitDefaultExpression(BoundDefaultExpression node)
         {
             return null;
         }
@@ -8387,7 +8387,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
         public override BoundNode VisitBadExpression(BoundBadExpression node)
         {
-            ImmutableArray<BoundNode> childBoundNodes = (ImmutableArray<BoundNode>)this.VisitList(node.ChildBoundNodes);
+            ImmutableArray<BoundExpression> childBoundNodes = (ImmutableArray<BoundExpression>)this.VisitList(node.ChildBoundNodes);
             TypeSymbol type = this.VisitType(node.Type);
             return node.Update(node.ResultKind, node.Symbols, childBoundNodes, type);
         }
@@ -8576,7 +8576,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol type = this.VisitType(node.Type);
             return node.Update(node.Field, node.GetFieldFromHandle, type);
         }
-        public override BoundNode VisitDefaultOperator(BoundDefaultOperator node)
+        public override BoundNode VisitDefaultExpression(BoundDefaultExpression node)
         {
             TypeSymbol type = this.VisitType(node.Type);
             return node.Update(node.ConstantValueOpt, type);
@@ -9627,9 +9627,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             );
         }
-        public override TreeDumperNode VisitDefaultOperator(BoundDefaultOperator node, object arg)
+        public override TreeDumperNode VisitDefaultExpression(BoundDefaultExpression node, object arg)
         {
-            return new TreeDumperNode("defaultOperator", null, new TreeDumperNode[]
+            return new TreeDumperNode("defaultExpression", null, new TreeDumperNode[]
             {
                 new TreeDumperNode("constantValueOpt", node.ConstantValueOpt, null),
                 new TreeDumperNode("type", node.Type, null)

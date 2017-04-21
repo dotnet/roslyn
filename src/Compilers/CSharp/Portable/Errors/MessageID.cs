@@ -127,7 +127,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureExpressionBodiedAccessor = MessageBase + 12715,
         IDS_FeatureExpressionBodiedDeOrConstructor = MessageBase + 12716,
         IDS_ThrowExpression = MessageBase + 12717,
-        IDS_FeatureAsyncMain = MessageBase + 12718,
+        IDS_FeatureDefaultLiteral = MessageBase + 12718,
+        IDS_FeatureAsyncMain = MessageBase + 12719,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -186,6 +187,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // C# 7.1 features.
                 case MessageID.IDS_FeatureAsyncMain:
+                case MessageID.IDS_FeatureDefaultLiteral:
                     return LanguageVersion.CSharp7_1;
 
                 // C# 7 features.

@@ -14,10 +14,7 @@ function Run-Tool($tool, $toolArgs) {
         throw "$tool does not exist"
     }
 
-    Invoke-Expression "& `"$coreRun`" `"$tool`" $toolArgs"
-    if ((-not $?) -or ($lastexitcode -ne 0)) {
-        throw "Failed"
-    }
+    Exec-Command "$coreRun" "`"$tool`" $toolArgs" | Out-Host
 }
 
 function Run-LanguageCore($language, $languageSuffix, $languageDir, $syntaxTool, $errorFactsTool, $generatedDir, $generatedTestDir) {

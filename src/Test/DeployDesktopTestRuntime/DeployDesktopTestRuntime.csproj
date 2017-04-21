@@ -63,6 +63,10 @@
       <Project>{b501a547-c911-4a05-ac6e-274a50dff30e}</Project>
       <Name>CSharpCodeAnalysis</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\Compilers\CSharp\Test\Symbol\CSharpCompilerSymbolTest.csproj">
+      <Project>{28026d16-eb0c-40b0-bda7-11caa2b97ccc}</Project>
+      <Name>CSharpCompilerSymbolTest</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\Compilers\CSharp\Test\Syntax\CSharpCompilerSyntaxTest.csproj">
       <Project>{50d26304-0961-4a51-abf6-6cad1a56d202}</Project>
       <Name>CSharpCompilerSyntaxTest</Name>
@@ -122,6 +126,10 @@
     <ProjectReference Include="..\PdbUtilities\PdbUtilities.csproj">
       <Project>{afde6bea-5038-4a4a-a88e-dbd2e4088eed}</Project>
       <Name>PdbUtilities</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Utilities\Desktop\TestUtilities.Desktop.csproj">
+      <Project>{76c6f005-c89d-4348-bb4a-391898dbeb52}</Project>
+      <Name>TestUtilities.Desktop</Name>
     </ProjectReference>
     <ProjectReference Include="..\Utilities\Portable\TestUtilities.csproj">
       <Project>{ccbd3438-3e84-40a9-83ad-533f23bcfca5}</Project>

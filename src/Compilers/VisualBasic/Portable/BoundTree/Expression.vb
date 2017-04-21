@@ -2,10 +2,11 @@
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.Semantics
+Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Friend Partial Class BoundExpression
+    Partial Friend Class BoundExpression
         Implements IOperation
 
         Private ReadOnly Property IOperation_ConstantValue As [Optional](Of Object) Implements IOperation.ConstantValue
@@ -58,7 +59,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
             End If
 
-            Return New InvalidExpression(parent.Syntax)
+            Return New InvalidExpression(parent.Syntax, ImmutableArray(Of IOperation).Empty)
         End Function
 
     End Class
@@ -293,17 +294,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Friend Class BoundCall
         Implements IInvocationExpression
 
-        Private Function IHasArgumentsExpression_GetArgumentMatchingParameter(parameter As IParameterSymbol) As IArgument Implements IHasArgumentsExpression.GetArgumentMatchingParameter
-            Return ArgumentMatchingParameter(Me.Arguments, parameter, Me.Method.Parameters)
-        End Function
-
-        Private ReadOnly Property IInvocationExpression_ArgumentsInSourceOrder As ImmutableArray(Of IArgument) Implements IInvocationExpression.ArgumentsInSourceOrder
-            Get
-                Return DeriveArguments(Me.Arguments, Me.Method.Parameters)
-            End Get
-        End Property
-
-        Private ReadOnly Property IHasArgumentsExpression_ArgumentsInParameterOrder As ImmutableArray(Of IArgument) Implements IHasArgumentsExpression.ArgumentsInParameterOrder
+        Private ReadOnly Property IHasArgumentsExpression_ArgumentsInEvaluationOrder As ImmutableArray(Of IArgument) Implements IHasArgumentsExpression.ArgumentsInEvaluationOrder
             Get
                 Return DeriveArguments(Me.Arguments, Me.Method.Parameters)
             End Get
@@ -346,23 +337,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return visitor.VisitInvocationExpression(Me, argument)
         End Function
 
-        Friend Shared Function ArgumentMatchingParameter(arguments As ImmutableArray(Of BoundExpression), parameter As IParameterSymbol, parameters As ImmutableArray(Of Symbols.ParameterSymbol)) As IArgument
-            Dim index As Integer = parameter.Ordinal
-            If index <= arguments.Length Then
-                Return DeriveArgument(index, arguments(index), parameters)
-            End If
-
-            Return Nothing
-        End Function
-
         Friend Shared Function DeriveArguments(boundArguments As ImmutableArray(Of BoundExpression), parameters As ImmutableArray(Of Symbols.ParameterSymbol)) As ImmutableArray(Of IArgument)
             Dim argumentsLength As Integer = boundArguments.Length
-            Dim arguments As ImmutableArray(Of IArgument).Builder = ImmutableArray.CreateBuilder(Of IArgument)(argumentsLength)
+            Debug.Assert(argumentsLength = parameters.Length)
+
+            Dim arguments As ArrayBuilder(Of IArgument) = ArrayBuilder(Of IArgument).GetInstance(argumentsLength)
             For index As Integer = 0 To argumentsLength - 1 Step 1
                 arguments.Add(DeriveArgument(index, boundArguments(index), parameters))
             Next
 
-            Return arguments.ToImmutable()
+            Return arguments.ToImmutableAndFree()
         End Function
 
         Private Shared ReadOnly s_argumentMappings As New System.Runtime.CompilerServices.ConditionalWeakTable(Of BoundExpression, IArgument)
@@ -372,19 +356,34 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case BoundKind.ByRefArgumentWithCopyBack
                     Return s_argumentMappings.GetValue(
                         argument,
-                        Function(argumentValue) New ByRefArgument(If(CUInt(index) < CUInt(parameters.Length), parameters(index), Nothing), DirectCast(argumentValue, BoundByRefArgumentWithCopyBack)))
+                        Function(argumentValue) New ByRefArgument(parameters(index), DirectCast(argumentValue, BoundByRefArgumentWithCopyBack)))
                 Case Else
-                    ' Apparently the VB bound trees don't encode named arguments, which seems unnecesarily lossy.
                     Return s_argumentMappings.GetValue(
                         argument,
                         Function(argumentValue)
-                            If index >= parameters.Length - 1 AndAlso parameters.Length > 0 AndAlso parameters(parameters.Length - 1).IsParamArray Then
-                                Return New Argument(ArgumentKind.ParamArray, parameters(parameters.Length - 1), argumentValue)
+                            Dim lastParameterIndex = parameters.Length - 1
+                            If index = lastParameterIndex AndAlso ParameterIsParamArray(parameters(lastParameterIndex)) Then
+                                ' TODO: figure out if this is true:
+                                '       a compiler generated argument for a ParamArray parameter is created iff 
+                                '       a list of arguments (including 0 argument) is provided for ParamArray parameter in source
+                                '       https://github.com/dotnet/roslyn/issues/18550
+                                Dim kind = If(argument.WasCompilerGenerated AndAlso argument.Kind = BoundKind.ArrayCreation, ArgumentKind.ParamArray, ArgumentKind.Explicit)
+                                Return New Argument(kind, parameters(lastParameterIndex), argumentValue)
                             Else
-                                Return New Argument(ArgumentKind.Positional, If(CUInt(index) < CUInt(parameters.Length), parameters(index), Nothing), argumentValue)
+                                ' TODO: figure our if this is true:
+                                '       a compiler generated argument for an Optional parameter is created iff
+                                '       the argument is omitted from the source
+                                '       https://github.com/dotnet/roslyn/issues/18550
+                                Dim kind = If(argument.WasCompilerGenerated, ArgumentKind.DefaultValue, ArgumentKind.Explicit)
+                                Dim parameter = parameters(index)
+                                Return New Argument(kind, parameter, argumentValue)
                             End If
                         End Function)
             End Select
+        End Function
+
+        Private Shared Function ParameterIsParamArray(parameter As ParameterSymbol) As Boolean
+            Return If(parameter.IsParamArray AndAlso parameter.Type.Kind = SymbolKind.ArrayType, DirectCast(parameter.Type, ArrayTypeSymbol).IsSZArray, False)
         End Function
 
         Private MustInherit Class ArgumentBase
@@ -495,8 +494,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Public Overrides ReadOnly Property ArgumentKind As ArgumentKind
                 Get
-                    ' Do the VB bound trees encode named arguments?
-                    Return ArgumentKind.Positional
+                    Return ArgumentKind.Explicit
                 End Get
             End Property
 
@@ -904,6 +902,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Friend Class BoundBadExpression
         Implements IInvalidExpression
 
+        Public ReadOnly Property Children As ImmutableArray(Of IOperation) Implements IInvalidExpression.Children
+            Get
+                Return StaticCast(Of IOperation).From(Me.ChildBoundNodes)
+            End Get
+        End Property
+
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.InvalidExpression
         End Function
@@ -1168,17 +1172,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Shared ReadOnly s_memberInitializersMappings As New System.Runtime.CompilerServices.ConditionalWeakTable(Of BoundObjectCreationExpression, Object)
 
-        Private Function IHasArgumentExpression_GetArgumentMatchingParameter(parameter As IParameterSymbol) As IArgument Implements IHasArgumentsExpression.GetArgumentMatchingParameter
-            Return BoundCall.ArgumentMatchingParameter(Me.Arguments, parameter, Me.ConstructorOpt.Parameters)
-        End Function
-
         Private ReadOnly Property IObjectCreationExpression_Constructor As IMethodSymbol Implements IObjectCreationExpression.Constructor
             Get
                 Return Me.ConstructorOpt
             End Get
         End Property
 
-        Private ReadOnly Property IHasArgumentsExpression_ArgumentsInParameterOrder As ImmutableArray(Of IArgument) Implements IHasArgumentsExpression.ArgumentsInParameterOrder
+        Private ReadOnly Property IHasArgumentsExpression_ArgumentsInEvaluationOrder As ImmutableArray(Of IArgument) Implements IHasArgumentsExpression.ArgumentsInEvaluationOrder
             Get
                 Debug.Assert(Me.ConstructorOpt IsNot Nothing OrElse Me.Arguments.IsEmpty())
                 Return If(Me.ConstructorOpt Is Nothing, ImmutableArray(Of IArgument).Empty, BoundCall.DeriveArguments(Me.Arguments, Me.ConstructorOpt.Parameters))
@@ -1457,15 +1457,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private ReadOnly Property IHasArgumentsExpression_ArgumentsInParameterOrder As ImmutableArray(Of IArgument) Implements IHasArgumentsExpression.ArgumentsInParameterOrder
+        Private ReadOnly Property IHasArgumentsExpression_ArgumentsInEvaluationOrder As ImmutableArray(Of IArgument) Implements IHasArgumentsExpression.ArgumentsInEvaluationOrder
             Get
                 Return BoundCall.DeriveArguments(Me.Arguments, Me.PropertySymbol.Parameters)
             End Get
         End Property
-
-        Private Function IHasArgumentsExpression_GetArgumentMatchingParameter(parameter As IParameterSymbol) As IArgument Implements IHasArgumentsExpression.GetArgumentMatchingParameter
-            Return BoundCall.ArgumentMatchingParameter(Me.Arguments, parameter, Me.PropertySymbol.Parameters)
-        End Function
 
         Protected Overrides Function ExpressionKind() As OperationKind
             Return If(Me.Arguments.Length > 0, OperationKind.IndexedPropertyReferenceExpression, OperationKind.PropertyReferenceExpression)

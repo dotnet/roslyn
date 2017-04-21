@@ -2,6 +2,7 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <!--Generated file, do not directly edit.  Run "RepoUtil change" to regenerate-->
   <PropertyGroup>
+    <FakeSignVersion>0.9.2</FakeSignVersion>
     <GitLinkVersion>3.0.0-unstable0085</GitLinkVersion>
     <ManagedEsentVersion>1.9.4</ManagedEsentVersion>
     <MicroBuildCoreVersion>0.2.0</MicroBuildCoreVersion>
@@ -24,13 +25,15 @@
     <MicrosoftDiaSymReaderConverterXmlVersion>1.0.0-beta1-61518-02</MicrosoftDiaSymReaderConverterXmlVersion>
     <MicrosoftDiaSymReaderNativeVersion>1.5.0</MicrosoftDiaSymReaderNativeVersion>
     <MicrosoftDiaSymReaderPortablePdbVersion>1.2.0</MicrosoftDiaSymReaderPortablePdbVersion>
+    <MicrosoftMetadataVisualizerVersion>1.0.0-beta1-61531-03</MicrosoftMetadataVisualizerVersion>
     <MicrosoftNETCoreRuntimeCoreCLRVersion>1.1.0</MicrosoftNETCoreRuntimeCoreCLRVersion>
     <MicrosoftVisualBasicVersion>10.1.0</MicrosoftVisualBasicVersion>
-    <MicrosoftVisualStudioDebuggerEngineVersion>15.0.26201-alpha</MicrosoftVisualStudioDebuggerEngineVersion>
-    <MicrosoftVisualStudioDebuggerMetadataVersion>15.0.26201-alpha</MicrosoftVisualStudioDebuggerMetadataVersion>
+    <MicrosoftVisualStudioDebuggerEngineVersion>15.0.26201-gamma</MicrosoftVisualStudioDebuggerEngineVersion>
+    <MicrosoftVisualStudioDebuggerMetadataVersion>15.0.26201-gamma</MicrosoftVisualStudioDebuggerMetadataVersion>
     <MicrosoftVisualStudioInteractiveWindowVersion>2.0.0-rc3-61304-01</MicrosoftVisualStudioInteractiveWindowVersion>
     <MicrosoftVisualStudioVsInteractiveWindowVersion>2.0.0-rc3-61304-01</MicrosoftVisualStudioVsInteractiveWindowVersion>
     <MicrosoftVSSDKBuildToolsVersion>15.0.26124-RC3</MicrosoftVSSDKBuildToolsVersion>
+    <NETStandardLibraryVersion>2.0.0-beta-25123-01</NETStandardLibraryVersion>
     <RoslynToolsMicrosoftLocateVSVersion>0.2.4-beta</RoslynToolsMicrosoftLocateVSVersion>
     <RoslynToolsMicrosoftSignToolVersion>0.3.0-beta</RoslynToolsMicrosoftSignToolVersion>
     <RoslynToolsMicrosoftVSIXExpInstallerVersion>0.2.4-beta</RoslynToolsMicrosoftVSIXExpInstallerVersion>
@@ -99,7 +102,6 @@
     <SystemXmlReaderWriterVersion>4.3.0</SystemXmlReaderWriterVersion>
     <SystemXmlXDocumentVersion>4.3.0</SystemXmlXDocumentVersion>
     <SystemXmlXmlDocumentVersion>4.3.0</SystemXmlXmlDocumentVersion>
-    <SystemXmlXmlSerializerVersion>4.3.0</SystemXmlXmlSerializerVersion>
     <SystemXmlXPathXDocumentVersion>4.3.0</SystemXmlXPathXDocumentVersion>
     <xunitVersion>2.2.0-beta4-build3444</xunitVersion>
     <xunitconsolenetcoreVersion>1.0.2-prerelease-00104</xunitconsolenetcoreVersion>

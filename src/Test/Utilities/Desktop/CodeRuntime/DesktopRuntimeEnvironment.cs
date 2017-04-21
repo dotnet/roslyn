@@ -368,5 +368,46 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.CodeRuntime
             }
             return _testData;
         }
+
+        private static readonly object s_consoleGuard = new object();
+
+        internal static void Capture(Action action, int? expectedLength, out string output, out string errorOutput)
+        {
+            TextWriter errorOutputWriter;
+            TextWriter outputWriter;
+            if (expectedLength is int exLength)
+            {
+                errorOutputWriter = new CappedStringWriter(exLength);
+                outputWriter = new CappedStringWriter(exLength);
+            }
+            else
+            {
+                errorOutputWriter = StreamWriter.Null;
+                outputWriter = StreamWriter.Null;
+            }
+
+            lock (s_consoleGuard)
+            {
+                TextWriter originalOut = Console.Out;
+                TextWriter originalError = Console.Error;
+                try
+                {
+                    Console.SetOut(outputWriter);
+                    Console.SetError(errorOutputWriter);
+                    action();
+                }
+                finally
+                {
+                    Console.SetOut(originalOut);
+                    Console.SetError(originalError);
+                }
+            }
+
+            output = outputWriter.ToString();
+            errorOutput = errorOutputWriter.ToString();
+        }
+
+        public void CaptureOutput(Action action, int expectedLength, out string output, out string errorOutput) =>
+            Capture(action, expectedLength, out output, out errorOutput);
     }
 }

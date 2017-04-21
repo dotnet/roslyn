@@ -1,8 +1,9 @@
-param (
-        [string]$script:buildDir = $(throw "Need a directory containing a compiler build to test with"), 
+[CmdletBinding(PositionalBinding=$false)]
+param ( [string]$buildDir = $(throw "Need a directory containing a compiler build to test with"), 
         [bool]$debugDeterminism = $false)
-set-strictmode -version 2.0
-$ErrorActionPreference="Stop"
+
+Set-StrictMode -version 2.0
+$ErrorActionPreference = "Stop"
 
 ### Variables available to the entire script.
 
@@ -18,56 +19,55 @@ $script:dataMap = @{}
 [string]$script:errorDirLeft = ""
 [string]$script:errorDirRight = ""
 
-function Run-Build()
-{
+function Run-Build() {
     param ( [string]$rootDir = $(throw "Need a root directory to build"),
             [string]$pathMapBuildOption = "")
 
-    $sln = join-path $rootDir "Roslyn.sln"
-    $debugDir = join-path $rootDir "Binaries\Debug"
-    $objDir = join-path $rootDir "Binaries\Obj"
+    $sln = Join-Path $rootDir "Roslyn.sln"
+    $debugDir = Join-Path $rootDir "Binaries\Debug"
+    $objDir = Join-Path $rootDir "Binaries\Obj"
 
     # Create directories that may or may not exist to make the script execution below 
     # clean in either case.
-    mkdir $debugDir -errorAction SilentlyContinue | out-null
-    mkdir $objDir -errorAction SilentlyContinue | out-null
+    Create-Directory $debugDir
+    Create-Directory $objDir
 
-    pushd $rootDir
+    Push-Location $rootDir
+    try {
 
-    # Clean out the previous run
-    write-host "Cleaning the Binaries"
-    rm -re -fo $debugDir
-    rm -re -fo $objDir
-    & msbuild /nologo /v:m /nodeReuse:false /t:clean $sln
+        # Clean out the previous run
+        Write-Host "Cleaning the Binaries"
+        Exec-Command $msbuild "/nologo /v:m /nodeReuse:false /t:clean $sln"
 
-    write-host "Building the Solution"
-    & msbuild /nologo /v:m /nodeReuse:false /m /p:DebugDeterminism=true /p:BootstrapBuildPath=$script:buildDir '/p:Features="debug-determinism;pdb-path-determinism"' /p:UseRoslynAnalyzers=false $pathMapBuildOption $sln
-
-    popd
+        Write-Host "Building the Solution"
+        Exec-Command $msbuild "/nologo /v:m /nodeReuse:false /m /p:DebugDeterminism=true /p:BootstrapBuildPath=$script:buildDir /p:Features=`"debug-determinism;pdb-path-determinism`" /p:UseRoslynAnalyzers=false $pathMapBuildOption $sln"
+    }
+    finally {
+        Pop-Location
+    }
 }
 
-function Run-Analysis()
-{
+function Run-Analysis() {
     param ( [string]$rootDir = $(throw "Need a root directory to build"),
             [bool]$buildMap = $(throw "Whether to build the map or analyze it"),
             [string]$pathMapBuildOption = "")
             
-    $debugDir = join-path $rootDir "Binaries\Debug"
+    $debugDir = Join-Path $rootDir "Binaries\Debug"
     $errorList = @()
     $allGood = $true
 
     Run-Build $rootDir $pathMapBuildOption
 
-    pushd $debugDir
+    Push-Location $debugDir
 
-    write-host "Testing the binaries"
+    Write-Host "Testing the binaries"
     foreach ($dll in gci -re -in *.dll,*.exe) {
         $dllFullName = $dll.FullName
         $dllId = $dllFullName.Substring($debugDir.Length)
-        $dllName = split-path -leaf $dllFullName
+        $dllName = Split-Path -leaf $dllFullName
         $dllHash = (get-filehash $dll -algorithm MD5).Hash
         $keyFullName = $dllFullName + ".key"
-        $keyName = split-path -leaf $keyFullName
+        $keyName = Split-Path -leaf $keyFullName
 
         # Do not process binaries that have been explicitly skipped or do not have a key
         # file.  The lack of a key file means it's a binary that wasn't specifically 
@@ -78,7 +78,7 @@ function Run-Analysis()
         }
 
         if ($buildMap) {
-            write-host "`tRecording $dllName = $dllHash"
+            Write-Host "`tRecording $dllName = $dllHash"
             $data = @{}
             $data["Hash"] = $dllHash
             $data["Content"] = [IO.File]::ReadAllBytes($dllFullName)
@@ -86,71 +86,70 @@ function Run-Analysis()
             $script:dataMap[$dllId] = $data
         }
         elseif (-not $script:dataMap.Contains($dllId)) {
-            write-host "Missing entry in map $dllId->$dllFullName"
+            Write-Host "Missing entry in map $dllId->$dllFullName"
             $allGood = $false
         }
         else {
             $data = $script:dataMap[$dllId]
             $oldHash = $data.Hash
             if ($oldHash -eq $dllHash) {
-                write-host "`tVerified $dllName"
+                Write-Host "`tVerified $dllName"
             }
             else {
-                write-host "`tERROR! $dllName"
+                Write-Host "`tERROR! $dllName"
                 $allGood = $false
                 $errorList += $dllName
 
                 # Save out the original and baseline so Jenkins will archive them for investigation
-                [IO.File]::WriteAllBytes((join-path $script:errorDirLeft $dllName), $data.Content)
-                [IO.File]::WriteAllBytes((join-path $script:errorDirLeft $keyName), $data.Key)
-                cp $dllFullName (join-path $script:errorDirRight $dllName)
-                cp $keyFullName (join-path $script:errorDirRight $keyName)
+                [IO.File]::WriteAllBytes((Join-Path $script:errorDirLeft $dllName), $data.Content)
+                [IO.File]::WriteAllBytes((Join-Path $script:errorDirLeft $keyName), $data.Key)
+                cp $dllFullName (Join-Path $script:errorDirRight $dllName)
+                cp $keyFullName (Join-Path $script:errorDirRight $keyName)
             }
         }
     }
 
-    popd
+    Pop-Location
 
     # During determinism debugging shutdown the compiler after every pass so we get a unique
     # log directory.
     if ($debugDeterminism) {
-        gps VBCSCompiler -ErrorAction SilentlyContinue | kill
+        Get-Process VBCSCompiler -ErrorAction SilentlyContinue | kill
     }
 
     # Sanity check to ensure we didn't return a false positive because we failed
     # to examine any binaries.
     if ($script:dataMap.Count -lt 10) {
-        write-host "Found no binaries to process"
+        Write-Host "Found no binaries to process"
         $allGood = $false
     }
 
     if (-not $allGood) {
-        write-host "Determinism failed for the following binaries:"
+        Write-Host "Determinism failed for the following binaries:"
         foreach ($name in $errorList) {
-            write-host "`t$name"
+            Write-Host "`t$name"
         }
 
-        write-host "Archiving failure information"
-        $zipFile = join-path $rootDir "Binaries\determinism.zip"
+        Write-Host "Archiving failure information"
+        $zipFile = Join-Path $rootDir "Binaries\determinism.zip"
         Add-Type -Assembly "System.IO.Compression.FileSystem";
         [System.IO.Compression.ZipFile]::CreateFromDirectory($script:errorDir, $zipFile, "Fastest", $true);
 
-        write-host "Please send $zipFile to compiler team for analysis"
+        Write-Host "Please send $zipFile to compiler team for analysis"
         exit 1
     }
 }
 
-function Run-Test()
-{
-    $origRootDir = resolve-path (split-path -parent (split-path -parent $PSScriptRoot))
+function Run-Test() {
+    $origRootDir = Resolve-Path (Split-Path -parent (Split-Path -parent $PSScriptRoot))
 
     # Ensure the error directory is written for all analysis to use.
-    $script:errorDir = join-path $origRootDir "Binaries\Determinism"
-    $script:errorDirLeft = join-path $script:errorDir "Left"
-    $script:errorDirRight = join-path $script:errorDir "Right"
-    mkdir $script:errorDir -errorAction SilentlyContinue | out-null
-    mkdir $script:errorDirLeft -errorAction SilentlyContinue | out-null
-    mkdir $script:errorDirRight -errorAction SilentlyContinue | out-null
+    $script:errorDir = Join-Path $origRootDir "Binaries\Determinism"
+    $script:errorDirLeft = Join-Path $script:errorDir "Left"
+    $script:errorDirRight = Join-Path $script:errorDir "Right"
+    Create-Directory $script:errorDir
+    Create-Directory $script:errorDirLeft
+    Create-Directory $script:errorDirRight
 
     # Run initial build to populate all of the expected data.
     Run-Analysis -rootDir $origRootDir -buildMap $true
@@ -161,33 +160,33 @@ function Run-Test()
     # Run another build in a different source location and verify that path mapping 
     # allows the build to be identical.  To do this we'll copy the entire source 
     # tree under the Binaries\q directory and run a build from there.
-    $origBinDir = join-path $origRootDir "Binaries"
-    $altRootDir = join-path $origBinDir "q"
+    $origBinDir = Join-Path $origRootDir "Binaries"
+    $altRootDir = Join-Path $origBinDir "q"
     & robocopy $origRootDir $altRootDir /E /XD $origBinDir /XD ".git" /njh /njs /ndl /nc /ns /np /nfl
     $pathMapBuildOption = "/p:PathMap=`"$altRootDir=$origRootDir`""
     Run-Analysis -rootDir $altRootDir -buildMap $false -pathMapBuildOption $pathMapBuildOption
-    rm -re -fo $altRootDir
+    Remove-Item -re -fo $altRootDir
 }
 
-try
-{
+try {
+    . (Join-Path $PSScriptRoot "build-utils.ps1")
+
+    $msbuild = Ensure-MSBuild
     if (-not ([IO.Path]::IsPathRooted($script:buildDir))) {
-        write-error "The build path must be absolute"
+        Write-Host "The build path must be absolute"
         exit 1
     }
 
     Run-Test
     exit 0
 }
-catch
-{
-    write-host "Error: $($_.Exception.Message)"
+catch {
+    Write-Host "Error: $($_.Exception.Message)"
     exit 1
 }
-finally
-{
-    write-host "Stopping VBCSCompiler"
-    gps VBCSCompiler -ErrorAction SilentlyContinue | kill
-    write-host "Stopped VBCSCompiler"
+finally {
+    Write-Host "Stopping VBCSCompiler"
+    Get-Process VBCSCompiler -ErrorAction SilentlyContinue | kill
+    Write-Host "Stopped VBCSCompiler"
 }
 

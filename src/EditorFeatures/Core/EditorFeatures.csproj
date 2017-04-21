@@ -90,6 +90,7 @@
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.CSharp.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Services.UnitTests" />
     <InternalsVisibleToTest Include="Microsoft.VisualStudio.IntegrationTest.Utilities" />
+    <InternalsVisibleToTest Include="Roslyn.VisualStudio.IntegrationTests" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Test.Utilities2" />
     <!-- Eventually a bunch of these unit tests should move into Roslyn.Services.Implementation.UnitTests
          and this should be removed. -->
@@ -106,6 +107,7 @@
     <Compile Include="FindUsages\AbstractFindUsagesService.cs" />
     <Compile Include="FindUsages\FindUsagesHelpers.cs" />
     <Compile Include="FindUsages\FindUsagesContext.cs" />
+    <Compile Include="FindUsages\IDefinitionsAndReferencesFactory.cs" />
     <Compile Include="FindUsages\IFindUsagesContext.cs" />
     <Compile Include="FindUsages\IFindUsagesService.cs" />
     <Compile Include="FindUsages\SimpleFindUsagesContext.cs" />
@@ -397,7 +399,6 @@
     <Compile Include="Implementation\EndConstructGeneration\IEndConstructGenerationService.cs" />
     <Compile Include="Implementation\ExtractInterface\AbstractExtractInterfaceCommandHandler.cs" />
     <Compile Include="Implementation\ExtractMethod\AbstractExtractMethodCommandHandler.cs" />
-    <Compile Include="FindReferences\AbstractFindReferencesService.cs" />
     <Compile Include="FindReferences\FindReferencesCommandHandler.cs" />
     <Compile Include="FindReferences\IFindReferencesService.cs" />
     <Compile Include="Implementation\ForegroundNotification\ForegroundNotificationService.cs" />

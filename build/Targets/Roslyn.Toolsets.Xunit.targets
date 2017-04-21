@@ -32,7 +32,5 @@
         <Link>app.config</Link>
       </None>
     </ItemGroup>
-
   </Target>
-
 </Project>

@@ -93,7 +93,7 @@ public class C
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib(
+            var compilation = CreateStandardCompilation(
                 new[] { Parse(text1, @"C:\Folder1\Folder2\Test1.cs") },
                 options: TestOptions.DebugDll.WithSourceReferenceResolver(SourceFileResolver.Default));
 
@@ -127,7 +127,7 @@ public class C
 @"class C
 {
 }";
-            var compilation = CreateCompilationWithMscorlib(source0, options: TestOptions.DebugDll);
+            var compilation = CreateStandardCompilation(source0, options: TestOptions.DebugDll);
 
             // Verify full metadata contains expected rows.
             using (MemoryStream peStream = new MemoryStream(), pdbStream = new MemoryStream())
@@ -160,7 +160,7 @@ public class C
 @"class C
 {
 }";
-            var compilation = CreateCompilationWithMscorlib(source0, options: TestOptions.DebugDll);
+            var compilation = CreateStandardCompilation(source0, options: TestOptions.DebugDll);
 
             // Verify full metadata contains expected rows.
             using (MemoryStream peStream = new MemoryStream(), pdbStream = new MemoryStream())
@@ -193,7 +193,7 @@ public class C
 @"class C
 {
 }";
-            var compilation = CreateCompilationWithMscorlib(source0, options: TestOptions.DebugDll.WithDeterministic(true));
+            var compilation = CreateStandardCompilation(source0, options: TestOptions.DebugDll.WithDeterministic(true));
 
             // Verify full metadata contains expected rows.
             using (MemoryStream peStream = new MemoryStream(), pdbStream = new MemoryStream())
@@ -237,7 +237,7 @@ public class C
 }
 ";
 
-            var debug = CreateCompilationWithMscorlib(source, new[] { CSharpRef, SystemCoreRef }, options: TestOptions.DebugWinMD);
+            var debug = CreateStandardCompilation(source, new[] { CSharpRef, SystemCoreRef }, options: TestOptions.DebugWinMD);
             debug.VerifyPdb(@"
 <symbols>
     <methods>
@@ -273,7 +273,7 @@ public class C
   </methods>
 </symbols>");
 
-            var release = CreateCompilationWithMscorlib(source, new[] { CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseWinMD);
+            var release = CreateStandardCompilation(source, new[] { CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseWinMD);
             release.VerifyPdb(@"
 <symbols>
   <methods>
@@ -315,7 +315,7 @@ public class C
     }
 }";
 
-            var debug = CreateCompilationWithMscorlib(source, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.DebugWinMD);
+            var debug = CreateStandardCompilation(source, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.DebugWinMD);
             debug.VerifyPdb(
 @"<symbols>
   <methods>
@@ -337,7 +337,7 @@ public class C
   </methods>
 </symbols>");
 
-            var release = CreateCompilationWithMscorlib(source, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.ReleaseWinMD);
+            var release = CreateStandardCompilation(source, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.ReleaseWinMD);
             release.VerifyPdb(
 @"<symbols>
   <methods>
@@ -364,7 +364,7 @@ public class C
             var tree1 = Parse(source1, @"foo.cs");
             var tree2 = Parse(source2, @"foo.cs");
 
-            var comp = CreateCompilationWithMscorlib(new[] { tree1, tree2 });
+            var comp = CreateStandardCompilation(new[] { tree1, tree2 });
 
             // the first file wins (checksum CB 22 ...)
             comp.VerifyPdb(@"
@@ -401,7 +401,7 @@ public class C
         {
             var source = @"class C { static void F() { } }";
 
-            var c = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            var c = CreateStandardCompilation(source, options: TestOptions.DebugDll);
             var f = c.GetMember<MethodSymbol>("C.F");
 
             c.VerifyPdb(@"
@@ -421,7 +421,7 @@ public class C
         {
             var source = @"class M { static void Main() { } } class C { static void F<S>() { } }";
 
-            var c = CreateCompilationWithMscorlib(source, options: TestOptions.DebugExe);
+            var c = CreateStandardCompilation(source, options: TestOptions.DebugExe);
             var f = c.GetMember<MethodSymbol>("C.F");
 
             c.VerifyPdb(@"
@@ -444,8 +444,8 @@ public class C
             var source1 = @"class C { static void F() { } } class D<T> { static void G<S>() {} }";
             var source2 = @"class C { static void F() { } }";
 
-            var c1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll);
-            var c2 = CreateCompilationWithMscorlib(source2, options: TestOptions.DebugDll);
+            var c1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll);
+            var c2 = CreateStandardCompilation(source2, options: TestOptions.DebugDll);
 
             var f1 = c1.GetMember<MethodSymbol>("C.F");
             var f2 = c2.GetMember<MethodSymbol>("C.F");
@@ -2705,9 +2705,9 @@ class Student : Person { public double GPA; }
       <customDebugInfo>
         <forward declaringType=""Program"" methodName=""Main"" parameterNames=""args"" />
         <encLocalSlotMap>
-          <slot kind=""temp"" />
-          <slot kind=""temp"" />
-          <slot kind=""temp"" />
+          <slot kind=""35"" offset=""11"" />
+          <slot kind=""35"" offset=""46"" />
+          <slot kind=""35"" offset=""237"" />
           <slot kind=""temp"" />
           <slot kind=""0"" offset=""59"" />
           <slot kind=""0"" offset=""163"" />
@@ -2798,9 +2798,9 @@ class Student : Person { public double GPA; }
         <encLocalSlotMap>
           <slot kind=""30"" offset=""0"" />
           <slot kind=""30"" offset=""383"" />
-          <slot kind=""temp"" />
-          <slot kind=""temp"" />
-          <slot kind=""temp"" />
+          <slot kind=""35"" offset=""11"" />
+          <slot kind=""35"" offset=""46"" />
+          <slot kind=""35"" offset=""249"" />
           <slot kind=""temp"" />
           <slot kind=""1"" offset=""11"" />
           <slot kind=""21"" offset=""0"" />
@@ -3217,7 +3217,7 @@ public partial class C
             //Having a unique name here may be important. The infrastructure of the pdb to xml conversion
             //loads the assembly into the ReflectionOnlyLoadFrom context.
             //So it's probably a good idea to have a new name for each assembly.
-            var compilation = CreateCompilationWithMscorlib(new SyntaxTree[] { Parse(text1, "a.cs"), Parse(text2, "b.cs") });
+            var compilation = CreateStandardCompilation(new SyntaxTree[] { Parse(text1, "a.cs"), Parse(text2, "b.cs") });
 
             compilation.VerifyPdb("C..ctor", @"
 <symbols>
@@ -3296,7 +3296,7 @@ public partial class C
             //Having a unique name here may be important. The infrastructure of the pdb to xml conversion
             //loads the assembly into the ReflectionOnlyLoadFrom context.
             //So it's probably a good idea to have a new name for each assembly.
-            var compilation = CreateCompilationWithMscorlib(new[] { Parse(text1, "a.cs"), Parse(text2, "b.cs"), Parse(text3, "a.cs") }, options: TestOptions.DebugDll);
+            var compilation = CreateStandardCompilation(new[] { Parse(text1, "a.cs"), Parse(text2, "b.cs"), Parse(text3, "a.cs") }, options: TestOptions.DebugDll);
 
             compilation.VerifyPdb("C..ctor", @"
 <symbols>
@@ -3425,7 +3425,7 @@ public class C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            var comp = CreateStandardCompilation(source, options: TestOptions.DebugDll);
 
             comp.VerifyPdb(@"
 <symbols>
@@ -4373,6 +4373,94 @@ class C
 </symbols>");
         }
 
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18844"), WorkItem(18844, "https://github.com/dotnet/roslyn/issues/18844")]
+        public void UsingStatement_Embedded()
+        {
+            var source = @"
+class C
+{
+    bool F()
+    {
+        bool x = true;
+        bool value = false;
+        using (var stream = new System.IO.MemoryStream())
+            if (x)
+            {
+                value = true;
+            }
+            else
+                value = false;
+
+        return value;
+    }
+}
+";
+
+            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            var v = CompileAndVerify(c);
+            v.VerifyIL("C.F", @"
+{
+  // Code size       45 (0x2d)
+  .maxstack  1
+  .locals init (bool V_0, //x
+                bool V_1, //value
+                System.IO.MemoryStream V_2, //stream
+                bool V_3,
+                bool V_4)
+  // sequence point: {
+  IL_0000:  nop
+  // sequence point: bool x = true;
+  IL_0001:  ldc.i4.1
+  IL_0002:  stloc.0
+  // sequence point: bool value = false;
+  IL_0003:  ldc.i4.0
+  IL_0004:  stloc.1
+  // sequence point: var stream = new System.IO.MemoryStream()
+  IL_0005:  newobj     ""System.IO.MemoryStream..ctor()""
+  IL_000a:  stloc.2
+  .try
+  {
+    // sequence point: if (x)
+    IL_000b:  ldloc.0
+    IL_000c:  stloc.3
+    // sequence point: <hidden>
+    IL_000d:  ldloc.3
+    IL_000e:  brfalse.s  IL_0016
+    // sequence point: {
+    IL_0010:  nop
+    // sequence point: value = true;
+    IL_0011:  ldc.i4.1
+    IL_0012:  stloc.1
+    // sequence point: }
+    IL_0013:  nop
+    IL_0014:  br.s       IL_0018
+    // sequence point: value = false;
+    IL_0016:  ldc.i4.0
+    IL_0017:  stloc.1
+    // sequence point: <hidden>
+    IL_0018:  leave.s    IL_0025
+  }
+  finally
+  {
+    // sequence point: <hidden>
+    IL_001a:  ldloc.2
+    IL_001b:  brfalse.s  IL_0024
+    IL_001d:  ldloc.2
+    IL_001e:  callvirt   ""void System.IDisposable.Dispose()""
+    IL_0023:  nop
+    IL_0024:  endfinally
+  }
+  // sequence point: return value;
+  IL_0025:  ldloc.1
+  IL_0026:  stloc.s    V_4
+  IL_0028:  br.s       IL_002a
+  // sequence point: }
+  IL_002a:  ldloc.s    V_4
+  IL_002c:  ret
+}
+", sequencePoints: "C.F", source: source);
+        }
+
         #endregion
 
         // LockStatement tested in CodeGenLock
@@ -5041,7 +5129,7 @@ public class C
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib(text1, options: TestOptions.DebugDll);
+            var compilation = CreateStandardCompilation(text1, options: TestOptions.DebugDll);
             compilation.VerifyPdb(@"
 <symbols>
   <methods>
@@ -5137,7 +5225,7 @@ namespace N
 	}
 }
 ";
-            var c = CreateCompilationWithMscorlib(Parse(source, filename: "file.cs"));
+            var c = CreateStandardCompilation(Parse(source, filename: "file.cs"));
             c.VerifyPdb(@"
 <symbols>
   <files>
@@ -5759,7 +5847,7 @@ partial class C
 }
 ";
 
-            var c = CreateCompilationWithMscorlib(
+            var c = CreateStandardCompilation(
                 new[] { Parse(initializerSource, "initializer.cs"), Parse(constructorSource, "constructor.cs") },
                 options: TestOptions.DebugDll);
 
@@ -5827,6 +5915,122 @@ partial class C
     }
 }";
             var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            CompileAndVerify(c).VerifyIL("Program.M",
+@"{
+  // Code size      210 (0xd2)
+  .maxstack  2
+  .locals init (object V_0,
+                int V_1,
+                object V_2,
+                object V_3,
+                int? V_4,
+                int V_5,
+                object V_6,
+                int V_7,
+                object V_8,
+                object V_9,
+                object V_10)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.2
+  IL_0003:  ldloc.2
+  IL_0004:  stloc.3
+  IL_0005:  ldloc.3
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  brtrue.s   IL_000c
+  IL_000a:  br.s       IL_005e
+  IL_000c:  ldloc.0
+  IL_000d:  isinst     ""int?""
+  IL_0012:  unbox.any  ""int?""
+  IL_0017:  stloc.s    V_4
+  IL_0019:  ldloca.s   V_4
+  IL_001b:  call       ""int int?.GetValueOrDefault()""
+  IL_0020:  stloc.1
+  IL_0021:  ldloca.s   V_4
+  IL_0023:  call       ""bool int?.HasValue.get""
+  IL_0028:  brfalse.s  IL_005e
+  IL_002a:  ldloc.1
+  IL_002b:  stloc.s    V_5
+  IL_002d:  ldloc.s    V_5
+  IL_002f:  ldc.i4.1
+  IL_0030:  sub
+  IL_0031:  switch    (
+        IL_004c,
+        IL_0054,
+        IL_005a,
+        IL_0052,
+        IL_0058)
+  IL_004a:  br.s       IL_005e
+  IL_004c:  br.s       IL_0060
+  IL_004e:  br.s       IL_006c
+  IL_0050:  br.s       IL_007a
+  IL_0052:  br.s       IL_006a
+  IL_0054:  br.s       IL_0065
+  IL_0056:  br.s       IL_005e
+  IL_0058:  br.s       IL_0076
+  IL_005a:  br.s       IL_0071
+  IL_005c:  br.s       IL_005e
+  IL_005e:  br.s       IL_0078
+  IL_0060:  ldarg.0
+  IL_0061:  brfalse.s  IL_006a
+  IL_0063:  br.s       IL_004e
+  IL_0065:  ldarg.0
+  IL_0066:  brfalse.s  IL_006a
+  IL_0068:  br.s       IL_0056
+  IL_006a:  br.s       IL_007c
+  IL_006c:  ldarg.0
+  IL_006d:  brtrue.s   IL_0076
+  IL_006f:  br.s       IL_0050
+  IL_0071:  ldarg.0
+  IL_0072:  brtrue.s   IL_0076
+  IL_0074:  br.s       IL_005c
+  IL_0076:  br.s       IL_007c
+  IL_0078:  br.s       IL_007c
+  IL_007a:  br.s       IL_007c
+  IL_007c:  ldarg.0
+  IL_007d:  stloc.2
+  IL_007e:  ldloc.2
+  IL_007f:  stloc.s    V_8
+  IL_0081:  ldloc.s    V_8
+  IL_0083:  stloc.s    V_6
+  IL_0085:  ldloc.s    V_6
+  IL_0087:  brtrue.s   IL_008b
+  IL_0089:  br.s       IL_00b8
+  IL_008b:  ldloc.s    V_6
+  IL_008d:  isinst     ""int?""
+  IL_0092:  unbox.any  ""int?""
+  IL_0097:  stloc.s    V_4
+  IL_0099:  ldloca.s   V_4
+  IL_009b:  call       ""int int?.GetValueOrDefault()""
+  IL_00a0:  stloc.s    V_7
+  IL_00a2:  ldloca.s   V_4
+  IL_00a4:  call       ""bool int?.HasValue.get""
+  IL_00a9:  brfalse.s  IL_00b8
+  IL_00ab:  ldloc.s    V_7
+  IL_00ad:  stloc.s    V_5
+  IL_00af:  ldloc.s    V_5
+  IL_00b1:  ldc.i4.1
+  IL_00b2:  beq.s      IL_00b6
+  IL_00b4:  br.s       IL_00b8
+  IL_00b6:  br.s       IL_00ba
+  IL_00b8:  br.s       IL_00bc
+  IL_00ba:  br.s       IL_00be
+  IL_00bc:  br.s       IL_00be
+  IL_00be:  ldarg.0
+  IL_00bf:  stloc.2
+  IL_00c0:  ldloc.2
+  IL_00c1:  stloc.s    V_10
+  IL_00c3:  ldloc.s    V_10
+  IL_00c5:  stloc.s    V_9
+  IL_00c7:  ldloc.s    V_9
+  IL_00c9:  brtrue.s   IL_00cd
+  IL_00cb:  br.s       IL_00cd
+  IL_00cd:  br.s       IL_00cf
+  IL_00cf:  br.s       IL_00d1
+  IL_00d1:  ret
+}
+");
             c.VerifyPdb(
 @"<symbols>
   <methods>
@@ -5836,13 +6040,16 @@ partial class C
           <namespace usingCount=""0"" />
         </using>
         <encLocalSlotMap>
-          <slot kind=""temp"" />
-          <slot kind=""temp"" />
+          <slot kind=""35"" offset=""11"" />
+          <slot kind=""35"" offset=""46"" />
           <slot kind=""temp"" />
           <slot kind=""1"" offset=""11"" />
           <slot kind=""temp"" />
           <slot kind=""temp"" />
+          <slot kind=""35"" offset=""378"" />
+          <slot kind=""35"" offset=""413"" />
           <slot kind=""1"" offset=""378"" />
+          <slot kind=""35"" offset=""511"" />
           <slot kind=""1"" offset=""511"" />
         </encLocalSlotMap>
       </customDebugInfo>
@@ -5860,12 +6067,12 @@ partial class C
         <entry offset=""0x7a"" startLine=""18"" startColumn=""17"" endLine=""18"" endColumn=""23"" />
         <entry offset=""0x7c"" startLine=""20"" startColumn=""9"" endLine=""20"" endColumn=""19"" />
         <entry offset=""0x81"" hidden=""true"" />
-        <entry offset=""0xb5"" startLine=""23"" startColumn=""17"" endLine=""23"" endColumn=""23"" />
-        <entry offset=""0xb7"" startLine=""25"" startColumn=""17"" endLine=""25"" endColumn=""23"" />
-        <entry offset=""0xb9"" startLine=""27"" startColumn=""9"" endLine=""27"" endColumn=""19"" />
-        <entry offset=""0xbe"" hidden=""true"" />
-        <entry offset=""0xc8"" startLine=""30"" startColumn=""17"" endLine=""30"" endColumn=""23"" />
-        <entry offset=""0xca"" startLine=""32"" startColumn=""5"" endLine=""32"" endColumn=""6"" />
+        <entry offset=""0xba"" startLine=""23"" startColumn=""17"" endLine=""23"" endColumn=""23"" />
+        <entry offset=""0xbc"" startLine=""25"" startColumn=""17"" endLine=""25"" endColumn=""23"" />
+        <entry offset=""0xbe"" startLine=""27"" startColumn=""9"" endLine=""27"" endColumn=""19"" />
+        <entry offset=""0xc3"" hidden=""true"" />
+        <entry offset=""0xcf"" startLine=""30"" startColumn=""17"" endLine=""30"" endColumn=""23"" />
+        <entry offset=""0xd1"" startLine=""32"" startColumn=""5"" endLine=""32"" endColumn=""6"" />
       </sequencePoints>
     </method>
   </methods>
