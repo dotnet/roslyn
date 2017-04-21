@@ -204,20 +204,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 }
 
                 tuple = parent.Parent;
-                if (tuple.IsKind(SyntaxKind.TupleExpression))
-                {
-                    parent = parent.Parent.Parent;
-                    if (parent == null)
-                    {
-                        return false;
-                    }
-                }
-                else
-                {
-                    return false;
-                }
+                parent = tuple.IsKind(SyntaxKind.TupleExpression) ? parent.Parent.Parent : null;
             }
-            while (true);
+            while (parent != null);
+
+            return false;
         }
     }
 }
