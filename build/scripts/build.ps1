@@ -33,12 +33,12 @@ function Run-Build() {
     $target = if ($project -ne "") { $project } else { Join-Path $repoDir "Roslyn.sln" }
     $buildArgs = "$buildArgs $target"
 
-    Exec-Expression "& `"$msbuild`" $buildArgs"
+    Exec-Command $msbuild $buildArgs | Out-Host
 }
 
 function Run-Test() {
     $proj = Join-Path $repoDir "BuildAndTest.proj"
-    Exec-Expression "& `"$msbuild`" /v:m /p:SkipCoreClr=true /t:Test $proj"
+    Exec-Command $msbuild "/v:m /p:SkipCoreClr=true /t:Test $proj" | Out-Host
 }
 
 try {
