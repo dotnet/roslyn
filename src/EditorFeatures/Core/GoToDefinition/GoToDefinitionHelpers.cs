@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
             }
 
             var definitions = ArrayBuilder<DefinitionItem>.GetInstance();
-            var definitionItem = symbol.ToDefinitionItemAsync(
+            var definitionItem = symbol.ToClassifiedDefinitionItemAsync(
                 solution, includeHiddenLocations: true, cancellationToken: cancellationToken).WaitAndGetResult(cancellationToken);
 
             if (thirdPartyNavigationAllowed)

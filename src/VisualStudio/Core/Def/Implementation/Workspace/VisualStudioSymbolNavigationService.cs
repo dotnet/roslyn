@@ -158,9 +158,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             ISymbol symbol, Solution solution, CancellationToken cancellationToken)
         {
             AssertIsForeground();
-            var definitionItem = symbol.ToDefinitionItemAsync(
-                solution, includeHiddenLocations: true, cancellationToken: cancellationToken).WaitAndGetResult(cancellationToken);
 
+            var definitionItem = symbol.ToNonClassifiedDefinitionItem(solution, includeHiddenLocations: true);
             definitionItem.Properties.TryGetValue(DefinitionItem.RQNameKey1, out var rqName);
 
             if (!TryGetNavigationAPIRequiredArguments(
