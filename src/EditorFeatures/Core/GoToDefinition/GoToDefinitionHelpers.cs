@@ -70,6 +70,8 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
                 definitions.AddIfNotNull(thirdPartyItem);
             }
 
+            definitions.Add(definitionItem);
+
             var presenter = GetFindUsagesPresenter(streamingPresenters);
             var title = string.Format(EditorFeaturesResources._0_declarations,
                 FindUsagesHelpers.GetDisplayName(symbol));
