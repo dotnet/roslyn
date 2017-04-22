@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Concurrent;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.FindSymbols;
@@ -15,6 +14,10 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
 {
     internal abstract partial class AbstractFindUsagesService
     {
+        /// <summary>
+        /// Forwards <see cref="IStreamingFindLiteralReferencesProgress"/> calls to an
+        /// <see cref="IFindUsagesContext"/> instance.
+        /// </summary>
         private class FindLiteralsProgressAdapter : IStreamingFindLiteralReferencesProgress
         {
             private readonly IFindUsagesContext _context;
@@ -104,22 +107,6 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                 if (referenceItem != null)
                 {
                     await _context.OnReferenceFoundAsync(referenceItem).ConfigureAwait(false);
-                }
-            }
-
-            public async Task CallThirdPartyExtensionsAsync(CancellationToken cancellationToken)
-            {
-                var factory = _solution.Workspace.Services.GetService<IDefinitionsAndReferencesFactory>();
-                foreach (var definition in _definitionToItem.Values)
-                {
-                    var item = factory.GetThirdPartyDefinitionItem(
-                        _solution, definition, cancellationToken);
-                    if (item != null)
-                    {
-                        // ConfigureAwait(true) because we want to come back on the 
-                        // same thread after calling into extensions.
-                        await _context.OnDefinitionFoundAsync(item).ConfigureAwait(true);
-                    }
                 }
             }
         }
