@@ -7601,6 +7601,7 @@ class MyClass : I
         protected abstract internal void M3(sbyte p) { }
         public abstract object P { get { return null; } set { } }
         public abstract event System.Action E { add { } remove { } }
+        public abstract event System.Action X { add => throw null; remove => throw null; }
     } // class clx
 }
 ";
@@ -7611,7 +7612,9 @@ class MyClass : I
                 new ErrorDescription { Code = (int)ErrorCode.ERR_AbstractHasBody, Line = 8, Column = 36 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_AbstractHasBody, Line = 8, Column = 57 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_AbstractHasBody, Line = 9, Column = 49 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_AbstractHasBody, Line = 9, Column = 57 });
+                new ErrorDescription { Code = (int)ErrorCode.ERR_AbstractHasBody, Line = 9, Column = 57 },
+                new ErrorDescription { Code = (int)ErrorCode.ERR_AbstractHasBody, Line = 10, Column = 49 },
+                new ErrorDescription { Code = (int)ErrorCode.ERR_AbstractHasBody, Line = 10, Column = 68 });
 
             var ns = comp.SourceModule.GlobalNamespace.GetMembers("NS").Single() as NamespaceSymbol;
             // TODO...
