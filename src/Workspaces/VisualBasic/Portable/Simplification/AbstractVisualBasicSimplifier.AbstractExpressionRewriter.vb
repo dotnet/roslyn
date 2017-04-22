@@ -31,6 +31,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                 End Get
             End Property
 
+            Private Shared Function GetParentNode(node As SyntaxNode) As SyntaxNode
+                Dim expression = TryCast(node, ExpressionSyntax)
+                If expression IsNot Nothing Then
+                    Return GetParentNode(expression)
+                End If
+
+                If node.IsKind(SyntaxKind.SimpleArgument) AndAlso node.IsParentKind(SyntaxKind.TupleExpression) Then
+                    Return node.Parent
+                End If
+
+                If node.IsKind(SyntaxKind.NamedFieldInitializer) Then
+                    Return node.Parent
+                End If
+
+                Return Nothing
+            End Function
+
             Private Shared Function GetParentNode(expression As ExpressionSyntax) As SyntaxNode
                 Return expression _
                     .AncestorsAndSelf() _
@@ -122,7 +139,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                 Return newToken
             End Function
 
-            Protected Function SimplifyExpression(Of TExpression As ExpressionSyntax)(
+            Protected Function SimplifyExpression(Of TExpression As SyntaxNode)(
                 expression As TExpression,
                 newNode As SyntaxNode,
                 simplifier As Func(Of TExpression, SemanticModel, OptionSet, CancellationToken, SyntaxNode)

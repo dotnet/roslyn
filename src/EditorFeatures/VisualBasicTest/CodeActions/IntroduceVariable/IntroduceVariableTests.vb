@@ -1827,7 +1827,7 @@ Class C
         Const {|Rename:V|} As Integer = 5
         Console.WriteLine(V)
 #End ExternalSource
-    End Sub
+   End Sub
 End Class
 "
 
@@ -2744,5 +2744,150 @@ end class",
     end sub
 end class")
         End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        Public Async Function TupleWithInferredName_LeaveExplicitName() As Task
+            Dim code = "
+Class C
+    Shared Dim y As Integer = 2
+    Sub M()
+        Dim a As Integer = 1
+        Dim t = (a, x:=[|C.y|])
+    End Sub
+End Class
+"
+            Dim expected = "
+Class C
+    Shared Dim y As Integer = 2
+    Sub M()
+        Dim a As Integer = 1
+        Dim {|Rename:y1|} As Integer = C.y
+        Dim t = (a, x:=y1)
+    End Sub
+End Class
+"
+            Await TestInRegularAndScriptAsync(code, expected, ignoreTrivia:=False)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        Public Async Function TupleWithInferredName_InferredNameBecomesExplicit() As Task
+            Dim code = "
+Class C
+    Shared Dim y As Integer = 2
+    Sub M()
+        Dim a As Integer = 1
+        Dim t = (a, [|C.y|])
+    End Sub
+End Class
+"
+            Dim expected = "
+Class C
+    Shared Dim y As Integer = 2
+    Sub M()
+        Dim a As Integer = 1
+        Dim {|Rename:y1|} As Integer = C.y
+        Dim t = (a, y:=y1)
+    End Sub
+End Class
+"
+            Await TestInRegularAndScriptAsync(code, expected, ignoreTrivia:=False)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        Public Async Function TupleWithInferredName_AllOccurrences() As Task
+            Dim code = "
+Class C
+    Shared Dim y As Integer = 2
+    Sub M()
+        Dim a As Integer = 1
+        Dim t = (a, [|C.y|])
+        Dim t2 = (C.y, a)
+    End Sub
+End Class
+"
+            Dim expected = "
+Class C
+    Shared Dim y As Integer = 2
+    Sub M()
+        Dim a As Integer = 1
+        Dim {|Rename:y1|} As Integer = C.y
+        Dim t = (a, y:=y1)
+        Dim t2 = (y:=y1, a)
+    End Sub
+End Class
+"
+            Await TestInRegularAndScriptAsync(code, expected, index:=1, ignoreTrivia:=False)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        Public Async Function TupleWithInferredName_NoDuplicateNames() As Task
+            Dim code = "
+Class C
+    Shared Dim y As Integer = 2
+    Sub M()
+        Dim t = (C.y, [|C.y|])
+    End Sub
+End Class
+"
+            Dim expected = "
+Class C
+    Shared Dim y As Integer = 2
+    Sub M()
+        Dim {|Rename:y1|} As Integer = C.y
+        Dim t = (y1, y1)
+    End Sub
+End Class
+"
+            Await TestInRegularAndScriptAsync(code, expected, index:=1, ignoreTrivia:=False)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        Public Async Function TupleWithInferredName_NoReservedNames() As Task
+            Dim code = "
+Class C
+    Shared Dim rest As Integer = 2
+    Sub M()
+        Dim a As Integer = 1
+        Dim t = (a, [|C.rest|])
+    End Sub
+End Class
+"
+            Dim expected = "
+Class C
+    Shared Dim rest As Integer = 2
+    Sub M()
+        Dim a As Integer = 1
+        Dim {|Rename:rest1|} As Integer = C.rest
+        Dim t = (a, rest1)
+    End Sub
+End Class
+"
+            Await TestInRegularAndScriptAsync(code, expected, ignoreTrivia:=False)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        Public Async Function AnonymousTypeWithInferredName_LeaveExplicitName() As Task
+            Dim code = "
+Class C
+    Shared Dim y As Integer = 2
+    Sub M()
+        Dim a As Integer = 1
+        Dim t = New With {a, [|C.y|]}
+    End Sub
+End Class
+"
+            Dim expected = "
+Class C
+    Shared Dim y As Integer = 2
+    Sub M()
+        Dim a As Integer = 1
+        Dim {|Rename:y1|} As Integer = C.y
+        Dim t = New With {a, .y = y1}
+    End Sub
+End Class
+"
+            Await TestInRegularAndScriptAsync(code, expected, ignoreTrivia:=False)
+        End Function
+
     End Class
 End Namespace

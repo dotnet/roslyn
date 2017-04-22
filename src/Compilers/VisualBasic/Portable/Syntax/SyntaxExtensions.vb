@@ -103,5 +103,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                       DirectCast(DirectCast(simpleName, IdentifierNameSyntax).WithIdentifier(identifier), SimpleNameSyntax),
                       DirectCast(DirectCast(simpleName, GenericNameSyntax).WithIdentifier(identifier), SimpleNameSyntax))
         End Function
+
+        ''' <summary>
+        ''' Given an initializer expression infer the name of anonymous property or tuple element.
+        ''' Returns Nothing if unsuccessful
+        ''' </summary>
+        <Extension>
+        Public Function TryGetInferredMemberName(expression As ExpressionSyntax) As String
+            Dim ignore As XmlNameSyntax = Nothing
+            Dim nameToken As SyntaxToken = expression.ExtractAnonymousTypeMemberName(ignore)
+            Return If(nameToken.Kind() = SyntaxKind.IdentifierToken, nameToken.ValueText, Nothing)
+        End Function
     End Module
 End Namespace
