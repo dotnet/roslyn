@@ -531,14 +531,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
 
                 var cancellationToken = context.CancellationToken;
 
-                // Fire and forget the work to go get references.
-                var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-                var symbol = symbolListItem.ResolveSymbol(compilation);
-                if (symbol != null)
+                // Kick off the work to do the actual finding on a BG thread.  That way we don'
+                // t block the calling (UI) thread too long if we happen to do our work on this
+                // thread.
+                await Task.Run(async () =>
                 {
-                    await AbstractFindUsagesService.FindSymbolReferencesAsync(
-                        context, symbol, project, cancellationToken).ConfigureAwait(false);
-                }
+                    await FindReferencesAsync(symbolListItem, project, context, cancellationToken).ConfigureAwait(false);
+                }, cancellationToken).ConfigureAwait(false);
 
                 // Note: we don't need to put this in a finally.  The only time we might not hit
                 // this is if cancellation or another error gets thrown.  In the former case,
@@ -552,6 +551,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
             }
             catch (Exception e) when (FatalError.ReportWithoutCrash(e))
             {
+            }
+        }
+
+        private static async Task FindReferencesAsync(SymbolListItem symbolListItem, Project project, CodeAnalysis.FindUsages.FindUsagesContext context, CancellationToken cancellationToken)
+        {
+            var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+            var symbol = symbolListItem.ResolveSymbol(compilation);
+            if (symbol != null)
+            {
+                await AbstractFindUsagesService.FindSymbolReferencesAsync(
+                    context, symbol, project, cancellationToken).ConfigureAwait(false);
             }
         }
     }
