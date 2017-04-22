@@ -53,14 +53,6 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
 
             symbol = definition ?? symbol;
 
-            var definitions = ArrayBuilder<DefinitionItem>.GetInstance();
-            if (thirdPartyNavigationAllowed)
-            {
-                var factory = solution.Workspace.Services.GetService<IDefinitionsAndReferencesFactory>();
-                var thirdPartyItem = factory?.GetThirdPartyDefinitionItem(solution, symbol, cancellationToken);
-                definitions.AddIfNotNull(thirdPartyItem);
-            }
-
             // If it is a partial method declaration with no body, choose to go to the implementation
             // that has a method body.
             if (symbol is IMethodSymbol method)
@@ -68,40 +60,25 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
                 symbol = method.PartialImplementationPart ?? symbol;
             }
 
-            var options = project.Solution.Options;
-
-            var definitionItem = symbol.ToDefinitionItemAsync(
+            var definitions = ArrayBuilder<DefinitionItem>.GetInstance();
+            var definitionItem = symbol.ToClassifiedDefinitionItemAsync(
                 solution, includeHiddenLocations: true, cancellationToken: cancellationToken).WaitAndGetResult(cancellationToken);
+
+            if (thirdPartyNavigationAllowed)
+            {
+                var factory = solution.Workspace.Services.GetService<IDefinitionsAndReferencesFactory>();
+                var thirdPartyItem = factory?.GetThirdPartyDefinitionItem(solution, definitionItem, cancellationToken);
+                definitions.AddIfNotNull(thirdPartyItem);
+            }
+
             definitions.Add(definitionItem);
 
-            var presenter = GetFindUsagesPresenter(streamingPresenters);
+            var presenter = streamingPresenters.FirstOrDefault()?.Value;
             var title = string.Format(EditorFeaturesResources._0_declarations,
                 FindUsagesHelpers.GetDisplayName(symbol));
 
             return presenter.TryNavigateToOrPresentItemsAsync(
                 title, definitions.ToImmutableAndFree()).WaitAndGetResult(cancellationToken);
-        }
-
-        private static IStreamingFindUsagesPresenter GetFindUsagesPresenter(
-            IEnumerable<Lazy<IStreamingFindUsagesPresenter>> streamingPresenters)
-        {
-            try
-            {
-                return streamingPresenters.FirstOrDefault()?.Value;
-            }
-            catch
-            {
-                return null;
-            }
-        }
-
-        private static bool TryThirdPartyNavigation(
-            ISymbol symbol, Solution solution, CancellationToken cancellationToken)
-        {
-            var symbolNavigationService = solution.Workspace.Services.GetService<ISymbolNavigationService>();
-
-            // Notify of navigation so third parties can intercept the navigation
-            return symbolNavigationService.TrySymbolNavigationNotify(symbol, solution, cancellationToken);
         }
     }
 }
