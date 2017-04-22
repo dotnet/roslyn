@@ -112,8 +112,8 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                 var factory = _solution.Workspace.Services.GetService<IDefinitionsAndReferencesFactory>();
                 foreach (var definition in _definitionToItem.Values)
                 {
-                        var item = factory.GetThirdPartyDefinitionItem(
-                            _solution, definition, cancellationToken);
+                    var item = factory.GetThirdPartyDefinitionItem(
+                        _solution, definition, cancellationToken);
                     if (item != null)
                     {
                         // ConfigureAwait(true) because we want to come back on the 
