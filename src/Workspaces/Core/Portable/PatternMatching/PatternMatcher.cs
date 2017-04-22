@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
             {
                 // PERF: Avoid string.Split allocations when the pattern doesn't contain a dot.
                 _dotSeparatedPatternSegments = pattern.Length > 0
-                    ? new PatternSegment[1] { _fullPatternSegment }
+                    ? new PatternSegment[1] { new PatternSegment(pattern, allowFuzzyMatching) }
                     : Array.Empty<PatternSegment>();
             }
             else
