@@ -233,7 +233,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 }
                 catch (InvalidDataException)
                 {
-                    string message = string.Format(CodeAnalysisResources.AbsolutePathExpected,
+                    string message = string.Format(CodeAnalysisResources.UnableToReadDebugInfo,
                         MessageProvider.GetErrorDisplayString(method),
                         MetadataTokens.GetToken(previousHandle).ToString("X8"),
                         MessageProvider.GetErrorDisplayString(method.ContainingAssembly));

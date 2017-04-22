@@ -7133,10 +7133,15 @@ class C
                 generation0,
                 ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
 
-            // TODO: better error code
+            // TODO: better error code https://github.com/dotnet/roslyn/issues/11512
+            string expectedMessage = string.Format(CodeAnalysisResources.UnableToReadDebugInfo,
+                        "C.F()",
+                        "06000001",
+                        "PdbReadingErrorsAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null");
+
             diff1.EmitResult.Diagnostics.Verify(
                 // (6,14): error CS7038: Failed to emit module 'Unable to read debug information of method 'C.F()' (token 0x06000001) from assembly 'PdbReadingErrorsAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null''.
-                Diagnostic(ErrorCode.ERR_ModuleEmitFailure, "F").WithArguments("Unable to read debug information of method 'C.F()' (token 0x06000001) from assembly 'PdbReadingErrorsAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'").WithLocation(6, 14));
+                Diagnostic(ErrorCode.ERR_ModuleEmitFailure, "F").WithArguments(expectedMessage).WithLocation(6, 14));
         }
 
         [Fact]
