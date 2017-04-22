@@ -33,7 +33,9 @@ namespace Microsoft.CodeAnalysis.Emit
             ImmutableArray<int> resumeOffsets) 
             : base(kickoffMethod)
         {
-            Debug.Assert(!yieldOffsets.IsDefault && !resumeOffsets.IsDefault && yieldOffsets.Length == resumeOffsets.Length);
+            Debug.Assert(!yieldOffsets.IsDefault);
+            Debug.Assert(!resumeOffsets.IsDefault);
+            Debug.Assert(yieldOffsets.Length == resumeOffsets.Length);
 
             CatchHandlerOffset = catchHandlerOffset;
             YieldOffsets = yieldOffsets;

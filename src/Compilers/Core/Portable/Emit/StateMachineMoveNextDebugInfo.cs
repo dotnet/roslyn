@@ -5,7 +5,7 @@ using System.Diagnostics;
 namespace Microsoft.CodeAnalysis.Emit
 {
     /// <summary>
-    /// Information associated with methdo body of a state machine MoveNext method.
+    /// Information associated with method body of a state machine MoveNext method.
     /// </summary>
     internal abstract class StateMachineMoveNextBodyDebugInfo
     {

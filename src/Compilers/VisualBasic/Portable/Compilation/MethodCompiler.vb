@@ -1521,7 +1521,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     isAsyncStateMachine = kickoffMethod.IsAsync
 
                     ' Async Sub may be partial. Debug info needs to be associated with the emitted definition, 
-                    ' but the kickoff method Is the method implementation (the part with body).
+                    ' but the kickoff method is the method implementation (the part with body).
                     kickoffMethod = If(kickoffMethod.PartialDefinitionPart, kickoffMethod)
                 Else
                     kickoffMethod = Nothing

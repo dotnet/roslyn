@@ -153,99 +153,75 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             return (actualXml, expectedXml);
         }
 
-        private static void RemoveEmptyCustomDebugInfo(XElement pdb)
+        private static bool RemoveElements(IEnumerable<XElement> elements)
         {
-            var emptyNodes = from e in pdb.DescendantsAndSelf()
-                             where e.Name == "customDebugInfo" && !e.HasElements
-                             select e;
+            var array = elements.ToArray();
 
-            foreach (var e in emptyNodes.ToArray())
+            foreach (var e in array)
             {
                 e.Remove();
             }
+
+            return array.Length > 0;
+        }
+
+        private static void RemoveEmptyCustomDebugInfo(XElement pdb)
+        {
+            RemoveElements(from e in pdb.DescendantsAndSelf()
+                           where e.Name == "customDebugInfo" && !e.HasElements
+                           select e);
         }
 
         private static void RemoveEmptyScopes(XElement pdb)
         {
-            XElement[] emptyScopes;
-
-            do
-            {
-                emptyScopes = (from e in pdb.DescendantsAndSelf()
-                               where e.Name == "scope" && !e.HasElements
-                               select e).ToArray();
-
-                foreach (var e in emptyScopes)
-                {
-                    e.Remove();
-                }
-            }
-            while (emptyScopes.Any());
+            while (RemoveElements(from e in pdb.DescendantsAndSelf()
+                                  where e.Name == "scope" && !e.HasElements
+                                  select e));
         }
 
         private static void RemoveEmptySequencePoints(XElement pdb)
         {
-            var emptyScopes = from e in pdb.DescendantsAndSelf()
-                              where e.Name == "sequencePoints" && !e.HasElements
-                              select e;
-
-            foreach (var e in emptyScopes.ToArray())
-            {
-                e.Remove();
-            }
+            RemoveElements(from e in pdb.DescendantsAndSelf()
+                           where e.Name == "sequencePoints" && !e.HasElements
+                           select e);
         }
 
         private static void RemoveEmptyMethods(XElement pdb)
         {
-            var emptyScopes = from e in pdb.DescendantsAndSelf()
-                              where e.Name == "method" && !e.HasElements
-                              select e;
-
-            foreach (var e in emptyScopes.ToArray())
-            {
-                e.Remove();
-            }
+            RemoveElements(from e in pdb.DescendantsAndSelf()
+                           where e.Name == "method" && !e.HasElements
+                           select e);
         }
 
         private static void RemoveWindowsSpecificElements(XElement expectedNativePdb)
         {
-            var elementsToRemove = from e in expectedNativePdb.DescendantsAndSelf()
-                                   where e.Name == "forwardIterator" ||
-                                         e.Name == "forwardToModule" ||
-                                         e.Name == "forward" ||
-                                         e.Name == "tupleElementNames" ||
-                                         e.Name == "dynamicLocals" ||
-                                         e.Name == "using" ||
-                                         e.Name == "currentnamespace" ||
-                                         e.Name == "defaultnamespace" ||
-                                         e.Name == "importsforward" ||
-                                         e.Name == "xmlnamespace" ||
-                                         e.Name == "alias" ||
-                                         e.Name == "namespace" ||
-                                         e.Name == "type" ||
-                                         e.Name == "defunct" ||
-                                         e.Name == "extern" ||
-                                         e.Name == "externinfo" ||
-                                         e.Name == "local" && e.Attributes().Any(a => a.Name.LocalName == "name" && a.Value.StartsWith("$VB$ResumableLocal_")) ||
-                                         e.Attributes().Any(a => a.Name.LocalName == "format" && a.Value == "windows")
-                                   select e;
-
-            foreach (var e in elementsToRemove.ToArray())
-            {
-                e.Remove();
-            }
+            RemoveElements(from e in expectedNativePdb.DescendantsAndSelf()
+                           where e.Name == "forwardIterator" ||
+                                 e.Name == "forwardToModule" ||
+                                 e.Name == "forward" ||
+                                 e.Name == "tupleElementNames" ||
+                                 e.Name == "dynamicLocals" ||
+                                 e.Name == "using" ||
+                                 e.Name == "currentnamespace" ||
+                                 e.Name == "defaultnamespace" ||
+                                 e.Name == "importsforward" ||
+                                 e.Name == "xmlnamespace" ||
+                                 e.Name == "alias" ||
+                                 e.Name == "namespace" ||
+                                 e.Name == "type" ||
+                                 e.Name == "defunct" ||
+                                 e.Name == "extern" ||
+                                 e.Name == "externinfo" ||
+                                 e.Name == "local" && e.Attributes().Any(a => a.Name.LocalName == "name" && a.Value.StartsWith("$VB$ResumableLocal_")) ||
+                                 e.Attributes().Any(a => a.Name.LocalName == "format" && a.Value == "windows")
+                           select e);
         }
 
         private static void RemovePortableSpecificElements(XElement expectedNativePdb)
         {
-            var elementsToRemove = from e in expectedNativePdb.DescendantsAndSelf()
-                                   where e.Attributes().Any(a => a.Name.LocalName == "format" && a.Value == "portable")
-                                   select e;
-
-            foreach (var e in elementsToRemove.ToArray())
-            {
-                e.Remove();
-            }
+            RemoveElements(from e in expectedNativePdb.DescendantsAndSelf()
+                           where e.Attributes().Any(a => a.Name.LocalName == "format" && a.Value == "portable")
+                           select e);
         }
 
         private static void RemoveFormatAttributes(XElement pdb)

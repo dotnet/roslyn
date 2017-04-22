@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             _sequencePoints = GetSequencePoints(sequencePoints, debugDocumentProvider);
         }
 
-        private ImmutableArray<Cci.SequencePoint> GetSequencePoints(SequencePointList sequencePoints, DebugDocumentProvider debugDocumentProvider)
+        private static ImmutableArray<Cci.SequencePoint> GetSequencePoints(SequencePointList sequencePoints, DebugDocumentProvider debugDocumentProvider)
         {
             if (sequencePoints == null || sequencePoints.IsEmpty)
             {
