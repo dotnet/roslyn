@@ -60,7 +60,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Peek
             }
 
             var symbolNavigationService = solution.Workspace.Services.GetService<ISymbolNavigationService>();
-
             var definitionItem = symbol.ToDefinitionItem(solution, includeHiddenLocations: true);
 
             if (symbolNavigationService.WouldNavigateToSymbol(
