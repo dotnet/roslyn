@@ -210,13 +210,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         {
             base.OnDocumentOpened(documentId, textContainer, isCurrentContext);
         }
-
-        public void OnDocumentClosed(DocumentId documentId)
-        {
-            var testDocument = this.GetTestDocument(documentId);
-            this.OnDocumentClosed(documentId, testDocument.Loader);
-        }
-
+        
         public new void OnParseOptionsChanged(ProjectId projectId, ParseOptions parseOptions)
         {
             base.OnParseOptionsChanged(projectId, parseOptions);
@@ -600,10 +594,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
         public override void CloseDocument(DocumentId documentId)
         {
-            var currentDoc = this.CurrentSolution.GetDocument(documentId);
-
-            OnDocumentClosed(documentId,
-                TextLoader.From(TextAndVersion.Create(currentDoc.GetTextAsync().Result, currentDoc.GetTextVersionAsync().Result)));
+            var testDocument = this.GetTestDocument(documentId);
+            this.OnDocumentClosed(documentId, testDocument.Loader);
         }
 
         public void ChangeDocument(DocumentId documentId, SourceText text)
