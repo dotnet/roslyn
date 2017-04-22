@@ -494,8 +494,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
                 switch (commandId)
                 {
                     case (uint)VSConstants.VSStd97CmdID.FindReferences:
-                        var streamingPresenter = GetStreamingPresenter();
+                        var streamingPresenter = _streamingPresenters.FirstOrDefault()?.Value;
                         var symbolListItem = _activeListItem as SymbolListItem;
+
                         if (streamingPresenter != null && symbolListItem?.ProjectId != null)
                         {
                             var project = this.Workspace.CurrentSolution.GetProject(symbolListItem.ProjectId);
@@ -516,18 +517,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
             }
 
             return false;
-        }
-
-        private IStreamingFindUsagesPresenter GetStreamingPresenter()
-        {
-            try
-            {
-                return _streamingPresenters.FirstOrDefault()?.Value;
-            }
-            catch
-            {
-                return null;
-            }
         }
 
         private async Task FindReferencesAsync(
