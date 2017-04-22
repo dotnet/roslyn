@@ -47,33 +47,37 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
         public async Task FindReferencesAsync(
             Document document, int position, IFindUsagesContext context)
         {
+            var definitionTrackingContext = new DefinitionTrackingContext(context);
+
             // NOTE: All ConFigureAwaits in this method need to pass 'true' so that
             // we return to the caller's context.  that's so the call to 
             // CallThirdPartyExtensionsAsync will happen on the UI thread.  We need
             // this to maintain the threading guarantee we had around that method
             // from pre-Roslyn days.
-            var cancellationToken = context.CancellationToken;
-            cancellationToken.ThrowIfCancellationRequested();
-
-            // First, see if we're on a literal.  If so search for literals in the solution with
-            // the same value.
-            var found = await TryFindLiteralReferencesAsync(document, position, context).ConfigureAwait(true);
-            if (found)
-            {
-                return;
-            }
-
-            var definitionTrackingContext = new DefinitionTrackingContext(context);
-
-            // ConfigureAwait(true) because we want to come back on the same thread before calling 
-            // into extensions.
-            await FindSymbolReferencesAsync(
+            await FindLiteralOrSymbolReferencesAsync(
                 document, position, definitionTrackingContext).ConfigureAwait(true);
 
             // After the FAR engine is done call into any third party extensions to see
             // if they want to add results.
             await CallThirdPartyExtensionsAsync( 
                 document.Project.Solution, definitionTrackingContext, context).ConfigureAwait(true);
+        }
+
+        private async Task FindLiteralOrSymbolReferencesAsync(
+            Document document, int position, IFindUsagesContext context)
+        {
+            // First, see if we're on a literal.  If so search for literals in the solution with
+            // the same value.
+            var found = await TryFindLiteralReferencesAsync(
+                document, position, context).ConfigureAwait(false);
+            if (found)
+            {
+                return;
+            }
+
+            // Wasn't a literal.  Try again as a symbol.
+            await FindSymbolReferencesAsync(
+                document, position, context).ConfigureAwait(false);
         }
 
         private async Task CallThirdPartyExtensionsAsync(
@@ -86,8 +90,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
 
             foreach (var definition in definitionTrackingContext.GetDefinitions())
             {
-                var item = factory.GetThirdPartyDefinitionItem(
-                    solution, definition, cancellationToken);
+                var item = factory.GetThirdPartyDefinitionItem(solution, definition, cancellationToken);
                 if (item != null)
                 {
                     // ConfigureAwait(true) because we want to come back on the 
