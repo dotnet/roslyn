@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
@@ -46,9 +47,47 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             }
         }
 
+        private static async Task<RemoteHostClient.Session> TryGetRemoteSessionAsync(
+            Solution solution, object callback, CancellationToken cancellationToken)
+        {
+            var outOfProcessAllowed = solution.Workspace.Options.GetOption(FindUsagesOptions.OutOfProcessAllowed);
+            if (!outOfProcessAllowed)
+            {
+                return null;
+            }
+
+            var client = await solution.Workspace.TryGetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
+            if (client == null)
+            {
+                return null;
+            }
+
+            return await client.TryCreateCodeAnalysisServiceSessionAsync(
+                solution, callback, cancellationToken).ConfigureAwait(false);
+        }
+
         public async Task FindReferencesAsync(
             Document document, int position, IFindUsagesContext context)
         {
+            var findReferencesProgress = await TryFindReferencesInRemoteProcessAsync(
+                document, position, context).ConfigureAwait(false);
+
+            if (findReferencesProgress == null)
+            {
+                findReferencesProgress = await TryFindReferencesInCurrentProcessAsync(
+                    document, position, context).ConfigureAwait(false);
+            }
+
+            if (findReferencesProgress == null)
+            {
+                return;
+            }
+
+            // After the FAR engine is done call into any third party extensions to see
+            // if they want to add results.
+            await findReferencesProgress.CallThirdPartyExtensionsAsync(
+                context.CancellationToken).ConfigureAwait(true);
+
             // NOTE: All ConFigureAwaits in this method need to pass 'true' so that
             // we return to the caller's context.  that's so the call to 
             // CallThirdPartyExtensionsAsync will happen on the UI thread.  We need
@@ -71,11 +110,6 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             {
                 return;
             }
-
-            // After the FAR engine is done call into any third party extensions to see
-            // if they want to add results.
-            await findReferencesProgress.CallThirdPartyExtensionsAsync(
-                context.CancellationToken).ConfigureAwait(true);
         }
 
         private async Task<FindReferencesProgressAdapter> FindSymbolReferencesAsync(
