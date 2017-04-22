@@ -1,12 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.Features.RQName;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host;
@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
     internal interface IDefinitionsAndReferencesFactory : IWorkspaceService
     {
         DefinitionItem GetThirdPartyDefinitionItem(
-            Solution solution, ISymbol definition, CancellationToken cancellationToken);
+            Solution solution, DefinitionItem definitionItem, CancellationToken cancellationToken);
     }
 
     [ExportWorkspaceService(typeof(IDefinitionsAndReferencesFactory)), Shared]
@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
         /// results to the results found by the FindReferences engine.
         /// </summary>
         public virtual DefinitionItem GetThirdPartyDefinitionItem(
-            Solution solution, ISymbol definition, CancellationToken cancellationToken)
+            Solution solution, DefinitionItem definitionItem, CancellationToken cancellationToken)
         {
             return null;
         }
@@ -59,7 +59,8 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                 showMetadataSymbolsWithoutReferences: false);
 
             var sourceLocations = ArrayBuilder<DocumentSpan>.GetInstance();
-            ImmutableDictionary<string, string> properties = null;
+
+            var properties = GetProperties(definition);
 
             // If it's a namespace, don't create any normal location.  Namespaces
             // come from many different sources, but we'll only show a single 
@@ -107,6 +108,30 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             return DefinitionItem.Create(
                 tags, displayParts, sourceLocations.ToImmutableAndFree(),
                 nameDisplayParts, properties, displayIfNoReferences);
+        }
+
+        private static ImmutableDictionary<string, string> GetProperties(ISymbol definition)
+        {
+            var properties = ImmutableDictionary<string, string>.Empty;
+
+            var rqName = RQNameInternal.From(definition);
+            if (rqName != null)
+            {
+                properties = properties.Add(DefinitionItem.RQNameKey1, rqName);
+            }
+
+            if (definition?.IsConstructor() == true)
+            {
+                // If the symbol being considered is a constructor include the containing type in case
+                // a third party wants to navigate to that.
+                rqName = RQNameInternal.From(definition.ContainingType);
+                if (rqName != null)
+                {
+                    properties = properties.Add(DefinitionItem.RQNameKey2, rqName);
+                }
+            }
+
+            return properties;
         }
 
         public static async Task<SourceReferenceItem> TryCreateSourceReferenceItemAsync(

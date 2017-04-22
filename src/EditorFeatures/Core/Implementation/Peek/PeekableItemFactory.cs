@@ -6,6 +6,7 @@ using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.Editor.Peek;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Navigation;
@@ -59,9 +60,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Peek
             }
 
             var symbolNavigationService = solution.Workspace.Services.GetService<ISymbolNavigationService>();
+            var definitionItem = await symbol.ToDefinitionItemAsync(
+                solution, includeHiddenLocations: true, cancellationToken: cancellationToken).ConfigureAwait(false);
 
             if (symbolNavigationService.WouldNavigateToSymbol(
-                    symbol, solution, cancellationToken,
+                    definitionItem, solution, cancellationToken,
                     out var filePath, out var lineNumber, out var charOffset))
             {
                 var position = new LinePosition(lineNumber, charOffset);
