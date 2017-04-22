@@ -50,12 +50,6 @@ namespace BuildBoss
             var allGood = true;
             foreach (var pair in _copyMap.OrderBy(x => x.Key))
             {
-                // Issue https://github.com/dotnet/roslyn/issues/18753
-                if (Path.GetFileName(pair.Key) == "xunit.abstractions.dll")
-                {
-                    continue;
-                }
-
                 var list = pair.Value;
                 if (list.Count > 1)
                 {

@@ -20,10 +20,11 @@ namespace Microsoft.CodeAnalysis.FindUsages
                 ImmutableArray<TaggedText> displayParts,
                 ImmutableArray<TaggedText> nameDisplayParts,
                 ImmutableArray<DocumentSpan> sourceSpans,
+                ImmutableDictionary<string, string> properties,
                 bool displayIfNoReferences)
                 : base(tags, displayParts, nameDisplayParts,
-                      ImmutableArray.Create(new TaggedText(TextTags.Text, sourceSpans[0].Document.Project.Name)),
-                      sourceSpans, displayIfNoReferences)
+                       ImmutableArray.Create(new TaggedText(TextTags.Text, sourceSpans[0].Document.Project.Name)),
+                       sourceSpans, properties, displayIfNoReferences)
             {
             }
 
