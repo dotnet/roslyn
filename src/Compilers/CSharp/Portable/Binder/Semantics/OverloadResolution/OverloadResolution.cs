@@ -316,7 +316,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var result = normalResult;
             if (!normalResult.IsValid)
             {
-                if (IsValidParams(constructo0r, false))
+                if (IsValidParams(constructor, false))
                 {
                     var expandedResult = IsConstructorApplicableInExpandedForm(constructor, arguments, completeResults, ref useSiteDiagnostics);
                     if (expandedResult.IsValid || completeResults)
