@@ -501,7 +501,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
                             var project = this.Workspace.CurrentSolution.GetProject(symbolListItem.ProjectId);
                             if (project != null)
                             {
-                                FindReferences(streamingPresenter, symbolListItem, project);
+                                // Note: we kick of FindReferencesAsync in a 'fire and forget' manner.
+                                // We don't want to block the UI thread while we compute the references,
+                                // and the references will be asynchronously added to the FindReferences
+                                // window as they are computed.  The user also knows something is happening
+                                // as the window, with the progress-banner will pop up immediately.
+                                var task = FindReferencesAsync(streamingPresenter, symbolListItem, project);
                                 return true;
                             }
                         }
@@ -525,7 +530,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
             }
         }
 
-        private async void FindReferences(
+        private async Task FindReferencesAsync(
             IStreamingFindUsagesPresenter presenter, SymbolListItem symbolListItem, Project project)
         {
             try
@@ -540,9 +545,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
                 // Fire and forget the work to go get references.
                 var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
                 var symbol = symbolListItem.ResolveSymbol(compilation);
-
-                await AbstractFindUsagesService.FindSymbolReferencesAsync(
-                    context, symbol, project, cancellationToken).ConfigureAwait(false);
+                if (symbol != null)
+                {
+                    await AbstractFindUsagesService.FindSymbolReferencesAsync(
+                        context, symbol, project, cancellationToken).ConfigureAwait(false);
+                }
 
                 // Note: we don't need to put this in a finally.  The only time we might not hit
                 // this is if cancellation or another error gets thrown.  In the former case,
