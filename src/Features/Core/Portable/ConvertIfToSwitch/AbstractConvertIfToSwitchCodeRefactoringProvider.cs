@@ -98,7 +98,8 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
                 // if-chains/checks and easily converting them over to a switch.  So not offering the
                 // feature on simple if-statements seems like an acceptable compromise to take to ensure
                 // the overall user experience isn't degraded.
-                var labelCount = switchSections.SelectMany(t => t.patterns).Count();
+                var labelCount = switchSections.SelectMany(t => t.patterns).Count() +
+                    (_switchDefaultBodyOpt.HasValue ? 1 : 0);
                 if (labelCount < 2)
                 {
                     return;
