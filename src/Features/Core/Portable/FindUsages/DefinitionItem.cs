@@ -18,6 +18,10 @@ namespace Microsoft.CodeAnalysis.FindUsages
     /// </summary>
     internal abstract partial class DefinitionItem
     {
+        // Existing behavior is to do up to two lookups for 3rd party navigation for FAR.  One
+        // for the symbol itself and one for a 'fallback' symbol.  For example, if we're FARing
+        // on a constructor, then the fallback symbol will be the actual type that the constructor
+        // is contained within.
         internal const string RQNameKey1 = nameof(RQNameKey1);
         internal const string RQNameKey2 = nameof(RQNameKey2);
 
