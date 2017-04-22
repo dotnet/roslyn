@@ -650,7 +650,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // params parameter and is ambiguous at compile time between
             // normal and expanded form i.e., there is exactly one dynamic
             // argument to a params parameter
-            if (OverloadResolution.IsValidParams(localFunction) &&
+            if (OverloadResolution.IsValidParams(localFunction, false) &&
                 methodResult.Kind == MemberResolutionKind.ApplicableInNormalForm)
             {
                 var parameters = localFunction.Parameters;

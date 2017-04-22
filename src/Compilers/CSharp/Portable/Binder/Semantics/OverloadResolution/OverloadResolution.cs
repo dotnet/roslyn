@@ -316,7 +316,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var result = normalResult;
             if (!normalResult.IsValid)
             {
-                if (IsValidParams(constructor))
+                if (IsValidParams(constructo0r, false))
                 {
                     var expandedResult = IsConstructorApplicableInExpandedForm(constructor, arguments, completeResults, ref useSiteDiagnostics);
                     if (expandedResult.IsValid || completeResults)
@@ -517,7 +517,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Second, we need to determine if the method is applicable in its normal form or its expanded form.
 
-            var normalResult = (allowUnexpandedForm || !IsValidParams(leastOverriddenMember))
+            var normalResult = (allowUnexpandedForm || !IsValidParams(leastOverriddenMember, false))
                 ? IsMemberApplicableInNormalForm(
                     member,
                     leastOverriddenMember,
@@ -538,7 +538,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // tricks you can pull to make overriding methods [indexers] inconsistent with overridden
                 // methods [indexers] (or implementing methods [indexers] inconsistent with interfaces). 
 
-                if (!isMethodGroupConversion && IsValidParams(leastOverriddenMember))
+                //Disabling IsValidParams check for position of params
+                if (!isMethodGroupConversion && IsValidParams(leastOverriddenMember, true))
                 {
                     var expandedResult = IsMemberApplicableInExpandedForm(
                         member,
@@ -548,6 +549,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         allowRefOmittedArguments: allowRefOmittedArguments,
                         completeResults: completeResults,
                         useSiteDiagnostics: ref useSiteDiagnostics);
+
                     if (PreferExpandedFormOverNormalForm(normalResult.Result, expandedResult.Result))
                     {
                         result = expandedResult;
@@ -599,7 +601,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // We need to know if this is a valid formal parameter list with a parameter array
         // as the final formal parameter. We might be in an error recovery scenario
         // where the params array is not an array type.
-        public static bool IsValidParams(Symbol member)
+        public static bool IsValidParams(Symbol member, bool ignoreParamsPosition)
         {
             // A varargs method is never a valid params method.
             if (member.GetIsVararg())
@@ -617,10 +619,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // it's possible that the type becomes an array as a result of substitution.
 
             //Validate even if the params are not on the last index -> (Experimental)
-            //ParameterSymbol final = member.GetParameters().Last();
-            //final.IsParams && ((ParameterSymbol)final.OriginalDefinition).Type.IsSZArray();
-
-            return true;
+            ParameterSymbol final = member.GetParameters().Last();
+            return ignoreParamsPosition || final.IsParams && ((ParameterSymbol)final.OriginalDefinition).Type.IsSZArray();
         }
 
         private static bool IsOverride(Symbol overridden, Symbol overrider)
