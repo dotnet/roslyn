@@ -14,12 +14,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
         protected abstract class AbstractNodeLocator
         {
-            private readonly AbstractCodeModelService _codeModelService;
-
-            protected AbstractNodeLocator(AbstractCodeModelService codeModelService)
-            {
-                _codeModelService = codeModelService;
-            }
+            protected abstract string LanguageName { get; }
 
             protected abstract EnvDTE.vsCMPart DefaultPart { get; }
 
@@ -28,7 +23,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
             protected int GetTabSize(OptionSet options)
             {
-                return options.GetOption(FormattingOptions.TabSize, _codeModelService.Language);
+                return options.GetOption(FormattingOptions.TabSize, LanguageName);
             }
 
             public VirtualTreePoint? GetStartPoint(SyntaxNode node, OptionSet options, EnvDTE.vsCMPart? part)

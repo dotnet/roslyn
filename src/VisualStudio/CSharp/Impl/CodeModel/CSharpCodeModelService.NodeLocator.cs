@@ -19,20 +19,14 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
     {
         protected override AbstractNodeLocator CreateNodeLocator()
         {
-            return new NodeLocator(this);
+            return new NodeLocator();
         }
 
         private class NodeLocator : AbstractNodeLocator
         {
-            public NodeLocator(CSharpCodeModelService codeModelService)
-                : base(codeModelService)
-            {
-            }
+            protected override string LanguageName => LanguageNames.CSharp;
 
-            protected override EnvDTE.vsCMPart DefaultPart
-            {
-                get { return EnvDTE.vsCMPart.vsCMPartWholeWithAttributes; }
-            }
+            protected override EnvDTE.vsCMPart DefaultPart => EnvDTE.vsCMPart.vsCMPartWholeWithAttributes;
 
             protected override VirtualTreePoint? GetStartPoint(SourceText text, OptionSet options, SyntaxNode node, EnvDTE.vsCMPart part)
             {

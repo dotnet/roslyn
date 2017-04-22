@@ -14,15 +14,17 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
     Partial Friend Class VisualBasicCodeModelService
 
         Protected Overrides Function CreateNodeLocator() As AbstractNodeLocator
-            Return New NodeLocator(Me)
+            Return New NodeLocator()
         End Function
 
         Private Class NodeLocator
             Inherits AbstractNodeLocator
 
-            Public Sub New(codeModelService As VisualBasicCodeModelService)
-                MyBase.New(codeModelService)
-            End Sub
+            Protected Overrides ReadOnly Property LanguageName As String
+                Get
+                    Return LanguageNames.VisualBasic
+                End Get
+            End Property
 
             Protected Overrides ReadOnly Property DefaultPart As EnvDTE.vsCMPart
                 Get
