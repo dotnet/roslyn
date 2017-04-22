@@ -18,6 +18,9 @@ namespace Microsoft.CodeAnalysis.FindUsages
     /// </summary>
     internal abstract partial class DefinitionItem
     {
+        internal const string RQNameKey1 = nameof(RQNameKey1);
+        internal const string RQNameKey2 = nameof(RQNameKey2);
+
         /// <summary>
         /// Descriptive tags from <see cref="CompletionTags"/>. These tags may influence how the 
         /// item is displayed.

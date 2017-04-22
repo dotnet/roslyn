@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             public Task OnFindInDocumentCompletedAsync(Document document) => SpecializedTasks.EmptyTask;
 
             // Simple context forwarding functions.
-            public Task ReportProgressAsync(int current, int maximum) => 
+            public Task ReportProgressAsync(int current, int maximum) =>
                 _context.ReportProgressAsync(current, maximum);
 
             // More complicated forwarding functions.  These need to map from the symbols
@@ -110,10 +110,10 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             public async Task CallThirdPartyExtensionsAsync(CancellationToken cancellationToken)
             {
                 var factory = _solution.Workspace.Services.GetService<IDefinitionsAndReferencesFactory>();
-                foreach (var definition in _definitionToItem.Keys)
+                foreach (var definition in _definitionToItem.Values)
                 {
-                    var item = factory.GetThirdPartyDefinitionItem(
-                        _solution, definition, cancellationToken);
+                        var item = factory.GetThirdPartyDefinitionItem(
+                            _solution, definition, cancellationToken);
                     if (item != null)
                     {
                         // ConfigureAwait(true) because we want to come back on the 
