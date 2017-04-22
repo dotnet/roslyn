@@ -154,6 +154,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             return refKind;
         }
 
+        internal static TypeSyntax SkipRef(this TypeSyntax syntax)
+        {
+            return syntax.Kind() == SyntaxKind.RefType
+                ? ((RefTypeSyntax)syntax).Type
+                : syntax;
+        }
+
         internal static TypeSyntax SkipRef(this TypeSyntax syntax, out RefKind refKind)
         {
             refKind = RefKind.None;

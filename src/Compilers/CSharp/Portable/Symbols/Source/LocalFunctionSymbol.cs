@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private bool _lazyIsVarArg;
         private ImmutableArray<TypeParameterConstraintClause> _lazyTypeParameterConstraints;
         private TypeSymbol _lazyReturnType;
-        private RefKind _lazyRefKind;
+        private RefKind? _lazyRefKind;
         private TypeSymbol _iteratorElementType;
 
         // Lock for initializing lazy fields and registering their diagnostics
@@ -188,8 +188,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                ComputeReturnType();
-                return _lazyRefKind;
+                ComputeRefKind();
+                return _lazyRefKind.Value;
+            }
+        }
+
+        internal void ComputeRefKind()
+        {
+            if (_lazyRefKind.HasValue)
+            {
+                return;
+            }
+
+            if (_syntax.ReturnType.Kind() == SyntaxKind.RefType)
+            {
+                var refType = (RefTypeSyntax)_syntax.ReturnType;
+                _lazyRefKind = refType.ReadOnlyKeyword.Kind() == SyntaxKind.ReadOnlyKeyword
+                    ? RefKind.RefReadOnly
+                    : RefKind.Ref;
+            }
+            else
+            {
+                _lazyRefKind = RefKind.None;
             }
         }
 
@@ -200,8 +220,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
+
             var diagnostics = DiagnosticBag.GetInstance();
-            TypeSyntax returnTypeSyntax = _syntax.ReturnType.SkipRef(out _lazyRefKind);
+            TypeSyntax returnTypeSyntax = _syntax.ReturnType.SkipRef();
             TypeSymbol returnType = _binder.BindType(returnTypeSyntax, diagnostics);
             if (IsAsync &&
                 returnType.SpecialType != SpecialType.System_Void &&
@@ -212,6 +233,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.ERR_BadAsyncReturn, this.Locations[0]);
             }
 
+            ComputeRefKind();
             Debug.Assert(_lazyRefKind == RefKind.None
                 || returnType.SpecialType != SpecialType.System_Void
                 || returnTypeSyntax.HasErrors);
