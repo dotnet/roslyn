@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -46,25 +47,6 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             }
         }
 
-        private static async Task<RemoteHostClient.Session> TryGetRemoteSessionAsync(
-            Solution solution, object callback, CancellationToken cancellationToken)
-        {
-            var outOfProcessAllowed = solution.Workspace.Options.GetOption(FindUsagesOptions.OutOfProcessAllowed);
-            if (!outOfProcessAllowed)
-            {
-                return null;
-            }
-
-            var client = await solution.Workspace.TryGetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
-            if (client == null)
-            {
-                return null;
-            }
-
-            return await client.TryCreateCodeAnalysisServiceSessionAsync(
-                solution, callback, cancellationToken).ConfigureAwait(false);
-        }
-
         public async Task FindReferencesAsync(
             Document document, int position, IFindUsagesContext context)
         {
@@ -86,7 +68,39 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             // if they want to add results.
             await findReferencesProgress.CallThirdPartyExtensionsAsync(
                 context.CancellationToken).ConfigureAwait(true);
+        }
 
+        private async Task TryFindReferencesInRemoteProcessAsync(Document document, int position, IFindUsagesContext context)
+        {
+            var cancellationToken = context.CancellationToken;
+            using (var session = await TryGetRemoteSessionAsync(
+                document.Project.Solution, callback, cancellationToken).ConfigureAwait(false))
+            {
+                if (session )
+            }
+        }
+
+        private static async Task<RemoteHostClient.Session> TryGetRemoteSessionAsync(
+            Solution solution, object callback, CancellationToken cancellationToken)
+        {
+            var outOfProcessAllowed = solution.Workspace.Options.GetOption(FindUsagesOptions.OutOfProcessAllowed);
+            if (!outOfProcessAllowed)
+            {
+                return null;
+            }
+
+            var client = await solution.Workspace.TryGetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
+            if (client == null)
+            {
+                return null;
+            }
+
+            return await client.TryCreateCodeAnalysisServiceSessionAsync(
+                solution, callback, cancellationToken).ConfigureAwait(false);
+        }
+
+        private async Task<FindReferencesProgressAdapter> TryFindReferencesInCurrentProcessAsync(Document document, int position, IFindUsagesContext context)
+        {
             // NOTE: All ConFigureAwaits in this method need to pass 'true' so that
             // we return to the caller's context.  that's so the call to 
             // CallThirdPartyExtensionsAsync will happen on the UI thread.  We need
@@ -100,15 +114,12 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             var found = await TryFindLiteralReferencesAsync(document, position, context).ConfigureAwait(true);
             if (found)
             {
-                return;
+                return null;
             }
 
             var findReferencesProgress = await FindSymbolReferencesAsync(
                 document, position, context).ConfigureAwait(true);
-            if (findReferencesProgress == null)
-            {
-                return;
-            }
+            return findReferencesProgress;
         }
 
         private async Task<FindReferencesProgressAdapter> FindSymbolReferencesAsync(

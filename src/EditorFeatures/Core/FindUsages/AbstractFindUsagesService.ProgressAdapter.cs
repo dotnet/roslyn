@@ -40,6 +40,19 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                 => _context.ReportProgressAsync(current, maximum);
         }
 
+        private class FindUsagesContext : IFindUsagesContext
+        {
+            private readonly IFindUsagesContext _underlyingContext;
+
+            private readonly object _gate = new object();
+            private readonly IList<DefinitionItem> _definitions = new
+
+            public FindUsagesContext(IFindUsagesContext underlyingContext)
+            {
+
+            }
+        }
+
         /// <summary>
         /// Forwards IFindReferencesProgress calls to an IFindUsagesContext instance.
         /// </summary>
