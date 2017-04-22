@@ -619,8 +619,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             // it's possible that the type becomes an array as a result of substitution.
 
             //Validate even if the params are not on the last index -> (Experimental)
-            ParameterSymbol final = member.GetParameters().Last();
-            return ignoreParamsPosition || final.IsParams && ((ParameterSymbol)final.OriginalDefinition).Type.IsSZArray();
+
+            var memberParams = member.GetParameters();
+            var finalParameter = memberParams.Last();
+
+            if (ignoreParamsPosition)
+            {
+                return memberParams.Any(i => i.IsParams);
+            }
+            else
+            {
+                return finalParameter.IsParams && ((ParameterSymbol)finalParameter.OriginalDefinition).Type.IsSZArray();
+            }
         }
 
         private static bool IsOverride(Symbol overridden, Symbol overrider)
