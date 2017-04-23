@@ -2022,7 +2022,7 @@ public class mine {
                 Diagnostic(ErrorCode.ERR_TooManyCatches, "catch").WithLocation(18, 9),
                 // (18,21): warning CS7095: Filter expression is a constant 'false', consider removing the catch clause
                 //         catch when (false) {}
-                Diagnostic(ErrorCode.WRN_FilterIsConstantFalse, "false").WithLocation(18, 21));
+                Diagnostic(ErrorCode.WRN_FilterIsConstantFalse, "false").WithArguments("false").WithLocation(18, 21));
         }
 
         [Fact]

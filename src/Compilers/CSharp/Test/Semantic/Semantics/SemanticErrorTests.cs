@@ -5403,7 +5403,7 @@ class Program
             CreateStandardCompilation(text).VerifyDiagnostics(
     // (11,25): warning CS7105: Filter expression is a constant 'false', consider removing the try-catch block
     //         catch (A) when (false) 
-    Diagnostic(ErrorCode.WRN_FilterIsConstantRedundantTryCatch, "false").WithArguments("false").WithLocation(11, 25),
+    Diagnostic(ErrorCode.WRN_FilterIsConstantFalse, "false").WithArguments("false").WithLocation(11, 25),
     // (13,13): warning CS0162: Unreachable code detected
     //             Console.WriteLine(1); 
     Diagnostic(ErrorCode.WRN_UnreachableCode, "Console").WithLocation(13, 13)

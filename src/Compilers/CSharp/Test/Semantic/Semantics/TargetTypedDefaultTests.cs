@@ -1234,7 +1234,7 @@ class C
                 Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "true | default").WithArguments("|", "default").WithLocation(12, 37),
                 // (15,40): warning CS7105: Filter expression is a constant 'default', consider removing the try-catch block
                 //         catch (System.Exception) when (default)
-                Diagnostic(ErrorCode.WRN_FilterIsConstantFalse, "default").WithArguments("default").WithLocation(15, 40),
+                Diagnostic(ErrorCode.WRN_FilterIsConstantRedundantTryCatch, "default").WithArguments("default").WithLocation(15, 40),
                 // (17,13): warning CS0162: Unreachable code detected
                 //             System.Console.Write("catch");
                 Diagnostic(ErrorCode.WRN_UnreachableCode, "System").WithLocation(17, 13)
