@@ -8237,6 +8237,33 @@ public class C : CodeAccessSecurityAttribute
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "C").WithArguments("action", "System.Security.Permissions.CodeAccessSecurityAttribute.CodeAccessSecurityAttribute(System.Security.Permissions.SecurityAction)").WithLocation(30, 12));
         }
 
+
+        [WorkItem(18875, "https://github.com/dotnet/roslyn/issues/18875")]
+        [Fact]
+        public void InvalidParamsPositionCSharp()
+        {
+            const string source = @"
+public class A
+{
+    public static void Foo(params int[] vals, bool truth)
+    {
+    
+    }
+    
+    public static void Bar()
+    {
+        Foo(1, true);//1 shouldnt show CS1503 Argument 1: cannot convert from 'int' to 'int'
+    }
+}
+";
+            var comp = CreateStandardCompilation(source);
+            comp.VerifyDiagnostics(
+                // (30,22): error CS0231: A params parameter must be the last parameter in a formal parameter list
+                //     public static void Foo(params int[] vals, bool truth)
+                Diagnostic(ErrorCode.ERR_ParamsLast, "params int[] vals").WithLocation(4, 28));
+        }
+
+
         [WorkItem(2249, "https://github.com/dotnet/roslyn/issues/2249")]
         [Fact]
         public void TestRefMethodGroup()
