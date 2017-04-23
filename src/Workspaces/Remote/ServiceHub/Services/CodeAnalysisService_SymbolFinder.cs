@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Remote
     // root level service for all Roslyn services
     internal partial class CodeAnalysisService : IRemoteSymbolFinder
     {
-        public async Task FindDocReferencesAsync(DocumentId documentId, int position)
+        public async Task FindReferencesAsync(DocumentId documentId, int position)
         {
             var solution = await GetSolutionAsync().ConfigureAwait(false);
             var document = solution.GetDocument(documentId);

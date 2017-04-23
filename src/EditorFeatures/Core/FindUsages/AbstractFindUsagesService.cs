@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                     return false;
                 }
 
-                await session.InvokeAsync(nameof(IRemoteSymbolFinder.FindDocReferencesAsync),
+                await session.InvokeAsync(nameof(IRemoteSymbolFinder.FindReferencesAsync),
                     document.Id, position).ConfigureAwait(false);
                 return true;
             }
