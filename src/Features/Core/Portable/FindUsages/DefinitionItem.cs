@@ -25,6 +25,10 @@ namespace Microsoft.CodeAnalysis.FindUsages
         internal const string RQNameKey1 = nameof(RQNameKey1);
         internal const string RQNameKey2 = nameof(RQNameKey2);
 
+        private const string MetadataSymbolKey = nameof(MetadataSymbolKey);
+        private const string MetadataAssemblyIdentityDisplayName = nameof(MetadataAssemblyIdentityDisplayName);
+        private const string NonNavigable = nameof(NonNavigable);
+
         /// <summary>
         /// Descriptive tags from <see cref="CompletionTags"/>. These tags may influence how the 
         /// item is displayed.
@@ -89,7 +93,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
             NameDisplayParts = nameDisplayParts.IsDefaultOrEmpty ? displayParts : nameDisplayParts;
             OriginationParts = originationParts.NullToEmpty();
             SourceSpans = sourceSpans.NullToEmpty();
-            Properties = properties;
+            Properties = properties ?? ImmutableDictionary<string, string>.Empty;
             DisplayIfNoReferences = displayIfNoReferences;
         }
 
@@ -134,8 +138,14 @@ namespace Microsoft.CodeAnalysis.FindUsages
                 throw new ArgumentException($"{nameof(sourceSpans)} cannot be empty.");
             }
 
-            return new DocumentLocationDefinitionItem(
-                tags, displayParts, nameDisplayParts, sourceSpans, properties, displayIfNoReferences);
+            var firstDocument = sourceSpans[0].Document;
+            var originationParts = ImmutableArray.Create(
+                new TaggedText(TextTags.Text, firstDocument.Project.Name));
+
+            return new DefaultDefinitionItem(
+                firstDocument.Project.Solution.Workspace,
+                tags, displayParts, nameDisplayParts, originationParts,
+                sourceSpans, properties, displayIfNoReferences);
         }
 
         internal static DefinitionItem CreateMetadataDefinition(
@@ -146,9 +156,21 @@ namespace Microsoft.CodeAnalysis.FindUsages
             ImmutableDictionary<string, string> properties = null,
             bool displayIfNoReferences = true)
         {
-            return new MetadataDefinitionItem(
-                tags, displayParts, nameDisplayParts, properties,
-                displayIfNoReferences, solution, symbol);
+            properties = properties ?? ImmutableDictionary<string, string>.Empty;
+
+            var symbolKey = symbol.GetSymbolKey().ToString();
+            var assemblyIdentityDisplayName = symbol.ContainingAssembly?.Identity.GetDisplayName();
+
+            properties = properties.Add(MetadataSymbolKey, symbolKey)
+                                   .Add(MetadataAssemblyIdentityDisplayName, assemblyIdentityDisplayName);
+
+            var originationParts = GetOriginationParts(symbol);
+            return new DefaultDefinitionItem(
+                solution.Workspace, tags, 
+                displayParts, nameDisplayParts, originationParts,
+                sourceSpans: ImmutableArray<DocumentSpan>.Empty,
+                properties: properties,
+                displayIfNoReferences: displayIfNoReferences);
         }
 
         // Kept around for binary compat with F#/TypeScript.
@@ -170,8 +192,18 @@ namespace Microsoft.CodeAnalysis.FindUsages
             ImmutableDictionary<string, string> properties = null,
             bool displayIfNoReferences = true)
         {
-            return new NonNavigatingDefinitionItem(
-                tags, displayParts, originationParts, properties, displayIfNoReferences);
+            properties = properties ?? ImmutableDictionary<string, string>.Empty;
+            properties = properties.Add(NonNavigable, NonNavigable);
+
+            return new DefaultDefinitionItem(
+                workspaceOpt: null,
+                tags: tags, 
+                displayParts: displayParts,
+                nameDisplayParts: ImmutableArray<TaggedText>.Empty,
+                originationParts: originationParts,
+                sourceSpans: ImmutableArray<DocumentSpan>.Empty,
+                properties: properties,
+                displayIfNoReferences: displayIfNoReferences);
         }
 
         internal static ImmutableArray<TaggedText> GetOriginationParts(ISymbol symbol)
