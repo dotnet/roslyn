@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.NavigateTo;
@@ -18,14 +19,67 @@ namespace Microsoft.CodeAnalysis.Remote
             return new SerializableTaggedText { Tag = taggedText.Tag, Text = taggedText.Text };
         }
 
-        internal static SerializableTaggedText[] Dehydrate(ImmutableArray<TaggedText> displayTaggedParts)
+        public static SerializableTaggedText[] Dehydrate(ImmutableArray<TaggedText> array)
         {
-            return displayTaggedParts.Select(Dehydrate).ToArray();
+            var result = new SerializableTaggedText[array.Length];
+            int index = 0;
+            foreach (var tt in array)
+            {
+                result[index] = SerializableTaggedText.Dehydrate(tt);
+                index++;
+            }
+
+            return result;
         }
 
         public TaggedText Rehydrate()
+            => new TaggedText(Tag, Text);
+
+        public static ImmutableArray<TaggedText> Rehydrate(SerializableTaggedText[] array)
         {
-            return new TaggedText(Tag, Text);
+            var result = ArrayBuilder<TaggedText>.GetInstance(array.Length);
+            foreach (var tt in array)
+            {
+                result.Add(tt.Rehydrate());
+            }
+
+            return result.ToImmutableAndFree();
+        }
+    }
+
+    internal class SerializableDocumentSpan
+    {
+        public DocumentId DocumentId;
+        public TextSpan SourceSpan;
+
+        public static SerializableDocumentSpan Dehydrate(DocumentSpan documentSpan)
+            => new SerializableDocumentSpan { DocumentId = documentSpan.Document.Id, SourceSpan = documentSpan.SourceSpan };
+
+        public static SerializableDocumentSpan[] Dehydrate(ImmutableArray<DocumentSpan> documentSpans)
+        {
+            var result = new SerializableDocumentSpan[documentSpans.Length];
+            int index = 0;
+            foreach (var ds in documentSpans)
+            {
+                result[index] = Dehydrate(ds);
+                index++;
+            }
+
+            return result;
+        }
+
+        public DocumentSpan Rehydrate(Solution solution)
+            => new DocumentSpan(solution.GetDocument(DocumentId), SourceSpan);
+
+        public static ImmutableArray<DocumentSpan> Rehydrate(Solution solution, SerializableDocumentSpan[] array)
+        {
+            var result = ArrayBuilder<DocumentSpan>.GetInstance(array.Length);
+            foreach (var ds in array)
+            {
+                result.Add(ds.Rehydrate(solution));
+            }
+
+            return result.ToImmutableAndFree();
         }
     }
 

@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
             var originationParts = ImmutableArray.Create(
                 new TaggedText(TextTags.Text, firstDocument.Project.Name));
 
-            return new DefaultDefinitionItem(
+            return Create(
                 firstDocument.Project.Solution.Workspace,
                 tags, displayParts, nameDisplayParts, originationParts,
                 sourceSpans, properties, displayIfNoReferences);
@@ -165,8 +165,8 @@ namespace Microsoft.CodeAnalysis.FindUsages
                                    .Add(MetadataAssemblyIdentityDisplayName, assemblyIdentityDisplayName);
 
             var originationParts = GetOriginationParts(symbol);
-            return new DefaultDefinitionItem(
-                solution.Workspace, tags, 
+            return Create(
+                solution.Workspace, tags,
                 displayParts, nameDisplayParts, originationParts,
                 sourceSpans: ImmutableArray<DocumentSpan>.Empty,
                 properties: properties,
@@ -195,8 +195,8 @@ namespace Microsoft.CodeAnalysis.FindUsages
             properties = properties ?? ImmutableDictionary<string, string>.Empty;
             properties = properties.Add(NonNavigable, NonNavigable);
 
-            return new DefaultDefinitionItem(
-                workspaceOpt: null,
+            return Create(
+                workspace: null,
                 tags: tags, 
                 displayParts: displayParts,
                 nameDisplayParts: ImmutableArray<TaggedText>.Empty,
@@ -204,6 +204,21 @@ namespace Microsoft.CodeAnalysis.FindUsages
                 sourceSpans: ImmutableArray<DocumentSpan>.Empty,
                 properties: properties,
                 displayIfNoReferences: displayIfNoReferences);
+        }
+
+        public static DefinitionItem Create(
+            Workspace workspace,
+            ImmutableArray<string> tags,
+            ImmutableArray<TaggedText> displayParts,
+            ImmutableArray<TaggedText> nameDisplayParts,
+            ImmutableArray<TaggedText> originationParts,
+            ImmutableArray<DocumentSpan> sourceSpans,
+            ImmutableDictionary<string, string> properties,
+            bool displayIfNoReferences)
+        {
+            return new DefaultDefinitionItem(
+                workspace, tags, displayParts, nameDisplayParts, originationParts,
+                sourceSpans, properties, displayIfNoReferences);
         }
 
         internal static ImmutableArray<TaggedText> GetOriginationParts(ISymbol symbol)
