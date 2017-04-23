@@ -53,14 +53,6 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
 
             symbol = definition ?? symbol;
 
-            var definitions = ArrayBuilder<DefinitionItem>.GetInstance();
-            if (thirdPartyNavigationAllowed)
-            {
-                var factory = solution.Workspace.Services.GetService<IDefinitionsAndReferencesFactory>();
-                var thirdPartyItem = factory?.GetThirdPartyDefinitionItem(solution, symbol, cancellationToken);
-                definitions.AddIfNotNull(thirdPartyItem);
-            }
-
             // If it is a partial method declaration with no body, choose to go to the implementation
             // that has a method body.
             if (symbol is IMethodSymbol method)
@@ -68,9 +60,17 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
                 symbol = method.PartialImplementationPart ?? symbol;
             }
 
-            var options = project.Solution.Options;
+            var definitions = ArrayBuilder<DefinitionItem>.GetInstance();
+            var definitionItem = symbol.ToDefinitionItem(solution, includeHiddenLocations: true);
 
-            definitions.Add(symbol.ToDefinitionItem(solution, includeHiddenLocations: true));
+            if (thirdPartyNavigationAllowed)
+            {
+                var factory = solution.Workspace.Services.GetService<IDefinitionsAndReferencesFactory>();
+                var thirdPartyItem = factory?.GetThirdPartyDefinitionItem(solution, definitionItem, cancellationToken);
+                definitions.AddIfNotNull(thirdPartyItem);
+            }
+
+            definitions.Add(definitionItem);
 
             var presenter = GetFindUsagesPresenter(streamingPresenters);
             var title = string.Format(EditorFeaturesResources._0_declarations,
