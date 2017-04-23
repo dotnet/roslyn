@@ -621,16 +621,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             //Validate even if the params are not on the last index -> (Experimental)
 
             var memberParams = member.GetParameters();
-            var finalParameter = memberParams.Last();
+            var paramsParameterToCheck = memberParams.Last();
 
             if (ignoreParamsPosition)
-            {
-                return memberParams.Any(i => i.IsParams);
-            }
-            else
-            {
-                return finalParameter.IsParams && ((ParameterSymbol)finalParameter.OriginalDefinition).Type.IsSZArray();
-            }
+                paramsParameterToCheck = memberParams.First(i => i.IsParams) ?? paramsParameterToCheck;
+
+            return paramsParameterToCheck.IsParams && ((ParameterSymbol)paramsParameterToCheck.OriginalDefinition).Type.IsSZArray();
         }
 
         private static bool IsOverride(Symbol overridden, Symbol overrider)
