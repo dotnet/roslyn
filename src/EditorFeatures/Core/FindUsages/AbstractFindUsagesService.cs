@@ -1,13 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.FindUsages
 {
@@ -50,18 +51,27 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
         {
             var definitionTrackingContext = new DefinitionTrackingContext(context);
 
-            // NOTE: All ConFigureAwaits in this method need to pass 'true' so that
-            // we return to the caller's context.  that's so the call to 
-            // CallThirdPartyExtensionsAsync will happen on the UI thread.  We need
-            // this to maintain the threading guarantee we had around that method
-            // from pre-Roslyn days.
+            // Need ConfigureAwait(true) here so we get back to the UI thread before calling 
+            // GetThirdPartyDefinitions.  We need to call that on the UI thread to match behavior
+            // of how the language service always worked in the past.
+            //
+            // Any async calls before GetThirdPartyDefinitions must be ConfigureAwait(true).
             await FindLiteralOrSymbolReferencesAsync(
                 document, position, definitionTrackingContext).ConfigureAwait(true);
 
             // After the FAR engine is done call into any third party extensions to see
             // if they want to add results.
-            await CallThirdPartyExtensionsAsync( 
-                document.Project.Solution, definitionTrackingContext, context).ConfigureAwait(true);
+            var thirdPartyDefinitions = GetThirdPartyDefinitions(
+                document.Project.Solution, definitionTrackingContext.GetDefinitions(), context.CancellationToken);
+
+            // From this point on we can do ConfigureAwait(false) as we're not calling back 
+            // into third parties anymore.
+
+            foreach (var definition in thirdPartyDefinitions)
+            {
+                // Don't need ConfigureAwait(true) here 
+                await context.OnDefinitionFoundAsync(definition).ConfigureAwait(false);
+            }
         }
 
         private async Task FindLiteralOrSymbolReferencesAsync(
@@ -81,24 +91,15 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                 document, position, context).ConfigureAwait(false);
         }
 
-        private async Task CallThirdPartyExtensionsAsync(
+        private ImmutableArray<DefinitionItem> GetThirdPartyDefinitions(
             Solution solution,
-            DefinitionTrackingContext definitionTrackingContext,
-            IFindUsagesContext underlyingContext)
+            ImmutableArray<DefinitionItem> definitions,
+            CancellationToken cancellationToken)
         {
-            var cancellationToken = definitionTrackingContext.CancellationToken;
             var factory = solution.Workspace.Services.GetService<IDefinitionsAndReferencesFactory>();
-
-            foreach (var definition in definitionTrackingContext.GetDefinitions())
-            {
-                var item = factory.GetThirdPartyDefinitionItem(solution, definition, cancellationToken);
-                if (item != null)
-                {
-                    // ConfigureAwait(true) because we want to come back on the 
-                    // same thread after calling into extensions.
-                    await underlyingContext.OnDefinitionFoundAsync(item).ConfigureAwait(true);
-                }
-            }
+            return definitions.Select(d => factory.GetThirdPartyDefinitionItem(solution, d, cancellationToken))
+                              .WhereNotNull()
+                              .ToImmutableArray();
         }
 
         private async Task FindSymbolReferencesAsync(
