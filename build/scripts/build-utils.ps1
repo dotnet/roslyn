@@ -286,12 +286,9 @@ function Restore-Packages([string]$msbuildDir = "", [string]$project = "") {
             "Base Toolset:build\ToolsetPackages\BaseToolset.csproj",
             "Closed Toolset:build\ToolsetPackages\ClosedToolset.csproj",
             "Roslyn:Roslyn.sln",
-            "Samples:src\Samples\Samples.sln")
-            # DO NOT MERGE
-            # "Templates:src\Setup\Templates\Templates.sln",
-            # "DevDivInsertionFiles:src\Setup\DevDivInsertionFiles\DevDivInsertionFiles.sln",
-            # "DevDiv Roslyn Packages:src\Setup\DevDivPackages\Roslyn\project.json",
-            # "DevDiv Debugger Packages:src\Setup\DevDivPackages\Debugger\project.json")
+            "Samples:src\Samples\Samples.sln",
+            "Templates:src\Setup\Templates\Templates.sln",
+            "DevDivInsertionFiles:src\Setup\DevDivInsertionFiles\DevDivInsertionFiles.sln")
 
         foreach ($cur in $all) {
             $both = $cur.Split(':')
