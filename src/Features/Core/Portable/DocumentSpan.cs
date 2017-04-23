@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis
         {
             Document = document;
             SourceSpan = sourceSpan;
-            Properties = properties;
+            Properties = properties ?? ImmutableDictionary<string, object>.Empty;
         }
 
         public override bool Equals(object obj)

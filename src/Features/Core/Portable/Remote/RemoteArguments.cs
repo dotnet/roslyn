@@ -1,8 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Text;
@@ -51,9 +53,48 @@ namespace Microsoft.CodeAnalysis.Remote
     {
         public DocumentId DocumentId;
         public TextSpan SourceSpan;
+        public Dictionary<string, object> Properties;
 
         public static SerializableDocumentSpan Dehydrate(DocumentSpan documentSpan)
-            => new SerializableDocumentSpan { DocumentId = documentSpan.Document.Id, SourceSpan = documentSpan.SourceSpan };
+        {
+            return new SerializableDocumentSpan
+            {
+                DocumentId = documentSpan.Document.Id,
+                SourceSpan = documentSpan.SourceSpan,
+                Properties = Dehydrate(documentSpan.Properties),
+            };
+        }
+
+        private static Dictionary<string, object> Dehydrate(ImmutableDictionary<string, object> properties)
+        {
+            if (properties == null || properties.Count == 0)
+            {
+                return null;
+            }
+
+            var result = new Dictionary<string, object>();
+            foreach (var kvp in properties)
+            {
+                if (TryConvert(kvp.Key, kvp.Value, out var converted))
+                {
+                    result[kvp.Key] = converted;
+                }
+            }
+
+            return result;
+        }
+
+        private static bool TryConvert(string key, object value, out object converted)
+        {
+            if (value is ClassifiedSpansAndHighlightSpan classifiedSpans)
+            {
+                converted = SerializableClassifiedSpansAndHighlightSpan.Dehydrate(classifiedSpans);
+                return true;
+            }
+
+            converted = null;
+            return false;
+        }
 
         public static SerializableDocumentSpan[] Dehydrate(ImmutableArray<DocumentSpan> documentSpans)
         {
@@ -69,7 +110,41 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         public DocumentSpan Rehydrate(Solution solution)
-            => new DocumentSpan(solution.GetDocument(DocumentId), SourceSpan);
+        {
+            var properties = Rehydrate(Properties);
+            return new DocumentSpan(solution.GetDocument(DocumentId), SourceSpan);
+        }
+
+        private static ImmutableDictionary<string, object> Rehydrate(Dictionary<string, object> properties)
+        {
+            if (properties == null || properties.Count == 0)
+            {
+                return null;
+            }
+
+            var result = ImmutableDictionary<string, object>.Empty;
+            foreach (var kvp in properties)
+            {
+                if (TryRehydrate(kvp.Key, kvp.Value, out var rehydrated))
+                {
+                    result = result.Add(kvp.Key, rehydrated);
+                }
+            }
+
+            return result;
+        }
+
+        private static bool TryRehydrate(string key, object value, out object rehydrated)
+        {
+            if (value is SerializableClassifiedSpansAndHighlightSpan classifiedSpans)
+            {
+                rehydrated = classifiedSpans.Rehydrate();
+                return true;
+            }
+
+            rehydrated = null;
+            return false;
+        }
 
         public static ImmutableArray<DocumentSpan> Rehydrate(Solution solution, SerializableDocumentSpan[] array)
         {

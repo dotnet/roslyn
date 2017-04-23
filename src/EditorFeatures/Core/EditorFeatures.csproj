@@ -106,8 +106,8 @@
   <ItemGroup>
     <Compile Include="FindUsages\AbstractFindUsagesService.cs" />
     <Compile Include="FindUsages\AbstractFindUsagesService.FindUsagesCallback.cs" />
-    <Compile Include="FindUsages\ClassifiedSpansAndHighlightSpan.cs" />
     <Compile Include="FindUsages\AbstractFindUsagesService.DefinitionTrackingContext.cs" />
+    <Compile Include="FindUsages\ClassifiedSpansAndHighlightSpanFactory.cs" />
     <Compile Include="FindUsages\FindUsagesHelpers.cs" />
     <Compile Include="FindUsages\FindUsagesContext.cs" />
     <Compile Include="FindUsages\FindUsagesOptions.cs" />
@@ -760,9 +760,6 @@
     <Compile Include="Shared\Utilities\ResettableDelay.cs" />
     <Compile Include="Shared\Utilities\ViewHostingControl.cs" />
     <Compile Include="Shared\Utilities\VirtualTreePoint.cs" />
-    <Compile Include="SymbolMapping\ISymbolMappingService.cs" />
-    <Compile Include="SymbolMapping\SymbolMappingResult.cs" />
-    <Compile Include="SymbolMapping\SymbolMappingServiceFactory.cs" />
     <Compile Include="Implementation\InlineRename\AbstractEditorInlineRenameService.SymbolRenameInfo.cs" />
     <Compile Include="Implementation\InlineRename\AbstractEditorInlineRenameService.InlineRenameLocationSet.cs" />
     <Compile Include="TextViewRoles.cs" />

@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
         private const string LocalRegistryPath = @"Roslyn\Features\FindUsages\";
 
         public static readonly Option<bool> OutOfProcessAllowed = new Option<bool>(
-            nameof(FindUsagesOptions), nameof(OutOfProcessAllowed), defaultValue: false,
+            nameof(FindUsagesOptions), nameof(OutOfProcessAllowed), defaultValue: true,
             storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + nameof(OutOfProcessAllowed)));
     }
 }
