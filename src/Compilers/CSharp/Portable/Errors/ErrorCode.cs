@@ -1232,7 +1232,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_FixedBufferTooManyDimensions = 7092,
         ERR_CantReadConfigFile = 7093,
         ERR_BadAwaitInCatchFilter = 7094,
-        WRN_FilterIsConstant = 7095,
+        // WRN_FilterIsConstant = 7095,   // replaced by FilterIsConstantFalse and FilterIsConstantTrue
         ERR_EncNoPIAReference = 7096,
         //ERR_EncNoDynamicOperation = 7097,   // dynamic operations are now allowed
         ERR_LinkedNetmoduleMetadataMustProvideFullPEImage = 7098,
@@ -1241,9 +1241,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_EncReferenceToAddedMember = 7101,
         ERR_MutuallyExclusiveOptions = 7102,
         ERR_InvalidDebugInfo = 7103,
+        WRN_FilterIsConstantFalse = 7104,
+        WRN_FilterIsConstantTrue = 7105,
+        WRN_FilterIsConstantRedundantTryCatch = 7106,
         #endregion diagnostics introduced in C# 6
 
-        // huge gap here; unused 7104-8000
+        // huge gap here; unused 7107-8000
 
         #region more diagnostics introduced in Roslyn (C# 6)
         WRN_UnimplementedCommandLineSwitch = 8001,

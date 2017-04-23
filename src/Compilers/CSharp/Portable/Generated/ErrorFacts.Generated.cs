@@ -158,7 +158,9 @@
                 case ErrorCode.WRN_CallerLineNumberPreferredOverCallerMemberName:
                 case ErrorCode.WRN_CallerLineNumberPreferredOverCallerFilePath:
                 case ErrorCode.WRN_AssemblyAttributeFromModuleIsOverridden:
-                case ErrorCode.WRN_FilterIsConstant:
+                case ErrorCode.WRN_FilterIsConstantFalse:
+                case ErrorCode.WRN_FilterIsConstantTrue:
+                case ErrorCode.WRN_FilterIsConstantRedundantTryCatch:
                 case ErrorCode.WRN_UnimplementedCommandLineSwitch:
                 case ErrorCode.WRN_ReferencedAssemblyDoesNotHaveStrongName:
                 case ErrorCode.WRN_RefCultureMismatch:
