@@ -22195,13 +22195,13 @@ static bool TakeOutParam(object y, out bool x)
                 compilation.GetDiagnostics().Where(d => !exclude.Contains(d.Code)).Verify(
                 // (20,42): error CS0102: The type '<invalid-global-code>' already contains a definition for 'x4'
                 //         Dummy(TakeOutParam(true, out var x4) && x4)
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x4").WithArguments("<invalid-global-code>", "x4"),
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x4").WithArguments("<invalid-global-code>", "x4").WithLocation(20, 42),
                 // (33,9): error CS0102: The type '<invalid-global-code>' already contains a definition for 'x7'
                 //     var x7 = 12;
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x7").WithArguments("<invalid-global-code>", "x7"),
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x7").WithArguments("<invalid-global-code>", "x7").WithLocation(33, 9),
                 // (50,46): error CS0102: The type '<invalid-global-code>' already contains a definition for 'x9'
                 //             Dummy(TakeOutParam(true, out var x9) && x9) // 2
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x9").WithArguments("<invalid-global-code>", "x9")
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x9").WithArguments("<invalid-global-code>", "x9").WithLocation(50, 46)
                     );
 
                 var tree = compilation.SyntaxTrees.Single();
