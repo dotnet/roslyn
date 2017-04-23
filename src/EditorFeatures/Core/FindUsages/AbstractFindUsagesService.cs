@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -96,8 +95,10 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             Document document, int position, IFindUsagesContext context)
         {
             var cancellationToken = context.CancellationToken;
+
+            var callback = new FindUsagesCallback(document.Project.Solution.Workspace, context);
             using (var session = await TryGetRemoteSessionAsync(
-                document.Project.Solution, null, cancellationToken).ConfigureAwait(false))
+                document.Project.Solution, callback, cancellationToken).ConfigureAwait(false))
             {
                 if (session == null)
                 {

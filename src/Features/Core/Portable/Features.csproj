@@ -138,7 +138,8 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>FeaturesResources.resx</DependentUpon>
     </Compile>
-    <Compile Include="FindUsages\DefinitionItem.MetadataDefinitionItem.cs" />
+    <Compile Include="FindUsages\SerializableDefinitionItem.cs" />
+    <Compile Include="FindUsages\SerializableSourceReferenceItem.cs" />
     <Compile Include="GenerateConstructorFromMembers\GenerateConstructorFromMembersOptions.cs" />
     <Compile Include="GenerateConstructorFromMembers\GenerateConstructorWithDialogCodeAction.cs" />
     <Compile Include="GenerateEqualsAndGetHashCodeFromMembers\FormatLargeBinaryExpressionRule.cs" />
@@ -397,7 +398,6 @@
     <Compile Include="DocumentSpan.cs" />
     <Compile Include="FindUsages\DefinitionItem.cs" />
     <Compile Include="FindUsages\DefinitionItem.DocumentLocationDefinitionItem.cs" />
-    <Compile Include="FindUsages\DefinitionItem.NonNavigatingDefinitionItem.cs" />
     <Compile Include="FindUsages\DefinitionsAndReferences.cs" />
     <Compile Include="FindUsages\SourceReferenceItem.cs" />
     <Compile Include="Diagnostics\EngineV2\DiagnosticAnalyzerExecutor.cs" />

@@ -105,6 +105,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="FindUsages\AbstractFindUsagesService.cs" />
+    <Compile Include="FindUsages\AbstractFindUsagesService.FindUsagesCallback.cs" />
     <Compile Include="FindUsages\ClassifiedSpansAndHighlightSpan.cs" />
     <Compile Include="FindUsages\AbstractFindUsagesService.DefinitionTrackingContext.cs" />
     <Compile Include="FindUsages\FindUsagesHelpers.cs" />

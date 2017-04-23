@@ -1,6 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
+using System.Linq;
+using System.Threading;
+using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.Navigation;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindUsages
 {
@@ -11,25 +17,112 @@ namespace Microsoft.CodeAnalysis.FindUsages
         /// <see cref="DocumentSpan"/>.
         /// </summary>
         // internal for testing purposes.
-        internal sealed class DocumentLocationDefinitionItem : DefinitionItem
+        internal sealed class DefaultDefinitionItem : DefinitionItem
         {
+            private readonly Workspace _workspaceOpt;
+
             internal override bool IsExternal => false;
 
-            public DocumentLocationDefinitionItem(
+            public DefaultDefinitionItem(
+                Workspace workspaceOpt,
                 ImmutableArray<string> tags,
                 ImmutableArray<TaggedText> displayParts,
                 ImmutableArray<TaggedText> nameDisplayParts,
+                ImmutableArray<TaggedText> originationParts,
                 ImmutableArray<DocumentSpan> sourceSpans,
                 ImmutableDictionary<string, string> properties,
                 bool displayIfNoReferences)
-                : base(tags, displayParts, nameDisplayParts,
-                       ImmutableArray.Create(new TaggedText(TextTags.Text, sourceSpans[0].Document.Project.Name)),
+                : base(tags, displayParts, nameDisplayParts, originationParts,
                        sourceSpans, properties, displayIfNoReferences)
             {
+                _workspaceOpt = workspaceOpt;
             }
 
-            public override bool CanNavigateTo() => SourceSpans[0].CanNavigateTo();
-            public override bool TryNavigateTo() => SourceSpans[0].TryNavigateTo();
+            public override bool CanNavigateTo()
+            {
+                if (this.Properties.ContainsKey(NonNavigable))
+                {
+                    return false;
+                }
+
+                if (this.Properties.TryGetValue(MetadataSymbolKey, out var symbolKey))
+                {
+                    return CanNavigateToMetadataSymbol(symbolKey);
+                }
+
+                return SourceSpans[0].CanNavigateTo();
+            }
+
+            public override bool TryNavigateTo()
+            {
+                if (this.Properties.ContainsKey(NonNavigable))
+                {
+                    return false;
+                }
+
+                if (this.Properties.TryGetValue(MetadataSymbolKey, out var symbolKey))
+                {
+                    return TryNavigateToMetadataSymbol(symbolKey);
+                }
+
+                return SourceSpans[0].TryNavigateTo();
+            }
+
+            private bool CanNavigateToMetadataSymbol(string symbolKey)
+                => TryNavigateToMetadataSymbol(symbolKey, (symbol, project, service) => true);
+
+            private bool TryNavigateToMetadataSymbol(string symbolKey)
+                => TryNavigateToMetadataSymbol(symbolKey, (symbol, project, service) =>
+                    service.TryNavigateToSymbol(
+                        symbol, project, project.Solution.Options.WithChangedOption(NavigationOptions.PreferProvisionalTab, true)));
+
+            private bool TryNavigateToMetadataSymbol(string symbolKey, Func<ISymbol, Project, ISymbolNavigationService, bool> action)
+            {
+                var projectAndSymbol = ResolveSymbolInCurrentSolution(symbolKey);
+                if (projectAndSymbol == null)
+                {
+                    return false;
+                }
+
+                var project = projectAndSymbol?.project;
+                var symbol = projectAndSymbol?.symbol;
+                if (symbol == null || project == null)
+                {
+                    return false;
+                }
+
+                if (symbol.Kind == SymbolKind.Namespace)
+                {
+                    return false;
+                }
+
+                var navigationService = _workspaceOpt.Services.GetService<ISymbolNavigationService>();
+                return action(symbol, project, navigationService);
+            }
+
+            private (Project project, ISymbol symbol)? ResolveSymbolInCurrentSolution(string symbolKey)
+            {
+                if (!this.Properties.TryGetValue(MetadataAssemblyIdentityDisplayName, out var identityDisplayName) ||
+                    !AssemblyIdentity.TryParseDisplayName(identityDisplayName, out var identity))
+                {
+                    return null;
+                }
+
+                var project = _workspaceOpt.CurrentSolution
+                    .ProjectsWithReferenceToAssembly(identity)
+                    .FirstOrDefault();
+
+                if (project == null)
+                {
+                    return null;
+                }
+
+                var compilation = project.GetCompilationAsync(CancellationToken.None)
+                                         .WaitAndGetResult(CancellationToken.None);
+
+                var symbol = SymbolKey.Resolve(symbolKey, compilation).Symbol;
+                return (project, symbol);
+            }
         }
     }
 }

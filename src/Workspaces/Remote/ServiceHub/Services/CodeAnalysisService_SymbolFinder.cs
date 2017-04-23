@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
             public Task OnReferenceFoundAsync(SourceReferenceItem reference)
                 => _service.Rpc.InvokeAsync(nameof(OnReferenceFoundAsync),
-                    SerializableSourceReferenceItem.Dehydrate(definition));
+                    SerializableSourceReferenceItem.Dehydrate(reference));
         }
 
         private class FindLiteralReferencesProgressCallback : IStreamingFindLiteralReferencesProgress
