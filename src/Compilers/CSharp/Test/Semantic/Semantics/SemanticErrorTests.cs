@@ -13472,6 +13472,7 @@ public class A : Attribute
 {
     Main() {}
     Helper() {}
+    \u0050rogram(int x) {}
 }")
                 .VerifyDiagnostics(
                 // (3,5): error CS1520: Method must have a return type
