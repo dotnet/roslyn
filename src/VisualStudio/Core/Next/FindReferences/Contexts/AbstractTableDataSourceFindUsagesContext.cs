@@ -223,6 +223,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
             public sealed override Task SetSearchTitleAsync(string title)
             {
+                // Note: IFindAllReferenceWindow.Title is safe to set from any thread.
                 _findReferencesWindow.Title = title;
                 return SpecializedTasks.EmptyTask;
             }
