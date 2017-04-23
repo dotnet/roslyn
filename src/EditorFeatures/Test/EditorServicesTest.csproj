@@ -213,8 +213,6 @@
     <Compile Include="Extensions\ITextSnapshotExtensionsTests.cs" />
     <Compile Include="Extensions\ITextSnapshotLineExtensionsTests.cs" />
     <Compile Include="Extensions\SetExtensionTests.cs" />
-    <Compile Include="FindReferences\FindReferencesCommandHandlerTests.cs" />
-    <Compile Include="FindReferences\MockDefinitionsAndReferencesPresenter.cs" />
     <Compile Include="LineSeparators\AdornmentManagerTests.cs" />
     <Compile Include="LinkedFiles\LinkedFileDiffMergingEditorTests.cs" />
     <Compile Include="MetadataAsSource\AbstractMetadataAsSourceTests.cs" />

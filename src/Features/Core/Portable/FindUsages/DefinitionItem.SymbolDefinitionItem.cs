@@ -31,11 +31,13 @@ namespace Microsoft.CodeAnalysis.FindUsages
                 ImmutableArray<string> tags,
                 ImmutableArray<TaggedText> displayParts,
                 ImmutableArray<TaggedText> nameDisplayParts,
+                ImmutableDictionary<string, string> properties,
                 bool displayIfNoReferences,
                 Solution solution, ISymbol definition)
                 : base(tags, displayParts, nameDisplayParts,
                        GetOriginationParts(definition),
                        ImmutableArray<DocumentSpan>.Empty,
+                       properties,
                        displayIfNoReferences)
             {
                 _workspace = solution.Workspace;

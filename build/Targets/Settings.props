@@ -27,7 +27,7 @@
     <SignAssembly>true</SignAssembly>
     <UseRoslynAnalyzers Condition="'$(UseRoslynAnalyzers)' == ''">true</UseRoslynAnalyzers>
     <BaseOutputPath Condition="'$(BaseOutputPath)' == ''">$(RepoRoot)Binaries\</BaseOutputPath>
-    <OutDir>$(BaseOutputPath)$(Configuration)\</OutDir>
+    <OutputPath>$(BaseOutputPath)$(Configuration)\</OutputPath>
     <BaseIntermediateOutputPath Condition="'$(BaseIntermediateOutputPath)' == ''">$(RepoRoot)Binaries\Obj\</BaseIntermediateOutputPath>
     <IntermediateOutputPath>$(BaseIntermediateOutputPath)$(Configuration)\$(MSBuildProjectName)\</IntermediateOutputPath>
 
@@ -47,7 +47,7 @@
     <MinimumVisualStudioVersion>$(VisualStudioVersion)</MinimumVisualStudioVersion>
 
     <!-- Disable AppX packaging for the Roslyn source. Not setting this to false has the side effect
-         that any builds of portable projects end up in a sub folder of $(OutDir). Search for this flag in
+         that any builds of portable projects end up in a sub folder of $(OutputPath). Search for this flag in
          Microsoft.Common.CurrentVersion.targets to see how it is consumed -->
     <WindowsAppContainer>false</WindowsAppContainer>
 
