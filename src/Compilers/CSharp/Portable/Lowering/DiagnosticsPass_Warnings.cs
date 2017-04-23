@@ -859,6 +859,39 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
+        private void CheckForDeconstructionAssignmentToSelf(BoundTupleLiteral leftTuple, BoundExpression right)
+        {
+            while (right.Kind == BoundKind.Conversion)
+            {
+                right = ((BoundConversion)right).Operand;
+            }
+
+            if (right.Kind != BoundKind.ConvertedTupleLiteral)
+            {
+                return;
+            }
+
+            var rightTuple = (BoundConvertedTupleLiteral)right;
+            var leftArguments = leftTuple.Arguments;
+            int length = leftArguments.Length;
+            Debug.Assert(length == rightTuple.Arguments.Length);
+
+            for (int i = 0; i < length; i++)
+            {
+                var leftArgument = leftArguments[i];
+                var rightArgument = rightTuple.Arguments[i];
+
+                if (leftArgument.Kind == BoundKind.TupleLiteral)
+                {
+                    CheckForDeconstructionAssignmentToSelf((BoundTupleLiteral)leftArgument, rightArgument);
+                }
+                else if (IsSameLocalOrField(leftArgument, rightArgument))
+                {
+                    Error(ErrorCode.WRN_AssignmentToSelf, leftArgument);
+                }
+            }
+        }
+
         public override BoundNode VisitFieldAccess(BoundFieldAccess node)
         {
             CheckReceiverIfField(node.ReceiverOpt);

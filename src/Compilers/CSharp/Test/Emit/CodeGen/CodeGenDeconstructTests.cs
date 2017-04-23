@@ -5391,7 +5391,11 @@ class C
 ";
 
             var comp = CreateStandardCompilation(source, options: TestOptions.DebugExe, references: s_valueTupleRefs);
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (6,26): warning CS1717: Assignment made to same variable; did you mean to assign something else?
+                //         (M(out var x).P, x) = (1, x);
+                Diagnostic(ErrorCode.WRN_AssignmentToSelf, "x").WithLocation(6, 26)
+                );
             CompileAndVerify(comp, expectedOutput: "Written 1. 42");
         }
 
@@ -6574,6 +6578,38 @@ class C
             var comp = CreateCompilationWithMscorlib45(source, references: s_valueTupleRefs, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp, expectedOutput: "3");
+        }
+
+        [Fact]
+        public void DeconstructionWarnsForSelfAssignment()
+        {
+            var source =
+@"
+class C
+{
+    object x = 0;
+    void M()
+    {
+        object y = 1;
+        (x, (x, x), x, this.x) = (y, (x, (1, 2)), new C(), x);
+    }
+    void Deconstruct(out object a, out object b)
+    {
+        a = null;
+        b = null;
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib45(source, references: s_valueTupleRefs, options: TestOptions.DebugDll);
+            comp.VerifyDiagnostics(
+                // (8,14): warning CS1717: Assignment made to same variable; did you mean to assign something else?
+                //         (x, (x, x), x, this.x) = (y, (x, (1, 2)), new C(), x);
+                Diagnostic(ErrorCode.WRN_AssignmentToSelf, "x"),
+                // (8,24): warning CS1717: Assignment made to same variable; did you mean to assign something else?
+                //         (x, (x, x), x, this.x) = (y, (x, (1, 2)), new C(), x);
+                Diagnostic(ErrorCode.WRN_AssignmentToSelf, "this.x").WithLocation(8, 24)
+                );
         }
 
         [Fact, WorkItem(17756, "https://github.com/dotnet/roslyn/issues/17756")]
