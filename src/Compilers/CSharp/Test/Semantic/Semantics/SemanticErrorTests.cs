@@ -5280,7 +5280,7 @@ class Program
         }
 
         [Fact]
-        public void CS7103WRN_FilterIsConstantFalse1()
+        public void CS7103WRN_FilterIsConstantFalse()
         {
             var text = @"
 using System;
@@ -5307,7 +5307,7 @@ class Program
         }
 
         [Fact]
-        public void CS7103WRN_FilterIsConstantFalse2()
+        public void CS7105WRN_FilterIsConstantRedundantTryCatch()
         {
             var text = @"
 using System;
