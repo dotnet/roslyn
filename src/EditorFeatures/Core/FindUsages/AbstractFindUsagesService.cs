@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindUsages;
@@ -89,13 +90,25 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                 return null;
             }
 
-            var symbol = symbolAndProject?.symbol;
-            var project = symbolAndProject?.project;
+            return await FindSymbolReferencesWorkerAsync(
+                context, symbolAndProject?.symbol, symbolAndProject?.project, cancellationToken).ConfigureAwait(false);
+        }
 
-            await context.SetSearchTitleAsync(
-                string.Format(EditorFeaturesResources._0_references,
+        /// <summary>
+        /// Public helper that we use from features like ObjectBrowser which start with a symbol
+        /// and want to push all the references to it into the Streaming-Find-References window.
+        /// </summary>
+        public static Task FindSymbolReferencesAsync(
+            IFindUsagesContext context, ISymbol symbol, Project project, CancellationToken cancellationToken)
+        {
+            return FindSymbolReferencesWorkerAsync(context, symbol, project, cancellationToken);
+        }
+
+        private static async Task<FindReferencesProgressAdapter> FindSymbolReferencesWorkerAsync(
+            IFindUsagesContext context, ISymbol symbol, Project project, CancellationToken cancellationToken)
+        {
+            await context.SetSearchTitleAsync(string.Format(EditorFeaturesResources._0_references,
                 FindUsagesHelpers.GetDisplayName(symbol))).ConfigureAwait(false);
-
             var progressAdapter = new FindReferencesProgressAdapter(project.Solution, context);
 
             // Now call into the underlying FAR engine to find reference.  The FAR
