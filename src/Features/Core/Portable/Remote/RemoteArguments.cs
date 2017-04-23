@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Remote
     {
         public DocumentId DocumentId;
         public TextSpan SourceSpan;
-        public Dictionary<string, object> Properties;
+        public SerializableClassifiedSpansAndHighlightSpan ClassifiedSpansAndHighlightSpan;
 
         public static SerializableDocumentSpan Dehydrate(DocumentSpan documentSpan)
         {
@@ -61,27 +61,24 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 DocumentId = documentSpan.Document.Id,
                 SourceSpan = documentSpan.SourceSpan,
-                Properties = Dehydrate(documentSpan.Properties),
+                ClassifiedSpansAndHighlightSpan = Dehydrate(documentSpan.Properties),
             };
         }
 
-        private static Dictionary<string, object> Dehydrate(ImmutableDictionary<string, object> properties)
+        private static SerializableClassifiedSpansAndHighlightSpan Dehydrate(ImmutableDictionary<string, object> properties)
         {
-            if (properties == null || properties.Count == 0)
+            if (properties != null)
             {
-                return null;
-            }
-
-            var result = new Dictionary<string, object>();
-            foreach (var kvp in properties)
-            {
-                if (TryConvert(kvp.Key, kvp.Value, out var converted))
+                foreach (var kvp in properties)
                 {
-                    result[kvp.Key] = converted;
+                    if (kvp.Value is ClassifiedSpansAndHighlightSpan classifiedSpans)
+                    {
+                        return SerializableClassifiedSpansAndHighlightSpan.Dehydrate(classifiedSpans);
+                    }
                 }
             }
 
-            return result;
+            return null;
         }
 
         private static bool TryConvert(string key, object value, out object converted)
@@ -111,39 +108,19 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public DocumentSpan Rehydrate(Solution solution)
         {
-            var properties = Rehydrate(Properties);
+            var properties = Rehydrate(ClassifiedSpansAndHighlightSpan);
             return new DocumentSpan(solution.GetDocument(DocumentId), SourceSpan);
         }
 
-        private static ImmutableDictionary<string, object> Rehydrate(Dictionary<string, object> properties)
+        private static ImmutableDictionary<string, object> Rehydrate(SerializableClassifiedSpansAndHighlightSpan dehydrated)
         {
-            if (properties == null || properties.Count == 0)
+            if (dehydrated == null)
             {
                 return null;
             }
 
-            var result = ImmutableDictionary<string, object>.Empty;
-            foreach (var kvp in properties)
-            {
-                if (TryRehydrate(kvp.Key, kvp.Value, out var rehydrated))
-                {
-                    result = result.Add(kvp.Key, rehydrated);
-                }
-            }
-
-            return result;
-        }
-
-        private static bool TryRehydrate(string key, object value, out object rehydrated)
-        {
-            if (value is SerializableClassifiedSpansAndHighlightSpan classifiedSpans)
-            {
-                rehydrated = classifiedSpans.Rehydrate();
-                return true;
-            }
-
-            rehydrated = null;
-            return false;
+            return ImmutableDictionary<string, object>.Empty.Add(
+                FindUsages.ClassifiedSpansAndHighlightSpan.Key, dehydrated.Rehydrate());
         }
 
         public static ImmutableArray<DocumentSpan> Rehydrate(Solution solution, SerializableDocumentSpan[] array)
