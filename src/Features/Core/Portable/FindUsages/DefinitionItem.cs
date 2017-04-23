@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
             NameDisplayParts = nameDisplayParts.IsDefaultOrEmpty ? displayParts : nameDisplayParts;
             OriginationParts = originationParts.NullToEmpty();
             SourceSpans = sourceSpans.NullToEmpty();
-            Properties = properties;
+            Properties = properties ?? ImmutableDictionary<string, string>.Empty;
             DisplayIfNoReferences = displayIfNoReferences;
         }
 
