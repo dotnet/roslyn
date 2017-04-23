@@ -59,7 +59,7 @@ namespace Roslyn.Test.Utilities.Remote
 
         public AssetStorage AssetStorage => _inprocServices.AssetStorage;
 
-        protected override async Task<Session> TryCreateServiceSessionAsync(string serviceName, Func<CancellationToken, Task<PinnedRemotableDataScope>> getSnapshotAsync, object callbackTarget, CancellationToken cancellationToken)
+        protected override async Task<Session> TryCreateServiceSessionAsync(string serviceName, Optional<Func<CancellationToken, Task<PinnedRemotableDataScope>>> getSnapshotAsync, object callbackTarget, CancellationToken cancellationToken)
         {
             // get stream from service hub to communicate snapshot/asset related information
             // this is the back channel the system uses to move data between VS and remote host

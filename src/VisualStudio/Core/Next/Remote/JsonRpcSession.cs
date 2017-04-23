@@ -31,13 +31,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         private readonly CancellationTokenRegistration _cancellationRegistration;
 
         public static async Task<JsonRpcSession> CreateAsync(
-            Func<CancellationToken, Task<PinnedRemotableDataScope>> getSnapshotAsync,
+            Optional<Func<CancellationToken, Task<PinnedRemotableDataScope>>> getSnapshotAsync,
             object callbackTarget,
             Stream serviceStream,
             Stream snapshotStreamOpt,
             CancellationToken cancellationToken)
         {
-            var snapshot = getSnapshotAsync == null ? null : await getSnapshotAsync(cancellationToken).ConfigureAwait(false);
+            var snapshot = getSnapshotAsync.Value == null ? null : await getSnapshotAsync.Value(cancellationToken).ConfigureAwait(false);
 
             JsonRpcSession session;
             try

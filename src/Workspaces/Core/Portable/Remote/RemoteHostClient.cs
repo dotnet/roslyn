@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         protected abstract void OnDisconnected();
 
-        protected abstract Task<Session> TryCreateServiceSessionAsync(string serviceName, Func<CancellationToken, Task<PinnedRemotableDataScope>> getSnapshotAsync, object callbackTarget, CancellationToken cancellationToken);
+        protected abstract Task<Session> TryCreateServiceSessionAsync(string serviceName, Optional<Func<CancellationToken, Task<PinnedRemotableDataScope>>> getSnapshotAsync, object callbackTarget, CancellationToken cancellationToken);
 
         internal void Shutdown()
         {
@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
 
             protected override Task<Session> TryCreateServiceSessionAsync(
-                string serviceName, Func<CancellationToken, Task<PinnedRemotableDataScope>> getSnapshotAsync, object callbackTarget, CancellationToken cancellationToken)
+                string serviceName, Optional<Func<CancellationToken, Task<PinnedRemotableDataScope>>> getSnapshotAsync, object callbackTarget, CancellationToken cancellationToken)
             {
                 return SpecializedTasks.Default<Session>();
             }
