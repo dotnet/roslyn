@@ -13,6 +13,7 @@
     <AssemblyName>TreeTransformsVB</AssemblyName>
     <MyType>Console</MyType>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <RuntimeIdentifiers>win7-x86</RuntimeIdentifiers>
     <TargetFrameworkProfile></TargetFrameworkProfile>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <OptionStrict>Off</OptionStrict>
@@ -43,6 +44,9 @@
     <Reference Include="System.Deployment" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq" />
+    <PackageReference Include="Microsoft.Composition">
+      <Version>$(MicrosoftCompositionVersion)</Version>
+    </PackageReference>
   </ItemGroup>
   <ItemGroup>
     <Import Include="System.Data" />
@@ -54,9 +58,6 @@
     <Compile Include="Transforms.vb" />
     <Compile Include="TransformVisitor.vb" />
     <Compile Include="TreeTransformTests.vb" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="project.json" />
   </ItemGroup>
   <Import Project="..\..\..\..\build\Targets\Imports.targets" />
 </Project>
