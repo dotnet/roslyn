@@ -7,11 +7,8 @@ using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
-using Microsoft.VisualStudio.LanguageServices.Implementation.RQName;
 using Microsoft.VisualStudio.Shell.Interop;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation
 {

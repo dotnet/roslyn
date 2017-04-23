@@ -79,10 +79,17 @@ namespace Microsoft.CodeAnalysis.PatternMatching
         public void Dispose()
         {
             _fullPatternSegment.Dispose();
+
             foreach (var segment in _dotSeparatedPatternSegments)
             {
                 segment.Dispose();
             }
+
+            foreach (var kvp in _stringToWordSpans)
+            {
+                kvp.Value.Dispose();
+            }
+            _stringToWordSpans.Clear();
         }
 
         public bool IsDottedPattern => _dotSeparatedPatternSegments.Length > 1;
@@ -341,7 +348,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                     }
 
                     var wordSpans = GetWordSpans(candidate);
-                    for (int i = 0; i < wordSpans.Count; i++)
+                    for (int i = 0, n = wordSpans.GetCount(); i < n; i++)
                     {
                         var span = wordSpans[i];
                         if (PartStartsWith(candidate, span, patternChunk.Text, CompareOptions.IgnoreCase))
@@ -623,7 +630,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
             {
                 //   f) If the word was not entirely lowercase, then attempt a normal camel cased match.
                 //      i.e. CoFiPro would match CodeFixProvider, but CofiPro would not.  
-                if (patternChunk.CharacterSpans.Count > 0)
+                if (patternChunk.CharacterSpans.GetCount() > 0)
                 {
                     var candidateParts = GetWordSpans(candidate);
                     var camelCaseWeight = TryUpperCaseCamelCaseMatch(candidate, includeMatchSpans, candidateParts, patternChunk, CompareOptions.None, out var matchedSpans);
@@ -678,12 +685,14 @@ namespace Microsoft.CodeAnalysis.PatternMatching
             int? firstMatch = null;
             bool? contiguous = null;
 
-            var result = ArrayBuilder<TextSpan>.GetInstance();
+            var patternChunkCharacterSpansCount = patternChunkCharacterSpans.GetCount();
+            var candidatePartsCount = candidateParts.GetCount();
 
+            var result = ArrayBuilder<TextSpan>.GetInstance();
             while (true)
             {
                 // Let's consider our termination cases
-                if (currentChunkSpan == patternChunkCharacterSpans.Count)
+                if (currentChunkSpan == patternChunkCharacterSpansCount)
                 {
                     Contract.Requires(firstMatch.HasValue);
                     Contract.Requires(contiguous.HasValue);
@@ -709,7 +718,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                     result.Free();
                     return weight;
                 }
-                else if (currentCandidate == candidateParts.Count)
+                else if (currentCandidate == candidatePartsCount)
                 {
                     // No match, since we still have more of the pattern to hit
                     matchedSpans = ImmutableArray<TextSpan>.Empty;
@@ -724,7 +733,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                 // will be Simple/UI/Element, and the pattern parts will be Si/U/I.  We'll match 'Si'
                 // against 'Simple' first.  Then we'll match 'U' against 'UI'. However, we want to
                 // still keep matching pattern parts against that candidate part. 
-                for (; currentChunkSpan < patternChunkCharacterSpans.Count; currentChunkSpan++)
+                for (; currentChunkSpan < patternChunkCharacterSpansCount; currentChunkSpan++)
                 {
                     var patternChunkCharacterSpan = patternChunkCharacterSpans[currentChunkSpan];
 

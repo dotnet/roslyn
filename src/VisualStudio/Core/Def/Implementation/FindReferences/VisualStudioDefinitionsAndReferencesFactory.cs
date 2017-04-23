@@ -7,6 +7,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Navigation;
@@ -93,7 +94,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences
                 string filePath,
                 int lineNumber,
                 int charOffset) 
-                : base(tags, displayParts, ImmutableArray<TaggedText>.Empty)
+                : base(tags, displayParts, ImmutableArray<TaggedText>.Empty,
+                       originationParts: default(ImmutableArray<TaggedText>),
+                       sourceSpans: default(ImmutableArray<DocumentSpan>),
+                       properties: null,
+                       displayIfNoReferences: true)
             {
                 _serviceProvider = serviceProvider;
                 _filePath = filePath;
