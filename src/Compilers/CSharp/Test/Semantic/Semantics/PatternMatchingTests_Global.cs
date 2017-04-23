@@ -6691,16 +6691,11 @@ for (
                                         (int)ErrorCode.ERR_PredefinedValueTupleTypeNotFound,
                                         (int)ErrorCode.ERR_TypeVarNotFound,
                                         (int)ErrorCode.ERR_TupleElementNamesAttributeMissing,
-                                        (int)ErrorCode.ERR_IdentifierExpectedKW
+                                        (int)ErrorCode.ERR_IdentifierExpectedKW,
+                                        (int)ErrorCode.ERR_MemberAlreadyExists
                                       };
 
                 compilation.GetDiagnostics().Where(d => !exclude.Contains(d.Code)).Verify(
-                // (22,5): error CS0111: Type '<invalid-global-code>' already defines a member called 'Dummy' with the same parameter types
-                //     Dummy(x4);
-                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Dummy").WithArguments("Dummy", "<invalid-global-code>").WithLocation(22, 5),
-                // (52,9): error CS0111: Type '<invalid-global-code>' already defines a member called 'Dummy' with the same parameter types
-                //         Dummy(x9);
-                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Dummy").WithArguments("Dummy", "<invalid-global-code>").WithLocation(52, 9),
                 // (20,27): error CS0102: The type '<invalid-global-code>' already contains a definition for 'x4'
                 //         Dummy(true is var x4 && x4)
                 Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x4").WithArguments("<invalid-global-code>", "x4").WithLocation(20, 27),
@@ -6964,23 +6959,15 @@ foreach (var x15 in
                                         (int)ErrorCode.ERR_PredefinedValueTupleTypeNotFound,
                                         (int)ErrorCode.ERR_TypeVarNotFound,
                                         (int)ErrorCode.ERR_TupleElementNamesAttributeMissing,
-                                        (int)ErrorCode.ERR_IdentifierExpectedKW
+                                        (int)ErrorCode.ERR_IdentifierExpectedKW,
+                                        (int)ErrorCode.ERR_MemberAlreadyExists
                                       };
 
                 compilation.GetDiagnostics().Where(d => !exclude.Contains(d.Code)).Verify(
                 // (9,19): error CS0111: Type '<invalid-global-code>' already defines a member called 'Dummy' with the same parameter types
                 // (58,34): error CS0100: The parameter name 'x14' is a duplicate
                 //                         2 is var x14, 
-                Diagnostic(ErrorCode.ERR_DuplicateParamName, "x14").WithArguments("x14").WithLocation(58, 34),
-                // (16,5): error CS0111: Type '<invalid-global-code>' already defines a member called 'Dummy' with the same parameter types
-                //     Dummy(x4);
-                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Dummy").WithArguments("Dummy", "<invalid-global-code>").WithLocation(16, 5),
-                // (35,24): error CS0111: Type '<invalid-global-code>' already defines a member called 'Dummy' with the same parameter types
-                //     foreach (var i2 in Dummy(true is var x9 && x9)) // 2
-                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Dummy").WithArguments("Dummy", "<invalid-global-code>").WithLocation(35, 24),
-                // (36,9): error CS0111: Type '<invalid-global-code>' already defines a member called 'Dummy' with the same parameter types
-                //         Dummy(x9);
-                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Dummy").WithArguments("Dummy", "<invalid-global-code>").WithLocation(36, 9)
+                Diagnostic(ErrorCode.ERR_DuplicateParamName, "x14").WithArguments("x14").WithLocation(58, 34)
                     );
 
                 var tree = compilation.SyntaxTrees.Single();
@@ -7171,7 +7158,8 @@ Dummy(x12);
                                         (int)ErrorCode.ERR_PredefinedValueTupleTypeNotFound,
                                         (int)ErrorCode.ERR_TypeVarNotFound,
                                         (int)ErrorCode.ERR_TupleElementNamesAttributeMissing,
-                                        (int)ErrorCode.ERR_IdentifierExpectedKW
+                                        (int)ErrorCode.ERR_IdentifierExpectedKW,
+                                        (int)ErrorCode.ERR_MemberAlreadyExists
                                       };
 
                 compilation.GetDiagnostics().Where(d => !exclude.Contains(d.Code)).Verify(
@@ -7182,9 +7170,6 @@ Dummy(x12);
                 // (23,49): error CS0100: The parameter name 'x9' is a duplicate
                 //         (System.Func<int, bool>) (o => o is var x9 && 
                 Diagnostic(ErrorCode.ERR_DuplicateParamName, "x9").WithArguments("x9").WithLocation(23, 49),
-                // (18,1): error CS0111: Type '<invalid-global-code>' already defines a member called 'Dummy' with the same parameter types
-                // Dummy(x7, 2); 
-                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Dummy").WithArguments("Dummy", "<invalid-global-code>").WithLocation(18, 1),
                 // (28,26): error CS0102: The type '<invalid-global-code>' already contains a definition for 'x10'
                 //         true is var x10, x10);
                 Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x10").WithArguments("<invalid-global-code>", "x10").WithLocation(28, 26)
@@ -7654,7 +7639,8 @@ var r11 = from x1 in new[] { 1 is var y11 ? y11 : 0}
                                         (int)ErrorCode.ERR_IdentifierExpectedKW,
                                         (int)ErrorCode.ERR_NameNotInContext,
                                         (int)ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer,
-                                        (int)ErrorCode.ERR_ExpressionVariableInQueryClause
+                                        (int)ErrorCode.ERR_ExpressionVariableInQueryClause,
+                                        (int)ErrorCode.ERR_UseDefViolation
                                       };
 
                 compilation.GetDiagnostics().Where(d => !exclude.Contains(d.Code)).Verify(
@@ -7669,10 +7655,7 @@ var r11 = from x1 in new[] { 1 is var y11 ? y11 : 0}
                 Diagnostic(ErrorCode.ERR_QueryRangeVariableOverrides, "y10").WithArguments("y10").WithLocation(86, 18),
                 // (90,17): error CS1931: The range variable 'y11' conflicts with a previous declaration of 'y11'
                 //             let y11 = x1 + 1
-                Diagnostic(ErrorCode.ERR_QueryRangeVariableOverrides, "y11").WithArguments("y11").WithLocation(90, 17),
-                // (62,46): error CS0165: Use of unassigned local variable 'u7'
-                //                     x > y7 && 1 is var u7 && u7 == 
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "u7").WithArguments("u7").WithLocation(62, 46)
+                Diagnostic(ErrorCode.ERR_QueryRangeVariableOverrides, "y11").WithArguments("y11").WithLocation(90, 17)
                     );
 
                 var tree = compilation.SyntaxTrees.Single();
@@ -7888,16 +7871,11 @@ using (Dummy(1 is var x14,
                                         (int)ErrorCode.ERR_SingleTypeNameNotFound,
                                         (int)ErrorCode.ERR_ConcreteMissingBody,
                                         (int)ErrorCode.ERR_TypeVarNotFound,
-                                        (int)ErrorCode.ERR_DuplicateNameInClass
+                                        (int)ErrorCode.ERR_DuplicateNameInClass,
+                                        (int)ErrorCode.ERR_MemberAlreadyExists
                                       };
 
                 compilation.GetDiagnostics().Where(d => !exclude.Contains(d.Code)).Verify(
-                // (16,5): error CS0111: Type '<invalid-global-code>' already defines a member called 'Dummy' with the same parameter types
-                //     Dummy(x4);
-                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Dummy").WithArguments("Dummy", "<invalid-global-code>").WithLocation(16, 5),
-                // (36,9): error CS0111: Type '<invalid-global-code>' already defines a member called 'Dummy' with the same parameter types
-                //         Dummy(x9);
-                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Dummy").WithArguments("Dummy", "<invalid-global-code>").WithLocation(36, 9)
                     );
 
                 var tree = compilation.SyntaxTrees.Single();
