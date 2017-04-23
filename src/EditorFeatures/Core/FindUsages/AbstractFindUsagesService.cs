@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
         {
             var cancellationToken = context.CancellationToken;
 
-            var callback = new FindUsagesCallback(document.Project.Solution.Workspace, context);
+            var callback = new FindUsagesCallback(document.Project.Solution, context);
             using (var session = await TryGetRemoteSessionAsync(
                 document.Project.Solution, callback, cancellationToken).ConfigureAwait(false))
             {

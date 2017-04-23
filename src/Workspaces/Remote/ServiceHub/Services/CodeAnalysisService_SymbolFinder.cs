@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -110,6 +111,10 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             private readonly CodeAnalysisService _service;
 
+            private readonly object _gate = new object();
+            private int _nextDefinitionItemSerializationId;
+            private readonly Dictionary<DefinitionItem, int> _definitionToSerializationId = new Dictionary<DefinitionItem, int>();
+
             public FindUsagesContext(CodeAnalysisService service)
             {
                 _service = service;
@@ -128,12 +133,31 @@ namespace Microsoft.CodeAnalysis.Remote
                 => _service.Rpc.InvokeAsync(nameof(ReportProgressAsync), current, maximum);
 
             public Task OnDefinitionFoundAsync(DefinitionItem definition)
-                => _service.Rpc.InvokeAsync(nameof(OnDefinitionFoundAsync),
-                    SerializableDefinitionItem.Dehydrate(definition));
+            {
+                int serializationId;
+                lock (_gate)
+                {
+                    _nextDefinitionItemSerializationId++;
+                    serializationId = _nextDefinitionItemSerializationId;
+
+                    _definitionToSerializationId.Add(definition, serializationId);
+                }
+
+                return _service.Rpc.InvokeAsync(nameof(OnDefinitionFoundAsync),
+                    SerializableDefinitionItem.Dehydrate(definition, serializationId));
+            }
 
             public Task OnReferenceFoundAsync(SourceReferenceItem reference)
-                => _service.Rpc.InvokeAsync(nameof(OnReferenceFoundAsync),
-                    SerializableSourceReferenceItem.Dehydrate(reference));
+            {
+                int definitionId;
+                lock (_gate)
+                {
+                    definitionId = _definitionToSerializationId[reference.Definition];
+                }
+
+                return _service.Rpc.InvokeAsync(nameof(OnReferenceFoundAsync),
+                    SerializableSourceReferenceItem.Dehydrate(reference, definitionId));
+            }
         }
 
         private class FindLiteralReferencesProgressCallback : IStreamingFindLiteralReferencesProgress

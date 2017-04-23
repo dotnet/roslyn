@@ -1,8 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindUsages;
-using Microsoft.CodeAnalysis.Remote;
 
 namespace Microsoft.CodeAnalysis.Editor.FindUsages
 {
@@ -10,12 +10,15 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
     {
         private class FindUsagesCallback
         {
-            private readonly Workspace _workspace;
+            private readonly Solution _solution;
             private readonly IFindUsagesContext _context;
 
-            public FindUsagesCallback(Workspace workspace, IFindUsagesContext context)
+            private readonly object _gate = new object();
+            private readonly Dictionary<int, DefinitionItem> _definitionIdToItem = new Dictionary<int, DefinitionItem>();
+
+            public FindUsagesCallback(Solution solution, IFindUsagesContext context)
             {
-                _workspace = workspace;
+                _solution = solution;
                 _context = context;
             }
 
@@ -29,10 +32,26 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                 => _context.ReportProgressAsync(current, maximum);
 
             public Task OnDefinitionFoundAsync(SerializableDefinitionItem definition)
-                => _context.OnDefinitionFoundAsync(definition.Rehydrate(_workspace));
+            {
+                var definitionItem = definition.Rehydrate(_solution);
+                lock (_gate)
+                {
+                    _definitionIdToItem.Add(definition.SerializationId, definitionItem);
+                }
+
+                return _context.OnDefinitionFoundAsync(definitionItem);
+            }
 
             public Task OnReferenceFoundAsync(SerializableSourceReferenceItem reference)
-                => _context.OnReferenceFoundAsync(reference.Rehydrate(_workspace));
+            {
+                DefinitionItem item;
+                lock (_gate)
+                {
+                    item = _definitionIdToItem[reference.DefinitionId];
+                }
+
+                return _context.OnReferenceFoundAsync(reference.Rehydrate(_solution, item));
+            }
         }
     }
 }

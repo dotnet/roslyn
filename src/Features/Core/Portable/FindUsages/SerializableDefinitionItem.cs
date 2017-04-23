@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -10,6 +9,8 @@ namespace Microsoft.CodeAnalysis.FindUsages
 {
     internal class SerializableDefinitionItem
     {
+        public int SerializationId;
+
         public string[] Tags;
         public Dictionary<string, string> Properties;
         public SerializableTaggedText[] NameDisplayParts;
@@ -18,12 +19,13 @@ namespace Microsoft.CodeAnalysis.FindUsages
         public SerializableDocumentSpan[] SourceSpans;
         public bool DisplayIfNoReferences;
 
-        internal static SerializableDefinitionItem Dehydrate(DefinitionItem definition)
+        internal static SerializableDefinitionItem Dehydrate(DefinitionItem definition, int serializationId)
         {
             return new SerializableDefinitionItem
             {
+                SerializationId = serializationId,
                 Tags = definition.Tags.NullToEmpty().ToArray(),
-                Properties = definition.Properties == null ? null : definition.Properties.ToDictionary(kvp => kvp.Key, kvp => kvp.Value),
+                Properties = definition.Properties?.ToDictionary(kvp => kvp.Key, kvp => kvp.Value),
                 NameDisplayParts = SerializableTaggedText.Dehydrate(definition.NameDisplayParts.NullToEmpty()),
                 DisplayParts = SerializableTaggedText.Dehydrate(definition.DisplayParts.NullToEmpty()),
                 OriginationParts = SerializableTaggedText.Dehydrate(definition.OriginationParts.NullToEmpty()),
