@@ -316,7 +316,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var result = normalResult;
             if (!normalResult.IsValid)
             {
-                if (IsValidParams(constructor, false))
+                if (IsValidParams(constructor))
                 {
                     var expandedResult = IsConstructorApplicableInExpandedForm(constructor, arguments, completeResults, ref useSiteDiagnostics);
                     if (expandedResult.IsValid || completeResults)
@@ -517,7 +517,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Second, we need to determine if the method is applicable in its normal form or its expanded form.
 
-            var normalResult = (allowUnexpandedForm || !IsValidParams(leastOverriddenMember, false))
+            var normalResult = (allowUnexpandedForm || !IsValidParams(leastOverriddenMember))
                 ? IsMemberApplicableInNormalForm(
                     member,
                     leastOverriddenMember,
@@ -538,8 +538,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // tricks you can pull to make overriding methods [indexers] inconsistent with overridden
                 // methods [indexers] (or implementing methods [indexers] inconsistent with interfaces). 
 
-                //Disabling IsValidParams check for position of params
-                if (!isMethodGroupConversion && IsValidParams(leastOverriddenMember, true))
+                if (!isMethodGroupConversion && IsValidParams(leastOverriddenMember))
                 {
                     var expandedResult = IsMemberApplicableInExpandedForm(
                         member,
@@ -601,7 +600,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // We need to know if this is a valid formal parameter list with a parameter array
         // as the final formal parameter. We might be in an error recovery scenario
         // where the params array is not an array type.
-        public static bool IsValidParams(Symbol member, bool ignoreParamsPosition)
+        public static bool IsValidParams(Symbol member)
         {
             // A varargs method is never a valid params method.
             if (member.GetIsVararg())
@@ -617,16 +616,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Note: we need to confirm the "arrayness" on the original definition because
             // it's possible that the type becomes an array as a result of substitution.
-
-            //Validate even if the params are not on the last index -> (Experimental)
-
-            var memberParams = member.GetParameters();
-            var paramsParameterToCheck = memberParams.Last();
-
-            if (ignoreParamsPosition)
-                paramsParameterToCheck = memberParams.First(i => i.IsParams) ?? paramsParameterToCheck;
-
-            return paramsParameterToCheck.IsParams && ((ParameterSymbol)paramsParameterToCheck.OriginalDefinition).Type.IsSZArray();
+            var final = member.GetParameters().Last();
+            return final.IsParams && ((ParameterSymbol)final.OriginalDefinition).Type.IsSZArray();
         }
 
         private static bool IsOverride(Symbol overridden, Symbol overrider)

@@ -1022,23 +1022,31 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var argType = argument.Display as TypeSymbol;
                     if (argType != null)
                     {
-                        SignatureOnlyParameterSymbol displayArg = new SignatureOnlyParameterSymbol(
-                            argType,
-                            ImmutableArray<CustomModifier>.Empty,
-                            ImmutableArray<CustomModifier>.Empty,
-                            isParams: false,
-                            refKind: refArg);
+                        var unwrapedParamsArray = UnwrapIfParamsArray(parameter);
+                        if (argType == unwrapedParamsArray as TypeSymbol)
+                        {
+                            //Do nothing. Everything is fine for now
+                        }
+                        else
+                        {
+                            SignatureOnlyParameterSymbol displayArg = new SignatureOnlyParameterSymbol(
+                                argType,
+                                ImmutableArray<CustomModifier>.Empty,
+                                ImmutableArray<CustomModifier>.Empty,
+                                isParams: false,
+                                refKind: refArg);
 
-                        SymbolDistinguisher distinguisher = new SymbolDistinguisher(compilation, displayArg, UnwrapIfParamsArray(parameter));
+                            SymbolDistinguisher distinguisher = new SymbolDistinguisher(compilation, displayArg, unwrapedParamsArray);
 
-                        // CS1503: Argument {0}: cannot convert from '{1}' to '{2}'
-                        diagnostics.Add(
-                            ErrorCode.ERR_BadArgType,
-                            sourceLocation,
-                            symbols,
-                            arg + 1,
-                            distinguisher.First,
-                            distinguisher.Second);
+                            // CS1503: Argument {0}: cannot convert from '{1}' to '{2}'
+                            diagnostics.Add(
+                                ErrorCode.ERR_BadArgType,
+                                sourceLocation,
+                                symbols,
+                                arg + 1,
+                                distinguisher.First,
+                                distinguisher.Second);
+                        }
                     }
                     else
                     {
