@@ -75,12 +75,17 @@ namespace Microsoft.CodeAnalysis.FindUsages
             }
 
             private bool CanNavigateToMetadataSymbol(string symbolKey)
-                => TryNavigateToMetadataSymbol(symbolKey, (symbol, project, service) => true);
+                => TryNavigateToMetadataSymbol(symbolKey, action: (symbol, project, service) => true);
 
             private bool TryNavigateToMetadataSymbol(string symbolKey)
-                => TryNavigateToMetadataSymbol(symbolKey, (symbol, project, service) =>
-                    service.TryNavigateToSymbol(
-                        symbol, project, project.Solution.Options.WithChangedOption(NavigationOptions.PreferProvisionalTab, true)));
+            {
+                return TryNavigateToMetadataSymbol(symbolKey,
+                    action: (symbol, project, service) =>
+                    {
+                        return service.TryNavigateToSymbol(
+                            symbol, project, project.Solution.Options.WithChangedOption(NavigationOptions.PreferProvisionalTab, true));
+                    });
+            }
 
             private bool TryNavigateToMetadataSymbol(string symbolKey, Func<ISymbol, Project, ISymbolNavigationService, bool> action)
             {
@@ -102,6 +107,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
                     return false;
                 }
 
+                // For metadata-definitions, it's a requirement that we always have a workspace.
                 var navigationService = _workspaceOpt.Services.GetService<ISymbolNavigationService>();
                 return action(symbol, project, navigationService);
             }
@@ -114,6 +120,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
                     return null;
                 }
 
+                // For metadata-definitions, it's a requirement that we always have a workspace.
                 var project = _workspaceOpt.CurrentSolution
                     .ProjectsWithReferenceToAssembly(identity)
                     .FirstOrDefault();
