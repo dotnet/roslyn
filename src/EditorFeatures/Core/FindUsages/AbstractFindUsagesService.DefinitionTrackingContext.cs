@@ -32,11 +32,11 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             public CancellationToken CancellationToken 
                 => _underlyingContext.CancellationToken;
 
-            public void ReportMessage(string message)
-                => _underlyingContext.ReportMessage(message);
+            public Task ReportMessageAsync(string message)
+                => _underlyingContext.ReportMessageAsync(message);
 
-            public void SetSearchTitle(string title)
-                => _underlyingContext.SetSearchTitle(title);
+            public Task SetSearchTitleAsync(string title)
+                => _underlyingContext.SetSearchTitleAsync(title);
 
             public Task OnReferenceFoundAsync(SourceReferenceItem reference)
                 => _underlyingContext.OnReferenceFoundAsync(reference);

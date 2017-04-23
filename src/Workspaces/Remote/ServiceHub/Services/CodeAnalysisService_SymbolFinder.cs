@@ -118,30 +118,22 @@ namespace Microsoft.CodeAnalysis.Remote
             public CancellationToken CancellationToken
                 => _service.CancellationToken;
 
-            public void ReportMessage(string message)
-            {
-                throw new System.NotImplementedException();
-            }
+            public Task ReportMessageAsync(string message)
+                => _service.Rpc.InvokeAsync(nameof(ReportMessageAsync), message);
 
-            public void SetSearchTitle(string title)
-            {
-                throw new System.NotImplementedException();
-            }
-
-            public Task OnDefinitionFoundAsync(DefinitionItem definition)
-            {
-                throw new System.NotImplementedException();
-            }
-
-            public Task OnReferenceFoundAsync(SourceReferenceItem reference)
-            {
-                throw new System.NotImplementedException();
-            }
+            public Task SetSearchTitleAsync(string title)
+                => _service.Rpc.InvokeAsync(nameof(SetSearchTitleAsync), title);
 
             public Task ReportProgressAsync(int current, int maximum)
-            {
-                throw new System.NotImplementedException();
-            }
+                => _service.Rpc.InvokeAsync(nameof(ReportProgressAsync), current, maximum);
+
+            public Task OnDefinitionFoundAsync(DefinitionItem definition)
+                => _service.Rpc.InvokeAsync(nameof(OnDefinitionFoundAsync),
+                    SerializableDefinitionItem.Dehydrate(definition));
+
+            public Task OnReferenceFoundAsync(SourceReferenceItem reference)
+                => _service.Rpc.InvokeAsync(nameof(OnReferenceFoundAsync),
+                    SerializableSourceReferenceItem.Dehydrate(definition));
         }
 
         private class FindLiteralReferencesProgressCallback : IStreamingFindLiteralReferencesProgress
