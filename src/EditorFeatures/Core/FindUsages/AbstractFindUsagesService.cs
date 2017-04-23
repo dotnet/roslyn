@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
@@ -8,7 +10,7 @@ using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.FindUsages
 {
@@ -52,46 +54,40 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             Document document, int position, IFindUsagesContext context)
         {
             var definitionTrackingContext = new DefinitionTrackingContext(context);
-
-            // NOTE: All ConFigureAwaits in this method need to pass 'true' so that
-            // we return to the caller's context.  that's so the call to 
-            // CallThirdPartyExtensionsAsync will happen on the UI thread.  We need
-            // this to maintain the threading guarantee we had around that method
-            // from pre-Roslyn days.
-            if (!await TryFindReferencesInRemoteProcessAsync(
-                    document, position, definitionTrackingContext).ConfigureAwait(true))
-            {
-                await TryFindReferencesInCurrentProcessAsync(
-                    document, position, definitionTrackingContext).ConfigureAwait(true);
-            }
+            // Need ConfigureAwait(true) here so we get back to the UI thread before calling 
+            // GetThirdPartyDefinitions.  We need to call that on the UI thread to match behavior
+            // of how the language service always worked in the past.
+            //
+            // Any async calls before GetThirdPartyDefinitions must be ConfigureAwait(true).
+            await FindLiteralOrSymbolReferencesAsync(
+                document, position, definitionTrackingContext).ConfigureAwait(true);
 
             // After the FAR engine is done call into any third party extensions to see
             // if they want to add results.
-            await CallThirdPartyExtensionsAsync(
-                document.Project.Solution, definitionTrackingContext, context).ConfigureAwait(true);
-        }
+            var thirdPartyDefinitions = GetThirdPartyDefinitions(
+                document.Project.Solution, definitionTrackingContext.GetDefinitions(), context.CancellationToken);
 
-        private async Task CallThirdPartyExtensionsAsync(
-            Solution solution,
-            DefinitionTrackingContext definitionTrackingContext,
-            IFindUsagesContext underlyingContext)
-        {
-            var cancellationToken = definitionTrackingContext.CancellationToken;
-            var factory = solution.Workspace.Services.GetService<IDefinitionsAndReferencesFactory>();
+            // From this point on we can do ConfigureAwait(false) as we're not calling back 
+            // into third parties anymore.
 
-            foreach (var definition in definitionTrackingContext.GetDefinitions())
+            foreach (var definition in thirdPartyDefinitions)
             {
-                var item = factory.GetThirdPartyDefinitionItem(solution, definition, cancellationToken);
-                if (item != null)
-                {
-                    // ConfigureAwait(true) because we want to come back on the 
-                    // same thread after calling into extensions.
-                    await underlyingContext.OnDefinitionFoundAsync(item).ConfigureAwait(true);
-                }
+                // Don't need ConfigureAwait(true) here 
+                await context.OnDefinitionFoundAsync(definition).ConfigureAwait(false);
             }
         }
 
-        private async Task<bool> TryFindReferencesInRemoteProcessAsync(
+        private async Task FindLiteralOrSymbolReferencesAsync(Document document, int position, IFindUsagesContext context)
+        {
+            if (!await TryFindLiteralOrSymbolReferencesInRemoteProcessAsync(
+                    document, position, context).ConfigureAwait(false))
+            {
+                await FindLiteralOrSymbolReferencesInCurrentProcessAsync(
+                    document, position, context).ConfigureAwait(false);
+            }
+        }
+
+        private async Task<bool> TryFindLiteralOrSymbolReferencesInRemoteProcessAsync(
             Document document, int position, IFindUsagesContext context)
         {
             var cancellationToken = context.CancellationToken;
@@ -112,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
         }
 
         // Internal so it can be used by the remote process.
-        internal static async Task TryFindReferencesInCurrentProcessAsync(
+        internal static async Task FindLiteralOrSymbolReferencesInCurrentProcessAsync(
             Document document, int position, IFindUsagesContext context)
         {
             // First, see if we're on a literal.  If so search for literals in the solution with
@@ -146,6 +142,17 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
 
             return await client.TryCreateCodeAnalysisServiceSessionAsync(
                 solution, callback, cancellationToken).ConfigureAwait(false);
+        }
+
+        private ImmutableArray<DefinitionItem> GetThirdPartyDefinitions(
+            Solution solution,
+            ImmutableArray<DefinitionItem> definitions,
+            CancellationToken cancellationToken)
+        {
+            var factory = solution.Workspace.Services.GetService<IDefinitionsAndReferencesFactory>();
+            return definitions.Select(d => factory.GetThirdPartyDefinitionItem(solution, d, cancellationToken))
+                              .WhereNotNull()
+                              .ToImmutableArray();
         }
 
         private static async Task FindSymbolReferencesAsync(
