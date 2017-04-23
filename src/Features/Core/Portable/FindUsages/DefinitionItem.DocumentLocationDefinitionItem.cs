@@ -19,12 +19,9 @@ namespace Microsoft.CodeAnalysis.FindUsages
         // internal for testing purposes.
         internal sealed class DefaultDefinitionItem : DefinitionItem
         {
-            private readonly Workspace _workspaceOpt;
-
             internal override bool IsExternal => false;
 
             public DefaultDefinitionItem(
-                Workspace workspaceOpt,
                 ImmutableArray<string> tags,
                 ImmutableArray<TaggedText> displayParts,
                 ImmutableArray<TaggedText> nameDisplayParts,
@@ -35,10 +32,9 @@ namespace Microsoft.CodeAnalysis.FindUsages
                 : base(tags, displayParts, nameDisplayParts, originationParts,
                        sourceSpans, properties, displayIfNoReferences)
             {
-                _workspaceOpt = workspaceOpt;
             }
 
-            public override bool CanNavigateTo()
+            public override bool CanNavigateTo(Workspace workspace)
             {
                 if (this.Properties.ContainsKey(NonNavigable))
                 {
@@ -47,13 +43,13 @@ namespace Microsoft.CodeAnalysis.FindUsages
 
                 if (this.Properties.TryGetValue(MetadataSymbolKey, out var symbolKey))
                 {
-                    return CanNavigateToMetadataSymbol(symbolKey);
+                    return CanNavigateToMetadataSymbol(workspace, symbolKey);
                 }
 
                 return SourceSpans[0].CanNavigateTo();
             }
 
-            public override bool TryNavigateTo()
+            public override bool TryNavigateTo(Workspace workspace)
             {
                 if (this.Properties.ContainsKey(NonNavigable))
                 {
@@ -62,30 +58,32 @@ namespace Microsoft.CodeAnalysis.FindUsages
 
                 if (this.Properties.TryGetValue(MetadataSymbolKey, out var symbolKey))
                 {
-                    return TryNavigateToMetadataSymbol(symbolKey);
+                    return TryNavigateToMetadataSymbol(workspace, symbolKey);
                 }
 
                 return SourceSpans[0].TryNavigateTo();
             }
 
-            private bool CanNavigateToMetadataSymbol(string symbolKey)
-                => TryNavigateToMetadataSymbol(symbolKey, (symbol, project, service) => true);
+            private bool CanNavigateToMetadataSymbol(Workspace workspace, string symbolKey)
+                => TryNavigateToMetadataSymbol(workspace, symbolKey, action: (symbol, project, service) => true);
 
-            private bool TryNavigateToMetadataSymbol(string symbolKey)
-                => TryNavigateToMetadataSymbol(symbolKey, (symbol, project, service) =>
-                    service.TryNavigateToSymbol(
-                        symbol, project, project.Solution.Options.WithChangedOption(NavigationOptions.PreferProvisionalTab, true)));
-
-            private bool TryNavigateToMetadataSymbol(string symbolKey, Func<ISymbol, Project, ISymbolNavigationService, bool> action)
+            private bool TryNavigateToMetadataSymbol(Workspace workspace, string symbolKey)
             {
-                var projectAndSymbol = ResolveSymbolInCurrentSolution(symbolKey);
-                if (projectAndSymbol == null)
-                {
-                    return false;
-                }
+                return TryNavigateToMetadataSymbol(workspace, symbolKey,
+                    action: (symbol, project, service) =>
+                    {
+                        return service.TryNavigateToSymbol(
+                            symbol, project, project.Solution.Options.WithChangedOption(NavigationOptions.PreferProvisionalTab, true));
+                    });
+            }
 
-                var project = projectAndSymbol?.project;
-                var symbol = projectAndSymbol?.symbol;
+            private bool TryNavigateToMetadataSymbol(
+                Workspace workspace, string symbolKey, Func<ISymbol, Project, ISymbolNavigationService, bool> action)
+            {
+                var projectAndSymbol = TryResolveSymbolInCurrentSolution(workspace, symbolKey);
+
+                var project = projectAndSymbol.project;
+                var symbol = projectAndSymbol.symbol;
                 if (symbol == null || project == null)
                 {
                     return false;
@@ -96,25 +94,26 @@ namespace Microsoft.CodeAnalysis.FindUsages
                     return false;
                 }
 
-                var navigationService = _workspaceOpt.Services.GetService<ISymbolNavigationService>();
+                var navigationService = workspace.Services.GetService<ISymbolNavigationService>();
                 return action(symbol, project, navigationService);
             }
 
-            private (Project project, ISymbol symbol)? ResolveSymbolInCurrentSolution(string symbolKey)
+            private (Project project, ISymbol symbol) TryResolveSymbolInCurrentSolution(
+                Workspace workspace, string symbolKey)
             {
                 if (!this.Properties.TryGetValue(MetadataAssemblyIdentityDisplayName, out var identityDisplayName) ||
                     !AssemblyIdentity.TryParseDisplayName(identityDisplayName, out var identity))
                 {
-                    return null;
+                    return (null, null);
                 }
 
-                var project = _workspaceOpt.CurrentSolution
+                var project = workspace.CurrentSolution
                     .ProjectsWithReferenceToAssembly(identity)
                     .FirstOrDefault();
 
                 if (project == null)
                 {
-                    return null;
+                    return (null, null);
                 }
 
                 var compilation = project.GetCompilationAsync(CancellationToken.None)

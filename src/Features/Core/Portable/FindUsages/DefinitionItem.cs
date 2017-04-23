@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Completion;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindUsages
 {
@@ -25,8 +26,20 @@ namespace Microsoft.CodeAnalysis.FindUsages
         internal const string RQNameKey1 = nameof(RQNameKey1);
         internal const string RQNameKey2 = nameof(RQNameKey2);
 
+        /// <summary>
+        /// For metadata symbols we encode information in the <see cref="Properties"/> so we can 
+        /// retrieve the symbol later on when navigating.  This is needed so that we can go to
+        /// metadata-as-source for metadata symbols.  We need to store the <see cref="SymbolKey"/>
+        /// for the symbol and the name we get back from  <see cref="AssemblyIdentity.GetDisplayName"/>
+        /// for.  With these we can effetively recover the symbol.
+        /// </summary>
         private const string MetadataSymbolKey = nameof(MetadataSymbolKey);
         private const string MetadataAssemblyIdentityDisplayName = nameof(MetadataAssemblyIdentityDisplayName);
+
+        /// <summary>
+        /// If this item is something that cannot be navigated to.  We store this in our
+        /// <see cref="Properties"/> to act as an explicit marker that navigation is not possible.
+        /// </summary>
         private const string NonNavigable = nameof(NonNavigable);
 
         /// <summary>
@@ -95,10 +108,15 @@ namespace Microsoft.CodeAnalysis.FindUsages
             SourceSpans = sourceSpans.NullToEmpty();
             Properties = properties ?? ImmutableDictionary<string, string>.Empty;
             DisplayIfNoReferences = displayIfNoReferences;
+
+            if (Properties.ContainsKey(MetadataSymbolKey))
+            {
+                Contract.ThrowIfFalse(Properties.ContainsKey(MetadataAssemblyIdentityDisplayName));
+            }
         }
 
-        public abstract bool CanNavigateTo();
-        public abstract bool TryNavigateTo();
+        public abstract bool CanNavigateTo(Workspace workspace);
+        public abstract bool TryNavigateTo(Workspace workspace);
 
         public static DefinitionItem Create(
             ImmutableArray<string> tags,
@@ -143,7 +161,6 @@ namespace Microsoft.CodeAnalysis.FindUsages
                 new TaggedText(TextTags.Text, firstDocument.Project.Name));
 
             return new DefaultDefinitionItem(
-                firstDocument.Project.Solution.Workspace,
                 tags, displayParts, nameDisplayParts, originationParts,
                 sourceSpans, properties, displayIfNoReferences);
         }
@@ -166,8 +183,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
 
             var originationParts = GetOriginationParts(symbol);
             return new DefaultDefinitionItem(
-                solution.Workspace, tags, 
-                displayParts, nameDisplayParts, originationParts,
+                tags, displayParts, nameDisplayParts, originationParts,
                 sourceSpans: ImmutableArray<DocumentSpan>.Empty,
                 properties: properties,
                 displayIfNoReferences: displayIfNoReferences);
@@ -193,10 +209,9 @@ namespace Microsoft.CodeAnalysis.FindUsages
             bool displayIfNoReferences = true)
         {
             properties = properties ?? ImmutableDictionary<string, string>.Empty;
-            properties = properties.Add(NonNavigable, NonNavigable);
+            properties = properties.Add(NonNavigable, "");
 
             return new DefaultDefinitionItem(
-                workspaceOpt: null,
                 tags: tags, 
                 displayParts: displayParts,
                 nameDisplayParts: ImmutableArray<TaggedText>.Empty,
