@@ -18,8 +18,20 @@ namespace Microsoft.CodeAnalysis.FindUsages
     /// </summary>
     internal abstract partial class DefinitionItem
     {
+        /// <summary>
+        /// For metadata symbols we encode information in the <see cref="Properties"/> so we can 
+        /// retrieve the symbol later on when navigating.  This is needed so that we can go to
+        /// metadata-as-source for metadata symbols.  We need to store the <see cref="SymbolKey"/>
+        /// for the symbol and the name we get back from  <see cref="AssemblyIdentity.GetDisplayName"/>
+        /// for.  With these we can effetively recover the symbol.
+        /// </summary>
         private const string MetadataSymbolKey = nameof(MetadataSymbolKey);
         private const string MetadataAssemblyIdentityDisplayName = nameof(MetadataAssemblyIdentityDisplayName);
+
+        /// <summary>
+        /// If this item is something that cannot be navigated to.  We store this in our
+        /// <see cref="Properties"/> to act as an explicit marker that navigation is not possible.
+        /// </summary>
         private const string NonNavigable = nameof(NonNavigable);
 
         /// <summary>
