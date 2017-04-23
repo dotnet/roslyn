@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
                 FindUsagesHelpers.GetDisplayName(symbol));
 
             return presenter.TryNavigateToOrPresentItemsAsync(
-                title, definitions.ToImmutableAndFree()).WaitAndGetResult(cancellationToken);
+                project.Solution.Workspace, title, definitions.ToImmutableAndFree()).WaitAndGetResult(cancellationToken);
         }
     }
 }

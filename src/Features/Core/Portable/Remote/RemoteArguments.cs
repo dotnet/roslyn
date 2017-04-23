@@ -1,7 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.FindUsages;
@@ -23,11 +21,16 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public static SerializableTaggedText[] Dehydrate(ImmutableArray<TaggedText> array)
         {
+            if (array.IsDefaultOrEmpty)
+            {
+                return null;
+            }
+
             var result = new SerializableTaggedText[array.Length];
             int index = 0;
             foreach (var tt in array)
             {
-                result[index] = SerializableTaggedText.Dehydrate(tt);
+                result[index] = Dehydrate(tt);
                 index++;
             }
 
@@ -39,6 +42,11 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public static ImmutableArray<TaggedText> Rehydrate(SerializableTaggedText[] array)
         {
+            if (array == null)
+            {
+                return ImmutableArray<TaggedText>.Empty;
+            }
+
             var result = ArrayBuilder<TaggedText>.GetInstance(array.Length);
             foreach (var tt in array)
             {

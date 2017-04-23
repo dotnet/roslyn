@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
             {
                 SerializationId = serializationId,
                 Tags = definition.Tags.NullToEmpty().ToArray(),
-                Properties = definition.Properties?.ToDictionary(kvp => kvp.Key, kvp => kvp.Value),
+                Properties = definition.Properties?.Count > 0 ? definition.Properties.ToDictionary(kvp => kvp.Key, kvp => kvp.Value) : null,
                 NameDisplayParts = SerializableTaggedText.Dehydrate(definition.NameDisplayParts.NullToEmpty()),
                 DisplayParts = SerializableTaggedText.Dehydrate(definition.DisplayParts.NullToEmpty()),
                 OriginationParts = SerializableTaggedText.Dehydrate(definition.OriginationParts.NullToEmpty()),
@@ -37,7 +37,6 @@ namespace Microsoft.CodeAnalysis.FindUsages
         public DefinitionItem Rehydrate(Solution solution)
         {
             return DefinitionItem.Create(
-                solution.Workspace,
                 tags: Tags.ToImmutableArray(),
                 displayParts: SerializableTaggedText.Rehydrate(DisplayParts),
                 nameDisplayParts: SerializableTaggedText.Rehydrate(NameDisplayParts),
