@@ -35,6 +35,12 @@ namespace Microsoft.CodeAnalysis.FindUsages
                 : base(tags, displayParts, nameDisplayParts, originationParts,
                        sourceSpans, properties, displayIfNoReferences)
             {
+                if (Properties.ContainsKey(MetadataSymbolKey))
+                {
+                    Contract.ThrowIfFalse(Properties.ContainsKey(MetadataAssemblyIdentityDisplayName));
+                    Contract.ThrowIfNull(workspaceOpt);
+                }
+
                 _workspaceOpt = workspaceOpt;
             }
 
