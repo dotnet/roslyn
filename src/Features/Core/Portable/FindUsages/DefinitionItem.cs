@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
             bool displayIfNoReferences = true)
         {
             properties = properties ?? ImmutableDictionary<string, string>.Empty;
-            properties = properties.Add(NonNavigable, NonNavigable);
+            properties = properties.Add(NonNavigable, "");
 
             return new DefaultDefinitionItem(
                 workspaceOpt: null,
