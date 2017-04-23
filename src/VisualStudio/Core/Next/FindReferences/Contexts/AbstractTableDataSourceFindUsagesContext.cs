@@ -221,8 +221,11 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
             #region FindUsagesContext overrides.
 
-            public sealed override void SetSearchTitle(string title)
-                => _findReferencesWindow.Title = title;
+            public sealed override Task SetSearchTitleAsync(string title)
+            {
+                _findReferencesWindow.Title = title;
+                return SpecializedTasks.EmptyTask;
+            }
 
             public sealed override async Task OnCompletedAsync()
             {

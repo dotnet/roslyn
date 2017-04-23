@@ -17,7 +17,8 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                 document, position, context.CancellationToken).ConfigureAwait(false);
             if (tuple == null)
             {
-                context.ReportMessage(EditorFeaturesResources.Cannot_navigate_to_the_symbol_under_the_caret);
+                await context.ReportMessageAsync(
+                    EditorFeaturesResources.Cannot_navigate_to_the_symbol_under_the_caret).ConfigureAwait(false);
                 return;
             }
 
@@ -25,12 +26,13 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
 
             if (message != null)
             {
-                context.ReportMessage(message);
+                await context.ReportMessageAsync(message).ConfigureAwait(false);
                 return;
             }
 
-            context.SetSearchTitle(string.Format(EditorFeaturesResources._0_implementations,
-                FindUsagesHelpers.GetDisplayName(tuple.Value.symbol)));
+            await context.SetSearchTitleAsync(
+                string.Format(EditorFeaturesResources._0_implementations,
+                FindUsagesHelpers.GetDisplayName(tuple.Value.symbol))).ConfigureAwait(false);
 
             var project = tuple.Value.project;
             foreach (var implementation in tuple.Value.implementations)
@@ -90,8 +92,9 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             var symbol = symbolAndProject?.symbol;
             var project = symbolAndProject?.project;
 
-            context.SetSearchTitle(string.Format(EditorFeaturesResources._0_references,
-                FindUsagesHelpers.GetDisplayName(symbol)));
+            await context.SetSearchTitleAsync(
+                string.Format(EditorFeaturesResources._0_references,
+                FindUsagesHelpers.GetDisplayName(symbol))).ConfigureAwait(false);
 
             var progressAdapter = new FindReferencesProgressAdapter(project.Solution, context);
 
@@ -160,7 +163,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             }
 
             var searchTitle = string.Format(EditorFeaturesResources._0_references, title);
-            context.SetSearchTitle(searchTitle);
+            await context.SetSearchTitleAsync(searchTitle).ConfigureAwait(false);
 
             var solution = document.Project.Solution;
 
