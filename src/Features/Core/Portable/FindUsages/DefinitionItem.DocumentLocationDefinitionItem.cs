@@ -90,13 +90,9 @@ namespace Microsoft.CodeAnalysis.FindUsages
             private bool TryNavigateToMetadataSymbol(string symbolKey, Func<ISymbol, Project, ISymbolNavigationService, bool> action)
             {
                 var projectAndSymbol = TryResolveSymbolInCurrentSolution(symbolKey);
-                if (projectAndSymbol == null)
-                {
-                    return false;
-                }
 
-                var project = projectAndSymbol?.project;
-                var symbol = projectAndSymbol?.symbol;
+                var project = projectAndSymbol.project;
+                var symbol = projectAndSymbol.symbol;
                 if (symbol == null || project == null)
                 {
                     return false;
@@ -112,12 +108,12 @@ namespace Microsoft.CodeAnalysis.FindUsages
                 return action(symbol, project, navigationService);
             }
 
-            private (Project project, ISymbol symbol)? TryResolveSymbolInCurrentSolution(string symbolKey)
+            private (Project project, ISymbol symbol) TryResolveSymbolInCurrentSolution(string symbolKey)
             {
                 if (!this.Properties.TryGetValue(MetadataAssemblyIdentityDisplayName, out var identityDisplayName) ||
                     !AssemblyIdentity.TryParseDisplayName(identityDisplayName, out var identity))
                 {
-                    return null;
+                    return (null, null);
                 }
 
                 // For metadata-definitions, it's a requirement that we always have a workspace.
@@ -127,7 +123,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
 
                 if (project == null)
                 {
-                    return null;
+                    return (null, null);
                 }
 
                 var compilation = project.GetCompilationAsync(CancellationToken.None)
