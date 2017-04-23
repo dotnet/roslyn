@@ -206,7 +206,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithP
             Dim signature As CrefSignatureSyntax
             Dim parameterSyntax = TryCast(parameterType, TypeSyntax)
             If parameterSyntax IsNot Nothing Then
-                signature = SyntaxFactory.CrefSignature(SyntaxFactory.CrefSignaturePart(Nothing, parameterSyntax))
+                signature = SyntaxFactory.CrefSignature(SyntaxFactory.CrefSignaturePart(modifier:=Nothing, type:=parameterSyntax))
             Else
                 signature = SyntaxFactory.CrefSignature()
             End If
@@ -217,7 +217,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithP
                 typeReference = qualifiedType.ReplaceNode(qualifiedType.GetLastDottedName(), typeReference)
             End If
 
-            Return SyntaxFactory.CrefReference(typeReference, signature, Nothing)
+            Return SyntaxFactory.CrefReference(typeReference, signature, asClause:=Nothing)
         End Function
 
         Protected Overrides Function UnwrapCompoundAssignment(compoundAssignment As SyntaxNode, readExpression As ExpressionSyntax) As ExpressionSyntax
