@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
 
             private bool TryNavigateToMetadataSymbol(string symbolKey, Func<ISymbol, Project, ISymbolNavigationService, bool> action)
             {
-                var projectAndSymbol = ResolveSymbolInCurrentSolution(symbolKey);
+                var projectAndSymbol = TryResolveSymbolInCurrentSolution(symbolKey);
                 if (projectAndSymbol == null)
                 {
                     return false;
@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
                 return action(symbol, project, navigationService);
             }
 
-            private (Project project, ISymbol symbol)? ResolveSymbolInCurrentSolution(string symbolKey)
+            private (Project project, ISymbol symbol)? TryResolveSymbolInCurrentSolution(string symbolKey)
             {
                 if (!this.Properties.TryGetValue(MetadataAssemblyIdentityDisplayName, out var identityDisplayName) ||
                     !AssemblyIdentity.TryParseDisplayName(identityDisplayName, out var identity))
