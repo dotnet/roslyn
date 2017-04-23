@@ -61,6 +61,18 @@
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="WindowsBase" />
+    <PackageReference Include="Microsoft.VisualStudio.InteractiveWindow">
+      <Version>$(MicrosoftVisualStudioInteractiveWindowVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Language.Intellisense">
+      <Version>$(MicrosoftVisualStudioLanguageIntellisenseVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Editor">
+      <Version>$(MicrosoftVisualStudioEditorVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Language.StandardClassification">
+      <Version>$(MicrosoftVisualStudioLanguageStandardClassificationVersion)</Version>
+    </PackageReference>
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="InteractiveHost" />
@@ -121,7 +133,6 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="project.json" />
     <PublicAPI Include="PublicAPI.Shipped.txt" />
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>

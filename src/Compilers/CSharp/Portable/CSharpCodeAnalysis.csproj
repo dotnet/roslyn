@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\..\..\..\build\Targets\Settings.props" />
+  <Import Project="..\..\..\..\build\Targets\SettingsSdk.props" />
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -10,8 +10,7 @@
     <RootNamespace>Microsoft.CodeAnalysis.CSharp</RootNamespace>
     <AssemblyName>Microsoft.CodeAnalysis.CSharp</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <TargetFrameworkIdentifier>.NETPortable</TargetFrameworkIdentifier>
-    <TargetFrameworkVersion>v5.0</TargetFrameworkVersion>
+    <TargetFramework>netstandard1.3</TargetFramework>
     <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <ServiceablePackage>true</ServiceablePackage>
     <CodeAnalysisRuleSet>..\CSharpCodeAnalysisRules.ruleset</CodeAnalysisRuleSet>
@@ -815,7 +814,6 @@
     <Content Include="UseSiteDiagnosticsCheckEnforcer\BaseLine.txt" />
     <Content Include="UseSiteDiagnosticsCheckEnforcer\Run.bat" />
     <None Include="FlowAnalysis\Flow Analysis Design.docx" />
-    <None Include="project.json" />
     <None Include="Symbols\PublicSymbolTable.cd" />
     <None Include="..\CSharpCodeAnalysisRules.ruleset">
       <SubType>Designer</SubType>
