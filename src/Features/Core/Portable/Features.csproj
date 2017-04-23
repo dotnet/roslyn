@@ -396,8 +396,6 @@
     <Compile Include="DocumentSpan.cs" />
     <Compile Include="FindUsages\DefinitionItem.cs" />
     <Compile Include="FindUsages\DefinitionItem.DocumentLocationDefinitionItem.cs" />
-    <Compile Include="FindUsages\DefinitionItem.NonNavigatingDefinitionItem.cs" />
-    <Compile Include="FindUsages\DefinitionItem.SymbolDefinitionItem.cs" />
     <Compile Include="FindUsages\DefinitionsAndReferences.cs" />
     <Compile Include="FindUsages\SourceReferenceItem.cs" />
     <Compile Include="Diagnostics\EngineV2\DiagnosticAnalyzerExecutor.cs" />
