@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Completion;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindUsages
 {
@@ -100,10 +101,15 @@ namespace Microsoft.CodeAnalysis.FindUsages
             SourceSpans = sourceSpans.NullToEmpty();
             Properties = properties ?? ImmutableDictionary<string, string>.Empty;
             DisplayIfNoReferences = displayIfNoReferences;
+
+            if (Properties.ContainsKey(MetadataSymbolKey))
+            {
+                Contract.ThrowIfFalse(Properties.ContainsKey(MetadataAssemblyIdentityDisplayName));
+            }
         }
 
-        public abstract bool CanNavigateTo();
-        public abstract bool TryNavigateTo();
+        public abstract bool CanNavigateTo(Workspace workspace);
+        public abstract bool TryNavigateTo(Workspace workspace);
 
         public static DefinitionItem Create(
             ImmutableArray<string> tags,
@@ -148,7 +154,6 @@ namespace Microsoft.CodeAnalysis.FindUsages
                 new TaggedText(TextTags.Text, firstDocument.Project.Name));
 
             return new DefaultDefinitionItem(
-                firstDocument.Project.Solution.Workspace,
                 tags, displayParts, nameDisplayParts, originationParts,
                 sourceSpans, properties, displayIfNoReferences);
         }
@@ -171,8 +176,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
 
             var originationParts = GetOriginationParts(symbol);
             return new DefaultDefinitionItem(
-                solution.Workspace, tags, 
-                displayParts, nameDisplayParts, originationParts,
+                tags, displayParts, nameDisplayParts, originationParts,
                 sourceSpans: ImmutableArray<DocumentSpan>.Empty,
                 properties: properties,
                 displayIfNoReferences: displayIfNoReferences);
@@ -201,7 +205,6 @@ namespace Microsoft.CodeAnalysis.FindUsages
             properties = properties.Add(NonNavigable, "");
 
             return new DefaultDefinitionItem(
-                workspaceOpt: null,
                 tags: tags, 
                 displayParts: displayParts,
                 nameDisplayParts: ImmutableArray<TaggedText>.Empty,
