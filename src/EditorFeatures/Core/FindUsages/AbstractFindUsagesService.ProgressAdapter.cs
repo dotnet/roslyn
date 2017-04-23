@@ -1,7 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,6 +14,10 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
 {
     internal abstract partial class AbstractFindUsagesService
     {
+        /// <summary>
+        /// Forwards <see cref="IStreamingFindLiteralReferencesProgress"/> calls to an
+        /// <see cref="IFindUsagesContext"/> instance.
+        /// </summary>
         private class FindLiteralsProgressAdapter : IStreamingFindLiteralReferencesProgress
         {
             private readonly IFindUsagesContext _context;
@@ -38,19 +40,6 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
 
             public Task ReportProgressAsync(int current, int maximum)
                 => _context.ReportProgressAsync(current, maximum);
-        }
-
-        private class FindUsagesContext : IFindUsagesContext
-        {
-            private readonly IFindUsagesContext _underlyingContext;
-
-            private readonly object _gate = new object();
-            private readonly IList<DefinitionItem> _definitions = new
-
-            public FindUsagesContext(IFindUsagesContext underlyingContext)
-            {
-
-            }
         }
 
         /// <summary>
@@ -135,22 +124,6 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                 if (referenceItem != null)
                 {
                     await _context.OnReferenceFoundAsync(referenceItem).ConfigureAwait(false);
-                }
-            }
-
-            public async Task CallThirdPartyExtensionsAsync(CancellationToken cancellationToken)
-            {
-                var factory = _solution.Workspace.Services.GetService<IDefinitionsAndReferencesFactory>();
-                foreach (var definition in _definitionToItem.Values)
-                {
-                    var item = factory.GetThirdPartyDefinitionItem(
-                        _solution, definition, cancellationToken);
-                    if (item != null)
-                    {
-                        // ConfigureAwait(true) because we want to come back on the 
-                        // same thread after calling into extensions.
-                        await _context.OnDefinitionFoundAsync(item).ConfigureAwait(true);
-                    }
                 }
             }
         }

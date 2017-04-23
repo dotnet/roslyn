@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     if (session != null)
                     {
                         await session.InvokeAsync(
-                            nameof(IRemoteSymbolFinder.FindReferencesAsync),
+                            nameof(IRemoteSymbolFinder.FindSymbolReferencesAsync),
                             SerializableSymbolAndProjectId.Dehydrate(symbolAndProjectId),
                             documents?.Select(d => d.Id).ToArray()).ConfigureAwait(false);
 

@@ -2,8 +2,11 @@
 
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Remote
@@ -11,14 +14,24 @@ namespace Microsoft.CodeAnalysis.Remote
     // root level service for all Roslyn services
     internal partial class CodeAnalysisService : IRemoteSymbolFinder
     {
-        public async Task FindReferencesAsync(SerializableSymbolAndProjectId symbolAndProjectIdArg, DocumentId[] documentArgs)
+        public async Task FindDocReferencesAsync(DocumentId documentId, int position)
+        {
+            var solution = await GetSolutionAsync().ConfigureAwait(false);
+            var document = solution.GetDocument(documentId);
+
+            var context = new FindUsagesContext(this);
+            await AbstractFindUsagesService.TryFindReferencesInCurrentProcessAsync(
+                document, position, context).ConfigureAwait(false);
+        }
+
+        public async Task FindSymbolReferencesAsync(SerializableSymbolAndProjectId symbolAndProjectIdArg, DocumentId[] documentArgs)
         {
             var solution = await GetSolutionAsync().ConfigureAwait(false);
 
             var symbolAndProjectId = await symbolAndProjectIdArg.TryRehydrateAsync(
                 solution, CancellationToken).ConfigureAwait(false);
 
-            var progressCallback = new FindReferencesProgressCallback(this);
+            var progressCallback = new FindSymbolReferencesProgressCallback(this);
 
             if (!symbolAndProjectId.HasValue)
             {
@@ -93,6 +106,44 @@ namespace Microsoft.CodeAnalysis.Remote
             return result.Select(SerializableSymbolAndProjectId.Dehydrate).ToArray();
         }
 
+        private class FindUsagesContext : IFindUsagesContext
+        {
+            private readonly CodeAnalysisService _service;
+
+            public FindUsagesContext(CodeAnalysisService service)
+            {
+                _service = service;
+            }
+
+            public CancellationToken CancellationToken
+                => _service.CancellationToken;
+
+            public void ReportMessage(string message)
+            {
+                throw new System.NotImplementedException();
+            }
+
+            public void SetSearchTitle(string title)
+            {
+                throw new System.NotImplementedException();
+            }
+
+            public Task OnDefinitionFoundAsync(DefinitionItem definition)
+            {
+                throw new System.NotImplementedException();
+            }
+
+            public Task OnReferenceFoundAsync(SourceReferenceItem reference)
+            {
+                throw new System.NotImplementedException();
+            }
+
+            public Task ReportProgressAsync(int current, int maximum)
+            {
+                throw new System.NotImplementedException();
+            }
+        }
+
         private class FindLiteralReferencesProgressCallback : IStreamingFindLiteralReferencesProgress
         {
             private readonly CodeAnalysisService _service;
@@ -109,11 +160,11 @@ namespace Microsoft.CodeAnalysis.Remote
                 => _service.Rpc.InvokeAsync(nameof(OnReferenceFoundAsync), document.Id, span);
         }
 
-        private class FindReferencesProgressCallback : IStreamingFindReferencesProgress
+        private class FindSymbolReferencesProgressCallback : IStreamingFindReferencesProgress
         {
             private readonly CodeAnalysisService _service;
 
-            public FindReferencesProgressCallback(CodeAnalysisService service)
+            public FindSymbolReferencesProgressCallback(CodeAnalysisService service)
             {
                 _service = service;
             }
