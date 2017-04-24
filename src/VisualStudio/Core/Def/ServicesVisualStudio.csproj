@@ -448,6 +448,9 @@
     <PackageReference Include="Newtonsoft.Json">
       <Version>$(NewtonsoftJsonVersion)</Version>
     </PackageReference>
+	<PackageReference Include="Microsoft.VisualStudio.Shell.Interop.15.3.DesignTime">
+		<Version>$(MicrosoftVisualStudioShellInterop153DesignTimeVersion)</Version>
+	</PackageReference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CodeMarkers\ManagedCodeMarkers.cs" />

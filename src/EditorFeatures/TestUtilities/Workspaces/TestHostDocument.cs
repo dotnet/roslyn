@@ -135,8 +135,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         }
 
         public TestHostDocument(
-            string text = "", string displayName = "", 
-            SourceCodeKind sourceCodeKind = SourceCodeKind.Regular, 
+            string text = "", string displayName = "",
+            SourceCodeKind sourceCodeKind = SourceCodeKind.Regular,
             DocumentId id = null, string filePath = null,
             IReadOnlyList<string> folders = null)
         {
@@ -194,7 +194,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 return Task.FromResult(TextAndVersion.Create(text, VersionStamp.Create(), _hostDocument.FilePath));
             }
         }
-        
+
         public IWpfTextView GetTextView()
         {
             if (_textView == null)
@@ -203,7 +203,18 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
                 WpfTestCase.RequireWpfFact($"Creates an IWpfTextView through {nameof(TestHostDocument)}.{nameof(GetTextView)}");
 
-                _textView = _exportProvider.GetExportedValue<ITextEditorFactoryService>().CreateTextView(this.TextBuffer);
+                var factory = _exportProvider.GetExportedValue<ITextEditorFactoryService>();
+
+                // Every default role but outlining. Starting in 15.2, the editor
+                // OutliningManager imports JoinableTaskContext in a way that's 
+                // difficult to satisfy in our unit tests. Since we don't directly
+                // depend on it, just disable it
+                var roles = factory.CreateTextViewRoleSet(PredefinedTextViewRoles.Analyzable,
+                    PredefinedTextViewRoles.Document,
+                    PredefinedTextViewRoles.Editable,
+                    PredefinedTextViewRoles.Interactive,
+                    PredefinedTextViewRoles.Zoomable);
+                _textView = factory.CreateTextView(this.TextBuffer, roles);
                 if (this.CursorPosition.HasValue)
                 {
                     _textView.Caret.MoveTo(new SnapshotPoint(_textView.TextSnapshot, CursorPosition.Value));

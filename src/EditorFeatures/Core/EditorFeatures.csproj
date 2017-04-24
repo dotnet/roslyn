@@ -161,6 +161,12 @@
     <Compile Include="FindUsages\IFindUsagesContext.cs" />
     <Compile Include="FindUsages\IFindUsagesService.cs" />
     <Compile Include="FindUsages\SimpleFindUsagesContext.cs" />
+    <Compile Include="GoToDefinition\AbstractGoToDefinitionItemService.cs" />
+    <Compile Include="GoToDefinition\AbstractGoToDefinitionSymbolService.cs" />
+    <Compile Include="GoToDefinition\GoToDefinitionContext.cs" />
+    <Compile Include="GoToDefinition\IGoToDefinitionSymbolService.cs" />
+    <Compile Include="GoToDefinition\IGoToSymbolService.cs" />
+    <Compile Include="GoToDefinition\WellKnownDefinitionTypes.cs" />
     <Compile Include="Implementation\InlineRename\Dashboard\DashboardAutomationPeer.cs" />
     <Compile Include="Implementation\InlineRename\HighlightTags\RenameConflictTag.cs" />
     <Compile Include="Implementation\InlineRename\HighlightTags\RenameConflictTagDefinition.cs" />
