@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Completion;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindUsages
 {
@@ -18,6 +19,29 @@ namespace Microsoft.CodeAnalysis.FindUsages
     /// </summary>
     internal abstract partial class DefinitionItem
     {
+        // Existing behavior is to do up to two lookups for 3rd party navigation for FAR.  One
+        // for the symbol itself and one for a 'fallback' symbol.  For example, if we're FARing
+        // on a constructor, then the fallback symbol will be the actual type that the constructor
+        // is contained within.
+        internal const string RQNameKey1 = nameof(RQNameKey1);
+        internal const string RQNameKey2 = nameof(RQNameKey2);
+
+        /// <summary>
+        /// For metadata symbols we encode information in the <see cref="Properties"/> so we can 
+        /// retrieve the symbol later on when navigating.  This is needed so that we can go to
+        /// metadata-as-source for metadata symbols.  We need to store the <see cref="SymbolKey"/>
+        /// for the symbol and the name we get back from  <see cref="AssemblyIdentity.GetDisplayName"/>
+        /// for.  With these we can effetively recover the symbol.
+        /// </summary>
+        private const string MetadataSymbolKey = nameof(MetadataSymbolKey);
+        private const string MetadataAssemblyIdentityDisplayName = nameof(MetadataAssemblyIdentityDisplayName);
+
+        /// <summary>
+        /// If this item is something that cannot be navigated to.  We store this in our
+        /// <see cref="Properties"/> to act as an explicit marker that navigation is not possible.
+        /// </summary>
+        private const string NonNavigable = nameof(NonNavigable);
+
         /// <summary>
         /// Descriptive tags from <see cref="CompletionTags"/>. These tags may influence how the 
         /// item is displayed.
@@ -82,12 +106,17 @@ namespace Microsoft.CodeAnalysis.FindUsages
             NameDisplayParts = nameDisplayParts.IsDefaultOrEmpty ? displayParts : nameDisplayParts;
             OriginationParts = originationParts.NullToEmpty();
             SourceSpans = sourceSpans.NullToEmpty();
-            Properties = properties;
+            Properties = properties ?? ImmutableDictionary<string, string>.Empty;
             DisplayIfNoReferences = displayIfNoReferences;
+
+            if (Properties.ContainsKey(MetadataSymbolKey))
+            {
+                Contract.ThrowIfFalse(Properties.ContainsKey(MetadataAssemblyIdentityDisplayName));
+            }
         }
 
-        public abstract bool CanNavigateTo();
-        public abstract bool TryNavigateTo();
+        public abstract bool CanNavigateTo(Workspace workspace);
+        public abstract bool TryNavigateTo(Workspace workspace, bool isPreview);
 
         public static DefinitionItem Create(
             ImmutableArray<string> tags,
@@ -127,8 +156,13 @@ namespace Microsoft.CodeAnalysis.FindUsages
                 throw new ArgumentException($"{nameof(sourceSpans)} cannot be empty.");
             }
 
-            return new DocumentLocationDefinitionItem(
-                tags, displayParts, nameDisplayParts, sourceSpans, properties, displayIfNoReferences);
+            var firstDocument = sourceSpans[0].Document;
+            var originationParts = ImmutableArray.Create(
+                new TaggedText(TextTags.Text, firstDocument.Project.Name));
+
+            return new DefaultDefinitionItem(
+                tags, displayParts, nameDisplayParts, originationParts,
+                sourceSpans, properties, displayIfNoReferences);
         }
 
         internal static DefinitionItem CreateMetadataDefinition(
@@ -139,9 +173,20 @@ namespace Microsoft.CodeAnalysis.FindUsages
             ImmutableDictionary<string, string> properties = null,
             bool displayIfNoReferences = true)
         {
-            return new MetadataDefinitionItem(
-                tags, displayParts, nameDisplayParts, properties,
-                displayIfNoReferences, solution, symbol);
+            properties = properties ?? ImmutableDictionary<string, string>.Empty;
+
+            var symbolKey = symbol.GetSymbolKey().ToString();
+            var assemblyIdentityDisplayName = symbol.ContainingAssembly?.Identity.GetDisplayName();
+
+            properties = properties.Add(MetadataSymbolKey, symbolKey)
+                                   .Add(MetadataAssemblyIdentityDisplayName, assemblyIdentityDisplayName);
+
+            var originationParts = GetOriginationParts(symbol);
+            return new DefaultDefinitionItem(
+                tags, displayParts, nameDisplayParts, originationParts,
+                sourceSpans: ImmutableArray<DocumentSpan>.Empty,
+                properties: properties,
+                displayIfNoReferences: displayIfNoReferences);
         }
 
         // Kept around for binary compat with F#/TypeScript.
@@ -163,8 +208,17 @@ namespace Microsoft.CodeAnalysis.FindUsages
             ImmutableDictionary<string, string> properties = null,
             bool displayIfNoReferences = true)
         {
-            return new NonNavigatingDefinitionItem(
-                tags, displayParts, originationParts, properties, displayIfNoReferences);
+            properties = properties ?? ImmutableDictionary<string, string>.Empty;
+            properties = properties.Add(NonNavigable, "");
+
+            return new DefaultDefinitionItem(
+                tags: tags, 
+                displayParts: displayParts,
+                nameDisplayParts: ImmutableArray<TaggedText>.Empty,
+                originationParts: originationParts,
+                sourceSpans: ImmutableArray<DocumentSpan>.Empty,
+                properties: properties,
+                displayIfNoReferences: displayIfNoReferences);
         }
 
         internal static ImmutableArray<TaggedText> GetOriginationParts(ISymbol symbol)
