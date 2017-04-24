@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             var emitData = GetEmitData();
             emitData.RuntimeData.ExecuteRequested = true;
-            var (ExitCode, Output)  = emitData.LoadContext.Execute(GetMainImage(), expectedOutput.Length);
+            var (ExitCode, Output) = emitData.LoadContext.Execute(GetMainImage(), expectedOutput.Length);
 
             if (expectedOutput.Trim() != Output.Trim())
             {

@@ -625,7 +625,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             BoundExpression result;
             var success = binder.GetAwaitableExpressionInfo(dumbInstance, out _, out _, out _, out result, syntax, diagnostics);
 
-            return success && 
+            return success &&
                 (result.Type.SpecialType == SpecialType.System_Void || result.Type.SpecialType == SpecialType.System_Int32);
         }
 

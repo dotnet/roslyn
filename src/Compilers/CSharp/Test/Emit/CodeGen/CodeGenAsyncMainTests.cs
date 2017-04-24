@@ -7,7 +7,7 @@ using System.Threading;
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
     public class CodeGenAsyncMainTests : EmitMetadataTestBase
-    { 
+    {
 
         [Fact]
         public void MultipleMainsOneOfWhichHasBadTaskType_WithMainType()
@@ -32,7 +32,7 @@ static class Program {
                 // (11,12): warning CS0436: The type 'Task<T>' in '' conflicts with the imported type 'Task<TResult>' in 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'. Using the type defined in ''.
                 //     static Task<int> Main() {
                 Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Task<int>").WithArguments("", "System.Threading.Tasks.Task<T>", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "System.Threading.Tasks.Task<TResult>").WithLocation(11, 12));
-        }   
+        }
 
         [Fact]
         public void MultipleMainsOneOfWhichHasBadTaskType()
@@ -63,7 +63,7 @@ static class Program {
                 // (11,22): warning CS0028: 'Program.Main()' has the wrong signature to be an entry point
                 //     static Task<int> Main() {
                 Diagnostic(ErrorCode.WRN_InvalidMainSig, "Main").WithArguments("Program.Main()").WithLocation(11, 22));
-        }   
+        }
 
         [Fact]
         public void GetResultReturnsSomethingElse()
@@ -446,7 +446,7 @@ class Program {
             var verifier = CompileAndVerify(c, expectedOutput: "hello async main", expectedReturnCode: 0, args: new string[] { "async main" });
         }
 
-         [Fact]
+        [Fact]
         public void MainCanBeAsyncWithArgs()
         {
             var origSource = @"
@@ -823,5 +823,5 @@ class A
                 // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
                 Diagnostic(ErrorCode.ERR_NoEntryPoint));
         }
-   }
+    }
 }

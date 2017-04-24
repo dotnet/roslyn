@@ -374,7 +374,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         resultKind: LookupResultKind.Viable,
                         type: userMain.ReturnType)
                 { WasCompilerGenerated = true };
-    
+
                 // PROTOTYPE(async-main): lower the tree.
                 var success = binder.GetAwaitableExpressionInfo(userMainInvocation, out _, out _, out _, out _getAwaiterGetResultCall, _userMainReturnTypeSyntax, diagnosticBag);
                 _returnType = _getAwaiterGetResultCall.Type;
