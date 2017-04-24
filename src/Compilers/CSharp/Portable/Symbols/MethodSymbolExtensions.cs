@@ -305,15 +305,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal static CSharpSyntaxNode ExtractReturnTypeSyntax(this MethodSymbol method)
         {
             method = method.PartialDefinitionPart ?? method;
-            if ((object)method == null)
-            {
-                return (CSharpSyntaxNode)CSharpSyntaxTree.Dummy.GetRoot();
-            }
-
             foreach (var reference in method.DeclaringSyntaxReferences)
             {
-                var methodDeclaration = reference.GetSyntax() as MethodDeclarationSyntax;
-                if ((object)methodDeclaration != null)
+                if (reference.GetSyntax() is MethodDeclarationSyntax methodDeclaration)
                 {
                     return methodDeclaration.ReturnType;
                 }
