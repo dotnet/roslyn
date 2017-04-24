@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Editor.Host
             var externalItems = definitions.WhereAsArray(d => d.IsExternal);
             foreach (var item in externalItems)
             {
-                if (item.TryNavigateTo(workspace))
+                if (item.TryNavigateTo(workspace, isPreview: true))
                 {
                     return true;
                 }
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Editor.Host
                 nonExternalItems[0].SourceSpans.Length <= 1)
             {
                 // There was only one location to navigate to.  Just directly go to that location.
-                return nonExternalItems[0].TryNavigateTo(workspace);
+                return nonExternalItems[0].TryNavigateTo(workspace, isPreview: true);
             }
 
             if (presenter != null)
