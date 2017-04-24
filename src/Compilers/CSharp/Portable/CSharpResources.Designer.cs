@@ -5561,6 +5561,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Unable to read debug information of method &apos;{0}&apos; (token 0x{1}) from assembly &apos;{2}&apos;.
+        /// </summary>
+        internal static string ERR_InvalidDebugInfo {
+            get {
+                return ResourceManager.GetString("ERR_InvalidDebugInfo", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Invalid debug information format: {0}.
         /// </summary>
         internal static string ERR_InvalidDebugInformationFormat {

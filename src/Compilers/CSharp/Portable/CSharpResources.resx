@@ -5076,4 +5076,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_LocalFunctionMissingBody" xml:space="preserve">
     <value>'{0}' is a local function and must therefore always have a body.</value>
   </data>
+  <data name="ERR_InvalidDebugInfo" xml:space="preserve">
+    <value>Unable to read debug information of method '{0}' (token 0x{1}) from assembly '{2}'</value>
+  </data>
 </root>

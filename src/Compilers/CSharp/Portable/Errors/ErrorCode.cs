@@ -1240,6 +1240,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_InvalidAssemblyCulture = 7100,
         ERR_EncReferenceToAddedMember = 7101,
         ERR_MutuallyExclusiveOptions = 7102,
+        ERR_InvalidDebugInfo = 7103,
         #endregion diagnostics introduced in C# 6
 
         // huge gap here; unused 7103-8000
@@ -1343,7 +1344,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         #region diagnostics for local functions introduced in C# 7
         ERR_DynamicLocalFunctionParamsParameter = 8108,
         ERR_ExpressionTreeContainsLocalFunction = 8110,
-        ERR_LocalFunctionMissingBody = 8111, //https://github.com/dotnet/roslyn/issues/14900
+        ERR_LocalFunctionMissingBody = 8111,
         #endregion diagnostics for local functions introduced in C# 7
 
         #region diagnostics for instrumentation

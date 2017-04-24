@@ -65,6 +65,11 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         /// </summary>
         public string CompletionListCref { get; private set; }
 
+        /// <summary>
+        /// Used for TrimEachLine(string text) method, to prevent new allocation of string
+        /// </summary>
+        private static string NewLineString = Environment.NewLine;
+
         private DocumentationComment()
         {
             ParameterNames = ImmutableArray<string>.Empty;
@@ -157,7 +162,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
             private string TrimEachLine(string text)
             {
-                return string.Join(Environment.NewLine, text.Split(new string[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries).Select(i => i.Trim()));
+                return string.Join(NewLineString, text.Split(new string[] { NewLineString }, StringSplitOptions.RemoveEmptyEntries).Select(i => i.Trim()));
             }
 
             private void ParseCallback(XmlReader reader)

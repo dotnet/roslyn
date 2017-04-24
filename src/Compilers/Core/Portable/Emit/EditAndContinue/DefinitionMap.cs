@@ -233,16 +233,12 @@ namespace Microsoft.CodeAnalysis.Emit
                 }
                 catch (InvalidDataException)
                 {
-                    string message = string.Format(CodeAnalysisResources.UnableToReadDebugInfo,
+                    diagnostics.Add(MessageProvider.CreateDiagnostic(
+                        MessageProvider.ERR_InvalidDebugInfo,
+                        method.Locations.First(),
                         MessageProvider.GetErrorDisplayString(method),
                         MetadataTokens.GetToken(previousHandle).ToString("X8"),
-                        MessageProvider.GetErrorDisplayString(method.ContainingAssembly));
-
-                    //TODO: use better error code (https://github.com/dotnet/roslyn/issues/11512)
-                    diagnostics.Add(MessageProvider.CreateDiagnostic(
-                        MessageProvider.ERR_ModuleEmitFailure,
-                        method.Locations.First(),
-                        message
+                        MessageProvider.GetErrorDisplayString(method.ContainingAssembly)
                     ));
 
                     return null;
