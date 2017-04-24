@@ -560,7 +560,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
             var symbol = symbolListItem.ResolveSymbol(compilation);
             if (symbol != null)
             {
-                await AbstractFindUsagesService.FindSymbolReferencesAsync(
+                await AbstractFindUsagesService.FindSymbolReferencesInCurrentProcessAsync(
                     context, symbol, project, cancellationToken).ConfigureAwait(false);
             }
         }

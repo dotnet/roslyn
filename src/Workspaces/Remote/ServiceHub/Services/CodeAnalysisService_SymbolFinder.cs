@@ -1,13 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.FindSymbols;
-using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Remote
@@ -15,16 +11,6 @@ namespace Microsoft.CodeAnalysis.Remote
     // root level service for all Roslyn services
     internal partial class CodeAnalysisService : IRemoteSymbolFinder
     {
-        public async Task FindReferencesAsync(DocumentId documentId, int position)
-        {
-            var solution = await GetSolutionAsync().ConfigureAwait(false);
-            var document = solution.GetDocument(documentId);
-
-            var context = new FindUsagesContext(this);
-            await AbstractFindUsagesService.TryFindReferencesInCurrentProcessAsync(
-                document, position, context).ConfigureAwait(false);
-        }
-
         public async Task FindSymbolReferencesAsync(SerializableSymbolAndProjectId symbolAndProjectIdArg, DocumentId[] documentArgs)
         {
             var solution = await GetSolutionAsync().ConfigureAwait(false);
@@ -105,59 +91,6 @@ namespace Microsoft.CodeAnalysis.Remote
                 project, pattern, criteria, CancellationToken).ConfigureAwait(false);
 
             return result.Select(SerializableSymbolAndProjectId.Dehydrate).ToArray();
-        }
-
-        private class FindUsagesContext : IFindUsagesContext
-        {
-            private readonly CodeAnalysisService _service;
-
-            private readonly object _gate = new object();
-            private int _nextDefinitionItemSerializationId;
-            private readonly Dictionary<DefinitionItem, int> _definitionToSerializationId = new Dictionary<DefinitionItem, int>();
-
-            public FindUsagesContext(CodeAnalysisService service)
-            {
-                _service = service;
-            }
-
-            public CancellationToken CancellationToken
-                => _service.CancellationToken;
-
-            public Task ReportMessageAsync(string message)
-                => _service.Rpc.InvokeAsync(nameof(ReportMessageAsync), message);
-
-            public Task SetSearchTitleAsync(string title)
-                => _service.Rpc.InvokeAsync(nameof(SetSearchTitleAsync), title);
-
-            public Task ReportProgressAsync(int current, int maximum)
-                => _service.Rpc.InvokeAsync(nameof(ReportProgressAsync), current, maximum);
-
-            public Task OnDefinitionFoundAsync(DefinitionItem definition)
-            {
-                int serializationId;
-                lock (_gate)
-                {
-                    _nextDefinitionItemSerializationId++;
-                    serializationId = _nextDefinitionItemSerializationId;
-
-                    _definitionToSerializationId.Add(definition, serializationId);
-                }
-
-                return _service.Rpc.InvokeAsync(nameof(OnDefinitionFoundAsync),
-                    SerializableDefinitionItem.Dehydrate(definition, serializationId));
-            }
-
-            public Task OnReferenceFoundAsync(SourceReferenceItem reference)
-            {
-                int definitionId;
-                lock (_gate)
-                {
-                    definitionId = _definitionToSerializationId[reference.Definition];
-                }
-
-                return _service.Rpc.InvokeAsync(nameof(OnReferenceFoundAsync),
-                    SerializableSourceReferenceItem.Dehydrate(reference, definitionId));
-            }
         }
 
         private class FindLiteralReferencesProgressCallback : IStreamingFindLiteralReferencesProgress
