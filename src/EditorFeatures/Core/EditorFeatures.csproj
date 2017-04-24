@@ -161,6 +161,12 @@
     <Compile Include="FindUsages\IFindUsagesContext.cs" />
     <Compile Include="FindUsages\IFindUsagesService.cs" />
     <Compile Include="FindUsages\SimpleFindUsagesContext.cs" />
+    <Compile Include="GoToDefinition\AbstractGoToDefinitionSymbolService.cs" />
+    <Compile Include="GoToDefinition\GoToDefinitionContext.cs" />
+    <Compile Include="GoToDefinition\GoToDefinitionItemService.cs" />
+    <Compile Include="GoToDefinition\IGoToDefinitionItemService.cs" />
+    <Compile Include="GoToDefinition\IGoToDefinitionSymbolService.cs" />
+    <Compile Include="GoToDefinition\WellKnownDefinitionTypes.cs" />
     <Compile Include="Implementation\InlineRename\Dashboard\DashboardAutomationPeer.cs" />
     <Compile Include="Implementation\Intellisense\QuickInfo\Providers\LinkedFileDiscrepancyException.cs" />
     <Compile Include="Implementation\Intellisense\Completion\CompletionFilterReason.cs" />
