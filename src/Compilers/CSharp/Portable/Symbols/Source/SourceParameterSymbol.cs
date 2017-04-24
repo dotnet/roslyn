@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (this.RefKind == RefKind.RefReadOnly)
             {
-                this.DeclaringCompilation.EnsureIsReadOnlyAttributeExists();
+                this.DeclaringCompilation.EnsureIsReadOnlyAttributeExists(this);
             }
         }
 

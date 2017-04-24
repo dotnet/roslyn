@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (this.ReturnsByRefReadonly)
             {
-                this.DeclaringCompilation.EnsureIsReadOnlyAttributeExists();
+                this.DeclaringCompilation.EnsureIsReadOnlyAttributeExists(this);
             }
         }
 

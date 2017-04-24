@@ -376,9 +376,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             get { return false; }
         }
 
-        internal override IEnumerable<Cci.INamespaceTypeDefinition> GetTopLevelTypesCore(CodeAnalysis.Emit.EmitContext context)
+        internal override IEnumerable<Cci.INamespaceTypeDefinition> GetTopLevelTypesCore(EmitContext context)
         {
-            foreach (var type in GetAdditionalTopLevelTypes())
+            foreach (var type in GetAdditionalTopLevelTypes(context.Diagnostics))
             {
                 yield return type;
             }
@@ -405,7 +405,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             }
         }
 
-        internal virtual ImmutableArray<NamedTypeSymbol> GetAdditionalTopLevelTypes()
+        internal virtual ImmutableArray<NamedTypeSymbol> GetAdditionalTopLevelTypes(DiagnosticBag diagnostics)
         {
             return ImmutableArray<NamedTypeSymbol>.Empty;
         }

@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
         
-        internal override bool HasEmbeddedAttribute => _underlyingType.HasEmbeddedAttribute;
+        internal override bool HasCodeAnalysisEmbeddedAttribute => _underlyingType.HasCodeAnalysisEmbeddedAttribute;
 
         internal override ObsoleteAttributeData ObsoleteAttributeData
         {

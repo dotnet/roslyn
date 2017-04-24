@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool HasTypeArgumentsCustomModifiers => false;
 
-        internal override bool HasEmbeddedAttribute => false;
+        internal override bool HasCodeAnalysisEmbeddedAttribute => false;
 
         public override ImmutableArray<CustomModifier> GetTypeArgumentCustomModifiers(int ordinal) => GetEmptyTypeArgumentCustomModifiers(ordinal);
  

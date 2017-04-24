@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool MangleName => false;
 
-        internal override bool HasEmbeddedAttribute => true;
+        internal override bool HasCodeAnalysisEmbeddedAttribute => true;
 
         internal override bool HasSpecialName => false;
 

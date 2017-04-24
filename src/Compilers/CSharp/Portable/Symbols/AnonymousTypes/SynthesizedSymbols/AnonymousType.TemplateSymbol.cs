@@ -213,7 +213,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            internal override bool HasEmbeddedAttribute => false;
+            internal override bool HasCodeAnalysisEmbeddedAttribute => false;
 
             internal override ImmutableArray<TypeSymbol> TypeArgumentsNoUseSiteDiagnostics
             {

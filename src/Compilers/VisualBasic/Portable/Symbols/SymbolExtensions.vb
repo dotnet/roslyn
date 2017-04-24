@@ -360,10 +360,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         ''' <summary>
-        ''' Does symbol or its containing type have Microsoft.VisualBasic.Embedded() or Microsoft.CodeAnalysis.Embedded() attributes
+        ''' Does symbol or its containing type have Microsoft.CodeAnalysis.Embedded() attribute
         ''' </summary>
         <Extension()>
-        Friend Function IsHiddenByEmbeddedAttribute(symbol As Symbol) As Boolean
+        Friend Function IsHiddenByCodeAnalysisEmbeddedAttribute(symbol As Symbol) As Boolean
             ' Only upper-level types should be checked 
             Dim upperLevelType = If(symbol.Kind = SymbolKind.NamedType, DirectCast(symbol, NamedTypeSymbol), symbol.ContainingType)
             If upperLevelType Is Nothing Then
@@ -374,7 +374,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 upperLevelType = upperLevelType.ContainingType
             End While
 
-            Return upperLevelType.HasEmbeddedAttribute
+            Return upperLevelType.HasCodeAnalysisEmbeddedAttribute
+        End Function
+
+        ''' <summary>
+        ''' Does symbol or its containing type have Microsoft.VisualBasic.Embedded() attribute
+        ''' </summary>
+        <Extension()>
+        Friend Function IsHiddenByVisualBasicEmbeddedAttribute(symbol As Symbol) As Boolean
+            ' Only upper-level types should be checked 
+            Dim upperLevelType = If(symbol.Kind = SymbolKind.NamedType, DirectCast(symbol, NamedTypeSymbol), symbol.ContainingType)
+            If upperLevelType Is Nothing Then
+                Return False
+            End If
+
+            While upperLevelType.ContainingType IsNot Nothing
+                upperLevelType = upperLevelType.ContainingType
+            End While
+
+            Return upperLevelType.HasVisualBasicEmbeddedAttribute
         End Function
 
         <Extension>

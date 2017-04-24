@@ -377,7 +377,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         }
 
 
-        internal override bool HasEmbeddedAttribute
+        internal override bool HasCodeAnalysisEmbeddedAttribute
         {
             get
             {

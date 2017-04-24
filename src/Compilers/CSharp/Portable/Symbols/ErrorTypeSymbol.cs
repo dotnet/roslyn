@@ -421,7 +421,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return null; }
         }
 
-        internal override bool HasEmbeddedAttribute => false;
+        internal override bool HasCodeAnalysisEmbeddedAttribute => false;
 
         internal override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<Symbol> basesBeingResolved)
         {

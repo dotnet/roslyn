@@ -7339,6 +7339,85 @@ internal sealed class CSharpCompilerDiagnosticAnalyzer
                 );
         }
 
+        [Fact]
+        public void ReferencingEmbeddedAttributesFromADifferentAssemblyFails_Internal()
+        {
+            var reference = CreateCompilationWithMscorlib(@"
+[assembly:System.Runtime.CompilerServices.InternalsVisibleToAttribute(""Source"")]
+namespace Microsoft.CodeAnalysis
+{
+    internal class EmbeddedAttribute : System.Attribute { }
+}
+namespace TestReference
+{
+    [Microsoft.CodeAnalysis.Embedded]
+    internal class TestType1 { }
+
+    [Microsoft.CodeAnalysis.EmbeddedAttribute]
+    internal class TestType2 { }
+
+    internal class TestType3 { }
+}");
+
+            var code = @"
+class Program
+{
+    public static void Main()
+    {
+        var obj1 = new TestReference.TestType1();
+        var obj2 = new TestReference.TestType2();
+        var obj3 = new TestReference.TestType3(); // This should be fine
+    }
+}";
+
+            CreateCompilationWithMscorlib(code, references: new[] { reference.ToMetadataReference() }, assemblyName: "Source").VerifyDiagnostics(
+                // (6,38): error CS0234: The type or namespace name 'TestType1' does not exist in the namespace 'TestReference' (are you missing an assembly reference?)
+                //         var obj1 = new TestReference.TestType1();
+                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "TestType1").WithArguments("TestType1", "TestReference").WithLocation(6, 38),
+                // (7,38): error CS0234: The type or namespace name 'TestType2' does not exist in the namespace 'TestReference' (are you missing an assembly reference?)
+                //         var obj2 = new TestReference.TestType2();
+                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "TestType2").WithArguments("TestType2", "TestReference").WithLocation(7, 38));
+        }
+
+        [Fact]
+        public void ReferencingEmbeddedAttributesFromADifferentAssemblyFails_Public()
+        {
+            var reference = CreateCompilationWithMscorlib(@"
+namespace Microsoft.CodeAnalysis
+{
+    internal class EmbeddedAttribute : System.Attribute { }
+}
+namespace TestReference
+{
+    [Microsoft.CodeAnalysis.Embedded]
+    public class TestType1 { }
+
+    [Microsoft.CodeAnalysis.EmbeddedAttribute]
+    public class TestType2 { }
+
+    public class TestType3 { }
+}");
+
+            var code = @"
+class Program
+{
+    public static void Main()
+    {
+        var obj1 = new TestReference.TestType1();
+        var obj2 = new TestReference.TestType2();
+        var obj3 = new TestReference.TestType3(); // This should be fine
+    }
+}";
+
+            CreateCompilationWithMscorlib(code, references: new[] { reference.ToMetadataReference() }).VerifyDiagnostics(
+                // (6,38): error CS0234: The type or namespace name 'TestType1' does not exist in the namespace 'TestReference' (are you missing an assembly reference?)
+                //         var obj1 = new TestReference.TestType1();
+                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "TestType1").WithArguments("TestType1", "TestReference").WithLocation(6, 38),
+                // (7,38): error CS0234: The type or namespace name 'TestType2' does not exist in the namespace 'TestReference' (are you missing an assembly reference?)
+                //         var obj2 = new TestReference.TestType2();
+                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "TestType2").WithArguments("TestType2", "TestReference").WithLocation(7, 38));
+        }
+
         #endregion
     }
 }

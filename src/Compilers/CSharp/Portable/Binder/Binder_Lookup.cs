@@ -1117,7 +1117,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 : symbol;
 
             // Check for external symbols marked with 'Microsoft.CodeAnalysis.Embedded' attribute
-            if (unwrappedSymbol.ContainingModule != this.Compilation.SourceModule && unwrappedSymbol.IsHiddenByEmbeddedAttribute())
+            if (!this.Compilation.SourceModule.Equals(unwrappedSymbol.ContainingModule) && unwrappedSymbol.IsHiddenByCodeAnalysisEmbeddedAttribute())
             {
                 return LookupResult.Empty();
             }

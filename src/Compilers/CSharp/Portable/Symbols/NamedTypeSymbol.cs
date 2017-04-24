@@ -827,7 +827,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Gets a value indicating whether this type has an EmbeddedAttribute or not.
         /// </summary>
-        internal abstract bool HasEmbeddedAttribute { get; }
+        internal abstract bool HasCodeAnalysisEmbeddedAttribute { get; }
 
         internal static readonly Func<TypeWithModifiers, bool> TypeSymbolIsNullFunction = type => (object)type.Type == null;
 

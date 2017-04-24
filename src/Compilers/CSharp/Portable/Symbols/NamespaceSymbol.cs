@@ -98,12 +98,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 var extent = this.Extent;
-                if (extent.Kind == NamespaceKind.Module)
+                switch (extent.Kind)
                 {
-                    return extent.Module;
+                    case NamespaceKind.Module:
+                        return extent.Module;
+                    case NamespaceKind.Compilation:
+                        return extent.Compilation.SourceModule;
+                    default:
+                        return null;
                 }
-
-                return null;
             }
         }
 

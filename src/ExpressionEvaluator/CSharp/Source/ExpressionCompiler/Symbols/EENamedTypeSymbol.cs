@@ -333,7 +333,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { return false; }
         }
 
-        internal override bool HasEmbeddedAttribute => false;
+        internal override bool HasCodeAnalysisEmbeddedAttribute => false;
 
         [Conditional("DEBUG")]
         internal static void VerifyTypeParameters(Symbol container, ImmutableArray<TypeParameterSymbol> typeParameters)

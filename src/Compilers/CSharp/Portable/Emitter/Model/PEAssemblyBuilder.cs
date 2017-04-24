@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Reflection;
+using System.Threading;
 using Microsoft.Cci;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.Emit;
@@ -17,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
     {
         private readonly SourceAssemblySymbol _sourceAssembly;
         private readonly ImmutableArray<NamedTypeSymbol> _additionalTypes;
-        private readonly Dictionary<WellKnownMember, MethodSymbol> _embeddedAttributesConstructors;
+        private ImmutableDictionary<WellKnownMember, MethodSymbol> _embeddedAttributesConstructors;
         private ImmutableArray<Cci.IFileReference> _lazyFiles;
 
         /// <summary>
@@ -53,16 +54,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             _sourceAssembly = sourceAssembly;
             _additionalTypes = additionalTypes.NullToEmpty();
             _metadataName = (emitOptions.OutputNameOverride == null) ? sourceAssembly.MetadataName : FileNameUtilities.ChangeExtension(emitOptions.OutputNameOverride, extension: null);
-            _embeddedAttributesConstructors = new Dictionary<WellKnownMember, MethodSymbol>();
 
             AssemblyOrModuleSymbolToModuleRefMap.Add(sourceAssembly, this);
         }
 
         public override ISourceAssemblySymbolInternal SourceAssemblyOpt => _sourceAssembly;
 
-        internal override ImmutableArray<NamedTypeSymbol> GetAdditionalTopLevelTypes()
+        internal override ImmutableArray<NamedTypeSymbol> GetAdditionalTopLevelTypes(DiagnosticBag diagnostics)
         {
-            CreateEmbeddedAttributesIfNeeded();
+            Interlocked.CompareExchange(ref _embeddedAttributesConstructors, CreateEmbeddedAttributesIfNeeded(diagnostics), null);
 
             if (_embeddedAttributesConstructors.Count == 0)
             {
@@ -171,26 +171,43 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return base.SynthesizeIsReadOnlyAttribute();
         }
 
-        private void CreateEmbeddedAttributesIfNeeded()
+        private ImmutableDictionary<WellKnownMember, MethodSymbol> CreateEmbeddedAttributesIfNeeded(DiagnosticBag diagnostics)
         {
-            if(_sourceAssembly.DeclaringCompilation.NeedsGeneratedIsReadOnlyAttribute)
+            var builder = ArrayBuilder<KeyValuePair<WellKnownMember, MethodSymbol>>.GetInstance();
+
+            if (_sourceAssembly.DeclaringCompilation.NeedsGeneratedIsReadOnlyAttribute)
             {
                 CreateEmbeddedAttributeIfNeeded(
+                    builder,
+                    diagnostics,
                     WellKnownType.Microsoft_CodeAnalysis_EmbeddedAttribute,
-                    WellKnownMember.Microsoft_CodeAnalysis_EmbeddedAttribute__ctor);
+                    WellKnownMember.Microsoft_CodeAnalysis_EmbeddedAttribute__ctor,
+                    allowUserDefined: false);
 
                 CreateEmbeddedAttributeIfNeeded(
+                    builder,
+                    diagnostics,
                     WellKnownType.System_Runtime_CompilerServices_IsReadOnlyAttribute,
-                    WellKnownMember.System_Runtime_CompilerServices_IsReadOnlyAttribute__ctor);
+                    WellKnownMember.System_Runtime_CompilerServices_IsReadOnlyAttribute__ctor,
+                    allowUserDefined: true);
             }
+
+            return ImmutableDictionary.CreateRange(builder.ToArrayAndFree());
         }
 
-        private void CreateEmbeddedAttributeIfNeeded(WellKnownType type, WellKnownMember constructor)
+        private void CreateEmbeddedAttributeIfNeeded(ArrayBuilder<KeyValuePair<WellKnownMember, MethodSymbol>> builder, DiagnosticBag diagnostics, WellKnownType type, WellKnownMember constructor, bool allowUserDefined)
         {
-            if (!_embeddedAttributesConstructors.ContainsKey(constructor))
+            var userDefinedAttribute = _sourceAssembly.DeclaringCompilation.GetWellKnownType(type);
+            if (userDefinedAttribute == null ||
+                userDefinedAttribute is MissingMetadataTypeSymbol ||
+                !userDefinedAttribute.ContainingAssembly.Equals(_sourceAssembly))
             {
                 var attributeSymbol = new SourceEmbeddedAttributeSymbol(type, _sourceAssembly.DeclaringCompilation);
-                _embeddedAttributesConstructors.Add(constructor, attributeSymbol.Constructor);
+                builder.Add(new KeyValuePair<WellKnownMember, MethodSymbol>(constructor, attributeSymbol.Constructor));
+            }
+            else if (!allowUserDefined)
+            {
+                diagnostics.Add(ErrorCode.ERR_TypeReserved, userDefinedAttribute.Locations[0], userDefinedAttribute);
             }
         }
     }

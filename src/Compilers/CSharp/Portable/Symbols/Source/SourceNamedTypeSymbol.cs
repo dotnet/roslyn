@@ -546,7 +546,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 boundAttribute = arguments.Binder.GetAttribute(arguments.AttributeSyntax, arguments.AttributeType, out hasAnyDiagnostics);
                 if (!boundAttribute.HasErrors)
                 {
-                    arguments.GetOrCreateData<CommonTypeEarlyWellKnownAttributeData>().HasEmbeddedAttribute = true;
+                    arguments.GetOrCreateData<CommonTypeEarlyWellKnownAttributeData>().HasCodeAnalysisEmbeddedAttribute = true;
                     if (!hasAnyDiagnostics)
                     {
                         return boundAttribute;
@@ -880,12 +880,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override bool HasEmbeddedAttribute
+        internal override bool HasCodeAnalysisEmbeddedAttribute
         {
             get
             {
                 var data = GetEarlyDecodedWellKnownAttributeData();
-                return data != null && data.HasEmbeddedAttribute;
+                return data != null && data.HasCodeAnalysisEmbeddedAttribute;
             }
         }
 

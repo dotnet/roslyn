@@ -5071,4 +5071,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_ExplicitReadOnlyAttr" xml:space="preserve">
     <value>Do not use 'System.Runtime.CompilerServices.IsReadOnlyAttribute'. This is reserved for compiler usage.</value>
   </data>
+  <data name="ERR_TypeReserved" xml:space="preserve">
+    <value>The type '{0}' is reserved to be used by the compiler.</value>
+  </data>
 </root>

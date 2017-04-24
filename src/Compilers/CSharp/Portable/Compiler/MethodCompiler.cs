@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // compile additional and anonymous types if any
             if (moduleBeingBuiltOpt != null)
             {
-                var additionalTypes = moduleBeingBuiltOpt.GetAdditionalTopLevelTypes();
+                var additionalTypes = moduleBeingBuiltOpt.GetAdditionalTopLevelTypes(diagnostics);
                 if (!additionalTypes.IsEmpty)
                 {
                     methodCompiler.CompileSynthesizedMethods(additionalTypes, diagnostics);

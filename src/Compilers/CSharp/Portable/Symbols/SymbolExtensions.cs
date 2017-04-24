@@ -262,7 +262,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Does the top level type containing this symbol have 'Microsoft.CodeAnalysis.Embedded' attribute?
         /// </summary>
-        public static bool IsHiddenByEmbeddedAttribute(this Symbol symbol)
+        public static bool IsHiddenByCodeAnalysisEmbeddedAttribute(this Symbol symbol)
         {
             // Only upper-level types should be checked 
             var upperLevelType = symbol.Kind == SymbolKind.NamedType ? (NamedTypeSymbol)symbol : symbol.ContainingType;
@@ -276,7 +276,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 upperLevelType = upperLevelType.ContainingType;
             }
 
-            return upperLevelType.HasEmbeddedAttribute;
+            return upperLevelType.HasCodeAnalysisEmbeddedAttribute;
         }
 
         public static bool MustCallMethodsDirectly(this Symbol symbol)

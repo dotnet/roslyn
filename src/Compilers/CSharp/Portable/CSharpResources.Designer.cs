@@ -9188,6 +9188,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The type &apos;{0}&apos; is reserved to be used by the compiler..
+        /// </summary>
+        internal static string ERR_TypeReserved {
+            get {
+                return ResourceManager.GetString("ERR_TypeReserved", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Cannot convert null to type parameter &apos;{0}&apos; because it could be a non-nullable value type. Consider using &apos;default({0})&apos; instead..
         /// </summary>
         internal static string ERR_TypeVarCantBeNull {

@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.RuntimeMembers;
@@ -417,10 +418,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             return TrySynthesizeAttribute(WellKnownMember.System_Diagnostics_DebuggerStepThroughAttribute__ctor);
         }
 
-        internal void EnsureIsReadOnlyAttributeExists()
+        internal void EnsureIsReadOnlyAttributeExists(Symbol readOnlySymbol)
         {
-            var attributeSymbol = GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_IsReadOnlyAttribute);
-            if (attributeSymbol == null || attributeSymbol is MissingMetadataTypeSymbol)
+            // This will report a DeclarationDiagnostics error if the member is not found.
+            // We only need to report this when compiling NetModules, as for other compilations, we will generate it.
+
+            var attributeSymbol = Binder.GetWellKnownTypeMember(
+                compilation: this,
+                member: WellKnownMember.System_Runtime_CompilerServices_IsReadOnlyAttribute__ctor,
+                diagnostics: DeclarationDiagnostics,
+                location: readOnlySymbol.Locations.FirstOrDefault() ?? Location.None,
+                isOptional: Options.OutputKind != OutputKind.NetModule);
+
+            if (attributeSymbol == null)
             {
                 NeedsGeneratedIsReadOnlyAttribute = true;
             }

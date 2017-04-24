@@ -92,19 +92,19 @@ namespace Microsoft.CodeAnalysis
         }
         #endregion
 
-        #region EmbeddedAttribute
-        private bool _hasEmbeddedAttribute;
-        public bool HasEmbeddedAttribute
+        #region CodeAnalysisEmbeddedAttribute
+        private bool _hasCodeAnalysisEmbeddedAttribute;
+        public bool HasCodeAnalysisEmbeddedAttribute
         {
             get
             {
                 VerifySealed(expected: true);
-                return _hasEmbeddedAttribute;
+                return _hasCodeAnalysisEmbeddedAttribute;
             }
             set
             {
                 VerifySealed(expected: false);
-                _hasEmbeddedAttribute = value;
+                _hasCodeAnalysisEmbeddedAttribute = value;
                 SetDataStored();
             }
         }

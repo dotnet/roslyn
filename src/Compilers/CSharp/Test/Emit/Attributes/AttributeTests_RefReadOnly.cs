@@ -70,6 +70,9 @@ class Test
 
                 AssertReferencedIsReadOnlyAttribute(parameter.GetAttributes(), referenceA.Compilation.AssemblyName);
                 AssertReferencedIsReadOnlyAttribute(method.GetReturnTypeAttributes(), referenceA.Compilation.AssemblyName);
+
+                var isReadOnlyAttributeTypeName = WellKnownTypes.GetMetadataName(WellKnownType.System_Runtime_CompilerServices_IsReadOnlyAttribute);
+                Assert.Null(module.ContainingAssembly.GetTypeByMetadataName(isReadOnlyAttributeTypeName));
             });
         }
 
@@ -139,6 +142,9 @@ class Test
                     Assert.True(property.ReturnsByRefReadonly);
 
                     AssertReferencedIsReadOnlyAttribute(property.GetAttributes(), referenceA.Compilation.AssemblyName);
+
+                    var isReadOnlyAttributeTypeName = WellKnownTypes.GetMetadataName(WellKnownType.System_Runtime_CompilerServices_IsReadOnlyAttribute);
+                    Assert.Null(module.ContainingAssembly.GetTypeByMetadataName(isReadOnlyAttributeTypeName));
                 }
             });
         }
@@ -165,7 +171,7 @@ class Test
 
                 var parameter = indexer.GetParameters().Single();
                 Assert.Equal(RefKind.RefReadOnly, parameter.RefKind);
-                
+
                 AssertReferencedIsReadOnlyAttribute(parameter.GetAttributes(), module.ContainingAssembly.Name);
                 AssertReferencedIsReadOnlyAttribute(indexer.GetAttributes(), module.ContainingAssembly.Name);
             });
@@ -200,6 +206,9 @@ class Test
 
                 AssertReferencedIsReadOnlyAttribute(parameter.GetAttributes(), referenceA.Compilation.AssemblyName);
                 AssertReferencedIsReadOnlyAttribute(indexer.GetAttributes(), referenceA.Compilation.AssemblyName);
+
+                var isReadOnlyAttributeTypeName = WellKnownTypes.GetMetadataName(WellKnownType.System_Runtime_CompilerServices_IsReadOnlyAttribute);
+                Assert.Null(module.ContainingAssembly.GetTypeByMetadataName(isReadOnlyAttributeTypeName));
             });
         }
 
@@ -254,6 +263,9 @@ public delegate ref readonly int D(ref readonly int x);
 
                 AssertReferencedIsReadOnlyAttribute(parameter.GetAttributes(), referenceA.Compilation.AssemblyName);
                 AssertReferencedIsReadOnlyAttribute(method.GetReturnTypeAttributes(), referenceA.Compilation.AssemblyName);
+
+                var isReadOnlyAttributeTypeName = WellKnownTypes.GetMetadataName(WellKnownType.System_Runtime_CompilerServices_IsReadOnlyAttribute);
+                Assert.Null(module.ContainingAssembly.GetTypeByMetadataName(isReadOnlyAttributeTypeName));
             });
         }
 
@@ -327,6 +339,9 @@ public class Test
 
                 AssertReferencedIsReadOnlyAttribute(parameter.GetAttributes(), referenceA.Compilation.AssemblyName);
                 AssertReferencedIsReadOnlyAttribute(method.GetReturnTypeAttributes(), referenceA.Compilation.AssemblyName);
+
+                var isReadOnlyAttributeTypeName = WellKnownTypes.GetMetadataName(WellKnownType.System_Runtime_CompilerServices_IsReadOnlyAttribute);
+                Assert.Null(module.ContainingAssembly.GetTypeByMetadataName(isReadOnlyAttributeTypeName));
             });
         }
 
@@ -404,9 +419,12 @@ class Test
 
                 AssertReferencedIsReadOnlyAttribute(parameter.GetAttributes(), referenceA.Compilation.AssemblyName);
                 AssertReferencedIsReadOnlyAttribute(method.GetReturnTypeAttributes(), referenceA.Compilation.AssemblyName);
+
+                var isReadOnlyAttributeTypeName = WellKnownTypes.GetMetadataName(WellKnownType.System_Runtime_CompilerServices_IsReadOnlyAttribute);
+                Assert.Null(module.ContainingAssembly.GetTypeByMetadataName(isReadOnlyAttributeTypeName));
             });
         }
-        
+
         [Fact]
         public void IsReadOnlyAttributeIsDisallowedEverywhereInSource_Delegates()
         {
@@ -611,6 +629,249 @@ public class Test
             });
         }
 
+        [Fact]
+        public void EmbeddedAttributeIsNotBeUsedFromAnExternalAssembly()
+        {
+            var reference = CreateCompilationWithMscorlib(@"
+namespace Microsoft.CodeAnalysis
+{
+    public class EmbeddedAttribute : System.Attribute { }
+}
+").ToMetadataReference();
+
+            var code = @"
+public class Test
+{
+	public ref readonly int M(ref readonly int p) => ref p;
+}";
+
+            var options = TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All);
+            CompileAndVerify(code, options: options, additionalRefs: new[] { reference }, verify: false, symbolValidator: module =>
+            {
+                AssertGeneratedEmbeddedAttribute(module.ContainingAssembly, WellKnownType.Microsoft_CodeAnalysis_EmbeddedAttribute);
+                AssertGeneratedEmbeddedAttribute(module.ContainingAssembly, WellKnownType.System_Runtime_CompilerServices_IsReadOnlyAttribute);
+            });
+        }
+
+        [Fact]
+        public void EmbeddedAttributeIsAllowedInSourceIfCompilerDoesNotNeedToGenerateOne()
+        {
+            var code = @"
+namespace Microsoft.CodeAnalysis
+{
+    public class EmbeddedAttribute : System.Attribute { }
+}";
+
+            CreateCompilationWithMscorlib(code).VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void EmbeddedAttributeIsNotAllowedInSourceIfCompilerNeedsToGenerateOne()
+        {
+            var code = @"
+namespace Microsoft.CodeAnalysis
+{
+    public class EmbeddedAttribute : System.Attribute { }
+}
+public class Test
+{
+	public ref readonly int M(ref readonly int p) => ref p;
+}";
+
+            CreateCompilationWithMscorlib(code).VerifyEmitDiagnostics(
+                // (4,18): error CS8413: The type 'EmbeddedAttribute' is reserved to be used by the compiler.
+                //     public class EmbeddedAttribute : System.Attribute { }
+                Diagnostic(ErrorCode.ERR_TypeReserved, "EmbeddedAttribute").WithArguments("Microsoft.CodeAnalysis.EmbeddedAttribute").WithLocation(4, 18));
+        }
+
+        [Fact]
+        public void UserReferencingEmbeddedAttributeShouldResultInAnError()
+        {
+            var code = @"
+[Embedded]
+public class Test
+{
+	public ref readonly int M(ref readonly int p) => ref p;
+}";
+
+            CreateCompilationWithMscorlib(code).VerifyDiagnostics(
+                // (2,2): error CS0246: The type or namespace name 'EmbeddedAttribute' could not be found (are you missing a using directive or an assembly reference?)
+                // [Embedded]
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Embedded").WithArguments("EmbeddedAttribute").WithLocation(2, 2),
+                // (2,2): error CS0246: The type or namespace name 'Embedded' could not be found (are you missing a using directive or an assembly reference?)
+                // [Embedded]
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Embedded").WithArguments("Embedded").WithLocation(2, 2));
+        }
+
+        [Fact]
+        public void UserReferencingIsReadOnlyAttributeShouldResultInAnError()
+        {
+            var code = @"
+[IsReadOnly]
+public class Test
+{
+	public ref readonly int M(ref readonly int p) => ref p;
+}";
+
+            CreateCompilationWithMscorlib(code).VerifyDiagnostics(
+                // (2,2): error CS0246: The type or namespace name 'IsReadOnlyAttribute' could not be found (are you missing a using directive or an assembly reference?)
+                // [IsReadOnly]
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "IsReadOnly").WithArguments("IsReadOnlyAttribute").WithLocation(2, 2),
+                // (2,2): error CS0246: The type or namespace name 'IsReadOnly' could not be found (are you missing a using directive or an assembly reference?)
+                // [IsReadOnly]
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "IsReadOnly").WithArguments("IsReadOnly").WithLocation(2, 2));
+        }
+
+        [Fact]
+        public void ReferencingAnEmbeddedAttributeDoesNotUseIt_InternalsHidden()
+        {
+            var options = TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All);
+
+            var code1 = @"
+public class Test1
+{
+	public static ref readonly int M(ref readonly int p) => ref p;
+}";
+
+            var comp1 = CompileAndVerify(code1, options: options, verify: false, symbolValidator: module =>
+            {
+                AssertGeneratedEmbeddedAttribute(module.ContainingAssembly, WellKnownType.Microsoft_CodeAnalysis_EmbeddedAttribute);
+                AssertGeneratedEmbeddedAttribute(module.ContainingAssembly, WellKnownType.System_Runtime_CompilerServices_IsReadOnlyAttribute);
+            });
+
+            var code2 = @"
+public class Test2
+{
+	public static ref readonly int M(ref readonly int p) => ref Test1.M(p);
+}";
+
+            CompileAndVerify(code2, options: options, additionalRefs: new[] { comp1.Compilation.ToMetadataReference() }, verify: false, symbolValidator: module =>
+            {
+                AssertGeneratedEmbeddedAttribute(module.ContainingAssembly, WellKnownType.Microsoft_CodeAnalysis_EmbeddedAttribute);
+                AssertGeneratedEmbeddedAttribute(module.ContainingAssembly, WellKnownType.System_Runtime_CompilerServices_IsReadOnlyAttribute);
+            });
+        }
+
+        [Fact]
+        public void ReferencingAnEmbeddedAttributeDoesNotUseIt_InternalsVisible()
+        {
+            var options = TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All);
+
+            var code1 = @"
+[assembly:System.Runtime.CompilerServices.InternalsVisibleToAttribute(""Assembly2"")]
+public class Test1
+{
+	public static ref readonly int M(ref readonly int p) => ref p;
+}";
+
+            var comp1 = CompileAndVerify(code1, options: options, verify: false, symbolValidator: module =>
+            {
+                AssertGeneratedEmbeddedAttribute(module.ContainingAssembly, WellKnownType.Microsoft_CodeAnalysis_EmbeddedAttribute);
+                AssertGeneratedEmbeddedAttribute(module.ContainingAssembly, WellKnownType.System_Runtime_CompilerServices_IsReadOnlyAttribute);
+            });
+
+            var code2 = @"
+public class Test2
+{
+	public static ref readonly int M(ref readonly int p) => ref Test1.M(p);
+}";
+
+            CompileAndVerify(code2, options: options.WithModuleName("Assembly2"), additionalRefs: new[] { comp1.Compilation.ToMetadataReference() }, verify: false, symbolValidator: module =>
+            {
+                AssertGeneratedEmbeddedAttribute(module.ContainingAssembly, WellKnownType.Microsoft_CodeAnalysis_EmbeddedAttribute);
+                AssertGeneratedEmbeddedAttribute(module.ContainingAssembly, WellKnownType.System_Runtime_CompilerServices_IsReadOnlyAttribute);
+            });
+        }
+
+        [Fact]
+        public void TypeReferencingAnotherTypeThatUsesAPublicAttributeFromAThirdNotReferencedAssemblyShouldGenerateItsOwn()
+        {
+            var options = TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All);
+
+            var code1 = CreateCompilationWithMscorlib(@"
+namespace System.Runtime.CompilerServices
+{
+    public class IsReadOnlyAttribute : System.Attribute { }
+}");
+
+            var code2 = CreateCompilationWithMscorlib(@"
+public class Test1
+{
+	public static ref readonly int M(ref readonly int p) => ref p;
+}", references: new[] { code1.ToMetadataReference() }, options: options);
+
+            CompileAndVerify(code2, verify: false, symbolValidator: module =>
+            {
+                // IsReadOnly is not generated in assembly
+                var isReadOnlyAttributeName = WellKnownTypes.GetMetadataName(WellKnownType.System_Runtime_CompilerServices_IsReadOnlyAttribute);
+                Assert.Null(module.ContainingAssembly.GetTypeByMetadataName(isReadOnlyAttributeName));
+            });
+
+            var code3 = CreateCompilationWithMscorlib(@"
+public class Test2
+{
+	public static ref readonly int M(ref readonly int p) => ref Test1.M(p);
+}", references: new[] { code2.ToMetadataReference() }, options: options);
+
+            CompileAndVerify(code3, verify: false, symbolValidator: module =>
+            {
+                // IsReadOnly is generated in assembly
+
+                AssertGeneratedEmbeddedAttribute(module.ContainingAssembly, WellKnownType.Microsoft_CodeAnalysis_EmbeddedAttribute);
+                AssertGeneratedEmbeddedAttribute(module.ContainingAssembly, WellKnownType.System_Runtime_CompilerServices_IsReadOnlyAttribute);
+            });
+        }
+
+        [Fact]
+        public void BuildingAModuleRequiresIsReadOnlyAttributeToBeThere()
+        {
+            var options = new CSharpCompilationOptions(OutputKind.NetModule);
+
+            var code = @"
+public class Test
+{
+    public void M(ref readonly int x) { }
+}";
+
+            CreateCompilationWithMscorlib(code, options: options).VerifyDiagnostics(
+                // (4,36): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.IsReadOnlyAttribute..ctor'
+                //     public void M(ref readonly int x) { }
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "x").WithArguments("System.Runtime.CompilerServices.IsReadOnlyAttribute", ".ctor").WithLocation(4, 36));
+
+            code = @"
+namespace System.Runtime.CompilerServices
+{
+    public class IsReadOnlyAttribute : System.Attribute { }
+}
+public class Test
+{
+    public void M(ref readonly int x) { }
+}";
+
+            CreateCompilationWithMscorlib(code, options: options).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void IfIsReadOnlyAttributeIsDefinedThenEmbeddedIsNotGenerated()
+        {
+            var text = @"
+namespace System.Runtime.CompilerServices
+{
+    public class IsReadOnlyAttribute : System.Attribute { }
+}
+class Test
+{
+    public ref readonly int M(ref readonly int x) { return ref x; }
+}
+";
+
+            CompileAndVerify(text, verify: false, symbolValidator: module =>
+            {
+                var embeddedAttributeTypeName = WellKnownTypes.GetMetadataName(WellKnownType.Microsoft_CodeAnalysis_EmbeddedAttribute);
+                Assert.Null(module.ContainingAssembly.GetTypeByMetadataName(embeddedAttributeTypeName));
+            });
+        }
+
         private void AssertReferencedIsReadOnlyAttribute(ImmutableArray<CSharpAttributeData> attributes, string assemblyName)
         {
             var attributeType = attributes.Single().AttributeClass;
@@ -621,17 +882,16 @@ public class Test
         private void AssertGeneratedEmbeddedAttribute(AssemblySymbol assembly, WellKnownType type)
         {
             var expectedTypeName = WellKnownTypes.GetMetadataName(type);
-            var typeSymbol = assembly.GlobalNamespace.GetMember(expectedTypeName);
+            var typeSymbol = assembly.GetTypeByMetadataName(expectedTypeName);
 
             Assert.NotNull(typeSymbol);
             Assert.Equal(Accessibility.Internal, typeSymbol.DeclaredAccessibility);
 
-            var attributes = typeSymbol.GetAttributes().Select(attribute => attribute.AttributeClass.Name).ToArray();
+            var attributes = typeSymbol.GetAttributes().OrderBy(attribute => attribute.AttributeClass.Name).ToArray();
             Assert.Equal(2, attributes.Length);
 
-            Array.Sort(attributes);
-            Assert.Equal("CompilerGeneratedAttribute", attributes[0]);
-            Assert.Equal("EmbeddedAttribute", attributes[1]);
+            Assert.Equal(WellKnownTypes.GetMetadataName(WellKnownType.System_Runtime_CompilerServices_CompilerGeneratedAttribute), attributes[0].AttributeClass.ToDisplayString());
+            Assert.Equal(WellKnownTypes.GetMetadataName(WellKnownType.Microsoft_CodeAnalysis_EmbeddedAttribute), attributes[1].AttributeClass.ToDisplayString());
         }
     }
 }
