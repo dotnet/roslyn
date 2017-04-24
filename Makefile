@@ -48,6 +48,8 @@ bootstrap: restore
 	rm -rf Binaries/$(BUILD_CONFIGURATION)
 
 test:
+	@export PATH="$(BINARIES_PATH)/dotnet-cli:$(PATH)" ; \
+	dotnet publish -r $(RUNTIME_ID) src/Test/DeployCoreClrTestRuntime -o $(BINARIES_PATH)/$(BUILD_CONFIGURATION)/CoreClrTest && \
 	build/scripts/tests.sh $(BUILD_CONFIGURATION)
 
 restore: $(DOTNET)

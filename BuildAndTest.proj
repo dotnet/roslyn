@@ -66,17 +66,6 @@
   </Target>
 
   <Target Name="Test">
-    <ItemGroup>
-      <AssembliesToCopyLocal Include="$(NuGetPackageRoot)\xunit\$(xunitVersion)\*.dll;
-                                      $(NuGetPackageRoot)\xunit.assert\$(xunitassertVersion)\lib\portable-net45+netcore45+wp8+wpa81\*.dll" />
-    </ItemGroup>
-
-    <!-- Copy xunit stuff to output directory -->
-    <Copy SourceFiles="@(AssembliesToCopyLocal)"
-          DestinationFolder="$(OutputDirectory)"
-          SkipUnchangedFiles="true"
-          UseHardlinksIfPossible="true" />
-
     <MakeDir Directories="$(CoreClrTestDirectory)\xUnitResults" />
 
     <ItemGroup>
@@ -101,10 +90,14 @@
       <VsixExpInstallerArgs>/rootSuffix:RoslynDev /vsInstallDir:"$([System.IO.Path]::GetFullPath('$(MSBuildBinPath)\..\..\..'))"</VsixExpInstallerArgs>
     </PropertyGroup>
 
+    <!-- Publish binaries for CoreClr test -->
+    <MSBuild Projects="src/Test/DeployCoreClrTestRuntime/DeployCoreClrTestRuntime.csproj"
+             Properties="RuntimeIdentifier=win7-x64"
+             Targets="Publish" />
+
     <!-- Run CoreClr tests -->
-    <Exec Condition="'$(TestVsi)' != 'true' AND '$(SkipCoreClrTests)' != 'true'" 
-        ContinueOnError="ErrorAndContinue"
-        Command="&quot;$(CoreRunExe)&quot; $(CoreRunArgs)" />
+    <Exec Condition="'$(TestVsi)' != 'true' AND '$(SkipCoreClr)' != 'true'" Command="&quot;$(CoreRunExe)&quot; $(CoreRunArgs)" />
+
 
     <!-- Manually deploy any VSIX required by our integration tests (https://github.com/dotnet/roslyn/issues/17456) -->
     <Exec Condition="'$(TestVsi)' == 'true' and '$(SkipDesktopTests)' != 'true'"

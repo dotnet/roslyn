@@ -62,8 +62,8 @@
       <PropertyGroup>
         <AllowedReferenceRelatedFileExtensions>$(AllowedReferenceRelatedFileExtensions);.pdb</AllowedReferenceRelatedFileExtensions>
         <CopyNuGetImplementations>true</CopyNuGetImplementations>
-        <OutputPath Condition="'$(TargetFrameworkIdentifier)' == '.NETPortable'">$(OutputPath)CoreClrTest</OutputPath>
-        <OutputPath Condition="'$(TargetFrameworkIdentifier)' != '.NETPortable'">$(OutputPath)UnitTests\Portable\</OutputPath>
+        <OutputPath Condition="$(TargetFramework.StartsWith('netcoreapp'))">$(OutputPath)CoreClrTest</OutputPath>
+        <OutputPath Condition="!$(TargetFramework.StartsWith('netcoreapp'))">$(OutputPath)UnitTests\Portable\</OutputPath>
       </PropertyGroup>
     </When>
     <When Condition="'$(RoslynProjectType)' == 'Custom'">
