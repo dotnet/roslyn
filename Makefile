@@ -6,7 +6,8 @@ SRC_PATH = $(shell pwd)/src
 BOOTSTRAP_PATH = $(BINARIES_PATH)/Bootstrap
 BUILD_LOG_PATH =
 HOME_DIR = $(shell cd ~ && pwd)
-DOTNET_VERSION = 1.0.0-preview3-003223
+DOTNET_VERSION = 1.0.1
+DOTNET = $(BINARIES_PATH)/dotnet-cli/dotnet
 TARGET_FX = netcoreapp1.1
 
 MSBUILD_ADDITIONALARGS := /v:m /fl /fileloggerparameters:Verbosity=normal /p:Configuration=$(BUILD_CONFIGURATION)
@@ -27,7 +28,7 @@ else
 	MSBUILD_ARGS = $(MSBUILD_ADDITIONALARGS)
 endif
 
-BUILD_CMD = dotnet build $(MSBUILD_ARGS)
+BUILD_CMD = $(DOTNET) build $(MSBUILD_ARGS)
 
 .PHONY: all bootstrap test toolset
 
@@ -36,20 +37,26 @@ all: restore
 
 bootstrap: restore
 	$(BUILD_CMD) src/Compilers/CSharp/CscCore && \
-	dotnet publish -r $(RUNTIME_ID) src/Compilers/CSharp/CscCore && \
 	$(BUILD_CMD) src/Compilers/VisualBasic/VbcCore && \
-	dotnet publish -r $(RUNTIME_ID) src/Compilers/VisualBasic/VbcCore && \
 	mkdir -p $(BOOTSTRAP_PATH)/csc && mkdir -p $(BOOTSTRAP_PATH)/vbc && \
-	cp -f Binaries/$(BUILD_CONFIGURATION)/Exes/CscCore/$(TARGET_FX)/$(RUNTIME_ID)/publish/* $(BOOTSTRAP_PATH)/csc && \
-	cp -f Binaries/$(BUILD_CONFIGURATION)/Exes/VbcCore/$(TARGET_FX)/$(RUNTIME_ID)/publish/* $(BOOTSTRAP_PATH)/vbc
+	$(DOTNET) publish -r $(RUNTIME_ID) src/Compilers/CSharp/CscCore -o $(BOOTSTRAP_PATH)/csc && \
+	$(DOTNET) publish -r $(RUNTIME_ID) src/Compilers/VisualBasic/VbcCore -o $(BOOTSTRAP_PATH)/vbc
 
 	rm -rf Binaries/$(BUILD_CONFIGURATION)
 
 test:
 	build/scripts/tests.sh $(BUILD_CONFIGURATION)
 
-restore:
-	dotnet restore CrossPlatform.sln
+restore: $(DOTNET)
+	$(DOTNET) restore CrossPlatform.sln
+
+$(DOTNET):
+	@mkdir -p $(BINARIES_PATH) ; \
+	pushd $(BINARIES_PATH) ; \
+	curl -O https://raw.githubusercontent.com/dotnet/cli/rel/1.0.0/scripts/obtain/dotnet-install.sh && \
+	chmod +x dotnet-install.sh && \
+	./dotnet-install.sh --version "$(DOTNET_VERSION)" --install-dir "$(BINARIES_PATH)/dotnet-cli"
+
 
 clean:
 	@rm -rf Binaries
