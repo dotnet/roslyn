@@ -694,7 +694,7 @@ partial class Class
         }
     }
 
-    public Foo()
+    public void Foo()
     {
         i = 1;
     }
@@ -703,7 +703,7 @@ partial class Class
 {
     int P { get; set; }
 
-    public Foo()
+    public void Foo()
     {
         P = 1;
     }
@@ -726,7 +726,7 @@ partial class Class
         }
     }
 
-    public Foo()
+    public void Foo()
     {
         i = 1;
     }
@@ -735,7 +735,7 @@ partial class Class
 {
     public int P { get; private set; }
 
-    public Foo()
+    public void Foo()
     {
         P = 1;
     }

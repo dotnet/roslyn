@@ -197,16 +197,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Organizing
         public async Task TestConstructorAndDestructors()
         {
             var initial =
-@"class C  {
+@"class Foo  {
     public ~Foo() {}        
     enum Days {Sat, Sun};        
     public Foo() {}  
 }";
 
             var final =
-@"class C  {
-    public ~Foo() {}        
+@"class Foo  {
     public Foo() {}  
+    public ~Foo() {}        
     enum Days {Sat, Sun};        
 }";
             await CheckAsync(initial, final);

@@ -162,7 +162,7 @@ public class a
 
 public class b : a
 {
-    protected override foo(){ }
+    protected override void foo(){ }
 
     override $$
 }", "foo()");
