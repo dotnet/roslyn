@@ -6682,7 +6682,7 @@ class C
     void M()
     {
         object z = 3;
-        (x, (y, z)) = (y, x);
+        (x, (y, z)) = (x, y);
     }
 }
 static class Extensions
@@ -6695,7 +6695,11 @@ static class Extensions
 }";
 
             var comp = CreateCompilationWithMscorlib45(source, references: s_valueTupleRefs, options: TestOptions.DebugDll);
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (9,10): warning CS1717: Assignment made to same variable; did you mean to assign something else?
+                //         (x, (y, z)) = (x, y);
+                Diagnostic(ErrorCode.WRN_AssignmentToSelf, "x").WithLocation(9, 10)
+                );
         }
 
         [Fact, WorkItem(17756, "https://github.com/dotnet/roslyn/issues/17756")]
