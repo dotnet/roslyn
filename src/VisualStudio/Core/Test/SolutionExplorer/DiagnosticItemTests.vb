@@ -6,7 +6,7 @@ Imports Microsoft.VisualStudio.LanguageServices.SolutionExplorer
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
-    Public Class DiagnosticItemTests
+    Public Class LegacyDiagnosticItemTests
         <Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Sub Name()
             Dim descriptor = CreateDescriptor()
