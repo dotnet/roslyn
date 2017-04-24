@@ -7,6 +7,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
 {
     internal interface IRemoteFindUsages
     {
+        Task FindImplementationsAsync(SerializableSymbolAndProjectId symbolAndProjectIdArg);
         Task FindSymbolUsagesAsync(SerializableSymbolAndProjectId symbolAndProjectIdArg);
         Task FindLiteralUsagesAsync(string title, object value);
     }

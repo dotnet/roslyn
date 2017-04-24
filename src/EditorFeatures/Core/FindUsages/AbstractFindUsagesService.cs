@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -16,64 +15,6 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
 {
     internal abstract partial class AbstractFindUsagesService : IFindUsagesService
     {
-        #region Find Implementations
-
-        public async Task FindImplementationsAsync(
-            Document document, int position, IFindUsagesContext context)
-        {
-            var cancellationToken = context.CancellationToken;
-            var tuple = await FindUsagesHelpers.FindImplementationsAsync(
-                document, position, cancellationToken).ConfigureAwait(false);
-            if (tuple == null)
-            {
-                await context.ReportMessageAsync(
-                    EditorFeaturesResources.Cannot_navigate_to_the_symbol_under_the_caret).ConfigureAwait(false);
-                return;
-            }
-
-            var message = tuple.Value.message;
-
-            if (message != null)
-            {
-                await context.ReportMessageAsync(message).ConfigureAwait(false);
-                return;
-            }
-
-            await context.SetSearchTitleAsync(
-                string.Format(EditorFeaturesResources._0_implementations,
-                FindUsagesHelpers.GetDisplayName(tuple.Value.symbol))).ConfigureAwait(false);
-
-            var project = tuple.Value.project;
-            foreach (var implementation in tuple.Value.implementations)
-            {
-                var definitionItem = await implementation.ToClassifiedDefinitionItemAsync(
-                    project.Solution, includeHiddenLocations: false, cancellationToken: cancellationToken).ConfigureAwait(false);
-                await context.OnDefinitionFoundAsync(definitionItem).ConfigureAwait(false);
-            }
-        }
-
-        #endregion
-
-        private static async Task<RemoteHostClient.Session> TryGetRemoteSessionAsync(
-            Solution solution, object callback, CancellationToken cancellationToken)
-        {
-            var outOfProcessAllowed = solution.Workspace.Options.GetOption(FindUsagesOptions.OutOfProcessAllowed);
-            if (!outOfProcessAllowed)
-            {
-                return null;
-            }
-
-            var client = await solution.Workspace.TryGetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
-            if (client == null)
-            {
-                return null;
-            }
-
-            return await client.TryCreateCodeAnalysisServiceSessionAsync(
-                solution, callback, cancellationToken).ConfigureAwait(false);
-        }
-
-
         public async Task FindReferencesAsync(
             Document document, int position, IFindUsagesContext context)
         {
@@ -156,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             }
 
             await FindSymbolReferencesInCurrentProcessAsync(
-                context, symbolAndProject?.symbol, symbolAndProject?.project, cancellationToken).ConfigureAwait(false);
+                context, symbolAndProject?.symbol, symbolAndProject?.project).ConfigureAwait(false);
         }
 
         private static async Task<bool> TryFindSymbolReferencesInRemoteProcessAsync(
@@ -184,7 +125,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
         /// and want to push all the references to it into the Streaming-Find-References window.
         /// </summary>
         public static async Task FindSymbolReferencesInCurrentProcessAsync(
-            IFindUsagesContext context, ISymbol symbol, Project project, CancellationToken cancellationToken)
+            IFindUsagesContext context, ISymbol symbol, Project project)
         {
             await context.SetSearchTitleAsync(string.Format(EditorFeaturesResources._0_references,
                 FindUsagesHelpers.GetDisplayName(symbol))).ConfigureAwait(false);
@@ -200,7 +141,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                 project.Solution,
                 progressAdapter,
                 documents: null,
-                cancellationToken: cancellationToken).ConfigureAwait(false);
+                cancellationToken: context.CancellationToken).ConfigureAwait(false);
         }
 
         #endregion

@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectBrowser.Lists;
 using Microsoft.VisualStudio.OLE.Interop;
@@ -536,7 +537,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
                 // thread.
                 await Task.Run(async () =>
                 {
-                    await FindReferencesAsync(symbolListItem, project, context, cancellationToken).ConfigureAwait(false);
+                    await FindReferencesAsync(symbolListItem, project, context).ConfigureAwait(false);
                 }, cancellationToken).ConfigureAwait(false);
 
                 // Note: we don't need to put this in a finally.  The only time we might not hit
@@ -554,14 +555,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
             }
         }
 
-        private static async Task FindReferencesAsync(SymbolListItem symbolListItem, Project project, CodeAnalysis.FindUsages.FindUsagesContext context, CancellationToken cancellationToken)
+        private static async Task FindReferencesAsync(
+            SymbolListItem symbolListItem, Project project, FindUsagesContext context)
         {
+            var cancellationToken = context.CancellationToken;
             var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
             var symbol = symbolListItem.ResolveSymbol(compilation);
             if (symbol != null)
             {
                 await AbstractFindUsagesService.FindSymbolReferencesInCurrentProcessAsync(
-                    context, symbol, project, cancellationToken).ConfigureAwait(false);
+                    context, symbol, project).ConfigureAwait(false);
             }
         }
     }
