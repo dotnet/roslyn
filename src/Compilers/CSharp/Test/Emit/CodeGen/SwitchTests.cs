@@ -7632,7 +7632,9 @@ public class Program
         }
     }
 }";
-            var compVerifier = CompileAndVerify(source, expectedOutput: "RemoveEmptyEntries");
+            var compVerifier = CompileAndVerify(source,
+                options: TestOptions.ReleaseDll.WithOutputKind(OutputKind.ConsoleApplication),
+                expectedOutput: "RemoveEmptyEntries");
             compVerifier.VerifyIL("Program.Main",
 @"{
   // Code size       12 (0xc)
@@ -7641,6 +7643,27 @@ public class Program
   IL_0001:  box        ""System.StringSplitOptions""
   IL_0006:  call       ""void System.Console.WriteLine(object)""
   IL_000b:  ret
+}"
+            );
+            compVerifier = CompileAndVerify(source,
+                options: TestOptions.DebugDll.WithOutputKind(OutputKind.ConsoleApplication),
+                expectedOutput: "RemoveEmptyEntries");
+            compVerifier.VerifyIL("Program.Main",
+@"{
+  // Code size       22 (0x16)
+  .maxstack  1
+  .locals init (object V_0) //o
+  IL_0000:  nop
+  IL_0001:  br.s       IL_0003
+  IL_0003:  ldc.i4.1
+  IL_0004:  box        ""System.StringSplitOptions""
+  IL_0009:  stloc.0
+  IL_000a:  br.s       IL_000c
+  IL_000c:  ldloc.0
+  IL_000d:  call       ""void System.Console.WriteLine(object)""
+  IL_0012:  nop
+  IL_0013:  br.s       IL_0015
+  IL_0015:  ret
 }"
             );
         }
@@ -7660,7 +7683,9 @@ public class Program
         }
     }
 }";
-            var compVerifier = CompileAndVerify(source, expectedOutput: "RemoveEmptyEntries");
+            var compVerifier = CompileAndVerify(source,
+                options: TestOptions.ReleaseDll.WithOutputKind(OutputKind.ConsoleApplication),
+                expectedOutput: "RemoveEmptyEntries");
             compVerifier.VerifyIL("Program.Main",
 @"{
   // Code size       22 (0x16)
@@ -7675,6 +7700,34 @@ public class Program
   IL_000f:  ldloc.0
   IL_0010:  call       ""void System.Console.WriteLine(object)""
   IL_0015:  ret
+}"
+            );
+            compVerifier = CompileAndVerify(source,
+                options: TestOptions.DebugDll.WithOutputKind(OutputKind.ConsoleApplication),
+                expectedOutput: "RemoveEmptyEntries");
+            compVerifier.VerifyIL("Program.Main",
+@"{
+  // Code size       31 (0x1f)
+  .maxstack  2
+  .locals init (object V_0, //o
+                bool V_1)
+  IL_0000:  nop
+  IL_0001:  ldc.i4.1
+  IL_0002:  box        ""System.StringSplitOptions""
+  IL_0007:  isinst     ""object""
+  IL_000c:  dup
+  IL_000d:  stloc.0
+  IL_000e:  ldnull
+  IL_000f:  cgt.un
+  IL_0011:  stloc.1
+  IL_0012:  ldloc.1
+  IL_0013:  brfalse.s  IL_001e
+  IL_0015:  nop
+  IL_0016:  ldloc.0
+  IL_0017:  call       ""void System.Console.WriteLine(object)""
+  IL_001c:  nop
+  IL_001d:  nop
+  IL_001e:  ret
 }"
             );
         }
