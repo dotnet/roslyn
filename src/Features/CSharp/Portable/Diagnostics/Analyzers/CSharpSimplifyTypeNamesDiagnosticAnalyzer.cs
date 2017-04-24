@@ -35,7 +35,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
 
         protected override void AnalyzeNode(SyntaxNodeAnalysisContext context)
         {
-            foreach (var node in context.Node.Ancestors(ascendOutOfTrivia: false)) {
+            foreach (var node in context.Node.Ancestors(ascendOutOfTrivia: false))
+            {
                 // Bail out early because we have already simplified an ancestor of this node (except in the QualifiedCref case).
                 // We need to keep going in case this node is under a QualifiedCref because it is possible to have multiple simplifications within the same QualifiedCref.
                 // For example, consider <see cref="A.M(Nullable{int})"/>. The 'A.M(Nullable{int})' here is represented by a single QualifiedCref node in the syntax tree.
@@ -43,7 +44,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
                 // to 'int?' in the GenericName for the 'Nullable{T}' that is nested inside this QualifiedCref. We need to keep going so that the latter simplification can be
                 // made available.
                 if (!node.IsKind(SyntaxKind.QualifiedCref) && s_kindsOfInterest.Contains(node.Kind()))
+                {
                     return;
+                }
             }
 
             Diagnostic diagnostic;
