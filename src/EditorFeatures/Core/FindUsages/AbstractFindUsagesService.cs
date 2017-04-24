@@ -135,6 +135,10 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             // Find the symbol we want to search and the solution we want to search in.  This is needed
             // to do things like map from a metadata-as-source symbol to an appropriate symbol in the
             // project the user is currently in.
+            //
+            // We need to do this in the VS process so that we can map from appropriately between workspaces.
+            // Once we've mapped *then* we can remote over to the OOP server to do the expensive work of
+            // actually finding all the references in the main workspace.
             var symbolAndProject = await FindUsagesHelpers.GetRelevantSymbolAndProjectAtPositionAsync(
                 document, position, cancellationToken).ConfigureAwait(false);
 
