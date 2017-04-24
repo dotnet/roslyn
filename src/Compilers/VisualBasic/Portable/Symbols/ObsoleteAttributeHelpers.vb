@@ -46,11 +46,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </returns>
         Private Shared Function GetObsoleteContextState(symbol As Symbol, forceComplete As Boolean) As ThreeState
             While symbol IsNot Nothing
-                ' For property or event accessors, check the associated property or event instead.
-                If symbol.IsAccessor() Then
-                    symbol = DirectCast(symbol, MethodSymbol).AssociatedSymbol
-                End If
-
                 If forceComplete Then
                     symbol.ForceCompleteObsoleteAttribute()
                 End If
@@ -60,7 +55,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Return state
                 End If
 
-                symbol = symbol.ContainingSymbol
+                ' For property or event accessors, check the associated property or event instead.
+                If symbol.IsAccessor() Then
+                    symbol = DirectCast(symbol, MethodSymbol).AssociatedSymbol
+                Else
+                    symbol = symbol.ContainingSymbol
+                End If
             End While
 
             Return ThreeState.False

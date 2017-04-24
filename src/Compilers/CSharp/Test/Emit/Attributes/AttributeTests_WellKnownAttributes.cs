@@ -6510,40 +6510,101 @@ internal sealed class C1 : I1
         [Fact]
         public void TestObsoleteAndPropertyAccessors()
         {
-            var source =
+            var source0 =
 @"using System;
-[Obsolete] class A { }
-[Obsolete] class B { }
-class C
+namespace Windows.Foundation.Metadata
+{
+    public sealed class DeprecatedAttribute : Attribute
+    {
+        public DeprecatedAttribute(System.String message, DeprecationType type, System.UInt32 version)
+        {
+        }
+    }
+    public enum DeprecationType
+    {
+        Deprecate = 0,
+        Remove = 1
+    }
+}";
+            var source1 =
+@"using Windows.Foundation.Metadata;
+[Deprecated(null, DeprecationType.Deprecate, 0)] class A { }
+[Deprecated(null, DeprecationType.Deprecate, 0)] class B { }
+[Deprecated(null, DeprecationType.Deprecate, 0)] class C { }
+class D
 {
     object P { get { return new A(); } }
-    [Obsolete] object Q { get { return new B(); } }
+    [Deprecated(null, DeprecationType.Deprecate, 0)] object Q { get { return new B(); } }
+    object R { [Deprecated(null, DeprecationType.Deprecate, 0)] get { return new C(); } }
 }";
-            var comp = CreateCompilationWithMscorlibAndSystemCore(source);
+            var comp = CreateStandardCompilation(new[] { Parse(source0), Parse(source1) });
             comp.VerifyDiagnostics(
-                // (6,33): warning CS0612: 'A' is obsolete
+                // (9,17): error CS1667: Attribute 'Windows.Foundation.Metadata.DeprecatedAttribute' is not valid on property or event accessors. It is only valid on 'assembly, module, class, struct, enum, constructor, method, property, indexer, field, event, interface, parameter, delegate, return, type parameter' declarations.
+                //     object R { [Deprecated(null, DeprecationType.Deprecate, 0)] get { return new C(); } }
+                Diagnostic(ErrorCode.ERR_AttributeNotOnAccessor, "Deprecated").WithArguments("Windows.Foundation.Metadata.DeprecatedAttribute", "assembly, module, class, struct, enum, constructor, method, property, indexer, field, event, interface, parameter, delegate, return, type parameter").WithLocation(9, 17),
+                // (7,33): warning CS0612: 'A' is obsolete
                 //     object P { get { return new A(); } }
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "A").WithArguments("A").WithLocation(6, 33));
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "A").WithArguments("A").WithLocation(7, 33),
+                // (9,82): warning CS0612: 'C' is obsolete
+                //     object R { [Deprecated(null, DeprecationType.Deprecate, 0)] get { return new C(); } }
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "C").WithArguments("C").WithLocation(9, 82));
         }
 
         [Fact]
         public void TestObsoleteAndEventAccessors()
         {
-            var source =
+            var source0 =
 @"using System;
-[Obsolete] class A { }
-[Obsolete] class B { }
-class C
+namespace Windows.Foundation.Metadata
 {
-    event EventHandler E { add { } remove { M(new A()); } }
-    [Obsolete] event EventHandler F { add { } remove { M(new B()); } }
+    public sealed class DeprecatedAttribute : Attribute
+    {
+        public DeprecatedAttribute(System.String message, DeprecationType type, System.UInt32 version)
+        {
+        }
+    }
+    public enum DeprecationType
+    {
+        Deprecate = 0,
+        Remove = 1
+    }
+}";
+            var source1 =
+@"using System;
+using Windows.Foundation.Metadata;
+[Deprecated(null, DeprecationType.Deprecate, 0)] class A { }
+[Deprecated(null, DeprecationType.Deprecate, 0)] class B { }
+[Deprecated(null, DeprecationType.Deprecate, 0)] class C { }
+class D
+{
+    event EventHandler E
+    {
+        add { }
+        remove { M(new A()); }
+    }
+    [Deprecated(null, DeprecationType.Deprecate, 0)] event EventHandler F
+    {
+        add { }
+        remove { M(new B()); }
+    }
+    event EventHandler G
+    {
+        add { }
+        [Deprecated(null, DeprecationType.Deprecate, 0)] remove { M(new C()); }
+    }
     static void M(object o) { }
 }";
-            var comp = CreateCompilationWithMscorlibAndSystemCore(source);
+            var comp = CreateStandardCompilation(new[] { Parse(source0), Parse(source1) });
             comp.VerifyDiagnostics(
-                // (6,51): warning CS0612: 'A' is obsolete
-                //     event EventHandler E { add { } remove { M(new A()); } }
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "A").WithArguments("A").WithLocation(6, 51));
+                // (21,10): error CS1667: Attribute 'Windows.Foundation.Metadata.DeprecatedAttribute' is not valid on property or event accessors. It is only valid on 'assembly, module, class, struct, enum, constructor, method, property, indexer, field, event, interface, parameter, delegate, return, type parameter' declarations.
+                //         [Deprecated(null, DeprecationType.Deprecate, 0)] remove { M(new C()); }
+                Diagnostic(ErrorCode.ERR_AttributeNotOnAccessor, "Deprecated").WithArguments("Windows.Foundation.Metadata.DeprecatedAttribute", "assembly, module, class, struct, enum, constructor, method, property, indexer, field, event, interface, parameter, delegate, return, type parameter"),
+                // (11,24): warning CS0612: 'A' is obsolete
+                //         remove { M(new A()); }
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "A").WithArguments("A"),
+                // (21,73): warning CS0612: 'C' is obsolete
+                //         [Deprecated(null, DeprecationType.Deprecate, 0)] remove { M(new C()); }
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "C").WithArguments("C").WithLocation(21, 73));
         }
 
         [Fact]

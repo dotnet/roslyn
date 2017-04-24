@@ -719,22 +719,41 @@ End Class
 <compilation>
     <file><![CDATA[
 Imports System
-<Obsolete>
-Class A
+Namespace Windows.Foundation.Metadata
+    Public NotInheritable Class DeprecatedAttribute
+        Inherits Attribute
+        Public Sub New(message As String, type As DeprecationType, version As UInteger)
+        End Sub
+    End Class
+    Public Enum DeprecationType
+        Deprecate
+        Remove
+    End Enum
+End Namespace
+]]>
+    </file>
+    <file><![CDATA[
+Imports Windows.Foundation.Metadata
+<Deprecated(Nothing, DeprecationType.Deprecate, 0)>Class A
 End Class
-<Obsolete>
-Class B
+<Deprecated(Nothing, DeprecationType.Deprecate, 0)>Class B
 End Class
-Class C
+<Deprecated(Nothing, DeprecationType.Deprecate, 0)>Class C
+End Class
+Class D
     ReadOnly Property P As Object
         Get
             Return New A()
         End Get
     End Property
-    <Obsolete>
-    ReadOnly Property Q As Object
+    <Deprecated(Nothing, DeprecationType.Deprecate, 0)>ReadOnly Property Q As Object
         Get
             Return New B()
+        End Get
+    End Property
+    ReadOnly Property R As Object
+        <Deprecated(Nothing, DeprecationType.Deprecate, 0)>Get
+            Return New C()
         End Get
     End Property
 End Class
@@ -751,13 +770,29 @@ End Class
 <compilation>
     <file><![CDATA[
 Imports System
-<Obsolete>
-Class A
+Namespace Windows.Foundation.Metadata
+    Public NotInheritable Class DeprecatedAttribute
+        Inherits Attribute
+        Public Sub New(message As String, type As DeprecationType, version As UInteger)
+        End Sub
+    End Class
+    Public Enum DeprecationType
+        Deprecate
+        Remove
+    End Enum
+End Namespace
+]]>
+    </file>
+    <file><![CDATA[
+Imports System
+Imports Windows.Foundation.Metadata
+<Deprecated(Nothing, DeprecationType.Deprecate, 0)>Class A
 End Class
-<Obsolete>
-Class B
+<Deprecated(Nothing, DeprecationType.Deprecate, 0)>Class B
 End Class
-Class C
+<Deprecated(Nothing, DeprecationType.Deprecate, 0)>Class C
+End Class
+Class D
     Custom Event E As EventHandler
         AddHandler(value As EventHandler)
         End AddHandler
@@ -767,12 +802,20 @@ Class C
         RaiseEvent
         End RaiseEvent
     End Event
-    <Obsolete>
-    Custom Event F As EventHandler
+    <Deprecated(Nothing, DeprecationType.Deprecate, 0)>Custom Event F As EventHandler
         AddHandler(value As EventHandler)
         End AddHandler
         RemoveHandler(value As EventHandler)
             M(New B())
+        End RemoveHandler
+        RaiseEvent
+        End RaiseEvent
+    End Event
+    Custom Event G As EventHandler
+        AddHandler(value As EventHandler)
+        End AddHandler
+        <Deprecated(Nothing, DeprecationType.Deprecate, 0)>RemoveHandler(value As EventHandler)
+            M(New C())
         End RemoveHandler
         RaiseEvent
         End RaiseEvent
@@ -784,7 +827,8 @@ End Class
     </file>
 </compilation>
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
-                Diagnostic(ERRID.WRN_UseOfObsoleteSymbolNoMessage1, "A").WithArguments("A").WithLocation(13, 19))
+                Diagnostic(ERRID.ERR_ObsoleteInvalidOnEventMember, "<Deprecated(Nothing, DeprecationType.Deprecate, 0)>RemoveHandler(value As EventHandler)").WithArguments("Windows.Foundation.Metadata.DeprecatedAttribute").WithLocation(31, 9),
+                Diagnostic(ERRID.WRN_UseOfObsoleteSymbolNoMessage1, "A").WithArguments("A").WithLocation(14, 19))
         End Sub
 
         <Fact>
