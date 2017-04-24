@@ -111,6 +111,14 @@
       <Project>{12A68549-4E8C-42D6-8703-A09335F97997}</Project>
       <Name>Scripting</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Next\EditorFeatures.Next.csproj">
+      <Project>{366bbcdc-b05f-4677-9b5b-78ba816a1484}</Project>
+      <Name>EditorFeatures.Next</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\TestUtilities2\ServicesTestUtilities2.vbproj">
+      <Project>{3dfb4701-e3d6-4435-9f70-a6e35822c4f2}</Project>
+      <Name>ServicesTestUtilities2</Name>
+    </ProjectReference>
     <ProjectReference Include="..\TestUtilities\ServicesTestUtilities.csproj">
       <Project>{76C6F005-C89D-4348-BB4A-39189DDBEB52}</Project>
       <Name>ServicesTestUtilities</Name>
@@ -237,6 +245,7 @@
     <Compile Include="CodeFixes\ExtensionOrderingTests.cs" />
     <Compile Include="EditAndContinue\TraceLogTests.cs" />
     <Compile Include="Extensions\SourceTextContainerExtensionsTests.cs" />
+    <Compile Include="NavigableSymbols\NavigableSymbolsTest.cs" />
     <Compile Include="Preview\TestOnly_CompilerDiagnosticAnalyzerProviderService.cs" />
     <Compile Include="Structure\BlockStructureServiceTests.cs" />
     <Compile Include="DocCommentFormatting\DocCommentFormattingTests.cs" />
