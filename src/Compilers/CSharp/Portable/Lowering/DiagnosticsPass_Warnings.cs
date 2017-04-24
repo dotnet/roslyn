@@ -866,12 +866,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 right = ((BoundConversion)right).Operand;
             }
 
-            if (right.Kind != BoundKind.ConvertedTupleLiteral)
+            if (right.Kind != BoundKind.ConvertedTupleLiteral && right.Kind != BoundKind.TupleLiteral)
             {
                 return;
             }
 
-            var rightTuple = (BoundConvertedTupleLiteral)right;
+            var rightTuple = (BoundTupleExpression)right;
             var leftArguments = leftTuple.Arguments;
             int length = leftArguments.Length;
             Debug.Assert(length == rightTuple.Arguments.Length);
