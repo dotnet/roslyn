@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
@@ -230,16 +231,22 @@ namespace Microsoft.CodeAnalysis.Remote
 
         private static void SetNativeDllSearchDirectories()
         {
-            // Set LoadLibrary search directory to %VSINSTALLDIR%\Common7\IDE so that the compiler 
-            // can P/Invoke to Microsoft.DiaSymReader.Native when emitting Windows PDBs.
-
-            Contract.Assert(string.Equals(Path.GetFileName(
-                AppDomain.CurrentDomain.BaseDirectory.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)), "IDE", StringComparison.OrdinalIgnoreCase));
-
-            var cookie = AddDllDirectory(AppDomain.CurrentDomain.BaseDirectory);
-            if (cookie == IntPtr.Zero)
+            if (PlatformInformation.IsWindows)
             {
-                Marshal.ThrowExceptionForHR(Marshal.GetHRForLastWin32Error());
+                // Set LoadLibrary search directory to %VSINSTALLDIR%\Common7\IDE so that the compiler
+                // can P/Invoke to Microsoft.DiaSymReader.Native when emitting Windows PDBs.
+                //
+                // The AppDomain base directory is specified in VisualStudio\Setup.Next\codeAnalysisService.servicehub.service.json
+                // to be the directory where devenv.exe is -- which is exactly the directory we need to add to the search paths:
+                //
+                //   "appBasePath": "%VSAPPIDDIR%"
+                //
+
+                var cookie = AddDllDirectory(AppDomain.CurrentDomain.BaseDirectory);
+                if (cookie == IntPtr.Zero)
+                {
+                    throw new Win32Exception();
+                }
             }
         }
     }
