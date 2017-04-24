@@ -4066,7 +4066,7 @@ public class A { }
             // TODO...
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18800")]
+        [Fact]
         public void CS0306ERR_BadTypeArgument01()
         {
             var source =
