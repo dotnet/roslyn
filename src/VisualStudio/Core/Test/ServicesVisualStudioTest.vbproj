@@ -335,6 +335,7 @@
     <Compile Include="GoToDefinition\GoToDefinitionApiTests.vb" />
     <Compile Include="Help\HelpTests.vb" />
     <Compile Include="LanguageBlockTests.vb" />
+    <Compile Include="SolutionExplorer\CpsDiagnosticItemTests.vb" />
     <Compile Include="SymbolSearch\SymbolSearchUpdateEngineTests.vb" />
     <Compile Include="Telemetry\VSTelemetryLoggerTest.vb" />
     <Compile Include="Utilities\VsNavInfoHelpers.vb" />
