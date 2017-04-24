@@ -44,7 +44,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' symbol's Obsoleteness is Unknown. False, if we are certain that no symbol in the parent
         ''' hierarchy is Obsolete.
         ''' </returns>
-        Friend Shared Function GetObsoleteContextState(symbol As Symbol, Optional forceComplete As Boolean = False) As ThreeState
+        Private Shared Function GetObsoleteContextState(symbol As Symbol, forceComplete As Boolean) As ThreeState
             While symbol IsNot Nothing
                 ' For property or event accessors, check the associated property or event instead.
                 If symbol.IsAccessor() Then
@@ -66,7 +66,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return ThreeState.False
         End Function
 
-        Friend Shared Function GetObsoleteDiagnosticKind(context As Symbol, symbol As Symbol) As ObsoleteDiagnosticKind
+        Friend Shared Function GetObsoleteDiagnosticKind(context As Symbol, symbol As Symbol, Optional forceComplete As Boolean = False) As ObsoleteDiagnosticKind
             Debug.Assert(context IsNot Nothing)
             Debug.Assert(symbol IsNot Nothing)
 
@@ -83,7 +83,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Return ObsoleteDiagnosticKind.Lazy
             End Select
 
-            Select Case ObsoleteAttributeHelpers.GetObsoleteContextState(context)
+            Select Case GetObsoleteContextState(context, forceComplete)
                 Case ThreeState.False
                     Return ObsoleteDiagnosticKind.Diagnostic
                 Case ThreeState.True

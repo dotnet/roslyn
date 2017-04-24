@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // from a different compilation's source. In that case, force completion of attributes.
                 _symbol.ForceCompleteObsoleteAttribute();
 
-                var kind = ObsoleteAttributeHelpers.GetObsoleteDiagnosticKind(_symbol, _containingSymbol);
+                var kind = ObsoleteAttributeHelpers.GetObsoleteDiagnosticKind(_symbol, _containingSymbol, forceComplete: true);
                 Debug.Assert(kind != ObsoleteDiagnosticKind.Lazy);
                 Debug.Assert(kind != ObsoleteDiagnosticKind.LazyPotentiallySuppressed);
 

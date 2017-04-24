@@ -561,5 +561,42 @@ using Windows.Foundation.Metadata;
                 //         F(default(EP));
                 Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "EP").WithArguments("EP", "DP").WithLocation(20, 19));
         }
+
+        // Suppress diagnostics in unused import statements.
+        [Fact]
+        public void TestImportStatements()
+        {
+            var source =
+@"#pragma warning disable 219
+#pragma warning disable 8019
+using System;
+using Windows.Foundation.Metadata;
+using CA = C<A>;
+using CB = C<B>;
+using CC = C<C>;
+using CD = C<D>;
+[Obsolete] class A { }
+[Obsolete] class B { }
+[Experimental] class C { }
+[Experimental] class D { }
+class C<T> { }
+class P
+{
+    static void Main()
+    {
+        object o;
+        o = default(CB);
+        o = default(CD);
+    }
+}";
+            var comp = CreateCompilationWithMscorlibAndSystemCore(new[] { Parse(ExperimentalAttributeSource), Parse(source) });
+            comp.VerifyDiagnostics(
+                // (19,21): warning CS0612: 'B' is obsolete
+                //         o = default(CB);
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "CB").WithArguments("B").WithLocation(19, 21),
+                // (20,21): warning CS8305: 'D' is for evaluation purposes only and is subject to change or removal in future updates.
+                //         o = default(CD);
+                Diagnostic(ErrorCode.WRN_Experimental, "CD").WithArguments("D").WithLocation(20, 21));
+        }
     }
 }

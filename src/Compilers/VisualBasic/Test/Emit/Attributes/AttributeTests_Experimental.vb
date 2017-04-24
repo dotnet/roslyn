@@ -664,6 +664,59 @@ BC30668: 'CP' is obsolete: 'DP'.
      </errors>)
         End Sub
 
+        <Fact()>
+        Public Sub TestImportStatements()
+            Dim ref0 = CreateDeprecatedAndExperimentalAttributeReference()
+            Dim source =
+<compilation>
+    <file><![CDATA[
+Imports System
+Imports Windows.Foundation.Metadata
+Imports CA = C(Of A)
+Imports CB = C(Of B)
+Imports CC = C(Of C)
+Imports CD = C(Of D)
+<Obsolete>
+Class A
+End Class
+<Obsolete>
+Class B
+End Class
+<Experimental>
+Class C
+End Class
+<Experimental>
+Class D
+End Class
+Class C(Of T)
+End Class
+Class P
+    Shared Sub Main()
+        Dim o
+        o = New CB()
+        o = New CD()
+    End Sub
+End Class
+]]>
+    </file>
+</compilation>
+            Dim comp = CreateCompilationWithMscorlib(source, references:={ref0})
+            comp.AssertTheseDiagnostics(<errors><![CDATA[
+BC40008: 'A' is obsolete.
+Imports CA = C(Of A)
+                  ~
+BC40008: 'B' is obsolete.
+Imports CB = C(Of B)
+                  ~
+BC42380: 'C' is for evaluation purposes only and is subject to change or removal in future updates.
+Imports CC = C(Of C)
+                  ~
+BC42380: 'D' is for evaluation purposes only and is subject to change or removal in future updates.
+Imports CD = C(Of D)
+                  ~
+]]></errors>)
+        End Sub
+
         Private Shared Function CreateDeprecatedAndExperimentalAttributeReference() As MetadataReference
             Dim comp = CreateCompilationWithMscorlib(DeprecatedAndExperimentalAttributeSource)
             comp.AssertNoDiagnostics()

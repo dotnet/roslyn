@@ -714,6 +714,80 @@ End Class
         End Sub
 
         <Fact>
+        Public Sub TestObsoleteAndPropertyAccessors()
+            Dim source =
+<compilation>
+    <file><![CDATA[
+Imports System
+<Obsolete>
+Class A
+End Class
+<Obsolete>
+Class B
+End Class
+Class C
+    ReadOnly Property P As Object
+        Get
+            Return New A()
+        End Get
+    End Property
+    <Obsolete>
+    ReadOnly Property Q As Object
+        Get
+            Return New B()
+        End Get
+    End Property
+End Class
+]]>
+    </file>
+</compilation>
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                Diagnostic(ERRID.WRN_UseOfObsoleteSymbolNoMessage1, "A").WithArguments("A").WithLocation(11, 24))
+        End Sub
+
+        <Fact>
+        Public Sub TestObsoleteAndEventAccessors()
+            Dim source =
+<compilation>
+    <file><![CDATA[
+Imports System
+<Obsolete>
+Class A
+End Class
+<Obsolete>
+Class B
+End Class
+Class C
+    Custom Event E As EventHandler
+        AddHandler(value As EventHandler)
+        End AddHandler
+        RemoveHandler(value As EventHandler)
+            M(New A())
+        End RemoveHandler
+        RaiseEvent
+        End RaiseEvent
+    End Event
+    <Obsolete>
+    Custom Event F As EventHandler
+        AddHandler(value As EventHandler)
+        End AddHandler
+        RemoveHandler(value As EventHandler)
+            M(New B())
+        End RemoveHandler
+        RaiseEvent
+        End RaiseEvent
+    End Event
+    Shared Sub M(o As Object)
+    End Sub
+End Class
+]]>
+    </file>
+</compilation>
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                Diagnostic(ERRID.WRN_UseOfObsoleteSymbolNoMessage1, "A").WithArguments("A").WithLocation(13, 19))
+        End Sub
+
+        <Fact>
         Public Sub TestObsoleteAttributeCycles_02()
             Dim source =
 <compilation>

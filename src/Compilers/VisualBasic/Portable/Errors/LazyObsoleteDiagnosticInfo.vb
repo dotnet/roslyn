@@ -25,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' from a different compilation's source. In that case, force completion of attributes.
                 _symbol.ForceCompleteObsoleteAttribute()
 
-                Dim kind = ObsoleteAttributeHelpers.GetObsoleteDiagnosticKind(_containingSymbol, _symbol)
+                Dim kind = ObsoleteAttributeHelpers.GetObsoleteDiagnosticKind(_containingSymbol, _symbol, forceComplete:=True)
                 Debug.Assert(kind <> ObsoleteDiagnosticKind.Lazy)
                 Debug.Assert(kind <> ObsoleteDiagnosticKind.LazyPotentiallySuppressed)
 

@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// symbol's Obsoleteness is Unknown. False, if we are certain that no symbol in the parent
         /// hierarchy is Obsolete.
         /// </returns>
-        internal static ThreeState GetObsoleteContextState(this Symbol symbol, bool forceComplete = false)
+        private static ThreeState GetObsoleteContextState(Symbol symbol, bool forceComplete)
         {
             while ((object)symbol != null)
             {
@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return ThreeState.False;
         }
 
-        internal static ObsoleteDiagnosticKind GetObsoleteDiagnosticKind(Symbol symbol, Symbol containingMember)
+        internal static ObsoleteDiagnosticKind GetObsoleteDiagnosticKind(Symbol symbol, Symbol containingMember, bool forceComplete = false)
         {
             switch (symbol.ObsoleteKind)
             {
@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return ObsoleteDiagnosticKind.Lazy;
             }
 
-            switch (containingMember.GetObsoleteContextState())
+            switch (GetObsoleteContextState(containingMember, forceComplete))
             {
                 case ThreeState.False:
                     return ObsoleteDiagnosticKind.Diagnostic;

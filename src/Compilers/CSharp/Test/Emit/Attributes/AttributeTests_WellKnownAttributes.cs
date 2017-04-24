@@ -6508,6 +6508,45 @@ internal sealed class C1 : I1
         }
 
         [Fact]
+        public void TestObsoleteAndPropertyAccessors()
+        {
+            var source =
+@"using System;
+[Obsolete] class A { }
+[Obsolete] class B { }
+class C
+{
+    object P { get { return new A(); } }
+    [Obsolete] object Q { get { return new B(); } }
+}";
+            var comp = CreateCompilationWithMscorlibAndSystemCore(source);
+            comp.VerifyDiagnostics(
+                // (6,33): warning CS0612: 'A' is obsolete
+                //     object P { get { return new A(); } }
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "A").WithArguments("A").WithLocation(6, 33));
+        }
+
+        [Fact]
+        public void TestObsoleteAndEventAccessors()
+        {
+            var source =
+@"using System;
+[Obsolete] class A { }
+[Obsolete] class B { }
+class C
+{
+    event EventHandler E { add { } remove { M(new A()); } }
+    [Obsolete] event EventHandler F { add { } remove { M(new B()); } }
+    static void M(object o) { }
+}";
+            var comp = CreateCompilationWithMscorlibAndSystemCore(source);
+            comp.VerifyDiagnostics(
+                // (6,51): warning CS0612: 'A' is obsolete
+                //     event EventHandler E { add { } remove { M(new A()); } }
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "A").WithArguments("A").WithLocation(6, 51));
+        }
+
+        [Fact]
         [WorkItem(531071, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531071")]
         public void TestObsoleteTypeParameterInAlias()
         {
@@ -7702,7 +7741,9 @@ class Class6
             compilation2.VerifyDiagnostics(expected);
         }
 
-        // Report warning or error based on last attribute.
+        /// <summary>
+        /// Report warning or error based on last attribute.
+        /// </summary>
         [WorkItem(18755, "https://github.com/dotnet/roslyn/issues/18755")]
         [Fact]
         public void TestMultipleDeprecatedAttributes()

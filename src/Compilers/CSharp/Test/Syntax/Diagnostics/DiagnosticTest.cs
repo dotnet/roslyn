@@ -46,7 +46,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
         }
 
-        // ErrorCode should not have duplicates.
+        /// <summary>
+        /// ErrorCode should not have duplicates.
+        /// </summary>
         [Fact]
         public void NoDuplicates()
         {
