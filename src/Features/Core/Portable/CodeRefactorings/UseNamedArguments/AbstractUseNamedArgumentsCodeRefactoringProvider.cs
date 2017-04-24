@@ -45,15 +45,15 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.UseNamedArguments
                     return;
                 }
 
-                // Arguments can be arbitrarily large.  Only offer this feature if the caret is in the
-                // span of the argument, and on the same line that the argument starts in.
+                // Arguments can be arbitrarily large.  Only offer this feature if the caret is on hte
+                // line that the argument starts on.
 
                 var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                var lineSpan = sourceText.Lines.GetLineFromPosition(argument.Span.Start).Span;
-                var argumentSpan = argument.FullSpan;
 
-                var intersection = argumentSpan.Intersection(lineSpan);
-                if (intersection?.IntersectsWith(context.Span.Start) != true)
+                var argumentStartLine = sourceText.Lines.GetLineFromPosition(argument.Span.Start).LineNumber;
+                var caretLine = sourceText.Lines.GetLineFromPosition(context.Span.Start).LineNumber;
+
+                if (argumentStartLine != caretLine)
                 {
                     return;
                 }
