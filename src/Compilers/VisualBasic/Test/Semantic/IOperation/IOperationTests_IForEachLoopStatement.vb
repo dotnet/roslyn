@@ -32,7 +32,7 @@ IForEachLoopStatement (Iteration variable: s As System.String) (LoopKind.ForEach
   Body: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'For Each s  ... Next')
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.WriteLine(s)')
         IInvocationExpression (static Sub System.Console.WriteLine(value As System.String)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.WriteLine(s)')
-          Arguments(1): IArgument (Matching Parameter: value) (OperationKind.Argument) (Syntax: 's')
+          Arguments(1): IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: 's')
               ILocalReferenceExpression: s (OperationKind.LocalReferenceExpression, Type: System.String) (Syntax: 's')
 ]]>.Value
 
@@ -44,34 +44,32 @@ IForEachLoopStatement (Iteration variable: s As System.String) (LoopKind.ForEach
         <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
         Public Sub IForEachLoopStatement_List()
             Dim source = <![CDATA[
-Class Program
-    Private Shared Sub Main(args As String())
-        Dim list As New System.Collections.Generic.List(Of String)()
-        list.Add("a")
-        list.Add("b")
-        list.Add("c")
-        For Each item As String In list'BIND:"For Each item As String In list"
-            System.Console.WriteLine(item)
+Option Strict Off
+Imports System
+Class C
+    Shared Sub Main()
+        Dim o As Object = {1, 2, 3}
+        For Each x In o'BIND:"For Each x In o"
+            Console.WriteLine(x)
         Next
-
     End Sub
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IForEachLoopStatement (Iteration variable: item As System.String) (LoopKind.ForEach) (OperationKind.LoopStatement) (Syntax: 'For Each it ... Next')
-  Collection: ILocalReferenceExpression: list (OperationKind.LocalReferenceExpression, Type: System.Collections.Generic.List(Of System.String)) (Syntax: 'list')
-  Body: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'For Each it ... Next')
-      IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'System.Cons ... eLine(item)')
-        IInvocationExpression (static Sub System.Console.WriteLine(value As System.String)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'System.Cons ... eLine(item)')
-          Arguments(1): IArgument (Matching Parameter: value) (OperationKind.Argument) (Syntax: 'item')
-              ILocalReferenceExpression: item (OperationKind.LocalReferenceExpression, Type: System.String) (Syntax: 'item')
+IForEachLoopStatement (Iteration variable: x As System.Object) (LoopKind.ForEach) (OperationKind.LoopStatement) (Syntax: 'For Each x  ... Next')
+  Collection: IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.Collections.IEnumerable) (Syntax: 'o')
+      ILocalReferenceExpression: o (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'o')
+  Body: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'For Each x  ... Next')
+      IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.WriteLine(x)')
+        IInvocationExpression (static Sub System.Console.WriteLine(value As System.Object)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.WriteLine(x)')
+          Arguments(1): IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: 'x')
+              ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'x')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
 
             VerifyOperationTreeAndDiagnosticsForTest(Of ForEachBlockSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
-
         <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
         Public Sub IForEachLoopStatement_Dictionary()
             Dim source = <![CDATA[
@@ -80,7 +78,7 @@ Imports System.Collections.Generic
 Class Program
     Shared _h As New Dictionary(Of Integer, Integer)()
 
-    Private Shared Sub Main()
+    Public Shared Sub Main()
         _h.Add(5, 4)
         _h.Add(4, 3)
         _h.Add(2, 1)
@@ -96,13 +94,13 @@ IForEachLoopStatement (Iteration variable: pair As System.Collections.Generic.Ke
   Body: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'For Each pa ... Next')
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'System.Cons ... pair.Value)')
         IInvocationExpression (static Sub System.Console.WriteLine(format As System.String, arg0 As System.Object, arg1 As System.Object)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'System.Cons ... pair.Value)')
-          Arguments(3): IArgument (Matching Parameter: format) (OperationKind.Argument) (Syntax: '"{0},{1}"')
+          Arguments(3): IArgument (ArgumentKind.Explicit, Matching Parameter: format) (OperationKind.Argument) (Syntax: '"{0},{1}"')
               ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "{0},{1}") (Syntax: '"{0},{1}"')
-            IArgument (Matching Parameter: arg0) (OperationKind.Argument) (Syntax: 'pair.Key')
+            IArgument (ArgumentKind.Explicit, Matching Parameter: arg0) (OperationKind.Argument) (Syntax: 'pair.Key')
               IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: 'pair.Key')
                 IIndexedPropertyReferenceExpression: ReadOnly Property System.Collections.Generic.KeyValuePair(Of System.Int32, System.Int32).Key As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'pair.Key')
                   Instance Receiver: ILocalReferenceExpression: pair (OperationKind.LocalReferenceExpression, Type: System.Collections.Generic.KeyValuePair(Of System.Int32, System.Int32)) (Syntax: 'pair')
-            IArgument (Matching Parameter: arg1) (OperationKind.Argument) (Syntax: 'pair.Value')
+            IArgument (ArgumentKind.Explicit, Matching Parameter: arg1) (OperationKind.Argument) (Syntax: 'pair.Value')
               IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: 'pair.Value')
                 IIndexedPropertyReferenceExpression: ReadOnly Property System.Collections.Generic.KeyValuePair(Of System.Int32, System.Int32).Value As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'pair.Value')
                   Instance Receiver: ILocalReferenceExpression: pair (OperationKind.LocalReferenceExpression, Type: System.Collections.Generic.KeyValuePair(Of System.Int32, System.Int32)) (Syntax: 'pair')
@@ -148,7 +146,7 @@ IForEachLoopStatement (Iteration variable: x As System.String) (LoopKind.ForEach
               IfFalse: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'Else ... riteLine(y)')
                   IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'System.Cons ... riteLine(y)')
                     IInvocationExpression (static Sub System.Console.WriteLine(value As System.Char)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'System.Cons ... riteLine(y)')
-                      Arguments(1): IArgument (Matching Parameter: value) (OperationKind.Argument) (Syntax: 'y')
+                      Arguments(1): IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: 'y')
                           ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Char) (Syntax: 'y')
 ]]>.Value
 
@@ -189,7 +187,7 @@ IForEachLoopStatement (Iteration variable: x As System.String) (LoopKind.ForEach
                   IBranchStatement (BranchKind.Continue, Label: continue) (OperationKind.BranchStatement) (Syntax: 'Continue For')
             IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'System.Cons ... riteLine(y)')
               IInvocationExpression (static Sub System.Console.WriteLine(value As System.Char)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'System.Cons ... riteLine(y)')
-                Arguments(1): IArgument (Matching Parameter: value) (OperationKind.Argument) (Syntax: 'y')
+                Arguments(1): IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: 'y')
                     ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Char) (Syntax: 'y')
 ]]>.Value
 
@@ -247,7 +245,7 @@ IForEachLoopStatement (Iteration variable: x As System.Int32()) (LoopKind.ForEac
         Body: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'For Each y  ... Next')
             IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'System.Cons ... riteLine(y)')
               IInvocationExpression (static Sub System.Console.WriteLine(value As System.Int32)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'System.Cons ... riteLine(y)')
-                Arguments(1): IArgument (Matching Parameter: value) (OperationKind.Argument) (Syntax: 'y')
+                Arguments(1): IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: 'y')
                     ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'y')
 ]]>.Value
 
@@ -268,8 +266,7 @@ Class C
             Next
         Next
     End Sub
-End Class
-]]>.Value
+End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IForEachLoopStatement (Iteration variable: x As System.String) (LoopKind.ForEach) (OperationKind.LoopStatement) (Syntax: 'For Each x  ... Next')
@@ -281,7 +278,7 @@ IForEachLoopStatement (Iteration variable: x As System.String) (LoopKind.ForEach
         Body: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'For Each y  ... Next')
             IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'System.Cons ... riteLine(y)')
               IInvocationExpression (static Sub System.Console.WriteLine(value As System.Char)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'System.Cons ... riteLine(y)')
-                Arguments(1): IArgument (Matching Parameter: value) (OperationKind.Argument) (Syntax: 'y')
+                Arguments(1): IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: 'y')
                     ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Char) (Syntax: 'y')
 ]]>.Value
 
@@ -319,7 +316,7 @@ IForEachLoopStatement (Iteration variable: x As System.Object) (LoopKind.ForEach
   Body: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'For Each x  ... Next')
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'System.Cons ... riteLine(x)')
         IInvocationExpression (static Sub System.Console.WriteLine(value As System.Object)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'System.Cons ... riteLine(x)')
-          Arguments(1): IArgument (Matching Parameter: value) (OperationKind.Argument) (Syntax: 'x')
+          Arguments(1): IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: 'x')
               ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'x')
 ]]>.Value
 
@@ -327,14 +324,11 @@ IForEachLoopStatement (Iteration variable: x As System.Object) (LoopKind.ForEach
 
             VerifyOperationTreeAndDiagnosticsForTest(Of ForEachBlockSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
-
         <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
         Public Sub IForEachLoopStatement_Struct()
             Dim source = <![CDATA[
 Option Infer On
-
 Imports System.Collections
-
 Class C
     Public Shared Sub Main()
         For Each x In New Enumerable()'BIND:"For Each x In New Enumerable()"
@@ -355,7 +349,7 @@ IForEachLoopStatement (Iteration variable: x As System.Object) (LoopKind.ForEach
   Body: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'For Each x  ... Next')
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'System.Cons ... riteLine(x)')
         IInvocationExpression (static Sub System.Console.WriteLine(value As System.Object)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'System.Cons ... riteLine(x)')
-          Arguments(1): IArgument (Matching Parameter: value) (OperationKind.Argument) (Syntax: 'x')
+          Arguments(1): IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: 'x')
               ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'x')
 ]]>.Value
 
@@ -383,7 +377,7 @@ IForEachLoopStatement (Iteration variable: y As System.Char) (LoopKind.ForEach) 
   Body: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'For Each y  ... Next')
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'System.Cons ... riteLine(y)')
         IInvocationExpression (static Sub System.Console.WriteLine(value As System.Char)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'System.Cons ... riteLine(y)')
-          Arguments(1): IArgument (Matching Parameter: value) (OperationKind.Argument) (Syntax: 'y')
+          Arguments(1): IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: 'y')
               ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Char) (Syntax: 'y')
 ]]>.Value
 
@@ -420,19 +414,19 @@ IForEachLoopStatement (Iteration variable: Custom As System.Int32) (LoopKind.For
   Body: IBlockStatement (3 statements) (OperationKind.BlockStatement) (Syntax: 'For Each [C ... Next')
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.Wri ... (Integer)))')
         IInvocationExpression (static Sub System.Console.Write(value As System.Boolean)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.Wri ... (Integer)))')
-          Arguments(1): IArgument (Matching Parameter: value) (OperationKind.Argument) (Syntax: 'VerifyStati ... e(Integer))')
+          Arguments(1): IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: 'VerifyStati ... e(Integer))')
               IInvocationExpression (static Function Program.VerifyStaticType(Of System.Int32)(x As System.Int32, y As System.Type) As System.Boolean) (OperationKind.InvocationExpression, Type: System.Boolean) (Syntax: 'VerifyStati ... e(Integer))')
-                Arguments(2): IArgument (Matching Parameter: x) (OperationKind.Argument) (Syntax: '[Custom]')
+                Arguments(2): IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: '[Custom]')
                     ILocalReferenceExpression: Custom (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: '[Custom]')
-                  IArgument (Matching Parameter: y) (OperationKind.Argument) (Syntax: 'GetType(Integer)')
+                  IArgument (ArgumentKind.Explicit, Matching Parameter: y) (OperationKind.Argument) (Syntax: 'GetType(Integer)')
                     IOperation:  (OperationKind.None) (Syntax: 'GetType(Integer)')
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.Wri ... e(Object)))')
         IInvocationExpression (static Sub System.Console.Write(value As System.Boolean)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.Wri ... e(Object)))')
-          Arguments(1): IArgument (Matching Parameter: value) (OperationKind.Argument) (Syntax: 'VerifyStati ... pe(Object))')
+          Arguments(1): IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: 'VerifyStati ... pe(Object))')
               IInvocationExpression (static Function Program.VerifyStaticType(Of System.Int32)(x As System.Int32, y As System.Type) As System.Boolean) (OperationKind.InvocationExpression, Type: System.Boolean) (Syntax: 'VerifyStati ... pe(Object))')
-                Arguments(2): IArgument (Matching Parameter: x) (OperationKind.Argument) (Syntax: '[Custom]')
+                Arguments(2): IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: '[Custom]')
                     ILocalReferenceExpression: Custom (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: '[Custom]')
-                  IArgument (Matching Parameter: y) (OperationKind.Argument) (Syntax: 'GetType(Object)')
+                  IArgument (ArgumentKind.Explicit, Matching Parameter: y) (OperationKind.Argument) (Syntax: 'GetType(Object)')
                     IOperation:  (OperationKind.None) (Syntax: 'GetType(Object)')
       IBranchStatement (BranchKind.Break, Label: exit) (OperationKind.BranchStatement) (Syntax: 'Exit For')
 ]]>.Value
@@ -463,7 +457,7 @@ IForEachLoopStatement (Iteration variable: x As System.Object) (LoopKind.ForEach
   Body: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'For Each x  ... Next')
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.WriteLine(x)')
         IInvocationExpression (static Sub System.Console.WriteLine(value As System.Object)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.WriteLine(x)')
-          Arguments(1): IArgument (Matching Parameter: value) (OperationKind.Argument) (Syntax: 'x')
+          Arguments(1): IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: 'x')
               ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'x')
 ]]>.Value
 
@@ -471,7 +465,6 @@ IForEachLoopStatement (Iteration variable: x As System.Object) (LoopKind.ForEach
 
             VerifyOperationTreeAndDiagnosticsForTest(Of ForEachBlockSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
-
         <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
         Public Sub IForEachLoopStatement_WithPattern()
             Dim source = <![CDATA[
@@ -508,7 +501,7 @@ IForEachLoopStatement (Iteration variable: x As System.Int32) (LoopKind.ForEach)
   Body: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'For Each x  ... Next')
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'System.Cons ... riteLine(x)')
         IInvocationExpression (static Sub System.Console.WriteLine(value As System.Int32)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'System.Cons ... riteLine(x)')
-          Arguments(1): IArgument (Matching Parameter: value) (OperationKind.Argument) (Syntax: 'x')
+          Arguments(1): IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: 'x')
               ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
 ]]>.Value
 
@@ -553,7 +546,7 @@ IForEachLoopStatement (Iteration variable: x As System.Int32) (LoopKind.ForEach)
   Body: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'For Each x  ... Next')
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'System.Cons ... riteLine(x)')
         IInvocationExpression (static Sub System.Console.WriteLine(value As System.Int32)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'System.Cons ... riteLine(x)')
-          Arguments(1): IArgument (Matching Parameter: value) (OperationKind.Argument) (Syntax: 'x')
+          Arguments(1): IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: 'x')
               ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
 ]]>.Value
 
@@ -580,7 +573,7 @@ IForEachLoopStatement (Iteration variable: element As System.Int32) (LoopKind.Fo
   Body: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'For Each el ... Next')
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.Wri ... ne(element)')
         IInvocationExpression (static Sub System.Console.WriteLine(value As System.Int32)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.Wri ... ne(element)')
-          Arguments(1): IArgument (Matching Parameter: value) (OperationKind.Argument) (Syntax: 'element')
+          Arguments(1): IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: 'element')
               ILocalReferenceExpression: element (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'element')
 ]]>.Value
 
@@ -626,7 +619,7 @@ IForEachLoopStatement (Iteration variable: s As System.String) (LoopKind.ForEach
               IObjectCreationExpression (Constructor: Sub System.Exception..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Exception) (Syntax: 'New Exception')
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.WriteLine(s)')
         IInvocationExpression (static Sub System.Console.WriteLine(value As System.String)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.WriteLine(s)')
-          Arguments(1): IArgument (Matching Parameter: value) (OperationKind.Argument) (Syntax: 's')
+          Arguments(1): IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: 's')
               ILocalReferenceExpression: s (OperationKind.LocalReferenceExpression, Type: System.String) (Syntax: 's')
 ]]>.Value
 
@@ -696,6 +689,30 @@ IForEachLoopStatement (Iteration variable: o As System.Object) (LoopKind.ForEach
         IfTrue: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'If o IsNot  ... Return True')
             IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'Return True')
               ILiteralExpression (Text: True) (OperationKind.LiteralExpression, Type: System.Boolean, Constant: True) (Syntax: 'True')
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of ForEachBlockSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
+        Public Sub IForEachLoopStatement_EmptyBody()
+            Dim source = <![CDATA[
+Class Program
+    Public Shared Sub Main()
+        Dim pets As String() = {"dog", "cat", "bird"}
+
+        For Each value As String In pets'BIND:"For Each value As String In pets"
+        Next
+    End Sub
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IForEachLoopStatement (Iteration variable: value As System.String) (LoopKind.ForEach) (OperationKind.LoopStatement) (Syntax: 'For Each va ... Next')
+  Collection: IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.Collections.IEnumerable) (Syntax: 'pets')
+      ILocalReferenceExpression: pets (OperationKind.LocalReferenceExpression, Type: System.String()) (Syntax: 'pets')
+  Body: IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: 'For Each va ... Next')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty

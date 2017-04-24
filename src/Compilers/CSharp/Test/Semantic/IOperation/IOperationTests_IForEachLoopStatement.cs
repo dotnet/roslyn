@@ -19,14 +19,13 @@ class Program
     static void Main()
     {
         string[] pets = { ""dog"", ""cat"", ""bird"" };
-
+               
         /*<bind>*/foreach (string value in pets)
         {
             System.Console.WriteLine(value);
         }/*</bind>*/
     }
 }
-
 ";
             string expectedOperationTree = @"
 IForEachLoopStatement (Iteration variable: System.String value) (LoopKind.ForEach) (OperationKind.LoopStatement) (Syntax: 'foreach (st ... }')
@@ -35,13 +34,14 @@ IForEachLoopStatement (Iteration variable: System.String value) (LoopKind.ForEac
   Body: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'System.Cons ... ine(value);')
         IInvocationExpression (static void System.Console.WriteLine(System.String value)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'System.Cons ... Line(value)')
-          Arguments(1): IArgument (Matching Parameter: value) (OperationKind.Argument) (Syntax: 'value')
+          Arguments(1): IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: 'value')
               ILocalReferenceExpression: value (OperationKind.LocalReferenceExpression, Type: System.String) (Syntax: 'value')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<ForEachStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
+
 
         [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
         public void IForEachLoopStatement_List()
@@ -71,7 +71,7 @@ IForEachLoopStatement (Iteration variable: System.String item) (LoopKind.ForEach
   Body: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'System.Cons ... Line(item);')
         IInvocationExpression (static void System.Console.WriteLine(System.String value)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'System.Cons ... eLine(item)')
-          Arguments(1): IArgument (Matching Parameter: value) (OperationKind.Argument) (Syntax: 'item')
+          Arguments(1): IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: 'item')
               ILocalReferenceExpression: item (OperationKind.LocalReferenceExpression, Type: System.String) (Syntax: 'item')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
@@ -110,13 +110,13 @@ IForEachLoopStatement (Iteration variable: System.Collections.Generic.KeyValuePa
   Body: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'System.Cons ... air.Value);')
         IInvocationExpression (static void System.Console.WriteLine(System.String format, System.Object arg0, System.Object arg1)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'System.Cons ... pair.Value)')
-          Arguments(3): IArgument (Matching Parameter: format) (OperationKind.Argument) (Syntax: '""{0},{1}""')
+          Arguments(3): IArgument (ArgumentKind.Explicit, Matching Parameter: format) (OperationKind.Argument) (Syntax: '""{0},{1}""')
               ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: ""{0},{1}"") (Syntax: '""{0},{1}""')
-            IArgument (Matching Parameter: arg0) (OperationKind.Argument) (Syntax: 'pair.Key')
+            IArgument (ArgumentKind.Explicit, Matching Parameter: arg0) (OperationKind.Argument) (Syntax: 'pair.Key')
               IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: 'pair.Key')
                 IPropertyReferenceExpression: System.Int32 System.Collections.Generic.KeyValuePair<System.Int32, System.Int32>.Key { get; } (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'pair.Key')
                   Instance Receiver: ILocalReferenceExpression: pair (OperationKind.LocalReferenceExpression, Type: System.Collections.Generic.KeyValuePair<System.Int32, System.Int32>) (Syntax: 'pair')
-            IArgument (Matching Parameter: arg1) (OperationKind.Argument) (Syntax: 'pair.Value')
+            IArgument (ArgumentKind.Explicit, Matching Parameter: arg1) (OperationKind.Argument) (Syntax: 'pair.Value')
               IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: 'pair.Value')
                 IPropertyReferenceExpression: System.Int32 System.Collections.Generic.KeyValuePair<System.Int32, System.Int32>.Value { get; } (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'pair.Value')
                   Instance Receiver: ILocalReferenceExpression: pair (OperationKind.LocalReferenceExpression, Type: System.Collections.Generic.KeyValuePair<System.Int32, System.Int32>) (Syntax: 'pair')
@@ -169,7 +169,7 @@ IForEachLoopStatement (Iteration variable: Class1.School school) (LoopKind.ForEa
   Body: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'System.Cons ... hool.Name);')
         IInvocationExpression (static void System.Console.WriteLine(System.String value)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'System.Cons ... chool.Name)')
-          Arguments(1): IArgument (Matching Parameter: value) (OperationKind.Argument) (Syntax: 'school.Name')
+          Arguments(1): IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: 'school.Name')
               IPropertyReferenceExpression: System.String Class1.School.Name { get; set; } (OperationKind.PropertyReferenceExpression, Type: System.String) (Syntax: 'school.Name')
                 Instance Receiver: ILocalReferenceExpression: school (OperationKind.LocalReferenceExpression, Type: Class1.School) (Syntax: 'school')
 ";
@@ -212,7 +212,7 @@ IForEachLoopStatement (Iteration variable: System.Int32 num) (LoopKind.ForEach) 
             IBranchStatement (BranchKind.Break) (OperationKind.BranchStatement) (Syntax: 'break;')
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'System.Cons ... eLine(num);')
         IInvocationExpression (static void System.Console.WriteLine(System.Int32 value)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'System.Cons ... teLine(num)')
-          Arguments(1): IArgument (Matching Parameter: value) (OperationKind.Argument) (Syntax: 'num')
+          Arguments(1): IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: 'num')
               ILocalReferenceExpression: num (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'num')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
@@ -254,7 +254,7 @@ IForEachLoopStatement (Iteration variable: System.Int32 num) (LoopKind.ForEach) 
             IBranchStatement (BranchKind.Continue) (OperationKind.BranchStatement) (Syntax: 'continue;')
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'System.Cons ... eLine(num);')
         IInvocationExpression (static void System.Console.WriteLine(System.Int32 value)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'System.Cons ... teLine(num)')
-          Arguments(1): IArgument (Matching Parameter: value) (OperationKind.Argument) (Syntax: 'num')
+          Arguments(1): IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: 'num')
               ILocalReferenceExpression: num (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'num')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
@@ -292,7 +292,7 @@ IForEachLoopStatement (Iteration variable: System.Int32[] subArray) (LoopKind.Fo
         Body: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
             IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'System.Console.Write(i);')
               IInvocationExpression (static void System.Console.Write(System.Int32 value)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'System.Console.Write(i)')
-                Arguments(1): IArgument (Matching Parameter: value) (OperationKind.Argument) (Syntax: 'i')
+                Arguments(1): IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: 'i')
                     ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
@@ -301,7 +301,7 @@ IForEachLoopStatement (Iteration variable: System.Int32[] subArray) (LoopKind.Fo
         }
 
         [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
-        public void IForEachLoopStatement_Nested1()
+        public void IForEachLoopStatement_NestedQuery()
         {
             string source = @"
 class Program
@@ -320,26 +320,26 @@ class Program
 IForEachLoopStatement (Iteration variable: System.Int32 i) (LoopKind.ForEach) (OperationKind.LoopStatement) (Syntax: 'foreach (in ... ray[i][j]);')
   Collection: IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable<System.Int32>) (Syntax: 'System.Linq ... tLength(0))')
       IInvocationExpression (static System.Collections.Generic.IEnumerable<System.Int32> System.Linq.Enumerable.Range(System.Int32 start, System.Int32 count)) (OperationKind.InvocationExpression, Type: System.Collections.Generic.IEnumerable<System.Int32>) (Syntax: 'System.Linq ... tLength(0))')
-        Arguments(2): IArgument (Matching Parameter: start) (OperationKind.Argument) (Syntax: '0')
+        Arguments(2): IArgument (ArgumentKind.Explicit, Matching Parameter: start) (OperationKind.Argument) (Syntax: '0')
             ILiteralExpression (Text: 0) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
-          IArgument (Matching Parameter: count) (OperationKind.Argument) (Syntax: 'array.GetLength(0)')
+          IArgument (ArgumentKind.Explicit, Matching Parameter: count) (OperationKind.Argument) (Syntax: 'array.GetLength(0)')
             IInvocationExpression ( System.Int32 System.Array.GetLength(System.Int32 dimension)) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'array.GetLength(0)')
               Instance Receiver: ILocalReferenceExpression: array (OperationKind.LocalReferenceExpression, Type: System.Int32[][]) (Syntax: 'array')
-              Arguments(1): IArgument (Matching Parameter: dimension) (OperationKind.Argument) (Syntax: '0')
+              Arguments(1): IArgument (ArgumentKind.Explicit, Matching Parameter: dimension) (OperationKind.Argument) (Syntax: '0')
                   ILiteralExpression (Text: 0) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
   Body: IForEachLoopStatement (Iteration variable: System.Int32 j) (LoopKind.ForEach) (OperationKind.LoopStatement) (Syntax: 'foreach (in ... ray[i][j]);')
       Collection: IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable<System.Int32>) (Syntax: 'System.Linq ... tLength(1))')
           IInvocationExpression (static System.Collections.Generic.IEnumerable<System.Int32> System.Linq.Enumerable.Range(System.Int32 start, System.Int32 count)) (OperationKind.InvocationExpression, Type: System.Collections.Generic.IEnumerable<System.Int32>) (Syntax: 'System.Linq ... tLength(1))')
-            Arguments(2): IArgument (Matching Parameter: start) (OperationKind.Argument) (Syntax: '0')
+            Arguments(2): IArgument (ArgumentKind.Explicit, Matching Parameter: start) (OperationKind.Argument) (Syntax: '0')
                 ILiteralExpression (Text: 0) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
-              IArgument (Matching Parameter: count) (OperationKind.Argument) (Syntax: 'array.GetLength(1)')
+              IArgument (ArgumentKind.Explicit, Matching Parameter: count) (OperationKind.Argument) (Syntax: 'array.GetLength(1)')
                 IInvocationExpression ( System.Int32 System.Array.GetLength(System.Int32 dimension)) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'array.GetLength(1)')
                   Instance Receiver: ILocalReferenceExpression: array (OperationKind.LocalReferenceExpression, Type: System.Int32[][]) (Syntax: 'array')
-                  Arguments(1): IArgument (Matching Parameter: dimension) (OperationKind.Argument) (Syntax: '1')
+                  Arguments(1): IArgument (ArgumentKind.Explicit, Matching Parameter: dimension) (OperationKind.Argument) (Syntax: '1')
                       ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
       Body: IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'System.Cons ... ray[i][j]);')
           IInvocationExpression (static void System.Console.WriteLine(System.Int32 value)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'System.Cons ... rray[i][j])')
-            Arguments(1): IArgument (Matching Parameter: value) (OperationKind.Argument) (Syntax: 'array[i][j]')
+            Arguments(1): IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: 'array[i][j]')
                 IArrayElementReferenceExpression (OperationKind.ArrayElementReferenceExpression, Type: System.Int32) (Syntax: 'array[i][j]')
                   Array reference: IArrayElementReferenceExpression (OperationKind.ArrayElementReferenceExpression, Type: System.Int32[]) (Syntax: 'array[i]')
                       Array reference: ILocalReferenceExpression: array (OperationKind.LocalReferenceExpression, Type: System.Int32[][]) (Syntax: 'array')
@@ -378,7 +378,7 @@ IForEachLoopStatement (Iteration variable: System.String value) (LoopKind.ForEac
   Body: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'System.Cons ... ine(value);')
         IInvocationExpression (static void System.Console.WriteLine(System.String value)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'System.Cons ... Line(value)')
-          Arguments(1): IArgument (Matching Parameter: value) (OperationKind.Argument) (Syntax: 'value')
+          Arguments(1): IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: 'value')
               ILocalReferenceExpression: value (OperationKind.LocalReferenceExpression, Type: System.String) (Syntax: 'value')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
@@ -431,17 +431,17 @@ IForEachLoopStatement (Iteration variable: System.Reflection.FieldInfo fi) (Loop
   Body: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'System.Cons ... mployee)));')
         IInvocationExpression (static void System.Console.WriteLine(System.String value)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'System.Cons ... employee)))')
-          Arguments(1): IArgument (Matching Parameter: value) (OperationKind.Argument) (Syntax: 'fi.Name + "" ... (employee))')
+          Arguments(1): IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: 'fi.Name + "" ... (employee))')
               IBinaryOperatorExpression (BinaryOperationKind.StringConcatenate) (OperationKind.BinaryOperatorExpression, Type: System.String) (Syntax: 'fi.Name + "" ... (employee))')
                 Left: IBinaryOperatorExpression (BinaryOperationKind.StringConcatenate) (OperationKind.BinaryOperatorExpression, Type: System.String) (Syntax: 'fi.Name + "" = ""')
                     Left: IPropertyReferenceExpression: System.String System.Reflection.MemberInfo.Name { get; } (OperationKind.PropertyReferenceExpression, Type: System.String) (Syntax: 'fi.Name')
                         Instance Receiver: ILocalReferenceExpression: fi (OperationKind.LocalReferenceExpression, Type: System.Reflection.FieldInfo) (Syntax: 'fi')
                     Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "" = "") (Syntax: '"" = ""')
                 Right: IInvocationExpression (static System.String System.Convert.ToString(System.Object value)) (OperationKind.InvocationExpression, Type: System.String) (Syntax: 'System.Conv ... (employee))')
-                    Arguments(1): IArgument (Matching Parameter: value) (OperationKind.Argument) (Syntax: 'fi.GetValue(employee)')
+                    Arguments(1): IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: 'fi.GetValue(employee)')
                         IInvocationExpression (virtual System.Object System.Reflection.FieldInfo.GetValue(System.Object obj)) (OperationKind.InvocationExpression, Type: System.Object) (Syntax: 'fi.GetValue(employee)')
                           Instance Receiver: ILocalReferenceExpression: fi (OperationKind.LocalReferenceExpression, Type: System.Reflection.FieldInfo) (Syntax: 'fi')
-                          Arguments(1): IArgument (Matching Parameter: obj) (OperationKind.Argument) (Syntax: 'employee')
+                          Arguments(1): IArgument (ArgumentKind.Explicit, Matching Parameter: obj) (OperationKind.Argument) (Syntax: 'employee')
                               IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: 'employee')
                                 ILocalReferenceExpression: employee (OperationKind.LocalReferenceExpression, Type: DisplayStructContentsTest.Program.Employee) (Syntax: 'employee')
 ";
@@ -478,7 +478,7 @@ IForEachLoopStatement (Iteration variable: System.Char c) (LoopKind.ForEach) (Op
   Body: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'System.Cons ... iteLine(c);')
         IInvocationExpression (static void System.Console.WriteLine(System.Char value)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'System.Cons ... riteLine(c)')
-          Arguments(1): IArgument (Matching Parameter: value) (OperationKind.Argument) (Syntax: 'c')
+          Arguments(1): IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: 'c')
               ILocalReferenceExpression: c (OperationKind.LocalReferenceExpression, Type: System.Char) (Syntax: 'c')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
@@ -515,13 +515,13 @@ IForEachLoopStatement (Iteration variable: System.Collections.Generic.KeyValuePa
   Body: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'System.Cons ... air.Value);')
         IInvocationExpression (static void System.Console.WriteLine(System.String format, System.Object arg0, System.Object arg1)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'System.Cons ... pair.Value)')
-          Arguments(3): IArgument (Matching Parameter: format) (OperationKind.Argument) (Syntax: '""{ 0},{ 1}""')
+          Arguments(3): IArgument (ArgumentKind.Explicit, Matching Parameter: format) (OperationKind.Argument) (Syntax: '""{ 0},{ 1}""')
               ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: ""{ 0},{ 1}"") (Syntax: '""{ 0},{ 1}""')
-            IArgument (Matching Parameter: arg0) (OperationKind.Argument) (Syntax: 'pair.Key')
+            IArgument (ArgumentKind.Explicit, Matching Parameter: arg0) (OperationKind.Argument) (Syntax: 'pair.Key')
               IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: 'pair.Key')
                 IPropertyReferenceExpression: System.Int32 System.Collections.Generic.KeyValuePair<System.Int32, System.Int32>.Key { get; } (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'pair.Key')
                   Instance Receiver: ILocalReferenceExpression: pair (OperationKind.LocalReferenceExpression, Type: System.Collections.Generic.KeyValuePair<System.Int32, System.Int32>) (Syntax: 'pair')
-            IArgument (Matching Parameter: arg1) (OperationKind.Argument) (Syntax: 'pair.Value')
+            IArgument (ArgumentKind.Explicit, Matching Parameter: arg1) (OperationKind.Argument) (Syntax: 'pair.Value')
               IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: 'pair.Value')
                 IPropertyReferenceExpression: System.Int32 System.Collections.Generic.KeyValuePair<System.Int32, System.Int32>.Value { get; } (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'pair.Value')
                   Instance Receiver: ILocalReferenceExpression: pair (OperationKind.LocalReferenceExpression, Type: System.Collections.Generic.KeyValuePair<System.Int32, System.Int32>) (Syntax: 'pair')
@@ -555,16 +555,16 @@ IForEachLoopStatement (Iteration variable: System.Int32 j) (LoopKind.ForEach) (O
         Initializer: IArrayInitializer (1 elements) (OperationKind.ArrayInitializer) (Syntax: '{ int.TryPa ... ) ? i : 0 }')
             Element Values(1): IConditionalChoiceExpression (OperationKind.ConditionalChoiceExpression, Type: System.Int32) (Syntax: 'int.TryPars ...  i) ? i : 0')
                 Condition: IInvocationExpression (static System.Boolean System.Int32.TryParse(System.String s, out System.Int32 result)) (OperationKind.InvocationExpression, Type: System.Boolean) (Syntax: 'int.TryPars ...  out var i)')
-                    Arguments(2): IArgument (Matching Parameter: s) (OperationKind.Argument) (Syntax: 's')
+                    Arguments(2): IArgument (ArgumentKind.Explicit, Matching Parameter: s) (OperationKind.Argument) (Syntax: 's')
                         ILocalReferenceExpression: s (OperationKind.LocalReferenceExpression, Type: System.String) (Syntax: 's')
-                      IArgument (Matching Parameter: result) (OperationKind.Argument) (Syntax: 'var i')
+                      IArgument (ArgumentKind.Explicit, Matching Parameter: result) (OperationKind.Argument) (Syntax: 'var i')
                         ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'var i')
                 IfTrue: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
                 IfFalse: ILiteralExpression (Text: 0) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
   Body: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'System.Cons ... , s ={s}"");')
         IInvocationExpression (static void System.Console.WriteLine(System.String value)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'System.Cons ... }, s ={s}"")')
-          Arguments(1): IArgument (Matching Parameter: value) (OperationKind.Argument) (Syntax: '$""i ={ i}, s ={s}""')
+          Arguments(1): IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: '$""i ={ i}, s ={s}""')
               IOperation:  (OperationKind.None) (Syntax: '$""i ={ i}, s ={s}""')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
@@ -593,8 +593,9 @@ IForEachLoopStatement (Iteration variable: MissingType x) (LoopKind.ForEach) (Op
   Collection: ILocalReferenceExpression: sequence (OperationKind.LocalReferenceExpression, Type: System.Collections.IEnumerable) (Syntax: 'sequence')
   Body: IBlockStatement (1 statements, 1 locals) (OperationKind.BlockStatement, IsInvalid) (Syntax: '{ ... }')
       Locals: Local_1: System.Boolean b
-      IVariableDeclarationStatement (1 variables) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'bool b = !x ... uals(null);')
-        IVariableDeclaration: System.Boolean b (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'bool b = !x ... uals(null);')
+      IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'bool b = !x ... uals(null);')
+        IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'bool b = !x ... uals(null);')
+          Variables: Local_1: System.Boolean b
           Initializer: IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.Boolean, IsInvalid) (Syntax: '!x.Equals(null)')
               IUnaryOperatorExpression (UnaryOperationKind.Invalid) (OperationKind.UnaryOperatorExpression, Type: System.Object, IsInvalid) (Syntax: '!x.Equals(null)')
                 IInvocationExpression ( ? C.()) (OperationKind.InvocationExpression, Type: ?, IsInvalid) (Syntax: 'x.Equals(null)')
@@ -783,7 +784,7 @@ IForEachLoopStatement (Iteration variable: System.Object x) (LoopKind.ForEach) (
   Body: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'System.Cons ... iteLine(x);')
         IInvocationExpression (static void System.Console.WriteLine(System.Object value)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'System.Cons ... riteLine(x)')
-          Arguments(1): IArgument (Matching Parameter: value) (OperationKind.Argument) (Syntax: 'x')
+          Arguments(1): IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: 'x')
               ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'x')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
@@ -824,16 +825,44 @@ IForEachLoopStatement (Iteration variable: System.Int32 num) (LoopKind.ForEach) 
         IfTrue: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
             IThrowStatement (OperationKind.ThrowStatement) (Syntax: 'throw new S ... ""testing"");')
               IObjectCreationExpression (Constructor: System.Exception..ctor(System.String message)) (OperationKind.ObjectCreationExpression, Type: System.Exception) (Syntax: 'new System. ... (""testing"")')
-                Arguments(1): IArgument (Matching Parameter: message) (OperationKind.Argument) (Syntax: '""testing""')
+                Arguments(1): IArgument (ArgumentKind.Explicit, Matching Parameter: message) (OperationKind.Argument) (Syntax: '""testing""')
                     ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: ""testing"") (Syntax: '""testing""')
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'System.Cons ... eLine(num);')
         IInvocationExpression (static void System.Console.WriteLine(System.Int32 value)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'System.Cons ... teLine(num)')
-          Arguments(1): IArgument (Matching Parameter: value) (OperationKind.Argument) (Syntax: 'num')
+          Arguments(1): IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: 'num')
               ILocalReferenceExpression: num (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'num')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<ForEachStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
+
+        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
+        public void IForEachLoopStatement_EmptyStatement()
+        {
+            string source = @"
+class Program
+{
+    static void Main()
+    {
+        string[] pets = { ""dog"", ""cat"", ""bird"" };
+        /*<bind>*/foreach (string value in pets)
+        {
+            
+        }/*</bind>*/
+    }
+}
+";
+            string expectedOperationTree = @"
+IForEachLoopStatement (Iteration variable: System.String value) (LoopKind.ForEach) (OperationKind.LoopStatement) (Syntax: 'foreach (st ... }')
+  Collection: IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.Collections.IEnumerable) (Syntax: 'pets')
+      ILocalReferenceExpression: pets (OperationKind.LocalReferenceExpression, Type: System.String[]) (Syntax: 'pets')
+  Body: IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<ForEachStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
     }
 }
