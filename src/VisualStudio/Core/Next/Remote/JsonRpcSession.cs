@@ -31,15 +31,35 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         private readonly CancellationTokenRegistration _cancellationRegistration;
 
         public static async Task<JsonRpcSession> CreateAsync(
-            PinnedRemotableDataScope snapshot,
+            Optional<Func<CancellationToken, Task<PinnedRemotableDataScope>>> getSnapshotAsync,
             object callbackTarget,
             Stream serviceStream,
             Stream snapshotStreamOpt,
             CancellationToken cancellationToken)
         {
-            var session = new JsonRpcSession(snapshot, callbackTarget, serviceStream, snapshotStreamOpt, cancellationToken);
+            var snapshot = getSnapshotAsync.Value == null ? null : await getSnapshotAsync.Value(cancellationToken).ConfigureAwait(false);
 
-            await session.InitializeAsync().ConfigureAwait(false);
+            JsonRpcSession session;
+            try
+            {
+                session = new JsonRpcSession(snapshot, callbackTarget, serviceStream, snapshotStreamOpt, cancellationToken);
+            }
+            catch
+            {
+                snapshot?.Dispose();
+                throw;
+            }
+
+            try
+            {
+                await session.InitializeAsync().ConfigureAwait(false);
+            }
+            catch when (!cancellationToken.IsCancellationRequested)
+            {
+                // The session disposes of itself when cancellation is requested.
+                session.Dispose();
+                throw;
+            }
 
             return session;
         }
@@ -52,6 +72,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             CancellationToken cancellationToken) :
             base(snapshot, cancellationToken)
         {
+            Contract.Requires((snapshot == null) == (snapshotStreamOpt == null));
+
             // get session id
             _currentSessionId = Interlocked.Increment(ref s_sessionId);
 
