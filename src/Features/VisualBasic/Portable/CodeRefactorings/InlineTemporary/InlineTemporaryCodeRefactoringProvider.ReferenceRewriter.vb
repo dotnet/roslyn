@@ -62,6 +62,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InlineTemporary
                 Return MyBase.VisitIdentifierName(node)
             End Function
 
+            Public Overrides Function VisitNameColonEquals(node As NameColonEqualsSyntax) As SyntaxNode
+                If node.IsParentKind(SyntaxKind.SimpleArgument) AndAlso
+                    node.Parent.IsParentKind(SyntaxKind.TupleExpression) Then
+
+                    Return node
+                End If
+
+                Return MyBase.VisitNameColonEquals(node)
+            End Function
+
             Public Overloads Shared Function Visit(
                 semanticModel As SemanticModel,
                 scope As SyntaxNode,

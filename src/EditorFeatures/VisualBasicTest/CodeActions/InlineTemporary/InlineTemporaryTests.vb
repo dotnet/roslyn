@@ -4207,7 +4207,7 @@ End Class
             Await TestInRegularAndScriptAsync(code, expected, ignoreTrivia:=False)
         End Function
 
-        <Fact(Skip:="PROTOTYPE(tuple-names)"), Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function ExplicitTupleNameAdded() As Task
             Dim code = "
 Class C
@@ -4227,7 +4227,7 @@ End Class
             Await TestInRegularAndScriptAsync(code, expected, ignoreTrivia:=False)
         End Function
 
-        <Fact(Skip:="PROTOTYPE(tuple-names)"), Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function ExplicitTupleNameAdded_Trivia() As Task
             Dim code = "
 Class C
@@ -4253,7 +4253,7 @@ End Class
             Await TestInRegularAndScriptAsync(code, expected, ignoreTrivia:=False)
         End Function
 
-        <Fact(Skip:="PROTOTYPE(tuple-names)"), Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function ExplicitTupleNameAdded_NoDuplicateNames() As Task
             Dim code = "
 Class C
@@ -4273,7 +4273,7 @@ End Class
             Await TestInRegularAndScriptAsync(code, expected, ignoreTrivia:=False)
         End Function
 
-        <Fact(Skip:="PROTOTYPE(tuple-names)"), Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function ExplicitTupleNameAdded_NoReservedNames() As Task
             Dim code = "
 Class C
@@ -4293,7 +4293,7 @@ End Class
             Await TestInRegularAndScriptAsync(code, expected, ignoreTrivia:=False)
         End Function
 
-        <Fact(Skip:="PROTOTYPE(tuple-names)"), Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function ExplicitTupleNameAdded_NoReservedNames2() As Task
             Dim code = "
 Class C
@@ -4313,7 +4313,7 @@ End Class
             Await TestInRegularAndScriptAsync(code, expected, ignoreTrivia:=False)
         End Function
 
-        <Fact(Skip:="PROTOTYPE(tuple-names)"), Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function ExplicitTupleNameAdded_EscapeKeywords() As Task
             Dim code = "
 Class C
