@@ -586,13 +586,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                 var contentsAttribute = element.Attribute(ContentAttributeName);
                 if (contentsAttribute == null)
                 {
-                    try
-                    {
-                        throw new FormatException($"Database element invalid. Missing '{ContentAttributeName}' attribute");
-                    }
-                    catch (FormatException e) when (_service._reportAndSwallowException(e))
-                    {
-                    }
+                    _service._reportAndSwallowException(new FormatException($"Database element invalid. Missing '{ContentAttributeName}' attribute"));
 
                     return ValueTuple.Create(false, (byte[])null);
                 }
@@ -611,13 +605,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
 
                     if (!StringComparer.Ordinal.Equals(expectedChecksum, actualChecksum))
                     {
-                        try
-                        {
-                            throw new FormatException($"Checksum mismatch: expected != actual. {expectedChecksum} != {actualChecksum}");
-                        }
-                        catch (FormatException e) when (_service._reportAndSwallowException(e))
-                        {
-                        }
+                        _service._reportAndSwallowException(new FormatException($"Checksum mismatch: expected != actual. {expectedChecksum} != {actualChecksum}"));
 
                         return ValueTuple.Create(false, (byte[])null);
                     }

@@ -248,13 +248,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
                     // s_lastRemoteClientTask info should be saved in the dump
                     // report NFW when connection is closed unless it is proper shutdown
-                    try
-                    {
-                        throw new Exception("Connection to remote host closed");
-                    }
-                    catch (Exception e) when (FatalError.ReportWithoutCrash(e))
-                    {
-                    }
+                    FatalError.ReportWithoutCrash(new Exception("Connection to remote host closed"));
 
                     // use info bar to show warning to users
                     var infoBarUIs = new List<ErrorReportingUI>();

@@ -89,13 +89,7 @@ $@"Invalid span in {nameof(declaredSymbolInfo)}.
 {nameof(declaredSymbolInfo.Span)} = {declaredSymbolInfo.Span}
 {nameof(root.FullSpan)} = {root.FullSpan}";
 
-                                    try
-                                    {
-                                        throw new InvalidOperationException(message);
-                                    }
-                                    catch (InvalidOperationException e) when (FatalError.ReportWithoutCrash(e))
-                                    {
-                                    }
+                                    FatalError.ReportWithoutCrash(new InvalidOperationException(message));
                                 }
                             }
                         }
