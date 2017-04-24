@@ -390,7 +390,7 @@
     <Compile Include="SolutionExplorer\AnalyzersFolderItemTests.vb" />
     <Compile Include="SolutionExplorer\AnalyzersFolderProviderTests.vb" />
     <Compile Include="SolutionExplorer\DiagnosticDescriptorComparerTests.vb" />
-    <Compile Include="SolutionExplorer\DiagnosticItemTests.vb" />
+    <Compile Include="SolutionExplorer\LegacyDiagnosticItemTests.vb" />
     <Compile Include="Venus\AbstractContainedLanguageCodeSupportTests.vb" />
     <Compile Include="Venus\ContainedDocumentTests_AdjustIndentation.vb" />
     <Compile Include="Venus\ContainedDocumentTests_UpdateText.vb" />
