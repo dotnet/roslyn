@@ -8,12 +8,25 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
 {
     internal abstract partial class AbstractFindUsagesService
     {
+        /// <summary>
+        /// Class we use to pass to the remote server so that it can notify us of the results it 
+        /// finds.  We will then take those marshalled results, deserialize them, and forward them
+        /// along to the <see cref="_context"/> object we're holding onto.
+        /// </summary>
         private class FindUsagesCallback
         {
             private readonly Solution _solution;
             private readonly IFindUsagesContext _context;
 
             private readonly object _gate = new object();
+
+            /// <summary>
+            /// The remote side will associate each definition item with an index.  It will then
+            /// refer to that index when it reports reference items.  On our side, when we hear
+            /// about definition items, we'll keep track of that index and map it to the definition 
+            /// item we hydrate on our end.  Then, when we hear about reference items, we can pair
+            /// them with the correct definition item on our side.
+            /// </summary>
             private readonly Dictionary<int, DefinitionItem> _definitionIdToItem = new Dictionary<int, DefinitionItem>();
 
             public FindUsagesCallback(Solution solution, IFindUsagesContext context)
