@@ -63,7 +63,7 @@ namespace Roslyn.Test.Utilities.Remote
         {
             // get stream from service hub to communicate snapshot/asset related information
             // this is the back channel the system uses to move data between VS and remote host
-            var snapshotStream = await _inprocServices.RequestServiceAsync(WellKnownServiceHubServices.SnapshotService, cancellationToken).ConfigureAwait(false);
+            var snapshotStream = getSnapshotAsync.Value == null ? null : await _inprocServices.RequestServiceAsync(WellKnownServiceHubServices.SnapshotService, cancellationToken).ConfigureAwait(false);
 
             // get stream from service hub to communicate service specific information
             // this is what consumer actually use to communicate information

@@ -72,6 +72,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             CancellationToken cancellationToken) :
             base(snapshot, cancellationToken)
         {
+            Contract.Requires((snapshot == null) == (snapshotStreamOpt == null));
+
             // get session id
             _currentSessionId = Interlocked.Increment(ref s_sessionId);
 
