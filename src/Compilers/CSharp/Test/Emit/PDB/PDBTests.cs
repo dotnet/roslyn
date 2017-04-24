@@ -5769,9 +5769,9 @@ class C
 
         #region Patterns
 
-        public void SyntaxOffset_Parrern()
+        public void SyntaxOffset_Pattern()
         {
-            var source = @"class C { int F(object o) { if (o is 33) { return 44; }  if (o is int i) { return i; } if (o is bool) { return 1; } return 0; }}";
+            var source = @"class C { bool F(object o) => o is int i && o is 3 && o is bool; }";
             var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb("C.F", @"<symbols>
 	  <methods>
@@ -5781,33 +5781,15 @@ class C
 	          <namespace usingCount=""0"" />
 	        </using>
 	        <encLocalSlotMap>
-	          <slot kind=""0"" offset=""44"" />
-	          <slot kind=""1"" offset=""2"" />
-	          <slot kind=""21"" offset=""0"" />
-	          <slot kind=""1"" offset=""31"" />
+	          <slot kind=""0"" offset=""12"" />
 	          <slot kind=""temp"" />
-	          <slot kind=""1"" offset=""61"" />
 	        </encLocalSlotMap>
 	      </customDebugInfo>
 	      <sequencePoints>
-	        <entry offset=""0x0"" startLine=""1"" startColumn=""27"" endLine=""1"" endColumn=""28"" />
-	        <entry offset=""0x1"" startLine=""1"" startColumn=""29"" endLine=""1"" endColumn=""41"" />
-	        <entry offset=""0xf"" hidden=""true"" />
-	        <entry offset=""0x12"" startLine=""1"" startColumn=""42"" endLine=""1"" endColumn=""43"" />
-	        <entry offset=""0x13"" startLine=""1"" startColumn=""44"" endLine=""1"" endColumn=""54"" />
-	        <entry offset=""0x18"" startLine=""1"" startColumn=""58"" endLine=""1"" endColumn=""73"" />
-	        <entry offset=""0x35"" hidden=""true"" />
-	        <entry offset=""0x38"" startLine=""1"" startColumn=""74"" endLine=""1"" endColumn=""75"" />
-	        <entry offset=""0x39"" startLine=""1"" startColumn=""76"" endLine=""1"" endColumn=""85"" />
-	        <entry offset=""0x3d"" startLine=""1"" startColumn=""88"" endLine=""1"" endColumn=""102"" />
-	        <entry offset=""0x48"" hidden=""true"" />
-	        <entry offset=""0x4c"" startLine=""1"" startColumn=""103"" endLine=""1"" endColumn=""104"" />
-	        <entry offset=""0x4d"" startLine=""1"" startColumn=""105"" endLine=""1"" endColumn=""114"" />
-	        <entry offset=""0x51"" startLine=""1"" startColumn=""117"" endLine=""1"" endColumn=""126"" />
-	        <entry offset=""0x55"" startLine=""1"" startColumn=""127"" endLine=""1"" endColumn=""128"" />
+	        <entry offset=""0x0"" startLine=""1"" startColumn=""31"" endLine=""1"" endColumn=""64"" />
 	      </sequencePoints>
-	      <scope startOffset=""0x0"" endOffset=""0x57"">
-	        <local name=""i"" il_index=""0"" il_start=""0x0"" il_end=""0x57"" attributes=""0"" />
+	      <scope startOffset=""0x0"" endOffset=""0x38"">
+	        <local name=""i"" il_index=""0"" il_start=""0x0"" il_end=""0x38"" attributes=""0"" />
 	      </scope>
 	    </method>
 	  </methods>
@@ -5821,7 +5803,7 @@ class C
         [Fact]
         public void SyntaxOffset_TupleDeconstruction()
         {
-            var source = @"class C { int F() { (int a, (int b, int c)) = (1, (2, 3)); return a + b + c; } }";
+            var source = @"class C { int F() { (int a, (_, int c)) = (1, (2, 3)); return a + c; } }";
             var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll, references: s_valueTupleRefs);
 
             c.VerifyPdb("C.F", @"<symbols>
@@ -5833,21 +5815,19 @@ class C
         </using>
         <encLocalSlotMap>
           <slot kind=""0"" offset=""7"" />
-          <slot kind=""0"" offset=""15"" />
-          <slot kind=""0"" offset=""22"" />
+          <slot kind=""0"" offset=""18"" />
           <slot kind=""21"" offset=""0"" />
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
         <entry offset=""0x0"" startLine=""1"" startColumn=""19"" endLine=""1"" endColumn=""20"" />
-        <entry offset=""0x1"" startLine=""1"" startColumn=""21"" endLine=""1"" endColumn=""59"" />
-        <entry offset=""0x7"" startLine=""1"" startColumn=""60"" endLine=""1"" endColumn=""77"" />
-        <entry offset=""0xf"" startLine=""1"" startColumn=""78"" endLine=""1"" endColumn=""79"" />
+        <entry offset=""0x1"" startLine=""1"" startColumn=""21"" endLine=""1"" endColumn=""55"" />
+        <entry offset=""0x5"" startLine=""1"" startColumn=""56"" endLine=""1"" endColumn=""69"" />
+        <entry offset=""0xb"" startLine=""1"" startColumn=""70"" endLine=""1"" endColumn=""71"" />
       </sequencePoints>
-      <scope startOffset=""0x0"" endOffset=""0x11"">
-        <local name=""a"" il_index=""0"" il_start=""0x0"" il_end=""0x11"" attributes=""0"" />
-        <local name=""b"" il_index=""1"" il_start=""0x0"" il_end=""0x11"" attributes=""0"" />
-        <local name=""c"" il_index=""2"" il_start=""0x0"" il_end=""0x11"" attributes=""0"" />
+      <scope startOffset=""0x0"" endOffset=""0xd"">
+        <local name=""a"" il_index=""0"" il_start=""0x0"" il_end=""0xd"" attributes=""0"" />
+        <local name=""c"" il_index=""1"" il_start=""0x0"" il_end=""0xd"" attributes=""0"" />
       </scope>
     </method>
   </methods>
@@ -5890,7 +5870,7 @@ class C
         [Fact]
         public void SyntaxOffset_TupleVarDefined()
         {
-            var source = @"class C { int F() { var x = (1, 2); ; return x.Item1 + x.Item2; } }";
+            var source = @"class C { int F() { var x = (1, 2); return x.Item1 + x.Item2; } }";
             var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll, references: s_valueTupleRefs);
 
             c.VerifyPdb("C.F", @"<symbols>
@@ -5908,12 +5888,11 @@ class C
       <sequencePoints>
         <entry offset=""0x0"" startLine=""1"" startColumn=""19"" endLine=""1"" endColumn=""20"" />
         <entry offset=""0x1"" startLine=""1"" startColumn=""21"" endLine=""1"" endColumn=""36"" />
-        <entry offset=""0xa"" startLine=""1"" startColumn=""37"" endLine=""1"" endColumn=""38"" />
-        <entry offset=""0xb"" startLine=""1"" startColumn=""39"" endLine=""1"" endColumn=""64"" />
-        <entry offset=""0x1b"" startLine=""1"" startColumn=""65"" endLine=""1"" endColumn=""66"" />
+        <entry offset=""0xa"" startLine=""1"" startColumn=""37"" endLine=""1"" endColumn=""62"" />
+        <entry offset=""0x1a"" startLine=""1"" startColumn=""63"" endLine=""1"" endColumn=""64"" />
       </sequencePoints>
-      <scope startOffset=""0x0"" endOffset=""0x1d"">
-        <local name=""x"" il_index=""0"" il_start=""0x0"" il_end=""0x1d"" attributes=""0"" />
+      <scope startOffset=""0x0"" endOffset=""0x1c"">
+        <local name=""x"" il_index=""0"" il_start=""0x0"" il_end=""0x1c"" attributes=""0"" />
       </scope>
     </method>
   </methods>
@@ -5923,7 +5902,7 @@ class C
         [Fact]
         public void SyntaxOffset_TupleIgnoreDeconstructionIfVariableDeclared()
         {
-            var source = @"class C { int F() { (int x, int y) a = (1, 2); ; return a.Item1 + a.Item2; } }";
+            var source = @"class C { int F() { (int x, int y) a = (1, 2); return a.Item1 + a.Item2; } }";
             var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll, references: s_valueTupleRefs);
 
             c.VerifyPdb("C.F", @"<symbols>
@@ -5944,12 +5923,11 @@ class C
       <sequencePoints>
         <entry offset=""0x0"" startLine=""1"" startColumn=""19"" endLine=""1"" endColumn=""20"" />
         <entry offset=""0x1"" startLine=""1"" startColumn=""21"" endLine=""1"" endColumn=""47"" />
-        <entry offset=""0x9"" startLine=""1"" startColumn=""48"" endLine=""1"" endColumn=""49"" />
-        <entry offset=""0xa"" startLine=""1"" startColumn=""50"" endLine=""1"" endColumn=""75"" />
-        <entry offset=""0x1a"" startLine=""1"" startColumn=""76"" endLine=""1"" endColumn=""77"" />
+        <entry offset=""0x9"" startLine=""1"" startColumn=""48"" endLine=""1"" endColumn=""73"" />
+        <entry offset=""0x19"" startLine=""1"" startColumn=""74"" endLine=""1"" endColumn=""75"" />
       </sequencePoints>
-      <scope startOffset=""0x0"" endOffset=""0x1c"">
-        <local name=""a"" il_index=""0"" il_start=""0x0"" il_end=""0x1c"" attributes=""0"" />
+      <scope startOffset=""0x0"" endOffset=""0x1b"">
+        <local name=""a"" il_index=""0"" il_start=""0x0"" il_end=""0x1b"" attributes=""0"" />
       </scope>
     </method>
   </methods>
