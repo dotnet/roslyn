@@ -46,11 +46,14 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.UseNamedArguments
                 }
 
                 // Arguments can be arbitrarily large.  Only offer this feature if the caret is in the
-                // span of the first token so that we don't end up spamming the user with this feature
-                // in places they don't want it.
+                // span of the argument, and on the same line that the argument starts in.
 
-                var firstToken = argument.GetFirstToken();
-                if (!firstToken.Span.IntersectsWith(context.Span.Start))
+                var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var lineSpan = sourceText.Lines.GetLineFromPosition(argument.Span.Start).Span;
+                var argumentSpan = argument.FullSpan;
+
+                var intersection = argumentSpan.Intersection(lineSpan);
+                if (intersection?.IntersectsWith(context.Span.Start) != true)
                 {
                     return;
                 }

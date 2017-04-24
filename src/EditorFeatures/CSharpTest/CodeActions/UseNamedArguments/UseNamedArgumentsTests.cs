@@ -236,7 +236,7 @@ class C : System.Attribute { public C(int arg1) {} public int P { get; set; } }"
 
         [WorkItem(18848, "https://github.com/dotnet/roslyn/issues/18848")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)]
-        public async Task TestAvailableOnFirstTokenOfArgument3()
+        public async Task TestNotMissingWhenInsideSingleLineArgument1()
         {
             await TestInRegularAndScriptAsync(
 @"
@@ -259,21 +259,26 @@ class C
 
         [WorkItem(18848, "https://github.com/dotnet/roslyn/issues/18848")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)]
-        public async Task TestMissingNotOnFirstTokenOfArgument2()
+        public async Task TestNotMissingWhenInsideSingleLineArgument2()
         {
-            await TestMissingAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     void M(int arg1, int arg2) 
         => M(1 [||]+ 2, 2);
+}",
+@"class C
+{
+    void M(int arg1, int arg2) 
+        => M(arg1: 1 + 2, arg2: 2);
 }");
         }
 
         [WorkItem(18848, "https://github.com/dotnet/roslyn/issues/18848")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)]
-        public async Task TestMissingNotOnFirstTokenOfArgument3()
+        public async Task TestNotMissingWhenInsideSingleLineArgument3()
         {
-            await TestMissingAsync(
+            await TestInRegularAndScriptAsync(
 @"
 using System;
 
@@ -281,12 +286,20 @@ class C
 {
     void M(Action arg1, int arg2) 
         => M(() => { [||] }, 2);
+}",
+@"
+using System;
+
+class C
+{
+    void M(Action arg1, int arg2) 
+        => M(arg1: () => { }, arg2: 2);
 }");
         }
 
         [WorkItem(18848, "https://github.com/dotnet/roslyn/issues/18848")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)]
-        public async Task TestMissingNotOnFirstTokenOfArgument4()
+        public async Task TestMissingNotOnStartingLineOfArgument1()
         {
             await TestMissingAsync(
 @"
@@ -298,6 +311,21 @@ class C
         => M(() => {
              [||]
            }, 2);
+}");
+        }
+
+        [WorkItem(18848, "https://github.com/dotnet/roslyn/issues/18848")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)]
+        public async Task TestMissingWithSelection()
+        {
+            await TestMissingAsync(
+@"
+using System;
+
+class C
+{
+    void M(Action arg1, int arg2) 
+        => M([|1 + 2|], 3);
 }");
         }
     }
