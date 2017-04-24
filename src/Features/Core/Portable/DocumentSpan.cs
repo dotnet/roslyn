@@ -65,13 +65,13 @@ namespace Microsoft.CodeAnalysis
             return service.CanNavigateToSpan(workspace, documentSpan.Document.Id, documentSpan.SourceSpan);
         }
 
-        public static bool TryNavigateTo(this DocumentSpan documentSpan)
+        public static bool TryNavigateTo(this DocumentSpan documentSpan, bool isPreview)
         {
             var solution = documentSpan.Document.Project.Solution;
             var workspace = solution.Workspace;
             var service = workspace.Services.GetService<IDocumentNavigationService>();
             return service.TryNavigateToSpan(workspace, documentSpan.Document.Id, documentSpan.SourceSpan,
-                options: solution.Options.WithChangedOption(NavigationOptions.PreferProvisionalTab, true));
+                options: solution.Options.WithChangedOption(NavigationOptions.PreferProvisionalTab, isPreview));
         }
 
         public static async Task<bool> IsHiddenAsync(
