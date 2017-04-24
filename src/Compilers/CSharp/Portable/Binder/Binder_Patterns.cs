@@ -287,5 +287,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new BoundDeclarationPattern(node, expressionVariableField, variableAccess, boundDeclType, isVar, hasErrors);
             }
         }
+
     }
 }
