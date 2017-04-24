@@ -14,13 +14,16 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
 {
     internal abstract partial class AbstractFindUsagesService : IFindUsagesService
     {
-        public async Task FindImplementationsAsync(Document document, int position, IFindUsagesContext context)
+        public async Task FindImplementationsAsync(
+            Document document, int position, IFindUsagesContext context)
         {
+            var cancellationToken = context.CancellationToken;
             var tuple = await FindUsagesHelpers.FindImplementationsAsync(
-                document, position, context.CancellationToken).ConfigureAwait(false);
+                document, position, cancellationToken).ConfigureAwait(false);
             if (tuple == null)
             {
-                context.ReportMessage(EditorFeaturesResources.Cannot_navigate_to_the_symbol_under_the_caret);
+                await context.ReportMessageAsync(
+                    EditorFeaturesResources.Cannot_navigate_to_the_symbol_under_the_caret).ConfigureAwait(false);
                 return;
             }
 
@@ -28,18 +31,19 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
 
             if (message != null)
             {
-                context.ReportMessage(message);
+                await context.ReportMessageAsync(message).ConfigureAwait(false);
                 return;
             }
 
-            context.SetSearchTitle(string.Format(EditorFeaturesResources._0_implementations,
-                FindUsagesHelpers.GetDisplayName(tuple.Value.symbol)));
+            await context.SetSearchTitleAsync(
+                string.Format(EditorFeaturesResources._0_implementations,
+                FindUsagesHelpers.GetDisplayName(tuple.Value.symbol))).ConfigureAwait(false);
 
             var project = tuple.Value.project;
             foreach (var implementation in tuple.Value.implementations)
             {
-                var definitionItem = implementation.ToDefinitionItem(
-                    project.Solution, includeHiddenLocations: false);
+                var definitionItem = await implementation.ToClassifiedDefinitionItemAsync(
+                    project.Solution, includeHiddenLocations: false, cancellationToken: cancellationToken).ConfigureAwait(false);
                 await context.OnDefinitionFoundAsync(definitionItem).ConfigureAwait(false);
             }
         }
@@ -125,9 +129,8 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
         public static async Task FindSymbolReferencesAsync(
             IFindUsagesContext context, ISymbol symbol, Project project, CancellationToken cancellationToken)
         {
-            context.SetSearchTitle(string.Format(EditorFeaturesResources._0_references,
-                FindUsagesHelpers.GetDisplayName(symbol)));
-
+            await context.SetSearchTitleAsync(string.Format(EditorFeaturesResources._0_references,
+                FindUsagesHelpers.GetDisplayName(symbol))).ConfigureAwait(false);
             var progressAdapter = new FindReferencesProgressAdapter(project.Solution, context);
 
             // Now call into the underlying FAR engine to find reference.  The FAR
@@ -193,7 +196,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             }
 
             var searchTitle = string.Format(EditorFeaturesResources._0_references, title);
-            context.SetSearchTitle(searchTitle);
+            await context.SetSearchTitleAsync(searchTitle).ConfigureAwait(false);
 
             var solution = document.Project.Solution;
 

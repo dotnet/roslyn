@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Features.RQName;
 using Microsoft.CodeAnalysis.FindSymbols;
@@ -36,10 +37,36 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
 
     internal static class DefinitionItemExtensions
     {
-        public static DefinitionItem ToDefinitionItem(
+        public static DefinitionItem ToNonClassifiedDefinitionItem(
             this ISymbol definition,
             Solution solution,
             bool includeHiddenLocations)
+        {
+            // Because we're passing in 'false' for 'includeClassifiedSpans', this won't ever have
+            // to actually do async work.  This is because the only asynchrony is when we are trying
+            // to compute the classified spans for the locations of the definition.  So it's totally 
+            // fine to pass in CancellationToken.None and block on the result.
+            return ToDefinitionItemAsync(definition, solution, includeHiddenLocations,
+                includeClassifiedSpans: false, cancellationToken: CancellationToken.None).Result;
+        }
+
+        public static Task<DefinitionItem> ToClassifiedDefinitionItemAsync(
+            this ISymbol definition,
+            Solution solution,
+            bool includeHiddenLocations,
+            CancellationToken cancellationToken)
+        {
+            return ToDefinitionItemAsync(definition, solution,
+                includeHiddenLocations, includeClassifiedSpans: true, cancellationToken: cancellationToken);
+        }
+
+
+        private static async Task<DefinitionItem> ToDefinitionItemAsync(
+            this ISymbol definition,
+            Solution solution,
+            bool includeHiddenLocations,
+            bool includeClassifiedSpans,
+            CancellationToken cancellationToken)
         {
             // Ensure we're working with the original definition for the symbol. I.e. When we're 
             // creating definition items, we want to create them for types like Dictionary<TKey,TValue>
@@ -84,7 +111,12 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                         var document = solution.GetDocument(location.SourceTree);
                         if (document != null)
                         {
-                            sourceLocations.Add(new DocumentSpan(document, location.SourceSpan));
+                            var documentLocation = !includeClassifiedSpans
+                                ? new DocumentSpan(document, location.SourceSpan)
+                                : await ClassifiedSpansAndHighlightSpan.GetClassifiedDocumentSpanAsync(
+                                    document, location.SourceSpan, cancellationToken).ConfigureAwait(false);
+
+                            sourceLocations.Add(documentLocation);
                         }
                     }
                 }
@@ -129,10 +161,11 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             return properties;
         }
 
-        public static SourceReferenceItem TryCreateSourceReferenceItem(
+        public static async Task<SourceReferenceItem> TryCreateSourceReferenceItemAsync(
             this ReferenceLocation referenceLocation,
             DefinitionItem definitionItem,
-            bool includeHiddenLocations)
+            bool includeHiddenLocations,
+            CancellationToken cancellationToken)
         {
             var location = referenceLocation.Location;
 
@@ -143,10 +176,13 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                 return null;
             }
 
-            return new SourceReferenceItem(
-                definitionItem, 
-                new DocumentSpan(referenceLocation.Document, location.SourceSpan),
-                referenceLocation.IsWrittenTo);
+            var document = referenceLocation.Document;
+            var sourceSpan = location.SourceSpan;
+
+            var documentSpan = await ClassifiedSpansAndHighlightSpan.GetClassifiedDocumentSpanAsync(
+                document, sourceSpan, cancellationToken).ConfigureAwait(false);
+
+            return new SourceReferenceItem(definitionItem, documentSpan, referenceLocation.IsWrittenTo);
         }
 
         private static SymbolDisplayFormat GetFormat(ISymbol definition)
