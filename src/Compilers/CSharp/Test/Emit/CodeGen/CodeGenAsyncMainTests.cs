@@ -7,7 +7,64 @@ using System.Threading;
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
     public class CodeGenAsyncMainTests : EmitMetadataTestBase
-    {
+    { 
+
+        [Fact]
+        public void MultipleMainsOneOfWhichHasBadTaskType_WithMainType()
+        {
+            var source = @"
+using System.Threading.Tasks;
+
+namespace System.Threading.Tasks {
+    public class Task<T> {
+        public void GetAwaiter() {}
+    }
+}
+
+static class Program {
+    static Task<int> Main() {
+        return null;
+    }
+    static void Main(string[] args) { }
+}";
+            var sourceCompilation = CreateStandardCompilation(source, options: TestOptions.DebugExe.WithMainTypeName("Program"), parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
+            sourceCompilation.VerifyEmitDiagnostics(
+                // (11,12): warning CS0436: The type 'Task<T>' in '' conflicts with the imported type 'Task<TResult>' in 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'. Using the type defined in ''.
+                //     static Task<int> Main() {
+                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Task<int>").WithArguments("", "System.Threading.Tasks.Task<T>", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "System.Threading.Tasks.Task<TResult>").WithLocation(11, 12));
+        }   
+
+        [Fact]
+        public void MultipleMainsOneOfWhichHasBadTaskType()
+        {
+            var source = @"
+using System.Threading.Tasks;
+
+namespace System.Threading.Tasks {
+    public class Task<T> {
+        public void GetAwaiter() {}
+    }
+}
+
+static class Program {
+    static Task<int> Main() {
+        return null;
+    }
+    static void Main(string[] args) { }
+}";
+            var sourceCompilation = CreateStandardCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
+            sourceCompilation.VerifyEmitDiagnostics(
+                // (11,12): warning CS0436: The type 'Task<T>' in '' conflicts with the imported type 'Task<TResult>' in 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'. Using the type defined in ''.
+                //     static Task<int> Main() {
+                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Task<int>").WithArguments("", "System.Threading.Tasks.Task<T>", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "System.Threading.Tasks.Task<TResult>").WithLocation(11, 12),
+                // (11,12): error CS1986: 'await' requires that the type Task<int> have a suitable GetAwaiter method
+                //     static Task<int> Main() {
+                Diagnostic(ErrorCode.ERR_BadAwaitArg, "Task<int>").WithArguments("System.Threading.Tasks.Task<int>").WithLocation(11, 12),
+                // (11,22): warning CS0028: 'Program.Main()' has the wrong signature to be an entry point
+                //     static Task<int> Main() {
+                Diagnostic(ErrorCode.WRN_InvalidMainSig, "Main").WithArguments("Program.Main()").WithLocation(11, 22));
+        }   
+
         [Fact]
         public void GetResultReturnsSomethingElse()
         {
