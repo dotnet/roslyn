@@ -54,8 +54,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
                                 project.LanguageServices,
                                 mockVisualStudioWorkspace)
 
-                Dim editorOptionsFactoryService = workspace.GetService(Of IEditorOptionsFactoryService)()
-                Dim mockTextManagerAdapter = New MockTextManagerAdapter(editorOptionsFactoryService)
+                Dim mockTextManagerAdapter = New MockTextManagerAdapter()
 
                 For Each documentId In project.DocumentIds
                     ' Note that a parent is not specified below. In Visual Studio, this would normally be an EnvDTE.Project instance.
