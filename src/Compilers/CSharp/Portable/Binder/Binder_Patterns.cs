@@ -180,8 +180,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     case ConversionKind.ExplicitDynamic:
                     case ConversionKind.ImplicitDynamic:
-                    // Since the input was `dynamic`, which is equivalent to `object`, there must also
-                    // exist some unboxing, identity, or reference conversion as well, making the conversion legal.
+                        // Since the input was `dynamic`, which is equivalent to `object`, there must also
+                        // exist some unboxing, identity, or reference conversion as well, making the conversion legal.
                     case ConversionKind.Boxing:
                     case ConversionKind.ExplicitNullable:
                     case ConversionKind.ExplicitReference:
