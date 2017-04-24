@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
         }
 
         public abstract bool CanNavigateTo(Workspace workspace);
-        public abstract bool TryNavigateTo(Workspace workspace);
+        public abstract bool TryNavigateTo(Workspace workspace, bool isPreview);
 
         public static DefinitionItem Create(
             ImmutableArray<string> tags,
