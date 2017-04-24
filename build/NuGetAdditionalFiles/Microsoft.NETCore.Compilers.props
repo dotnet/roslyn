@@ -3,16 +3,24 @@
 <Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <!-- Always use the local build task, even if we just shell out to an exe in case there are
        new properties in the local build task. -->
+  <UsingTask TaskName="Microsoft.CodeAnalysis.BuildTasks.Csc"
+             AssemblyFile="$(MSBuildThisFileDirectory)..\tools\Microsoft.Build.Tasks.CodeAnalysis.dll" />
   <UsingTask TaskName="Microsoft.CodeAnalysis.BuildTasks.Vbc"
              AssemblyFile="$(MSBuildThisFileDirectory)..\tools\Microsoft.Build.Tasks.CodeAnalysis.dll" />
   <PropertyGroup>
+    <CSharpCoreTargetsPath>$(MSBuildThisFileDirectory)..\tools\Microsoft.CSharp.Core.targets</CSharpCoreTargetsPath>
     <BasicCoreTargetsPath>$(MSBuildThisFileDirectory)..\tools\Microsoft.VisualBasic.Core.targets</BasicCoreTargetsPath>
   </PropertyGroup>
 
-  <!-- If we're not using the compiler server, set ToolPath/Exe to direct to
-       the exes in this package -->
-  <PropertyGroup Condition="'$(UseSharedCompilation)' != 'true'">
+  <!-- Set ToolPath/Exe to direct to the exes in this package -->
+  <PropertyGroup>
+    <!-- Compiler server is not currently supported on CoreCLR -->
+    <UseSharedCompilation>false</UseSharedCompilation>
+    <CscToolPath>$(MSBuildThisFileDirectory)..\tools</CscToolPath>
+    <CscToolExe Condition="'$(OS)' == 'Windows_NT'">RunCsc.cmd</CscToolExe>
+    <CscToolExe Condition="'$(OS)' != 'Windows_NT'">RunCsc</CscToolExe>
     <VbcToolPath>$(MSBuildThisFileDirectory)..\tools</VbcToolPath>
-    <VbcToolExe>RunVbc</VbcToolExe>
+    <VbcToolExe Condition="'$(OS)' == 'Windows_NT'">RunVbc.cmd</VbcToolExe>
+    <VbcToolExe Condition="'$(OS)' != 'Windows_NT'">RunVbc</VbcToolExe>
   </PropertyGroup>
 </Project>
