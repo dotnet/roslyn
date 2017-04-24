@@ -75,7 +75,6 @@
     <Compile Include="FlowAnalysis\RegionAnalysisTests.cs" />
     <Compile Include="FlowAnalysis\StructTests.cs" />
     <Compile Include="FlowAnalysis\TryLockUsingStatementTests.cs" />
-    <Compile Include="Semantics\AsyncMainEntryPointTests.cs" />
     <Compile Include="IOperation\IOperationTests_IVariableDeclaration.cs" />
     <Compile Include="Semantics\FuzzTests.cs" />
     <Compile Include="Semantics\OverloadResolutionPerfTests.cs" />
