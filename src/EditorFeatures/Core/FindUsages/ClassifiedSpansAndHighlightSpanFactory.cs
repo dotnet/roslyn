@@ -180,6 +180,15 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                 // when we walk through this list.
                 var intersection = span.TextSpan.Intersection(widenedSpan);
 
+                if (i > 0 && intersection != null)
+                {
+                    if (spans[i - 1].TextSpan.End > intersection.Value.Start)
+                    {
+                        // This span isn't strictly after the previous span.  Ignore it.
+                        intersection = null;
+                    }
+                }
+
                 var newSpan = new ClassifiedSpan(span.ClassificationType,
                     intersection ?? new TextSpan());
                 spans[i] = newSpan;
