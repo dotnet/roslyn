@@ -23,6 +23,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
 {
     public class PDBTests : CSharpPDBTestBase
     {
+        private static readonly MetadataReference[] s_valueTupleRefs = new[] { SystemRuntimeFacadeRef, ValueTupleRef };
+
         #region General
 
         [Fact]
@@ -5758,6 +5760,175 @@ class C
         <catchHandler offset=""0x4c"" />
         <kickoffMethod declaringType=""C+&lt;&gt;c"" methodName=""&lt;M&gt;b__0_0"" />
       </asyncInfo>
+    </method>
+  </methods>
+</symbols>");
+        }
+
+        #endregion
+
+        #region Patterns
+
+        public void SyntaxOffset_Pattern()
+        {
+            var source = @"class C { bool F(object o) => o is int i && o is 3 && o is bool; }";
+            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            c.VerifyPdb("C.F", @"<symbols>
+	  <methods>
+	    <method containingType=""C"" name=""F"" parameterNames=""o"">
+	      <customDebugInfo>
+	        <using>
+	          <namespace usingCount=""0"" />
+	        </using>
+	        <encLocalSlotMap>
+	          <slot kind=""0"" offset=""12"" />
+	          <slot kind=""temp"" />
+	        </encLocalSlotMap>
+	      </customDebugInfo>
+	      <sequencePoints>
+	        <entry offset=""0x0"" startLine=""1"" startColumn=""31"" endLine=""1"" endColumn=""64"" />
+	      </sequencePoints>
+	      <scope startOffset=""0x0"" endOffset=""0x38"">
+	        <local name=""i"" il_index=""0"" il_start=""0x0"" il_end=""0x38"" attributes=""0"" />
+	      </scope>
+	    </method>
+	  </methods>
+	</symbols>");
+        }
+
+        #endregion
+
+        #region Tuples
+
+        [Fact]
+        public void SyntaxOffset_TupleDeconstruction()
+        {
+            var source = @"class C { int F() { (int a, (_, int c)) = (1, (2, 3)); return a + c; } }";
+            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll, references: s_valueTupleRefs);
+
+            c.VerifyPdb("C.F", @"<symbols>
+  <methods>
+    <method containingType=""C"" name=""F"">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount=""0"" />
+        </using>
+        <encLocalSlotMap>
+          <slot kind=""0"" offset=""7"" />
+          <slot kind=""0"" offset=""18"" />
+          <slot kind=""21"" offset=""0"" />
+        </encLocalSlotMap>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""1"" startColumn=""19"" endLine=""1"" endColumn=""20"" />
+        <entry offset=""0x1"" startLine=""1"" startColumn=""21"" endLine=""1"" endColumn=""55"" />
+        <entry offset=""0x5"" startLine=""1"" startColumn=""56"" endLine=""1"" endColumn=""69"" />
+        <entry offset=""0xb"" startLine=""1"" startColumn=""70"" endLine=""1"" endColumn=""71"" />
+      </sequencePoints>
+      <scope startOffset=""0x0"" endOffset=""0xd"">
+        <local name=""a"" il_index=""0"" il_start=""0x0"" il_end=""0xd"" attributes=""0"" />
+        <local name=""c"" il_index=""1"" il_start=""0x0"" il_end=""0xd"" attributes=""0"" />
+      </scope>
+    </method>
+  </methods>
+</symbols>");
+        }
+
+        [Fact]
+        public void SyntaxOffset_TupleParenthesized()
+        {
+            var source = @"class C { int F() { (int, (int, int)) x = (1, (2, 3)); return x.Item1 + x.Item2.Item1 + x.Item2.Item2; } }";
+            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll, references: s_valueTupleRefs);
+
+            c.VerifyPdb("C.F", @"<symbols>
+  <methods>
+    <method containingType=""C"" name=""F"">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount=""0"" />
+        </using>
+        <encLocalSlotMap>
+          <slot kind=""0"" offset=""20"" />
+          <slot kind=""21"" offset=""0"" />
+        </encLocalSlotMap>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""1"" startColumn=""19"" endLine=""1"" endColumn=""20"" />
+        <entry offset=""0x1"" startLine=""1"" startColumn=""21"" endLine=""1"" endColumn=""55"" />
+        <entry offset=""0x10"" startLine=""1"" startColumn=""56"" endLine=""1"" endColumn=""103"" />
+        <entry offset=""0x31"" startLine=""1"" startColumn=""104"" endLine=""1"" endColumn=""105"" />
+      </sequencePoints>
+      <scope startOffset=""0x0"" endOffset=""0x33"">
+        <local name=""x"" il_index=""0"" il_start=""0x0"" il_end=""0x33"" attributes=""0"" />
+      </scope>
+    </method>
+  </methods>
+</symbols>"
+);
+        }
+
+        [Fact]
+        public void SyntaxOffset_TupleVarDefined()
+        {
+            var source = @"class C { int F() { var x = (1, 2); return x.Item1 + x.Item2; } }";
+            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll, references: s_valueTupleRefs);
+
+            c.VerifyPdb("C.F", @"<symbols>
+  <methods>
+    <method containingType=""C"" name=""F"">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount=""0"" />
+        </using>
+        <encLocalSlotMap>
+          <slot kind=""0"" offset=""6"" />
+          <slot kind=""21"" offset=""0"" />
+        </encLocalSlotMap>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""1"" startColumn=""19"" endLine=""1"" endColumn=""20"" />
+        <entry offset=""0x1"" startLine=""1"" startColumn=""21"" endLine=""1"" endColumn=""36"" />
+        <entry offset=""0xa"" startLine=""1"" startColumn=""37"" endLine=""1"" endColumn=""62"" />
+        <entry offset=""0x1a"" startLine=""1"" startColumn=""63"" endLine=""1"" endColumn=""64"" />
+      </sequencePoints>
+      <scope startOffset=""0x0"" endOffset=""0x1c"">
+        <local name=""x"" il_index=""0"" il_start=""0x0"" il_end=""0x1c"" attributes=""0"" />
+      </scope>
+    </method>
+  </methods>
+</symbols>");
+        }
+
+        [Fact]
+        public void SyntaxOffset_TupleIgnoreDeconstructionIfVariableDeclared()
+        {
+            var source = @"class C { int F() { (int x, int y) a = (1, 2); return a.Item1 + a.Item2; } }";
+            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll, references: s_valueTupleRefs);
+
+            c.VerifyPdb("C.F", @"<symbols>
+  <methods>
+    <method containingType=""C"" name=""F"">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount=""0"" />
+        </using>
+        <tupleElementNames>
+          <local elementNames=""|x|y"" slotIndex=""0"" localName=""a"" scopeStart=""0x0"" scopeEnd=""0x0"" />
+        </tupleElementNames>
+        <encLocalSlotMap>
+          <slot kind=""0"" offset=""17"" />
+          <slot kind=""21"" offset=""0"" />
+        </encLocalSlotMap>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""1"" startColumn=""19"" endLine=""1"" endColumn=""20"" />
+        <entry offset=""0x1"" startLine=""1"" startColumn=""21"" endLine=""1"" endColumn=""47"" />
+        <entry offset=""0x9"" startLine=""1"" startColumn=""48"" endLine=""1"" endColumn=""73"" />
+        <entry offset=""0x19"" startLine=""1"" startColumn=""74"" endLine=""1"" endColumn=""75"" />
+      </sequencePoints>
+      <scope startOffset=""0x0"" endOffset=""0x1b"">
+        <local name=""a"" il_index=""0"" il_start=""0x0"" il_end=""0x1b"" attributes=""0"" />
+      </scope>
     </method>
   </methods>
 </symbols>");
