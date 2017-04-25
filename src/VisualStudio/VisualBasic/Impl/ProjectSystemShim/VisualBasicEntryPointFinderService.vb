@@ -6,7 +6,7 @@ Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
-    <ExportLanguageService(GetType(IEntryPointFinderService), LanguageNames.CSharp), [Shared]>
+    <ExportLanguageService(GetType(IEntryPointFinderService), LanguageNames.VisualBasic), [Shared]>
     Friend Class VisualBasicEntryPointFinderService
         Implements IEntryPointFinderService
 
