@@ -84,13 +84,13 @@ commitPullList.each { isPr ->
             steps {
               batchFile(""".\\build\\scripts\\cibuild.cmd ${(configuration == 'debug') ? '-debug' : '-release'} -testCoreClr""")
             }
-
-      def triggerPhraseOnly = false
-      def triggerPhraseExtra = ""
-      Utilities.setMachineAffinity(myJob, 'Windows_NT', 'win2016-base')
-      Utilities.addXUnitDotNETResults(myJob, '**/xUnitResults/*.xml')
-      addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
     }
+
+    def triggerPhraseOnly = false
+    def triggerPhraseExtra = ""
+    Utilities.setMachineAffinity(myJob, 'Windows_NT', 'win2016-base')
+    Utilities.addXUnitDotNETResults(myJob, '**/xUnitResults/*.xml')
+    addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
   }
 }
 
