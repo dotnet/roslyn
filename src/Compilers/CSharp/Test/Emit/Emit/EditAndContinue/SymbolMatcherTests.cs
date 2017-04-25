@@ -20,6 +20,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 {
     public class SymbolMatcherTests : EditAndContinueTestBase
     {
+        private static readonly MetadataReference[] s_valueTupleRefs = new[] { SystemRuntimeFacadeRef, ValueTupleRef };
+
         [Fact]
         public void ConcurrentAccess()
         {
@@ -518,6 +520,66 @@ class C
 
             Assert.Equal("x1", mappedX1.Name);
             Assert.Null(mappedX2);
+        }
+
+        [Fact]
+        public void TupleField_TypeChange()
+        {
+            var source0 = @"
+class C
+{  
+    public (int a, int b) x;
+}";
+            var source1 = @"
+class C
+{
+    public (int a, bool b) x;
+}";
+            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll, references: s_valueTupleRefs);
+            var compilation1 = compilation0.WithSource(source1);
+
+            var matcher = new CSharpSymbolMatcher(
+                null,
+                compilation1.SourceAssembly,
+                default(EmitContext),
+                compilation0.SourceAssembly,
+                default(EmitContext),
+                null);
+
+            var member = compilation1.GetMember<FieldSymbol>("C.x");
+            var other = matcher.MapReference((Cci.ITypeReference)member.Type);
+            // If a type changes within a tuple, we do not expect them to match.
+            Assert.Null(other);
+        }
+
+        [Fact]
+        public void TupleField_NameChange()
+        {
+            var source0 = @"
+class C
+{  
+    public (int a, int b) x;
+}";
+            var source1 = @"
+class C
+{
+    public (int a, int c) x;
+}";
+            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll, references: s_valueTupleRefs);
+            var compilation1 = compilation0.WithSource(source1);
+
+            var matcher = new CSharpSymbolMatcher(
+                null,
+                compilation1.SourceAssembly,
+                default(EmitContext),
+                compilation0.SourceAssembly,
+                default(EmitContext),
+                null);
+
+            var member = compilation1.GetMember<FieldSymbol>("C.x");
+            var other = matcher.MapReference((Cci.ITypeReference)member.Type);
+            // Types must match because just a label was changed.
+            Assert.NotNull(other);
         }
     }
 }
