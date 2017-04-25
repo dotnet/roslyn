@@ -5982,7 +5982,6 @@ class C
                 Diagnostic(ErrorCode.ERR_BadCtorArgCount, "base").WithArguments("object", "1").WithLocation(13, 7));
         }
 
-
         [Fact]
         public void SyntaxOffset_OutVarInMethod()
         {
