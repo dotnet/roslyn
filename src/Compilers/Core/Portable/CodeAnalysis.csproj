@@ -98,6 +98,7 @@
     <Compile Include="Operations\InvocationExpression_IHasArgumentsExpression.cs" />
     <Compile Include="Operations\IObjectCreationExpression.cs" />
     <Compile Include="Operations\IOmittedArgumentExpression.cs" />
+    <Compile Include="Operations\IOperationWithChildren.cs" />
     <Compile Include="Operations\ObjectCreationExpression_IHasArgumentsExpression.cs" />
     <Compile Include="Operations\Operation.cs" />
     <Compile Include="Operations\IOperationKind.cs" />
