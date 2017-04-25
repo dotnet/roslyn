@@ -53,8 +53,7 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
             }
         }
 
-        // Internal so it can be called from remote-host entrypoint.
-        internal static async Task<ImmutableArray<DocumentHighlights>> GetDocumentHighlightsInCurrentProcessAsync(
+        private async Task<ImmutableArray<DocumentHighlights>> GetDocumentHighlightsInCurrentProcessAsync(
             Document document, int position, IImmutableSet<Document> documentsToSearch, CancellationToken cancellationToken)
         {
             // use speculative semantic model to see whether we are on a symbol we can do HR
@@ -94,7 +93,7 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
             return await SymbolFinder.FindSymbolAtPositionAsync(currentSemanticModel, position, document.Project.Solution.Workspace, cancellationToken).ConfigureAwait(false);
         }
 
-        private static async Task<ImmutableArray<DocumentHighlights>> GetTagsForReferencedSymbolAsync(
+        private async Task<ImmutableArray<DocumentHighlights>> GetTagsForReferencedSymbolAsync(
             SymbolAndProjectId symbolAndProjectId,
             IImmutableSet<Document> documentsToSearch,
             Solution solution,
@@ -142,7 +141,7 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
             }
         }
 
-        private static async Task<ImmutableArray<DocumentHighlights>> FilterAndCreateSpansAsync(
+        private async Task<ImmutableArray<DocumentHighlights>> FilterAndCreateSpansAsync(
             IEnumerable<ReferencedSymbol> references, Solution solution, 
             IImmutableSet<Document> documentsToSearch, ISymbol symbol, 
             CancellationToken cancellationToken)
@@ -168,15 +167,9 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
                 documentsToSearch, cancellationToken).ConfigureAwait(false);
         }
 
-        private static Task<ImmutableArray<Location>> GetAdditionalReferencesAsync(
+        protected virtual Task<ImmutableArray<Location>> GetAdditionalReferencesAsync(
             Document document, ISymbol symbol, CancellationToken cancellationToken)
         {
-            var additionalReferenceProvider = document.GetLanguageService<IDocumentHighlightingAdditionalReferenceProvider>();
-            if (additionalReferenceProvider != null)
-            {
-                return additionalReferenceProvider.GetAdditionalReferencesAsync(document, symbol, cancellationToken);
-            }
-
             return SpecializedTasks.EmptyImmutableArray<Location>();
         }
 

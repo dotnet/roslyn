@@ -82,7 +82,6 @@
     <Compile Include="DesignerAttributes\CSharpDesignerAttributeService.cs" />
     <Compile Include="Completion\CompletionProviders\DeclarationNameCompletionProvider.cs" />
     <Compile Include="DocumentHighlighting\CSharpDocumentHighlightsService.cs" />
-    <Compile Include="DocumentHighlighting\CSharpDocumentHighlightingAdditionalReferenceProvider.cs" />
     <Compile Include="ImplementAbstractClass\CSharpImplementAbstractClassCodeFixProvider.cs" />
     <Compile Include="ImplementInterface\CSharpImplementInterfaceCodeFixProvider.cs" />
     <Compile Include="InitializeParameter\CSharpAddParameterCheckCodeRefactoringProvider.cs" />

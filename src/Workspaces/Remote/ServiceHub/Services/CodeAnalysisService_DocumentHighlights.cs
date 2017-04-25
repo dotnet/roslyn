@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
@@ -17,7 +18,8 @@ namespace Microsoft.CodeAnalysis.Remote
             var document = solution.GetDocument(documentId);
             var documentsToSearch = ImmutableHashSet.CreateRange(documentIdsToSearch.Select(solution.GetDocument));
 
-            var result = await AbstractDocumentHighlightsService.GetDocumentHighlightsInCurrentProcessAsync(
+            var service = document.GetLanguageService<IDocumentHighlightsService>();
+            var result = await service.GetDocumentHighlightsAsync(
                 document, position, documentsToSearch, CancellationToken).ConfigureAwait(false);
 
             return SerializableDocumentHighlights.Dehydrate(result);

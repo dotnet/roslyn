@@ -162,7 +162,6 @@
     <Compile Include="DocumentHighlighting\AbstractDocumentHighlightsService.cs" />
     <Compile Include="DocumentHighlighting\AbstractDocumentHighlightsService_Remote.cs" />
     <Compile Include="DocumentHighlighting\IDocumentHighlightsService.cs" />
-    <Compile Include="DocumentHighlighting\IReferenceHighlightingAdditionalReferenceProvider.cs" />
     <Compile Include="DocumentHighlighting\IRemoteDocumentHighlights.cs" />
     <Compile Include="RemoveUnnecessaryImports\AbstractRemoveUnnecessaryImportsCodeFixProvider.cs" />
     <Compile Include="RemoveUnnecessaryImports\IUnnecessaryImportsService.cs" />
