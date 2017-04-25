@@ -562,7 +562,6 @@ using Windows.Foundation.Metadata;
                 Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "EP").WithArguments("EP", "DP").WithLocation(20, 19));
         }
 
-        // Suppress diagnostics in unused import statements.
         [Fact]
         public void TestImportStatements()
         {

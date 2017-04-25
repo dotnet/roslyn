@@ -760,8 +760,12 @@ End Class
 ]]>
     </file>
 </compilation>
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
-                Diagnostic(ERRID.WRN_UseOfObsoleteSymbolNoMessage1, "A").WithArguments("A").WithLocation(11, 24))
+            Dim comp = CreateCompilationWithMscorlib(source)
+            comp.AssertTheseDiagnostics(<errors><![CDATA[
+BC40008: 'A' is obsolete.
+            Return New A()
+                       ~
+]]></errors>)
         End Sub
 
         <Fact>
@@ -826,9 +830,15 @@ End Class
 ]]>
     </file>
 </compilation>
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
-                Diagnostic(ERRID.ERR_ObsoleteInvalidOnEventMember, "<Deprecated(Nothing, DeprecationType.Deprecate, 0)>RemoveHandler(value As EventHandler)").WithArguments("Windows.Foundation.Metadata.DeprecatedAttribute").WithLocation(31, 9),
-                Diagnostic(ERRID.WRN_UseOfObsoleteSymbolNoMessage1, "A").WithArguments("A").WithLocation(14, 19))
+            Dim comp = CreateCompilationWithMscorlib(source)
+            comp.AssertTheseDiagnostics(<errors><![CDATA[
+BC40008: 'A' is obsolete.
+            M(New A())
+                  ~
+BC31142: 'Windows.Foundation.Metadata.DeprecatedAttribute' cannot be applied to the 'AddHandler', 'RemoveHandler', or 'RaiseEvent' definitions. If required, apply the attribute directly to the event.
+        <Deprecated(Nothing, DeprecationType.Deprecate, 0)>RemoveHandler(value As EventHandler)
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+]]></errors>)
         End Sub
 
         <Fact>
