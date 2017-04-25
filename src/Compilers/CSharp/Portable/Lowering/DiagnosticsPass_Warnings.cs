@@ -4,6 +4,7 @@ using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -863,7 +864,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             while (right.Kind == BoundKind.Conversion)
             {
-                right = ((BoundConversion)right).Operand;
+
+                var conversion = (BoundConversion)right;
+                switch(conversion.ConversionKind)
+                {
+                    case ConversionKind.Deconstruction:
+                    case ConversionKind.ImplicitTupleLiteral:
+                    case ConversionKind.Identity:
+                        right = conversion.Operand;
+                        break;
+                    case var c:
+                        throw ExceptionUtilities.UnexpectedValue(c);
+                }
             }
 
             if (right.Kind != BoundKind.ConvertedTupleLiteral && right.Kind != BoundKind.TupleLiteral)

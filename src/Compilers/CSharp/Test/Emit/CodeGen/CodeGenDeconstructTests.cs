@@ -6642,7 +6642,7 @@ class C
         }
 
         [Fact]
-        public void DeconstructionWarnsForSelfAssignment_WithConversions()
+        public void DeconstructionWarnsForSelfAssignment_WithUserDefinedConversionOnElement()
         {
             var source =
 @"
@@ -6667,6 +6667,36 @@ class D
                 // (8,10): warning CS1717: Assignment made to same variable; did you mean to assign something else?
                 //         (x, y) = (x, (C)(D)y);
                 Diagnostic(ErrorCode.WRN_AssignmentToSelf, "x").WithLocation(8, 10)
+                );
+        }
+
+        [Fact]
+        public void DeconstructionWarnsForSelfAssignment_WithNestedConversions()
+        {
+            var source =
+@"
+class C
+{
+    object x = 1;
+    int y = 2;
+    byte b = 3;
+    void M()
+    {
+        // The conversions on the right-hand-side:
+        // - a deconstruction conversion
+        // - an implicit tuple literal conversion on the entire right-hand-side
+        // - another implicit tuple literal conversion on the nested tuple
+        // - a conversion on element `b`
+        (_, (x, y)) = (1, (x, b));
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib45(source, references: s_valueTupleRefs, options: TestOptions.DebugDll);
+            comp.VerifyDiagnostics(
+                // (9,14): warning CS1717: Assignment made to same variable; did you mean to assign something else?
+                //         (_, (x, y)) = (1, (x, b));
+                Diagnostic(ErrorCode.WRN_AssignmentToSelf, "x").WithLocation(9, 14)
                 );
         }
 
