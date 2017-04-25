@@ -41,7 +41,6 @@ These are the big items that are broken and need some wokr
 
 - BuildBoss: needs to understand the SDK + add a few new rules 
 - RepoUtil: needs to understand PackageReference and can be massively simplified now
-- Bootstrap build
 - CoreCLR unit tests
 - Delete the DeployCompilerGeneratorToolsRuntime project.  Not neeeded anymor 
 
