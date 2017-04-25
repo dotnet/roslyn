@@ -15,6 +15,8 @@ using System.Xml;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.DiaSymReader.Tools;
+using Microsoft.Metadata.Tools;
 using Roslyn.Test.MetadataUtilities;
 using Roslyn.Test.PdbUtilities;
 using Roslyn.Test.Utilities;
@@ -111,7 +113,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             if (format == 0 || format == DebugInformationFormat.Pdb)
             {
                 var actualNativePdb = XElement.Parse(GetPdbXml(compilation, debugEntryPoint, options, qualifiedMethodName, portable: false));
-                AssertXml.Equal(expectedPdb, actualNativePdb, expectedValueSourcePath, expectedValueSourceLine, expectedIsXmlLiteral);
+                AssertXml.Equal(expectedPdb, actualNativePdb, $"PDB format: Windows{Environment.NewLine}", expectedValueSourcePath, expectedValueSourceLine, expectedIsXmlLiteral);
             }
 
             if (format == 0 || format == DebugInformationFormat.PortablePdb)
@@ -126,7 +128,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     expectedPdb: expectedPdb,
                     expectedIsPortable: format == DebugInformationFormat.PortablePdb);
 
-                AssertXml.Equal(expectedPdb, actualPortablePdb, expectedValueSourcePath, expectedValueSourceLine, expectedIsXmlLiteral);
+                AssertXml.Equal(expectedPdb, actualPortablePdb, $"PDB format: Portable{Environment.NewLine}", expectedValueSourcePath, expectedValueSourceLine, expectedIsXmlLiteral);
             }
         }
 

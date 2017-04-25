@@ -3,25 +3,28 @@
 <Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="..\..\..\build\Targets\Settings.props" />
   <PropertyGroup>
-    <InsertionFilesDir>$(OutDir)DevDivInsertionFiles</InsertionFilesDir>
-    <PackagesOutDir>$(OutDir)DevDivPackages\Roslyn</PackagesOutDir>
+    <InsertionFilesDir>$(OutputPath)\DevDivInsertionFiles</InsertionFilesDir>
+    <VsToolsetDir>$(InsertionFilesDir)\VS.Tools.Roslyn</VsToolsetDir>
+    <PackagesOutDir>$(OutputPath)\DevDivPackages\Roslyn</PackagesOutDir>
   </PropertyGroup>
   <ItemGroup>
     <NuSpec Include="$(InsertionFilesDir)\VS.ExternalAPIs.Roslyn.nuspec">
       <Version>$(NuGetPerBuildPreReleaseVersion)</Version>
       <!-- TFS build number isn't set on CI server -->
       <Version Condition="'$(NuGetPerBuildPreReleaseVersion)' == ''">$(NuGetReleaseVersion)-cibuild</Version>
+      <BaseDir>$(OutputPath)</BaseDir>
     </NuSpec>
-    <NuSpec Include="$(InsertionFilesDir)\VS.Tools.Roslyn.nuspec">
+    <NuSpec Include="$(VsToolsetDir)\VS.Tools.Roslyn.nuspec">
       <Version>$(NuGetPerBuildPreReleaseVersion)</Version>
       <!-- TFS build number isn't set on CI server -->
       <Version Condition="'$(NuGetPerBuildPreReleaseVersion)' == ''">$(NuGetReleaseVersion)-cibuild</Version>
+      <BaseDir>$(VsToolsetDir)</BaseDir>
     </NuSpec>
   </ItemGroup>
   <Target Name="Build" Inputs="@(NuSpec)" Outputs="@(NuSpec -> $(PackagesOutDir)\%(Filename)%(Extension).%(Version).nupkg">
     <MakeDir Directories="$(PackagesOutDir)" Condition="!Exists('$(PackagesOutDir)')" />
     <!-- nuget doesn't set exitcode when the value of an arg is invalid -->
-    <Exec Command="Pack.cmd %(NuSpec.FullPath) %(NuSpec.Version) $(OutDir) $(PackagesOutDir)"
+    <Exec Command="Pack.cmd %(NuSpec.FullPath) %(NuSpec.Version) %(NuSpec.BaseDir) $(PackagesOutDir)"
           CustomErrorRegularExpression="pack: invalid arguments" />
   </Target>
   <Target Name="Clean">

@@ -43,14 +43,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     return false;
                 }
 
-                if (symbol is INamespaceOrTypeSymbol)
+                if (symbol is INamespaceOrTypeSymbol namespaceOrTypeSymbol)
                 {
-                    var namespaceOrTypeSymbol = (INamespaceOrTypeSymbol)symbol;
-
                     // 1. Check for Predefined Types
-                    if (symbol is INamedTypeSymbol)
+                    if (symbol is INamedTypeSymbol namedSymbol)
                     {
-                        var namedSymbol = (INamedTypeSymbol)symbol;
                         var keywordKind = ExpressionSyntaxExtensions.GetPredefinedKeywordKind(namedSymbol.SpecialType);
 
                         if (keywordKind != SyntaxKind.None)

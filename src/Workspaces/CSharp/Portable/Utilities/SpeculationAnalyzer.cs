@@ -275,10 +275,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             Debug.Assert(previousOriginalNode == null || previousOriginalNode.Parent == currentOriginalNode);
             Debug.Assert(previousReplacedNode == null || previousReplacedNode.Parent == currentReplacedNode);
 
-            if (currentOriginalNode is BinaryExpressionSyntax)
+            if (currentOriginalNode is BinaryExpressionSyntax binaryExpression)
             {
                 // If replacing the node will result in a broken binary expression, we won't remove it.
-                return ReplacementBreaksBinaryExpression((BinaryExpressionSyntax)currentOriginalNode, (BinaryExpressionSyntax)currentReplacedNode);
+                return ReplacementBreaksBinaryExpression(binaryExpression, (BinaryExpressionSyntax)currentReplacedNode);
             }
             else if (currentOriginalNode.Kind() == SyntaxKind.LogicalNotExpression)
             {
@@ -288,18 +288,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             {
                 return ReplacementBreaksConditionalAccessExpression((ConditionalAccessExpressionSyntax)currentOriginalNode, (ConditionalAccessExpressionSyntax)currentReplacedNode);
             }
-            else if (currentOriginalNode is AssignmentExpressionSyntax)
+            else if (currentOriginalNode is AssignmentExpressionSyntax assignment)
             {
                 // If replacing the node will result in a broken assignment expression, we won't remove it.
-                return ReplacementBreaksAssignmentExpression((AssignmentExpressionSyntax)currentOriginalNode, (AssignmentExpressionSyntax)currentReplacedNode);
+                return ReplacementBreaksAssignmentExpression(assignment, (AssignmentExpressionSyntax)currentReplacedNode);
             }
             else if (currentOriginalNode is SelectOrGroupClauseSyntax || currentOriginalNode is OrderingSyntax)
             {
                 return !SymbolsAreCompatible(currentOriginalNode, currentReplacedNode);
             }
-            else if (currentOriginalNode is QueryClauseSyntax)
+            else if (currentOriginalNode is QueryClauseSyntax queryClause)
             {
-                return ReplacementBreaksQueryClause((QueryClauseSyntax)currentOriginalNode, (QueryClauseSyntax)currentReplacedNode);
+                return ReplacementBreaksQueryClause(queryClause, (QueryClauseSyntax)currentReplacedNode);
             }
             else if (currentOriginalNode.Kind() == SyntaxKind.VariableDeclarator)
             {
@@ -416,9 +416,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                     }
                 }
             }
-            else if (currentOriginalNode is ConstructorInitializerSyntax)
+            else if (currentOriginalNode is ConstructorInitializerSyntax originalCtorInitializer)
             {
-                var originalCtorInitializer = (ConstructorInitializerSyntax)currentOriginalNode;
                 var newCtorInitializer = (ConstructorInitializerSyntax)currentReplacedNode;
                 return ReplacementBreaksConstructorInitializer(originalCtorInitializer, newCtorInitializer);
             }
@@ -435,9 +434,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             {
                 return !TypesAreCompatible((ImplicitArrayCreationExpressionSyntax)currentOriginalNode, (ImplicitArrayCreationExpressionSyntax)currentReplacedNode);
             }
-            else if (currentOriginalNode is AnonymousObjectMemberDeclaratorSyntax)
+            else if (currentOriginalNode is AnonymousObjectMemberDeclaratorSyntax originalAnonymousObjectMemberDeclarator)
             {
-                var originalAnonymousObjectMemberDeclarator = (AnonymousObjectMemberDeclaratorSyntax)currentOriginalNode;
                 var replacedAnonymousObjectMemberDeclarator = (AnonymousObjectMemberDeclaratorSyntax)currentReplacedNode;
                 return ReplacementBreaksAnonymousObjectMemberDeclarator(originalAnonymousObjectMemberDeclarator, replacedAnonymousObjectMemberDeclarator);
             }

@@ -242,7 +242,11 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 if (!(parameters.Count == 0 && options != null && (options.TypeKind == TypeKind.Struct || options.TypeKind == TypeKind.Structure)))
                 {
                     members.AddRange(factory.CreateFieldDelegatingConstructor(
-                        DetermineName(), null, parameters.ToImmutable(), parameterToExistingFieldMap, parameterToNewFieldMap, _cancellationToken));
+                        _document.SemanticModel.Compilation,
+                        DetermineName(), null, parameters.ToImmutable(), 
+                        parameterToExistingFieldMap, parameterToNewFieldMap, 
+                        addNullChecks: false, preferThrowExpression: false,
+                        cancellationToken: _cancellationToken));
                 }
 
                 parameters.Free();

@@ -258,10 +258,34 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var argumentSyntax = node.Parent as ArgumentSyntax;
             var argumentListSyntaxOpt = argumentSyntax?.Parent as BaseArgumentListSyntax;
-            var variable = MakeDeclarationExpressionVariable(node, argumentListSyntaxOpt, _nodeToBind);
-            if ((object)variable != null)
+
+            VisitDeclarationExpressionDesignation(node, node.Designation, argumentListSyntaxOpt);
+        }
+
+        private void VisitDeclarationExpressionDesignation(DeclarationExpressionSyntax node, VariableDesignationSyntax designation, BaseArgumentListSyntax argumentListSyntaxOpt)
+        {
+            switch (designation.Kind())
             {
-                _variablesBuilder.Add(variable);
+                case SyntaxKind.SingleVariableDesignation:
+                    var variable = MakeDeclarationExpressionVariable(node, (SingleVariableDesignationSyntax)designation, argumentListSyntaxOpt, _nodeToBind);
+                    if ((object)variable != null)
+                    {
+                        _variablesBuilder.Add(variable);
+                    }
+                    break;
+
+                case SyntaxKind.DiscardDesignation:
+                    break;
+
+                case SyntaxKind.ParenthesizedVariableDesignation:
+                    foreach (VariableDesignationSyntax nested in ((ParenthesizedVariableDesignationSyntax)designation).Variables)
+                    {
+                        VisitDeclarationExpressionDesignation(node, nested, argumentListSyntaxOpt);
+                    }
+                    break;
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(designation.Kind());
             }
         }
 
@@ -346,7 +370,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// other legal place for a declaration expression today is an out variable declaration; this method
         /// handles that and the error cases as well.
         /// </summary>
-        protected abstract TFieldOrLocalSymbol MakeDeclarationExpressionVariable(DeclarationExpressionSyntax node, BaseArgumentListSyntax argumentListSyntax, SyntaxNode nodeToBind);
+        protected abstract TFieldOrLocalSymbol MakeDeclarationExpressionVariable(DeclarationExpressionSyntax node, SingleVariableDesignationSyntax designation, BaseArgumentListSyntax argumentListSyntax, SyntaxNode nodeToBind);
 
         /// <summary>
         /// Make a variable for a declaration expression appearing as one of the declared variables of the left-hand-side
@@ -434,14 +458,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                             nodeToBind: nodeToBind,
                             forbiddenZone: null);
         }
-        protected override LocalSymbol MakeDeclarationExpressionVariable(DeclarationExpressionSyntax node, BaseArgumentListSyntax argumentListSyntaxOpt, SyntaxNode nodeToBind)
+
+        protected override LocalSymbol MakeDeclarationExpressionVariable(DeclarationExpressionSyntax node, SingleVariableDesignationSyntax designation, BaseArgumentListSyntax argumentListSyntaxOpt, SyntaxNode nodeToBind)
         {
             NamedTypeSymbol container = _scopeBinder.ContainingType;
-            var designation = node.Designation as SingleVariableDesignationSyntax;
-            if (designation == null)
-            {
-                return null;
-            }
 
             if ((object)container != null && container.IsScriptClass &&
                 (object)_scopeBinder.LookupDeclaredField(designation) != null)
@@ -540,9 +560,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _containingFieldOpt, nodeToBind);
         }
 
-        protected override Symbol MakeDeclarationExpressionVariable(DeclarationExpressionSyntax node, BaseArgumentListSyntax argumentListSyntaxOpt, SyntaxNode nodeToBind)
+        protected override Symbol MakeDeclarationExpressionVariable(DeclarationExpressionSyntax node, SingleVariableDesignationSyntax designation, BaseArgumentListSyntax argumentListSyntaxOpt, SyntaxNode nodeToBind)
         {
-            var designation = (SingleVariableDesignationSyntax)node.Designation;
             return GlobalExpressionVariable.Create(
                 _containingType, _modifiers, node.Type,
                 designation.Identifier.ValueText, designation, designation.Identifier.GetLocation(),

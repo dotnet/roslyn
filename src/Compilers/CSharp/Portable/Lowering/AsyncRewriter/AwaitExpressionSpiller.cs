@@ -772,26 +772,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static RefKind ReceiverSpillRefKind(BoundExpression receiver)
         {
-            if (!receiver.Type.IsReferenceType)
-            {
-                switch (receiver.Kind)
-                {
-                    case BoundKind.Parameter:
-                    case BoundKind.Local:
-                    case BoundKind.ArrayAccess:
-                    case BoundKind.ThisReference:
-                    case BoundKind.BaseReference:
-                    case BoundKind.PointerIndirectionOperator:
-                    case BoundKind.RefValueOperator:
-                    case BoundKind.FieldAccess:
-                        return RefKind.Ref;
-
-                    case BoundKind.Call:
-                        return ((BoundCall)receiver).Method.RefKind;
-                }
-            }
-
-            return RefKind.None;
+            return LocalRewriter.WouldBeAssignableIfUsedAsMethodReceiver(receiver) ? 
+                RefKind.Ref : 
+                RefKind.None;
         }
 
         public override BoundNode VisitConditionalOperator(BoundConditionalOperator node)

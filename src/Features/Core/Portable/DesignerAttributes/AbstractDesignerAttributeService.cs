@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.DesignerAttributes
 
             // same service run in both inproc and remote host, but remote host will not have RemoteHostClient service, 
             // so inproc one will always run
-            var client = await workspace.GetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
+            var client = await workspace.TryGetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
             if (client != null && !document.IsOpen())
             {
                 // run designer attributes scanner on remote host

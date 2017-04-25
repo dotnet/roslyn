@@ -36,6 +36,9 @@
     <Compile Include="..\..\..\..\Compilers\CSharp\Portable\Syntax\SyntaxKindFacts.cs">
       <Link>CSharp\Compiler\SyntaxKindFacts.cs</Link>
     </Compile>
+    <Compile Include="..\ExpressionCompiler\MetadataUtilities_Exceptions.cs">
+      <Link>ExpressionCompiler\MetadataUtilities_Exceptions.cs</Link>
+    </Compile>
     <Compile Include="CSharp\CSharpFunctionResolver.cs" />
     <Compile Include="CSharp\GreenNode.cs" />
     <Compile Include="CSharp\MemberSignatureParser.cs" />
@@ -56,13 +59,6 @@
     <Compile Include="VisualBasic\VisualBasicFunctionResolver.cs" />
     <VsdConfigXml Include="CSharp\FunctionResolver.vsdconfigxml" />
     <VsdConfigXml Include="VisualBasic\FunctionResolver.vsdconfigxml" />
-  </ItemGroup>
-  <ItemGroup Label="Project References">
-    <ProjectReference Include="..\Concord\Concord.csproj">
-      <Project>{5002636a-fe8d-40bf-8818-ab513a2194fa}</Project>
-      <Name>Concord</Name>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-    </ProjectReference>
   </ItemGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />

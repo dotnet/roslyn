@@ -59,12 +59,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
 
         Public Sub NotifySolutionAsFullyLoaded()
             _monitorSelectionMock.SolutionIsFullyLoaded = True
-            GetSolutionLoadEvents().OnAfterBackgroundSolutionLoadComplete()
+            _projectTracker.OnAfterBackgroundSolutionLoadComplete()
         End Sub
-
-        Public Function GetSolutionLoadEvents() As IVsSolutionLoadEvents
-            Return DirectCast(_projectTracker, IVsSolutionLoadEvents)
-        End Function
 
         Public ReadOnly Property ProjectTracker As VisualStudioProjectTracker
             Get

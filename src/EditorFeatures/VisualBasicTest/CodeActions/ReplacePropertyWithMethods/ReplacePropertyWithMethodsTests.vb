@@ -414,5 +414,78 @@ end class",
     End Function
 end class")
         End Function
+
+        <WorkItem(18235, "https://github.com/dotnet/roslyn/pull/18235")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)>
+        Public Async Function TestDocumentationComment1() As Task
+            Await TestInRegularAndScriptAsync(
+"Interface ILanguageServiceHost
+    ''' <summary>
+    '''     Gets the active workspace project context that provides access to the language service for the active configured project.
+    ''' </summary>
+    ''' <value>
+    '''     An that provides access to the language service for the active configured project.
+    ''' </value>
+    ReadOnly Property [||]ActiveProjectContext As Object
+End Interface",
+"Interface ILanguageServiceHost
+    ''' <summary>
+    '''     Gets the active workspace project context that provides access to the language service for the active configured project.
+    ''' </summary>
+    ''' <returns>
+    '''     An that provides access to the language service for the active configured project.
+    ''' </returns>
+    Function GetActiveProjectContext() As Object
+End Interface", ignoreTrivia:=False)
+        End Function
+
+        <WorkItem(18235, "https://github.com/dotnet/roslyn/pull/18235")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)>
+        Public Async Function TestDocumentationComment2() As Task
+            Await TestInRegularAndScriptAsync(
+"Interface ILanguageServiceHost
+    ''' <summary>
+    '''     Gets the active workspace project context that provides access to the language service for the active configured project.
+    ''' </summary>
+    ''' <value>
+    '''     An that provides access to the language service for the active configured project.
+    ''' </value>
+    WriteOnly Property [||]ActiveProjectContext As Object
+End Interface",
+"Interface ILanguageServiceHost
+    ''' <summary>
+    '''     Gets the active workspace project context that provides access to the language service for the active configured project.
+    ''' </summary>
+    ''' <returns>
+    '''     An that provides access to the language service for the active configured project.
+    ''' </returns>
+    Sub SetActiveProjectContext(Value As Object)
+End Interface", ignoreTrivia:=False)
+        End Function
+
+        <WorkItem(18235, "https://github.com/dotnet/roslyn/pull/18235")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)>
+        Public Async Function TestDocumentationComment3() As Task
+            Await TestInRegularAndScriptAsync(
+"Interface ILanguageServiceHost
+    ''' <summary>
+    '''     Gets the active workspace project context that provides access to the language service for the active configured project.
+    ''' </summary>
+    ''' <value>
+    '''     An that provides access to the language service for the active configured project.
+    ''' </value>
+    Property [||]ActiveProjectContext As Object
+End Interface",
+"Interface ILanguageServiceHost
+    ''' <summary>
+    '''     Gets the active workspace project context that provides access to the language service for the active configured project.
+    ''' </summary>
+    ''' <returns>
+    '''     An that provides access to the language service for the active configured project.
+    ''' </returns>
+    Function GetActiveProjectContext() As Object
+    Sub SetActiveProjectContext(Value As Object)
+End Interface", ignoreTrivia:=False)
+        End Function
     End Class
 End Namespace

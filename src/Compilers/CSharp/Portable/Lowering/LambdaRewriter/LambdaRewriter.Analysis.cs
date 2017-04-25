@@ -73,7 +73,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             public readonly HashSet<MethodSymbol> MethodsConvertedToDelegates = new HashSet<MethodSymbol>();
 
             /// <summary>
-            /// Any scope that a method in <see cref="MethodsConvertedToDelegates"/> closes over. If a scope is in this set, don't use a struct closure.
+            /// True if the method signature can't be rewritten to contain ref/out parameters.
+            /// </summary>
+            public bool CanTakeRefParameters(MethodSymbol closure) => !(closure.IsAsync
+                                                                        || closure.IsIterator
+                                                                        // We can't rewrite delegate signatures
+                                                                        || MethodsConvertedToDelegates.Contains(closure));
+
+            /// <summary>
+            /// Any scope that a method that <see cref="CanTakeRefParameters(MethodSymbol)"/> doesn't close over.
+            /// If a scope is in this set, don't use a struct closure.
             /// </summary>
             public readonly HashSet<BoundNode> ScopesThatCantBeStructs = new HashSet<BoundNode>();
 
@@ -325,7 +334,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         LambdaScopes.Add(lambda, innermostScope);
 
                         // Disable struct closures on methods converted to delegates, as well as on async and iterator methods.
-                        var markAsNoStruct = MethodsConvertedToDelegates.Contains(lambda) || lambda.IsAsync || lambda.IsIterator;
+                        var markAsNoStruct = !CanTakeRefParameters(lambda);
                         if (markAsNoStruct)
                         {
                             ScopesThatCantBeStructs.Add(innermostScope);

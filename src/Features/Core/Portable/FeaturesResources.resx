@@ -198,14 +198,14 @@
   <data name="Generate_field_assigning_constructor_0_1" xml:space="preserve">
     <value>Generate field assigning constructor '{0}({1})'</value>
   </data>
-  <data name="Generate_Both" xml:space="preserve">
-    <value>Generate Both</value>
+  <data name="Generate_Equals_and_GetHashCode" xml:space="preserve">
+    <value>Generate Equals and GetHashCode</value>
   </data>
   <data name="Generate_Equals_object" xml:space="preserve">
-    <value>Generate 'Equals(object)'</value>
+    <value>Generate Equals(object)</value>
   </data>
   <data name="Generate_GetHashCode" xml:space="preserve">
-    <value>Generate 'GetHashCode()'</value>
+    <value>Generate GetHashCode()</value>
   </data>
   <data name="Generate_constructor_in_0" xml:space="preserve">
     <value>Generate constructor in '{0}'</value>
@@ -1204,5 +1204,41 @@ This version used in: {2}</value>
   </data>
   <data name="Changes_to_expression_trees_may_result_in_behavior_changes_at_runtime" xml:space="preserve">
     <value>Changes to expression trees may result in behavior changes at runtime</value>
+  </data>
+  <data name="Generate_overrides" xml:space="preserve">
+    <value>Generate overrides...</value>
+  </data>
+  <data name="Pick_members_to_override" xml:space="preserve">
+    <value>Pick members to override</value>
+  </data>
+  <data name="Add_null_check" xml:space="preserve">
+    <value>Add null check</value>
+  </data>
+  <data name="Add_string_IsNullOrEmpty_check" xml:space="preserve">
+    <value>Add 'string.IsNullOrEmpty' check</value>
+  </data>
+  <data name="Add_string_IsNullOrWhiteSpace_check" xml:space="preserve">
+    <value>Add 'string.IsNullOrWhiteSpace' check</value>
+  </data>
+  <data name="Create_and_initialize_field_0" xml:space="preserve">
+    <value>Create and initialize field '{0}'</value>
+  </data>
+  <data name="Create_and_initialize_property_0" xml:space="preserve">
+    <value>Create and initialize property '{0}'</value>
+  </data>
+  <data name="Initialize_field_0" xml:space="preserve">
+    <value>Initialize field '{0}'</value>
+  </data>
+  <data name="Initialize_property_0" xml:space="preserve">
+    <value>Initialize property '{0}'</value>
+  </data>
+  <data name="Add_null_checks" xml:space="preserve">
+    <value>Add null checks</value>
+  </data>
+  <data name="Generate_operators" xml:space="preserve">
+    <value>Generate operators</value>
+  </data>
+  <data name="Implement_0" xml:space="preserve">
+    <value>Implement {0}</value>
   </data>
 </root>

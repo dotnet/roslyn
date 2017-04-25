@@ -22,6 +22,7 @@ namespace Roslyn.Test.Utilities
             public const string BlockCommentEditing = nameof(BlockCommentEditing);
             public const string BraceHighlighting = nameof(BraceHighlighting);
             public const string BraceMatching = nameof(BraceMatching);
+            public const string Build = nameof(Build);
             public const string CallHierarchy = nameof(CallHierarchy);
             public const string CaseCorrection = nameof(CaseCorrection);
             public const string ChangeSignature = nameof(ChangeSignature);
@@ -30,6 +31,7 @@ namespace Roslyn.Test.Utilities
             public const string CodeActionsAddConstructorParametersFromMembers = "CodeActions.AddConstructorParametersFromMembers";
             public const string CodeActionsAddDocCommentNodes = "CodeActions.AddDocCommentParamNodes";
             public const string CodeActionsAddAwait = "CodeActions.AddAwait";
+            public const string CodeActionsUpgradeProject = "CodeActions.UpgradeProject";
             public const string CodeActionsAddBraces = "CodeActions.AddBraces";
             public const string CodeActionsAddImport = "CodeActions.AddImport";
             public const string CodeActionsAddMissingReference = "CodeActions.AddMissingReference";
@@ -51,14 +53,18 @@ namespace Roslyn.Test.Utilities
             public const string CodeActionsGenerateEnumMember = "CodeActions.GenerateEnumMember";
             public const string CodeActionsGenerateEvent = "CodeActions.GenerateEvent";
             public const string CodeActionsGenerateEqualsAndGetHashCode = "CodeActions.GenerateEqualsAndGetHashCodeFromMembers";
+            public const string CodeActionsGenerateLocal = "CodeActions.GenerateLocal";
             public const string CodeActionsGenerateVariable = "CodeActions.GenerateVariable";
             public const string CodeActionsGenerateMethod = "CodeActions.GenerateMethod";
+            public const string CodeActionsGenerateOverrides = "CodeActions.GenerateOverrides";
             public const string CodeActionsGenerateType = "CodeActions.GenerateType";
+            public const string CodeActionsExtractInterface = "CodeActions.ExtractInterface";
             public const string CodeActionsExtractMethod = "CodeActions.ExtractMethod";
             public const string CodeActionsFixAllOccurrences = "CodeActions.FixAllOccurrences";
             public const string CodeActionsFullyQualify = "CodeActions.FullyQualify";
             public const string CodeActionsImplementAbstractClass = "CodeActions.ImplementAbstractClass";
             public const string CodeActionsImplementInterface = "CodeActions.ImplementInterface";
+            public const string CodeActionsInitializeParameter = "CodeActions.InitializeParameter";
             public const string CodeActionsInlineDeclaration = "CodeActions.InlineDeclaration";
             public const string CodeActionsInlineTemporary = "CodeActions.InlineTemporary";
             public const string CodeActionsInlineTypeCheck = "CodeActions.InlineTypeCheck";

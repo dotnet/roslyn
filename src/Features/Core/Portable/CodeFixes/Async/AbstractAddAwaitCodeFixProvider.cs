@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.Async
 {
@@ -42,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Async
         protected static bool TryGetTaskType(SemanticModel semanticModel, out INamedTypeSymbol taskType)
         {
             var compilation = semanticModel.Compilation;
-            taskType = compilation.GetTypeByMetadataName("System.Threading.Tasks.Task");
+            taskType = compilation.TaskType();
             return taskType != null;
         }
 

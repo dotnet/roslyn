@@ -214,9 +214,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                             {
                                 count = 1;
                             }
-                            else if (o is int)
+                            else if (o is int i)
                             {
-                                count = (int)o;
+                                count = i;
                             }
                             else
                             {

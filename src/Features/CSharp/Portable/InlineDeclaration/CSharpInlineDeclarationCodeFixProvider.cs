@@ -91,12 +91,27 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
                 var block = (BlockSyntax)localDeclarationStatement.Parent;
                 var declarationIndex = block.Statements.IndexOf(localDeclarationStatement);
 
-                // Trivia on the local declaration will move to the next statement.
-                // use the callback form as the next statement may be the place where we're 
-                // inlining the declaration, and thus need to see the effects of that change.
-                editor.ReplaceNode(
-                    block.Statements[declarationIndex + 1],
-                    (s, g) => s.WithPrependedNonIndentationTriviaFrom(localDeclarationStatement));
+                if (declarationIndex > 0 &&
+                    sourceText.AreOnSameLine(block.Statements[declarationIndex - 1].GetLastToken(), localDeclarationStatement.GetFirstToken()))
+                {
+                    // There's another statement on the same line as this declaration statement.
+                    // i.e.   int a; int b;
+                    //
+                    // Just move all trivia from our statement to be trailing trivia of the previous
+                    // statement
+                    editor.ReplaceNode(
+                        block.Statements[declarationIndex - 1],
+                        (s, g) => s.WithAppendedTrailingTrivia(localDeclarationStatement.GetTrailingTrivia()));
+                }
+                else
+                {
+                    // Trivia on the local declaration will move to the next statement.
+                    // use the callback form as the next statement may be the place where we're 
+                    // inlining the declaration, and thus need to see the effects of that change.
+                    editor.ReplaceNode(
+                        block.Statements[declarationIndex + 1],
+                        (s, g) => s.WithPrependedNonIndentationTriviaFrom(localDeclarationStatement));
+                }
 
                 editor.RemoveNode(localDeclarationStatement, SyntaxRemoveOptions.KeepUnbalancedDirectives);
             }
@@ -229,9 +244,31 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
                 var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                 var previousSymbol = semanticModel.GetSymbolInfo(invocationOrCreation).Symbol;
 
-                var updatedInvocationOrCreation = invocationOrCreation.ReplaceNode(identifier, declarationExpression);
-                var updatedSymbolInfo = semanticModel.GetSpeculativeSymbolInfo(
-                    invocationOrCreation.SpanStart, updatedInvocationOrCreation, SpeculativeBindingOption.BindAsExpression);
+                // Now, create a speculative model in which we make the change.  Make sure
+                // we still point to the same symbol afterwards.
+
+                var topmostContainer = GetTopmostContainer(invocationOrCreation);
+                if (topmostContainer == null)
+                {
+                    // Couldn't figure out what we were contained in.  Have to assume that semantics
+                    // Are changing.
+                    return true;
+                }
+
+                var annotation = new SyntaxAnnotation();
+                var updatedTopmostContainer = topmostContainer.ReplaceNode(
+                    invocationOrCreation, invocationOrCreation.ReplaceNode(identifier, declarationExpression)
+                                                              .WithAdditionalAnnotations(annotation));
+
+                if (!TryGetSpeculativeSemanticModel(semanticModel,
+                        topmostContainer.SpanStart, updatedTopmostContainer, out var speculativeModel))
+                {
+                    // Couldn't figure out the new semantics.  Assume semantics changed.
+                    return true;
+                }
+
+                var updatedInvocationOrCreation = updatedTopmostContainer.GetAnnotatedNodes(annotation).Single();
+                var updatedSymbolInfo = speculativeModel.GetSymbolInfo(updatedInvocationOrCreation);
 
                 if (!SymbolEquivalenceComparer.Instance.Equals(previousSymbol, updatedSymbolInfo.Symbol))
                 {
@@ -240,6 +277,36 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
                 }
             }
 
+            return false;
+        }
+
+        private SyntaxNode GetTopmostContainer(ExpressionSyntax expression)
+        {
+            return expression.GetAncestorsOrThis(
+                a => a is StatementSyntax ||
+                     a is EqualsValueClauseSyntax ||
+                     a is ArrowExpressionClauseSyntax ||
+                     a is ConstructorInitializerSyntax).LastOrDefault();
+        }
+
+        private bool TryGetSpeculativeSemanticModel(
+            SemanticModel semanticModel, 
+            int position, SyntaxNode topmostContainer,
+            out SemanticModel speculativeModel)
+        {
+            switch (topmostContainer)
+            {
+                case StatementSyntax statement:
+                    return semanticModel.TryGetSpeculativeSemanticModel(position, statement, out speculativeModel);
+                case EqualsValueClauseSyntax equalsValue:
+                    return semanticModel.TryGetSpeculativeSemanticModel(position, equalsValue, out speculativeModel);
+                case ArrowExpressionClauseSyntax arrowExpression:
+                    return semanticModel.TryGetSpeculativeSemanticModel(position, arrowExpression, out speculativeModel);
+                case ConstructorInitializerSyntax constructorInitializer:
+                    return semanticModel.TryGetSpeculativeSemanticModel(position, constructorInitializer, out speculativeModel);
+            }
+
+            speculativeModel = null;
             return false;
         }
 

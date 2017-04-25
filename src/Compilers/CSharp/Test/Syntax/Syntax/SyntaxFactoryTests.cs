@@ -2,17 +2,18 @@
 
 using System;
 using System.Globalization;
+using System.Linq;
 using System.Text;
-using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 using InternalSyntax = Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public class SyntaxFactoryTests
+    public class SyntaxFactoryTests : CSharpTestBase
     {
         [Fact]
         public void SyntaxTree()
@@ -376,6 +377,76 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
 
             return builder.ToString();
+        }
+
+        [Fact]
+        [WorkItem(17067, "https://github.com/dotnet/roslyn/issues/17067")]
+        public void GetTokenDiagnosticsWithoutSyntaxTree_WithDiagnostics()
+        {
+            var tokens = SyntaxFactory.ParseTokens("1l").ToList();
+            Assert.Equal(2, tokens.Count); // { "1l", "EOF" }
+
+            var literal = tokens.First();
+            Assert.Equal("1l", literal.Text);
+            Assert.Equal(Location.None, literal.GetLocation());
+
+            literal.GetDiagnostics().Verify(
+                // warning CS0078: The 'l' suffix is easily confused with the digit '1' -- use 'L' for clarity
+                Diagnostic(ErrorCode.WRN_LowercaseEllSuffix));
+        }
+
+        [Fact]
+        [WorkItem(17067, "https://github.com/dotnet/roslyn/issues/17067")]
+        public void GetTokenDiagnosticsWithoutSyntaxTree_WithoutDiagnostics()
+        {
+            var tokens = SyntaxFactory.ParseTokens("1L").ToList();
+            Assert.Equal(2, tokens.Count); // { "1L", "EOF" }
+
+            var literal = tokens.First();
+            Assert.Equal("1L", literal.Text);
+            Assert.Equal(Location.None, literal.GetLocation());
+
+            literal.GetDiagnostics().Verify();
+        }
+
+        [Fact]
+        [WorkItem(17067, "https://github.com/dotnet/roslyn/issues/17067")]
+        public void GetTokenDiagnosticsWithSyntaxTree_WithDiagnostics()
+        {
+            var expression = (LiteralExpressionSyntax)SyntaxFactory.ParseExpression("1l");
+            Assert.Equal("1l", expression.Token.Text);
+            Assert.NotNull(expression.Token.SyntaxTree);
+
+            var expectedLocation = Location.Create(expression.Token.SyntaxTree, TextSpan.FromBounds(0, 2));
+            Assert.Equal(expectedLocation, expression.Token.GetLocation());
+
+            expression.Token.GetDiagnostics().Verify(
+                // (1,2): warning CS0078: The 'l' suffix is easily confused with the digit '1' -- use 'L' for clarity
+                // 1l
+                Diagnostic(ErrorCode.WRN_LowercaseEllSuffix, "l").WithLocation(1, 2));
+        }
+
+        [Fact]
+        [WorkItem(17067, "https://github.com/dotnet/roslyn/issues/17067")]
+        public void GetTokenDiagnosticsWithSyntaxTree_WithoutDiagnostics()
+        {
+            var expression = (LiteralExpressionSyntax)SyntaxFactory.ParseExpression("1L");
+            Assert.Equal("1L", expression.Token.Text);
+            Assert.NotNull(expression.Token.SyntaxTree);
+
+            var expectedLocation = Location.Create(expression.Token.SyntaxTree, TextSpan.FromBounds(0, 2));
+            Assert.Equal(expectedLocation, expression.Token.GetLocation());
+
+            expression.Token.GetDiagnostics().Verify();
+        }
+
+        [Fact]
+        [WorkItem(17067, "https://github.com/dotnet/roslyn/issues/17067")]
+        public void GetDiagnosticsFromNullToken()
+        {
+            var token = new SyntaxToken(null);
+            Assert.Equal(Location.None, token.GetLocation());
+            token.GetDiagnostics().Verify();
         }
     }
 }

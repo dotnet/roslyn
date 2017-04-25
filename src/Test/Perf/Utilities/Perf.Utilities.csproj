@@ -27,6 +27,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Benchview.cs" />
     <Compile Include="ITraceManager.cs" />
     <Compile Include="Logger.cs" />
     <Compile Include="PerfTestBase.cs" />

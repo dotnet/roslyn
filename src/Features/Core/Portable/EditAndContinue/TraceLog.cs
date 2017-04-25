@@ -1,7 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Diagnostics;
 using System.Threading;
+using Roslyn.Utilities;
+using System.Linq;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
 {
@@ -11,47 +14,83 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
     /// <remarks>
     /// Recent entries are captured in a memory dump.
     /// If DEBUG is defined, all entries written to <see cref="DebugWrite(string)"/> or
-    /// <see cref="DebugWrite(string, object[])"/> are print to <see cref="Debug"/> output.
+    /// <see cref="DebugWrite(string, Arg[])"/> are print to <see cref="Debug"/> output.
     /// </remarks>
     internal sealed class TraceLog
     {
-        private readonly string[] _log;
+        internal struct Arg
+        {
+            public readonly string String;
+            public readonly int Int32;
+
+            public Arg(string value)
+            {
+                Int32 = 0;
+                String = value ?? "<null>";
+            }
+
+            public Arg(int value)
+            {
+                Int32 = value;
+                String = null;
+            }
+
+            public override string ToString() => String ?? Int32.ToString();
+
+            public static implicit operator Arg(string value) => new Arg(value);
+            public static implicit operator Arg(int value) => new Arg(value);
+        }
+
+        internal struct Entry
+        {
+            public readonly string MessageFormat;
+            public readonly Arg[] ArgsOpt;
+
+            public Entry(string format, Arg[] argsOpt)
+            {
+                MessageFormat = format;
+                ArgsOpt = argsOpt;
+            }
+
+            public override string ToString() => 
+                string.Format(MessageFormat, ArgsOpt?.Select(a => (object)a).ToArray() ?? Array.Empty<object>());
+        }
+
+        private readonly Entry[] _log;
         private readonly string _id;
         private int _currentLine;
 
         public TraceLog(int logSize, string id)
         {
-            _log = new string[logSize];
+            _log = new Entry[logSize];
             _id = id;
         }
 
-        private void Append(string str)
+        private void Append(Entry entry)
         {
             int index = Interlocked.Increment(ref _currentLine);
-            _log[(index - 1) % _log.Length] = str;
+            _log[(index - 1) % _log.Length] = entry;
         }
 
-        public void Write(string str)
-        {
-            Append(str);
-        }
+        public void Write(string str) => Write(str, null);
 
-        [Conditional("DEBUG")]
-        public void DebugWrite(string str)
+        public void Write(string format, params Arg[] args)
         {
-            Append(str);
-            Debug.WriteLine(str, _id);
-        }
-
-        public void Write(string format, params object[] args)
-        {
-            Write(string.Format(format, args));
+            Append(new Entry(format, args));
         }
 
         [Conditional("DEBUG")]
-        public void DebugWrite(string format, params object[] args)
+        public void DebugWrite(string str) => DebugWrite(str, null);
+
+        [Conditional("DEBUG")]
+        public void DebugWrite(string format, params Arg[] args)
         {
-            DebugWrite(string.Format(format, args));
+            var entry = new Entry(format, args);
+            Append(entry);
+            Debug.WriteLine(entry.ToString(), _id);
         }
+
+        // test only
+        internal Entry[] GetEntries() => _log;
     }
 }

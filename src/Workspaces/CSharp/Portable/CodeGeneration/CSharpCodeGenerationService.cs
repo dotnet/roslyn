@@ -42,9 +42,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         protected override IList<bool> GetAvailableInsertionIndices(SyntaxNode destination, CancellationToken cancellationToken)
         {
-            if (destination is TypeDeclarationSyntax)
+            if (destination is TypeDeclarationSyntax typeDeclaration)
             {
-                return GetInsertionIndices((TypeDeclarationSyntax)destination, cancellationToken);
+                return GetInsertionIndices(typeDeclaration, cancellationToken);
             }
 
             // TODO(cyrusn): This will make is so that we can't generate into an enum, namespace, or
@@ -125,11 +125,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             {
                 return destination;
             }
+            // we will ignore the method if the associated property can be generated.
 
-            if (method.AssociatedSymbol is IPropertySymbol)
+            if (method.AssociatedSymbol is IPropertySymbol property)
             {
-                // we will ignore the method if the associated property can be generated.
-                var property = (IPropertySymbol)method.AssociatedSymbol;
                 if (PropertyGenerator.CanBeGenerated(property))
                 {
                     return destination;
@@ -196,9 +195,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 {
                     var getMethod = property.GetMethod;
 
-                    if (property is CodeGenerationSymbol)
+                    if (property is CodeGenerationSymbol codeGenSymbol)
                     {
-                        foreach (var annotation in ((CodeGenerationSymbol)property).GetAnnotations())
+                        foreach (var annotation in codeGenSymbol.GetAnnotations())
                         {
                             getMethod = annotation.AddAnnotationToSymbol(getMethod);
                         }
@@ -211,9 +210,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 {
                     var setMethod = property.SetMethod;
 
-                    if (property is CodeGenerationSymbol)
+                    if (property is CodeGenerationSymbol codeGenSymbol)
                     {
-                        foreach (var annotation in ((CodeGenerationSymbol)property).GetAnnotations())
+                        foreach (var annotation in codeGenSymbol.GetAnnotations())
                         {
                             setMethod = annotation.AddAnnotationToSymbol(setMethod);
                         }
@@ -603,11 +602,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             {
                 return null;
             }
+            // we will ignore the method if the associated property can be generated.
 
-            if (method.AssociatedSymbol is IPropertySymbol)
+            if (method.AssociatedSymbol is IPropertySymbol property)
             {
-                // we will ignore the method if the associated property can be generated.
-                var property = (IPropertySymbol)method.AssociatedSymbol;
                 if (PropertyGenerator.CanBeGenerated(property))
                 {
                     return null;

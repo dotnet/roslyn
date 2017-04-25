@@ -146,6 +146,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override int ERR_CantReadRulesetFile => (int)ErrorCode.ERR_CantReadRulesetFile;
         public override int ERR_CompileCancelled => (int)ErrorCode.ERR_CompileCancelled;
 
+        // parse options:
+        public override int ERR_BadSourceCodeKind => (int)ErrorCode.ERR_BadSourceCodeKind;
+        public override int ERR_BadDocumentationMode => (int)ErrorCode.ERR_BadDocumentationMode;
+
         // compilation options:
         public override int ERR_BadCompilationOptionValue => (int)ErrorCode.ERR_BadCompilationOptionValue;
         public override int ERR_MutuallyExclusiveOptions => (int)ErrorCode.ERR_MutuallyExclusiveOptions;

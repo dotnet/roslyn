@@ -1241,10 +1241,10 @@ OtherExpressions:
         End Sub
 
         Private Function DefineLocal(local As LocalSymbol, syntaxNode As SyntaxNode) As LocalDefinition
-            Dim dynamicTransformFlags = ImmutableArray(Of TypedConstant).Empty
+            Dim dynamicTransformFlags = ImmutableArray(Of Boolean).Empty
             Dim tupleElementNames = If(Not local.IsCompilerGenerated AndAlso local.Type.ContainsTupleNames(),
-                VisualBasicCompilation.TupleNamesEncoder.Encode(local.Type, _module.Compilation.GetSpecialType(SpecialType.System_String)),
-                ImmutableArray(Of TypedConstant).Empty)
+                VisualBasicCompilation.TupleNamesEncoder.Encode(local.Type),
+                ImmutableArray(Of String).Empty)
 
             ' We're treating constants of type Decimal and DateTime as local here to not create a new instance for each time
             ' the value is accessed. This means there will be one local in the scope for this constant.

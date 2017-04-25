@@ -39,8 +39,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithP
                 Return Nothing
             End If
 
-            If position > containingMethod.ParameterList.Span.End Then
-                Return Nothing
+            ' Parameter lists in VB are optional and may not be provided.
+            If containingMethod.ParameterList Is Nothing Then
+                If position > containingMethod.Span.End Then
+                    Return Nothing
+                End If
+            Else
+                If position > containingMethod.ParameterList.Span.End Then
+                    Return Nothing
+                End If
             End If
 
             Return containingMethod

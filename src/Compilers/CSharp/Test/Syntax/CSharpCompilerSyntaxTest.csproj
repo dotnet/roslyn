@@ -20,9 +20,6 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
-  <ItemGroup Label="Build Items">
-    <SyntaxTestDefinition Include="..\..\Portable\Syntax\Syntax.xml" />
-  </ItemGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\..\Test\Utilities\Portable\TestUtilities.csproj">
       <Project>{ccbd3438-3e84-40a9-83ad-533f23bcfca5}</Project>
@@ -64,7 +61,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="$(IntermediateOutputPath)\Syntax.xml.Generated.cs" />
+    <Compile Include="Generated\Syntax.Test.xml.Generated.cs" />
     <Compile Include="Diagnostics\DiagnosticTest.cs" />
     <Compile Include="Diagnostics\DiagnosticTest.MockSyntaxTree.cs" />
     <Compile Include="Diagnostics\LocationsTests.cs" />

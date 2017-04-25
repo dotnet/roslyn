@@ -639,7 +639,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (frame.Constructor == null)
             {
                 Debug.Assert(frame.TypeKind == TypeKind.Struct);
-                newFrame = new BoundDefaultOperator(syntax: syntax, type: frameType);
+                newFrame = new BoundDefaultExpression(syntax: syntax, type: frameType);
             }
             else
             {
@@ -1311,35 +1311,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (_analysis.LambdaScopes.TryGetValue(node.Symbol, out lambdaScope))
             {
                 containerAsFrame = _frames[lambdaScope];
-                var structClosureParamBuilder = ArrayBuilder<TypeSymbol>.GetInstance();
-                while (containerAsFrame != null && containerAsFrame.IsValueType)
+                structClosures = _analysis.CanTakeRefParameters(node.Symbol)
+                    ? GetStructClosures(containerAsFrame, lambdaScope)
+                    : default(ImmutableArray<TypeSymbol>);
+
+                if (containerAsFrame?.IsValueType == true)
                 {
-                    structClosureParamBuilder.Add(containerAsFrame);
-                    if (this._analysis.NeedsParentFrame.Contains(lambdaScope))
-                    {
-                        var found = false;
-                        while (this._analysis.ScopeParent.TryGetValue(lambdaScope, out lambdaScope))
-                        {
-                            if (_frames.TryGetValue(lambdaScope, out containerAsFrame))
-                            {
-                                found = true;
-                                break;
-                            }
-                        }
-                        if (found)
-                        {
-                            continue;
-                        }
-                    }
-                    // can happen when scope no longer needs parent frame, or we're at the outermost level and the "parent frame" is top level "this".
-                    lambdaScope = null;
+                    // Lower directly onto the containing type
                     containerAsFrame = null;
-                }
-                // Reverse it because we're going from inner to outer, and parameters are in order of outer to inner
-                structClosureParamBuilder.ReverseContents();
-                structClosures = structClosureParamBuilder.ToImmutableAndFree();
-                if (containerAsFrame == null)
-                {
+                    lambdaScope = null;
                     closureKind = ClosureKind.Static; // not exactly... but we've rewritten the receiver to be a by-ref parameter
                     translatedLambdaContainer = _topLevelMethod.ContainingType;
                     closureOrdinal = LambdaDebugInfo.StaticClosureOrdinal;
@@ -1438,6 +1418,47 @@ namespace Microsoft.CodeAnalysis.CSharp
             _addedStatements = oldAddedStatements;
 
             return synthesizedMethod;
+        }
+
+        /// <summary>
+        /// Builds a list of all the struct-based closure environments that will
+        /// need to be passed as arguments to the method.
+        /// </summary>
+        private ImmutableArray<TypeSymbol> GetStructClosures(LambdaFrame containerAsFrame, BoundNode lambdaScope)
+        {
+            var structClosureParamBuilder = ArrayBuilder<TypeSymbol>.GetInstance();
+            while (containerAsFrame?.IsValueType == true ||
+                   _analysis.NeedsParentFrame.Contains(lambdaScope))
+            {
+                if (containerAsFrame?.IsValueType == true)
+                {
+                    structClosureParamBuilder.Add(containerAsFrame);
+                }
+                if (_analysis.NeedsParentFrame.Contains(lambdaScope)
+                    && FindParentFrame(ref containerAsFrame, ref lambdaScope))
+                {
+                    continue;
+                }
+
+                // can happen when scope no longer needs parent frame, or we're at the outermost level and the "parent frame" is top level "this".
+                break;
+            }
+
+            // Reverse it because we're going from inner to outer, and parameters are in order of outer to inner
+            structClosureParamBuilder.ReverseContents();
+            return structClosureParamBuilder.ToImmutableAndFree();
+
+            bool FindParentFrame(ref LambdaFrame container, ref BoundNode scope)
+            {
+                while (_analysis.ScopeParent.TryGetValue(scope, out scope))
+                {
+                    if (_frames.TryGetValue(scope, out container))
+                    {
+                        return true;
+                    }
+                }
+                return false;
+            }
         }
 
         private void AddSynthesizedMethod(MethodSymbol method, BoundStatement body)
@@ -1559,7 +1580,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 catch (SyntheticBoundNodeFactory.MissingPredefinedMember ex)
                 {
                     Diagnostics.Add(ex.Diagnostic);
-                    return new BoundBadExpression(F.Syntax, LookupResultKind.Empty, ImmutableArray<Symbol>.Empty, ImmutableArray.Create<BoundNode>(node), node.Type);
+                    return new BoundBadExpression(F.Syntax, LookupResultKind.Empty, ImmutableArray<Symbol>.Empty, ImmutableArray.Create<BoundExpression>(node), node.Type);
                 }
             }
 

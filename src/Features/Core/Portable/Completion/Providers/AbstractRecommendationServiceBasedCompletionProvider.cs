@@ -50,9 +50,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         private ITypeSymbol GetSymbolType(ISymbol symbol)
         {
-            if (symbol is IMethodSymbol)
+            if (symbol is IMethodSymbol method)
             {
-                return ((IMethodSymbol)symbol).ReturnType;
+                return method.ReturnType;
             }
 
             return symbol.GetSymbolType();

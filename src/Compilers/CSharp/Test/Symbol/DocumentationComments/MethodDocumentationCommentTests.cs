@@ -45,6 +45,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public unsafe void M4(char *pc, Color **pf) { }
         public unsafe void M5(void *pv, double *[][,] pd) { }
         public void M6(int i, params object[] args) { }
+        public void M7((int x1, int x2, int x3, int x4, int x5, int x6, short x7) z) { }
+        public void M8((int x1, int x2, int x3, int x4, int x5, int x6, short x7, int x8) z) { }
+        public void M9((int x1, int x2, int x3, int x4, int x5, int x6, short x7, (string y1, string y2)) z) { }
+        public void M10((int x1, short x2) y, System.Tuple<int, short> z) { }
     }
     class MyList<T>
     {
@@ -125,6 +129,34 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestTupleLength7()
+        {
+            Assert.Equal("M:Acme.Widget.M7(System.ValueTuple{System.Int32,System.Int32,System.Int32,System.Int32,System.Int32,System.Int32,System.Int16})",
+                _widgetClass.GetMembers("M7").Single().GetDocumentationCommentId());
+        }
+
+        [Fact]
+        public void TestTupleLength8()
+        {
+            Assert.Equal("M:Acme.Widget.M8(System.ValueTuple{System.Int32,System.Int32,System.Int32,System.Int32,System.Int32,System.Int32,System.Int16,System.ValueTuple{System.Int32}})",
+                _widgetClass.GetMembers("M8").Single().GetDocumentationCommentId());
+        }
+
+        [Fact]
+        public void TestTupleLength9()
+        {
+            Assert.Equal("M:Acme.Widget.M9(System.ValueTuple{System.Int32,System.Int32,System.Int32,System.Int32,System.Int32,System.Int32,System.Int16,System.ValueTuple{System.ValueTuple{System.String,System.String}}})",
+                _widgetClass.GetMembers("M9").Single().GetDocumentationCommentId());
+        }
+
+        [Fact]
+        public void TestTupleLength2()
+        {
+            Assert.Equal("M:Acme.Widget.M10(System.ValueTuple{System.Int32,System.Int16},System.Tuple{System.Int32,System.Int16})",
+                _widgetClass.GetMembers("M10").Single().GetDocumentationCommentId());
+        }
+
+        [Fact]
         public void TestMethodInGenericClass()
         {
             Assert.Equal("M:Acme.MyList`1.Test(`0)", _acmeNamespace.GetTypeMembers("MyList", 1).Single().GetMembers("Test").Single().GetDocumentationCommentId());
@@ -161,7 +193,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var csharpAssemblyReference = TestReferences.SymbolsTests.UseSiteErrors.CSharp;
             var ilAssemblyReference = TestReferences.SymbolsTests.UseSiteErrors.IL;
-            var compilation = CreateCompilationWithMscorlib(references: new[] { csharpAssemblyReference, ilAssemblyReference }, text:
+            var compilation = CreateStandardCompilation(references: new[] { csharpAssemblyReference, ilAssemblyReference }, text:
 @"class C
 {
     internal static CSharpErrors.ClassMethods F = null;

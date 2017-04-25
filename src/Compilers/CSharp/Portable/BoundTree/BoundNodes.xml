@@ -117,7 +117,7 @@
     <Field Name="Symbols" Type="ImmutableArray&lt;Symbol&gt;"/>
 
     <!-- Any child bound nodes that we need to preserve are put here. -->
-    <Field Name="ChildBoundNodes" Type="ImmutableArray&lt;BoundNode&gt;"/>
+    <Field Name="ChildBoundNodes" Type="ImmutableArray&lt;BoundExpression&gt;"/>
   </Node>
 
   <!-- This node is used when we can't create a real statement because things are too broken. -->
@@ -517,7 +517,9 @@
     <Field Name="GetFieldFromHandle" Type="MethodSymbol" Null="allow"/>
   </Node>
 
-  <Node Name="BoundDefaultOperator" Base="BoundExpression">
+  <Node Name="BoundDefaultExpression" Base="BoundExpression">
+    <!-- Type is null in the case of a default literal, and non-null for default(T). -->
+    <Field Name="Type" Type="TypeSymbol" Override="true" Null="allow"/>
     <Field Name="ConstantValueOpt" Type="ConstantValue" Null="allow"/>
   </Node>
 

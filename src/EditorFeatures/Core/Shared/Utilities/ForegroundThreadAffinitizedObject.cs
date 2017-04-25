@@ -70,6 +70,8 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
 
         internal TaskScheduler ForegroundTaskScheduler => _foregroundThreadDataWhenCreated.TaskScheduler;
 
+        internal ForegroundThreadDataKind ForegroundKind => _foregroundThreadDataWhenCreated.Kind;
+
         // HACK: This is a dangerous way of establishing the 'foreground' thread affinity of an 
         // AppDomain.  This method should be deleted in favor of forcing derivations of this type
         // to either explicitly inherit WPF Dispatcher thread or provide an explicit thread 
@@ -105,7 +107,14 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
 
         public void AssertIsForeground()
         {
-            Contract.ThrowIfFalse(IsForeground());
+            var whenCreatedThread = _foregroundThreadDataWhenCreated.Thread;
+            var currentThread = Thread.CurrentThread;
+            Contract.ThrowIfFalse(currentThread == whenCreatedThread, 
+                "When created kind       : " + _foregroundThreadDataWhenCreated.Kind + "\r\n" +
+                "When created thread id  : " + whenCreatedThread?.ManagedThreadId + "\r\n" +
+                "When created thread name: " + whenCreatedThread?.Name + "\r\n" +
+                "Current thread id       : " + currentThread?.ManagedThreadId + "\r\n" + 
+                "Current thread name     : " + currentThread?.Name);
         }
 
         public void AssertIsBackground()

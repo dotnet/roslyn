@@ -100,11 +100,20 @@ namespace Microsoft.CodeAnalysis
             return reader.RemoveAssemblySymbolKeys();
         };
 
+        /// <summary>
+        /// Tries to resolve the provided <paramref name="symbolKey"/> in the given 
+        /// <paramref name="compilation"/> to a matching symbol.  <paramref name="resolveLocations"/>
+        /// should only be given <code>true</code> if the symbol was produced from a compilation
+        /// that has the exact same source as the compilation we're resolving against.  Otherwise
+        /// the locations resolved may not actually be correct in the final compilation.
+        /// </summary>
         public static SymbolKeyResolution Resolve(
             string symbolKey, Compilation compilation,
-            bool ignoreAssemblyKey = false, CancellationToken cancellationToken = default(CancellationToken))
+            bool ignoreAssemblyKey = false, bool resolveLocations = false,
+            CancellationToken cancellationToken = default(CancellationToken))
         {
-            using (var reader = SymbolKeyReader.GetReader(symbolKey, compilation, ignoreAssemblyKey, cancellationToken))
+            using (var reader = SymbolKeyReader.GetReader(
+                symbolKey, compilation, ignoreAssemblyKey, resolveLocations, cancellationToken))
             {
                 var result = reader.ReadFirstSymbolKey();
                 Debug.Assert(reader.Position == symbolKey.Length);
@@ -126,15 +135,19 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        public SymbolKeyResolution Resolve(Compilation compilation, bool ignoreAssemblyKey = false, CancellationToken cancellationToken = default(CancellationToken))
+        public SymbolKeyResolution Resolve(
+            Compilation compilation, 
+            bool ignoreAssemblyKey = false, bool resolveLocations = false,
+            CancellationToken cancellationToken = default(CancellationToken))
         {
-            return Resolve(_symbolKeyData, compilation, ignoreAssemblyKey, cancellationToken);
+            return Resolve(
+                _symbolKeyData, compilation,
+                ignoreAssemblyKey, resolveLocations,
+                cancellationToken);
         }
 
         public override string ToString()
-        {
-            return _symbolKeyData;
-        }
+            => _symbolKeyData;
 
         private static IEnumerable<ISymbol> GetAllSymbols(SymbolKeyResolution info)
         {
@@ -152,9 +165,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         private static IEnumerable<TType> GetAllSymbols<TType>(SymbolKeyResolution info)
-        {
-            return GetAllSymbols(info).OfType<TType>();
-        }
+            => GetAllSymbols(info).OfType<TType>();
 
         private static SymbolKeyResolution CreateSymbolInfo(IEnumerable<ISymbol> symbols)
         {
@@ -173,14 +184,10 @@ namespace Microsoft.CodeAnalysis
         }
 
         private static bool Equals(Compilation compilation, string name1, string name2)
-        {
-            return Equals(compilation.IsCaseSensitive, name1, name2);
-        }
+            => Equals(compilation.IsCaseSensitive, name1, name2);
 
         private static bool Equals(bool isCaseSensitive, string name1, string name2)
-        {
-            return string.Equals(name1, name2, isCaseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase);
-        }
+            => string.Equals(name1, name2, isCaseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase);
 
         private static string GetName(string metadataName)
         {

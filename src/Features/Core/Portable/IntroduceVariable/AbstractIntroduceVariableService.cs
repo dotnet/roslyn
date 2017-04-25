@@ -168,9 +168,9 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 return true;
             }
 
-            if (destination is TTypeDeclarationSyntax)
+            if (destination is TTypeDeclarationSyntax typeDecl)
             {
-                var insertionIndices = this.GetInsertionIndices((TTypeDeclarationSyntax)destination, cancellationToken);
+                var insertionIndices = this.GetInsertionIndices(typeDecl, cancellationToken);
                 if (insertionIndices != null &&
                     insertionIndices.Count > insertionIndex &&
                     insertionIndices[insertionIndex])

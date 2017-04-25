@@ -880,9 +880,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             {
                 typeSymbol = GetSpecialType((EnvDTE.vsCMTypeRef)type, semanticModel.Compilation);
             }
-            else if (type is string)
+            else if (type is string s)
             {
-                typeSymbol = GetTypeSymbolFromPartialName((string)type, semanticModel, position);
+                typeSymbol = GetTypeSymbolFromPartialName(s, semanticModel, position);
             }
             else
             {
@@ -992,9 +992,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         {
             int result;
 
-            if (position is int)
+            if (position is int i)
             {
-                result = (int)position;
+                result = i;
             }
             else if (position is EnvDTE.CodeElement)
             {
@@ -1012,9 +1012,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
                 result = getIndexInContainer(containerNode, child => child == positionNode);
             }
-            else if (position is string)
+            else if (position is string name)
             {
-                var name = (string)position;
                 result = getIndexInContainer(containerNode, child => GetName(child) == name);
             }
             else if (position == null || position == Type.Missing)

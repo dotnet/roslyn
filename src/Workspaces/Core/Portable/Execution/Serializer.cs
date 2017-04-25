@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.Serialization
                         return;
 
                     case WellKnownSynchronizationKinds.AnalyzerReference:
-                        SerializeAnalyzerReference((AnalyzerReference)value, writer, cancellationToken);
+                        SerializeAnalyzerReference((AnalyzerReference)value, writer, usePathFromAssembly: true, cancellationToken: cancellationToken);
                         return;
 
                     case WellKnownSynchronizationKinds.SourceText:

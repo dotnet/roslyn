@@ -121,10 +121,10 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateMethod
                 if (type is IdentifierNameSyntax)
                 {
                     var info = this.Document.SemanticModel.GetTypeInfo(type, cancellationToken);
-                    if (info.Type is ITypeParameterSymbol &&
-                        ((ITypeParameterSymbol)info.Type).TypeParameterKind == TypeParameterKind.Method)
+                    if (info.Type is ITypeParameterSymbol typeParameter &&
+                        typeParameter.TypeParameterKind == TypeParameterKind.Method)
                     {
-                        return (ITypeParameterSymbol)info.Type;
+                        return typeParameter;
                     }
                 }
 

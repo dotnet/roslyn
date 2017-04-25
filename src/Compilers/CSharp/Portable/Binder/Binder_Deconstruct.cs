@@ -603,7 +603,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private BoundBadExpression MissingDeconstruct(BoundExpression receiver, SyntaxNode rightSyntax, int numParameters, DiagnosticBag diagnostics,
-                                    out ImmutableArray<BoundDeconstructValuePlaceholder> outPlaceholders, BoundNode childNode)
+                                    out ImmutableArray<BoundDeconstructValuePlaceholder> outPlaceholders, BoundExpression childNode)
         {
             Error(diagnostics, ErrorCode.ERR_MissingDeconstruct, rightSyntax, receiver.Type, numParameters);
             outPlaceholders = default(ImmutableArray<BoundDeconstructValuePlaceholder>);
@@ -759,7 +759,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var fieldType = field.GetFieldType(this.FieldsBeingBound);
                 Debug.Assert(declType.TypeSymbol == fieldType.TypeSymbol);
-                return new BoundFieldAccess(designation,
+                return new BoundFieldAccess(syntax,
                                             receiver,
                                             field,
                                             constantValueOpt: null,

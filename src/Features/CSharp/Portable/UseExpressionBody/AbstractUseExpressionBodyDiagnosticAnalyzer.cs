@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -15,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         where TDeclaration : SyntaxNode
     {
         private readonly ImmutableArray<SyntaxKind> _syntaxKinds;
-        private readonly Option<CodeStyleOption<bool>> _option;
+        private readonly Option<CodeStyleOption<ExpressionBodyPreference>> _option;
         private readonly LocalizableString _expressionBodyTitle;
         private readonly LocalizableString _blockBodyTitle;
 
@@ -26,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             LocalizableString expressionBodyTitle,
             LocalizableString blockBodyTitle,
             ImmutableArray<SyntaxKind> syntaxKinds,
-            Option<CodeStyleOption<bool>> option)
+            Option<CodeStyleOption<ExpressionBodyPreference>> option)
             : base(diagnosticId, expressionBodyTitle)
         {
             _syntaxKinds = syntaxKinds;
@@ -85,32 +86,42 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             {
                 // They don't have an expression body.  See if we can convert into one.
                 // If so, offer the conversion (with the proper severity depending on their options).
-                if (!GetBody(declaration).TryConvertToExpressionBody(declaration.SyntaxTree.Options,
-                        out expressionBody, out var semicolonToken))
+                var options = declaration.SyntaxTree.Options;
+                var body = GetBody(declaration);
+                if (body.TryConvertToExpressionBody(options, ExpressionBodyPreference.WhenOnSingleLine, out var expressionWhenOnSingleLine, out var semicolonWhenOnSingleLine))
                 {
-                    // Not a block that can be converted to an expression.
-                    return null;
+                    // See if it can be converted to an expression and is on a single line.  If so,
+                    // we'll show the diagnostic if either 'use expression body' preference is set.
+                    var severity =
+                        preferExpressionBodiedOption.Value == ExpressionBodyPreference.WhenOnSingleLine || preferExpressionBodiedOption.Value == ExpressionBodyPreference.WhenPossible
+                            ? preferExpressionBodiedOption.Notification.Value
+                            : DiagnosticSeverity.Hidden;
+
+                    return GetDiagnostic(declaration, severity);
                 }
 
-                var severity = preferExpressionBodiedOption.Value
-                    ? preferExpressionBodiedOption.Notification.Value
-                    : DiagnosticSeverity.Hidden;
+                if (body.TryConvertToExpressionBody(options, ExpressionBodyPreference.WhenPossible, out var expressionWhenPossible, out var semicolonWhenPossible))
+                {
+                    // It wasn't an expression that was on a single line.  But it was something we
+                    // could convert to an expression body.  We'll show the diagnostic only if 
+                    // the option to report when possible is set.
+                    var severity =
+                        preferExpressionBodiedOption.Value == ExpressionBodyPreference.WhenPossible
+                            ? preferExpressionBodiedOption.Notification.Value
+                            : DiagnosticSeverity.Hidden;
 
-                var location = severity == DiagnosticSeverity.Hidden
-                    ? declaration.GetLocation()
-                    : GetBody(declaration).Statements[0].GetLocation();
+                    return GetDiagnostic(declaration, severity);
+                }
 
-                var additionalLocations = ImmutableArray.Create(declaration.GetLocation());
-                return Diagnostic.Create(
-                    CreateDescriptorWithTitle(_expressionBodyTitle, severity, GetCustomTags(severity)),
-                    location, additionalLocations: additionalLocations);
+                // Can't be converted.
+                return null;
             }
             else
             {
                 // They have an expression body.  These can always be converted into blocks.
                 // Offer to convert this to a block, with the appropriate severity based
                 // on their options.
-                var severity = preferExpressionBodiedOption.Value
+                var severity = preferExpressionBodiedOption.Value != ExpressionBodyPreference.Never
                     ? DiagnosticSeverity.Hidden
                     : preferExpressionBodiedOption.Notification.Value;
 
@@ -123,6 +134,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
                     CreateDescriptorWithTitle(_blockBodyTitle, severity, GetCustomTags(severity)),
                     location, additionalLocations: additionalLocations);
             }
+        }
+
+        private Diagnostic GetDiagnostic(TDeclaration declaration, DiagnosticSeverity severity)
+        {
+            var location = severity == DiagnosticSeverity.Hidden
+                ? declaration.GetLocation()
+                : GetBody(declaration).Statements[0].GetLocation();
+
+            var additionalLocations = ImmutableArray.Create(declaration.GetLocation());
+            return Diagnostic.Create(
+                CreateDescriptorWithTitle(_expressionBodyTitle, severity, GetCustomTags(severity)),
+                location, additionalLocations: additionalLocations);
         }
 
         private static string[] GetCustomTags(DiagnosticSeverity severity)

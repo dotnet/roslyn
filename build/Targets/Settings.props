@@ -15,7 +15,7 @@
     <ToolsetPackagesDir>$(RepoRoot)build\ToolsetPackages\</ToolsetPackagesDir>
     <ToolsetPackagesSemaphore>$(ToolsetPackagesDir)toolsetpackages.semaphore</ToolsetPackagesSemaphore>
     <ToolsetCompilerPackageName>Microsoft.Net.Compilers</ToolsetCompilerPackageName>
-    <ToolsetCompilerPackageVersion>2.0.0-rc2-61102-09</ToolsetCompilerPackageVersion>
+    <ToolsetCompilerPackageVersion>2.0.1</ToolsetCompilerPackageVersion>
     <VSIXExpInstallerPackageName>RoslynTools.Microsoft.VSIXExpInstaller</VSIXExpInstallerPackageName>
     <VSIXExpInstallerPackageVersion>0.2.1-beta</VSIXExpInstallerPackageVersion>
     <RoslynDiagnosticsNugetPackageVersion>1.2.0-beta2</RoslynDiagnosticsNugetPackageVersion>
@@ -27,37 +27,30 @@
     <SignAssembly>true</SignAssembly>
     <UseRoslynAnalyzers Condition="'$(UseRoslynAnalyzers)' == ''">true</UseRoslynAnalyzers>
     <BaseOutputPath Condition="'$(BaseOutputPath)' == ''">$(RepoRoot)Binaries\</BaseOutputPath>
-    <OutDir>$(BaseOutputPath)$(Configuration)\</OutDir>
+    <OutputPath>$(BaseOutputPath)$(Configuration)\</OutputPath>
     <BaseIntermediateOutputPath Condition="'$(BaseIntermediateOutputPath)' == ''">$(RepoRoot)Binaries\Obj\</BaseIntermediateOutputPath>
     <IntermediateOutputPath>$(BaseIntermediateOutputPath)$(Configuration)\$(MSBuildProjectName)\</IntermediateOutputPath>
+
+    <NetStandard20RefPath>$(NuGetPackageRoot)/NETStandard.Library/$(NETStandardLibraryVersion)/build/netstandard2.0/ref/</NetStandard20RefPath>
+    <MicrosoftCSharpRefPath>$(NuGetPackageRoot)/Microsoft.CSharp/$(MicrosoftCSharpVersion)/ref/netstandard1.0/</MicrosoftCSharpRefPath>
 
     <!-- Workaround until we move to Microsoft.Net.Compilers.nupkg with this fix: https://github.com/dotnet/roslyn/commit/05c12ebfcdd08a02dbceded5327a8da7a7df23be:
          Use the Microsoft.Net.Compilers.props file with the fix checked into the repo instead of the one that comes along with the nuget package:
          $(NuGetPackageRoot)\Microsoft.Net.Compilers\$(ToolsetCompilerPackageVersion)\build\Microsoft.Net.Compilers.props -->
     <ToolsetCompilerPropsFilePath>$(MSBuildThisFileDirectory)Microsoft.Net.Compilers.props</ToolsetCompilerPropsFilePath>
+    <TargetFrameworkRootPath>$(NuGetPackageRoot)\RoslynTools.ReferenceAssemblies\$(RoslynToolsReferenceAssembliesVersion)\tools\Framework</TargetFrameworkRootPath>
 
-    <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">14.0</VisualStudioVersion>
+    <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">15.0</VisualStudioVersion>
     <VisualStudioReferenceMajorVersion Condition="'$(VisualStudioReferenceMajorVersion)' == ''">$(VisualStudioVersion.Substring(0, $(VisualStudioVersion.IndexOf('.'))))</VisualStudioReferenceMajorVersion>
     <VisualStudioReferenceAssemblyVersion Condition="'$(VisualStudioReferenceAssemblyVersion)' == ''">$(VisualStudioReferenceMajorVersion).0.0.0</VisualStudioReferenceAssemblyVersion>
     <VisualStudioCodename>Dev$(VisualStudioReferenceMajorVersion)</VisualStudioCodename>
     <MinimumVisualStudioVersion>$(VisualStudioVersion)</MinimumVisualStudioVersion>
 
     <!-- Disable AppX packaging for the Roslyn source. Not setting this to false has the side effect
-         that any builds of portable projects end up in a sub folder of $(OutDir). Search for this flag in
+         that any builds of portable projects end up in a sub folder of $(OutputPath). Search for this flag in
          Microsoft.Common.CurrentVersion.targets to see how it is consumed -->
     <WindowsAppContainer>false</WindowsAppContainer>
 
-    <!-- Workaround for Live Unit Testing bug (https://github.com/dotnet/testimpact/issues/1393) 
-         When building a solution LUT follows dependency graph provided by a Roslyn Solution. 
-         Such dependency graph doesn't include edges for P2P references marked ReferenceOutputAssembly=false. 
-         CSharpCodeAnalysis and BasicCodeAnalysis reference DeployCompilerGeneratorToolsRuntime with ReferenceOutputAssembly=false.
-         
-         If we are building for Live Unit Testing we use the uninstrumented generator tools
-         (for this to work we require that the solution has been built to the original directory).
-    -->
-    <CompilerGeneratorToolsDir Condition="'$(LiveUnitTestingOriginalBaseOutputPath)' == ''">$(OutDir)\Exes\DeployCompilerGeneratorToolsRuntime\</CompilerGeneratorToolsDir>
-    <CompilerGeneratorToolsDir Condition="'$(LiveUnitTestingOriginalBaseOutputPath)' != ''">$(LiveUnitTestingOriginalBaseOutputPath)$(Configuration)\Exes\DeployCompilerGeneratorToolsRuntime\</CompilerGeneratorToolsDir>
-    
     <MSBuildAssemblyNameFragment>Core</MSBuildAssemblyNameFragment>
 
     <!-- To copy .dll.config and .exe.config files of the referenced projects to the output dir
@@ -93,9 +86,6 @@
 
   <!-- Unix specific settings -->
   <PropertyGroup Condition="'$(OS)' != 'Windows_NT'">
-    <!-- Point to the reference assemblies on unix -->
-    <TargetFrameworkRootPath>$(MSBuildBinPath)\reference-assemblies\Framework</TargetFrameworkRootPath>
-
     <DebugType>portable</DebugType>
   </PropertyGroup>
 

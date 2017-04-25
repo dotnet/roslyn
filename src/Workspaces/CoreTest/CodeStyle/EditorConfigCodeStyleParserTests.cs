@@ -15,6 +15,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeStyle
         [InlineData("true:suggestion", true, DiagnosticSeverity.Info)]
         [InlineData("true:warning", true, DiagnosticSeverity.Warning)]
         [InlineData("true:error", true, DiagnosticSeverity.Error)]
+        [InlineData("true", false, DiagnosticSeverity.Hidden)]
         [InlineData("false:silent", false, DiagnosticSeverity.Hidden)]
         [InlineData("false:suggestion", false, DiagnosticSeverity.Info)]
         [InlineData("false:warning", false, DiagnosticSeverity.Warning)]
@@ -43,7 +44,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeStyle
 
             var codeStyleOption = new CodeStyleOption<bool>(value: isEnabled, notification: notificationOption);
 
-            var result = CodeStyleHelpers.ParseEditorConfigCodeStyleOption(args);
+            CodeStyleHelpers.TryParseEditorConfigCodeStyleOption(args, out var result);
             Assert.True(result.Value == isEnabled,
                         $"Expected {nameof(isEnabled)} to be {isEnabled}, was {result.Value}");
             Assert.True(result.Notification.Value == severity,

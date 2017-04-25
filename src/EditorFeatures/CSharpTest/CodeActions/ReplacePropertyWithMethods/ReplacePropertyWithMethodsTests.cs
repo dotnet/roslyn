@@ -1325,7 +1325,98 @@ ignoreTrivia: false);
 }", ignoreTrivia: false, options: PreferExpressionBodiedMethods);
         }
 
+        [WorkItem(18234, "https://github.com/dotnet/roslyn/issues/18234")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
+        public async Task TestDocumentationComment1()
+        {
+            await TestInRegularAndScriptAsync(
+@"internal interface ILanguageServiceHost
+{
+    /// <summary>
+    ///     Gets the active workspace project context that provides access to the language service for the active configured project.
+    /// </summary>
+    /// <value>
+    ///     An value that provides access to the language service for the active configured project.
+    /// </value>
+    object [||]ActiveProjectContext
+    {
+        get;
+    }
+}",
+@"internal interface ILanguageServiceHost
+{
+    /// <summary>
+    ///     Gets the active workspace project context that provides access to the language service for the active configured project.
+    /// </summary>
+    /// <returns>
+    ///     An value that provides access to the language service for the active configured project.
+    /// </returns>
+    object GetActiveProjectContext();
+}", ignoreTrivia: false);
+        }
+
+        [WorkItem(18234, "https://github.com/dotnet/roslyn/issues/18234")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
+        public async Task TestDocumentationComment2()
+        {
+            await TestInRegularAndScriptAsync(
+@"internal interface ILanguageServiceHost
+{
+    /// <summary>
+    ///     Gets the active workspace project context that provides access to the language service for the active configured project.
+    /// </summary>
+    /// <value>
+    ///     An value that provides access to the language service for the active configured project.
+    /// </value>
+    object [||]ActiveProjectContext
+    {
+        set;
+    }
+}",
+@"internal interface ILanguageServiceHost
+{
+    /// <summary>
+    ///     Gets the active workspace project context that provides access to the language service for the active configured project.
+    /// </summary>
+    /// <returns>
+    ///     An value that provides access to the language service for the active configured project.
+    /// </returns>
+    void SetActiveProjectContext(object value);
+}", ignoreTrivia: false);
+        }
+
+        [WorkItem(18234, "https://github.com/dotnet/roslyn/issues/18234")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
+        public async Task TestDocumentationComment3()
+        {
+            await TestInRegularAndScriptAsync(
+@"internal interface ILanguageServiceHost
+{
+    /// <summary>
+    ///     Gets the active workspace project context that provides access to the language service for the active configured project.
+    /// </summary>
+    /// <value>
+    ///     An value that provides access to the language service for the active configured project.
+    /// </value>
+    object [||]ActiveProjectContext
+    {
+        get; set;
+    }
+}",
+@"internal interface ILanguageServiceHost
+{
+    /// <summary>
+    ///     Gets the active workspace project context that provides access to the language service for the active configured project.
+    /// </summary>
+    /// <returns>
+    ///     An value that provides access to the language service for the active configured project.
+    /// </returns>
+    object GetActiveProjectContext();
+    void SetActiveProjectContext(object value);
+}", ignoreTrivia: false);
+        }
+
         private IDictionary<OptionKey, object> PreferExpressionBodiedMethods =>
-            OptionsSet(SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CodeStyleOptions.TrueWithSuggestionEnforcement));
+            OptionsSet(SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenPossibleWithSuggestionEnforcement));
     }
 }

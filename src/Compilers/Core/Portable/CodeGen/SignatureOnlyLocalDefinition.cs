@@ -34,14 +34,14 @@ namespace Microsoft.CodeAnalysis.CodeGen
             get { throw ExceptionUtilities.Unreachable; }
         }
 
-        public ImmutableArray<TypedConstant> DynamicTransformFlags
+        public ImmutableArray<bool> DynamicTransformFlags
         {
-            get { return ImmutableArray<TypedConstant>.Empty; }
+            get { return ImmutableArray<bool>.Empty; }
         }
 
-        public ImmutableArray<TypedConstant> TupleElementNames
+        public ImmutableArray<string> TupleElementNames
         {
-            get { return ImmutableArray<TypedConstant>.Empty; }
+            get { return ImmutableArray<string>.Empty; }
         }
 
         /// <remarks>

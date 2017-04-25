@@ -205,9 +205,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             var token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken, includeDocumentationComments: true);
             token = token.GetPreviousTokenIfTouchingWord(position);
 
-            if (token.Parent is XmlCrefAttributeSyntax)
+            if (token.Parent is XmlCrefAttributeSyntax attribute)
             {
-                var attribute = (XmlCrefAttributeSyntax)token.Parent;
                 return token == attribute.StartQuoteToken;
             }
 
@@ -503,9 +502,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                         }
 
                         var structure = triviaTok.GetStructure();
-                        if (structure is BranchingDirectiveTriviaSyntax)
+                        if (structure is BranchingDirectiveTriviaSyntax branch)
                         {
-                            var branch = (BranchingDirectiveTriviaSyntax)structure;
                             return !branch.IsActive || !branch.BranchTaken;
                         }
                     }

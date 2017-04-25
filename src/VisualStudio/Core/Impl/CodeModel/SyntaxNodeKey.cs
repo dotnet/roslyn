@@ -43,9 +43,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
         public override bool Equals(object obj)
         {
-            if (obj is SyntaxNodeKey)
+            if (obj is SyntaxNodeKey key)
             {
-                return Equals((SyntaxNodeKey)obj);
+                return Equals(key);
             }
 
             return false;

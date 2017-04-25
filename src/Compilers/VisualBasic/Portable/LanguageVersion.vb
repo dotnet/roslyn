@@ -56,9 +56,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Select
 
         End Function
+    End Module
 
+    Public Module LanguageVersionFacts
+
+        ''' <summary>
+        ''' Map a language version (such as Default, Latest, Or VisualBasicN) to a specific version (VisualBasicN).
+        ''' </summary>
         <Extension>
-        Friend Function MapSpecifiedToEffectiveVersion(version As LanguageVersion) As LanguageVersion
+        Public Function MapSpecifiedToEffectiveVersion(version As LanguageVersion) As LanguageVersion
             Select Case version
                 Case LanguageVersion.Latest, LanguageVersion.Default
                     Return LanguageVersion.VisualBasic15
@@ -67,5 +73,81 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Select
         End Function
 
+        ''' <summary>
+        ''' Displays the version number in the format understood on the command-line (/langver flag).
+        ''' For instance, "9", "15", "latest".
+        ''' </summary>
+        <Extension>
+        Public Function ToDisplayString(version As LanguageVersion) As String
+            Select Case version
+                Case LanguageVersion.VisualBasic9
+                    Return "9"
+                Case LanguageVersion.VisualBasic10
+                    Return "10"
+                Case LanguageVersion.VisualBasic11
+                    Return "11"
+                Case LanguageVersion.VisualBasic12
+                    Return "12"
+                Case LanguageVersion.VisualBasic14
+                    Return "14"
+                Case LanguageVersion.VisualBasic15
+                    Return "15"
+                Case LanguageVersion.Default
+                    Return "default"
+                Case LanguageVersion.Latest
+                    Return "latest"
+                Case Else
+                    Throw ExceptionUtilities.UnexpectedValue(version)
+            End Select
+        End Function
+
+        ''' <summary>
+        ''' Parse a LanguageVersion from a string input, as the command-line compiler does.
+        ''' </summary>
+        <Extension>
+        Public Function TryParse(version As String, ByRef result As LanguageVersion) As Boolean
+            If version Is Nothing Then
+                result = LanguageVersion.Default
+                Return False
+            End If
+
+            Select Case version.ToLowerInvariant()
+                Case "9", "9.0"
+                    result = LanguageVersion.VisualBasic9
+                Case "10", "10.0"
+                    result = LanguageVersion.VisualBasic10
+                Case "11", "11.0"
+                    result = LanguageVersion.VisualBasic11
+                Case "12", "12.0"
+                    result = LanguageVersion.VisualBasic12
+                Case "14", "14.0"
+                    result = LanguageVersion.VisualBasic14
+                Case "15", "15.0"
+                    result = LanguageVersion.VisualBasic15
+                Case "default"
+                    result = LanguageVersion.Default
+                Case "latest"
+                    result = LanguageVersion.Latest
+                Case Else
+                    result = LanguageVersion.Default
+                    Return False
+            End Select
+            Return True
+        End Function
+
     End Module
+
+    Friend Class VisualBasicRequiredLanguageVersion
+        Inherits RequiredLanguageVersion
+
+        Friend ReadOnly Property Version As LanguageVersion
+
+        Friend Sub New(version As LanguageVersion)
+            Me.Version = version
+        End Sub
+
+        Public Overrides Function ToString() As String
+            Return Version.ToDisplayString()
+        End Function
+    End Class
 End Namespace

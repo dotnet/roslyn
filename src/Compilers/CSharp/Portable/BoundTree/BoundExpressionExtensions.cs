@@ -14,6 +14,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return node.Kind == BoundKind.Literal && node.ConstantValue.Discriminator == ConstantValueTypeDiscriminator.Null;
         }
 
+        public static bool IsLiteralDefault(this BoundExpression node)
+        {
+            return node.Kind == BoundKind.DefaultExpression && node.Syntax.Kind() == SyntaxKind.DefaultLiteralExpression;
+        }
+
         // returns true when expression has no side-effects and produces
         // default value (null, zero, false, default(T) ...)
         //
@@ -22,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         //       after some folding/propagation/algebraic transformations.
         public static bool IsDefaultValue(this BoundExpression node)
         {
-            if (node.Kind == BoundKind.DefaultOperator)
+            if (node.Kind == BoundKind.DefaultExpression)
             {
                 return true;
             }
