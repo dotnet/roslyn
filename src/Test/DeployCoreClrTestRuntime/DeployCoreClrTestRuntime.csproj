@@ -18,6 +18,7 @@
     <PackageTargetFallback>portable-net452;dotnet;netstandard1.6</PackageTargetFallback>
     <NoStdLib>true</NoStdLib>
     <RoslynProjectType>DeploymentTest</RoslynProjectType>
+    <RoslynUnitTestDir>CoreClrTest</RoslynUnitTestDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'" />
