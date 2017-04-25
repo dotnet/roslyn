@@ -6,7 +6,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting;
+using Microsoft.CodeAnalysis.Editor.ReferenceHighlighting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Roslyn.Utilities;
 
@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.ReferenceHighlighting
         {
             // The FindRefs engine won't find references through 'var' for performance reasons.
             // Also, they are not needed for things like rename/sig change, and the normal find refs
-            // feature.  However, we would lke the results to be highlighted to get a good experience
+            // feature.  However, we would like the results to be highlighted to get a good experience
             // while editing (especially since highlighting may have been invoked off of 'var' in
             // the first place).
             //

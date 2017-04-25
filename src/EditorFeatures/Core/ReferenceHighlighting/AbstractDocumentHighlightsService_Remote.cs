@@ -4,7 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Remote;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
+namespace Microsoft.CodeAnalysis.Editor.ReferenceHighlighting
 {
     internal abstract partial class AbstractDocumentHighlightsService : IDocumentHighlightsService
     {

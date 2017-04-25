@@ -4,7 +4,7 @@ using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
+namespace Microsoft.CodeAnalysis.Editor.ReferenceHighlighting
 {
     internal interface IRemoteDocumentHighlights
     {

@@ -2,7 +2,7 @@
 
 using Microsoft.CodeAnalysis.Options;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
+namespace Microsoft.CodeAnalysis.Editor.ReferenceHighlighting
 {
     internal static class DocumentHighlightsOptions
     {
