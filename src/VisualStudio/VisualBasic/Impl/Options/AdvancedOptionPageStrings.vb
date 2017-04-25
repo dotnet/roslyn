@@ -84,6 +84,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         Public ReadOnly Property Option_with_other_members_of_the_same_kind As String =
             ServicesVSResources.with_other_members_of_the_same_kind
 
+        Public ReadOnly Property Option_When_generating_properties As String =
+            ServicesVSResources.When_generating_properties
+
+        Public ReadOnly Property Option_prefer_auto_properties As String =
+            ServicesVSResources.prefer_auto_properties
+
+        Public ReadOnly Property Option_prefer_throwing_properties As String =
+            ServicesVSResources.prefer_throwing_properties
+
         Public ReadOnly Property Option_at_the_end As String =
             ServicesVSResources.at_the_end
 
