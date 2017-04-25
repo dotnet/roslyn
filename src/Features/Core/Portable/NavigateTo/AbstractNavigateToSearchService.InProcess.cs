@@ -35,12 +35,12 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             var (patternName, patternContainerOpt) = PatternMatcher.GetNameAndContainer(pattern);
             var nameMatcher = PatternMatcher.CreatePatternMatcher(patternName, includeMatchedSpans: true, allowFuzzyMatching: true);
 
-            var containerMatcher = patternContainerOpt != null
+            var containerMatcherOpt = patternContainerOpt != null
                 ? PatternMatcher.CreateDotSeparatedContainerMatcher(patternContainerOpt)
                 : null;
 
             using (nameMatcher)
-            using (containerMatcher)
+            using (containerMatcherOpt)
             {
                 var nameMatches = ArrayBuilder<PatternMatch>.GetInstance();
                 var containerMatches = ArrayBuilder<PatternMatch>.GetInstance();
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 try
                 {
                     return await FindNavigableDeclaredSymbolInfosAsync(
-                        project, searchDocument, nameMatcher, containerMatcher,
+                        project, searchDocument, nameMatcher, containerMatcherOpt,
                         nameMatches, containerMatches, cancellationToken).ConfigureAwait(false);
                 }
                 finally
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
 
         private static async Task<ImmutableArray<INavigateToSearchResult>> FindNavigableDeclaredSymbolInfosAsync(
             Project project, Document searchDocument,
-            PatternMatcher nameMatcher, PatternMatcher containerMatcher,
+            PatternMatcher nameMatcher, PatternMatcher containerMatcherOpt,
             ArrayBuilder<PatternMatch> nameMatches, ArrayBuilder<PatternMatch> containerMatches,
             CancellationToken cancellationToken)
         {
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
 
                     cancellationToken.ThrowIfCancellationRequested();
                     if (nameMatcher.AddMatches(declaredSymbolInfo.Name, nameMatches) &&
-                        containerMatcher?.AddMatches(declaredSymbolInfo.FullyQualifiedContainerName, containerMatches) != false)
+                        containerMatcherOpt?.AddMatches(declaredSymbolInfo.FullyQualifiedContainerName, containerMatches) != false)
                     { 
                         result.Add(ConvertResult(
                             declaredSymbolInfo, document, nameMatches, containerMatches));
