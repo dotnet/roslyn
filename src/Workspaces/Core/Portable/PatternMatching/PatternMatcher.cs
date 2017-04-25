@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
             {
                 // PERF: Avoid string.Split allocations when the pattern doesn't contain a dot.
                 _dotSeparatedPatternSegments = pattern.Length > 0
-                    ? new PatternSegment[1] { _fullPatternSegment }
+                    ? new PatternSegment[1] { new PatternSegment(pattern.Trim(), allowFuzzyMatching) }
                     : Array.Empty<PatternSegment>();
             }
             else
@@ -246,18 +246,27 @@ namespace Microsoft.CodeAnalysis.PatternMatching
         /// so, unless you need to know the full set of matches, use this version.
         /// </remarks>
         /// <param name="candidate">The word being tested.</param>
-        /// <param name="inludeMatchSpans">Whether or not the matched spans should be included with results</param>
+        /// <param name="includeMatchSpans">Whether or not the matched spans should be included with results</param>
         /// <returns>If this was a match, the first element of the set of match types that occurred while matching the
         /// patterns. If it was not a match, it returns null.</returns>
-        public PatternMatch? GetFirstMatch(string candidate, bool inludeMatchSpans = false)
+        public PatternMatch? GetFirstMatch(
+            string candidate, bool includeMatchSpans)
         {
             if (SkipMatch(candidate))
             {
                 return null;
             }
 
-            return MatchPatternSegment(candidate, inludeMatchSpans, _fullPatternSegment, wantAllMatches: false, allMatches: out _, fuzzyMatch: false) ??
-                   MatchPatternSegment(candidate, inludeMatchSpans, _fullPatternSegment, wantAllMatches: false, allMatches: out _, fuzzyMatch: true);
+            return GetFirstMatchWorker(candidate, includeMatchSpans, fuzzyMatch: false) ??
+                   GetFirstMatchWorker(candidate, includeMatchSpans, fuzzyMatch: true);
+        }
+
+        private PatternMatch? GetFirstMatchWorker(
+            string candidate, bool includeMatchSpans, bool fuzzyMatch)
+        {
+            return MatchPatternSegment(
+                candidate, includeMatchSpans, _fullPatternSegment, 
+                wantAllMatches: false, allMatches: out _, fuzzyMatch: fuzzyMatch);
         }
 
         private StringBreaks GetWordSpans(string word)
@@ -266,13 +275,6 @@ namespace Microsoft.CodeAnalysis.PatternMatching
             {
                 return _stringToWordSpans.GetOrAdd(word, _breakIntoWordSpans);
             }
-        }
-
-        internal PatternMatch? MatchSingleWordPattern_ForTestingOnly(string candidate)
-        {
-            return MatchPatternChunk(candidate, includeMatchSpans: true,
-                patternChunk: _fullPatternSegment.TotalTextChunk, punctuationStripped: false,
-                fuzzyMatch: false);
         }
 
         private static bool ContainsUpperCaseLetter(string pattern)
@@ -443,12 +445,10 @@ namespace Microsoft.CodeAnalysis.PatternMatching
 
             var singleMatch = MatchPatternSegment(candidate, includeMatchSpans, patternSegment,
                 wantAllMatches: true, fuzzyMatch: fuzzyMatch, allMatches: out var matches);
-            if (singleMatch.HasValue)
-            {
-                return ImmutableArray.Create(singleMatch.Value);
-            }
 
-            return matches;
+            return singleMatch.HasValue
+                ? ImmutableArray.Create(singleMatch.Value)
+                : matches;
         }
 
         /// <summary>
@@ -554,17 +554,18 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                         return null;
                     }
 
-                    if (!wantAllMatches || subWordTextChunks.Length == 1)
-                    {
-                        // Stop at the first word
-                        return result;
-                    }
-
                     matches.Add(result.Value);
                 }
 
-                allMatches = matches.ToImmutable();
-                return null;
+                if (wantAllMatches && matches.Count >= 2)
+                {
+                    allMatches = matches.ToImmutable();
+                    return null;
+                }
+                else
+                {
+                    return matches.FirstOrNullable();
+                }
             }
             finally
             {
