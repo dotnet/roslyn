@@ -62,7 +62,7 @@ commitPullList.each { isPr ->
             def myJob = job(jobName) {
         description("Windows ${configuration} tests on ${buildTarget}")
                   steps {
-                    batchFile(""".\\build\\scripts\\cibuild.cmd ${(configuration == 'debug') ? '/debug' : '/release'} ${(buildTarget == 'unit32') ? '/test32' : '/test64'} /skipCoreClrTests""")
+                    batchFile(""".\\build\\scripts\\cibuild.cmd ${(configuration == 'debug') ? '-debug' : '-release'} ${(buildTarget == 'unit32') ? '-test32' : '-test64'} -testDesktop""")
                   }
                 }
 
@@ -82,7 +82,7 @@ commitPullList.each { isPr ->
     def myJob = job(jobName) {
       description("Windows CoreCLR unit tests")
             steps {
-              batchFile(""".\\build\\scripts\\cibuild.cmd ${(configuration == 'debug') ? '/debug' : '/release'} /skipDesktopTests""")
+              batchFile(""".\\build\\scripts\\cibuild.cmd ${(configuration == 'debug') ? '-debug' : '-release'} -testCoreClr""")
             }
 
       def triggerPhraseOnly = false
@@ -151,7 +151,7 @@ commitPullList.each { isPr ->
   def myJob = job(jobName) {
     description('Determinism tests')
     steps {
-      batchFile(""".\\build\\scripts\\cibuild.cmd /testDeterminism""")
+      batchFile(""".\\build\\scripts\\cibuild.cmd -testDeterminism""")
     }
   }
 
@@ -167,7 +167,7 @@ commitPullList.each { isPr ->
   def myJob = job(jobName) {
     description('Build correctness tests')
     steps {
-      batchFile(""".\\build\\scripts\\cibuild.cmd /testBuildCorrectness""")
+      batchFile(""".\\build\\scripts\\cibuild.cmd -testBuildCorrectness""")
     }
   }
 
@@ -183,7 +183,7 @@ commitPullList.each { isPr ->
   def myJob = job(jobName) {
     description('perf test correctness')
     steps {
-      batchFile(""".\\build\\scripts\\cibuild.cmd /testPerfCorrectness""")
+      batchFile(""".\\build\\scripts\\cibuild.cmd -testPerfCorrectness""")
     }
   }
 
@@ -217,7 +217,7 @@ commitPullList.each { isPr ->
       def myJob = job(jobName) {
         description("Windows ${configuration} tests on ${buildTarget}")
         steps {
-          batchFile(""".\\build\\scripts\\cibuild.cmd ${(configuration == 'debug') ? '/debug' : '/release'} /testVsi""")
+          batchFile(""".\\build\\scripts\\cibuild.cmd ${(configuration == 'debug') ? '-debug' : '-release'} -testVsi""")
         }
       }
 
