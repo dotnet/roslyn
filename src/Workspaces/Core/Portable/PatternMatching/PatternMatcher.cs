@@ -89,13 +89,14 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                 patternParts, containerSplitCharacters, culture, allowFuzzyMatching);
         }
 
-        public static PatternMatcher CreateDotSeperatedContainerMatcher(
+        public static PatternMatcher CreateDotSeparatedContainerMatcher(
             string pattern,
             CultureInfo culture = null,
             bool allowFuzzyMatching = false)
         {
             return CreateContainerPatternMatcher(
-                pattern.Split(s_dotCharacterArray), s_dotCharacterArray, culture, allowFuzzyMatching);
+                pattern.Split(s_dotCharacterArray, StringSplitOptions.RemoveEmptyEntries),
+                s_dotCharacterArray, culture, allowFuzzyMatching);
         }
 
         internal static (string name, string containerOpt) GetNameAndContainer(string pattern)

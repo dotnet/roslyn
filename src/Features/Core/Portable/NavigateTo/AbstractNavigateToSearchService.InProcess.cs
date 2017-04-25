@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             var nameMatcher = PatternMatcher.CreatePatternMatcher(patternName, includeMatchedSpans: true, allowFuzzyMatching: true);
 
             var containerMatcher = patternContainerOpt != null
-                ? PatternMatcher.CreateDotSeperatedContainerMatcher(patternContainerOpt)
+                ? PatternMatcher.CreateDotSeparatedContainerMatcher(patternContainerOpt)
                 : null;
 
             using (nameMatcher)

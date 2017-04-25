@@ -245,7 +245,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                 // Ok, we had a dotted pattern.  Have to see if the symbol's container matches the 
                 // pattern as well.
-                using (var containerPatternMatcher = PatternMatcher.CreateDotSeperatedContainerMatcher(containerPart))
+                using (var containerPatternMatcher = PatternMatcher.CreateDotSeparatedContainerMatcher(containerPart))
                 {
                     return symbolAndProjectIds.WhereAsArray(t =>
                         containerPatternMatcher.Matches(GetContainer(t.Symbol)));
