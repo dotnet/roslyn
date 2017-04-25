@@ -32868,7 +32868,11 @@ class C
         o = null;
     }
 }";
+<<<<<<< HEAD
             var comp = CreateStandardCompilation(source);
+=======
+            var comp = CreateCompilationWithMscorlib(source);
+>>>>>>> upstream/dev15.2.x
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
             var identifierBefore = GetReferences(tree, "G").Single();
@@ -32882,6 +32886,7 @@ class C
             var info = model.GetSymbolInfo(identifierAfter);
             Assert.Equal("void C.G(out System.Object o)", info.Symbol.ToTestDisplayString());
         }
+<<<<<<< HEAD
 
         [Fact]
         [WorkItem(10604, "https://github.com/dotnet/roslyn/issues/10604")]
@@ -32912,6 +32917,8 @@ public class C
             Assert.Equal("System.Collections.Generic.IEnumerator<System.Object> System.Collections.Generic.IEnumerable<System.Object>.GetEnumerator()",
                 info.GetEnumeratorMethod.ToTestDisplayString());
         }
+=======
+>>>>>>> upstream/dev15.2.x
     }
 
     internal static class OutVarTestsExtensions
