@@ -142,11 +142,11 @@ namespace Microsoft.CodeAnalysis.PatternMatching
             bool fuzzyMatch)
         {
             return fuzzyMatch
-                ? FuzzyyMatchPatternChunk(candidate, patternChunk, punctuationStripped)
+                ? FuzzyMatchPatternChunk(candidate, patternChunk, punctuationStripped)
                 : NonFuzzyMatchPatternChunk(candidate, patternChunk, punctuationStripped);
         }
 
-        private PatternMatch? FuzzyyMatchPatternChunk(
+        private PatternMatch? FuzzyMatchPatternChunk(
             string candidate,
             TextChunk patternChunk,
             bool punctuationStripped)
