@@ -51,6 +51,11 @@ namespace Microsoft.CodeAnalysis.PatternMatching
 
             private bool AddMatches(string container, ArrayBuilder<PatternMatch> matches, bool fuzzyMatch)
             {
+                if (fuzzyMatch && !_allowFuzzyMatching)
+                {
+                    return false;
+                }
+
                 var tempContainerMatches = ArrayBuilder<PatternMatch>.GetInstance();
 
                 try
