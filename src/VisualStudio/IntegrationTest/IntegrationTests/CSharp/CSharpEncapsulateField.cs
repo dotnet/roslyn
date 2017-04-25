@@ -30,7 +30,7 @@ namespace myNamespace
     }
 }";
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18879"), Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
         public void EncapsulateThroughCommand()
         {
             SetUpEditor(TestSource);
