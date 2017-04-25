@@ -173,6 +173,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_AlignmentMagnitude:
                 case ErrorCode.WRN_AttributeIgnoredWhenPublicSigning:
                 case ErrorCode.WRN_TupleLiteralNameMismatch:
+                case ErrorCode.WRN_NullReferenceAssignment:
+                case ErrorCode.WRN_NullReferenceReceiver:
+                case ErrorCode.WRN_NullReferenceReturn:
+                case ErrorCode.WRN_NullReferenceArgument:
+                case ErrorCode.WRN_NullabilityMismatchInTypeOnOverride:
+                case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride:
+                case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride:
+                case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnPartial:
+                case ErrorCode.WRN_NullabilityMismatchInTypeOnImplicitImplementation:
+                case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnImplicitImplementation:
+                case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnImplicitImplementation:
+                case ErrorCode.WRN_NullabilityMismatchInTypeOnExplicitImplementation:
+                case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnExplicitImplementation:
+                case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnExplicitImplementation:
+                case ErrorCode.WRN_NullabilityMismatchInAssignment:
+                case ErrorCode.WRN_NullabilityMismatchInArgument:
+                case ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate:
+                case ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate:
                 case ErrorCode.WRN_DefaultInSwitch:
                     return true;
                 default:
@@ -214,6 +232,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 case ErrorCode.HDN_UnusedUsingDirective:
                 case ErrorCode.HDN_UnusedExternAlias:
+                case ErrorCode.HDN_NullCheckIsProbablyAlwaysTrue:
+                case ErrorCode.HDN_NullCheckIsProbablyAlwaysFalse:
+                case ErrorCode.HDN_ExpressionIsProbablyNeverNull:
                     return true;
                 default:
                     return false;

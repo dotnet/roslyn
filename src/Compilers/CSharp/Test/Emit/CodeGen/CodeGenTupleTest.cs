@@ -829,8 +829,8 @@ references: s_valueTupleRefs);
 
             var allNullNamesMethod = c.GetMember<MethodSymbol>("AllNullNamesMethod");
             var allNullParamType = allNullNamesMethod.Parameters.Single().Type;
-            Assert.False(allNullParamType.IsErrorType());
-            Assert.True(allNullParamType.IsTupleType);
+            Assert.False(allNullParamType.TypeSymbol.IsErrorType());
+            Assert.True(allNullParamType.TypeSymbol.IsTupleType);
             Assert.Equal("ValueTuple<(System.Int32, System.Int32)>", allNullParamType.ToTestDisplayString());
         }
 

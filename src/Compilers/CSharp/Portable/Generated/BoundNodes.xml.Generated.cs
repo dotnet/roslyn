@@ -169,6 +169,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         OutVariablePendingInference,
         DeconstructionVariablePendingInference,
         OutDeconstructVarPendingInference,
+        ValuePlaceholder,
     }
 
 
@@ -4027,7 +4028,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundDynamicMemberAccess : BoundExpression
     {
-        public BoundDynamicMemberAccess(SyntaxNode syntax, BoundExpression receiver, ImmutableArray<TypeSymbol> typeArgumentsOpt, string name, bool invoked, bool indexed, TypeSymbol type, bool hasErrors = false)
+        public BoundDynamicMemberAccess(SyntaxNode syntax, BoundExpression receiver, ImmutableArray<TypeSymbolWithAnnotations> typeArgumentsOpt, string name, bool invoked, bool indexed, TypeSymbol type, bool hasErrors = false)
             : base(BoundKind.DynamicMemberAccess, syntax, type, hasErrors || receiver.HasErrors())
         {
 
@@ -4045,7 +4046,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundExpression Receiver { get; }
 
-        public ImmutableArray<TypeSymbol> TypeArgumentsOpt { get; }
+        public ImmutableArray<TypeSymbolWithAnnotations> TypeArgumentsOpt { get; }
 
         public string Name { get; }
 
@@ -4058,7 +4059,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return visitor.VisitDynamicMemberAccess(this);
         }
 
-        public BoundDynamicMemberAccess Update(BoundExpression receiver, ImmutableArray<TypeSymbol> typeArgumentsOpt, string name, bool invoked, bool indexed, TypeSymbol type)
+        public BoundDynamicMemberAccess Update(BoundExpression receiver, ImmutableArray<TypeSymbolWithAnnotations> typeArgumentsOpt, string name, bool invoked, bool indexed, TypeSymbol type)
         {
             if (receiver != this.Receiver || typeArgumentsOpt != this.TypeArgumentsOpt || name != this.Name || invoked != this.Invoked || indexed != this.Indexed || type != this.Type)
             {
@@ -4275,7 +4276,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundMethodGroup : BoundMethodOrPropertyGroup
     {
-        public BoundMethodGroup(SyntaxNode syntax, ImmutableArray<TypeSymbol> typeArgumentsOpt, string name, ImmutableArray<MethodSymbol> methods, Symbol lookupSymbolOpt, DiagnosticInfo lookupError, BoundMethodGroupFlags flags, BoundExpression receiverOpt, LookupResultKind resultKind, bool hasErrors = false)
+        public BoundMethodGroup(SyntaxNode syntax, ImmutableArray<TypeSymbolWithAnnotations> typeArgumentsOpt, string name, ImmutableArray<MethodSymbol> methods, Symbol lookupSymbolOpt, DiagnosticInfo lookupError, BoundMethodGroupFlags flags, BoundExpression receiverOpt, LookupResultKind resultKind, bool hasErrors = false)
             : base(BoundKind.MethodGroup, syntax, receiverOpt, resultKind, hasErrors || receiverOpt.HasErrors())
         {
 
@@ -4291,7 +4292,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 
-        public ImmutableArray<TypeSymbol> TypeArgumentsOpt { get; }
+        public ImmutableArray<TypeSymbolWithAnnotations> TypeArgumentsOpt { get; }
 
         public string Name { get; }
 
@@ -4308,7 +4309,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return visitor.VisitMethodGroup(this);
         }
 
-        public BoundMethodGroup Update(ImmutableArray<TypeSymbol> typeArgumentsOpt, string name, ImmutableArray<MethodSymbol> methods, Symbol lookupSymbolOpt, DiagnosticInfo lookupError, BoundMethodGroupFlags flags, BoundExpression receiverOpt, LookupResultKind resultKind)
+        public BoundMethodGroup Update(ImmutableArray<TypeSymbolWithAnnotations> typeArgumentsOpt, string name, ImmutableArray<MethodSymbol> methods, Symbol lookupSymbolOpt, DiagnosticInfo lookupError, BoundMethodGroupFlags flags, BoundExpression receiverOpt, LookupResultKind resultKind)
         {
             if (typeArgumentsOpt != this.TypeArgumentsOpt || name != this.Name || methods != this.Methods || lookupSymbolOpt != this.LookupSymbolOpt || lookupError != this.LookupError || flags != this.Flags || receiverOpt != this.ReceiverOpt || resultKind != this.ResultKind)
             {
@@ -6064,6 +6065,42 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
+    internal sealed partial class BoundValuePlaceholder : BoundExpression
+    {
+        public BoundValuePlaceholder(SyntaxNode syntax, TypeSymbol type, bool hasErrors)
+            : base(BoundKind.ValuePlaceholder, syntax, type, hasErrors)
+        {
+
+            Debug.Assert(type != null, "Field 'type' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+
+        }
+
+        public BoundValuePlaceholder(SyntaxNode syntax, TypeSymbol type)
+            : base(BoundKind.ValuePlaceholder, syntax, type)
+        {
+
+            Debug.Assert(type != null, "Field 'type' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+
+        }
+
+
+        public override BoundNode Accept(BoundTreeVisitor visitor)
+        {
+            return visitor.VisitValuePlaceholder(this);
+        }
+
+        public BoundValuePlaceholder Update(TypeSymbol type)
+        {
+            if (type != this.Type)
+            {
+                var result = new BoundValuePlaceholder(this.Syntax, type, this.HasErrors);
+                result.WasCompilerGenerated = this.WasCompilerGenerated;
+                return result;
+            }
+            return this;
+        }
+    }
+
     internal abstract partial class BoundTreeVisitor<A,R>
     {
 
@@ -6370,6 +6407,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return VisitDeconstructionVariablePendingInference(node as DeconstructionVariablePendingInference, arg);
                 case BoundKind.OutDeconstructVarPendingInference: 
                     return VisitOutDeconstructVarPendingInference(node as OutDeconstructVarPendingInference, arg);
+                case BoundKind.ValuePlaceholder: 
+                    return VisitValuePlaceholder(node as BoundValuePlaceholder, arg);
             }
 
             return default(R);
@@ -6974,6 +7013,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return this.DefaultVisit(node, arg);
         }
+        public virtual R VisitValuePlaceholder(BoundValuePlaceholder node, A arg)
+        {
+            return this.DefaultVisit(node, arg);
+        }
     }
 
     internal abstract partial class BoundTreeVisitor
@@ -7571,6 +7614,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.DefaultVisit(node);
         }
         public virtual BoundNode VisitOutDeconstructVarPendingInference(OutDeconstructVarPendingInference node)
+        {
+            return this.DefaultVisit(node);
+        }
+        public virtual BoundNode VisitValuePlaceholder(BoundValuePlaceholder node)
         {
             return this.DefaultVisit(node);
         }
@@ -8343,6 +8390,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
         public override BoundNode VisitOutDeconstructVarPendingInference(OutDeconstructVarPendingInference node)
+        {
+            return null;
+        }
+        public override BoundNode VisitValuePlaceholder(BoundValuePlaceholder node)
         {
             return null;
         }
@@ -9221,6 +9272,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             TypeSymbol type = this.VisitType(node.Type);
             return node.Update();
+        }
+        public override BoundNode VisitValuePlaceholder(BoundValuePlaceholder node)
+        {
+            TypeSymbol type = this.VisitType(node.Type);
+            return node.Update(type);
         }
     }
 
@@ -10760,6 +10816,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override TreeDumperNode VisitOutDeconstructVarPendingInference(OutDeconstructVarPendingInference node, object arg)
         {
             return new TreeDumperNode("outDeconstructVarPendingInference", null, new TreeDumperNode[]
+            {
+                new TreeDumperNode("type", node.Type, null)
+            }
+            );
+        }
+        public override TreeDumperNode VisitValuePlaceholder(BoundValuePlaceholder node, object arg)
+        {
+            return new TreeDumperNode("valuePlaceholder", null, new TreeDumperNode[]
             {
                 new TreeDumperNode("type", node.Type, null)
             }

@@ -66,7 +66,7 @@ namespace System.Runtime.CompilerServices
         [Fact]
         public void Test0()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new[] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -172,7 +172,7 @@ class B : A
     }
 } 
 ";
-            var compilation = CreateCompilationWithMscorlib(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithNullCheckingFeature());
+            var compilation = CreateStandardCompilation(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithNullCheckingFeature());
 
             //var a = compilation.GetTypeByMetadataName("A");
             //var aFoo = a.GetMember<MethodSymbol>("Foo");
@@ -203,7 +203,7 @@ class B : A
     }
 } 
 ";
-            var compilation = CreateCompilationWithMscorlib(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithNullCheckingFeature());
+            var compilation = CreateStandardCompilation(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithNullCheckingFeature());
             compilation.VerifyDiagnostics();
         }
 
@@ -227,7 +227,7 @@ class B : A
     }
 } 
 ";
-            CreateCompilationWithMscorlib(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithNullCheckingFeature()).VerifyDiagnostics();
+            CreateStandardCompilation(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithNullCheckingFeature()).VerifyDiagnostics();
         }
 
         [Fact]
@@ -248,7 +248,7 @@ class B : A
     }
 } 
 ";
-            CreateCompilationWithMscorlib(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithNullCheckingFeature()).VerifyDiagnostics();
+            CreateStandardCompilation(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithNullCheckingFeature()).VerifyDiagnostics();
         }
 
         [Fact]
@@ -271,7 +271,7 @@ class B : A
     }
 } 
 ";
-            CreateCompilationWithMscorlib(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithNullCheckingFeature()).VerifyDiagnostics();
+            CreateStandardCompilation(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithNullCheckingFeature()).VerifyDiagnostics();
         }
 
         [Fact]
@@ -292,7 +292,7 @@ class B : A
     }
 } 
 ";
-            var compilation = CreateCompilationWithMscorlib(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithNullCheckingFeature());
+            var compilation = CreateStandardCompilation(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithNullCheckingFeature());
             compilation.VerifyDiagnostics();
 
             var b = compilation.GetTypeByMetadataName("B");
@@ -322,7 +322,7 @@ class B : A
     }
 } 
 ";
-            var compilation = CreateCompilationWithMscorlib(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithNullCheckingFeature());
+            var compilation = CreateStandardCompilation(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithNullCheckingFeature());
             compilation.VerifyDiagnostics();
 
             var b = compilation.GetTypeByMetadataName("B");
@@ -351,7 +351,7 @@ class B : A
     }
 } 
 ";
-            var compilation = CreateCompilationWithMscorlib(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithNullCheckingFeature());
+            var compilation = CreateStandardCompilation(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithNullCheckingFeature());
 
             compilation.VerifyDiagnostics();
 
@@ -391,7 +391,7 @@ class B : A
     }
 } 
 ";
-            var compilation = CreateCompilationWithMscorlib(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithNullCheckingFeature());
+            var compilation = CreateStandardCompilation(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithNullCheckingFeature());
 
             compilation.VerifyDiagnostics();
 
@@ -455,7 +455,7 @@ class B : A
     }
 } 
 ";
-            var compilation = CreateCompilationWithMscorlib(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithNullCheckingFeature());
+            var compilation = CreateStandardCompilation(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithNullCheckingFeature());
             compilation.VerifyDiagnostics(
                 );
 
@@ -495,7 +495,7 @@ class B : A
     }
 } 
 ";
-            var compilation = CreateCompilationWithMscorlib(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithNullCheckingFeature());
+            var compilation = CreateStandardCompilation(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithNullCheckingFeature());
 
             // TODO: The overriding is ambigous. We simply matched the first candidate. Should this be an error?
             compilation.VerifyDiagnostics();
@@ -558,7 +558,7 @@ class B : A
 
 class C<T> {}
 ";
-            var compilation = CreateCompilationWithMscorlib(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithNullCheckingFeature());
+            var compilation = CreateStandardCompilation(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithNullCheckingFeature());
             compilation.VerifyDiagnostics();
 
             var b = compilation.GetTypeByMetadataName("B");
@@ -591,7 +591,7 @@ class B : A
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithNullCheckingFeature());
+            var compilation = CreateStandardCompilation(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithNullCheckingFeature());
             compilation.VerifyDiagnostics();
 
             var b = compilation.GetTypeByMetadataName("B");
@@ -619,7 +619,7 @@ class B : A
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithNullCheckingFeature());
+            var compilation = CreateStandardCompilation(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithNullCheckingFeature());
             compilation.VerifyDiagnostics(
                 // (11,38): error CS0460: Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly
                 //     public override void M1<T>(T? x) where T : struct
@@ -682,7 +682,7 @@ class B : A
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithNullCheckingFeature());
+            var compilation = CreateStandardCompilation(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithNullCheckingFeature());
             compilation.VerifyDiagnostics(
                 // (27,26): error CS0506: 'B.M2<T>(T?)': cannot override inherited member 'A.M2<T>(T?)' because it is not marked virtual, abstract, or override
                 //     public override void M2<T>(T? x)
@@ -747,7 +747,7 @@ class B : A
     }
 } 
 ";
-            var compilation = CreateCompilationWithMscorlib(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithNullCheckingFeature());
+            var compilation = CreateStandardCompilation(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithNullCheckingFeature());
             compilation.VerifyDiagnostics(
                 // (4,50): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
                 //     public virtual void M1<T>(System.Nullable<T> x) where T : class
@@ -788,7 +788,7 @@ class B : A
 
 class C<T> {}
 ";
-            var compilation = CreateCompilationWithMscorlib(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithNullCheckingFeature());
+            var compilation = CreateStandardCompilation(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithNullCheckingFeature());
             compilation.VerifyDiagnostics(
                 // (4,42): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
                 //     public virtual C<System.Nullable<T>> M1<T>() where T : class
@@ -864,7 +864,7 @@ class B : A
     }
 } 
 ";
-            var compilation = CreateCompilationWithMscorlib(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithNullCheckingFeature());
+            var compilation = CreateStandardCompilation(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithNullCheckingFeature());
             compilation.VerifyDiagnostics(
                 // (32,29): warning CS8609: Nullability of reference types in return type doesn't match overridden member.
                 //     public override string? M1()
@@ -949,7 +949,7 @@ class B : A
     }
 } 
 ";
-            var compilation = CreateCompilationWithMscorlib(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithNullCheckingFeature());
+            var compilation = CreateStandardCompilation(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithNullCheckingFeature());
 
             compilation.VerifyDiagnostics(
                 // (27,26): warning CS8610: Nullability of reference types in type of parameter 'x' doesn't match overridden member.
@@ -1047,7 +1047,7 @@ class B : A
     }
 } 
 ";
-            var compilation = CreateCompilationWithMscorlib(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithNullCheckingFeature());
+            var compilation = CreateStandardCompilation(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithNullCheckingFeature());
             compilation.VerifyDiagnostics(
                 // (42,25): error CS0508: 'B.M3()': return type must be 'int?' to match overridden member 'A.M3()'
                 //     public override int M3()
@@ -1118,7 +1118,7 @@ class B : A
     }
 } 
 ";
-            var compilation = CreateCompilationWithMscorlib(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithNullCheckingFeature());
+            var compilation = CreateStandardCompilation(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithNullCheckingFeature());
 
             compilation.VerifyDiagnostics(
                 // (35,26): error CS0115: 'B.M3(int)': no suitable method found to override
@@ -1179,7 +1179,7 @@ class B2 : A
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithNullCheckingFeature());
+            var compilation = CreateStandardCompilation(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithNullCheckingFeature());
 
             compilation.VerifyDiagnostics(
                 // (19,49): warning CS8608: Nullability of reference types in type doesn't match overridden member.
@@ -1261,7 +1261,7 @@ class B2 : A
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithNullCheckingFeature());
+            var compilation = CreateStandardCompilation(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithNullCheckingFeature());
 
             compilation.VerifyDiagnostics();
         }
@@ -1306,7 +1306,7 @@ class B2 : IA
 }
 
 ";
-            var compilation = CreateCompilationWithMscorlib(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithNullCheckingFeature());
+            var compilation = CreateStandardCompilation(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithNullCheckingFeature());
 
             compilation.VerifyDiagnostics(
                 // (26,40): warning CS8612: Nullability of reference types in type doesn't match implicitly implemented member 'event Action<string>? IA.E2'.
@@ -1399,7 +1399,7 @@ class B2 : IB
     event System.Action<string?>? IB.E3; // 2
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithNullCheckingFeature());
+            var compilation = CreateStandardCompilation(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithNullCheckingFeature());
 
             compilation.VerifyDiagnostics(
                 // (34,37): error CS0071: An explicit interface implementation of an event must use event accessor syntax
@@ -1513,7 +1513,7 @@ class B2 : A2
     } 
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithNullCheckingFeature());
+            var compilation = CreateStandardCompilation(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithNullCheckingFeature());
 
             compilation.VerifyDiagnostics(
                 // (28,31): warning CS8608: Nullability of reference types in type doesn't match overridden member.
@@ -1594,7 +1594,7 @@ class B1 : A1
     } 
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithNullCheckingFeature());
+            var compilation = CreateStandardCompilation(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithNullCheckingFeature());
 
             compilation.VerifyDiagnostics();
         }
@@ -1646,7 +1646,7 @@ class B : IA, IA2
     } 
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithNullCheckingFeature());
+            var compilation = CreateStandardCompilation(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithNullCheckingFeature());
 
             compilation.VerifyDiagnostics(
                 // (23,22): warning CS8612: Nullability of reference types in type doesn't match implicitly implemented member 'string[] IA.P2'.
@@ -1736,7 +1736,7 @@ class B : IA, IA2
     } 
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithNullCheckingFeature());
+            var compilation = CreateStandardCompilation(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithNullCheckingFeature());
 
             compilation.VerifyDiagnostics(
                 // (22,17): warning CS8615: Nullability of reference types in type doesn't match implemented member 'string?[] IA.P1'.
@@ -1815,7 +1815,7 @@ class B : A
     } 
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithNullCheckingFeature());
+            var compilation = CreateStandardCompilation(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithNullCheckingFeature());
 
             compilation.VerifyDiagnostics(
                 // (23,26): warning CS8609: Nullability of reference types in return type doesn't match overridden member.
@@ -1871,7 +1871,7 @@ class B : A
     } 
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithNullCheckingFeature());
+            var compilation = CreateStandardCompilation(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithNullCheckingFeature());
 
             compilation.VerifyDiagnostics();
         }
@@ -1912,7 +1912,7 @@ class B : IA
     } 
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithNullCheckingFeature());
+            var compilation = CreateStandardCompilation(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithNullCheckingFeature());
 
             compilation.VerifyDiagnostics(
                 // (23,17): warning CS8613: Nullability of reference types in return type doesn't match implicitly implemented member 'T[] IA.M2<T>()'.
@@ -1980,7 +1980,7 @@ class B : IA
     } 
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithNullCheckingFeature());
+            var compilation = CreateStandardCompilation(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithNullCheckingFeature());
 
             compilation.VerifyDiagnostics(
                 // (23,13): warning CS8616: Nullability of reference types in return type doesn't match implemented member 'T[] IA.M2<T>()'.
@@ -2044,7 +2044,7 @@ class B : IA
     } 
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithNullCheckingFeature());
+            var compilation = CreateStandardCompilation(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithNullCheckingFeature());
 
             compilation.VerifyDiagnostics();
         }
@@ -2082,7 +2082,7 @@ class B : A
     } 
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithNullCheckingFeature());
+            var compilation = CreateStandardCompilation(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithNullCheckingFeature());
 
             compilation.VerifyDiagnostics(
                 // (22,26): warning CS8610: Nullability of reference types in type of parameter 'x' doesn't match overridden member.
@@ -2136,7 +2136,7 @@ class B : A
     } 
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithNullCheckingFeature());
+            var compilation = CreateStandardCompilation(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithNullCheckingFeature());
 
             compilation.VerifyDiagnostics();
         }
@@ -2246,7 +2246,7 @@ class B : A
     } 
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(new[] { source, attributesDefinitions }, new[] { CompileIL(ilSource, appendDefaultHeader:false) },
+            var compilation = CreateStandardCompilation(new[] { source, attributesDefinitions }, new[] { CompileIL(ilSource, prependDefaultHeader: false) },
                                                             options: TestOptions.ReleaseDll, 
                                                             parseOptions: TestOptions.Regular.WithNullCheckingFeature());
 
@@ -2292,7 +2292,7 @@ class B : IA
     } 
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithNullCheckingFeature());
+            var compilation = CreateStandardCompilation(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithNullCheckingFeature());
 
             compilation.VerifyDiagnostics(
                 // (20,17): warning CS8614: Nullability of reference types in type of parameter 'x' doesn't match implicitly implemented member 'void IA.M2<T>(T[] x)'.
@@ -2355,7 +2355,7 @@ class B : IA
     } 
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithNullCheckingFeature());
+            var compilation = CreateStandardCompilation(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithNullCheckingFeature());
 
             compilation.VerifyDiagnostics(
                 // (20,13): warning CS8617: Nullability of reference types in type of parameter 'x' doesn't match implemented member 'void IA.M2<T>(T[] x)'.
@@ -2436,7 +2436,7 @@ class B3 : A3
     } 
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithNullCheckingFeature());
+            var compilation = CreateStandardCompilation(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithNullCheckingFeature());
 
             compilation.VerifyDiagnostics(
                 // (24,25): warning CS8610: Nullability of reference types in type of parameter 'x' doesn't match overridden member.
@@ -2521,7 +2521,7 @@ class B3 : IA3
     } 
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithNullCheckingFeature());
+            var compilation = CreateStandardCompilation(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithNullCheckingFeature());
 
             compilation.VerifyDiagnostics(
                 // (32,16): warning CS8614: Nullability of reference types in type of parameter 'x' doesn't match implicitly implemented member 'int IA2.this[string[] x]'.
@@ -2606,7 +2606,7 @@ class B3 : IA3
     } 
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithNullCheckingFeature());
+            var compilation = CreateStandardCompilation(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithNullCheckingFeature());
 
             compilation.VerifyDiagnostics(
                 // (24,13): warning CS8617: Nullability of reference types in type of parameter 'x' doesn't match implemented member 'int IA1.this[string?[] x]'.
@@ -2663,7 +2663,7 @@ partial class C1
     partial void M1<T>(T? x, T[]? y, System.Action<T?> z, System.Action<T?[]?>?[]? u) where T : class
     { }
 }";
-            var compilation = CreateCompilationWithMscorlib(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithNullCheckingFeature());
+            var compilation = CreateStandardCompilation(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithNullCheckingFeature());
 
             compilation.VerifyDiagnostics(
                 // (16,18): warning CS8611: Nullability of reference types in type of parameter 'x' doesn't match partial method declaration.
@@ -2715,7 +2715,7 @@ partial class C1
     partial void M1<T>(T? x, T[]? y, System.Action<T?> z, System.Action<T?[]?>?[]? u) where T : class
     { }
 }";
-            var compilation = CreateCompilationWithMscorlib(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithNullCheckingFeature());
+            var compilation = CreateStandardCompilation(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithNullCheckingFeature());
 
             compilation.VerifyDiagnostics();
         }
@@ -2742,7 +2742,7 @@ partial class C1
     partial void M1<T>(T? x, T[]? y, System.Action<T?> z, System.Action<T?[]?>?[]? u) where T : class
     { }
 }";
-            var compilation = CreateCompilationWithMscorlib(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithNullCheckingFeature());
+            var compilation = CreateStandardCompilation(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithNullCheckingFeature());
 
             compilation.VerifyDiagnostics();
         }
@@ -2760,7 +2760,7 @@ class A
     string? Test2(string y2) { return y2; }
 }
 ";
-            CreateCompilationWithMscorlib(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithNullCheckingFeature()).
+            CreateStandardCompilation(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithNullCheckingFeature()).
                 VerifyDiagnostics(
                 // (5,10): error CS0111: Type 'A' already defines a member called 'Test1' with the same parameter types
                 //     void Test1(string x2) {}
@@ -2786,14 +2786,14 @@ class A
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithNullCheckingFeature());
+            var compilation = CreateStandardCompilation(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithNullCheckingFeature());
             compilation.VerifyDiagnostics();
         }
 
         [Fact()]
         public void Test1()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -3276,7 +3276,7 @@ struct S2
         [Fact]
         public void PassingParameters_1()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -3422,7 +3422,7 @@ class CL1
         [Fact]
         public void PassingParameters_2()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -3455,7 +3455,7 @@ class CL0
         [Fact]
         public void PassingParameters_3()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -3491,7 +3491,7 @@ class CL0 : System.Collections.IEnumerable
         [Fact]
         public void RefOutParameters_01()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -3560,7 +3560,7 @@ class CL1
         [Fact]
         public void RefOutParameters_02()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -3638,7 +3638,7 @@ struct S1
         [Fact]
         public void RefOutParameters_03()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -3688,7 +3688,7 @@ struct S1
         [Fact]
         public void RefOutParameters_04()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new[] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -3741,7 +3741,7 @@ class CL0<T>
         [Fact]
         public void TargetingUnannotatedAPIs_01()
         {
-            CSharpCompilation c0 = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c0 = CreateStandardCompilation(@"
 public class CL0 
 {
     public object F1;
@@ -3763,7 +3763,7 @@ public struct S1
 }
 ", options: TestOptions.DebugDll);
 
-            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new [] { attributesDefinitions, @"
 class C 
 {
     static void Main()
@@ -3897,14 +3897,14 @@ public struct S2
         [Fact]
         public void TargetingUnannotatedAPIs_02()
         {
-            CSharpCompilation c0 = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c0 = CreateStandardCompilation(@"
 public class CL0 
 {
     public static object M1() { return new object(); }
 }
 ", options: TestOptions.DebugDll);
 
-            CSharpCompilation c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new[] { attributesDefinitions, @"
 class C 
 {
     static void Main()
@@ -3979,14 +3979,14 @@ class C
         [Fact]
         public void TargetingUnannotatedAPIs_03()
         {
-            CSharpCompilation c0 = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c0 = CreateStandardCompilation(@"
 public class CL0 
 {
     public static object M1() { return new object(); }
 }
 ", options: TestOptions.DebugDll);
 
-            CSharpCompilation c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new[] { attributesDefinitions, @"
 class C 
 {
     static void Main()
@@ -4034,14 +4034,14 @@ class C
         [Fact]
         public void TargetingUnannotatedAPIs_04()
         {
-            CSharpCompilation c0 = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c0 = CreateStandardCompilation(@"
 public class CL0 
 {
     public static object M1() { return new object(); }
 }
 ", options: TestOptions.DebugDll);
 
-            CSharpCompilation c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new[] { attributesDefinitions, @"
 class C 
 {
     static void Main()
@@ -4109,14 +4109,14 @@ class C
         [Fact]
         public void TargetingUnannotatedAPIs_05()
         {
-            CSharpCompilation c0 = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c0 = CreateStandardCompilation(@"
 public class CL0 
 {
     public static object M1() { return new object(); }
 }
 ", options: TestOptions.DebugDll);
 
-            CSharpCompilation c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new[] { attributesDefinitions, @"
 class C 
 {
     static void Main()
@@ -4160,14 +4160,14 @@ class C
         [Fact]
         public void TargetingUnannotatedAPIs_06()
         {
-            CSharpCompilation c0 = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c0 = CreateStandardCompilation(@"
 public class CL0 
 {
     public static object M1() { return new object(); }
 }
 ", options: TestOptions.DebugDll);
 
-            CSharpCompilation c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new[] { attributesDefinitions, @"
 class C 
 {
     static void Main()
@@ -4244,14 +4244,14 @@ class C
         [Fact]
         public void TargetingUnannotatedAPIs_07()
         {
-            CSharpCompilation c0 = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c0 = CreateStandardCompilation(@"
 public class CL0 
 {
     public static object M1() { return new object(); }
 }
 ", options: TestOptions.DebugDll);
 
-            CSharpCompilation c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new[] { attributesDefinitions, @"
 class C 
 {
     static void Main()
@@ -4300,7 +4300,7 @@ class C
         [Fact]
         public void TargetingUnannotatedAPIs_08()
         {
-            CSharpCompilation c0 = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c0 = CreateStandardCompilation(@"
 public abstract class A1
 {
     public abstract event System.Action E1;
@@ -4320,7 +4320,7 @@ public interface IA2
 }
 ", options: TestOptions.DebugDll);
 
-            CSharpCompilation c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new[] { attributesDefinitions, @"
 class B1 : A1
 {
     static void Main()
@@ -4428,7 +4428,7 @@ class B3 : IA2
         [Fact]
         public void ReturningValues_01()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -4461,7 +4461,7 @@ class CL1
         [Fact]
         public void ReturningValues_02()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new[] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -4497,7 +4497,7 @@ class CL1<T>
         [Fact]
         public void ConditionalBranching_01()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -4600,7 +4600,7 @@ class CL2
         [Fact]
         public void ConditionalBranching_02()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -4703,7 +4703,7 @@ class CL2
         [Fact]
         public void ConditionalBranching_03()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -4778,7 +4778,7 @@ class CL1
         [Fact]
         public void ConditionalBranching_04()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -4842,7 +4842,7 @@ class CL1
         [Fact]
         public void ConditionalBranching_05()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -4899,7 +4899,7 @@ class CL1
         [Fact]
         public void ConditionalBranching_06()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -4978,7 +4978,7 @@ class CL1
         [Fact]
         public void ConditionalBranching_07()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -5057,7 +5057,7 @@ class CL1
         [Fact(Skip = "Unexpected warning")]
         public void ConditionalBranching_08()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -5089,7 +5089,7 @@ class CL1
         [Fact]
         public void ConditionalBranching_09()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -5116,7 +5116,7 @@ class C
         [Fact]
         public void ConditionalBranching_10()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -5143,7 +5143,7 @@ class C
         [Fact]
         public void ConditionalBranching_11()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -5170,7 +5170,7 @@ class C
         [Fact]
         public void ConditionalBranching_12()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -5206,7 +5206,7 @@ class C
         [Fact]
         public void ConditionalBranching_13()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -5242,7 +5242,7 @@ class C
         [Fact]
         public void Loop_1()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -5312,7 +5312,7 @@ class CL1
         [Fact]
         public void Loop_2()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -5362,7 +5362,7 @@ class CL1
         [Fact]
         public void Var_01()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -5395,7 +5395,7 @@ class CL1
         [Fact]
         public void Array_01()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -5467,7 +5467,7 @@ class CL1
         [Fact]
         public void Array_02()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -5520,7 +5520,7 @@ class CL1
         [Fact]
         public void Array_03()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -5553,7 +5553,7 @@ class C
         [Fact]
         public void Array_04()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -5653,7 +5653,7 @@ class CL1
         [Fact]
         public void Array_05()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -5685,7 +5685,7 @@ class C
         [Fact]
         public void Array_06()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new[] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -5729,7 +5729,7 @@ class C
         [Fact]
         public void Array_07()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -5870,7 +5870,7 @@ class C
         [Fact]
         public void Array_08()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -5974,7 +5974,7 @@ class C
         [Fact]
         public void Array_09()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new[] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -6008,7 +6008,7 @@ class CL0<T>
         [Fact]
         public void ObjectInitializer_01()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -6054,7 +6054,7 @@ class CL1
         [Fact]
         public void Structs_01()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -6141,7 +6141,7 @@ struct S2
         [Fact]
         public void Structs_02()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -6270,7 +6270,7 @@ struct S1
         [Fact]
         public void Structs_03()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -6335,7 +6335,7 @@ struct S2
         [Fact]
         public void Structs_04()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -6370,7 +6370,7 @@ struct TS2
         [Fact]
         public void AnonymousTypes_01()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -6575,7 +6575,7 @@ struct S1
         [Fact]
         public void AnonymousTypes_02()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -6622,7 +6622,7 @@ class CL1
         [Fact]
         public void AnonymousTypes_03()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -6654,7 +6654,7 @@ class CL1
         [Fact]
         public void AnonymousTypes_04()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new[] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -6688,7 +6688,7 @@ class CL1<T>
         [Fact]
         public void This()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -6716,7 +6716,7 @@ class C
         [Fact]
         public void ReadonlyAutoProperties_01()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new [] { attributesDefinitions, @"
 class C1
 {
     static void Main()
@@ -6805,7 +6805,7 @@ struct S1
         [Fact]
         public void ReadonlyAutoProperties_02()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new [] { attributesDefinitions, @"
 struct C1
 {
     static void Main()
@@ -6892,7 +6892,7 @@ struct S1
         [Fact]
         public void NotAssigned()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -6942,7 +6942,7 @@ class CL1
         [Fact]
         public void Lambda_01()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -6985,7 +6985,7 @@ class CL1
         [Fact]
         public void Lambda_02()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -7018,7 +7018,7 @@ class CL1
         [Fact]
         public void Lambda_03()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -7073,7 +7073,7 @@ class CL1
         [Fact]
         public void Lambda_04()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -7112,7 +7112,7 @@ class CL1
         [Fact]
         public void Lambda_05()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -7173,7 +7173,7 @@ class CL1
         [Fact]
         public void Lambda_06()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -7222,7 +7222,7 @@ class CL1
         [Fact]
         public void Lambda_07()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -7282,7 +7282,7 @@ class CL1
         [Fact]
         public void Lambda_08()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -7330,7 +7330,7 @@ class CL1
         [Fact]
         public void Lambda_09()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -7382,7 +7382,7 @@ class CL1
         [Fact]
         public void Lambda_10()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -7434,7 +7434,7 @@ class CL1
         [Fact]
         public void Lambda_11()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -7489,7 +7489,7 @@ class CL1
         [Fact]
         public void Lambda_12()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -7556,7 +7556,7 @@ class CL1
         [Fact]
         public void Lambda_13()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -7611,7 +7611,7 @@ class CL1
         [Fact]
         public void Lambda_14()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -7654,7 +7654,7 @@ class CL1
         [Fact(Skip = "TODO")]
         public void Lambda_15()
         {
-            CSharpCompilation notAnnotated = CreateCompilationWithMscorlib(@"
+            CSharpCompilation notAnnotated = CreateStandardCompilation(@"
 public class CL0 
 {
     public static void M1(System.Func<CL1<CL0>, CL0> x) {}
@@ -7671,7 +7671,7 @@ public class CL1<T>
 }
 ", options: TestOptions.DebugDll);
 
-            CSharpCompilation c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new[] { attributesDefinitions, @"
 class C 
 {
     static void Main() {}
@@ -7714,7 +7714,7 @@ class C
         [Fact]
         public void Lambda_16()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new[] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -7749,7 +7749,7 @@ class CL1<T>
         [Fact]
         public void Lambda_17()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new[] { attributesDefinitions, @"
 using System.Linq.Expressions;
 
 class C
@@ -7786,7 +7786,7 @@ class CL1<T>
         [Fact]
         public void NewT_01()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -7814,7 +7814,7 @@ class C
         [Fact]
         public void DynamicObjectCreation_01()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -7848,7 +7848,7 @@ class CL0
         [Fact]
         public void DynamicIndexerAccess_01()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -7891,7 +7891,7 @@ class CL0
         [Fact]
         public void DynamicIndexerAccess_02()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -7934,7 +7934,7 @@ class CL0
         [Fact]
         public void DynamicIndexerAccess_03()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -7977,7 +7977,7 @@ class CL0
         [Fact]
         public void DynamicIndexerAccess_04()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -8020,7 +8020,7 @@ class CL0
         [Fact]
         public void DynamicIndexerAccess_05()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -8063,7 +8063,7 @@ class CL0
         [Fact]
         public void DynamicIndexerAccess_06()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -8106,7 +8106,7 @@ class CL0
         [Fact]
         public void DynamicIndexerAccess_07()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new[] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -8131,7 +8131,7 @@ class C
         [Fact]
         public void DynamicIndexerAccess_08()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -8171,7 +8171,7 @@ class CL0<T>
         [Fact]
         public void DynamicIndexerAccess_09()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new[] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -8224,7 +8224,7 @@ class CL1
         [Fact]
         public void DynamicIndexerAccess_10()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -8270,7 +8270,7 @@ class CL0
         [Fact]
         public void DynamicInvocation_01()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -8311,7 +8311,7 @@ class CL0
         [Fact]
         public void DynamicInvocation_02()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -8352,7 +8352,7 @@ class CL0
         [Fact]
         public void DynamicInvocation_03()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -8393,7 +8393,7 @@ class CL0
         [Fact]
         public void DynamicInvocation_04()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -8434,7 +8434,7 @@ class CL0
         [Fact]
         public void DynamicInvocation_05()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -8475,7 +8475,7 @@ class CL0
         [Fact]
         public void DynamicInvocation_06()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -8516,7 +8516,7 @@ class CL0
         [Fact]
         public void DynamicInvocation_07()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new[] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -8541,7 +8541,7 @@ class C
         [Fact]
         public void DynamicInvocation_08()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -8578,7 +8578,7 @@ class CL0<T>
         [Fact]
         public void DynamicInvocation_09()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -8622,7 +8622,7 @@ class CL0
         [Fact]
         public void DynamicMemberAccess_01()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new[] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -8655,7 +8655,7 @@ class C
         [Fact]
         public void DynamicObjectCreationExpression_01()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -8696,7 +8696,7 @@ class CL0
         [Fact]
         public void NameOf_01()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -8726,7 +8726,7 @@ class C
         [Fact]
         public void StringInterpolation_01()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -8755,7 +8755,7 @@ class C
         [Fact]
         public void DelegateCreation_01()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -8784,7 +8784,7 @@ class C
         [Fact]
         public void DelegateCreation_02()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new[] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -8818,7 +8818,7 @@ class CL0<T>{}
         [Fact]
         public void Base_01()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new [] { attributesDefinitions, @"
 class Base
 {
     public virtual void Test() {}
@@ -8844,7 +8844,7 @@ class C : Base
         [Fact]
         public void TypeOf_01()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -8873,7 +8873,7 @@ class C
         [Fact]
         public void Default_01()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -8897,7 +8897,7 @@ class C
         [Fact]
         public void BinaryOperator_01()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -8926,7 +8926,7 @@ class C
         [Fact]
         public void BinaryOperator_02()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new[] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -8952,7 +8952,7 @@ class C
         [Fact]
         public void BinaryOperator_03()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -9039,7 +9039,7 @@ class CL2
         [Fact]
         public void BinaryOperator_04()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -9097,7 +9097,7 @@ class CL0
         [Fact]
         public void BinaryOperator_05()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -9142,7 +9142,7 @@ class CL0
         [Fact]
         public void BinaryOperator_06()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -9181,7 +9181,7 @@ class CL0
         [Fact]
         public void BinaryOperator_07()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -9223,7 +9223,7 @@ class CL0
         [Fact]
         public void BinaryOperator_08()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -9262,7 +9262,7 @@ class CL0
         [Fact]
         public void BinaryOperator_09()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -9312,7 +9312,7 @@ class CL0
         [Fact]
         public void BinaryOperator_10()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -9367,7 +9367,7 @@ class CL0
         [Fact]
         public void BinaryOperator_11()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -9438,7 +9438,7 @@ class C
         [Fact]
         public void BinaryOperator_12()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -9490,7 +9490,7 @@ class CL0
         [Fact]
         public void MethodGroupConversion_01()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -9524,7 +9524,7 @@ class CL0
         [Fact]
         public void MethodGroupConversion_02()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new[] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -9578,7 +9578,7 @@ class CL0<T>
         [Fact]
         public void MethodGroupConversion_03()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new[] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -9620,7 +9620,7 @@ class CL0<T>
         [Fact]
         public void MethodGroupConversion_04()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new[] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -9674,7 +9674,7 @@ class CL0<T>
         [Fact]
         public void MethodGroupConversion_05()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new[] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -9716,7 +9716,7 @@ class CL0<T>
         [Fact]
         public void UnaryOperator_01()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -9789,7 +9789,7 @@ class CL2
         [Fact]
         public void Conversion_01()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new[] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -9946,7 +9946,7 @@ class CL4 : CL3 {}
         [Fact]
         public void Conversion_02()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new[] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -9975,7 +9975,7 @@ class CL0<T>
         [Fact]
         public void IncrementOperator_01()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -10081,7 +10081,7 @@ class CL1
         [Fact]
         public void IncrementOperator_02()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -10173,7 +10173,7 @@ class CL1
         [Fact]
         public void IncrementOperator_03()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -10286,7 +10286,7 @@ class X4
         [Fact]
         public void IncrementOperator_04()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new[] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -10335,7 +10335,7 @@ class C
         [Fact]
         public void IncrementOperator_05()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new [] { attributesDefinitions, @"
 class Test
 {
     static void Main()
@@ -10386,7 +10386,7 @@ class B : A
         [Fact]
         public void IncrementOperator_06()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new [] { attributesDefinitions, @"
 class Test
 {
     static void Main()
@@ -10433,7 +10433,7 @@ class B : A
         [Fact]
         public void IncrementOperator_07()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new [] { attributesDefinitions, @"
 class Test
 {
     static void Main()
@@ -10484,7 +10484,7 @@ class Convertible
         [Fact]
         public void CompoundAssignment_01()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new [] { attributesDefinitions, @"
 class Test
 {
     static void Main()
@@ -10532,7 +10532,7 @@ class CL1
         [Fact]
         public void CompoundAssignment_02()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new [] { attributesDefinitions, @"
 class Test
 {
     static void Main()
@@ -10580,7 +10580,7 @@ class CL1
         [Fact]
         public void CompoundAssignment_03()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new [] { attributesDefinitions, @"
 class Test
 {
     static void Main()
@@ -10666,7 +10666,7 @@ class CL1
         [Fact]
         public void CompoundAssignment_04()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new [] { attributesDefinitions, @"
 class Test
 {
     static void Main()
@@ -10759,7 +10759,7 @@ class CL1
         [Fact]
         public void CompoundAssignment_05()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new[] { attributesDefinitions, @"
 class Test
 {
     static void Main()
@@ -10797,7 +10797,7 @@ class Test
         [Fact]
         public void CompoundAssignment_06()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new [] { attributesDefinitions, @"
 class Test
 {
     static void Main()
@@ -10858,7 +10858,7 @@ class CL1
         [Fact]
         public void CompoundAssignment_07()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new [] { attributesDefinitions, @"
 class Test
 {
     static void Main()
@@ -10934,7 +10934,7 @@ class CL3
         [Fact]
         public void Events_01()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new [] { attributesDefinitions, @"
 class Test
 {
     static void Main()
@@ -11010,7 +11010,7 @@ class Test
         [Fact]
         public void Events_02()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new [] { attributesDefinitions, @"
 class Test
 {
     static void Main()
@@ -11064,7 +11064,7 @@ struct TS1
         [Fact]
         public void Events_03()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new [] { attributesDefinitions, @"
 class Test
 {
     static void Main()
@@ -11096,7 +11096,7 @@ struct TS2
         [Fact]
         public void Events_04()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new [] { attributesDefinitions, @"
 class Test
 {
     static void Main()
@@ -11145,7 +11145,7 @@ class CL0
         [Fact]
         public void Events_05()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new [] { attributesDefinitions, @"
 class Test
 {
     static void Main()
@@ -11171,7 +11171,7 @@ class Test
         [Fact]
         public void AsOperator_01()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new [] { attributesDefinitions, @"
 class Test
 {
     static void Main()
@@ -11399,7 +11399,7 @@ class C<T> {}
 class F : C<F?>, I1<C<B?>>, I2<C<B>?>
 {}
 ";
-            var compilation = CreateCompilationWithMscorlib(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithNullCheckingFeature());
+            var compilation = CreateStandardCompilation(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithNullCheckingFeature());
 
             var b = compilation.GetTypeByMetadataName("B");
             Assert.Equal("System.String? B.F1", b.GetMember("F1").ToTestDisplayString());
@@ -11423,19 +11423,19 @@ class F : C<F?>, I1<C<B?>>, I2<C<B>?>
         public void DifferentParseOptions_01()
         {
             var source = @"";
-            Assert.Throws<System.ArgumentException>(() => CreateCompilationWithMscorlib(new[] { CSharpSyntaxTree.ParseText(source, TestOptions.Regular.WithNullCheckingFeature()),
+            Assert.Throws<System.ArgumentException>(() => CreateStandardCompilation(new[] { CSharpSyntaxTree.ParseText(source, TestOptions.Regular.WithNullCheckingFeature()),
                                                                                                 CSharpSyntaxTree.ParseText(source, TestOptions.Regular)}, 
                                                                                         options: TestOptions.ReleaseDll));
 
-            Assert.Throws<System.ArgumentException>(() => CreateCompilationWithMscorlib(new[] { CSharpSyntaxTree.ParseText(source, TestOptions.Regular),
+            Assert.Throws<System.ArgumentException>(() => CreateStandardCompilation(new[] { CSharpSyntaxTree.ParseText(source, TestOptions.Regular),
                                                                                                 CSharpSyntaxTree.ParseText(source, TestOptions.Regular.WithNullCheckingFeature())},
                                                                                         options: TestOptions.ReleaseDll));
 
-            CreateCompilationWithMscorlib(new[] { CSharpSyntaxTree.ParseText(source, TestOptions.Regular.WithNullCheckingFeature()),
+            CreateStandardCompilation(new[] { CSharpSyntaxTree.ParseText(source, TestOptions.Regular.WithNullCheckingFeature()),
                                                   CSharpSyntaxTree.ParseText(source, TestOptions.Regular.WithNullCheckingFeature())},
                                           options: TestOptions.ReleaseDll);
 
-            CreateCompilationWithMscorlib(new[] { CSharpSyntaxTree.ParseText(source, TestOptions.Regular),
+            CreateStandardCompilation(new[] { CSharpSyntaxTree.ParseText(source, TestOptions.Regular),
                                                   CSharpSyntaxTree.ParseText(source, TestOptions.Regular)},
                                           options: TestOptions.ReleaseDll);
         }
@@ -11473,7 +11473,7 @@ class C<T> {}
 class F : C<F?>, I1<C<B?>>, I2<C<B>?>
 {}
 ";
-            var compilation = CreateCompilationWithMscorlib( source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithNullCheckingFeature());
+            var compilation = CreateStandardCompilation( source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithNullCheckingFeature());
 
             compilation.VerifyDiagnostics(
                 // error CS8618: Compiler required type 'System.Runtime.CompilerServices.NullableAttribute' cannot be found. Are you missing a reference?
@@ -11501,7 +11501,7 @@ public abstract class B
 {
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithNullCheckingFeature());
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithNullCheckingFeature());
             compilation.VerifyDiagnostics(
                 // error CS8618: Compiler required type 'System.Runtime.CompilerServices.NullableAttribute' cannot be found. Are you missing a reference?
                  Diagnostic(ErrorCode.ERR_NullableAttributeMissing).WithArguments("System.Runtime.CompilerServices.NullableAttribute").WithLocation(1, 1)
@@ -11540,7 +11540,7 @@ public class C<T> {}
 public class F : C<F?>, I1<C<B?>>, I2<C<B>?>
 {}
 ";
-            var compilation = CreateCompilationWithMscorlib(new [] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithNullCheckingFeature());
+            var compilation = CreateStandardCompilation(new [] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithNullCheckingFeature());
 
             compilation.VerifyDiagnostics(
                 // (5,33): warning CS0067: The event 'B.E1' is never used
@@ -11575,7 +11575,7 @@ public class F : C<F?>, I1<C<B?>>, I2<C<B>?>
         [Fact]
         public void NullableAttribute_02()
         {
-            CSharpCompilation c0 = CreateCompilationWithMscorlib(new[] { attributesDefinitions, @"
+            CSharpCompilation c0 = CreateStandardCompilation(new[] { attributesDefinitions, @"
 public class CL0 
 {
     public object F1;
@@ -11613,13 +11613,13 @@ class C
                  Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x2.P1").WithLocation(15, 14)
             };
 
-            CSharpCompilation c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, source }, 
+            CSharpCompilation c = CreateStandardCompilation(new[] { attributesDefinitions, source }, 
                                                                 parseOptions: TestOptions.Regular.WithNullCheckingFeature(), 
                                                                 references: new[] { c0.EmitToImageReference() });
 
             c.VerifyDiagnostics(expected);
 
-            c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, source },
+            c = CreateStandardCompilation(new[] { attributesDefinitions, source },
                                                                 parseOptions: TestOptions.Regular.WithNullCheckingFeature(),
                                                                 references: new[] { c0.ToMetadataReference() });
 
@@ -11629,7 +11629,7 @@ class C
         [Fact]
         public void NullableAttribute_03()
         {
-            CSharpCompilation c0 = CreateCompilationWithMscorlib(new[] { attributesDefinitions, @"
+            CSharpCompilation c0 = CreateStandardCompilation(new[] { attributesDefinitions, @"
 public class CL0 
 {
     public object F1;
@@ -11657,13 +11657,13 @@ class C
                  Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "y1").WithLocation(10, 17)
             };
 
-            CSharpCompilation c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, source },
+            CSharpCompilation c = CreateStandardCompilation(new[] { attributesDefinitions, source },
                                                                 parseOptions: TestOptions.Regular.WithNullCheckingFeature(),
                                                                 references: new[] { c0.EmitToImageReference() });
 
             c.VerifyDiagnostics(expected);
 
-            c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, source },
+            c = CreateStandardCompilation(new[] { attributesDefinitions, source },
                                                                 parseOptions: TestOptions.Regular.WithNullCheckingFeature(),
                                                                 references: new[] { c0.ToMetadataReference() });
 
@@ -11692,7 +11692,7 @@ public class C<T> {}
 [Nullable] public class F : C<F>
 {}
 ";
-            var compilation = CreateCompilationWithMscorlib(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithNullCheckingFeature());
+            var compilation = CreateStandardCompilation(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithNullCheckingFeature());
 
             compilation.VerifyDiagnostics(
                 // (7,6): error CS8623: Explicit application of 'System.Runtime.CompilerServices.NullableAttribute' is not allowed.
@@ -11722,7 +11722,7 @@ public class C<T> {}
         [Fact]
         public void OptOutFromAssembly_01()
         {
-            CSharpCompilation c0 = CreateCompilationWithMscorlib(new[] { attributesDefinitions, @"
+            CSharpCompilation c0 = CreateStandardCompilation(new[] { attributesDefinitions, @"
 public class CL0 
 {
     public object F1;
@@ -11745,7 +11745,7 @@ class C
 }
 ";
 
-            CSharpCompilation c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, source },
+            CSharpCompilation c = CreateStandardCompilation(new[] { attributesDefinitions, source },
                                                                 parseOptions: TestOptions.Regular.WithNullCheckingFeature(),
                                                                 references: new[] { c0.EmitToImageReference() });
 
@@ -11754,7 +11754,7 @@ class C
                                                      Assert.Equal("System.Runtime.CompilerServices.NullableAttribute", (((PEModuleSymbol)m).GetAttributes().Single().ToString()));
                                                  });
 
-            c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, source },
+            c = CreateStandardCompilation(new[] { attributesDefinitions, source },
                                                                 parseOptions: TestOptions.Regular.WithNullCheckingFeature(),
                                                                 references: new[] { c0.ToMetadataReference() });
 
@@ -11764,14 +11764,14 @@ class C
         [Fact]
         public void OptOutFromAssembly_02()
         {
-            CSharpCompilation c0 = CreateCompilationWithMscorlib(new[] { attributesDefinitions, @"
+            CSharpCompilation c0 = CreateStandardCompilation(new[] { attributesDefinitions, @"
 public class CL0 
 {
     public object F1;
 }
 " }, parseOptions: TestOptions.Regular.WithNullCheckingFeature(), options: TestOptions.DebugDll, assemblyName: "OptOutFromAssembly_02_Lib1");
 
-            CSharpCompilation c1 = CreateCompilationWithMscorlib(new[] { attributesDefinitions, @"
+            CSharpCompilation c1 = CreateStandardCompilation(new[] { attributesDefinitions, @"
 public class CL1 
 {
     public object F2;
@@ -11806,13 +11806,13 @@ class C
                  Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "y2").WithLocation(17, 17)
             };
 
-            CSharpCompilation c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, source },
+            CSharpCompilation c = CreateStandardCompilation(new[] { attributesDefinitions, source },
                                                                 parseOptions: TestOptions.Regular.WithNullCheckingFeature(),
                                                                 references: new[] { c0.EmitToImageReference(), c1.EmitToImageReference() });
 
             c.VerifyDiagnostics(expected);
 
-            c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, source },
+            c = CreateStandardCompilation(new[] { attributesDefinitions, source },
                                                                 parseOptions: TestOptions.Regular.WithNullCheckingFeature(),
                                                                 references: new[] { c0.ToMetadataReference(), c1.ToMetadataReference() });
 
@@ -11841,7 +11841,7 @@ class C
 }
 ";
 
-            CSharpCompilation c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, source },
+            CSharpCompilation c = CreateStandardCompilation(new[] { attributesDefinitions, source },
                                                                 parseOptions: TestOptions.Regular.WithNullCheckingFeature());
 
             c.VerifyDiagnostics(
@@ -11948,25 +11948,25 @@ partial class C
 }
 ";
 
-            CSharpCompilation c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, lib, source1, source2 },
+            CSharpCompilation c = CreateStandardCompilation(new[] { attributesDefinitions, lib, source1, source2 },
                                                                 parseOptions: TestOptions.Regular.WithNullCheckingFeature(),
                                                                 options: TestOptions.ReleaseDll);
 
             c.VerifyDiagnostics();
 
-            CSharpCompilation c1 = CreateCompilationWithMscorlib(new[] { attributesDefinitions, lib },
+            CSharpCompilation c1 = CreateStandardCompilation(new[] { attributesDefinitions, lib },
                                                                 parseOptions: TestOptions.Regular.WithNullCheckingFeature(),
                                                                 options: TestOptions.ReleaseDll);
 
             c1.VerifyDiagnostics();
 
-            c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, source2 }, new[] { c1.ToMetadataReference() },
+            c = CreateStandardCompilation(new[] { attributesDefinitions, source2 }, new[] { c1.ToMetadataReference() },
                                               parseOptions: TestOptions.Regular.WithNullCheckingFeature(),
                                               options: TestOptions.ReleaseDll);
 
             c.VerifyDiagnostics();
 
-            c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, source2 }, new[] { c1.EmitToImageReference() },
+            c = CreateStandardCompilation(new[] { attributesDefinitions, source2 }, new[] { c1.EmitToImageReference() },
                                               parseOptions: TestOptions.Regular.WithNullCheckingFeature(),
                                               options: TestOptions.ReleaseDll);
 
@@ -12080,7 +12080,7 @@ partial class C
 }
 ";
 
-            CSharpCompilation c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, moduleAttributes, lib, source1, source2 },
+            CSharpCompilation c = CreateStandardCompilation(new[] { attributesDefinitions, moduleAttributes, lib, source1, source2 },
                                                                 parseOptions: TestOptions.Regular.WithNullCheckingFeature(),
                                                                 options: TestOptions.ReleaseDll);
 
@@ -12123,7 +12123,7 @@ partial class C
                  Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "c.M2()").WithLocation(31, 19)
                 );
 
-            CSharpCompilation c1 = CreateCompilationWithMscorlib(new[] { attributesDefinitions, moduleAttributes, lib },
+            CSharpCompilation c1 = CreateStandardCompilation(new[] { attributesDefinitions, moduleAttributes, lib },
                                                                 parseOptions: TestOptions.Regular.WithNullCheckingFeature(),
                                                                 options: TestOptions.ReleaseDll);
 
@@ -12159,13 +12159,13 @@ partial class C
                  Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "c.M2()").WithLocation(31, 19)
                 };
 
-            c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, moduleAttributes, source2 }, new[] { c1.ToMetadataReference() },
+            c = CreateStandardCompilation(new[] { attributesDefinitions, moduleAttributes, source2 }, new[] { c1.ToMetadataReference() },
                                               parseOptions: TestOptions.Regular.WithNullCheckingFeature(),
                                               options: TestOptions.ReleaseDll);
 
             c.VerifyDiagnostics(expected);
 
-            c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, moduleAttributes, source2 }, new[] { c1.EmitToImageReference() },
+            c = CreateStandardCompilation(new[] { attributesDefinitions, moduleAttributes, source2 }, new[] { c1.EmitToImageReference() },
                                               parseOptions: TestOptions.Regular.WithNullCheckingFeature(),
                                               options: TestOptions.ReleaseDll);
 
@@ -12269,25 +12269,25 @@ partial class C
 }
 ";
 
-            CSharpCompilation c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, moduleAttributes, lib, source1, source2 },
+            CSharpCompilation c = CreateStandardCompilation(new[] { attributesDefinitions, moduleAttributes, lib, source1, source2 },
                                                                 parseOptions: TestOptions.Regular.WithNullCheckingFeature(),
                                                                 options: TestOptions.ReleaseDll);
 
             c.VerifyDiagnostics();
 
-            CSharpCompilation c1 = CreateCompilationWithMscorlib(new[] { attributesDefinitions, moduleAttributes, lib },
+            CSharpCompilation c1 = CreateStandardCompilation(new[] { attributesDefinitions, moduleAttributes, lib },
                                                                 parseOptions: TestOptions.Regular.WithNullCheckingFeature(),
                                                                 options: TestOptions.ReleaseDll);
 
             c1.VerifyDiagnostics();
 
-            c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, moduleAttributes, source2 }, new[] { c1.ToMetadataReference() },
+            c = CreateStandardCompilation(new[] { attributesDefinitions, moduleAttributes, source2 }, new[] { c1.ToMetadataReference() },
                                               parseOptions: TestOptions.Regular.WithNullCheckingFeature(),
                                               options: TestOptions.ReleaseDll);
 
             c.VerifyDiagnostics();
 
-            c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, moduleAttributes, source2 }, new[] { c1.EmitToImageReference() },
+            c = CreateStandardCompilation(new[] { attributesDefinitions, moduleAttributes, source2 }, new[] { c1.EmitToImageReference() },
                                               parseOptions: TestOptions.Regular.WithNullCheckingFeature(),
                                               options: TestOptions.ReleaseDll);
 
@@ -12391,25 +12391,25 @@ partial class C
 }
 ";
 
-            CSharpCompilation c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, moduleAttributes, lib, source1, source2 },
+            CSharpCompilation c = CreateStandardCompilation(new[] { attributesDefinitions, moduleAttributes, lib, source1, source2 },
                                                                 parseOptions: TestOptions.Regular.WithNullCheckingFeature(),
                                                                 options: TestOptions.ReleaseDll);
 
             c.VerifyDiagnostics();
 
-            CSharpCompilation c1 = CreateCompilationWithMscorlib(new[] { attributesDefinitions, moduleAttributes, lib },
+            CSharpCompilation c1 = CreateStandardCompilation(new[] { attributesDefinitions, moduleAttributes, lib },
                                                                 parseOptions: TestOptions.Regular.WithNullCheckingFeature(),
                                                                 options: TestOptions.ReleaseDll);
 
             c1.VerifyDiagnostics();
 
-            c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, moduleAttributes, source2 }, new[] { c1.ToMetadataReference() },
+            c = CreateStandardCompilation(new[] { attributesDefinitions, moduleAttributes, source2 }, new[] { c1.ToMetadataReference() },
                                               parseOptions: TestOptions.Regular.WithNullCheckingFeature(),
                                               options: TestOptions.ReleaseDll);
 
             c.VerifyDiagnostics();
 
-            c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, moduleAttributes, source2 }, new[] { c1.EmitToImageReference() },
+            c = CreateStandardCompilation(new[] { attributesDefinitions, moduleAttributes, source2 }, new[] { c1.EmitToImageReference() },
                                               parseOptions: TestOptions.Regular.WithNullCheckingFeature(),
                                               options: TestOptions.ReleaseDll);
 
@@ -12515,25 +12515,25 @@ partial class C
 }
 ";
 
-            CSharpCompilation c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, moduleAttributes, lib, source1, source2 },
+            CSharpCompilation c = CreateStandardCompilation(new[] { attributesDefinitions, moduleAttributes, lib, source1, source2 },
                                                                 parseOptions: TestOptions.Regular.WithNullCheckingFeature(),
                                                                 options: TestOptions.ReleaseDll);
 
             c.VerifyDiagnostics();
 
-            CSharpCompilation c1 = CreateCompilationWithMscorlib(new[] { attributesDefinitions, moduleAttributes, lib },
+            CSharpCompilation c1 = CreateStandardCompilation(new[] { attributesDefinitions, moduleAttributes, lib },
                                                                 parseOptions: TestOptions.Regular.WithNullCheckingFeature(),
                                                                 options: TestOptions.ReleaseDll);
 
             c1.VerifyDiagnostics();
 
-            c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, moduleAttributes, source2 }, new[] { c1.ToMetadataReference() },
+            c = CreateStandardCompilation(new[] { attributesDefinitions, moduleAttributes, source2 }, new[] { c1.ToMetadataReference() },
                                               parseOptions: TestOptions.Regular.WithNullCheckingFeature(),
                                               options: TestOptions.ReleaseDll);
 
             c.VerifyDiagnostics();
 
-            c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, moduleAttributes, source2 }, new[] { c1.EmitToImageReference() },
+            c = CreateStandardCompilation(new[] { attributesDefinitions, moduleAttributes, source2 }, new[] { c1.EmitToImageReference() },
                                               parseOptions: TestOptions.Regular.WithNullCheckingFeature(),
                                               options: TestOptions.ReleaseDll);
 
@@ -12645,25 +12645,25 @@ partial class C
 }
 ";
 
-            CSharpCompilation c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, moduleAttributes, lib, source1, source2 },
+            CSharpCompilation c = CreateStandardCompilation(new[] { attributesDefinitions, moduleAttributes, lib, source1, source2 },
                                                                 parseOptions: TestOptions.Regular.WithNullCheckingFeature(),
                                                                 options: TestOptions.ReleaseDll);
 
             c.VerifyDiagnostics();
 
-            CSharpCompilation c1 = CreateCompilationWithMscorlib(new[] { attributesDefinitions, moduleAttributes, lib },
+            CSharpCompilation c1 = CreateStandardCompilation(new[] { attributesDefinitions, moduleAttributes, lib },
                                                                 parseOptions: TestOptions.Regular.WithNullCheckingFeature(),
                                                                 options: TestOptions.ReleaseDll);
 
             c1.VerifyDiagnostics();
 
-            c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, moduleAttributes, source2 }, new[] { c1.ToMetadataReference() },
+            c = CreateStandardCompilation(new[] { attributesDefinitions, moduleAttributes, source2 }, new[] { c1.ToMetadataReference() },
                                               parseOptions: TestOptions.Regular.WithNullCheckingFeature(),
                                               options: TestOptions.ReleaseDll);
 
             c.VerifyDiagnostics();
 
-            c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, moduleAttributes, source2 }, new[] { c1.EmitToImageReference() },
+            c = CreateStandardCompilation(new[] { attributesDefinitions, moduleAttributes, source2 }, new[] { c1.EmitToImageReference() },
                                               parseOptions: TestOptions.Regular.WithNullCheckingFeature(),
                                               options: TestOptions.ReleaseDll);
 
@@ -12766,25 +12766,25 @@ partial class C
 }
 ";
 
-            CSharpCompilation c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, moduleAttributes, lib, source1, source2 },
+            CSharpCompilation c = CreateStandardCompilation(new[] { attributesDefinitions, moduleAttributes, lib, source1, source2 },
                                                                 parseOptions: TestOptions.Regular.WithNullCheckingFeature(),
                                                                 options: TestOptions.ReleaseDll);
 
             c.VerifyDiagnostics();
 
-            CSharpCompilation c1 = CreateCompilationWithMscorlib(new[] { attributesDefinitions, moduleAttributes, lib },
+            CSharpCompilation c1 = CreateStandardCompilation(new[] { attributesDefinitions, moduleAttributes, lib },
                                                                 parseOptions: TestOptions.Regular.WithNullCheckingFeature(),
                                                                 options: TestOptions.ReleaseDll);
 
             c1.VerifyDiagnostics();
 
-            c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, moduleAttributes, source2 }, new[] { c1.ToMetadataReference() },
+            c = CreateStandardCompilation(new[] { attributesDefinitions, moduleAttributes, source2 }, new[] { c1.ToMetadataReference() },
                                               parseOptions: TestOptions.Regular.WithNullCheckingFeature(),
                                               options: TestOptions.ReleaseDll);
 
             c.VerifyDiagnostics();
 
-            c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, moduleAttributes, source2 }, new[] { c1.EmitToImageReference() },
+            c = CreateStandardCompilation(new[] { attributesDefinitions, moduleAttributes, source2 }, new[] { c1.EmitToImageReference() },
                                               parseOptions: TestOptions.Regular.WithNullCheckingFeature(),
                                               options: TestOptions.ReleaseDll);
 
@@ -12885,25 +12885,25 @@ partial class C
 }
 ";
 
-            CSharpCompilation c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, moduleAttributes, lib, source1, source2 },
+            CSharpCompilation c = CreateStandardCompilation(new[] { attributesDefinitions, moduleAttributes, lib, source1, source2 },
                                                                 parseOptions: TestOptions.Regular.WithNullCheckingFeature(),
                                                                 options: TestOptions.ReleaseDll);
 
             c.VerifyDiagnostics();
 
-            CSharpCompilation c1 = CreateCompilationWithMscorlib(new[] { attributesDefinitions, moduleAttributes, lib },
+            CSharpCompilation c1 = CreateStandardCompilation(new[] { attributesDefinitions, moduleAttributes, lib },
                                                                 parseOptions: TestOptions.Regular.WithNullCheckingFeature(),
                                                                 options: TestOptions.ReleaseDll);
 
             c1.VerifyDiagnostics();
 
-            c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, moduleAttributes, source2 }, new[] { c1.ToMetadataReference() },
+            c = CreateStandardCompilation(new[] { attributesDefinitions, moduleAttributes, source2 }, new[] { c1.ToMetadataReference() },
                                               parseOptions: TestOptions.Regular.WithNullCheckingFeature(),
                                               options: TestOptions.ReleaseDll);
 
             c.VerifyDiagnostics();
 
-            c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, moduleAttributes, source2 }, new[] { c1.EmitToImageReference() },
+            c = CreateStandardCompilation(new[] { attributesDefinitions, moduleAttributes, source2 }, new[] { c1.EmitToImageReference() },
                                               parseOptions: TestOptions.Regular.WithNullCheckingFeature(),
                                               options: TestOptions.ReleaseDll);
 
@@ -13002,25 +13002,25 @@ partial class C
 }
 ";
 
-            CSharpCompilation c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, moduleAttributes, lib, source1, source2 },
+            CSharpCompilation c = CreateStandardCompilation(new[] { attributesDefinitions, moduleAttributes, lib, source1, source2 },
                                                                 parseOptions: TestOptions.Regular.WithNullCheckingFeature(),
                                                                 options: TestOptions.ReleaseDll);
 
             c.VerifyDiagnostics();
 
-            CSharpCompilation c1 = CreateCompilationWithMscorlib(new[] { attributesDefinitions, moduleAttributes, lib },
+            CSharpCompilation c1 = CreateStandardCompilation(new[] { attributesDefinitions, moduleAttributes, lib },
                                                                 parseOptions: TestOptions.Regular.WithNullCheckingFeature(),
                                                                 options: TestOptions.ReleaseDll);
 
             c1.VerifyDiagnostics();
 
-            c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, moduleAttributes, source2 }, new[] { c1.ToMetadataReference() },
+            c = CreateStandardCompilation(new[] { attributesDefinitions, moduleAttributes, source2 }, new[] { c1.ToMetadataReference() },
                                               parseOptions: TestOptions.Regular.WithNullCheckingFeature(),
                                               options: TestOptions.ReleaseDll);
 
             c.VerifyDiagnostics();
 
-            c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, moduleAttributes, source2 }, new[] { c1.EmitToImageReference() },
+            c = CreateStandardCompilation(new[] { attributesDefinitions, moduleAttributes, source2 }, new[] { c1.EmitToImageReference() },
                                               parseOptions: TestOptions.Regular.WithNullCheckingFeature(),
                                               options: TestOptions.ReleaseDll);
 
@@ -13127,7 +13127,7 @@ partial class C
 }
 ";
 
-            CSharpCompilation c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, moduleAttributes, lib, source1, source2 },
+            CSharpCompilation c = CreateStandardCompilation(new[] { attributesDefinitions, moduleAttributes, lib, source1, source2 },
                                                                 parseOptions: TestOptions.Regular.WithNullCheckingFeature(),
                                                                 options: TestOptions.ReleaseDll);
 
@@ -13170,7 +13170,7 @@ partial class C
                  Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "c.M2()").WithLocation(31, 19)
                 );
 
-            CSharpCompilation c1 = CreateCompilationWithMscorlib(new[] { attributesDefinitions, moduleAttributes, lib },
+            CSharpCompilation c1 = CreateStandardCompilation(new[] { attributesDefinitions, moduleAttributes, lib },
                                                                 parseOptions: TestOptions.Regular.WithNullCheckingFeature(),
                                                                 options: TestOptions.ReleaseDll);
 
@@ -13206,13 +13206,13 @@ partial class C
                  Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "c.M2()").WithLocation(31, 19)
                 };
 
-            c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, moduleAttributes, source2 }, new[] { c1.ToMetadataReference() },
+            c = CreateStandardCompilation(new[] { attributesDefinitions, moduleAttributes, source2 }, new[] { c1.ToMetadataReference() },
                                               parseOptions: TestOptions.Regular.WithNullCheckingFeature(),
                                               options: TestOptions.ReleaseDll);
 
             c.VerifyDiagnostics(expected);
 
-            c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, moduleAttributes, source2 }, new[] { c1.EmitToImageReference() },
+            c = CreateStandardCompilation(new[] { attributesDefinitions, moduleAttributes, source2 }, new[] { c1.EmitToImageReference() },
                                               parseOptions: TestOptions.Regular.WithNullCheckingFeature(),
                                               options: TestOptions.ReleaseDll);
 
@@ -13319,7 +13319,7 @@ partial class C
 }
 ";
 
-            CSharpCompilation c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, moduleAttributes, lib, source1, source2 },
+            CSharpCompilation c = CreateStandardCompilation(new[] { attributesDefinitions, moduleAttributes, lib, source1, source2 },
                                                                 parseOptions: TestOptions.Regular.WithNullCheckingFeature(),
                                                                 options: TestOptions.ReleaseDll);
 
@@ -13362,7 +13362,7 @@ partial class C
                  Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "c.M2()").WithLocation(31, 19)
                 );
 
-            CSharpCompilation c1 = CreateCompilationWithMscorlib(new[] { attributesDefinitions, moduleAttributes, lib },
+            CSharpCompilation c1 = CreateStandardCompilation(new[] { attributesDefinitions, moduleAttributes, lib },
                                                                 parseOptions: TestOptions.Regular.WithNullCheckingFeature(),
                                                                 options: TestOptions.ReleaseDll);
 
@@ -13398,13 +13398,13 @@ partial class C
                  Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "c.M2()").WithLocation(31, 19)
                 };
 
-            c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, moduleAttributes, source2 }, new[] { c1.ToMetadataReference() },
+            c = CreateStandardCompilation(new[] { attributesDefinitions, moduleAttributes, source2 }, new[] { c1.ToMetadataReference() },
                                               parseOptions: TestOptions.Regular.WithNullCheckingFeature(),
                                               options: TestOptions.ReleaseDll);
 
             c.VerifyDiagnostics(expected);
 
-            c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, moduleAttributes, source2 }, new[] { c1.EmitToImageReference() },
+            c = CreateStandardCompilation(new[] { attributesDefinitions, moduleAttributes, source2 }, new[] { c1.EmitToImageReference() },
                                               parseOptions: TestOptions.Regular.WithNullCheckingFeature(),
                                               options: TestOptions.ReleaseDll);
 
@@ -13511,7 +13511,7 @@ partial class C
 }
 ";
 
-            CSharpCompilation c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, moduleAttributes, lib, source1, source2 },
+            CSharpCompilation c = CreateStandardCompilation(new[] { attributesDefinitions, moduleAttributes, lib, source1, source2 },
                                                                 parseOptions: TestOptions.Regular.WithNullCheckingFeature(),
                                                                 options: TestOptions.ReleaseDll);
 
@@ -13554,7 +13554,7 @@ partial class C
                  Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "c.M2()").WithLocation(31, 19)
                 );
 
-            CSharpCompilation c1 = CreateCompilationWithMscorlib(new[] { attributesDefinitions, moduleAttributes, lib },
+            CSharpCompilation c1 = CreateStandardCompilation(new[] { attributesDefinitions, moduleAttributes, lib },
                                                                 parseOptions: TestOptions.Regular.WithNullCheckingFeature(),
                                                                 options: TestOptions.ReleaseDll);
 
@@ -13590,13 +13590,13 @@ partial class C
                  Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "c.M2()").WithLocation(31, 19)
                 };
 
-            c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, moduleAttributes, source2 }, new[] { c1.ToMetadataReference() },
+            c = CreateStandardCompilation(new[] { attributesDefinitions, moduleAttributes, source2 }, new[] { c1.ToMetadataReference() },
                                               parseOptions: TestOptions.Regular.WithNullCheckingFeature(),
                                               options: TestOptions.ReleaseDll);
 
             c.VerifyDiagnostics(expected);
 
-            c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, moduleAttributes, source2 }, new[] { c1.EmitToImageReference() },
+            c = CreateStandardCompilation(new[] { attributesDefinitions, moduleAttributes, source2 }, new[] { c1.EmitToImageReference() },
                                               parseOptions: TestOptions.Regular.WithNullCheckingFeature(),
                                               options: TestOptions.ReleaseDll);
 
@@ -13638,7 +13638,7 @@ class C
 }
 ";
 
-            CSharpCompilation c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, source},
+            CSharpCompilation c = CreateStandardCompilation(new[] { attributesDefinitions, source},
                                                                 parseOptions: TestOptions.Regular.WithNullCheckingFeature(),
                                                                 options: TestOptions.ReleaseDll);
 
@@ -13709,7 +13709,7 @@ class CL1<T>
 }
 ";
 
-            CSharpCompilation c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, source },
+            CSharpCompilation c = CreateStandardCompilation(new[] { attributesDefinitions, source },
                                                                 parseOptions: TestOptions.Regular.WithNullCheckingFeature(),
                                                                 options: TestOptions.ReleaseDll);
 
@@ -13785,7 +13785,7 @@ class CL6 : CL4<string?>
 }
 ";
 
-            CSharpCompilation c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, source },
+            CSharpCompilation c = CreateStandardCompilation(new[] { attributesDefinitions, source },
                                                                 parseOptions: TestOptions.Regular.WithNullCheckingFeature(),
                                                                 options: TestOptions.ReleaseDll);
 
@@ -13858,7 +13858,7 @@ class CL6 : CL4<string?>
 }
 ";
 
-            CSharpCompilation c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, source },
+            CSharpCompilation c = CreateStandardCompilation(new[] { attributesDefinitions, source },
                                                                 parseOptions: TestOptions.Regular.WithNullCheckingFeature(),
                                                                 options: TestOptions.ReleaseDll);
 
@@ -13897,7 +13897,7 @@ class CL0<T>
 }
 ";
 
-            CSharpCompilation c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, source },
+            CSharpCompilation c = CreateStandardCompilation(new[] { attributesDefinitions, source },
                                                                 parseOptions: TestOptions.Regular.WithNullCheckingFeature(),
                                                                 options: TestOptions.ReleaseDll);
 
@@ -13959,7 +13959,7 @@ class CL1<T>
 }
 ";
 
-            CSharpCompilation c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, source },
+            CSharpCompilation c = CreateStandardCompilation(new[] { attributesDefinitions, source },
                                                                 parseOptions: TestOptions.Regular.WithNullCheckingFeature(),
                                                                 options: TestOptions.ReleaseDll);
 
@@ -13998,7 +13998,7 @@ class CL0<T>
 }
 ";
 
-            CSharpCompilation c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, source },
+            CSharpCompilation c = CreateStandardCompilation(new[] { attributesDefinitions, source },
                                                                 parseOptions: TestOptions.Regular.WithNullCheckingFeature(),
                                                                 options: TestOptions.ReleaseDll);
 
@@ -14069,7 +14069,7 @@ class CL1<T>
 }
 ";
 
-            CSharpCompilation c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, source },
+            CSharpCompilation c = CreateStandardCompilation(new[] { attributesDefinitions, source },
                                                                 parseOptions: TestOptions.Regular.WithNullCheckingFeature(),
                                                                 options: TestOptions.ReleaseDll);
 
@@ -14108,7 +14108,7 @@ class CL0<T>
 }
 ";
 
-            CSharpCompilation c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, source },
+            CSharpCompilation c = CreateStandardCompilation(new[] { attributesDefinitions, source },
                                                                 parseOptions: TestOptions.Regular.WithNullCheckingFeature(),
                                                                 options: TestOptions.ReleaseDll);
 
@@ -14172,7 +14172,7 @@ class C
 }
 ";
 
-            CSharpCompilation c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, source },
+            CSharpCompilation c = CreateStandardCompilation(new[] { attributesDefinitions, source },
                                                                 parseOptions: TestOptions.Regular.WithNullCheckingFeature(),
                                                                 options: TestOptions.ReleaseDll);
 
@@ -14269,7 +14269,7 @@ class CL1<T>
 }
 ";
 
-            CSharpCompilation c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, source },
+            CSharpCompilation c = CreateStandardCompilation(new[] { attributesDefinitions, source },
                                                                 parseOptions: TestOptions.Regular.WithNullCheckingFeature(),
                                                                 options: TestOptions.ReleaseDll);
 
@@ -14362,7 +14362,7 @@ delegate void CL1<T>(T? x) where T : class;
 delegate void CL2<T>(T? x) where T : class; 
 ";
 
-            CSharpCompilation c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, source },
+            CSharpCompilation c = CreateStandardCompilation(new[] { attributesDefinitions, source },
                                                                 parseOptions: TestOptions.Regular.WithNullCheckingFeature(),
                                                                 options: TestOptions.ReleaseDll);
 
@@ -14417,7 +14417,7 @@ class C
 }
 ";
 
-            CSharpCompilation c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, source },
+            CSharpCompilation c = CreateStandardCompilation(new[] { attributesDefinitions, source },
                                                                 parseOptions: TestOptions.Regular.WithNullCheckingFeature(),
                                                                 options: TestOptions.ReleaseDll);
 
@@ -14460,7 +14460,7 @@ delegate T CL0<T>();
 delegate string D2();
 ";
 
-            CSharpCompilation c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, source },
+            CSharpCompilation c = CreateStandardCompilation(new[] { attributesDefinitions, source },
                                                                 parseOptions: TestOptions.Regular.WithNullCheckingFeature(),
                                                                 options: TestOptions.ReleaseDll);
 
@@ -14524,7 +14524,7 @@ class CL0<T>
 }
 ";
 
-            CSharpCompilation c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, source },
+            CSharpCompilation c = CreateStandardCompilation(new[] { attributesDefinitions, source },
                                                                 parseOptions: TestOptions.Regular.WithNullCheckingFeature(),
                                                                 options: TestOptions.ReleaseDll);
 
@@ -14556,7 +14556,7 @@ class C : I
 {
     void I.M<T>(T? x) { }
 }";
-            var compilation = CreateCompilationWithMscorlib(new[] { source, attributesDefinitions }, parseOptions: TestOptions.Regular.WithNullCheckingFeature());
+            var compilation = CreateStandardCompilation(new[] { source, attributesDefinitions }, parseOptions: TestOptions.Regular.WithNullCheckingFeature());
             var method = compilation.GetMember<NamedTypeSymbol>("C").GetMethod("I.M");
             var implementations = method.ExplicitInterfaceImplementations;
             Assert.Equal(new[] { "void I.M<T>(T? x)" }, implementations.SelectAsArray(m => m.ToTestDisplayString()));
@@ -14566,7 +14566,7 @@ class C : I
         [Fact(Skip = "TODO")]
         public void Test2()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new [] { attributesDefinitions, @"
 using nullableString = System.String?;
 
 class C
@@ -14586,7 +14586,7 @@ class C
         [Fact(Skip = "Yes")]
         public void DebugHelper()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
+            CSharpCompilation c = CreateStandardCompilation(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
