@@ -100,12 +100,13 @@ static class Program {
             sourceCompilation.VerifyEmitDiagnostics(
                 // (25,12): warning CS0436: The type 'Task<T>' in '' conflicts with the imported type 'Task<TResult>' in 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'. Using the type defined in ''.
                 //     static Task<int> Main() {
-                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Task<int>").WithArguments("", "System.Threading.Tasks.Task<T>", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "System.Threading.Tasks.Task<TResult>"),
+                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Task<int>").WithArguments("", "System.Threading.Tasks.Task<T>", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "System.Threading.Tasks.Task<TResult>").WithLocation(25, 12),
                 // (25,22): warning CS0028: 'Program.Main()' has the wrong signature to be an entry point
                 //     static Task<int> Main() {
-                Diagnostic(ErrorCode.WRN_InvalidMainSig, "Main").WithArguments("Program.Main()"),
+                Diagnostic(ErrorCode.WRN_InvalidMainSig, "Main").WithArguments("Program.Main()").WithLocation(25, 22),
                 // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
-                Diagnostic(ErrorCode.ERR_NoEntryPoint).WithLocation(1, 1));
+                Diagnostic(ErrorCode.ERR_NoEntryPoint).WithLocation(1, 1)
+);
         }
 
         [Fact]
@@ -172,9 +173,9 @@ static class Program {
                 Diagnostic(ErrorCode.ERR_BadAwaitArg, "Task").WithArguments("System.Threading.Tasks.Task").WithLocation(12, 12),
                 // (12,17): warning CS0028: 'Program.Main()' has the wrong signature to be an entry point
                 //     static Task Main() {
-                Diagnostic(ErrorCode.WRN_InvalidMainSig, "Main").WithArguments("Program.Main()"),
+                Diagnostic(ErrorCode.WRN_InvalidMainSig, "Main").WithArguments("Program.Main()").WithLocation(12, 17),
                 // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
-                Diagnostic(ErrorCode.ERR_NoEntryPoint));
+                Diagnostic(ErrorCode.ERR_NoEntryPoint).WithLocation(1, 1));
         }
 
         [Fact]
@@ -197,15 +198,15 @@ static class Program {
             sourceCompilation.VerifyEmitDiagnostics(
                 // (10,12): warning CS0436: The type 'Task' in '' conflicts with the imported type 'Task' in 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'. Using the type defined in ''.
                 //     static Task Main() {
-                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Task").WithArguments("", "System.Threading.Tasks.Task", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "System.Threading.Tasks.Task"),
+                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Task").WithArguments("", "System.Threading.Tasks.Task", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "System.Threading.Tasks.Task").WithLocation(10, 12),
                 // (10,12): error CS1061: 'Task' does not contain a definition for 'GetAwaiter' and no extension method 'GetAwaiter' accepting a first argument of type 'Task' could be found (are you missing a using directive or an assembly reference?)
                 //     static Task Main() {
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Task").WithArguments("System.Threading.Tasks.Task", "GetAwaiter").WithLocation(10, 12),
                 // (10,17): warning CS0028: 'Program.Main()' has the wrong signature to be an entry point
                 //     static Task Main() {
-                Diagnostic(ErrorCode.WRN_InvalidMainSig, "Main").WithArguments("Program.Main()"),
+                Diagnostic(ErrorCode.WRN_InvalidMainSig, "Main").WithArguments("Program.Main()").WithLocation(10, 17),
                 // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
-                Diagnostic(ErrorCode.ERR_NoEntryPoint));
+                Diagnostic(ErrorCode.ERR_NoEntryPoint).WithLocation(1, 1));
         }
 
         [Fact]
@@ -280,7 +281,7 @@ static class Program {
             var sourceCompilation = CreateCompilation(source, new[] { corCompilation.ToMetadataReference(), taskCompilation.ToMetadataReference() }, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
             sourceCompilation.VerifyEmitDiagnostics(
                 // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
-                Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion),
+                Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1),
                 // (6,12): error CS1061: 'Task' does not contain a definition for 'GetAwaiter' and no extension method 'GetAwaiter' accepting a first argument of type 'Task' could be found (are you missing a using directive or an assembly reference?)
                 //     static Task Main() {
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Task").WithArguments("System.Threading.Tasks.Task", "GetAwaiter").WithLocation(6, 12),
@@ -288,7 +289,7 @@ static class Program {
                 //     static Task Main() {
                 Diagnostic(ErrorCode.WRN_InvalidMainSig, "Main").WithArguments("Program.Main()").WithLocation(6, 17),
                 // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
-                Diagnostic(ErrorCode.ERR_NoEntryPoint));
+                Diagnostic(ErrorCode.ERR_NoEntryPoint).WithLocation(1, 1));
         }
 
         [Fact]
@@ -775,11 +776,11 @@ class A
     }
 }";
             CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1)).VerifyDiagnostics(
-                // (4,23): warning CS0402: 'A.Main<T>()': an entry point cannot be generic or in a generic type
+                // (6,23): warning CS0028: 'A.Main<T>()' has the wrong signature to be an entry point
                 //     async static void Main<T>()
-                Diagnostic(ErrorCode.WRN_InvalidMainSig, "Main").WithArguments("A.Main<T>()"),
+                Diagnostic(ErrorCode.WRN_InvalidMainSig, "Main").WithArguments("A.Main<T>()").WithLocation(6, 23),
                 // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
-                Diagnostic(ErrorCode.ERR_NoEntryPoint));
+                Diagnostic(ErrorCode.ERR_NoEntryPoint).WithLocation(1, 1));
         }
 
         [Fact]
@@ -796,11 +797,11 @@ class A
     }
 }";
             CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe).VerifyDiagnostics(
-                // (4,23): warning CS0028: 'A.Main(bool)' has the wrong signature to be an entry point
+                // (6,23): warning CS0028: 'A.Main(bool)' has the wrong signature to be an entry point
                 //     async static void Main(bool truth)
-                Diagnostic(ErrorCode.WRN_InvalidMainSig, "Main").WithArguments("A.Main(bool)"),
+                Diagnostic(ErrorCode.WRN_InvalidMainSig, "Main").WithArguments("A.Main(bool)").WithLocation(6, 23),
                 // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
-                Diagnostic(ErrorCode.ERR_NoEntryPoint));
+                Diagnostic(ErrorCode.ERR_NoEntryPoint).WithLocation(1, 1));
         }
 
         [Fact]
@@ -817,11 +818,11 @@ class A
     }
 }";
             CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe).VerifyDiagnostics(
-                // (4,23): warning CS0028: 'A.Main<T>(bool)' has the wrong signature to be an entry point
+                // (6,23): warning CS0028: 'A.Main<T>(bool)' has the wrong signature to be an entry point
                 //     async static void Main<T>(bool truth)
-                Diagnostic(ErrorCode.WRN_InvalidMainSig, "Main").WithArguments("A.Main<T>(bool)"),
+                Diagnostic(ErrorCode.WRN_InvalidMainSig, "Main").WithArguments("A.Main<T>(bool)").WithLocation(6, 23),
                 // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
-                Diagnostic(ErrorCode.ERR_NoEntryPoint));
+                Diagnostic(ErrorCode.ERR_NoEntryPoint).WithLocation(1, 1));
         }
     }
 }
