@@ -16,8 +16,16 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.ReferenceHighlighting
 
     Public MustInherit Class AbstractReferenceHighlightingTests
         Protected Async Function VerifyHighlightsAsync(test As XElement, Optional optionIsEnabled As Boolean = True) As Tasks.Task
+            Await VerifyHighlightsAsync(test, optionIsEnabled, outOfProcess:=False)
+            Await VerifyHighlightsAsync(test, optionIsEnabled, outOfProcess:=True)
+        End Function
+
+        Private Async Function VerifyHighlightsAsync(test As XElement, optionIsEnabled As Boolean, outOfProcess As Boolean) As Tasks.Task
             Using workspace = TestWorkspace.Create(test)
                 WpfTestCase.RequireWpfFact($"{NameOf(AbstractReferenceHighlightingTests)}.VerifyHighlightsAsync creates asynchronous taggers")
+
+                workspace.Options = workspace.Options.WithChangedOption(
+                    DocumentHighlightsOptions.OutOfProcessAllowed, outOfProcess)
 
                 Dim tagProducer = New ReferenceHighlightingViewTaggerProvider(
                     workspace.GetService(Of IForegroundNotificationService),
