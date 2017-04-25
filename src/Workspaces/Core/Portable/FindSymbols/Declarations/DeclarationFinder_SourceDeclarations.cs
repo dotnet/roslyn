@@ -1,16 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PatternMatching;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
@@ -225,53 +221,38 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // we don't want to check the whole pattern against it (as it will clearly fail), instead
             // we only want to check the 'WL' portion.  Then, after we get all the candidate symbols
             // we'll check if the full name matches the full pattern.
-            var patternMatcher = new PatternMatcher(pattern);
-            using (var query = SearchQuery.CreateCustom(
-                k => !patternMatcher.GetMatchesForLastSegmentOfPattern(k).IsDefaultOrEmpty))
-            {
+            var dotIndex = pattern.LastIndexOf('.');
+            var isDottedPattern = dotIndex >= 0;
 
+            // If we don't have a dot in the pattern, just make a pattern matcher for the entire
+            // pattern they passed in.  Otherwise, make a pattern matcher just for the part after
+            // the dot.
+            var lastPartPatternMatcher = !isDottedPattern
+                ? new PatternMatcher(pattern, includeMatchedSpans: false)
+                : new PatternMatcher(pattern.Substring(dotIndex + 1), includeMatchedSpans: false);
+
+            using (lastPartPatternMatcher)
+            using (var query = SearchQuery.CreateCustom(lastPartPatternMatcher.Matches))
+            {
                 var symbolAndProjectIds = await SymbolFinder.FindSourceDeclarationsWithCustomQueryAsync(
                     project, query, criteria, cancellationToken).ConfigureAwait(false);
 
-                var result = ArrayBuilder<SymbolAndProjectId>.GetInstance();
-
-                // Now see if the symbols the compiler returned actually match the full pattern.
-                foreach (var symbolAndProjectId in symbolAndProjectIds)
+                if (symbolAndProjectIds.Length == 0 ||
+                    !isDottedPattern)
                 {
-                    var symbol = symbolAndProjectId.Symbol;
-
-                    // As an optimization, don't bother getting the container for this symbol if this
-                    // isn't a dotted pattern.  Getting the container could cause lots of string 
-                    // allocations that we don't if we're never going to check it.
-                    var matches = !patternMatcher.IsDottedPattern
-                        ? new PatternMatches(patternMatcher.GetMatches(GetSearchName(symbol)))
-                        : patternMatcher.GetMatches(GetSearchName(symbol), GetContainer(symbol));
-
-                    if (matches.IsEmpty)
-                    {
-                        // Didn't actually match the full pattern, ignore it.
-                        continue;
-                    }
-
-                    result.Add(symbolAndProjectId);
+                    // If it wasn't a dotted pattern, or it was empty, then we're done.  We can just 
+                    // return whatever set of results we got so far.
+                    return symbolAndProjectIds;
                 }
 
-                return result.ToImmutableAndFree();
+                // Ok, we had a dotted pattern.  Have to see if the symbol's container matches the 
+                // pattern as well.
+                using (var entireNamePatternMatcher = new PatternMatcher(pattern, includeMatchedSpans: false))
+                {
+                    return symbolAndProjectIds.WhereAsArray(t =>
+                        entireNamePatternMatcher.Matches(t.Symbol.Name, GetContainer(t.Symbol)));
+                }
             }
-        }
-
-        private static string GetSearchName(ISymbol symbol)
-        {
-            if (symbol.IsConstructor() || symbol.IsStaticConstructor())
-            {
-                return symbol.ContainingType.Name;
-            }
-            else if (symbol.IsIndexer() && symbol.Name == WellKnownMemberNames.Indexer)
-            {
-                return "this";
-            }
-
-            return symbol.Name;
         }
 
         private static string GetContainer(ISymbol symbol)

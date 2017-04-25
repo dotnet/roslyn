@@ -412,7 +412,6 @@
     <Compile Include="PatternMatching\PatternMatcher.cs" />
     <Compile Include="PatternMatching\PatternMatcher.PatternSegment.cs" />
     <Compile Include="PatternMatching\PatternMatcher.TextChunk.cs" />
-    <Compile Include="PatternMatching\PatternMatches.cs" />
     <Compile Include="PatternMatching\PatternMatchKind.cs" />
     <Compile Include="Remote\IRemoteHostService.cs" />
     <Compile Include="Remote\RemoteSupportedLanguages.cs" />
