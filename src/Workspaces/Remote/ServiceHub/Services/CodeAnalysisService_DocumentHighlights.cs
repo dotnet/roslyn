@@ -3,7 +3,7 @@
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.ReferenceHighlighting;
+using Microsoft.CodeAnalysis.DocumentHighlighting;
 
 namespace Microsoft.CodeAnalysis.Remote
 {

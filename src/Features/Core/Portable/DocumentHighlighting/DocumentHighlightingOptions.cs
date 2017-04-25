@@ -2,14 +2,14 @@
 
 using Microsoft.CodeAnalysis.Options;
 
-namespace Microsoft.CodeAnalysis.Editor.ReferenceHighlighting
+namespace Microsoft.CodeAnalysis.DocumentHighlighting
 {
-    internal static class DocumentHighlightsOptions
+    internal static class DocumentHighlightingOptions
     {
-        private const string LocalRegistryPath = @"Roslyn\Features\DocumentHighlightsOptions\";
+        private const string LocalRegistryPath = @"Roslyn\Features\DocumentHighlighting\";
 
         public static readonly Option<bool> OutOfProcessAllowed = new Option<bool>(
-            nameof(DocumentHighlightsOptions), nameof(OutOfProcessAllowed), defaultValue: true,
+            nameof(DocumentHighlightingOptions), nameof(OutOfProcessAllowed), defaultValue: true,
             storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + nameof(OutOfProcessAllowed)));
     }
 }

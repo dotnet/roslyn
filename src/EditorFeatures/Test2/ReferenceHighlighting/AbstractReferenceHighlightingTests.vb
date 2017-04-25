@@ -1,6 +1,7 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.DocumentHighlighting
 Imports Microsoft.CodeAnalysis.Editor.ReferenceHighlighting
 Imports Microsoft.CodeAnalysis.Editor.Shared.Extensions
 Imports Microsoft.CodeAnalysis.Editor.Shared.Options
@@ -25,7 +26,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.ReferenceHighlighting
                 WpfTestCase.RequireWpfFact($"{NameOf(AbstractReferenceHighlightingTests)}.VerifyHighlightsAsync creates asynchronous taggers")
 
                 workspace.Options = workspace.Options.WithChangedOption(
-                    DocumentHighlightsOptions.OutOfProcessAllowed, outOfProcess)
+                    DocumentHighlightingOptions.OutOfProcessAllowed, outOfProcess)
 
                 Dim tagProducer = New ReferenceHighlightingViewTaggerProvider(
                     workspace.GetService(Of IForegroundNotificationService),

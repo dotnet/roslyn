@@ -1,21 +1,20 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Editor.ReferenceHighlighting;
+using Microsoft.CodeAnalysis.DocumentHighlighting;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.ReferenceHighlighting
+namespace Microsoft.CodeAnalysis.CSharp.DocumentHighlighting
 {
-    [ExportLanguageService(typeof(IReferenceHighlightingAdditionalReferenceProvider), LanguageNames.CSharp), Shared]
-    internal class ReferenceHighlightingAdditionalReferenceProvider : IReferenceHighlightingAdditionalReferenceProvider
+    [ExportLanguageService(typeof(IDocumentHighlightingAdditionalReferenceProvider), LanguageNames.CSharp), Shared]
+    internal class CSharpDocumentHighlightingAdditionalReferenceProvider : IDocumentHighlightingAdditionalReferenceProvider
     {
-        public async Task<IEnumerable<Location>> GetAdditionalReferencesAsync(
+        public async Task<ImmutableArray<Location>> GetAdditionalReferencesAsync(
             Document document, ISymbol symbol, CancellationToken cancellationToken)
         {
             // The FindRefs engine won't find references through 'var' for performance reasons.
@@ -26,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.ReferenceHighlighting
             //
             // So we look for the references through 'var' directly in this file and add them to the
             // results found by the engine.
-            List<Location> results = null;
+            var results = ArrayBuilder<Location>.GetInstance();
 
             if (symbol is INamedTypeSymbol && symbol.Name != "var")
             {
@@ -52,18 +51,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.ReferenceHighlighting
 
                         if (originalSymbol.Equals(boundSymbol))
                         {
-                            if (results == null)
-                            {
-                                results = new List<Location>();
-                            }
-
                             results.Add(type.GetLocation());
                         }
                     }
                 }
             }
 
-            return results ?? SpecializedCollections.EmptyEnumerable<Location>();
+            return results.ToImmutableAndFree();
         }
     }
 }

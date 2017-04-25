@@ -4,14 +4,14 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Remote;
 
-namespace Microsoft.CodeAnalysis.Editor.ReferenceHighlighting
+namespace Microsoft.CodeAnalysis.DocumentHighlighting
 {
     internal abstract partial class AbstractDocumentHighlightsService : IDocumentHighlightsService
     {
         private static async Task<RemoteHostClient.Session> TryGetRemoteSessionAsync(
             Solution solution, CancellationToken cancellationToken)
         {
-            var outOfProcessAllowed = solution.Workspace.Options.GetOption(DocumentHighlightsOptions.OutOfProcessAllowed);
+            var outOfProcessAllowed = solution.Workspace.Options.GetOption(DocumentHighlightingOptions.OutOfProcessAllowed);
             if (!outOfProcessAllowed)
             {
                 return null;

@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.ReferenceHighlighting
+namespace Microsoft.CodeAnalysis.DocumentHighlighting
 {
     internal abstract partial class AbstractDocumentHighlightsService : IDocumentHighlightsService
     {
@@ -168,16 +168,16 @@ namespace Microsoft.CodeAnalysis.Editor.ReferenceHighlighting
                 documentsToSearch, cancellationToken).ConfigureAwait(false);
         }
 
-        private static Task<IEnumerable<Location>> GetAdditionalReferencesAsync(
+        private static Task<ImmutableArray<Location>> GetAdditionalReferencesAsync(
             Document document, ISymbol symbol, CancellationToken cancellationToken)
         {
-            var additionalReferenceProvider = document.Project.LanguageServices.GetService<IReferenceHighlightingAdditionalReferenceProvider>();
+            var additionalReferenceProvider = document.GetLanguageService<IDocumentHighlightingAdditionalReferenceProvider>();
             if (additionalReferenceProvider != null)
             {
                 return additionalReferenceProvider.GetAdditionalReferencesAsync(document, symbol, cancellationToken);
             }
 
-            return Task.FromResult(SpecializedCollections.EmptyEnumerable<Location>());
+            return SpecializedTasks.EmptyImmutableArray<Location>();
         }
 
         private static async Task<ImmutableArray<DocumentHighlights>> CreateSpansAsync(
