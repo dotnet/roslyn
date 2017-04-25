@@ -27,7 +27,8 @@
   <!-- If packaged on Windows, the RunCsc and RunVbc scripts may not be marked
        executable. If we're not running on Windows, mark them as such, just in case -->
   <Target Name="MakeCompilerScriptsExecutable"
-          Condition="'$(BuildingProject)' == 'true' AND '$(OS)' != 'Windows_NT'">
+          Condition="'$(BuildingProject)' == 'true' AND '$(OS)' != 'Windows_NT'"
+          BeforeTargets="CoreCompile">
     <Exec Command="chmod +x &quot;$(CscToolPath)/$(CscToolExe)&quot; &quot;$(VbcToolPath)/$(VbcToolExe)&quot;" />
   </Target>
 </Project>
