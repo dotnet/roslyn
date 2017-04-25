@@ -16,8 +16,8 @@ namespace Microsoft.CodeAnalysis.Completion
         private static readonly CompletionHelper CaseInsensitiveInstance = new CompletionHelper(isCaseSensitive: false);
 
         private readonly object _gate = new object();
-        private readonly Dictionary<(CultureInfo, string, bool includeMatchedSpans), PatternMatcher> _patternMatcherMap =
-             new Dictionary<(CultureInfo, string, bool includeMatchedSpans), PatternMatcher>();
+        private readonly Dictionary<(string pattern, CultureInfo, bool includeMatchedSpans), PatternMatcher> _patternMatcherMap =
+             new Dictionary<(string pattern, CultureInfo, bool includeMatchedSpans), PatternMatcher>();
 
         private static readonly CultureInfo EnUSCultureInfo = new CultureInfo("en-US");
         private readonly bool _isCaseSensitive;
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Completion
                 var afterDotPosition = lastDotIndex + 1;
                 var textAfterLastDot = completionItemText.Substring(afterDotPosition);
 
-                var match = GetMatchWorker(textAfterLastDot, pattern, includeMatchSpans, culture);
+                var match = GetMatchWorker(textAfterLastDot, pattern, culture, includeMatchSpans);
                 if (match != null)
                 {
                     return AdjustMatchedSpans(match.Value, afterDotPosition);
@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Completion
 
             // Didn't have a dot, or the user text didn't match the portion after the dot.
             // Just do a normal check against the entire completion item.
-            return GetMatchWorker(completionItemText, pattern, includeMatchSpans, culture);
+            return GetMatchWorker(completionItemText, pattern, culture, includeMatchSpans);
         }
 
         private PatternMatch? AdjustMatchedSpans(PatternMatch value, int offset)
@@ -97,10 +97,10 @@ namespace Microsoft.CodeAnalysis.Completion
                 : value.WithMatchedSpans(value.MatchedSpans.SelectAsArray(s => new TextSpan(s.Start + offset, s.Length)));
 
         private PatternMatch? GetMatchWorker(
-            string completionItemText, string pattern,
-            bool includeMatchSpans, CultureInfo culture)
+            string completionItemText, string pattern, 
+            CultureInfo culture, bool includeMatchSpans)
         {
-            var patternMatcher = this.GetPatternMatcher(pattern, includeMatchSpans, culture);
+            var patternMatcher = this.GetPatternMatcher(pattern, culture, includeMatchSpans);
             var match = patternMatcher.GetFirstMatch(completionItemText);
 
             if (match != null)
@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.Completion
             // Start with the culture-specific comparison, and fall back to en-US.
             if (!culture.Equals(EnUSCultureInfo))
             {
-                patternMatcher = this.GetPatternMatcher(pattern, includeMatchSpans, EnUSCultureInfo);
+                patternMatcher = this.GetPatternMatcher(pattern, EnUSCultureInfo, includeMatchSpans);
                 match = patternMatcher.GetFirstMatch(completionItemText);
 
                 if (match != null)
@@ -124,12 +124,12 @@ namespace Microsoft.CodeAnalysis.Completion
         }
 
         private PatternMatcher GetPatternMatcher(
-            CultureInfo culture, string pattern, bool includeMatchedSpans,  
-            Dictionary<(CultureInfo, string, bool), PatternMatcher> map)
+            string pattern, CultureInfo culture, bool includeMatchedSpans,
+            Dictionary<(string, CultureInfo, bool), PatternMatcher> map)
         {
             lock (_gate)
             {
-                var key = (culture, pattern, includeMatchedSpans);
+                var key = (pattern, culture, includeMatchedSpans);
                 if (!map.TryGetValue(key, out var patternMatcher))
                 {
                     patternMatcher = PatternMatcher.CreatePatternMatcher(
@@ -142,8 +142,8 @@ namespace Microsoft.CodeAnalysis.Completion
             }
         }
 
-        private PatternMatcher GetPatternMatcher(string pattern, bool includeMatchedSpans, CultureInfo culture)
-            => GetPatternMatcher(culture, pattern, includeMatchedSpans, _patternMatcherMap);
+        private PatternMatcher GetPatternMatcher(string pattern, CultureInfo culture, bool includeMatchedSpans)
+            => GetPatternMatcher(pattern, culture, includeMatchedSpans, _patternMatcherMap);
 
         /// <summary>
         /// Returns true if item1 is a better completion item than item2 given the provided filter

@@ -1,11 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.Features.RQName;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host;
@@ -17,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
     internal interface IDefinitionsAndReferencesFactory : IWorkspaceService
     {
         DefinitionItem GetThirdPartyDefinitionItem(
-            Solution solution, ISymbol definition, CancellationToken cancellationToken);
+            Solution solution, DefinitionItem definitionItem, CancellationToken cancellationToken);
     }
 
     [ExportWorkspaceService(typeof(IDefinitionsAndReferencesFactory)), Shared]
@@ -28,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
         /// results to the results found by the FindReferences engine.
         /// </summary>
         public virtual DefinitionItem GetThirdPartyDefinitionItem(
-            Solution solution, ISymbol definition, CancellationToken cancellationToken)
+            Solution solution, DefinitionItem definitionItem, CancellationToken cancellationToken)
         {
             return null;
         }
@@ -36,10 +37,36 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
 
     internal static class DefinitionItemExtensions
     {
-        public static DefinitionItem ToDefinitionItem(
+        public static DefinitionItem ToNonClassifiedDefinitionItem(
             this ISymbol definition,
             Solution solution,
             bool includeHiddenLocations)
+        {
+            // Because we're passing in 'false' for 'includeClassifiedSpans', this won't ever have
+            // to actually do async work.  This is because the only asynchrony is when we are trying
+            // to compute the classified spans for the locations of the definition.  So it's totally 
+            // fine to pass in CancellationToken.None and block on the result.
+            return ToDefinitionItemAsync(definition, solution, includeHiddenLocations,
+                includeClassifiedSpans: false, cancellationToken: CancellationToken.None).Result;
+        }
+
+        public static Task<DefinitionItem> ToClassifiedDefinitionItemAsync(
+            this ISymbol definition,
+            Solution solution,
+            bool includeHiddenLocations,
+            CancellationToken cancellationToken)
+        {
+            return ToDefinitionItemAsync(definition, solution,
+                includeHiddenLocations, includeClassifiedSpans: true, cancellationToken: cancellationToken);
+        }
+
+
+        private static async Task<DefinitionItem> ToDefinitionItemAsync(
+            this ISymbol definition,
+            Solution solution,
+            bool includeHiddenLocations,
+            bool includeClassifiedSpans,
+            CancellationToken cancellationToken)
         {
             // Ensure we're working with the original definition for the symbol. I.e. When we're 
             // creating definition items, we want to create them for types like Dictionary<TKey,TValue>
@@ -57,7 +84,8 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                 showMetadataSymbolsWithoutReferences: false);
 
             var sourceLocations = ArrayBuilder<DocumentSpan>.GetInstance();
-            ImmutableDictionary<string, string> properties = null;
+
+            var properties = GetProperties(definition);
 
             // If it's a namespace, don't create any normal location.  Namespaces
             // come from many different sources, but we'll only show a single 
@@ -83,7 +111,12 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                         var document = solution.GetDocument(location.SourceTree);
                         if (document != null)
                         {
-                            sourceLocations.Add(new DocumentSpan(document, location.SourceSpan));
+                            var documentLocation = !includeClassifiedSpans
+                                ? new DocumentSpan(document, location.SourceSpan)
+                                : await ClassifiedSpansAndHighlightSpan.GetClassifiedDocumentSpanAsync(
+                                    document, location.SourceSpan, cancellationToken).ConfigureAwait(false);
+
+                            sourceLocations.Add(documentLocation);
                         }
                     }
                 }
@@ -104,10 +137,35 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                 nameDisplayParts, properties, displayIfNoReferences);
         }
 
-        public static SourceReferenceItem TryCreateSourceReferenceItem(
+        private static ImmutableDictionary<string, string> GetProperties(ISymbol definition)
+        {
+            var properties = ImmutableDictionary<string, string>.Empty;
+
+            var rqName = RQNameInternal.From(definition);
+            if (rqName != null)
+            {
+                properties = properties.Add(DefinitionItem.RQNameKey1, rqName);
+            }
+
+            if (definition?.IsConstructor() == true)
+            {
+                // If the symbol being considered is a constructor include the containing type in case
+                // a third party wants to navigate to that.
+                rqName = RQNameInternal.From(definition.ContainingType);
+                if (rqName != null)
+                {
+                    properties = properties.Add(DefinitionItem.RQNameKey2, rqName);
+                }
+            }
+
+            return properties;
+        }
+
+        public static async Task<SourceReferenceItem> TryCreateSourceReferenceItemAsync(
             this ReferenceLocation referenceLocation,
             DefinitionItem definitionItem,
-            bool includeHiddenLocations)
+            bool includeHiddenLocations,
+            CancellationToken cancellationToken)
         {
             var location = referenceLocation.Location;
 
@@ -118,10 +176,13 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                 return null;
             }
 
-            return new SourceReferenceItem(
-                definitionItem, 
-                new DocumentSpan(referenceLocation.Document, location.SourceSpan),
-                referenceLocation.IsWrittenTo);
+            var document = referenceLocation.Document;
+            var sourceSpan = location.SourceSpan;
+
+            var documentSpan = await ClassifiedSpansAndHighlightSpan.GetClassifiedDocumentSpanAsync(
+                document, sourceSpan, cancellationToken).ConfigureAwait(false);
+
+            return new SourceReferenceItem(definitionItem, documentSpan, referenceLocation.IsWrittenTo);
         }
 
         private static SymbolDisplayFormat GetFormat(ISymbol definition)
