@@ -2282,6 +2282,7 @@ End Module").Path
             Dim file = CreateRuleSetFile(source)
             Dim parsedArgs = DefaultParse(New String() {"/ruleset:" + file.Path, "a.cs"}, _baseDirectory)
             parsedArgs.Errors.Verify()
+            Assert.Equal(expected:=file.Path, actual:=parsedArgs.RuleSetPath)
             Assert.True(parsedArgs.CompilationOptions.SpecificDiagnosticOptions.ContainsKey("CA1012"))
             Assert.True(parsedArgs.CompilationOptions.SpecificDiagnosticOptions("CA1012") = ReportDiagnostic.Error)
             Assert.True(parsedArgs.CompilationOptions.SpecificDiagnosticOptions.ContainsKey("CA1013"))
@@ -2306,6 +2307,7 @@ End Module").Path
             Dim file = CreateRuleSetFile(source)
             Dim parsedArgs = DefaultParse(New String() {"/ruleset:" + """" + file.Path + """", "a.cs"}, _baseDirectory)
             parsedArgs.Errors.Verify()
+            Assert.Equal(expected:=file.Path, actual:=parsedArgs.RuleSetPath)
         End Sub
 
         <Fact>
@@ -2313,23 +2315,28 @@ End Module").Path
             Dim parsedArgs = DefaultParse(New String() {"/ruleset", "a.cs"}, _baseDirectory)
             parsedArgs.Errors.Verify(
             Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("ruleset", ":<file>"))
+            Assert.Null(parsedArgs.RuleSetPath)
 
             parsedArgs = DefaultParse(New String() {"/ruleset", "a.cs"}, _baseDirectory)
             parsedArgs.Errors.Verify(
             Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("ruleset", ":<file>"))
+            Assert.Null(parsedArgs.RuleSetPath)
 
             parsedArgs = DefaultParse(New String() {"/ruleset:blah", "a.cs"}, _baseDirectory)
             parsedArgs.Errors.Verify(
             Diagnostic(ERRID.ERR_CantReadRulesetFile).WithArguments(Path.Combine(TempRoot.Root, "blah"), "File not found."))
+            Assert.Equal(expected:=Path.Combine(TempRoot.Root, "blah"), actual:=parsedArgs.RuleSetPath)
 
             parsedArgs = DefaultParse(New String() {"/ruleset:blah;blah.ruleset", "a.cs"}, _baseDirectory)
             parsedArgs.Errors.Verify(
             Diagnostic(ERRID.ERR_CantReadRulesetFile).WithArguments(Path.Combine(TempRoot.Root, "blah;blah.ruleset"), "File not found."))
+            Assert.Equal(expected:=Path.Combine(TempRoot.Root, "blah;blah.ruleset"), actual:=parsedArgs.RuleSetPath)
 
             Dim file = CreateRuleSetFile(New XDocument())
             parsedArgs = DefaultParse(New String() {"/ruleset:" + file.Path, "a.cs"}, _baseDirectory)
             'parsedArgs.Errors.Verify(
             '   Diagnostic(ERRID.ERR_CantReadRulesetFile).WithArguments(file.Path, "Root element is missing."))
+            Assert.Equal(expected:=file.Path, actual:=parsedArgs.RuleSetPath)
             Dim err = parsedArgs.Errors.Single()
 
             Assert.Equal(ERRID.ERR_CantReadRulesetFile, err.Code)
