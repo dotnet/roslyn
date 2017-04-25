@@ -109,7 +109,7 @@ function Build-Tools() {
             Restore-Project $proj -nuget $nuget -msbuildDir $msbuildDir
             Exec-Command $msbuild "/t:Publish /p:Configuration=Debug /p:RuntimeIdentifier=win7-x64 /v:m $proj" | Out-Null
 
-            $exePath = Join-Path $binariesDir "Debug\Exes\$fileName\netcoreapp1.1\win7-x64\publish\$($exeName).exe"
+            $exePath = Join-Path $binariesDir "Debug\Exes\$fileName\win7-x64\publish\$($exeName).exe"
             if (-not (Test-Path $exePath)) { 
                 Write-Host "Did not find exe after build: $exePath"
                 throw "Missing exe"

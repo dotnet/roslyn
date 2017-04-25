@@ -154,25 +154,17 @@ Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "BasicScripting", "src\Scrip
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Scripting", "src\Scripting\Core\Scripting.csproj", "{12A68549-4E8C-42D6-8703-A09335F97997}"
 EndProject
-<<<<<<< HEAD
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ScriptingTest", "src\Scripting\CoreTest\ScriptingTest.csproj", "{2DAE4406-7A89-4B5F-95C3-BC5472CE47CE}"
 	ProjectSection(ProjectDependencies) = postProject
 		{76C6F005-C89D-4348-BB4A-391898DBEB52} = {76C6F005-C89D-4348-BB4A-391898DBEB52}
 	EndProjectSection
-=======
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ScriptingTest", "src\Scripting\CoreTest\ScriptingTest.csproj", "{2DAE4406-7A89-4B5F-95C3-BC5472CE47CE}"
->>>>>>> Flip project type GUIDs to CPS for VB
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CSharpScripting", "src\Scripting\CSharp\CSharpScripting.csproj", "{066F0DBD-C46C-4C20-AFEC-99829A172625}"
 EndProject
-<<<<<<< HEAD
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CSharpScriptingTest", "src\Scripting\CSharpTest\CSharpScriptingTest.csproj", "{2DAE4406-7A89-4B5F-95C3-BC5422CE47CE}"
 	ProjectSection(ProjectDependencies) = postProject
 		{76C6F005-C89D-4348-BB4A-391898DBEB52} = {76C6F005-C89D-4348-BB4A-391898DBEB52}
 	EndProjectSection
-=======
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CSharpScriptingTest", "src\Scripting\CSharpTest\CSharpScriptingTest.csproj", "{2DAE4406-7A89-4B5F-95C3-BC5422CE47CE}"
->>>>>>> Flip project type GUIDs to CPS for VB
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InteractiveFeatures", "src\Interactive\Features\InteractiveFeatures.csproj", "{8E2A252E-A140-45A6-A81A-2652996EA589}"
 EndProject
@@ -393,7 +385,6 @@ Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "BasicCodeStyle", "src\CodeS
 EndProject
 Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "BasicCodeStyleFixes", "src\CodeStyle\VisualBasic\CodeFixes\BasicCodeStyleFixes.vbproj", "{0141285D-8F6C-42C7-BAF3-3C0CCD61C716}"
 EndProject
-<<<<<<< HEAD
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CodeStyleTests", "src\CodeStyle\Core\Tests\CodeStyleTests.csproj", "{9FF1205F-1D7C-4EE4-B038-3456FE6EBEAF}"
 	ProjectSection(ProjectDependencies) = postProject
 		{76C6F005-C89D-4348-BB4A-391898DBEB52} = {76C6F005-C89D-4348-BB4A-391898DBEB52}
@@ -403,11 +394,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CSharpCodeStyleTests", "src
 	ProjectSection(ProjectDependencies) = postProject
 		{76C6F005-C89D-4348-BB4A-391898DBEB52} = {76C6F005-C89D-4348-BB4A-391898DBEB52}
 	EndProjectSection
-=======
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CodeStyleTests", "src\CodeStyle\Core\Tests\CodeStyleTests.csproj", "{9FF1205F-1D7C-4EE4-B038-3456FE6EBEAF}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CSharpCodeStyleTests", "src\CodeStyle\CSharp\Tests\CSharpCodeStyleTests.csproj", "{5018D049-5870-465A-889B-C742CE1E31CB}"
->>>>>>> Flip project type GUIDs to CPS for VB
 EndProject
 Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "BasicCodeStyleTests", "src\CodeStyle\VisualBasic\Tests\BasicCodeStyleTests.vbproj", "{E512C6C1-F085-4AD7-B0D9-E8F1A0A2A510}"
 	ProjectSection(ProjectDependencies) = postProject

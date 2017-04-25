@@ -21,6 +21,7 @@ namespace BuildBoss
             var solutionPath = Path.GetDirectoryName(_solutionFilePath);
             var projectDataList = SolutionUtil.ParseProjects(_solutionFilePath);
             var map = new Dictionary<ProjectKey, ProjectData>();
+            var allGood = true;
             foreach (var projectEntry in projectDataList)
             {
                 if (projectEntry.IsFolder)
@@ -36,10 +37,17 @@ namespace BuildBoss
 
                 var projectFilePath = Path.Combine(solutionPath, projectEntry.RelativeFilePath);
                 var projectData = new ProjectData(projectFilePath);
-                map.Add(projectData.Key, projectData);
+                if (map.ContainsKey(projectData.Key))
+                {
+                    textWriter.WriteLine($"Duplicate project detected {projectData.FileName}");
+                    allGood = false;
+                }
+                else
+                {
+                    map.Add(projectData.Key, projectData);
+                }
             }
 
-            var allGood = true;
             var count = 0;
             foreach (var projectData in map.Values.OrderBy(x => x.FileName))
             {

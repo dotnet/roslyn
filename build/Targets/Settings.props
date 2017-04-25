@@ -257,6 +257,7 @@
   <PropertyGroup Condition="'$(RoslynSdkProject)' == 'true'" >
     <DebugType>full</DebugType>
     <RootNamespace Condition="'$(MSBuildTargetsLanguageName)' == 'VisualBasic'"></RootNamespace>
+    <DefineConstants Condition="'$(InitialDefineConstants)' != ''">$(InitialDefineConstants)</DefineConstants>
   </PropertyGroup>
 
   <!-- 
