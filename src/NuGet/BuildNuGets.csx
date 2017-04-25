@@ -42,10 +42,11 @@ var ProjectURL = @"http://msdn.com/roslyn";
 var Tags = @"Roslyn CodeAnalysis Compiler CSharp VB VisualBasic Parser Scanner Lexer Emit CodeGeneration Metadata IL Compilation Scripting Syntax Semantics";
 
 // Read preceding variables from MSBuild file
-var doc = XDocument.Load(Path.Combine(SolutionRoot, "build/Targets/Dependencies.props"));
+var packagesDoc = XDocument.Load(Path.Combine(SolutionRoot, "build/Targets/Packages.props"));
+var fixedPackagesDoc = XDocument.Load(Path.Combine(SolutionRoot, "build/Targets/FixedPackages.props"));
 XNamespace ns = @"http://schemas.microsoft.com/developer/msbuild/2003";
 
-var dependencyVersions = from e in doc.Root.Descendants()
+var dependencyVersions = from e in packagesDoc.Root.Descendants().Concat(fixedPackagesDoc.Root.Descendants())
                          where e.Name.LocalName.EndsWith("Version")
                          select new { VariableName = e.Name.LocalName, Value=e.Value };
 
