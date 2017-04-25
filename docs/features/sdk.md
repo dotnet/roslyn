@@ -34,12 +34,12 @@ This set of Jenkins legs is considered functional and must pass on every merge:
 
 - Unit tests debug / release on x86 / amd64 
 - Build correctness
+- Microbuild
 
 ## Big Items
 
 These are the big items that are broken and need some wokr
 
-- BuildBoss: needs to understand the SDK + add a few new rules 
 - RepoUtil: needs to understand PackageReference and can be massively simplified now
 - CoreCLR unit tests
 - Delete the DeployCompilerGeneratorToolsRuntime project.  Not neeeded anymor 
