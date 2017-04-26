@@ -14,7 +14,7 @@ efforts behind them.
 | [Default Expressions](https://github.com/dotnet/csharplang/blob/master/proposals/target-typed-default.md) | master  | Merged | [jcouv](https://github.com/jcouv) | [cston](https://github.com/cston) | [jcouv](https://github.com/jcouv) |
 | [Ref Assemblies](https://github.com/dotnet/roslyn/blob/features/refout/docs/features/refout.md) | [refout](https://github.com/dotnet/roslyn/tree/features/refout)  | Integration & validation | [jcouv](https://github.com/jcouv) | [gafter](https://github.com/gafter) | N/A |
 | [Infer tuple names](https://github.com/dotnet/csharplang/blob/master/proposals/csharp-7.1/infer-tuple-names.md) | [tuple-names](https://github.com/dotnet/roslyn/tree/features/tuple-names)  | Implementation | [jcouv](https://github.com/jcouv) | [gafter](https://github.com/gafter) | [jcouv](https://github.com/jcouv) |
-| [pattern-matching with generics](https://github.com/dotnet/csharplang/blob/master/proposals/generics-pattern-match.md) | https://github.com/dotnet/roslyn/pull/18784  | Implementation | [gafter](https://github.com/gafter) | [agocke](https://github.com/agocke) | [gafter](https://github.com/gafter) |
+| [Pattern-matching with generics](https://github.com/dotnet/csharplang/blob/master/proposals/generics-pattern-match.md) | https://github.com/dotnet/roslyn/pull/18784  | Implementation | [gafter](https://github.com/gafter) | [agocke](https://github.com/agocke) | [gafter](https://github.com/gafter) |
 
 # C# 7.2
 
