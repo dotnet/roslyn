@@ -257,9 +257,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogString("IOperation: ");
             LogCommonPropertiesAndNewLine(operation);
 
-            if (operation is IOperationWithChildren operationWithChildren && operationWithChildren.Children.Length > 0)
+            if (operation is IOperationWithChildren operationWithChildren)
             {
-                VisitArray(operationWithChildren.Children.WhereNotNull().ToImmutableArray(), "Children", logElementCount: true);
+                var children = operationWithChildren.Children.WhereNotNull().ToImmutableArray();
+                if (children.Length > 0)
+                {
+                    VisitArray(children, "Children", logElementCount: true);
+                }
             }
         }
 

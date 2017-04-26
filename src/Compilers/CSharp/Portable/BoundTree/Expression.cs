@@ -1420,7 +1420,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         protected override OperationKind ExpressionKind => OperationKind.None;
 
-        protected override ImmutableArray<IOperation> Children => this.Arguments.Concat(this.ReceiverOpt).As<IOperation>();
+        protected override ImmutableArray<IOperation> Children => this.Arguments.Add(this.ReceiverOpt).As<IOperation>();
 
         public override void Accept(OperationVisitor visitor)
         {
@@ -1486,7 +1486,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         protected override OperationKind ExpressionKind => OperationKind.None;
 
-        protected override ImmutableArray<IOperation> Children => this.ConstructorArguments.Concat(this.NamedArguments).As<IOperation>();
+        protected override ImmutableArray<IOperation> Children => this.ConstructorArguments.AddRange(this.NamedArguments).As<IOperation>();
 
         public override void Accept(OperationVisitor visitor)
         {
@@ -1873,7 +1873,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         protected override OperationKind ExpressionKind => OperationKind.None;
 
-        protected override ImmutableArray<IOperation> Children => this.Arguments.As<IOperation>().Concat(this.Expression);
+        protected override ImmutableArray<IOperation> Children => this.Arguments.As<IOperation>().Add(this.Expression);
 
         public override void Accept(OperationVisitor visitor)
         {
@@ -2140,7 +2140,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         protected override OperationKind ExpressionKind => OperationKind.None;
 
-        protected override ImmutableArray<IOperation> Children => this.Arguments.Concat(BoundObjectCreationExpression.GetChildInitializers(this.InitializerExpressionOpt)).As<IOperation>();
+        protected override ImmutableArray<IOperation> Children => this.Arguments.AddRange(BoundObjectCreationExpression.GetChildInitializers(this.InitializerExpressionOpt)).As<IOperation>();
 
         public override void Accept(OperationVisitor visitor)
         {

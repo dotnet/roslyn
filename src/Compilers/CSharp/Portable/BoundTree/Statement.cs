@@ -904,7 +904,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     partial class BoundPatternSwitchSection
     {
-        protected override ImmutableArray<IOperation> Children => this.SwitchLabels.As<IOperation>().Concat(this.Statements).ToImmutableArray();
+        protected override ImmutableArray<IOperation> Children => this.SwitchLabels.As<IOperation>().AddRange(this.Statements).ToImmutableArray();
     }
 
     partial class BoundPatternSwitchLabel
