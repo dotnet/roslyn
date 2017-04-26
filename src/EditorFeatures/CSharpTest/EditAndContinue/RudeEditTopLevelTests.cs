@@ -6709,6 +6709,36 @@ class C
         }
 
         [Fact]
+        public void TupleElementDelete()
+        {
+            var src1 = "class C { (int, int, int a) M() { return (1, 2, 3); } }";
+            var src2 = "class C { (int, int) M() { return (1, 2); } }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [(int, int, int a) M() { return (1, 2, 3); }]@10 -> [(int, int) M() { return (1, 2); }]@10");
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.TypeUpdate, "(int, int) M()", "method"));
+        }
+
+        [Fact]
+        public void TupleElementAdd()
+        {
+            var src1 = "class C { (int, int) M() { return (1, 2); } }";
+            var src2 = "class C { (int, int, int a) M() { return (1, 2, 3); } }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [(int, int) M() { return (1, 2); }]@10 -> [(int, int, int a) M() { return (1, 2, 3); }]@10");
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.TypeUpdate, "(int, int, int a) M()", "method"));
+        }
+
+        [Fact]
         public void Indexer_ParameterUpdate()
         {
             var src1 = "class C { int this[int a] { get; set; } }";
