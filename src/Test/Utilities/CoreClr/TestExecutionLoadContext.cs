@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.CodeRuntime
             }
         }
 
-        internal (int ExitCode, string Output) Execute(ImmutableArray<byte> mainImage, int expectedOutputLength)
+        internal (int ExitCode, string Output) Execute(ImmutableArray<byte> mainImage, int? expectedOutputLength)
         {
             var mainAssembly = LoadImageAsAssembly(mainImage);
             var entryPoint = mainAssembly.EntryPoint;

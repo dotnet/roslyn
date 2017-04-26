@@ -19,6 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal const string FactoryName = "<Factory>";
 
         private readonly NamedTypeSymbol _containingType;
+        // PROTOTYPE(async-main): remove this and move it out into inheriting classes?
         private TypeSymbol _returnType;
 
         internal static SynthesizedEntryPointSymbol Create(SynthesizedInteractiveInitializerMethod initializerMethod, DiagnosticBag diagnostics)
@@ -302,17 +303,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private static MethodSymbol GetRequiredMethod(TypeSymbol type, string methodName, DiagnosticBag diagnostics, Location location = null)
+        private static MethodSymbol GetRequiredMethod(TypeSymbol type, string methodName, DiagnosticBag diagnostics)
         {
-            if ((object)location == null)
-            {
-                location = NoLocation.Singleton;
-            }
-
             var method = type.GetMembers(methodName).SingleOrDefault() as MethodSymbol;
             if ((object)method == null)
             {
-                diagnostics.Add(ErrorCode.ERR_MissingPredefinedMember, location, type, methodName);
+                diagnostics.Add(ErrorCode.ERR_MissingPredefinedMember, NoLocation.Singleton, type, methodName);
             }
             return method;
         }
@@ -357,7 +353,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var binder = compilation.GetBinder(_userMainReturnTypeSyntax);
                 _parameters = SynthesizedParameterSymbol.DeriveParameters(userMain, this);
 
-                var arguments = Parameters.SelectAsArray(p => (BoundExpression)new BoundParameter(_userMainReturnTypeSyntax, p, p.Type));
+                var arguments = Parameters.SelectAsArray((p, s) => (BoundExpression)new BoundParameter(s, p, p.Type), _userMainReturnTypeSyntax);
 
                 // Main(args) or Main()
                 BoundCall userMainInvocation = new BoundCall(

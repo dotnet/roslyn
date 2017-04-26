@@ -331,7 +331,7 @@ class Program {
         }
 
         [Fact]
-        public void AsyncEmitMainTestCodegenWithErrors()
+        public void AsyncMainTestCodegenWithErrors()
         {
             var source = @"
 using System;
@@ -450,7 +450,7 @@ class Program {
         [Fact]
         public void MainCanBeAsyncWithArgs()
         {
-            var origSource = @"
+            var source = @"
 using System.Threading.Tasks;
 
 class A
@@ -460,18 +460,37 @@ class A
         await Task.Factory.StartNew(() => { });
     }
 }";
-            var sources = new string[] { origSource, origSource.Replace("async ", "").Replace("await", "return") };
-            foreach (var source in sources)
-            {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
-                compilation.VerifyDiagnostics();
-                var entry = compilation.GetEntryPoint(CancellationToken.None);
-                Assert.NotNull(entry);
-                Assert.Equal("System.Threading.Tasks.Task A.Main(System.String[] args)", entry.ToTestDisplayString());
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
+            compilation.VerifyDiagnostics();
+            var entry = compilation.GetEntryPoint(CancellationToken.None);
+            Assert.NotNull(entry);
+            Assert.Equal("System.Threading.Tasks.Task A.Main(System.String[] args)", entry.ToTestDisplayString());
 
-                CompileAndVerify(compilation, expectedReturnCode: 0);
-            }
+            CompileAndVerify(compilation, expectedReturnCode: 0);
         }
+
+        [Fact]
+        public void MainCanReturnTaskWithArgs_NoAsync()
+        {
+            var source = @"
+using System.Threading.Tasks;
+
+class A
+{
+    static Task Main(string[] args)
+    {
+        Task.Factory.StartNew(() => { });
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
+            compilation.VerifyDiagnostics();
+            var entry = compilation.GetEntryPoint(CancellationToken.None);
+            Assert.NotNull(entry);
+            Assert.Equal("System.Threading.Tasks.Task A.Main(System.String[] args)", entry.ToTestDisplayString());
+
+            CompileAndVerify(compilation, expectedReturnCode: 0);
+        }
+
 
         [Fact]
         public void MainCantBeAsyncWithRefTask()
@@ -519,9 +538,9 @@ class A
         }
 
         [Fact]
-        public void MainCanBeAsync()
+        public void MainCanReturnTask()
         {
-            var origSource = @"
+            var source = @"
 using System.Threading.Tasks;
 
 class A
@@ -531,15 +550,30 @@ class A
         await Task.Factory.StartNew(() => { });
     }
 }";
-            var sources = new string[] { origSource, origSource.Replace("async ", "").Replace("await", "return") };
-            foreach (var source in sources)
-            {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
-                compilation.VerifyDiagnostics();
-                var entry = compilation.GetEntryPoint(CancellationToken.None);
-                Assert.NotNull(entry);
-                Assert.Equal("System.Threading.Tasks.Task A.Main()", entry.ToTestDisplayString());
-            }
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
+            compilation.VerifyDiagnostics();
+            var entry = compilation.GetEntryPoint(CancellationToken.None);
+            Assert.NotNull(entry);
+            Assert.Equal("System.Threading.Tasks.Task A.Main()", entry.ToTestDisplayString());
+        }
+        [Fact]
+        public void MainCanReturnTask_NoAsync()
+        {
+            var source = @"
+using System.Threading.Tasks;
+
+class A
+{
+    static Task Main()
+    {
+        Task.Factory.StartNew(() => { });
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
+            compilation.VerifyDiagnostics();
+            var entry = compilation.GetEntryPoint(CancellationToken.None);
+            Assert.NotNull(entry);
+            Assert.Equal("System.Threading.Tasks.Task A.Main()", entry.ToTestDisplayString());
         }
 
         [Fact]
@@ -644,9 +678,9 @@ class A
         }
 
         [Fact]
-        public void MainCanBeAsyncAndGenericOnIntWithArgs()
+        public void MainCanReturnTaskAndGenericOnIntWithArgs()
         {
-            var origSource = @"
+            var source = @"
 using System.Threading.Tasks;
 
 class A
@@ -656,15 +690,31 @@ class A
         return await Task.Factory.StartNew(() => 5);
     }
 }";
-            var sources = new string[] { origSource, origSource.Replace("async ", "").Replace("await", "") };
-            foreach (var source in sources)
-            {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
-                compilation.VerifyDiagnostics();
-                var entry = compilation.GetEntryPoint(CancellationToken.None);
-                Assert.NotNull(entry);
-                Assert.Equal("System.Threading.Tasks.Task<System.Int32> A.Main(System.String[] args)", entry.ToTestDisplayString());
-            }
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
+            compilation.VerifyDiagnostics();
+            var entry = compilation.GetEntryPoint(CancellationToken.None);
+            Assert.NotNull(entry);
+            Assert.Equal("System.Threading.Tasks.Task<System.Int32> A.Main(System.String[] args)", entry.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void MainCanReturnTaskAndGenericOnIntWithArgs_NoAsync()
+        {
+            var source = @"
+using System.Threading.Tasks;
+
+class A
+{
+    static Task<int> Main(string[] args)
+    {
+        return Task.Factory.StartNew(() => 5);
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
+            compilation.VerifyDiagnostics();
+            var entry = compilation.GetEntryPoint(CancellationToken.None);
+            Assert.NotNull(entry);
+            Assert.Equal("System.Threading.Tasks.Task<System.Int32> A.Main(System.String[] args)", entry.ToTestDisplayString());
         }
 
         [Fact]
@@ -692,9 +742,9 @@ class A
         }
 
         [Fact]
-        public void MainCanBeAsyncAndGenericOnInt()
+        public void MainCanReturnTaskAndGenericOnInt()
         {
-            var origSource = @"
+            var source = @"
 using System.Threading.Tasks;
 
 class A
@@ -704,15 +754,31 @@ class A
         return await Task.Factory.StartNew(() => 5);
     }
 }";
-            var sources = new string[] { origSource, origSource.Replace("async ", "").Replace("await", "") };
-            foreach (var source in sources)
-            {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
-                compilation.VerifyDiagnostics();
-                var entry = compilation.GetEntryPoint(CancellationToken.None);
-                Assert.NotNull(entry);
-                Assert.Equal("System.Threading.Tasks.Task<System.Int32> A.Main()", entry.ToTestDisplayString());
-            }
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
+            compilation.VerifyDiagnostics();
+            var entry = compilation.GetEntryPoint(CancellationToken.None);
+            Assert.NotNull(entry);
+            Assert.Equal("System.Threading.Tasks.Task<System.Int32> A.Main()", entry.ToTestDisplayString());
+        }
+        [Fact]
+
+        public void MainCanReturnTaskAndGenericOnInt_NoAsync()
+        {
+            var source = @"
+using System.Threading.Tasks;
+
+class A
+{
+    static Task<int> Main()
+    {
+        return Task.Factory.StartNew(() => 5);
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
+            compilation.VerifyDiagnostics();
+            var entry = compilation.GetEntryPoint(CancellationToken.None);
+            Assert.NotNull(entry);
+            Assert.Equal("System.Threading.Tasks.Task<System.Int32> A.Main()", entry.ToTestDisplayString());
         }
 
         [Fact]
