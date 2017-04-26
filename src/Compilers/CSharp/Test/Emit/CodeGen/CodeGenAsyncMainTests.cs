@@ -372,6 +372,25 @@ class Program {
         }
 
         [Fact]
+        public void AsyncEmitMainOfIntTest_ParamsStringArgs()
+        {
+            var source = @"
+using System;
+using System.Threading.Tasks;
+
+class Program {
+    static async Task<int> Main(params string[] args) {
+        Console.Write(""hello "");
+        await Task.Factory.StartNew(() => 5);
+        Console.Write(""async main"");
+        return 10;
+    }
+}";
+            var c = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
+            var verifier = CompileAndVerify(c, expectedOutput: "hello async main", expectedReturnCode: 10);
+        }
+
+        [Fact]
         public void AsyncEmitMainTest_StringArgs()
         {
             var source = @"
@@ -678,7 +697,7 @@ class A
         }
 
         [Fact]
-        public void MainCanReturnTaskAndGenericOnIntWithArgs()
+        public void MainCanReturnTaskAndGenericOnInt_WithArgs()
         {
             var source = @"
 using System.Threading.Tasks;
@@ -698,7 +717,7 @@ class A
         }
 
         [Fact]
-        public void MainCanReturnTaskAndGenericOnIntWithArgs_NoAsync()
+        public void MainCanReturnTaskAndGenericOnInt_WithArgs_NoAsync()
         {
             var source = @"
 using System.Threading.Tasks;
@@ -718,7 +737,7 @@ class A
         }
 
         [Fact]
-        public void MainCantBeAsyncAndGenericOnIntWithArgs_Csharp7()
+        public void MainCantBeAsyncAndGenericOnInt_WithArgs_Csharp7()
         {
             var source = @"
 using System.Threading.Tasks;
