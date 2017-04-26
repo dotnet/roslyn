@@ -5,19 +5,14 @@
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">x64</Platform>
     <PlatformTarget>x64</PlatformTarget>
-    <RuntimeIdentifier>x64</RuntimeIdentifier>
-    <ProjectGuid>{59BABFC3-C19B-4472-A93D-3DD3835BC219}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <AssemblyName>DeployCoreClrTestRuntime_DoNotUse</AssemblyName>
     <Prefer32Bit>false</Prefer32Bit>
     <LargeAddressAware>true</LargeAddressAware>
-    <AutoGenerateBindingRedirects>True</AutoGenerateBindingRedirects>
-    <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
-    <TargetFramework>netcoreapp1.1</TargetFramework>
+    <TargetFramework>netcoreapp2.0</TargetFramework>
     <RuntimeIdentifiers>win7-x64;ubuntu.14.04-x64;ubuntu.16.04-x64;osx.10.12-x64</RuntimeIdentifiers>
-    <PackageTargetFallback>portable-net452;dotnet;netstandard1.6</PackageTargetFallback>
-    <NoStdLib>true</NoStdLib>
-    <RoslynProjectType>DeploymentTest</RoslynProjectType>
+    <PackageTargetFallback>portable-net452;dotnet;netstandard1.6;netcoreapp</PackageTargetFallback>
+    <SelfContained>true</SelfContained>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'" />
@@ -140,9 +135,9 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="xunit.console.netcore" Version="$(xunitconsolenetcoreVersion)" />
-    <PackageReference Include="Microsoft.NETCore.ILAsm" Version="$(MicrosoftNETCoreILAsmVersion)" />
-    <PackageReference Include="Microsoft.NETCore.Runtime.CoreCLR" Version="$(MicrosoftNETCoreRuntimeCoreCLRVersion)" />
-    <PackageReference Include="Microsoft.NETCore.TestHost" Version="$(MicrosoftNETCoreTestHostVersion)" />
+    <PackageReference Include="Microsoft.NETCore.App" Version="2.0.0-preview2-002066-00" />
+    <PackageReference Include="Microsoft.NETCore.ILAsm" Version="$(MicrosoftNetCoreIlasmVersion)" />
+    <PackageReference Include="Microsoft.NETCore.TestHost" Version="$(MicrosoftNetCoreTestHostVersion)" />
     <PackageReference Include="System.AppContext" Version="$(SystemAppContextVersion)" />
     <PackageReference Include="System.Console" Version="$(SystemConsoleVersion)" />
     <PackageReference Include="System.Diagnostics.Process" Version="$(SystemDiagnosticsProcessVersion)" />

@@ -107,13 +107,13 @@
                 Condition="'@(InternalsVisibleToRazor)' != ''">
       <Output TaskParameter="Include" ItemName="InternalsVisibleToAttribute" />
     </CreateItem>
-    <!-- The necessity of this Task is tracked by https://github.com/dotnet/roslyn/issues/8421 -->
-    <WriteCodeFragmentEx AssemblyAttributes="@(InternalsVisibleToAttribute)"
+
+    <WriteCodeFragment AssemblyAttributes="@(InternalsVisibleToAttribute)"
                          Language="$(Language)"
                          OutputFile="$(GeneratedInternalsVisibleToFile)">
       <Output TaskParameter="OutputFile" ItemName="Compile" />
       <Output TaskParameter="OutputFile" ItemName="FileWrites" />
-    </WriteCodeFragmentEx>
+    </WriteCodeFragment>
 
   </Target>
 </Project>
