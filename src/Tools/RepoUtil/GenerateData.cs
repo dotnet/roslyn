@@ -19,7 +19,7 @@ namespace RepoUtil
 
         internal GenerateData(string relativeFileName, ImmutableArray<Regex> packages)
         {
-            RelativeFilePath = relativeFileName;
+            RelativeFilePath = relativeFileName.Replace("\\", "/");
             Packages = packages;
         }
     }

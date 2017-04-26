@@ -335,7 +335,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RemoteWorkspaces", "src\Wor
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceHub", "src\Workspaces\Remote\ServiceHub\ServiceHub.csproj", "{80FDDD00-9393-47F7-8BAF-7E87CE011068}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RepoUtil", "src\Tools\RepoUtil\RepoUtil.csproj", "{1CA184D3-89CB-4074-BEC5-F8AEBA657D41}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RepoUtil", "src\Tools\RepoUtil\RepoUtil.old.csproj", "{1CA184D3-89CB-4074-BEC5-F8AEBA657D41}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MSBuildTask", "src\Compilers\Core\MSBuildTask\MSBuildTask.csproj", "{7AD4FE65-9A30-41A6-8004-AA8F89BCB7F3}"
 EndProject
