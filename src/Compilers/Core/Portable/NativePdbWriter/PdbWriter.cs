@@ -736,6 +736,7 @@ namespace Microsoft.Cci
 
         private const string SymWriterClsid = "0AE2DEB0-F901-478b-BB9F-881EE8066788";
 
+        private const string LegacyDiaSymReaderModuleName = "diasymreader.dll";
         private const string DiaSymReaderModuleName32 = "Microsoft.DiaSymReader.Native.x86.dll";
         private const string DiaSymReaderModuleName64 = "Microsoft.DiaSymReader.Native.amd64.dll";
 
@@ -760,9 +761,9 @@ namespace Microsoft.Cci
         /// <summary>
         /// Returns the full path to any loaded Microsoft.DiaSymReader.Native.XXX.dll module.
         /// </summary>
-        private static string GetDiaSymReaderModulePath()
+        private static string GetLoadedDiaSymReaderModulePath()
         {
-            IntPtr handle = GetModuleHandle(DiaSymReaderModuleName);
+            IntPtr handle = GetModuleHandle(s_MicrosoftDiaSymReaderNativeLoadFailed ? LegacyDiaSymReaderModuleName : DiaSymReaderModuleName);
             if (handle == IntPtr.Zero)
             {
                 return null;
@@ -836,12 +837,12 @@ namespace Microsoft.Cci
                 }
                 catch (Exception)
                 {
-                    string fullPath = GetDiaSymReaderModulePath();
+                    string fullPath = GetLoadedDiaSymReaderModulePath();
                     throw new NotSupportedException((fullPath != null) ?
                         string.Format(CodeAnalysisResources.SymWriterOlderVersionThanRequired, fullPath) :
                         string.Format(CodeAnalysisResources.SymWriterNotAvailable, DiaSymReaderModuleName));
                 }
-
+               
                 // Correctness: If the stream is not specified or if it is non-empty the SymWriter appends data to it (provided it contains valid PDB)
                 // and the resulting PDB has Age = existing_age + 1.
                 _pdbStream = new ComMemoryStream();
@@ -850,7 +851,7 @@ namespace Microsoft.Cci
                 {
                     if (!(symWriter is ISymUnmanagedWriter7))
                     {
-                        throw new NotSupportedException(string.Format(CodeAnalysisResources.SymWriterNotDeterministic, GetDiaSymReaderModulePath()));
+                        throw new NotSupportedException(string.Format(CodeAnalysisResources.SymWriterNotDeterministic, GetLoadedDiaSymReaderModulePath()));
                     }
 
                     ((ISymUnmanagedWriter7)symWriter).InitializeDeterministic(new PdbMetadataWrapper(metadataWriter), _pdbStream);
