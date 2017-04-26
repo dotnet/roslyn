@@ -1242,16 +1242,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        /// <summary>
-        /// Returns a suitable location for this MethodSymbol for a diagnostic to be placed at. This
-        /// is generally just the first entry in <see cref="Symbol.Locations"/>, but it may be a 
-        /// smaller location if the full location is large.  For example, Locations[0] on  lambda 
-        /// symbols covers the entire syntax, which is inconvenient but remains for compatibility.
-        /// For better diagnostics quality, <see cref="DiagnosticLocation"/> will point to the 
-        /// "delegate" or the "=>".
-        /// </summary>
-        internal virtual Location DiagnosticLocation => Locations[0];
-
         #region IMethodSymbolInternal
 
         bool IMethodSymbolInternal.IsIterator => IsIterator;
