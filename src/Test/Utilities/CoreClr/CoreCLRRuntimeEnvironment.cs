@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             emitData.RuntimeData.ExecuteRequested = true;
             var (ExitCode, Output) = emitData.LoadContext.Execute(GetMainImage(), expectedOutput?.Length);
 
-            if (expectedOutput.Trim() != Output.Trim())
+            if (expectedOutput != null && expectedOutput.Trim() != Output.Trim())
             {
                 throw new ExecutionException(expectedOutput, Output, moduleName);
             }

@@ -1548,9 +1548,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-
             var syntax = method.ExtractReturnTypeSyntax();
-            var dumbInstance = new BoundLiteral(syntax, ConstantValue.Null, method.ReturnType);
+            var dumbInstance = new BoundDefaultExpression(syntax, method.ReturnType);
             // PROTOTYPE(async-main): We might need to adjust the containing member of the binder to be the Main method
             var binder = GetBinder(syntax);
             BoundExpression result;

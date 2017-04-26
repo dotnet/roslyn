@@ -780,7 +780,6 @@ class A
             Assert.Equal("System.Threading.Tasks.Task<System.Int32> A.Main()", entry.ToTestDisplayString());
         }
         [Fact]
-
         public void MainCanReturnTaskAndGenericOnInt_NoAsync()
         {
             var source = @"
