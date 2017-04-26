@@ -444,12 +444,12 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                 //   e) If the word was entirely lowercase, then attempt a special lower cased camel cased 
                 //      match.  i.e. cofipro would match CodeFixProvider.
                 var candidateParts = GetWordSpans(candidate);
-                var camelCaseWeight = TryAllLowerCamelCaseMatch(
+                var camelCaseKind = TryAllLowerCamelCaseMatch(
                     candidate, candidateParts, patternChunk, out var matchedSpans);
-                if (camelCaseWeight.HasValue)
+                if (camelCaseKind.HasValue)
                 {
                     return new PatternMatch(
-                        GetCamelCaseKind(camelCaseWeight.Value), punctuationStripped, isCaseSensitive: false,
+                        camelCaseKind.Value, punctuationStripped, isCaseSensitive: false,
                         matchedSpans: matchedSpans);
                 }
             }
@@ -459,20 +459,20 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                 //      i.e. CoFiPro would match CodeFixProvider, but CofiPro would not.  
                 if (patternChunk.CharacterSpans.GetCount() > 0)
                 {
-                    var candidateParts = GetWordSpans(candidate);
-                    var camelCaseWeight = TryUpperCaseCamelCaseMatch(candidate, candidateParts, patternChunk, CompareOptions.None, out var matchedSpans);
-                    if (camelCaseWeight.HasValue)
+                    var candidateHumps = GetWordSpans(candidate);
+                    var camelCaseKind = TryUpperCaseCamelCaseMatch(candidate, candidateHumps, patternChunk, CompareOptions.None, out var matchedSpans);
+                    if (camelCaseKind.HasValue)
                     {
                         return new PatternMatch(
-                            GetCamelCaseKind(camelCaseWeight.Value), punctuationStripped, isCaseSensitive: true,
+                            camelCaseKind.Value, punctuationStripped, isCaseSensitive: true,
                             matchedSpans: matchedSpans);
                     }
 
-                    camelCaseWeight = TryUpperCaseCamelCaseMatch(candidate, candidateParts, patternChunk, CompareOptions.IgnoreCase, out matchedSpans);
-                    if (camelCaseWeight.HasValue)
+                    camelCaseKind = TryUpperCaseCamelCaseMatch(candidate, candidateHumps, patternChunk, CompareOptions.IgnoreCase, out matchedSpans);
+                    if (camelCaseKind.HasValue)
                     {
                         return new PatternMatch(
-                            GetCamelCaseKind(camelCaseWeight.Value), punctuationStripped, isCaseSensitive: false,
+                            camelCaseKind.Value, punctuationStripped, isCaseSensitive: false,
                             matchedSpans: matchedSpans);
                     }
                 }
@@ -481,20 +481,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
             return null;
         }
 
-        private PatternMatchKind GetCamelCaseKind(int camelCaseWeight)
-        {
-            switch (camelCaseWeight)
-            {
-                case NoBonus: return PatternMatchKind.CamelCase;
-                case CamelCaseContiguousBonus: return PatternMatchKind.CamelCaseContiguous;
-                case CamelCaseMatchesFromStartBonus: return PatternMatchKind.CamelCaseFromStart;
-                case CamelCaseMaxWeight: return PatternMatchKind.CamelCaseContiguousFromStart;
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(camelCaseWeight);
-            }
-        }
-
-        private int? TryAllLowerCamelCaseMatch(
+        private PatternMatchKind? TryAllLowerCamelCaseMatch(
             string candidate,
             StringBreaks candidateParts,
             TextChunk patternChunk,
@@ -504,109 +491,93 @@ namespace Microsoft.CodeAnalysis.PatternMatching
             return matcher.TryMatch(out matchedSpans);
         }
 
-        private int? TryUpperCaseCamelCaseMatch(
+        private PatternMatchKind? TryUpperCaseCamelCaseMatch(
             string candidate,
-            StringBreaks candidateParts,
+            StringBreaks candidateHumps,
             TextChunk patternChunk,
             CompareOptions compareOption,
             out ImmutableArray<TextSpan> matchedSpans)
         {
-            var patternChunkCharacterSpans = patternChunk.CharacterSpans;
+            var patternHumps = patternChunk.CharacterSpans;
 
             // Note: we may have more pattern parts than candidate parts.  This is because multiple
             // pattern parts may match a candidate part.  For example "SiUI" against "SimpleUI".
             // We'll have 3 pattern parts Si/U/I against two candidate parts Simple/UI.  However, U
             // and I will both match in UI. 
 
-            int currentCandidate = 0;
-            int currentChunkSpan = 0;
+            int currentCandidateHump = 0;
+            int currentPatternHump = 0;
             int? firstMatch = null;
             bool? contiguous = null;
 
-            var patternChunkCharacterSpansCount = patternChunkCharacterSpans.GetCount();
-            var candidatePartsCount = candidateParts.GetCount();
+            var patternHumpCount = patternHumps.GetCount();
+            var candidateHumpCount = candidateHumps.GetCount();
 
-            var result = ArrayBuilder<TextSpan>.GetInstance();
+            var matchSpans = ArrayBuilder<TextSpan>.GetInstance();
             while (true)
             {
                 // Let's consider our termination cases
-                if (currentChunkSpan == patternChunkCharacterSpansCount)
+                if (currentPatternHump == patternHumpCount)
                 {
                     Contract.Requires(firstMatch.HasValue);
                     Contract.Requires(contiguous.HasValue);
 
-                    // We did match! We shall assign a weight to this
-                    var weight = 0;
-
-                    // Was this contiguous?
-                    if (contiguous.Value)
-                    {
-                        weight += CamelCaseContiguousBonus;
-                    }
-
-                    // Did we start at the beginning of the candidate?
-                    if (firstMatch.Value == 0)
-                    {
-                        weight += CamelCaseMatchesFromStartBonus;
-                    }
-
+                    var matchCount = matchSpans.Count;
                     matchedSpans = _includeMatchedSpans
-                        ? new NormalizedTextSpanCollection(result).ToImmutableArray()
+                        ? new NormalizedTextSpanCollection(matchSpans).ToImmutableArray()
                         : ImmutableArray<TextSpan>.Empty;
-                    result.Free();
-                    return weight;
+                    matchSpans.Free();
+
+                    var camelCaseResult = new CamelCaseResult(firstMatch == 0, contiguous.Value, matchCount, null);
+                    return GetCamelCaseKind(camelCaseResult, candidateHumps);
                 }
-                else if (currentCandidate == candidatePartsCount)
+                else if (currentCandidateHump == candidateHumpCount)
                 {
                     // No match, since we still have more of the pattern to hit
                     matchedSpans = ImmutableArray<TextSpan>.Empty;
-                    result.Free();
+                    matchSpans.Free();
                     return null;
                 }
 
-                var candidatePart = candidateParts[currentCandidate];
+                var candidateHump = candidateHumps[currentCandidateHump];
                 bool gotOneMatchThisCandidate = false;
 
                 // Consider the case of matching SiUI against SimpleUIElement. The candidate parts
                 // will be Simple/UI/Element, and the pattern parts will be Si/U/I.  We'll match 'Si'
                 // against 'Simple' first.  Then we'll match 'U' against 'UI'. However, we want to
                 // still keep matching pattern parts against that candidate part. 
-                for (; currentChunkSpan < patternChunkCharacterSpansCount; currentChunkSpan++)
+                for (; currentPatternHump < patternHumpCount; currentPatternHump++)
                 {
-                    var patternChunkCharacterSpan = patternChunkCharacterSpans[currentChunkSpan];
+                    var patternChunkCharacterSpan = patternHumps[currentPatternHump];
 
                     if (gotOneMatchThisCandidate)
                     {
                         // We've already gotten one pattern part match in this candidate.  We will
                         // only continue trying to consume pattern parts if the last part and this
                         // part are both upper case.  
-                        if (!char.IsUpper(patternChunk.Text[patternChunkCharacterSpans[currentChunkSpan - 1].Start]) ||
-                            !char.IsUpper(patternChunk.Text[patternChunkCharacterSpans[currentChunkSpan].Start]))
+                        if (!char.IsUpper(patternChunk.Text[patternHumps[currentPatternHump - 1].Start]) ||
+                            !char.IsUpper(patternChunk.Text[patternHumps[currentPatternHump].Start]))
                         {
                             break;
                         }
                     }
 
-                    if (!PartStartsWith(candidate, candidatePart, patternChunk.Text, patternChunkCharacterSpan, compareOption))
+                    if (!PartStartsWith(candidate, candidateHump, patternChunk.Text, patternChunkCharacterSpan, compareOption))
                     {
                         break;
                     }
 
-                    if (_includeMatchedSpans)
-                    {
-                        result.Add(new TextSpan(candidatePart.Start, patternChunkCharacterSpan.Length));
-                    }
-
+                    matchSpans.Add(new TextSpan(candidateHump.Start, patternChunkCharacterSpan.Length));
                     gotOneMatchThisCandidate = true;
 
-                    firstMatch = firstMatch ?? currentCandidate;
+                    firstMatch = firstMatch ?? currentCandidateHump;
 
                     // If we were contiguous, then keep that value.  If we weren't, then keep that
                     // value.  If we don't know, then set the value to 'true' as an initial match is
                     // obviously contiguous.
                     contiguous = contiguous ?? true;
 
-                    candidatePart = new TextSpan(candidatePart.Start + patternChunkCharacterSpan.Length, candidatePart.Length - patternChunkCharacterSpan.Length);
+                    candidateHump = new TextSpan(candidateHump.Start + patternChunkCharacterSpan.Length, candidateHump.Length - patternChunkCharacterSpan.Length);
                 }
 
                 // Check if we matched anything at all.  If we didn't, then we need to unset the
@@ -619,7 +590,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                 }
 
                 // Move onto the next candidate.
-                currentCandidate++;
+                currentCandidateHump++;
             }
         }
     }

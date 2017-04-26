@@ -24,6 +24,15 @@ namespace Microsoft.CodeAnalysis.PatternMatching
         /// </summary>
         Substring,
 
+        // Note: CamelCased matches are ordered from best to worst.
+
+        CamelCaseExact,
+        CamelCasePrefix,
+        CamelCaseNonContiguousPrefix,
+        CamelCaseSubstring,
+        CamelCaseNonContiguousSubstring,
+
+#if false
         /// <summary>
         /// The pattern matched the CamelCased candidate string.  All humps in the pattern matched humps in
         /// the candidate in order.  The first hump in the pattern matched the first hump in the candidate 
@@ -63,6 +72,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
         /// a 'FromStart' match.  Because 'Provider' was not matched, the match was not a 'Contiguous' match.
         /// </summary>
         CamelCase,
+#endif
 
         /// <summary>
         /// The pattern matches the candidate in a fuzzy manner.  Fuzzy matching allows for 

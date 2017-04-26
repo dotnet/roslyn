@@ -407,9 +407,10 @@
     <Compile Include="Options\EditorConfig\EditorConfigStorageLocation.cs" />
     <Compile Include="Options\EditorConfig\IEditorConfigStorageLocation.cs" />
     <Compile Include="Options\EditorConfig\NamingStylePreferenceEditorConfigStorageLocation.cs" />
+    <Compile Include="PatternMatching\CamelCaseResult.cs" />
     <Compile Include="PatternMatching\ContainerPatternMatcher.cs" />
     <Compile Include="PatternMatching\PatternMatch.cs" />
-    <Compile Include="PatternMatching\PatternMatcher.AllLowerCamelCaseMatcher.cs" />
+    <Compile Include="PatternMatching\AllLowerCamelCaseMatcher.cs" />
     <Compile Include="PatternMatching\PatternMatcher.cs" />
     <Compile Include="PatternMatching\PatternMatcher.PatternSegment.cs" />
     <Compile Include="PatternMatching\PatternMatcher.TextChunk.cs" />
