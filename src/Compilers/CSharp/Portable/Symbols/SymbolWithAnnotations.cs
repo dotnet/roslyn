@@ -422,7 +422,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             binder.ReportDiagnosticsIfObsolete(diagnostics, TypeSymbol, syntax, hasBaseReceiver: false);
         }
 
-        public TypeSymbolWithAnnotations SubstituteTypeWithTupleUnification(AbstractTypeMap typeMap)
+        public virtual TypeSymbolWithAnnotations SubstituteTypeWithTupleUnification(AbstractTypeMap typeMap)
         {
             return SubstituteType(typeMap, (map, type) => map.SubstituteTypeWithTupleUnification(type));
         }
@@ -818,6 +818,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
 
                     return base.SubstituteType(typeMap);
+                }
+                else
+                {
+                    return this; // substitution had no effect on the type or modifiers
+                }
+            }
+
+            public override TypeSymbolWithAnnotations SubstituteTypeWithTupleUnification(AbstractTypeMap typeMap)
+            {
+                if ((object)_resolved != null)
+                {
+                    return base.SubstituteTypeWithTupleUnification(typeMap);
+                }
+
+                var newUnderlying = typeMap.SubstituteTypeWithTupleUnification(this._underlying);
+                if ((object)newUnderlying != this._underlying)
+                {
+                    if ((newUnderlying.TypeSymbol.Equals(this._underlying.TypeSymbol, TypeCompareKind.AllAspects) ||
+                            newUnderlying.TypeSymbol is IndexedTypeParameterSymbolForOverriding) &&
+                        newUnderlying.CustomModifiers.IsEmpty)
+                    {
+                        return new LazyNullableType(_compilation, _nullableTypeSyntax, newUnderlying);
+                    }
+
+                    return base.SubstituteTypeWithTupleUnification(typeMap);
                 }
                 else
                 {

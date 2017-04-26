@@ -11,6 +11,22 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 {
     public class StaticNullChecking : CompilingTestBase
     {
+        // PROTOTYPE(NullableReferenceTypes): Remove
+        [Fact]
+        public void TestAll()
+        {
+            var excludedMethods = new[] { "TestAll", "ConditionalBranching_08", "Lambda_15", "Test2", "DebugHelper" };
+            var methods = typeof(StaticNullChecking).GetMethods();
+            foreach (var m in methods)
+            {
+                if (m.IsStatic || m.GetParameters().Length > 0 || excludedMethods.Contains(m.Name))
+                {
+                    continue;
+                }
+                m.Invoke(this, new object[] { });
+            }
+        }
+
         private static readonly string attributesDefinitions = @"
 namespace System.Runtime.CompilerServices
 {
