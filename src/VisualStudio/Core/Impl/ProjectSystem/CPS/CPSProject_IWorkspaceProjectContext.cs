@@ -120,6 +120,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             ExecuteForegroundAction(() =>
             {
                 var commandLineArguments = SetArgumentsAndUpdateOptions(commandLineForOptions);
+
+                SetRuleSetFile(commandLineArguments.RuleSetPath);
+
                 PostSetOptions(commandLineArguments);
             });
         }

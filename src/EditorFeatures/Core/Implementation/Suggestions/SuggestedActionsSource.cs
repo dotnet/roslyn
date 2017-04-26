@@ -640,8 +640,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                 using (var asyncToken = _owner.OperationListener.BeginAsyncOperation("HasSuggestedActionsAsync"))
                 {
-                    // Acquire the user's selection up front, before we do any async work, so that we can
-                    // directly grab it when we're on the UI thread.  That way we don't have any reentrancy
+                    // First, ensure that the snapshot we're being asked about is for an actual
+                    // roslyn document.  This can fail, for example, in projection scenarios where
+                    // we are called with a range snapshot that refers to the projection buffer
+                    // and not the actual roslyn code that is being projected into it.
+                    var document = range.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
+                    if (document == null)
+                    {
+                        return false;
+                    }
+
+                    // Next, before we do any async work, acquire the user's selection, directly grabbing
+                    // it from the UI thread if htat's what we're on. That way we don't have any reentrancy
                     // blocking concerns if VS wants to block on this call (for example, if the user 
                     // explicitly invokes the 'show smart tag' command).
                     //
@@ -682,14 +692,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                             selection = TryGetCodeRefactoringSelection(range);
                         }).ConfigureAwait(false);
-                    }
-
-                    var document = range.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
-                    if (document == null)
-                    {
-                        // this is here to fail test and see why it is failed.
-                        Trace.WriteLine("given range is not current");
-                        return false;
                     }
 
                     return

@@ -905,6 +905,529 @@ catch (Exception e) when (filter(e)) { Console.WriteLine(30); }
         }
 
         [Fact]
+        public void MatchTuple()
+        {
+            var src1 = @"
+return (1, 2);
+return (d, 6);
+return (10, e, 22);
+return (2, () => { 
+    int a = 6;
+    return 1;
+});";
+
+            var src2 = @"
+return (1, 2, 3);
+return (d, 5);
+return (10, e);
+return (2, () => {
+    int a = 6;
+    return 5;
+});";
+
+            var match = GetMethodMatches(src1, src2, kind: MethodKind.Regular);
+            var actual = ToMatchingPairs(match);
+
+            var expected = new MatchingPairs
+            {
+                { "return (1, 2);", "return (1, 2, 3);" },
+                { "return (d, 6);", "return (d, 5);" },
+                { "return (10, e, 22);", "return (10, e);" },
+                { "return (2, () => {      int a = 6;     return 1; });", "return (2, () => {     int a = 6;     return 5; });" },
+                { "() => {      int a = 6;     return 1; }", "() => {     int a = 6;     return 5; }" },
+                { "{      int a = 6;     return 1; }", "{     int a = 6;     return 5; }" },
+                { "int a = 6;", "int a = 6;" },
+                { "int a = 6", "int a = 6" },
+                { "a = 6", "a = 6" },
+                { "return 1;", "return 5;" }
+            };
+
+            expected.AssertEqual(actual);
+        }
+
+        [Fact]
+        public void MatchLocalFunctionDefinitions()
+        {
+            var src1 = @"
+(int a, string c) F1(int i) { return null; }
+(int a, int b) F2(int i) { return null; }
+(int a, int b, int c) F3(int i) { return null; }
+";
+
+            var src2 = @"
+(int a, int b) F1(int i) { return null; }
+(int a, int b, string c) F2(int i) { return null; }
+(int a, int b) F3(int i) { return null; }
+";
+
+            var match = GetMethodMatches(src1, src2, kind: MethodKind.Regular);
+            var actual = ToMatchingPairs(match);
+
+            var expected = new MatchingPairs
+            {
+                { "(int a, string c) F1(int i) { return null; }", "(int a, int b) F1(int i) { return null; }" },
+                { "{ return null; }", "{ return null; }" },
+                { "return null;", "return null;" },
+                { "(int a, int b) F2(int i) { return null; }", "(int a, int b, string c) F2(int i) { return null; }" },
+                { "{ return null; }", "{ return null; }" },
+                { "return null;", "return null;" },
+                { "(int a, int b, int c) F3(int i) { return null; }", "(int a, int b) F3(int i) { return null; }" },
+                { "{ return null; }", "{ return null; }" },
+                { "return null;", "return null;" }
+            };
+
+            expected.AssertEqual(actual);
+        }
+
+        [Fact]
+        public void MatchVariableDesignations()
+        {
+            var src1 = @"
+M(out int z);
+N(out var a);
+";
+
+            var src2 = @"
+M(out var z);
+N(out var b);
+";
+
+            var match = GetMethodMatches(src1, src2, kind: MethodKind.Regular);
+            var actual = ToMatchingPairs(match);
+
+            var expected = new MatchingPairs
+            {
+                { "M(out int z);", "M(out var z);" },
+                { "z", "z" },
+                { "N(out var a);", "N(out var b);" },
+                { "a", "b" }
+            };
+
+            expected.AssertEqual(actual);
+        }
+
+        [Fact]
+        public void MatchParenthesizedVariable_Update()
+        {
+            var src1 = @"
+var (x1, (x2, x3)) = (1, (2, true));
+var (a1, a2) = (1, () => { return 7; });
+";
+
+            var src2 = @"
+var (x1, (x3, x4)) = (1, (2, true));
+var (a1, a3) = (1, () => { return 8; });
+";
+
+            var match = GetMethodMatches(src1, src2, kind: MethodKind.Regular);
+            var actual = ToMatchingPairs(match);
+
+            var expected = new MatchingPairs
+            {
+                { "var (x1, (x2, x3)) = (1, (2, true));", "var (x1, (x3, x4)) = (1, (2, true));" },
+                { "x1", "x1" },
+                { "x2", "x4" },
+                { "x3", "x3" },
+                { "var (a1, a2) = (1, () => { return 7; });", "var (a1, a3) = (1, () => { return 8; });" },
+                { "a1", "a1" },
+                { "a2", "a3" },
+                { "() => { return 7; }", "() => { return 8; }" },
+                { "{ return 7; }", "{ return 8; }" },
+                { "return 7;", "return 8;" }
+            };
+
+            expected.AssertEqual(actual);
+        }
+
+        [Fact]
+        public void MatchParenthesizedVariable_Insert()
+        {
+            var src1 = @"var (z1, z2) = (1, 2);";
+            var src2 = @"var (z1, z2, z3) = (1, 2, 5);";
+
+            var match = GetMethodMatches(src1, src2, kind: MethodKind.Regular);
+            var actual = ToMatchingPairs(match);
+
+            var expected = new MatchingPairs
+            {
+                { "var (z1, z2) = (1, 2);", "var (z1, z2, z3) = (1, 2, 5);" },
+                { "z1", "z1" },
+                { "z2", "z2" }
+            };
+
+            expected.AssertEqual(actual);
+        }
+
+        [Fact]
+        public void MatchParenthesizedVariable_Delete()
+        {
+            var src1 = @"var (y1, y2, y3) = (1, 2, 7);";
+            var src2 = @"var (y1, y2) = (1, 4);";
+
+            var match = GetMethodMatches(src1, src2, kind: MethodKind.Regular);
+            var actual = ToMatchingPairs(match);
+
+            var expected = new MatchingPairs
+            {
+                { "var (y1, y2, y3) = (1, 2, 7);", "var (y1, y2) = (1, 4);" },
+                { "y1", "y1" },
+                { "y2", "y2" }
+            };
+
+            expected.AssertEqual(actual);
+        }
+
+        [Fact]
+        public void MatchForeachVariable_Update1()
+        {
+            var src1 = @"
+foreach (var (a1, a2) in e) { A1(); }
+foreach ((var b1, var b2) in e) { A2(); }
+";
+
+            var src2 = @"
+foreach (var (a1, a3) in e) { A1(); }
+foreach ((var b3, int b2) in e) { A2(); }
+";
+
+            var match = GetMethodMatches(src1, src2, kind: MethodKind.Regular);
+            var actual = ToMatchingPairs(match);
+
+            var expected = new MatchingPairs
+            {
+                { "foreach (var (a1, a2) in e) { A1(); }", "foreach (var (a1, a3) in e) { A1(); }" },
+                { "a1", "a1" },
+                { "a2", "a3" },
+                { "{ A1(); }", "{ A1(); }" },
+                { "A1();", "A1();" },
+                { "foreach ((var b1, var b2) in e) { A2(); }", "foreach ((var b3, int b2) in e) { A2(); }" },
+                { "b1", "b3" },
+                { "b2", "b2" },
+                { "{ A2(); }", "{ A2(); }" },
+                { "A2();", "A2();" },
+            };
+
+            expected.AssertEqual(actual);
+        }
+
+        [Fact]
+        public void MatchForeachVariable_Update2()
+        {
+            var src1 = @"
+foreach (_ in e2) { yield return 4; }
+foreach (_ in e3) { A(); }
+";
+
+            var src2 = @"
+foreach (_ in e4) { A(); }
+foreach (var b in e2) { yield return 4; }
+";
+
+            var match = GetMethodMatches(src1, src2, kind: MethodKind.Regular);
+            var actual = ToMatchingPairs(match);
+
+            var expected = new MatchingPairs
+            {
+                { "foreach (_ in e2) { yield return 4; }", "foreach (var b in e2) { yield return 4; }" },
+                { "{ yield return 4; }", "{ yield return 4; }" },
+                { "yield return 4;", "yield return 4;" },
+                { "foreach (_ in e3) { A(); }", "foreach (_ in e4) { A(); }" },
+                { "{ A(); }", "{ A(); }" },
+                { "A();", "A();" }
+            };
+
+            expected.AssertEqual(actual);
+        }
+
+        [Fact]
+        public void MatchForeachVariable_Insert()
+        {
+            var src1 = @"
+foreach (var (a3, a4) in e) { }
+foreach ((var b4, var b5) in e) { }
+";
+
+            var src2 = @"
+foreach (var (a3, a5, a4) in e) { }
+foreach ((var b6, var b4, var b5) in e) { }
+";
+
+            var match = GetMethodMatches(src1, src2, kind: MethodKind.Regular);
+            var actual = ToMatchingPairs(match);
+
+            var expected = new MatchingPairs
+            {
+                { "foreach (var (a3, a4) in e) { }", "foreach (var (a3, a5, a4) in e) { }" },
+                { "a3", "a3" },
+                { "a4", "a4" },
+                { "{ }", "{ }" },
+                { "foreach ((var b4, var b5) in e) { }", "foreach ((var b6, var b4, var b5) in e) { }" },
+                { "b4", "b4" },
+                { "b5", "b5" },
+                { "{ }", "{ }" }
+            };
+
+            expected.AssertEqual(actual);
+        }
+
+        [Fact]
+        public void MatchForeachVariable_Delete()
+        {
+            var src1 = @"
+foreach (var (a11, a12, a13) in e) { A1(); }
+foreach ((var b7, var b8, var b9) in e) { A2(); }
+";
+
+            var src2 = @"
+foreach (var (a12, a13) in e1) { A1(); }
+foreach ((var b7, var b9) in e) { A2(); }
+";
+
+            var match = GetMethodMatches(src1, src2, kind: MethodKind.Regular);
+            var actual = ToMatchingPairs(match);
+
+            var expected = new MatchingPairs
+            {
+                { "foreach (var (a11, a12, a13) in e) { A1(); }", "foreach (var (a12, a13) in e1) { A1(); }" },
+                { "a12", "a12" },
+                { "a13", "a13" },
+                { "{ A1(); }", "{ A1(); }" },
+                { "A1();", "A1();" },
+                { "foreach ((var b7, var b8, var b9) in e) { A2(); }", "foreach ((var b7, var b9) in e) { A2(); }" },
+                { "b7", "b7" },
+                { "b9", "b9" },
+                { "{ A2(); }", "{ A2(); }" },
+                { "A2();", "A2();" }
+            };
+
+            expected.AssertEqual(actual);
+        }
+
+        [Fact]
+        public void MatchConstantPattern()
+        {
+            var src1 = @"
+if ((o is null) && (y == 7)) return 3;
+if (a is 7) return 5;
+";
+
+            var src2 = @"
+if ((o1 is null) && (y == 7)) return 3;
+if (a is 77) return 5;
+";
+
+            var match = GetMethodMatches(src1, src2, kind: MethodKind.Regular);
+            var actual = ToMatchingPairs(match);
+
+            var expected = new MatchingPairs {
+                { "if ((o is null) && (y == 7)) return 3;", "if ((o1 is null) && (y == 7)) return 3;" },
+                { "return 3;", "return 3;" },
+                { "if (a is 7) return 5;", "if (a is 77) return 5;" },
+                { "return 5;", "return 5;" }
+            };
+
+            expected.AssertEqual(actual);
+        }
+
+        [Fact]
+        public void MatchDeclarationPattern()
+        {
+            var src1 = @"
+if (!(o is int i) && (y == 7)) return;
+if (!(a is string s)) return;
+if (!(b is string t)) return;
+if (!(c is int j)) return;
+";
+
+            var src2 = @"
+if (!(b is string t1)) return;
+if (!(o1 is int i) && (y == 7)) return;
+if (!(c is int)) return;
+if (!(a is int s)) return;
+";
+
+            var match = GetMethodMatches(src1, src2, kind: MethodKind.Regular);
+            var actual = ToMatchingPairs(match);
+
+            var expected = new MatchingPairs {
+                { "if (!(o is int i) && (y == 7)) return;", "if (!(o1 is int i) && (y == 7)) return;" },
+                { "i", "i" },
+                { "return;", "return;" },
+                { "if (!(a is string s)) return;", "if (!(a is int s)) return;" },
+                { "s", "s" },
+                { "return;", "return;" },
+                { "if (!(b is string t)) return;", "if (!(b is string t1)) return;" },
+                { "t", "t1" },
+                { "return;", "return;" },
+                { "if (!(c is int j)) return;", "if (!(c is int)) return;" },
+                { "return;", "return;" }
+            };
+
+            expected.AssertEqual(actual);
+        }
+
+        [Fact]
+        public void MatchCasePattern_UpdateInsert()
+        {
+            var src1 = @"
+switch(shape)
+{
+    case Circle c: return 1;
+    default: return 4;
+}
+";
+
+            var src2 = @"
+switch(shape)
+{
+    case Circle c1: return 1;
+    case Point p: return 0;
+    default: return 4;
+}
+";
+
+            var match = GetMethodMatches(src1, src2, kind: MethodKind.Regular);
+            var actual = ToMatchingPairs(match);
+
+            var expected = new MatchingPairs {
+                { "switch(shape) {     case Circle c: return 1;     default: return 4; }", "switch(shape) {     case Circle c1: return 1;     case Point p: return 0;     default: return 4; }" },
+                { "case Circle c: return 1;", "case Circle c1: return 1;" },
+                { "case Circle c:", "case Circle c1:" },
+                { "c", "c1" },
+                { "return 1;", "return 1;" },
+                { "default: return 4;", "default: return 4;" },
+                { "return 4;", "return 4;" }
+            };
+
+            expected.AssertEqual(actual);
+        }
+
+        [Fact]
+        public void MatchWhenCondition()
+        {
+            var src1 = @"
+switch(shape)
+{
+    case Circle c when (c < 10): return 1;
+    case Circle c when (c > 100): return 2;
+}
+";
+
+            var src2 = @"
+switch(shape)
+{
+    case Circle c when (c < 5): return 1;
+    case Circle c2 when (c2 > 100): return 2;
+}
+";
+
+            var match = GetMethodMatches(src1, src2, kind: MethodKind.Regular);
+            var actual = ToMatchingPairs(match);
+
+            var expected = new MatchingPairs
+            {
+                { "switch(shape) {     case Circle c when (c < 10): return 1;     case Circle c when (c > 100): return 2; }", "switch(shape) {     case Circle c when (c < 5): return 1;     case Circle c2 when (c2 > 100): return 2; }" },
+                { "case Circle c when (c < 10): return 1;", "case Circle c when (c < 5): return 1;" },
+                { "case Circle c when (c < 10):", "case Circle c when (c < 5):" },
+                { "c", "c" },
+                { "when (c < 10)", "when (c < 5)" },
+                { "return 1;", "return 1;" },
+                { "case Circle c when (c > 100): return 2;", "case Circle c2 when (c2 > 100): return 2;" },
+                { "case Circle c when (c > 100):", "case Circle c2 when (c2 > 100):" },
+                { "c", "c2" },
+                { "when (c > 100)", "when (c2 > 100)" },
+                { "return 2;", "return 2;" }
+            };
+
+            expected.AssertEqual(actual);
+        }
+
+        [Fact]
+        public void MatchRef()
+        {
+            var src1 = @"
+ref int a = ref G(new int[] { 1, 2 });
+    ref int G(int[] p)
+    {
+        return ref p[1];
+    }
+";
+
+            var src2 = @"
+ref int32 a = ref G1(new int[] { 1, 2 });
+    ref int G1(int[] p)
+    {
+        return ref p[2];
+    }
+";
+
+            var match = GetMethodMatches(src1, src2, kind: MethodKind.Regular);
+            var actual = ToMatchingPairs(match);
+
+            var expected = new MatchingPairs
+            {
+                { "ref int a = ref G(new int[] { 1, 2 });", "ref int32 a = ref G1(new int[] { 1, 2 });" },
+                { "ref int a = ref G(new int[] { 1, 2 })", "ref int32 a = ref G1(new int[] { 1, 2 })" },
+                { "a = ref G(new int[] { 1, 2 })", "a = ref G1(new int[] { 1, 2 })" },
+                { "ref int G(int[] p)     {         return ref p[1];     }", "ref int G1(int[] p)     {         return ref p[2];     }" },
+                { "{         return ref p[1];     }", "{         return ref p[2];     }" },
+                { "return ref p[1];", "return ref p[2];" }
+            };
+
+            expected.AssertEqual(actual);
+        }
+
+        [Fact]
+        public void MatchThrowException_UpdateInsert()
+        {
+            var src1 = @"
+return a > 3 ? a : throw new Exception();
+return c > 7 ? c : 7;
+";
+
+            var src2 = @"
+return a > 3 ? a : throw new ArgumentException();
+return c > 7 ? c : throw new IndexOutOfRangeException();
+";
+
+            var match = GetMethodMatches(src1, src2, kind: MethodKind.Regular);
+            var actual = ToMatchingPairs(match);
+
+            var expected = new MatchingPairs
+            {
+                { "return a > 3 ? a : throw new Exception();", "return a > 3 ? a : throw new ArgumentException();" },
+                { "return c > 7 ? c : 7;", "return c > 7 ? c : throw new IndexOutOfRangeException();" }
+            };
+
+            expected.AssertEqual(actual);
+        }
+
+        [Fact]
+        public void MatchThrowException_UpdateDelete()
+        {
+            var src1 = @"
+return a > 3 ? a : throw new Exception();
+return b > 5 ? b : throw new OperationCanceledException();
+";
+
+            var src2 = @"
+return a > 3 ? a : throw new ArgumentException();
+return b > 5 ? b : 5;
+";
+
+            var match = GetMethodMatches(src1, src2, kind: MethodKind.Regular);
+            var actual = ToMatchingPairs(match);
+
+            var expected = new MatchingPairs
+            {
+                { "return a > 3 ? a : throw new Exception();", "return a > 3 ? a : throw new ArgumentException();" },
+                { "return b > 5 ? b : throw new OperationCanceledException();", "return b > 5 ? b : 5;" }
+            };
+
+            expected.AssertEqual(actual);
+        }
+
+        [Fact]
         public void StringLiteral_update()
         {
             var src1 = @"
@@ -960,6 +1483,7 @@ var x = $""Hello{123:N2}"";
             edits.VerifyEdits("Update [x = $\"Hello{123:N1}\"]@8 -> [x = $\"Hello{123:N2}\"]@8");
         }
 
+        [WorkItem(18970, "https://github.com/dotnet/roslyn/issues/18970")]
         [Fact]
         public void MatchCasePattern_UpdateDelete()
         {
@@ -983,7 +1507,9 @@ switch(shape)
 
             var expected = new MatchingPairs {
                 { "switch(shape) {     case Point p: return 0;     case Circle c: return 1; }", "switch(shape) {     case Circle circle: return 1; }" },
+                { "p", "circle" },
                 { "case Circle c: return 1;", "case Circle circle: return 1;" },
+                { "case Circle c:", "case Circle circle:" },
                 { "return 1;", "return 1;" }
             };
 
@@ -1019,6 +1545,131 @@ switch(shape)
             edits.VerifyEdits(
                 "Update [x = F(1)]@6 -> [x = F(3)]@6",
                 "Update [y = G(2)]@16 -> [y = G(4)]@16");
+        }
+
+        [Fact]
+        public void ParenthesizedVariableDeclaration_Update()
+        {
+            var src1 = @"
+var (x1, (x2, x3)) = (1, (2, true));
+var (a1, a2) = (1, () => { return 7; });
+";
+           var src2 = @"
+var (x1, (x2, x4)) = (1, (2, true));
+var (a1, a3) = (1, () => { return 8; });
+";
+
+            var edits = GetMethodEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [x3]@18 -> [x4]@18",
+                "Update [a2]@51 -> [a3]@51");
+        }
+
+        [Fact]
+        public void ParenthesizedVariableDeclaration_Insert()
+        {
+            var src1 = @"var (z1, z2) = (1, 2);";
+            var src2 = @"var (z1, z2, z3) = (1, 2, 5);";
+
+            var edits = GetMethodEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [var (z1, z2) = (1, 2);]@2 -> [var (z1, z2, z3) = (1, 2, 5);]@2",
+                "Insert [z3]@15");
+        }
+
+        [Fact]
+        public void ParenthesizedVariableDeclaration_Delete()
+        {
+            var src1 = @"var (y1, y2, y3) = (1, 2, 7);";
+            var src2 = @"var (y1, y2) = (1, 4);";
+
+            var edits = GetMethodEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [var (y1, y2, y3) = (1, 2, 7);]@2 -> [var (y1, y2) = (1, 4);]@2",
+                "Delete [y3]@15");
+        }
+
+        [Fact]
+        public void VariableDeclaraions_Reorder()
+        {
+            var src1 = @"var (a, b) = (1, 2); var (c, d) = (3, 4);";
+            var src2 = @"var (c, d) = (3, 4); var (a, b) = (1, 2);";
+
+            var edits = GetMethodEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Reorder [var (c, d) = (3, 4);]@23 -> @2");
+        }
+
+        [Fact]
+        public void VariableNames_Reorder()
+        {
+            var src1 = @"var (a, b) = (1, 2);";
+            var src2 = @"var (b, a) = (2, 1);";
+
+            var edits = GetMethodEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [var (a, b) = (1, 2);]@2 -> [var (b, a) = (2, 1);]@2",
+                "Reorder [b]@10 -> @7");
+        }
+
+        [Fact]
+        public void VariableNamesAndDeclaraions_Reorder()
+        {
+            var src1 = @"var (a, b) = (1, 2); var (c, d) = (3, 4);";
+            var src2 = @"var (d, c) = (3, 4); var (a, b) = (1, 2);";
+
+            var edits = GetMethodEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Reorder [var (c, d) = (3, 4);]@23 -> @2",
+                "Reorder [d]@31 -> @7");
+        }
+
+        [Fact]
+        public void ParenthesizedVariableDeclaration_Reorder()
+        {
+            var src1 = @"var (a, (b, c)) = (1, (2, 3));";
+            var src2 = @"var ((b, c), a) = ((2, 3), 1);";
+
+            var edits = GetMethodEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [var (a, (b, c)) = (1, (2, 3));]@2 -> [var ((b, c), a) = ((2, 3), 1);]@2",
+                "Reorder [a]@7 -> @15");
+        }
+
+        [Fact]
+        public void ParenthesizedVariableDeclaration_DoubleReorder()
+        {
+            var src1 = @"var (a, (b, c)) = (1, (2, 3));";
+            var src2 = @"var ((c, b), a) = ((2, 3), 1);";
+
+            var edits = GetMethodEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [var (a, (b, c)) = (1, (2, 3));]@2 -> [var ((c, b), a) = ((2, 3), 1);]@2",
+                "Reorder [b]@11 -> @11",
+                "Reorder [c]@14 -> @8");
+        }
+
+        [Fact]
+        public void ParenthesizedVariableDeclaration_ComplexReorder()
+        {
+            var src1 = @"var (a, (b, c)) = (1, (2, 3)); var (x, (y, z)) = (4, (5, 6));";
+            var src2 = @"var (x, (y, z)) = (4, (5, 6)); var ((c, b), a) = (1, (2, 3)); ";
+
+            var edits = GetMethodEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Reorder [var (x, (y, z)) = (4, (5, 6));]@33 -> @2",
+                "Update [var (a, (b, c)) = (1, (2, 3));]@2 -> [var ((c, b), a) = (1, (2, 3));]@33",
+                "Reorder [b]@11 -> @42",
+                "Reorder [c]@14 -> @39");
         }
 
         #endregion
@@ -1065,6 +1716,7 @@ switch(shape)
                 "Update [case 1: f(); break;]@18 -> [case 2: f(); break;]@18");
         }
 
+        [WorkItem(18970, "https://github.com/dotnet/roslyn/issues/18970")]
         [Fact]
         public void CasePatternLabel_UpdateDelete()
         {
@@ -1087,8 +1739,12 @@ switch(shape)
 
             edits.VerifyEdits(
                 "Update [case Circle c: return 1;]@55 -> [case Circle circle: return 1;]@26",
+                "Update [p]@37 -> [circle]@38",
+                "Move [p]@37 -> @38",
                 "Delete [case Point p: return 0;]@26",
-                "Delete [return 0;]@40");
+                "Delete [case Point p:]@26",
+                "Delete [return 0;]@40",
+                "Delete [c]@67");
         }
 
         #endregion
@@ -1867,6 +2523,134 @@ try { Console.WriteLine(); } catch (E e) { /*1*/ } finally { /*3*/ }";
                 "Insert [foreach (var a in b) { Foo(); }]@2",
                 "Move [{ Foo(); }]@2 -> @23");
         }
+
+        [Fact]
+        public void ForeachVariable_Update1()
+        {
+            var src1 = @"
+foreach (var (a1, a2) in e) { }
+foreach ((var b1, var b2) in e) { }
+foreach (var a in e1) { yield return 7; }
+";
+
+            var src2 = @"
+foreach (var (a1, a3) in e) { }
+foreach ((var b3, int b2) in e) { }
+foreach (_ in e1) { yield return 7; }
+";
+
+            var edits = GetMethodEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [foreach ((var b1, var b2) in e) { }]@37 -> [foreach ((var b3, int b2) in e) { }]@37",
+                "Update [foreach (var a in e1) { yield return 7; }]@74 -> [foreach (_ in e1) { yield return 7; }]@74",
+                "Update [a2]@22 -> [a3]@22",
+                "Update [b1]@51 -> [b3]@51");
+        }
+
+        [Fact]
+        public void ForeachVariable_Update2()
+        {
+            var src1 = @"
+foreach (_ in e2) { yield return 5; }
+foreach (_ in e3) {  A(); }
+";
+
+            var src2 = @"
+foreach (var b in e2) { yield return 5; }
+foreach (_ in e4) { A(); }
+";
+
+            var edits = GetMethodEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [foreach (_ in e2) { yield return 5; }]@4 -> [foreach (var b in e2) { yield return 5; }]@4",
+                "Update [foreach (_ in e3) {  A(); }]@43 -> [foreach (_ in e4) { A(); }]@47");
+        }
+
+        [Fact]
+        public void ForeachVariable_Insert()
+        {
+            var src1 = @"
+foreach (var (a3, a4) in e) { }
+foreach ((var b4, var b5) in e) { }
+";
+
+            var src2 = @"
+foreach (var (a3, a5, a4) in e) { }
+foreach ((var b6, var b4, var b5) in e) { }
+";
+
+            var edits = GetMethodEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [foreach (var (a3, a4) in e) { }]@4 -> [foreach (var (a3, a5, a4) in e) { }]@4",
+                "Update [foreach ((var b4, var b5) in e) { }]@37 -> [foreach ((var b6, var b4, var b5) in e) { }]@41",
+                "Insert [a5]@22",
+                "Insert [b6]@55");
+        }
+
+        [Fact]
+        public void ForeachVariable_Delete()
+        {
+            var src1 = @"
+foreach (var (a11, a12, a13) in e) { F(); }
+foreach ((var b7, var b8, var b9) in e) { G(); }
+";
+
+            var src2 = @"
+foreach (var (a12, a13) in e1) { F(); }
+foreach ((var b7, var b9) in e) { G(); }
+";
+
+            var edits = GetMethodEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [foreach (var (a11, a12, a13) in e) { F(); }]@4 -> [foreach (var (a12, a13) in e1) { F(); }]@4",
+                "Update [foreach ((var b7, var b8, var b9) in e) { G(); }]@49 -> [foreach ((var b7, var b9) in e) { G(); }]@45",
+                "Delete [a11]@18",
+                "Delete [b8]@71");
+        }
+
+        [Fact]
+        public void ForeachVariable_Reorder()
+        {
+            var src1 = @"
+foreach (var (a, b) in e1) { }
+foreach ((var x, var y) in e2) { }
+";
+
+            var src2 = @"
+foreach ((var x, var y) in e2) { }
+foreach (var (a, b) in e1) { }
+";
+
+            var edits = GetMethodEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Reorder [foreach ((var x, var y) in e2) { }]@36 -> @4");
+        }
+
+        [Fact]
+        public void ForeachVariableEmbedded_Reorder()
+        {
+            var src1 = @"
+foreach (var (a, b) in e1) { 
+    foreach ((var x, var y) in e2) { }
+}
+";
+
+            var src2 = @"
+foreach ((var x, var y) in e2) { }
+foreach (var (a, b) in e1) { }
+";
+
+            var edits = GetMethodEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Move [foreach ((var x, var y) in e2) { }]@39 -> @4");
+        }
+
 
         #endregion
 
@@ -7376,5 +8160,408 @@ class C
         }
 
         #endregion
+
+        #region Out Var
+
+        [Fact]
+        public void OutVarType_Update()
+        {
+            var src1 = @"
+M(out var y);
+";
+            var src2 = @"
+M(out int y);
+";
+            var edits = GetMethodEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [M(out var y);]@4 -> [M(out int y);]@4");
+        }
+
+        [Fact]
+        public void OutVarNameAndType_Update()
+        {
+            var src1 = @"
+M(out var y);
+";
+            var src2 = @"
+M(out int z);
+";
+            var edits = GetMethodEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [M(out var y);]@4 -> [M(out int z);]@4",
+                "Update [y]@14 -> [z]@14");
+        }
+
+        [Fact]
+        public void OutVar_Insert()
+        {
+            var src1 = @"
+M();
+";
+            var src2 = @"
+M(out int y);
+";
+            var edits = GetMethodEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [M();]@4 -> [M(out int y);]@4",
+                "Insert [y]@14");
+        }
+
+        [Fact]
+        public void OutVar_Delete()
+        {
+            var src1 = @"
+M(out int y);
+";
+
+            var src2 = @"
+M();
+";
+            var edits = GetMethodEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [M(out int y);]@4 -> [M();]@4",
+                "Delete [y]@14");
+        }
+
+        #endregion
+
+        #region Pattern
+
+        [Fact]
+        public void ConstantPattern_Update()
+        {
+            var src1 = @"
+if ((o is null) && (y == 7)) return 3;
+if (a is 7) return 5;
+";
+
+            var src2 = @"
+if ((o1 is null) && (y == 7)) return 3;
+if (a is 77) return 5;
+";
+
+            var edits = GetMethodEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [if ((o is null) && (y == 7)) return 3;]@4 -> [if ((o1 is null) && (y == 7)) return 3;]@4",
+                "Update [if (a is 7) return 5;]@44 -> [if (a is 77) return 5;]@45");
+        }
+
+        [Fact]
+        public void DeclarationPattern_Update()
+        {
+            var src1 = @"
+if (!(o is int i) && (y == 7)) return;
+if (!(a is string s)) return;
+if (!(b is string t)) return;
+if (!(c is int j)) return;
+";
+
+            var src2 = @"
+if (!(o1 is int i) && (y == 7)) return;
+if (!(a is int s)) return;
+if (!(b is string t1)) return;
+if (!(c is int)) return;
+";
+
+            var edits = GetMethodEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [if (!(o is int i) && (y == 7)) return;]@4 -> [if (!(o1 is int i) && (y == 7)) return;]@4",
+                "Update [if (!(a is string s)) return;]@44 -> [if (!(a is int s)) return;]@45",
+                "Update [if (!(c is int j)) return;]@106 -> [if (!(c is int)) return;]@105",
+                "Update [t]@93 -> [t1]@91",
+                "Delete [j]@121");
+        }
+
+        [Fact]
+        public void DeclarationPattern_Reorder()
+        {
+            var src1 = @"if ((a is int i) && (b is int j)) { A(); }";
+            var src2 = @"if ((b is int j) && (a is int i)) { A(); }";
+
+            var edits = GetMethodEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [if ((a is int i) && (b is int j)) { A(); }]@2 -> [if ((b is int j) && (a is int i)) { A(); }]@2",
+                "Reorder [j]@32 -> @16");
+        }
+
+        [Fact]
+        public void CasePattern_UpdateInsert()
+        {
+            var src1 = @"
+switch(shape)
+{
+    case Circle c: return 1;
+    default: return 4;
+}
+";
+
+            var src2 = @"
+switch(shape)
+{
+    case Circle c1: return 1;
+    case Point p: return 0;
+    default: return 4;
+}
+";
+
+            var edits = GetMethodEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [case Circle c: return 1;]@26 -> [case Circle c1: return 1;]@26",
+                "Insert [case Point p: return 0;]@57",
+                "Insert [case Point p:]@57",
+                "Insert [return 0;]@71",
+                "Update [c]@38 -> [c1]@38",
+                "Insert [p]@68");
+        }
+
+        [Fact]
+        public void CasePattern_UpdateDelete()
+        {
+            var src1 = @"
+switch(shape)
+{
+    case Point p: return 0;
+    case Circle c: A(c); break;
+    default: return 4;
+}
+";
+
+            var src2 = @"
+switch(shape)
+{
+    case Circle c1: A(c1); break;
+    default: return 4;
+}
+";
+
+            var edits = GetMethodEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [case Circle c: A(c); break;]@55 -> [case Circle c1: A(c1); break;]@26",
+                "Update [A(c);]@70 -> [A(c1);]@42",
+                "Update [p]@37 -> [c1]@38",
+                "Move [p]@37 -> @38",
+                "Delete [case Point p: return 0;]@26",
+                "Delete [case Point p:]@26",
+                "Delete [return 0;]@40",
+                "Delete [c]@67");
+        }
+
+        [Fact]
+        public void WhenCondition_Update()
+        {
+            var src1 = @"
+switch(shape)
+{
+    case Circle c when (c < 10): return 1;
+    case Circle c when (c > 100): return 2;
+}
+";
+
+            var src2 = @"
+switch(shape)
+{
+    case Circle c when (c < 5): return 1;
+    case Circle c2 when (c2 > 100): return 2;
+}
+";
+
+            var edits = GetMethodEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [case Circle c when (c < 10): return 1;]@26 -> [case Circle c when (c < 5): return 1;]@26",
+                "Update [case Circle c when (c > 100): return 2;]@70 -> [case Circle c2 when (c2 > 100): return 2;]@69",
+                "Update [when (c < 10)]@40 -> [when (c < 5)]@40",
+                "Update [c]@82 -> [c2]@81",
+                "Update [when (c > 100)]@84 -> [when (c2 > 100)]@84");
+        }
+
+        [Fact]
+        public void CasePatternWithWhenCondition_UpdateReorder()
+        {
+            var src1 = @"
+switch(shape)
+{
+    case Rectangle r: return 0;
+    case Circle c when (c.Radius < 10): return 1;
+    case Circle c when (c.Radius > 100): return 2;
+}
+";
+
+            var src2 = @"
+switch(shape)
+{
+    case Circle c when (c.Radius > 99): return 2;
+    case Circle c when (c.Radius < 10): return 1;
+    case Rectangle r: return 0;
+}
+";
+            var edits = GetMethodEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Reorder [case Circle c when (c.Radius < 10): return 1;]@59 -> @77",
+                "Reorder [case Circle c when (c.Radius > 100): return 2;]@110 -> @26",
+                "Update [case Circle c when (c.Radius > 100): return 2;]@110 -> [case Circle c when (c.Radius > 99): return 2;]@26",
+                "Move [c]@71 -> @38",
+                "Update [when (c.Radius > 100)]@124 -> [when (c.Radius > 99)]@40",
+                "Move [c]@122 -> @89");
+        }
+
+        #endregion
+
+        #region Ref
+
+        [Fact]
+        public void Ref_Update()
+        {
+            var src1 = @"
+ref int a = ref G(new int[] { 1, 2 });
+ref int G(int[] p) { return ref p[1];  }
+";
+
+            var src2 = @"
+ref int32 a = ref G1(new int[] { 1, 2 });
+ref int G1(int[] p) { return ref p[2]; }
+";
+
+            var edits = GetMethodEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [ref int G(int[] p) { return ref p[1];  }]@44 -> [ref int G1(int[] p) { return ref p[2]; }]@47",
+                "Update [ref int a = ref G(new int[] { 1, 2 })]@4 -> [ref int32 a = ref G1(new int[] { 1, 2 })]@4",
+                "Update [a = ref G(new int[] { 1, 2 })]@12 -> [a = ref G1(new int[] { 1, 2 })]@14");
+        }
+
+        [Fact]
+        public void Ref_Insert()
+        {
+            var src1 = @"
+int a = G(new int[] { 1, 2 });
+int G(int[] p) { return p[1];  }
+";
+
+            var src2 = @"
+ref int32 a = ref G1(new int[] { 1, 2 });
+ref int G1(int[] p) { return ref p[2]; }
+";
+
+            var edits = GetMethodEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [int G(int[] p) { return p[1];  }]@36 -> [ref int G1(int[] p) { return ref p[2]; }]@47",
+                "Update [int a = G(new int[] { 1, 2 })]@4 -> [ref int32 a = ref G1(new int[] { 1, 2 })]@4",
+                "Update [a = G(new int[] { 1, 2 })]@8 -> [a = ref G1(new int[] { 1, 2 })]@14");
+        }
+
+        [Fact]
+        public void Ref_Delete()
+        {
+            var src1 = @"
+ref int a = ref G(new int[] { 1, 2 });
+ref int G(int[] p) { return ref p[1];  }
+";
+
+            var src2 = @"
+int32 a = G1(new int[] { 1, 2 });
+int G1(int[] p) { return p[2]; }
+";
+
+            var edits = GetMethodEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [ref int G(int[] p) { return ref p[1];  }]@44 -> [int G1(int[] p) { return p[2]; }]@39",
+                "Update [ref int a = ref G(new int[] { 1, 2 })]@4 -> [int32 a = G1(new int[] { 1, 2 })]@4",
+                "Update [a = ref G(new int[] { 1, 2 })]@12 -> [a = G1(new int[] { 1, 2 })]@10");
+        }
+
+        #endregion
+
+        #region Tuples
+
+        [Fact]
+        public void TupleType_LocalVariables()
+        {
+            var src1 = @"
+(int a, string c) x = (a, string2);
+(int a, int b) y = (3, 4);
+(int a, int b, int c) z = (5, 6, 7);
+";
+
+            var src2 = @"
+(int a, int b)  x = (a, string2);
+(int a, int b, string c) z1 = (5, 6, 7);
+(int a, int b) y2 = (3, 4);
+";
+
+            var edits = GetMethodEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Reorder [(int a, int b, int c) z = (5, 6, 7);]@69 -> @39",
+                "Update [(int a, string c) x = (a, string2)]@4 -> [(int a, int b)  x = (a, string2)]@4",
+                "Update [(int a, int b, int c) z = (5, 6, 7)]@69 -> [(int a, int b, string c) z1 = (5, 6, 7)]@39",
+                "Update [z = (5, 6, 7)]@91 -> [z1 = (5, 6, 7)]@64",
+                "Update [y = (3, 4)]@56 -> [y2 = (3, 4)]@96");
+        }
+
+        [Fact]
+        public void TupleElementName()
+        {
+            var src1 = @"(int a, int b) F();";
+            var src2 = @"(int x, int b) F();";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [(int a, int b) F();]@0 -> [(int x, int b) F();]@0");
+        }
+
+        [Fact]
+        public void TupleInField()
+        {
+            var src1 = @"private (int, int) _x = (1, 2);";
+            var src2 = @"private (int, string) _y = (1, 2);";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [(int, int) _x = (1, 2)]@8 -> [(int, string) _y = (1, 2)]@8",
+                "Update [_x = (1, 2)]@19 -> [_y = (1, 2)]@22");
+        }
+
+        [Fact]
+        public void TupleInProperty()
+        {
+            var src1 = @"public (int, int) Property1 { get { return (1, 2); } }";
+            var src2 = @"public (int, string) Property2 { get { return (1, string.Empty); } }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [public (int, int) Property1 { get { return (1, 2); } }]@0 -> [public (int, string) Property2 { get { return (1, string.Empty); } }]@0",
+                "Update [get { return (1, 2); }]@30 -> [get { return (1, string.Empty); }]@33");
+        }
+
+        [Fact]
+        public void TupleInDelegate()
+        {
+            var src1 = @"public delegate void EventHandler1((int, int) x);";
+            var src2 = @"public delegate void EventHandler2((int, int) y);";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [public delegate void EventHandler1((int, int) x);]@0 -> [public delegate void EventHandler2((int, int) y);]@0",
+                "Update [(int, int) x]@35 -> [(int, int) y]@35");
+        }
+
+        #endregion 
     }
 }

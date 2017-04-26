@@ -5936,6 +5936,95 @@ class C
 
         #endregion
 
+        #region OutVar
+
+        [Fact]
+        public void SyntaxOffset_OutVarInConstructor()
+        {
+            var source = @"
+class B
+{
+    B(out int z) { z = 2; } 
+}
+
+class C
+{
+    int F = G(out var v1);    
+    int P => G(out var v2);    
+
+    C() 
+    : base(out var v3)
+    { 
+        G(out var v4);
+    }
+
+    int G(out int x) 
+    {
+        x = 1;
+        return 2;
+    }
+}
+";
+
+            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            c.VerifyDiagnostics(
+                // (9,19): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
+                //     int F = G(out var v1);    
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "var v1").WithLocation(9, 19),
+                // (9,13): error CS0236: A field initializer cannot reference the non-static field, method, or property 'C.G(out int)'
+                //     int F = G(out var v1);    
+                Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "G(out var v1)").WithArguments("C.G(out int)").WithLocation(9, 13),
+                // (13,16): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
+                //     : base(out var v3)
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "var v3").WithLocation(13, 16),
+                // (13,7): error CS1729: 'object' does not contain a constructor that takes 1 arguments
+                //     : base(out var v3)
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "base").WithArguments("object", "1").WithLocation(13, 7));
+        }
+
+        [Fact]
+        public void SyntaxOffset_OutVarInMethod()
+        {
+            var source = @"class C { int G(out int x) { int z = 1; G(out var y); G(out var w); return x = y; } }";
+
+            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            c.VerifyPdb("C.G", @"
+<symbols>
+  <methods>
+    <method containingType=""C"" name=""G"" parameterNames=""x"">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount=""0"" />
+        </using>
+        <encLocalSlotMap>
+          <slot kind=""0"" offset=""6"" />
+          <slot kind=""0"" offset=""23"" />
+          <slot kind=""0"" offset=""37"" />
+          <slot kind=""temp"" />
+          <slot kind=""21"" offset=""0"" />
+        </encLocalSlotMap>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""1"" startColumn=""28"" endLine=""1"" endColumn=""29"" />
+        <entry offset=""0x1"" startLine=""1"" startColumn=""30"" endLine=""1"" endColumn=""40"" />
+        <entry offset=""0x3"" startLine=""1"" startColumn=""41"" endLine=""1"" endColumn=""54"" />
+        <entry offset=""0xc"" startLine=""1"" startColumn=""55"" endLine=""1"" endColumn=""68"" />
+        <entry offset=""0x15"" startLine=""1"" startColumn=""69"" endLine=""1"" endColumn=""82"" />
+        <entry offset=""0x1f"" startLine=""1"" startColumn=""83"" endLine=""1"" endColumn=""84"" />
+      </sequencePoints>
+      <scope startOffset=""0x0"" endOffset=""0x22"">
+        <local name=""z"" il_index=""0"" il_start=""0x0"" il_end=""0x22"" attributes=""0"" />
+        <local name=""y"" il_index=""1"" il_start=""0x0"" il_end=""0x22"" attributes=""0"" />
+        <local name=""w"" il_index=""2"" il_start=""0x0"" il_end=""0x22"" attributes=""0"" />
+      </scope>
+    </method>
+  </methods>
+</symbols>
+");
+        }
+
+        #endregion
+
         [Fact, WorkItem(4370, "https://github.com/dotnet/roslyn/issues/4370")]
         public void HeadingHiddenSequencePointsPickUpDocumentFromVisibleSequencePoint()
         {
