@@ -162,7 +162,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             End If
 
             Dim interfaceWithUnimplementedMembers = containingType.GetAllUnimplementedMembersInThis(containingType.Interfaces, AddressOf interfaceMemberGetter, cancellationToken) _
-                                                .Where(Function(i) i.Item2.Any(Function(s) MatchesMemberKind(s, kind))) _
+                                                .Where(Function(i) i.Item2.Any(Function(interfaceOrContainer) MatchesMemberKind(interfaceOrContainer, kind))) _
                                                 .Select(Function(i) i.Item1)
 
             Dim interfacesAndContainers = New HashSet(Of ISymbol)(interfaceWithUnimplementedMembers)
@@ -170,8 +170,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 AddAliasesAndContainers(i, interfacesAndContainers, node, semanticModel)
             Next
 
-            Dim symbols = semanticModel.LookupSymbols(position)
-            Dim availableInterfacesAndContainers = interfacesAndContainers.Where(Function(s) symbols.Contains(s.OriginalDefinition)).ToImmutableArray()
+            Dim symbols = New HashSet(Of ISymbol)(semanticModel.LookupSymbols(position))
+            Dim availableInterfacesAndContainers = interfacesAndContainers.Where(
+                Function(interfaceOrContainer) symbols.Contains(interfaceOrContainer.OriginalDefinition)).ToImmutableArray()
 
             Dim result = TryAddGlobalTo(availableInterfacesAndContainers)
 
