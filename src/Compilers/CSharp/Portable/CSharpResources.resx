@@ -1416,7 +1416,7 @@ If such a class is used as a base class and if the deriving class defines a dest
     <value>'{0}' cannot be both abstract and sealed</value>
   </data>
   <data name="ERR_AbstractNotVirtual" xml:space="preserve">
-    <value>The abstract method '{0}' cannot be marked virtual</value>
+    <value>The abstract {0} '{1}' cannot be marked virtual</value>
   </data>
   <data name="ERR_StaticConstant" xml:space="preserve">
     <value>The constant '{0}' cannot be marked static</value>
