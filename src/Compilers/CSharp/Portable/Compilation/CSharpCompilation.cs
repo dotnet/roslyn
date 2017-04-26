@@ -1549,7 +1549,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var syntax = method.ExtractReturnTypeSyntax();
-            var dumbInstance = new BoundDefaultExpression(syntax, method.ReturnType);
+            var dumbInstance = new BoundLiteral(syntax, ConstantValue.Null, method.ReturnType);
             // PROTOTYPE(async-main): We might need to adjust the containing member of the binder to be the Main method
             var binder = GetBinder(syntax);
             BoundExpression result;
@@ -1587,11 +1587,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Prior to 7.1, async methods were considered to "have the entrypoint signature".
             // In order to keep back-compat, we need to let these through if compiling using a previous language version.
             if (!returnsTaskOrTaskOfInt && method.IsAsync && this.LanguageVersion >= LanguageVersion.CSharp7_1)
-            {
-                return false;
-            }
-
-            if (method.RefKind != RefKind.None)
             {
                 return false;
             }
