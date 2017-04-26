@@ -89,6 +89,20 @@ class Bar : Microsoft.CodeAnalysis.IAssemblySymbol { }
             VerifyCSharp(source, addLanguageSpecificCodeAnalysisReference: true, validationMode: TestValidationMode.AllowCompileErrors, expected: expected);
         }
 
+        [Fact]
+        public void CSharp_VerifyIOperation()
+        {
+            var source = @"
+// Causes many compile errors, because not all members are implemented.
+class Foo : Microsoft.CodeAnalysis.IOperation { }
+class Bar : Microsoft.CodeAnalysis.Semantics.IInvocationExpression { }
+";
+            DiagnosticResult[] expected = new[] { GetCSharpExpectedDiagnostic(3, 7, "Foo", "IOperation"), GetCSharpExpectedDiagnostic(4, 7, "Bar", "IOperation") };
+
+            // Verify that IOperation is not implementable.
+            VerifyCSharp(source, addLanguageSpecificCodeAnalysisReference: true, validationMode: TestValidationMode.AllowCompileErrors, expected: expected);
+        }
+
         private const string AttributeStringBasic = @"
 Namespace System.Runtime.CompilerServices
     Friend Class InternalImplementationOnlyAttribute 
@@ -189,6 +203,24 @@ End Class
             DiagnosticResult[] expected = new[] { GetBasicExpectedDiagnostic(3, 7, "Foo", "ISymbol"), GetBasicExpectedDiagnostic(6, 7, "Bar", "ISymbol") };
 
             // Verify that ISymbol is not implementable.
+            VerifyBasic(source, addLanguageSpecificCodeAnalysisReference: true, validationMode: TestValidationMode.AllowCompileErrors, expected: expected);
+        }
+
+        [Fact]
+        public void Basic_VerifyIOperation()
+        {
+            var source = @"
+' Causes many compile errors, because not all members are implemented.
+Class Foo 
+    Implements Microsoft.CodeAnalysis.IOperation
+End Class
+Class Bar
+    Implements Microsoft.CodeAnalysis.Semantics.IInvocationExpression
+End Class
+";
+            DiagnosticResult[] expected = new[] { GetBasicExpectedDiagnostic(3, 7, "Foo", "IOperation"), GetBasicExpectedDiagnostic(6, 7, "Bar", "IOperation") };
+
+            // Verify that IOperation is not implementable.
             VerifyBasic(source, addLanguageSpecificCodeAnalysisReference: true, validationMode: TestValidationMode.AllowCompileErrors, expected: expected);
         }
 
