@@ -26,8 +26,14 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CSharpCompilerSemanticTest", "src\Compilers\CSharp\Test\Semantic\CSharpCompilerSemanticTest.csproj", "{B2C33A93-DB30-4099-903E-77D75C4C3F45}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CSharpCompilerSymbolTest", "src\Compilers\CSharp\Test\Symbol\CSharpCompilerSymbolTest.csproj", "{28026D16-EB0C-40B0-BDA7-11CAA2B97CCC}"
+	ProjectSection(ProjectDependencies) = postProject
+		{76C6F005-C89D-4348-BB4A-391898DBEB52} = {76C6F005-C89D-4348-BB4A-391898DBEB52}
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CSharpCompilerSyntaxTest", "src\Compilers\CSharp\Test\Syntax\CSharpCompilerSyntaxTest.csproj", "{50D26304-0961-4A51-ABF6-6CAD1A56D202}"
+	ProjectSection(ProjectDependencies) = postProject
+		{76C6F005-C89D-4348-BB4A-391898DBEB52} = {76C6F005-C89D-4348-BB4A-391898DBEB52}
+	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "VisualBasic", "VisualBasic", "{C65C6143-BED3-46E6-869E-9F0BE6E84C37}"
 EndProject
@@ -108,10 +114,19 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MSBuildTask", "src\Compilers\Core\MSBuildTask\MSBuildTask.csproj", "{7AD4FE65-9A30-41A6-8004-AA8F89BCB7F3}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ScriptingTest", "src\Scripting\CoreTest\ScriptingTest.csproj", "{2DAE4406-7A89-4B5F-95C3-BC5472CE47CE}"
+	ProjectSection(ProjectDependencies) = postProject
+		{76C6F005-C89D-4348-BB4A-391898DBEB52} = {76C6F005-C89D-4348-BB4A-391898DBEB52}
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CSharpScriptingTest", "src\Scripting\CSharpTest\CSharpScriptingTest.csproj", "{2DAE4406-7A89-4B5F-95C3-BC5422CE47CE}"
+	ProjectSection(ProjectDependencies) = postProject
+		{76C6F005-C89D-4348-BB4A-391898DBEB52} = {76C6F005-C89D-4348-BB4A-391898DBEB52}
+	EndProjectSection
 EndProject
 Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "BasicScriptingTest", "src\Scripting\VisualBasicTest\BasicScriptingTest.vbproj", "{ABC7262E-1053-49F3-B846-E3091BB92E8C}"
+	ProjectSection(ProjectDependencies) = postProject
+		{76C6F005-C89D-4348-BB4A-391898DBEB52} = {76C6F005-C89D-4348-BB4A-391898DBEB52}
+	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Scripting", "Scripting", "{3FF38FD4-DF16-44B0-924F-0D5AE155495B}"
 EndProject
@@ -144,18 +159,27 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CodeStyleFixes", "src\CodeStyle\Core\CodeFixes\CodeStyleFixes.csproj", "{5FF1E493-69CC-4D0B-83F2-039F469A04E1}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CodeStyleTests", "src\CodeStyle\Core\Tests\CodeStyleTests.csproj", "{9FF1205F-1D7C-4EE4-B038-3456FE6EBEAF}"
+	ProjectSection(ProjectDependencies) = postProject
+		{76C6F005-C89D-4348-BB4A-391898DBEB52} = {76C6F005-C89D-4348-BB4A-391898DBEB52}
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CSharpCodeStyle", "src\CodeStyle\CSharp\Analyzers\CSharpCodeStyle.csproj", "{AA87BFED-089A-4096-B8D5-690BDC7D5B24}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CSharpCodeStyleFixes", "src\CodeStyle\CSharp\CodeFixes\CSharpCodeStyleFixes.csproj", "{A07ABCF5-BC43-4EE9-8FD8-B2D77FD54D73}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CSharpCodeStyleTests", "src\CodeStyle\CSharp\Tests\CSharpCodeStyleTests.csproj", "{5018D049-5870-465A-889B-C742CE1E31CB}"
+	ProjectSection(ProjectDependencies) = postProject
+		{76C6F005-C89D-4348-BB4A-391898DBEB52} = {76C6F005-C89D-4348-BB4A-391898DBEB52}
+	EndProjectSection
 EndProject
 Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "BasicCodeStyle", "src\CodeStyle\VisualBasic\Analyzers\BasicCodeStyle.vbproj", "{2531A8C4-97DD-47BC-A79C-B7846051E137}"
 EndProject
 Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "BasicCodeStyleFixes", "src\CodeStyle\VisualBasic\CodeFixes\BasicCodeStyleFixes.vbproj", "{0141285D-8F6C-42C7-BAF3-3C0CCD61C716}"
 EndProject
 Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "BasicCodeStyleTests", "src\CodeStyle\VisualBasic\Tests\BasicCodeStyleTests.vbproj", "{E512C6C1-F085-4AD7-B0D9-E8F1A0A2A510}"
+	ProjectSection(ProjectDependencies) = postProject
+		{76C6F005-C89D-4348-BB4A-391898DBEB52} = {76C6F005-C89D-4348-BB4A-391898DBEB52}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
