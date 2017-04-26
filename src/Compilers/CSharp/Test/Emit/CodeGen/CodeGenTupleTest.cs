@@ -3620,7 +3620,7 @@ class C
     int e = 5;
     int f = 6;
     C instance = null;
-    void M()
+    string M()
     {
         int a = 1;
         int b = 3;
@@ -3631,6 +3631,16 @@ class C
         var z = (x: b, b);
         System.Console.Write(y);
         System.Console.Write(z);
+        return null;
+    }
+
+    int P
+    {
+        set
+        {
+            var t = (M(), value);
+            System.Console.Write(t.value);
+        }
     }
 }
 ";
@@ -3649,6 +3659,9 @@ class C
 
                 var zTuple = nodes.OfType<TupleExpressionSyntax>().ElementAt(1);
                 Assert.Equal("(System.Int32 x, System.Int32 b)", model.GetTypeInfo(zTuple).Type.ToTestDisplayString());
+
+                var tTuple = nodes.OfType<TupleExpressionSyntax>().ElementAt(2);
+                Assert.Equal("(System.String, System.Int32 value)", model.GetTypeInfo(tTuple).Type.ToTestDisplayString());
             };
 
             var verifier = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1),
@@ -15376,6 +15389,41 @@ class C
             Assert.Equal(SymbolKind.Field, sym.Symbol.Kind);
             Assert.Equal("Alice", sym.Symbol.Name);
             Assert.Equal(nc.Name.GetLocation(), sym.Symbol.Locations[0]);
+        }
+
+        [Fact]
+        public void GetSymbolInfo_WithInferredName()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        string Bob = ""hello"";
+        var x1 = (Alice: 1, Bob);
+
+        var Alice = x1.Alice;
+        var BobCopy = x1.Bob;
+    }
+}
+";
+
+            var tree = Parse(source, options: TestOptions.Regular7_1);
+            var comp = CreateStandardCompilation(tree, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics();
+
+            var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
+            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+
+            var x1Bob = nodes.OfType<MemberAccessExpressionSyntax>().ElementAt(1);
+            Assert.Equal("x1.Bob", x1Bob.ToString());
+            var x1Symbol = model.GetSymbolInfo(x1Bob.Expression).Symbol as LocalSymbol;
+            Assert.Equal("(System.Int32 Alice, System.String Bob)", x1Symbol.Type.ToTestDisplayString());
+            var bobField = x1Symbol.Type.GetMember("Bob");
+
+            Assert.Equal(SymbolKind.Field, bobField.Kind);
+            var secondElement = nodes.OfType<TupleExpressionSyntax>().First().Arguments[1];
+            Assert.Equal(secondElement.GetLocation(), bobField.Locations[0]);
         }
 
         [Fact]
