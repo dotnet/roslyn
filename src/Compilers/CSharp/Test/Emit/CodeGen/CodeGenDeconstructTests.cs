@@ -2210,6 +2210,108 @@ class C
         }
 
         [Fact]
+        public void NestedVarDeconstructionDeclaration_WithCSharp7_1()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        (int x1, var (x2, (x3, x4)), var x5) = (1, (2, (3, ""hello"")), 5);
+        System.Console.WriteLine($""{x1} {x2} {x3} {x4} {x5}"");
+    }
+}
+";
+
+            Action<ModuleSymbol> validator = (ModuleSymbol module) =>
+            {
+                var sourceModule = (SourceModuleSymbol)module;
+                var compilation = sourceModule.DeclaringCompilation;
+                var tree = compilation.SyntaxTrees.First();
+                var model = compilation.GetSemanticModel(tree);
+
+                var lhs = tree.GetRoot().DescendantNodes().OfType<TupleExpressionSyntax>().First();
+                Assert.Equal(@"(int x1, var (x2, (x3, x4)), var x5)", lhs.ToString());
+                Assert.Equal("(System.Int32 x1, (System.Int32 x2, (System.Int32 x3, System.String x4)), System.Int32 x5)",
+                    model.GetTypeInfo(lhs).Type.ToTestDisplayString());
+                Assert.Null(model.GetSymbolInfo(lhs).Symbol);
+
+                var x234 = tree.GetRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().ElementAt(1);
+                Assert.Equal(@"var (x2, (x3, x4))", x234.ToString());
+                Assert.Equal("(System.Int32 x2, (System.Int32 x3, System.String x4))", model.GetTypeInfo(x234).Type.ToTestDisplayString());
+                Assert.Null(model.GetSymbolInfo(x234).Symbol);
+
+                var x34 = tree.GetRoot().DescendantNodes().OfType<ParenthesizedVariableDesignationSyntax>().ElementAt(1);
+                Assert.Equal(@"(x3, x4)", x34.ToString());
+                Assert.Null(model.GetTypeInfo(x34).Type);
+                Assert.Null(model.GetSymbolInfo(x34).Symbol);
+
+                var x1 = GetDeconstructionVariable(tree, "x1");
+                var x1Ref = GetReference(tree, "x1");
+                VerifyModelForDeconstructionLocal(model, x1, x1Ref);
+
+                var x2 = GetDeconstructionVariable(tree, "x2");
+                var x2Ref = GetReference(tree, "x2");
+                VerifyModelForDeconstructionLocal(model, x2, x2Ref);
+
+                var x3 = GetDeconstructionVariable(tree, "x3");
+                var x3Ref = GetReference(tree, "x3");
+                VerifyModelForDeconstructionLocal(model, x3, x3Ref);
+
+                var x4 = GetDeconstructionVariable(tree, "x4");
+                var x4Ref = GetReference(tree, "x4");
+                VerifyModelForDeconstructionLocal(model, x4, x4Ref);
+
+                var x5 = GetDeconstructionVariable(tree, "x5");
+                var x5Ref = GetReference(tree, "x5");
+                VerifyModelForDeconstructionLocal(model, x5, x5Ref);
+            };
+
+            var comp = CompileAndVerify(source, expectedOutput: "1 2 3 hello 5", additionalRefs: s_valueTupleRefs,
+                sourceSymbolValidator: validator, parseOptions: TestOptions.Regular7_1);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void NestedVarDeconstructionAssignment_WithCSharp7_1()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        int x1, x2, x3;
+        (x1, (x2, x3)) = (1, (2, 3));
+        System.Console.WriteLine($""{x1} {x2} {x3}"");
+    }
+}
+";
+
+            Action<ModuleSymbol> validator = (ModuleSymbol module) =>
+            {
+                var sourceModule = (SourceModuleSymbol)module;
+                var compilation = sourceModule.DeclaringCompilation;
+                var tree = compilation.SyntaxTrees.First();
+                var model = compilation.GetSemanticModel(tree);
+
+                var x123 = tree.GetRoot().DescendantNodes().OfType<TupleExpressionSyntax>().First();
+                Assert.Equal(@"(x1, (x2, x3))", x123.ToString());
+                Assert.Equal("(System.Int32 x1, (System.Int32 x2, System.Int32 x3))",
+                    model.GetTypeInfo(x123).Type.ToTestDisplayString());
+                Assert.Null(model.GetSymbolInfo(x123).Symbol);
+
+                var x23 = tree.GetRoot().DescendantNodes().OfType<TupleExpressionSyntax>().ElementAt(1);
+                Assert.Equal(@"(x2, x3)", x23.ToString());
+                Assert.Equal("(System.Int32 x2, System.Int32 x3)", model.GetTypeInfo(x23).Type.ToTestDisplayString());
+                Assert.Null(model.GetSymbolInfo(x23).Symbol);
+            };
+
+            var comp = CompileAndVerify(source, expectedOutput: "1 2 3", additionalRefs: s_valueTupleRefs,
+                sourceSymbolValidator: validator, parseOptions: TestOptions.Regular7_1);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
         public void NestedVarDeconstructionDeclaration2()
         {
             string source = @"
@@ -3031,6 +3133,43 @@ class C
   }
   IL_0045:  ret
 }");
+        }
+
+        [Fact]
+        public void ForEachIEnumerableDeclarationWithImplicitVarType_WithCSharp7_1()
+        {
+            string source = @"
+using System.Collections.Generic;
+class C
+{
+    static void Main()
+    {
+        foreach (var (x1, x2) in M())
+        {
+            Print(x1, x2);
+        }
+    }
+    static IEnumerable<(int, int)> M() { yield return (1, 2); }
+    static void Print(object a, object b) { System.Console.WriteLine(a + "" "" + b); }
+}
+";
+
+            Action<ModuleSymbol> validator = (ModuleSymbol module) =>
+            {
+                var sourceModule = (SourceModuleSymbol)module;
+                var compilation = sourceModule.DeclaringCompilation;
+                var tree = compilation.SyntaxTrees.First();
+                var model = compilation.GetSemanticModel(tree);
+
+                var x12 = tree.GetRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().Single();
+                Assert.Equal("var (x1, x2)", x12.ToString());
+                Assert.Equal("(System.Int32 x1, System.Int32 x2)", model.GetTypeInfo(x12).Type.ToTestDisplayString());
+                Assert.Null(model.GetSymbolInfo(x12).Symbol);
+            };
+
+            var comp = CompileAndVerify(source, expectedOutput: "1 2", additionalRefs: s_valueTupleRefs,
+                sourceSymbolValidator: validator, parseOptions: TestOptions.Regular7_1);
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
