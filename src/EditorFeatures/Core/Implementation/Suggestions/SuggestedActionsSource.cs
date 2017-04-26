@@ -49,7 +49,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 _owner = owner;
                 _textView = textView;
                 _textView.Closed += OnTextViewClosed;
-
                 _subjectBuffer = textBuffer;
                 _registration = Workspace.GetWorkspaceRegistration(textBuffer.AsTextContainer());
 
