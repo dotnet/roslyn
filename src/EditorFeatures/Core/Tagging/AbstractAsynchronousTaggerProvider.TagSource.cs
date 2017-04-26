@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             #region Fields that can only be accessed from the foreground thread
 
             private readonly ITextView _textViewOpt;
-            private readonly ITextBuffer _subjectBuffer;
+            private readonly ITextBuffer2 _subjectBuffer;
 
             /// <summary>
             /// Our tagger event source that lets us know when we should call into the tag producer for
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                     throw new ArgumentException("SpanTrackingMode.Custom not allowed.", "spanTrackingMode");
                 }
 
-                _subjectBuffer = subjectBuffer;
+                _subjectBuffer = (ITextBuffer2)subjectBuffer;
                 _textViewOpt = textViewOpt;
                 _dataSource = dataSource;
                 _asyncListener = asyncListener;
@@ -223,7 +223,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
                 if (_dataSource.TextChangeBehavior.HasFlag(TaggerTextChangeBehavior.TrackTextChanges))
                 {
-                    _subjectBuffer.Changed += OnSubjectBufferChanged;
+                    _subjectBuffer.ChangedAsync += OnSubjectBufferChanged;
                 }
 
                 if (_dataSource.CaretChangeBehavior.HasFlag(TaggerCaretChangeBehavior.RemoveAllTagsOnCaretMoveOutsideOfTag))
@@ -256,7 +256,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
                 if (_dataSource.TextChangeBehavior.HasFlag(TaggerTextChangeBehavior.TrackTextChanges))
                 {
-                    _subjectBuffer.Changed -= OnSubjectBufferChanged;
+                    _subjectBuffer.ChangedAsync -= OnSubjectBufferChanged;
                 }
 
                 _eventSource.UIUpdatesPaused -= OnUIUpdatesPaused;

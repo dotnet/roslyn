@@ -93,11 +93,17 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 RaiseTagsChanged(snapshot.TextBuffer, new DiffResult(added: null, removed: oldTagTree.GetSpans(snapshot).Select(s => s.Span)));
             }
 
-            private void OnSubjectBufferChanged(object sender, TextContentChangedEventArgs e)
+            private Task OnSubjectBufferChanged(object sender, TextContentChangedEventArgs e)
             {
-                _workQueue.AssertIsForeground();
-                UpdateTagsForTextChange(e);
-                AccumulateTextChanges(e);
+                return Task.Factory.StartNew(() =>
+                    {
+                        _workQueue.AssertIsForeground();
+                        UpdateTagsForTextChange(e);
+                        AccumulateTextChanges(e);
+                    },
+                    CancellationToken.None,
+                    TaskCreationOptions.None,
+                    _workQueue.ForegroundTaskScheduler);
             }
 
             private void AccumulateTextChanges(TextContentChangedEventArgs contentChanged)
