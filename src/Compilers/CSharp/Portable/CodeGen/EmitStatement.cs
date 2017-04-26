@@ -664,14 +664,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private void EmitStateMachineScope(BoundStateMachineScope scope)
         {
-            _builder.OpenStateMachineScope();
+            _builder.OpenLocalScope(ScopeType.StateMachineVariable);
             foreach (var field in scope.Fields)
             {
                 _builder.DefineUserDefinedStateMachineHoistedLocal(field.SlotIndex);
             }
 
             EmitStatement(scope.Statement);
-            _builder.CloseStateMachineScope();
+            _builder.CloseLocalScope();
         }
 
         // There are two ways a value can be returned from a function:

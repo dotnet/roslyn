@@ -22,7 +22,7 @@
     <MicrosoftDiagnosticsRuntimeVersion>0.8.31-beta</MicrosoftDiagnosticsRuntimeVersion>
     <MicrosoftDiagnosticsTracingTraceEventVersion>1.0.35</MicrosoftDiagnosticsTracingTraceEventVersion>
     <MicrosoftDiaSymReaderVersion>1.1.0</MicrosoftDiaSymReaderVersion>
-    <MicrosoftDiaSymReaderConverterXmlVersion>1.0.0-beta1-61518-02</MicrosoftDiaSymReaderConverterXmlVersion>
+    <MicrosoftDiaSymReaderConverterXmlVersion>1.0.0-beta1-61618-01</MicrosoftDiaSymReaderConverterXmlVersion>
     <MicrosoftDiaSymReaderNativeVersion>1.5.0</MicrosoftDiaSymReaderNativeVersion>
     <MicrosoftDiaSymReaderPortablePdbVersion>1.2.0</MicrosoftDiaSymReaderPortablePdbVersion>
     <MicrosoftMetadataVisualizerVersion>1.0.0-beta1-61531-03</MicrosoftMetadataVisualizerVersion>
