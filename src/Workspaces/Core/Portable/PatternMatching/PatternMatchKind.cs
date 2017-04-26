@@ -26,53 +26,59 @@ namespace Microsoft.CodeAnalysis.PatternMatching
 
         // Note: CamelCased matches are ordered from best to worst.
 
-        CamelCaseExact,
-        CamelCasePrefix,
-        CamelCaseNonContiguousPrefix,
-        CamelCaseSubstring,
-        CamelCaseNonContiguousSubstring,
-
-#if false
         /// <summary>
-        /// The pattern matched the CamelCased candidate string.  All humps in the pattern matched humps in
-        /// the candidate in order.  The first hump in the pattern matched the first hump in the candidate 
-        /// string.  There were no unmatched humps in the candidate between matched humps.
+        /// All camel-humps in the pattern matched a camel-hump in the candidate.  All camel-humps
+        /// in the candidate were matched by a camel-hump in the pattern.
         /// 
-        /// Examples: "CFP" matching "CodeFixProvider" as well as "CFP" matching "CodeFixProviderService".
+        /// Example: "CFPS" matching "CodeFixProviderService"
+        /// Example: "cfps" matching "CodeFixProviderService"
+        /// Example: "CoFiPrSe" matching "CodeFixProviderService"
         /// </summary>
-        CamelCaseContiguousFromStart,
+        CamelCaseExact,
 
         /// <summary>
-        /// The pattern matched the CamelCased candidate string.  All humps in the pattern matched some hump in
-        /// the candidate in order.  The first hump in the pattern matched the first hump in the candidate string.  
-        /// There was at least one hump in the candidate that was not matched that was between humps in the
-        /// candidate that were matched.
+        /// All camel-humps in the pattern matched a camel-hump in the candidate.  The first camel-hump
+        /// in the pattern matched the first camel-hump in the candidate.  There was no gap in the camel-
+        /// humps in the candidate that were matched.
         ///
-        /// Examples: "CPS" matching "CodeFixProviderService".  Here 'Fix' was not matched, so the result was
-        /// not 'Contiguous'.
+        /// Example: "CFP" matching "CodeFixProviderService"
+        /// Example: "cfp" matching "CodeFixProviderService"
+        /// Example: "CoFiPRo" matching "CodeFixProviderService"
         /// </summary>
-        CamelCaseFromStart,
+        CamelCasePrefix,
 
         /// <summary>
-        /// The pattern matched the CamelCased candidate string.  All humps in the pattern matched humps in
-        /// the candidate in order.  The first hump in the pattern did not match the first hump in the candidate
-        /// string.  There were no unmatched humps in the candidate between matched humps.
+        /// All camel-humps in the pattern matched a camel-hump in the candidate.  The first camel-hump
+        /// in the pattern matched the first camel-hump in the candidate.  There was at least one gap in 
+        /// the camel-humps in the candidate that were matched.
+        ///
+        /// Example: "CP" matching "CodeFixProviderService"
+        /// Example: "cp" matching "CodeFixProviderService"
+        /// Example: "CoProv" matching "CodeFixProviderService"
+        /// </summary>
+        CamelCaseNonContiguousPrefix,
+
+        /// <summary>
+        /// All camel-humps in the pattern matched a camel-hump in the candidate.  The first camel-hump
+        /// in the pattern did not match the first camel-hump in the pattern.  There was no gap in the camel-
+        /// humps in the candidate that were matched.
         ///
         /// Example: "FP" matching "CodeFixProviderService"
+        /// Example: "fp" matching "CodeFixProviderService"
+        /// Example: "FixPro" matching "CodeFixProviderService"
         /// </summary>
-        CamelCaseContiguous,
+        CamelCaseSubstring,
 
         /// <summary>
-        /// The pattern matched the CamelCased candidate string.  All humps in the pattern matched some hump in
-        /// the candidate in order.  The first hump in the pattern did not match the first hump in the candidate
-        /// string.  There was at least one hump in the candidate that was not matched that was between humps 
-        /// in the candidate that were matched.
+        /// All camel-humps in the pattern matched a camel-hump in the candidate.  The first camel-hump
+        /// in the pattern did not match the first camel-hump in the pattern.  There was at least one gap in 
+        /// the camel-humps in the candidate that were matched.
         ///
-        /// Example: "FS" matching "CodeFixProviderService".  Because 'Code' was not matched, the match was not
-        /// a 'FromStart' match.  Because 'Provider' was not matched, the match was not a 'Contiguous' match.
+        /// Example: "FS" matching "CodeFixProviderService"
+        /// Example: "fs" matching "CodeFixProviderService"
+        /// Example: "FixSer" matching "CodeFixProviderService"
         /// </summary>
-        CamelCase,
-#endif
+        CamelCaseNonContiguousSubstring,
 
         /// <summary>
         /// The pattern matches the candidate in a fuzzy manner.  Fuzzy matching allows for 
