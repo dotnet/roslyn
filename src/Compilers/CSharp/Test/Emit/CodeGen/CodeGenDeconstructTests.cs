@@ -6694,9 +6694,34 @@ class C
 
             var comp = CreateCompilationWithMscorlib45(source, references: s_valueTupleRefs, options: TestOptions.DebugDll);
             comp.VerifyDiagnostics(
-                // (9,14): warning CS1717: Assignment made to same variable; did you mean to assign something else?
+                // (14,14): warning CS1717: Assignment made to same variable; did you mean to assign something else?
                 //         (_, (x, y)) = (1, (x, b));
-                Diagnostic(ErrorCode.WRN_AssignmentToSelf, "x").WithLocation(9, 14)
+                Diagnostic(ErrorCode.WRN_AssignmentToSelf, "x").WithLocation(14, 14)
+                );
+        }
+
+        [Fact]
+        public void DeconstructionWarnsForSelfAssignment_WithExplicitTupleConversion()
+        {
+            var source =
+@"
+class C
+{
+    int y = 2;
+    byte b = 3;
+    void M()
+    {
+        // The conversions on the right-hand-side:
+        // - a deconstruction conversion on the entire right-hand-side
+        // - an identity conversion as its operand
+        // - an explicit tuple literal conversion as its operand
+        (y, _) = ((int, int))(y, b);
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib45(source, references: s_valueTupleRefs, options: TestOptions.DebugDll);
+            comp.VerifyDiagnostics(
                 );
         }
 

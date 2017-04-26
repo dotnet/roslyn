@@ -864,7 +864,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             while (right.Kind == BoundKind.Conversion)
             {
-
                 var conversion = (BoundConversion)right;
                 switch(conversion.ConversionKind)
                 {
@@ -873,8 +872,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case ConversionKind.Identity:
                         right = conversion.Operand;
                         break;
-                    case var c:
-                        throw ExceptionUtilities.UnexpectedValue(c);
+                    default:
+                        return;
                 }
             }
 
