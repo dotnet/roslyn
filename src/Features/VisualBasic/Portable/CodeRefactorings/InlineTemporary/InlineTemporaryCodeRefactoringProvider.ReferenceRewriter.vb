@@ -66,6 +66,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InlineTemporary
                 If node.IsParentKind(SyntaxKind.SimpleArgument) AndAlso
                     node.Parent.IsParentKind(SyntaxKind.TupleExpression) Then
 
+                    ' Temporaries should not be inlined in the name portion of a named tuple element
+                    ' This special case should be removed once https://github.com/dotnet/roslyn/issues/16697 is fixed
                     Return node
                 End If
 

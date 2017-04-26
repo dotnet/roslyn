@@ -6,6 +6,11 @@ Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
+    ''' <summary>
+    ''' Complexify makes inferred names explicit for tuple elements and anonymous type members. This
+    ''' class considers which ones of those can be simplified (after the refactoring was done).
+    ''' If the inferred name of the member matches, the explicit name (from Complexifiy) can be removed.
+    ''' </summary>
     Partial Friend Class VisualBasicInferredMemberNameReducer
         Inherits AbstractVisualBasicReducer
 
@@ -20,6 +25,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
             cancellationToken As CancellationToken
         ) As SimpleArgumentSyntax
 
+            ' Tuple elements are arguments in a tuple expression
             If node.NameColonEquals Is Nothing OrElse Not node.IsParentKind(SyntaxKind.TupleExpression) Then
                 Return node
             End If
@@ -45,6 +51,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
 
             Return SyntaxFactory.InferredFieldInitializer(node.Expression).WithTriviaFrom(node)
         End Function
-
     End Class
 End Namespace

@@ -20,10 +20,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                 Dim newNode = MyBase.VisitSimpleArgument(node)
 
                 If node.IsParentKind(SyntaxKind.TupleExpression) Then
-                    Return SimplifyExpression(
+                    Return SimplifyNode(
                         node,
+                        parentNode:=node.Parent,
                         newNode:=newNode,
-                        simplifier:=AddressOf SimplifyTupleName)
+                        simplifyFunc:=AddressOf SimplifyTupleName)
                 End If
 
                 Return newNode
@@ -32,13 +33,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
             Public Overrides Function VisitNamedFieldInitializer(node As NamedFieldInitializerSyntax) As SyntaxNode
                 Dim newNode = MyBase.VisitNamedFieldInitializer(node)
 
-                Return SimplifyExpression(
+                Return SimplifyNode(
                     node,
+                    parentNode:=node.Parent,
                     newNode:=newNode,
-                    simplifier:=AddressOf SimplifyNamedFieldInitializer)
+                    simplifyFunc:=AddressOf SimplifyNamedFieldInitializer)
             End Function
-
         End Class
-
     End Class
 End Namespace
