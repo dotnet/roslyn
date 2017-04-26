@@ -736,17 +736,47 @@ namespace Microsoft.Cci
 
         private const string SymWriterClsid = "0AE2DEB0-F901-478b-BB9F-881EE8066788";
 
+        private const string DiaSymReaderModuleName32 = "Microsoft.DiaSymReader.Native.x86.dll";
+        private const string DiaSymReaderModuleName64 = "Microsoft.DiaSymReader.Native.amd64.dll";
+
         private static bool s_MicrosoftDiaSymReaderNativeLoadFailed;
 
         [DefaultDllImportSearchPaths(DllImportSearchPath.AssemblyDirectory | DllImportSearchPath.SafeDirectories)]
-        [DllImport("Microsoft.DiaSymReader.Native.x86.dll", EntryPoint = "CreateSymWriter")]
+        [DllImport(DiaSymReaderModuleName32, EntryPoint = "CreateSymWriter")]
         private extern static void CreateSymWriter32(ref Guid id, [MarshalAs(UnmanagedType.IUnknown)]out object symWriter);
 
         [DefaultDllImportSearchPaths(DllImportSearchPath.AssemblyDirectory | DllImportSearchPath.SafeDirectories)]
-        [DllImport("Microsoft.DiaSymReader.Native.amd64.dll", EntryPoint = "CreateSymWriter")]
+        [DllImport(DiaSymReaderModuleName64, EntryPoint = "CreateSymWriter")]
         private extern static void CreateSymWriter64(ref Guid id, [MarshalAs(UnmanagedType.IUnknown)]out object symWriter);
 
-        private static string PlatformId => (IntPtr.Size == 4) ? "x86" : "amd64";
+        [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true, PreserveSig = true)]
+        private static extern IntPtr GetModuleHandle(string moduleName);
+
+        [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true, PreserveSig = true)]
+        private static extern int GetModuleFileName(IntPtr handle, [Out]StringBuilder buffer, [MarshalAs(UnmanagedType.U4)]int bufferLength);
+
+        private static string DiaSymReaderModuleName => (IntPtr.Size == 4) ? DiaSymReaderModuleName32 : DiaSymReaderModuleName64;
+
+        /// <summary>
+        /// Returns the full path to any loaded Microsoft.DiaSymReader.Native.XXX.dll module.
+        /// </summary>
+        private static string GetDiaSymReaderModulePath()
+        {
+            IntPtr handle = GetModuleHandle(DiaSymReaderModuleName);
+            if (handle == IntPtr.Zero)
+            {
+                return null;
+            }
+
+            var buffer = new StringBuilder(256);
+            int actualSize = GetModuleFileName(handle, buffer, buffer.Capacity);
+            if (actualSize == 0)
+            {
+                return null;
+            }
+
+            return buffer.ToString();
+        }
 
         private static Type GetCorSymWriterSxSType()
         {
@@ -806,7 +836,10 @@ namespace Microsoft.Cci
                 }
                 catch (Exception)
                 {
-                    throw new NotSupportedException(string.Format(CodeAnalysisResources.SymWriterNotAvailable, PlatformId));
+                    string fullPath = GetDiaSymReaderModulePath();
+                    throw new NotSupportedException((fullPath != null) ?
+                        string.Format(CodeAnalysisResources.SymWriterOlderVersionThanRequired, fullPath) :
+                        string.Format(CodeAnalysisResources.SymWriterNotAvailable, DiaSymReaderModuleName));
                 }
 
                 // Correctness: If the stream is not specified or if it is non-empty the SymWriter appends data to it (provided it contains valid PDB)
@@ -817,7 +850,7 @@ namespace Microsoft.Cci
                 {
                     if (!(symWriter is ISymUnmanagedWriter7))
                     {
-                        throw new NotSupportedException(string.Format(CodeAnalysisResources.SymWriterNotDeterministic, PlatformId));
+                        throw new NotSupportedException(string.Format(CodeAnalysisResources.SymWriterNotDeterministic, GetDiaSymReaderModulePath()));
                     }
 
                     ((ISymUnmanagedWriter7)symWriter).InitializeDeterministic(new PdbMetadataWrapper(metadataWriter), _pdbStream);
