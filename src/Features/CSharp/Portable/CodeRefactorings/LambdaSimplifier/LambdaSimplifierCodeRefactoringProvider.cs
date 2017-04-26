@@ -259,23 +259,22 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.LambdaSimplifier
         private static InvocationExpressionSyntax TryGetInvocationExpression(
             SyntaxNode lambdaBody)
         {
-            if (lambdaBody is ExpressionSyntax)
+            if (lambdaBody is ExpressionSyntax exprBody)
             {
-                return ((ExpressionSyntax)lambdaBody).WalkDownParentheses() as InvocationExpressionSyntax;
+                return exprBody.WalkDownParentheses() as InvocationExpressionSyntax;
             }
-            else if (lambdaBody is BlockSyntax)
+            else if (lambdaBody is BlockSyntax block)
             {
-                var block = (BlockSyntax)lambdaBody;
                 if (block.Statements.Count == 1)
                 {
                     var statement = block.Statements.First();
-                    if (statement is ReturnStatementSyntax)
+                    if (statement is ReturnStatementSyntax returnStatement)
                     {
-                        return ((ReturnStatementSyntax)statement).Expression.WalkDownParentheses() as InvocationExpressionSyntax;
+                        return returnStatement.Expression.WalkDownParentheses() as InvocationExpressionSyntax;
                     }
-                    else if (statement is ExpressionStatementSyntax)
+                    else if (statement is ExpressionStatementSyntax exprStatement)
                     {
-                        return ((ExpressionStatementSyntax)statement).Expression.WalkDownParentheses() as InvocationExpressionSyntax;
+                        return exprStatement.Expression.WalkDownParentheses() as InvocationExpressionSyntax;
                     }
                 }
             }

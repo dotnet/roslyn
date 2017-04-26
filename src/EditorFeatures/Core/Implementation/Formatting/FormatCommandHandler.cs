@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
         {
             var formattingService = document.GetLanguageService<IEditorFormattingService>();
 
-            using (Logger.LogBlock(FunctionId.CommandHandler_FormatCommand, cancellationToken))
+            using (Logger.LogBlock(FunctionId.CommandHandler_FormatCommand, KeyValueLogMessage.Create(LogType.UserAction, m => m["Span"] = selectionOpt?.Length ?? -1), cancellationToken))
             using (var transaction = new CaretPreservingEditTransaction(EditorFeaturesResources.Formatting, textView, _undoHistoryRegistry, _editorOperationsFactoryService))
             {
                 var changes = formattingService.GetFormattingChangesAsync(document, selectionOpt, cancellationToken).WaitAndGetResult(cancellationToken);
@@ -135,9 +135,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
                     return;
                 }
             }
-            else if (args is TypeCharCommandArgs)
+            else if (args is TypeCharCommandArgs typeCharArgs)
             {
-                var typedChar = ((TypeCharCommandArgs)args).TypedChar;
+                var typedChar = typeCharArgs.TypedChar;
                 if (!service.SupportsFormattingOnTypedCharacter(document, typedChar) ||
                     !TryFormat(textView, document, service, typedChar, caretPositionMarker, formatOnReturn: false, cancellationToken: cancellationToken))
                 {

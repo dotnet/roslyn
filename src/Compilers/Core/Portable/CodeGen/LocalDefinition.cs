@@ -38,9 +38,9 @@ namespace Microsoft.CodeAnalysis.CodeGen
         private readonly LocalVariableAttributes _pdbAttributes;
 
         //Gives the synthesized dynamic attributes of the local definition
-        private readonly ImmutableArray<TypedConstant> _dynamicTransformFlags;
+        private readonly ImmutableArray<bool> _dynamicTransformFlags;
 
-        private readonly ImmutableArray<TypedConstant> _tupleElementNames;
+        private readonly ImmutableArray<string> _tupleElementNames;
 
         /// <summary>
         /// Creates a new LocalDefinition.
@@ -64,8 +64,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
             LocalDebugId id,
             LocalVariableAttributes pdbAttributes,
             LocalSlotConstraints constraints,
-            ImmutableArray<TypedConstant> dynamicTransformFlags,
-            ImmutableArray<TypedConstant> tupleElementNames)
+            ImmutableArray<bool> dynamicTransformFlags,
+            ImmutableArray<string> tupleElementNames)
         {
             _symbolOpt = symbolOpt;
             _nameOpt = nameOpt;
@@ -127,9 +127,9 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         public LocalVariableAttributes PdbAttributes => _pdbAttributes;
 
-        public ImmutableArray<TypedConstant> DynamicTransformFlags => _dynamicTransformFlags;
+        public ImmutableArray<bool> DynamicTransformFlags => _dynamicTransformFlags;
 
-        public ImmutableArray<TypedConstant> TupleElementNames => _tupleElementNames;
+        public ImmutableArray<string> TupleElementNames => _tupleElementNames;
 
         public Cci.ITypeReference Type => _type;
 

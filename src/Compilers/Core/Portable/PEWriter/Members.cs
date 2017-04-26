@@ -274,12 +274,12 @@ namespace Microsoft.Cci
         /// <summary>
         /// The synthesized dynamic attributes of the local definition if any, or empty.
         /// </summary>
-        ImmutableArray<TypedConstant> DynamicTransformFlags { get; }
+        ImmutableArray<bool> DynamicTransformFlags { get; }
 
         /// <summary>
         /// The tuple element names of the local definition if any, or empty.
         /// </summary>
-        ImmutableArray<TypedConstant> TupleElementNames { get; }
+        ImmutableArray<string> TupleElementNames { get; }
 
         /// <summary>
         /// The type of the local.

@@ -1,6 +1,6 @@
 {
   "dependencies": {
-    "EnvDTE": "8.0.0",
+    "EnvDTE": "8.0.1",
     "EnvDTE80": "8.0.0",
     "ManagedEsent": "1.9.4",
     "Microsoft.CodeAnalysis.Elfie": "0.10.6-rc2",
@@ -11,8 +11,9 @@
     "Microsoft.VisualStudio.Shell.Interop.10.0": "10.0.30319",
     "Microsoft.VisualStudio.Shell.Interop.11.0": "11.0.61030",
     "Microsoft.VisualStudio.Shell.Interop.12.1.DesignTime": "12.1.30328",
-    "Microsoft.VisualStudio.Shell.15.0": "15.0.26201-alpha",
     "Microsoft.VisualStudio.Shell.Interop.14.0.DesignTime": "14.3.25407",
+    "Microsoft.VisualStudio.Shell.Interop.15.0.DesignTime": "15.0.26201-alpha",
+    "Microsoft.VisualStudio.Shell.15.0": "15.0.26201-alpha",
     "Microsoft.VisualStudio.Shell.Framework": "15.0.26201-alpha",
     "Microsoft.VisualStudio.Shell.Immutable.10.0": "15.0.26201-alpha",
     "Microsoft.VisualStudio.Editor": "15.0.26201-alpha",
@@ -39,7 +40,8 @@
     "Microsoft.DiaSymReader": "1.1.0",
     "Microsoft.MSXML": "8.0.0.0-alpha",
     "Microsoft.Build": "15.1.0-preview-000458-02",
-    "VSLangProj": "7.0.3300-alpha",
+    "VSLangProj": "7.0.3300",
+    "VSLangProj2": "7.0.5000",
     "VSLangProj80": "8.0.0.0-alpha",
     "VSLangProj140": "14.3.25407-alpha",
     "VsWebsite.Interop": "8.0.0.0-alpha",

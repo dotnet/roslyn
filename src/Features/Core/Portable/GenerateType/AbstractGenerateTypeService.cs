@@ -196,7 +196,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
             {
                 var argument = i < arguments.Count ? arguments[i] : null;
                 var type = argument == null ? null : semanticModel.GetTypeInfo(argument, cancellationToken).Type;
-                if (type is ITypeParameterSymbol)
+                if (type is ITypeParameterSymbol typeParameter)
                 {
                     var name = type.Name;
 
@@ -205,7 +205,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                     // to be changed if it collides with anything else.
                     isFixed[i] = !names.Contains(name);
                     names[i] = name;
-                    typeParameters.Add((ITypeParameterSymbol)type);
+                    typeParameters.Add(typeParameter);
                 }
                 else
                 {

@@ -623,7 +623,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         return WriteConsideredUse(null, boundConversion.Operand);
                     }
-                case BoundKind.DefaultOperator:
+                case BoundKind.DefaultExpression:
                     return false;
                 case BoundKind.ObjectCreationExpression:
                     var init = (BoundObjectCreationExpression)value;
@@ -2831,7 +2831,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case ConversionKind.NoConversion:
                         return null;
 
-                    case ConversionKind.NullLiteral:
+                    case ConversionKind.DefaultOrNullLiteral:
                         return false;
 
                     case ConversionKind.Boxing:
@@ -3933,9 +3933,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        public override BoundNode VisitDefaultOperator(BoundDefaultOperator node)
+        public override BoundNode VisitDefaultExpression(BoundDefaultExpression node)
         {
-            var result = base.VisitDefaultOperator(node);
+            var result = base.VisitDefaultExpression(node);
 
             Debug.Assert(!IsConditionalState);
             if (_performStaticNullChecks && this.State.Reachable)

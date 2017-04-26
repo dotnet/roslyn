@@ -8844,13 +8844,13 @@ additionalReferences:=s_valueTupleRefs)
             Dim partialParamType = partialNamesMethod.Parameters.Single().Type
             Assert.False(partialParamType.IsErrorType())
             Assert.True(partialParamType.IsTupleType)
-            Assert.Equal("((e1 As System.Int32, System.Int32))", partialParamType.ToTestDisplayString())
+            Assert.Equal("ValueTuple(Of (e1 As System.Int32, System.Int32))", partialParamType.ToTestDisplayString())
 
             Dim allNullNamesMethod = c.GetMember(Of MethodSymbol)("AllNullNamesMethod")
             Dim allNullParamType = allNullNamesMethod.Parameters.Single().Type
             Assert.False(allNullParamType.IsErrorType())
             Assert.True(allNullParamType.IsTupleType)
-            Assert.Equal("((System.Int32, System.Int32))", allNullParamType.ToTestDisplayString())
+            Assert.Equal("ValueTuple(Of (System.Int32, System.Int32))", allNullParamType.ToTestDisplayString())
         End Sub
 
         <Fact>
@@ -10447,22 +10447,22 @@ additionalRefs:=s_valueTupleRefs)
 
             comp.AssertTheseDiagnostics(
 <errors>
-BC41009: The tuple element name 'e' is ignored because a different name is specified by the target type '(c As Long, d As Long)'.
+BC41009: The tuple element name 'e' is ignored because a different name or no name is specified by the target type '(c As Long, d As Long)'.
         Dim x1 As (a As Integer, b As Integer) = DirectCast((e:=1, f:=2), (c As Long, d As Long))
                                                              ~~~~
-BC41009: The tuple element name 'f' is ignored because a different name is specified by the target type '(c As Long, d As Long)'.
+BC41009: The tuple element name 'f' is ignored because a different name or no name is specified by the target type '(c As Long, d As Long)'.
         Dim x1 As (a As Integer, b As Integer) = DirectCast((e:=1, f:=2), (c As Long, d As Long))
                                                                    ~~~~
-BC41009: The tuple element name 'e' is ignored because a different name is specified by the target type '(c As Integer, d As Integer)'.
+BC41009: The tuple element name 'e' is ignored because a different name or no name is specified by the target type '(c As Integer, d As Integer)'.
         Dim x2 As (a As Short, b As Short) = DirectCast((e:=1, f:=2), (c As Integer, d As Integer))
                                                          ~~~~
-BC41009: The tuple element name 'f' is ignored because a different name is specified by the target type '(c As Integer, d As Integer)'.
+BC41009: The tuple element name 'f' is ignored because a different name or no name is specified by the target type '(c As Integer, d As Integer)'.
         Dim x2 As (a As Short, b As Short) = DirectCast((e:=1, f:=2), (c As Integer, d As Integer))
                                                                ~~~~
-BC41009: The tuple element name 'e' is ignored because a different name is specified by the target type '(c As Long, d As Long)'.
+BC41009: The tuple element name 'e' is ignored because a different name or no name is specified by the target type '(c As Long, d As Long)'.
         Dim x3 As (a As Integer, b As Integer) = DirectCast((e:=1, f:="qq"), (c As Long, d As Long))
                                                              ~~~~
-BC41009: The tuple element name 'f' is ignored because a different name is specified by the target type '(c As Long, d As Long)'.
+BC41009: The tuple element name 'f' is ignored because a different name or no name is specified by the target type '(c As Long, d As Long)'.
         Dim x3 As (a As Integer, b As Integer) = DirectCast((e:=1, f:="qq"), (c As Long, d As Long))
                                                                    ~~~~~~~
 </errors>)
@@ -10493,28 +10493,28 @@ additionalRefs:=s_valueTupleRefs)
 BC30512: Option Strict On disallows implicit conversions from '(c As Long, d As Long)' to '(a As Integer, b As Integer)'.
         Dim x1 As (a As Integer, b As Integer) = DirectCast((e:=1, f:=2), (c As Long, d As Long))
                                                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC41009: The tuple element name 'e' is ignored because a different name is specified by the target type '(c As Long, d As Long)'.
+BC41009: The tuple element name 'e' is ignored because a different name or no name is specified by the target type '(c As Long, d As Long)'.
         Dim x1 As (a As Integer, b As Integer) = DirectCast((e:=1, f:=2), (c As Long, d As Long))
                                                              ~~~~
-BC41009: The tuple element name 'f' is ignored because a different name is specified by the target type '(c As Long, d As Long)'.
+BC41009: The tuple element name 'f' is ignored because a different name or no name is specified by the target type '(c As Long, d As Long)'.
         Dim x1 As (a As Integer, b As Integer) = DirectCast((e:=1, f:=2), (c As Long, d As Long))
                                                                    ~~~~
 BC30512: Option Strict On disallows implicit conversions from '(c As Integer, d As Integer)' to '(a As Short, b As Short)'.
         Dim x2 As (a As Short, b As Short) = DirectCast((e:=1, f:=2), (c As Integer, d As Integer))
                                              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC41009: The tuple element name 'e' is ignored because a different name is specified by the target type '(c As Integer, d As Integer)'.
+BC41009: The tuple element name 'e' is ignored because a different name or no name is specified by the target type '(c As Integer, d As Integer)'.
         Dim x2 As (a As Short, b As Short) = DirectCast((e:=1, f:=2), (c As Integer, d As Integer))
                                                          ~~~~
-BC41009: The tuple element name 'f' is ignored because a different name is specified by the target type '(c As Integer, d As Integer)'.
+BC41009: The tuple element name 'f' is ignored because a different name or no name is specified by the target type '(c As Integer, d As Integer)'.
         Dim x2 As (a As Short, b As Short) = DirectCast((e:=1, f:=2), (c As Integer, d As Integer))
                                                                ~~~~
 BC30512: Option Strict On disallows implicit conversions from '(c As Long, d As Long)' to '(a As Integer, b As Integer)'.
         Dim x3 As (a As Integer, b As Integer) = DirectCast((e:=1, f:="qq"), (c As Long, d As Long))
                                                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC41009: The tuple element name 'e' is ignored because a different name is specified by the target type '(c As Long, d As Long)'.
+BC41009: The tuple element name 'e' is ignored because a different name or no name is specified by the target type '(c As Long, d As Long)'.
         Dim x3 As (a As Integer, b As Integer) = DirectCast((e:=1, f:="qq"), (c As Long, d As Long))
                                                              ~~~~
-BC41009: The tuple element name 'f' is ignored because a different name is specified by the target type '(c As Long, d As Long)'.
+BC41009: The tuple element name 'f' is ignored because a different name or no name is specified by the target type '(c As Long, d As Long)'.
         Dim x3 As (a As Integer, b As Integer) = DirectCast((e:=1, f:="qq"), (c As Long, d As Long))
                                                                    ~~~~~~~
 </errors>)
@@ -11334,10 +11334,10 @@ End Class
 
             comp.AssertTheseDiagnostics(
 <errors>
-BC41009: The tuple element name 'e' is ignored because a different name is specified by the target type '(a As Short, b As String)'.
+BC41009: The tuple element name 'e' is ignored because a different name or no name is specified by the target type '(a As Short, b As String)'.
         Dim x As (a As Short, b As String) = (e:=1, f:=New C1("qq"))
                                               ~~~~
-BC41009: The tuple element name 'f' is ignored because a different name is specified by the target type '(a As Short, b As String)'.
+BC41009: The tuple element name 'f' is ignored because a different name or no name is specified by the target type '(a As Short, b As String)'.
         Dim x As (a As Short, b As String) = (e:=1, f:=New C1("qq"))
                                                     ~~~~~~~~~~~~~~~
 BC30512: Option Strict On disallows implicit conversions from 'C.C1' to 'String'.
@@ -13323,19 +13323,19 @@ End Class
 
             comp.AssertTheseDiagnostics(
 <errors>
-BC32106: Type argument '(Integer)' does not satisfy the 'Class' constraint for type parameter 'TRest'.
-    Sub M(p As (Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer))
-          ~
 BC32106: Type argument 'Integer' does not satisfy the 'Class' constraint for type parameter 'T1'.
     Sub M(p As (Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer))
           ~
-BC32106: Type argument '(Integer)' does not satisfy the 'Class' constraint for type parameter 'TRest'.
+BC32106: Type argument 'ValueTuple(Of Integer)' does not satisfy the 'Class' constraint for type parameter 'TRest'.
+    Sub M(p As (Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer))
+          ~
+BC32106: Type argument 'ValueTuple(Of Integer)' does not satisfy the 'Class' constraint for type parameter 'TRest'.
         Dim t0 = (1, 2, 3, 4, 5, 6, 7, 8)
                  ~~~~~~~~~~~~~~~~~~~~~~~~
 BC32106: Type argument 'Integer' does not satisfy the 'Class' constraint for type parameter 'T1'.
         Dim t0 = (1, 2, 3, 4, 5, 6, 7, 8)
                                        ~
-BC32106: Type argument '(Integer)' does not satisfy the 'Class' constraint for type parameter 'TRest'.
+BC32106: Type argument 'ValueTuple(Of Integer)' does not satisfy the 'Class' constraint for type parameter 'TRest'.
         Dim t1 As (Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer) = t0
                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 BC32106: Type argument 'Integer' does not satisfy the 'Class' constraint for type parameter 'T1'.
@@ -13587,6 +13587,7 @@ Imports System
 Public Class C
     Shared Sub Main()
         Dim x As (Integer, Integer) = (1, 1)
+        Else
     End Sub
 End Class
     </file>
@@ -13602,8 +13603,14 @@ BC36716: Visual Basic 14.0 does not support tuples.
 BC36716: Visual Basic 14.0 does not support tuples.
         Dim x As (Integer, Integer) = (1, 1)
                                       ~~~~~~
+BC30086: 'Else' must be preceded by a matching 'If' or 'ElseIf'.
+        Else
+        ~~~~
 </errors>)
-
+            Dim x = comp.GetDiagnostics()
+            Assert.Equal("15", Compilation.GetRequiredLanguageVersion(comp.GetDiagnostics()(0)))
+            Assert.Null(Compilation.GetRequiredLanguageVersion(comp.GetDiagnostics()(2)))
+            Assert.Throws(Of ArgumentNullException)(Sub() Compilation.GetRequiredLanguageVersion(Nothing))
         End Sub
 
         <Fact>
@@ -14865,14 +14872,14 @@ BC37261: Tuple element name 'Item1' is only allowed at position 1.
 "(a1 As System.Int32, a2 As System.Int32, a3 As System.Int32, a4 As System.Int32, a5 As System.Int32, a6 As System.Int32, a7 As System.Int32, Item1 As System.Int32).a6 As System.Int32",
 "(a1 As System.Int32, a2 As System.Int32, a3 As System.Int32, a4 As System.Int32, a5 As System.Int32, a6 As System.Int32, a7 As System.Int32, Item1 As System.Int32).Item7 As System.Int32",
 "(a1 As System.Int32, a2 As System.Int32, a3 As System.Int32, a4 As System.Int32, a5 As System.Int32, a6 As System.Int32, a7 As System.Int32, Item1 As System.Int32).a7 As System.Int32",
-"(a1 As System.Int32, a2 As System.Int32, a3 As System.Int32, a4 As System.Int32, a5 As System.Int32, a6 As System.Int32, a7 As System.Int32, Item1 As System.Int32).Rest As (System.Int32)",
+"(a1 As System.Int32, a2 As System.Int32, a3 As System.Int32, a4 As System.Int32, a5 As System.Int32, a6 As System.Int32, a7 As System.Int32, Item1 As System.Int32).Rest As ValueTuple(Of System.Int32)",
 "Sub (a1 As System.Int32, a2 As System.Int32, a3 As System.Int32, a4 As System.Int32, a5 As System.Int32, a6 As System.Int32, a7 As System.Int32, Item1 As System.Int32)..ctor()",
-"Sub (a1 As System.Int32, a2 As System.Int32, a3 As System.Int32, a4 As System.Int32, a5 As System.Int32, a6 As System.Int32, a7 As System.Int32, Item1 As System.Int32)..ctor(item1 As System.Int32, item2 As System.Int32, item3 As System.Int32, item4 As System.Int32, item5 As System.Int32, item6 As System.Int32, item7 As System.Int32, rest As (System.Int32))",
+"Sub (a1 As System.Int32, a2 As System.Int32, a3 As System.Int32, a4 As System.Int32, a5 As System.Int32, a6 As System.Int32, a7 As System.Int32, Item1 As System.Int32)..ctor(item1 As System.Int32, item2 As System.Int32, item3 As System.Int32, item4 As System.Int32, item5 As System.Int32, item6 As System.Int32, item7 As System.Int32, rest As ValueTuple(Of System.Int32))",
 "Function (a1 As System.Int32, a2 As System.Int32, a3 As System.Int32, a4 As System.Int32, a5 As System.Int32, a6 As System.Int32, a7 As System.Int32, Item1 As System.Int32).Equals(obj As System.Object) As System.Boolean",
-"Function (a1 As System.Int32, a2 As System.Int32, a3 As System.Int32, a4 As System.Int32, a5 As System.Int32, a6 As System.Int32, a7 As System.Int32, Item1 As System.Int32).Equals(other As System.ValueTuple(Of System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, (System.Int32))) As System.Boolean",
+"Function (a1 As System.Int32, a2 As System.Int32, a3 As System.Int32, a4 As System.Int32, a5 As System.Int32, a6 As System.Int32, a7 As System.Int32, Item1 As System.Int32).Equals(other As System.ValueTuple(Of System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, ValueTuple(Of System.Int32))) As System.Boolean",
 "Function (a1 As System.Int32, a2 As System.Int32, a3 As System.Int32, a4 As System.Int32, a5 As System.Int32, a6 As System.Int32, a7 As System.Int32, Item1 As System.Int32).System.Collections.IStructuralEquatable.Equals(other As System.Object, comparer As System.Collections.IEqualityComparer) As System.Boolean",
 "Function (a1 As System.Int32, a2 As System.Int32, a3 As System.Int32, a4 As System.Int32, a5 As System.Int32, a6 As System.Int32, a7 As System.Int32, Item1 As System.Int32).System.IComparable.CompareTo(other As System.Object) As System.Int32",
-"Function (a1 As System.Int32, a2 As System.Int32, a3 As System.Int32, a4 As System.Int32, a5 As System.Int32, a6 As System.Int32, a7 As System.Int32, Item1 As System.Int32).CompareTo(other As System.ValueTuple(Of System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, (System.Int32))) As System.Int32",
+"Function (a1 As System.Int32, a2 As System.Int32, a3 As System.Int32, a4 As System.Int32, a5 As System.Int32, a6 As System.Int32, a7 As System.Int32, Item1 As System.Int32).CompareTo(other As System.ValueTuple(Of System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, ValueTuple(Of System.Int32))) As System.Int32",
 "Function (a1 As System.Int32, a2 As System.Int32, a3 As System.Int32, a4 As System.Int32, a5 As System.Int32, a6 As System.Int32, a7 As System.Int32, Item1 As System.Int32).System.Collections.IStructuralComparable.CompareTo(other As System.Object, comparer As System.Collections.IComparer) As System.Int32",
 "Function (a1 As System.Int32, a2 As System.Int32, a3 As System.Int32, a4 As System.Int32, a5 As System.Int32, a6 As System.Int32, a7 As System.Int32, Item1 As System.Int32).GetHashCode() As System.Int32",
 "Function (a1 As System.Int32, a2 As System.Int32, a3 As System.Int32, a4 As System.Int32, a5 As System.Int32, a6 As System.Int32, a7 As System.Int32, Item1 As System.Int32).System.Collections.IStructuralEquatable.GetHashCode(comparer As System.Collections.IEqualityComparer) As System.Int32",
@@ -14927,22 +14934,22 @@ BC37261: Tuple element name 'Item1' is only allowed at position 1.
             AssertTupleTypeEquality(m8TupleRestTuple)
 
             AssertTestDisplayString(m8TupleRestTuple.GetMembers(),
-"(System.Int32).Item1 As System.Int32",
-"Sub (System.Int32)..ctor()",
-"Sub (System.Int32)..ctor(item1 As System.Int32)",
-"Function (System.Int32).Equals(obj As System.Object) As System.Boolean",
-"Function (System.Int32).Equals(other As (System.Int32)) As System.Boolean",
-"Function (System.Int32).System.Collections.IStructuralEquatable.Equals(other As System.Object, comparer As System.Collections.IEqualityComparer) As System.Boolean",
-"Function (System.Int32).System.IComparable.CompareTo(other As System.Object) As System.Int32",
-"Function (System.Int32).CompareTo(other As (System.Int32)) As System.Int32",
-"Function (System.Int32).System.Collections.IStructuralComparable.CompareTo(other As System.Object, comparer As System.Collections.IComparer) As System.Int32",
-"Function (System.Int32).GetHashCode() As System.Int32",
-"Function (System.Int32).System.Collections.IStructuralEquatable.GetHashCode(comparer As System.Collections.IEqualityComparer) As System.Int32",
-"Function (System.Int32).System.ITupleInternal.GetHashCode(comparer As System.Collections.IEqualityComparer) As System.Int32",
-"Function (System.Int32).ToString() As System.String",
-"Function (System.Int32).System.ITupleInternal.ToStringEnd() As System.String",
-"Function (System.Int32).System.ITupleInternal.get_Size() As System.Int32",
-"ReadOnly Property (System.Int32).System.ITupleInternal.Size As System.Int32"
+"ValueTuple(Of System.Int32).Item1 As System.Int32",
+"Sub ValueTuple(Of System.Int32)..ctor()",
+"Sub ValueTuple(Of System.Int32)..ctor(item1 As System.Int32)",
+"Function ValueTuple(Of System.Int32).Equals(obj As System.Object) As System.Boolean",
+"Function ValueTuple(Of System.Int32).Equals(other As ValueTuple(Of System.Int32)) As System.Boolean",
+"Function ValueTuple(Of System.Int32).System.Collections.IStructuralEquatable.Equals(other As System.Object, comparer As System.Collections.IEqualityComparer) As System.Boolean",
+"Function ValueTuple(Of System.Int32).System.IComparable.CompareTo(other As System.Object) As System.Int32",
+"Function ValueTuple(Of System.Int32).CompareTo(other As ValueTuple(Of System.Int32)) As System.Int32",
+"Function ValueTuple(Of System.Int32).System.Collections.IStructuralComparable.CompareTo(other As System.Object, comparer As System.Collections.IComparer) As System.Int32",
+"Function ValueTuple(Of System.Int32).GetHashCode() As System.Int32",
+"Function ValueTuple(Of System.Int32).System.Collections.IStructuralEquatable.GetHashCode(comparer As System.Collections.IEqualityComparer) As System.Int32",
+"Function ValueTuple(Of System.Int32).System.ITupleInternal.GetHashCode(comparer As System.Collections.IEqualityComparer) As System.Int32",
+"Function ValueTuple(Of System.Int32).ToString() As System.String",
+"Function ValueTuple(Of System.Int32).System.ITupleInternal.ToStringEnd() As System.String",
+"Function ValueTuple(Of System.Int32).System.ITupleInternal.get_Size() As System.Int32",
+"ReadOnly Property ValueTuple(Of System.Int32).System.ITupleInternal.Size As System.Int32"
 )
 
         End Sub
@@ -17442,10 +17449,10 @@ End Class
 
             comp.AssertTheseDiagnostics(
 <errors>
-BC41009: The tuple element name 'b' is ignored because a different name is specified by the target type '(a As Integer, Integer)'.
+BC41009: The tuple element name 'b' is ignored because a different name or no name is specified by the target type '(a As Integer, Integer)'.
         Dim x1 = If(flag, (a:=1, b:=2), (a:=1, c:=3))
                                  ~~~~
-BC41009: The tuple element name 'c' is ignored because a different name is specified by the target type '(a As Integer, Integer)'.
+BC41009: The tuple element name 'c' is ignored because a different name or no name is specified by the target type '(a As Integer, Integer)'.
         Dim x1 = If(flag, (a:=1, b:=2), (a:=1, c:=3))
                                                ~~~~
 </errors>)
@@ -17501,7 +17508,7 @@ End Class
 
             comp.AssertTheseDiagnostics(
 <errors>
-BC41009: The tuple element name 'c' is ignored because a different name is specified by the target type '(a As Integer, Integer)'.
+BC41009: The tuple element name 'c' is ignored because a different name or no name is specified by the target type '(a As Integer, Integer)'.
         Dim x6 = If(nab, (a:= 1, c:= 3)) ' (a, )
                                  ~~~~~
 </errors>)
@@ -17559,16 +17566,16 @@ End Class
 
             comp.AssertTheseDiagnostics(
 <errors>
-BC41009: The tuple element name 'a' is ignored because a different name is specified by the target type '(Integer, Integer)'.
+BC41009: The tuple element name 'a' is ignored because a different name or no name is specified by the target type '(Integer, Integer)'.
         Dim x1 = If(flag, (a:=1, b:=2), (1, 3))
                            ~~~~
-BC41009: The tuple element name 'b' is ignored because a different name is specified by the target type '(Integer, Integer)'.
+BC41009: The tuple element name 'b' is ignored because a different name or no name is specified by the target type '(Integer, Integer)'.
         Dim x1 = If(flag, (a:=1, b:=2), (1, 3))
                                  ~~~~
-BC41009: The tuple element name 'a' is ignored because a different name is specified by the target type '(Integer, Integer)'.
+BC41009: The tuple element name 'a' is ignored because a different name or no name is specified by the target type '(Integer, Integer)'.
         Dim x2 = If(flag, (1, 2), (a:=1, b:=3))
                                    ~~~~
-BC41009: The tuple element name 'b' is ignored because a different name is specified by the target type '(Integer, Integer)'.
+BC41009: The tuple element name 'b' is ignored because a different name or no name is specified by the target type '(Integer, Integer)'.
         Dim x2 = If(flag, (1, 2), (a:=1, b:=3))
                                          ~~~~
 </errors>)
@@ -17603,7 +17610,7 @@ End Class
 
             comp.AssertTheseDiagnostics(
 <errors>
-BC41009: The tuple element name 'c' is ignored because a different name is specified by the target type '(a As Integer, b As Long)'.
+BC41009: The tuple element name 'c' is ignored because a different name or no name is specified by the target type '(a As Integer, b As Long)'.
         Dim x1 = If(flag, (a:=1, b:=CType(2, Long)), (a:=CType(1, Byte), c:=3))
                                                                          ~~~~
 </errors>)
@@ -17648,15 +17655,16 @@ End Class
 
             comp.AssertTheseDiagnostics(
 <errors>
-BC41009: The tuple element name 'b' is ignored because a different name is specified by the target type '(a As Integer, Integer)'.
+BC41009: The tuple element name 'b' is ignored because a different name or no name is specified by the target type '(a As Integer, Integer)'.
                 Return (a:=1, b:=2)
                               ~~~~
-BC41009: The tuple element name 'c' is ignored because a different name is specified by the target type '(a As Integer, Integer)'.
+BC41009: The tuple element name 'c' is ignored because a different name or no name is specified by the target type '(a As Integer, Integer)'.
                     Return (a:=1, c:=3)
                                   ~~~~
-BC41009: The tuple element name 'd' is ignored because a different name is specified by the target type '(a As Integer, Integer)'.
+BC41009: The tuple element name 'd' is ignored because a different name or no name is specified by the target type '(a As Integer, Integer)'.
                     Return (a:=1, d:=4)
                                   ~~~~
+
 </errors>)
 
             Dim tree = comp.SyntaxTrees(0)
@@ -17861,10 +17869,10 @@ End Class
 
             comp.AssertTheseDiagnostics(
 <errors>
-BC41009: The tuple element name 'b' is ignored because a different name is specified by the target type '(a As Integer, Integer)'.
+BC41009: The tuple element name 'b' is ignored because a different name or no name is specified by the target type '(a As Integer, Integer)'.
         Dim x1 As (a As Integer, Integer) = (1, b:=2)
                                                 ~~~~
-BC41009: The tuple element name 'b' is ignored because a different name is specified by the target type '(a As Integer, String)'.
+BC41009: The tuple element name 'b' is ignored because a different name or no name is specified by the target type '(a As Integer, String)'.
         Dim x2 As (a As Integer, String) = (1, b:=Nothing)
                                                ~~~~~~~~~~
 </errors>)
@@ -17895,10 +17903,10 @@ End Class
 
             comp.AssertTheseDiagnostics(
 <errors>
-BC41009: The tuple element name 'b' is ignored because a different name is specified by the target type '(a As Integer, Integer)'.
+BC41009: The tuple element name 'b' is ignored because a different name or no name is specified by the target type '(a As Integer, Integer)'.
         Dim t = M2((a:=1, b:=2), (a:=1, c:=3))
                           ~~~~
-BC41009: The tuple element name 'c' is ignored because a different name is specified by the target type '(a As Integer, Integer)'.
+BC41009: The tuple element name 'c' is ignored because a different name or no name is specified by the target type '(a As Integer, Integer)'.
         Dim t = M2((a:=1, b:=2), (a:=1, c:=3))
                                         ~~~~
 BC30456: 'b' is not a member of '(a As Integer, Integer)'.
@@ -17907,10 +17915,10 @@ BC30456: 'b' is not a member of '(a As Integer, Integer)'.
 BC30456: 'c' is not a member of '(a As Integer, Integer)'.
         System.Console.Write(t.c)
                              ~~~
-BC41009: The tuple element name 'c' is ignored because a different name is specified by the target type '(Integer, Integer)'.
+BC41009: The tuple element name 'c' is ignored because a different name or no name is specified by the target type '(Integer, Integer)'.
         M2((1, 2), (c:=1, d:=3))
                     ~~~~
-BC41009: The tuple element name 'd' is ignored because a different name is specified by the target type '(Integer, Integer)'.
+BC41009: The tuple element name 'd' is ignored because a different name or no name is specified by the target type '(Integer, Integer)'.
         M2((1, 2), (c:=1, d:=3))
                           ~~~~
 </errors>)
@@ -17954,13 +17962,13 @@ End Class
 
             comp.AssertTheseDiagnostics(
 <errors>
-BC41009: The tuple element name 'c' is ignored because a different name is specified by the target type '(a As Integer, b As Integer)'.
+BC41009: The tuple element name 'c' is ignored because a different name or no name is specified by the target type '(a As Integer, b As Integer)'.
         M2((a:=1, b:=2), (a:=CType(1, Byte), c:=CType(3, Byte)))
                                              ~~~~~~~~~~~~~~~~~
-BC41009: The tuple element name 'c' is ignored because a different name is specified by the target type '(Long, b As Integer)'.
+BC41009: The tuple element name 'c' is ignored because a different name or no name is specified by the target type '(Long, b As Integer)'.
         M2((CType(1, Long), b:=2), (c:=1, d:=CType(3, Byte)))
                                     ~~~~
-BC41009: The tuple element name 'd' is ignored because a different name is specified by the target type '(Long, b As Integer)'.
+BC41009: The tuple element name 'd' is ignored because a different name or no name is specified by the target type '(Long, b As Integer)'.
         M2((CType(1, Long), b:=2), (c:=1, d:=CType(3, Byte)))
                                           ~~~~~~~~~~~~~~~~~
 </errors>)

@@ -39,7 +39,7 @@ class C
     }
 }
 ";
-            var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.DebugDll);
+            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source0);
 
             var v0 = CompileAndVerify(compilation0);
@@ -114,7 +114,7 @@ public class C
         for (j = 1; j < 3; j++) Console.WriteLine(3);
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(source, options: ComSafeDebugDll);
+            var compilation0 = CreateStandardCompilation(source, options: ComSafeDebugDll);
             var compilation1 = compilation0.WithSource(source);
 
             var v0 = CompileAndVerify(compilation0);
@@ -328,8 +328,8 @@ public class C
         using (F()) { }
     }
 }";
-            var debug = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
-            var release = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll);
+            var debug = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var release = CreateStandardCompilation(source, options: TestOptions.ReleaseDll);
 
             CompileAndVerify(debug).VerifyPdb("C.M", @"
 <symbols>
@@ -407,7 +407,7 @@ public class C
         }
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source);
 
             var testData0 = new CompilationTestData();
@@ -504,7 +504,7 @@ public class C
         }
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source);
 
             var testData0 = new CompilationTestData();
@@ -659,7 +659,7 @@ public class C
         }
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.UnsafeDebugDll);
+            var compilation0 = CreateStandardCompilation(source, options: TestOptions.UnsafeDebugDll);
             var compilation1 = compilation0.WithSource(source);
 
             var testData0 = new CompilationTestData();
@@ -767,7 +767,7 @@ public class C
         }
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.UnsafeDebugDll);
+            var compilation0 = CreateStandardCompilation(source, options: TestOptions.UnsafeDebugDll);
             var compilation1 = compilation0.WithSource(source);
 
             var testData0 = new CompilationTestData();
@@ -931,7 +931,7 @@ class C
         }
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source);
 
             var testData0 = new CompilationTestData();
@@ -1114,7 +1114,7 @@ class C
         }
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source);
 
             var v0 = CompileAndVerify(compilation0);
@@ -1299,7 +1299,7 @@ class C
         }
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source);
 
             var testData0 = new CompilationTestData();
@@ -1459,7 +1459,7 @@ class C
             var tooManyCommas = new string(',', 256);
             Assert.True(source.IndexOf(tooManyCommas, StringComparison.Ordinal) > 0);
 
-            var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source);
 
             var testData0 = new CompilationTestData();
@@ -1489,7 +1489,7 @@ class C
         }
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(
+            var compilation0 = CreateStandardCompilation(
                 source,
                 options: TestOptions.DebugDll,
                 references: new[] { SystemCoreRef, CSharpRef, ValueTupleRef, SystemRuntimeFacadeRef });
@@ -1609,7 +1609,7 @@ class C
         foreach (var c in F2()) { }
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.DebugDll);
+            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll);
 
             var v0 = CompileAndVerify(compilation0);
             v0.VerifyIL("C.M", @"
@@ -1686,7 +1686,7 @@ class C
   IL_005c:  ret
 }");
 
-            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll);
+            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll);
             var compilation2 = compilation0.WithSource(source2);
 
             var methodData0 = v0.TestData.GetMethodData("C.M");
@@ -1866,7 +1866,7 @@ class C
         lock (F4()) { } // replaced
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.DebugDll);
+            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
 
             var testData0 = new CompilationTestData();
@@ -2004,7 +2004,7 @@ class C
     }
 }";
 
-            var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source);
 
             var testData0 = new CompilationTestData();
@@ -2149,7 +2149,7 @@ class C
         }
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.DebugDll);
+            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
 
             var v0 = CompileAndVerify(compilation0);
@@ -2253,7 +2253,7 @@ class C
         }
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.DebugDll);
+            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
 
             var v0 = CompileAndVerify(compilation0);
@@ -2375,7 +2375,7 @@ class C
         }
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.DebugDll);
+            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
 
             var v0 = CompileAndVerify(compilation0);
@@ -2479,7 +2479,7 @@ class C
         }
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.DebugDll);
+            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
 
             var v0 = CompileAndVerify(compilation0);
@@ -2588,7 +2588,7 @@ class C
         while (F());
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.DebugDll);
+            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
 
             var v0 = CompileAndVerify(compilation0);
@@ -2693,7 +2693,7 @@ class C
         }
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.DebugDll);
+            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
 
             var v0 = CompileAndVerify(compilation0);
@@ -2785,7 +2785,7 @@ class C
         }
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source);
 
             var v0 = CompileAndVerify(compilation0);
@@ -2853,7 +2853,7 @@ class C
     }
 }
 ";
-            var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source);
 
             var v0 = CompileAndVerify(compilation0);
@@ -2969,7 +2969,7 @@ class C
 
             v0.VerifyIL("C.<F>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext", @"
 {
-  // Code size      254 (0xfe)
+  // Code size      246 (0xf6)
   .maxstack  3
   .locals init (int V_0,
                 int V_1,
@@ -3047,7 +3047,7 @@ class C
     IL_0094:  ldloca.s   V_3
     IL_0096:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter<int>, C.<F>d__0>(ref System.Runtime.CompilerServices.TaskAwaiter<int>, ref C.<F>d__0)""
     IL_009b:  nop
-    IL_009c:  leave.s    IL_00fd
+    IL_009c:  leave.s    IL_00f5
    >IL_009e:  ldarg.0
     IL_009f:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> C.<F>d__0.<>u__1""
     IL_00a4:  stloc.2
@@ -3062,34 +3062,32 @@ class C
     IL_00ba:  ldloca.s   V_2
     IL_00bc:  call       ""int System.Runtime.CompilerServices.TaskAwaiter<int>.GetResult()""
     IL_00c1:  pop
-    IL_00c2:  ldloca.s   V_2
-    IL_00c4:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter<int>""
-   -IL_00ca:  ldc.i4.1
-    IL_00cb:  stloc.1
-    IL_00cc:  leave.s    IL_00e8
+   -IL_00c2:  ldc.i4.1
+    IL_00c3:  stloc.1
+    IL_00c4:  leave.s    IL_00e0
   }
   catch System.Exception
   {
-   ~IL_00ce:  stloc.s    V_4
+   ~IL_00c6:  stloc.s    V_4
+    IL_00c8:  ldarg.0
+    IL_00c9:  ldc.i4.s   -2
+    IL_00cb:  stfld      ""int C.<F>d__0.<>1__state""
     IL_00d0:  ldarg.0
-    IL_00d1:  ldc.i4.s   -2
-    IL_00d3:  stfld      ""int C.<F>d__0.<>1__state""
-    IL_00d8:  ldarg.0
-    IL_00d9:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> C.<F>d__0.<>t__builder""
-    IL_00de:  ldloc.s    V_4
-    IL_00e0:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.SetException(System.Exception)""
-    IL_00e5:  nop
-    IL_00e6:  leave.s    IL_00fd
+    IL_00d1:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> C.<F>d__0.<>t__builder""
+    IL_00d6:  ldloc.s    V_4
+    IL_00d8:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.SetException(System.Exception)""
+    IL_00dd:  nop
+    IL_00de:  leave.s    IL_00f5
   }
- -IL_00e8:  ldarg.0
-  IL_00e9:  ldc.i4.s   -2
-  IL_00eb:  stfld      ""int C.<F>d__0.<>1__state""
- ~IL_00f0:  ldarg.0
-  IL_00f1:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> C.<F>d__0.<>t__builder""
-  IL_00f6:  ldloc.1
-  IL_00f7:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.SetResult(int)""
-  IL_00fc:  nop
-  IL_00fd:  ret
+ -IL_00e0:  ldarg.0
+  IL_00e1:  ldc.i4.s   -2
+  IL_00e3:  stfld      ""int C.<F>d__0.<>1__state""
+ ~IL_00e8:  ldarg.0
+  IL_00e9:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> C.<F>d__0.<>t__builder""
+  IL_00ee:  ldloc.1
+  IL_00ef:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.SetResult(int)""
+  IL_00f4:  nop
+  IL_00f5:  ret
 }
 ", sequencePoints: "C+<F>d__0.MoveNext");
 

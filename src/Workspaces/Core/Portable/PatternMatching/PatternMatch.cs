@@ -64,10 +64,11 @@ namespace Microsoft.CodeAnalysis.PatternMatching
             }
         }
 
+        public PatternMatch WithMatchedSpans(ImmutableArray<TextSpan> matchedSpans)
+            => new PatternMatch(Kind, _punctuationStripped, IsCaseSensitive, matchedSpans, CamelCaseWeight);
+
         public int CompareTo(PatternMatch other)
-        {
-            return CompareTo(other, ignoreCase: false);
-        }
+            => CompareTo(other, ignoreCase: false);
 
         public int CompareTo(PatternMatch other, bool ignoreCase)
         {
@@ -109,9 +110,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
         }
 
         private static int CompareType(PatternMatch result1, PatternMatch result2)
-        {
-            return result1.Kind - result2.Kind;
-        }
+            => result1.Kind - result2.Kind;
 
         private static int CompareCamelCase(PatternMatch result1, PatternMatch result2)
         {

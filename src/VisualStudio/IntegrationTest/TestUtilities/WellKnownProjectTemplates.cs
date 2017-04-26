@@ -10,5 +10,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         public const string WinFormsApplication = nameof(WinFormsApplication);
         public const string WpfApplication = nameof(WpfApplication);
         public const string WebApplication = nameof(WebApplication);
+        public const string CSharpNetCoreClassLibrary = "Microsoft.CSharp.NETCore.ClassLibrary";
+        public const string VisualBasicNetCoreClassLibrary = "Microsoft.VisualBasic.NETCore.ClassLibrary";
+        public const string CSharpNetCoreConsoleApplication = "Microsoft.CSharp.NETCore.ConsoleApplication";
+        public const string VisualBasicNetCoreConsoleApplication = "Microsoft.VisualBasic.NETCore.ConsoleApplication";
+        public const string CSharpNetCoreUnitTest = "Microsoft.CSharp.NETCore.UnitTest";
+        public const string CSharpNetCoreXUnitTest = "Microsoft.CSharp.NETCore.XUnitTest";
     }
 }

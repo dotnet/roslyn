@@ -194,6 +194,7 @@
     <Compile Include="Diagnostics\DiagnosticsSquiggleTaggerProviderTests.cs" />
     <Compile Include="Diagnostics\SuppressMessageAttributeTests.cs" />
     <Compile Include="CodeFixes\ExtensionOrderingTests.cs" />
+    <Compile Include="EditAndContinue\TraceLogTests.cs" />
     <Compile Include="Extensions\SourceTextContainerExtensionsTests.cs" />
     <Compile Include="Preview\TestOnly_CompilerDiagnosticAnalyzerProviderService.cs" />
     <Compile Include="Structure\BlockStructureServiceTests.cs" />
@@ -212,8 +213,6 @@
     <Compile Include="Extensions\ITextSnapshotExtensionsTests.cs" />
     <Compile Include="Extensions\ITextSnapshotLineExtensionsTests.cs" />
     <Compile Include="Extensions\SetExtensionTests.cs" />
-    <Compile Include="FindReferences\FindReferencesCommandHandlerTests.cs" />
-    <Compile Include="FindReferences\MockDefinitionsAndReferencesPresenter.cs" />
     <Compile Include="LineSeparators\AdornmentManagerTests.cs" />
     <Compile Include="LinkedFiles\LinkedFileDiffMergingEditorTests.cs" />
     <Compile Include="MetadataAsSource\AbstractMetadataAsSourceTests.cs" />

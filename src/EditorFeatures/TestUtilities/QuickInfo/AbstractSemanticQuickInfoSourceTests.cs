@@ -162,10 +162,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo
 
         protected void WaitForDocumentationComment(object content)
         {
-            if (content is QuickInfoDisplayDeferredContent)
+            if (content is QuickInfoDisplayDeferredContent deferredContent)
             {
-                var docCommentDeferredContent = ((QuickInfoDisplayDeferredContent)content).Documentation as DocumentationCommentDeferredContent;
-                if (docCommentDeferredContent != null)
+                if (deferredContent.Documentation is DocumentationCommentDeferredContent docCommentDeferredContent)
                 {
                     docCommentDeferredContent.WaitForDocumentationCommentTask_ForTestingPurposesOnly();
                 }

@@ -63,7 +63,7 @@ this[1]
         [Fact]
         public void Submission_TypeDisambiguationBasedUponAssemblyName()
         {
-            var compilation = CreateCompilationWithMscorlib("namespace System { public struct Int32 { } }");
+            var compilation = CreateStandardCompilation("namespace System { public struct Int32 { } }");
 
             compilation.VerifyDiagnostics();
         }
@@ -1148,15 +1148,6 @@ goto Label;");
                 // System.Console.WriteLine(out var x, x);
                 Diagnostic(ErrorCode.ERR_RecursivelyTypedVariable, "x").WithArguments("x").WithLocation(1, 34)
                 );
-        }
-
-        [Fact]
-        [WorkItem(10023, "https://github.com/dotnet/roslyn/issues/10023")]
-        public void NoNeedToTestSourceCodeKindInteractive()
-        {
-#pragma warning disable CS0618
-            Assert.Throws<ArgumentOutOfRangeException>(() => new CSharp.CSharpParseOptions(kind: SourceCodeKind.Interactive));
-#pragma warning restore CS0618
         }
 
         private static MemberAccessExpressionSyntax ErrorTestsGetNode(SyntaxTree syntaxTree)

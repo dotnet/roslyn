@@ -67,9 +67,6 @@
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\..\..\Workspaces\Remote\ServiceHub\CodeLens\CodeLensArguments.cs">
-      <Link>CodeLens\CodeLensArguments.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\Workspaces\Remote\ServiceHub\Shared\ClientDirectStream.cs">
       <Link>Shared\ClientDirectStream.cs</Link>
     </Compile>
@@ -105,7 +102,6 @@
     <Compile Include="FindReferences\StreamingFindUsagesPresenter.cs" />
     <Compile Include="FindReferences\ToolTips\DisposableToolTip.cs" />
     <Compile Include="FindReferences\TableEntriesSnapshot.cs" />
-    <Compile Include="FindReferences\TaggedTextAndHighlightSpan.cs" />
     <Compile Include="FindReferences\ToolTips\LazyToolTip.cs" />
     <Compile Include="ProjectSystem\DeferredProjectWorkspaceService.cs" />
     <Compile Include="Remote\JsonRpcClient.cs" />

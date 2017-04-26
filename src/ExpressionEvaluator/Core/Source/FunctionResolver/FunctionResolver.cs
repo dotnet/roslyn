@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             {
                 ptr = module.GetMetaDataBytesPtr(out length);
             }
-            catch (Exception e) when (IsBadOrMissingMetadataException(e))
+            catch (Exception e) when (MetadataUtilities.IsBadOrMissingMetadataException(e, module.FullName))
             {
                 return null;
             }
@@ -189,21 +189,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             catch (NotImplementedException)
             {
                 return false;
-            }
-        }
-
-        private const uint COR_E_BADIMAGEFORMAT = 0x8007000b;
-        private const uint CORDBG_E_MISSING_METADATA = 0x80131c35;
-
-        private static bool IsBadOrMissingMetadataException(Exception e)
-        {
-            switch (unchecked((uint)e.HResult))
-            {
-                case COR_E_BADIMAGEFORMAT:
-                case CORDBG_E_MISSING_METADATA:
-                    return true;
-                default:
-                    return false;
             }
         }
 

@@ -18,7 +18,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
         public void VerifyOpen()
         {
-            var dialog = DialogHelpers.FindDialog(GetMainWindowHWnd(), GenerateTypeDialogID, isOpen: true);
+            var dialog = DialogHelpers.FindDialogByAutomationId(GetMainWindowHWnd(), GenerateTypeDialogID, isOpen: true);
 
             if (dialog == null)
             {
@@ -28,7 +28,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
         public void VerifyClosed()
         {
-            var dialog = DialogHelpers.FindDialog(GetMainWindowHWnd(), GenerateTypeDialogID, isOpen: false);
+            var dialog = DialogHelpers.FindDialogByAutomationId(GetMainWindowHWnd(), GenerateTypeDialogID, isOpen: false);
 
             if (dialog != null)
             {
@@ -69,7 +69,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public void ClickOK()
         {
             DialogHelpers.PressButtonWithName(GetMainWindowHWnd(), GenerateTypeDialogID, "OK");
-            VisualStudioInstance.VisualStudioWorkspace.WaitForAsyncOperations(FeatureAttribute.LightBulb);
+            VisualStudioInstance.Workspace.WaitForAsyncOperations(FeatureAttribute.LightBulb);
         }
 
         /// <summary>
@@ -78,12 +78,12 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public void ClickCancel()
         {
             DialogHelpers.PressButtonWithName(GetMainWindowHWnd(), GenerateTypeDialogID, "Cancel");
-            VisualStudioInstance.VisualStudioWorkspace.WaitForAsyncOperations(FeatureAttribute.LightBulb);
+            VisualStudioInstance.Workspace.WaitForAsyncOperations(FeatureAttribute.LightBulb);
         }
 
         public string[] GetNewFileComboBoxItems()
         {
-            var dialog = DialogHelpers.GetOpenDialog(GetMainWindowHWnd(), GenerateTypeDialogID);
+            var dialog = DialogHelpers.GetOpenDialogById(GetMainWindowHWnd(), GenerateTypeDialogID);
             var createNewFileComboBox = dialog.FindDescendantByAutomationId("CreateNewFileComboBox");
             createNewFileComboBox.Expand();
 

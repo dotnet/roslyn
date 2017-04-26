@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     return await AnalyzeInProcAsync(analyzerDriver, project, cancellationToken).ConfigureAwait(false);
                 }
 
-                var remoteHostClient = await service.GetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
+                var remoteHostClient = await service.TryGetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
                 if (remoteHostClient == null)
                 {
                     // remote host is not running. this can happen if remote host is disabled.

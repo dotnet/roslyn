@@ -134,9 +134,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         private static ImmutableArray<IParameterSymbol> GetMethodOrIndexerOrEventParameters(ISymbol symbol)
         {
-            if (symbol is IEventSymbol)
+            if (symbol is IEventSymbol ev)
             {
-                var ev = (IEventSymbol)symbol;
                 var type = ev.Type as INamedTypeSymbol;
                 if (type.IsDelegateType())
                 {

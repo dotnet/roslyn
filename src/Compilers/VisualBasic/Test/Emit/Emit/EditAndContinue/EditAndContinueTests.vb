@@ -4495,7 +4495,7 @@ End Class
 ]]>
                     </file>
                 </compilation>
-            Dim metadata0 = DirectCast(CompileIL(ilSource, appendDefaultHeader:=False), MetadataImageReference)
+            Dim metadata0 = DirectCast(CompileIL(ilSource, prependDefaultHeader:=False), MetadataImageReference)
             ' Still need a compilation with source for the initial
             ' generation - to get a MethodSymbol and syntax map.
             Dim compilation0 = CreateCompilationWithMscorlib(source, options:=TestOptions.DebugDll)

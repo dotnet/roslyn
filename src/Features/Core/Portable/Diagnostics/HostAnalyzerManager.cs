@@ -528,7 +528,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     documentId: null,
                     diagnostics: ImmutableArray.Create<DiagnosticData>(diagnostic));
 
-                _hostUpdateSource.RaiseDiagnosticsUpdated(args);
+                // this can be null in test. but in product code, this should never be null.
+                _hostUpdateSource?.RaiseDiagnosticsUpdated(args);
             }
         }
     }

@@ -26,9 +26,9 @@ namespace Microsoft.CodeAnalysis.Execution
             // one makes us to have a lot of unnecessary allocations due to Task and overall slow down of several seconds.
             //
             // all calls used to be all async and converted back to synchronous due to all those unnecessary overhead of tasks.
-            if (value is TextDocumentState)
+            if (value is TextDocumentState state)
             {
-                return new SourceTextAsset(checksum, (TextDocumentState)value, serializer);
+                return new SourceTextAsset(checksum, state, serializer);
             }
 
             return new SimpleSolutionAsset(checksum, value, serializer);

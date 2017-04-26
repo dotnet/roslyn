@@ -37,14 +37,14 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
             // We can't go to the definition of the alias, so use the target type.
 
             var solution = project.Solution;
-            if (symbol is IAliasSymbol)
+            if (alias != null)
             {
                 var sourceLocations = NavigableItemFactory.GetPreferredSourceLocations(
                     solution, symbol, cancellationToken);
 
                 if (sourceLocations.All(l => project.Solution.GetDocument(l.SourceTree) == null))
                 {
-                    symbol = ((IAliasSymbol)symbol).Target;
+                    symbol = alias.Target;
                 }
             }
 
@@ -53,53 +53,32 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
 
             symbol = definition ?? symbol;
 
+            // If it is a partial method declaration with no body, choose to go to the implementation
+            // that has a method body.
+            if (symbol is IMethodSymbol method)
+            {
+                symbol = method.PartialImplementationPart ?? symbol;
+            }
+
             var definitions = ArrayBuilder<DefinitionItem>.GetInstance();
+            var definitionItem = symbol.ToClassifiedDefinitionItemAsync(
+                solution, includeHiddenLocations: true, cancellationToken: cancellationToken).WaitAndGetResult(cancellationToken);
+
             if (thirdPartyNavigationAllowed)
             {
                 var factory = solution.Workspace.Services.GetService<IDefinitionsAndReferencesFactory>();
-                var thirdPartyItem = factory?.GetThirdPartyDefinitionItem(solution, symbol, cancellationToken);
+                var thirdPartyItem = factory?.GetThirdPartyDefinitionItem(solution, definitionItem, cancellationToken);
                 definitions.AddIfNotNull(thirdPartyItem);
             }
 
-            // If it is a partial method declaration with no body, choose to go to the implementation
-            // that has a method body.
-            if (symbol is IMethodSymbol)
-            {
-                symbol = ((IMethodSymbol)symbol).PartialImplementationPart ?? symbol;
-            }
+            definitions.Add(definitionItem);
 
-            var options = project.Solution.Options;
-
-            definitions.Add(symbol.ToDefinitionItem(solution, includeHiddenLocations: true));
-
-            var presenter = GetFindUsagesPresenter(streamingPresenters);
+            var presenter = streamingPresenters.FirstOrDefault()?.Value;
             var title = string.Format(EditorFeaturesResources._0_declarations,
                 FindUsagesHelpers.GetDisplayName(symbol));
 
             return presenter.TryNavigateToOrPresentItemsAsync(
-                title, definitions.ToImmutableAndFree()).WaitAndGetResult(cancellationToken);
-        }
-
-        private static IStreamingFindUsagesPresenter GetFindUsagesPresenter(
-            IEnumerable<Lazy<IStreamingFindUsagesPresenter>> streamingPresenters)
-        {
-            try
-            {
-                return streamingPresenters.FirstOrDefault()?.Value;
-            }
-            catch
-            {
-                return null;
-            }
-        }
-
-        private static bool TryThirdPartyNavigation(
-            ISymbol symbol, Solution solution, CancellationToken cancellationToken)
-        {
-            var symbolNavigationService = solution.Workspace.Services.GetService<ISymbolNavigationService>();
-
-            // Notify of navigation so third parties can intercept the navigation
-            return symbolNavigationService.TrySymbolNavigationNotify(symbol, solution, cancellationToken);
+                project.Solution.Workspace, title, definitions.ToImmutableAndFree()).WaitAndGetResult(cancellationToken);
         }
     }
 }

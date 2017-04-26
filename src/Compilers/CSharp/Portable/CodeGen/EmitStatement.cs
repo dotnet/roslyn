@@ -1425,11 +1425,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         private LocalDefinition DefineLocal(LocalSymbol local, SyntaxNode syntaxNode)
         {
             var dynamicTransformFlags = !local.IsCompilerGenerated && local.Type.TypeSymbol.ContainsDynamic() ?
-                CSharpCompilation.DynamicTransformsEncoder.Encode(local.Type.TypeSymbol, _module.Compilation.GetSpecialType(SpecialType.System_Boolean), 0, RefKind.None) :
-                ImmutableArray<TypedConstant>.Empty;
+                CSharpCompilation.DynamicTransformsEncoder.Encode(local.Type.TypeSymbol, RefKind.None, 0) :
+                ImmutableArray<bool>.Empty;
             var tupleElementNames = !local.IsCompilerGenerated && local.Type.TypeSymbol.ContainsTupleNames() ?
-                CSharpCompilation.TupleNamesEncoder.Encode(local.Type.TypeSymbol, _module.Compilation.GetSpecialType(SpecialType.System_String)) :
-                ImmutableArray<TypedConstant>.Empty;
+                CSharpCompilation.TupleNamesEncoder.Encode(local.Type.TypeSymbol) :
+                ImmutableArray<string>.Empty;
 
             if (local.IsConst)
             {

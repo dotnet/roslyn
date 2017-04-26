@@ -1152,7 +1152,7 @@ class Test
         }
 
         [Fact]
-        public void EmitPDBLangConstructsLocals2()
+        public void EmitPDBLangConstructsLocalVariables()
         {
             string source = @"
 using System;
@@ -1364,6 +1364,178 @@ class Test
 </symbols>");
         }
 
+        [Fact, WorkItem(17947, "https://github.com/dotnet/roslyn/issues/17947")]
+        public void EmitPDBLangConstructsLocalConstants()
+        {
+            string source = @"
+using System;
+using System.Collections.Generic;
+using System.Linq;
+class Test
+{
+    public static void Main(string[] args)
+    {
+        int d1 = 0;
+        int[] arrInt = new int[] { 1, 2, 3 };
+        const dynamic scores = null;
+        const dynamic arrDynamic = null;
+        while (d1 < 1)
+        {
+            const dynamic dInWhile = null;
+            d1++;
+        }
+        do
+        {
+            const dynamic dInDoWhile = null;
+            d1++;
+        } while (d1 < 1);
+        foreach (int d in arrInt)
+        {
+            const dynamic dInForEach = null;
+        }
+        for (int i = 0; i < 1; i++)
+        {
+            const dynamic dInFor = null;
+        }
+        for (dynamic d = ""1""; ;)
+        {
+            //do nothing
+        }
+        if (d1 == 0)
+        {
+            const dynamic dInIf = null;
+        }
+        else
+        {
+            const dynamic dInElse = null;
+        }
+        try
+        {
+            const dynamic dInTry = null;
+            throw new Exception();
+        }
+        catch
+        {
+            const dynamic dInCatch = null;
+        }
+        finally
+        {
+            const dynamic dInFinally = null;
+        }
+        const IEnumerable<dynamic> scoreQuery1 = null;
+        const dynamic scoreQuery2 = null;
+    }
+}";
+
+            // BUG: note that dInIf, dInElse, dInTry, dInCatch, dInFinally, scoreQuery1, scoreQuery2 are missing from <dynamicLocals>
+
+            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            c.VerifyPdb(@"
+<symbols>
+  <methods>
+    <method containingType=""Test"" name=""Main"" parameterNames=""args"">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount=""3"" />
+        </using>
+        <dynamicLocals>
+          <bucket flagCount=""1"" flags=""1"" slotId=""9"" localName=""d"" />
+          <bucket flagCount=""1"" flags=""1"" slotId=""0"" localName=""scores"" />
+          <bucket flagCount=""1"" flags=""1"" slotId=""0"" localName=""arrDynamic"" />
+          <bucket flagCount=""2"" flags=""01"" slotId=""0"" localName=""scoreQuery1"" />
+          <bucket flagCount=""1"" flags=""1"" slotId=""0"" localName=""scoreQuery2"" />
+          <bucket flagCount=""1"" flags=""1"" slotId=""0"" localName=""dInWhile"" />
+          <bucket flagCount=""1"" flags=""1"" slotId=""0"" localName=""dInDoWhile"" />
+          <bucket flagCount=""1"" flags=""1"" slotId=""0"" localName=""dInForEach"" />
+          <bucket flagCount=""1"" flags=""1"" slotId=""0"" localName=""dInFor"" />
+        </dynamicLocals>
+        <encLocalSlotMap>
+          <slot kind=""0"" offset=""15"" />
+          <slot kind=""0"" offset=""38"" />
+          <slot kind=""1"" offset=""159"" />
+          <slot kind=""1"" offset=""268"" />
+          <slot kind=""6"" offset=""383"" />
+          <slot kind=""8"" offset=""383"" />
+          <slot kind=""0"" offset=""383"" />
+          <slot kind=""0"" offset=""495"" />
+          <slot kind=""1"" offset=""486"" />
+          <slot kind=""0"" offset=""600"" />
+          <slot kind=""1"" offset=""669"" />
+        </encLocalSlotMap>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""8"" startColumn=""5"" endLine=""8"" endColumn=""6"" />
+        <entry offset=""0x1"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""20"" />
+        <entry offset=""0x3"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""46"" />
+        <entry offset=""0x15"" hidden=""true"" />
+        <entry offset=""0x17"" startLine=""14"" startColumn=""9"" endLine=""14"" endColumn=""10"" />
+        <entry offset=""0x18"" startLine=""16"" startColumn=""13"" endLine=""16"" endColumn=""18"" />
+        <entry offset=""0x1c"" startLine=""17"" startColumn=""9"" endLine=""17"" endColumn=""10"" />
+        <entry offset=""0x1d"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""23"" />
+        <entry offset=""0x22"" hidden=""true"" />
+        <entry offset=""0x25"" startLine=""19"" startColumn=""9"" endLine=""19"" endColumn=""10"" />
+        <entry offset=""0x26"" startLine=""21"" startColumn=""13"" endLine=""21"" endColumn=""18"" />
+        <entry offset=""0x2a"" startLine=""22"" startColumn=""9"" endLine=""22"" endColumn=""10"" />
+        <entry offset=""0x2b"" startLine=""22"" startColumn=""11"" endLine=""22"" endColumn=""26"" />
+        <entry offset=""0x30"" hidden=""true"" />
+        <entry offset=""0x33"" startLine=""23"" startColumn=""9"" endLine=""23"" endColumn=""16"" />
+        <entry offset=""0x34"" startLine=""23"" startColumn=""27"" endLine=""23"" endColumn=""33"" />
+        <entry offset=""0x3a"" hidden=""true"" />
+        <entry offset=""0x3c"" startLine=""23"" startColumn=""18"" endLine=""23"" endColumn=""23"" />
+        <entry offset=""0x43"" startLine=""24"" startColumn=""9"" endLine=""24"" endColumn=""10"" />
+        <entry offset=""0x44"" startLine=""26"" startColumn=""9"" endLine=""26"" endColumn=""10"" />
+        <entry offset=""0x45"" hidden=""true"" />
+        <entry offset=""0x4b"" startLine=""23"" startColumn=""24"" endLine=""23"" endColumn=""26"" />
+        <entry offset=""0x53"" startLine=""27"" startColumn=""14"" endLine=""27"" endColumn=""23"" />
+        <entry offset=""0x56"" hidden=""true"" />
+        <entry offset=""0x58"" startLine=""28"" startColumn=""9"" endLine=""28"" endColumn=""10"" />
+        <entry offset=""0x59"" startLine=""30"" startColumn=""9"" endLine=""30"" endColumn=""10"" />
+        <entry offset=""0x5a"" startLine=""27"" startColumn=""32"" endLine=""27"" endColumn=""35"" />
+        <entry offset=""0x60"" startLine=""27"" startColumn=""25"" endLine=""27"" endColumn=""30"" />
+        <entry offset=""0x67"" hidden=""true"" />
+        <entry offset=""0x6b"" startLine=""31"" startColumn=""14"" endLine=""31"" endColumn=""29"" />
+        <entry offset=""0x72"" hidden=""true"" />
+        <entry offset=""0x74"" startLine=""32"" startColumn=""9"" endLine=""32"" endColumn=""10"" />
+        <entry offset=""0x75"" startLine=""34"" startColumn=""9"" endLine=""34"" endColumn=""10"" />
+        <entry offset=""0x76"" hidden=""true"" />
+      </sequencePoints>
+      <scope startOffset=""0x0"" endOffset=""0x78"">
+        <namespace name=""System"" />
+        <namespace name=""System.Collections.Generic"" />
+        <namespace name=""System.Linq"" />
+        <local name=""d1"" il_index=""0"" il_start=""0x0"" il_end=""0x78"" attributes=""0"" />
+        <local name=""arrInt"" il_index=""1"" il_start=""0x0"" il_end=""0x78"" attributes=""0"" />
+        <constant name=""scores"" value=""null"" type=""Object"" />
+        <constant name=""arrDynamic"" value=""null"" type=""Object"" />
+        <constant name=""scoreQuery1"" value=""null"" signature=""System.Collections.Generic.IEnumerable`1{Object}"" />
+        <constant name=""scoreQuery2"" value=""null"" type=""Object"" />
+        <scope startOffset=""0x17"" endOffset=""0x1d"">
+          <constant name=""dInWhile"" value=""null"" type=""Object"" />
+        </scope>
+        <scope startOffset=""0x25"" endOffset=""0x2b"">
+          <constant name=""dInDoWhile"" value=""null"" type=""Object"" />
+        </scope>
+        <scope startOffset=""0x3c"" endOffset=""0x45"">
+          <local name=""d"" il_index=""6"" il_start=""0x3c"" il_end=""0x45"" attributes=""0"" />
+          <scope startOffset=""0x43"" endOffset=""0x45"">
+            <constant name=""dInForEach"" value=""null"" type=""Object"" />
+          </scope>
+        </scope>
+        <scope startOffset=""0x53"" endOffset=""0x6b"">
+          <local name=""i"" il_index=""7"" il_start=""0x53"" il_end=""0x6b"" attributes=""0"" />
+          <scope startOffset=""0x58"" endOffset=""0x5a"">
+            <constant name=""dInFor"" value=""null"" type=""Object"" />
+          </scope>
+        </scope>
+        <scope startOffset=""0x6b"" endOffset=""0x78"">
+          <local name=""d"" il_index=""9"" il_start=""0x6b"" il_end=""0x78"" attributes=""0"" />
+        </scope>
+      </scope>
+    </method>
+  </methods>
+</symbols>");
+        }
+        
         [Fact]
         public void EmitPDBVarVariableLocal()
         {

@@ -278,7 +278,7 @@ null
             var verifier1 = CompileAndVerify(source1 + source2, expectedOutput: expectedOutput);
 
             // When the method with the attribute is from metadata.
-            var comp2 = CreateCompilationWithMscorlib(source2, new[] { MetadataReference.CreateFromImage(verifier1.EmittedAssemblyData) }, TestOptions.ReleaseExe);
+            var comp2 = CreateStandardCompilation(source2, new[] { MetadataReference.CreateFromImage(verifier1.EmittedAssemblyData) }, TestOptions.ReleaseExe);
             CompileAndVerify(comp2, expectedOutput: expectedOutput);
         }
 
@@ -376,7 +376,7 @@ null
             var verifier1 = CompileAndVerify(source1 + source2, expectedOutput: expectedOutput);
 
             // When the method with the attribute is from metadata.
-            var comp2 = CreateCompilationWithMscorlib(source2, new[] { MetadataReference.CreateFromImage(verifier1.EmittedAssemblyData) }, TestOptions.ReleaseExe);
+            var comp2 = CreateStandardCompilation(source2, new[] { MetadataReference.CreateFromImage(verifier1.EmittedAssemblyData) }, TestOptions.ReleaseExe);
             CompileAndVerify(comp2, expectedOutput: expectedOutput);
         }
 
@@ -675,7 +675,7 @@ class C
             // The native compiler does not consider an encompassing conversion from
             // a constant zero to an enum type to exist.  We reproduce that bug in
             // Roslyn for compatibility.
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics();
+            CreateStandardCompilation(text).VerifyDiagnostics();
         }
 
         [WorkItem(844635, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/844635")]
@@ -744,7 +744,7 @@ class Program
 }
 ";
 
-            CreateCompilationWithMscorlib(source).VerifyEmitDiagnostics(
+            CreateStandardCompilation(source).VerifyEmitDiagnostics(
                 // (8,17): error CS0837: The first operand of an 'is' or 'as' operator may not be a lambda expression, anonymous method, or method group.
                 //         var x = ICloneable.Clone is object;
                 Diagnostic(ErrorCode.ERR_LambdaInIsAs, "ICloneable.Clone is object").WithLocation(8, 17));
@@ -1067,6 +1067,33 @@ public interface IAaa
 
             var compilation = CreateCompilationWithMscorlib45AndCSruntime(source, options: TestOptions.ReleaseExe.WithAllowUnsafe(true));
             CompileAndVerify(compilation);
+        }
+
+        [Fact, WorkItem(17756, "https://github.com/dotnet/roslyn/issues/17756")]
+        public void TestIdentityConversionNotLvalue()
+        {
+            var source = @"
+class Program
+{
+    struct S1
+    {
+        public int field;
+        public int Increment() => field++;
+    }
+
+    static void Main()
+    {
+        S1 v = default(S1);
+        v.Increment(); 
+
+        ((S1)v).Increment();
+
+        System.Console.WriteLine(v.field);
+    }
+}
+";
+            string expectedOutput = @"1";
+            CompileAndVerify(source, expectedOutput: expectedOutput);
         }
     }
 }

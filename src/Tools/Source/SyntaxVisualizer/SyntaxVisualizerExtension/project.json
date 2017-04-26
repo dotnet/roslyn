@@ -1,6 +1,6 @@
 ﻿{
   "dependencies": {
-    "EnvDTE": "8.0.0",
+    "EnvDTE": "8.0.1",
     "EnvDTE80": "8.0.0",
     "Microsoft.CodeAnalysis.Analyzers": "1.1.0",
     "Microsoft.CodeAnalysis.Common": "1.0.1",

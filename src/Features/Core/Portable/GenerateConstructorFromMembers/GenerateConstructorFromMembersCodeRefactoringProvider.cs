@@ -21,6 +21,8 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
     [ExtensionOrder(Before = PredefinedCodeRefactoringProviderNames.GenerateEqualsAndGetHashCodeFromMembers)]
     internal partial class GenerateConstructorFromMembersCodeRefactoringProvider : AbstractGenerateFromMembersCodeRefactoringProvider
     {
+        private const string AddNullChecksId = nameof(AddNullChecksId);
+
         private readonly IPickMembersService _pickMembersService_forTesting;
 
         public GenerateConstructorFromMembersCodeRefactoringProvider() : this(null)
@@ -46,7 +48,8 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                 return;
             }
 
-            var actions = await this.GenerateConstructorFromMembersAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
+            var actions = await this.GenerateConstructorFromMembersAsync(
+                document, textSpan, addNullChecks: false, cancellationToken: cancellationToken).ConfigureAwait(false);
             context.RegisterRefactorings(actions);
 
             if (actions.IsDefaultOrEmpty && textSpan.IsEmpty)
@@ -104,7 +107,8 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
 
                     if (state != null)
                     {
-                        context.RegisterRefactoring(new FieldDelegatingCodeAction(this, document, state));
+                        context.RegisterRefactoring(
+                            new FieldDelegatingCodeAction(this, document, state, addNullChecks: false));
                     }
                 }
 
@@ -112,13 +116,29 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                 return;
             }
 
+            var pickMemberOptions = ArrayBuilder<PickMembersOption>.GetInstance();
+            var canAddNullCheck = viableMembers.Any(
+                m => m.GetSymbolType().CanAddNullCheck());
+
+            if (canAddNullCheck)
+            {
+                var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+                var optionValue = options.GetOption(GenerateConstructorFromMembersOptions.AddNullChecks);
+
+                pickMemberOptions.Add(new PickMembersOption(
+                    AddNullChecksId,
+                    FeaturesResources.Add_null_checks,
+                    optionValue));
+            }
+
             context.RegisterRefactoring(
                 new GenerateConstructorWithDialogCodeAction(
-                    this, document, textSpan, containingType, viableMembers));
+                    this, document, textSpan, containingType, viableMembers,
+                    pickMemberOptions.ToImmutableAndFree()));
         }
 
         public async Task<ImmutableArray<CodeAction>> GenerateConstructorFromMembersAsync(
-            Document document, TextSpan textSpan, CancellationToken cancellationToken)
+            Document document, TextSpan textSpan, bool addNullChecks, CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.Refactoring_GenerateFromMembers_GenerateConstructorFromMembers, cancellationToken))
             {
@@ -128,7 +148,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                     var state = State.TryGenerate(this, document, textSpan, info.ContainingType, info.SelectedMembers, cancellationToken);
                     if (state != null && state.MatchingConstructor == null)
                     {
-                        return GetCodeActions(document, state);
+                        return GetCodeActions(document, state, addNullChecks);
                     }
                 }
 
@@ -136,14 +156,14 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
             }
         }
 
-        private ImmutableArray<CodeAction> GetCodeActions(Document document, State state)
+        private ImmutableArray<CodeAction> GetCodeActions(Document document, State state, bool addNullChecks)
         {
             var result = ArrayBuilder<CodeAction>.GetInstance();
 
-            result.Add(new FieldDelegatingCodeAction(this, document, state));
+            result.Add(new FieldDelegatingCodeAction(this, document, state, addNullChecks));
             if (state.DelegatedConstructor != null)
             {
-                result.Add(new ConstructorDelegatingCodeAction(this, document, state));
+                result.Add(new ConstructorDelegatingCodeAction(this, document, state, addNullChecks));
             }
 
             return result.ToImmutableAndFree();

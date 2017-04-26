@@ -36,6 +36,12 @@ namespace Microsoft.CodeAnalysis.Remote
             _registrationService?.Unregister(this);
         }
 
+        // constructor for testing
+        public RemoteWorkspace(string workspaceKind)
+            : base(RoslynServices.HostServices, workspaceKind: workspaceKind)
+        {
+        }
+
         // this workspace doesn't allow modification by calling TryApplyChanges.
         // consumer of solution is still free to fork solution as they want, they just can't apply those changes
         // back to primary workspace. only solution service can update primary workspace
@@ -68,7 +74,6 @@ namespace Microsoft.CodeAnalysis.Remote
             lock (_gate)
             {
                 this.OnSolutionAdded(solutionInfo);
-                this.UpdateReferencesAfterAdd();
 
                 return this.CurrentSolution;
             }
@@ -91,8 +96,6 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 var newSolution = this.SetCurrentSolution(solution);
                 this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.SolutionChanged, oldSolution, newSolution);
-
-                this.UpdateReferencesAfterAdd();
 
                 return this.CurrentSolution;
             }

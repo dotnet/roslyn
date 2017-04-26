@@ -677,10 +677,10 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
 
         private void GetNamespaceContainers(NameSyntax name, List<string> namespaceContainers)
         {
-            if (name is QualifiedNameSyntax)
+            if (name is QualifiedNameSyntax qualifiedName)
             {
-                GetNamespaceContainers(((QualifiedNameSyntax)name).Left, namespaceContainers);
-                namespaceContainers.Add(((QualifiedNameSyntax)name).Right.Identifier.ValueText);
+                GetNamespaceContainers(qualifiedName.Left, namespaceContainers);
+                namespaceContainers.Add(qualifiedName.Right.Identifier.ValueText);
             }
             else
             {
@@ -833,9 +833,8 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
                 root = modifiedRoot;
             }
 
-            if (root is CompilationUnitSyntax)
+            if (root is CompilationUnitSyntax compilationRoot)
             {
-                var compilationRoot = (CompilationUnitSyntax)root;
                 var usingDirective = SyntaxFactory.UsingDirective(SyntaxFactory.ParseName(includeUsingsOrImports));
 
                 // Check if the usings is already present

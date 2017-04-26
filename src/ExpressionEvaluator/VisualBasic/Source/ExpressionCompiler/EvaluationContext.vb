@@ -351,14 +351,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 reuseSpan:=Nothing)
         End Function
 
-        Friend Function CreateCompilationContext(syntax As ExecutableStatementSyntax) As CompilationContext
+        Friend Function CreateCompilationContext(withSyntax As Boolean) As CompilationContext
             Return New CompilationContext(
                 Compilation,
                 _currentFrame,
                 _locals,
                 _inScopeHoistedLocals,
                 _methodDebugInfo,
-                syntax)
+                withSyntax)
         End Function
 
         Friend Overrides Function CompileExpression(
@@ -383,9 +383,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 Return Nothing
             End If
 
-            Dim context = Me.CreateCompilationContext(DirectCast(syntax, ExecutableStatementSyntax))
-            Dim properties As ResultProperties = Nothing
-            Dim moduleBuilder = context.Compile(s_typeName, s_methodName, aliases, testData, diagnostics, properties)
+            Dim context = Me.CreateCompilationContext(withSyntax:=True)
+            Dim synthesizedMethod As EEMethodSymbol = Nothing
+            Dim moduleBuilder = context.Compile(DirectCast(syntax, ExecutableStatementSyntax), s_typeName, s_methodName, aliases, testData, diagnostics, synthesizedMethod)
             If moduleBuilder Is Nothing Then
                 Return Nothing
             End If
@@ -406,10 +406,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                     Return Nothing
                 End If
 
-                resultProperties = properties
+                Debug.Assert(synthesizedMethod.ContainingType.MetadataName = s_typeName)
+                Debug.Assert(synthesizedMethod.MetadataName = s_methodName)
+
+                resultProperties = synthesizedMethod.ResultProperties
                 Return New VisualBasicCompileResult(
                         stream.ToArray(),
-                        GetSynthesizedMethod(moduleBuilder),
+                        synthesizedMethod,
                         formatSpecifiers)
             End Using
         End Function
@@ -427,9 +430,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 Return Nothing
             End If
 
-            Dim context = Me.CreateCompilationContext(assignment)
-            Dim properties As ResultProperties = Nothing
-            Dim modulebuilder = context.Compile(s_typeName, s_methodName, aliases, testData, diagnostics, properties)
+            Dim context = Me.CreateCompilationContext(withSyntax:=True)
+            Dim synthesizedMethod As EEMethodSymbol = Nothing
+            Dim modulebuilder = context.Compile(assignment, s_typeName, s_methodName, aliases, testData, diagnostics, synthesizedMethod)
             If modulebuilder Is Nothing Then
                 Return Nothing
             End If
@@ -450,6 +453,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                     Return Nothing
                 End If
 
+                Debug.Assert(synthesizedMethod.ContainingType.MetadataName = s_typeName)
+                Debug.Assert(synthesizedMethod.MetadataName = s_methodName)
+
+                Dim properties = synthesizedMethod.ResultProperties
                 resultProperties = New ResultProperties(
                         properties.Flags Or DkmClrCompilationResultFlags.PotentialSideEffect,
                         properties.Category,
@@ -458,7 +465,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                         properties.ModifierFlags)
                 Return New VisualBasicCompileResult(
                         stream.ToArray(),
-                        GetSynthesizedMethod(modulebuilder),
+                        synthesizedMethod,
                         formatSpecifiers:=Nothing)
             End Using
         End Function
@@ -473,7 +480,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             <Out> ByRef typeName As String,
             testData As CompilationTestData) As ReadOnlyCollection(Of Byte)
 
-            Dim context = Me.CreateCompilationContext(Nothing)
+            Dim context = Me.CreateCompilationContext(withSyntax:=False)
             Dim modulebuilder = context.CompileGetLocals(s_typeName, locals, argumentsOnly, aliases, testData, diagnostics)
             Dim assembly As ReadOnlyCollection(Of Byte) = Nothing
 

@@ -114,25 +114,30 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             _spellCheckerTask = spellCheckerTask;
         }
 
-        public Task<ImmutableArray<ISymbol>> FindAsync(
-            SearchQuery query, IAssemblySymbol assembly, SymbolFilter filter, CancellationToken cancellationToken)
+        public Task<ImmutableArray<SymbolAndProjectId>> FindAsync(
+            SearchQuery query, IAssemblySymbol assembly, ProjectId assemblyProjectId, SymbolFilter filter, CancellationToken cancellationToken)
         {
             // All entrypoints to this function are Find functions that are only searching
             // for specific strings (i.e. they never do a custom search).
-            Debug.Assert(query.Kind != SearchKind.Custom);
+            Contract.ThrowIfTrue(query.Kind == SearchKind.Custom, "Custom queries are not supported in this API");
 
-            return this.FindAsync(query, new AsyncLazy<IAssemblySymbol>(assembly), filter, cancellationToken);
+            return this.FindAsync(
+                query, new AsyncLazy<IAssemblySymbol>(assembly),
+                assemblyProjectId, filter, cancellationToken);
         }
 
-        public async Task<ImmutableArray<ISymbol>> FindAsync(
-            SearchQuery query, AsyncLazy<IAssemblySymbol> lazyAssembly, SymbolFilter filter, CancellationToken cancellationToken)
+        public async Task<ImmutableArray<SymbolAndProjectId>> FindAsync(
+            SearchQuery query, AsyncLazy<IAssemblySymbol> lazyAssembly, ProjectId assemblyProjectId,
+            SymbolFilter filter, CancellationToken cancellationToken)
         {
             // All entrypoints to this function are Find functions that are only searching
             // for specific strings (i.e. they never do a custom search).
-            Debug.Assert(query.Kind != SearchKind.Custom);
+            Contract.ThrowIfTrue(query.Kind == SearchKind.Custom, "Custom queries are not supported in this API");
 
-            return SymbolFinder.FilterByCriteria(
-                await FindAsyncWorker(query, lazyAssembly, cancellationToken).ConfigureAwait(false),
+            var symbols = await FindAsyncWorker(query, lazyAssembly, cancellationToken).ConfigureAwait(false);
+
+            return DeclarationFinder.FilterByCriteria(
+                symbols.SelectAsArray(s => new SymbolAndProjectId(s, assemblyProjectId)),
                 filter);
         }
 
@@ -141,7 +146,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             // All entrypoints to this function are Find functions that are only searching
             // for specific strings (i.e. they never do a custom search).
-            Debug.Assert(query.Kind != SearchKind.Custom);
+            Contract.ThrowIfTrue(query.Kind == SearchKind.Custom, "Custom queries are not supported in this API");
 
             // If the query has a specific string provided, then call into the SymbolTreeInfo
             // helpers optimized for lookup based on an exact name.

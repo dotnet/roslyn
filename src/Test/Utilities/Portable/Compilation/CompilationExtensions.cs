@@ -3,10 +3,12 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection.Metadata;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Emit;
@@ -157,7 +159,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             var actualTextBuilder = new StringBuilder();
             SemanticModel model = compilation.GetSemanticModel(node.SyntaxTree);
             AppendOperationTree(model, node, actualTextBuilder);
-            VerifyOperationTree(expectedOperationTree, actualTextBuilder.ToString());
+            OperationTreeVerifier.Verify(expectedOperationTree, actualTextBuilder.ToString());
         }
 
         internal static void VerifyOperationTree(this Compilation compilation, string expectedOperationTree, bool skipImplicitlyDeclaredSymbols = false)
@@ -216,7 +218,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 actualTextBuilder.Append(Environment.NewLine);
             }
 
-            VerifyOperationTree(expectedOperationTree, actualTextBuilder.ToString());
+            OperationTreeVerifier.Verify(expectedOperationTree, actualTextBuilder.ToString());
         }
 
         private static void AppendOperationTree(SemanticModel model, SyntaxNode node, StringBuilder actualTextBuilder, int initialIndent = 0)
@@ -230,31 +232,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             else
             {
                 actualTextBuilder.Append($"  SemanticModel.GetOperation() returned NULL for node with text: '{node.ToString()}'");
-            }
-        }
-
-        private static void VerifyOperationTree(string expectedOperationTree, string actualOperationTree)
-        {
-            var assertFailed = false;
-            char[] newLineChars = Environment.NewLine.ToCharArray();
-            string actual = actualOperationTree.Trim(newLineChars);
-            expectedOperationTree = expectedOperationTree.Trim(newLineChars);
-
-            try
-            {
-                Assert.Equal(expectedOperationTree, actual);
-            }
-            catch (EqualException)
-            {
-                assertFailed = true;
-                throw;
-            }
-            finally
-            {
-                if (assertFailed)
-                {
-                    Console.WriteLine($"Actual operation tree:\r\n{actual}\r\n");
-                }
             }
         }
 

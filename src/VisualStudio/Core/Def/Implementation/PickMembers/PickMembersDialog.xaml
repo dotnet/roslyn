@@ -53,6 +53,10 @@
                   Grid.Row="0"
                   Header="{Binding ElementName=dialog, Path=PickMembersTitle}">
             <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition />
                     <ColumnDefinition Width="Auto" />
@@ -131,6 +135,22 @@
                             MinWidth="73"
                             MinHeight="21"/>
                 </StackPanel>
+                <ItemsControl Grid.Row="1" 
+                              Grid.ColumnSpan="2"
+                              ItemsSource="{Binding Options}"
+                              IsTabStop="False">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <CheckBox IsChecked="{Binding IsChecked}"
+                                      VerticalAlignment="Center"
+                                      VerticalContentAlignment="Center"
+                                      Margin="8,0,0,5">
+                                <TextBlock Text="{Binding Title}"
+                                           TextWrapping="Wrap" />
+                            </CheckBox>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
             </Grid>
         </GroupBox>
         <StackPanel Grid.Row="1" 

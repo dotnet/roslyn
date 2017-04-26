@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.VisualStudio.Shell.FindAllReferences;
 using Roslyn.Utilities;
@@ -55,14 +56,14 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 var definitionBucket = GetOrCreateDefinitionBucket(definition);
 
                 // We could do this inside the lock.  but that would mean async activity in a 
-                // lock, and i'd like to avoid that.  That does mean that we might do extra
-                // work if multiple threads end up down htis path.  But only one of them will
+                // lock, and I'd like to avoid that.  That does mean that we might do extra
+                // work if multiple threads end up down this path.  But only one of them will
                 // win when we access the lock below.
                 var declarations = ArrayBuilder<Entry>.GetInstance();
                 foreach (var declarationLocation in definition.SourceSpans)
                 {
                     var definitionEntry = await CreateDocumentSpanEntryAsync(
-                        definitionBucket, declarationLocation, isDefinitionLocation: true).ConfigureAwait(false);
+                        definitionBucket, declarationLocation, HighlightSpanKind.Definition).ConfigureAwait(false);
                     if (definitionEntry != null)
                     {
                         declarations.Add(definitionEntry);
@@ -107,7 +108,8 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 return OnEntryFoundAsync(
                     reference.Definition,
                     bucket => CreateDocumentSpanEntryAsync(
-                        bucket, reference.SourceSpan, isDefinitionLocation: false),
+                        bucket, reference.SourceSpan, 
+                        reference.IsWrittenTo ? HighlightSpanKind.WrittenReference : HighlightSpanKind.Reference),
                     addToEntriesWhenGroupingByDefinition: true,
                     addToEntriesWhenNotGroupingByDefinition: true);
             }
@@ -121,7 +123,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 Debug.Assert(addToEntriesWhenGroupingByDefinition || addToEntriesWhenNotGroupingByDefinition);
                 CancellationToken.ThrowIfCancellationRequested();
 
-                // Ok, we got a *reference* to some definition item.  This may have been
+                // OK, we got a *reference* to some definition item.  This may have been
                 // a reference for some definition that we haven't created any declaration
                 // entries for (i.e. because it had DisplayIfNoReferences = false).  Because
                 // we've now found a reference, we want to make sure all its declaration

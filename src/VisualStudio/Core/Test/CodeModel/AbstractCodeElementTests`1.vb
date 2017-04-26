@@ -428,16 +428,24 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
             Throw New NotSupportedException
         End Sub
 
-        Protected Sub TestPropertyDescriptors(code As XElement, ParamArray expectedPropertyNames As String())
+        ''' <summary>
+        ''' This function validates that our Code DOM elements are exporting the proper default interface.  That
+        ''' interface dictates what values are returned from methods like <see cref="ComponentModel.TypeDescriptor.GetProperties(Object)"/>.
+        '''
+        ''' It's not possible for those methods to be called in all environments where we test because it 
+        ''' requires type libraries, like EnvDTE, to be manually registered.  Testing for the ComDefaultInterface 
+        ''' attribute is an indirect way of verifying the same behavior.
+        ''' </summary>
+        ''' <typeparam name="TInterface">The default interface the Code DOM element should be exporting</typeparam>
+        ''' <param name="code">Code to create the Code DOM element</param>
+        Protected Sub TestPropertyDescriptors(Of TInterface As Class)(code As XElement)
             TestElement(code,
                 Sub(codeElement)
-                    Dim propertyDescriptors = ComponentModel.TypeDescriptor.GetProperties(codeElement)
-                    Dim propertyNames = propertyDescriptors _
-                    .OfType(Of ComponentModel.PropertyDescriptor) _
-                    .Select(Function(pd) pd.Name) _
-                    .ToArray()
-
-                    Assert.Equal(expectedPropertyNames, propertyNames)
+                    Dim obj = Implementation.Interop.ComAggregate.GetManagedObject(Of Object)(codeElement)
+                    Dim type = obj.GetType()
+                    Dim attributes = type.GetCustomAttributes(GetType(ComDefaultInterfaceAttribute), inherit:=False)
+                    Dim defaultAttribute = CType(attributes.Single(), ComDefaultInterfaceAttribute)
+                    Assert.True(GetType(TInterface).IsEquivalentTo(defaultAttribute.Value))
                 End Sub)
         End Sub
 

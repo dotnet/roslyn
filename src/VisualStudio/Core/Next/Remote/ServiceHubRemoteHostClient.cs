@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Execution;
@@ -23,6 +24,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
     internal sealed partial class ServiceHubRemoteHostClient : RemoteHostClient
     {
+        private static int s_instanceId = 0;
+
         private readonly HubClient _hubClient;
         private readonly JsonRpc _rpc;
         private readonly HostGroup _hostGroup;
@@ -33,8 +36,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         {
             using (Logger.LogBlock(FunctionId.ServiceHubRemoteHostClient_CreateAsync, cancellationToken))
             {
+                // let each client to have unique id so that we can distinguish different clients when service is restarted
+                var currentInstanceId = Interlocked.Add(ref s_instanceId, 1);
+
                 var primary = new HubClient("ManagedLanguage.IDE.RemoteHostClient");
-                var current = $"VS ({Process.GetCurrentProcess().Id})";
+                var current = $"VS ({Process.GetCurrentProcess().Id}) ({currentInstanceId})";
 
                 var hostGroup = new HostGroup(current);
                 var timeout = TimeSpan.FromMilliseconds(workspace.Options.GetOption(RemoteHostOptions.RequestServiceTimeoutInMS));
@@ -69,6 +75,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
             // don't block UI thread while initialize workspace host
             var host = new WorkspaceHost(vsWorkspace, client);
+
+            // Initialize the remote side with whatever data we have currently for the workspace.
+            // As workspace changes happen, this host will get notified, and it can remote those
+            // changes appropriately over to the remote size.
             await host.InitializeAsync().ConfigureAwait(false);
 
             // RegisterWorkspaceHost is required to be called from UI thread so push the code
@@ -76,6 +86,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             await Task.Factory.SafeStartNew(() =>
             {
                 vsWorkspace.GetProjectTrackerAndInitializeIfNecessary(Shell.ServiceProvider.GlobalProvider).RegisterWorkspaceHost(host);
+
+                // There may have been notifications fired by the workspace between the time we 
+                // were created and now when we let it know about us.  Because of that, we need
+                // to do another initialization pass to make sure all the current workpsace
+                // state is pushed over to the remote side.
+                // 
+                // We can do this in a fire and forget manner.  We don't want to block the UI
+                // thread while we're pushing this data over.
+                Task.Run(() => host.InitializeAsync());
             }, CancellationToken.None, ForegroundThreadAffinitizedObject.CurrentForegroundThreadData.TaskScheduler).ConfigureAwait(false);
         }
 
@@ -96,17 +115,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             _rpc.StartListening();
         }
 
-        protected override async Task<Session> TryCreateServiceSessionAsync(string serviceName, PinnedRemotableDataScope snapshot, object callbackTarget, CancellationToken cancellationToken)
+        protected override async Task<Session> TryCreateServiceSessionAsync(string serviceName, Optional<Func<CancellationToken, Task<PinnedRemotableDataScope>>> getSnapshotAsync, object callbackTarget, CancellationToken cancellationToken)
         {
             // get stream from service hub to communicate snapshot/asset related information
             // this is the back channel the system uses to move data between VS and remote host for solution related information
-            var snapshotStream = snapshot == null ? null : await RequestServiceAsync(_hubClient, WellKnownServiceHubServices.SnapshotService, _hostGroup, _timeout, cancellationToken).ConfigureAwait(false);
+            var snapshotStream = getSnapshotAsync.Value == null ? null : await RequestServiceAsync(_hubClient, WellKnownServiceHubServices.SnapshotService, _hostGroup, _timeout, cancellationToken).ConfigureAwait(false);
 
             // get stream from service hub to communicate service specific information
             // this is what consumer actually use to communicate information
             var serviceStream = await RequestServiceAsync(_hubClient, serviceName, _hostGroup, _timeout, cancellationToken).ConfigureAwait(false);
 
-            return await JsonRpcSession.CreateAsync(snapshot, callbackTarget, serviceStream, snapshotStream, cancellationToken).ConfigureAwait(false);
+            return await JsonRpcSession.CreateAsync(getSnapshotAsync, callbackTarget, serviceStream, snapshotStream, cancellationToken).ConfigureAwait(false);
         }
 
         protected override void OnConnected()
@@ -115,6 +134,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
         protected override void OnDisconnected()
         {
+            // we are asked to disconnect. unsubscribe and dispose to disconnect.
+            // there are 2 ways to get disconnected. one is Roslyn decided to disconnect with RemoteHost (ex, cancellation or recycle OOP) and
+            // the other is external thing disconnecting remote host from us (ex, user killing OOP process).
+            // the Disconnected event we subscribe is to detect #2 case. and this method is for #1 case. so when we are willingly disconnecting
+            // we don't need the event, otherwise, Disconnected event will be called twice.
+            _rpc.Disconnected -= OnRpcDisconnected;
             _rpc.Dispose();
         }
 

@@ -741,13 +741,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
             Debug.Assert(compilation != null);
 
             INamespaceSymbol namespaceSymbol;
-            if (parentListItem is NamespaceListItem)
+            if (parentListItem is NamespaceListItem namespaceList)
             {
-                namespaceSymbol = ((NamespaceListItem)parentListItem).ResolveTypedSymbol(compilation);
+                namespaceSymbol = namespaceList.ResolveTypedSymbol(compilation);
             }
-            else if (parentListItem is ReferenceListItem)
+            else if (parentListItem is ReferenceListItem referenceList)
             {
-                namespaceSymbol = ((ReferenceListItem)parentListItem).GetAssembly(compilation).GlobalNamespace;
+                namespaceSymbol = referenceList.GetAssembly(compilation).GlobalNamespace;
             }
             else
             {

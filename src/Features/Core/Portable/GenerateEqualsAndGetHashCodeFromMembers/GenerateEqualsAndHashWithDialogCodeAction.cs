@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -20,6 +21,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
             private readonly Document _document;
             private readonly INamedTypeSymbol _containingType;
             private readonly ImmutableArray<ISymbol> _viableMembers;
+            private readonly ImmutableArray<PickMembersOption> _pickMembersOptions;
             private readonly TextSpan _textSpan;
 
             public GenerateEqualsAndGetHashCodeWithDialogCodeAction(
@@ -28,6 +30,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
                 TextSpan textSpan,
                 INamedTypeSymbol containingType,
                 ImmutableArray<ISymbol> viableMembers,
+                ImmutableArray<PickMembersOption> pickMembersOptions,
                 bool generateEquals = false,
                 bool generateGetHashCode = false)
             {
@@ -35,6 +38,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
                 _document = document;
                 _containingType = containingType;
                 _viableMembers = viableMembers;
+                _pickMembersOptions = pickMembersOptions;
                 _textSpan = textSpan;
                 _generateEquals = generateEquals;
                 _generateGetHashCode = generateGetHashCode;
@@ -43,7 +47,8 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
             public override object GetOptions(CancellationToken cancellationToken)
             {
                 var service = _service._pickMembersService_forTestingPurposes ?? _document.Project.Solution.Workspace.Services.GetService<IPickMembersService>();
-                return service.PickMembers(FeaturesResources.Pick_members_to_be_used_in_Equals_GetHashCode, _viableMembers);
+                return service.PickMembers(FeaturesResources.Pick_members_to_be_used_in_Equals_GetHashCode,
+                    _viableMembers, _pickMembersOptions);
             }
 
             protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(object options, CancellationToken cancellationToken)
@@ -54,8 +59,34 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
                     return ImmutableArray<CodeActionOperation>.Empty;
                 }
 
+                // If we presented the user any options, then persist whatever values
+                // the user chose.  That way we'll keep that as the default for the 
+                // next time the user opens the dialog.
+                var workspace = _document.Project.Solution.Workspace;
+                var implementIEqutableOption = result.Options.FirstOrDefault(o => o.Id == ImplementIEquatableId);
+                if (implementIEqutableOption != null)
+                {
+                    workspace.Options = workspace.Options.WithChangedOption(
+                        GenerateEqualsAndGetHashCodeFromMembersOptions.ImplementIEquatable,
+                        _document.Project.Language,
+                        implementIEqutableOption.Value);
+                }
+
+                var generateOperatorsOption = result.Options.FirstOrDefault(o => o.Id == GenerateOperatorsId);
+                if (generateOperatorsOption != null)
+                {
+                    workspace.Options = workspace.Options.WithChangedOption(
+                        GenerateEqualsAndGetHashCodeFromMembersOptions.GenerateOperators,
+                        _document.Project.Language,
+                        generateOperatorsOption.Value);
+                }
+
+                var implementIEquatable = (implementIEqutableOption?.Value).GetValueOrDefault();
+                var generatorOperators = (generateOperatorsOption?.Value).GetValueOrDefault();
+
                 var action = new GenerateEqualsAndGetHashCodeAction(
-                    _service, _document, _textSpan, _containingType, result.Members, _generateEquals, _generateGetHashCode);
+                    _service, _document, _textSpan, _containingType, result.Members, 
+                    _generateEquals, _generateGetHashCode, implementIEquatable, generatorOperators);
                 return await action.GetOperationsAsync(cancellationToken).ConfigureAwait(false);
             }
 

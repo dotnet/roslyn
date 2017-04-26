@@ -7126,5 +7126,55 @@ class C
     }
 }");
         }
+
+        [WorkItem(17621, "https://github.com/dotnet/roslyn/issues/17621")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestWithMatchingTypeName()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+
+public class Foo
+{
+    public Foo(String foo)
+    {
+        [|String|] = foo;
+    }
+}",
+@"using System;
+
+public class Foo
+{
+    public Foo(String foo)
+    {
+        String = foo;
+    }
+
+    public string String { get; private set; }
+}");
+        }
+
+        [WorkItem(18275, "https://github.com/dotnet/roslyn/issues/18275")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        public async Task TestContextualKeyword1()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+namespace N
+{
+    class nameof
+    {
+    }
+}
+
+class C
+{
+    void M()
+    {
+        [|nameof|]
+    }
+}");
+        }
     }
 }

@@ -59,8 +59,6 @@ namespace Microsoft.CodeAnalysis.Execution
     /// 
     /// unlike project analyzer, analyzer that got installed from vsix doesn't do shadow copying
     /// so we don't need to load assembly to find out actual filepath.
-    /// 
-    /// this also will be temporary solution for RC since we will move to MVID for checksum soon
     /// </summary>
     internal sealed class WorkspaceAnalyzerReferenceAsset : CustomAsset
     {
@@ -68,7 +66,9 @@ namespace Microsoft.CodeAnalysis.Execution
         private readonly Serializer _serializer;
 
         public WorkspaceAnalyzerReferenceAsset(AnalyzerReference reference, Serializer serializer) :
-            base(CreateChecksum(reference), WellKnownSynchronizationKinds.AnalyzerReference)
+            base(
+                serializer.CreateChecksum(reference, CancellationToken.None),
+                WellKnownSynchronizationKinds.AnalyzerReference)
         {
             _reference = reference;
             _serializer = serializer;
@@ -76,21 +76,12 @@ namespace Microsoft.CodeAnalysis.Execution
 
         public override Task WriteObjectToAsync(ObjectWriter writer, CancellationToken cancellationToken)
         {
-            _serializer.SerializeAnalyzerReference(_reference, writer, cancellationToken);
+            // host analyzer is not shadow copied, no need to load assembly to get real path
+            // this also prevent us from loading assemblies for all vsix analyzers preemptively
+            const bool usePathFromAssembly = false;
 
+            _serializer.SerializeAnalyzerReference(_reference, writer, usePathFromAssembly, cancellationToken);
             return SpecializedTasks.EmptyTask;
-        }
-
-        private static Checksum CreateChecksum(AnalyzerReference reference)
-        {
-            using (var stream = SerializableBytes.CreateWritableStream())
-            using (var objectWriter = new ObjectWriter(stream))
-            {
-                objectWriter.WriteString(WellKnownSynchronizationKinds.AnalyzerReference);
-                objectWriter.WriteString(reference.FullPath);
-
-                return Checksum.Create(stream);
-            }
         }
     }
 }

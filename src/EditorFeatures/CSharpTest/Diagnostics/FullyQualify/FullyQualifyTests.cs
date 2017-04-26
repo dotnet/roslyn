@@ -130,6 +130,44 @@ index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        public async Task TestNotOnVar1()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"namespace N
+{
+    class var { }
+}
+
+class C
+{
+    void M()
+    {
+        [|var|]
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        public async Task TestNotOnVar2()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"namespace N
+{
+    class Bar { }
+}
+
+class C
+{
+    void M()
+    {
+        [|var|]
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task TestGenericInLocalDeclaration()
         {
             await TestInRegularAndScriptAsync(
@@ -260,7 +298,7 @@ class Class
         Foo();
     }
 }",
-count: 2);
+count: 1);
 
             await TestInRegularAndScriptAsync(
 @"using System.Collections.Generic;
@@ -1116,7 +1154,8 @@ public class Program
 {
     static void M()
     {
-        [|Xaml|] }
+        [|Xaml|]
+    }
 }",
 @"namespace MS.Internal.Xaml
 {
@@ -1136,7 +1175,8 @@ public class Program
 {
     static void M()
     {
-        System.Xaml }
+        System.Xaml
+    }
 }");
 
             await TestInRegularAndScriptAsync(
@@ -1158,7 +1198,8 @@ public class Program
 {
     static void M()
     {
-        [|Xaml|] }
+        [|Xaml|]
+    }
 }",
 @"namespace MS.Internal.Xaml
 {
@@ -1178,8 +1219,9 @@ public class Program
 {
     static void M()
     {
-        MS.Internal.Xaml }
-}");
+        MS.Internal.Xaml
+    }
+}", index: 1);
         }
 
         [WorkItem(11071, "https://github.com/dotnet/roslyn/issues/11071")]
@@ -1274,6 +1316,41 @@ namespace n2
     {
         Foo();
     }
+}");
+        }
+
+        [WorkItem(18275, "https://github.com/dotnet/roslyn/issues/18275")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        public async Task TestContextualKeyword1()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+namespace N
+{
+    class nameof
+    {
+    }
+}
+
+class C
+{
+    void M()
+    {
+        [|nameof|]
+    }
+}");
+        }
+
+        [WorkItem(18623, "https://github.com/dotnet/roslyn/issues/18623")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        public async Task TestDoNotQualifyToTheSameTypeToFixWrongArity()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+using System.Collections.Generic;
+
+class Program : [|IReadOnlyCollection|]
+{
 }");
         }
     }

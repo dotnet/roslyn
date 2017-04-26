@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Remote.Storage;
 using Microsoft.CodeAnalysis.Remote.Telemetry;
 using Microsoft.CodeAnalysis.Storage;
+using Microsoft.VisualStudio.LanguageServices.Telemetry;
 using Microsoft.VisualStudio.Telemetry;
 using RoslynLogger = Microsoft.CodeAnalysis.Internal.Log.Logger;
 
@@ -190,7 +191,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
 
             // set roslyn loggers
-            VSTelemetryLogger.SetTelemetrySession(session);
+            WatsonReporter.SetTelemetrySession(session);
 
             RoslynLogger.SetLogger(AggregateLogger.Create(new VSTelemetryLogger(session), RoslynLogger.GetLogger()));
 
@@ -209,13 +210,13 @@ namespace Microsoft.CodeAnalysis.Remote
             return session;
         }
 
-        private static PersistentStorageService GetPersistentStorageService()
+        private static AbstractPersistentStorageService GetPersistentStorageService()
         {
             // A bit slimy.  We just create an adhoc workspace so it will create the singleton
             // PersistentStorageService.  This service will be shared among all Workspaces we 
             // create in this process.  So updating it will be seen by all.
             var workspace = new AdhocWorkspace(RoslynServices.HostServices);
-            var persistentStorageService = workspace.Services.GetService<IPersistentStorageService>() as PersistentStorageService;
+            var persistentStorageService = workspace.Services.GetService<IPersistentStorageService>() as AbstractPersistentStorageService;
             return persistentStorageService;
         }
     }

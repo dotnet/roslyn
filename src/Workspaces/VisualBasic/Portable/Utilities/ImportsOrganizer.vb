@@ -2,6 +2,7 @@
 
 Imports System
 Imports System.Collections.Generic
+Imports System.Collections.Immutable
 Imports System.Globalization
 Imports System.Linq
 Imports System.Text
@@ -16,7 +17,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
-    Friend Partial Class ImportsOrganizer
+    Partial Friend Class ImportsOrganizer
         Public Shared Function Organize([imports] As SyntaxList(Of ImportsStatementSyntax),
                                         placeSystemNamespaceFirst As Boolean) As SyntaxList(Of ImportsStatementSyntax)
             If [imports].Count > 1 Then
@@ -24,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
                 If Not [imports].SpansPreprocessorDirective() Then
                     ' If there is a banner comment that precedes the nodes,
                     ' then remove it and store it for later.
-                    Dim leadingTrivia As IEnumerable(Of SyntaxTrivia) = Nothing
+                    Dim leadingTrivia As ImmutableArray(Of SyntaxTrivia) = Nothing
                     initialList(0) = initialList(0).GetNodeWithoutLeadingBannerAndPreprocessorDirectives(leadingTrivia)
 
                     Dim comparer = If(placeSystemNamespaceFirst, ImportsStatementComparer.SystemFirstInstance, ImportsStatementComparer.NormalInstance)

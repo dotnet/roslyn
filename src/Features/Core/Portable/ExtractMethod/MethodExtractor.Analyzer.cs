@@ -544,7 +544,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                     return false;
                 }
 
-                var cancellationTokenType = compilation.GetTypeByMetadataName("System.Threading.CancellationToken");
+                var cancellationTokenType = compilation.GetTypeByMetadataName(typeof(CancellationToken).FullName);
                 if (cancellationTokenType != null && cancellationTokenType.Equals(type))
                 {
                     return true;

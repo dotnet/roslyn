@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             {
                 return factory.InvocationExpression(
                     factory.MemberAccessExpression(
-                        GetDefaultEqualityComparer(factory, compilation, member),
+                        GetDefaultEqualityComparer(factory, compilation, GetType(compilation, member)),
                         getHashCodeNameExpression),
                     thisSymbol);
             }

@@ -139,9 +139,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
             {
                 var newNode = base.VisitReturnStatement(node);
 
-                if (newNode is ReturnStatementSyntax)
+                if (newNode is ReturnStatementSyntax newReturnStatement)
                 {
-                    var newReturnStatement = (ReturnStatementSyntax)newNode;
                     if (newReturnStatement.Expression != null)
                     {
                         var parentLambda = node.FirstAncestorOrSelf<LambdaExpressionSyntax>();
@@ -166,9 +165,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
             {
                 var newNode = base.VisitParenthesizedLambdaExpression(node);
 
-                if (newNode is ParenthesizedLambdaExpressionSyntax)
+                if (newNode is ParenthesizedLambdaExpressionSyntax parenthesizedLambda)
                 {
-                    var parenthesizedLambda = (ParenthesizedLambdaExpressionSyntax)newNode;
                     // First, try to add a cast to the lambda.
                     if (TryGetLambdaExpressionBodyWithCast(node, parenthesizedLambda, out var newLambdaExpressionBodyWithCast))
                     {
@@ -218,9 +216,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
             {
                 var newNode = base.VisitSimpleLambdaExpression(node);
 
-                if (newNode is SimpleLambdaExpressionSyntax)
+                if (newNode is SimpleLambdaExpressionSyntax simpleLambda)
                 {
-                    var simpleLambda = (SimpleLambdaExpressionSyntax)newNode;
                     // First, try to add a cast to the lambda.
                     if (TryGetLambdaExpressionBodyWithCast(node, simpleLambda, out var newLambdaExpressionBodyWithCast))
                     {
@@ -802,9 +799,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                     return;
                 }
 
-                if (symbol is INamedTypeSymbol)
+                if (symbol is INamedTypeSymbol namedTypedSymbol)
                 {
-                    var namedTypedSymbol = (INamedTypeSymbol)symbol;
                     if (namedTypedSymbol.TypeArguments.Length != 0)
                     {
                         foreach (var typeArgument in namedTypedSymbol.TypeArguments)

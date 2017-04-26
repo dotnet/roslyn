@@ -13,7 +13,9 @@
     "Microsoft.VisualStudio.Text.UI.Wpf": "15.0.26201-alpha",
     "Microsoft.VisualStudio.Utilities": "15.0.26201-alpha",
     "Microsoft.VisualStudio.Validation": "15.0.26201-alpha",
-    "Microsoft.VisualStudio.Threading": "15.0.26201-alpha"
+    "Microsoft.VisualStudio.Threading": "15.0.26201-alpha",
+    "Microsoft.CodeAnalysis.Elfie": "0.10.6-rc2",
+    "Microsoft.VisualStudio.RemoteControl": "14.0.249-master2E2DC10C"
   },
   "frameworks": {
     "net46": {}
