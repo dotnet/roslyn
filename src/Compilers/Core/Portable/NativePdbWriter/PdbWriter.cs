@@ -740,7 +740,7 @@ namespace Microsoft.Cci
         private const string DiaSymReaderModuleName32 = "Microsoft.DiaSymReader.Native.x86.dll";
         private const string DiaSymReaderModuleName64 = "Microsoft.DiaSymReader.Native.amd64.dll";
 
-        private static bool s_MicrosoftDiaSymReaderNativeLoadFailed;
+        private static Exception s_MicrosoftDiaSymReaderNativeLoadFailure;
 
         [DefaultDllImportSearchPaths(DllImportSearchPath.AssemblyDirectory | DllImportSearchPath.SafeDirectories)]
         [DllImport(DiaSymReaderModuleName32, EntryPoint = "CreateSymWriter")]
@@ -763,7 +763,7 @@ namespace Microsoft.Cci
         /// </summary>
         private static string GetLoadedDiaSymReaderModulePath()
         {
-            IntPtr handle = GetModuleHandle(s_MicrosoftDiaSymReaderNativeLoadFailed ? LegacyDiaSymReaderModuleName : DiaSymReaderModuleName);
+            IntPtr handle = GetModuleHandle(s_MicrosoftDiaSymReaderNativeLoadFailure != null ? LegacyDiaSymReaderModuleName : DiaSymReaderModuleName);
             if (handle == IntPtr.Zero)
             {
                 return null;
@@ -795,7 +795,7 @@ namespace Microsoft.Cci
             object symWriter = null;
 
             // First try to load an implementation from Microsoft.DiaSymReader.Native, which supports determinism.
-            if (!s_MicrosoftDiaSymReaderNativeLoadFailed)
+            if (s_MicrosoftDiaSymReaderNativeLoadFailure == null)
             {
                 try
                 {
@@ -809,9 +809,9 @@ namespace Microsoft.Cci
                         CreateSymWriter64(ref guid, out symWriter);
                     }
                 }
-                catch (Exception)
+                catch (Exception e)
                 {
-                    s_MicrosoftDiaSymReaderNativeLoadFailed = true;
+                    s_MicrosoftDiaSymReaderNativeLoadFailure = e;
                     symWriter = null;
                 }
             }
@@ -851,6 +851,11 @@ namespace Microsoft.Cci
                 {
                     if (!(symWriter is ISymUnmanagedWriter7))
                     {
+                        if (s_MicrosoftDiaSymReaderNativeLoadFailure != null)
+                        {
+                            throw new NotSupportedException(s_MicrosoftDiaSymReaderNativeLoadFailure.Message, s_MicrosoftDiaSymReaderNativeLoadFailure);
+                        }
+
                         throw new NotSupportedException(string.Format(CodeAnalysisResources.SymWriterNotDeterministic, GetLoadedDiaSymReaderModulePath()));
                     }
 
