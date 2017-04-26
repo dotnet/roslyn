@@ -3,6 +3,7 @@
 using System;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -55,8 +56,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
 
                 // Watch all text buffer changes & caret moves while this quick info session is 
                 // active
-                analyzedSession.TextView.TextSnapshot.TextBuffer.Changed += TextBuffer_Changed;
-                CurrentSession.Dismissed += () => { analyzedSession.TextView.TextSnapshot.TextBuffer.Changed -= TextBuffer_Changed; };
+                ((ITextBuffer2)analyzedSession.TextView.TextSnapshot.TextBuffer).ChangedAsync += TextBuffer_Changed;
+                CurrentSession.Dismissed += () => { ((ITextBuffer2)analyzedSession.TextView.TextSnapshot.TextBuffer).ChangedAsync -= TextBuffer_Changed; };
 
                 analyzedSession.TextView.Caret.PositionChanged += Caret_PositionChanged;
                 CurrentSession.Dismissed += () => { analyzedSession.TextView.Caret.PositionChanged -= Caret_PositionChanged; };
@@ -104,18 +105,23 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
         /// <summary>
         /// If any text is deleted or any non-space text is entered, cancel the session.
         /// </summary>
-        private void TextBuffer_Changed(object sender, TextContentChangedEventArgs e)
+        private  Task TextBuffer_Changed(object sender, TextContentChangedEventArgs e)
         {
-            AssertIsForeground();
-
-            foreach (var change in e.Changes)
+            return Task.Factory.StartNew(() =>
             {
-                if (change.OldText.Length > 0 || change.NewText.Any(c => c != ' '))
+                AssertIsForeground();
+
+                foreach (var change in e.Changes)
                 {
-                    CancelAndDismissExistingSessions();
-                    return;
+                    if (change.OldText.Length > 0 || change.NewText.Any(c => c != ' '))
+                    {
+                        CancelAndDismissExistingSessions();
+                    }
                 }
-            }
+            },
+            CancellationToken.None,
+            TaskCreationOptions.None,
+            ForegroundTaskScheduler);
         }
 
         /// <summary>
