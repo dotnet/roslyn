@@ -479,7 +479,7 @@ class A
 {
     static Task Main(string[] args)
     {
-        Task.Factory.StartNew(() => { });
+        return Task.Factory.StartNew(() => { });
     }
 }";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
@@ -566,7 +566,7 @@ class A
 {
     static Task Main()
     {
-        Task.Factory.StartNew(() => { });
+        return Task.Factory.StartNew(() => { });
     }
 }";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
