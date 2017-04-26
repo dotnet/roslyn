@@ -137,7 +137,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var client = await service.GetRemoteHostClientAsync(CancellationToken.None);
             using (var session = await client.TryCreateServiceSessionAsync(WellKnownServiceHubServices.RemoteSymbolSearchUpdateEngine, mock, CancellationToken.None))
             {
-                await session.InvokeAsync(nameof(IRemoteSymbolSearchUpdateEngine.UpdateContinuouslyAsync), "emptySource", Path.GetTempPath());
+                await session.InvokeWithCancellationAsync(nameof(IRemoteSymbolSearchUpdateEngine.UpdateContinuouslyAsync), new[] { "emptySource", Path.GetTempPath() }, CancellationToken.None);
             }
 
             service.Disable();
@@ -213,8 +213,8 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
         private class MockLogService : ISymbolSearchLogService
         {
-            public Task LogExceptionAsync(string exception, string text) => SpecializedTasks.EmptyTask;
-            public Task LogInfoAsync(string text) => SpecializedTasks.EmptyTask;
+            public Task LogExceptionAsync(string exception, string text, CancellationToken cancellationToken) => SpecializedTasks.EmptyTask;
+            public Task LogInfoAsync(string text, CancellationToken cancellationToken) => SpecializedTasks.EmptyTask;
         }
     }
 }

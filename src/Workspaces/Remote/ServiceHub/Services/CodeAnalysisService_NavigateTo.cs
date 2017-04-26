@@ -2,6 +2,7 @@
 
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.NavigateTo;
 
@@ -10,25 +11,25 @@ namespace Microsoft.CodeAnalysis.Remote
     internal partial class CodeAnalysisService : IRemoteNavigateToSearchService
     {
         public async Task<SerializableNavigateToSearchResult[]> SearchDocumentAsync(
-            DocumentId documentId, string searchPattern)
+            DocumentId documentId, string searchPattern, CancellationToken cancellationToken)
         {
-            var solution = await GetSolutionAsync().ConfigureAwait(false);
+            var solution = await GetSolutionAsync(cancellationToken).ConfigureAwait(false);
 
             var project = solution.GetDocument(documentId);
             var result = await AbstractNavigateToSearchService.SearchDocumentInCurrentProcessAsync(
-                project, searchPattern, CancellationToken).ConfigureAwait(false);
+                project, searchPattern, cancellationToken).ConfigureAwait(false);
 
             return Convert(result);
         }
 
         public async Task<SerializableNavigateToSearchResult[]> SearchProjectAsync(
-            ProjectId projectId, string searchPattern)
+            ProjectId projectId, string searchPattern, CancellationToken cancellationToken)
         {
-            var solution = await GetSolutionAsync().ConfigureAwait(false);
+            var solution = await GetSolutionAsync(cancellationToken).ConfigureAwait(false);
 
             var project = solution.GetProject(projectId);
             var result = await AbstractNavigateToSearchService.SearchProjectInCurrentProcessAsync(
-                project, searchPattern, CancellationToken).ConfigureAwait(false);
+                project, searchPattern, cancellationToken).ConfigureAwait(false);
 
             return Convert(result);
         }

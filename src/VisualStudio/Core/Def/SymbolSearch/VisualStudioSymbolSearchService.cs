@@ -80,7 +80,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
 
             foreach (var source in allSources)
             {
-                Task.Run(() => UpdateSourceInBackgroundAsync(source.Name));
+                Task.Run(() => UpdateSourceInBackgroundAsync(source.Name, _cancellationTokenSource.Token));
             }
         }
 
@@ -98,10 +98,10 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
             }
         }
 
-        private async Task UpdateSourceInBackgroundAsync(string sourceName)
+        private async Task UpdateSourceInBackgroundAsync(string sourceName, CancellationToken cancellationToken)
         {
-            var engine = await GetEngine(_cancellationTokenSource.Token).ConfigureAwait(false);
-            await engine.UpdateContinuouslyAsync(sourceName, _localSettingsDirectory).ConfigureAwait(false);
+            var engine = await GetEngine(cancellationToken).ConfigureAwait(false);
+            await engine.UpdateContinuouslyAsync(sourceName, _localSettingsDirectory, cancellationToken).ConfigureAwait(false);
         }
 
         public async Task<ImmutableArray<PackageWithTypeResult>> FindPackagesWithTypeAsync(
@@ -109,7 +109,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
         {
             var engine = await GetEngine(cancellationToken).ConfigureAwait(false);
             var allPackagesWithType = await engine.FindPackagesWithTypeAsync(
-                source, name, arity).ConfigureAwait(false);
+                source, name, arity, cancellationToken).ConfigureAwait(false);
 
             return FilterAndOrderPackages(allPackagesWithType);
         }
@@ -119,7 +119,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
         {
             var engine = await GetEngine(cancellationToken).ConfigureAwait(false);
             var allPackagesWithAssembly = await engine.FindPackagesWithAssemblyAsync(
-                source, assemblyName).ConfigureAwait(false);
+                source, assemblyName, cancellationToken).ConfigureAwait(false);
 
             return FilterAndOrderPackages(allPackagesWithAssembly);
         }
@@ -171,7 +171,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
         {
             var engine = await GetEngine(cancellationToken).ConfigureAwait(false);
             return await engine.FindReferenceAssembliesWithTypeAsync(
-                name, arity).ConfigureAwait(false);
+                name, arity, cancellationToken).ConfigureAwait(false);
         }
     }
 }

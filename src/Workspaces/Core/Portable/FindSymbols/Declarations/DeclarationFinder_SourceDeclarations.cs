@@ -118,9 +118,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             {
                 if (session != null)
                 {
-                    var result = await session.InvokeAsync<SerializableSymbolAndProjectId[]>(
+                    var result = await session.InvokeWithCancellationAsync<SerializableSymbolAndProjectId[]>(
                         nameof(IRemoteSymbolFinder.FindSolutionSourceDeclarationsWithNormalQueryAsync),
-                        name, ignoreCase, criteria).ConfigureAwait(false);
+                        new object[] { name, ignoreCase, criteria },
+                        cancellationToken).ConfigureAwait(false);
 
                     var rehydrated = await RehydrateAsync(
                         solution, result, cancellationToken).ConfigureAwait(false);
@@ -139,9 +140,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             {
                 if (session != null)
                 {
-                    var result = await session.InvokeAsync<SerializableSymbolAndProjectId[]>(
+                    var result = await session.InvokeWithCancellationAsync<SerializableSymbolAndProjectId[]>(
                         nameof(IRemoteSymbolFinder.FindProjectSourceDeclarationsWithNormalQueryAsync),
-                        project.Id, name, ignoreCase, criteria).ConfigureAwait(false);
+                        new object[] { project.Id, name, ignoreCase, criteria },
+                        cancellationToken).ConfigureAwait(false);
 
                     var rehydrated = await RehydrateAsync(
                         project.Solution, result, cancellationToken).ConfigureAwait(false);
@@ -160,9 +162,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             {
                 if (session != null)
                 {
-                    var result = await session.InvokeAsync<SerializableSymbolAndProjectId[]>(
+                    var result = await session.InvokeWithCancellationAsync<SerializableSymbolAndProjectId[]>(
                         nameof(IRemoteSymbolFinder.FindProjectSourceDeclarationsWithPatternAsync),
-                        project.Id, pattern, criteria).ConfigureAwait(false);
+                        new object[] { project.Id, pattern, criteria },
+                        cancellationToken).ConfigureAwait(false);
 
                     var rehydrated = await RehydrateAsync(
                         project.Solution, result, cancellationToken).ConfigureAwait(false);

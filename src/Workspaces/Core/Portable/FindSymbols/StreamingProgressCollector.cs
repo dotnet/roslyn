@@ -3,6 +3,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
@@ -42,31 +43,31 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
         }
 
-        public Task OnStartedAsync() => _underlyingProgress.OnStartedAsync();
-        public Task OnCompletedAsync() => _underlyingProgress.OnCompletedAsync();
-        public Task ReportProgressAsync(int current, int maximum) => _underlyingProgress.ReportProgressAsync(current, maximum);
+        public Task OnStartedAsync(CancellationToken cancellationToken) => _underlyingProgress.OnStartedAsync(cancellationToken);
+        public Task OnCompletedAsync(CancellationToken cancellationToken) => _underlyingProgress.OnCompletedAsync(cancellationToken);
+        public Task ReportProgressAsync(int current, int maximum, CancellationToken cancellationToken) => _underlyingProgress.ReportProgressAsync(current, maximum, cancellationToken);
 
-        public Task OnFindInDocumentCompletedAsync(Document document) => _underlyingProgress.OnFindInDocumentCompletedAsync(document);
-        public Task OnFindInDocumentStartedAsync(Document document) => _underlyingProgress.OnFindInDocumentStartedAsync(document);
+        public Task OnFindInDocumentCompletedAsync(Document document, CancellationToken cancellationToken) => _underlyingProgress.OnFindInDocumentCompletedAsync(document, cancellationToken);
+        public Task OnFindInDocumentStartedAsync(Document document, CancellationToken cancellationToken) => _underlyingProgress.OnFindInDocumentStartedAsync(document, cancellationToken);
 
-        public Task OnDefinitionFoundAsync(SymbolAndProjectId definition)
+        public Task OnDefinitionFoundAsync(SymbolAndProjectId definition, CancellationToken cancellationToken)
         {
             lock (_gate)
             {
                 _symbolToLocations[definition] = new List<ReferenceLocation>();
             }
 
-            return _underlyingProgress.OnDefinitionFoundAsync(definition);
+            return _underlyingProgress.OnDefinitionFoundAsync(definition, cancellationToken);
         }
 
-        public Task OnReferenceFoundAsync(SymbolAndProjectId definition, ReferenceLocation location)
+        public Task OnReferenceFoundAsync(SymbolAndProjectId definition, ReferenceLocation location, CancellationToken cancellationToken)
         {
             lock (_gate)
             {
                 _symbolToLocations[definition].Add(location);
             }
 
-            return _underlyingProgress.OnReferenceFoundAsync(definition, location);
+            return _underlyingProgress.OnReferenceFoundAsync(definition, location, cancellationToken);
         }
     }
 }

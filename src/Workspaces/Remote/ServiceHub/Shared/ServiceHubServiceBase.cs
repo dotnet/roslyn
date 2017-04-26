@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Remote
         protected readonly JsonRpc Rpc;
         protected readonly TraceSource Logger;
         protected readonly AssetStorage AssetStorage;
-        protected readonly CancellationToken CancellationToken;
+        protected readonly CancellationToken ServiceCancellationToken;
 
         /// <summary>
         /// Session Id of this service. caller and callee share this id which one
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Remote
             Logger.TraceInformation($"{DebugInstanceString} Service instance created");
 
             _cancellationTokenSource = new CancellationTokenSource();
-            CancellationToken = _cancellationTokenSource.Token;
+            ServiceCancellationToken = _cancellationTokenSource.Token;
 
             Rpc = JsonRpc.Attach(stream, this);
             Rpc.JsonSerializer.Converters.Add(AggregateJsonConverter.Instance);
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Remote
             Logger.TraceInformation($"{DebugInstanceString} Service instance created");
 
             _cancellationTokenSource = new CancellationTokenSource();
-            CancellationToken = _cancellationTokenSource.Token;
+            ServiceCancellationToken = _cancellationTokenSource.Token;
 
             // due to this issue - https://github.com/dotnet/roslyn/issues/16900#issuecomment-277378950
             // all sub type must explicitly start JsonRpc once everything is
@@ -87,6 +87,9 @@ namespace Microsoft.CodeAnalysis.Remote
             Rpc.JsonSerializer.Converters.Add(AggregateJsonConverter.Instance);
             Rpc.Disconnected += OnRpcDisconnected;
         }
+
+        [Obsolete("RPC methods should take their own cancellation tokens.", error: true)]
+        protected CancellationToken CancellationToken => ServiceCancellationToken;
 
         protected string DebugInstanceString => $"{GetType()} ({InstanceId})";
 
@@ -103,12 +106,12 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        protected Task<Solution> GetSolutionAsync()
+        protected Task<Solution> GetSolutionAsync(CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(_solutionChecksumOpt);
 
             var solutionController = (ISolutionController)RoslynServices.SolutionService;
-            return solutionController.GetSolutionAsync(_solutionChecksumOpt, _fromPrimaryBranch, CancellationToken);
+            return solutionController.GetSolutionAsync(_solutionChecksumOpt, _fromPrimaryBranch, cancellationToken);
         }
 
         protected virtual void Dispose(bool disposing)

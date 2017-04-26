@@ -24,7 +24,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private readonly ImmutableArray<IReferenceFinder> _finders;
         private readonly StreamingProgressTracker _progressTracker;
         private readonly IStreamingFindReferencesProgress _progress;
-        private readonly CancellationToken _cancellationToken;
         private readonly ProjectDependencyGraph _dependencyGraph;
 
         /// <summary>
@@ -39,43 +38,41 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             Solution solution,
             IImmutableSet<Document> documents,
             ImmutableArray<IReferenceFinder> finders,
-            IStreamingFindReferencesProgress progress,
-            CancellationToken cancellationToken)
+            IStreamingFindReferencesProgress progress)
         {
             _documents = documents;
             _solution = solution;
             _finders = finders;
             _progress = progress;
-            _cancellationToken = cancellationToken;
             _dependencyGraph = solution.GetProjectDependencyGraph();
 
             _progressTracker = new StreamingProgressTracker(progress.ReportProgressAsync);
         }
 
-        public async Task FindReferencesAsync(SymbolAndProjectId symbolAndProjectId)
+        public async Task FindReferencesAsync(SymbolAndProjectId symbolAndProjectId, CancellationToken cancellationToken)
         {
-            await _progress.OnStartedAsync().ConfigureAwait(false);
-            await _progressTracker.AddItemsAsync(1).ConfigureAwait(false);
+            await _progress.OnStartedAsync(cancellationToken).ConfigureAwait(false);
+            await _progressTracker.AddItemsAsync(1, cancellationToken).ConfigureAwait(false);
             try
             {
-                var symbols = await DetermineAllSymbolsAsync(symbolAndProjectId).ConfigureAwait(false);
+                var symbols = await DetermineAllSymbolsAsync(symbolAndProjectId, cancellationToken).ConfigureAwait(false);
 
-                var projectMap = await CreateProjectMapAsync(symbols).ConfigureAwait(false);
-                var projectToDocumentMap = await CreateProjectToDocumentMapAsync(projectMap).ConfigureAwait(false);
+                var projectMap = await CreateProjectMapAsync(symbols, cancellationToken).ConfigureAwait(false);
+                var projectToDocumentMap = await CreateProjectToDocumentMapAsync(projectMap, cancellationToken).ConfigureAwait(false);
                 ValidateProjectToDocumentMap(projectToDocumentMap);
 
-                await ProcessAsync(projectToDocumentMap).ConfigureAwait(false);
+                await ProcessAsync(projectToDocumentMap, cancellationToken).ConfigureAwait(false);
             }
             finally
             {
-                await _progressTracker.ItemCompletedAsync().ConfigureAwait(false);
-                await _progress.OnCompletedAsync().ConfigureAwait(false);
+                await _progressTracker.ItemCompletedAsync(cancellationToken).ConfigureAwait(false);
+                await _progress.OnCompletedAsync(cancellationToken).ConfigureAwait(false);
             }
         }
 
-        private async Task ProcessAsync(ProjectToDocumentMap projectToDocumentMap)
+        private async Task ProcessAsync(ProjectToDocumentMap projectToDocumentMap, CancellationToken cancellationToken)
         {
-            using (Logger.LogBlock(FunctionId.FindReference_ProcessAsync, _cancellationToken))
+            using (Logger.LogBlock(FunctionId.FindReference_ProcessAsync, cancellationToken))
             {
                 // quick exit
                 if (projectToDocumentMap.Count == 0)
@@ -94,21 +91,21 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 // have to create all their depedent compilations in order to get their compilation.
                 // This would be very expensive and would take a lot of time before we got our first
                 // result.
-                var connectedProjects = _dependencyGraph.GetDependencySets(_cancellationToken);
+                var connectedProjects = _dependencyGraph.GetDependencySets(cancellationToken);
 
                 // Add a progress item for each (document, symbol, finder) set that we will execute.
                 // We'll mark the item as completed in "ProcessDocumentAsync".
                 var totalFindCount = projectToDocumentMap.Sum(
                     kvp1 => kvp1.Value.Sum(kvp2 => kvp2.Value.Count));
-                await _progressTracker.AddItemsAsync(totalFindCount).ConfigureAwait(false);
+                await _progressTracker.AddItemsAsync(totalFindCount, cancellationToken).ConfigureAwait(false);
 
                 // Now, go through each connected project set and process it independently.
                 foreach (var connectedProjectSet in connectedProjects)
                 {
-                    _cancellationToken.ThrowIfCancellationRequested();
+                    cancellationToken.ThrowIfCancellationRequested();
 
                     await ProcessProjectsAsync(
-                        connectedProjectSet, projectToDocumentMap).ConfigureAwait(false);
+                        connectedProjectSet, projectToDocumentMap, cancellationToken).ConfigureAwait(false);
                 }
             }
         }
@@ -133,9 +130,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
         }
 
-        private Task HandleLocationAsync(SymbolAndProjectId symbolAndProjectId, ReferenceLocation location)
+        private Task HandleLocationAsync(SymbolAndProjectId symbolAndProjectId, ReferenceLocation location, CancellationToken cancellationToken)
         {
-            return _progress.OnReferenceFoundAsync(symbolAndProjectId, location);
+            return _progress.OnReferenceFoundAsync(symbolAndProjectId, location, cancellationToken);
         }
     }
 }

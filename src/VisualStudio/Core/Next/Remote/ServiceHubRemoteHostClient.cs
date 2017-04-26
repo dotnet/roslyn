@@ -49,7 +49,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 var instance = new ServiceHubRemoteHostClient(workspace, primary, hostGroup, remoteHostStream);
 
                 // make sure connection is done right
-                var host = await instance._rpc.InvokeAsync<string>(nameof(IRemoteHostService.Connect), current, TelemetryService.DefaultSession.SerializeSettings()).ConfigureAwait(false);
+                var host = await instance._rpc.InvokeWithCancellationAsync<string>(nameof(IRemoteHostService.Connect), new[] { current, TelemetryService.DefaultSession.SerializeSettings() }, cancellationToken).ConfigureAwait(false);
 
                 // TODO: change this to non fatal watson and make VS to use inproc implementation
                 Contract.ThrowIfFalse(host == current.ToString());
@@ -58,14 +58,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
                 // Create a workspace host to hear about workspace changes.  We'll 
                 // remote those changes over to the remote side when they happen.
-                await RegisterWorkspaceHostAsync(workspace, instance).ConfigureAwait(false);
+                await RegisterWorkspaceHostAsync(workspace, instance, cancellationToken).ConfigureAwait(false);
 
                 // return instance
                 return instance;
             }
         }
 
-        private static async Task RegisterWorkspaceHostAsync(Workspace workspace, RemoteHostClient client)
+        private static async Task RegisterWorkspaceHostAsync(Workspace workspace, RemoteHostClient client, CancellationToken cancellationToken)
         {
             var vsWorkspace = workspace as VisualStudioWorkspaceImpl;
             if (vsWorkspace == null)
@@ -94,8 +94,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 // 
                 // We can do this in a fire and forget manner.  We don't want to block the UI
                 // thread while we're pushing this data over.
-                Task.Run(() => host.InitializeAsync());
-            }, CancellationToken.None, ForegroundThreadAffinitizedObject.CurrentForegroundThreadData.TaskScheduler).ConfigureAwait(false);
+                Task.Run(() => host.InitializeAsync(), cancellationToken);
+            }, cancellationToken, ForegroundThreadAffinitizedObject.CurrentForegroundThreadData.TaskScheduler).ConfigureAwait(false);
         }
 
         private ServiceHubRemoteHostClient(

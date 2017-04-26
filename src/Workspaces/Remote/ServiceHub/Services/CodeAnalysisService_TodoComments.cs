@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -21,20 +22,20 @@ namespace Microsoft.CodeAnalysis.Remote
         /// 
         /// This will be called by ServiceHub/JsonRpc framework
         /// </summary>
-        public async Task<IList<TodoComment>> GetTodoCommentsAsync(DocumentId documentId, ImmutableArray<TodoCommentDescriptor> tokens)
+        public async Task<IList<TodoComment>> GetTodoCommentsAsync(DocumentId documentId, ImmutableArray<TodoCommentDescriptor> tokens, CancellationToken cancellationToken)
         {
-            using (RoslynLogger.LogBlock(FunctionId.CodeAnalysisService_GetTodoCommentsAsync, documentId.ProjectId.DebugName, CancellationToken))
+            using (RoslynLogger.LogBlock(FunctionId.CodeAnalysisService_GetTodoCommentsAsync, documentId.ProjectId.DebugName, cancellationToken))
             {
                 try
                 {
-                    var solution = await GetSolutionAsync().ConfigureAwait(false);
+                    var solution = await GetSolutionAsync(cancellationToken).ConfigureAwait(false);
                     var document = solution.GetDocument(documentId);
 
                     var service = document.GetLanguageService<ITodoCommentService>();
                     if (service != null)
                     {
                         // todo comment service supported
-                        return await service.GetTodoCommentsAsync(document, tokens, CancellationToken).ConfigureAwait(false);
+                        return await service.GetTodoCommentsAsync(document, tokens, cancellationToken).ConfigureAwait(false);
                     }
                 }
                 catch (IOException)

@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Threading;
 using System.Threading.Tasks;
 using Roslyn.Utilities;
 
@@ -17,14 +18,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
         }
 
-        public Task ReportProgressAsync(int current, int maximum) => SpecializedTasks.EmptyTask;
+        public Task ReportProgressAsync(int current, int maximum, CancellationToken cancellationToken) => SpecializedTasks.EmptyTask;
 
-        public Task OnCompletedAsync() => SpecializedTasks.EmptyTask;
-        public Task OnStartedAsync() => SpecializedTasks.EmptyTask;
-        public Task OnDefinitionFoundAsync(SymbolAndProjectId symbol) => SpecializedTasks.EmptyTask;
-        public Task OnReferenceFoundAsync(SymbolAndProjectId symbol, ReferenceLocation location) => SpecializedTasks.EmptyTask;
-        public Task OnFindInDocumentStartedAsync(Document document) => SpecializedTasks.EmptyTask;
-        public Task OnFindInDocumentCompletedAsync(Document document) => SpecializedTasks.EmptyTask;
+        public Task OnCompletedAsync(CancellationToken cancellationToken) => SpecializedTasks.EmptyTask;
+        public Task OnStartedAsync(CancellationToken cancellationToken) => SpecializedTasks.EmptyTask;
+        public Task OnDefinitionFoundAsync(SymbolAndProjectId symbol, CancellationToken cancellationToken) => SpecializedTasks.EmptyTask;
+        public Task OnReferenceFoundAsync(SymbolAndProjectId symbol, ReferenceLocation location, CancellationToken cancellationToken) => SpecializedTasks.EmptyTask;
+        public Task OnFindInDocumentStartedAsync(Document document, CancellationToken cancellationToken) => SpecializedTasks.EmptyTask;
+        public Task OnFindInDocumentCompletedAsync(Document document, CancellationToken cancellationToken) => SpecializedTasks.EmptyTask;
     }
 
     /// <summary>
@@ -40,43 +41,43 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             _progress = progress;
         }
 
-        public Task OnCompletedAsync()
+        public Task OnCompletedAsync(CancellationToken cancellationToken)
         {
             _progress.OnCompleted();
             return SpecializedTasks.EmptyTask;
         }
 
-        public Task OnDefinitionFoundAsync(SymbolAndProjectId symbolAndProjectId)
+        public Task OnDefinitionFoundAsync(SymbolAndProjectId symbolAndProjectId, CancellationToken cancellationToken)
         {
             _progress.OnDefinitionFound(symbolAndProjectId.Symbol);
             return SpecializedTasks.EmptyTask;
         }
 
-        public Task OnFindInDocumentCompletedAsync(Document document)
+        public Task OnFindInDocumentCompletedAsync(Document document, CancellationToken cancellationToken)
         {
             _progress.OnFindInDocumentCompleted(document);
             return SpecializedTasks.EmptyTask;
         }
 
-        public Task OnFindInDocumentStartedAsync(Document document)
+        public Task OnFindInDocumentStartedAsync(Document document, CancellationToken cancellationToken)
         {
             _progress.OnFindInDocumentStarted(document);
             return SpecializedTasks.EmptyTask;
         }
 
-        public Task OnReferenceFoundAsync(SymbolAndProjectId symbolAndProjectId, ReferenceLocation location)
+        public Task OnReferenceFoundAsync(SymbolAndProjectId symbolAndProjectId, ReferenceLocation location, CancellationToken cancellationToken)
         {
             _progress.OnReferenceFound(symbolAndProjectId.Symbol, location);
             return SpecializedTasks.EmptyTask;
         }
 
-        public Task OnStartedAsync()
+        public Task OnStartedAsync(CancellationToken cancellationToken)
         {
             _progress.OnStarted();
             return SpecializedTasks.EmptyTask;
         }
 
-        public Task ReportProgressAsync(int current, int maximum)
+        public Task ReportProgressAsync(int current, int maximum, CancellationToken cancellationToken)
         {
             _progress.ReportProgress(current, maximum);
             return SpecializedTasks.EmptyTask;

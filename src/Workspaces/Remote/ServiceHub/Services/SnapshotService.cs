@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
             lock (_gate)
             {
-                if (CancellationToken.IsCancellationRequested)
+                if (ServiceCancellationToken.IsCancellationRequested)
                 {
                     return;
                 }

@@ -38,8 +38,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             CancellationToken cancellationToken)
         {
             var engine = new FindLiteralsSearchEngine(
-                solution, progress, value, cancellationToken);
-            return engine.FindReferencesAsync();
+                solution, progress, value);
+            return engine.FindReferencesAsync(cancellationToken);
         }
 
         private static async Task<bool> TryFindLiteralReferencesInServiceProcessAsync(
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // Create a callback that we can pass to the server process to hear about the 
             // results as it finds them.  When we hear about results we'll forward them to
             // the 'progress' parameter which will then update the UI.
-            var serverCallback = new FindLiteralsServerCallback(solution, progress, cancellationToken);
+            var serverCallback = new FindLiteralsServerCallback(solution, progress);
 
             using (var session = await TryGetRemoteSessionAsync(
                 solution, serverCallback, cancellationToken).ConfigureAwait(false))
@@ -61,9 +61,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     return false;
                 }
 
-                await session.InvokeAsync(
+                await session.InvokeWithCancellationAsync(
                     nameof(IRemoteSymbolFinder.FindLiteralReferencesAsync),
-                    value).ConfigureAwait(false);
+                    new[] { value },
+                    cancellationToken).ConfigureAwait(false);
 
                 return true;
             }

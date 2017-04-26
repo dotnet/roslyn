@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols.Finders;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -16,7 +17,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     {
         private async Task ProcessProjectsAsync(
             IEnumerable<ProjectId> connectedProjectSet,
-            ProjectToDocumentMap projectToDocumentMap)
+            ProjectToDocumentMap projectToDocumentMap,
+            CancellationToken cancellationToken)
         {
             var visitedProjects = new HashSet<ProjectId>();
 
@@ -25,17 +27,18 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // depends on will have been created already.
             foreach (var projectId in connectedProjectSet)
             {
-                _cancellationToken.ThrowIfCancellationRequested();
+                cancellationToken.ThrowIfCancellationRequested();
 
                 await ProcessProjectAsync(
-                    projectId, projectToDocumentMap, visitedProjects).ConfigureAwait(false);
+                    projectId, projectToDocumentMap, visitedProjects, cancellationToken).ConfigureAwait(false);
             }
         }
 
         private async Task ProcessProjectAsync(
             ProjectId projectId,
             ProjectToDocumentMap projectToDocumentMap,
-            HashSet<ProjectId> visitedProjects)
+            HashSet<ProjectId> visitedProjects,
+            CancellationToken cancellationToken)
         {
             // Don't visit projects more than once.  
             if (visitedProjects.Add(projectId))
@@ -46,19 +49,20 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 // on is already ready for us when we need it.
                 foreach (var dependent in project.ProjectReferences)
                 {
-                    _cancellationToken.ThrowIfCancellationRequested();
+                    cancellationToken.ThrowIfCancellationRequested();
 
                     await ProcessProjectAsync(
-                        dependent.ProjectId, projectToDocumentMap, visitedProjects).ConfigureAwait(false);
+                        dependent.ProjectId, projectToDocumentMap, visitedProjects, cancellationToken).ConfigureAwait(false);
                 }
 
-                await ProcessProjectAsync(project, projectToDocumentMap).ConfigureAwait(false);
+                await ProcessProjectAsync(project, projectToDocumentMap, cancellationToken).ConfigureAwait(false);
             }
         }
 
         private async Task ProcessProjectAsync(
             Project project,
-            ProjectToDocumentMap projectToDocumentMap)
+            ProjectToDocumentMap projectToDocumentMap,
+            CancellationToken cancellationToken)
         {
             if (!projectToDocumentMap.TryGetValue(project, out var documentMap))
             {
@@ -71,17 +75,18 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             projectToDocumentMap.Remove(project);
 
             // Now actually process the project.
-            await ProcessProjectAsync(project, documentMap).ConfigureAwait(false);
+            await ProcessProjectAsync(project, documentMap, cancellationToken).ConfigureAwait(false);
         }
 
         private async Task ProcessProjectAsync(
             Project project,
-            DocumentMap documentMap)
+            DocumentMap documentMap,
+            CancellationToken cancellationToken)
         {
-            using (Logger.LogBlock(FunctionId.FindReference_ProcessProjectAsync, project.Name, _cancellationToken))
+            using (Logger.LogBlock(FunctionId.FindReference_ProcessProjectAsync, project.Name, cancellationToken))
             {
                 // make sure we hold onto compilation while we search documents belong to this project
-                var compilation = await project.GetCompilationAsync(_cancellationToken).ConfigureAwait(false);
+                var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
 
                 var documentTasks = new List<Task>();
                 foreach (var kvp in documentMap)
@@ -93,7 +98,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                         var documentQueue = kvp.Value;
 
                         documentTasks.Add(Task.Run(() => ProcessDocumentQueueAsync(
-                            document, documentQueue), _cancellationToken));
+                            document, documentQueue, cancellationToken), cancellationToken));
                     }
                 }
 

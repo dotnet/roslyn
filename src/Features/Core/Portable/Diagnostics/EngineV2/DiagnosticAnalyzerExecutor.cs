@@ -128,12 +128,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         return DiagnosticAnalysisResultMap.Create(ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>.Empty, ImmutableDictionary<DiagnosticAnalyzer, AnalyzerTelemetryInfo>.Empty);
                     }
 
-                    session.AddAdditionalAssets(optionAsset);
+                    session.AddAdditionalAssets(optionAsset, cancellationToken);
 
-                    var result = await session.InvokeAsync(
+                    var result = await session.InvokeWithCancellationAsync(
                         WellKnownServiceHubServices.CodeAnalysisService_CalculateDiagnosticsAsync,
                         new object[] { argument },
-                        (s, c) => GetCompilerAnalysisResultAsync(s, analyzerMap, project, c)).ConfigureAwait(false);
+                        (s, c) => GetCompilerAnalysisResultAsync(s, analyzerMap, project, c),
+                        cancellationToken).ConfigureAwait(false);
 
                     ReportAnalyzerExceptions(project, result.Exceptions);
 

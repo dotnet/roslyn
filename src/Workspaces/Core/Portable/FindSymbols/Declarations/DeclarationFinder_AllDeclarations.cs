@@ -98,9 +98,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             {
                 if (session != null)
                 {
-                    var result = await session.InvokeAsync<SerializableSymbolAndProjectId[]>(
+                    var result = await session.InvokeWithCancellationAsync<SerializableSymbolAndProjectId[]>(
                         nameof(IRemoteSymbolFinder.FindAllDeclarationsWithNormalQueryAsync),
-                        project.Id, query.Name, query.Kind, criteria).ConfigureAwait(false);
+                        new object[] { project.Id, query.Name, query.Kind, criteria },
+                        cancellationToken).ConfigureAwait(false);
 
                     var rehydrated = await RehydrateAsync(
                         project.Solution, result, cancellationToken).ConfigureAwait(false);

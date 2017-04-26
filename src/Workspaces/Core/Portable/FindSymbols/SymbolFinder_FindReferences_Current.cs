@@ -47,8 +47,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var finders = ReferenceFinders.DefaultReferenceFinders;
             progress = progress ?? StreamingFindReferencesProgress.Instance;
             var engine = new FindReferencesSearchEngine(
-                solution, documents, finders, progress, cancellationToken);
-            return engine.FindReferencesAsync(symbolAndProjectId);
+                solution, documents, finders, progress);
+            return engine.FindReferencesAsync(symbolAndProjectId, cancellationToken);
         }
 
         private static async Task<bool> TryFindReferencesInServiceProcessAsync(
@@ -65,17 +65,17 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 // Create a callback that we can pass to the server process to hear about the 
                 // results as it finds them.  When we hear about results we'll forward them to
                 // the 'progress' parameter which will then update the UI.
-                var serverCallback = new FindReferencesServerCallback(solution, progress, cancellationToken);
+                var serverCallback = new FindReferencesServerCallback(solution, progress);
 
                 using (var session = await TryGetRemoteSessionAsync(
                     solution, serverCallback, cancellationToken).ConfigureAwait(false))
                 {
                     if (session != null)
                     {
-                        await session.InvokeAsync(
+                        await session.InvokeWithCancellationAsync(
                             nameof(IRemoteSymbolFinder.FindReferencesAsync),
-                            SerializableSymbolAndProjectId.Dehydrate(symbolAndProjectId),
-                            documents?.Select(d => d.Id).ToArray()).ConfigureAwait(false);
+                            new object[] { SerializableSymbolAndProjectId.Dehydrate(symbolAndProjectId), documents?.Select(d => d.Id).ToArray() },
+                            cancellationToken).ConfigureAwait(false);
 
                         return true;
                     }
