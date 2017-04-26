@@ -548,7 +548,7 @@ class C
 
             var member = compilation1.GetMember<FieldSymbol>("C.x");
             var other = matcher.MapReference((Cci.ITypeReference)member.Type);
-            // If a type changes within a tuple, we do not expect them to match.
+            // If a type changes within a tuple, we do not expect types to match.
             Assert.Null(other);
         }
 
@@ -580,6 +580,187 @@ class C
             var other = matcher.MapReference((Cci.ITypeReference)member.Type);
             // Types must match because just a label was changed.
             Assert.NotNull(other);
+        }
+
+
+        [Fact]
+        public void TupleMethod_TypeChange()
+        {
+            var source0 = @"
+class C
+{  
+    public (int a, int b) X() { return null };
+}";
+            var source1 = @"
+class C
+{
+    public (int a, bool b) X() { return null };
+}";
+            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll, references: s_valueTupleRefs);
+            var compilation1 = compilation0.WithSource(source1);
+
+            var matcher = new CSharpSymbolMatcher(
+                null,
+                compilation1.SourceAssembly,
+                default(EmitContext),
+                compilation0.SourceAssembly,
+                default(EmitContext),
+                null);
+
+            var member = compilation1.GetMember<MethodSymbol>("C.X");
+            var other = matcher.MapReference((Cci.ITypeReference)member.ReturnType);
+            // If a type changes within a tuple, we do not expect types to match.
+            Assert.Null(other);
+        }
+
+        [Fact]
+        public void TupleMethod_NameChange()
+        {
+            var source0 = @"
+class C
+{  
+    public (int a, int b) X() { return null };
+}";
+            var source1 = @"
+class C
+{
+    public (int a, int c) X() { return null };
+}";
+            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll, references: s_valueTupleRefs);
+            var compilation1 = compilation0.WithSource(source1);
+
+            var matcher = new CSharpSymbolMatcher(
+                null,
+                compilation1.SourceAssembly,
+                default(EmitContext),
+                compilation0.SourceAssembly,
+                default(EmitContext),
+                null);
+
+            var member = compilation1.GetMember<MethodSymbol>("C.X");
+            var other = matcher.MapReference((Cci.ITypeReference)member.ReturnType);
+            // Types must match because just a label was changed.
+            Assert.NotNull(other);
+        }
+
+        [Fact]
+        public void TupleProperty_TypeChange()
+        {
+            var source0 = @"
+class C
+{  
+    public (int a, int b) X { get { return null; } };
+}";
+            var source1 = @"
+class C
+{
+    public (int a, bool b) X { get { return null; } };
+}";
+            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll, references: s_valueTupleRefs);
+            var compilation1 = compilation0.WithSource(source1);
+
+            var matcher = new CSharpSymbolMatcher(
+                null,
+                compilation1.SourceAssembly,
+                default(EmitContext),
+                compilation0.SourceAssembly,
+                default(EmitContext),
+                null);
+
+            var member = compilation1.GetMember<PropertySymbol>("C.X");
+            var other = matcher.MapReference((Cci.ITypeReference)member.Type);
+            // If a type changes within a tuple, we do not expect types to match.
+            Assert.Null(other);
+        }
+
+        [Fact]
+        public void TupleProperty_NameChange()
+        {
+            var source0 = @"
+class C
+{  
+    public (int a, int b) X { get { return null; } };
+}";
+            var source1 = @"
+class C
+{
+    public (int a, int c) X { get { return null; } };
+}";
+            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll, references: s_valueTupleRefs);
+            var compilation1 = compilation0.WithSource(source1);
+
+            var matcher = new CSharpSymbolMatcher(
+                null,
+                compilation1.SourceAssembly,
+                default(EmitContext),
+                compilation0.SourceAssembly,
+                default(EmitContext),
+                null);
+
+            var member = compilation1.GetMember<PropertySymbol>("C.X");
+            var other = matcher.MapReference((Cci.ITypeReference)member.Type);
+            // Types must match because just a label was changed.
+            Assert.NotNull(other);
+        }
+
+        [Fact]
+        public void Ref_TypeChange()
+        {
+            var source0 = @"
+class C
+{  
+    public ref int GetFirst(int[] numbers, bool[] bools) { return ref numbers[0]; } };
+}";
+            var source1 = @"
+class C
+{
+    public ref bool GetFirst(int[] numbers, bool[] bools) { return ref bools[0]; } };
+}";
+            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll);
+            var compilation1 = compilation0.WithSource(source1);
+
+            var matcher = new CSharpSymbolMatcher(
+                null,
+                compilation1.SourceAssembly,
+                default(EmitContext),
+                compilation0.SourceAssembly,
+                default(EmitContext),
+                null);
+
+            var member = compilation1.GetMember<MethodSymbol>("C.GetFirst");
+            var other = matcher.MapReference((Cci.ITypeReference)member.ReturnType);
+            // If a type changes, we do not expect types to match.
+            Assert.Null(other);
+        }
+
+        [Fact]
+        public void Ref_RefChange()
+        {
+            var source0 = @"
+class C
+{  
+    public ref bool GetFirst(bool[] bools) { return ref bools[0]; } };
+}";
+            var source1 = @"
+class C
+{
+    public bool GetFirst(bool[] bools) { return bools[0]; } };
+}";
+            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll);
+            var compilation1 = compilation0.WithSource(source1);
+
+            var matcher = new CSharpSymbolMatcher(
+                null,
+                compilation1.SourceAssembly,
+                default(EmitContext),
+                compilation0.SourceAssembly,
+                default(EmitContext),
+                null);
+
+            var member = compilation1.GetMember<MethodSymbol>("C.GetFirst");
+            var other = matcher.MapReference((Cci.ITypeReference)member.ReturnType);
+            // If a type changes, we do not expect types to match.
+            Assert.Null(other);
         }
     }
 }
