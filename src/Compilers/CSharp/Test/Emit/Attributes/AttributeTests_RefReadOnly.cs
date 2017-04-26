@@ -621,9 +621,6 @@ public class Test
                 var parameter = method.GetParameters().Single();
                 Assert.Equal(RefKind.RefReadOnly, parameter.RefKind);
 
-                AssertReferencedIsReadOnlyAttribute(parameter.GetAttributes(), module.ContainingAssembly.Name);
-                AssertReferencedIsReadOnlyAttribute(method.GetReturnTypeAttributes(), module.ContainingAssembly.Name);
-
                 AssertGeneratedEmbeddedAttribute(module.ContainingAssembly, WellKnownType.Microsoft_CodeAnalysis_EmbeddedAttribute);
                 AssertGeneratedEmbeddedAttribute(module.ContainingAssembly, WellKnownType.System_Runtime_CompilerServices_IsReadOnlyAttribute);
             });
@@ -816,7 +813,6 @@ public class Test2
             CompileAndVerify(code3, verify: false, symbolValidator: module =>
             {
                 // IsReadOnly is generated in assembly
-
                 AssertGeneratedEmbeddedAttribute(module.ContainingAssembly, WellKnownType.Microsoft_CodeAnalysis_EmbeddedAttribute);
                 AssertGeneratedEmbeddedAttribute(module.ContainingAssembly, WellKnownType.System_Runtime_CompilerServices_IsReadOnlyAttribute);
             });
@@ -825,30 +821,16 @@ public class Test2
         [Fact]
         public void BuildingAModuleRequiresIsReadOnlyAttributeToBeThere()
         {
-            var options = new CSharpCompilationOptions(OutputKind.NetModule);
-
             var code = @"
 public class Test
 {
     public void M(ref readonly int x) { }
 }";
 
-            CreateCompilationWithMscorlib(code, options: options).VerifyDiagnostics(
+            CreateCompilationWithMscorlib(code, options: TestOptions.ReleaseModule).VerifyDiagnostics(
                 // (4,36): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.IsReadOnlyAttribute..ctor'
                 //     public void M(ref readonly int x) { }
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "x").WithArguments("System.Runtime.CompilerServices.IsReadOnlyAttribute", ".ctor").WithLocation(4, 36));
-
-            code = @"
-namespace System.Runtime.CompilerServices
-{
-    public class IsReadOnlyAttribute : System.Attribute { }
-}
-public class Test
-{
-    public void M(ref readonly int x) { }
-}";
-
-            CreateCompilationWithMscorlib(code, options: options).VerifyDiagnostics();
         }
 
         [Fact]

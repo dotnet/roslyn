@@ -152,14 +152,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 unwrappedSym = asAlias.Target
             End If
 
-            ' Check for external symbols marked with 'Microsoft.CodeAnalysis.Embedded' attribute
-            If unwrappedSym.ContainingModule IsNot Me.ContainingModule AndAlso unwrappedSym.IsHiddenByCodeAnalysisEmbeddedAttribute() Then
-                Return SingleLookupResult.Empty
-            End If
-
-            ' Check for external symbols marked with 'Microsoft.VisualBasic.Embedded' attribute
-            If unwrappedSym.ContainingModule IsNot Me.ContainingModule AndAlso unwrappedSym.IsHiddenByVisualBasicEmbeddedAttribute() Then
-                Return SingleLookupResult.Empty
+            ' Check for external symbols marked with 'Microsoft.VisualBasic.Embedded' or 'Microsoft.CodeAnalysis.Embedded' attributes
+            If unwrappedSym.ContainingModule IsNot Me.ContainingModule Then
+                If unwrappedSym.IsHiddenByVisualBasicEmbeddedAttribute() Or unwrappedSym.IsHiddenByCodeAnalysisEmbeddedAttribute() Then
+                    Return SingleLookupResult.Empty
+                End If
             End If
 
             If unwrappedSym.Kind = SymbolKind.NamedType AndAlso unwrappedSym.EmbeddedSymbolKind = EmbeddedSymbolKind.EmbeddedAttribute AndAlso
