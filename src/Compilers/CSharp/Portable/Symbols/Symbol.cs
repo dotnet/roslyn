@@ -1018,21 +1018,28 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                var data = this.ObsoleteAttributeData;
-                if (data == null)
+                switch (ObsoleteKind)
                 {
-                    return ThreeState.False;
-                }
-                else if (data.IsUninitialized)
-                {
-                    return ThreeState.Unknown;
-                }
-                else
-                {
-                    return ThreeState.True;
+                    case ObsoleteAttributeKind.None:
+                    case ObsoleteAttributeKind.Experimental:
+                        return ThreeState.False;
+                    case ObsoleteAttributeKind.Uninitialized:
+                        return ThreeState.Unknown;
+                    default:
+                        return ThreeState.True;
                 }
             }
         }
+
+        internal ObsoleteAttributeKind ObsoleteKind
+        {
+            get
+            {
+                var data = this.ObsoleteAttributeData;
+                return (data == null) ? ObsoleteAttributeKind.None : data.Kind;
+            }
+        }
+
 
         /// <summary>
         /// Returns data decoded from <see cref="ObsoleteAttribute"/> attribute or null if there is no <see cref="ObsoleteAttribute"/> attribute.
