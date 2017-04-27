@@ -223,7 +223,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
                 if (_dataSource.TextChangeBehavior.HasFlag(TaggerTextChangeBehavior.TrackTextChanges))
                 {
-                    _subjectBuffer.ChangedAsync += OnSubjectBufferChanged;
+                    _subjectBuffer.ChangedAsync += OnSubjectBufferChangedAsync;
                 }
 
                 if (_dataSource.CaretChangeBehavior.HasFlag(TaggerCaretChangeBehavior.RemoveAllTagsOnCaretMoveOutsideOfTag))
@@ -256,7 +256,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
                 if (_dataSource.TextChangeBehavior.HasFlag(TaggerTextChangeBehavior.TrackTextChanges))
                 {
-                    _subjectBuffer.ChangedAsync -= OnSubjectBufferChanged;
+                    _subjectBuffer.ChangedAsync -= OnSubjectBufferChangedAsync;
                 }
 
                 _eventSource.UIUpdatesPaused -= OnUIUpdatesPaused;

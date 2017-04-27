@@ -82,7 +82,6 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             private void RemoveAllTags()
             {
                 this.AssertIsForeground();
-
                 var oldTagTrees = this.CachedTagTrees;
                 this.CachedTagTrees = ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>>.Empty;
 
@@ -93,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 RaiseTagsChanged(snapshot.TextBuffer, new DiffResult(added: null, removed: oldTagTree.GetSpans(snapshot).Select(s => s.Span)));
             }
 
-            private Task OnSubjectBufferChanged(object sender, TextContentChangedEventArgs e)
+            private Task OnSubjectBufferChangedAsync(object sender, TextContentChangedEventArgs e)
             {
                 return Task.Factory.StartNew(() =>
                     {

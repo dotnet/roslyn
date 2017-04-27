@@ -3,6 +3,7 @@
 Imports System.Threading
 Imports System.Threading.Tasks
 Imports System.Windows.Threading
+Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.VisualStudio.Text
 
@@ -11,7 +12,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
     ''' This class watches for buffer-based events, tracks the dirty regions, and invokes the formatter as appropriate
     ''' </summary>
     Partial Friend Class CommitBufferManager
-        Private ReadOnly _buffer As ITextBuffer
+        Inherits ForegroundThreadAffinitizedObject
+        Private ReadOnly _buffer As ITextBuffer2
         Private ReadOnly _commitFormatter As ICommitFormatter
         Private ReadOnly _inlineRenameService As IInlineRenameService
         Private _referencingViews As Integer
@@ -37,18 +39,18 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
             Contract.ThrowIfNull(commitFormatter)
             Contract.ThrowIfNull(inlineRenameService)
 
-            _buffer = buffer
+            _buffer = DirectCast(buffer, ITextBuffer2)
             _commitFormatter = commitFormatter
             _inlineRenameService = inlineRenameService
         End Sub
 
         Private Sub Connect()
             AddHandler _buffer.Changing, AddressOf OnTextBufferChanging
-            AddHandler _buffer.Changed, AddressOf OnTextBufferChanged
+            AddHandler _buffer.ChangedAsync, AddressOf OnTextBufferChangedAsync
         End Sub
 
         Private Sub Disconnect()
-            RemoveHandler _buffer.Changed, AddressOf OnTextBufferChanged
+            RemoveHandler _buffer.ChangedAsync, AddressOf OnTextBufferChangedAsync
             RemoveHandler _buffer.Changing, AddressOf OnTextBufferChanging
         End Sub
 
@@ -233,7 +235,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
             End If
         End Sub
 
-        Private Sub OnTextBufferChanged(sender As Object, e As TextContentChangedEventArgs)
+        Private Sub TextBufferChangedWorker(e As TextContentChangedEventArgs)
             ' Before we do anything else, ensure the field is nulled back out
             Dim documentBeforePreviousEdit = _documentBeforePreviousEdit
             _documentBeforePreviousEdit = Nothing
@@ -261,6 +263,13 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                 _dirtyState = _dirtyState.WithExpandedDirtySpan(encompassingNewSpan)
             End If
         End Sub
+
+        Private Function OnTextBufferChangedAsync(sender As Object, e As TextContentChangedEventArgs) As Task
+            Return Task.Factory.SafeStartNew(
+                Sub() TextBufferChangedWorker(e),
+                CancellationToken.None,
+                ForegroundTaskScheduler)
+        End Function
 
         Private Async Function ForceComputeInternalsVisibleToAsync(document As Document, cancellationToken As CancellationToken) As Task
             Dim project = document.Project

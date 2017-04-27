@@ -32,7 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
         /// workspace, that most language operations deal with.  The surface buffer is the one that the
         /// view is created over, and the Document buffer is the one that is saved to disk.
         /// </summary>
-        public ITextBuffer DataBuffer { get; private set; }
+        public ITextBuffer2 DataBuffer { get; private set; }
 
         public IVsContainedLanguageHost ContainedLanguageHost { get; protected set; }
         public IVsTextBufferCoordinator BufferCoordinator { get; protected set; }
@@ -57,7 +57,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
         /// </summary>
         protected void SetDataBuffer(ITextBuffer dataBuffer)
         {
-            this.DataBuffer = dataBuffer ?? throw new ArgumentNullException(nameof(dataBuffer));
+            this.DataBuffer = (ITextBuffer2)dataBuffer ?? throw new ArgumentNullException(nameof(dataBuffer));
         }
 
         public abstract void Dispose();

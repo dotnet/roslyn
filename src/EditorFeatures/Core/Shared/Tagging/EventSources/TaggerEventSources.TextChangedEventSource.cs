@@ -23,15 +23,15 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
 
             public override void Connect()
             {
-                _subjectBuffer.ChangedAsync += OnTextBufferChanged;
+                _subjectBuffer.ChangedAsync += OnTextBufferChangedAsync;
             }
 
             public override void Disconnect()
             {
-                _subjectBuffer.ChangedAsync -= OnTextBufferChanged;
+                _subjectBuffer.ChangedAsync -= OnTextBufferChangedAsync;
             }
 
-            private Task OnTextBufferChanged(object sender, TextContentChangedEventArgs e)
+            private Task OnTextBufferChangedAsync(object sender, TextContentChangedEventArgs e)
             {
                 if (e.Changes.Count != 0)
                 {
