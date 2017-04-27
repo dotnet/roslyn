@@ -53,7 +53,7 @@ test:
 
 restore: $(DOTNET)
 	export PATH="$(BINARIES_PATH)/dotnet-cli:$(PATH)" ; \
-	dotnet restore CrossPlatform.sln
+	./build/scripts/restore.sh
 
 $(DOTNET):
 	mkdir -p $(BINARIES_PATH) ; \
