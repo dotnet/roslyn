@@ -280,7 +280,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     new CSharpRequiredLanguageVersion(MessageID.IDS_FeatureInferredTupleNames.RequiredVersion()));
             }
 
-            return null;
+            return base.GetUseSiteDiagnostic();
         }
 
         public override string Name

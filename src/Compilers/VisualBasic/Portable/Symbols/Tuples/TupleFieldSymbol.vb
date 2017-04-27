@@ -237,7 +237,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                               New VisualBasicRequiredLanguageVersion(LanguageVersion.VisualBasic15_3))
             End If
 
-            Return Nothing
+            Return MyBase.GetUseSiteErrorInfo()
         End Function
 
         Public Overrides ReadOnly Property Name As String
