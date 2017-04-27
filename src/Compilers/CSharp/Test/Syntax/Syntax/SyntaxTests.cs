@@ -163,10 +163,13 @@ void foo()
         [InlineData("x?.y", "y")]
         [InlineData("this.y", "y")]
         [InlineData("M()", null)]
+        [InlineData("new C()", null)]
         [InlineData("x.M()", null)]
+        [InlineData("-x", null)]
+        [InlineData("this", null)]
         [InlineData("default(x)", null)]
         [InlineData("typeof(x)", null)]
-        public void ExtractAnonymousTypeMemberName(string source, string expected)
+        public void TestTryGetInferredMemberName(string source, string expected)
         {
             var expr = SyntaxFactory.ParseExpression(source, options: TestOptions.Regular);
             var actual = SyntaxFacts.TryGetInferredMemberName(expr);
@@ -175,6 +178,7 @@ void foo()
 
         [Theory]
         [InlineData("Item0", false)]
+        [InlineData("Item01", false)]
         [InlineData("Item1", true)]
         [InlineData("Item2", true)]
         [InlineData("Item10", true)]
@@ -184,7 +188,7 @@ void foo()
         [InlineData("item1", false)]
         [InlineData("item10", false)]
         [InlineData("Alice", false)]
-        public void IsReservedTupleElementName(string elementName, bool isReserved)
+        public void TestIsReservedTupleElementName(string elementName, bool isReserved)
         {
             Assert.Equal(isReserved, SyntaxFacts.IsReservedTupleElementName(elementName));
         }

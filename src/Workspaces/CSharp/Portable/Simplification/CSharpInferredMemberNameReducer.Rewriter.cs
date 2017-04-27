@@ -18,16 +18,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
 
             public override SyntaxNode VisitArgument(ArgumentSyntax node)
             {
-                return SimplifyExpression(
-                    node,
-                    newNode: base.VisitArgument(node),
-                    simplifier: SimplifyTupleName);
+                var newNode = base.VisitArgument(node);
+
+                if (node.Parent.IsKind(SyntaxKind.TupleExpression))
+                {
+                    return SimplifyNode(
+                        node,
+                        parentNode: node.Parent,
+                        newNode: newNode,
+                        simplifier: SimplifyTupleName);
+                }
+
+                return newNode;
             }
 
             public override SyntaxNode VisitAnonymousObjectMemberDeclarator(AnonymousObjectMemberDeclaratorSyntax node)
             {
-                return SimplifyExpression(
+                return SimplifyNode(
                     node,
+                    parentNode: node.Parent,
                     newNode: base.VisitAnonymousObjectMemberDeclarator(node),
                     simplifier: SimplifyAnonymousTypeMemberName);
             }

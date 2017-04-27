@@ -190,6 +190,8 @@
     <Compile Include="Simplification\VisualBasicCallReducer.vb" />
     <Compile Include="Simplification\VisualBasicCastReducer.Rewriter.vb" />
     <Compile Include="Simplification\VisualBasicCastReducer.vb" />
+    <Compile Include="Simplification\VisualBasicInferredMemberNameReducer.vb" />
+    <Compile Include="Simplification\VisualBasicInferredMemberNameReducer.Rewriter.vb" />
     <Compile Include="Simplification\VisualBasicEscapingReducer.Rewriter.vb" />
     <Compile Include="Simplification\VisualBasicEscapingReducer.vb" />
     <Compile Include="Simplification\VisualBasicExtensionMethodReducer.Rewriter.vb" />
