@@ -968,37 +968,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             toRemove.Free();
         }
 
-        private static string InferTupleElementName(SyntaxNode variableSyntax)
+        private static string InferTupleElementName(SyntaxNode syntax)
         {
-            SyntaxToken nameToken;
-            switch(variableSyntax.Kind())
-            {
-                case SyntaxKind.SingleVariableDesignation:
-                    nameToken = ((SingleVariableDesignationSyntax)variableSyntax).Identifier;
-                    break;
+            string name = syntax.TryGetInferredMemberName();
 
-                case SyntaxKind.DeclarationExpression:
-                    var declaration = (DeclarationExpressionSyntax)variableSyntax;
-                    var designationKind = declaration.Designation.Kind();
-                    if (designationKind == SyntaxKind.ParenthesizedVariableDesignation ||
-                        designationKind == SyntaxKind.DiscardDesignation)
-                    {
-                        return null;
-                    }
-
-                    nameToken = ((SingleVariableDesignationSyntax)declaration.Designation).Identifier;
-                    break;
-
-                case SyntaxKind.ParenthesizedVariableDesignation:
-                case SyntaxKind.DiscardDesignation:
-                    return null;
-
-                default:
-                    nameToken = ((ExpressionSyntax)variableSyntax).ExtractAnonymousTypeMemberName();
-                    break;
-            }
-
-            string name = nameToken.ValueText;
             // Reserved names are never candidates to be inferred names, at any position
             if (name == null || TupleTypeSymbol.IsElementNameReserved(name) != -1)
             {

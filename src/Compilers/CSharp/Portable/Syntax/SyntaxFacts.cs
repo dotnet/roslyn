@@ -431,15 +431,41 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Given an initializer expression infer the name of anonymous property or tuple element.
         /// Returns null if unsuccessful
         /// </summary>
-        public static string TryGetInferredMemberName(this ExpressionSyntax expression)
+        public static string TryGetInferredMemberName(this SyntaxNode syntax)
         {
-            if (expression == null)
+            SyntaxToken nameToken;
+            switch (syntax.Kind())
             {
-                return null;
+                case SyntaxKind.SingleVariableDesignation:
+                    nameToken = ((SingleVariableDesignationSyntax)syntax).Identifier;
+                    break;
+
+                case SyntaxKind.DeclarationExpression:
+                    var declaration = (DeclarationExpressionSyntax)syntax;
+                    var designationKind = declaration.Designation.Kind();
+                    if (designationKind == SyntaxKind.ParenthesizedVariableDesignation ||
+                        designationKind == SyntaxKind.DiscardDesignation)
+                    {
+                        return null;
+                    }
+
+                    nameToken = ((SingleVariableDesignationSyntax)declaration.Designation).Identifier;
+                    break;
+
+                case SyntaxKind.ParenthesizedVariableDesignation:
+                case SyntaxKind.DiscardDesignation:
+                    return null;
+
+                default:
+                    if (syntax is ExpressionSyntax expr)
+                    {
+                        nameToken = expr.ExtractAnonymousTypeMemberName();
+                        break;
+                    }
+                    return null;
             }
 
-            var nameToken = expression.ExtractAnonymousTypeMemberName();
-            return nameToken.Kind() == SyntaxKind.IdentifierToken ? nameToken.ValueText : null;
+            return nameToken.ValueText;
         }
 
         /// <summary>

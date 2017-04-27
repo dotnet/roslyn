@@ -2753,7 +2753,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             elementNames = CheckTupleElementNames(cardinality, elementNames);
             CheckTupleElementLocations(cardinality, elementLocations);
 
-            return TupleTypeSymbol.Create(csharpUnderlyingTuple, elementNames: elementNames, elementLocations: elementLocations);
+            return TupleTypeSymbol.Create(
+                csharpUnderlyingTuple, elementNames, elementLocations: elementLocations);
         }
 
         protected override INamedTypeSymbol CommonCreateAnonymousTypeSymbol(

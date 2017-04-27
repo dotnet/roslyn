@@ -3124,11 +3124,16 @@ class C
                 // extra check on var
                 var x12Var = (DeclarationExpressionSyntax)x1.Parent.Parent;
                 Assert.Equal("var", x12Var.Type.ToString());
+                Assert.Equal("(System.Int32 x1, System.Int32 x2)", model.GetTypeInfo(x12Var).Type.ToTestDisplayString());
                 Assert.Null(model.GetSymbolInfo(x12Var.Type).Symbol); // The var in `var (x1, x2)` has no symbol
             };
 
             var comp = CompileAndVerify(source, expectedOutput: "1 2", additionalRefs: s_valueTupleRefs, sourceSymbolValidator: validator);
             comp.VerifyDiagnostics();
+
+            var comp7_1 = CompileAndVerify(source, expectedOutput: "1 2", additionalRefs: s_valueTupleRefs,
+                sourceSymbolValidator: validator, parseOptions: TestOptions.Regular7_1);
+            comp7_1.VerifyDiagnostics();
 
             comp.VerifyIL("C.Main",
 @"{
@@ -3170,43 +3175,6 @@ class C
   }
   IL_0045:  ret
 }");
-        }
-
-        [Fact]
-        public void ForEachIEnumerableDeclarationWithImplicitVarType_WithCSharp7_1()
-        {
-            string source = @"
-using System.Collections.Generic;
-class C
-{
-    static void Main()
-    {
-        foreach (var (x1, x2) in M())
-        {
-            Print(x1, x2);
-        }
-    }
-    static IEnumerable<(int, int)> M() { yield return (1, 2); }
-    static void Print(object a, object b) { System.Console.WriteLine(a + "" "" + b); }
-}
-";
-
-            Action<ModuleSymbol> validator = (ModuleSymbol module) =>
-            {
-                var sourceModule = (SourceModuleSymbol)module;
-                var compilation = sourceModule.DeclaringCompilation;
-                var tree = compilation.SyntaxTrees.First();
-                var model = compilation.GetSemanticModel(tree);
-
-                var x12 = tree.GetRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().Single();
-                Assert.Equal("var (x1, x2)", x12.ToString());
-                Assert.Equal("(System.Int32 x1, System.Int32 x2)", model.GetTypeInfo(x12).Type.ToTestDisplayString());
-                Assert.Null(model.GetSymbolInfo(x12).Symbol);
-            };
-
-            var comp = CompileAndVerify(source, expectedOutput: "1 2", additionalRefs: s_valueTupleRefs,
-                sourceSymbolValidator: validator, parseOptions: TestOptions.Regular7_1);
-            comp.VerifyDiagnostics();
         }
 
         [Fact]

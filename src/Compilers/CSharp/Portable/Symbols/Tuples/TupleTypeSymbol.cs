@@ -230,7 +230,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Copy this tuple, but modify it to use the new element names.
         /// Also applies new location of the whole tuple as well as each element.
-        /// Loses the inferred positions.
+        /// Drops the inferred positions.
         /// </summary>
         internal TupleTypeSymbol WithElementNames(ImmutableArray<string> newElementNames,
                                                   Location newLocation,
