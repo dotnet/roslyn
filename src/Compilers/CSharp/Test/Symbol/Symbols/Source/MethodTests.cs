@@ -207,8 +207,7 @@ public partial class A {
         public void PartialExtractSyntaxLocation_DeclBeforeDef()
         {
             var text =
-@"
-public partial class A {
+@"public partial class A {
   partial void M();
 }
 public partial class A {
@@ -221,15 +220,15 @@ public partial class A {
             var m = a.GetMembers("M");
             Assert.Equal(1, m.Length);
             var returnSyntax = ((MethodSymbol) m.First()).ExtractReturnTypeSyntax();
-            Assert.Equal(returnSyntax.Location.SourceSpan, TextSpan.FromBounds(38, 42));
+            var newLineCount = Environment.NewLine.Length * 1;
+            Assert.Equal(returnSyntax.Location.SourceSpan, TextSpan.FromBounds(34 + newLineCount, 38 + newLineCount));
         }
 
         [Fact]
         public void PartialExtractSyntaxLocation_DefBeforeDecl()
         {
             var text =
-@"
-public partial class A {
+@"public partial class A {
   partial void M() {}
 }
 public partial class A {
@@ -242,15 +241,15 @@ public partial class A {
             var m = a.GetMembers("M");
             Assert.Equal(1, m.Length);
             var returnSyntax = ((MethodSymbol) m.First()).ExtractReturnTypeSyntax();
-            Assert.Equal(returnSyntax.Location.SourceSpan, TextSpan.FromBounds(90, 94));
+            var newlineSize = Environment.NewLine.Length * 4;
+            Assert.Equal(returnSyntax.Location.SourceSpan, TextSpan.FromBounds(80 + newlineSize, 84 + newlineSize));
         }
 
         [Fact]
         public void PartialExtractSyntaxLocation_OnlyDef()
         {
             var text =
-@"
-public partial class A {
+@"public partial class A {
   partial void M() {}
 }
 ";
@@ -260,15 +259,15 @@ public partial class A {
             var m = a.GetMembers("M");
             Assert.Equal(1, m.Length);
             var returnSyntax = ((MethodSymbol) m.First()).ExtractReturnTypeSyntax();
-            Assert.Equal(returnSyntax.Location.SourceSpan, TextSpan.FromBounds(38, 42));
+            var newlineSize = Environment.NewLine.Length * 1;
+            Assert.Equal(returnSyntax.Location.SourceSpan, TextSpan.FromBounds(34 + newlineSize, 38 + newlineSize));
         }
 
         [Fact]
         public void PartialExtractSyntaxLocation_OnlyDecl()
         {
             var text =
-@"
-public partial class A {
+@"public partial class A {
   partial void M();
 }
 ";
@@ -278,7 +277,8 @@ public partial class A {
             var m = a.GetMembers("M");
             Assert.Equal(1, m.Length);
             var returnSyntax = ((MethodSymbol) m.First()).ExtractReturnTypeSyntax();
-            Assert.Equal(returnSyntax.Location.SourceSpan, TextSpan.FromBounds(38, 42));
+            var newlineSize = Environment.NewLine.Length * 1;
+            Assert.Equal(returnSyntax.Location.SourceSpan, TextSpan.FromBounds(34 + newlineSize, 38 + newlineSize));
         }
 
         [Fact]
