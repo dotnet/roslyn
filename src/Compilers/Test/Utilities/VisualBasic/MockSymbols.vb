@@ -14,13 +14,11 @@ Friend Class MockNamespaceSymbol
     Implements IMockSymbol
 
     Private _container As NamespaceSymbol
-    Private _extent As NamespaceExtent
     Private _children As ImmutableArray(Of Symbol)
-    Private ReadOnly _name As String
 
     Public Sub New(name As String, extent As NamespaceExtent, children As IEnumerable(Of Symbol))
-        Me._name = name
-        Me._extent = extent
+        Me.Name = name
+        Me.Extent = extent
         Me._children = children.AsImmutable
     End Sub
 
@@ -29,16 +27,8 @@ Friend Class MockNamespaceSymbol
     End Sub
 
     Public Overrides ReadOnly Property Name As String
-        Get
-            Return _name
-        End Get
-    End Property
 
     Friend Overrides ReadOnly Property Extent As NamespaceExtent
-        Get
-            Return _extent
-        End Get
-    End Property
 
     Public Overrides Function GetModuleMembers() As ImmutableArray(Of NamedTypeSymbol)
         Return GetTypeMembers().WhereAsArray(Function(t) t.TypeKind = TypeKind.Module)
@@ -99,11 +89,11 @@ Friend Class MockNamespaceSymbol
     End Sub
 
     Friend Overrides Sub AddExtensionMethodLookupSymbolsInfo(
-        nameSet As LookupSymbolsInfo,
-        options As LookupOptions,
-        originalBinder As Binder,
-        appendThrough As NamespaceSymbol
-    )
+                                                              nameSet As LookupSymbolsInfo,
+                                                              options As LookupOptions,
+                                                              originalBinder As Binder,
+                                                              appendThrough As NamespaceSymbol
+                                                            )
         Throw New NotImplementedException()
     End Sub
 
@@ -118,14 +108,12 @@ Friend Class MockNamedTypeSymbol
     Inherits InstanceTypeSymbol
     Implements IMockSymbol
 
-    Private ReadOnly _name As String
-    Private ReadOnly _kind As TypeKind
     Private _children As ImmutableArray(Of Symbol)
     Private _container As NamespaceOrTypeSymbol
 
     Public Sub New(name As String, children As IEnumerable(Of Symbol), Optional kind As TypeKind = TypeKind.Class)
-        _name = name
-        _kind = kind
+        Me.Name = name
+        Me.TypeKind = kind
         _children = children.AsImmutable
     End Sub
 
@@ -133,23 +121,11 @@ Friend Class MockNamedTypeSymbol
         Me._container = DirectCast(container, NamespaceOrTypeSymbol)
     End Sub
 
-    Friend Overrides ReadOnly Property HasSpecialName As Boolean
-        Get
-            Return False
-        End Get
-    End Property
+    Friend Overrides ReadOnly Property HasSpecialName As Boolean = False
 
-    Friend Overrides ReadOnly Property IsSerializable As Boolean
-        Get
-            Return False
-        End Get
-    End Property
+    Friend Overrides ReadOnly Property IsSerializable As Boolean = False
 
-    Friend Overrides ReadOnly Property Layout As TypeLayout
-        Get
-            Return Nothing
-        End Get
-    End Property
+    Friend Overrides ReadOnly Property Layout As TypeLayout = Nothing
 
     Friend Overrides ReadOnly Property MarshallingCharSet As CharSet
         Get
@@ -157,11 +133,8 @@ Friend Class MockNamedTypeSymbol
         End Get
     End Property
 
-    Public Overrides ReadOnly Property Arity As Integer
-        Get
-            Return 0
-        End Get
-    End Property
+    Public Overrides ReadOnly Property Arity As Integer = 0
+
 
     Friend Overrides Function MakeDeclaredBase(basesBeingResolved As ConsList(Of Symbol), diagnostics As DiagnosticBag) As NamedTypeSymbol
         Throw New NotImplementedException()
@@ -185,11 +158,7 @@ Friend Class MockNamedTypeSymbol
         End Get
     End Property
 
-    Public Overrides ReadOnly Property DeclaredAccessibility As Accessibility
-        Get
-            Return Accessibility.Public
-        End Get
-    End Property
+    Public Overrides ReadOnly Property DeclaredAccessibility As Accessibility=Accessibility.Public
 
     Public Overloads Overrides Function GetAttributes() As ImmutableArray(Of VisualBasicAttributeData)
         Return ImmutableArray.Create(Of VisualBasicAttributeData)()
@@ -199,11 +168,7 @@ Friend Class MockNamedTypeSymbol
         Throw New InvalidOperationException()
     End Function
 
-    Friend Overrides ReadOnly Property HasDeclarativeSecurity As Boolean
-        Get
-            Return False
-        End Get
-    End Property
+    Friend Overrides ReadOnly Property HasDeclarativeSecurity As Boolean = False
 
     Friend Overrides Function GetSecurityInformation() As IEnumerable(Of Cci.SecurityAttribute)
         Throw New InvalidOperationException()
@@ -254,10 +219,6 @@ Friend Class MockNamedTypeSymbol
     End Property
 
     Public Overrides ReadOnly Property Name As String
-        Get
-            Return _name
-        End Get
-    End Property
 
     Friend Overrides ReadOnly Property MangleName As Boolean
         Get
@@ -271,23 +232,11 @@ Friend Class MockNamedTypeSymbol
         End Get
     End Property
 
-    Public Overrides ReadOnly Property ConstructedFrom As NamedTypeSymbol
-        Get
-            Return Me
-        End Get
-    End Property
+    Public Overrides ReadOnly Property ConstructedFrom As NamedTypeSymbol= Me
 
-    Public Overrides ReadOnly Property IsMustInherit As Boolean
-        Get
-            Return False
-        End Get
-    End Property
+    Public Overrides ReadOnly Property IsMustInherit As Boolean = False
 
-    Public Overrides ReadOnly Property IsNotInheritable As Boolean
-        Get
-            Return False
-        End Get
-    End Property
+    Public Overrides ReadOnly Property IsNotInheritable As Boolean = False
 
     Public Overrides ReadOnly Property MightContainExtensionMethods As Boolean
         Get
@@ -336,28 +285,17 @@ Friend Class MockNamedTypeSymbol
     End Function
 
     Public Overrides ReadOnly Property TypeKind As TypeKind
-        Get
-            Return _kind
-        End Get
-    End Property
 
     Friend Overrides ReadOnly Property IsInterface As Boolean
         Get
-            Return _kind = TypeKind.Interface
+            Return TypeKind = TypeKind.Interface
         End Get
     End Property
 
-    Friend Overrides ReadOnly Property DefaultPropertyName As String
-        Get
-            Return Nothing
-        End Get
-    End Property
+    Friend Overrides ReadOnly Property DefaultPropertyName As String = Nothing
 
-    Friend NotOverridable Overrides ReadOnly Property ObsoleteAttributeData As ObsoleteAttributeData
-        Get
-            Return Nothing
-        End Get
-    End Property
+    Friend NotOverridable Overrides ReadOnly Property ObsoleteAttributeData As ObsoleteAttributeData = Nothing
+
 
     ''' <summary>
     ''' Force all declaration errors to be generated.
@@ -381,41 +319,21 @@ Friend Class MockMethodSymbol
         _name = name
     End Sub
 
-    Public Overrides ReadOnly Property Arity As Integer
-        Get
-            Return 0
-        End Get
-    End Property
+    Public Overrides ReadOnly Property Arity As Integer = 0
 
-    Public Overrides ReadOnly Property AssociatedSymbol As Symbol
-        Get
-            Return Nothing
-        End Get
-    End Property
-
-    Friend Overrides ReadOnly Property CallingConvention As Cci.CallingConvention
-        Get
-            Return Cci.CallingConvention.Standard
-        End Get
-    End Property
-
+    Public Overrides ReadOnly Property AssociatedSymbol As Symbol= Nothing
+    
+    Friend Overrides ReadOnly Property CallingConvention As Cci.CallingConvention = Cci.CallingConvention.Standard
+    
     Public Overrides ReadOnly Property ContainingSymbol As Symbol
         Get
             Return _container
         End Get
     End Property
 
-    Friend Overrides ReadOnly Property GenerateDebugInfoImpl As Boolean
-        Get
-            Return False
-        End Get
-    End Property
+    Friend Overrides ReadOnly Property GenerateDebugInfoImpl As Boolean=False
 
-    Public Overrides ReadOnly Property DeclaredAccessibility As Accessibility
-        Get
-            Return Accessibility.Public
-        End Get
-    End Property
+    Public Overrides ReadOnly Property DeclaredAccessibility As Accessibility = Accessibility.Public
 
     Public Overrides ReadOnly Property ExplicitInterfaceImplementations As ImmutableArray(Of MethodSymbol)
         Get
@@ -427,115 +345,36 @@ Friend Class MockMethodSymbol
         Return ImmutableArray.Create(Of VisualBasicAttributeData)()
     End Function
 
-    Public Overrides ReadOnly Property IsExtensionMethod As Boolean
-        Get
-            Return False
-        End Get
-    End Property
+    Public Overrides ReadOnly Property IsExtensionMethod As Boolean = False
 
-    Public Overrides ReadOnly Property IsExternalMethod As Boolean
-        Get
-            Return False
-        End Get
-    End Property
+    Public Overrides ReadOnly Property IsExternalMethod As Boolean= False
 
     Public NotOverridable Overrides Function GetDllImportData() As DllImportData
         Return Nothing
     End Function
 
-    Friend Overrides ReadOnly Property ReturnTypeMarshallingInformation As MarshalPseudoCustomAttributeData
-        Get
-            Return Nothing
-        End Get
-    End Property
+    Friend Overrides ReadOnly Property ReturnTypeMarshallingInformation As MarshalPseudoCustomAttributeData = Nothing
 
-    Friend Overrides ReadOnly Property ImplementationAttributes As MethodImplAttributes
-        Get
-            Return Nothing
-        End Get
-    End Property
+    Friend Overrides ReadOnly Property ImplementationAttributes As MethodImplAttributes = Nothing
 
-    Friend Overrides ReadOnly Property HasDeclarativeSecurity As Boolean
-        Get
-            Return False
-        End Get
-    End Property
+    Friend Overrides ReadOnly Property HasDeclarativeSecurity As Boolean = False
 
     Friend Overrides Function GetSecurityInformation() As IEnumerable(Of Cci.SecurityAttribute)
         Throw New InvalidOperationException()
     End Function
 
-    Public Overrides ReadOnly Property IsGenericMethod As Boolean
-        Get
-            Return False
-        End Get
-    End Property
-
-    Public Overrides ReadOnly Property IsMustOverride As Boolean
-        Get
-            Return False
-        End Get
-    End Property
-
-    Public Overrides ReadOnly Property IsNotOverridable As Boolean
-        Get
-            Return False
-        End Get
-    End Property
-
-    Public Overrides ReadOnly Property IsOverloads As Boolean
-        Get
-            Return False
-        End Get
-    End Property
-
-    Public Overrides ReadOnly Property IsOverridable As Boolean
-        Get
-            Return False
-        End Get
-    End Property
-
-    Public Overrides ReadOnly Property IsOverrides As Boolean
-        Get
-            Return False
-        End Get
-    End Property
-
-    Public Overrides ReadOnly Property IsShared As Boolean
-        Get
-            Return True
-        End Get
-    End Property
-
-    Public Overrides ReadOnly Property IsSub As Boolean
-        Get
-            Return True
-        End Get
-    End Property
-
-    Public Overrides ReadOnly Property IsAsync As Boolean
-        Get
-            Return False
-        End Get
-    End Property
-
-    Public Overrides ReadOnly Property IsIterator As Boolean
-        Get
-            Return False
-        End Get
-    End Property
-
-    Public Overrides ReadOnly Property IsVararg As Boolean
-        Get
-            Return False
-        End Get
-    End Property
-
-    Friend Overrides ReadOnly Property HasSpecialName As Boolean
-        Get
-            Return False
-        End Get
-    End Property
+    Public Overrides ReadOnly Property IsGenericMethod As Boolean = False
+    Public Overrides ReadOnly Property IsMustOverride As Boolean = False
+    Public Overrides ReadOnly Property IsNotOverridable As Boolean = False
+    Public Overrides ReadOnly Property IsOverloads As Boolean = False
+    Public Overrides ReadOnly Property IsOverridable As Boolean = False
+    Public Overrides ReadOnly Property IsOverrides As Boolean = False
+    Public Overrides ReadOnly Property IsShared As Boolean = True
+    Public Overrides ReadOnly Property IsSub As Boolean = True
+    Public Overrides ReadOnly Property IsAsync As Boolean = False
+    Public Overrides ReadOnly Property IsIterator As Boolean = False
+    Public Overrides ReadOnly Property IsVararg As Boolean = False
+    Friend Overrides ReadOnly Property HasSpecialName As Boolean = False
 
     Friend Overrides Function GetAppliedConditionalSymbols() As ImmutableArray(Of String)
         Throw New NotImplementedException()
@@ -553,17 +392,8 @@ Friend Class MockMethodSymbol
         End Get
     End Property
 
-    Public Overrides ReadOnly Property MethodKind As MethodKind
-        Get
-            Return MethodKind.Ordinary
-        End Get
-    End Property
-
-    Friend Overrides ReadOnly Property IsMethodKindBasedOnSyntax As Boolean
-        Get
-            Return False
-        End Get
-    End Property
+    Public Overrides ReadOnly Property MethodKind As MethodKind = MethodKind.Ordinary
+    Friend Overrides ReadOnly Property IsMethodKindBasedOnSyntax As Boolean = False
 
     Public Overrides ReadOnly Property Parameters As ImmutableArray(Of ParameterSymbol)
         Get
@@ -571,29 +401,10 @@ Friend Class MockMethodSymbol
         End Get
     End Property
 
-    Public Overrides ReadOnly Property ReturnsByRef As Boolean
-        Get
-            Return False
-        End Get
-    End Property
-
-    Public Overrides ReadOnly Property ReturnType As TypeSymbol
-        Get
-            Return Nothing ' Not really kosher, but its a MOCK...
-        End Get
-    End Property
-
-    Public Overrides ReadOnly Property ReturnTypeCustomModifiers As ImmutableArray(Of CustomModifier)
-        Get
-            Return ImmutableArray(Of CustomModifier).Empty
-        End Get
-    End Property
-
-    Public Overrides ReadOnly Property RefCustomModifiers As ImmutableArray(Of CustomModifier)
-        Get
-            Return ImmutableArray(Of CustomModifier).Empty
-        End Get
-    End Property
+    Public Overrides ReadOnly Property ReturnsByRef As Boolean = False
+    Public Overrides ReadOnly Property ReturnType As TypeSymbol = Nothing ' Not really kosher, but its a MOCK...
+    Public Overrides ReadOnly Property ReturnTypeCustomModifiers As ImmutableArray(Of CustomModifier)= ImmutableArray(Of CustomModifier).Empty
+    Public Overrides ReadOnly Property RefCustomModifiers As ImmutableArray(Of CustomModifier)=ImmutableArray(Of CustomModifier).Empty
 
     Public Overrides ReadOnly Property TypeArguments As ImmutableArray(Of TypeSymbol)
         Get
@@ -607,17 +418,9 @@ Friend Class MockMethodSymbol
         End Get
     End Property
 
-    Friend Overrides ReadOnly Property Syntax As SyntaxNode
-        Get
-            Return Nothing
-        End Get
-    End Property
+    Friend Overrides ReadOnly Property Syntax As SyntaxNode = Nothing
 
-    Friend Overrides ReadOnly Property ObsoleteAttributeData As ObsoleteAttributeData
-        Get
-            Return Nothing
-        End Get
-    End Property
+    Friend Overrides ReadOnly Property ObsoleteAttributeData As ObsoleteAttributeData = Nothing
 
     Friend Overrides Function CalculateLocalSyntaxOffset(localPosition As Integer, localTree As SyntaxTree) As Integer
         Throw ExceptionUtilities.Unreachable
@@ -627,43 +430,19 @@ End Class
 Friend Class MockModuleSymbol
     Inherits NonMissingModuleSymbol
 
-    Private ReadOnly _name As String
-    Private ReadOnly _assembly As AssemblySymbol
-
     Public Sub New(name As String, assembly As AssemblySymbol)
-        _name = name
-        _assembly = assembly
+        Me.Name = name
+        Me.ContainingSymbol = assembly
     End Sub
 
-    Friend Overrides ReadOnly Property Ordinal As Integer
-        Get
-            Return -1
-        End Get
-    End Property
+    Friend Overrides ReadOnly Property Ordinal As Integer=-1
 
-    Friend Overrides ReadOnly Property Machine As System.Reflection.PortableExecutable.Machine
-        Get
-            Return System.Reflection.PortableExecutable.Machine.I386
-        End Get
-    End Property
+    Friend Overrides ReadOnly Property Machine As PortableExecutable.Machine =PortableExecutable.Machine.I386
 
-    Friend Overrides ReadOnly Property Bit32Required As Boolean
-        Get
-            Return False
-        End Get
-    End Property
-
+    Friend Overrides ReadOnly Property Bit32Required As Boolean= False
     Public Overrides ReadOnly Property Name As String
-        Get
-            Return _name
-        End Get
-    End Property
 
     Public Overrides ReadOnly Property ContainingSymbol As Symbol
-        Get
-            Return _assembly
-        End Get
-    End Property
 
     Public Overloads Overrides Function GetAttributes() As ImmutableArray(Of VisualBasicAttributeData)
         Return ImmutableArray.Create(Of VisualBasicAttributeData)()
@@ -681,41 +460,12 @@ Friend Class MockModuleSymbol
         End Get
     End Property
 
-    Friend Overrides ReadOnly Property TypeNames As ICollection(Of String)
-        Get
-            Return SpecializedCollections.EmptyCollection(Of String)()
-        End Get
-    End Property
-
-    Friend Overrides ReadOnly Property NamespaceNames As ICollection(Of String)
-        Get
-            Return SpecializedCollections.EmptyCollection(Of String)()
-        End Get
-    End Property
-
-    Friend Overrides ReadOnly Property MightContainExtensionMethods As Boolean
-        Get
-            Return False
-        End Get
-    End Property
-
-    Friend Overrides ReadOnly Property HasAssemblyCompilationRelaxationsAttribute As Boolean
-        Get
-            Return False
-        End Get
-    End Property
-
-    Friend Overrides ReadOnly Property HasAssemblyRuntimeCompatibilityAttribute As Boolean
-        Get
-            Return False
-        End Get
-    End Property
-
-    Friend Overrides ReadOnly Property DefaultMarshallingCharSet As CharSet?
-        Get
-            Return Nothing
-        End Get
-    End Property
+    Friend Overrides ReadOnly Property TypeNames As ICollection(Of String)=SpecializedCollections.EmptyCollection(Of String)()
+    Friend Overrides ReadOnly Property NamespaceNames As ICollection(Of String)= SpecializedCollections.EmptyCollection(Of String)()
+    Friend Overrides ReadOnly Property MightContainExtensionMethods As Boolean = False
+    Friend Overrides ReadOnly Property HasAssemblyCompilationRelaxationsAttribute As Boolean = False
+    Friend Overrides ReadOnly Property HasAssemblyRuntimeCompatibilityAttribute As Boolean =False
+    Friend Overrides ReadOnly Property DefaultMarshallingCharSet As CharSet?=Nothing
 
     Public Overrides Function GetMetadata() As ModuleMetadata
         Return Nothing
@@ -725,25 +475,16 @@ End Class
 Friend Class MockAssemblySymbol
     Inherits NonMissingAssemblySymbol
 
-    Private ReadOnly _name As String
     Private ReadOnly _module As ModuleSymbol
 
     Public Sub New(name As String)
-        _name = name
+        Identity =New AssemblyIdentity(name)
         _module = New MockModuleSymbol(name, Me)
     End Sub
 
     Public Overrides ReadOnly Property Identity As AssemblyIdentity
-        Get
-            Return New AssemblyIdentity(_name)
-        End Get
-    End Property
 
-    Public Overrides ReadOnly Property AssemblyVersionPattern As Version
-        Get
-            Return Nothing
-        End Get
-    End Property
+    Public Overrides ReadOnly Property AssemblyVersionPattern As Version = Nothing
 
     Public Overloads Overrides Function GetAttributes() As ImmutableArray(Of VisualBasicAttributeData)
         Return ImmutableArray.Create(Of VisualBasicAttributeData)()
@@ -765,17 +506,8 @@ Friend Class MockAssemblySymbol
         Throw New NotImplementedException()
     End Function
 
-    Public Overrides ReadOnly Property TypeNames As ICollection(Of String)
-        Get
-            Return SpecializedCollections.EmptyCollection(Of String)()
-        End Get
-    End Property
-
-    Public Overrides ReadOnly Property NamespaceNames As ICollection(Of String)
-        Get
-            Return SpecializedCollections.EmptyCollection(Of String)()
-        End Get
-    End Property
+    Public Overrides ReadOnly Property TypeNames As ICollection(Of String) =  SpecializedCollections.EmptyCollection(Of String)()
+    Public Overrides ReadOnly Property NamespaceNames As ICollection(Of String) =  SpecializedCollections.EmptyCollection(Of String)()
 
     Friend Overrides Function GetNoPiaResolutionAssemblies() As ImmutableArray(Of AssemblySymbol)
         Return CType(Nothing, ImmutableArray(Of AssemblySymbol))
@@ -807,19 +539,15 @@ Friend Class MockAssemblySymbol
         End Get
     End Property
 
-    Friend Overrides ReadOnly Property IsLinked As Boolean
-        Get
-            Return False
-        End Get
-    End Property
+    Friend Overrides ReadOnly Property IsLinked As Boolean = False
 
-    Public Overrides ReadOnly Property MightContainExtensionMethods As Boolean
-        Get
-            Return False
-        End Get
-    End Property
+    Public Overrides ReadOnly Property MightContainExtensionMethods As Boolean = False
 
-    Friend Overrides Function TryLookupForwardedMetadataTypeWithCycleDetection(ByRef emittedName As MetadataTypeName, visitedAssemblies As ConsList(Of AssemblySymbol), ignoreCase As Boolean) As NamedTypeSymbol
+    Friend Overrides Function TryLookupForwardedMetadataTypeWithCycleDetection(
+                                                                          ByRef emittedName As MetadataTypeName,
+                                                                                visitedAssemblies As ConsList(Of AssemblySymbol),
+                                                                                ignoreCase As Boolean
+                                                                              ) As NamedTypeSymbol
         Return Nothing
     End Function
 

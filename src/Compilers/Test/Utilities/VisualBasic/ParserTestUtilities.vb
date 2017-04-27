@@ -118,39 +118,7 @@ Friend Module ParserTestUtilities
         'to make sure that the span calculation does not cause any crash.
         Dim span = nodeOrToken.Span
         If nodeOrToken.IsToken Then
-            Dim token = nodeOrToken
-            For Each trivia In token.GetLeadingTrivia()
-                Dim parentToken = trivia.Token
-                Assert.Equal(token, parentToken)
-                If trivia.HasStructure Then
-                    Dim triviaStructure = DirectCast(trivia.GetStructure, VisualBasicSyntaxNode)
-                    Dim parent = triviaStructure.Parent
-                    Assert.Equal(Nothing, parent)
-
-                    Dim parentTrivia = DirectCast(triviaStructure, StructuredTriviaSyntax).ParentTrivia
-                    Assert.Equal(trivia, parentTrivia)
-
-                    VerifyParents(triviaStructure)
-                Else
-                    span = trivia.Span
-                End If
-            Next
-            For Each trivia In token.GetTrailingTrivia()
-                Dim parentToken = trivia.Token
-                Assert.Equal(token, parentToken)
-                If trivia.HasStructure Then
-                    Dim triviaStructure = trivia.GetStructure
-                    Dim parent = triviaStructure.Parent
-                    Assert.Equal(Nothing, parent)
-
-                    Dim parentTrivia = DirectCast(triviaStructure, StructuredTriviaSyntax).ParentTrivia
-                    Assert.Equal(trivia, parentTrivia)
-
-                    VerifyParents(triviaStructure)
-                Else
-                    span = trivia.Span
-                End If
-            Next
+            span = VerifyParentsHelper(nodeOrToken, span)
         Else
             Dim node = nodeOrToken
             For Each child In node.ChildNodesAndTokens()
@@ -160,6 +128,44 @@ Friend Module ParserTestUtilities
             Next
         End If
     End Sub
+
+    Private Function VerifyParentsHelper(nodeOrToken As SyntaxNodeOrToken, span As TextSpan) As TextSpan
+        Dim token = nodeOrToken
+        For Each trivia In token.GetLeadingTrivia()
+            Dim parentToken = trivia.Token
+            Assert.Equal(token, parentToken)
+            If trivia.HasStructure Then
+                Dim triviaStructure = DirectCast(trivia.GetStructure, VisualBasicSyntaxNode)
+                Dim parent = triviaStructure.Parent
+                Assert.Equal(Nothing, parent)
+
+                Dim parentTrivia = DirectCast(triviaStructure, StructuredTriviaSyntax).ParentTrivia
+                Assert.Equal(trivia, parentTrivia)
+
+                VerifyParents(triviaStructure)
+            Else
+                span = trivia.Span
+            End If
+        Next
+        For Each trivia In token.GetTrailingTrivia()
+            Dim parentToken = trivia.Token
+            Assert.Equal(token, parentToken)
+            If trivia.HasStructure Then
+                Dim triviaStructure = trivia.GetStructure
+                Dim parent = triviaStructure.Parent
+                Assert.Equal(Nothing, parent)
+
+                Dim parentTrivia = DirectCast(triviaStructure, StructuredTriviaSyntax).ParentTrivia
+                Assert.Equal(trivia, parentTrivia)
+
+                VerifyParents(triviaStructure)
+            Else
+                span = trivia.Span
+            End If
+        Next
+
+        Return span
+    End Function
 
     <Extension()>
     Public Function ToFullWidth(s As String) As String
@@ -404,20 +410,7 @@ Public Module VerificationHelpers
                 InternalVerifyErrorsOnChildrenAlsoPresentOnParent(child, tree)
             Next
         Else
-            For Each tr In node.AsToken.LeadingTrivia
-                If tr.HasStructure Then
-                    InternalVerifyErrorsOnChildrenAlsoPresentOnParent(tr.GetStructure, tree)
-                ElseIf tree.GetDiagnostics(tr).Any Then
-                    VerifyContainsErrors(node, tree, tree.GetDiagnostics(tr).ToXml)
-                End If
-            Next
-            For Each tr In node.AsToken.TrailingTrivia
-                If tr.HasStructure Then
-                    InternalVerifyErrorsOnChildrenAlsoPresentOnParent(tr.GetStructure, tree)
-                ElseIf tree.GetDiagnostics(tr).Any Then
-                    VerifyContainsErrors(node, tree, tree.GetDiagnostics(tr).ToXml)
-                End If
-            Next
+            node = InternalVerifyErrorsOnChildrenAlsoPresentOnParent_Helper(node, tree)
         End If
         If tree.GetDiagnostics(node).Any Then
             If node.Parent IsNot Nothing Then
@@ -425,6 +418,25 @@ Public Module VerificationHelpers
             End If
         End If
     End Sub
+
+    Private Function InternalVerifyErrorsOnChildrenAlsoPresentOnParent_Helper(node As SyntaxNodeOrToken, tree As SyntaxTree) As SyntaxNodeOrToken
+        For Each tr In node.AsToken.LeadingTrivia
+            If tr.HasStructure Then
+                InternalVerifyErrorsOnChildrenAlsoPresentOnParent(tr.GetStructure, tree)
+            ElseIf tree.GetDiagnostics(tr).Any Then
+                VerifyContainsErrors(node, tree, tree.GetDiagnostics(tr).ToXml)
+            End If
+        Next
+        For Each tr In node.AsToken.TrailingTrivia
+            If tr.HasStructure Then
+                InternalVerifyErrorsOnChildrenAlsoPresentOnParent(tr.GetStructure, tree)
+            ElseIf tree.GetDiagnostics(tr).Any Then
+                VerifyContainsErrors(node, tree, tree.GetDiagnostics(tr).ToXml)
+            End If
+        Next
+
+        Return node
+    End Function
 
     <Extension()>
     Public Function VerifyNoAdjacentTriviaHaveSameKind(tree As SyntaxTree) As SyntaxTree
@@ -441,11 +453,8 @@ Public Module VerificationHelpers
             InternalVerifySpanOfChildWithinSpanOfParent(child)
         Next
         If node.Parent IsNot Nothing Then
-            Assert.True(node.SpanStart >= node.Parent.SpanStart AndAlso
-                        node.Span.End <= node.Parent.Span.End, "Span of child (" &
-                        node.Kind.ToString & node.Span.ToString &
-                        ") is not within span of parent (" &
-                        node.Parent.Kind.ToString & node.Parent.Span.ToString & ")")
+            Assert.True(node.SpanStart >= node.Parent.SpanStart AndAlso node.Span.End <= node.Parent.Span.End,
+                        $"Span of child ({node.Kind.ToString & node.Span.ToString}) is not within span of parent ({node.Parent.Kind.ToString & node.Parent.Span.ToString})")
         End If
         Return tree
     End Function
@@ -557,62 +566,65 @@ Public Module VerificationHelpers
             .Append("<error id=""")
             .Append(id)
             .Append("""")
-            If message IsNot Nothing Then
+        If message IsNot Nothing Then
                 .Append(" message=""")
                 .Append(message)
                 .Append("""")
-            End If
-            If start IsNot Nothing Then
+        End If
+        If start IsNot Nothing Then
                 .Append(" start=""")
                 .Append(start)
                 .Append("""")
-            End If
-            If [end] IsNot Nothing Then
+        End If
+        If [end] IsNot Nothing Then
                 .Append(" end=""")
                 .Append([end])
                 .Append("""")
-            End If
-            .Append("/>")
+        End If
+        .Append("/>")
         End With
         Return errorString.ToStringAndFree()
     End Function
 
     Private Function AreErrorsEquivalent(syntaxError As Diagnostic, xmlError As XElement) As Boolean
-        Dim areEquivalent As Boolean = True
-
         Dim id = xmlError.@id
         If id IsNot Nothing Then
             If CInt(id) <> syntaxError.Code Then
-                areEquivalent = False
+                Return False
             End If
         Else
             Throw New ArgumentException("The 'id' attribute is required for all errors")
         End If
+
         Dim message = xmlError.@message
         If message IsNot Nothing AndAlso message <> syntaxError.GetMessage(EnsureEnglishUICulture.PreferredOrNull) Then
-            areEquivalent = False
+            return False
         End If
 
         Dim syntaxErrorSpan = syntaxError.Location.SourceSpan
 
         Dim spanStart = xmlError.@start
         If spanStart IsNot Nothing AndAlso CInt(spanStart) <> syntaxErrorSpan.Start Then
-            areEquivalent = False
+            return False
         End If
         Dim spanEnd = xmlError.@end
         If spanEnd IsNot Nothing AndAlso CInt(spanEnd) <> syntaxErrorSpan.End Then
-            areEquivalent = False
+            return False
         End If
         Dim spanLength = xmlError.@length
         If spanLength IsNot Nothing AndAlso CInt(spanLength) <> syntaxErrorSpan.Length Then
-            areEquivalent = False
+            return False
         End If
 
-        Return areEquivalent
+        Return True
     End Function
 
-    Private Sub VerifyContainsErrors(node As SyntaxNodeOrToken, tree As SyntaxTree,
-                                  expectedErrors As XElement)
+    Private Sub VerifyContainsErrors(
+                                      node As SyntaxNodeOrToken,
+                                      tree As SyntaxTree,
+                                      expectedErrors As XElement
+                                    )
+
         Dim errorScenarioFailed As Boolean = False
         Dim unmatchedErrorList As New List(Of Diagnostic)(tree.GetDiagnostics(node))
         For Each xmlError In expectedErrors.<error>
@@ -637,9 +649,9 @@ Public Module VerificationHelpers
             With errorMessage.Builder
                 .AppendLine()
                 .AppendLine("Expected Subset:")
-                For Each e In expectedErrors.<error>
+            For Each e In expectedErrors.<error>
                     .AppendLine(GetErrorString(CInt(e.@id), If(e.@message, "?"), If(e.@start, "?"), If(e.@end, "?")))
-                Next
+            Next
                 .AppendLine("Actual Errors (on " & node.Kind().ToString & node.Span.ToString & ")")
                 AppendSyntaxErrors(tree.GetDiagnostics(node), errorMessage.Builder)
             End With
@@ -647,7 +659,7 @@ Public Module VerificationHelpers
                 Assert.False(errorScenarioFailed, errorMessage.ToStringAndFree())
             Else
                 errorMessage.Free()
-            End If
+        End If
         End If
     End Sub
 
@@ -657,30 +669,36 @@ Public Module VerificationHelpers
             actualCount += 1
         End If
         If node.IsToken Then
-            Dim tk = node
-            For Each leadingTrivia In tk.GetLeadingTrivia()
-                If leadingTrivia.Kind = kind Then
-                    actualCount += 1
-                End If
-                If leadingTrivia.HasStructure Then
-                    Dim leadingTriviaStructure = leadingTrivia.GetStructure
-                    GetOccurrenceCount(kind, leadingTriviaStructure, actualCount)
-                End If
-            Next
-            For Each trailingTrivia In tk.GetTrailingTrivia()
-                If trailingTrivia.Kind = kind Then
-                    actualCount += 1
-                End If
-                If trailingTrivia.HasStructure Then
-                    Dim trailingTriviaStructure = trailingTrivia.GetStructure
-                    GetOccurrenceCount(kind, trailingTriviaStructure, actualCount)
-                End If
-            Next
+            actualCount = GetOccurrenceCount_Helper(kind, node, actualCount)
         End If
         For Each child In node.ChildNodesAndTokens()
             GetOccurrenceCount(kind, child, actualCount)
         Next
     End Sub
+
+    Private Function GetOccurrenceCount_Helper(kind As SyntaxKind, node As SyntaxNodeOrToken, actualCount As Integer) As Integer
+        Dim tk = node
+        For Each leadingTrivia In tk.GetLeadingTrivia()
+            If leadingTrivia.Kind = kind Then
+                actualCount += 1
+            End If
+            If leadingTrivia.HasStructure Then
+                Dim leadingTriviaStructure = leadingTrivia.GetStructure
+                GetOccurrenceCount(kind, leadingTriviaStructure, actualCount)
+            End If
+        Next
+        For Each trailingTrivia In tk.GetTrailingTrivia()
+            If trailingTrivia.Kind = kind Then
+                actualCount += 1
+            End If
+            If trailingTrivia.HasStructure Then
+                Dim trailingTriviaStructure = trailingTrivia.GetStructure
+                GetOccurrenceCount(kind, trailingTriviaStructure, actualCount)
+            End If
+        Next
+
+        Return actualCount
+    End Function
 
     Private Sub InternalTraverseAllNodes(node As SyntaxNodeOrToken)
         'Traverse children
@@ -784,20 +802,24 @@ Public Module VerificationHelpers
                 InternalVerifyNoZeroWidthNodes(child)
             Next
         Else
-            Assert.True(0 <> node.Span.Length OrElse node.IsKind(SyntaxKind.EndOfFileToken) OrElse node.IsKind(SyntaxKind.StatementTerminatorToken) OrElse node.IsKind(SyntaxKind.ColonToken), "Unexpected 0 width token: " & node.Kind().ToString & node.Span.ToString)
-            For Each tr In node.AsToken.LeadingTrivia
-                Assert.True(0 <> tr.Span.Length, "Unexpected 0 width trivia: " & node.Kind().ToString & node.Span.ToString)
-                If tr.HasStructure Then
-                    InternalVerifyNoZeroWidthNodes(tr.GetStructure)
-                End If
-            Next
-            For Each tr In node.AsToken.LeadingTrivia
-                Assert.True(0 <> tr.Span.Length, "Unexpected 0 width trivia: " & node.Kind().ToString & node.Span.ToString)
-                If tr.HasStructure Then
-                    InternalVerifyNoZeroWidthNodes(tr.GetStructure)
-                End If
-            Next
+            InternalVerifyNoZeroWidthNodes_Helper(node)
         End If
+    End Sub
+
+    Private Sub InternalVerifyNoZeroWidthNodes_Helper(node As SyntaxNodeOrToken)
+        Assert.True(0 <> node.Span.Length OrElse node.IsKind(SyntaxKind.EndOfFileToken) OrElse node.IsKind(SyntaxKind.StatementTerminatorToken) OrElse node.IsKind(SyntaxKind.ColonToken), "Unexpected 0 width token: " & node.Kind().ToString & node.Span.ToString)
+        For Each tr In node.AsToken.LeadingTrivia
+            Assert.True(0 <> tr.Span.Length, "Unexpected 0 width trivia: " & node.Kind().ToString & node.Span.ToString)
+            If tr.HasStructure Then
+                InternalVerifyNoZeroWidthNodes(tr.GetStructure)
+            End If
+        Next
+        For Each tr In node.AsToken.LeadingTrivia
+            Assert.True(0 <> tr.Span.Length, "Unexpected 0 width trivia: " & node.Kind().ToString & node.Span.ToString)
+            If tr.HasStructure Then
+                InternalVerifyNoZeroWidthNodes(tr.GetStructure)
+            End If
+        Next
     End Sub
 
     Private Sub InternalVerifyNoAdjacentTriviaHaveSameKind(node As SyntaxNodeOrToken)
@@ -822,8 +844,7 @@ Public Module VerificationHelpers
             ' it is Ok to have adjacent SkippedTokensTrivias
             If tr.Kind <> SyntaxKind.SkippedTokensTrivia AndAlso prev IsNot Nothing Then
                 Assert.True(prev.Value.Kind <> tr.Kind,
-                            "Both current and previous trivia have Kind=" & tr.Kind.ToString &
-                            " [See under TokenKind=" & node.Kind().ToString & ", NonTerminalKind=" & node.Parent.Kind.ToString & "]")
+                            $"Both current and previous trivia have Kind={tr.Kind.ToString} [See under TokenKind={node.Kind().ToString}, NonTerminalKind={node.Parent.Kind.ToString}]")
             End If
             prev = tr
         Next
@@ -836,11 +857,8 @@ Public Module VerificationHelpers
             Next
         End If
         If node.Parent IsNot Nothing Then
-            Assert.True(node.SpanStart >= node.Parent.SpanStart AndAlso
-                        node.Span.End <= node.Parent.Span.End, "Span of child (" &
-                        node.Kind().ToString & node.Span.ToString &
-                        ") is not within span of parent (" &
-                        node.Parent.Kind.ToString & node.Parent.Span.ToString & ")")
+            Assert.True(node.SpanStart >= node.Parent.SpanStart AndAlso node.Span.End <= node.Parent.Span.End,
+                        $"Span of child ({node.Kind().ToString & node.Span.ToString}) is not within span of parent ({node.Parent.Kind.ToString & node.Parent.Span.ToString })")
         End If
     End Sub
 
@@ -858,7 +876,7 @@ Public Module VerificationHelpers
             MyBase.New(depth)
         End Sub
 
-        Public _Dict As New Dictionary(Of String, Integer)
+        Public _Dict As New Concurrent.ConcurrentDictionary(Of String, Integer)
         Public ReadOnly _Items As New List(Of VisualBasicSyntaxNode)
 
         Public Overrides Sub VisitForBlock(node As ForBlockSyntax)
@@ -1005,21 +1023,16 @@ Public Module VerificationHelpers
             MyBase.VisitXmlBracketedName(node)
         End Sub
 
+
+        Private Shared Update As Func(Of String,Integer,Integer)=Function(key,value) value +1
         Public Sub IncrementTypeCounter(Node As VisualBasicSyntaxNode, NodeKey As String)
             _Items.Add(Node)
-            If _Dict.ContainsKey(NodeKey) Then
-                _Dict(NodeKey) = _Dict(NodeKey) + 1 'Increment Count
-            Else
-                _Dict.Add(NodeKey, 1) ' New Item
-            End If
+            _Dict.AddOrUpdate(NodeKey,1,Update)
         End Sub
 
         Public Function GetCount(Node As String) As Integer
-            If _Dict.ContainsKey(Node) Then
-                Return _Dict(Node)
-            Else
-                Return 0
-            End If
+            Dim value As Integer = 0
+            Return  If( _Dict.TryGetValue(Node,value),value,0)
         End Function
 
         Public Function GetItem() As List(Of VisualBasicSyntaxNode)
