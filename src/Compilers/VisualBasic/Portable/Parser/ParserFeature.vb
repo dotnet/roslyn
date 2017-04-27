@@ -33,6 +33,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         BinaryLiterals
         Tuples
         IOperation
+        InferredTupleNames
     End Enum
 
     Friend Module FeatureExtensions
@@ -85,6 +86,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     Feature.BinaryLiterals,
                     Feature.DigitSeparators
                     Return LanguageVersion.VisualBasic15
+
+                Case Feature.InferredTupleNames
+                    Return LanguageVersion.VisualBasic15_3
 
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(feature)

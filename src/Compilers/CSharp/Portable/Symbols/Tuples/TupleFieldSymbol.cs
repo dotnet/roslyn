@@ -277,7 +277,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (_cannotUse)
             {
                 return new CSDiagnosticInfo(ErrorCode.ERR_TupleInferredNamesNotAvailable, _containingTuple, _name,
-                    new CSharpRequiredLanguageVersion(LanguageVersion.CSharp7_1));
+                    new CSharpRequiredLanguageVersion(MessageID.IDS_FeatureInferredTupleNames.RequiredVersion()));
             }
 
             return null;
