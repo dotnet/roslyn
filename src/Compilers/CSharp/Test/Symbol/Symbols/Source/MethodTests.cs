@@ -221,11 +221,16 @@ public partial class A {
             Assert.True(m.IsPartialDefinition());
             var returnSyntax = m.ExtractReturnTypeSyntax();
 
-            var tree = comp.SyntaxTrees.Single().GetRoot();
-            var token = tree.DescendantTokens().Where(t => t.Kind() == SyntaxKind.VoidKeyword).First();
-            var node = tree.FindNode(token.Span);
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var voidTokens = tree.GetRoot().DescendantTokens().Where(t => t.Kind() == SyntaxKind.VoidKeyword).ToList();
+            var node = tree.GetRoot().FindNode(voidTokens[0].Span);
+
+            var mLocations = tree.GetRoot().DescendantTokens().Where(t => t.ValueText == "M").ToList();
+            var otherSymbol = (MethodSymbol)model.GetDeclaredSymbolForNode(tree.GetRoot().FindNode(mLocations[1].Span));
 
             Assert.Equal(node, returnSyntax);
+            Assert.Equal(node, otherSymbol.ExtractReturnTypeSyntax());
         }
 
         [Fact]
@@ -246,11 +251,16 @@ public partial class A {
             Assert.True(m.IsPartialDefinition());
             var returnSyntax = m.ExtractReturnTypeSyntax();
 
-            var tree = comp.SyntaxTrees.Single().GetRoot();
-            var token = tree.DescendantTokens().Where(t => t.Kind() == SyntaxKind.VoidKeyword).Skip(1).First();
-            var node = tree.FindNode(token.Span);
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var token = tree.GetRoot().DescendantTokens().Where(t => t.Kind() == SyntaxKind.VoidKeyword).Skip(1).First();
+            var node = tree.GetRoot().FindNode(token.Span);
+
+            var mLocations = tree.GetRoot().DescendantTokens().Where(t => t.ValueText == "M").ToList();
+            var otherSymbol = (MethodSymbol)model.GetDeclaredSymbolForNode(tree.GetRoot().FindNode(mLocations[0].Span));
 
             Assert.Equal(node, returnSyntax);
+            Assert.Equal(node, otherSymbol.ExtractReturnTypeSyntax());
         }
 
         [Fact]
