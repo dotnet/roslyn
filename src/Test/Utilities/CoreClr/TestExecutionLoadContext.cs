@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.CodeRuntime
                 }
 
                 exitCode = entryPoint.Invoke(null, args) is int exit ? exit : 0;
-            }, expectedOutputLength, out var stdOut, out var stdErr);
+            }, expectedOutputLength ?? 0, out var stdOut, out var stdErr);
 
             var output = stdOut + stdErr;
             return (exitCode, output);
