@@ -345,8 +345,7 @@ namespace BuildBoss
         {
             var fileName = Path.GetFileNameWithoutExtension(_data.FileName);
             var isDesktop = fileName == "DeployDesktopTestRuntime";
-            var isCoreClr = fileName == "DeployCoreClrTestRuntime";
-            if (!isDesktop && !isCoreClr)
+            if (!isDesktop)
             {
                 return true;
             }
