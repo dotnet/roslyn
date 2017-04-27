@@ -1,7 +1,7 @@
 ﻿{
   "sign": [
     {
-      "certificate": "Microsoft402",
+      "certificate": "MicrosoftSHA2",
       "strongName": "MsSharedLib72",
       "values": [
         "Dlls\\BasicCodeAnalysis\\Microsoft.CodeAnalysis.VisualBasic.dll",
