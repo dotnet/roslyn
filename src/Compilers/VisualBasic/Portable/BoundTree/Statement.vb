@@ -569,7 +569,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 End If
 
                                 Dim stepOperand As IOperation = If(stepValue.IsConstant, DirectCast(stepValue, IOperation), New Temporary(SyntheticLocalKind.ForLoopStepValue, BoundFor, stepValue))
-                                statements.Add(New ExpressionStatement(controlReference, stepOperand, Semantics.Expression.DeriveAdditionKind(controlType), Nothing, stepValue.Syntax))
+                                statements.Add(OperationFactory.CreateCompoundAssignmentExpressionStatement(controlReference, stepOperand, Semantics.Expression.DeriveAdditionKind(controlType), Nothing, stepValue.Syntax))
                             End If
                         End If
 
@@ -592,17 +592,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         ' ControlVariable = InitialValue
                         Dim controlReference As IOperation = BoundFor.ControlVariable
                         If controlReference IsNot Nothing Then
-                            statements.Add(New ExpressionStatement(controlReference, BoundFor.InitialValue, BoundFor.InitialValue.Syntax))
+                            statements.Add(OperationFactory.CreateAssignmentExpressionStatement(controlReference, BoundFor.InitialValue, BoundFor.InitialValue.Syntax))
                         End If
 
                         ' T0 = LimitValue
                         If Not Me.LimitValue.IsConstant Then
-                            statements.Add(New ExpressionStatement(New Temporary(SyntheticLocalKind.ForLoopLimitValue, BoundFor, BoundFor.LimitValue), BoundFor.LimitValue, BoundFor.LimitValue.Syntax))
+                            statements.Add(OperationFactory.CreateAssignmentExpressionStatement(New Temporary(SyntheticLocalKind.ForLoopLimitValue, BoundFor, BoundFor.LimitValue), BoundFor.LimitValue, BoundFor.LimitValue.Syntax))
                         End If
 
                         ' T1 = StepValue
                         If BoundFor.StepValue IsNot Nothing AndAlso Not BoundFor.StepValue.IsConstant Then
-                            statements.Add(New ExpressionStatement(New Temporary(SyntheticLocalKind.ForLoopStepValue, BoundFor, BoundFor.StepValue), BoundFor.StepValue, BoundFor.StepValue.Syntax))
+                            statements.Add(OperationFactory.CreateAssignmentExpressionStatement(New Temporary(SyntheticLocalKind.ForLoopStepValue, BoundFor, BoundFor.StepValue), BoundFor.StepValue, BoundFor.StepValue.Syntax))
                         End If
 
                         Return statements.ToImmutableAndFree()
@@ -640,25 +640,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 ' Either ControlVariable <= LimitValue or ControlVariable >= LimitValue, depending on whether the step value is negative.
 
                                 Dim relationalCode As BinaryOperationKind = DeriveBinaryOperationKind(If(BoundFor.StepValue IsNot Nothing AndAlso BoundFor.StepValue.ConstantValueOpt.IsNegativeNumeric, BinaryOperatorKind.GreaterThanOrEqual, BinaryOperatorKind.LessThanOrEqual), controlVariable)
-                                Return New BinaryOperatorExpression(relationalCode, controlVariable, limitValue, booleanType, limitValue.Syntax)
+                                Return OperationFactory.CreateBinaryOperatorExpression(relationalCode, controlVariable, limitValue, booleanType, limitValue.Syntax)
                             Else
                                 ' If(StepValue >= 0, ControlVariable <= LimitValue, ControlVariable >= LimitValue)
 
                                 Dim stepValue As IOperation = New Temporary(SyntheticLocalKind.ForLoopStepValue, BoundFor, BoundFor.StepValue)
                                 Dim stepRelationalCode As BinaryOperationKind = DeriveBinaryOperationKind(BinaryOperatorKind.GreaterThanOrEqual, BoundFor.StepValue)
-                                Dim stepCondition As IOperation = New BinaryOperatorExpression(stepRelationalCode,
+                                Dim stepCondition As IOperation = OperationFactory.CreateBinaryOperatorExpression(stepRelationalCode,
                                                                              stepValue,
-                                                                             New LiteralExpression(Semantics.Expression.SynthesizeNumeric(stepValue.Type, 0), BoundFor.StepValue.Type, BoundFor.StepValue.Syntax),
+                                                                             OperationFactory.CreateLiteralExpression(Semantics.Expression.SynthesizeNumeric(stepValue.Type, 0), BoundFor.StepValue.Type, BoundFor.StepValue.Syntax),
                                                                              booleanType,
                                                                              BoundFor.StepValue.Syntax)
 
                                 Dim positiveStepRelationalCode As BinaryOperationKind = DeriveBinaryOperationKind(BinaryOperatorKind.LessThanOrEqual, controlVariable)
-                                Dim positiveStepCondition As IOperation = New BinaryOperatorExpression(positiveStepRelationalCode, controlVariable, limitValue, booleanType, limitValue.Syntax)
+                                Dim positiveStepCondition As IOperation = OperationFactory.CreateBinaryOperatorExpression(positiveStepRelationalCode, controlVariable, limitValue, booleanType, limitValue.Syntax)
 
                                 Dim negativeStepRelationalCode As BinaryOperationKind = DeriveBinaryOperationKind(BinaryOperatorKind.GreaterThanOrEqual, controlVariable)
-                                Dim negativeStepCondition As IOperation = New BinaryOperatorExpression(negativeStepRelationalCode, controlVariable, limitValue, booleanType, limitValue.Syntax)
+                                Dim negativeStepCondition As IOperation = OperationFactory.CreateBinaryOperatorExpression(negativeStepRelationalCode, controlVariable, limitValue, booleanType, limitValue.Syntax)
 
-                                Return New ConditionalChoiceExpression(stepCondition, positiveStepCondition, negativeStepCondition, booleanType, limitValue.Syntax)
+                                Return OperationFactory.CreateConditionalChoiceExpression(stepCondition, positiveStepCondition, negativeStepCondition, booleanType, limitValue.Syntax)
                             End If
                         End If
                     End Function)
@@ -1072,11 +1072,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                      For Each base In dimStatement.LocalDeclarations
                                                                          If base.Kind = BoundKind.LocalDeclaration Then
                                                                              Dim declaration = DirectCast(base, BoundLocalDeclaration)
-                                                                             builder.Add(New VariableDeclaration(declaration.LocalSymbol, declaration.InitializerOpt, declaration.Syntax))
+                                                                             builder.Add(OperationFactory.CreateVariableDeclaration(declaration.LocalSymbol, declaration.InitializerOpt, declaration.Syntax))
                                                                          ElseIf base.Kind = BoundKind.AsNewLocalDeclarations Then
                                                                              Dim asNewDeclarations = DirectCast(base, BoundAsNewLocalDeclarations)
                                                                              Dim localSymbols = asNewDeclarations.LocalDeclarations.SelectAsArray(Of ILocalSymbol)(Function(declaration) declaration.LocalSymbol)
-                                                                             builder.Add(New VariableDeclaration(localSymbols, asNewDeclarations.Initializer, asNewDeclarations.Syntax))
+                                                                             builder.Add(OperationFactory.CreateVariableDeclaration(localSymbols, asNewDeclarations.Initializer, asNewDeclarations.Syntax))
                                                                          End If
                                                                      Next
                                                                      Return builder.ToImmutableAndFree()

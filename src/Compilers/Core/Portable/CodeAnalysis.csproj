@@ -43,7 +43,6 @@
     <Compile Include="Operations\BranchKind.cs" />
     <Compile Include="Operations\CaseKind.cs" />
     <Compile Include="Operations\ConversionKind.cs" />
-    <Compile Include="Operations\Expressions.cs" />
     <Compile Include="Operations\IAddressOfExpression.cs" />
     <Compile Include="Operations\IArgument.cs" />
     <Compile Include="Operations\IArrayCreationExpression.cs" />
@@ -92,13 +91,10 @@
     <Compile Include="Operations\ILoopStatement.cs" />
     <Compile Include="Operations\IMemberReferenceExpression.cs" />
     <Compile Include="Operations\IMethodBindingExpression.cs" />
-    <Compile Include="Operations\IndexedPropertyReferenceExpression_IHasArgumentsExpression.cs" />
     <Compile Include="Operations\InstanceReferenceKind.cs" />
     <Compile Include="Operations\INullCoalescingExpression.cs" />
-    <Compile Include="Operations\InvocationExpression_IHasArgumentsExpression.cs" />
     <Compile Include="Operations\IObjectCreationExpression.cs" />
     <Compile Include="Operations\IOmittedArgumentExpression.cs" />
-    <Compile Include="Operations\ObjectCreationExpression_IHasArgumentsExpression.cs" />
     <Compile Include="Operations\Operation.cs" />
     <Compile Include="Operations\IOperationKind.cs" />
     <Compile Include="Operations\IParameterInitializer.cs" />
@@ -131,6 +127,7 @@
     <Compile Include="Operations\IWhileUntilLoopStatement.cs" />
     <Compile Include="Operations\IWithStatement.cs" />
     <Compile Include="Operations\LoopKind.cs" />
+    <Compile Include="Operations\OperationFactory.cs" />
     <Compile Include="Operations\SimpleBinaryOperationKind.cs" />
     <Compile Include="Operations\SimpleUnaryOperationKind.cs" />
     <Compile Include="Operations\SyntheticLocalKind.cs" />
@@ -407,7 +404,6 @@
     <Compile Include="Compilation\SemanticModel.cs" />
     <Compile Include="Compilation\SourceReferenceResolver.cs" />
     <Compile Include="Compilation\SpeculativeBindingOption.cs" />
-    <Compile Include="Operations\Statement.cs" />
     <Compile Include="Compilation\SubsystemVersion.cs" />
     <Compile Include="Compilation\SymbolInfo.cs" />
     <Compile Include="Compilation\TypeInfo.cs" />
