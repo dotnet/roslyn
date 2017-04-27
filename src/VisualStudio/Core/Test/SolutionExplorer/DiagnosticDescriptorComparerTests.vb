@@ -28,7 +28,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
                 DiagnosticSeverity.Warning,
                 True)
 
-            Dim comparer = New DiagnosticItemSource.DiagnosticDescriptorComparer()
+            Dim comparer = New LegacyDiagnosticItemSource.DiagnosticDescriptorComparer()
 
             Dim result = comparer.Compare(x, y)
 
@@ -57,7 +57,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
                 DiagnosticSeverity.Warning,
                 True)
 
-            Dim comparer = New DiagnosticItemSource.DiagnosticDescriptorComparer()
+            Dim comparer = New LegacyDiagnosticItemSource.DiagnosticDescriptorComparer()
 
             Dim result = comparer.Compare(x, y)
 
@@ -86,7 +86,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
                 DiagnosticSeverity.Warning,
                 True)
 
-            Dim comparer = New DiagnosticItemSource.DiagnosticDescriptorComparer()
+            Dim comparer = New LegacyDiagnosticItemSource.DiagnosticDescriptorComparer()
 
             Dim result = comparer.Compare(x, y)
 
