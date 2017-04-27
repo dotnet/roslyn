@@ -4,6 +4,7 @@ using Microsoft.CodeAnalysis.CommandLine;
 using System;
 using System.Collections.Specialized;
 using System.Configuration;
+using System.IO;
 
 namespace Microsoft.CodeAnalysis.CompilerServer
 {
@@ -25,8 +26,18 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 CompilerServerLogger.LogException(ex, "Error loading application settings");
             }
 
-            var controller = new DesktopBuildServerController(appSettings);
-            return controller.Run(args);
+            try
+            {
+                var controller = new DesktopBuildServerController(appSettings);
+                return controller.Run(args);
+            }
+            catch (TypeInitializationException ex) when (ex.InnerException is FileNotFoundException)
+            {
+                // Assume FileNotFoundException was the result of a missing
+                // compiler assembly. Log the exception and terminate the process.
+                CompilerServerLogger.LogException(ex, "File not found");
+                return CommonCompiler.Failed;
+            }
         }
     }
 }
