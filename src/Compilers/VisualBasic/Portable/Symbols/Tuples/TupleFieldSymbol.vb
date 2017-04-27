@@ -210,10 +210,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Inherits TupleElementFieldSymbol
 
         Private _name As String
+        Private _wasInferred As Boolean
 
         Public Sub New(container As TupleTypeSymbol,
                        underlyingField As FieldSymbol,
                        name As String,
+                       wasInferred As Boolean,
                        tupleElementOrdinal As Integer,
                        location As Location,
                        isImplicitlyDeclared As Boolean,
@@ -226,7 +228,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                 "fields that map directly to underlying should not be represented by " + NameOf(TupleVirtualElementFieldSymbol))
 
             Me._name = name
+            Me._wasInferred = wasInferred
         End Sub
+
+        Friend Overrides Function GetUseSiteErrorInfo() As DiagnosticInfo
+            If _wasInferred Then
+                Dim options = DirectCast(_containingTuple.DeclaringSyntaxReferences(0).SyntaxTree.Options, VisualBasicParseOptions)
+
+                If options.LanguageVersion < LanguageVersion.VisualBasic15_3 Then
+                    Return ErrorFactory.ErrorInfo(ERRID.ERR_TupleInferredNamesNotAvailable, _containingTuple, _name,
+                                                  New VisualBasicRequiredLanguageVersion(LanguageVersion.VisualBasic15_3))
+                End If
+            End If
+
+            Return Nothing
+        End Function
 
         Public Overrides ReadOnly Property Name As String
             Get

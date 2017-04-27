@@ -462,17 +462,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 elementNames: default(ImmutableArray<string>),
                 compilation: compilation,
                 diagnostics: diagnostics,
-                shouldCheckConstraints: false);
+                shouldCheckConstraints: false,
+                inferredPositions: default(ImmutableArray<bool>));
         }
 
         private BoundTupleLiteral DeconstructionVariablesAsTuple(CSharpSyntaxNode syntax, ArrayBuilder<DeconstructionVariable> variables, DiagnosticBag diagnostics, bool hasErrors)
         {
-            bool inferNames = this.Compilation.LanguageVersion.InferTupleElementNames();
             int count = variables.Count;
             var valuesBuilder = ArrayBuilder<BoundExpression>.GetInstance(count);
             var typesBuilder = ArrayBuilder<TypeSymbol>.GetInstance(count);
             var locationsBuilder = ArrayBuilder<Location>.GetInstance(count);
-            var namesBuilder = inferNames ? ArrayBuilder<string>.GetInstance(count) : null;
+            var namesBuilder = ArrayBuilder<string>.GetInstance(count);
             foreach (var variable in variables)
             {
                 if (variable.HasNestedVariables)
@@ -480,43 +480,31 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var nestedTuple = DeconstructionVariablesAsTuple(variable.Syntax, variable.NestedVariables, diagnostics, hasErrors);
                     valuesBuilder.Add(nestedTuple);
                     typesBuilder.Add(nestedTuple.Type);
-                    if (inferNames)
-                    {
-                        namesBuilder.Add(null);
-                    }
+                    namesBuilder.Add(null);
                 }
                 else
                 {
                     var single = variable.Single;
                     valuesBuilder.Add(single);
                     typesBuilder.Add(single.Type);
-                    if (inferNames)
-                    {
-                        namesBuilder.Add(ExtractDeconstructResultElementName(single));
-                    }
+                    namesBuilder.Add(ExtractDeconstructResultElementName(single));
                 }
                 locationsBuilder.Add(variable.Syntax.Location);
             }
 
-            ImmutableArray<string> tupleNames;
-            if (inferNames)
-            {
-                var uniqueFieldNames = PooledHashSet<string>.GetInstance();
-                RemoveDuplicateInferredTupleNames(namesBuilder, uniqueFieldNames);
-                uniqueFieldNames.Free();
-                tupleNames = namesBuilder.ToImmutableAndFree();
-            }
-            else
-            {
-                tupleNames = default(ImmutableArray<string>);
-            }
+            var uniqueFieldNames = PooledHashSet<string>.GetInstance();
+            RemoveDuplicateInferredTupleNames(namesBuilder, uniqueFieldNames);
+            uniqueFieldNames.Free();
+            ImmutableArray<string> tupleNames = namesBuilder.ToImmutableAndFree();
+
+            var inferredPositions = tupleNames.SelectAsArray(n => n != null);
 
             var type = TupleTypeSymbol.Create(syntax.Location,
                 typesBuilder.ToImmutableAndFree(), locationsBuilder.ToImmutableAndFree(),
                 tupleNames, this.Compilation,
-                shouldCheckConstraints: !hasErrors, syntax: syntax, diagnostics: hasErrors ? null : diagnostics);
+                shouldCheckConstraints: !hasErrors, inferredPositions: inferredPositions,
+                syntax: syntax, diagnostics: hasErrors ? null : diagnostics);
 
-            var inferredPositions = inferNames ? tupleNames.SelectAsArray(n => n != null) : default(ImmutableArray<bool>);
             return new BoundTupleLiteral(syntax, tupleNames, inferredPositions, arguments: valuesBuilder.ToImmutableAndFree(), type: type);
         }
 
@@ -528,29 +516,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            SyntaxNode variableSyntax = expression.Syntax;
-            SyntaxToken nameToken;
-            if (variableSyntax.Kind() == SyntaxKind.SingleVariableDesignation)
-            {
-                nameToken = ((SingleVariableDesignationSyntax)variableSyntax).Identifier;
-            }
-            else if (variableSyntax.Kind() == SyntaxKind.DeclarationExpression)
-            {
-                var declaration = (DeclarationExpressionSyntax)variableSyntax;
-                nameToken = ((SingleVariableDesignationSyntax)declaration.Designation).Identifier;
-            }
-            else
-            {
-                nameToken = ((ExpressionSyntax)variableSyntax).ExtractAnonymousTypeMemberName();
-            }
-
-            string name = nameToken.ValueText;
-            if (name == null || TupleTypeSymbol.IsElementNameReserved(name) != -1)
-            {
-                return null;
-            }
-
-            return name;
+            return InferTupleElementName(expression.Syntax);
         }
 
         /// <summary>

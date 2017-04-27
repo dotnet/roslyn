@@ -2733,7 +2733,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 elementLocations: elementLocations, 
                 elementNames: elementNames, 
                 compilation: this,
-                shouldCheckConstraints: false);
+                shouldCheckConstraints: false,
+                inferredPositions: default(ImmutableArray<bool>));
         }
 
         protected override INamedTypeSymbol CommonCreateTupleTypeSymbol(
@@ -2752,8 +2753,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             elementNames = CheckTupleElementNames(cardinality, elementNames);
             CheckTupleElementLocations(cardinality, elementLocations);
 
-            return TupleTypeSymbol.Create(
-                csharpUnderlyingTuple, elementNames, elementLocations: elementLocations);
+            return TupleTypeSymbol.Create(csharpUnderlyingTuple, elementNames: elementNames, elementLocations: elementLocations);
         }
 
         protected override INamedTypeSymbol CommonCreateAnonymousTypeSymbol(

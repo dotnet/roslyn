@@ -5885,11 +5885,11 @@ End Class
                         Dim nodes = tree.GetCompilationUnitRoot().DescendantNodes()
 
                         Dim yTuple = nodes.OfType(Of TupleExpressionSyntax)().ElementAt(0)
-                        Assert.Equal("(System.Int32, System.Int32, b As System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32)",
+                        Assert.Equal("(a As System.Int32, System.Int32, b As System.Int32, System.Int32, System.Int32, e As System.Int32, f As System.Int32, System.Int32, System.Int32, System.Int32)",
                             model.GetTypeInfo(yTuple).Type.ToTestDisplayString())
 
                         Dim zTuple = nodes.OfType(Of TupleExpressionSyntax)().ElementAt(1)
-                        Assert.Equal("(x As System.Int32, System.Int32)", model.GetTypeInfo(zTuple).Type.ToTestDisplayString())
+                        Assert.Equal("(x As System.Int32, b As System.Int32)", model.GetTypeInfo(zTuple).Type.ToTestDisplayString())
                     End Sub)
 
             verifier.VerifyDiagnostics()
@@ -5994,7 +5994,45 @@ End Class
                 parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15))
 
             comp.AssertTheseDiagnostics(<errors>
-BC37289: Tuple type '(Integer, Integer)' does not have an explicitly named element 'A'. Please use language version 15.3 or greater to access a unnamed element by its inferred name.
+BC37289: Tuple type '(a As Integer, Integer)' does not have an explicitly named element 'a'. Please use language version 15.3 or greater to access an element by its inferred name.
+        System.Console.Write(t.A)
+                             ~~~
+BC30456: 'a' is not a member of '(Integer, Integer)'.
+        System.Console.Write(GetTuple().a)
+                             ~~~~~~~~~~~~
+                                        </errors>)
+        End Sub
+
+        <Fact>
+        Public Sub MissingMemberAccessWithExtensionWithVB15()
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Imports System
+Class C
+    Sub M()
+        Dim a As Integer = 1
+        Dim t = (a, 2)
+        System.Console.Write(t.A)
+        System.Console.Write(GetTuple().a)
+    End Sub
+    Function GetTuple() As (Integer, Integer)
+        Return (1, 2)
+    End Function
+End Class
+Module Extensions
+    &lt;System.Runtime.CompilerServices.Extension()&gt;
+    Public Function A(self As (Integer, Action)) As String
+        Return Nothing
+    End Function
+End Module
+    </file>
+</compilation>,
+                additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef},
+                parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15))
+
+            comp.AssertTheseDiagnostics(<errors>
+BC37289: Tuple type '(a As Integer, Integer)' does not have an explicitly named element 'a'. Please use language version 15.3 or greater to access an element by its inferred name.
         System.Console.Write(t.A)
                              ~~~
 BC30456: 'a' is not a member of '(Integer, Integer)'.
@@ -6086,7 +6124,7 @@ End Class
         End Sub
 
         <Fact>
-        Public Sub InferredNames_ExtensionInvokedInVB15ButNotVB15_3()
+        Public Sub InferredNames_ExtensionNowFailsInVB15ButNotVB15_3()
             Dim source = <compilation>
                              <file name="a.vb">
 Imports System
@@ -6105,11 +6143,16 @@ Module Extensions
 End Module
     </file>
                          </compilation>
-            Dim verifier15 = CompileAndVerify(source,
+            ' When VB 15 shipped, no tuple element would be found/inferred, so the extension method was called.
+            ' The VB 15.3 compiler disallows that, even when LanguageVersion is 15.
+            Dim comp15 = CreateCompilationWithMscorlibAndVBRuntime(source,
                 additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef},
-                parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15),
-                expectedOutput:="extension")
-            verifier15.VerifyDiagnostics()
+                parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15))
+            comp15.AssertTheseDiagnostics(<errors>
+BC37289: Tuple type '(Integer, M As Action)' does not have an explicitly named element 'M'. Please use language version 15.3 or greater to access an element by its inferred name.
+        t.M()
+        ~~~
+                                          </errors>)
 
             Dim verifier15_3 = CompileAndVerify(source,
                 additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef},

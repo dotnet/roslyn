@@ -3548,11 +3548,11 @@ class C
                 var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
 
                 var yTuple = nodes.OfType<TupleExpressionSyntax>().ElementAt(0);
-                Assert.Equal("(System.Int32, System.Int32, System.Int32 b, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32)",
+                Assert.Equal("(System.Int32 a, System.Int32, System.Int32 b, System.Int32, System.Int32, System.Int32 e, System.Int32 f, System.Int32, System.Int32, System.Int32)",
                     model.GetTypeInfo(yTuple).Type.ToTestDisplayString());
 
                 var zTuple = nodes.OfType<TupleExpressionSyntax>().ElementAt(1);
-                Assert.Equal("(System.Int32 x, System.Int32)", model.GetTypeInfo(zTuple).Type.ToTestDisplayString());
+                Assert.Equal("(System.Int32 x, System.Int32 b)", model.GetTypeInfo(zTuple).Type.ToTestDisplayString());
             };
 
             var verifier = CompileAndVerify(source, additionalRefs: new[] { MscorlibRef, ValueTupleRef, SystemRuntimeFacadeRef }, sourceSymbolValidator: validator);
@@ -3580,12 +3580,47 @@ class C
 ";
             var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
-                // (8,32): error CS8305: Tuple type '(int, int)' does not have an explicitly named element 'a'. Please use language version 7.1 or greater to access a unnamed element by its inferred name.
+                // (8,32): error CS8305: Tuple type '(int a, int)' does not have an explicitly named element 'a'. Please use language version 7.1 or greater to access an element by its inferred name.
                 //         System.Console.Write(t.a);
-                Diagnostic(ErrorCode.ERR_TupleInferredNamesNotAvailable, "a").WithArguments("(int, int)", "a", "7.1").WithLocation(8, 32),
+                Diagnostic(ErrorCode.ERR_TupleInferredNamesNotAvailable, "a").WithArguments("(int a, int)", "a", "7.1"),
                 // (9,41): error CS1061: '(int, int)' does not contain a definition for 'a' and no extension method 'a' accepting a first argument of type '(int, int)' could be found (are you missing a using directive or an assembly reference?)
                 //         System.Console.Write(GetTuple().a);
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "a").WithArguments("(int, int)", "a").WithLocation(9, 41)
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "a").WithArguments("(int, int)", "a")
+                );
+        }
+
+        [Fact]
+        public void MissingMemberAccessWithExtensionWithCSharp7()
+        {
+            var source = @"
+class C
+{
+    void M()
+    {
+        int a = 1;
+        var t = (a, 2);
+        System.Console.Write(t.a);
+        System.Console.Write(t.a());
+        System.Console.Write(GetTuple().a);
+    }
+    (int, int) GetTuple()
+    {
+        return (1, 2);
+    }
+}
+public static class Extensions
+{
+    public static string a(this (int, int) self) { return ""hello""; }
+}
+";
+            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef });
+            comp.VerifyDiagnostics(
+                // (8,32): error CS8305: Tuple type '(int a, int)' does not have an explicitly named element 'a'. Please use language version 7.1 or greater to access an element by its inferred name.
+                //         System.Console.Write(t.a);
+                Diagnostic(ErrorCode.ERR_TupleInferredNamesNotAvailable, "a").WithArguments("(int a, int)", "a", "7.1"),
+                // (10,30): error CS1503: Argument 1: cannot convert from 'method group' to 'string'
+                //         System.Console.Write(GetTuple().a);
+                Diagnostic(ErrorCode.ERR_BadArgType, "GetTuple().a").WithArguments("1", "method group", "string").WithLocation(10, 30)
                 );
         }
 
@@ -3605,9 +3640,9 @@ class C
 ";
             var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.DebugDll);
             comp.VerifyDiagnostics(
-                // (8,32): error CS1061: '(int, int)' does not contain a definition for 'b' and no extension method 'b' accepting a first argument of type '(int, int)' could be found (are you missing a using directive or an assembly reference?)
+                // (8,32): error CS1061: '(int a, int)' does not contain a definition for 'b' and no extension method 'b' accepting a first argument of type '(int a, int)' could be found (are you missing a using directive or an assembly reference?)
                 //         System.Console.Write(t.b);
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "b").WithArguments("(int, int)", "b").WithLocation(8, 32)
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "b").WithArguments("(int a, int)", "b")
                 );
         }
 
@@ -3776,7 +3811,7 @@ class C
         }
 
         [Fact]
-        public void InferredNames_ExtensionInvokedInCSharp7ButNotCSharp7_1()
+        public void InferredNames_ExtensionNowFailsInCSharp7ButNotCSharp7_1()
         {
             var source = @"
 using System;
@@ -3794,10 +3829,15 @@ static class Extension
 }
 ";
 
-            var verifier7 = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7),
-                additionalRefs: new[] { MscorlibRef, ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef },
-                expectedOutput: "extension");
-            verifier7.VerifyDiagnostics();
+            // When C# 7.0 shipped, no tuple element would be found/inferred, so the extension method was called.
+            // The C# 7.1 compiler disallows that, even when LanguageVersion is 7.0
+            var comp7 = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7),
+                references: new[] { MscorlibRef, ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef });
+            comp7.VerifyDiagnostics(
+                // (8,16): error CS8305: Tuple type '(int, Action M)' does not have an explicitly named element 'M'. Please use language version 7.1 or greater to access an element by its inferred name.
+                //         (1, M).M();
+                Diagnostic(ErrorCode.ERR_TupleInferredNamesNotAvailable, "M").WithArguments("(int, System.Action M)", "M", "7.1").WithLocation(8, 16)
+               );
 
             var verifier7_1 = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1),
                 additionalRefs: new[] { MscorlibRef, ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef },

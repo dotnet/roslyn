@@ -9062,7 +9062,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Tuple type &apos;{0}&apos; does not have an explicitly named element &apos;{1}&apos;. Please use language version {2} or greater to access a unnamed element by its inferred name..
+        ///   Looks up a localized string similar to Tuple type &apos;{0}&apos; does not have an explicitly named element &apos;{1}&apos;. Please use language version {2} or greater to access an element by its inferred name..
         /// </summary>
         internal static string ERR_TupleInferredNamesNotAvailable {
             get {

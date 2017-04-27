@@ -322,8 +322,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim elementLocations = ArrayBuilder(Of Location).GetInstance(arguments.Count)
 
             ' prepare names
-            Dim names = ExtractTupleElementNames(arguments, diagnostics,
-                withInference:=Me.Compilation.LanguageVersion.InferTupleElementNames())
+            Dim names = ExtractTupleElementNames(arguments, diagnostics)
             Dim elementNames = names.elementNames
             Dim inferredPositions = names.inferredPositions
             Dim hasErrors = names.hasErrors
@@ -365,7 +364,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim inferredType As TupleTypeSymbol = Nothing
             If hasInferredType Then
-                inferredType = TupleTypeSymbol.Create(node.GetLocation, elements, locations, elementNames, Me.Compilation, shouldCheckConstraints:=True, syntax:=node, diagnostics:=diagnostics)
+                inferredType = TupleTypeSymbol.Create(node.GetLocation, elements, locations, elementNames, Me.Compilation,
+                                                      shouldCheckConstraints:=True, inferredPositions:=inferredPositions,
+                                                      syntax:=node, diagnostics:=diagnostics)
             End If
 
             Dim tupleTypeOpt As NamedTypeSymbol = If(hasNaturalType, inferredType, Nothing)
@@ -373,7 +374,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New BoundTupleLiteral(node, inferredType, elementNames, inferredPositions, boundArguments.ToImmutableAndFree(), tupleTypeOpt, hasErrors)
         End Function
 
-        Private Shared Function ExtractTupleElementNames(arguments As SeparatedSyntaxList(Of SimpleArgumentSyntax), diagnostics As DiagnosticBag, withInference As Boolean) _
+        Private Shared Function ExtractTupleElementNames(arguments As SeparatedSyntaxList(Of SimpleArgumentSyntax), diagnostics As DiagnosticBag) _
             As (elementNames As ImmutableArray(Of String), inferredPositions As ImmutableArray(Of Boolean), hasErrors As Boolean)
 
             Dim hasErrors = False
@@ -400,9 +401,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         hasErrors = True
                     End If
                 Else
-                    If withInference Then
-                        inferredName = InferTupleElementName(argumentSyntax.Expression)
-                    End If
+                    inferredName = InferTupleElementName(argumentSyntax.Expression)
                 End If
 
                 CollectTupleFieldMemberName(name, i, numElements, elementNames)
@@ -2904,13 +2903,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ElseIf left.HasErrors Then
                         Return BadExpression(node, left, ErrorTypeSymbol.UnknownResultType)
 
-                    ElseIf left.Type.IsTupleType AndAlso Not Compilation.LanguageVersion.InferTupleElementNames() AndAlso
-                        IsMissingMemberAnInferredTupleName(left, rightName) Then
-
-                        Dim errorDiag = ErrorFactory.ErrorInfo(ERRID.ERR_TupleInferredNamesNotAvailable, type, rightName,
-                                                               New VisualBasicRequiredLanguageVersion(LanguageVersion.VisualBasic15_3))
-                        Return ReportDiagnosticAndProduceBadExpression(diagnostics, node, errorDiag, left)
-
                     Else
                         If type.IsInterfaceType() Then
                             ' In case IsExtensibleInterfaceNoUseSiteDiagnostics above failed because there were bad inherited interfaces.
@@ -2924,41 +2916,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 diagnostics.Add(node, useSiteDiagnostics)
                 lookupResult.Free()
             End Try
-        End Function
-
-        ''' <summary>
-        ''' When reporting a missing member error on a tuple type, determine whether that member
-        ''' could be an element with an inferred name (had the language version been above 15.3).
-        ''' </summary>
-        Private Shared Function IsMissingMemberAnInferredTupleName(left As BoundExpression, rightName As String) As Boolean
-            Debug.Assert(left.Type.IsTupleType)
-
-            Dim declarations = left.Type.DeclaringSyntaxReferences
-            If declarations.Length <> 1 Then
-                Return False
-            End If
-
-            Dim Syntax = declarations(0).GetSyntax()
-            If Syntax.Kind() <> SyntaxKind.TupleExpression Then
-                Return False
-            End If
-
-            Dim arguments = DirectCast(Syntax, TupleExpressionSyntax).Arguments
-            Dim names = ExtractTupleElementNames(arguments, diagnostics:=Nothing, withInference:=True)
-            Dim elementNames = names.elementNames
-            Dim inferredPositions = names.inferredPositions
-
-            If elementNames.IsDefault OrElse inferredPositions.IsDefault Then
-                Return False
-            End If
-
-            For i = 0 To arguments.Count - 1
-                If IdentifierComparison.Comparer.Equals(elementNames(i), rightName) AndAlso inferredPositions(i) Then
-                    Return True
-                End If
-            Next
-
-            Return False
         End Function
 
         ''' <summary> 

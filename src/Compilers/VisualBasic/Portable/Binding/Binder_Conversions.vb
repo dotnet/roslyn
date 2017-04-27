@@ -1640,7 +1640,7 @@ DoneWithDiagnostics:
 
                 ' do not lose the original element names in the literal if different from names in the target
                 ' Come back to this, what about locations? (https:'github.com/dotnet/roslyn/issues/11013)
-                targetType = destTupleType.WithElementNames(sourceTuple.ArgumentNamesOpt)
+                targetType = destTupleType.WithElementNames(sourceTuple.ArgumentNamesOpt, sourceTuple.InferredNamesOpt)
             End If
 
             Dim convertedArguments = ArrayBuilder(Of BoundExpression).GetInstance(arguments.Length)
