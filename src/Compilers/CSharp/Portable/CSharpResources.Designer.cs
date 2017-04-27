@@ -12546,6 +12546,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to &apos;{0}&apos; is for evaluation purposes only and is subject to change or removal in future updates..
+        /// </summary>
+        internal static string WRN_Experimental {
+            get {
+                return ResourceManager.GetString("WRN_Experimental", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Type is for evaluation purposes only and is subject to change or removal in future updates..
+        /// </summary>
+        internal static string WRN_Experimental_Title {
+            get {
+                return ResourceManager.GetString("WRN_Experimental_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Explicit interface implementation &apos;{0}&apos; matches more than one interface member. Which interface member is actually chosen is implementation-dependent. Consider using a non-explicit implementation instead..
         /// </summary>
         internal static string WRN_ExplicitImplCollision {
