@@ -16,123 +16,121 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     Friend MustInherit Class WrappedPropertySymbol
         Inherits PropertySymbol
 
-        Protected _underlyingProperty As PropertySymbol
-
         Public ReadOnly Property UnderlyingProperty As PropertySymbol
-            Get
-                Return Me._underlyingProperty
-            End Get
-        End Property
 
         Public Overrides ReadOnly Property IsImplicitlyDeclared As Boolean
             Get
-                Return Me._underlyingProperty.IsImplicitlyDeclared
+                Return UnderlyingProperty.IsImplicitlyDeclared
             End Get
         End Property
 
         Public Overrides ReadOnly Property ReturnsByRef As Boolean
             Get
-                Return Me._underlyingProperty.ReturnsByRef
+                Return UnderlyingProperty.ReturnsByRef
             End Get
         End Property
 
         Public Overrides ReadOnly Property IsDefault As Boolean
             Get
-                Return Me._underlyingProperty.IsDefault
+                Return UnderlyingProperty.IsDefault
             End Get
         End Property
 
         Friend Overrides ReadOnly Property CallingConvention As CallingConvention
             Get
-                Return Me._underlyingProperty.CallingConvention
+                Return UnderlyingProperty.CallingConvention
             End Get
         End Property
 
         Public Overrides ReadOnly Property Name As String
             Get
-                Return Me._underlyingProperty.Name
+                Return UnderlyingProperty.Name
             End Get
         End Property
 
         Friend Overrides ReadOnly Property HasSpecialName As Boolean
             Get
-                Return Me._underlyingProperty.HasSpecialName
+                Return UnderlyingProperty.HasSpecialName
             End Get
         End Property
 
         Public Overrides ReadOnly Property Locations As ImmutableArray(Of Location)
             Get
-                Return Me._underlyingProperty.Locations
+                Return UnderlyingProperty.Locations
             End Get
         End Property
 
         Public Overrides ReadOnly Property DeclaringSyntaxReferences As ImmutableArray(Of SyntaxReference)
             Get
-                Return Me._underlyingProperty.DeclaringSyntaxReferences
+                Return UnderlyingProperty.DeclaringSyntaxReferences
             End Get
         End Property
 
         Public Overrides ReadOnly Property DeclaredAccessibility As Accessibility
             Get
-                Return Me._underlyingProperty.DeclaredAccessibility
+                Return UnderlyingProperty.DeclaredAccessibility
             End Get
         End Property
 
         Public Overrides ReadOnly Property IsShared As Boolean
             Get
-                Return Me._underlyingProperty.IsShared
+                Return UnderlyingProperty.IsShared
             End Get
         End Property
 
         Public Overrides ReadOnly Property IsOverridable As Boolean
             Get
-                Return Me._underlyingProperty.IsOverridable
+                Return UnderlyingProperty.IsOverridable
             End Get
         End Property
 
         Public Overrides ReadOnly Property IsOverrides As Boolean
             Get
-                Return Me._underlyingProperty.IsOverrides
+                Return UnderlyingProperty.IsOverrides
             End Get
         End Property
 
         Public Overrides ReadOnly Property IsMustOverride As Boolean
             Get
-                Return Me._underlyingProperty.IsMustOverride
+                Return UnderlyingProperty.IsMustOverride
             End Get
         End Property
 
         Public Overrides ReadOnly Property IsNotOverridable As Boolean
             Get
-                Return Me._underlyingProperty.IsNotOverridable
+                Return UnderlyingProperty.IsNotOverridable
             End Get
         End Property
 
         Friend Overrides ReadOnly Property ObsoleteAttributeData As ObsoleteAttributeData
             Get
-                Return Me._underlyingProperty.ObsoleteAttributeData
+                Return UnderlyingProperty.ObsoleteAttributeData
             End Get
         End Property
 
         Public Overrides ReadOnly Property MetadataName As String
             Get
-                Return Me._underlyingProperty.MetadataName
+                Return UnderlyingProperty.MetadataName
             End Get
         End Property
 
         Friend Overrides ReadOnly Property HasRuntimeSpecialName As Boolean
             Get
-                Return Me._underlyingProperty.HasRuntimeSpecialName
+                Return UnderlyingProperty.HasRuntimeSpecialName
             End Get
         End Property
 
         Public Sub New(underlyingProperty As PropertySymbol)
             Debug.Assert(underlyingProperty IsNot Nothing)
-            Me._underlyingProperty = underlyingProperty
+            Me.UnderlyingProperty = underlyingProperty
         End Sub
 
-        Public Overrides Function GetDocumentationCommentXml(Optional preferredCulture As CultureInfo = Nothing, Optional expandIncludes As Boolean = False, Optional cancellationToken As CancellationToken = Nothing) As String
-            Return Me._underlyingProperty.GetDocumentationCommentXml(preferredCulture, expandIncludes, cancellationToken)
+        Public Overrides Function GetDocumentationCommentXml(
+                                                     Optional preferredCulture As CultureInfo = Nothing,
+                                                     Optional expandIncludes As Boolean = False,
+                                                     Optional cancellationToken As CancellationToken = Nothing
+                                                            ) As String
+            Return UnderlyingProperty.GetDocumentationCommentXml(preferredCulture, expandIncludes, cancellationToken)
         End Function
     End Class
 End Namespace

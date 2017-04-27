@@ -1,9 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
-Imports System.Globalization
-Imports System.Threading
-Imports Microsoft.CodeAnalysis
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     ''' <summary>
@@ -15,111 +12,95 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private ReadOnly _containingType As TupleTypeSymbol
 
-        Private ReadOnly _underlyingMethod As MethodSymbol
-
-        Private ReadOnly _typeParameters As ImmutableArray(Of TypeParameterSymbol)
-
         Private _lazyParameters As ImmutableArray(Of ParameterSymbol)
 
-        Public Overrides ReadOnly Property IsTupleMethod As Boolean
-            Get
-                Return True
-            End Get
-        End Property
+        Public Overrides ReadOnly Property IsTupleMethod As Boolean = True
 
         Public Overrides ReadOnly Property TupleUnderlyingMethod As MethodSymbol
             Get
-                Return Me._underlyingMethod.ConstructedFrom
+                Return UnderlyingMethod.ConstructedFrom
             End Get
         End Property
 
         Public Overrides ReadOnly Property UnderlyingMethod As MethodSymbol
-            Get
-                Return Me._underlyingMethod
-            End Get
-        End Property
 
         Public Overrides ReadOnly Property AssociatedSymbol As Symbol
             Get
-                Return Me._containingType.GetTupleMemberSymbolForUnderlyingMember(Of Symbol)(Me._underlyingMethod.ConstructedFrom.AssociatedSymbol)
+                Return _containingType.GetTupleMemberSymbolForUnderlyingMember(_underlyingMethod.ConstructedFrom.AssociatedSymbol)
             End Get
         End Property
 
         Public Overrides ReadOnly Property ContainingSymbol As Symbol
             Get
-                Return Me._containingType
+                Return _containingType
             End Get
         End Property
 
         Public Overrides ReadOnly Property ExplicitInterfaceImplementations As ImmutableArray(Of MethodSymbol)
             Get
-                Return Me._underlyingMethod.ConstructedFrom.ExplicitInterfaceImplementations
+                Return UnderlyingMethod.ConstructedFrom.ExplicitInterfaceImplementations
             End Get
         End Property
 
         Public Overrides ReadOnly Property Parameters As ImmutableArray(Of ParameterSymbol)
             Get
-                If Me._lazyParameters.IsDefault Then
-                    InterlockedOperations.Initialize(Of ParameterSymbol)(Me._lazyParameters, Me.CreateParameters())
+                If _lazyParameters.IsDefault Then
+                    InterlockedOperations.Initialize(Of ParameterSymbol)(_lazyParameters, CreateParameters())
                 End If
-                Return Me._lazyParameters
+                Return _lazyParameters
             End Get
         End Property
 
         Public Overrides ReadOnly Property IsSub As Boolean
             Get
-                Return Me._underlyingMethod.IsSub
+                Return UnderlyingMethod.IsSub
             End Get
         End Property
 
         Public Overrides ReadOnly Property ReturnType As TypeSymbol
             Get
-                Return Me._underlyingMethod.ReturnType
+                Return UnderlyingMethod.ReturnType
             End Get
         End Property
 
         Public Overrides ReadOnly Property ReturnTypeCustomModifiers As ImmutableArray(Of CustomModifier)
             Get
-                Return Me._underlyingMethod.ReturnTypeCustomModifiers
+                Return UnderlyingMethod.ReturnTypeCustomModifiers
             End Get
         End Property
 
         Public Overrides ReadOnly Property RefCustomModifiers As ImmutableArray(Of CustomModifier)
             Get
-                Return Me._underlyingMethod.RefCustomModifiers
+                Return UnderlyingMethod.RefCustomModifiers
             End Get
         End Property
 
         Public Overrides ReadOnly Property TypeArguments As ImmutableArray(Of TypeSymbol)
             Get
-                Return StaticCast(Of TypeSymbol).From(Me._typeParameters)
+                Return StaticCast(Of TypeSymbol).From(_TypeParameters)
             End Get
         End Property
 
         Public Overrides ReadOnly Property TypeParameters As ImmutableArray(Of TypeParameterSymbol)
-            Get
-                Return Me._typeParameters
-            End Get
-        End Property
 
         Public Sub New(container As TupleTypeSymbol, underlyingMethod As MethodSymbol)
             Debug.Assert(underlyingMethod.ConstructedFrom Is underlyingMethod)
-            Me._containingType = container
-            Me._underlyingMethod = underlyingMethod
+            _containingType = container
+            Me.UnderlyingMethod = underlyingMethod
 
-            Me._typeParameters = Me._underlyingMethod.TypeParameters
+            TypeParameters = underlyingMethod.TypeParameters
         End Sub
 
         Private Function CreateParameters() As ImmutableArray(Of ParameterSymbol)
-            Return Me._underlyingMethod.Parameters.SelectAsArray(Of ParameterSymbol)(Function(p) New TupleParameterSymbol(Me, p))
+            Return UnderlyingMethod.Parameters.SelectAsArray(Of ParameterSymbol)(Function(p) New TupleParameterSymbol(Me, p))
         End Function
 
         Public Overrides Function GetAttributes() As ImmutableArray(Of VisualBasicAttributeData)
-            Return Me._underlyingMethod.GetAttributes()
+            Return UnderlyingMethod.GetAttributes()
         End Function
 
         Public Overrides Function GetReturnTypeAttributes() As ImmutableArray(Of VisualBasicAttributeData)
-            Return Me._underlyingMethod.GetReturnTypeAttributes()
+            Return UnderlyingMethod.GetReturnTypeAttributes()
         End Function
 
         Friend Overrides Function CalculateLocalSyntaxOffset(localPosition As Integer, localTree As SyntaxTree) As Integer
@@ -128,21 +109,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend Overrides Function GetUseSiteErrorInfo() As DiagnosticInfo
             Dim useSiteDiagnostic As DiagnosticInfo = MyBase.GetUseSiteErrorInfo()
-            MyBase.MergeUseSiteErrorInfo(useSiteDiagnostic, Me._underlyingMethod.GetUseSiteErrorInfo())
+            MyBase.MergeUseSiteErrorInfo(useSiteDiagnostic, UnderlyingMethod.GetUseSiteErrorInfo())
             Return useSiteDiagnostic
         End Function
 
         Public Overrides Function GetHashCode() As Integer
-            Return Me._underlyingMethod.ConstructedFrom.GetHashCode()
+            Return _underlyingMethod.ConstructedFrom.GetHashCode()
         End Function
 
         Public Overrides Function Equals(obj As Object) As Boolean
-            Return Me.Equals(TryCast(obj, TupleMethodSymbol))
+            Return Equals(TryCast(obj, TupleMethodSymbol))
         End Function
 
         Public Overloads Function Equals(other As TupleMethodSymbol) As Boolean
-            Return other Is Me OrElse
-                (other IsNot Nothing AndAlso Me._containingType = other._containingType AndAlso Me._underlyingMethod.ConstructedFrom = other._underlyingMethod.ConstructedFrom)
+            Return (other Is Me) OrElse (other IsNot Nothing AndAlso
+                                         _containingType = other._containingType AndAlso
+                                         UnderlyingMethod.ConstructedFrom = other._underlyingMethod.ConstructedFrom)
         End Function
     End Class
 End Namespace

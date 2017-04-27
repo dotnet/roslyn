@@ -15,105 +15,103 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     Friend MustInherit Class WrappedEventSymbol
         Inherits EventSymbol
 
-        Protected ReadOnly _underlyingEvent As EventSymbol
-
         Public ReadOnly Property UnderlyingEvent As EventSymbol
-            Get
-                Return Me._underlyingEvent
-            End Get
-        End Property
 
         Public Overrides ReadOnly Property IsImplicitlyDeclared As Boolean
             Get
-                Return Me._underlyingEvent.IsImplicitlyDeclared
+                Return UnderlyingEvent.IsImplicitlyDeclared
             End Get
         End Property
 
         Friend Overrides ReadOnly Property HasSpecialName As Boolean
             Get
-                Return Me._underlyingEvent.HasSpecialName
+                Return UnderlyingEvent.HasSpecialName
             End Get
         End Property
 
         Public Overrides ReadOnly Property Name As String
             Get
-                Return Me._underlyingEvent.Name
+                Return UnderlyingEvent.Name
             End Get
         End Property
 
         Public Overrides ReadOnly Property Locations As ImmutableArray(Of Location)
             Get
-                Return Me._underlyingEvent.Locations
+                Return UnderlyingEvent.Locations
             End Get
         End Property
 
         Public Overrides ReadOnly Property DeclaringSyntaxReferences As ImmutableArray(Of SyntaxReference)
             Get
-                Return Me._underlyingEvent.DeclaringSyntaxReferences
+                Return UnderlyingEvent.DeclaringSyntaxReferences
             End Get
         End Property
 
         Public Overrides ReadOnly Property DeclaredAccessibility As Accessibility
             Get
-                Return Me._underlyingEvent.DeclaredAccessibility
+                Return UnderlyingEvent.DeclaredAccessibility
             End Get
         End Property
 
         Public Overrides ReadOnly Property IsShared As Boolean
             Get
-                Return Me._underlyingEvent.IsShared
+                Return UnderlyingEvent.IsShared
             End Get
         End Property
 
         Public Overrides ReadOnly Property IsOverridable As Boolean
             Get
-                Return Me._underlyingEvent.IsOverridable
+                Return UnderlyingEvent.IsOverridable
             End Get
         End Property
 
         Public Overrides ReadOnly Property IsOverrides As Boolean
             Get
-                Return Me._underlyingEvent.IsOverrides
+                Return UnderlyingEvent.IsOverrides
             End Get
         End Property
 
         Public Overrides ReadOnly Property IsMustOverride As Boolean
             Get
-                Return Me._underlyingEvent.IsMustOverride
+                Return UnderlyingEvent.IsMustOverride
             End Get
         End Property
 
         Public Overrides ReadOnly Property IsNotOverridable As Boolean
             Get
-                Return Me._underlyingEvent.IsNotOverridable
+                Return UnderlyingEvent.IsNotOverridable
             End Get
         End Property
 
         Friend Overrides ReadOnly Property ObsoleteAttributeData As ObsoleteAttributeData
             Get
-                Return Me._underlyingEvent.ObsoleteAttributeData
+                Return UnderlyingEvent.ObsoleteAttributeData
             End Get
         End Property
 
         Public Overrides ReadOnly Property IsWindowsRuntimeEvent As Boolean
             Get
-                Return Me._underlyingEvent.IsWindowsRuntimeEvent
+                Return UnderlyingEvent.IsWindowsRuntimeEvent
             End Get
         End Property
 
         Friend Overrides ReadOnly Property HasRuntimeSpecialName As Boolean
             Get
-                Return Me._underlyingEvent.HasRuntimeSpecialName
+                Return UnderlyingEvent.HasRuntimeSpecialName
             End Get
         End Property
 
         Public Sub New(underlyingEvent As EventSymbol)
             Debug.Assert(underlyingEvent IsNot Nothing)
-            Me._underlyingEvent = underlyingEvent
+            Me.underlyingEvent = underlyingEvent
         End Sub
 
-        Public Overrides Function GetDocumentationCommentXml(Optional preferredCulture As CultureInfo = Nothing, Optional expandIncludes As Boolean = False, Optional cancellationToken As CancellationToken = Nothing) As String
-            Return Me._underlyingEvent.GetDocumentationCommentXml(preferredCulture, expandIncludes, cancellationToken)
+        Public Overrides Function GetDocumentationCommentXml(
+                                                     Optional preferredCulture As CultureInfo = Nothing,
+                                                     Optional expandIncludes As Boolean = False,
+                                                     Optional cancellationToken As CancellationToken = Nothing
+                                                            ) As String
+            Return UnderlyingEvent.GetDocumentationCommentXml(preferredCulture, expandIncludes, cancellationToken)
         End Function
     End Class
 End Namespace

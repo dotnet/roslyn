@@ -15,127 +15,125 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     Friend MustInherit Class WrappedFieldSymbol
         Inherits FieldSymbol
 
-        Protected _underlyingField As FieldSymbol
-
         Public ReadOnly Property UnderlyingField As FieldSymbol
-            Get
-                Return Me._underlyingField
-            End Get
-        End Property
 
         Public Overrides ReadOnly Property IsImplicitlyDeclared As Boolean
             Get
-                Return Me._underlyingField.IsImplicitlyDeclared
+                Return UnderlyingField.IsImplicitlyDeclared
             End Get
         End Property
 
         Public Overrides ReadOnly Property DeclaredAccessibility As Accessibility
             Get
-                Return Me._underlyingField.DeclaredAccessibility
+                Return UnderlyingField.DeclaredAccessibility
             End Get
         End Property
 
         Public Overrides ReadOnly Property Name As String
             Get
-                Return Me._underlyingField.Name
+                Return UnderlyingField.Name
             End Get
         End Property
 
         Friend Overrides ReadOnly Property HasSpecialName As Boolean
             Get
-                Return Me._underlyingField.HasSpecialName
+                Return UnderlyingField.HasSpecialName
             End Get
         End Property
 
         Friend Overrides ReadOnly Property HasRuntimeSpecialName As Boolean
             Get
-                Return Me._underlyingField.HasRuntimeSpecialName
+                Return UnderlyingField.HasRuntimeSpecialName
             End Get
         End Property
 
         Friend Overrides ReadOnly Property IsNotSerialized As Boolean
             Get
-                Return Me._underlyingField.IsNotSerialized
+                Return UnderlyingField.IsNotSerialized
             End Get
         End Property
 
         Friend Overrides ReadOnly Property IsMarshalledExplicitly As Boolean
             Get
-                Return Me._underlyingField.IsMarshalledExplicitly
+                Return UnderlyingField.IsMarshalledExplicitly
             End Get
         End Property
 
         Friend Overrides ReadOnly Property MarshallingInformation As MarshalPseudoCustomAttributeData
             Get
-                Return Me._underlyingField.MarshallingInformation
+                Return UnderlyingField.MarshallingInformation
             End Get
         End Property
 
         Friend Overrides ReadOnly Property MarshallingDescriptor As ImmutableArray(Of Byte)
             Get
-                Return Me._underlyingField.MarshallingDescriptor
+                Return UnderlyingField.MarshallingDescriptor
             End Get
         End Property
 
         Friend Overrides ReadOnly Property TypeLayoutOffset As Integer?
             Get
-                Return Me._underlyingField.TypeLayoutOffset
+                Return UnderlyingField.TypeLayoutOffset
             End Get
         End Property
 
         Public Overrides ReadOnly Property IsReadOnly As Boolean
             Get
-                Return Me._underlyingField.IsReadOnly
+                Return UnderlyingField.IsReadOnly
             End Get
         End Property
 
         Public Overrides ReadOnly Property IsConst As Boolean
             Get
-                Return Me._underlyingField.IsConst
+                Return UnderlyingField.IsConst
             End Get
         End Property
 
         Friend Overrides ReadOnly Property ObsoleteAttributeData As ObsoleteAttributeData
             Get
-                Return Me._underlyingField.ObsoleteAttributeData
+                Return UnderlyingField.ObsoleteAttributeData
             End Get
         End Property
 
         Public Overrides ReadOnly Property ConstantValue As Object
             Get
-                Return Me._underlyingField.ConstantValue
+                Return UnderlyingField.ConstantValue
             End Get
         End Property
 
         Public Overrides ReadOnly Property Locations As ImmutableArray(Of Location)
             Get
-                Return Me._underlyingField.Locations
+                Return UnderlyingField.Locations
             End Get
         End Property
 
         Public Overrides ReadOnly Property DeclaringSyntaxReferences As ImmutableArray(Of SyntaxReference)
             Get
-                Return Me._underlyingField.DeclaringSyntaxReferences
+                Return UnderlyingField.DeclaringSyntaxReferences
             End Get
         End Property
 
         Public Overrides ReadOnly Property IsShared As Boolean
             Get
-                Return Me._underlyingField.IsShared
+                Return UnderlyingField.IsShared
             End Get
         End Property
 
         Public Sub New(underlyingField As FieldSymbol)
             Debug.Assert(underlyingField IsNot Nothing)
-            Me._underlyingField = underlyingField
+            Me.UnderlyingField = underlyingField
         End Sub
 
-        Public Overrides Function GetDocumentationCommentXml(Optional preferredCulture As CultureInfo = Nothing, Optional expandIncludes As Boolean = False, Optional cancellationToken As CancellationToken = Nothing) As String
-            Return Me._underlyingField.GetDocumentationCommentXml(preferredCulture, expandIncludes, cancellationToken)
+        Public Overrides Function GetDocumentationCommentXml(
+                                                     Optional preferredCulture As CultureInfo = Nothing,
+                                                     Optional expandIncludes As Boolean = False,
+                                                     Optional cancellationToken As CancellationToken = Nothing
+                                                            ) As String
+            Return UnderlyingField.GetDocumentationCommentXml(preferredCulture, expandIncludes, cancellationToken)
         End Function
 
         Friend Overrides Function GetConstantValue(inProgress As SymbolsInProgress(Of FieldSymbol)) As ConstantValue
-            Return Me._underlyingField.GetConstantValue(inProgress)
+            Return UnderlyingField.GetConstantValue(inProgress)
         End Function
     End Class
 End Namespace
