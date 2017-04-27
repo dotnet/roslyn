@@ -27,11 +27,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             _returnType = returnType;
             this.MakeFlags(methodKind, declarationModifiers, _returnType.SpecialType == SpecialType.System_Void, isExtensionMethod: false);
-
-            if (this.ReturnsByRefReadonly)
-            {
-                this.DeclaringCompilation.EnsureIsReadOnlyAttributeExists(this);
-            }
         }
 
         protected void InitializeParameters(ImmutableArray<ParameterSymbol> parameters)
@@ -50,6 +45,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             RefKind refKind;
             TypeSyntax returnTypeSyntax = syntax.ReturnType.SkipRef(out refKind);
             TypeSymbol returnType = binder.BindType(returnTypeSyntax, diagnostics);
+
+            if (refKind == RefKind.RefReadOnly)
+            {
+                delegateType.DeclaringCompilation.EnsureIsReadOnlyAttributeExists(diagnostics, syntax.ReturnType.Location);
+            }
 
             // reuse types to avoid reporting duplicate errors if missing:
             var voidType = binder.GetSpecialType(SpecialType.System_Void, diagnostics, syntax);

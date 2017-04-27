@@ -69,6 +69,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _syntaxRef = syntax.GetReference();
             _refKind = syntax.Type.GetRefKind();
 
+            if (_refKind == RefKind.RefReadOnly)
+            {
+                bodyBinder.Compilation.EnsureIsReadOnlyAttributeExists(diagnostics, syntax.Type.Location);
+            }
+
             SyntaxTokenList modifiers = syntax.Modifiers;
             bodyBinder = bodyBinder.WithUnsafeRegionIfNecessary(modifiers);
             bodyBinder = bodyBinder.WithAdditionalFlagsAndContainingMemberOrLambda(BinderFlags.SuppressConstraintChecks, this);
@@ -99,11 +104,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         _sourceName = propertyData.IndexerName;
                     }
-                }
-
-                if (this.ReturnsByRefReadonly)
-                {
-                    this.DeclaringCompilation.EnsureIsReadOnlyAttributeExists(this);
                 }
             }
 

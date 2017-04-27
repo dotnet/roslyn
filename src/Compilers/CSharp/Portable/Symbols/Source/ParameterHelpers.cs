@@ -36,6 +36,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 var refKind = GetModifiers(parameterSyntax.Modifiers, out SyntaxToken refOrOutKeyword, out SyntaxToken paramsKeyword, out SyntaxToken thisKeyword);
 
+                if (refKind == RefKind.RefReadOnly)
+                {
+                    owner.DeclaringCompilation.EnsureIsReadOnlyAttributeExists(diagnostics, parameterSyntax.Location);
+                }
+
                 if (thisKeyword.Kind() != SyntaxKind.None && !allowThis)
                 {
                     diagnostics.Add(ErrorCode.ERR_ThisInBadContext, thisKeyword.GetLocation());

@@ -110,6 +110,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _isExpressionBodied = !hasBlockBody && syntax.ExpressionBody != null;
             _refKind = syntax.ReturnType.GetRefKind();
 
+            if (_refKind == RefKind.RefReadOnly)
+            {
+                this.DeclaringCompilation.EnsureIsReadOnlyAttributeExists(diagnostics, syntax.ReturnType.Location);
+            }
+
             if (hasBlockBody || _isExpressionBodied)
             {
                 CheckModifiersForBody(location, diagnostics);
@@ -139,11 +144,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             CheckForBlockAndExpressionBody(
                 syntax.Body, syntax.ExpressionBody, syntax, diagnostics);
-
-            if (this.ReturnsByRefReadonly)
-            {
-                this.DeclaringCompilation.EnsureIsReadOnlyAttributeExists(this);
-            }
         }
 
         public override bool ReturnsVoid

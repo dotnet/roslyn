@@ -6,7 +6,6 @@ Imports System.Threading
 Imports System.Reflection
 Imports System.Reflection.Metadata
 Imports Microsoft.Cci
-Imports Microsoft.CodeAnalysis.VisualBasic.Emit
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
@@ -325,7 +324,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Return _lazyCustomAttributes
         End Function
 
-        Friend Overrides Function GetCustomAttributesToEmit(moduleBuilder As PEModuleBuilder) As IEnumerable(Of VisualBasicAttributeData)
+        Friend Overrides Function GetCustomAttributesToEmit(compilationState As ModuleCompilationState) As IEnumerable(Of VisualBasicAttributeData)
             Return GetAttributes()
         End Function
 

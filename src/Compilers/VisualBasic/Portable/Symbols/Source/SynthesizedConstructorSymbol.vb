@@ -1,8 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
-Imports Microsoft.CodeAnalysis.Emit
-Imports Microsoft.CodeAnalysis.VisualBasic.Emit
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
@@ -35,8 +33,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Me._debuggable = isDebuggable
         End Sub
 
-        Friend Overrides Sub AddSynthesizedAttributes(moduleBuilder As PEModuleBuilder, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
-            MyBase.AddSynthesizedAttributes(moduleBuilder, attributes)
+        Friend Overrides Sub AddSynthesizedAttributes(compilationState as ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
+            MyBase.AddSynthesizedAttributes(compilationState, attributes)
 
             ' Dev11 emits DebuggerNonUserCodeAttribute. This attribute is not needed since we don't emit any debug info for the constructor.
         End Sub

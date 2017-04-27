@@ -9188,7 +9188,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The type &apos;{0}&apos; is reserved to be used by the compiler..
+        ///   Looks up a localized string similar to The type name &apos;{0}&apos; is reserved to be used by the compiler..
         /// </summary>
         internal static string ERR_TypeReserved {
             get {

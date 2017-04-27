@@ -41,11 +41,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 returnsVoid: baseMethod.ReturnsVoid,
                 isExtensionMethod: false,
                 isMetadataVirtualIgnoringModifiers: false);
-
-            if (this.ReturnsByRefReadonly)
-            {
-                this.DeclaringCompilation.EnsureIsReadOnlyAttributeExists(this);
-            }
         }
 
         protected void AssignTypeMapAndTypeParameters(TypeMap typeMap, ImmutableArray<TypeParameterSymbol> typeParameters)

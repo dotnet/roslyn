@@ -4434,5 +4434,37 @@ BC30002: Type 'TestReference.TestType2' is not defined.
 ]]>)
         End Sub
 
+        <Fact>
+        Public Sub EmbeddedAttributeInSourceIsAllowedIfCompilerDoesNotNeedToGenerateOne()
+
+            Dim compilation = CreateCompilationWithMscorlib(options:=TestOptions.ReleaseExe, sources:=
+<compilation>
+    <file name="a.vb"><![CDATA[
+Namespace Microsoft.CodeAnalysis
+    Friend Class EmbeddedAttribute
+        Inherits System.Attribute
+    End Class
+End Namespace
+Namespace OtherNamespace
+    <Microsoft.CodeAnalysis.Embedded>
+    Public Class TestReference
+        Public Shared Function GetValue() As Integer
+            Return 3
+        End Function
+    End Class
+End Namespace
+Public Class Program
+    Public Shared Sub Main()
+        ' This should be fine, as the compiler doesn't need to use an embedded attribute for this compilation
+        System.Console.Write(OtherNamespace.TestReference.GetValue())
+    End Sub
+End Class
+]]>
+    </file>
+</compilation>)
+
+            CompileAndVerify(compilation, verify:=False, expectedOutput:="3")
+        End Sub
+
     End Class
 End Namespace

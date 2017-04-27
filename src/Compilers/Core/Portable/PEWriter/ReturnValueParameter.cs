@@ -16,7 +16,7 @@ namespace Microsoft.Cci
 
         public IEnumerable<ICustomAttribute> GetAttributes(EmitContext context)
         {
-            return _containingMethod.GetReturnValueAttributes(context.Module);
+            return _containingMethod.GetReturnValueAttributes(context);
         }
 
         public ISignature ContainingSignature

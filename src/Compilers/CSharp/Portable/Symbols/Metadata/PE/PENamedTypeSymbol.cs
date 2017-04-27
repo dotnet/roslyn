@@ -62,11 +62,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         /// </summary>
         private TypeKind _lazyKind;
 
-        /// <summary>
-        /// Lazily initiated HasEmbeddedAttribute
-        /// </summary>
-        private ThreeState _lazyHasEmbeddedAttribute = ThreeState.Unknown;
-
         private NamedTypeSymbol _lazyBaseType = ErrorTypeSymbol.UnknownResultType;
         private ImmutableArray<NamedTypeSymbol> _lazyInterfaces = default(ImmutableArray<NamedTypeSymbol>);
         private NamedTypeSymbol _lazyDeclaredBaseType = ErrorTypeSymbol.UnknownResultType;
@@ -136,6 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             internal ThreeState lazyContainsExtensionMethods;
             internal string lazyDefaultMemberName;
             internal NamedTypeSymbol lazyComImportCoClassType = ErrorTypeSymbol.UnknownResultType;
+            internal ThreeState lazyHasEmbeddedAttribute = ThreeState.Unknown;
 
             internal bool IsDefaultValue()
             {
@@ -147,7 +143,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     lazyAttributeUsageInfo.IsNull &&
                     !lazyContainsExtensionMethods.HasValue() &&
                     lazyDefaultMemberName == null &&
-                    (object)lazyComImportCoClassType == (object)ErrorTypeSymbol.UnknownResultType;
+                    (object)lazyComImportCoClassType == (object)ErrorTypeSymbol.UnknownResultType &&
+                    lazyHasEmbeddedAttribute == ThreeState.Unknown;
             }
         }
 
@@ -381,12 +378,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                if (!_lazyHasEmbeddedAttribute.HasValue())
+                var uncommon = GetUncommonProperties();
+                if (uncommon == s_noUncommonProperties)
                 {
-                    _lazyHasEmbeddedAttribute = ContainingPEModule.Module.HasCodeAnalysisEmbeddedAttribute(_handle).ToThreeState();
+                    return false;
                 }
 
-                return _lazyHasEmbeddedAttribute.Value();
+                if (!uncommon.lazyHasEmbeddedAttribute.HasValue())
+                {
+                    uncommon.lazyHasEmbeddedAttribute = ContainingPEModule.Module.HasCodeAnalysisEmbeddedAttribute(_handle).ToThreeState();
+                }
+
+                return uncommon.lazyHasEmbeddedAttribute.Value();
             }
         }
 

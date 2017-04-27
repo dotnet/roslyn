@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
         End Sub
 
         Protected Overrides Function GetCustomAttributesToEmit(moduleBuilder As PEModuleBuilder) As IEnumerable(Of VisualBasicAttributeData)
-            Return UnderlyingEvent.GetCustomAttributesToEmit(moduleBuilder)
+            Return UnderlyingEvent.GetCustomAttributesToEmit(moduleBuilder.CompilationState)
         End Function
 
         Protected Overrides ReadOnly Property IsRuntimeSpecial As Boolean

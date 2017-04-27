@@ -559,7 +559,6 @@ namespace System
                     case WellKnownType.System_FormattableString:
                     case WellKnownType.System_Runtime_CompilerServices_FormattableStringFactory:
                     case WellKnownType.System_Runtime_CompilerServices_IsReadOnlyAttribute:
-                    case WellKnownType.Microsoft_CodeAnalysis_EmbeddedAttribute:
                     // Not yet in the platform.
                     case WellKnownType.Microsoft_CodeAnalysis_Runtime_Instrumentation:
                         // Not always available.
@@ -862,7 +861,6 @@ namespace System
                         continue;
                     case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayload:
                     case WellKnownMember.System_Runtime_CompilerServices_IsReadOnlyAttribute__ctor:
-                    case WellKnownMember.Microsoft_CodeAnalysis_EmbeddedAttribute__ctor:
                         // Not always available.
                         continue;
                 }

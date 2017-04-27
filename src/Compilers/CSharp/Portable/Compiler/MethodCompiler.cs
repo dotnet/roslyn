@@ -1638,7 +1638,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (baseType.SpecialType == SpecialType.System_Object)
                 {
-                    return GenerateObjectConstructorInitializer(constructor, diagnostics);
+                    return GenerateBaseConstructorInitializer(constructor, diagnostics);
                 }
                 else if (baseType.IsErrorType() || baseType.IsStatic)
                 {
@@ -1739,42 +1739,42 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal static BoundCall GenerateObjectConstructorInitializer(MethodSymbol constructor, DiagnosticBag diagnostics)
+        internal static BoundCall GenerateBaseConstructorInitializer(MethodSymbol constructor, DiagnosticBag diagnostics)
         {
-            NamedTypeSymbol objectType = constructor.ContainingType.BaseTypeNoUseSiteDiagnostics;
-            Debug.Assert(objectType.SpecialType == SpecialType.System_Object);
-            MethodSymbol objectConstructor = null;
+            NamedTypeSymbol baseType = constructor.ContainingType.BaseTypeNoUseSiteDiagnostics;
+            MethodSymbol baseConstructor = null;
             LookupResultKind resultKind = LookupResultKind.Viable;
+            Location diagnosticsLocation = constructor.Locations.IsEmpty ? NoLocation.Singleton : constructor.Locations[0];
 
-            foreach (MethodSymbol objectCtor in objectType.InstanceConstructors)
+            foreach (MethodSymbol ctor in baseType.InstanceConstructors)
             {
-                if (objectCtor.ParameterCount == 0)
+                if (ctor.ParameterCount == 0)
                 {
-                    objectConstructor = objectCtor;
+                    baseConstructor = ctor;
                     break;
                 }
             }
 
             // UNDONE: If this happens then something is deeply wrong. Should we give a better error?
-            if ((object)objectConstructor == null)
+            if ((object)baseConstructor == null)
             {
-                diagnostics.Add(ErrorCode.ERR_BadCtorArgCount, constructor.Locations[0], objectType, /*desired param count*/ 0);
+                diagnostics.Add(ErrorCode.ERR_BadCtorArgCount, diagnosticsLocation, baseType, /*desired param count*/ 0);
                 return null;
             }
 
             // UNDONE: If this happens then something is deeply wrong. Should we give a better error?
             bool hasErrors = false;
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            if (!AccessCheck.IsSymbolAccessible(objectConstructor, constructor.ContainingType, ref useSiteDiagnostics))
+            if (!AccessCheck.IsSymbolAccessible(baseConstructor, constructor.ContainingType, ref useSiteDiagnostics))
             {
-                diagnostics.Add(ErrorCode.ERR_BadAccess, constructor.Locations[0], objectConstructor);
+                diagnostics.Add(ErrorCode.ERR_BadAccess, diagnosticsLocation, baseConstructor);
                 resultKind = LookupResultKind.Inaccessible;
                 hasErrors = true;
             }
 
             if (!useSiteDiagnostics.IsNullOrEmpty())
             {
-                diagnostics.Add(constructor.Locations.IsEmpty ? NoLocation.Singleton : constructor.Locations[0], useSiteDiagnostics);
+                diagnostics.Add(diagnosticsLocation, useSiteDiagnostics);
             }
 
             CSharpSyntaxNode syntax = constructor.GetNonNullSyntaxNode();
@@ -1783,7 +1783,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundCall(
                 syntax: syntax,
                 receiverOpt: receiver,
-                method: objectConstructor,
+                method: baseConstructor,
                 arguments: ImmutableArray<BoundExpression>.Empty,
                 argumentNamesOpt: ImmutableArray<string>.Empty,
                 argumentRefKindsOpt: ImmutableArray<RefKind>.Empty,
@@ -1792,7 +1792,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 invokedAsExtensionMethod: false,
                 argsToParamsOpt: ImmutableArray<int>.Empty,
                 resultKind: resultKind,
-                type: objectType,
+                type: baseType,
                 hasErrors: hasErrors)
             { WasCompilerGenerated = true };
         }

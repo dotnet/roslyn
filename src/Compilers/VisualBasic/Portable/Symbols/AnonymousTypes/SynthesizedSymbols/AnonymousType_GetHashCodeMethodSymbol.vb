@@ -1,7 +1,5 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports Microsoft.CodeAnalysis.VisualBasic.Emit
-
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
     Partial Friend NotInheritable Class AnonymousTypeManager
@@ -49,8 +47,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End Get
             End Property
 
-            Friend Overrides Sub AddSynthesizedAttributes(moduleBuilder As PEModuleBuilder, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
-                MyBase.AddSynthesizedAttributes(moduleBuilder, attributes)
+            Friend Overrides Sub AddSynthesizedAttributes(compilationState As ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
+                MyBase.AddSynthesizedAttributes(compilationState, attributes)
 
                 Dim compilation = DirectCast(Me.ContainingType, AnonymousTypeTemplateSymbol).Manager.Compilation
                 AddSynthesizedAttribute(attributes, compilation.SynthesizeDebuggerHiddenAttribute())

@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private bool _lazyIsVarArg;
         private ImmutableArray<TypeParameterConstraintClause> _lazyTypeParameterConstraints;
         private TypeSymbol _lazyReturnType;
-        private RefKind? _lazyRefKind;
+        private RefKind _refKind;
         private TypeSymbol _iteratorElementType;
 
         // Lock for initializing lazy fields and registering their diagnostics
@@ -72,12 +72,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 ReportAttributesDisallowed(param.AttributeLists, _declarationDiagnostics);
             }
 
-            _binder = binder;
-
-            if (this.ReturnsByRefReadonly)
+            if (syntax.ReturnType.Kind() == SyntaxKind.RefType)
             {
-                this.DeclaringCompilation.EnsureIsReadOnlyAttributeExists(this);
+                var returnType = (RefTypeSyntax)syntax.ReturnType;
+                if (returnType.ReadOnlyKeyword.Kind() == SyntaxKind.ReadOnlyKeyword)
+                {
+                    _refKind = RefKind.RefReadOnly;
+                    DeclaringCompilation.EnsureIsReadOnlyAttributeExists(_declarationDiagnostics, returnType.Location);
+                }
+                else
+                {
+                    _refKind = RefKind.Ref;
+                }
             }
+            else
+            {
+                _refKind = RefKind.None;
+            }
+
+            _binder = binder;
         }
 
         /// <summary>
@@ -184,35 +197,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override RefKind RefKind
-        {
-            get
-            {
-                ComputeRefKind();
-                return _lazyRefKind.Value;
-            }
-        }
-
-        internal void ComputeRefKind()
-        {
-            if (_lazyRefKind.HasValue)
-            {
-                return;
-            }
-
-            if (_syntax.ReturnType.Kind() == SyntaxKind.RefType)
-            {
-                var refType = (RefTypeSyntax)_syntax.ReturnType;
-                _lazyRefKind = refType.ReadOnlyKeyword.Kind() == SyntaxKind.ReadOnlyKeyword
-                    ? RefKind.RefReadOnly
-                    : RefKind.Ref;
-            }
-            else
-            {
-                _lazyRefKind = RefKind.None;
-            }
-        }
-
+        internal override RefKind RefKind => _refKind;
+        
         internal void ComputeReturnType()
         {
             if (_lazyReturnType != null)
@@ -233,8 +219,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.ERR_BadAsyncReturn, this.Locations[0]);
             }
 
-            ComputeRefKind();
-            Debug.Assert(_lazyRefKind == RefKind.None
+            Debug.Assert(_refKind == RefKind.None
                 || returnType.SpecialType != SpecialType.System_Void
                 || returnTypeSyntax.HasErrors);
 

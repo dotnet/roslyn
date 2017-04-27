@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
             get { return false; }
         }
 
-        IEnumerable<Cci.ICustomAttribute> Cci.IMethodDefinition.GetReturnValueAttributes(CommonPEModuleBuilder moduleBuilder)
+        IEnumerable<Cci.ICustomAttribute> Cci.IMethodDefinition.GetReturnValueAttributes(EmitContext context)
         {
             return SpecializedCollections.EmptyEnumerable<Cci.ICustomAttribute>();
         }

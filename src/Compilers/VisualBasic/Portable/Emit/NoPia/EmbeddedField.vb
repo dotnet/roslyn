@@ -21,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
         End Property
 
         Protected Overrides Function GetCustomAttributesToEmit(moduleBuilder As PEModuleBuilder) As IEnumerable(Of VisualBasicAttributeData)
-            Return UnderlyingField.GetCustomAttributesToEmit(moduleBuilder)
+            Return UnderlyingField.GetCustomAttributesToEmit(moduleBuilder.CompilationState)
         End Function
 
         Protected Overrides Function GetCompileTimeValue(context As EmitContext) As MetadataConstant

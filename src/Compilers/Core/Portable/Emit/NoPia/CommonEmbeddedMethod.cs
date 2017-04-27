@@ -211,7 +211,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
 
             bool Cci.IMethodDefinition.RequiresSecurityObject => false;
 
-            IEnumerable<Cci.ICustomAttribute> Cci.IMethodDefinition.GetReturnValueAttributes(CommonPEModuleBuilder moduleBuilder)
+            IEnumerable<Cci.ICustomAttribute> Cci.IMethodDefinition.GetReturnValueAttributes(EmitContext context)
             {
                 // TODO:
                 return SpecializedCollections.EmptyEnumerable<Cci.ICustomAttribute>();

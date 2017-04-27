@@ -31,7 +31,31 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private Symbol[] _lazyWellKnownTypeMembers;
 
-        internal bool NeedsGeneratedIsReadOnlyAttribute { get; private set; }
+        private bool _needsGeneratedIsReadOnlyAttribute_Frozen;
+        private bool _needsGeneratedIsReadOnlyAttribute;
+
+        /// <summary>
+        /// Returns a value indicating whether this compilation has a member that needs IsReadOnlyAttribute to be generated during emit phase.
+        /// The value is set during during binding the symbols that need that attribute, and is frozen before emitting.
+        /// Freezing is needed to make sure that nothing tries to modify the value after the compilation is emitted.
+        /// </summary>
+        internal bool NeedsGeneratedIsReadOnlyAttribute
+        {
+            get
+            {
+                return _needsGeneratedIsReadOnlyAttribute;
+            }
+            set
+            {
+                Debug.Assert(!_needsGeneratedIsReadOnlyAttribute_Frozen);
+                _needsGeneratedIsReadOnlyAttribute = value;
+            }
+        }
+
+        internal void FreezeNeedsGeneratedIsReadOnlyAttribute()
+        {
+            _needsGeneratedIsReadOnlyAttribute_Frozen = true;
+        }
 
         /// <summary>
         /// Lookup member declaration in well known type used by this Compilation.
@@ -418,21 +442,27 @@ namespace Microsoft.CodeAnalysis.CSharp
             return TrySynthesizeAttribute(WellKnownMember.System_Diagnostics_DebuggerStepThroughAttribute__ctor);
         }
 
-        internal void EnsureIsReadOnlyAttributeExists(Symbol readOnlySymbol)
+        internal void EnsureIsReadOnlyAttributeExists(DiagnosticBag diagnostics, Location location)
         {
-            // This will report a DeclarationDiagnostics error if the member is not found.
-            // We only need to report this when compiling NetModules, as for other compilations, we will generate it.
+            var userDefinedAttribute = GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_IsReadOnlyAttribute);
 
-            var attributeSymbol = Binder.GetWellKnownTypeMember(
-                compilation: this,
-                member: WellKnownMember.System_Runtime_CompilerServices_IsReadOnlyAttribute__ctor,
-                diagnostics: DeclarationDiagnostics,
-                location: readOnlySymbol.Locations.FirstOrDefault() ?? Location.None,
-                isOptional: Options.OutputKind != OutputKind.NetModule);
-
-            if (attributeSymbol == null)
+            if (userDefinedAttribute is MissingMetadataTypeSymbol)
             {
-                NeedsGeneratedIsReadOnlyAttribute = true;
+                if (Options.OutputKind == OutputKind.NetModule)
+                {
+                    var attributeName = WellKnownTypes.GetMetadataName(WellKnownType.System_Runtime_CompilerServices_IsReadOnlyAttribute);
+                    diagnostics.Add(ErrorCode.ERR_PredefinedTypeNotFound, location, attributeName);
+                }
+                else
+                {
+                    NeedsGeneratedIsReadOnlyAttribute = true;
+                }
+            }
+            else if (!userDefinedAttribute.InstanceConstructors.Any(constructor => constructor.ParameterCount == 0))
+            {
+                var attributeName = WellKnownTypes.GetMetadataName(WellKnownType.System_Runtime_CompilerServices_IsReadOnlyAttribute);
+                var constructorName = WellKnownMembers.GetDescriptor(WellKnownMember.System_Runtime_CompilerServices_IsReadOnlyAttribute__ctor);
+                diagnostics.Add(ErrorCode.ERR_MissingPredefinedMember, location, attributeName, constructorName.Name);
             }
         }
 

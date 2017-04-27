@@ -37,11 +37,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _ordinal = ordinal;
             _refKind = refKind;
             _name = name;
-
-            if (this.RefKind == RefKind.RefReadOnly)
-            {
-                this.DeclaringCompilation.EnsureIsReadOnlyAttributeExists(this);
-            }
         }
 
         public override TypeSymbol Type

@@ -5,7 +5,6 @@ Imports System.Collections.Immutable
 Imports System.Diagnostics
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
@@ -76,8 +75,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return New BoundBlock(syntaxNode, Nothing, ImmutableArray(Of LocalSymbol).Empty, ImmutableArray.Create(statement, New BoundReturnStatement(syntaxNode, Nothing, Nothing, Nothing)))
         End Function
 
-        Friend Overrides Sub AddSynthesizedAttributes(moduleBuilder As PEModuleBuilder, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
-            MyBase.AddSynthesizedAttributes(moduleBuilder, attributes)
+        Friend Overrides Sub AddSynthesizedAttributes(compilationState As ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
+            MyBase.AddSynthesizedAttributes(compilationState, attributes)
 
             AddSynthesizedAttribute(attributes,
                                     DeclaringCompilation.TrySynthesizeAttribute(WellKnownMember.System_STAThreadAttribute__ctor))

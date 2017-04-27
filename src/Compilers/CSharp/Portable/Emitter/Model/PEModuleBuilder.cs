@@ -1388,13 +1388,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         internal virtual SynthesizedAttributeData SynthesizeEmbeddedAttribute()
         {
-            // For modules, this attribute should be present. Only assemblies generate and embedd this type.
-            return Compilation.TrySynthesizeAttribute(WellKnownMember.Microsoft_CodeAnalysis_EmbeddedAttribute__ctor);
+            // Embedded attributes should never be synthesized in modules.
+            throw ExceptionUtilities.Unreachable;
         }
 
         internal virtual SynthesizedAttributeData SynthesizeIsReadOnlyAttribute()
         {
-            // For modules, this attribute should be present. Only assemblies generate and embedd this type.
+            // For modules, this attribute should be present. Only assemblies generate and embed this type.
             return Compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_IsReadOnlyAttribute__ctor);
         }
     }
