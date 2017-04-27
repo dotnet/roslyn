@@ -99,18 +99,29 @@
       <VsixExpInstallerArgs>/rootSuffix:RoslynDev /vsInstallDir:"$([System.IO.Path]::GetFullPath('$(MSBuildBinPath)\..\..\..'))"</VsixExpInstallerArgs>
     </PropertyGroup>
 
-    <Exec Condition="'$(TestVsi)' != 'true' AND '$(SkipCoreClr)' != 'true'" Command="&quot;$(CoreRunExe)&quot; $(CoreRunArgs)" />
+    <!-- Run CoreClr tests -->
+    <Exec Condition="'$(TestVsi)' != 'true' AND '$(SkipCoreClrTests)' != 'true'" 
+        ContinueOnError="ErrorAndContinue"
+        Command="&quot;$(CoreRunExe)&quot; $(CoreRunArgs)" />
 
     <!-- Manually deploy any VSIX required by our integration tests (https://github.com/dotnet/roslyn/issues/17456) -->
-    <Exec Condition="'$(TestVsi)' == 'true'" Command="&quot;$(VsixExpInstallerExe)&quot; $(VsixExpInstallerArgs) $(OutputDirectory)\Vsix\CompilerExtension\Roslyn.Compilers.Extension.vsix" />
-    <Exec Condition="'$(TestVsi)' == 'true'" Command="&quot;$(VsixExpInstallerExe)&quot; $(VsixExpInstallerArgs) $(OutputDirectory)\Vsix\VisualStudioSetup\Roslyn.VisualStudio.Setup.vsix" />
-    <Exec Condition="'$(TestVsi)' == 'true'" Command="&quot;$(VsixExpInstallerExe)&quot; $(VsixExpInstallerArgs) $(OutputDirectory)\Vsix\VisualStudioSetup.Next\Roslyn.VisualStudio.Setup.Next.vsix" />
-    <Exec Condition="'$(TestVsi)' == 'true'" Command="&quot;$(VsixExpInstallerExe)&quot; $(VsixExpInstallerArgs) $(OutputDirectory)\Vsix\VisualStudioInteractiveComponents\Roslyn.VisualStudio.InteractiveComponents.vsix" />
-    <Exec Condition="'$(TestVsi)' == 'true'" Command="&quot;$(VsixExpInstallerExe)&quot; $(VsixExpInstallerArgs) $(OutputDirectory)\Vsix\ExpressionEvaluatorPackage\ExpressionEvaluatorPackage.vsix" />
-    <Exec Condition="'$(TestVsi)' == 'true'" Command="&quot;$(VsixExpInstallerExe)&quot; $(VsixExpInstallerArgs) $(OutputDirectory)\Vsix\VisualStudioDiagnosticsWindow\Roslyn.VisualStudio.DiagnosticsWindow.vsix" />
-    <Exec Condition="'$(TestVsi)' == 'true'" Command="&quot;$(VsixExpInstallerExe)&quot; $(VsixExpInstallerArgs) $(OutputDirectory)\Vsix\VisualStudioIntegrationTestSetup\Microsoft.VisualStudio.IntegrationTest.Setup.vsix" />
+    <Exec Condition="'$(TestVsi)' == 'true' and '$(SkipDesktopTests)' != 'true'"
+          Command="&quot;$(VsixExpInstallerExe)&quot; $(VsixExpInstallerArgs) $(OutputDirectory)\Vsix\CompilerExtension\Roslyn.Compilers.Extension.vsix" />
+    <Exec Condition="'$(TestVsi)' == 'true' and '$(SkipDesktopTests)' != 'true'"
+          Command="&quot;$(VsixExpInstallerExe)&quot; $(VsixExpInstallerArgs) $(OutputDirectory)\Vsix\VisualStudioSetup\Roslyn.VisualStudio.Setup.vsix" />
+    <Exec Condition="'$(TestVsi)' == 'true' and '$(SkipDesktopTests)' != 'true'"
+          Command="&quot;$(VsixExpInstallerExe)&quot; $(VsixExpInstallerArgs) $(OutputDirectory)\Vsix\VisualStudioSetup.Next\Roslyn.VisualStudio.Setup.Next.vsix" />
+    <Exec Condition="'$(TestVsi)' == 'true' and '$(SkipDesktopTests)' != 'true'"
+          Command="&quot;$(VsixExpInstallerExe)&quot; $(VsixExpInstallerArgs) $(OutputDirectory)\Vsix\VisualStudioInteractiveComponents\Roslyn.VisualStudio.InteractiveComponents.vsix" />
+    <Exec Condition="'$(TestVsi)' == 'true' and '$(SkipDesktopTests)' != 'true'"
+          Command="&quot;$(VsixExpInstallerExe)&quot; $(VsixExpInstallerArgs) $(OutputDirectory)\Vsix\ExpressionEvaluatorPackage\ExpressionEvaluatorPackage.vsix" />
+    <Exec Condition="'$(TestVsi)' == 'true' and '$(SkipDesktopTests)' != 'true'"
+          Command="&quot;$(VsixExpInstallerExe)&quot; $(VsixExpInstallerArgs) $(OutputDirectory)\Vsix\VisualStudioDiagnosticsWindow\Roslyn.VisualStudio.DiagnosticsWindow.vsix" />
+    <Exec Condition="'$(TestVsi)' == 'true' and '$(SkipDesktopTests)' != 'true'"
+          Command="&quot;$(VsixExpInstallerExe)&quot; $(VsixExpInstallerArgs) $(OutputDirectory)\Vsix\VisualStudioIntegrationTestSetup\Microsoft.VisualStudio.IntegrationTest.Setup.vsix" />
 
-    <Exec Command="&quot;$(RunTestsExe)&quot; $(RunTestsArgs)" />
+    <!-- Run Desktop tests -->
+    <Exec Condition="'$(SkipDesktopTests)' != 'true'" Command="&quot;$(RunTestsExe)&quot; $(RunTestsArgs)" />
 
   </Target>
 

@@ -140,7 +140,10 @@ namespace Roslyn.Utilities
             _source = null;
             _editDistance = null;
             _lastAreSimilarResult = default(CacheResult);
-            s_pool.Push(this);
+            lock (s_poolGate)
+            {
+                s_pool.Push(this);
+            }
         }
 
         public static bool AreSimilar(string originalText, string candidateText)
