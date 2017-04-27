@@ -1501,7 +1501,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Try
                 Debug.Assert(Not diagnostics.HasAnyErrors)
 
-                Dim asyncDebugInfo As Cci.AsyncMethodBodyDebugInfo = Nothing
+                Dim moveNextBodyDebugInfoOpt As StateMachineMoveNextBodyDebugInfo = Nothing
                 Dim codeGen = New CodeGen.CodeGenerator(method, block, builder, moduleBuilder, diagnostics, optimizations, emittingPdb)
 
                 If diagnostics.HasAnyErrors() Then
@@ -1509,35 +1509,55 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 ' We need to save additional debugging information for MoveNext of an async state machine.
-                Dim stateMachineMethod = TryCast(method, SynthesizedStateMachineMethod)
+                Dim isAsyncStateMachine As Boolean
+                Dim kickoffMethod As MethodSymbol
 
-                Dim isStateMachineMoveNextMethod As Boolean = stateMachineMethod IsNot Nothing AndAlso method.Name = WellKnownMemberNames.MoveNextMethodName
-                If isStateMachineMoveNextMethod AndAlso stateMachineMethod.StateMachineType.KickoffMethod.IsAsync Then
+                Dim stateMachineMethod = TryCast(method, SynthesizedStateMachineMethod)
+                If stateMachineMethod IsNot Nothing AndAlso method.Name = WellKnownMemberNames.MoveNextMethodName Then
+
+                    kickoffMethod = stateMachineMethod.StateMachineType.KickoffMethod
+                    Debug.Assert(kickoffMethod IsNot Nothing)
+
+                    isAsyncStateMachine = kickoffMethod.IsAsync
+
+                    ' Async Sub may be partial. Debug info needs to be associated with the emitted definition, 
+                    ' but the kickoff method is the method implementation (the part with body).
+                    kickoffMethod = If(kickoffMethod.PartialDefinitionPart, kickoffMethod)
+                Else
+                    kickoffMethod = Nothing
+                    isAsyncStateMachine = False
+                End If
+
+                If isAsyncStateMachine Then
 
                     Dim asyncCatchHandlerOffset As Integer = -1
                     Dim asyncYieldPoints As ImmutableArray(Of Integer) = Nothing
                     Dim asyncResumePoints As ImmutableArray(Of Integer) = Nothing
-
                     codeGen.Generate(asyncCatchHandlerOffset, asyncYieldPoints, asyncResumePoints)
-
-                    Dim kickoffMethod = stateMachineMethod.StateMachineType.KickoffMethod
-
-                    ' In VB async method may be partial. Debug info needs to be associated with the emitted definition, 
-                    ' but the kickoff method is the method implementation (the part with body).
 
                     ' The exception handler IL offset is used by the debugger to treat exceptions caught by the marked catch block as "user unhandled".
                     ' This is important for async void because async void exceptions generally result in the process being terminated,
                     ' but without anything useful on the call stack. Async Task methods on the other hand return exceptions as the result of the Task.
                     ' So it is undesirable to consider these exceptions "user unhandled" since there may well be user code that is awaiting the task.
                     ' This is a heuristic since it's possible that there is no user code awaiting the task.
-                    asyncDebugInfo = New Cci.AsyncMethodBodyDebugInfo(
-                        If(kickoffMethod.PartialDefinitionPart, kickoffMethod),
+                    moveNextBodyDebugInfoOpt = New AsyncMoveNextBodyDebugInfo(
+                        kickoffMethod,
                         If(kickoffMethod.IsSub, asyncCatchHandlerOffset, -1),
                         asyncYieldPoints,
                         asyncResumePoints)
                 Else
                     codeGen.Generate()
+
+                    If kickoffMethod IsNot Nothing Then
+                        moveNextBodyDebugInfoOpt = New IteratorMoveNextBodyDebugInfo(kickoffMethod)
+                    End If
                 End If
+
+                ' Compiler-generated MoveNext methods have hoisted local scopes.
+                ' These are built by call to CodeGen.Generate.
+                ' This information is not emitted to Windows PDBs.
+                Dim stateMachineHoistedLocalScopes = If(kickoffMethod Is Nothing OrElse moduleBuilder.EmitOptions.DebugInformationFormat = DebugInformationFormat.Pdb,
+                    Nothing, builder.GetHoistedLocalScopes())
 
                 ' Translate the imports even if we are not writing PDBs. The translation has an impact on generated metadata 
                 ' and we don't want to emit different metadata depending on whether or we emit with PDB stream.
@@ -1585,10 +1605,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                       lambdaDebugInfo:=lambdaDebugInfo,
                                       closureDebugInfo:=closureDebugInfo,
                                       stateMachineTypeNameOpt:=stateMachineTypeOpt?.Name, ' TODO: remove or update AddedOrChangedMethodInfo
-                                      stateMachineHoistedLocalScopes:=Nothing,
+                                      stateMachineHoistedLocalScopes:=stateMachineHoistedLocalScopes,
                                       stateMachineHoistedLocalSlots:=stateMachineHoistedLocalSlots,
                                       stateMachineAwaiterSlots:=stateMachineAwaiterSlots,
-                                      asyncMethodDebugInfo:=asyncDebugInfo,
+                                      stateMachineMoveNextDebugInfoOpt:=moveNextBodyDebugInfoOpt,
                                       dynamicAnalysisDataOpt:=dynamicAnalysisDataOpt)
             Finally
                 ' Free resources used by the basic blocks in the builder.

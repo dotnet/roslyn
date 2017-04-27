@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer
@@ -6,12 +6,12 @@ Imports Microsoft.VisualStudio.LanguageServices.SolutionExplorer
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
-    Public Class DiagnosticItemTests
+    Public Class CpsDiagnosticItemTests
         <Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Sub Name()
             Dim descriptor = CreateDescriptor()
 
-            Dim diagnostic = New DiagnosticItem(Nothing, descriptor, ReportDiagnostic.Error, Nothing)
+            Dim diagnostic = New CpsDiagnosticItem(Nothing, descriptor, ReportDiagnostic.Error)
 
             Assert.Equal(expected:="TST0001: A test diagnostic", actual:=diagnostic.Text)
         End Sub
@@ -20,8 +20,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
         Public Sub BrowseObject()
             Dim descriptor = CreateDescriptor()
 
-            Dim diagnostic = New DiagnosticItem(Nothing, descriptor, ReportDiagnostic.Info, Nothing)
-            Dim browseObject = DirectCast(diagnostic.GetBrowseObject(), DiagnosticItem.BrowseObject)
+            Dim diagnostic = New CpsDiagnosticItem(Nothing, descriptor, ReportDiagnostic.Info)
+            Dim browseObject = DirectCast(diagnostic.GetBrowseObject(), LegacyDiagnosticItem.BrowseObject)
 
             Assert.Equal(expected:=SolutionExplorerShim.Diagnostic_Properties, actual:=browseObject.GetClassName())
             Assert.Equal(expected:="TST0001", actual:=browseObject.GetComponentName())
