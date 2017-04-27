@@ -136,17 +136,9 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="xunit.console.netcore" Version="$(xunitconsolenetcoreVersion)" />
-    <PackageReference Include="Microsoft.NETCore.App" Version="2.0.0-preview2-002066-00" />
+    <PackageReference Include="Microsoft.NETCore.App" Version="$(MicrosoftNETCoreAppVersion)" />
     <PackageReference Include="Microsoft.NETCore.ILAsm" Version="$(MicrosoftNetCoreIlasmVersion)" />
     <PackageReference Include="Microsoft.NETCore.TestHost" Version="$(MicrosoftNetCoreTestHostVersion)" />
-    <PackageReference Include="System.AppContext" Version="$(SystemAppContextVersion)" />
-    <PackageReference Include="System.Console" Version="$(SystemConsoleVersion)" />
-    <PackageReference Include="System.Diagnostics.Process" Version="$(SystemDiagnosticsProcessVersion)" />
-    <PackageReference Include="System.Runtime" Version="$(SystemRuntimeVersion)" />
-    <PackageReference Include="System.Runtime.Loader" Version="$(SystemRuntimeLoaderVersion)" />
-    <PackageReference Include="System.Net.NameResolution" Version="$(SystemNetNameResolutionVersion)" />
-    <PackageReference Include="System.Net.Sockets" Version="$(SystemNetSocketsVersion)" />
-    <PackageReference Include="System.Threading.Thread" Version="$(SystemThreadingThreadVersion)" />
   </ItemGroup>
   <Import Project="..\..\..\build\Targets\Imports.targets" />
 </Project>
