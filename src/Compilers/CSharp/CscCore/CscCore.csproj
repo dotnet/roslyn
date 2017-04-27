@@ -31,8 +31,8 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup Label="Package References">
-      <PackageReference Include="System.Runtime.Loader" Version="$(SystemRuntimeLoaderVersion)" />
     <PackageReference Include="Microsoft.NETCore.App" Version="$(MicrosoftNETCoreAppVersion)" />
+    <PackageReference Include="System.Runtime.Loader" Version="$(SystemRuntimeLoaderVersion)" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\Shared\BuildClient.cs">
