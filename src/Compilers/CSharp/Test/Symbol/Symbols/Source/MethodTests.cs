@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -200,6 +201,84 @@ public partial class A {
             var m = a.GetMembers("M");
             Assert.Equal(1, m.Length);
             Assert.Equal(1, m.First().Locations.Length);
+        }
+
+        [Fact]
+        public void PartialExtractSyntaxLocation_DeclBeforeDef()
+        {
+            var text =
+@"
+public partial class A {
+  partial void M();
+}
+public partial class A {
+  partial void M() {}
+}
+";
+            var comp = CreateStandardCompilation(text);
+            var global = comp.GlobalNamespace;
+            var a = global.GetTypeMembers("A", 0).Single();
+            var m = a.GetMembers("M");
+            Assert.Equal(1, m.Length);
+            var returnSyntax = ((MethodSymbol) m.First()).ExtractReturnTypeSyntax();
+            Assert.Equal(returnSyntax.Location.SourceSpan, TextSpan.FromBounds(38, 42));
+        }
+
+        [Fact]
+        public void PartialExtractSyntaxLocation_DefBeforeDecl()
+        {
+            var text =
+@"
+public partial class A {
+  partial void M() {}
+}
+public partial class A {
+  partial void M();
+}
+";
+            var comp = CreateStandardCompilation(text);
+            var global = comp.GlobalNamespace;
+            var a = global.GetTypeMembers("A", 0).Single();
+            var m = a.GetMembers("M");
+            Assert.Equal(1, m.Length);
+            var returnSyntax = ((MethodSymbol) m.First()).ExtractReturnTypeSyntax();
+            Assert.Equal(returnSyntax.Location.SourceSpan, TextSpan.FromBounds(90, 94));
+        }
+
+        [Fact]
+        public void PartialExtractSyntaxLocation_OnlyDef()
+        {
+            var text =
+@"
+public partial class A {
+  partial void M() {}
+}
+";
+            var comp = CreateStandardCompilation(text);
+            var global = comp.GlobalNamespace;
+            var a = global.GetTypeMembers("A", 0).Single();
+            var m = a.GetMembers("M");
+            Assert.Equal(1, m.Length);
+            var returnSyntax = ((MethodSymbol) m.First()).ExtractReturnTypeSyntax();
+            Assert.Equal(returnSyntax.Location.SourceSpan, TextSpan.FromBounds(38, 42));
+        }
+
+        [Fact]
+        public void PartialExtractSyntaxLocation_OnlyDecl()
+        {
+            var text =
+@"
+public partial class A {
+  partial void M();
+}
+";
+            var comp = CreateStandardCompilation(text);
+            var global = comp.GlobalNamespace;
+            var a = global.GetTypeMembers("A", 0).Single();
+            var m = a.GetMembers("M");
+            Assert.Equal(1, m.Length);
+            var returnSyntax = ((MethodSymbol) m.First()).ExtractReturnTypeSyntax();
+            Assert.Equal(returnSyntax.Location.SourceSpan, TextSpan.FromBounds(38, 42));
         }
 
         [Fact]
