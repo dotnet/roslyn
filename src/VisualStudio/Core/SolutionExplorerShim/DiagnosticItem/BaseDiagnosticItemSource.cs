@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections;
@@ -10,47 +10,52 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Shell;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer
 {
-    internal partial class DiagnosticItemSource : IAttachedCollectionSource
+    internal abstract partial class BaseDiagnosticItemSource : IAttachedCollectionSource
     {
-        private static readonly DiagnosticDescriptorComparer s_comparer = new DiagnosticDescriptorComparer();
+        protected static readonly DiagnosticDescriptorComparer s_comparer = new DiagnosticDescriptorComparer();
 
-        private readonly AnalyzerItem _item;
-        private readonly IAnalyzersCommandHandler _commandHandler;
-        private readonly IDiagnosticAnalyzerService _diagnosticAnalyzerService;
-        private BulkObservableCollection<DiagnosticItem> _diagnosticItems;
-        private Workspace _workspace;
-        private ProjectId _projectId;
-        private ReportDiagnostic _generalDiagnosticOption;
-        private ImmutableDictionary<string, ReportDiagnostic> _specificDiagnosticOptions;
+        protected readonly Workspace _workspace;
+        protected readonly ProjectId _projectId;
+        protected readonly IAnalyzersCommandHandler _commandHandler;
+        protected readonly IDiagnosticAnalyzerService _diagnosticAnalyzerService;
 
-        public DiagnosticItemSource(AnalyzerItem item, IAnalyzersCommandHandler commandHandler, IDiagnosticAnalyzerService diagnosticAnalyzerService)
+        protected BulkObservableCollection<BaseDiagnosticItem> _diagnosticItems;
+
+        protected ReportDiagnostic _generalDiagnosticOption;
+        protected ImmutableDictionary<string, ReportDiagnostic> _specificDiagnosticOptions;
+
+        public BaseDiagnosticItemSource(Workspace workspace, ProjectId projectId, IAnalyzersCommandHandler commandHandler, IDiagnosticAnalyzerService diagnosticAnalyzerService)
         {
-            _item = item;
+            _workspace = workspace;
+            _projectId = projectId;
             _commandHandler = commandHandler;
             _diagnosticAnalyzerService = diagnosticAnalyzerService;
         }
 
-        public object SourceItem
-        {
-            get
-            {
-                return _item;
-            }
-        }
+        public abstract AnalyzerReference AnalyzerReference { get; }
+        protected abstract BaseDiagnosticItem CreateItem(DiagnosticDescriptor diagnostic, ReportDiagnostic effectiveSeverity);
+
+        public abstract object SourceItem { get; }
 
         public bool HasItems
         {
             get
             {
-                _workspace = _item.AnalyzersFolder.Workspace;
-                _projectId = _item.AnalyzersFolder.ProjectId;
+                if (_diagnosticItems != null)
+                {
+                    return _diagnosticItems.Count > 0;
+                }
+
+                if (AnalyzerReference == null)
+                {
+                    return false;
+                }
 
                 var project = _workspace.CurrentSolution.GetProject(_projectId);
-                return _item.AnalyzerReference.GetAnalyzers(project.Language).Length > 0;
+                return AnalyzerReference.GetAnalyzers(project.Language).Length > 0;
             }
         }
 
@@ -60,17 +65,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             {
                 if (_diagnosticItems == null)
                 {
-                    _workspace = _item.AnalyzersFolder.Workspace;
-                    _projectId = _item.AnalyzersFolder.ProjectId;
-
                     var project = _workspace.CurrentSolution.GetProject(_projectId);
                     _generalDiagnosticOption = project.CompilationOptions.GeneralDiagnosticOption;
                     _specificDiagnosticOptions = project.CompilationOptions.SpecificDiagnosticOptions;
 
-                    _diagnosticItems = new BulkObservableCollection<DiagnosticItem>();
+                    _diagnosticItems = new BulkObservableCollection<BaseDiagnosticItem>();
                     _diagnosticItems.AddRange(GetDiagnosticItems(project.Language, project.CompilationOptions));
 
-                    _workspace.WorkspaceChanged += Workspace_WorkspaceChanged;
+                    _workspace.WorkspaceChanged += OnWorkspaceChangedLookForOptionsChanges;
                 }
 
                 Logger.Log(
@@ -81,7 +83,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             }
         }
 
-        private IEnumerable<DiagnosticItem> GetDiagnosticItems(string language, CompilationOptions options)
+        private IEnumerable<BaseDiagnosticItem> GetDiagnosticItems(string language, CompilationOptions options)
         {
             // Within an analyzer assembly, an individual analyzer may report multiple different diagnostics
             // with the same ID. Or, multiple analyzers may report diagnostics with the same ID. Or a
@@ -92,7 +94,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             // VS to another. So we group the diagnostics by ID, sort them within a group, and take the first
             // one.
 
-            return _item.AnalyzerReference.GetAnalyzers(language)
+            return AnalyzerReference.GetAnalyzers(language)
                 .SelectMany(a => _diagnosticAnalyzerService.GetDiagnosticDescriptors(a))
                 .GroupBy(d => d.Id)
                 .OrderBy(g => g.Key, StringComparer.CurrentCulture)
@@ -100,23 +102,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                 {
                     var selectedDiagnostic = g.OrderBy(d => d, s_comparer).First();
                     var effectiveSeverity = selectedDiagnostic.GetEffectiveSeverity(options);
-                    return new DiagnosticItem(_item, selectedDiagnostic, effectiveSeverity, _commandHandler.DiagnosticContextMenuController);
+                    return CreateItem(selectedDiagnostic, effectiveSeverity);
                 });
         }
 
-        private void Workspace_WorkspaceChanged(object sender, WorkspaceChangeEventArgs e)
+        private void OnWorkspaceChangedLookForOptionsChanges(object sender, WorkspaceChangeEventArgs e)
         {
             if (e.Kind == WorkspaceChangeKind.SolutionCleared ||
                 e.Kind == WorkspaceChangeKind.SolutionReloaded ||
                 e.Kind == WorkspaceChangeKind.SolutionRemoved)
             {
-                _workspace.WorkspaceChanged -= Workspace_WorkspaceChanged;
+                _workspace.WorkspaceChanged -= OnWorkspaceChangedLookForOptionsChanges;
             }
             else if (e.ProjectId == _projectId)
             {
                 if (e.Kind == WorkspaceChangeKind.ProjectRemoved)
                 {
-                    _workspace.WorkspaceChanged -= Workspace_WorkspaceChanged;
+                    _workspace.WorkspaceChanged -= OnWorkspaceChangedLookForOptionsChanges;
                 }
                 else if (e.Kind == WorkspaceChangeKind.ProjectChanged)
                 {
@@ -139,5 +141,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                 }
             }
         }
+
     }
 }

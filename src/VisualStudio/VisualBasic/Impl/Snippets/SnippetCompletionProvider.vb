@@ -52,8 +52,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
             Dim syntaxFacts = document.GetLanguageService(Of ISyntaxFactsService)()
             Dim isPossibleTupleContext = syntaxFacts.IsPossibleTupleContext(syntaxTree, position, cancellationToken)
 
-            context.IsExclusive = True
+            context.IsExclusive = ShouldBeExclusive(context.Options)
             context.AddItems(CreateCompletionItems(snippets, isPossibleTupleContext))
+        End Function
+
+        Private Function ShouldBeExclusive(options As OptionSet) As Boolean
+            Return options.GetOption(CompletionOptions.SnippetsBehavior, LanguageNames.VisualBasic) = SnippetsRule.IncludeAfterTypingIdentifierQuestionTab
         End Function
 
         Private Shared ReadOnly s_commitChars As Char() = {" "c, ";"c, "("c, ")"c, "["c, "]"c, "{"c, "}"c, "."c, ","c, ":"c, "+"c, "-"c, "*"c, "/"c, "\"c, "^"c, "<"c, ">"c, "'"c, "="c}

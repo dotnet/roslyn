@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Shared;
@@ -10,7 +9,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.PatternMatching
 {
-    internal sealed partial class PatternMatcher : IDisposable
+    internal partial class PatternMatcher
     {
         /// <summary>
         /// Encapsulated matches responsible for matching an all lowercase pattern against
@@ -19,16 +18,16 @@ namespace Microsoft.CodeAnalysis.PatternMatching
         /// </summary>
         private struct AllLowerCamelCaseMatcher
         {
-            private readonly string _candidate;
             private readonly bool _includeMatchedSpans;
+            private readonly string _candidate;
             private readonly StringBreaks _candidateHumps;
             private readonly TextChunk _patternChunk;
             private readonly string _patternText;
 
-            public AllLowerCamelCaseMatcher(string candidate, bool includeMatchedSpans, StringBreaks candidateHumps, TextChunk patternChunk)
+            public AllLowerCamelCaseMatcher(bool includeMatchedSpans, string candidate, StringBreaks candidateHumps, TextChunk patternChunk)
             {
-                _candidate = candidate;
                 _includeMatchedSpans = includeMatchedSpans;
+                _candidate = candidate;
                 _candidateHumps = candidateHumps;
                 _patternChunk = patternChunk;
                 _patternText = _patternChunk.Text;
@@ -39,7 +38,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
             /// match as found that starts at the beginning of the candidate, and 3 if a contiguous
             /// match was found that starts at the beginning of the candidate.
             /// </summary>
-            public int? TryMatch(out ImmutableArray<TextSpan> matchedSpans)
+            public PatternMatchKind? TryMatch(out ImmutableArray<TextSpan> matchedSpans)
             {
                 // We have something like cofipro and we want to match CodeFixProvider.  
                 //
@@ -49,34 +48,42 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                 // basically have to branch out and try all options at every character
                 // in the pattern chunk.
 
-                var patternIndex = 0;
-                var candidateHumpIndex = 0;
+                var result = TryMatch(
+                   patternIndex: 0, candidateHumpIndex: 0, contiguous: null);
 
-                var (bestWeight, localMatchedSpansInReverse) = TryMatch(
-                   patternIndex, candidateHumpIndex, contiguous: null);
+                if (result == null)
+                {
+                    matchedSpans = ImmutableArray<TextSpan>.Empty;
+                    return null;
+                }
 
-                matchedSpans = _includeMatchedSpans && localMatchedSpansInReverse != null
-                    ? new NormalizedTextSpanCollection(localMatchedSpansInReverse).ToImmutableArray()
+                matchedSpans = _includeMatchedSpans && result.Value.MatchedSpansInReverse != null
+                    ? new NormalizedTextSpanCollection(result.Value.MatchedSpansInReverse).ToImmutableArray()
                     : ImmutableArray<TextSpan>.Empty;
 
-                localMatchedSpansInReverse?.Free();
-                return bestWeight;
+                result?.Free();
+                return GetKind(result.Value);
             }
 
-            private (int? bestWeight, ArrayBuilder<TextSpan> matchedSpansInReverse) TryMatch(
+            private PatternMatchKind GetKind(CamelCaseResult result)
+                => PatternMatcher.GetCamelCaseKind(result, _candidateHumps);
+
+            private CamelCaseResult? TryMatch(
                 int patternIndex, int candidateHumpIndex, bool? contiguous)
             {
                 if (patternIndex == _patternText.Length)
                 {
                     // We hit the end.  So we were able to match against this candidate.
-                    var weight = contiguous == false ? 0 : CamelCaseContiguousBonus;
+                    // We are contiguous if our contiguous tracker was not set to false.
                     var matchedSpansInReverse = _includeMatchedSpans ? ArrayBuilder<TextSpan>.GetInstance() : null;
-
-                    return (weight, matchedSpansInReverse);
+                    return new CamelCaseResult(
+                        fromStart: false, 
+                        contiguous: contiguous != false,
+                        matchCount: 0,
+                        matchedSpansInReverse: matchedSpansInReverse);
                 }
 
-                var bestWeight = default(int?);
-                var bestMatchedSpansInReverse = default(ArrayBuilder<TextSpan>);
+                var bestResult = default(CamelCaseResult?);
 
                 // Look for a hump in the candidate that matches the current letter we're on.
                 var patternCharacter = _patternText[patternIndex];
@@ -105,18 +112,17 @@ namespace Microsoft.CodeAnalysis.PatternMatching
 
                         // We matched something.  If this was our first match, consider ourselves
                         // contiguous.
-                        if (contiguous == null)
+                        var localContiguous = contiguous == null ? true : contiguous.Value;
+
+                        var result = TryConsumePatternOrMatchNextHump(
+                            patternIndex, humpIndex, localContiguous);
+
+                        if (result == null)
                         {
-                            contiguous = true;
+                            continue;
                         }
 
-                        var (weight, matchedSpansInReverse) = TryConsumePatternOrMatchNextHump(
-                            patternIndex, humpIndex, contiguous.Value);
-
-                        if (UpdateBestResultIfBetter(
-                                weight, matchedSpansInReverse,
-                                ref bestWeight, ref bestMatchedSpansInReverse,
-                                matchSpanToAdd: null))
+                        if (UpdateBestResultIfBetter(result.Value, ref bestResult, matchSpanToAdd: null))
                         {
                             // We found the best result so far.  We can stop immediately.
                             break;
@@ -124,19 +130,19 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                     }
                 }
 
-                return (bestWeight, bestMatchedSpansInReverse);
+                return bestResult;
             }
 
-            private (int? bestWeight, ArrayBuilder<TextSpan> matchedSpans) TryConsumePatternOrMatchNextHump(
+            private CamelCaseResult? TryConsumePatternOrMatchNextHump(
                 int patternIndex, int humpIndex, bool contiguous)
             {
-                var bestWeight = default(int?);
-                var bestMatchedSpansInReverse = default(ArrayBuilder<TextSpan>);
+                var bestResult = default(CamelCaseResult?);
 
                 var candidateHump = _candidateHumps[humpIndex];
 
                 var maxPatternHumpLength = _patternText.Length - patternIndex;
                 var maxCandidateHumpLength = candidateHump.Length;
+
                 var maxHumpMatchLength = Math.Min(maxPatternHumpLength, maxCandidateHumpLength);
                 for (var possibleHumpMatchLength = 1; possibleHumpMatchLength <= maxHumpMatchLength; possibleHumpMatchLength++)
                 {
@@ -153,29 +159,32 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                     // against 'Fi'.  recurse and let the rest of the pattern match the remainder
                     // of the candidate.
 
-                    var (weight, matchedSpansInReverse) = TryMatch(
+                    var resultOpt = TryMatch(
                         patternIndex + possibleHumpMatchLength, humpIndex + 1, contiguous);
 
-                    // If this is our first hump add a 'from start' bonus.  Note, if we didn't
-                    // match anything than 'weight' will remain null.
+                    if (resultOpt == null)
+                    {
+                        // Didn't match.  Try the next longer pattern chunk.
+                        continue;
+                    }
+
+                    var result = resultOpt.Value;
+                    // If this is our first hump add a 'from start' bonus.
                     if (humpIndex == 0)
                     {
-                        weight += CamelCaseMatchesFromStartBonus;
+                        result = result.WithFromStart(true);
                     }
 
                     // This is the span of the hump of the candidate we matched.
                     var matchSpanToAdd = new TextSpan(candidateHump.Start, possibleHumpMatchLength);
-                    if (UpdateBestResultIfBetter(
-                            weight, matchedSpansInReverse,
-                            ref bestWeight, ref bestMatchedSpansInReverse,
-                            matchSpanToAdd))
+                    if (UpdateBestResultIfBetter(result, ref bestResult, matchSpanToAdd))
                     {
                         // We found the best result so far.  We can stop immediately.
                         break;
                     }
                 }
 
-                return (bestWeight, bestMatchedSpansInReverse);
+                return bestResult;
             }
 
             /// <summary>
@@ -187,54 +196,44 @@ namespace Microsoft.CodeAnalysis.PatternMatching
             /// matchSpanToAdd will be added to matchedSpansInReverse.
             /// </summary>
             private bool UpdateBestResultIfBetter(
-                int? weight, ArrayBuilder<TextSpan> matchedSpansInReverse,
-                ref int? bestWeight, ref ArrayBuilder<TextSpan> bestMatchedSpansInReverse,
-                TextSpan? matchSpanToAdd)
+                CamelCaseResult result, ref CamelCaseResult? bestResult, TextSpan? matchSpanToAdd)
             {
-                if (!IsBetter(weight, bestWeight))
+                if (matchSpanToAdd != null)
+                {
+                    result = result.WithAddedMatchedSpan(matchSpanToAdd.Value);
+                }
+
+                if (!IsBetter(result, bestResult))
                 {
                     // Even though we matched this current candidate hump we failed to match
                     // the remainder of the pattern.  Continue to the next candidate hump
                     // to see if our pattern character will match it and potentially succeed.
-                    matchedSpansInReverse?.Free();
+                    result.Free();
 
                     // We need to keep going.
                     return false;
                 }
 
-                if (matchSpanToAdd != null)
-                {
-                    matchedSpansInReverse?.Add(matchSpanToAdd.Value);
-                }
-
                 // This was result was better than whatever previous best result we had was.
                 // Free and overwrite the existing best results, and keep going.
-                bestWeight = weight;
-                bestMatchedSpansInReverse?.Free();
-                bestMatchedSpansInReverse = matchedSpansInReverse;
+                bestResult?.Free();
+                bestResult = result;
 
                 // We found a path that allowed us to match everything contiguously
                 // from the beginning.  This is the best match possible.  So we can
                 // just break out now and return this result.
-                return weight == CamelCaseMaxWeight;
+                return GetKind(result) == PatternMatchKind.CamelCaseExact;
             }
 
-            private static bool IsBetter(int? weight, int? currentBestWeight)
+            private bool IsBetter(CamelCaseResult result, CamelCaseResult? currentBestResult)
             {
-                // If we got no weight, this results is definitely not better.
-                if (weight == null)
+                if (currentBestResult == null)
                 {
-                    return false;
+                    // We have no current best.  So this result is the best.
+                    return true;
                 }
 
-                // If the current best weight is greater than the weight we just got, then this
-                // result is definitely not better.
-                if (currentBestWeight > weight)
-                {
-                    return false;
-                }
-
-                return true;
+                return GetKind(result) < GetKind(currentBestResult.Value);
             }
 
             private bool LowercaseSubstringsMatch(

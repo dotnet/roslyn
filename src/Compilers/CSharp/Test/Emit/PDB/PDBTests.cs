@@ -273,7 +273,7 @@ public class C
       </scope>
     </method>
   </methods>
-</symbols>");
+</symbols>", format: DebugInformationFormat.Pdb);
 
             var release = CreateStandardCompilation(source, new[] { CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseWinMD);
             release.VerifyPdb(@"
@@ -302,7 +302,7 @@ public class C
       </scope>
     </method>
   </methods>
-</symbols>");
+</symbols>", format: DebugInformationFormat.Pdb);
         }
 
         [Fact, WorkItem(1067635, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1067635")]
@@ -337,7 +337,7 @@ public class C
       </scope>
     </method>
   </methods>
-</symbols>");
+</symbols>", format: DebugInformationFormat.Pdb);
 
             var release = CreateStandardCompilation(source, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.ReleaseWinMD);
             release.VerifyPdb(
@@ -354,7 +354,7 @@ public class C
       </sequencePoints>
     </method>
   </methods>
-</symbols>");
+</symbols>", format: DebugInformationFormat.Pdb);
         }
 
         [Fact]
@@ -5195,6 +5195,164 @@ public class C
           <local name=""x"" il_index=""8"" il_start=""0x7d"" il_end=""0x8e"" attributes=""0"" />
         </scope>
       </scope>
+    </method>
+  </methods>
+</symbols>");
+        }
+
+        [Fact]
+        public void HiddenMethods()
+        {
+            var src = @"
+using System;
+
+class C
+{
+#line hidden
+    public static void H()
+    {
+        F();
+    }
+
+#line default
+    public static void G()
+    {
+        F();
+    }
+
+#line hidden
+    public static void F()
+    {
+        {
+            const int z = 1;
+            var (x, y) = (1,2);
+            Console.WriteLine(x + z);
+        }
+        {
+            dynamic x = 1;
+            Console.WriteLine(x);
+        }
+    }
+}";
+            var c = CreateCompilationWithMscorlibAndSystemCore(src, references: new[] { CSharpRef, ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.DebugDll);
+
+            c.VerifyPdb(@"
+<symbols>
+  <methods>
+    <method containingType=""C"" name=""G"">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount=""1"" />
+        </using>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""14"" startColumn=""5"" endLine=""14"" endColumn=""6"" />
+        <entry offset=""0x1"" startLine=""15"" startColumn=""9"" endLine=""15"" endColumn=""13"" />
+        <entry offset=""0x7"" startLine=""16"" startColumn=""5"" endLine=""16"" endColumn=""6"" />
+      </sequencePoints>
+      <scope startOffset=""0x0"" endOffset=""0x8"">
+        <namespace name=""System"" />
+      </scope>
+    </method>
+  </methods>
+</symbols>");
+        }
+
+        [Fact]
+        public void HiddenEntryPoint()
+        {
+            var src = @"
+class C
+{
+#line hidden
+    public static void Main()
+    {
+    }
+}";
+            var c = CreateCompilationWithMscorlibAndSystemCore(src, references: new[] { CSharpRef, ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.DebugExe);
+
+            // Note: Dev10 emitted a hidden sequence point to #line hidden method, 
+            // which enabled the debugger to locate the first user visible sequence point starting from the entry point.
+            // Roslyn does not emit such sequence point. We could potentially synthesize one but that would defeat the purpose of 
+            // #line hidden directive. 
+            c.VerifyPdb(@"
+<symbols>
+  <entryPoint declaringType=""C"" methodName=""Main"" />
+  <methods>
+    <method containingType=""C"" name=""Main"" format=""windows"">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount=""0"" />
+        </using>
+      </customDebugInfo>
+    </method>
+  </methods>
+</symbols>");
+
+        }
+
+        [Fact]
+        public void HiddenIterator()
+        {
+            var src = @"
+using System;
+using System.Collections.Generic;
+
+class C
+{
+    public static void Main()
+    {
+        F();
+    }
+
+#line hidden
+    public static IEnumerable<int> F()
+    {
+        {
+            const int z = 1;
+            var (x, y) = (1,2);
+            Console.WriteLine(x + z);
+        }
+        {
+            dynamic x = 1;
+            Console.WriteLine(x);
+        }
+
+        yield return 1;
+    }
+}";
+            var c = CreateCompilationWithMscorlibAndSystemCore(src, references: new[] { CSharpRef, ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.DebugDll);
+            
+            // We don't really need the debug info for kickoff method when the entire iterator method is hidden, 
+            // but it doesn't hurt and removing it would need extra effort that's unnecessary.
+            c.VerifyPdb(@"
+<symbols>
+  <methods>
+    <method containingType=""C"" name=""Main"">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount=""2"" />
+        </using>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""8"" startColumn=""5"" endLine=""8"" endColumn=""6"" />
+        <entry offset=""0x1"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""13"" />
+        <entry offset=""0x7"" startLine=""10"" startColumn=""5"" endLine=""10"" endColumn=""6"" />
+      </sequencePoints>
+      <scope startOffset=""0x0"" endOffset=""0x8"">
+        <namespace name=""System"" />
+        <namespace name=""System.Collections.Generic"" />
+      </scope>
+    </method>
+    <method containingType=""C"" name=""F"">
+      <customDebugInfo>
+        <forwardIterator name=""&lt;F&gt;d__1"" />
+        <encLocalSlotMap>
+          <slot kind=""0"" offset=""61"" />
+          <slot kind=""0"" offset=""64"" />
+          <slot kind=""0"" offset=""158"" />
+        </encLocalSlotMap>
+      </customDebugInfo>
     </method>
   </methods>
 </symbols>");
