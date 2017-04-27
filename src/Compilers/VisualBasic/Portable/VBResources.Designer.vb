@@ -13387,6 +13387,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to &apos;{0}&apos; is for evaluation purposes only and is subject to change or removal in future updates..
+        '''</summary>
+        Friend ReadOnly Property WRN_Experimental() As String
+            Get
+                Return ResourceManager.GetString("WRN_Experimental", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Type is for evaluation purposes only and is subject to change or removal in future updates..
+        '''</summary>
+        Friend ReadOnly Property WRN_Experimental_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_Experimental_Title", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Type of member &apos;{0}&apos; is not CLS-compliant..
         '''</summary>
         Friend ReadOnly Property WRN_FieldNotCLSCompliant1() As String

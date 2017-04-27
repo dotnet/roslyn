@@ -163,7 +163,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             ForStatement,
             ForStatementPart,                 // tied to parent
             ForEachStatement,
-            ForEachComponentStatement,
             UsingStatement,
             FixedStatement,
             LockStatement,
@@ -174,6 +173,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
             SwitchStatement,
             SwitchSection,
+            CasePatternSwitchLabel,            // tied to parent
+            WhenClause,                  
 
             YieldStatement,                    // tied to parent
             GotoStatement,
@@ -184,6 +185,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
             LabeledStatement,
 
+            LocalFunction,
+
             // TODO: 
             // Ideally we could declare LocalVariableDeclarator tied to the first enclosing node that defines local scope (block, foreach, etc.)
             // Also consider handling LocalDeclarationStatement as just a bag of variable declarators,
@@ -192,10 +195,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             LocalVariableDeclaration,          // tied to parent
             LocalVariableDeclarator,           // tied to parent
 
+            SingleVariableDesignation,
             AwaitExpression,
-
-            LocalFunction,
-
             Lambda,
 
             FromClause,
@@ -243,6 +244,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 case Label.JoinIntoClause:
                 case Label.GroupClauseLambda:
                 case Label.QueryContinuation:
+                case Label.CasePatternSwitchLabel:
                     return 1;
 
                 default:
@@ -291,6 +293,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 case SyntaxKind.VariableDeclarator:
                     return Label.LocalVariableDeclarator;
 
+                case SyntaxKind.SingleVariableDesignation:
+                    return Label.SingleVariableDesignation;
+
                 case SyntaxKind.LabeledStatement:
                     return Label.LabeledStatement;
 
@@ -332,11 +337,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 case SyntaxKind.ForStatement:
                     return Label.ForStatement;
 
+                case SyntaxKind.ForEachVariableStatement:
                 case SyntaxKind.ForEachStatement:
                     return Label.ForEachStatement;
-
-                case SyntaxKind.ForEachVariableStatement:
-                    return Label.ForEachComponentStatement;
 
                 case SyntaxKind.UsingStatement:
                     return Label.UsingStatement;
@@ -372,6 +375,12 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     // We don't need to analyze case expressions.
                     isLeaf = true;
                     return Label.Ignored;
+
+                case SyntaxKind.WhenClause:
+                    return Label.WhenClause;
+
+                case SyntaxKind.CasePatternSwitchLabel:
+                    return Label.CasePatternSwitchLabel;
 
                 case SyntaxKind.TryStatement:
                     return Label.TryStatement;
@@ -456,6 +465,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 case SyntaxKind.ArrayRankSpecifier:
                 case SyntaxKind.PointerType:
                 case SyntaxKind.NullableType:
+                case SyntaxKind.TupleType:
+                case SyntaxKind.RefType:
                 case SyntaxKind.OmittedTypeArgument:
                 case SyntaxKind.NameColon:
                 case SyntaxKind.StackAllocArrayCreationExpression:
@@ -472,6 +483,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 case SyntaxKind.TypeOfExpression:
                 case SyntaxKind.SizeOfExpression:
                 case SyntaxKind.DefaultExpression:
+                case SyntaxKind.ConstantPattern:
+                case SyntaxKind.DiscardDesignation:
                     // can't contain a lambda/await/anonymous type:
                     isLeaf = true;
                     return Label.Ignored;
@@ -581,9 +594,11 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     return true;
 
                 case SyntaxKind.ForEachStatement:
+                case SyntaxKind.ForEachVariableStatement:
                     {
-                        var leftForEach = (ForEachStatementSyntax)leftNode;
-                        var rightForEach = (ForEachStatementSyntax)rightNode;
+
+                        var leftForEach = (CommonForEachStatementSyntax)leftNode;
+                        var rightForEach = (CommonForEachStatementSyntax)rightNode;
                         distance = ComputeWeightedDistance(leftForEach, rightForEach);
                         return true;
                     }
@@ -758,7 +773,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 return true;
             }
 
-            if (leftBlock.Parent.Kind() != rightBlock.Parent.Kind())
+            if (GetLabel(leftBlock.Parent) != GetLabel(rightBlock.Parent))
             {
                 distance = 0.2 + 0.8 * ComputeWeightedBlockDistance(leftBlock, rightBlock);
                 return true;
@@ -839,14 +854,22 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             return AdjustForLocalsInBlock(distance, left.Block, right.Block, localsWeight: 0.3);
         }
 
-        private static double ComputeWeightedDistance(ForEachStatementSyntax left, ForEachStatementSyntax right)
+        private static double ComputeWeightedDistance(
+            CommonForEachStatementSyntax leftCommonForEach,
+            CommonForEachStatementSyntax rightCommonForEach)
         {
-            double statementDistance = ComputeDistance(left.Statement, right.Statement);
-            double expressionDistance = ComputeDistance(left.Expression, right.Expression);
-            double identifierDistance = ComputeDistance(left.Identifier, right.Identifier);
+            double statementDistance = ComputeDistance(leftCommonForEach.Statement, rightCommonForEach.Statement);
+            double expressionDistance = ComputeDistance(leftCommonForEach.Expression, rightCommonForEach.Expression);
 
-            double distance = identifierDistance * 0.7 + expressionDistance * 0.2 + statementDistance * 0.1;
-            return AdjustForLocalsInBlock(distance, left.Statement, right.Statement, localsWeight: 0.6);
+            List<SyntaxToken> leftLocals = null; 
+            List<SyntaxToken> rightLocals = null;
+            GetLocalNames(leftCommonForEach, ref leftLocals);
+            GetLocalNames(rightCommonForEach, ref rightLocals);
+
+            double localNamesDistance = ComputeDistance(leftLocals, rightLocals);
+
+            double distance = localNamesDistance * 0.6 + expressionDistance * 0.2 + statementDistance * 0.2;
+            return AdjustForLocalsInBlock(distance, leftCommonForEach.Statement, rightCommonForEach.Statement, localsWeight: 0.6);
         }
 
         private static double ComputeWeightedDistance(ForStatementSyntax left, ForStatementSyntax right)
@@ -979,13 +1002,79 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         {
             foreach (var local in localDeclaration.Variables)
             {
-                if (result == null)
-                {
-                    result = new List<SyntaxToken>();
-                }
-
-                result.Add(local.Identifier);
+                GetLocalNames(local.Identifier, ref result);
             }
+        }
+
+        private static void GetLocalNames(CommonForEachStatementSyntax commonForEach, ref List<SyntaxToken> result)
+        {
+            switch (commonForEach.Kind())
+            {
+                case SyntaxKind.ForEachStatement:
+                    GetLocalNames(((ForEachStatementSyntax)commonForEach).Identifier, ref result);
+                    return;
+
+                case SyntaxKind.ForEachVariableStatement:
+                    var forEachVariable = (ForEachVariableStatementSyntax)commonForEach;
+                    GetLocalNames(forEachVariable.Variable, ref result);
+                    return;
+
+                default: throw ExceptionUtilities.UnexpectedValue(commonForEach.Kind());
+            }
+        }
+
+        private static void GetLocalNames(ExpressionSyntax expression, ref List<SyntaxToken> result)
+        {
+            switch (expression.Kind())
+            {
+                case SyntaxKind.DeclarationExpression:
+                    var declarationExpression = (DeclarationExpressionSyntax)expression;
+                    var localDeclaration = declarationExpression.Designation;
+                    GetLocalNames(localDeclaration, ref result);
+                    return;
+
+                case SyntaxKind.TupleExpression:
+                    var tupleExpression = (TupleExpressionSyntax)expression;
+                    foreach(var argument in tupleExpression.Arguments)
+                    {
+                        GetLocalNames(argument.Expression, ref result);
+                    }
+                    return;
+
+                default: 
+                    // Do nothing for node that cannot have variable declarations inside.
+                    return;
+            }
+        }
+
+        private static void GetLocalNames(VariableDesignationSyntax designation, ref List<SyntaxToken> result)
+        {
+            switch (designation.Kind())
+            {
+                case SyntaxKind.SingleVariableDesignation:
+                    GetLocalNames(((SingleVariableDesignationSyntax)designation).Identifier, ref result);
+                    return;
+
+                case SyntaxKind.ParenthesizedVariableDesignation:
+                    var parenthesizedVariableDesignation = (ParenthesizedVariableDesignationSyntax)designation;
+                    foreach(var variableDesignation in parenthesizedVariableDesignation.Variables)
+                    {
+                        GetLocalNames(variableDesignation, ref result);
+                    }
+                    return;
+
+                default: throw ExceptionUtilities.UnexpectedValue(designation.Kind());
+            }
+        }
+
+        private static void GetLocalNames(SyntaxToken syntaxToken, ref List<SyntaxToken> result)
+        {
+            if (result == null)
+            {
+                result = new List<SyntaxToken>();
+            }
+
+            result.Add(syntaxToken);
         }
 
         private static double CombineOptional(
