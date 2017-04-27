@@ -364,16 +364,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim inferredType As TupleTypeSymbol = Nothing
             If hasInferredType Then
-                Dim trackInferredNames = Me.Compilation.LanguageVersion.DisallowInferredTupleElementNames()
+                Dim disallowInferredNames = Me.Compilation.LanguageVersion.DisallowInferredTupleElementNames()
 
                 inferredType = TupleTypeSymbol.Create(node.GetLocation, elements, locations, elementNames, Me.Compilation,
                                                       shouldCheckConstraints:=True,
-                                                      inferredPositions:=If(trackInferredNames, inferredPositions, Nothing),
+                                                      errorPositions:=If(disallowInferredNames, inferredPositions, Nothing),
                                                       syntax:=node, diagnostics:=diagnostics)
             End If
 
             Dim tupleTypeOpt As NamedTypeSymbol = If(hasNaturalType, inferredType, Nothing)
 
+            '' Always track the inferred positions in the bound node, so that conversions don't produce a warning
+            '' for "dropped names" when the name was inferred.
             Return New BoundTupleLiteral(node, inferredType, elementNames, inferredPositions, boundArguments.ToImmutableAndFree(), tupleTypeOpt, hasErrors)
         End Function
 

@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var tupleType = TupleTypeSymbol.Create(locationOpt: null, elementTypes: builder.SelectAsArray(e => e.Type),
                 elementLocations: default(ImmutableArray<Location>), elementNames: default(ImmutableArray<string>),
-                compilation: _compilation, shouldCheckConstraints: false, inferredPositions: default(ImmutableArray<bool>));
+                compilation: _compilation, shouldCheckConstraints: false, errorPositions: default(ImmutableArray<bool>));
 
             return new BoundTupleLiteral(right.Syntax, default(ImmutableArray<string>), default(ImmutableArray<bool>), builder.ToImmutableAndFree(), tupleType);
         }

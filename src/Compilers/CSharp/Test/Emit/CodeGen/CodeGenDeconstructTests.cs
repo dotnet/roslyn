@@ -1112,9 +1112,9 @@ class C
             var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
             comp.VerifyDiagnostics(
-                // (8,37): error CS8305: Tuple type '(int x, int y)' does not have an explicitly named element 'x'. Please use language version 7.1 or greater to access an element by its inferred name.
+                // (8,37): error CS8305: Tuple element name 'x' is inferred. Please use language version 7.1 or greater to access an element by its inferred name.
                 //         System.Console.Write(nested.x);
-                Diagnostic(ErrorCode.ERR_TupleInferredNamesNotAvailable, "x").WithArguments("(int x, int y)", "x", "7.1")
+                Diagnostic(ErrorCode.ERR_TupleInferredNamesNotAvailable, "x").WithArguments("x", "7.1").WithLocation(8, 37)
                 );
         }
 

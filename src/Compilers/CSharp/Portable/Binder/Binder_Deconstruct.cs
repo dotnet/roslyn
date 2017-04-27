@@ -463,7 +463,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 compilation: compilation,
                 diagnostics: diagnostics,
                 shouldCheckConstraints: false,
-                inferredPositions: default(ImmutableArray<bool>));
+                errorPositions: default(ImmutableArray<bool>));
         }
 
         private BoundTupleLiteral DeconstructionVariablesAsTuple(CSharpSyntaxNode syntax, ArrayBuilder<DeconstructionVariable> variables, DiagnosticBag diagnostics, bool hasErrors)
@@ -497,17 +497,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             uniqueFieldNames.Free();
             ImmutableArray<string> tupleNames = namesBuilder.ToImmutableAndFree();
 
-            // only track the inferred positions in C# 7
-            var inferredPositions = this.Compilation.LanguageVersion.DisallowInferredTupleElementNames()
-                ? tupleNames.SelectAsArray(n => n != null)
-                : default(ImmutableArray<bool>);
+            bool disallowInferredNames = this.Compilation.LanguageVersion.DisallowInferredTupleElementNames();
+            var inferredPositions = tupleNames.SelectAsArray(n => n != null);
 
             var type = TupleTypeSymbol.Create(syntax.Location,
                 typesBuilder.ToImmutableAndFree(), locationsBuilder.ToImmutableAndFree(),
                 tupleNames, this.Compilation,
-                shouldCheckConstraints: !hasErrors, inferredPositions: inferredPositions,
+                shouldCheckConstraints: !hasErrors,
+                errorPositions: disallowInferredNames ? inferredPositions : default(ImmutableArray<bool>),
                 syntax: syntax, diagnostics: hasErrors ? null : diagnostics);
 
+            // Always track the inferred positions in the bound node, so that conversions don't produce a warning
+            // for "dropped names" on tuple literal when the name was inferred.
             return new BoundTupleLiteral(syntax, tupleNames, inferredPositions, arguments: valuesBuilder.ToImmutableAndFree(), type: type);
         }
 

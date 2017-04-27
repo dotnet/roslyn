@@ -759,6 +759,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         var tupleNames = namesBuilder.ToImmutableAndFree();
                         var inferredPositions = tupleNames.SelectAsArray(n => n != null);
+                        bool disallowInferredNames = this.Compilation.LanguageVersion.DisallowInferredTupleElementNames();
 
                         // We will not check constraints at this point as this code path
                         // is failure-only and the caller is expected to produce a diagnostic.
@@ -769,8 +770,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                             tupleNames,
                             Compilation,
                             shouldCheckConstraints: false,
-                            inferredPositions: inferredPositions);
-                        return new BoundTupleLiteral(syntax, default(ImmutableArray<string>), default(ImmutableArray<bool>), subExpressions, tupleType);
+                            errorPositions: disallowInferredNames ? inferredPositions : default(ImmutableArray<bool>));
+
+                        return new BoundTupleLiteral(syntax, default(ImmutableArray<string>), inferredPositions, subExpressions, tupleType);
                     }
                 default:
                     throw ExceptionUtilities.UnexpectedValue(node.Kind());
@@ -842,17 +844,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (hasNaturalType)
             {
-                bool trackInferredNames = this.Compilation.LanguageVersion.DisallowInferredTupleElementNames();
+                bool disallowInferredNames = this.Compilation.LanguageVersion.DisallowInferredTupleElementNames();
 
                 tupleTypeOpt = TupleTypeSymbol.Create(node.Location, elements, locations, elementNames,
                     this.Compilation, syntax: node, diagnostics: diagnostics, shouldCheckConstraints: true,
-                    inferredPositions: trackInferredNames ? inferredPositions : default(ImmutableArray<bool>));
+                    errorPositions: disallowInferredNames ? inferredPositions : default(ImmutableArray<bool>));
             }
             else
             {
                 TupleTypeSymbol.VerifyTupleTypePresent(elements.Length, node, this.Compilation, diagnostics);
             }
 
+            // Always track the inferred positions in the bound node, so that conversions don't produce a warning
+            // for "dropped names" on tuple literal when the name was inferred.
             return new BoundTupleLiteral(node, elementNames, inferredPositions, boundArguments.ToImmutableAndFree(), tupleTypeOpt, hasErrors);
         }
 

@@ -480,7 +480,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                 elementNames.ToImmutableAndFree(),
                                             this.Compilation,
                                             this.ShouldCheckConstraints,
-                                            inferredPositions: default(ImmutableArray<bool>),
+                                            errorPositions: default(ImmutableArray<bool>),
                                             syntax: syntax,
                                             diagnostics: diagnostics);
         }

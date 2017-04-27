@@ -5994,7 +5994,7 @@ End Class
                 parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15))
 
             comp.AssertTheseDiagnostics(<errors>
-BC37289: Tuple type '(a As Integer, Integer)' does not have an explicitly named element 'a'. Please use language version 15.3 or greater to access an element by its inferred name.
+BC37289: Tuple element name 'a' is inferred. Please use language version 15.3 or greater to access an element by its inferred name.
         System.Console.Write(t.A)
                              ~~~
 BC30456: 'a' is not a member of '(Integer, Integer)'.
@@ -6127,7 +6127,7 @@ End Module
                 parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15))
 
             comp.AssertTheseDiagnostics(<errors>
-BC37289: Tuple type '(a As Integer, Integer)' does not have an explicitly named element 'a'. Please use language version 15.3 or greater to access an element by its inferred name.
+BC37289: Tuple element name 'a' is inferred. Please use language version 15.3 or greater to access an element by its inferred name.
         System.Console.Write(t.A)
                              ~~~
 BC30456: 'a' is not a member of '(Integer, Integer)'.
@@ -6244,7 +6244,7 @@ End Module
                 additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef},
                 parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15))
             comp15.AssertTheseDiagnostics(<errors>
-BC37289: Tuple type '(Integer, M As Action)' does not have an explicitly named element 'M'. Please use language version 15.3 or greater to access an element by its inferred name.
+BC37289: Tuple element name 'M' is inferred. Please use language version 15.3 or greater to access an element by its inferred name.
         t.M()
         ~~~
                                           </errors>)

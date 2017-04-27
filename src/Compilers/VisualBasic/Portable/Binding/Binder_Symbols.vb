@@ -677,7 +677,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                 If(elementNames Is Nothing, Nothing, elementNames.ToImmutableAndFree()),
                                                 binder.Compilation,
                                                 binder.ShouldCheckConstraints,
-                                                inferredPositions:=Nothing,
+                                                errorPositions:=Nothing,
                                                 syntax:=syntax,
                                                 diagnostics:=diagnostics)
             End Function

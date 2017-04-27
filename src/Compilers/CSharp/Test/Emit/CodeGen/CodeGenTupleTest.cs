@@ -3580,12 +3580,12 @@ class C
 ";
             var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
-                // (8,32): error CS8305: Tuple type '(int a, int)' does not have an explicitly named element 'a'. Please use language version 7.1 or greater to access an element by its inferred name.
+                // (8,32): error CS8305: Tuple element name 'a' is inferred. Please use language version 7.1 or greater to access an element by its inferred name.
                 //         System.Console.Write(t.a);
-                Diagnostic(ErrorCode.ERR_TupleInferredNamesNotAvailable, "a").WithArguments("(int a, int)", "a", "7.1"),
+                Diagnostic(ErrorCode.ERR_TupleInferredNamesNotAvailable, "a").WithArguments("a", "7.1").WithLocation(8, 32),
                 // (9,41): error CS1061: '(int, int)' does not contain a definition for 'a' and no extension method 'a' accepting a first argument of type '(int, int)' could be found (are you missing a using directive or an assembly reference?)
                 //         System.Console.Write(GetTuple().a);
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "a").WithArguments("(int, int)", "a")
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "a").WithArguments("(int, int)", "a").WithLocation(9, 41)
                 );
         }
 
@@ -3706,12 +3706,12 @@ public static class Extensions
 ";
             var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef });
             comp.VerifyDiagnostics(
-                // (8,32): error CS8305: Tuple type '(int a, int)' does not have an explicitly named element 'a'. Please use language version 7.1 or greater to access an element by its inferred name.
+                // (8,32): error CS8305: Tuple element name 'a' is inferred. Please use language version 7.1 or greater to access an element by its inferred name.
                 //         System.Console.Write(t.a);
-                Diagnostic(ErrorCode.ERR_TupleInferredNamesNotAvailable, "a").WithArguments("(int a, int)", "a", "7.1"),
+                Diagnostic(ErrorCode.ERR_TupleInferredNamesNotAvailable, "a").WithArguments("a", "7.1").WithLocation(8, 32),
                 // (10,30): error CS1503: Argument 1: cannot convert from 'method group' to 'string'
                 //         System.Console.Write(GetTuple().a);
-                Diagnostic(ErrorCode.ERR_BadArgType, "GetTuple().a").WithArguments("1", "method group", "string").WithLocation(10, 30)
+                Diagnostic(ErrorCode.ERR_BadArgType, "GetTuple().a").WithArguments("1", "method group", "string")
                 );
         }
 
@@ -3926,9 +3926,9 @@ static class Extension
             var comp7 = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7),
                 references: new[] { MscorlibRef, ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef });
             comp7.VerifyDiagnostics(
-                // (8,16): error CS8305: Tuple type '(int, Action M)' does not have an explicitly named element 'M'. Please use language version 7.1 or greater to access an element by its inferred name.
+                // (8,16): error CS8305: Tuple element name 'M' is inferred. Please use language version 7.1 or greater to access an element by its inferred name.
                 //         (1, M).M();
-                Diagnostic(ErrorCode.ERR_TupleInferredNamesNotAvailable, "M").WithArguments("(int, System.Action M)", "M", "7.1").WithLocation(8, 16)
+                Diagnostic(ErrorCode.ERR_TupleInferredNamesNotAvailable, "M").WithArguments("M", "7.1")
                );
 
             var verifier7_1 = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1),
