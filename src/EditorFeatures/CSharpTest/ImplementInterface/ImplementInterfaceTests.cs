@@ -2557,9 +2557,9 @@ index: 2);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
-        public async Task TestFaultToleranceInStaticMembers()
+        public async Task TestFaultToleranceInStaticMembers_01()
         {
-            await TestWithAllCodeStyleOptionsOffAsync(
+            await TestMissingAsync(
 @"interface IFoo
 {
     static string Name { set; get; }
@@ -2569,12 +2569,73 @@ index: 2);
 
 class Program : [|IFoo|]
 {
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestFaultToleranceInStaticMembers_02()
+        {
+            await TestWithAllCodeStyleOptionsOffAsync(
+@"interface IFoo
+{
+    string Name { set; get; }
+
+    static int Foo(string s);
+}
+
+class Program : [|IFoo|]
+{
 }",
+// PROTOTYPE(DefaultInterfaceImplementation): We shouldn't end up with "public int Foo(string s)" in Program. 
+@"interface IFoo
+{
+    string Name { set; get; }
+
+    static int Foo(string s);
+}
+
+class Program : IFoo
+{
+    public string Name
+    {
+        get
+        {
+            throw new System.NotImplementedException();
+        }
+
+        set
+        {
+            throw new System.NotImplementedException();
+        }
+    }
+
+    public int Foo(string s)
+    {
+        throw new System.NotImplementedException();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestFaultToleranceInStaticMembers_03()
+        {
+            await TestWithAllCodeStyleOptionsOffAsync(
 @"interface IFoo
 {
     static string Name { set; get; }
 
-    static int Foo(string s);
+    int Foo(string s);
+}
+
+class Program : [|IFoo|]
+{
+}",
+// PROTOTYPE(DefaultInterfaceImplementation): We shouldn't end up with "public string Name" in Program. 
+@"interface IFoo
+{
+    static string Name { set; get; }
+
+    int Foo(string s);
 }
 
 class Program : IFoo

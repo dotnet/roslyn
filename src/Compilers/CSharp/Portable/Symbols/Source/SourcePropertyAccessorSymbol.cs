@@ -31,6 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             PropertySymbol explicitlyImplementedPropertyOpt,
             string aliasQualifierOpt,
             bool isAutoPropertyAccessor,
+            bool isExplicitInterfaceImplementation,
             DiagnosticBag diagnostics)
         {
             Debug.Assert(syntax.Kind() == SyntaxKind.GetAccessorDeclaration || syntax.Kind() == SyntaxKind.SetAccessorDeclaration);
@@ -58,6 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 syntax,
                 methodKind,
                 isAutoPropertyAccessor,
+                isExplicitInterfaceImplementation,
                 diagnostics);
         }
 
@@ -193,6 +195,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             AccessorDeclarationSyntax syntax,
             MethodKind methodKind,
             bool isAutoPropertyAccessor,
+            bool isExplicitInterfaceImplementation,
             DiagnosticBag diagnostics)
             : base(containingType,
                    syntax.GetReference(),
@@ -209,7 +212,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _isExpressionBodied = !hasBody && hasExpressionBody;
 
             bool modifierErrors;
-            var declarationModifiers = this.MakeModifiers(syntax, location, diagnostics, out modifierErrors);
+            var declarationModifiers = this.MakeModifiers(syntax, isExplicitInterfaceImplementation, hasBody || hasExpressionBody, location, diagnostics, out modifierErrors);
 
             // Include modifiers from the containing property.
             propertyModifiers &= ~DeclarationModifiers.AccessibilityMask;
@@ -406,27 +409,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return ModifierUtils.EffectiveAccessibility(this.DeclarationModifiers); }
         }
 
-        private DeclarationModifiers MakeModifiers(AccessorDeclarationSyntax syntax, Location location, DiagnosticBag diagnostics, out bool modifierErrors)
+        private DeclarationModifiers MakeModifiers(AccessorDeclarationSyntax syntax, bool isExplicitInterfaceImplementation, bool hasBody, Location location, DiagnosticBag diagnostics, out bool modifierErrors)
         {
             // No default accessibility. If unset, accessibility
             // will be inherited from the property.
             const DeclarationModifiers defaultAccess = DeclarationModifiers.None;
 
             // Check that the set of modifiers is allowed
-            const DeclarationModifiers allowedModifiers = DeclarationModifiers.AccessibilityMask;
+            var allowedModifiers = isExplicitInterfaceImplementation ? DeclarationModifiers.None : DeclarationModifiers.AccessibilityMask;
+            var defaultInterfaceImplementationModifiers = DeclarationModifiers.None;
+
+            if (this.ContainingType.IsInterface && !isExplicitInterfaceImplementation)
+            {
+                const DeclarationModifiers disallow = DeclarationModifiers.Protected | DeclarationModifiers.ProtectedInternal;
+                allowedModifiers &= ~disallow;
+                defaultInterfaceImplementationModifiers = (DeclarationModifiers.AccessibilityMask & ~disallow);
+            }
+
             var mods = ModifierUtils.MakeAndCheckNontypeMemberModifiers(syntax.Modifiers, defaultAccess, allowedModifiers, location, diagnostics, out modifierErrors);
 
-            // For interface, check there are no accessibility modifiers.
-            // (This check is handled outside of MakeAndCheckModifiers
-            // since a distinct error message is reported for interfaces.)
-            if (this.ContainingType.IsInterface)
-            {
-                if ((mods & DeclarationModifiers.AccessibilityMask) != 0)
-                {
-                    diagnostics.Add(ErrorCode.ERR_PropertyAccessModInInterface, location, this);
-                    mods = (mods & ~DeclarationModifiers.AccessibilityMask);
-                }
-            }
+            ModifierUtils.ReportDefaultInterfaceImplementationModifiers(hasBody, mods,
+                                                                        defaultInterfaceImplementationModifiers,
+                                                                        location, diagnostics);
 
             return mods;
         }

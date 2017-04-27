@@ -63,26 +63,64 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         internal static void ReportDefaultInterfaceImplementationModifiers(
-            LanguageVersion availableVersion,
-            LanguageVersion requiredVersion,
+            bool hasBody,
             DeclarationModifiers modifiers,
             DeclarationModifiers defaultInterfaceImplementationModifiers,
             Location errorLocation,
             DiagnosticBag diagnostics)
         {
-            DeclarationModifiers errorModifiers = modifiers & defaultInterfaceImplementationModifiers;
-            var requiredVersionArgument = new CSharpRequiredLanguageVersion(requiredVersion);
-            var availableVersionArgument = availableVersion.ToDisplayString();
-            while (errorModifiers != DeclarationModifiers.None)
+            if (!hasBody && (modifiers & defaultInterfaceImplementationModifiers) != 0)
             {
-                DeclarationModifiers oneError = errorModifiers & ~(errorModifiers - 1);
-                Debug.Assert(oneError != DeclarationModifiers.None);
-                errorModifiers = errorModifiers & ~oneError;
-                diagnostics.Add(ErrorCode.ERR_DefaultInterfaceImplementationModifier, errorLocation,
-                                ConvertSingleModifierToSyntaxText(oneError),
-                                availableVersionArgument,
-                                requiredVersionArgument);
+                LanguageVersion availableVersion = ((CSharpParseOptions)errorLocation.SourceTree.Options).LanguageVersion;
+                LanguageVersion requiredVersion = MessageID.IDS_DefaultInterfaceImplementation.RequiredVersion();
+                if (availableVersion < requiredVersion)
+                {
+                    DeclarationModifiers errorModifiers = modifiers & defaultInterfaceImplementationModifiers;
+                    var requiredVersionArgument = new CSharpRequiredLanguageVersion(requiredVersion);
+                    var availableVersionArgument = availableVersion.ToDisplayString();
+                    while (errorModifiers != DeclarationModifiers.None)
+                    {
+                        DeclarationModifiers oneError = errorModifiers & ~(errorModifiers - 1);
+                        Debug.Assert(oneError != DeclarationModifiers.None);
+                        errorModifiers = errorModifiers & ~oneError;
+                        diagnostics.Add(ErrorCode.ERR_DefaultInterfaceImplementationModifier, errorLocation,
+                                        ConvertSingleModifierToSyntaxText(oneError),
+                                        availableVersionArgument,
+                                        requiredVersionArgument);
+                    }
+                }
+
+                // PROTOTYPE(DefaultInterfaceImplementation): Should we also check runtime support for some of the modifiers?
             }
+        }
+
+        internal static DeclarationModifiers AdjustModifiersForAnInterfaceMember(DeclarationModifiers mods, bool hasBody)
+        {
+            if ((mods & (DeclarationModifiers.Static | DeclarationModifiers.Private | DeclarationModifiers.Virtual | DeclarationModifiers.Abstract)) == 0)
+            {
+                if (hasBody || (mods & (DeclarationModifiers.Extern | DeclarationModifiers.Sealed)) != 0)
+                {
+                    if ((mods & DeclarationModifiers.Sealed) == 0)
+                    {
+                        mods |= DeclarationModifiers.Virtual;
+                    }
+                    else
+                    {
+                        mods &= ~DeclarationModifiers.Sealed;
+                    }
+                }
+                else
+                {
+                    mods |= DeclarationModifiers.Abstract;
+                }
+            }
+
+            if ((mods & DeclarationModifiers.AccessibilityMask) == 0)
+            {
+                mods |= DeclarationModifiers.Public;
+            }
+
+            return mods;
         }
 
         private static string ConvertSingleModifierToSyntaxText(DeclarationModifiers modifier)
