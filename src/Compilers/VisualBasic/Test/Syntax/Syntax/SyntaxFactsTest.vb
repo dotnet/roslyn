@@ -1224,6 +1224,13 @@ End Module
     <InlineData("x.M()", "M")>
     <InlineData("TypeOf(x)", Nothing)>
     <InlineData("GetType(x)", Nothing)>
+    <InlineData("-x", Nothing)>
+    <InlineData("x!y", "y")>
+    <InlineData("Me", Nothing)>
+    <InlineData("[Me]", "Me")>
+    <InlineData("x.Me", "Me")>
+    <InlineData("M()()", "M")>
+    <InlineData("New C()", Nothing)>
     Public Sub TestTryGetInferredMemberName(source As String, expected As String)
         Dim expr = SyntaxFactory.ParseExpression(source)
         Dim actual = expr.TryGetInferredMemberName()
@@ -1239,6 +1246,7 @@ End Module
     <InlineData("ToString", True)>
     <InlineData("GetHashCode", True)>
     <InlineData("item1", True)>
+    <InlineData("item01", False)>
     <InlineData("item10", True)>
     <InlineData("Alice", False)>
     Public Sub TestIsReservedTupleElementName(elementName As String, isReserved As Boolean)

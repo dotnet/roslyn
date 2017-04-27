@@ -163,7 +163,10 @@ void foo()
         [InlineData("x?.y", "y")]
         [InlineData("this.y", "y")]
         [InlineData("M()", null)]
+        [InlineData("new C()", null)]
         [InlineData("x.M()", null)]
+        [InlineData("-x", null)]
+        [InlineData("this", null)]
         [InlineData("default(x)", null)]
         [InlineData("typeof(x)", null)]
         public void TestTryGetInferredMemberName(string source, string expected)
@@ -175,6 +178,7 @@ void foo()
 
         [Theory]
         [InlineData("Item0", false)]
+        [InlineData("Item01", false)]
         [InlineData("Item1", true)]
         [InlineData("Item2", true)]
         [InlineData("Item10", true)]
