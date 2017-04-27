@@ -1494,7 +1494,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     }
 
     /// <summary>
-    /// Represents a C# fixed staement.
+    /// Represents a C# fixed statement.
     /// </summary>
     internal abstract partial class BaseFixedStatement : Operation, IFixedStatement
     {
@@ -1521,7 +1521,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     }
 
     /// <summary>
-    /// Represents a C# fixed staement.
+    /// Represents a C# fixed statement.
     /// </summary>
     internal sealed partial class FixedStatement : BaseFixedStatement, IFixedStatement
     {
@@ -1542,7 +1542,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     }
 
     /// <summary>
-    /// Represents a C# fixed staement.
+    /// Represents a C# fixed statement.
     /// </summary>
     internal sealed partial class LazyFixedStatement : BaseFixedStatement, IFixedStatement
     {
@@ -1566,7 +1566,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     }
 
     /// <summary>
-    /// Represents a C# foreach statement or a VB For Each staement.
+    /// Represents a C# foreach statement or a VB For Each statement.
     /// </summary>
     internal sealed partial class ForEachLoopStatement : LoopStatement, IForEachLoopStatement
     {
@@ -1600,7 +1600,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     }
 
     /// <summary>
-    /// Represents a C# foreach statement or a VB For Each staement.
+    /// Represents a C# foreach statement or a VB For Each statement.
     /// </summary>
     internal sealed partial class LazyForEachLoopStatement : LoopStatement, IForEachLoopStatement
     {
