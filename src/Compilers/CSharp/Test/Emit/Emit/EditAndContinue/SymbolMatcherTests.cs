@@ -760,7 +760,6 @@ public struct Vector
             Assert.NotNull(other);
         }
 
-
         [Fact]
         public void TupleDelegate_TypeChange()
         {
