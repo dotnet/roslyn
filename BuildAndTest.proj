@@ -25,8 +25,6 @@
       TreatWarningsAsErrors=true;
       DeployExtension=false;
     </MSBuildCommonProperties>
-    <TestDesktop Condition="'$(TestDesktop)' == ''">true</TestDesktop>
-    <TestCoreClr Condition="'$(TestCoreClr)' == ''">true</TestCoreClr>
   </PropertyGroup>
 
   <Target Name="Build">
