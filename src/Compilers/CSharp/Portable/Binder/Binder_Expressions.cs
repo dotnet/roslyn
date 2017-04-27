@@ -842,8 +842,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (hasNaturalType)
             {
+                bool trackInferredNames = this.Compilation.LanguageVersion.DisallowInferredTupleElementNames();
+
                 tupleTypeOpt = TupleTypeSymbol.Create(node.Location, elements, locations, elementNames,
-                    this.Compilation, syntax: node, diagnostics: diagnostics, shouldCheckConstraints: true, inferredPositions: inferredPositions);
+                    this.Compilation, syntax: node, diagnostics: diagnostics, shouldCheckConstraints: true,
+                    inferredPositions: trackInferredNames ? inferredPositions : default(ImmutableArray<bool>));
             }
             else
             {

@@ -144,6 +144,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Select
             Return True
         End Function
+
+        ''' <summary>Inference of tuple element names was added in VB 15.3</summary>
+        <Extension>
+        Friend Function DisallowInferredTupleElementNames(self As LanguageVersion) As Boolean
+            Return self < LanguageVersion.VisualBasic15_3
+        End Function
     End Module
 
     Friend Class VisualBasicRequiredLanguageVersion

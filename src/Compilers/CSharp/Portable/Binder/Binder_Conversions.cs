@@ -385,7 +385,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     targetType = destTupleType.WithElementNames(sourceTuple.ArgumentNamesOpt,
-                                                                sourceTuple.InferredNamesOpt,
                                                                 tupleSyntax.Location,
                                                                 locationBuilder.ToImmutableAndFree());
                 }

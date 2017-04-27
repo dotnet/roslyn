@@ -4242,6 +4242,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WorkItem(19047, "https://github.com/dotnet/roslyn/issues/")]
         public async Task ExplicitTupleNameAdded_DeconstructionDeclaration()
         {
             var code = @"
@@ -4264,10 +4265,13 @@ class C
         var t = (((int)C.y, ((int)C.y, _)) = (1, (C.y, 3)));
     }
 }";
+            // This refactoring should be blocked with an annotation, as the result of a cast is an L-value
+            // Follow-up issue: https://github.com/dotnet/roslyn/issues/
             await TestInRegularAndScriptAsync(code, expected, ignoreTrivia: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WorkItem(19047, "https://github.com/dotnet/roslyn/issues/")]
         public async Task ExplicitTupleNameAdded_DeconstructionDeclaration2()
         {
             var code = @"
@@ -4290,6 +4294,8 @@ class C
         var t = (((int)C.y, _) = (1, 2));
     }
 }";
+            // This refactoring should be blocked with an annotation, as the result of a cast is an L-value
+            // Follow-up issue: https://github.com/dotnet/roslyn/issues/
             await TestInRegularAndScriptAsync(code, expected, ignoreTrivia: false);
         }
 

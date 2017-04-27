@@ -250,7 +250,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal sealed class TupleVirtualElementFieldSymbol : TupleElementFieldSymbol
     {
         private readonly string _name;
-        private readonly bool _wasInferred;
+        private readonly bool _cannotUse; // With LanguageVersion 7, we will produce named elements that should not be used
 
         public TupleVirtualElementFieldSymbol(
             TupleTypeSymbol container, 
@@ -258,7 +258,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             string name,
             int tupleElementIndex, 
             Location location, 
-            bool wasInferred,
+            bool cannotUse,
             bool isImplicitlyDeclared, 
             TupleElementFieldSymbol correspondingDefaultFieldOpt)
 
@@ -269,19 +269,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 "fields that map directly to underlying should not be represented by " + nameof(TupleVirtualElementFieldSymbol));
 
             _name = name;
-            _wasInferred = wasInferred;
+            _cannotUse = cannotUse;
         }
 
         internal override DiagnosticInfo GetUseSiteDiagnostic()
         {
-            if (_wasInferred)
+            if (_cannotUse)
             {
-                var options = (CSharpParseOptions)_containingTuple.DeclaringSyntaxReferences[0].SyntaxTree.Options;
-                if (options.LanguageVersion < LanguageVersion.CSharp7_1)
-                {
-                    return new CSDiagnosticInfo(ErrorCode.ERR_TupleInferredNamesNotAvailable, _containingTuple, _name,
-                        new CSharpRequiredLanguageVersion(LanguageVersion.CSharp7_1));
-                }
+                return new CSDiagnosticInfo(ErrorCode.ERR_TupleInferredNamesNotAvailable, _containingTuple, _name,
+                    new CSharpRequiredLanguageVersion(LanguageVersion.CSharp7_1));
             }
 
             return null;

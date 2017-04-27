@@ -21,8 +21,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private ReadOnly _providedElementNames As ImmutableArray(Of String)
 
         ''' <summary>
-        ''' Which element names were inferred.
-        ''' If left as default, none of the element names were inferred.
+        ''' Which element names were inferred and therefore cannot be used.
+        ''' If none of the element names were inferred, or inferred names can be used (no tracking necessary), leave as default.
         ''' </summary>
         Private ReadOnly _inferredPositions As ImmutableArray(Of Boolean)
 
@@ -473,8 +473,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return TupleTypeSymbol.Create(Me._locations, newUnderlyingType, Me._elementLocations, Me._providedElementNames, Me._inferredPositions)
         End Function
 
-        Friend Function WithElementNames(newElementNames As ImmutableArray(Of String),
-                                         newInferredPositions As ImmutableArray(Of Boolean)) As TupleTypeSymbol
+        Friend Function WithElementNames(newElementNames As ImmutableArray(Of String)) As TupleTypeSymbol
 
             Debug.Assert(newElementNames.IsDefault OrElse Me._elementTypes.Length = newElementNames.Length)
 
@@ -488,7 +487,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End If
             End If
 
-            Return New TupleTypeSymbol(CType(Nothing, Location), Me._underlyingType, Nothing, newElementNames, Me._elementTypes, newInferredPositions)
+            Return New TupleTypeSymbol(CType(Nothing, Location), Me._underlyingType, Nothing, newElementNames, Me._elementTypes, Nothing)
         End Function
 
         Friend Shared Sub GetUnderlyingTypeChain(underlyingTupleType As NamedTypeSymbol, underlyingTupleTypeChain As ArrayBuilder(Of NamedTypeSymbol))
@@ -736,7 +735,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                     defaultTupleField = New TupleVirtualElementFieldSymbol(Me,
                                                                                            FieldSymbol,
                                                                                            defaultName,
-                                                                                           wasInferred:=False,
+                                                                                           cannotUse:=False,
                                                                                            tupleElementOrdinal:=tupleFieldIndex,
                                                                                            location:=location,
                                                                                            isImplicitlyDeclared:=defaultImplicitlyDeclared,

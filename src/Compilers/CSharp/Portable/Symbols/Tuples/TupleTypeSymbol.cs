@@ -34,8 +34,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly ImmutableArray<string> _elementNames;
 
         /// <summary>
-        /// Which element names were inferred.
-        /// If left as default, none of the element names were inferred.
+        /// Which element names were inferred and therefore cannot be used.
+        /// If none of the element names were inferred, or inferred names can be used (no tracking necessary), leave as default.
         /// </summary>
         private readonly ImmutableArray<bool> _inferredPositions;
 
@@ -230,15 +230,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Copy this tuple, but modify it to use the new element names.
         /// Also applies new location of the whole tuple as well as each element.
+        /// Loses the inferred positions.
         /// </summary>
         internal TupleTypeSymbol WithElementNames(ImmutableArray<string> newElementNames,
-                                                  ImmutableArray<bool> newInferredPositions,
                                                   Location newLocation,
                                                   ImmutableArray<Location> newElementLocations)
         {
             Debug.Assert(newElementNames.IsDefault || this._elementTypes.Length == newElementNames.Length);
 
-            return new TupleTypeSymbol(newLocation, _underlyingType, newElementLocations, newElementNames, _elementTypes, newInferredPositions);
+            return new TupleTypeSymbol(newLocation, _underlyingType, newElementLocations, newElementNames, _elementTypes, default(ImmutableArray<bool>));
         }
 
         /// <summary>
@@ -836,7 +836,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                                                             defaultName,
                                                                                             tupleFieldIndex,
                                                                                             location,
-                                                                                            wasInferred: false,
+                                                                                            cannotUse: false,
                                                                                             isImplicitlyDeclared: defaultImplicitlyDeclared,
                                                                                             correspondingDefaultFieldOpt: null);
                                 }

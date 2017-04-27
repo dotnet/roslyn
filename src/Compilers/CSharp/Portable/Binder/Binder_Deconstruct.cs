@@ -468,6 +468,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundTupleLiteral DeconstructionVariablesAsTuple(CSharpSyntaxNode syntax, ArrayBuilder<DeconstructionVariable> variables, DiagnosticBag diagnostics, bool hasErrors)
         {
+            bool trackInferredNames = this.Compilation.LanguageVersion.DisallowInferredTupleElementNames();
             int count = variables.Count;
             var valuesBuilder = ArrayBuilder<BoundExpression>.GetInstance(count);
             var typesBuilder = ArrayBuilder<TypeSymbol>.GetInstance(count);
@@ -497,7 +498,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             uniqueFieldNames.Free();
             ImmutableArray<string> tupleNames = namesBuilder.ToImmutableAndFree();
 
-            var inferredPositions = tupleNames.SelectAsArray(n => n != null);
+            var inferredPositions = trackInferredNames ? tupleNames.SelectAsArray(n => n != null) : default(ImmutableArray<bool>);
 
             var type = TupleTypeSymbol.Create(syntax.Location,
                 typesBuilder.ToImmutableAndFree(), locationsBuilder.ToImmutableAndFree(),
