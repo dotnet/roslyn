@@ -20,8 +20,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 {
     public class SymbolMatcherTests : EditAndContinueTestBase
     {
-        private static readonly MetadataReference[] s_valueTupleRefs = new[] { SystemRuntimeFacadeRef, ValueTupleRef };
-
         [Fact]
         public void ConcurrentAccess()
         {
