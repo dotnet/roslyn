@@ -394,7 +394,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.CodeRuntime
                 }
 
                 result = entryPoint.Invoke(null, args);
-            }, expectedOutputLength, out stdOut, out stdErr);
+            }, expectedOutputLength ?? 0, out stdOut, out stdErr);
 
             output = stdOut + stdErr;
             return result is int ? (int)result : 0;

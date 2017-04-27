@@ -371,20 +371,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.CodeRuntime
 
         private static readonly object s_consoleGuard = new object();
 
-        internal static void Capture(Action action, int? expectedLength, out string output, out string errorOutput)
+        internal static void Capture(Action action, int expectedLength, out string output, out string errorOutput)
         {
-            TextWriter errorOutputWriter;
-            TextWriter outputWriter;
-            if (expectedLength is int exLength)
-            {
-                errorOutputWriter = new CappedStringWriter(exLength);
-                outputWriter = new CappedStringWriter(exLength);
-            }
-            else
-            {
-                errorOutputWriter = StreamWriter.Null;
-                outputWriter = StreamWriter.Null;
-            }
+            TextWriter errorOutputWriter = new CappedStringWriter(expectedLength);
+            TextWriter outputWriter = new CappedStringWriter(expectedLength);
 
             lock (s_consoleGuard)
             {
