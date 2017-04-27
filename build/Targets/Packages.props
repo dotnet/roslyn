@@ -50,7 +50,7 @@
     <MicrosoftNetCoreILAsmVersion>1.1.0</MicrosoftNetCoreILAsmVersion>
     <MicrosoftNETCoreCompilersVersion>2.3.0-dev-56735-00</MicrosoftNETCoreCompilersVersion>
     <MicrosoftNETCoreVersion>5.0.0</MicrosoftNETCoreVersion>
-    <MicrosoftNETCoreAppVersion>2.0.0-preview2-002006-00</MicrosoftNETCoreAppVersion>
+    <MicrosoftNETCoreAppVersion>1.1.0</MicrosoftNETCoreAppVersion>
     <MicrosoftNETCorePlatformsVersion>1.1.0</MicrosoftNETCorePlatformsVersion>
     <MicrosoftNETCorePortableCompatibilityVersion>1.0.1</MicrosoftNETCorePortableCompatibilityVersion>
     <MicrosoftNETCoreRuntimeCoreCLRVersion>1.1.0</MicrosoftNETCoreRuntimeCoreCLRVersion>

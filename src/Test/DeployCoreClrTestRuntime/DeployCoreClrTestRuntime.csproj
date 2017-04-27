@@ -136,9 +136,9 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="xunit.console.netcore" Version="$(xunitconsolenetcoreVersion)" />
-    <PackageReference Include="Microsoft.NETCore.App" Version="$(MicrosoftNETCoreAppVersion)" />
-    <PackageReference Include="Microsoft.NETCore.ILAsm" Version="$(MicrosoftNetCoreIlasmVersion)" />
-    <PackageReference Include="Microsoft.NETCore.TestHost" Version="$(MicrosoftNetCoreTestHostVersion)" />
+    <PackageReference Include="Microsoft.NETCore.App" Version="$(MicrosoftNETCoreAppFixedVersion)" />
+    <PackageReference Include="Microsoft.NETCore.ILAsm" Version="$(MicrosoftNETCoreILAsmVersion)" />
+    <PackageReference Include="Microsoft.NETCore.TestHost" Version="$(MicrosoftNETCoreTestHostVersion)" />
   </ItemGroup>
   <Import Project="..\..\..\build\Targets\Imports.targets" />
 </Project>
