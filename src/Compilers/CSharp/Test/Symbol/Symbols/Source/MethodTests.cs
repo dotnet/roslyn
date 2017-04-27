@@ -217,11 +217,15 @@ public partial class A {
             var comp = CreateStandardCompilation(text);
             var global = comp.GlobalNamespace;
             var a = global.GetTypeMembers("A", 0).Single();
-            var m = a.GetMembers("M");
-            Assert.Equal(1, m.Length);
-            var returnSyntax = ((MethodSymbol) m.First()).ExtractReturnTypeSyntax();
-            var newLineCount = Environment.NewLine.Length * 1;
-            Assert.Equal(returnSyntax.Location.SourceSpan, TextSpan.FromBounds(34 + newLineCount, 38 + newLineCount));
+            var m = (MethodSymbol) a.GetMembers("M").Single();
+            Assert.True(m.IsPartialDefinition());
+            var returnSyntax = m.ExtractReturnTypeSyntax();
+
+            var tree = comp.SyntaxTrees.Single().GetRoot();
+            var token = tree.DescendantTokens().Where(t => t.Kind() == SyntaxKind.VoidKeyword).First();
+            var node = tree.FindNode(token.Span);
+
+            Assert.Equal(node, returnSyntax);
         }
 
         [Fact]
@@ -238,11 +242,15 @@ public partial class A {
             var comp = CreateStandardCompilation(text);
             var global = comp.GlobalNamespace;
             var a = global.GetTypeMembers("A", 0).Single();
-            var m = a.GetMembers("M");
-            Assert.Equal(1, m.Length);
-            var returnSyntax = ((MethodSymbol) m.First()).ExtractReturnTypeSyntax();
-            var newlineSize = Environment.NewLine.Length * 4;
-            Assert.Equal(returnSyntax.Location.SourceSpan, TextSpan.FromBounds(80 + newlineSize, 84 + newlineSize));
+            var m = (MethodSymbol) a.GetMembers("M").Single();
+            Assert.True(m.IsPartialDefinition());
+            var returnSyntax = m.ExtractReturnTypeSyntax();
+
+            var tree = comp.SyntaxTrees.Single().GetRoot();
+            var token = tree.DescendantTokens().Where(t => t.Kind() == SyntaxKind.VoidKeyword).Skip(1).First();
+            var node = tree.FindNode(token.Span);
+
+            Assert.Equal(node, returnSyntax);
         }
 
         [Fact]
@@ -256,11 +264,15 @@ public partial class A {
             var comp = CreateStandardCompilation(text);
             var global = comp.GlobalNamespace;
             var a = global.GetTypeMembers("A", 0).Single();
-            var m = a.GetMembers("M");
-            Assert.Equal(1, m.Length);
-            var returnSyntax = ((MethodSymbol) m.First()).ExtractReturnTypeSyntax();
-            var newlineSize = Environment.NewLine.Length * 1;
-            Assert.Equal(returnSyntax.Location.SourceSpan, TextSpan.FromBounds(34 + newlineSize, 38 + newlineSize));
+            var m = (MethodSymbol) a.GetMembers("M").Single();
+            Assert.True(m.IsPartialImplementation());
+            var returnSyntax = m.ExtractReturnTypeSyntax();
+
+            var tree = comp.SyntaxTrees.Single().GetRoot();
+            var token = tree.DescendantTokens().Where(t => t.Kind() == SyntaxKind.VoidKeyword).First();
+            var node = tree.FindNode(token.Span);
+
+            Assert.Equal(node, returnSyntax);
         }
 
         [Fact]
@@ -274,11 +286,15 @@ public partial class A {
             var comp = CreateStandardCompilation(text);
             var global = comp.GlobalNamespace;
             var a = global.GetTypeMembers("A", 0).Single();
-            var m = a.GetMembers("M");
-            Assert.Equal(1, m.Length);
-            var returnSyntax = ((MethodSymbol) m.First()).ExtractReturnTypeSyntax();
-            var newlineSize = Environment.NewLine.Length * 1;
-            Assert.Equal(returnSyntax.Location.SourceSpan, TextSpan.FromBounds(34 + newlineSize, 38 + newlineSize));
+            var m = (MethodSymbol) a.GetMembers("M").Single();
+            Assert.True(m.IsPartialDefinition());
+            var returnSyntax = m.ExtractReturnTypeSyntax();
+
+            var tree = comp.SyntaxTrees.Single().GetRoot();
+            var token = tree.DescendantTokens().Where(t => t.Kind() == SyntaxKind.VoidKeyword).First();
+            var node = tree.FindNode(token.Span);
+
+            Assert.Equal(node, returnSyntax);
         }
 
         [Fact]

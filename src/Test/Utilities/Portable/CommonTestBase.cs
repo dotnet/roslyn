@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                                 expectedSignatures,
                                 expectedOutput,
                                 expectedReturnCode,
-                                args ?? new string[] { },
+                                args ?? Array.Empty<string>(),
                                 assemblyValidator,
                                 symbolValidator,
                                 emitOptions,
