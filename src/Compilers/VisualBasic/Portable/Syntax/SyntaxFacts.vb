@@ -1174,12 +1174,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ''' <summary>
-        ''' Checks whether the element name Is reserved.
+        ''' Checks whether the element name is reserved.
         '''
         ''' For example:
-        ''' "Item3" Is reserved (at certain positions).
-        ''' "Rest", "ToString" And other members of System.ValueTuple are reserved (in any position).
-        ''' Names that are Not reserved return false.
+        ''' "Item3" is reserved (at certain positions).
+        ''' "Rest", "ToString" and other members of System.ValueTuple are reserved (in any position).
+        ''' Names that are not reserved return False.
         ''' </summary>
         Public Shared Function IsReservedTupleElementName(elementName As String) As Boolean
             Return TupleTypeSymbol.IsElementNameReserved(elementName) <> -1

@@ -110,6 +110,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         <Extension>
         Public Function TryGetInferredMemberName(expression As ExpressionSyntax) As String
+            If expression Is Nothing Then
+                Return Nothing
+            End If
+
             Dim ignore As XmlNameSyntax = Nothing
             Dim nameToken As SyntaxToken = expression.ExtractAnonymousTypeMemberName(ignore)
             Return If(nameToken.Kind() = SyntaxKind.IdentifierToken, nameToken.ValueText, Nothing)

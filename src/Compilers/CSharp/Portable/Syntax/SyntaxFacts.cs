@@ -433,6 +433,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public static string TryGetInferredMemberName(this ExpressionSyntax expression)
         {
+            if (expression == null)
+            {
+                return null;
+            }
+
             var nameToken = expression.ExtractAnonymousTypeMemberName();
             return nameToken.Kind() == SyntaxKind.IdentifierToken ? nameToken.ValueText : null;
         }
