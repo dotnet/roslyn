@@ -846,6 +846,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Make field readonly.
+        /// </summary>
+        internal static string Make_field_readonly {
+            get {
+                return ResourceManager.GetString("Make_field_readonly", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Matching nodes &apos;{0}&apos; and &apos;{1}&apos; must have the same label..
         /// </summary>
         internal static string Matching_nodes_0_and_1_must_have_the_same_label {

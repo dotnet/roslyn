@@ -797,6 +797,11 @@
         <target state="translated">La modifica delle proprietà del documento non è supportata</target>
         <note />
       </trans-unit>
+      <trans-unit id="Make_field_readonly">
+        <source>Make field readonly</source>
+        <target state="new">Make field readonly</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>

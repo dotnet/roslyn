@@ -1985,6 +1985,11 @@ This version used in: {2}</source>
         <target state="translated">索引子</target>
         <note />
       </trans-unit>
+      <trans-unit id="Add_readonly_modifier">
+        <source>Add readonly modifier</source>
+        <target state="new">Add readonly modifier</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>

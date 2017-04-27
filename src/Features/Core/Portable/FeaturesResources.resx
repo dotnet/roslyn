@@ -1334,4 +1334,7 @@ This version used in: {2}</value>
   <data name="indexer_" xml:space="preserve">
     <value>indexer</value>
   </data>
+  <data name="Add_readonly_modifier" xml:space="preserve">
+    <value>Add readonly modifier</value>
+  </data>
 </root>
