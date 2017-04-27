@@ -3,18 +3,21 @@
 using System;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.Commands;
+using VSC = Microsoft.VisualStudio.Text.UI.Commanding;
+using VSInsertSnippetCommandArgs = Microsoft.VisualStudio.Text.UI.Commanding.Commands.InsertSnippetCommandArgs;
+using VSInvokeCompletionListCommandArgs = Microsoft.VisualStudio.Text.UI.Commanding.Commands.InvokeCompletionListCommandArgs;
+using VSCommandState = Microsoft.VisualStudio.Text.UI.Commanding.CommandState;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 {
     internal partial class Controller
     {
-        CommandState ICommandHandler<InvokeCompletionListCommandArgs>.GetCommandState(InvokeCompletionListCommandArgs args, Func<CommandState> nextHandler)
+        VSCommandState VSC.ICommandHandler<VSInvokeCompletionListCommandArgs>.GetCommandState(VSInvokeCompletionListCommandArgs args)
         {
-            AssertIsForeground();
-            return nextHandler();
+            return VSCommandState.CommandIsUnavailable;
         }
 
-        void ICommandHandler<InvokeCompletionListCommandArgs>.ExecuteCommand(InvokeCompletionListCommandArgs args, Action nextHandler)
+        bool VSC.ICommandHandler<VSInvokeCompletionListCommandArgs>.ExecuteCommand(VSInvokeCompletionListCommandArgs args)
         {
             AssertIsForeground();
 
@@ -29,11 +32,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             var completionService = this.GetCompletionService();
             if (completionService == null)
             {
-                return;
+                return false;
             }
 
             var trigger = CompletionTrigger.Invoke;
             StartNewModelComputation(completionService, trigger);
+            return true;
         }
     }
 }

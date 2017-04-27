@@ -7,7 +7,7 @@ Imports Microsoft.VisualStudio.LanguageServices.Implementation.Library.ClassView
 Imports Microsoft.VisualStudio.Shell
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ObjectBrowser
-    <ExportCommandHandler(PredefinedCommandHandlerNames.ClassView, ContentTypeNames.VisualBasicContentType)>
+    <Microsoft.VisualStudio.Text.UI.Commanding.ExportCommandHandler(PredefinedCommandHandlerNames.ClassView, ContentTypeNames.VisualBasicContentType)>
     Friend Class VisualBasicSyncClassViewCommandHandler
         Inherits AbstractSyncClassViewCommandHandler
 

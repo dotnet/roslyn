@@ -110,7 +110,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
                             // target isn't the one we want, because we've
                             // definitely remapped buffers. Ask our context for
                             // the real subject buffer.
-                            this.ExecuteInvokeCompletionList(_context.Buffer, _context.ContentType, executeNextCommandTarget);
+                            // this.ExecuteInvokeCompletionList(_context.Buffer, _context.ContentType, executeNextCommandTarget);
                         }
                     }
 

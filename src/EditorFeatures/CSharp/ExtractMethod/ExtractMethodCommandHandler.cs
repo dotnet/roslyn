@@ -8,7 +8,7 @@ using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.ExtractMethod
 {
-    [ExportCommandHandler(PredefinedCommandHandlerNames.ExtractMethod,
+    [Microsoft.VisualStudio.Text.UI.Commanding.ExportCommandHandler(PredefinedCommandHandlerNames.ExtractMethod,
         ContentTypeNames.CSharpContentType)]
     [Order(After = PredefinedCommandHandlerNames.DocumentationComments)]
     internal class ExtractMethodCommandHandler :

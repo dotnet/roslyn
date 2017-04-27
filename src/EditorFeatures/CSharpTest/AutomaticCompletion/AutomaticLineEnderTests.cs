@@ -845,7 +845,7 @@ $$
             return () => { };
         }
 
-        internal override ICommandHandler<AutomaticLineEnderCommandArgs> CreateCommandHandler(
+        internal override ICommandHandler2<AutomaticLineEnderCommandArgs> CreateCommandHandler(
             Microsoft.CodeAnalysis.Editor.Host.IWaitIndicator waitIndicator,
             ITextUndoHistoryRegistry undoRegistry,
             IEditorOperationsFactoryService editorOperations)

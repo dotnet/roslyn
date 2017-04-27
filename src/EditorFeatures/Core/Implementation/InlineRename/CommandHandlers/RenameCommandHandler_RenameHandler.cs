@@ -11,41 +11,43 @@ using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
+using Microsoft.VisualStudio.Text.UI.Commanding.Commands;
+using VSC = Microsoft.VisualStudio.Text.UI.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 {
-    internal partial class RenameCommandHandler : ICommandHandler<RenameCommandArgs>
+    internal partial class RenameCommandHandler : VSC.ICommandHandler<RenameCommandArgs>
     {
-        public CommandState GetCommandState(RenameCommandArgs args, Func<CommandState> nextHandler)
+        public VSC.CommandState GetCommandState(RenameCommandArgs args)
         {
             var caretPoint = args.TextView.GetCaretPoint(args.SubjectBuffer);
             if (!caretPoint.HasValue)
             {
-                return nextHandler();
+                return VSC.CommandState.CommandIsUnavailable;
             }
 
             var textContainer = args.SubjectBuffer.AsTextContainer();
             if (!Workspace.TryGetWorkspace(textContainer, out var workspace))
             {
-                return nextHandler();
+                return VSC.CommandState.CommandIsUnavailable;
             }
 
             if (!workspace.CanApplyChange(ApplyChangesKind.ChangeDocument))
             {
-                return nextHandler();
+                return VSC.CommandState.CommandIsUnavailable;
             }
 
             var documents = textContainer.GetRelatedDocuments();
             var supportsFeatureService = workspace.Services.GetService<IDocumentSupportsFeatureService>();
             if (!documents.All(d => supportsFeatureService.SupportsRename(d)))
             {
-                return nextHandler();
+                return VSC.CommandState.CommandIsUnavailable;
             }
 
-            return CommandState.Available;
+            return VSC.CommandState.CommandIsAvailable;
         }
 
-        public void ExecuteCommand(RenameCommandArgs args, Action nextHandler)
+        public bool ExecuteCommand(RenameCommandArgs args)
         {
             _waitIndicator.Wait(
                 title: EditorFeaturesResources.Rename,
@@ -55,6 +57,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             {
                 ExecuteRenameWorker(args, waitContext.CancellationToken);
             });
+
+            return true;
         }
 
         private void ExecuteRenameWorker(RenameCommandArgs args, CancellationToken cancellationToken)

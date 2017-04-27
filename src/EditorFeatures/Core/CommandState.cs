@@ -5,7 +5,7 @@ namespace Microsoft.CodeAnalysis.Editor
     /// <summary>
     /// Represents the various states that a command might have.
     /// </summary>
-    internal struct CommandState
+    internal struct CommandState2
     {
         /// <summary>
         /// If true, the command should be visible and enabled in the UI.
@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor
         /// </summary>
         public string DisplayText { get; }
 
-        public CommandState(bool isAvailable = false, bool isChecked = false, string displayText = null)
+        public CommandState2(bool isAvailable = false, bool isChecked = false, string displayText = null)
             : this()
         {
             this.IsAvailable = isAvailable;
@@ -30,14 +30,14 @@ namespace Microsoft.CodeAnalysis.Editor
             this.DisplayText = displayText;
         }
 
-        public static CommandState Available
+        public static CommandState2 Available
         {
-            get { return new CommandState(isAvailable: true); }
+            get { return new CommandState2(isAvailable: true); }
         }
 
-        public static CommandState Unavailable
+        public static CommandState2 Unavailable
         {
-            get { return new CommandState(isAvailable: false); }
+            get { return new CommandState2(isAvailable: false); }
         }
     }
 }

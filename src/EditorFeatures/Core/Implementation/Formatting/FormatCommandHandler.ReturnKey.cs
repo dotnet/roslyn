@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
 {
     internal partial class FormatCommandHandler
     {
-        public CommandState GetCommandState(ReturnKeyCommandArgs args, Func<CommandState> nextHandler)
+        public CommandState2 GetCommandState(ReturnKeyCommandArgs args, Func<CommandState2> nextHandler)
         {
             return nextHandler();
         }

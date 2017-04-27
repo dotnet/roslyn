@@ -3,7 +3,6 @@
 using System;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
-using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -12,17 +11,21 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Extensions;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Text.UI.Commanding.Commands;
 using Roslyn.Utilities;
+using VSC = Microsoft.VisualStudio.Text.UI.Commanding;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ClassView
 {
     internal abstract class AbstractSyncClassViewCommandHandler : ForegroundThreadAffinitizedObject,
-        ICommandHandler<SyncClassViewCommandArgs>
+        VSC.ICommandHandler<SyncClassViewCommandArgs>
     {
         private const string ClassView = "Class View";
 
         private readonly IServiceProvider _serviceProvider;
         private readonly IWaitIndicator _waitIndicator;
+
+        public bool InterestedInReadOnlyBuffer => false;
 
         protected AbstractSyncClassViewCommandHandler(
             SVsServiceProvider serviceProvider,
@@ -35,15 +38,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ClassVi
             _waitIndicator = waitIndicator;
         }
 
-        public void ExecuteCommand(SyncClassViewCommandArgs args, Action nextHandler)
+        public bool ExecuteCommand(SyncClassViewCommandArgs args)
         {
             this.AssertIsForeground();
 
             var caretPosition = args.TextView.GetCaretPoint(args.SubjectBuffer) ?? -1;
             if (caretPosition < 0)
             {
-                nextHandler();
-                return;
+                return false;
             }
 
             var snapshot = args.SubjectBuffer.CurrentSnapshot;
@@ -110,6 +112,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ClassVi
                     var navigationTool = _serviceProvider.GetService<SVsClassView, IVsNavigationTool>();
                     navigationTool.NavigateToNavInfo(navInfo);
                 });
+
+            return true;
         }
 
         private static bool IsValidSymbolToSynchronize(ISymbol symbol) =>
@@ -119,9 +123,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ClassVi
             symbol.Kind == SymbolKind.NamedType ||
             symbol.Kind == SymbolKind.Property;
 
-        public CommandState GetCommandState(SyncClassViewCommandArgs args, Func<CommandState> nextHandler)
+        public VSC.CommandState GetCommandState(SyncClassViewCommandArgs args)
         {
-            return nextHandler();
+            return VSC.CommandState.CommandIsUnavailable;
         }
     }
 }

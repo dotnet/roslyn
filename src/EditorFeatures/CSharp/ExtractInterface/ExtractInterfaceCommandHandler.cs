@@ -4,7 +4,7 @@ using Microsoft.CodeAnalysis.Editor.Implementation.ExtractInterface;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.ExtractInterface
 {
-    [ExportCommandHandler(PredefinedCommandHandlerNames.ExtractInterface, ContentTypeNames.CSharpContentType)]
+    [Microsoft.VisualStudio.Text.UI.Commanding.ExportCommandHandler(PredefinedCommandHandlerNames.ExtractInterface, ContentTypeNames.CSharpContentType)]
     internal class ExtractInterfaceCommandHandler : AbstractExtractInterfaceCommandHandler
     {
     }

@@ -2,22 +2,25 @@
 
 using System;
 using System.ComponentModel.Composition;
-using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.UI.Commanding;
+using Microsoft.VisualStudio.Text.UI.Commanding.Commands;
 
 namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
 {
-    [ExportCommandHandler(PredefinedCommandHandlerNames.GoToDefinition,
+    [Microsoft.VisualStudio.Text.UI.Commanding.ExportCommandHandler(PredefinedCommandHandlerNames.GoToDefinition,
        ContentTypeNames.RoslynContentType)]
     internal class GoToDefinitionCommandHandler :
-        ICommandHandler<GoToDefinitionCommandArgs>
+        Microsoft.VisualStudio.Text.UI.Commanding.ICommandHandler<GoToDefinitionCommandArgs>
     {
         private readonly IWaitIndicator _waitIndicator;
+
+        public bool InterestedInReadOnlyBuffer => true;
 
         [ImportingConstructor]
         public GoToDefinitionCommandHandler(
@@ -32,29 +35,17 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
             return (document, document?.GetLanguageService<IGoToDefinitionService>());
         }
 
-        public CommandState GetCommandState(GoToDefinitionCommandArgs args, Func<CommandState> nextHandler)
-        {
-            var (document, service) = GetDocumentAndService(args.SubjectBuffer.CurrentSnapshot);
-            return service != null
-                ? CommandState.Available
-                : CommandState.Unavailable;
-        }
+        //public CommandState GetCommandState(GoToDefinitionCommandArgs args, Func<CommandState> nextHandler)
+        //{
+           
+        //}
 
-        public void ExecuteCommand(GoToDefinitionCommandArgs args, Action nextHandler)
-        {
-            var subjectBuffer = args.SubjectBuffer;
-            var (document, service) = GetDocumentAndService(subjectBuffer.CurrentSnapshot);
-            if (service != null)
-            {
-                var caretPos = args.TextView.GetCaretPoint(subjectBuffer);
-                if (caretPos.HasValue && TryExecuteCommand(document, caretPos.Value, service))
-                {
-                    return;
-                }
-            }
+        //public void ExecuteCommand(GoToDefinitionCommandArgs args, Action nextHandler)
+        //{
+            
 
-            nextHandler();
-        }
+        //    nextHandler();
+        //}
 
         // Internal for testing purposes only.
         internal bool TryExecuteCommand(ITextSnapshot snapshot, int caretPosition)
@@ -90,6 +81,30 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
             }
 
             return true;
+        }
+
+        public VisualStudio.Text.UI.Commanding.CommandState GetCommandState(GoToDefinitionCommandArgs args)
+        {
+            var (document, service) = GetDocumentAndService(args.SubjectBuffer.CurrentSnapshot);
+            return service != null
+                ? Microsoft.VisualStudio.Text.UI.Commanding.CommandState.CommandIsAvailable
+                : Microsoft.VisualStudio.Text.UI.Commanding.CommandState.CommandIsUnavailable;
+        }
+
+        public bool ExecuteCommand(GoToDefinitionCommandArgs args)
+        {
+            var subjectBuffer = args.SubjectBuffer;
+            var (document, service) = GetDocumentAndService(subjectBuffer.CurrentSnapshot);
+            if (service != null)
+            {
+                var caretPos = args.TextView.GetCaretPoint(subjectBuffer);
+                if (caretPos.HasValue && TryExecuteCommand(document, caretPos.Value, service))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
     }
 }

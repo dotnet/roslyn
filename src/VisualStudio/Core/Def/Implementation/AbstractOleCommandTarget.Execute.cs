@@ -137,13 +137,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             switch ((VSConstants.VSStd12CmdID)commandId)
             {
-                case VSConstants.VSStd12CmdID.MoveSelLinesDown:
-                    ExecuteMoveSelectedLinesDown(subjectBuffer, contentType, executeNextCommandTarget);
-                    break;
-
-                case VSConstants.VSStd12CmdID.MoveSelLinesUp:
-                    ExecuteMoveSelectedLinesUp(subjectBuffer, contentType, executeNextCommandTarget);
-                    break;
 
                 default:
                     return NextCommandTarget.Exec(ref pguidCmdGroup, commandId, executeInformation, pvaIn, pvaOut);
@@ -163,18 +156,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             switch ((VSConstants.VSStd97CmdID)commandId)
             {
-                case VSConstants.VSStd97CmdID.GotoDefn:
-                    ExecuteGoToDefinition(subjectBuffer, contentType, executeNextCommandTarget);
-                    break;
-
-                case VSConstants.VSStd97CmdID.FindReferences:
-                    ExecuteFindReferences(subjectBuffer, contentType, executeNextCommandTarget);
-                    break;
-
-                case VSConstants.VSStd97CmdID.SyncClassView:
-                    ExecuteSyncClassView(subjectBuffer, contentType, executeNextCommandTarget);
-                    break;
-
                 case VSConstants.VSStd97CmdID.Paste:
                     GCManager.UseLowLatencyModeForProcessingUserInput();
                     ExecutePaste(subjectBuffer, contentType, executeNextCommandTarget);
@@ -280,17 +261,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 result = NextCommandTarget.Exec(ref guidCmdGroup, commandId, executeInformation, pvaIn, pvaOut);
             };
 
-            switch (commandId)
-            {
-                case ID.RoslynCommands.GoToImplementation:
-                    ExecuteGoToImplementation(subjectBuffer, contentType, executeNextCommandTarget);
-                    break;
-
-                default:
-                    return NextCommandTarget.Exec(ref pguidCmdGroup, commandId, executeInformation, pvaIn, pvaOut);
-            }
-
-            return result;
+            return NextCommandTarget.Exec(ref pguidCmdGroup, commandId, executeInformation, pvaIn, pvaOut);
         }
 
         protected virtual int ExecuteVisualStudio2000(ref Guid pguidCmdGroup, uint commandId, uint executeInformation, IntPtr pvaIn, IntPtr pvaOut, ITextBuffer subjectBuffer, IContentType contentType)
@@ -324,16 +295,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                     ExecuteBackTab(subjectBuffer, contentType, executeNextCommandTarget);
                     break;
 
-                case VSConstants.VSStd2KCmdID.HOME:
-                    GCManager.UseLowLatencyModeForProcessingUserInput();
-                    ExecuteDocumentStart(subjectBuffer, contentType, executeNextCommandTarget);
-                    break;
-
-                case VSConstants.VSStd2KCmdID.END:
-                    GCManager.UseLowLatencyModeForProcessingUserInput();
-                    ExecuteDocumentEnd(subjectBuffer, contentType, executeNextCommandTarget);
-                    break;
-
                 case VSConstants.VSStd2KCmdID.BOL:
                     GCManager.UseLowLatencyModeForProcessingUserInput();
                     ExecuteLineStart(subjectBuffer, contentType, executeNextCommandTarget);
@@ -357,16 +318,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 case VSConstants.VSStd2KCmdID.SELECTALL:
                     GCManager.UseLowLatencyModeForProcessingUserInput();
                     ExecuteSelectAll(subjectBuffer, contentType, executeNextCommandTarget);
-                    break;
-
-                case VSConstants.VSStd2KCmdID.OPENLINEABOVE:
-                    GCManager.UseLowLatencyModeForProcessingUserInput();
-                    ExecuteOpenLineAbove(subjectBuffer, contentType, executeNextCommandTarget);
-                    break;
-
-                case VSConstants.VSStd2KCmdID.OPENLINEBELOW:
-                    GCManager.UseLowLatencyModeForProcessingUserInput();
-                    ExecuteOpenLineBelow(subjectBuffer, contentType, executeNextCommandTarget);
                     break;
 
                 case VSConstants.VSStd2KCmdID.UP:
@@ -409,14 +360,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                     ExecuteWordDeleteToEnd(subjectBuffer, contentType, executeNextCommandTarget);
                     break;
 
-                case VSConstants.VSStd2KCmdID.FORMATDOCUMENT:
-                    ExecuteFormatDocument(subjectBuffer, contentType, executeNextCommandTarget);
-                    break;
-
-                case VSConstants.VSStd2KCmdID.FORMATSELECTION:
-                    ExecuteFormatSelection(subjectBuffer, contentType, executeNextCommandTarget);
-                    break;
-
                 case VSConstants.VSStd2KCmdID.ECMD_INSERTCOMMENT:
                     GCManager.UseLowLatencyModeForProcessingUserInput();
                     ExecuteInsertComment(subjectBuffer, contentType, executeNextCommandTarget);
@@ -426,91 +369,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                     ExecuteToggleConsumeFirstMode(subjectBuffer, contentType, executeNextCommandTarget);
                     break;
 
-                case CmdidNextHighlightedReference:
-                    ExecuteNextHighlightedReference(subjectBuffer, contentType, executeNextCommandTarget);
-                    break;
-
-                case CmdidPreviousHighlightedReference:
-                    ExecutePreviousHighlightedReference(subjectBuffer, contentType, executeNextCommandTarget);
-                    break;
-
-                case VSConstants.VSStd2KCmdID.COMMENTBLOCK:
-                case VSConstants.VSStd2KCmdID.COMMENT_BLOCK:
-                    ExecuteCommentBlock(subjectBuffer, contentType, executeNextCommandTarget);
-                    break;
-
-                case VSConstants.VSStd2KCmdID.UNCOMMENTBLOCK:
-                case VSConstants.VSStd2KCmdID.UNCOMMENT_BLOCK:
-                    ExecuteUncommentBlock(subjectBuffer, contentType, executeNextCommandTarget);
-                    break;
-
                 case VSConstants.VSStd2KCmdID.COMPLETEWORD:
                     GCManager.UseLowLatencyModeForProcessingUserInput();
                     ExecuteCommitUniqueCompletionItem(subjectBuffer, contentType, executeNextCommandTarget);
                     break;
-
-                case VSConstants.VSStd2KCmdID.SHOWMEMBERLIST:
-                    GCManager.UseLowLatencyModeForProcessingUserInput();
-                    ExecuteInvokeCompletionList(subjectBuffer, contentType, executeNextCommandTarget);
-                    break;
-
-                case VSConstants.VSStd2KCmdID.PARAMINFO:
-                    GCManager.UseLowLatencyModeForProcessingUserInput();
-                    ExecuteParameterInfo(subjectBuffer, contentType, executeNextCommandTarget);
-                    break;
-
-                case VSConstants.VSStd2KCmdID.RENAME:
-                    GCManager.UseLowLatencyModeForProcessingUserInput();
-                    ExecuteRename(subjectBuffer, contentType, executeNextCommandTarget);
-                    break;
-
-                case VSConstants.VSStd2KCmdID.EXTRACTINTERFACE:
-                    GCManager.UseLowLatencyModeForProcessingUserInput();
-                    ExecuteExtractInterface(subjectBuffer, contentType, executeNextCommandTarget);
-                    break;
-
-                case VSConstants.VSStd2KCmdID.EXTRACTMETHOD:
-                    GCManager.UseLowLatencyModeForProcessingUserInput();
-                    ExecuteExtractMethod(subjectBuffer, contentType, executeNextCommandTarget);
-                    break;
+                    
 
                 case VSConstants.VSStd2KCmdID.PASTE:
                     GCManager.UseLowLatencyModeForProcessingUserInput();
                     ExecutePaste(subjectBuffer, contentType, executeNextCommandTarget);
-                    break;
-
-                case VSConstants.VSStd2KCmdID.INSERTSNIPPET:
-                    GCManager.UseLowLatencyModeForProcessingUserInput();
-                    ExecuteInsertSnippet(subjectBuffer, contentType, executeNextCommandTarget);
-                    break;
-
-                case VSConstants.VSStd2KCmdID.SURROUNDWITH:
-                    GCManager.UseLowLatencyModeForProcessingUserInput();
-                    ExecuteSurroundWith(subjectBuffer, contentType, executeNextCommandTarget);
-                    break;
-
-                case VSConstants.VSStd2KCmdID.ViewCallHierarchy:
-                    ExecuteViewCallHierarchy(subjectBuffer, contentType, executeNextCommandTarget);
-                    break;
-
-                case VSConstants.VSStd2KCmdID.ENCAPSULATEFIELD:
-                    ExecuteEncapsulateField(subjectBuffer, contentType, executeNextCommandTarget);
-                    break;
-
-                case VSConstants.VSStd2KCmdID.REMOVEPARAMETERS:
-                    ExecuteRemoveParameters(subjectBuffer, contentType, executeNextCommandTarget);
-                    break;
-
-                case VSConstants.VSStd2KCmdID.REORDERPARAMETERS:
-                    ExecuteReorderParameters(subjectBuffer, contentType, executeNextCommandTarget);
-                    break;
-
-                case VSConstants.VSStd2KCmdID.ECMD_NEXTMETHOD:
-                    ExecuteGoToNextMethod(subjectBuffer, contentType, executeNextCommandTarget);
-                    break;
-
-                case VSConstants.VSStd2KCmdID.ECMD_PREVMETHOD:
-                    ExecuteGoToPreviousMethod(subjectBuffer, contentType, executeNextCommandTarget);
                     break;
 
                 default:
@@ -518,41 +385,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             }
 
             return result;
-        }
-
-        private void ExecuteEncapsulateField(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
-        {
-            CurrentHandlers.Execute(contentType,
-                args: new EncapsulateFieldCommandArgs(ConvertTextView(), subjectBuffer),
-                lastHandler: executeNextCommandTarget);
-        }
-
-        private void ExecuteRemoveParameters(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
-        {
-            CurrentHandlers.Execute(contentType,
-                args: new RemoveParametersCommandArgs(ConvertTextView(), subjectBuffer),
-                lastHandler: executeNextCommandTarget);
-        }
-
-        private void ExecuteReorderParameters(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
-        {
-            CurrentHandlers.Execute(contentType,
-                args: new ReorderParametersCommandArgs(ConvertTextView(), subjectBuffer),
-                lastHandler: executeNextCommandTarget);
-        }
-
-        private void ExecuteGoToNextMethod(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
-        {
-            CurrentHandlers.Execute(contentType,
-                args: new GoToAdjacentMemberCommandArgs(ConvertTextView(), subjectBuffer, NavigateDirection.Down),
-                lastHandler: executeNextCommandTarget);
-        }
-
-        private void ExecuteGoToPreviousMethod(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
-        {
-            CurrentHandlers.Execute(contentType,
-                args: new GoToAdjacentMemberCommandArgs(ConvertTextView(), subjectBuffer, NavigateDirection.Up),
-                lastHandler: executeNextCommandTarget);
         }
 
         /// <remarks>TODO: Revert the change to use standard VS11 command pending https://github.com/dotnet/roslyn/issues/8927 .</remarks>
@@ -578,20 +410,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             return result;
         }
 
-        private void ExecuteMoveSelectedLinesUp(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
-        {
-            CurrentHandlers.Execute(contentType,
-                args: new MoveSelectedLinesUpCommandArgs(ConvertTextView(), subjectBuffer),
-                lastHandler: executeNextCommandTarget);
-        }
-
-        private void ExecuteMoveSelectedLinesDown(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
-        {
-            CurrentHandlers.Execute(contentType,
-                args: new MoveSelectedLinesDownCommandArgs(ConvertTextView(), subjectBuffer),
-                lastHandler: executeNextCommandTarget);
-        }
-
         private void ExecuteAutomaticLineEnder(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
         {
             CurrentHandlers.Execute(contentType,
@@ -599,52 +417,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 lastHandler: executeNextCommandTarget);
         }
 
-        protected void ExecuteExtractInterface(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
-        {
-            CurrentHandlers.Execute(contentType,
-                args: new ExtractInterfaceCommandArgs(ConvertTextView(), subjectBuffer),
-                lastHandler: executeNextCommandTarget);
-        }
-
-        protected void ExecuteExtractMethod(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
-        {
-            CurrentHandlers.Execute(contentType,
-                args: new ExtractMethodCommandArgs(ConvertTextView(), subjectBuffer),
-                lastHandler: executeNextCommandTarget);
-        }
-
-        protected void ExecuteViewCallHierarchy(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
-        {
-            CurrentHandlers.Execute(contentType,
-                args: new ViewCallHierarchyCommandArgs(ConvertTextView(), subjectBuffer),
-                lastHandler: executeNextCommandTarget);
-        }
-
-        protected void ExecuteInsertSnippet(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
-        {
-            CurrentHandlers.Execute(contentType,
-                args: new InsertSnippetCommandArgs(ConvertTextView(), subjectBuffer),
-                lastHandler: executeNextCommandTarget);
-        }
-
-        protected void ExecuteSurroundWith(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
-        {
-            CurrentHandlers.Execute(contentType,
-                args: new SurroundWithCommandArgs(ConvertTextView(), subjectBuffer),
-                lastHandler: executeNextCommandTarget);
-        }
-
-        protected void ExecuteRename(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
-        {
-            CurrentHandlers.Execute(contentType,
-                args: new RenameCommandArgs(ConvertTextView(), subjectBuffer),
-                lastHandler: executeNextCommandTarget);
-        }
-
-        protected void ExecuteParameterInfo(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
-        {
-            CurrentHandlers.Execute(contentType,
-                args: new InvokeSignatureHelpCommandArgs(ConvertTextView(), subjectBuffer),
                 lastHandler: executeNextCommandTarget);
         }
 
@@ -652,41 +424,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         {
             CurrentHandlers.Execute(contentType,
                 args: new CommitUniqueCompletionListItemCommandArgs(ConvertTextView(), subjectBuffer),
-                lastHandler: executeNextCommandTarget);
-        }
-
-        protected void ExecuteInvokeCompletionList(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
-        {
-            CurrentHandlers.Execute(contentType,
-                args: new InvokeCompletionListCommandArgs(ConvertTextView(), subjectBuffer),
-                lastHandler: executeNextCommandTarget);
-        }
-
-        protected void ExecuteUncommentBlock(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
-        {
-            CurrentHandlers.Execute(contentType,
-                args: new UncommentSelectionCommandArgs(ConvertTextView(), subjectBuffer),
-                lastHandler: executeNextCommandTarget);
-        }
-
-        protected void ExecuteCommentBlock(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
-        {
-            CurrentHandlers.Execute(contentType,
-                args: new CommentSelectionCommandArgs(ConvertTextView(), subjectBuffer),
-                lastHandler: executeNextCommandTarget);
-        }
-
-        protected void ExecutePreviousHighlightedReference(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
-        {
-            CurrentHandlers.Execute(contentType,
-                args: new NavigateToHighlightedReferenceCommandArgs(ConvertTextView(), subjectBuffer, NavigateDirection.Up),
-                lastHandler: executeNextCommandTarget);
-        }
-
-        protected void ExecuteNextHighlightedReference(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
-        {
-            CurrentHandlers.Execute(contentType,
-                args: new NavigateToHighlightedReferenceCommandArgs(ConvertTextView(), subjectBuffer, NavigateDirection.Down),
                 lastHandler: executeNextCommandTarget);
         }
 
@@ -701,20 +438,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         {
             CurrentHandlers.Execute(contentType,
                 args: new InsertCommentCommandArgs(ConvertTextView(), subjectBuffer),
-                lastHandler: executeNextCommandTarget);
-        }
-
-        protected void ExecuteFormatDocument(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
-        {
-            CurrentHandlers.Execute(contentType,
-                args: new FormatDocumentCommandArgs(ConvertTextView(), subjectBuffer),
-                lastHandler: executeNextCommandTarget);
-        }
-
-        protected void ExecuteFormatSelection(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
-        {
-            CurrentHandlers.Execute(contentType,
-                args: new FormatSelectionCommandArgs(ConvertTextView(), subjectBuffer),
                 lastHandler: executeNextCommandTarget);
         }
 
@@ -781,20 +504,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 lastHandler: executeNextCommandTarget);
         }
 
-        protected void ExecuteDocumentStart(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
-        {
-            CurrentHandlers.Execute(contentType,
-                args: new DocumentStartCommandArgs(ConvertTextView(), subjectBuffer),
-                lastHandler: executeNextCommandTarget);
-        }
-
-        protected void ExecuteDocumentEnd(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
-        {
-            CurrentHandlers.Execute(contentType,
-                args: new DocumentEndCommandArgs(ConvertTextView(), subjectBuffer),
-                lastHandler: executeNextCommandTarget);
-        }
-
         protected void ExecuteLineStart(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
         {
             CurrentHandlers.Execute(contentType,
@@ -827,20 +536,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         {
             CurrentHandlers.Execute(contentType,
                 args: new SelectAllCommandArgs(ConvertTextView(), subjectBuffer),
-                lastHandler: executeNextCommandTarget);
-        }
-
-        protected void ExecuteOpenLineAbove(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
-        {
-            CurrentHandlers.Execute(contentType,
-                args: new OpenLineAboveCommandArgs(ConvertTextView(), subjectBuffer),
-                lastHandler: executeNextCommandTarget);
-        }
-
-        protected void ExecuteOpenLineBelow(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
-        {
-            CurrentHandlers.Execute(contentType,
-                args: new OpenLineBelowCommandArgs(ConvertTextView(), subjectBuffer),
                 lastHandler: executeNextCommandTarget);
         }
 
@@ -884,34 +579,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             var typedChar = (char)(ushort)Marshal.GetObjectForNativeVariant(pvaIn);
             CurrentHandlers.Execute(contentType,
                 args: new TypeCharCommandArgs(ConvertTextView(), subjectBuffer, typedChar),
-                lastHandler: executeNextCommandTarget);
-        }
-
-        private void ExecuteGoToDefinition(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
-        {
-            CurrentHandlers.Execute(contentType,
-                args: new GoToDefinitionCommandArgs(ConvertTextView(), subjectBuffer),
-                lastHandler: executeNextCommandTarget);
-        }
-
-        private void ExecuteGoToImplementation(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
-        {
-            CurrentHandlers.Execute(contentType,
-                args: new GoToImplementationCommandArgs(ConvertTextView(), subjectBuffer),
-                lastHandler: executeNextCommandTarget);
-        }
-
-        private void ExecuteFindReferences(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
-        {
-            CurrentHandlers.Execute(contentType,
-                args: new FindReferencesCommandArgs(ConvertTextView(), subjectBuffer),
-                lastHandler: executeNextCommandTarget);
-        }
-
-        private void ExecuteSyncClassView(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
-        {
-            CurrentHandlers.Execute(contentType,
-                args: new SyncClassViewCommandArgs(ConvertTextView(), subjectBuffer),
                 lastHandler: executeNextCommandTarget);
         }
 

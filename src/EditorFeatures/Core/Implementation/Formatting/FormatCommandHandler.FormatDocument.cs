@@ -1,26 +1,24 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using EditorCommanding = Microsoft.VisualStudio.Text.UI.Commanding;
+using Microsoft.VisualStudio.Text.UI.Commanding.Commands;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
 {
     internal partial class FormatCommandHandler
     {
-        public CommandState GetCommandState(FormatDocumentCommandArgs args, Func<CommandState> nextHandler)
+        public EditorCommanding.CommandState GetCommandState(FormatDocumentCommandArgs args)
         {
-            return GetCommandState(args.SubjectBuffer, nextHandler);
+            return GetCommandState(args.SubjectBuffer);
         }
 
-        public void ExecuteCommand(FormatDocumentCommandArgs args, Action nextHandler)
+        public bool ExecuteCommand(FormatDocumentCommandArgs args)
         {
-            if (!TryExecuteCommand(args))
-            {
-                nextHandler();
-            }
+            return !TryExecuteCommand(args);
         }
 
         private bool TryExecuteCommand(FormatDocumentCommandArgs args)

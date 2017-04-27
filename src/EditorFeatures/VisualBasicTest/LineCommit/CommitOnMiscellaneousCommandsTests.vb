@@ -137,7 +137,7 @@ End Module
                                                        </Project>
                                                    </Workspace>)
 
-                testData.CommandHandler.ExecuteCommand(New FormatDocumentCommandArgs(testData.View, testData.Buffer), Sub() Exit Sub)
+                testData.CommandHandler.ExecuteCommand(New Microsoft.VisualStudio.Text.UI.Commanding.Commands.FormatDocumentCommandArgs(testData.View, testData.Buffer))
                 Assert.Equal("        foo()", testData.Buffer.CurrentSnapshot.GetLineFromLineNumber(2).GetText())
             End Using
         End Sub
@@ -159,7 +159,7 @@ End Module
 
                 ' Turn off pretty listing
                 testData.Workspace.Options = testData.Workspace.Options.WithChangedOption(FeatureOnOffOptions.PrettyListing, LanguageNames.VisualBasic, False)
-                testData.CommandHandler.ExecuteCommand(New FormatDocumentCommandArgs(testData.View, testData.Buffer), Sub() Exit Sub)
+                testData.CommandHandler.ExecuteCommand(New Microsoft.VisualStudio.Text.UI.Commanding.Commands.FormatDocumentCommandArgs(testData.View, testData.Buffer))
                 Assert.Equal("    Sub Main()", testData.Buffer.CurrentSnapshot.GetLineFromLineNumber(1).GetText())
             End Using
         End Sub

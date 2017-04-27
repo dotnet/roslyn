@@ -21,7 +21,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting.Indentation
 {
     internal abstract class AbstractSmartTokenFormatterCommandHandler :
-        ICommandHandler<ReturnKeyCommandArgs>
+        ICommandHandler2<ReturnKeyCommandArgs>
     {
         private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
         private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting.Indentation
             return true;
         }
 
-        public CommandState GetCommandState(ReturnKeyCommandArgs args, Func<CommandState> nextHandler)
+        public CommandState2 GetCommandState(ReturnKeyCommandArgs args, Func<CommandState2> nextHandler)
         {
             return nextHandler();
         }

@@ -15,9 +15,10 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
 {
     [ExportCommandHandler(nameof(SplitStringLiteralCommandHandler), ContentTypeNames.CSharpContentType)]
-    internal partial class SplitStringLiteralCommandHandler : ICommandHandler<ReturnKeyCommandArgs>
+    internal partial class SplitStringLiteralCommandHandler : ICommandHandler2<ReturnKeyCommandArgs>
     {
         private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
+        
         private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
 
         [ImportingConstructor]
@@ -29,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
             _editorOperationsFactoryService = editorOperationsFactoryService;
         }
 
-        public CommandState GetCommandState(ReturnKeyCommandArgs args, Func<CommandState> nextHandler)
+        public CommandState2 GetCommandState(ReturnKeyCommandArgs args, Func<CommandState2> nextHandler)
         {
             return nextHandler();
         }

@@ -4,22 +4,23 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.VisualStudio.Text.UI.Commanding.Commands;
+using Microsoft.VisualStudio.Text.UI.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 {
     internal partial class Controller
     {
-        CommandState ICommandHandler<CommitUniqueCompletionListItemCommandArgs>.GetCommandState(CommitUniqueCompletionListItemCommandArgs args, Func<CommandState> nextHandler)
+        CommandState ICommandHandler<CommitUniqueCompletionListItemCommandArgs>.GetCommandState(CommitUniqueCompletionListItemCommandArgs args)
         {
             AssertIsForeground();
-            return nextHandler();
+            return CommandState.CommandIsUnavailable;
         }
 
-        void ICommandHandler<CommitUniqueCompletionListItemCommandArgs>.ExecuteCommand(
-            CommitUniqueCompletionListItemCommandArgs args, Action nextHandler)
+        bool ICommandHandler<CommitUniqueCompletionListItemCommandArgs>.ExecuteCommand(
+            CommitUniqueCompletionListItemCommandArgs args)
         {
             AssertIsForeground();
 
@@ -30,13 +31,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 var completionService = this.GetCompletionService();
                 if (completionService == null)
                 {
-                    return;
+                    return true;
                 }
 
                 var trigger = new CompletionTrigger(CompletionTriggerKind.InvokeAndCommitIfUnique);
                 if (!StartNewModelComputation(completionService, trigger))
                 {
-                    return;
+                    return true;
                 }
             }
 
@@ -47,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 // be computed.  And if nothing has happened between now and that point, we proceed
                 // with committing the items.
                 CommitUniqueCompletionListItemAsynchronously();
-                return;
+                return true;
             }
 
             // We're either in a language that is ok with blocking, or we have the initial set
@@ -57,11 +58,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             if (model == null)
             {
                 // Computation failed.  Just pass this command on.
-                nextHandler();
-                return;
+                return false;
             }
 
             CommitIfUnique(model);
+            return true;
         }
 
         private void CommitUniqueCompletionListItemAsynchronously()

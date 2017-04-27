@@ -3,9 +3,10 @@
 Imports System.ComponentModel.Composition
 Imports Microsoft.CodeAnalysis.Editor.Host
 Imports Microsoft.CodeAnalysis.Editor.Implementation.ChangeSignature
+Imports VSC = Microsoft.VisualStudio.Text.UI.Commanding
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.ChangeSignature
-    <ExportCommandHandler(PredefinedCommandHandlerNames.ChangeSignature, ContentTypeNames.VisualBasicContentType)>
+    <VSC.ExportCommandHandler(PredefinedCommandHandlerNames.ChangeSignature, ContentTypeNames.VisualBasicContentType)>
     Friend Class VisualBasicChangeSignatureCommandHandler
         Inherits AbstractChangeSignatureCommandHandler
 

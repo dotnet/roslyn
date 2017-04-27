@@ -251,7 +251,7 @@ class c { }";
             Verify(text, expected, '/');
         }
 
-        internal override ICommandHandler<TypeCharCommandArgs> CreateCommandHandler(ITextUndoHistoryRegistry undoHistory)
+        internal override ICommandHandler2<TypeCharCommandArgs> CreateCommandHandler(ITextUndoHistoryRegistry undoHistory)
         {
             return new XmlTagCompletionCommandHandler(undoHistory, TestWaitIndicator.Default);
         }

@@ -30,9 +30,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Interactive.Commands
 
         public TestInteractiveEvaluator Evaluator => TestHost.Evaluator;
 
-        private ICommandHandler<ExecuteInInteractiveCommandArgs> ExecuteInInteractiveCommandHandler => _commandHandler;
+        private ICommandHandler2<ExecuteInInteractiveCommandArgs> ExecuteInInteractiveCommandHandler => _commandHandler;
 
-        private ICommandHandler<CopyToInteractiveCommandArgs> CopyToInteractiveCommandHandler => _commandHandler;
+        private ICommandHandler2<CopyToInteractiveCommandArgs> CopyToInteractiveCommandHandler => _commandHandler;
 
         public InteractiveWindowCommandHandlerTestState(XElement workspaceElement)
             : base(workspaceElement)
@@ -66,11 +66,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Interactive.Commands
             CopyToInteractiveCommandHandler.ExecuteCommand(copyToInteractiveArgs, () => { });
         }
 
-        public CommandState GetStateForCopyToInteractive()
+        public CommandState2 GetStateForCopyToInteractive()
         {
             var copyToInteractiveArgs = new CopyToInteractiveCommandArgs(TextView, SubjectBuffer);
             return CopyToInteractiveCommandHandler.GetCommandState(
-                copyToInteractiveArgs, () => { return CommandState.Unavailable; });
+                copyToInteractiveArgs, () => { return CommandState2.Unavailable; });
         }
 
         public void ExecuteInInteractive()
@@ -79,11 +79,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Interactive.Commands
             ExecuteInInteractiveCommandHandler.ExecuteCommand(executeInInteractiveArgs, () => { });
         }
 
-        public CommandState GetStateForExecuteInInteractive()
+        public CommandState2 GetStateForExecuteInInteractive()
         {
             var executeInInteractiveArgs = new ExecuteInInteractiveCommandArgs(TextView, SubjectBuffer);
             return ExecuteInInteractiveCommandHandler.GetCommandState(
-                executeInInteractiveArgs, () => { return CommandState.Unavailable; });
+                executeInInteractiveArgs, () => { return CommandState2.Unavailable; });
         }
     }
 }

@@ -3,27 +3,28 @@
 using System;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.UI.Commanding;
+using Microsoft.VisualStudio.Text.UI.Commanding.Commands;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 {
     internal partial class Controller
     {
-        CommandState ICommandHandler<TypeCharCommandArgs>.GetCommandState(TypeCharCommandArgs args, Func<CommandState> nextHandler)
+        CommandState ICommandHandler<TypeCharCommandArgs>.GetCommandState(TypeCharCommandArgs args)
         {
             AssertIsForeground();
 
             // We just defer to the editor here.  We do not interfere with typing normal characters.
-            return nextHandler();
+            return CommandState.CommandIsUnavailable;
         }
 
-        void ICommandHandler<TypeCharCommandArgs>.ExecuteCommand(TypeCharCommandArgs args, Action nextHandler)
+        bool ICommandHandler<TypeCharCommandArgs>.ExecuteCommand(TypeCharCommandArgs args)
         {
             AssertIsForeground();
 
@@ -74,6 +75,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             // depending on the character typed, the character may not go into our buffer.
             var isOnSeam = IsOnSeam();
 
+            Action nextHandler = () => ExecuteEditorCommandHandler(args);
+
             try
             {
                 nextHandler();
@@ -102,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                         var model = this.WaitForModel();
                         if (this.CommitIfCommitCharacter(args.TypedChar, model, initialTextSnapshot, nextHandler))
                         {
-                            return;
+                            return true;
                         }
                     }
 
@@ -114,7 +117,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                         {
                             // I don't think there is any better way than this. if typed char is one of auto brace completion char,
                             // we don't do multiple buffer change check
-                            return;
+                            return true;
                         }
                     }
 
@@ -123,13 +126,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                     this.DismissSessionIfActive();
                 }
 
-                return;
+                return true;
             }
 
             var completionService = this.GetCompletionService();
             if (completionService == null)
             {
-                return;
+                return true;
             }
 
             var options = GetOptions();
@@ -149,12 +152,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                     // First create the session that represents that we now have a potential
                     // completion list.  Then tell it to start computing.
                     StartNewModelComputation(completionService, trigger);
-                    return;
+                    return true;
                 }
                 else
                 {
                     // No need to do anything.  Just stay in the state where we have no session.
-                    return;
+                    return true;
                 }
             }
             else
@@ -204,7 +207,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                         // filter the session.
 
                         sessionOpt.FilterModel(CompletionFilterReason.Insertion, filterState: null);
-                        return;
+                        return true;
                     }
 
                     // It wasn't a filter character.  We'll either commit what's selected, or we'll
@@ -225,10 +228,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                     {
                         StartNewModelComputation(
                             completionService, trigger);
-                        return;
+                        return true;
                     }
                 }
             }
+
+            // We directly called the editor to process the typechar
+            // We can always return true.
+            return true;
         }
 
         private bool IsOnSeam()

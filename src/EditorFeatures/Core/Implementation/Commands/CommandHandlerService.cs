@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Commands
     /// </summary>
     internal class CommandHandlerService : ICommandHandlerService
     {
-        private readonly IEnumerable<Lazy<ICommandHandler, OrderableContentTypeMetadata>> _commandHandlers;
+        private readonly IEnumerable<Lazy<ICommandHandler2, OrderableContentTypeMetadata>> _commandHandlers;
 
         /// <summary>
         /// This dictionary acts as a cache so we can avoid having to look through the full list of
@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Commands
         /// </summary>
         private readonly Dictionary<Tuple<Type, string>, object> _commandHandlersByTypeAndContentType;
 
-        public CommandHandlerService(IList<Lazy<ICommandHandler, OrderableContentTypeMetadata>> list)
+        public CommandHandlerService(IList<Lazy<ICommandHandler2, OrderableContentTypeMetadata>> list)
         {
             _commandHandlers = list;
             _commandHandlersByTypeAndContentType = new Dictionary<Tuple<Type, string>, object>();
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Commands
         /// Returns a list of ICommandHandlers of a given type that apply to a given content type.
         /// The result is cached so repeated calls are fast.
         /// </summary>
-        private IList<ICommandHandler<T>> GetHandlers<T>(IContentType contentType) where T : CommandArgs
+        private IList<ICommandHandler2<T>> GetHandlers<T>(IContentType contentType) where T : CommandArgs
         {
             Contract.ThrowIfFalse(contentType != null);
 
@@ -44,17 +44,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Commands
             if (!_commandHandlersByTypeAndContentType.TryGetValue(key, out var commandHandlerList))
             {
                 var stronglyTypedHandlers = from handler in _commandHandlers
-                                            where handler.Value is ICommandHandler<T>
+                                            where handler.Value is ICommandHandler2<T>
                                             where handler.Metadata.ContentTypes.Any(contentType.IsOfType)
-                                            select handler.Value as ICommandHandler<T>;
-                commandHandlerList = new List<ICommandHandler<T>>(stronglyTypedHandlers);
+                                            select handler.Value as ICommandHandler2<T>;
+                commandHandlerList = new List<ICommandHandler2<T>>(stronglyTypedHandlers);
                 _commandHandlersByTypeAndContentType.Add(key, commandHandlerList);
             }
 
-            return (IList<ICommandHandler<T>>)commandHandlerList;
+            return (IList<ICommandHandler2<T>>)commandHandlerList;
         }
 
-        CommandState ICommandHandlerService.GetCommandState<T>(IContentType contentType, T args, Func<CommandState> lastHandler)
+        CommandState2 ICommandHandlerService.GetCommandState<T>(IContentType contentType, T args, Func<CommandState2> lastHandler)
         {
             using (Logger.LogBlock(FunctionId.CommandHandler_GetCommandState, CancellationToken.None))
             {
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Commands
         /// one. If all handlers choose to call the nextHandler lambda, the lastHandler lambda is
         /// called.
         /// </summary>
-        private static void ExecuteHandlers<T>(IList<ICommandHandler<T>> commandHandlers, T args, Action lastHandler) where T : CommandArgs
+        private static void ExecuteHandlers<T>(IList<ICommandHandler2<T>> commandHandlers, T args, Action lastHandler) where T : CommandArgs
         {
             Contract.ThrowIfNull(commandHandlers);
 
@@ -106,17 +106,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Commands
         /// one. If all handlers choose to call the nextHandler lambda, the lastHandler lambda is
         /// called.
         /// </summary>
-        private static CommandState GetCommandState<TArgs>(
-            IList<ICommandHandler<TArgs>> commandHandlers,
+        private static CommandState2 GetCommandState<TArgs>(
+            IList<ICommandHandler2<TArgs>> commandHandlers,
             TArgs args,
-            Func<CommandState> lastHandler) where TArgs : CommandArgs
+            Func<CommandState2> lastHandler) where TArgs : CommandArgs
         {
             Contract.ThrowIfNull(commandHandlers);
 
             if (commandHandlers.Count > 0)
             {
                 // Build up chain of handlers.
-                var handlerChain = lastHandler ?? delegate { return default; };
+                var handlerChain = lastHandler ?? delegate { return default(CommandState2); };
                 for (int i = commandHandlers.Count - 1; i >= 1; i--)
                 {
                     // Declare locals to ensure that we don't end up capturing the wrong thing
@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Commands
                 return lastHandler();
             }
 
-            return default;
+            return default(CommandState2);
         }
     }
 }

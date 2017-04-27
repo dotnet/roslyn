@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.BlockCommentEditing
 {
     public abstract class AbstractBlockCommentEditingTests
     {
-        internal abstract ICommandHandler<ReturnKeyCommandArgs> CreateCommandHandler(
+        internal abstract ICommandHandler2<ReturnKeyCommandArgs> CreateCommandHandler(
             ITextUndoHistoryRegistry undoHistoryRegistry,
             IEditorOperationsFactoryService editorOperationsFactoryService);
 

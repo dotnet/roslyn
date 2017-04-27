@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
     [Order(After = PredefinedCommandHandlerNames.Completion)]
     [Order(After = PredefinedCommandHandlerNames.QuickInfo)]
     [Order(After = PredefinedCommandHandlerNames.EventHookup)]
-    internal class RenameTrackingCancellationCommandHandler : ICommandHandler<EscapeKeyCommandArgs>
+    internal class RenameTrackingCancellationCommandHandler : ICommandHandler2<EscapeKeyCommandArgs>
     {
         public void ExecuteCommand(EscapeKeyCommandArgs args, Action nextHandler)
         {
@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
             nextHandler();
         }
 
-        public CommandState GetCommandState(EscapeKeyCommandArgs args, Func<CommandState> nextHandler)
+        public CommandState2 GetCommandState(EscapeKeyCommandArgs args, Func<CommandState2> nextHandler)
         {
             return nextHandler();
         }

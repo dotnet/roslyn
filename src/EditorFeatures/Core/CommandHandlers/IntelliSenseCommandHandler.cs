@@ -4,7 +4,7 @@ using System.ComponentModel.Composition;
 
 namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
 {
-    [ExportCommandHandler(PredefinedCommandHandlerNames.IntelliSense, ContentTypeNames.RoslynContentType)]
+    [VisualStudio.Text.UI.Commanding.ExportCommandHandler(PredefinedCommandHandlerNames.IntelliSense, ContentTypeNames.RoslynContentType)]
     internal sealed class IntelliSenseCommandHandler : AbstractIntelliSenseCommandHandler
     {
         [ImportingConstructor]

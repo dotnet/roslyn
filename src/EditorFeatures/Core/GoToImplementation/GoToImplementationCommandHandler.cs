@@ -14,15 +14,19 @@ using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
+using EditorCommanding = Microsoft.VisualStudio.Text.UI.Commanding;
+using EditorCommands = Microsoft.VisualStudio.Text.UI.Commanding.Commands;
 
 namespace Microsoft.CodeAnalysis.Editor.GoToImplementation
 {
-    [ExportCommandHandler(PredefinedCommandHandlerNames.GoToImplementation,
+    [EditorCommanding.ExportCommandHandler(PredefinedCommandHandlerNames.GoToImplementation,
         ContentTypeNames.RoslynContentType)]
-    internal partial class GoToImplementationCommandHandler : ICommandHandler<GoToImplementationCommandArgs>
+    internal partial class GoToImplementationCommandHandler : EditorCommanding.ICommandHandler<EditorCommands.GoToImplementationCommandArgs>
     {
         private readonly IWaitIndicator _waitIndicator;
         private readonly IEnumerable<Lazy<IStreamingFindUsagesPresenter>> _streamingPresenters;
+
+        public bool InterestedInReadOnlyBuffer => true;
 
         [ImportingConstructor]
         public GoToImplementationCommandHandler(
@@ -41,16 +45,16 @@ namespace Microsoft.CodeAnalysis.Editor.GoToImplementation
                     document?.GetLanguageService<IFindUsagesService>());
         }
 
-        public CommandState GetCommandState(GoToImplementationCommandArgs args, Func<CommandState> nextHandler)
+        public EditorCommanding.CommandState GetCommandState(EditorCommands.GoToImplementationCommandArgs args)
         {
             // Because this is expensive to compute, we just always say yes as long as the language allows it.
             var (document, implService, findUsagesService) = GetDocumentAndServices(args.SubjectBuffer.CurrentSnapshot);
             return implService != null || findUsagesService != null
-                ? CommandState.Available
-                : CommandState.Unavailable;
+                ? EditorCommanding.CommandState.CommandIsAvailable
+                : EditorCommanding.CommandState.CommandIsUnavailable;
         }
 
-        public void ExecuteCommand(GoToImplementationCommandArgs args, Action nextHandler)
+        public bool ExecuteCommand(EditorCommands.GoToImplementationCommandArgs args)
         {
             var (document, implService, findUsagesService) = GetDocumentAndServices(args.SubjectBuffer.CurrentSnapshot);
             if (implService != null || findUsagesService != null)
@@ -59,11 +63,11 @@ namespace Microsoft.CodeAnalysis.Editor.GoToImplementation
                 if (caret.HasValue)
                 {
                     ExecuteCommand(document, caret.Value, implService, findUsagesService);
-                    return;
+                    return true;
                 }
             }
 
-            nextHandler();
+            return false;
         }
 
         private void ExecuteCommand(

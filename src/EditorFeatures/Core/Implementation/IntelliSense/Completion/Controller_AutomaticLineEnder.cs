@@ -1,27 +1,27 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using Microsoft.CodeAnalysis.Editor.Commands;
+using Microsoft.VisualStudio.Text.UI.Commanding;
+using Microsoft.VisualStudio.Text.UI.Commanding.Commands;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 {
     internal partial class Controller
     {
-        CommandState ICommandHandler<AutomaticLineEnderCommandArgs>.GetCommandState(AutomaticLineEnderCommandArgs args, Func<CommandState> nextHandler)
+        CommandState ICommandHandler<AutomaticLineEnderCommandArgs>.GetCommandState(AutomaticLineEnderCommandArgs args)
         {
             AssertIsForeground();
-            return nextHandler();
+            return CommandState.CommandIsUnavailable;
         }
 
-        void ICommandHandler<AutomaticLineEnderCommandArgs>.ExecuteCommand(AutomaticLineEnderCommandArgs args, Action nextHandler)
+        bool ICommandHandler<AutomaticLineEnderCommandArgs>.ExecuteCommand(AutomaticLineEnderCommandArgs args)
         {
             AssertIsForeground();
 
             if (sessionOpt == null)
             {
                 // No computation.  Nothing to do.  Just let the editor handle this.
-                nextHandler();
-                return;
+                return false;
             }
 
             CommitOnEnter(out var sendThrough, out var committed);
@@ -30,8 +30,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             if (!committed)
             {
                 this.DismissSessionIfActive();
-                nextHandler();
+                return false;
             }
+
+            return true;
         }
     }
 }

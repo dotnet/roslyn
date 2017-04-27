@@ -8,12 +8,14 @@ Imports Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 Imports Microsoft.CodeAnalysis.Editor.Implementation.InlineRename.HighlightTags
 Imports Microsoft.CodeAnalysis.Editor.Shared.Tagging
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.Test.Utilities.Commands
 Imports Microsoft.CodeAnalysis.Text.Shared.Extensions
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Editor
 Imports Microsoft.VisualStudio.Text.Operations
 Imports Microsoft.VisualStudio.Text.Tagging
 Imports Roslyn.Utilities
+Imports VSC = Microsoft.VisualStudio.Text.UI.Commanding.Commands
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
     Public Class RenameTagProducerTests
@@ -593,11 +595,11 @@ class C
                 End Using
 
                 ' Delete Foo and type "as"
-                commandHandler.ExecuteCommand(New BackspaceKeyCommandArgs(view, view.TextBuffer), Sub() editorOperations.Backspace())
-                commandHandler.ExecuteCommand(New BackspaceKeyCommandArgs(view, view.TextBuffer), Sub() editorOperations.Backspace())
-                commandHandler.ExecuteCommand(New BackspaceKeyCommandArgs(view, view.TextBuffer), Sub() editorOperations.Backspace())
-                commandHandler.ExecuteCommand(New TypeCharCommandArgs(view, view.TextBuffer, "a"c), Sub() editorOperations.InsertText("a"))
-                commandHandler.ExecuteCommand(New TypeCharCommandArgs(view, view.TextBuffer, "s"c), Sub() editorOperations.InsertText("s"))
+                commandHandler.ExecuteCommand(New VSC.BackspaceKeyCommandArgs(view, view.TextBuffer), Sub() editorOperations.Backspace())
+                commandHandler.ExecuteCommand(New VSC.BackspaceKeyCommandArgs(view, view.TextBuffer), Sub() editorOperations.Backspace())
+                commandHandler.ExecuteCommand(New VSC.BackspaceKeyCommandArgs(view, view.TextBuffer), Sub() editorOperations.Backspace())
+                commandHandler.ExecuteCommand(New VSC.TypeCharCommandArgs(view, view.TextBuffer, "a"c), Sub() editorOperations.InsertText("a"))
+                commandHandler.ExecuteCommand(New VSC.TypeCharCommandArgs(view, view.TextBuffer, "s"c), Sub() editorOperations.InsertText("s"))
 
                 Using resolvedConflictWorkspace = CreateWorkspaceWithWaiter(
                     <Workspace>
@@ -1090,7 +1092,7 @@ End Class
                 ' Type first in the main identifier
                 view.Selection.Clear()
                 view.Caret.MoveTo(New SnapshotPoint(view.TextBuffer.CurrentSnapshot, workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value))
-                commandHandler.ExecuteCommand(New TypeCharCommandArgs(view, view.TextBuffer, "e"c), Sub() editorOperations.InsertText("e"))
+                commandHandler.ExecuteCommand(New VSC.TypeCharCommandArgs(view, view.TextBuffer, "e"c), Sub() editorOperations.InsertText("e"))
 
                 ' Verify fixup/resolved conflict span.
                 Using resolvedConflictWorkspace = CreateWorkspaceWithWaiter(
@@ -1112,7 +1114,7 @@ End Class
                 End Using
 
                 ' Make another edit to change "New" to "Nexw" so that we have no more conflicts or escaping.
-                commandHandler.ExecuteCommand(New TypeCharCommandArgs(view, view.TextBuffer, "x"c), Sub() editorOperations.InsertText("x"))
+                commandHandler.ExecuteCommand(New VSC.TypeCharCommandArgs(view, view.TextBuffer, "x"c), Sub() editorOperations.InsertText("x"))
 
                 ' Verify resolved escaping conflict spans.
                 Using resolvedConflictWorkspace = CreateWorkspaceWithWaiter(
@@ -1171,9 +1173,9 @@ End Class
 
                 ' Type few characters.
                 view.Caret.MoveTo(New SnapshotPoint(view.TextBuffer.CurrentSnapshot, workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value))
-                commandHandler.ExecuteCommand(New TypeCharCommandArgs(view, view.TextBuffer, "e"c), Sub() editorOperations.InsertText("e"))
-                commandHandler.ExecuteCommand(New TypeCharCommandArgs(view, view.TextBuffer, "f"c), Sub() editorOperations.InsertText("f"))
-                commandHandler.ExecuteCommand(New TypeCharCommandArgs(view, view.TextBuffer, "g"c), Sub() editorOperations.InsertText("g"))
+                commandHandler.ExecuteCommand(New VSC.TypeCharCommandArgs(view, view.TextBuffer, "e"c), Sub() editorOperations.InsertText("e"))
+                commandHandler.ExecuteCommand(New VSC.TypeCharCommandArgs(view, view.TextBuffer, "f"c), Sub() editorOperations.InsertText("f"))
+                commandHandler.ExecuteCommand(New VSC.TypeCharCommandArgs(view, view.TextBuffer, "g"c), Sub() editorOperations.InsertText("g"))
 
                 session.Commit()
                 Dim selectionLength = view.Selection.End.Position - view.Selection.Start.Position

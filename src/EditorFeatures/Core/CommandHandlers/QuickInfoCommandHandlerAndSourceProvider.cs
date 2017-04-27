@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
-using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
@@ -14,15 +13,15 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.UI.Commanding;
+using Microsoft.VisualStudio.Text.UI.Commanding.Commands;
 using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
 {
     [Export]
     [Order(After = PredefinedQuickInfoPresenterNames.RoslynQuickInfoPresenter)]
-    [ContentType(ContentTypeNames.RoslynContentType)]
-    [Export(typeof(IQuickInfoSourceProvider))]
-    [Name("RoslynQuickInfoProvider")]
+    [VisualStudio.Text.UI.Commanding.ExportCommandHandler(PredefinedCommandHandlerNames.QuickInfo, ContentTypeNames.RoslynContentType)]
     internal partial class QuickInfoCommandHandlerAndSourceProvider :
         ForegroundThreadAffinitizedObject,
         IQuickInfoSourceProvider
@@ -30,6 +29,8 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
         private readonly IIntelliSensePresenter<IQuickInfoPresenterSession, IQuickInfoSession> _presenter;
         private readonly IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> _asyncListeners;
         private readonly IList<Lazy<IQuickInfoProvider, OrderableLanguageMetadata>> _providers;
+
+        public bool InterestedInReadOnlyBuffer => true;
 
         [ImportingConstructor]
         public QuickInfoCommandHandlerAndSourceProvider(
@@ -52,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
             _presenter = presenter;
         }
 
-        private bool TryGetController(CommandArgs args, out Controller controller)
+        private bool TryGetController(Microsoft.VisualStudio.Text.UI.Commanding.Commands.CommandArgs args, out Controller controller)
         {
             AssertIsForeground();
 
@@ -78,6 +79,57 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
                 new AggregateAsynchronousOperationListener(_asyncListeners, FeatureAttribute.QuickInfo),
                 _providers);
             return true;
+        }
+
+        private bool TryGetControllerCommandHandler<TCommandArgs>(TCommandArgs args, out ICommandHandler<TCommandArgs> commandHandler)
+            where TCommandArgs : Microsoft.VisualStudio.Text.UI.Commanding.Commands.CommandArgs
+        {
+            AssertIsForeground();
+            if (!TryGetController(args, out var controller))
+            {
+                commandHandler = null;
+                return false;
+            }
+
+            commandHandler = (ICommandHandler<TCommandArgs>)controller;
+            return true;
+        }
+
+        private CommandState GetCommandStateWorker<TCommandArgs>(
+            TCommandArgs args)
+            where TCommandArgs : VisualStudio.Text.UI.Commanding.Commands.CommandArgs
+        {
+            AssertIsForeground();
+            return TryGetControllerCommandHandler(args, out var commandHandler)
+                ? commandHandler.GetCommandState(args)
+                : CommandState.CommandIsUnavailable;
+        }
+
+        private bool ExecuteCommandWorker<TCommandArgs>(
+            TCommandArgs args)
+            where TCommandArgs : VisualStudio.Text.UI.Commanding.Commands.CommandArgs
+        {
+            AssertIsForeground();
+            if (!TryGetControllerCommandHandler(args, out var commandHandler))
+            {
+                return false;
+            }
+            else
+            {
+                return commandHandler.ExecuteCommand(args);
+            }
+        }
+
+        CommandState ICommandHandler<InvokeQuickInfoCommandArgs>.GetCommandState(InvokeQuickInfoCommandArgs args)
+        {
+            AssertIsForeground();
+            return GetCommandStateWorker(args);
+        }
+
+        bool ICommandHandler<InvokeQuickInfoCommandArgs>.ExecuteCommand(InvokeQuickInfoCommandArgs args)
+        {
+            AssertIsForeground();
+            return ExecuteCommandWorker(args);
         }
 
         public IQuickInfoSource TryCreateQuickInfoSource(ITextBuffer textBuffer)

@@ -3,24 +3,25 @@
 using System;
 using System.Threading;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Text.UI.Commanding;
+using Microsoft.VisualStudio.Text.UI.Commanding.Commands;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 {
     internal partial class Controller
     {
-        CommandState ICommandHandler<TabKeyCommandArgs>.GetCommandState(TabKeyCommandArgs args, System.Func<CommandState> nextHandler)
+        CommandState ICommandHandler<TabKeyCommandArgs>.GetCommandState(TabKeyCommandArgs args)
         {
             AssertIsForeground();
-            return nextHandler();
+            return CommandState.CommandIsUnavailable;
         }
 
-        void ICommandHandler<TabKeyCommandArgs>.ExecuteCommand(TabKeyCommandArgs args, Action nextHandler)
+        bool ICommandHandler<TabKeyCommandArgs>.ExecuteCommand(TabKeyCommandArgs args)
         {
             AssertIsForeground();
 
@@ -30,22 +31,22 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 if (TryInvokeSnippetCompletion(args))
                 {
                     // We've taken care of the tab. Don't send it to the buffer.
-                    return;
+                    return true;
                 }
 
                 // No computation.  Nothing to do.  Just let the editor handle this.
-                nextHandler();
-                return;
+                return false;
             }
 
             // We are computing a model.  Try to commit the selected item if there was one. Note: If
             // it was able to commit, then we never send the tab to the buffer. That way, if the
             // user does an undo they'll get to the code they had *before* they hit tab. If the
             // session wasn't able to commit, then we do send the tab through to the buffer.
-            CommitOnTab(nextHandler);
+            var result = CommitOnTab();
 
             // After tab, we always want to be in an inactive state.
             this.DismissSessionIfActive();
+            return result;
         }
 
         private bool TryInvokeSnippetCompletion(TabKeyCommandArgs args)
@@ -146,7 +147,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             return current == questionPosition;
         }
 
-        private void CommitOnTab(Action nextHandler)
+        private bool CommitOnTab()
         {
             AssertIsForeground();
 
@@ -156,15 +157,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             // through to the editor.
             if (model == null)
             {
-                nextHandler();
-                return;
+                return false;
             }
 
             // If there's no selected item, there's nothing to commit
             if (model.SelectedItemOpt == null)
             {
-                nextHandler();
-                return;
+                return false;
             }
 
             // If the selected item is the builder, there's not actually any work to do to commit
@@ -172,6 +171,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             {
                 CommitOnNonTypeChar(model.SelectedItemOpt, model);
             }
+
+            return true;
         }
     }
 }

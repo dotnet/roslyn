@@ -17,8 +17,8 @@ using Microsoft.CodeAnalysis.Editor.Host;
 namespace Microsoft.CodeAnalysis.Editor.Interactive
 {
     internal abstract class InteractiveCommandHandler :
-        ICommandHandler<ExecuteInInteractiveCommandArgs>,
-        ICommandHandler<CopyToInteractiveCommandArgs>
+        ICommandHandler2<ExecuteInInteractiveCommandArgs>,
+        ICommandHandler2<CopyToInteractiveCommandArgs>
     {
         private readonly IContentTypeRegistryService _contentTypeRegistryService;
         private readonly IEditorOptionsFactoryService _editorOptionsFactoryService;
@@ -49,12 +49,12 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
             return SendToInteractiveSubmissionProvider.GetSelectedText(editorOptions, args, cancellationToken);
         }
 
-        CommandState ICommandHandler<ExecuteInInteractiveCommandArgs>.GetCommandState(ExecuteInInteractiveCommandArgs args, Func<CommandState> nextHandler)
+        CommandState2 ICommandHandler2<ExecuteInInteractiveCommandArgs>.GetCommandState(ExecuteInInteractiveCommandArgs args, Func<CommandState2> nextHandler)
         {
-            return CommandState.Available;
+            return CommandState2.Available;
         }
 
-        void ICommandHandler<ExecuteInInteractiveCommandArgs>.ExecuteCommand(ExecuteInInteractiveCommandArgs args, Action nextHandler)
+        void ICommandHandler2<ExecuteInInteractiveCommandArgs>.ExecuteCommand(ExecuteInInteractiveCommandArgs args, Action nextHandler)
         {
             var window = OpenInteractiveWindow(focus: false);
             _waitIndicator.Wait(
@@ -70,12 +70,12 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
                 });
         }
 
-        CommandState ICommandHandler<CopyToInteractiveCommandArgs>.GetCommandState(CopyToInteractiveCommandArgs args, Func<CommandState> nextHandler)
+        CommandState2 ICommandHandler2<CopyToInteractiveCommandArgs>.GetCommandState(CopyToInteractiveCommandArgs args, Func<CommandState2> nextHandler)
         {
-            return CommandState.Available;
+            return CommandState2.Available;
         }
 
-        void ICommandHandler<CopyToInteractiveCommandArgs>.ExecuteCommand(CopyToInteractiveCommandArgs args, Action nextHandler)
+        void ICommandHandler2<CopyToInteractiveCommandArgs>.ExecuteCommand(CopyToInteractiveCommandArgs args, Action nextHandler)
         {
             var window = OpenInteractiveWindow(focus: true);
             var buffer = window.CurrentLanguageBuffer;

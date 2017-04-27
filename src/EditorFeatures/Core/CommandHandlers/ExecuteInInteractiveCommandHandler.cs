@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
     /// </summary>
     [ExportCommandHandler("Interactive Command Handler", ContentTypeNames.RoslynContentType)]
     internal class ExecuteInInteractiveCommandHandler
-        : ICommandHandler<ExecuteInInteractiveCommandArgs>
+        : ICommandHandler2<ExecuteInInteractiveCommandArgs>
     {
         private readonly IEnumerable<Lazy<IExecuteInInteractiveCommandHandler, ContentTypeMetadata>> _executeInInteractiveHandlers;
 
@@ -35,16 +35,16 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
                 .SingleOrDefault();
         }
 
-        void ICommandHandler<ExecuteInInteractiveCommandArgs>.ExecuteCommand(ExecuteInInteractiveCommandArgs args, Action nextHandler)
+        void ICommandHandler2<ExecuteInInteractiveCommandArgs>.ExecuteCommand(ExecuteInInteractiveCommandArgs args, Action nextHandler)
         {
             GetCommandHandler(args.SubjectBuffer)?.Value.ExecuteCommand(args, nextHandler);
         }
 
-        CommandState ICommandHandler<ExecuteInInteractiveCommandArgs>.GetCommandState(ExecuteInInteractiveCommandArgs args, Func<CommandState> nextHandler)
+        CommandState2 ICommandHandler2<ExecuteInInteractiveCommandArgs>.GetCommandState(ExecuteInInteractiveCommandArgs args, Func<CommandState2> nextHandler)
         {
             return GetCommandHandler(args.SubjectBuffer) == null
-                ? CommandState.Unavailable
-                : CommandState.Available;
+                ? CommandState2.Unavailable
+                : CommandState2.Available;
         }
     }
 }

@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.Editor.Commands;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
 {
     internal partial class EventHookupCommandHandler :
-        ICommandHandler<EscapeKeyCommandArgs>
+        ICommandHandler2<EscapeKeyCommandArgs>
     {
         public void ExecuteCommand(EscapeKeyCommandArgs args, Action nextHandler)
         {
@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
             nextHandler();
         }
 
-        public CommandState GetCommandState(EscapeKeyCommandArgs args, Func<CommandState> nextHandler)
+        public CommandState2 GetCommandState(EscapeKeyCommandArgs args, Func<CommandState2> nextHandler)
         {
             AssertIsForeground();
             return nextHandler();

@@ -10281,13 +10281,13 @@ namespace ClassLibrary9
                     workspace.GetService<IInlineRenameService>(),
                     workspace.GetService<Host.IWaitIndicator>());
                 var delegatedToNext = false;
-                Func<CommandState> nextHandler = () =>
+                Func<CommandState2> nextHandler = () =>
                 {
                     delegatedToNext = true;
-                    return CommandState.Unavailable;
+                    return CommandState2.Unavailable;
                 };
 
-                var state = handler.GetCommandState(new Commands.ExtractMethodCommandArgs(textView, textView.TextBuffer), nextHandler);
+                var state = handler.GetCommandState(new Microsoft.VisualStudio.Text.UI.Commanding.Commands.ExtractMethodCommandArgs(textView, textView.TextBuffer));
                 Assert.True(delegatedToNext);
                 Assert.False(state.IsAvailable);
             }

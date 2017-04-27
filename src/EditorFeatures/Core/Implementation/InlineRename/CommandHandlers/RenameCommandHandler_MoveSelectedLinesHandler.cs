@@ -1,31 +1,34 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using Microsoft.CodeAnalysis.Editor.Commands;
+using Microsoft.VisualStudio.Text.UI.Commanding.Commands;
+using VSC = Microsoft.VisualStudio.Text.UI.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 {
     internal partial class RenameCommandHandler :
-        ICommandHandler<MoveSelectedLinesUpCommandArgs>, ICommandHandler<MoveSelectedLinesDownCommandArgs>
+        VSC.ICommandHandler<MoveSelectedLinesUpCommandArgs>, VSC.ICommandHandler<MoveSelectedLinesDownCommandArgs>
     {
-        public CommandState GetCommandState(MoveSelectedLinesUpCommandArgs args, Func<CommandState> nextHandler)
+        public VSC.CommandState GetCommandState(MoveSelectedLinesUpCommandArgs args)
         {
-            return nextHandler();
+            return VSC.CommandState.CommandIsUnavailable;
         }
 
-        public void ExecuteCommand(MoveSelectedLinesUpCommandArgs args, Action nextHandler)
+        public bool ExecuteCommand(MoveSelectedLinesUpCommandArgs args)
         {
-            CommitIfActiveAndCallNextHandler(args, nextHandler);
+            CommitIfActive(args.TextView);
+            return false;
         }
 
-        public CommandState GetCommandState(MoveSelectedLinesDownCommandArgs args, Func<CommandState> nextHandler)
+        public VSC.CommandState GetCommandState(MoveSelectedLinesDownCommandArgs args)
         {
-            return nextHandler();
+            return VSC.CommandState.CommandIsUnavailable;
         }
 
-        public void ExecuteCommand(MoveSelectedLinesDownCommandArgs args, Action nextHandler)
+        public bool ExecuteCommand(MoveSelectedLinesDownCommandArgs args)
         {
-            CommitIfActiveAndCallNextHandler(args, nextHandler);
+            CommitIfActive(args.TextView);
+            return false;
         }
     }
 }

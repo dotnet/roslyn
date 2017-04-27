@@ -13,12 +13,16 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Text.UI.Commanding.Commands;
+using VSC = Microsoft.VisualStudio.Text.UI.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.ChangeSignature
 {
-    internal abstract class AbstractChangeSignatureCommandHandler : ICommandHandler<ReorderParametersCommandArgs>, ICommandHandler<RemoveParametersCommandArgs>
+    internal abstract class AbstractChangeSignatureCommandHandler : VSC.ICommandHandler<ReorderParametersCommandArgs>, VSC.ICommandHandler<RemoveParametersCommandArgs>
     {
         private readonly IWaitIndicator _waitIndicator;
+
+        public bool InterestedInReadOnlyBuffer => false;
 
         protected AbstractChangeSignatureCommandHandler(
             IWaitIndicator waitIndicator)
@@ -26,65 +30,61 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ChangeSignature
             _waitIndicator = waitIndicator;
         }
 
-        public CommandState GetCommandState(ReorderParametersCommandArgs args, Func<CommandState> nextHandler)
-            => GetCommandState(args.SubjectBuffer, nextHandler);
+        public VSC.CommandState GetCommandState(ReorderParametersCommandArgs args)
+            => GetCommandState(args.SubjectBuffer);
 
-        public CommandState GetCommandState(RemoveParametersCommandArgs args, Func<CommandState> nextHandler)
-            => GetCommandState(args.SubjectBuffer, nextHandler);
+        public VSC.CommandState GetCommandState(RemoveParametersCommandArgs args)
+            => GetCommandState(args.SubjectBuffer);
 
-        private static CommandState GetCommandState(ITextBuffer subjectBuffer, Func<CommandState> nextHandler)
+        private static VSC.CommandState GetCommandState(ITextBuffer subjectBuffer)
         {
             var document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document == null ||
                 !document.Project.Solution.Workspace.CanApplyChange(ApplyChangesKind.ChangeDocument))
             {
-                return nextHandler();
+                return VSC.CommandState.CommandIsUnavailable;
             }
 
             var supportsFeatureService = document.Project.Solution.Workspace.Services.GetService<IDocumentSupportsFeatureService>();
             if (!supportsFeatureService.SupportsRefactorings(document))
             {
-                return nextHandler();
+                return VSC.CommandState.CommandIsUnavailable;
             }
 
-            return CommandState.Available;
+            return VSC.CommandState.CommandIsAvailable;
         }
 
-        public void ExecuteCommand(RemoveParametersCommandArgs args, Action nextHandler)
-            => ExecuteCommand(args.TextView, args.SubjectBuffer, nextHandler);
+        public bool ExecuteCommand(RemoveParametersCommandArgs args)
+            => ExecuteCommand(args.TextView, args.SubjectBuffer);
 
-        public void ExecuteCommand(ReorderParametersCommandArgs args, Action nextHandler)
-            => ExecuteCommand(args.TextView, args.SubjectBuffer, nextHandler);
+        public bool ExecuteCommand(ReorderParametersCommandArgs args)
+            => ExecuteCommand(args.TextView, args.SubjectBuffer);
 
-        private void ExecuteCommand(ITextView textView, ITextBuffer subjectBuffer, Action nextHandler)
+        private bool ExecuteCommand(ITextView textView, ITextBuffer subjectBuffer)
         {
             var document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document == null)
             {
-                nextHandler();
-                return;
+                return false;
             }
 
             // TODO: reuse GetCommandState instead
             var workspace = document.Project.Solution.Workspace;
             if (!workspace.CanApplyChange(ApplyChangesKind.ChangeDocument))
             {
-                nextHandler();
-                return;
+                return false;
             }
 
             var supportsFeatureService = document.Project.Solution.Workspace.Services.GetService<IDocumentSupportsFeatureService>();
             if (!supportsFeatureService.SupportsRefactorings(document))
             {
-                nextHandler();
-                return;
+                return false;
             }
 
             var caretPoint = textView.GetCaretPoint(subjectBuffer);
             if (!caretPoint.HasValue)
             {
-                nextHandler();
-                return;
+                return false;
             }
 
             ChangeSignatureResult result = null;
@@ -103,12 +103,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ChangeSignature
 
             if (waitResult == WaitIndicatorResult.Canceled)
             {
-                return;
+                return true;
             }
 
             if (result == null || !result.Succeeded)
             {
-                return;
+                return true;
             }
 
             var finalSolution = result.UpdatedSolution;
@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ChangeSignature
             if (finalSolution == null)
             {
                 // User clicked cancel.
-                return;
+                return true;
             }
 
             using (var workspaceUndoTransaction = workspace.OpenGlobalUndoTransaction(FeaturesResources.Change_signature))
@@ -137,11 +137,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ChangeSignature
                 if (!workspace.TryApplyChanges(finalSolution))
                 {
                     // TODO: handle failure
-                    return;
+                    return true;
                 }
 
                 workspaceUndoTransaction.Commit();
             }
+
+            return true;
         }
     }
 }

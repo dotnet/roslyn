@@ -4,32 +4,32 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.SignatureHelp;
+using Microsoft.VisualStudio.Text.UI.Commanding;
+using Microsoft.VisualStudio.Text.UI.Commanding.Commands;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHelp
 {
     internal partial class Controller
     {
-        CommandState ICommandHandler<TypeCharCommandArgs>.GetCommandState(TypeCharCommandArgs args, Func<CommandState> nextHandler)
+        CommandState ICommandHandler<TypeCharCommandArgs>.GetCommandState(TypeCharCommandArgs args)
         {
             AssertIsForeground();
 
             // We just defer to the editor here.  We do not interfere with typing normal characters.
-            return nextHandler();
+            return CommandState.CommandIsUnavailable;
         }
 
-        void ICommandHandler<TypeCharCommandArgs>.ExecuteCommand(TypeCharCommandArgs args, Action nextHandler)
+        bool ICommandHandler<TypeCharCommandArgs>.ExecuteCommand(TypeCharCommandArgs args)
         {
             AssertIsForeground();
 
             var allProviders = GetProviders();
             if (allProviders == null)
             {
-                nextHandler();
-                return;
+                return false;
             }
 
             // Note: while we're doing this, we don't want to hear about buffer changes (since we
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
             this.TextView.TextBuffer.PostChanged -= OnTextViewBufferPostChanged;
             try
             {
-                nextHandler();
+                // Execute editor handler
             }
             finally
             {
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                 // If we were computing anything, we stop.  We only want to process a typechar
                 // if it was a normal character.
                 DismissSessionIfActive();
-                return;
+                return true;
             }
 
             // Separate the sig help providers into two buckets; one bucket for those that were triggered
@@ -85,12 +85,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                     // First create the session that represents that we now have a potential 
                     // signature help list. Then tell it to start computing.
                     StartSession(textuallyTriggeredProviders, triggerInfo);
-                    return;
+                    return true;
                 }
                 else
                 {
                     // No need to do anything.  Just stay in the state where we have no session.
-                    return;
+                    return true;
                 }
             }
             else
@@ -123,6 +123,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                     sessionOpt.ComputeModel(allProviders, new SignatureHelpTriggerInfo(SignatureHelpTriggerReason.RetriggerCommand));
                 }
             }
+
+            return true;
         }
 
         private (ImmutableArray<ISignatureHelpProvider> matched, ImmutableArray<ISignatureHelpProvider> unmatched) FilterProviders(

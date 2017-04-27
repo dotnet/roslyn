@@ -13,7 +13,7 @@ using Microsoft.VisualStudio.Text.Operations;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
 {
-    internal abstract class AbstractXmlTagCompletionCommandHandler : ICommandHandler<TypeCharCommandArgs>
+    internal abstract class AbstractXmlTagCompletionCommandHandler : ICommandHandler2<TypeCharCommandArgs>
     {
         private readonly ITextUndoHistoryRegistry _undoHistory;
         private readonly IWaitIndicator _waitIndicator;
@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
 
         protected abstract void TryCompleteTag(ITextView textView, ITextBuffer subjectBuffer, Document document, SnapshotPoint position, CancellationToken cancellationToken);
 
-        public CommandState GetCommandState(TypeCharCommandArgs args, Func<CommandState> nextHandler)
+        public CommandState2 GetCommandState(TypeCharCommandArgs args, Func<CommandState2> nextHandler)
         {
             return nextHandler();
         }

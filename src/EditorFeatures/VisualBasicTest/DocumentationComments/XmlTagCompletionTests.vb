@@ -11,7 +11,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.DocumentationComme
     Public Class XmlTagCompletionTests
         Inherits AbstractXmlTagCompletionTests
 
-        Friend Overrides Function CreateCommandHandler(undoHistory As ITextUndoHistoryRegistry) As ICommandHandler(Of TypeCharCommandArgs)
+        Friend Overrides Function CreateCommandHandler(undoHistory As ITextUndoHistoryRegistry) As ICommandHandler2(Of TypeCharCommandArgs)
             Return New XmlTagCompletionCommandHandler(undoHistory, TestWaitIndicator.Default)
         End Function
 

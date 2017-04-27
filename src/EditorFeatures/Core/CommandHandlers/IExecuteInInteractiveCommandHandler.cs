@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
     /// without actually being instantiated as all other command handlers.
     /// </summary>
     internal interface IExecuteInInteractiveCommandHandler
-        : ICommandHandler<ExecuteInInteractiveCommandArgs>
+        : ICommandHandler2<ExecuteInInteractiveCommandArgs>
     {
     }
 }

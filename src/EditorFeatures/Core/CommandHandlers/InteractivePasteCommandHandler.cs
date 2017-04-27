@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
     [Order(After = PredefinedCommandHandlerNames.FormatDocument)]
     [Order(After = PredefinedCommandHandlerNames.Commit)]
     [Order(After = PredefinedCommandHandlerNames.Completion)]
-    internal sealed class InteractivePasteCommandHandler : ICommandHandler<PasteCommandArgs>
+    internal sealed class InteractivePasteCommandHandler : ICommandHandler2<PasteCommandArgs>
     {
         // The following two field definitions have to stay in sync with VS editor implementation
 
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
             }
         }
 
-        public CommandState GetCommandState(PasteCommandArgs args, Func<CommandState> nextHandler)
+        public CommandState2 GetCommandState(PasteCommandArgs args, Func<CommandState2> nextHandler)
         {
             return nextHandler();
         }

@@ -1081,13 +1081,13 @@ class $$Test<T, U>
 
                 var handler = new ExtractInterfaceCommandHandler();
                 var delegatedToNext = false;
-                Func<CommandState> nextHandler = () =>
+                Func<CommandState2> nextHandler = () =>
                 {
                     delegatedToNext = true;
-                    return CommandState.Unavailable;
+                    return CommandState2.Unavailable;
                 };
 
-                var state = handler.GetCommandState(new Commands.ExtractInterfaceCommandArgs(textView, textView.TextBuffer), nextHandler);
+                var state = handler.GetCommandState(new Microsoft.VisualStudio.Text.UI.Commanding.Commands.ExtractInterfaceCommandArgs(textView, textView.TextBuffer));
                 Assert.True(delegatedToNext);
                 Assert.False(state.IsAvailable);
             }

@@ -17,18 +17,22 @@ using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Operations;
+using Microsoft.VisualStudio.Text.UI.Commanding.Commands;
 using Roslyn.Utilities;
+using VSC = Microsoft.VisualStudio.Text.UI.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
 {
-    [ExportCommandHandler(PredefinedCommandHandlerNames.CommentSelection, ContentTypeNames.RoslynContentType)]
+    [VSC.ExportCommandHandler(PredefinedCommandHandlerNames.CommentSelection, ContentTypeNames.RoslynContentType)]
     internal class CommentUncommentSelectionCommandHandler :
-        ICommandHandler<CommentSelectionCommandArgs>,
-        ICommandHandler<UncommentSelectionCommandArgs>
+        VSC.ICommandHandler<CommentSelectionCommandArgs>,
+        VSC.ICommandHandler<UncommentSelectionCommandArgs>
     {
         private readonly IWaitIndicator _waitIndicator;
         private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
         private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
+
+        public bool InterestedInReadOnlyBuffer => true;
 
         [ImportingConstructor]
         internal CommentUncommentSelectionCommandHandler(
@@ -45,43 +49,43 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
             _editorOperationsFactoryService = editorOperationsFactoryService;
         }
 
-        private static CommandState GetCommandState(ITextBuffer buffer, Func<CommandState> nextHandler)
+        private static VSC.CommandState GetCommandState(ITextBuffer buffer)
         {
             if (!buffer.CanApplyChangeDocumentToWorkspace())
             {
-                return nextHandler();
+                return VSC.CommandState.CommandIsUnavailable;
             }
 
-            return CommandState.Available;
+            return VSC.CommandState.CommandIsAvailable;
         }
 
-        public CommandState GetCommandState(CommentSelectionCommandArgs args, Func<CommandState> nextHandler)
+        public VSC.CommandState GetCommandState(CommentSelectionCommandArgs args)
         {
-            return GetCommandState(args.SubjectBuffer, nextHandler);
+            return GetCommandState(args.SubjectBuffer);
         }
 
         /// <summary>
         /// Comment the selected spans, and reset the selection.
         /// </summary>
-        public void ExecuteCommand(CommentSelectionCommandArgs args, Action nextHandler)
+        public bool ExecuteCommand(CommentSelectionCommandArgs args)
         {
-            this.ExecuteCommand(args.TextView, args.SubjectBuffer, Operation.Comment);
+            return this.ExecuteCommand(args.TextView, args.SubjectBuffer, Operation.Comment);
         }
 
-        public CommandState GetCommandState(UncommentSelectionCommandArgs args, Func<CommandState> nextHandler)
+        public VSC.CommandState GetCommandState(UncommentSelectionCommandArgs args)
         {
-            return GetCommandState(args.SubjectBuffer, nextHandler);
+            return GetCommandState(args.SubjectBuffer);
         }
 
         /// <summary>
         /// Uncomment the selected spans, and reset the selection.
         /// </summary>
-        public void ExecuteCommand(UncommentSelectionCommandArgs args, Action nextHandler)
+        public bool ExecuteCommand(UncommentSelectionCommandArgs args)
         {
-            this.ExecuteCommand(args.TextView, args.SubjectBuffer, Operation.Uncomment);
+            return this.ExecuteCommand(args.TextView, args.SubjectBuffer, Operation.Uncomment);
         }
 
-        internal void ExecuteCommand(ITextView textView, ITextBuffer subjectBuffer, Operation operation)
+        internal bool ExecuteCommand(ITextView textView, ITextBuffer subjectBuffer, Operation operation)
         {
             var title = operation == Operation.Comment ? EditorFeaturesResources.Comment_Selection
                                                        : EditorFeaturesResources.Uncomment_Selection;
@@ -135,6 +139,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
                         textView.SetSelection(trackingSpans.First().GetSpan(subjectBuffer.CurrentSnapshot));
                     }
                 });
+
+            return true;
         }
 
         private ICommentSelectionService GetService(Document document)

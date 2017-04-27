@@ -144,14 +144,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 case CmdidToggleConsumeFirstMode:
                     return QueryToggleConsumeFirstModeStatus(ref pguidCmdGroup, commandCount, prgCmds, commandText);
 
-                case VSConstants.VSStd2KCmdID.COMMENT_BLOCK:
-                case VSConstants.VSStd2KCmdID.COMMENTBLOCK:
-                    return QueryCommentBlockStatus(ref pguidCmdGroup, commandCount, prgCmds, commandText);
-
-                case VSConstants.VSStd2KCmdID.UNCOMMENT_BLOCK:
-                case VSConstants.VSStd2KCmdID.UNCOMMENTBLOCK:
-                    return QueryUncommentBlockStatus(ref pguidCmdGroup, commandCount, prgCmds, commandText);
-
                 case CmdidNextHighlightedReference:
                 case CmdidPreviousHighlightedReference:
                     return QueryNavigateHighlightedReferenceStatus(prgCmds);
@@ -165,44 +157,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 case VSConstants.VSStd2KCmdID.PARAMINFO:
                     return QueryParameterInfoStatus(prgCmds);
 
-                case VSConstants.VSStd2KCmdID.RENAME:
-                    return QueryRenameStatus(ref pguidCmdGroup, commandCount, prgCmds, commandText);
-
-                case VSConstants.VSStd2KCmdID.EXTRACTINTERFACE:
-                    return QueryExtractInterfaceStatus(ref pguidCmdGroup, commandCount, prgCmds, commandText);
-
-                case VSConstants.VSStd2KCmdID.EXTRACTMETHOD:
-                    return QueryExtractMethodStatus(ref pguidCmdGroup, commandCount, prgCmds, commandText);
-
-                case CmdidContextMenuViewCallHierarchy:
-                    return QueryViewCallHierarchyStatus(ref pguidCmdGroup, commandCount, prgCmds, commandText);
-
-                case VSConstants.VSStd2KCmdID.INSERTSNIPPET:
-                    return QueryInsertSnippetStatus(ref pguidCmdGroup, commandCount, prgCmds, commandText);
-
-                case VSConstants.VSStd2KCmdID.SURROUNDWITH:
-                    return QuerySurroundWithStatus(ref pguidCmdGroup, commandCount, prgCmds, commandText);
-
                 case VSConstants.VSStd2KCmdID.BACKTAB:
                     return QueryBackTabStatus(prgCmds);
-
-                case VSConstants.VSStd2KCmdID.ENCAPSULATEFIELD:
-                    return QueryEncapsulateFieldStatus(ref pguidCmdGroup, commandCount, prgCmds, commandText);
-
-                case VSConstants.VSStd2KCmdID.REMOVEPARAMETERS:
-                    return QueryRemoveParametersStatus(ref pguidCmdGroup, commandCount, prgCmds, commandText);
-
-                case VSConstants.VSStd2KCmdID.REORDERPARAMETERS:
-                    return QueryReorderParametersStatus(ref pguidCmdGroup, commandCount, prgCmds, commandText);
-
-                case VSConstants.VSStd2KCmdID.ECMD_NEXTMETHOD:
-                    return QueryGoToNextMethodStatus(ref pguidCmdGroup, commandCount, prgCmds, commandText);
-
-                case VSConstants.VSStd2KCmdID.ECMD_PREVMETHOD:
-                    return QueryGoToPreviousMethodStatus(ref pguidCmdGroup, commandCount, prgCmds, commandText);
-
-                case VSConstants.VSStd2KCmdID.OUTLN_START_AUTOHIDING:
-                    return QueryStartAutomaticOutliningStatus(ref pguidCmdGroup, commandCount, prgCmds, commandText);
 
                 default:
                     return NextCommandTarget.QueryStatus(ref pguidCmdGroup, commandCount, prgCmds, commandText);
@@ -233,16 +189,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             var result = VSConstants.S_OK;
 
             var guidCmdGroup = pguidCmdGroup;
-            Func<CommandState> executeNextCommandTarget = () =>
+            Func<CommandState2> executeNextCommandTarget = () =>
             {
                 result = NextCommandTarget.QueryStatus(ref guidCmdGroup, commandCount, prgCmds, commandText);
 
                 var isAvailable = ((OLECMDF)prgCmds[0].cmdf & OLECMDF.OLECMDF_ENABLED) == OLECMDF.OLECMDF_ENABLED;
                 var isChecked = ((OLECMDF)prgCmds[0].cmdf & OLECMDF.OLECMDF_LATCHED) == OLECMDF.OLECMDF_LATCHED;
-                return new CommandState(isAvailable, isChecked, GetText(commandText));
+                return new CommandState2(isAvailable, isChecked, GetText(commandText));
             };
 
-            CommandState commandState;
+            CommandState2 commandState;
             var subjectBuffer = GetSubjectBufferContainingCaret();
             if (subjectBuffer == null)
             {
@@ -273,20 +229,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         {
             prgCmds[0].cmdf = (uint)(OLECMDF.OLECMDF_ENABLED | OLECMDF.OLECMDF_SUPPORTED | OLECMDF.OLECMDF_INVISIBLE);
             return VSConstants.S_OK;
-        }
-
-        private int QueryExtractInterfaceStatus(ref Guid pguidCmdGroup, uint commandCount, OLECMD[] prgCmds, IntPtr commandText)
-        {
-            return GetCommandState(
-                (v, b) => new ExtractInterfaceCommandArgs(v, b),
-                ref pguidCmdGroup, commandCount, prgCmds, commandText);
-        }
-
-        private int QueryExtractMethodStatus(ref Guid pguidCmdGroup, uint commandCount, OLECMD[] prgCmds, IntPtr commandText)
-        {
-            return GetCommandState(
-                (v, b) => new ExtractMethodCommandArgs(v, b),
-                ref pguidCmdGroup, commandCount, prgCmds, commandText);
         }
 
         private int QueryGoToDefinitionStatus(OLECMD[] prgCmds)
@@ -334,31 +276,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 ref pguidCmdGroup, commandCount, prgCmds, commandText);
         }
 
-        private int QueryRenameStatus(ref Guid pguidCmdGroup, uint commandCount, OLECMD[] prgCmds, IntPtr commandText)
-        {
-            return GetCommandState(
-                (v, b) => new RenameCommandArgs(v, b),
-                ref pguidCmdGroup, commandCount, prgCmds, commandText);
         }
 
         private int QueryParameterInfoStatus(OLECMD[] prgCmds)
         {
             prgCmds[0].cmdf = (uint)(OLECMDF.OLECMDF_ENABLED | OLECMDF.OLECMDF_SUPPORTED);
             return VSConstants.S_OK;
-        }
-
-        private int QueryInsertSnippetStatus(ref Guid pguidCmdGroup, uint commandCount, OLECMD[] prgCmds, IntPtr commandText)
-        {
-            return GetCommandState(
-                (v, b) => new InsertSnippetCommandArgs(v, b),
-                ref pguidCmdGroup, commandCount, prgCmds, commandText);
-        }
-
-        private int QuerySurroundWithStatus(ref Guid pguidCmdGroup, uint commandCount, OLECMD[] prgCmds, IntPtr commandText)
-        {
-            return GetCommandState(
-                (v, b) => new SurroundWithCommandArgs(v, b),
-                ref pguidCmdGroup, commandCount, prgCmds, commandText);
         }
 
         private int QueryBackTabStatus(OLECMD[] prgCmds)
@@ -373,13 +296,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             return VSConstants.S_OK;
         }
 
-        private int QueryViewCallHierarchyStatus(ref Guid pguidCmdGroup, uint commandCount, OLECMD[] prgCmds, IntPtr commandText)
-        {
-            return GetCommandState(
-                (v, b) => new ViewCallHierarchyCommandArgs(v, b),
-                ref pguidCmdGroup, commandCount, prgCmds, commandText);
-        }
-
         private int QueryCompleteWordStatus(OLECMD[] prgCmds)
         {
             prgCmds[0].cmdf = (uint)(OLECMDF.OLECMDF_ENABLED | OLECMDF.OLECMDF_SUPPORTED);
@@ -390,20 +306,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         {
             prgCmds[0].cmdf = (uint)(OLECMDF.OLECMDF_ENABLED | OLECMDF.OLECMDF_SUPPORTED);
             return VSConstants.S_OK;
-        }
-
-        private int QueryUncommentBlockStatus(ref Guid pguidCmdGroup, uint commandCount, OLECMD[] prgCmds, IntPtr commandText)
-        {
-            return GetCommandState(
-                (v, b) => new UncommentSelectionCommandArgs(v, b),
-                ref pguidCmdGroup, commandCount, prgCmds, commandText);
-        }
-
-        private int QueryCommentBlockStatus(ref Guid pguidCmdGroup, uint commandCount, OLECMD[] prgCmds, IntPtr commandText)
-        {
-            return GetCommandState(
-                (v, b) => new CommentSelectionCommandArgs(v, b),
-                ref pguidCmdGroup, commandCount, prgCmds, commandText);
         }
 
         private int QueryToggleConsumeFirstModeStatus(ref Guid pguidCmdGroup, uint commandCount, OLECMD[] prgCmds, IntPtr commandText)
@@ -436,49 +338,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         {
             return GetCommandState(
                 (v, b) => new ExecuteInInteractiveCommandArgs(v, b),
-                ref pguidCmdGroup, commandCount, prgCmds, commandText);
-        }
-
-        private int QueryEncapsulateFieldStatus(ref Guid pguidCmdGroup, uint commandCount, OLECMD[] prgCmds, IntPtr commandText)
-        {
-            return GetCommandState(
-                (v, b) => new EncapsulateFieldCommandArgs(v, b),
-                ref pguidCmdGroup, commandCount, prgCmds, commandText);
-        }
-
-        private int QueryRemoveParametersStatus(ref Guid pguidCmdGroup, uint commandCount, OLECMD[] prgCmds, IntPtr commandText)
-        {
-            return GetCommandState(
-                (v, b) => new RemoveParametersCommandArgs(v, b),
-                ref pguidCmdGroup, commandCount, prgCmds, commandText);
-        }
-
-        private int QueryReorderParametersStatus(ref Guid pguidCmdGroup, uint commandCount, OLECMD[] prgCmds, IntPtr commandText)
-        {
-            return GetCommandState(
-                (v, b) => new ReorderParametersCommandArgs(v, b),
-                ref pguidCmdGroup, commandCount, prgCmds, commandText);
-        }
-
-        private int QueryGoToNextMethodStatus(ref Guid pguidCmdGroup, uint commandCount, OLECMD[] prgCmds, IntPtr commandText)
-        {
-            return GetCommandState(
-                (v, b) => new GoToAdjacentMemberCommandArgs(v, b, NavigateDirection.Down),
-                ref pguidCmdGroup, commandCount, prgCmds, commandText);
-        }
-
-        private int QueryGoToPreviousMethodStatus(ref Guid pguidCmdGroup, uint commandCount, OLECMD[] prgCmds, IntPtr commandText)
-        {
-            return GetCommandState(
-                (v, b) => new GoToAdjacentMemberCommandArgs(v, b, NavigateDirection.Up),
-                ref pguidCmdGroup, commandCount, prgCmds, commandText);
-        }
-
-
-        private int QueryStartAutomaticOutliningStatus(ref Guid pguidCmdGroup, uint commandCount, OLECMD[] prgCmds, IntPtr commandText)
-        {
-            return GetCommandState(
-                (v, b) => new StartAutomaticOutliningCommandArgs(v, b),
                 ref pguidCmdGroup, commandCount, prgCmds, commandText);
         }
 

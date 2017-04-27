@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Xml.Linq;
-using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -15,6 +14,12 @@ using Microsoft.VisualStudio.Text.Operations;
 using Roslyn.Test.Utilities;
 using Xunit;
 using System.Threading.Tasks;
+using VSC = Microsoft.VisualStudio.Text.UI.Commanding;
+using VSInsertSnippetCommandArgs = Microsoft.VisualStudio.Text.UI.Commanding.Commands.InsertSnippetCommandArgs;
+using VSInvokeCompletionListCommandArgs = Microsoft.VisualStudio.Text.UI.Commanding.Commands.InvokeCompletionListCommandArgs;
+using VSCommandState = Microsoft.VisualStudio.Text.UI.Commanding.CommandState;
+using Microsoft.VisualStudio.Text.UI.Commanding.Commands;
+using Microsoft.CodeAnalysis.Test.Utilities.Commands;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests
 {
@@ -302,123 +307,132 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
         #endregion
 
         #region command handler
-        public void SendBackspace(Action<BackspaceKeyCommandArgs, Action> commandHandler, Action nextHandler)
+        public bool SendBackspace(Func<BackspaceKeyCommandArgs, bool> commandHandler)
         {
-            commandHandler(new BackspaceKeyCommandArgs(TextView, SubjectBuffer), nextHandler);
+            return commandHandler(new BackspaceKeyCommandArgs(TextView, SubjectBuffer));
         }
 
-        public void SendDelete(Action<DeleteKeyCommandArgs, Action> commandHandler, Action nextHandler)
+        public bool SendDelete(Func<DeleteKeyCommandArgs, bool> commandHandler)
         {
-            commandHandler(new DeleteKeyCommandArgs(TextView, SubjectBuffer), nextHandler);
+            return commandHandler(new DeleteKeyCommandArgs(TextView, SubjectBuffer));
         }
 
-        public void SendWordDeleteToStart(Action<WordDeleteToStartCommandArgs, Action> commandHandler, Action nextHandler)
+        public bool SendWordDeleteToStart(Func<WordDeleteToStartCommandArgs, bool> commandHandler)
         {
-            commandHandler(new WordDeleteToStartCommandArgs(TextView, SubjectBuffer), nextHandler);
+            return commandHandler(new WordDeleteToStartCommandArgs(TextView, SubjectBuffer));
         }
 
-        public void SendEscape(Action<EscapeKeyCommandArgs, Action> commandHandler, Action nextHandler)
+        public bool SendEscape(Func<EscapeKeyCommandArgs, bool> commandHandler)
         {
-            commandHandler(new EscapeKeyCommandArgs(TextView, SubjectBuffer), nextHandler);
+            return commandHandler(new EscapeKeyCommandArgs(TextView, SubjectBuffer));
         }
 
-        public void SendUpKey(Action<UpKeyCommandArgs, Action> commandHandler, Action nextHandler)
+        public bool SendUpKey(Func<UpKeyCommandArgs, bool> commandHandler)
         {
-            commandHandler(new UpKeyCommandArgs(TextView, SubjectBuffer), nextHandler);
+            return commandHandler(new UpKeyCommandArgs(TextView, SubjectBuffer));
         }
 
-        public void SendDownKey(Action<DownKeyCommandArgs, Action> commandHandler, Action nextHandler)
+        public bool SendDownKey(Func<DownKeyCommandArgs, bool> commandHandler)
         {
-            commandHandler(new DownKeyCommandArgs(TextView, SubjectBuffer), nextHandler);
+            return commandHandler(new DownKeyCommandArgs(TextView, SubjectBuffer));
         }
 
-        public void SendTab(Action<TabKeyCommandArgs, Action> commandHandler, Action nextHandler)
+        private void SendCommand<T>(Func<T, bool> commandHandler, Action<T> action, T args) where T : VSC.Commands.CommandArgs
         {
-            commandHandler(new TabKeyCommandArgs(TextView, SubjectBuffer), nextHandler);
+            if (!commandHandler(args))
+            {
+                action(args);
+            }
         }
 
-        public void SendBackTab(Action<BackTabKeyCommandArgs, Action> commandHandler, Action nextHandler)
+        public void SendTab(Func<TabKeyCommandArgs, bool> commandHandler, Action<TabKeyCommandArgs> successor)
         {
-            commandHandler(new BackTabKeyCommandArgs(TextView, SubjectBuffer), nextHandler);
+            return commandHandler(new TabKeyCommandArgs(TextView, SubjectBuffer));
         }
 
-        public void SendReturn(Action<ReturnKeyCommandArgs, Action> commandHandler, Action nextHandler)
+        public bool SendBackTab(Func<BackTabKeyCommandArgs, bool> commandHandler)
         {
-            commandHandler(new ReturnKeyCommandArgs(TextView, SubjectBuffer), nextHandler);
+            return commandHandler(new BackTabKeyCommandArgs(TextView, SubjectBuffer));
         }
 
-        public void SendPageUp(Action<PageUpKeyCommandArgs, Action> commandHandler, Action nextHandler)
+        public bool SendReturn(Func<ReturnKeyCommandArgs, bool> commandHandler)
         {
-            commandHandler(new PageUpKeyCommandArgs(TextView, SubjectBuffer), nextHandler);
+            return commandHandler(new ReturnKeyCommandArgs(TextView, SubjectBuffer));
         }
 
-        public void SendPageDown(Action<PageDownKeyCommandArgs, Action> commandHandler, Action nextHandler)
+        public bool SendPageUp(Func<PageUpKeyCommandArgs, bool> commandHandler)
         {
-            commandHandler(new PageDownKeyCommandArgs(TextView, SubjectBuffer), nextHandler);
+            return commandHandler(new PageUpKeyCommandArgs(TextView, SubjectBuffer));
         }
 
-        public void SendCut(Action<CutCommandArgs, Action> commandHandler, Action nextHandler)
+        public bool SendPageDown(Func<PageDownKeyCommandArgs, bool> commandHandler)
         {
-            commandHandler(new CutCommandArgs(TextView, SubjectBuffer), nextHandler);
+            return commandHandler(new PageDownKeyCommandArgs(TextView, SubjectBuffer));
         }
 
-        public void SendPaste(Action<PasteCommandArgs, Action> commandHandler, Action nextHandler)
+        public bool SendCut(Func<CutCommandArgs, bool> commandHandler)
         {
-            commandHandler(new PasteCommandArgs(TextView, SubjectBuffer), nextHandler);
+            return commandHandler(new CutCommandArgs(TextView, SubjectBuffer));
         }
 
-        public void SendInvokeCompletionList(Action<InvokeCompletionListCommandArgs, Action> commandHandler, Action nextHandler)
+        public bool SendPaste(Func<PasteCommandArgs, bool> commandHandler)
         {
-            commandHandler(new InvokeCompletionListCommandArgs(TextView, SubjectBuffer), nextHandler);
+            return commandHandler(new PasteCommandArgs(TextView, SubjectBuffer));
         }
 
-        public void SendCommitUniqueCompletionListItem(Action<CommitUniqueCompletionListItemCommandArgs, Action> commandHandler, Action nextHandler)
+        public bool SendInvokeCompletionList(Func<VSInvokeCompletionListCommandArgs, bool> commandHandler)
         {
-            commandHandler(new CommitUniqueCompletionListItemCommandArgs(TextView, SubjectBuffer), nextHandler);
+            return commandHandler(new VSInvokeCompletionListCommandArgs(TextView, SubjectBuffer));
         }
 
-        public void SendInsertSnippetCommand(Action<InsertSnippetCommandArgs, Action> commandHandler, Action nextHandler)
+        public bool SendCommitUniqueCompletionListItem(Func<CommitUniqueCompletionListItemCommandArgs, bool> commandHandler)
         {
-            commandHandler(new InsertSnippetCommandArgs(TextView, SubjectBuffer), nextHandler);
+            return commandHandler(new CommitUniqueCompletionListItemCommandArgs(TextView, SubjectBuffer));
         }
 
-        public void SendSurroundWithCommand(Action<SurroundWithCommandArgs, Action> commandHandler, Action nextHandler)
+        public bool SendInsertSnippetCommand(Func<VSInsertSnippetCommandArgs, bool> commandHandler)
         {
-            commandHandler(new SurroundWithCommandArgs(TextView, SubjectBuffer), nextHandler);
+            return commandHandler(new VSInsertSnippetCommandArgs(TextView, SubjectBuffer));
         }
 
-        public void SendInvokeSignatureHelp(Action<InvokeSignatureHelpCommandArgs, Action> commandHandler, Action nextHandler)
+        public bool SendSurroundWithCommand(Func<VSC.Commands.SurroundWithCommandArgs, bool> commandHandler)
         {
-            commandHandler(new InvokeSignatureHelpCommandArgs(TextView, SubjectBuffer), nextHandler);
+            return commandHandler(new VSC.Commands.SurroundWithCommandArgs(TextView, SubjectBuffer));
         }
 
-        public void SendTypeChar(char typeChar, Action<TypeCharCommandArgs, Action> commandHandler, Action nextHandler)
+        public bool SendInvokeSignatureHelp(Func<VSC.Commands.InvokeSignatureHelpCommandArgs, bool> commandHandler)
         {
-            commandHandler(new TypeCharCommandArgs(TextView, SubjectBuffer, typeChar), nextHandler);
+            return commandHandler(new VSC.Commands.InvokeSignatureHelpCommandArgs(TextView, SubjectBuffer));
         }
 
-        public void SendTypeChars(string typeChars, Action<TypeCharCommandArgs, Action> commandHandler)
+        public bool SendTypeChar(char typeChar, Func<TypeCharCommandArgs, bool> commandHandler)
+        {
+            return commandHandler(new TypeCharCommandArgs(TextView, SubjectBuffer, typeChar));
+        }
+
+        public bool SendTypeChars(string typeChars, Func<TypeCharCommandArgs, bool> commandHandler)
         {
             foreach (var ch in typeChars)
             {
                 var localCh = ch;
-                SendTypeChar(ch, commandHandler, () => EditorOperations.InsertText(localCh.ToString()));
+                // SendTypeChar(ch, commandHandler, () => EditorOperations.InsertText(localCh.ToString()));
             }
+            return false;
         }
 
-        public void SendSave(Action<SaveCommandArgs, Action> commandHandler, Action nextHandler)
+        public bool SendSave(Func<SaveCommandArgs, bool> commandHandler)
         {
-            commandHandler(new SaveCommandArgs(TextView, SubjectBuffer), nextHandler);
+            return commandHandler(new SaveCommandArgs(TextView, SubjectBuffer));
         }
 
-        public void SendSelectAll(Action<SelectAllCommandArgs, Action> commandHandler, Action nextHandler)
+        public bool SendSelectAll(Func<SelectAllCommandArgs, bool> commandHandler)
         {
-            commandHandler(new SelectAllCommandArgs(TextView, SubjectBuffer), nextHandler);
+            return commandHandler(new SelectAllCommandArgs(TextView, SubjectBuffer));
         }
 
-        public void SendToggleCompletionMode(Action<ToggleCompletionModeCommandArgs, Action> commandHandler, Action nextHandler)
+        public bool SendToggleCompletionMode(Func<ToggleCompletionModeCommandArgs, bool> commandHandler)
         {
-            commandHandler(new ToggleCompletionModeCommandArgs(TextView, SubjectBuffer), nextHandler);
+            return commandHandler(new ToggleCompletionModeCommandArgs(TextView, SubjectBuffer));
         }
         #endregion
     }

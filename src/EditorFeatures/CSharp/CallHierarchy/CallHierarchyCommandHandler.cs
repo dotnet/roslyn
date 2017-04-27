@@ -8,7 +8,7 @@ using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.CallHierarchy
 {
-    [ExportCommandHandler("CallHierarchy", ContentTypeNames.CSharpContentType)]
+    [Microsoft.VisualStudio.Text.UI.Commanding.ExportCommandHandler("CallHierarchy", ContentTypeNames.CSharpContentType)]
     [Order(After = PredefinedCommandHandlerNames.DocumentationComments)]
     internal class CallHierarchyCommandHandler : AbstractCallHierarchyCommandHandler
     {

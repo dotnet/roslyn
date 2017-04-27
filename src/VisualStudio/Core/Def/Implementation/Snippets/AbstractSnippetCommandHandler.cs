@@ -17,19 +17,24 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
+using VSC = Microsoft.VisualStudio.Text.UI.Commanding;
+using VSInsertSnippetCommandArgs = Microsoft.VisualStudio.Text.UI.Commanding.Commands.InsertSnippetCommandArgs;
+using VSCommandState = Microsoft.VisualStudio.Text.UI.Commanding.CommandState;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 {
     internal abstract class AbstractSnippetCommandHandler :
         ForegroundThreadAffinitizedObject,
-        ICommandHandler<TabKeyCommandArgs>,
-        ICommandHandler<BackTabKeyCommandArgs>,
-        ICommandHandler<ReturnKeyCommandArgs>,
-        ICommandHandler<EscapeKeyCommandArgs>,
-        ICommandHandler<InsertSnippetCommandArgs>
+        ICommandHandler2<TabKeyCommandArgs>,
+        ICommandHandler2<BackTabKeyCommandArgs>,
+        ICommandHandler2<ReturnKeyCommandArgs>,
+        ICommandHandler2<EscapeKeyCommandArgs>,
+        VSC.ICommandHandler<VSInsertSnippetCommandArgs>
     {
         protected readonly IVsEditorAdaptersFactoryService EditorAdaptersFactoryService;
         protected readonly SVsServiceProvider ServiceProvider;
+
+        public bool InterestedInReadOnlyBuffer => false;
 
         public AbstractSnippetCommandHandler(IVsEditorAdaptersFactoryService editorAdaptersFactoryService, SVsServiceProvider serviceProvider)
         {
@@ -39,7 +44,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 
         protected abstract AbstractSnippetExpansionClient GetSnippetExpansionClient(ITextView textView, ITextBuffer subjectBuffer);
         protected abstract bool IsSnippetExpansionContext(Document document, int startPosition, CancellationToken cancellationToken);
-        protected abstract void InvokeInsertionUI(ITextView textView, ITextBuffer subjectBuffer, Action nextHandler, bool surroundWith = false);
+        protected abstract bool InvokeInsertionUI(ITextView textView, ITextBuffer subjectBuffer, bool surroundWith = false);
 
         protected virtual bool TryInvokeSnippetPickerOnQuestionMark(ITextView textView, ITextBuffer textBuffer)
         {
@@ -49,7 +54,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
         public void ExecuteCommand(TabKeyCommandArgs args, Action nextHandler)
         {
             AssertIsForeground();
-            if (!AreSnippetsEnabled(args))
+            if (!AreSnippetsEnabled(args.SubjectBuffer))
             {
                 nextHandler();
                 return;
@@ -78,11 +83,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             nextHandler();
         }
 
-        public CommandState GetCommandState(TabKeyCommandArgs args, Func<CommandState> nextHandler)
+        public CommandState2 GetCommandState(TabKeyCommandArgs args, Func<CommandState2> nextHandler)
         {
             AssertIsForeground();
 
-            if (!AreSnippetsEnabled(args))
+            if (!AreSnippetsEnabled(args.SubjectBuffer))
             {
                 return nextHandler();
             }
@@ -92,13 +97,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 return nextHandler();
             }
 
-            return CommandState.Available;
+            return CommandState2.Available;
         }
 
         public void ExecuteCommand(ReturnKeyCommandArgs args, Action nextHandler)
         {
             AssertIsForeground();
-            if (!AreSnippetsEnabled(args))
+            if (!AreSnippetsEnabled(args.SubjectBuffer))
             {
                 nextHandler();
                 return;
@@ -113,11 +118,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             nextHandler();
         }
 
-        public CommandState GetCommandState(ReturnKeyCommandArgs args, Func<CommandState> nextHandler)
+        public CommandState2 GetCommandState(ReturnKeyCommandArgs args, Func<CommandState2> nextHandler)
         {
             AssertIsForeground();
 
-            if (!AreSnippetsEnabled(args))
+            if (!AreSnippetsEnabled(args.SubjectBuffer))
             {
                 return nextHandler();
             }
@@ -127,13 +132,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 return nextHandler();
             }
 
-            return CommandState.Available;
+            return CommandState2.Available;
         }
 
         public void ExecuteCommand(EscapeKeyCommandArgs args, Action nextHandler)
         {
             AssertIsForeground();
-            if (!AreSnippetsEnabled(args))
+            if (!AreSnippetsEnabled(args.SubjectBuffer))
             {
                 nextHandler();
                 return;
@@ -148,11 +153,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             nextHandler();
         }
 
-        public CommandState GetCommandState(EscapeKeyCommandArgs args, Func<CommandState> nextHandler)
+        public CommandState2 GetCommandState(EscapeKeyCommandArgs args, Func<CommandState2> nextHandler)
         {
             AssertIsForeground();
 
-            if (!AreSnippetsEnabled(args))
+            if (!AreSnippetsEnabled(args.SubjectBuffer))
             {
                 return nextHandler();
             }
@@ -162,13 +167,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 return nextHandler();
             }
 
-            return CommandState.Available;
+            return CommandState2.Available;
         }
 
         public void ExecuteCommand(BackTabKeyCommandArgs args, Action nextHandler)
         {
             AssertIsForeground();
-            if (!AreSnippetsEnabled(args))
+            if (!AreSnippetsEnabled(args.SubjectBuffer))
             {
                 nextHandler();
                 return;
@@ -183,11 +188,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             nextHandler();
         }
 
-        public CommandState GetCommandState(BackTabKeyCommandArgs args, Func<CommandState> nextHandler)
+        public CommandState2 GetCommandState(BackTabKeyCommandArgs args, Func<CommandState2> nextHandler)
         {
             AssertIsForeground();
 
-            if (!AreSnippetsEnabled(args))
+            if (!AreSnippetsEnabled(args.SubjectBuffer))
             {
                 return nextHandler();
             }
@@ -197,42 +202,41 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 return nextHandler();
             }
 
-            return CommandState.Available;
+            return CommandState2.Available;
         }
 
-        public void ExecuteCommand(InsertSnippetCommandArgs args, Action nextHandler)
+        public bool ExecuteCommand(VSInsertSnippetCommandArgs args)
         {
             AssertIsForeground();
 
-            if (!AreSnippetsEnabled(args))
+            if (!AreSnippetsEnabled(args.SubjectBuffer))
             {
-                nextHandler();
-                return;
+                return false;
             }
 
-            InvokeInsertionUI(args.TextView, args.SubjectBuffer, nextHandler);
+            return InvokeInsertionUI(args.TextView, args.SubjectBuffer);
         }
 
-        public CommandState GetCommandState(InsertSnippetCommandArgs args, Func<CommandState> nextHandler)
+        public VSCommandState GetCommandState(VSInsertSnippetCommandArgs args)
         {
             AssertIsForeground();
 
-            if (!AreSnippetsEnabled(args))
+            if (!AreSnippetsEnabled(args.SubjectBuffer))
             {
-                return nextHandler();
+                return VSCommandState.CommandIsUnavailable;
             }
 
             if (!Workspace.TryGetWorkspace(args.SubjectBuffer.AsTextContainer(), out var workspace))
             {
-                return nextHandler();
+                return VSCommandState.CommandIsUnavailable;
             }
 
             if (!workspace.CanApplyChange(ApplyChangesKind.ChangeDocument))
             {
-                return nextHandler();
+                return VSCommandState.CommandIsUnavailable;
             }
 
-            return CommandState.Available;
+            return VSCommandState.CommandIsAvailable;
         }
 
         protected bool TryHandleTypedSnippet(ITextView textView, ITextBuffer subjectBuffer)
@@ -295,11 +299,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             return expansionManager != null;
         }
 
-        protected static bool AreSnippetsEnabled(CommandArgs args)
+        protected static bool AreSnippetsEnabled(ITextBuffer subjectBuffer)
         {
-            return args.SubjectBuffer.GetFeatureOnOffOption(InternalFeatureOnOffOptions.Snippets) &&
+            return subjectBuffer.GetFeatureOnOffOption(InternalFeatureOnOffOptions.Snippets) &&
                 // TODO (https://github.com/dotnet/roslyn/issues/5107): enable in interactive
-                !(Workspace.TryGetWorkspace(args.SubjectBuffer.AsTextContainer(), out var workspace) && workspace.Kind == WorkspaceKind.Interactive);
+                !(Workspace.TryGetWorkspace(subjectBuffer.AsTextContainer(), out var workspace) && workspace.Kind == WorkspaceKind.Interactive);
         }
     }
 }

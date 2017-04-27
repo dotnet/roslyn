@@ -10,7 +10,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.BlockCommentEditing
 {
-    internal abstract class AbstractBlockCommentEditingCommandHandler : ICommandHandler<ReturnKeyCommandArgs>
+    internal abstract class AbstractBlockCommentEditingCommandHandler : ICommandHandler2<ReturnKeyCommandArgs>
     {
         private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
         private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.BlockCommentEditing
             _editorOperationsFactoryService = editorOperationsFactoryService;
         }
 
-        public CommandState GetCommandState(ReturnKeyCommandArgs args, Func<CommandState> nextHandler) => nextHandler();
+        public CommandState2 GetCommandState(ReturnKeyCommandArgs args, Func<CommandState2> nextHandler) => nextHandler();
 
         public void ExecuteCommand(ReturnKeyCommandArgs args, Action nextHandler)
         {

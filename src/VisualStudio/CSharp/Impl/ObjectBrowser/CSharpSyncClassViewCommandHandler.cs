@@ -8,7 +8,7 @@ using Microsoft.VisualStudio.Shell;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.ObjectBrowser
 {
-    [ExportCommandHandler(PredefinedCommandHandlerNames.ClassView, ContentTypeNames.CSharpContentType)]
+    [Microsoft.VisualStudio.Text.UI.Commanding.ExportCommandHandler(PredefinedCommandHandlerNames.ClassView, ContentTypeNames.CSharpContentType)]
     internal class CSharpSyncClassViewCommandHandler : AbstractSyncClassViewCommandHandler
     {
         [ImportingConstructor]

@@ -26,7 +26,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
 {
-    internal partial class EventHookupCommandHandler : ICommandHandler<TabKeyCommandArgs>
+    internal partial class EventHookupCommandHandler : ICommandHandler2<TabKeyCommandArgs>
     {
         public void ExecuteCommand(TabKeyCommandArgs args, Action nextHandler)
         {
@@ -47,12 +47,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
             HandleTabWorker(args.TextView, args.SubjectBuffer, nextHandler, CancellationToken.None);
         }
 
-        public CommandState GetCommandState(TabKeyCommandArgs args, Func<CommandState> nextHandler)
+        public CommandState2 GetCommandState(TabKeyCommandArgs args, Func<CommandState2> nextHandler)
         {
             AssertIsForeground();
             if (EventHookupSessionManager.CurrentSession != null)
             {
-                return CommandState.Available;
+                return CommandState2.Available;
             }
             else
             {

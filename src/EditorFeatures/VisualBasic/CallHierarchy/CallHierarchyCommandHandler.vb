@@ -7,7 +7,7 @@ Imports Microsoft.VisualStudio.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.CallHierarchy
 
-    <ExportCommandHandler("CallHierarchy", ContentTypeNames.VisualBasicContentType)>
+    <Microsoft.VisualStudio.Text.UI.Commanding.ExportCommandHandler("CallHierarchy", ContentTypeNames.VisualBasicContentType)>
     <Order(After:=PredefinedCommandHandlerNames.DocumentationComments)>
     Friend Class CallHierarchyCommandHandler
         Inherits AbstractCallHierarchyCommandHandler

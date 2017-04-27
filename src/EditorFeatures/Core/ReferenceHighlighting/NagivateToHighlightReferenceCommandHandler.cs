@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
-using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -12,17 +11,22 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Outlining;
 using Microsoft.VisualStudio.Text.Tagging;
+using Microsoft.VisualStudio.Text.UI.Commanding.Commands;
+using VSC = Microsoft.VisualStudio.Text.UI.Commanding;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.ReferenceHighlighting
 {
-    [ExportCommandHandler(PredefinedCommandHandlerNames.NavigateToHighlightedReference,
+    [VSC.ExportCommandHandler(PredefinedCommandHandlerNames.NavigateToHighlightedReference,
        ContentTypeNames.RoslynContentType)]
     internal partial class NavigateToHighlightReferenceCommandHandler :
-        ICommandHandler<NavigateToHighlightedReferenceCommandArgs>
+        VSC.ICommandHandler<NavigateToNextHighlightedReferenceCommandArgs>,
+        VSC.ICommandHandler<NavigateToPreviousHighlightedReferenceCommandArgs>
     {
         private readonly IOutliningManagerService _outliningManagerService;
         private readonly IViewTagAggregatorFactoryService _tagAggregatorFactory;
+
+        public bool InterestedInReadOnlyBuffer => true;
 
         [ImportingConstructor]
         public NavigateToHighlightReferenceCommandHandler(
@@ -33,37 +37,58 @@ namespace Microsoft.CodeAnalysis.Editor.ReferenceHighlighting
             _tagAggregatorFactory = tagAggregatorFactory ?? throw new ArgumentNullException(nameof(tagAggregatorFactory));
         }
 
-        public CommandState GetCommandState(NavigateToHighlightedReferenceCommandArgs args, Func<CommandState> nextHandler)
+        public VSC.CommandState GetCommandState(NavigateToNextHighlightedReferenceCommandArgs args)
         {
-            using (var tagAggregator = _tagAggregatorFactory.CreateTagAggregator<NavigableHighlightTag>(args.TextView))
+            return GetCommandStateWorker(args.TextView);
+        }
+
+        public VSC.CommandState GetCommandState(NavigateToPreviousHighlightedReferenceCommandArgs args)
+        {
+            return GetCommandStateWorker(args.TextView);
+        }
+
+        private VSC.CommandState GetCommandStateWorker(ITextView textView)
+        {
+            using (var tagAggregator = _tagAggregatorFactory.CreateTagAggregator<NavigableHighlightTag>(textView))
             {
-                var tagUnderCursor = FindTagUnderCaret(tagAggregator, args.TextView);
-                return tagUnderCursor == null ? CommandState.Unavailable : CommandState.Available;
+                var tagUnderCursor = FindTagUnderCaret(tagAggregator, textView);
+                return tagUnderCursor == null ? VSC.CommandState.CommandIsUnavailable : VSC.CommandState.CommandIsAvailable;
             }
         }
 
-        public void ExecuteCommand(NavigateToHighlightedReferenceCommandArgs args, Action nextHandler)
+        public bool ExecuteCommand(NavigateToNextHighlightedReferenceCommandArgs args)
         {
-            using (var tagAggregator = _tagAggregatorFactory.CreateTagAggregator<NavigableHighlightTag>(args.TextView))
+            return NavigateWorker(args.TextView, down: true);
+        }
+
+        public bool ExecuteCommand(NavigateToPreviousHighlightedReferenceCommandArgs args)
+        {
+            return NavigateWorker(args.TextView, down: false);
+        }
+
+        private bool NavigateWorker(ITextView textView, bool down)
+        {
+            using (var tagAggregator = _tagAggregatorFactory.CreateTagAggregator<NavigableHighlightTag>(textView))
             {
-                var tagUnderCursor = FindTagUnderCaret(tagAggregator, args.TextView);
+                var tagUnderCursor = FindTagUnderCaret(tagAggregator, textView);
 
                 if (tagUnderCursor == null)
                 {
-                    nextHandler();
-                    return;
+                    return false;
                 }
 
-                var spans = GetTags(tagAggregator, args.TextView.TextSnapshot.GetFullSpan()).ToList();
+                var spans = GetTags(tagAggregator, textView.TextSnapshot.GetFullSpan()).ToList();
 
                 Contract.ThrowIfFalse(spans.Any(), "We should have at least found the tag under the cursor!");
 
-                var destTag = GetDestinationTag(tagUnderCursor.Value, spans, args.Direction);
+                var destTag = GetDestinationTag(tagUnderCursor.Value, spans, down);
 
-                if (args.TextView.TryMoveCaretToAndEnsureVisible(destTag.Start, _outliningManagerService))
+                if (textView.TryMoveCaretToAndEnsureVisible(destTag.Start, _outliningManagerService))
                 {
-                    args.TextView.SetSelection(destTag);
+                    textView.SetSelection(destTag);
                 }
+
+                return true;
             }
         }
 
@@ -79,13 +104,13 @@ namespace Microsoft.CodeAnalysis.Editor.ReferenceHighlighting
         private static SnapshotSpan GetDestinationTag(
             SnapshotSpan tagUnderCursor,
             List<SnapshotSpan> orderedTagSpans,
-            NavigateDirection direction)
+            bool down)
         {
             var destIndex = orderedTagSpans.BinarySearch(tagUnderCursor, new StartComparer());
 
             Contract.ThrowIfFalse(destIndex >= 0, "Expected to find start tag in the collection");
 
-            destIndex += direction == NavigateDirection.Down ? 1 : -1;
+            destIndex += down ? 1 : -1;
             if (destIndex < 0)
             {
                 destIndex = orderedTagSpans.Count - 1;

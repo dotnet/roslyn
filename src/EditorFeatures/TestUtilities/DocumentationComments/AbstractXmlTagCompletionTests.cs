@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.DocumentationComments
 {
     public abstract class AbstractXmlTagCompletionTests
     {
-        internal abstract ICommandHandler<TypeCharCommandArgs> CreateCommandHandler(ITextUndoHistoryRegistry undoHistory);
+        internal abstract ICommandHandler2<TypeCharCommandArgs> CreateCommandHandler(ITextUndoHistoryRegistry undoHistory);
         protected abstract TestWorkspace CreateTestWorkspace(string initialMarkup);
 
         public void Verify(string initialMarkup, string expectedMarkup, char typeChar)

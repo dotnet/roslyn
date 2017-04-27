@@ -3,18 +3,21 @@
 using System;
 using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.SignatureHelp;
+using VSInvokeSignatureHelpCommandArgs = Microsoft.VisualStudio.Text.UI.Commanding.Commands.InvokeSignatureHelpCommandArgs;
+using VSCommandState = Microsoft.VisualStudio.Text.UI.Commanding.CommandState;
+using VSC = Microsoft.VisualStudio.Text.UI.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHelp
 {
     internal partial class Controller
     {
-        CommandState ICommandHandler<InvokeSignatureHelpCommandArgs>.GetCommandState(InvokeSignatureHelpCommandArgs args, Func<CommandState> nextHandler)
+        VSCommandState VSC.ICommandHandler<VSInvokeSignatureHelpCommandArgs>.GetCommandState(VSInvokeSignatureHelpCommandArgs args)
         {
             AssertIsForeground();
-            return nextHandler();
+            return VSCommandState.CommandIsUnavailable;
         }
 
-        void ICommandHandler<InvokeSignatureHelpCommandArgs>.ExecuteCommand(InvokeSignatureHelpCommandArgs args, Action nextHandler)
+        bool VSC.ICommandHandler<VSInvokeSignatureHelpCommandArgs>.ExecuteCommand(VSInvokeSignatureHelpCommandArgs args)
         {
             AssertIsForeground();
             DismissSessionIfActive();
@@ -22,10 +25,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
             var providers = GetProviders();
             if (providers == null)
             {
-                return;
+                return false;
             }
 
             this.StartSession(providers, new SignatureHelpTriggerInfo(SignatureHelpTriggerReason.InvokeSignatureHelpCommand));
+            return true;
         }
     }
 }

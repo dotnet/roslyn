@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -14,6 +13,8 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Text.UI.Commanding;
+using Microsoft.VisualStudio.Text.UI.Commanding.Commands;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
@@ -26,6 +27,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
 
         private readonly IList<Lazy<IQuickInfoProvider, OrderableLanguageMetadata>> _allProviders;
         private IList<IQuickInfoProvider> _providers;
+
+        public bool InterestedInReadOnlyBuffer => false;
 
         public Controller(
             ITextView textView,
@@ -53,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
         }
 
         internal static Controller GetInstance(
-            CommandArgs args,
+            Microsoft.VisualStudio.Text.UI.Commanding.Commands.CommandArgs args,
             IIntelliSensePresenter<IQuickInfoPresenterSession, IQuickInfoSession> presenter,
             IAsynchronousOperationListener asyncListener,
             IList<Lazy<IQuickInfoProvider, OrderableLanguageMetadata>> allProviders)

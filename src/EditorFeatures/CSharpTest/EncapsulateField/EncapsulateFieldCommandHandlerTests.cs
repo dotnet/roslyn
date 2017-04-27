@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text.Operations;
 using Roslyn.Test.Utilities;
 using Xunit;
+using EditorCommands = Microsoft.VisualStudio.Text.UI.Commanding.Commands;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EncapsulateField
 {
@@ -214,13 +215,13 @@ class Program
                 var handler = new EncapsulateFieldCommandHandler(workspace.GetService<Host.IWaitIndicator>(), workspace.GetService<ITextBufferUndoManagerProvider>(),
                     workspace.ExportProvider.GetExportedValues<Lazy<IAsynchronousOperationListener, FeatureMetadata>>());
                 var delegatedToNext = false;
-                Func<CommandState> nextHandler = () =>
+                Func<CommandState2> nextHandler = () =>
                 {
                     delegatedToNext = true;
-                    return CommandState.Unavailable;
+                    return CommandState2.Unavailable;
                 };
 
-                var state = handler.GetCommandState(new Commands.EncapsulateFieldCommandArgs(textView, textView.TextBuffer), nextHandler);
+                var state = handler.GetCommandState(new EditorCommands.EncapsulateFieldCommandArgs(textView, textView.TextBuffer));
                 Assert.True(delegatedToNext);
                 Assert.False(state.IsAvailable);
             }

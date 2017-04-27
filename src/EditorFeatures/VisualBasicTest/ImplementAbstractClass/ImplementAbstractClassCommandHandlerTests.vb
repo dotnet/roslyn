@@ -200,7 +200,7 @@ End Class</text>
 
             view.Caret.MoveTo(New SnapshotPoint(snapshot, cursorPosition))
 
-            Dim commandHandler As ICommandHandler(Of ReturnKeyCommandArgs) =
+            Dim commandHandler As ICommandHandler2(Of ReturnKeyCommandArgs) =
                 New ImplementAbstractClassCommandHandler(workspace.GetService(Of IEditorOperationsFactoryService))
             commandHandler.ExecuteCommand(New ReturnKeyCommandArgs(view, view.TextBuffer), nextHandler)
 

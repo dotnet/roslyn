@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.Editor
     /// ICommandHandler&lt;T&gt;. When implementing a strongly-typed ICommandHandler, you should MEF
     /// export this base interface.
     /// </summary>
-    internal interface ICommandHandler
+    internal interface ICommandHandler2
     {
     }
 
@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor
     /// Implement to handle a command before it is processed by the editor. To export this, export
     /// the non-generic ICommandHandler.
     /// </summary>
-    internal interface ICommandHandler<T> : ICommandHandler where T : CommandArgs
+    internal interface ICommandHandler2<T> : ICommandHandler2 where T : CommandArgs
     {
         /// <summary>
         /// Called to determine the state of the command.
@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor
         /// Every command handler must invoke this delegate if they do not wish to fully handle the
         /// command themselves.</param>
         /// <returns>Return a CommandState instance.</returns>
-        CommandState GetCommandState(T args, Func<CommandState> nextHandler);
+        CommandState2 GetCommandState(T args, Func<CommandState2> nextHandler);
 
         /// <summary>
         /// Called when the command is executed.

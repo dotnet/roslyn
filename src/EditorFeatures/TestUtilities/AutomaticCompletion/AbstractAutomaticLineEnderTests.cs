@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion
         protected abstract TestWorkspace CreateWorkspace(string code);
         protected abstract Action CreateNextHandler(TestWorkspace workspace);
 
-        internal abstract ICommandHandler<AutomaticLineEnderCommandArgs> CreateCommandHandler(
+        internal abstract ICommandHandler2<AutomaticLineEnderCommandArgs> CreateCommandHandler(
             Microsoft.CodeAnalysis.Editor.Host.IWaitIndicator waitIndicator,
             ITextUndoHistoryRegistry undoRegistry,
             IEditorOperationsFactoryService editorOperations);

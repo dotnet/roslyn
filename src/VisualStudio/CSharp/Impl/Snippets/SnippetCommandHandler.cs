@@ -6,24 +6,25 @@ using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.Editor;
-using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Snippets;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Text.UI.Commanding.Commands;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Utilities;
+using VSC = Microsoft.VisualStudio.Text.UI.Commanding;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
 {
-    [ExportCommandHandler("CSharp Snippets", ContentTypeNames.CSharpContentType)]
+    [VSC.ExportCommandHandler("CSharp Snippets", ContentTypeNames.CSharpContentType)]
     [Order(After = PredefinedCommandHandlerNames.Completion)]
     [Order(After = PredefinedCommandHandlerNames.IntelliSense)]
     internal sealed class SnippetCommandHandler :
         AbstractSnippetCommandHandler,
-        ICommandHandler<SurroundWithCommandArgs>
+        VSC.ICommandHandler<SurroundWithCommandArgs>
     {
         [ImportingConstructor]
         public SnippetCommandHandler(IVsEditorAdaptersFactoryService editorAdaptersFactoryService, SVsServiceProvider serviceProvider)
@@ -31,39 +32,38 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
         {
         }
 
-        public void ExecuteCommand(SurroundWithCommandArgs args, Action nextHandler)
+        public bool ExecuteCommand(SurroundWithCommandArgs args)
         {
             AssertIsForeground();
 
-            if (!AreSnippetsEnabled(args))
-            {
-                nextHandler();
-                return;
+            if (!AreSnippetsEnabled(args.SubjectBuffer))
+            {   
+                return false;
             }
 
-            InvokeInsertionUI(args.TextView, args.SubjectBuffer, nextHandler, surroundWith: true);
+            return !InvokeInsertionUI(args.TextView, args.SubjectBuffer, surroundWith: true);
         }
 
-        public CommandState GetCommandState(SurroundWithCommandArgs args, Func<CommandState> nextHandler)
+        public VSC.CommandState GetCommandState(SurroundWithCommandArgs args)
         {
             AssertIsForeground();
 
-            if (!AreSnippetsEnabled(args))
+            if (!AreSnippetsEnabled(args.SubjectBuffer))
             {
-                return nextHandler();
+                return VSC.CommandState.CommandIsUnavailable;
             }
 
             if (!Workspace.TryGetWorkspace(args.SubjectBuffer.AsTextContainer(), out var workspace))
             {
-                return nextHandler();
+                return VSC.CommandState.CommandIsUnavailable;
             }
 
             if (!workspace.CanApplyChange(ApplyChangesKind.ChangeDocument))
             {
-                return nextHandler();
+                return VSC.CommandState.CommandIsUnavailable;
             }
 
-            return CommandState.Available;
+            return VSC.CommandState.CommandIsAvailable;
         }
 
         protected override AbstractSnippetExpansionClient GetSnippetExpansionClient(ITextView textView, ITextBuffer subjectBuffer)
@@ -77,12 +77,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
             return expansionClient;
         }
 
-        protected override void InvokeInsertionUI(ITextView textView, ITextBuffer subjectBuffer, Action nextHandler, bool surroundWith = false)
+        protected override bool InvokeInsertionUI(ITextView textView, ITextBuffer subjectBuffer, bool surroundWith = false)
         {
             if (!TryGetExpansionManager(out var expansionManager))
             {
-                nextHandler();
-                return;
+                return false;
             }
 
             expansionManager.InvokeInsertionUI(
@@ -97,6 +96,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
                 fIncludeNULLKind: 0,
                 bstrPrefixText: surroundWith ? CSharpVSResources.Surround_With : CSharpVSResources.Insert_Snippet,
                 bstrCompletionChar: null);
+
+            return true;
         }
 
         protected override bool IsSnippetExpansionContext(Document document, int startPosition, CancellationToken cancellationToken)

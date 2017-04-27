@@ -11,7 +11,7 @@ using Microsoft.VisualStudio.Text.Editor;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
 {
-    internal partial class EventHookupCommandHandler : ICommandHandler<TypeCharCommandArgs>
+    internal partial class EventHookupCommandHandler : ICommandHandler2<TypeCharCommandArgs>
     {
         public void ExecuteCommand(TypeCharCommandArgs args, Action nextHandler)
         {
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
             return position - 2 >= 0 && subjectBuffer.CurrentSnapshot.GetText(position - 2, 2) == "+=";
         }
 
-        public CommandState GetCommandState(TypeCharCommandArgs args, Func<CommandState> nextHandler)
+        public CommandState2 GetCommandState(TypeCharCommandArgs args, Func<CommandState2> nextHandler)
         {
             AssertIsForeground();
             return nextHandler();

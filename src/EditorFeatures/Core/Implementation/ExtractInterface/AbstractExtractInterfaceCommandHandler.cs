@@ -10,37 +10,40 @@ using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using EditorCommanding = Microsoft.VisualStudio.Text.UI.Commanding;
+using EditorCommands = Microsoft.VisualStudio.Text.UI.Commanding.Commands;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.ExtractInterface
 {
-    internal abstract class AbstractExtractInterfaceCommandHandler : ICommandHandler<ExtractInterfaceCommandArgs>
+    internal abstract class AbstractExtractInterfaceCommandHandler : EditorCommanding.ICommandHandler<EditorCommands.ExtractInterfaceCommandArgs>
     {
-        public CommandState GetCommandState(ExtractInterfaceCommandArgs args, Func<CommandState> nextHandler)
+        public bool InterestedInReadOnlyBuffer => false;
+
+        public EditorCommanding.CommandState GetCommandState(EditorCommands.ExtractInterfaceCommandArgs args)
         {
             var document = args.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document == null ||
                 !document.Project.Solution.Workspace.CanApplyChange(ApplyChangesKind.AddDocument) ||
                 !document.Project.Solution.Workspace.CanApplyChange(ApplyChangesKind.ChangeDocument))
             {
-                return nextHandler();
+                return EditorCommanding.CommandState.CommandIsUnavailable;
             }
 
             var supportsFeatureService = document.Project.Solution.Workspace.Services.GetService<IDocumentSupportsFeatureService>();
             if (!supportsFeatureService.SupportsRefactorings(document))
             {
-                return nextHandler();
+                return EditorCommanding.CommandState.CommandIsUnavailable;
             }
 
-            return CommandState.Available;
+            return EditorCommanding.CommandState.CommandIsAvailable; ;
         }
 
-        public void ExecuteCommand(ExtractInterfaceCommandArgs args, Action nextHandler)
+        public bool ExecuteCommand(EditorCommands.ExtractInterfaceCommandArgs args)
         {
             var document = args.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document == null)
             {
-                nextHandler();
-                return;
+                return false;
             }
 
             var workspace = document.Project.Solution.Workspace;
@@ -48,22 +51,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ExtractInterface
             if (!workspace.CanApplyChange(ApplyChangesKind.AddDocument) ||
                 !workspace.CanApplyChange(ApplyChangesKind.ChangeDocument))
             {
-                nextHandler();
-                return;
+                return false;
             }
 
             var supportsFeatureService = document.Project.Solution.Workspace.Services.GetService<IDocumentSupportsFeatureService>();
             if (!supportsFeatureService.SupportsRefactorings(document))
             {
-                nextHandler();
-                return;
+                return false;
             }
 
             var caretPoint = args.TextView.GetCaretPoint(args.SubjectBuffer);
             if (!caretPoint.HasValue)
             {
-                nextHandler();
-                return;
+                return false;
             }
 
             var extractInterfaceService = document.GetLanguageService<AbstractExtractInterfaceService>();
@@ -75,17 +75,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ExtractInterface
 
             if (result == null || !result.Succeeded)
             {
-                return;
+                return false;
             }
 
             if (!document.Project.Solution.Workspace.TryApplyChanges(result.UpdatedSolution))
             {
                 // TODO: handle failure
-                return;
+                return false;
             }
 
             var navigationService = workspace.Services.GetService<IDocumentNavigationService>();
             navigationService.TryNavigateToPosition(workspace, result.NavigationDocumentId, 0);
+            return true;
         }
     }
 }

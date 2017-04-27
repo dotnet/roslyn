@@ -3,7 +3,7 @@
 Imports Microsoft.CodeAnalysis.Editor.Implementation.ExtractInterface
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.ExtractInterface
-    <ExportCommandHandler(PredefinedCommandHandlerNames.ExtractInterface, ContentTypeNames.VisualBasicContentType)>
+    <Microsoft.VisualStudio.Text.UI.Commanding.ExportCommandHandler(PredefinedCommandHandlerNames.ExtractInterface, ContentTypeNames.VisualBasicContentType)>
     Friend Class ExtractInterfaceCommandHandler
         Inherits AbstractExtractInterfaceCommandHandler
 

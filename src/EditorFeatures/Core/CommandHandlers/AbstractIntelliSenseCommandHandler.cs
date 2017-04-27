@@ -1,7 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using Microsoft.CodeAnalysis.Editor.Commands;
+using Microsoft.VisualStudio.Text.UI.Commanding;
+using Microsoft.VisualStudio.Text.UI.Commanding.Commands;
 
 namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
 {
@@ -30,6 +31,8 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
         private readonly SignatureHelpCommandHandler _signatureHelpCommandHandler;
         private readonly QuickInfoCommandHandlerAndSourceProvider _quickInfoCommandHandler;
 
+        public bool InterestedInReadOnlyBuffer => true;
+
         protected AbstractIntelliSenseCommandHandler(
             CompletionCommandHandler completionCommandHandler,
             SignatureHelpCommandHandler signatureHelpCommandHandler,
@@ -40,53 +43,38 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
             _quickInfoCommandHandler = quickInfoCommandHandler;
         }
 
-        public CommandState GetCommandState(EscapeKeyCommandArgs args, Func<CommandState> nextHandler)
+        public CommandState GetCommandState(EscapeKeyCommandArgs args)
         {
-            return nextHandler();
+            return CommandState.CommandIsUnavailable;
         }
 
-        public CommandState GetCommandState(UpKeyCommandArgs args, Func<CommandState> nextHandler)
+        public CommandState GetCommandState(UpKeyCommandArgs args)
         {
-            return nextHandler();
+            return CommandState.CommandIsUnavailable;
         }
 
-        public CommandState GetCommandState(DownKeyCommandArgs args, Func<CommandState> nextHandler)
+        public CommandState GetCommandState(DownKeyCommandArgs args)
         {
-            return nextHandler();
+            return CommandState.CommandIsUnavailable;
         }
 
-        public void ExecuteCommand(EscapeKeyCommandArgs args, Action nextHandler)
+        public bool ExecuteCommand(EscapeKeyCommandArgs args)
         {
-            if ((_completionCommandHandler != null && _completionCommandHandler.TryHandleEscapeKey(args)) ||
+            return ((_completionCommandHandler != null && _completionCommandHandler.TryHandleEscapeKey(args)) ||
                 (_signatureHelpCommandHandler != null && _signatureHelpCommandHandler.TryHandleEscapeKey(args)) ||
-                (_quickInfoCommandHandler != null && _quickInfoCommandHandler.TryHandleEscapeKey(args)))
-            {
-                return;
-            }
-
-            nextHandler();
+                (_quickInfoCommandHandler != null && _quickInfoCommandHandler.TryHandleEscapeKey(args)));
         }
 
-        public void ExecuteCommand(UpKeyCommandArgs args, Action nextHandler)
+        public bool ExecuteCommand(UpKeyCommandArgs args)
         {
-            if ((_completionCommandHandler != null && _completionCommandHandler.TryHandleUpKey(args)) ||
-                (_signatureHelpCommandHandler != null && _signatureHelpCommandHandler.TryHandleUpKey(args)))
-            {
-                return;
-            }
-
-            nextHandler();
+            return ((_completionCommandHandler != null && _completionCommandHandler.TryHandleUpKey(args)) ||
+                (_signatureHelpCommandHandler != null && _signatureHelpCommandHandler.TryHandleUpKey(args)));
         }
 
-        public void ExecuteCommand(DownKeyCommandArgs args, Action nextHandler)
+        public bool ExecuteCommand(DownKeyCommandArgs args)
         {
-            if ((_completionCommandHandler != null && _completionCommandHandler.TryHandleDownKey(args)) ||
-                (_signatureHelpCommandHandler != null && _signatureHelpCommandHandler.TryHandleDownKey(args)))
-            {
-                return;
-            }
-
-            nextHandler();
+            return ((_completionCommandHandler != null && _completionCommandHandler.TryHandleDownKey(args)) ||
+                (_signatureHelpCommandHandler != null && _signatureHelpCommandHandler.TryHandleDownKey(args)));
         }
     }
 }

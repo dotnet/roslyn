@@ -873,8 +873,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
                 Dim commandHandler = New MockSyncClassViewCommandHandler(serviceProvider, workspace.GetService(Of IWaitIndicator))
 
                 commandHandler.ExecuteCommand(
-                    args:=New SyncClassViewCommandArgs(textView, subjectBuffer),
-                    nextHandler:=Sub() Exit Sub)
+                    args:=New Text.UI.Commanding.Commands.SyncClassViewCommandArgs(textView, subjectBuffer))
 
                 navigationTool.VerifyNavInfo()
             End Using

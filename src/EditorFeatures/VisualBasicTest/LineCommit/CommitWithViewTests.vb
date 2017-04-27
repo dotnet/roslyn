@@ -822,8 +822,8 @@ End Module|]</Document>
                 Dim snapshotspan = New SnapshotSpan(testData.Buffer.CurrentSnapshot, New Span(onlyTextSpan.Start, onlyTextSpan.Length))
                 Dim view = document.GetTextView()
                 view.Selection.Select(snapshotspan, isReversed:=False)
-                Dim selArgs = New FormatSelectionCommandArgs(view, document.GetTextBuffer())
-                testData.CommandHandler.ExecuteCommand(selArgs, Sub() Return)
+                Dim selArgs = New Microsoft.VisualStudio.Text.UI.Commanding.Commands.FormatSelectionCommandArgs(view, document.GetTextBuffer())
+                testData.CommandHandler.ExecuteCommand(selArgs)
             End Using
         End Sub
 

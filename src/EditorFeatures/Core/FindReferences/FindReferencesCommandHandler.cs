@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
-using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
@@ -16,17 +15,21 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using EditorCommanding = Microsoft.VisualStudio.Text.UI.Commanding;
+using Microsoft.VisualStudio.Text.UI.Commanding.Commands;
 
 namespace Microsoft.CodeAnalysis.Editor.FindReferences
 {
-    [ExportCommandHandler(PredefinedCommandHandlerNames.FindReferences, ContentTypeNames.RoslynContentType)]
-    internal class FindReferencesCommandHandler : ICommandHandler<FindReferencesCommandArgs>
+    [EditorCommanding.ExportCommandHandler(PredefinedCommandHandlerNames.FindReferences, ContentTypeNames.RoslynContentType)]
+    internal class FindReferencesCommandHandler : EditorCommanding.ICommandHandler<FindReferencesCommandArgs>
     {
         private readonly IEnumerable<IDefinitionsAndReferencesPresenter> _synchronousPresenters;
         private readonly IEnumerable<Lazy<IStreamingFindUsagesPresenter>> _streamingPresenters;
 
         private readonly IWaitIndicator _waitIndicator;
         private readonly IAsynchronousOperationListener _asyncListener;
+
+        public bool InterestedInReadOnlyBuffer => false;
 
         [ImportingConstructor]
         internal FindReferencesCommandHandler(
@@ -46,12 +49,12 @@ namespace Microsoft.CodeAnalysis.Editor.FindReferences
                 asyncListeners, FeatureAttribute.FindReferences);
         }
 
-        public CommandState GetCommandState(FindReferencesCommandArgs args, Func<CommandState> nextHandler)
+        public EditorCommanding.CommandState GetCommandState(FindReferencesCommandArgs args)
         {
-            return nextHandler();
+            return EditorCommanding.CommandState.CommandIsUnavailable;
         }
 
-        public void ExecuteCommand(FindReferencesCommandArgs args, Action nextHandler)
+        public bool ExecuteCommand(FindReferencesCommandArgs args)
         {
             var caretPosition = args.TextView.GetCaretPoint(args.SubjectBuffer) ?? -1;
 
@@ -63,12 +66,12 @@ namespace Microsoft.CodeAnalysis.Editor.FindReferences
                 {
                     if (TryExecuteCommand(caretPosition, document))
                     {
-                        return;
+                        return false;
                     }
                 }
             }
 
-            nextHandler();
+            return false;
         }
 
         private bool TryExecuteCommand(int caretPosition, Document document)

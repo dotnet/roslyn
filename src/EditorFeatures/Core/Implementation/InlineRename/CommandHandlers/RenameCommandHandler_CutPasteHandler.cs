@@ -1,37 +1,32 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using Microsoft.CodeAnalysis.Editor.Commands;
+using Microsoft.VisualStudio.Text.UI.Commanding.Commands;
+using VSC = Microsoft.VisualStudio.Text.UI.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 {
     internal partial class RenameCommandHandler :
-        ICommandHandler<CutCommandArgs>, ICommandHandler<PasteCommandArgs>
+        VSC.ICommandHandler<CutCommandArgs>, VSC.ICommandHandler<PasteCommandArgs>
     {
-        public CommandState GetCommandState(CutCommandArgs args, Func<CommandState> nextHandler)
+        public VSC.CommandState GetCommandState(CutCommandArgs args)
         {
-            return nextHandler();
+            return VSC.CommandState.CommandIsUnavailable;
         }
 
-        public void ExecuteCommand(CutCommandArgs args, Action nextHandler)
+        public bool ExecuteCommand(CutCommandArgs args)
         {
-            HandlePossibleTypingCommand(args, nextHandler, span =>
-            {
-                nextHandler();
-            });
+            return HandlePossibleTypingCommand(args, span => false);
         }
 
-        public CommandState GetCommandState(PasteCommandArgs args, Func<CommandState> nextHandler)
+        public VSC.CommandState GetCommandState(PasteCommandArgs args)
         {
-            return nextHandler();
+            return VSC.CommandState.CommandIsUnavailable;
         }
 
-        public void ExecuteCommand(PasteCommandArgs args, Action nextHandler)
+        public bool ExecuteCommand(PasteCommandArgs args)
         {
-            HandlePossibleTypingCommand(args, nextHandler, span =>
-            {
-                nextHandler();
-            });
+            return HandlePossibleTypingCommand(args, span => false);
         }
     }
 }

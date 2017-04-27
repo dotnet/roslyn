@@ -17,15 +17,16 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Operations;
 using Roslyn.Utilities;
+using VSC = Microsoft.VisualStudio.Text.UI.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
 {
     internal abstract class AbstractDocumentationCommentCommandHandler<TDocumentationComment, TMemberNode> :
-        ICommandHandler<TypeCharCommandArgs>,
-        ICommandHandler<ReturnKeyCommandArgs>,
-        ICommandHandler<InsertCommentCommandArgs>,
-        ICommandHandler<OpenLineAboveCommandArgs>,
-        ICommandHandler<OpenLineBelowCommandArgs>
+        ICommandHandler2<TypeCharCommandArgs>,
+        ICommandHandler2<ReturnKeyCommandArgs>,
+        ICommandHandler2<InsertCommentCommandArgs>,
+        VSC.ICommandHandler<VSC.Commands.OpenLineAboveCommandArgs>,
+        VSC.ICommandHandler<VSC.Commands.OpenLineBelowCommandArgs>
         where TDocumentationComment : SyntaxNode, IStructuredTriviaSyntax
         where TMemberNode : SyntaxNode
     {
@@ -71,6 +72,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
         {
             get { return ExteriorTriviaText[ExteriorTriviaText.Length - 1]; }
         }
+
+        public bool InterestedInReadOnlyBuffer => false;
 
         private string GetNewLine(SourceText text)
         {
@@ -455,7 +458,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             return insertAction(syntaxTree, text, caretPosition, originalCaretPosition, subjectBuffer, textView, documentOptions, cancellationToken);
         }
 
-        public CommandState GetCommandState(TypeCharCommandArgs args, Func<CommandState> nextHandler)
+        public CommandState2 GetCommandState(TypeCharCommandArgs args, Func<CommandState2> nextHandler)
         {
             return nextHandler();
         }
@@ -475,7 +478,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             CompleteComment(args.SubjectBuffer, args.TextView, originalCaretPosition, InsertOnCharacterTyped, CancellationToken.None);
         }
 
-        public CommandState GetCommandState(ReturnKeyCommandArgs args, Func<CommandState> nextHandler)
+        public CommandState2 GetCommandState(ReturnKeyCommandArgs args, Func<CommandState2> nextHandler)
         {
             return nextHandler();
         }
@@ -530,18 +533,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             }
         }
 
-        public CommandState GetCommandState(InsertCommentCommandArgs args, Func<CommandState> nextHandler)
+        public CommandState2 GetCommandState(InsertCommentCommandArgs args, Func<CommandState2> nextHandler)
         {
             var caretPosition = args.TextView.GetCaretPoint(args.SubjectBuffer) ?? -1;
             if (caretPosition < 0)
             {
-                return CommandState.Unavailable;
+                return CommandState2.Unavailable;
             }
 
             var document = args.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document == null)
             {
-                return CommandState.Unavailable;
+                return CommandState2.Unavailable;
             }
 
             TMemberNode targetMember = null;
@@ -553,8 +556,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             });
 
             return targetMember != null
-                ? CommandState.Available
-                : CommandState.Unavailable;
+                ? CommandState2.Available
+                : CommandState2.Unavailable;
         }
 
         public void ExecuteCommand(InsertCommentCommandArgs args, Action nextHandler)
@@ -574,12 +577,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
                 });
         }
 
-        public CommandState GetCommandState(OpenLineAboveCommandArgs args, Func<CommandState> nextHandler)
+        public VSC.CommandState GetCommandState(VSC.Commands.OpenLineAboveCommandArgs args)
         {
-            return nextHandler();
+            return VSC.CommandState.CommandIsUnavailable;
         }
 
-        public void ExecuteCommand(OpenLineAboveCommandArgs args, Action nextHandler)
+        public bool ExecuteCommand(VSC.Commands.OpenLineAboveCommandArgs args)
         {
             // Check to see if the current line starts with exterior trivia. If so, we'll take over.
             // If not, let the nextHandler run.
@@ -587,28 +590,28 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             var caretPosition = args.TextView.GetCaretPoint(args.SubjectBuffer) ?? -1;
             if (caretPosition < 0)
             {
-                nextHandler();
-                return;
+                return false;
             }
 
             if (!CurrentLineStartsWithExteriorTrivia(args.SubjectBuffer, caretPosition))
             {
-                nextHandler();
-                return;
+                return false;
             }
 
             // Allow nextHandler() to run and then insert exterior trivia if necessary.
-            nextHandler();
+            // TODO: How?
+            //nextHandler();
 
             InsertExteriorTriviaIfNeeded(args.TextView, args.SubjectBuffer);
+            return true;
         }
 
-        public CommandState GetCommandState(OpenLineBelowCommandArgs args, Func<CommandState> nextHandler)
+        public VSC.CommandState GetCommandState(VSC.Commands.OpenLineBelowCommandArgs args)
         {
-            return nextHandler();
+            return VSC.CommandState.CommandIsUnavailable;
         }
 
-        public void ExecuteCommand(OpenLineBelowCommandArgs args, Action nextHandler)
+        public bool ExecuteCommand(VSC.Commands.OpenLineBelowCommandArgs args)
         {
             // Check to see if the current line starts with exterior trivia. If so, we'll take over.
             // If not, let the nextHandler run.
@@ -616,20 +619,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             var caretPosition = args.TextView.GetCaretPoint(args.SubjectBuffer) ?? -1;
             if (caretPosition < 0)
             {
-                nextHandler();
-                return;
+                return false;
             }
 
             if (!CurrentLineStartsWithExteriorTrivia(args.SubjectBuffer, caretPosition))
             {
-                nextHandler();
-                return;
+                return false;
             }
 
             // Allow nextHandler() to run and the insert exterior trivia if necessary.
-            nextHandler();
+            // TODO: How?
+            //nextHandler();
 
             InsertExteriorTriviaIfNeeded(args.TextView, args.SubjectBuffer);
+            return true;
         }
 
         private void InsertExteriorTriviaIfNeeded(ITextView view, ITextBuffer subjectBuffer)

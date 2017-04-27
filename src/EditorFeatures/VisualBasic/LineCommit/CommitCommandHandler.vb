@@ -13,6 +13,8 @@ Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Editor
 Imports Microsoft.VisualStudio.Text.Operations
 Imports Microsoft.VisualStudio.Utilities
+Imports EditorCommands = Microsoft.VisualStudio.Text.UI.Commanding.Commands
+Imports EditorCommanding = Microsoft.VisualStudio.Text.UI.Commanding
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
     ''' <summary>
@@ -25,11 +27,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
     <Order(Before:=PredefinedCommandHandlerNames.EndConstruct)>
     <Order(Before:=PredefinedCommandHandlerNames.Completion)>
     Friend Class CommitCommandHandler
-        Implements ICommandHandler(Of ReturnKeyCommandArgs)
-        Implements ICommandHandler(Of PasteCommandArgs)
-        Implements ICommandHandler(Of SaveCommandArgs)
-        Implements ICommandHandler(Of FormatDocumentCommandArgs)
-        Implements ICommandHandler(Of FormatSelectionCommandArgs)
+        Implements ICommandHandler2(Of ReturnKeyCommandArgs)
+        Implements ICommandHandler2(Of PasteCommandArgs)
+        Implements ICommandHandler2(Of SaveCommandArgs)
+        Implements EditorCommanding.ICommandHandler(Of EditorCommands.FormatDocumentCommandArgs)
+        Implements EditorCommanding.ICommandHandler(Of EditorCommands.FormatSelectionCommandArgs)
 
         Private ReadOnly _bufferManagerFactory As CommitBufferManagerFactory
         Private ReadOnly _editorOperationsFactoryService As IEditorOperationsFactoryService
@@ -52,12 +54,22 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
             _waitIndicator = waitIndicator
         End Sub
 
-        Public Sub ExecuteCommand(args As FormatDocumentCommandArgs, nextHandler As Action) Implements ICommandHandler(Of FormatDocumentCommandArgs).ExecuteCommand
+        ReadOnly Property InterestedInReadonlyBuffer As Boolean Implements _
+            EditorCommanding.ICommandHandler(Of EditorCommands.FormatDocumentCommandArgs).InterestedInReadOnlyBuffer,
+            EditorCommanding.ICommandHandler(Of EditorCommands.FormatSelectionCommandArgs).InterestedInReadOnlyBuffer
+            Get
+                Return False
+            End Get
+        End Property
+
+        Public Function ExecuteCommand(args As EditorCommands.FormatDocumentCommandArgs) As Boolean _
+            Implements EditorCommanding.ICommandHandler(Of EditorCommands.FormatDocumentCommandArgs).ExecuteCommand
+
             If Not args.SubjectBuffer.CanApplyChangeDocumentToWorkspace() Then
-                nextHandler()
-                Return
+                Return False
             End If
 
+            Dim result = False
             _waitIndicator.Wait(
                 VBEditorResources.Format_Document,
                 VBEditorResources.Formatting_Document,
@@ -71,17 +83,21 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                     Dim commitBufferManager = _bufferManagerFactory.CreateForBuffer(buffer)
                     commitBufferManager.ExpandDirtyRegion(wholeFile)
                     commitBufferManager.CommitDirty(isExplicitFormat:=True, cancellationToken:=waitContext.CancellationToken)
+                    result = True
                 End Sub)
-        End Sub
 
-        Public Function GetCommandState(args As FormatDocumentCommandArgs, nextHandler As Func(Of CommandState)) As CommandState Implements ICommandHandler(Of FormatDocumentCommandArgs).GetCommandState
-            Return nextHandler()
+            Return result
         End Function
 
-        Public Sub ExecuteCommand(args As FormatSelectionCommandArgs, nextHandler As Action) Implements ICommandHandler(Of FormatSelectionCommandArgs).ExecuteCommand
+        Public Function GetCommandState(args As EditorCommands.FormatDocumentCommandArgs) As EditorCommanding.CommandState _
+            Implements EditorCommanding.ICommandHandler(Of EditorCommands.FormatDocumentCommandArgs).GetCommandState
+            Return EditorCommanding.CommandState.CommandIsUnavailable
+        End Function
+
+        Public Function ExecuteCommand(args As EditorCommands.FormatSelectionCommandArgs) As Boolean _
+            Implements EditorCommanding.ICommandHandler(Of EditorCommands.FormatSelectionCommandArgs).ExecuteCommand
             If Not args.SubjectBuffer.CanApplyChangeDocumentToWorkspace() Then
-                nextHandler()
-                Return
+                Return False
             End If
 
             _waitIndicator.Wait(
@@ -94,7 +110,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                     Dim selections = args.TextView.Selection.GetSnapshotSpansOnBuffer(buffer)
 
                     If selections.Count < 1 Then
-                        nextHandler()
                         Return
                     End If
 
@@ -108,14 +123,16 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                     Next
                 End Sub)
 
+            Return False
             'We don't call nextHandler, since we have handled this command.
-        End Sub
-
-        Public Function GetCommandState(args As FormatSelectionCommandArgs, nextHandler As Func(Of CommandState)) As CommandState Implements ICommandHandler(Of FormatSelectionCommandArgs).GetCommandState
-            Return nextHandler()
         End Function
 
-        Public Sub ExecuteCommand(args As ReturnKeyCommandArgs, nextHandler As Action) Implements ICommandHandler(Of ReturnKeyCommandArgs).ExecuteCommand
+        Public Function GetCommandState(args As EditorCommands.FormatSelectionCommandArgs) As EditorCommanding.CommandState _
+            Implements EditorCommanding.ICommandHandler(Of EditorCommands.FormatSelectionCommandArgs).GetCommandState
+            Return EditorCommanding.CommandState.CommandIsUnavailable
+        End Function
+
+        Public Sub ExecuteCommand(args As ReturnKeyCommandArgs, nextHandler As Action) Implements ICommandHandler2(Of ReturnKeyCommandArgs).ExecuteCommand
             If Not args.SubjectBuffer.GetFeatureOnOffOption(FeatureOnOffOptions.PrettyListing) Then
                 nextHandler()
                 Return
@@ -210,12 +227,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
             Return False
         End Function
 
-        Public Function GetCommandState(args As ReturnKeyCommandArgs, nextHandler As Func(Of CommandState)) As CommandState Implements ICommandHandler(Of ReturnKeyCommandArgs).GetCommandState
+        Public Function GetCommandState(args As ReturnKeyCommandArgs, nextHandler As Func(Of CommandState2)) As CommandState2 Implements ICommandHandler2(Of ReturnKeyCommandArgs).GetCommandState
             ' We don't make any decision if the enter key is allowed; we just forward onto the next handler
             Return nextHandler()
         End Function
 
-        Public Sub ExecuteCommand(args As PasteCommandArgs, nextHandler As Action) Implements ICommandHandler(Of PasteCommandArgs).ExecuteCommand
+        Public Sub ExecuteCommand(args As PasteCommandArgs, nextHandler As Action) Implements ICommandHandler2(Of PasteCommandArgs).ExecuteCommand
             _waitIndicator.Wait(
                 title:=VBEditorResources.Format_Paste,
                 message:=VBEditorResources.Formatting_pasted_text,
@@ -257,11 +274,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
             End Using
         End Sub
 
-        Public Function GetCommandState(args As PasteCommandArgs, nextHandler As Func(Of CommandState)) As CommandState Implements ICommandHandler(Of PasteCommandArgs).GetCommandState
+        Public Function GetCommandState(args As PasteCommandArgs, nextHandler As Func(Of CommandState2)) As CommandState2 Implements ICommandHandler2(Of PasteCommandArgs).GetCommandState
             Return nextHandler()
         End Function
 
-        Public Sub ExecuteCommand(args As SaveCommandArgs, nextHandler As Action) Implements ICommandHandler(Of SaveCommandArgs).ExecuteCommand
+        Public Sub ExecuteCommand(args As SaveCommandArgs, nextHandler As Action) Implements ICommandHandler2(Of SaveCommandArgs).ExecuteCommand
             If args.SubjectBuffer.GetFeatureOnOffOption(InternalFeatureOnOffOptions.FormatOnSave) Then
                 _waitIndicator.Wait(
                     title:=VBEditorResources.Format_on_Save,
@@ -282,7 +299,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
             nextHandler()
         End Sub
 
-        Public Function GetCommandState(args As SaveCommandArgs, nextHandler As Func(Of CommandState)) As CommandState Implements ICommandHandler(Of SaveCommandArgs).GetCommandState
+        Public Function GetCommandState(args As SaveCommandArgs, nextHandler As Func(Of CommandState2)) As CommandState2 Implements ICommandHandler2(Of SaveCommandArgs).GetCommandState
             Return nextHandler()
         End Function
     End Class

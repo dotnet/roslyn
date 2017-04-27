@@ -161,8 +161,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CallHierarchy
 
         internal CallHierarchyItem GetRoot()
         {
-            var args = new ViewCallHierarchyCommandArgs(_textView, _subjectBuffer);
-            _commandHandler.ExecuteCommand(args, () => { });
+            var args = new VisualStudio.Text.UI.Commanding.Commands.ViewCallHierarchyCommandArgs(_textView, _subjectBuffer);
+            _commandHandler.ExecuteCommand(args);
             return _presenter.PresentedRoot;
         }
 

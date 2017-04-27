@@ -2,33 +2,34 @@
 
 using System;
 using System.Linq;
-using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Text.UI.Commanding.Commands;
+using VSC = Microsoft.VisualStudio.Text.UI.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 {
     internal partial class RenameCommandHandler :
-        ICommandHandler<TabKeyCommandArgs>,
-        ICommandHandler<BackTabKeyCommandArgs>
+        VSC.ICommandHandler<TabKeyCommandArgs>,
+        VSC.ICommandHandler<BackTabKeyCommandArgs>
     {
-        public CommandState GetCommandState(TabKeyCommandArgs args, Func<CommandState> nextHandler)
+        public VSC.CommandState GetCommandState(TabKeyCommandArgs args)
         {
-            return GetCommandState(nextHandler);
+            return GetCommandState();
         }
 
-        public void ExecuteCommand(TabKeyCommandArgs args, Action nextHandler)
+        public bool ExecuteCommand(TabKeyCommandArgs args)
         {
             // If the Dashboard is focused, just navigate through its UI.
             Dashboard dashboard = GetDashboard(args.TextView);
             if (dashboard != null && dashboard.ShouldReceiveKeyboardNavigation)
             {
                 dashboard.FocusNextElement();
-                return;
+                return false;
             }
 
-            HandlePossibleTypingCommand(args, nextHandler, span =>
+            return HandlePossibleTypingCommand(args, span =>
             {
                 var spans = new NormalizedSnapshotSpanCollection(
                     _renameService.ActiveSession.GetBufferManager(args.SubjectBuffer)
@@ -45,26 +46,28 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                         break;
                     }
                 }
+
+                return true;
             });
         }
 
-        public CommandState GetCommandState(BackTabKeyCommandArgs args, Func<CommandState> nextHandler)
+        public VSC.CommandState GetCommandState(BackTabKeyCommandArgs args)
         {
-            return GetCommandState(nextHandler);
+            return GetCommandState();
         }
 
-        public void ExecuteCommand(BackTabKeyCommandArgs args, Action nextHandler)
+        public bool ExecuteCommand(BackTabKeyCommandArgs args)
         {
             // If the Dashboard is focused, just navigate through its UI.
             var dashboard = GetDashboard(args.TextView);
             if (dashboard != null && dashboard.ShouldReceiveKeyboardNavigation)
             {
                 dashboard.FocusPreviousElement();
-                return;
+                return true;
             }
             else
             {
-                nextHandler();
+                return false;
             }
         }
 

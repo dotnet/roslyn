@@ -7,7 +7,7 @@ Imports Microsoft.VisualStudio.Text.Operations
 Imports Microsoft.VisualStudio.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.ExtractMethod
-    <ExportCommandHandler(PredefinedCommandHandlerNames.ExtractMethod,
+    <Microsoft.VisualStudio.Text.UI.Commanding.ExportCommandHandler(PredefinedCommandHandlerNames.ExtractMethod,
         ContentTypeNames.VisualBasicContentType)>
     <Order(After:=PredefinedCommandHandlerNames.DocumentationComments)>
     Friend Class ExtractMethodCommandHandler

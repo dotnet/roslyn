@@ -2,24 +2,31 @@
 
 using System;
 using Microsoft.CodeAnalysis.Editor.Commands;
+using VSC = Microsoft.VisualStudio.Text.UI.Commanding;
+using VSInvokeCompletionListCommandArgs = Microsoft.VisualStudio.Text.UI.Commanding.Commands.InvokeCompletionListCommandArgs;
+using VSCommandState = Microsoft.VisualStudio.Text.UI.Commanding.CommandState;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
 {
-    internal partial class EventHookupCommandHandler : ICommandHandler<InvokeCompletionListCommandArgs>
+    internal partial class EventHookupCommandHandler : VSC.ICommandHandler<VSInvokeCompletionListCommandArgs>
     {
-        public void ExecuteCommand(InvokeCompletionListCommandArgs args, Action nextHandler)
+        public bool InterestedInReadOnlyBuffer => false;
+
+        public bool ExecuteCommand(VSInvokeCompletionListCommandArgs args)
         {
             AssertIsForeground();
             if (EventHookupSessionManager.QuickInfoSession == null || EventHookupSessionManager.QuickInfoSession.IsDismissed)
             {
-                nextHandler();
+                return false;
             }
+
+            return true;
         }
 
-        public CommandState GetCommandState(InvokeCompletionListCommandArgs args, Func<CommandState> nextHandler)
+        public VSCommandState GetCommandState(VSInvokeCompletionListCommandArgs args)
         {
             AssertIsForeground();
-            return nextHandler();
+            return VSCommandState.CommandIsUnavailable;
         }
     }
 }

@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
-using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHelp;
 using Microsoft.CodeAnalysis.Editor.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
@@ -15,21 +14,28 @@ using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.SignatureHelp;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Utilities;
+using VSInvokeSignatureHelpCommandArgs = Microsoft.VisualStudio.Text.UI.Commanding.Commands.InvokeSignatureHelpCommandArgs;
+using VSCommandState = Microsoft.VisualStudio.Text.UI.Commanding.CommandState;
+using VSC = Microsoft.VisualStudio.Text.UI.Commanding;
+using Microsoft.VisualStudio.Text.UI.Commanding;
+using Microsoft.VisualStudio.Text.UI.Commanding.Commands;
 
 namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
 {
     [Export]
-    [ExportCommandHandler(PredefinedCommandHandlerNames.SignatureHelp, ContentTypeNames.RoslynContentType)]
+    [VSC.ExportCommandHandler(PredefinedCommandHandlerNames.SignatureHelp, ContentTypeNames.RoslynContentType)]
     [Order(Before = PredefinedCommandHandlerNames.Completion)]
     internal class SignatureHelpCommandHandler :
         ForegroundThreadAffinitizedObject,
         ICommandHandler<TypeCharCommandArgs>,
-        ICommandHandler<InvokeSignatureHelpCommandArgs>
+        ICommandHandler<VSInvokeSignatureHelpCommandArgs>
     {
         private readonly IInlineRenameService _inlineRenameService;
         private readonly IIntelliSensePresenter<ISignatureHelpPresenterSession, ISignatureHelpSession> _signatureHelpPresenter;
         private readonly IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> _asyncListeners;
         private readonly IList<Lazy<ISignatureHelpProvider, OrderableLanguageMetadata>> _signatureHelpProviders;
+
+        public bool InterestedInReadOnlyBuffer => false;
 
         [ImportingConstructor]
         public SignatureHelpCommandHandler(
@@ -60,9 +66,29 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
         {
             AssertIsForeground();
 
+            // If we don't have a presenter, then there's no point in us even being involved.  Just
+            // defer to the next handler in the chain.
+            if (_signatureHelpPresenter == null)
+            {
+                controller = null;
+                return false;
+            }
+
+            controller = Controller.GetInstance(
+                args.TextView, args.SubjectBuffer, _signatureHelpPresenter,
+                new AggregateAsynchronousOperationListener(_asyncListeners, FeatureAttribute.SignatureHelp),
+                _signatureHelpProviders);
+
+            return true;
+        }
+
+        private bool TryGetController(VSC.Commands.CommandArgs args, out Controller controller)
+        {
+            AssertIsForeground();
+
             // If args is `InvokeSignatureHelpCommandArgs` then sig help was explicitly invoked by the user and should
             // be shown whether or not the option is set.
-            if (!(args is InvokeSignatureHelpCommandArgs) && !args.SubjectBuffer.GetFeatureOnOffOption(SignatureHelpOptions.ShowSignatureHelp))
+            if (!(args is VSInvokeSignatureHelpCommandArgs) && !args.SubjectBuffer.GetFeatureOnOffOption(SignatureHelpOptions.ShowSignatureHelp))
             {
                 controller = null;
                 return false;
@@ -77,15 +103,15 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
             }
 
             controller = Controller.GetInstance(
-                args, _signatureHelpPresenter,
+                args.TextView, args.SubjectBuffer, _signatureHelpPresenter,
                 new AggregateAsynchronousOperationListener(_asyncListeners, FeatureAttribute.SignatureHelp),
                 _signatureHelpProviders);
 
             return true;
         }
 
-        private bool TryGetControllerCommandHandler<TCommandArgs>(TCommandArgs args, out ICommandHandler<TCommandArgs> commandHandler)
-            where TCommandArgs : CommandArgs
+        private bool TryGetControllerCommandHandler<TCommandArgs>(TCommandArgs args, out VSC.ICommandHandler<TCommandArgs> commandHandler)
+            where TCommandArgs : VSC.Commands.CommandArgs
         {
             AssertIsForeground();
             if (!TryGetController(args, out var controller))
@@ -94,62 +120,60 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
                 return false;
             }
 
-            commandHandler = (ICommandHandler<TCommandArgs>)controller;
+            commandHandler = (VSC.ICommandHandler<TCommandArgs>)controller;
             return true;
         }
 
-        private CommandState GetCommandStateWorker<TCommandArgs>(
-            TCommandArgs args,
-            Func<CommandState> nextHandler)
-            where TCommandArgs : CommandArgs
+        private VSCommandState GetCommandStateWorker<TCommandArgs>(
+            TCommandArgs args)
+            where TCommandArgs : VSC.Commands.CommandArgs
         {
             AssertIsForeground();
             return TryGetControllerCommandHandler(args, out var commandHandler)
-                ? commandHandler.GetCommandState(args, nextHandler)
-                : nextHandler();
+                ? commandHandler.GetCommandState(args)
+                : VSCommandState.CommandIsUnavailable;
         }
 
-        private void ExecuteCommandWorker<TCommandArgs>(
-            TCommandArgs args,
-            Action nextHandler)
-            where TCommandArgs : CommandArgs
+        private bool ExecuteCommandWorker<TCommandArgs>(
+            TCommandArgs args)
+            where TCommandArgs : VSC.Commands.CommandArgs
         {
             AssertIsForeground();
             if (!TryGetControllerCommandHandler(args, out var commandHandler))
             {
-                nextHandler();
+                return false;
             }
             else
             {
-                commandHandler.ExecuteCommand(args, nextHandler);
+                return commandHandler.ExecuteCommand(args);
             }
         }
 
-        CommandState ICommandHandler<TypeCharCommandArgs>.GetCommandState(TypeCharCommandArgs args, System.Func<CommandState> nextHandler)
+        CommandState ICommandHandler<TypeCharCommandArgs>.GetCommandState(TypeCharCommandArgs args)
         {
             AssertIsForeground();
-            return GetCommandStateWorker(args, nextHandler);
+            return GetCommandStateWorker(args);
         }
 
-        void ICommandHandler<TypeCharCommandArgs>.ExecuteCommand(TypeCharCommandArgs args, System.Action nextHandler)
+        bool ICommandHandler<TypeCharCommandArgs>.ExecuteCommand(TypeCharCommandArgs args)
         {
             AssertIsForeground();
-            ExecuteCommandWorker(args, nextHandler);
+            return ExecuteCommandWorker(args);
         }
 
-        CommandState ICommandHandler<InvokeSignatureHelpCommandArgs>.GetCommandState(InvokeSignatureHelpCommandArgs args, Func<CommandState> nextHandler)
+        VSCommandState VSC.ICommandHandler<VSInvokeSignatureHelpCommandArgs>.GetCommandState(VSInvokeSignatureHelpCommandArgs args)
         {
             AssertIsForeground();
-            return GetCommandStateWorker(args, nextHandler);
+            return GetCommandStateWorker(args);
         }
 
-        void ICommandHandler<InvokeSignatureHelpCommandArgs>.ExecuteCommand(InvokeSignatureHelpCommandArgs args, Action nextHandler)
+        bool VSC.ICommandHandler<VSInvokeSignatureHelpCommandArgs>.ExecuteCommand(VSInvokeSignatureHelpCommandArgs args)
         {
             AssertIsForeground();
-            ExecuteCommandWorker(args, nextHandler);
+            return ExecuteCommandWorker(args);
         }
 
-        internal bool TryHandleEscapeKey(EscapeKeyCommandArgs commandArgs)
+        internal bool TryHandleEscapeKey(VSC.Commands.EscapeKeyCommandArgs commandArgs)
         {
             if (!TryGetController(commandArgs, out var controller))
             {

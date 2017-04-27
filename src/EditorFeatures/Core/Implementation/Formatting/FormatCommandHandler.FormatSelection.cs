@@ -8,22 +8,21 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Text.UI.Commanding.Commands;
+using EditorCommanding = Microsoft.VisualStudio.Text.UI.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
 {
     internal partial class FormatCommandHandler
     {
-        public CommandState GetCommandState(FormatSelectionCommandArgs args, Func<CommandState> nextHandler)
+        public EditorCommanding.CommandState GetCommandState(FormatSelectionCommandArgs args)
         {
-            return GetCommandState(args.SubjectBuffer, nextHandler);
+            return GetCommandState(args.SubjectBuffer);
         }
 
-        public void ExecuteCommand(FormatSelectionCommandArgs args, Action nextHandler)
+        public bool ExecuteCommand(FormatSelectionCommandArgs args)
         {
-            if (!TryExecuteCommand(args))
-            {
-                nextHandler();
-            }
+            return TryExecuteCommand(args);
         }
 
         private bool TryExecuteCommand(FormatSelectionCommandArgs args)

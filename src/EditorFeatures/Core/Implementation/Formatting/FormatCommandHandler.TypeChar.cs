@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
 {
     internal partial class FormatCommandHandler
     {
-        public CommandState GetCommandState(TypeCharCommandArgs args, Func<CommandState> nextHandler)
+        public CommandState2 GetCommandState(TypeCharCommandArgs args, Func<CommandState2> nextHandler)
         {
             return nextHandler();
         }

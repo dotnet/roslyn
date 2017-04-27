@@ -14,6 +14,7 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Operations;
 using Roslyn.Test.Utilities;
 using Xunit;
+using VSC = Microsoft.VisualStudio.Text.UI.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.DocumentationComments
 {
@@ -21,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.DocumentationComments
     {
         protected abstract char DocumentationCommentCharacter { get; }
 
-        internal abstract ICommandHandler CreateCommandHandler(IWaitIndicator waitIndicator, ITextUndoHistoryRegistry undoHistoryRegistry, IEditorOperationsFactoryService editorOperationsFactoryService);
+        internal abstract ICommandHandler2 CreateCommandHandler(IWaitIndicator waitIndicator, ITextUndoHistoryRegistry undoHistoryRegistry, IEditorOperationsFactoryService editorOperationsFactoryService);
         protected abstract TestWorkspace CreateTestWorkspace(string code);
 
         protected void VerifyTypingCharacter(string initialMarkup, string expectedMarkup, bool useTabs = false, bool autoGenerateXmlDocComments = true)
@@ -29,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.DocumentationComments
             Verify(initialMarkup, expectedMarkup, useTabs, autoGenerateXmlDocComments,
                 execute: (view, undoHistoryRegistry, editorOperationsFactoryService, completionService) =>
                 {
-                    var commandHandler = CreateCommandHandler(TestWaitIndicator.Default, undoHistoryRegistry, editorOperationsFactoryService) as ICommandHandler<TypeCharCommandArgs>;
+                    var commandHandler = CreateCommandHandler(TestWaitIndicator.Default, undoHistoryRegistry, editorOperationsFactoryService) as ICommandHandler2<TypeCharCommandArgs>;
 
                     var commandArgs = new TypeCharCommandArgs(view, view.TextBuffer, DocumentationCommentCharacter);
                     var nextHandler = CreateInsertTextHandler(view, DocumentationCommentCharacter.ToString());
@@ -43,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.DocumentationComments
             Verify(initialMarkup, expectedMarkup, useTabs, autoGenerateXmlDocComments,
                 execute: (view, undoHistoryRegistry, editorOperationsFactoryService, completionService) =>
                 {
-                    var commandHandler = CreateCommandHandler(TestWaitIndicator.Default, undoHistoryRegistry, editorOperationsFactoryService) as ICommandHandler<ReturnKeyCommandArgs>;
+                    var commandHandler = CreateCommandHandler(TestWaitIndicator.Default, undoHistoryRegistry, editorOperationsFactoryService) as ICommandHandler2<ReturnKeyCommandArgs>;
 
                     var commandArgs = new ReturnKeyCommandArgs(view, view.TextBuffer);
                     var nextHandler = CreateInsertTextHandler(view, "\r\n");
@@ -57,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.DocumentationComments
             Verify(initialMarkup, expectedMarkup, useTabs, autoGenerateXmlDocComments,
                 execute: (view, undoHistoryRegistry, editorOperationsFactoryService, completionService) =>
                 {
-                    var commandHandler = CreateCommandHandler(TestWaitIndicator.Default, undoHistoryRegistry, editorOperationsFactoryService) as ICommandHandler<InsertCommentCommandArgs>;
+                    var commandHandler = CreateCommandHandler(TestWaitIndicator.Default, undoHistoryRegistry, editorOperationsFactoryService) as ICommandHandler2<InsertCommentCommandArgs>;
 
                     var commandArgs = new InsertCommentCommandArgs(view, view.TextBuffer);
                     Action nextHandler = delegate { };
@@ -71,16 +72,16 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.DocumentationComments
             Verify(initialMarkup, expectedMarkup, useTabs, autoGenerateXmlDocComments,
                 execute: (view, undoHistoryRegistry, editorOperationsFactoryService, completionService) =>
                 {
-                    var commandHandler = CreateCommandHandler(TestWaitIndicator.Default, undoHistoryRegistry, editorOperationsFactoryService) as ICommandHandler<OpenLineAboveCommandArgs>;
+                    var commandHandler = CreateCommandHandler(TestWaitIndicator.Default, undoHistoryRegistry, editorOperationsFactoryService) as VSC.ICommandHandler<VSC.Commands.OpenLineAboveCommandArgs>;
 
-                    var commandArgs = new OpenLineAboveCommandArgs(view, view.TextBuffer);
+                    var commandArgs = new VSC.Commands.OpenLineAboveCommandArgs(view, view.TextBuffer);
                     Action nextHandler = () =>
                     {
                         var editorOperations = editorOperationsFactoryService.GetEditorOperations(view);
                         editorOperations.OpenLineAbove();
                     };
 
-                    commandHandler.ExecuteCommand(commandArgs, nextHandler);
+                    commandHandler.ExecuteCommand(commandArgs);
                 });
         }
 
@@ -89,16 +90,16 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.DocumentationComments
             Verify(initialMarkup, expectedMarkup, useTabs, autoGenerateXmlDocComments,
                 execute: (view, undoHistoryRegistry, editorOperationsFactoryService, completionService) =>
                 {
-                    var commandHandler = CreateCommandHandler(TestWaitIndicator.Default, undoHistoryRegistry, editorOperationsFactoryService) as ICommandHandler<OpenLineBelowCommandArgs>;
+                    var commandHandler = CreateCommandHandler(TestWaitIndicator.Default, undoHistoryRegistry, editorOperationsFactoryService) as VSC.ICommandHandler<VSC.Commands.OpenLineBelowCommandArgs>;
 
-                    var commandArgs = new OpenLineBelowCommandArgs(view, view.TextBuffer);
+                    var commandArgs = new VSC.Commands.OpenLineBelowCommandArgs(view, view.TextBuffer);
                     Action nextHandler = () =>
                     {
                         var editorOperations = editorOperationsFactoryService.GetEditorOperations(view);
                         editorOperations.OpenLineBelow();
                     };
 
-                    commandHandler.ExecuteCommand(commandArgs, nextHandler);
+                    commandHandler.ExecuteCommand(commandArgs);
                 });
         }
 

@@ -3,10 +3,11 @@
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Implementation.ChangeSignature;
+using VSC = Microsoft.VisualStudio.Text.UI.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.ChangeSignature
 {
-    [ExportCommandHandler(PredefinedCommandHandlerNames.ChangeSignature, ContentTypeNames.CSharpContentType)]
+    [VSC.ExportCommandHandler(PredefinedCommandHandlerNames.ChangeSignature, ContentTypeNames.CSharpContentType)]
     internal class CSharpChangeSignatureCommandHandler : AbstractChangeSignatureCommandHandler
     {
         [ImportingConstructor]

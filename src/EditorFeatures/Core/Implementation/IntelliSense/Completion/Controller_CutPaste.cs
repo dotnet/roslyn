@@ -1,7 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using Microsoft.CodeAnalysis.Editor.Commands;
+using Microsoft.VisualStudio.Text.UI.Commanding;
+using Microsoft.VisualStudio.Text.UI.Commanding.Commands;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 {
@@ -9,30 +10,30 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
     {
         // Cut and Paste should always dismiss completion
 
-        CommandState ICommandHandler<CutCommandArgs>.GetCommandState(CutCommandArgs args, System.Func<CommandState> nextHandler)
+        CommandState ICommandHandler<CutCommandArgs>.GetCommandState(CutCommandArgs args)
         {
             AssertIsForeground();
-            return nextHandler();
+            return CommandState.CommandIsUnavailable;
         }
 
-        void ICommandHandler<CutCommandArgs>.ExecuteCommand(CutCommandArgs args, Action nextHandler)
+        bool ICommandHandler<CutCommandArgs>.ExecuteCommand(CutCommandArgs args)
         {
             AssertIsForeground();
             DismissSessionIfActive();
-            nextHandler();
+            return false;
         }
 
-        CommandState ICommandHandler<PasteCommandArgs>.GetCommandState(PasteCommandArgs args, System.Func<CommandState> nextHandler)
+        CommandState ICommandHandler<PasteCommandArgs>.GetCommandState(PasteCommandArgs args)
         {
             AssertIsForeground();
-            return nextHandler();
+            return CommandState.CommandIsUnavailable;
         }
 
-        void ICommandHandler<PasteCommandArgs>.ExecuteCommand(PasteCommandArgs args, Action nextHandler)
+        bool ICommandHandler<PasteCommandArgs>.ExecuteCommand(PasteCommandArgs args)
         {
             AssertIsForeground();
             DismissSessionIfActive();
-            nextHandler();
+            return false;
         }
     }
 }

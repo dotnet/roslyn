@@ -7,7 +7,7 @@ namespace Microsoft.CodeAnalysis.Editor
 {
     internal interface ICommandHandlerService
     {
-        CommandState GetCommandState<T>(IContentType contentType, T args, Func<CommandState> lastHandler = null) where T : CommandArgs;
+        CommandState2 GetCommandState<T>(IContentType contentType, T args, Func<CommandState2> lastHandler = null) where T : CommandArgs;
         void Execute<T>(IContentType contentType, T args, Action lastHandler = null) where T : CommandArgs;
     }
 }

@@ -1,29 +1,29 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Text.UI.Commanding.Commands;
+using VSC = Microsoft.VisualStudio.Text.UI.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 {
     internal partial class RenameCommandHandler :
-        ICommandHandler<TypeCharCommandArgs>
+        VSC.ICommandHandler<TypeCharCommandArgs>
     {
-        public CommandState GetCommandState(TypeCharCommandArgs args, Func<CommandState> nextHandler)
+        public VSC.CommandState GetCommandState(TypeCharCommandArgs args)
         {
-            return GetCommandState(nextHandler);
+            return GetCommandState();
         }
 
-        public void ExecuteCommand(TypeCharCommandArgs args, Action nextHandler)
+        public bool ExecuteCommand(TypeCharCommandArgs args)
         {
-            HandlePossibleTypingCommand(args, nextHandler, span =>
+            return HandlePossibleTypingCommand(args, span =>
             {
                 var document = args.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
                 if (document == null)
                 {
-                    nextHandler();
-                    return;
+                    return false;
                 }
 
                 var syntaxFactsService = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
@@ -35,8 +35,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                     syntaxFactsService.IsIdentifierPartCharacter(args.TypedChar) ||
                     syntaxFactsService.IsStartOfUnicodeEscapeSequence(args.TypedChar))
                 {
-                    nextHandler();
+                    return false;
                 }
+
+                return true;
             });
         }
     }

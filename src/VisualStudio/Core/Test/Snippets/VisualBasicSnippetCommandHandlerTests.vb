@@ -387,19 +387,17 @@ End Class
                 Dim nextHandler =
                     Function()
                         delegatedToNext = True
-                        Return CommandState.Unavailable
+                        Return CommandState2.Unavailable
                     End Function
 
                 Dim handler = testState.SnippetCommandHandler
-                Dim state = handler.GetCommandState(New Commands.InsertSnippetCommandArgs(testState.TextView, testState.SubjectBuffer), nextHandler)
+                Dim state = handler.GetCommandState(New Microsoft.VisualStudio.Text.UI.Commanding.Commands.InsertSnippetCommandArgs(testState.TextView, testState.SubjectBuffer))
                 Assert.True(delegatedToNext)
                 Assert.False(state.IsAvailable)
 
                 testState.SnippetExpansionClient.TryInsertExpansionReturnValue = True
 
-                delegatedToNext = False
-                testState.SendInsertSnippetCommand(AddressOf handler.ExecuteCommand, nextHandler)
-                Assert.True(delegatedToNext)
+                Assert.False(testState.SendInsertSnippetCommand(AddressOf handler.ExecuteCommand))
 
                 Assert.False(testState.SnippetExpansionClient.TryInsertExpansionCalled)
                 Assert.Equal("for", testState.SubjectBuffer.CurrentSnapshot.GetText())

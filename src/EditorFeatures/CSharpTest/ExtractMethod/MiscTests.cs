@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
                     workspace.ExportProvider.GetExportedValue<IInlineRenameService>(),
                     workspace.ExportProvider.GetExportedValue<IWaitIndicator>());
 
-                handler.ExecuteCommand(new Commands.ExtractMethodCommandArgs(view, view.TextBuffer), () => { });
+                handler.ExecuteCommand(new Microsoft.VisualStudio.Text.UI.Commanding.Commands.ExtractMethodCommandArgs(view, view.TextBuffer));
 
                 Assert.True(called);
             }

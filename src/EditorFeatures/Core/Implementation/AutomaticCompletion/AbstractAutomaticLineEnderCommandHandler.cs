@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
     /// abstract line ender command handler
     /// </summary>
     internal abstract class AbstractAutomaticLineEnderCommandHandler :
-        ICommandHandler<AutomaticLineEnderCommandArgs>
+        ICommandHandler2<AutomaticLineEnderCommandArgs>
     {
         private readonly IWaitIndicator _waitIndicator;
         private readonly ITextUndoHistoryRegistry _undoRegistry;
@@ -55,9 +55,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
         /// </summary>
         protected abstract bool TreatAsReturn(Document document, int position, CancellationToken cancellationToken);
 
-        public CommandState GetCommandState(AutomaticLineEnderCommandArgs args, Func<CommandState> nextHandler)
+        public CommandState2 GetCommandState(AutomaticLineEnderCommandArgs args, Func<CommandState2> nextHandler)
         {
-            return CommandState.Available;
+            return CommandState2.Available;
         }
 
         public void ExecuteCommand(AutomaticLineEnderCommandArgs args, Action nextHandler)

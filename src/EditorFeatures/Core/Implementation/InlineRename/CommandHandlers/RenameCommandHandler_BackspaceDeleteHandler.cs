@@ -1,44 +1,49 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.VisualStudio.Text.UI.Commanding.Commands;
+using VSC = Microsoft.VisualStudio.Text.UI.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 {
-    internal partial class RenameCommandHandler : ICommandHandler<BackspaceKeyCommandArgs>, ICommandHandler<DeleteKeyCommandArgs>
+    internal partial class RenameCommandHandler : VSC.ICommandHandler<BackspaceKeyCommandArgs>, VSC.ICommandHandler<DeleteKeyCommandArgs>
     {
-        public CommandState GetCommandState(BackspaceKeyCommandArgs args, Func<CommandState> nextHandler)
+        public VSC.CommandState GetCommandState(BackspaceKeyCommandArgs args)
         {
-            return GetCommandState(nextHandler);
+            return GetCommandState();
         }
 
-        public CommandState GetCommandState(DeleteKeyCommandArgs args, Func<CommandState> nextHandler)
+        public VSC.CommandState GetCommandState(DeleteKeyCommandArgs args)
         {
-            return GetCommandState(nextHandler);
+            return GetCommandState();
         }
 
-        public void ExecuteCommand(BackspaceKeyCommandArgs args, Action nextHandler)
+        public bool ExecuteCommand(BackspaceKeyCommandArgs args)
         {
-            HandlePossibleTypingCommand(args, nextHandler, span =>
+            return HandlePossibleTypingCommand(args, span =>
                 {
                     var caretPoint = args.TextView.GetCaretPoint(args.SubjectBuffer);
                     if (!args.TextView.Selection.IsEmpty || caretPoint.Value != span.Start)
                     {
-                        nextHandler();
+                        return false;   
                     }
+
+                    return true;
                 });
         }
 
-        public void ExecuteCommand(DeleteKeyCommandArgs args, Action nextHandler)
+        public bool ExecuteCommand(DeleteKeyCommandArgs args)
         {
-            HandlePossibleTypingCommand(args, nextHandler, span =>
+            return HandlePossibleTypingCommand(args, span =>
                 {
                     var caretPoint = args.TextView.GetCaretPoint(args.SubjectBuffer);
                     if (!args.TextView.Selection.IsEmpty || caretPoint.Value != span.End)
                     {
-                        nextHandler();
+                        return false;
                     }
+
+                    return true;
                 });
         }
     }

@@ -1197,7 +1197,7 @@ End Class
         Friend Overrides Function CreateCommandHandler(
             waitIndicator As IWaitIndicator,
             undoHistoryRegistry As ITextUndoHistoryRegistry,
-            editorOperationsFactoryService As IEditorOperationsFactoryService) As ICommandHandler
+            editorOperationsFactoryService As IEditorOperationsFactoryService) As ICommandHandler2
 
             Return New DocumentationCommentCommandHandler(waitIndicator, undoHistoryRegistry, editorOperationsFactoryService)
         End Function

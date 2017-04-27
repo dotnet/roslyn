@@ -244,7 +244,7 @@ End Module
             waitIndicator As Microsoft.CodeAnalysis.Editor.Host.IWaitIndicator,
             undoRegistry As ITextUndoHistoryRegistry,
             editorOperations As IEditorOperationsFactoryService
-        ) As ICommandHandler(Of AutomaticLineEnderCommandArgs)
+        ) As ICommandHandler2(Of AutomaticLineEnderCommandArgs)
 
             Return New AutomaticLineEnderCommandHandler(waitIndicator, undoRegistry, editorOperations)
         End Function

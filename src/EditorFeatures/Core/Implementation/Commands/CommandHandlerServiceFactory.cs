@@ -19,15 +19,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Commands
     [Export(typeof(ICommandHandlerServiceFactory))]
     internal class CommandHandlerServiceFactory : ICommandHandlerServiceFactory
     {
-        private readonly IEnumerable<Lazy<ICommandHandler, OrderableContentTypeMetadata>> _commandHandlers;
+        private readonly IEnumerable<Lazy<ICommandHandler2, OrderableContentTypeMetadata>> _commandHandlers;
 
         [ImportingConstructor]
         public CommandHandlerServiceFactory(
-            [ImportMany] IEnumerable<Lazy<ICommandHandler, OrderableContentTypeMetadata>> commandHandlers)
+            [ImportMany] IEnumerable<Lazy<ICommandHandler2, OrderableContentTypeMetadata>> commandHandlers)
         {
             Contract.ThrowIfNull(commandHandlers);
 
             _commandHandlers = commandHandlers;
+            //_commandHandlers = SpecializedCollections.EmptyEnumerable<Lazy<ICommandHandler, OrderableContentTypeMetadata>>();
         }
 
         public void Initialize(string contentTypeName)

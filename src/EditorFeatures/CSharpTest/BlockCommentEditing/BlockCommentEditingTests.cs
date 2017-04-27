@@ -680,7 +680,7 @@ $$*";
         protected override TestWorkspace CreateTestWorkspace(string initialMarkup)
             => TestWorkspace.CreateCSharp(initialMarkup);
 
-        internal override ICommandHandler<ReturnKeyCommandArgs> CreateCommandHandler(ITextUndoHistoryRegistry undoHistoryRegistry, IEditorOperationsFactoryService editorOperationsFactoryService)
+        internal override ICommandHandler2<ReturnKeyCommandArgs> CreateCommandHandler(ITextUndoHistoryRegistry undoHistoryRegistry, IEditorOperationsFactoryService editorOperationsFactoryService)
             => new BlockCommentEditingCommandHandler(undoHistoryRegistry, editorOperationsFactoryService);
     }
 }

@@ -2,7 +2,6 @@
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -12,6 +11,12 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Operations;
 using Roslyn.Utilities;
+using VSC = Microsoft.VisualStudio.Text.UI.Commanding;
+using VSInsertSnippetCommandArgs = Microsoft.VisualStudio.Text.UI.Commanding.Commands.InsertSnippetCommandArgs;
+using VSInvokeCompletionListCommandArgs = Microsoft.VisualStudio.Text.UI.Commanding.Commands.InvokeCompletionListCommandArgs;
+using VSCommandState = Microsoft.VisualStudio.Text.UI.Commanding.CommandState;
+using Microsoft.VisualStudio.Text.UI.Commanding.Commands;
+using Microsoft.VisualStudio.Text.UI.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 {
@@ -21,15 +26,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
         ICommandHandler<ToggleCompletionModeCommandArgs>,
         ICommandHandler<TypeCharCommandArgs>,
         ICommandHandler<ReturnKeyCommandArgs>,
-        ICommandHandler<InvokeCompletionListCommandArgs>,
+        VSC.ICommandHandler<VSInvokeCompletionListCommandArgs>,
         ICommandHandler<CommitUniqueCompletionListItemCommandArgs>,
         ICommandHandler<PageUpKeyCommandArgs>,
         ICommandHandler<PageDownKeyCommandArgs>,
         ICommandHandler<CutCommandArgs>,
         ICommandHandler<PasteCommandArgs>,
         ICommandHandler<BackspaceKeyCommandArgs>,
-        ICommandHandler<InsertSnippetCommandArgs>,
-        ICommandHandler<SurroundWithCommandArgs>,
+        VSC.ICommandHandler<VSInsertSnippetCommandArgs>,
+        VSC.ICommandHandler<VSC.Commands.SurroundWithCommandArgs>,
         ICommandHandler<AutomaticLineEnderCommandArgs>,
         ICommandHandler<SaveCommandArgs>,
         ICommandHandler<DeleteKeyCommandArgs>,
@@ -43,6 +48,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
         private readonly bool _isDebugger;
         private readonly bool _isImmediateWindow;
         private readonly ImmutableHashSet<string> _roles;
+
+        private readonly VSC.ICommandHandlerService commandHandlerService;
 
         public Controller(
             ITextView textView,
@@ -81,6 +88,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 (v, b) => new Controller(
                     textView, subjectBuffer, editorOperationsFactoryService, undoHistoryRegistry, 
                     presenter, asyncListener, autoBraceCompletionChars, isDebugger, isImmediateWindow));
+        }
+
+        private void ExecuteEditorCommandHandler<T>(T args) where T : VSC.Commands.CommandArgs
+        {
+            this.commandHandlerService.Execute(this.TextView.TextBuffer.ContentType, this.TextView.Roles, false, args);
         }
 
         private SnapshotPoint GetCaretPointInViewBuffer()
@@ -235,6 +247,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
         private const int MaxMRUSize = 10;
         private ImmutableArray<string> _recentItems = ImmutableArray<string>.Empty;
+
+        public bool InterestedInReadOnlyBuffer => false;
 
         public void MakeMostRecentItem(string item)
         {

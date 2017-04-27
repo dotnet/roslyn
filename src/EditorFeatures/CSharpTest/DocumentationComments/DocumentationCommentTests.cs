@@ -1883,7 +1883,7 @@ $$
             get { return '/'; }
         }
 
-        internal override ICommandHandler CreateCommandHandler(
+        internal override ICommandHandler2 CreateCommandHandler(
             IWaitIndicator waitIndicator,
             ITextUndoHistoryRegistry undoHistoryRegistry,
             IEditorOperationsFactoryService editorOperationsFactoryService)
