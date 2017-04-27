@@ -617,7 +617,7 @@ End Namespace",
         System.Console.Write(t.a)
     End Sub
 
-    Private Shared Function GetT(a As Integer) As (Integer, b As Integer)
+    Private Shared Function GetT(a As Integer) As (a As Integer, b As Integer)
         Return (a, b:=2)
     End Function
 End Class
