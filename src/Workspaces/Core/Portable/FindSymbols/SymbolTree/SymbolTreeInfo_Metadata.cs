@@ -10,6 +10,7 @@ using System.Reflection.Metadata;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Utilities;
 using Roslyn.Utilities;
 
@@ -131,24 +132,33 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             CancellationToken cancellationToken)
         {
             var filePath = reference.FilePath;
+            var checksum = IOUtilities.PerformIO(() =>
+            {
+                using (var stream = File.OpenRead(filePath))
+                {
+                    return Checksum.Create(stream);
+                }
+            }, null);
+
             return LoadOrCreateAsync(
                 solution,
+                checksum,
                 filePath,
                 loadOnly,
-                create: version => CreateMetadataSymbolTreeInfo(solution, version, reference, cancellationToken),
+                create: () => CreateMetadataSymbolTreeInfo(solution, checksum, reference, cancellationToken),
                 keySuffix: "",
-                getVersion: info => info._version,
+                getPersistedChecksum: info => info._checksum,
                 readObject: reader => ReadSymbolTreeInfo(reader, (version, names, nodes) => GetSpellCheckerTask(solution, version, filePath, names, nodes)),
                 writeObject: (w, i) => i.WriteTo(w),
                 cancellationToken: cancellationToken);
         }
 
         private static SymbolTreeInfo CreateMetadataSymbolTreeInfo(
-            Solution solution, VersionStamp version,
+            Solution solution, Checksum checksum,
             PortableExecutableReference reference,
             CancellationToken cancellationToken)
         {
-            var creator = new MetadataInfoCreator(solution, version, reference, cancellationToken);
+            var creator = new MetadataInfoCreator(solution, checksum, reference, cancellationToken);
             return creator.Create();
         }
 
@@ -158,7 +168,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             private static ObjectPool<List<string>> s_stringListPool = new ObjectPool<List<string>>(() => new List<string>());
 
             private readonly Solution _solution;
-            private readonly VersionStamp _version;
+            private readonly Checksum _checksum;
             private readonly PortableExecutableReference _reference;
             private readonly CancellationToken _cancellationToken;
 
@@ -173,10 +183,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             private readonly List<MetadataDefinition> _allTypeDefinitions;
             
             public MetadataInfoCreator(
-                Solution solution, VersionStamp version, PortableExecutableReference reference, CancellationToken cancellationToken)
+                Solution solution, Checksum checksum, PortableExecutableReference reference, CancellationToken cancellationToken)
             {
                 _solution = solution;
-                _version = version;
+                _checksum = checksum;
                 _reference = reference;
                 _cancellationToken = cancellationToken;
                 _metadataReader = null;
@@ -239,7 +249,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                 var unsortedNodes = GenerateUnsortedNodes();
                 return SymbolTreeInfo.CreateSymbolTreeInfo(
-                    _solution, _version, _reference.FilePath, unsortedNodes, _inheritanceMap);
+                    _solution, _checksum, _reference.FilePath, unsortedNodes, _inheritanceMap);
             }
 
             public void Dispose()

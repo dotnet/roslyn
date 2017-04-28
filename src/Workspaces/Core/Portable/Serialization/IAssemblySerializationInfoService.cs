@@ -7,6 +7,6 @@ namespace Microsoft.CodeAnalysis.Serialization
     internal interface IAssemblySerializationInfoService : IWorkspaceService
     {
         bool Serializable(Solution solution, string assemblyFilePath);
-        bool TryGetSerializationPrefixAndVersion(Solution solution, string assemblyFilePath, out string prefix, out VersionStamp version);
+        bool TryGetSerializationPrefix(Solution solution, string assemblyFilePath, out string prefix);
     }
 }

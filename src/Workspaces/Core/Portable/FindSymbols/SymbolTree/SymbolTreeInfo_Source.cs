@@ -28,14 +28,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             Project project, CancellationToken cancellationToken)
         {
             var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+            var checksum = await project.State.GetChecksumAsync(cancellationToken).ConfigureAwait(false);
 
             return await LoadOrCreateSourceSymbolTreeInfoAsync(
-                project.Solution, compilation.Assembly, project.FilePath,
+                project.Solution, compilation.Assembly, checksum, project.FilePath,
                 loadOnly: false, cancellationToken: cancellationToken).ConfigureAwait(false);
         }
 
         internal static SymbolTreeInfo CreateSourceSymbolTreeInfo(
-            Solution solution, VersionStamp version, IAssemblySymbol assembly,
+            Solution solution, Checksum checksum, IAssemblySymbol assembly,
             string filePath, CancellationToken cancellationToken)
         {
             if (assembly == null)
@@ -49,7 +50,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             GenerateSourceNodes(assembly.GlobalNamespace, unsortedNodes, s_getMembersNoPrivate);
 
             return CreateSymbolTreeInfo(
-                solution, version, filePath, unsortedNodes.ToImmutableAndFree(), 
+                solution, checksum, filePath, unsortedNodes.ToImmutableAndFree(), 
                 inheritanceMap: new OrderPreservingMultiDictionary<string, string>());
         }
 
