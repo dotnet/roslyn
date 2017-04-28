@@ -74,7 +74,9 @@ disallowed.
 
 The compilers as of this writing *MUST NOT* assign any meaning to any
 .editorconfig key or value and apply it to core compiler behavior, to mitigate
-backwards compatibility concerns about existing .editorconfig files. The
+backwards compatibility concerns about existing .editorconfig files. This includes
+emitting any warnings or errors for malformed files. The compiler may still
+emit errors for "environmental" issues like inability to read files, etc. The
 previous statement is scoped to allow for the possibility that in future
 versions the compiler *MAY* consume .editorconfig options to control other
 settings (such as defaults for warnings/errors) but the spec will be clarified
