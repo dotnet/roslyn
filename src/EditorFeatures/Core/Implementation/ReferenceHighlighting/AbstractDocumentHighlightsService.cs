@@ -223,7 +223,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
                 list.Add(new DocumentHighlights(kvp.Key, spans.ToImmutableAndFree()));
             }
 
-            return list.ToImmutableAndFree();
+            var result = list.ToImmutableAndFree();
+
+            // Diagnosing flaky tests: assert that no span appears more than once
+            var groupedSpans = result.SelectMany(d => d.HighlightSpans).GroupBy(s => s);
+            Contract.ThrowIfTrue(groupedSpans.Any(s => s.Count() > 1), "Found duplicate spans!");
+            return result;
         }
 
         private static bool ShouldIncludeDefinition(ISymbol symbol)
