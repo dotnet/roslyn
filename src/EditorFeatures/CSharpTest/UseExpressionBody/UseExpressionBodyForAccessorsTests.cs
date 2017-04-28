@@ -140,31 +140,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
         public async Task TestMissingWithOnlySetter()
         {
-            await TestActionCountAsync(
+            await TestMissingAsync(
 @"class C
 {
     int Foo
     {
         set => [|Bar|]();
     }
-}", count: 1, parameters: new TestParameters(options: UseExpressionBody));
-
-            // There is a hidden diagnostic that still offers to convert expression-body to block-body.
-            await TestInRegularAndScriptAsync(
-@"class C
-{
-    int Foo
-    {
-        set => [|Bar|]();
-    }
-}",
-@"class C
-{
-    int Foo
-    {
-        set { Bar(); }
-    }
-}", options: UseExpressionBody);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]

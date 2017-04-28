@@ -68,7 +68,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
 
                     var options = declaration.SyntaxTree.Options;
                     var body = this.GetBody(declaration);
-                    if (body.TryConvertToExpressionBody(options, preference,
+
+                    var conversionPreference = forAnalyzer ? preference : ExpressionBodyPreference.WhenPossible;
+
+                    if (body.TryConvertToExpressionBody(options, conversionPreference,
                             out var expressionWhenOnSingleLine, out var semicolonWhenOnSingleLine))
                     {
                         return true;
