@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         public string CompletionListCref { get; private set; }
 
         /// <summary>
-        /// Used for <see cref="TrimEachLine"/> method, to prevent new allocation of string
+        /// Used for <see cref="CommentBuilder.TrimEachLine"/> method, to prevent new allocation of string
         /// </summary>
         private static readonly string[] s_NewLineAsStringArray = new string[] { Environment.NewLine };
 
