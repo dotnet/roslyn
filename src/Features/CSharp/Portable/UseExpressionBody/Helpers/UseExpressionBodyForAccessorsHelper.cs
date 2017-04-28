@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
@@ -15,11 +16,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         private readonly UseExpressionBodyForPropertiesDiagnosticAnalyzer propertyAnalyzer = new UseExpressionBodyForPropertiesDiagnosticAnalyzer();
         private readonly UseExpressionBodyForIndexersDiagnosticAnalyzer indexerAnalyzer = new UseExpressionBodyForIndexersDiagnosticAnalyzer();
 
+        private readonly Func<OptionSet, PropertyDeclarationSyntax, bool, bool> _propertyCanOfferUseExpressionBody =
+            UseExpressionBodyForPropertiesHelper.Instance.CanOfferUseExpressionBody;
+
+        private readonly Func<OptionSet, PropertyDeclarationSyntax, bool, bool> _propertyCanOfferUseBlockBody =
+            UseExpressionBodyForPropertiesHelper.Instance.CanOfferUseBlockBody;
+
+        private readonly Func<OptionSet, IndexerDeclarationSyntax, bool, bool> _indexerCanOfferUseExpressionBody =
+            UseExpressionBodyForIndexersHelper.Instance.CanOfferUseExpressionBody;
+
+        private readonly Func<OptionSet, IndexerDeclarationSyntax, bool, bool> _indexerCanOfferUseBlockBody =
+            UseExpressionBodyForIndexersHelper.Instance.CanOfferUseBlockBody;
+
+        private readonly Func<OptionSet, AccessorDeclarationSyntax, bool, bool> _baseCanOfferUseExpressionBody;
+        private readonly Func<OptionSet, AccessorDeclarationSyntax, bool, bool> _baseCanOfferUseBlockBody;
+
         public UseExpressionBodyForAccessorsHelper()
             : base(new LocalizableResourceString(nameof(FeaturesResources.Use_expression_body_for_accessors), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
                    new LocalizableResourceString(nameof(FeaturesResources.Use_block_body_for_accessors), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
                    CSharpCodeStyleOptions.PreferExpressionBodiedAccessors)
         {
+            _baseCanOfferUseExpressionBody = base.CanOfferUseExpressionBody;
+            _baseCanOfferUseBlockBody = base.CanOfferUseBlockBody;
         }
 
         public override BlockSyntax GetBody(AccessorDeclarationSyntax declaration)
@@ -28,16 +46,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         public override ArrowExpressionClauseSyntax GetExpressionBody(AccessorDeclarationSyntax declaration)
             => declaration.ExpressionBody;
 
-        public override bool CanOfferUseExpressionBody(
-            OptionSet optionSet, AccessorDeclarationSyntax accessor, bool forAnalyzer)
+        private bool CanOffer(
+            OptionSet optionSet, AccessorDeclarationSyntax accessor, bool forAnalyzer,
+            Func<OptionSet, PropertyDeclarationSyntax, bool, bool> propertyPredicate,
+            Func<OptionSet, IndexerDeclarationSyntax, bool, bool> indexerPredicate,
+            Func<OptionSet, AccessorDeclarationSyntax, bool, bool> basePredicate)
         {
             var grandParent = accessor.Parent.Parent;
 
             if (grandParent.IsKind(SyntaxKind.PropertyDeclaration))
             {
                 var propertyDeclaration = (PropertyDeclarationSyntax)grandParent;
-                if (UseExpressionBodyForPropertiesHelper.Instance.CanOfferUseExpressionBody(
-                        optionSet, propertyDeclaration, forAnalyzer))
+                if (propertyPredicate(optionSet, propertyDeclaration, forAnalyzer))
                 {
                     return false;
                 }
@@ -45,41 +65,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             else if (grandParent.IsKind(SyntaxKind.IndexerDeclaration))
             {
                 var indexerDeclaration = (IndexerDeclarationSyntax)grandParent;
-                if (UseExpressionBodyForIndexersHelper.Instance.CanOfferUseExpressionBody(
-                        optionSet, indexerDeclaration, forAnalyzer))
+                if (indexerPredicate(optionSet, indexerDeclaration, forAnalyzer))
                 {
                     return false;
                 }
             }
 
-            return base.CanOfferUseExpressionBody(optionSet, accessor, forAnalyzer);
+            return basePredicate(optionSet, accessor, forAnalyzer);
+        }
+
+        public override bool CanOfferUseExpressionBody(OptionSet optionSet, AccessorDeclarationSyntax accessor, bool forAnalyzer)
+        {
+            return CanOffer(
+                optionSet, accessor, forAnalyzer,
+                _propertyCanOfferUseExpressionBody, _indexerCanOfferUseExpressionBody, _baseCanOfferUseExpressionBody);
         }
 
         public override bool CanOfferUseBlockBody(
             OptionSet optionSet, AccessorDeclarationSyntax accessor, bool forAnalyzer)
         {
-            var grandParent = accessor.Parent.Parent;
-
-            if (grandParent.IsKind(SyntaxKind.PropertyDeclaration))
-            {
-                var propertyDeclaration = (PropertyDeclarationSyntax)grandParent;
-                if (UseExpressionBodyForPropertiesHelper.Instance.CanOfferUseBlockBody(
-                        optionSet, propertyDeclaration, forAnalyzer))
-                {
-                    return false;
-                }
-            }
-            else if (grandParent.IsKind(SyntaxKind.IndexerDeclaration))
-            {
-                var indexerDeclaration = (IndexerDeclarationSyntax)grandParent;
-                if (UseExpressionBodyForIndexersHelper.Instance.CanOfferUseBlockBody(
-                        optionSet, indexerDeclaration, forAnalyzer))
-                {
-                    return false;
-                }
-            }
-
-            return base.CanOfferUseBlockBody(optionSet, accessor, forAnalyzer);
+            return CanOffer(
+                optionSet, accessor, forAnalyzer,
+                _propertyCanOfferUseBlockBody, _indexerCanOfferUseBlockBody, _baseCanOfferUseBlockBody);
         }
 
         protected override SyntaxToken GetSemicolonToken(AccessorDeclarationSyntax declaration)
