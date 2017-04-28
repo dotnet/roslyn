@@ -7749,7 +7749,7 @@ Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "M3").WithArguments("NS.clx<T>.M3(
 
             var nsNamespace = comp.SourceModule.GlobalNamespace.GetMembers("NS").Single() as NamespaceSymbol;
             var clxClass = nsNamespace.GetMembers("clx").Single() as NamedTypeSymbol;
-            Assert.Equal(4, clxClass.GetMembers().Length);
+            Assert.Equal(9, clxClass.GetMembers().Length);
         }
 
         [Fact]
