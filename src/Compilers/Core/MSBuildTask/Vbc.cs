@@ -79,12 +79,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             get { return (ITaskItem[])_store[nameof(Imports)]; }
         }
 
-        public string LangVersion
-        {
-            set { _store[nameof(LangVersion)] = value; }
-            get { return (string)_store[nameof(LangVersion)]; }
-        }
-
         public string ModuleAssemblyName
         {
             set { _store[nameof(ModuleAssemblyName)] = value; }
@@ -909,7 +903,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 }
 
                 // Check for support of the LangVersion property
-                if (vbcHostObject is IVbcHostObject3)
+                if (vbcHostObject is IVbcHostObject3 && VbcHostObjectSupports(LangVersion))
                 {
                     IVbcHostObject3 vbcHostObject3 = (IVbcHostObject3)vbcHostObject;
                     CheckHostObjectSupport(param = nameof(LangVersion), vbcHostObject3.SetLanguageVersion(LangVersion));
@@ -958,6 +952,37 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             }
 
             return true;
+        }
+
+        // VbcHostObject doesn't support VB versions beyond 15,
+        // so the LangVersion will be passed through ICompilerOptionsHostObject.SetCompilerOptions instead
+        private static bool VbcHostObjectSupports(string langVersion)
+        {
+            if (langVersion == null)
+            {
+                return true;
+            }
+
+            var supportedList = new[]
+            {
+                "9", "9.0",
+                "10", "10.0",
+                "11", "11.0",
+                "12", "12.0",
+                "14", "14.0",
+                "15", "15.0"
+            };
+
+            int length = supportedList.Length;
+            for (int i = 0; i < length; i++)
+            {
+                if (supportedList[i].Equals(langVersion, StringComparison.OrdinalIgnoreCase))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         /// <summary>

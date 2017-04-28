@@ -392,7 +392,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
 
         Protected Overrides Function CreateParseOptions(commandLineArguments As CommandLineArguments) As ParseOptions
             Dim baseParseOptions = DirectCast(MyBase.CreateParseOptions(commandLineArguments), VisualBasicParseOptions)
-            Return VisualBasicProjectOptionsHelper.CreateParseOptions(baseParseOptions, _rawOptions)
+
+            Dim resultParseOptions = VisualBasicProjectOptionsHelper.CreateParseOptions(baseParseOptions, _rawOptions)
+
+            Dim commandLineOptions = DirectCast(commandLineArguments.ParseOptions, VisualBasicParseOptions)
+            If commandLineOptions.LanguageVersion > LanguageVersion.VisualBasic15 Then
+                resultParseOptions = resultParseOptions.WithLanguageVersion(commandLineOptions.LanguageVersion)
+            End If
+
+            Return resultParseOptions
         End Function
 
         Private Shadows Sub UpdateOptions()
