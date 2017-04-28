@@ -14,8 +14,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     /// <summary>
     /// This portion of the binder converts deconstruction-assignment syntax (AssignmentExpressionSyntax nodes with the left
-    /// being a tuple expression or declaration expression) into a BoundAssignmentOperator (or bad node).
-    /// The BoundAssignmentOperator will have:
+    /// being a tuple expression or declaration expression) into a BoundDeconstructionAssignmentOperator (or bad node).
+    /// The BoundDeconstructionAssignmentOperator will have:
     /// - a BoundTupleLiteral as its Left,
     /// - a BoundConversion as its Right, holding:
     ///     - a tree of Conversion objects with Kind=Deconstruction, information about a Deconstruct method (optional) and

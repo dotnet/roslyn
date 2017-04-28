@@ -11,6 +11,8 @@ param (
     [switch]$skipRestore = $false,
     [switch]$skipCommitPrinting = $false,
     [switch]$release = $false,
+    [switch]$skipCoreClrTests = $false,
+    [switch]$skipDesktopTests = $false,
     [parameter(ValueFromRemainingArguments=$true)] $badArgs)
 
 Set-StrictMode -version 2.0
@@ -24,6 +26,8 @@ function Print-Usage() {
     Write-Host "  -test64  Run units tests in the 64-bit runner."
     Write-Host "  -$testVsi  Run all integration tests."
     Write-Host "  -$testVsiNetCore  Run just dotnet core integration tests."
+    Write-Host "  -skipCoreClrTests  Skip running unit tests on CoreCLR"
+    Write-Host "  -skipDesktopTests  Skip running unit tests on Desktop"
 }
 
 function Run-MSBuild() {
@@ -31,10 +35,12 @@ function Run-MSBuild() {
     # that we do not reuse MSBuild nodes from other jobs/builds on the machine. Otherwise,
     # we'll run into issues such as https://github.com/dotnet/roslyn/issues/6211.
     # MSBuildAdditionalCommandLineArgs=
-    & $msbuild /warnaserror /nologo /m /nodeReuse:false /consoleloggerparameters:Verbosity=minimal /filelogger /fileloggerparameters:Verbosity=normal @args
-    if (-not $?) {
-        throw "Build failed"
+    $buildArgs = "/warnaserror /nologo /m /nodeReuse:false /consoleloggerparameters:Verbosity=minimal /filelogger /fileloggerparameters:Verbosity=normal"
+    foreach ($arg in $args) { 
+        $buildArgs += " $arg"
     }
+    
+    Exec-Command $msbuild $buildArgs
 }
 
 # Kill any instances VBCSCompiler.exe to release locked files, ignoring stderr if process is not open
@@ -87,14 +93,14 @@ try {
     Redirect-Temp
 
     if ($testBuildCorrectness) {
-        Exec { & ".\build\scripts\test-build-correctness.ps1" $repoDir $configDir }
+        Exec-Block { & ".\build\scripts\test-build-correctness.ps1" -config $buildConfiguration } | Out-Host
         exit 0
     }
 
     # Output the commit that we're building, for reference in Jenkins logs
     if (-not $skipCommitPrinting) {
         Write-Host "Building this commit:"
-        Exec { & git show --no-patch --pretty=raw HEAD }
+        Exec-Block { & git show --no-patch --pretty=raw HEAD } | Out-Host
     }
 
     # Build with the real assembly version, since that's what's contained in the bootstrap compiler redirects
@@ -108,14 +114,14 @@ try {
     Terminate-BuildProcesses
 
     if ($testDeterminism) {
-        Exec { & ".\build\scripts\test-determinism.ps1" -buildDir $bootstrapDir }
+        Exec-Block { & ".\build\scripts\test-determinism.ps1" -buildDir $bootstrapDir } | Out-Host
         Terminate-BuildProcesses
         exit 0
     }
 
     if ($testPerfCorrectness) {
         Run-MSBuild Roslyn.sln /p:Configuration=$buildConfiguration /p:DeployExtension=false
-        Exec { & ".\Binaries\$buildConfiguration\Exes\Perf.Runner\Roslyn.Test.Performance.Runner.exe" --ci-test }
+        Exec-Block { & ".\Binaries\$buildConfiguration\Exes\Perf.Runner\Roslyn.Test.Performance.Runner.exe" --ci-test } | Out-Host
         exit 0
     }
 
@@ -140,7 +146,7 @@ try {
 
             Create-Directory ".\Binaries\$buildConfiguration\tools\"
             # Get the benchview tools - Place alongside Roslyn.Test.Performance.Runner.exe
-            Exec { & ".\build\scripts\install_benchview_tools.cmd" ".\Binaries\$buildConfiguration\tools\" }
+            Exec-Block { & ".\build\scripts\install_benchview_tools.cmd" ".\Binaries\$buildConfiguration\tools\" } | Out-Host
         }
 
         Terminate-BuildProcesses
@@ -154,13 +160,15 @@ try {
     $target = if ($skipTest) { "Build" } else { "BuildAndTest" }
     $test64Arg = if ($test64) { "true" } else { "false" }
     $testVsiArg = if ($testVsi) { "true" } else { "false" }
+    $skipCoreClrTestsArg = if ($skipCoreClrTests) { "true" } else { "false" }
+    $skipDesktopTestsArg = if ($skipDesktopTests) { "true" } else { "false" }
     $buildLog = Join-Path $binariesdir "Build.log"
 
     if ($testVsiNetCore) { 
-        Run-MSBuild /p:BootstrapBuildPath="$bootstrapDir" BuildAndTest.proj /t:$target /p:Configuration=$buildConfiguration /p:Test64=$test64Arg /p:TestVsi=true /p:Trait="Feature=NetCore" /p:PathMap="$($repoDir)=q:\roslyn" /p:Feature=pdb-path-determinism /fileloggerparameters:LogFile="$buildLog"`;verbosity=diagnostic /p:DeployExtension=false
+        Run-MSBuild /p:BootstrapBuildPath="$bootstrapDir" BuildAndTest.proj /t:$target /p:Configuration=$buildConfiguration /p:Test64=$test64Arg /p:TestVsi=true /p:SkipCoreClrTest=$skipCoreClrTestsArg /p:SkipDesktopTest=$skipDesktopTestsArg /p:Trait="Feature=NetCore" /p:PathMap="$($repoDir)=q:\roslyn" /p:Feature=pdb-path-determinism /fileloggerparameters:LogFile="$buildLog"`;verbosity=diagnostic /p:DeployExtension=false
     }
     else {
-        Run-MSBuild /p:BootstrapBuildPath="$bootstrapDir" BuildAndTest.proj /t:$target /p:Configuration=$buildConfiguration /p:Test64=$test64Arg /p:TestVsi=$testVsiArg /p:PathMap="$($repoDir)=q:\roslyn" /p:Feature=pdb-path-determinism /fileloggerparameters:LogFile="$buildLog"`;verbosity=diagnostic /p:DeployExtension=false
+        Run-MSBuild /p:BootstrapBuildPath="$bootstrapDir" BuildAndTest.proj /t:$target /p:Configuration=$buildConfiguration /p:Test64=$test64Arg /p:TestVsi=$testVsiArg /p:SkipCoreClrTest=$skipCoreClrTestsArg /p:SkipDesktopTest=$skipDesktopTestsArg /p:Trait="Feature=NetCore" /p:PathMap="$($repoDir)=q:\roslyn" /p:Feature=pdb-path-determinism /fileloggerparameters:LogFile="$buildLog"`;verbosity=diagnostic /p:DeployExtension=false
     }
 
     exit 0

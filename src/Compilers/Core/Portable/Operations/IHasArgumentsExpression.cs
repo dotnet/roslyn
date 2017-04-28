@@ -11,17 +11,13 @@ namespace Microsoft.CodeAnalysis.Semantics
     public interface IHasArgumentsExpression : IOperation
     {
         /// <summary>
-        /// Arguments of the invocation, excluding the instance argument. Arguments are in parameter order,
-        /// and params/ParamArray arguments have been collected into arrays. Default values are supplied for
-        /// optional arguments missing in source.
+        /// Arguments of the invocation, excluding the instance argument. Arguments are in evaluation order.
         /// </summary>
-        ImmutableArray<IArgument> ArgumentsInParameterOrder { get; }
-        /// <summary>
-        /// Find the argument supplied for a given parameter of the target method.
-        /// </summary>
-        /// <param name="parameter">Parameter of the target method.</param>
-        /// <returns>Argument corresponding to the parameter.</returns>
-        IArgument GetArgumentMatchingParameter(IParameterSymbol parameter);
+        /// <remarks>
+        /// If the invocation is in its expanded form, then params/ParamArray arguments would be collected into arrays. 
+        /// Default values are supplied for optional arguments missing in source.
+        /// </remarks>
+        ImmutableArray<IArgument> ArgumentsInEvaluationOrder { get; }
     }
 }
 

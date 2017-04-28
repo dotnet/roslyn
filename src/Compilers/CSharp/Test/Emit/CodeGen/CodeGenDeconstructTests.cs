@@ -5537,7 +5537,11 @@ class C
 ";
 
             var comp = CreateStandardCompilation(source, options: TestOptions.DebugExe, references: s_valueTupleRefs);
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (6,26): warning CS1717: Assignment made to same variable; did you mean to assign something else?
+                //         (M(out var x).P, x) = (1, x);
+                Diagnostic(ErrorCode.WRN_AssignmentToSelf, "x").WithLocation(6, 26)
+                );
             CompileAndVerify(comp, expectedOutput: "Written 1. 42");
         }
 
@@ -6720,6 +6724,183 @@ class C
             var comp = CreateCompilationWithMscorlib45(source, references: s_valueTupleRefs, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp, expectedOutput: "3");
+        }
+
+        [Fact]
+        public void DeconstructionWarnsForSelfAssignment()
+        {
+            var source =
+@"
+class C
+{
+    object x = 1;
+    static object y = 2;
+    void M()
+    {
+        ((x, x), this.x, C.y) = ((x, (1, 2)), x, y);
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib45(source, references: s_valueTupleRefs, options: TestOptions.DebugDll);
+            comp.VerifyDiagnostics(
+                // (8,11): warning CS1717: Assignment made to same variable; did you mean to assign something else?
+                //         ((x, x), this.x, C.y) = ((x, (1, 2)), x, y);
+                Diagnostic(ErrorCode.WRN_AssignmentToSelf, "x").WithLocation(8, 11),
+                // (8,18): warning CS1717: Assignment made to same variable; did you mean to assign something else?
+                //         ((x, x), this.x, C.y) = ((x, (1, 2)), x, y);
+                Diagnostic(ErrorCode.WRN_AssignmentToSelf, "this.x").WithLocation(8, 18),
+                // (8,26): warning CS1717: Assignment made to same variable; did you mean to assign something else?
+                //         ((x, x), this.x, C.y) = ((x, (1, 2)), x, y);
+                Diagnostic(ErrorCode.WRN_AssignmentToSelf, "C.y").WithLocation(8, 26)
+                );
+        }
+
+        [Fact]
+        public void DeconstructionWarnsForSelfAssignment2()
+        {
+            var source =
+@"
+class C
+{
+    object x = 1;
+    static object y = 2;
+    void M()
+    {
+        object z = 3;
+        (x, (y, z)) = (x, (y, z));
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib45(source, references: s_valueTupleRefs, options: TestOptions.DebugDll);
+            comp.VerifyDiagnostics(
+                // (9,10): warning CS1717: Assignment made to same variable; did you mean to assign something else?
+                //         (x, (y, z)) = (x, (y, z));
+                Diagnostic(ErrorCode.WRN_AssignmentToSelf, "x"),
+                // (9,14): warning CS1717: Assignment made to same variable; did you mean to assign something else?
+                //         (x, (y, z)) = (x, (y, z));
+                Diagnostic(ErrorCode.WRN_AssignmentToSelf, "y").WithLocation(9, 14),
+                // (9,17): warning CS1717: Assignment made to same variable; did you mean to assign something else?
+                //         (x, (y, z)) = (x, (y, z));
+                Diagnostic(ErrorCode.WRN_AssignmentToSelf, "z").WithLocation(9, 17)
+                );
+        }
+
+        [Fact]
+        public void DeconstructionWarnsForSelfAssignment_WithUserDefinedConversionOnElement()
+        {
+            var source =
+@"
+class C
+{
+    object x = 1;
+    static C y = null;
+    void M()
+    {
+        (x, y) = (x, (C)(D)y);
+    }
+    public static implicit operator C(D d) => null;
+}
+class D
+{
+    public static implicit operator D(C c) => null;
+}
+";
+
+            var comp = CreateCompilationWithMscorlib45(source, references: s_valueTupleRefs, options: TestOptions.DebugDll);
+            comp.VerifyDiagnostics(
+                // (8,10): warning CS1717: Assignment made to same variable; did you mean to assign something else?
+                //         (x, y) = (x, (C)(D)y);
+                Diagnostic(ErrorCode.WRN_AssignmentToSelf, "x").WithLocation(8, 10)
+                );
+        }
+
+        [Fact]
+        public void DeconstructionWarnsForSelfAssignment_WithNestedConversions()
+        {
+            var source =
+@"
+class C
+{
+    object x = 1;
+    int y = 2;
+    byte b = 3;
+    void M()
+    {
+        // The conversions on the right-hand-side:
+        // - a deconstruction conversion
+        // - an implicit tuple literal conversion on the entire right-hand-side
+        // - another implicit tuple literal conversion on the nested tuple
+        // - a conversion on element `b`
+        (_, (x, y)) = (1, (x, b));
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib45(source, references: s_valueTupleRefs, options: TestOptions.DebugDll);
+            comp.VerifyDiagnostics(
+                // (14,14): warning CS1717: Assignment made to same variable; did you mean to assign something else?
+                //         (_, (x, y)) = (1, (x, b));
+                Diagnostic(ErrorCode.WRN_AssignmentToSelf, "x").WithLocation(14, 14)
+                );
+        }
+
+        [Fact]
+        public void DeconstructionWarnsForSelfAssignment_WithExplicitTupleConversion()
+        {
+            var source =
+@"
+class C
+{
+    int y = 2;
+    byte b = 3;
+    void M()
+    {
+        // The conversions on the right-hand-side:
+        // - a deconstruction conversion on the entire right-hand-side
+        // - an identity conversion as its operand
+        // - an explicit tuple literal conversion as its operand
+        (y, _) = ((int, int))(y, b);
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib45(source, references: s_valueTupleRefs, options: TestOptions.DebugDll);
+            comp.VerifyDiagnostics(
+                );
+        }
+
+        [Fact]
+        public void DeconstructionWarnsForSelfAssignment_WithDeconstruct()
+        {
+            var source =
+@"
+class C
+{
+    object x = 1;
+    static object y = 2;
+    void M()
+    {
+        object z = 3;
+        (x, (y, z)) = (x, y);
+    }
+}
+static class Extensions
+{
+    public static void Deconstruct(this object input, out object output1, out object output2)
+    {
+        output1 = input;
+        output2 = input;
+    }
+}";
+
+            var comp = CreateCompilationWithMscorlib45(source, references: s_valueTupleRefs, options: TestOptions.DebugDll);
+            comp.VerifyDiagnostics(
+                // (9,10): warning CS1717: Assignment made to same variable; did you mean to assign something else?
+                //         (x, (y, z)) = (x, y);
+                Diagnostic(ErrorCode.WRN_AssignmentToSelf, "x").WithLocation(9, 10)
+                );
         }
 
         [Fact, WorkItem(17756, "https://github.com/dotnet/roslyn/issues/17756")]

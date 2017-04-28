@@ -651,11 +651,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(resultKind As LookupResultKind, symbols As ImmutableArray(Of Symbol), childBoundNodes As ImmutableArray(Of BoundExpression), type As TypeSymbol) As BoundBadExpression
             If resultKind <> Me.ResultKind OrElse symbols <> Me.Symbols OrElse childBoundNodes <> Me.ChildBoundNodes OrElse type IsNot Me.Type Then
                 Dim result = New BoundBadExpression(Me.Syntax, resultKind, symbols, childBoundNodes, type, Me.HasErrors)
-
+                
                 If Me.WasCompilerGenerated Then
                     result.SetWasCompilerGenerated()
                 End If
-
+                
                 Return result
             End If
             Return Me

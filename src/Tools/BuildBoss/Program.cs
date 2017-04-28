@@ -36,6 +36,11 @@ namespace BuildBoss
                 }
             }
 
+            if (!allGood)
+            {
+                Console.WriteLine("Failed");
+            }
+
             return allGood ? 0 : 1;
         }
 

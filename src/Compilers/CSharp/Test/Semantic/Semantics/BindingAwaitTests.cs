@@ -1894,11 +1894,11 @@ class C
             var calls = actualIL.Split(new[] { '\n', '\r' }, System.StringSplitOptions.RemoveEmptyEntries).Where(s => s.Contains("OnCompleted")).ToArray();
             Assert.Equal(calls.Length, 6);
             Assert.Equal("    IL_0056:  call       \"void System.Runtime.CompilerServices.AsyncVoidMethodBuilder.AwaitOnCompleted<T1, C.<F>d__0<T1, T2, T3, T4, T5, T6>>(ref T1, ref C.<F>d__0<T1, T2, T3, T4, T5, T6>)\"", calls[0]);
-            Assert.Equal("    IL_00c1:  call       \"void System.Runtime.CompilerServices.AsyncVoidMethodBuilder.AwaitUnsafeOnCompleted<T2, C.<F>d__0<T1, T2, T3, T4, T5, T6>>(ref T2, ref C.<F>d__0<T1, T2, T3, T4, T5, T6>)\"", calls[1]);
-            Assert.Equal("    IL_012c:  call       \"void System.Runtime.CompilerServices.AsyncVoidMethodBuilder.AwaitUnsafeOnCompleted<T3, C.<F>d__0<T1, T2, T3, T4, T5, T6>>(ref T3, ref C.<F>d__0<T1, T2, T3, T4, T5, T6>)\"", calls[2]);
-            Assert.Equal("    IL_019a:  call       \"void System.Runtime.CompilerServices.AsyncVoidMethodBuilder.AwaitOnCompleted<T4, C.<F>d__0<T1, T2, T3, T4, T5, T6>>(ref T4, ref C.<F>d__0<T1, T2, T3, T4, T5, T6>)\"", calls[3]);
-            Assert.Equal("    IL_020a:  call       \"void System.Runtime.CompilerServices.AsyncVoidMethodBuilder.AwaitUnsafeOnCompleted<T5, C.<F>d__0<T1, T2, T3, T4, T5, T6>>(ref T5, ref C.<F>d__0<T1, T2, T3, T4, T5, T6>)\"", calls[4]);
-            Assert.Equal("    IL_027a:  call       \"void System.Runtime.CompilerServices.AsyncVoidMethodBuilder.AwaitUnsafeOnCompleted<T6, C.<F>d__0<T1, T2, T3, T4, T5, T6>>(ref T6, ref C.<F>d__0<T1, T2, T3, T4, T5, T6>)\"", calls[5]);
+            Assert.Equal("    IL_00b9:  call       \"void System.Runtime.CompilerServices.AsyncVoidMethodBuilder.AwaitUnsafeOnCompleted<T2, C.<F>d__0<T1, T2, T3, T4, T5, T6>>(ref T2, ref C.<F>d__0<T1, T2, T3, T4, T5, T6>)\"", calls[1]);
+            Assert.Equal("    IL_011c:  call       \"void System.Runtime.CompilerServices.AsyncVoidMethodBuilder.AwaitUnsafeOnCompleted<T3, C.<F>d__0<T1, T2, T3, T4, T5, T6>>(ref T3, ref C.<F>d__0<T1, T2, T3, T4, T5, T6>)\"", calls[2]);
+            Assert.Equal("    IL_0182:  call       \"void System.Runtime.CompilerServices.AsyncVoidMethodBuilder.AwaitOnCompleted<T4, C.<F>d__0<T1, T2, T3, T4, T5, T6>>(ref T4, ref C.<F>d__0<T1, T2, T3, T4, T5, T6>)\"", calls[3]);
+            Assert.Equal("    IL_01ea:  call       \"void System.Runtime.CompilerServices.AsyncVoidMethodBuilder.AwaitUnsafeOnCompleted<T5, C.<F>d__0<T1, T2, T3, T4, T5, T6>>(ref T5, ref C.<F>d__0<T1, T2, T3, T4, T5, T6>)\"", calls[4]);
+            Assert.Equal("    IL_0252:  call       \"void System.Runtime.CompilerServices.AsyncVoidMethodBuilder.AwaitUnsafeOnCompleted<T6, C.<F>d__0<T1, T2, T3, T4, T5, T6>>(ref T6, ref C.<F>d__0<T1, T2, T3, T4, T5, T6>)\"", calls[5]);
         }
 
         [Fact]
@@ -2682,17 +2682,13 @@ class C
             CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
                 // (4,12): error CS0246: The type or namespace name 'IVsTask' could not be found (are you missing a using directive or an assembly reference?)
                 //     public IVsTask ResolveReferenceAsync()
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "IVsTask").WithArguments("IVsTask"),
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "IVsTask").WithArguments("IVsTask").WithLocation(4, 12),
                 // (6,21): error CS1061: 'C' does not contain a definition for 'VsTasksService' and no extension method 'VsTasksService' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
                 //         return this.VsTasksService.InvokeAsync(async delegate
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "VsTasksService").WithArguments("C", "VsTasksService"),
-                // (6,48): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "VsTasksService").WithArguments("C", "VsTasksService").WithLocation(6, 21),
+                // (6,54): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
                 //         return this.VsTasksService.InvokeAsync(async delegate
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, @"async delegate
-        {
-            return null;
-        }")
-                );
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "delegate").WithLocation(6, 54));
         }
 
         [Fact, WorkItem(627123, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/627123")]

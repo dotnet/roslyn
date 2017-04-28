@@ -37,12 +37,10 @@ function Run-Build() {
 
         # Clean out the previous run
         Write-Host "Cleaning the Binaries"
-        Remove-Item -re -fo $debugDir
-        Remove-Item -re -fo $objDir
-        Exec {& msbuild /nologo /v:m /nodeReuse:false /t:clean $sln }
+        Exec-Command $msbuild "/nologo /v:m /nodeReuse:false /t:clean $sln"
 
         Write-Host "Building the Solution"
-        Exec { & msbuild /nologo /v:m /nodeReuse:false /m /p:DebugDeterminism=true /p:BootstrapBuildPath=$script:buildDir '/p:Features="debug-determinism;pdb-path-determinism"' /p:UseRoslynAnalyzers=false $pathMapBuildOption $sln }
+        Exec-Command $msbuild "/nologo /v:m /nodeReuse:false /m /p:DebugDeterminism=true /p:BootstrapBuildPath=$script:buildDir /p:Features=`"debug-determinism;pdb-path-determinism`" /p:UseRoslynAnalyzers=false $pathMapBuildOption $sln"
     }
     finally {
         Pop-Location
@@ -173,6 +171,7 @@ function Run-Test() {
 try {
     . (Join-Path $PSScriptRoot "build-utils.ps1")
 
+    $msbuild = Ensure-MSBuild
     if (-not ([IO.Path]::IsPathRooted($script:buildDir))) {
         Write-Host "The build path must be absolute"
         exit 1
