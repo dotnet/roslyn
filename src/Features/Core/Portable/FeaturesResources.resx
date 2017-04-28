@@ -1337,4 +1337,7 @@ This version used in: {2}</value>
   <data name="Add_readonly_modifier" xml:space="preserve">
     <value>Add readonly modifier</value>
   </data>
+  <data name="Make_field_readonly" xml:space="preserve">
+    <value>Make field readonly</value>
+  </data>
 </root>

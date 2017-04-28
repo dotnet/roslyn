@@ -1990,6 +1990,11 @@ Diese Version wird verwendet in: {2}</target>
         <target state="new">Add readonly modifier</target>
         <note />
       </trans-unit>
+      <trans-unit id="Make_field_readonly">
+        <source>Make field readonly</source>
+        <target state="new">Make field readonly</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>

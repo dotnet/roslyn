@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
         where TLambdaSyntax : SyntaxNode
     {
         private static readonly LocalizableString s_localizableTitle = new LocalizableResourceString(nameof(FeaturesResources.Add_readonly_modifier), FeaturesResources.ResourceManager, typeof(FeaturesResources));
-        private static readonly LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(WorkspacesResources.Make_field_readonly), WorkspacesResources.ResourceManager, typeof(WorkspacesResources));
+        private static readonly LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(FeaturesResources.Make_field_readonly), WorkspacesResources.ResourceManager, typeof(WorkspacesResources));
 
         public AbstractMakeFieldReadonlyDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.MakeFieldReadonlyDiagnosticId,
