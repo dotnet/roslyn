@@ -1,9 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -17,7 +19,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal const string FactoryName = "<Factory>";
 
         private readonly NamedTypeSymbol _containingType;
-        private readonly TypeSymbol _returnType;
+        // PROTOTYPE(async-main): remove this and move it out into inheriting classes?
+        private TypeSymbol _returnType;
 
         internal static SynthesizedEntryPointSymbol Create(SynthesizedInteractiveInitializerMethod initializerMethod, DiagnosticBag diagnostics)
         {
@@ -54,10 +57,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private SynthesizedEntryPointSymbol(NamedTypeSymbol containingType, TypeSymbol returnType)
+        private SynthesizedEntryPointSymbol(NamedTypeSymbol containingType, TypeSymbol returnType = null)
         {
             Debug.Assert((object)containingType != null);
-            Debug.Assert((object)returnType != null);
 
             _containingType = containingType;
             _returnType = returnType;
@@ -286,7 +288,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             throw ExceptionUtilities.Unreachable;
         }
 
-        private CSharpSyntaxNode GetSyntax()
+        private static CSharpSyntaxNode DummySyntax()
         {
             var syntaxTree = CSharpSyntaxTree.Dummy;
             return (CSharpSyntaxNode)syntaxTree.GetRoot();
@@ -329,6 +331,104 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             { WasCompilerGenerated = true };
         }
 
+        /// <summary> A synthesized entrypoint that forwards all calls to an async Main Method </summary>
+        internal sealed class AsyncForwardEntryPoint : SynthesizedEntryPointSymbol
+        {
+            /// <summary> The user-defined asynchronous main method. </summary>
+            private readonly CSharpSyntaxNode _userMainReturnTypeSyntax;
+
+            private readonly BoundExpression _getAwaiterGetResultCall;
+
+            private readonly ImmutableArray<ParameterSymbol> _parameters;
+
+            internal AsyncForwardEntryPoint(CSharpCompilation compilation, DiagnosticBag diagnosticBag, NamedTypeSymbol containingType, MethodSymbol userMain) :
+                base(containingType)
+            {
+                // There should be no way for a userMain to be passed in unless it already passed the 
+                // parameter checks for determining entrypoint validity.
+                Debug.Assert(userMain.ParameterCount == 0 || userMain.ParameterCount == 1);
+
+                _userMainReturnTypeSyntax = userMain.ExtractReturnTypeSyntax();
+                // PROTOTYPE(async-main): we might need to adjust the containing member of the binder to be the Main method.
+                var binder = compilation.GetBinder(_userMainReturnTypeSyntax);
+                _parameters = SynthesizedParameterSymbol.DeriveParameters(userMain, this);
+
+                var arguments = Parameters.SelectAsArray((p, s) => (BoundExpression)new BoundParameter(s, p, p.Type), _userMainReturnTypeSyntax);
+
+                // Main(args) or Main()
+                BoundCall userMainInvocation = new BoundCall(
+                        syntax: _userMainReturnTypeSyntax,
+                        receiverOpt: null,
+                        method: userMain,
+                        arguments: arguments,
+                        argumentNamesOpt: default(ImmutableArray<string>),
+                        argumentRefKindsOpt: default(ImmutableArray<RefKind>),
+                        isDelegateCall: false,
+                        expanded: false,
+                        invokedAsExtensionMethod: false,
+                        argsToParamsOpt: default(ImmutableArray<int>),
+                        resultKind: LookupResultKind.Viable,
+                        type: userMain.ReturnType)
+                { WasCompilerGenerated = true };
+
+                // PROTOTYPE(async-main): lower the tree.
+                var success = binder.GetAwaitableExpressionInfo(userMainInvocation, out _, out _, out _, out _getAwaiterGetResultCall, _userMainReturnTypeSyntax, diagnosticBag);
+                _returnType = _getAwaiterGetResultCall.Type;
+
+                Debug.Assert(
+                    ReturnType.SpecialType == SpecialType.System_Void ||
+                    ReturnType.SpecialType == SpecialType.System_Int32);
+            }
+
+            public override string Name => MainName;
+
+            public override ImmutableArray<ParameterSymbol> Parameters => _parameters;
+
+            internal override BoundBlock CreateBody()
+            {
+                var syntax = _userMainReturnTypeSyntax;
+
+
+                if (ReturnsVoid)
+                {
+                    return new BoundBlock(
+                        syntax: syntax,
+                        locals: ImmutableArray<LocalSymbol>.Empty,
+                        statements: ImmutableArray.Create<BoundStatement>(
+                            new BoundExpressionStatement(
+                                syntax: syntax,
+                                expression: _getAwaiterGetResultCall
+                            )
+                            { WasCompilerGenerated = true },
+                            new BoundReturnStatement(
+                                syntax: syntax,
+                                refKind: RefKind.None,
+                                expressionOpt: null
+                            )
+                            { WasCompilerGenerated = true }
+                        )
+                    )
+                    { WasCompilerGenerated = true };
+
+                }
+                else
+                {
+                    return new BoundBlock(
+                        syntax: syntax,
+                        locals: ImmutableArray<LocalSymbol>.Empty,
+                        statements: ImmutableArray.Create<BoundStatement>(
+                            new BoundReturnStatement(
+                                syntax: syntax,
+                                refKind: RefKind.None,
+                                expressionOpt: _getAwaiterGetResultCall
+                            )
+                        )
+                    )
+                    { WasCompilerGenerated = true };
+                }
+            }
+        }
+
         private sealed class ScriptEntryPoint : SynthesizedEntryPointSymbol
         {
             private readonly MethodSymbol _getAwaiterMethod;
@@ -344,15 +444,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 _getResultMethod = getResultMethod;
             }
 
-            public override string Name
-            {
-                get { return MainName; }
-            }
+            public override string Name => MainName;
 
-            public override ImmutableArray<ParameterSymbol> Parameters
-            {
-                get { return ImmutableArray<ParameterSymbol>.Empty; }
-            }
+            public override ImmutableArray<ParameterSymbol> Parameters => ImmutableArray<ParameterSymbol>.Empty;
 
             // private static void <Main>()
             // {
@@ -365,7 +459,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Debug.Assert((object)_getAwaiterMethod != null);
                 Debug.Assert((object)_getResultMethod != null);
 
-                var syntax = this.GetSyntax();
+                var syntax = DummySyntax();
 
                 var ctor = _containingType.GetScriptConstructor();
                 Debug.Assert(ctor.ParameterCount == 0);
@@ -449,7 +543,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // }
             internal override BoundBlock CreateBody()
             {
-                var syntax = this.GetSyntax();
+                var syntax = DummySyntax();
 
                 var ctor = _containingType.GetScriptConstructor();
                 Debug.Assert(ctor.ParameterCount == 1);

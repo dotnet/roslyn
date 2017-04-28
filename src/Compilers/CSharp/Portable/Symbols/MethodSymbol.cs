@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
@@ -595,91 +596,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return IsStatic && Name == WellKnownMemberNames.EntryPointMethodName; }
         }
 
-        /// <summary>
-        /// Checks if the method has an entry point compatible signature, i.e.
-        /// - the return type is either void, int, <see cref="System.Threading.Tasks.Task" />,
-        /// or <see cref="System.Threading.Tasks.Task{T}" /> where T is an int.
-        /// - has either no parameter or a single parameter of type string[]
-        /// </summary>
-        internal bool HasEntryPointSignature(CSharpCompilation compilation)
-        {
-
-            bool IsAsyncMainReturnType(TypeSymbol type)
-            {
-                var namedType = type as NamedTypeSymbol;
-                if (namedType == null)
-                {
-                    return false;
-                }
-                else if (namedType.ConstructedFrom == compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task))
-                {
-                    // Change this to `namedType.IsNonGenericTaskType` if you want to support "task-like" objects.
-                    return true;
-                }
-                else if (namedType.ConstructedFrom == compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T))
-                {
-                    // Change this to `namedType.IsGenericTaskType` if you want to support "task-like" objects.
-                    return namedType.TypeArguments[0].SpecialType == SpecialType.System_Int32;
-                }
-                else
-                {
-                    return false;
-                }
-            }
-
-            if (IsVararg)
-            {
-                return false;
-            }
-
-            TypeSymbol returnType = ReturnType;
-            bool isAsyncMainReturnType = IsAsyncMainReturnType(returnType);
-            if (returnType.SpecialType != SpecialType.System_Int32 && returnType.SpecialType != SpecialType.System_Void && !isAsyncMainReturnType)
-            {
-                return false;
-            }
-
-            // Prior to 7.1, async methods were considered to "have the entrypoint signature".
-            // In order to keep back-compat, we need to let these through if compiling using a previous language version.
-            if (!isAsyncMainReturnType && IsAsync && compilation.LanguageVersion >= LanguageVersion.CSharp7_1)
-            {
-                return false;
-            }
-
-            if (RefKind != RefKind.None)
-            {
-                return false;
-            }
-
-            if (RefKind != RefKind.None)
-            {
-                return false;
-            }
-
-            if (Parameters.Length == 0)
-            {
-                return true;
-            }
-
-            if (Parameters.Length > 1)
-            {
-                return false;
-            }
-
-            if (!ParameterRefKinds.IsDefault)
-            {
-                return false;
-            }
-
-            var firstType = Parameters[0].Type;
-            if (firstType.TypeKind != TypeKind.Array)
-            {
-                return false;
-            }
-
-            var array = (ArrayTypeSymbol)firstType;
-            return array.IsSZArray && array.ElementType.SpecialType == SpecialType.System_String;
-        }
 
         internal override TResult Accept<TArgument, TResult>(CSharpSymbolVisitor<TArgument, TResult> visitor, TArgument argument)
         {

@@ -1457,7 +1457,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var viableEntryPoints = ArrayBuilder<MethodSymbol>.GetInstance();
                 foreach (var candidate in entryPointCandidates)
                 {
-                    if (!candidate.HasEntryPointSignature(this))
+                    if (!HasEntryPointSignature(candidate, warnings))
                     {
                         // a single error for partial methods
                         warnings.Add(ErrorCode.WRN_InvalidMainSig, candidate.Locations.First(), candidate);
@@ -1471,10 +1471,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         continue;
                     }
 
+                    // PROTOTYPE(async-main): CheckFeatureAvailability should be called on non-async methods 
+                    // that return Task or Task<T>
                     if (candidate.IsAsync)
                     {
                         // PROTOTYPE(async-main): Get the diagnostic to point to a smaller syntax piece.
-                        CheckFeatureAvailability(candidate.DeclaringSyntaxReferences.Single().GetSyntax(), MessageID.IDS_FeatureAsyncMain, diagnostics);
+                        // PROTOTYPE(async-main): Switch diagnostics around if the type is not Task or Task<T>
+                        CheckFeatureAvailability(candidate.GetNonNullSyntaxNode(), MessageID.IDS_FeatureAsyncMain, diagnostics);
                     }
 
                     viableEntryPoints.Add(candidate);
@@ -1523,6 +1526,99 @@ namespace Microsoft.CodeAnalysis.CSharp
                 entryPointCandidates.Free();
                 sealedDiagnostics = diagnostics.ToReadOnlyAndFree();
             }
+        }
+
+        internal bool ReturnsAwaitableToVoidOrInt(MethodSymbol method, DiagnosticBag diagnostics)
+        {
+            // Common case optimization
+            if (method.ReturnType.SpecialType == SpecialType.System_Void || method.ReturnType.SpecialType == SpecialType.System_Int32)
+            {
+                return false;
+            }
+
+            if (!(method.ReturnType is NamedTypeSymbol namedType))
+            {
+                return false;
+            }
+
+            // Early bail so we only even check things that are System.Threading.Tasks.Task(<T>)
+            if (!(namedType.ConstructedFrom == GetWellKnownType(WellKnownType.System_Threading_Tasks_Task) ||
+                  namedType.ConstructedFrom == GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T)))
+            {
+                return false;
+            }
+
+            var syntax = method.ExtractReturnTypeSyntax();
+            var dumbInstance = new BoundLiteral(syntax, ConstantValue.Null, method.ReturnType);
+            // PROTOTYPE(async-main): We might need to adjust the containing member of the binder to be the Main method
+            var binder = GetBinder(syntax);
+            BoundExpression result;
+            var success = binder.GetAwaitableExpressionInfo(dumbInstance, out _, out _, out _, out result, syntax, diagnostics);
+
+            return success &&
+                (result.Type.SpecialType == SpecialType.System_Void || result.Type.SpecialType == SpecialType.System_Int32);
+        }
+
+        /// <summary>
+        /// Checks if the method has an entry point compatible signature, i.e.
+        /// - the return type is either void, int, <see cref="System.Threading.Tasks.Task" />,
+        /// or <see cref="System.Threading.Tasks.Task{T}" /> where T is an int.
+        /// - has either no parameter or a single parameter of type string[]
+        /// </summary>
+        private bool HasEntryPointSignature(MethodSymbol method, DiagnosticBag bag)
+        {
+            if (method.IsVararg)
+            {
+                return false;
+            }
+
+            TypeSymbol returnType = method.ReturnType;
+            bool returnsTaskOrTaskOfInt = false;
+            if (returnType.SpecialType != SpecialType.System_Int32 && returnType.SpecialType != SpecialType.System_Void)
+            {
+                // Never look for ReturnsAwaitableToVoidOrInt on int32 or void
+                returnsTaskOrTaskOfInt = ReturnsAwaitableToVoidOrInt(method, bag);
+                if (!returnsTaskOrTaskOfInt)
+                {
+                    return false;
+                }
+            }
+
+            // Prior to 7.1, async methods were considered to "have the entrypoint signature".
+            // In order to keep back-compat, we need to let these through if compiling using a previous language version.
+            if (!returnsTaskOrTaskOfInt && method.IsAsync && this.LanguageVersion >= LanguageVersion.CSharp7_1)
+            {
+                return false;
+            }
+
+            if (method.RefKind != RefKind.None)
+            {
+                return false;
+            }
+
+            if (method.Parameters.Length == 0)
+            {
+                return true;
+            }
+
+            if (method.Parameters.Length > 1)
+            {
+                return false;
+            }
+
+            if (!method.ParameterRefKinds.IsDefault)
+            {
+                return false;
+            }
+
+            var firstType = method.Parameters[0].Type;
+            if (firstType.TypeKind != TypeKind.Array)
+            {
+                return false;
+            }
+
+            var array = (ArrayTypeSymbol)firstType;
+            return array.IsSZArray && array.ElementType.SpecialType == SpecialType.System_String;
         }
 
         internal override bool IsUnreferencedAssemblyIdentityDiagnosticCode(int code)

@@ -184,6 +184,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        // Returns the MethodSymbol for the assembly entrypoint.  If the user has a Task returning main,
+        // this function returns the synthesized Main MethodSymbol.
         private static MethodSymbol GetEntryPoint(CSharpCompilation compilation, PEModuleBuilder moduleBeingBuilt, bool hasDeclarationErrors, DiagnosticBag diagnostics, CancellationToken cancellationToken)
         {
             var entryPointAndDiagnostics = compilation.GetEntryPointAndDiagnostics(cancellationToken);
@@ -194,9 +196,26 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(!entryPointAndDiagnostics.Diagnostics.IsDefault);
             diagnostics.AddRange(entryPointAndDiagnostics.Diagnostics);
-
             var entryPoint = entryPointAndDiagnostics.MethodSymbol;
-            var synthesizedEntryPoint = entryPoint as SynthesizedEntryPointSymbol;
+
+            if ((object)entryPoint == null)
+            {
+                Debug.Assert(entryPointAndDiagnostics.Diagnostics.HasAnyErrors() || !compilation.Options.Errors.IsDefaultOrEmpty);
+                return null;
+            }
+
+            // entryPoint can be a SynthesizedEntryPointSymbol if a script is being compiled.
+            SynthesizedEntryPointSymbol synthesizedEntryPoint = entryPoint as SynthesizedEntryPointSymbol;
+            if ((object)synthesizedEntryPoint == null && compilation.ReturnsAwaitableToVoidOrInt(entryPoint, diagnostics))
+            {
+                synthesizedEntryPoint = new SynthesizedEntryPointSymbol.AsyncForwardEntryPoint(compilation, diagnostics, entryPoint.ContainingType, entryPoint);
+                entryPoint = synthesizedEntryPoint;
+                if ((object)moduleBeingBuilt != null)
+                {
+                    moduleBeingBuilt.AddSynthesizedDefinition(entryPoint.ContainingType, synthesizedEntryPoint);
+                }
+            }
+
             if (((object)synthesizedEntryPoint != null) &&
                 (moduleBeingBuilt != null) &&
                 !hasDeclarationErrors &&
@@ -221,7 +240,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 moduleBeingBuilt.SetMethodBody(synthesizedEntryPoint, emittedBody);
             }
 
-            Debug.Assert((object)entryPoint != null || entryPointAndDiagnostics.Diagnostics.HasAnyErrors() || !compilation.Options.Errors.IsDefaultOrEmpty);
             return entryPoint;
         }
 
