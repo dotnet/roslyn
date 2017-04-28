@@ -1344,7 +1344,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         #region diagnostics for local functions introduced in C# 7
         ERR_DynamicLocalFunctionParamsParameter = 8108,
         ERR_ExpressionTreeContainsLocalFunction = 8110,
-        ERR_LocalFunctionMissingBody = 8111,
+        ERR_LocalFunctionMissingBody = 8112,
         #endregion diagnostics for local functions introduced in C# 7
 
         #region diagnostics for instrumentation
@@ -1353,7 +1353,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #endregion
 
-        // Available = 8112, 8113, 8114, 8115
+        // Available = 8113, 8114, 8115
 
         #region diagnostics for pattern-matching introduced in C# 7
         ERR_ThrowMisplaced = 8115,
