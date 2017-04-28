@@ -31,6 +31,22 @@ End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
+        Public Async Function FieldIsProtected() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"Class C
+    Protected [|_foo|] As Integer
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
+        Public Async Function FieldIsProtectedFriend() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"Class C
+    Protected Friend [|_foo|] As Integer
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
         Public Async Function FieldIsEvent() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Class C

@@ -42,6 +42,32 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeFieldReadonly
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        public async Task FieldIsProtected()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"namespace ConsoleApplication1
+{
+    class MyClass
+    {
+        protected int [|_foo|];
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        public async Task FieldIsProtectedInternal()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"namespace ConsoleApplication1
+{
+    class MyClass
+    {
+        protected internal int [|_foo|];
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
         public async Task FieldIsEvent()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -492,12 +518,26 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeFieldReadonly
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
         public async Task PassedAsParameter()
         {
-            await TestMissingInRegularAndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"namespace ConsoleApplication1
 {
     class MyClass
     {
         private int [|_foo|];
+        void Foo()
+        {
+            Bar(_foo);
+        }
+        void Bar(int foo)
+        {
+        }
+    }
+}",
+@"namespace ConsoleApplication1
+{
+    class MyClass
+    {
+        private readonly int _foo;
         void Foo()
         {
             Bar(_foo);

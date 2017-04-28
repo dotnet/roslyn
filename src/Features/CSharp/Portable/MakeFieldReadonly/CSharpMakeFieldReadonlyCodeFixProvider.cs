@@ -10,10 +10,10 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeFieldReadonly
     [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
     internal class CSharpMakeFieldReadonlyCodeFixProvider : AbstractMakeFieldReadonlyCodeFixProvider<FieldDeclarationSyntax, VariableDeclaratorSyntax>
     {
-        internal override SyntaxNode GetInitializerNode(VariableDeclaratorSyntax declaration)
+        protected override SyntaxNode GetInitializerNode(VariableDeclaratorSyntax declaration)
             => declaration.Initializer?.Value;
 
-        internal override int GetVariableDeclaratorCount(FieldDeclarationSyntax fieldDeclaration)
+        protected override int GetVariableDeclaratorCount(FieldDeclarationSyntax fieldDeclaration)
             => fieldDeclaration.Declaration.Variables.Count;
     }
 }

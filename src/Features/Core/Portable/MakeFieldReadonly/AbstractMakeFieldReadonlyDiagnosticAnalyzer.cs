@@ -1,13 +1,15 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.MakeFieldReadonly
 {
-    internal abstract class AbstractMakeFieldReadonlyDiagnosticAnalyzer<TConstructorDeclarationSyntax, TLambdaSyntax>
+    internal abstract class AbstractMakeFieldReadonlyDiagnosticAnalyzer<TIdentifierNameSyntax, TConstructorDeclarationSyntax, TLambdaSyntax>
         : AbstractCodeStyleDiagnosticAnalyzer
+        where TIdentifierNameSyntax : SyntaxNode
         where TConstructorDeclarationSyntax : SyntaxNode
         where TLambdaSyntax : SyntaxNode
     {
@@ -43,10 +45,10 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
             var membersCanBeReadonly = nonReadonlyFieldMembers;
             foreach (var syntaxReference in typeSymbol.DeclaringSyntaxReferences)
             {
-                var typeNode = syntaxReference.SyntaxTree.GetRoot().FindNode(syntaxReference.Span);
+                var typeNode = syntaxReference.SyntaxTree.GetRoot(context.CancellationToken).FindNode(syntaxReference.Span);
 
                 var semanticModelForTree = context.SemanticModel.Compilation.GetSemanticModel(syntaxReference.SyntaxTree);
-                GetUnassignedSymbols(semanticModelForTree, typeNode, membersCanBeReadonly);
+                GetUnassignedSymbols(semanticModelForTree, typeNode, membersCanBeReadonly, context.CancellationToken);
             }
 
             foreach (var symbol in membersCanBeReadonly)
@@ -58,11 +60,16 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
             }
         }
 
-        private void GetUnassignedSymbols(SemanticModel model, SyntaxNode node, HashSet<IFieldSymbol> unassignedSymbols)
+        private void GetUnassignedSymbols(SemanticModel model, SyntaxNode node, HashSet<IFieldSymbol> unassignedSymbols, CancellationToken cancellationToken)
         {
             foreach (var descendant in node.DescendantNodes())
             {
                 if (unassignedSymbols.Count == 0)
+                {
+                    return;
+                }
+
+                if (!(descendant is TIdentifierNameSyntax name))
                 {
                     return;
                 }
@@ -95,7 +102,7 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
                     continue;
                 }
                 
-                if (!CanBeReadonly(model, descendant))
+                if (!CanBeReadonly(name, model, cancellationToken))
                 {
                     unassignedSymbols.Remove(symbol);
                 }
@@ -108,7 +115,7 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
             return ctor != null;
         }
 
-        internal abstract bool CanBeReadonly(SemanticModel model, SyntaxNode node);
+        internal abstract bool CanBeReadonly(TIdentifierNameSyntax node, SemanticModel model, CancellationToken cancellationToken);
         internal abstract bool IsMemberOfThisInstance(SyntaxNode node);
     }
 }

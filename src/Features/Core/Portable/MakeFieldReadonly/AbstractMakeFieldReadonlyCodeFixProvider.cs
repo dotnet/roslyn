@@ -41,24 +41,23 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
 
                 var variableDeclarator = (TVariableDeclaratorSyntax)root.FindNode(diagnosticSpan);
 
-                MakeFieldReadonly(document, editor, root, variableDeclarator);
+                MakeFieldReadonly(document, editor, variableDeclarator);
             }
         }
 
-        private async void MakeFieldReadonly(Document document, SyntaxEditor editor, SyntaxNode root, TVariableDeclaratorSyntax declaration)
+        private async void MakeFieldReadonly(Document document, SyntaxEditor editor, TVariableDeclaratorSyntax declaration)
         {
             var fieldDeclaration = (TFieldDeclarationSyntax)declaration.Parent.Parent;
             if (GetVariableDeclaratorCount(fieldDeclaration) == 1)
             {
-                var generator = SyntaxGenerator.GetGenerator(document);
-                editor.SetModifiers(fieldDeclaration, generator.GetModifiers(fieldDeclaration) | DeclarationModifiers.ReadOnly);
+                editor.SetModifiers(fieldDeclaration, editor.Generator.GetModifiers(fieldDeclaration) | DeclarationModifiers.ReadOnly);
             }
             else
             {
                 var model = await document.GetSemanticModelAsync().ConfigureAwait(false);
                 var symbol = (IFieldSymbol)model.GetDeclaredSymbol(declaration);
 
-                var generator = SyntaxGenerator.GetGenerator(document);
+                var generator = editor.Generator;
                 var newDeclaration = generator.FieldDeclaration(symbol.Name,
                                                                 generator.TypeExpression(symbol.Type),
                                                                 Accessibility.Private,
@@ -71,8 +70,8 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
             }
         }
 
-        internal abstract SyntaxNode GetInitializerNode(TVariableDeclaratorSyntax declaration);
-        internal abstract int GetVariableDeclaratorCount(TFieldDeclarationSyntax declaration);
+        protected abstract SyntaxNode GetInitializerNode(TVariableDeclaratorSyntax declaration);
+        protected abstract int GetVariableDeclaratorCount(TFieldDeclarationSyntax declaration);
 
         protected override Task FixAllAsync(
             Document document,

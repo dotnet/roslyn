@@ -10,11 +10,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.MakeFieldReadonly
     Friend Class VisualBasicMakeFieldReadonlyCodeFixProvider
         Inherits AbstractMakeFieldReadonlyCodeFixProvider(Of FieldDeclarationSyntax, ModifiedIdentifierSyntax)
 
-        Friend Overrides Function GetVariableDeclaratorCount(declaration As FieldDeclarationSyntax) As Integer
+        Protected Overrides Function GetVariableDeclaratorCount(declaration As FieldDeclarationSyntax) As Integer
             Return declaration.Declarators.Count
         End Function
 
-        Friend Overrides Function GetInitializerNode(declaration As ModifiedIdentifierSyntax) As SyntaxNode
+        Protected Overrides Function GetInitializerNode(declaration As ModifiedIdentifierSyntax) As SyntaxNode
             Return CType(declaration.Parent, VariableDeclaratorSyntax).Initializer?.Value
         End Function
     End Class
