@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         public UseExpressionBodyForConstructorsDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseExpressionBodyForConstructorsDiagnosticId,
                    ImmutableArray.Create(SyntaxKind.ConstructorDeclaration),
-                   new UseExpressionBodyForConstructorsHelper())
+                   UseExpressionBodyForConstructorsHelper.Instance)
         {
         }
     }

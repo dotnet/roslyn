@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
     internal class UseExpressionBodyForConversionOperatorsCodeRefactoringProvider : AbstractUseExpressionBodyCodeRefactoringProvider<ConversionOperatorDeclarationSyntax>
     {
         public UseExpressionBodyForConversionOperatorsCodeRefactoringProvider()
-            : base(new UseExpressionBodyForConversionOperatorsHelper())
+            : base(UseExpressionBodyForConversionOperatorsHelper.Instance)
         {
         }
     }

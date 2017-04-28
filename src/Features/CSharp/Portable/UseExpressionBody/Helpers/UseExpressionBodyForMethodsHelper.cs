@@ -9,7 +9,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
     internal class UseExpressionBodyForMethodsHelper : 
         AbstractUseExpressionBodyHelper<MethodDeclarationSyntax>
     {
-        public UseExpressionBodyForMethodsHelper()
+        public static readonly UseExpressionBodyForMethodsHelper Instance = new UseExpressionBodyForMethodsHelper();
+
+        private UseExpressionBodyForMethodsHelper()
             : base(new LocalizableResourceString(nameof(FeaturesResources.Use_expression_body_for_methods), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
                    new LocalizableResourceString(nameof(FeaturesResources.Use_block_body_for_methods), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
                    CSharpCodeStyleOptions.PreferExpressionBodiedMethods)

@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
     {
         public UseExpressionBodyForOperatorsCodeFixProvider()
             : base(IDEDiagnosticIds.UseExpressionBodyForOperatorsDiagnosticId,
-                   new UseExpressionBodyForOperatorsHelper())
+                   UseExpressionBodyForOperatorsHelper.Instance)
         {
         }
     }

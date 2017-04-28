@@ -8,7 +8,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
     internal class UseExpressionBodyForConversionOperatorsHelper :
         AbstractUseExpressionBodyHelper<ConversionOperatorDeclarationSyntax>
     {
-        public UseExpressionBodyForConversionOperatorsHelper()
+        public static readonly UseExpressionBodyForConversionOperatorsHelper Instance = new UseExpressionBodyForConversionOperatorsHelper();
+
+        private UseExpressionBodyForConversionOperatorsHelper()
             : base(new LocalizableResourceString(nameof(FeaturesResources.Use_expression_body_for_operators), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
                    new LocalizableResourceString(nameof(FeaturesResources.Use_block_body_for_operators), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
                    CSharpCodeStyleOptions.PreferExpressionBodiedOperators)

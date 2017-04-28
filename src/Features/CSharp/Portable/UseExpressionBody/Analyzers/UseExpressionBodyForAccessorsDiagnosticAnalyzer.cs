@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         public UseExpressionBodyForAccessorsDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseExpressionBodyForAccessorsDiagnosticId,
                    ImmutableArray.Create(SyntaxKind.GetAccessorDeclaration, SyntaxKind.SetAccessorDeclaration),
-                   new UseExpressionBodyForAccessorsHelper())
+                   UseExpressionBodyForAccessorsHelper.Instance)
         {
         }
     }

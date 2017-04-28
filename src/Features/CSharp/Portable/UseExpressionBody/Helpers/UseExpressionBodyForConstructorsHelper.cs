@@ -8,7 +8,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
     internal class UseExpressionBodyForConstructorsHelper :
         AbstractUseExpressionBodyHelper<ConstructorDeclarationSyntax>
     {
-        public UseExpressionBodyForConstructorsHelper()
+        public static readonly UseExpressionBodyForConstructorsHelper Instance = new UseExpressionBodyForConstructorsHelper();
+
+        private UseExpressionBodyForConstructorsHelper()
             : base(new LocalizableResourceString(nameof(FeaturesResources.Use_expression_body_for_constructors), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
                    new LocalizableResourceString(nameof(FeaturesResources.Use_block_body_for_constructors), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
                    CSharpCodeStyleOptions.PreferExpressionBodiedConstructors)

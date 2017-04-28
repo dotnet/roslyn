@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         public UseExpressionBodyForMethodsDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseExpressionBodyForMethodsDiagnosticId,
                    ImmutableArray.Create(SyntaxKind.MethodDeclaration),
-                   new UseExpressionBodyForMethodsHelper())
+                   UseExpressionBodyForMethodsHelper.Instance)
         {
         }
     }
