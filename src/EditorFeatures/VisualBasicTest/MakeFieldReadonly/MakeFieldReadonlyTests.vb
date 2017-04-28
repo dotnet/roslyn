@@ -31,6 +31,14 @@ End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
+        Public Async Function FieldIsEvent() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"Class C
+    Private Event [|SomeEvent|]()
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
         Public Async Function FieldIsReadonly() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Class C
@@ -153,6 +161,78 @@ End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
+        Public Async Function FieldAssignedInLambdaInCtor() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"Class C
+    Private [|_foo|] As Integer = 0
+
+    Public Event SomeEvent()
+
+    Public Sub New()
+        AddHandler SomeEvent, Sub()
+                                  Me._foo = 0
+                              End Sub
+    End Sub
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
+        Public Async Function FieldAssignedInMultilineLambdaInCtor() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"Class C
+    Private [|_foo|] As Integer = 0
+
+    Public Event SomeEvent()
+
+    Public Sub New()
+        AddHandler SomeEvent, Sub() Me._foo = 0
+    End Sub
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
+        Public Async Function FieldAssignedInCtor_DifferentInstance() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"Class C
+    Private [|_foo|] As Integer = 0
+    Public Sub New()
+        Dim bar = New C()
+        bar._foo = 0
+    End Sub
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
+        Public Async Function FieldAssignedInCtor_DifferentInstance_QualifiedWithObjectInitializer() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"Class C
+    Private [|_foo|] As Integer = 0
+    Public Sub New()
+        Dim bar = New C() With {
+            ._foo = 0
+        }
+    End Sub
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
+        Public Async Function FieldAssignedInCtor_QualifiedWithMe() As Task
+            Await TestInRegularAndScriptAsync(
+"Class C
+    Private [|_foo|] As Integer = 0
+    Public Sub New()
+        Me._foo = 0
+    End Sub
+End Class",
+"Class C
+    Private ReadOnly _foo As Integer = 0
+    Public Sub New()
+        Me._foo = 0
+    End Sub
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
         Public Async Function FieldReturnedInProperty() As Task
             Await TestInRegularAndScriptAsync(
 "Class C
@@ -196,6 +276,23 @@ End Class")
     Private [|_foo|] As Integer = 0
     Sub Foo
         _foo = 0
+    End Sub
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
+        Public Async Function VariableAssignedToFieldInMethod() As Task
+            Await TestInRegularAndScriptAsync(
+"Class C
+    Private [|_foo|] As Integer = 0
+    Sub Foo
+        Dim i = _foo
+    End Sub
+End Class",
+"Class C
+    Private ReadOnly _foo As Integer = 0
+    Sub Foo
+        Dim i = _foo
     End Sub
 End Class")
         End Function

@@ -1,15 +1,15 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.MakeFieldReadonly
 {
-    internal abstract class AbstractMakeFieldReadonlyDiagnosticAnalyzer<TConstructorDeclarationSyntax>
+    internal abstract class AbstractMakeFieldReadonlyDiagnosticAnalyzer<TConstructorDeclarationSyntax, TLambdaSyntax>
         : AbstractCodeStyleDiagnosticAnalyzer
         where TConstructorDeclarationSyntax : SyntaxNode
+        where TLambdaSyntax : SyntaxNode
     {
         private static readonly LocalizableString s_localizableTitle = new LocalizableResourceString(nameof(FeaturesResources.Add_readonly_modifier), FeaturesResources.ResourceManager, typeof(FeaturesResources));
         private static readonly LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(WorkspacesResources.Make_field_readonly), WorkspacesResources.ResourceManager, typeof(WorkspacesResources));
@@ -31,7 +31,10 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
             var nonReadonlyFieldMembers = new HashSet<IFieldSymbol>();
             foreach (var item in typeSymbol.GetMembers())
             {
-                if (item is IFieldSymbol symbol && symbol.DeclaredAccessibility == Accessibility.Private && !symbol.IsReadOnly && !symbol.IsImplicitlyDeclared)
+                if (item is IFieldSymbol symbol &&
+                    symbol.DeclaredAccessibility == Accessibility.Private &&
+                    !symbol.IsReadOnly &&
+                    !symbol.IsImplicitlyDeclared)
                 {
                     nonReadonlyFieldMembers.Add(symbol);
                 }
@@ -69,8 +72,13 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
                 {
                     continue;
                 }
-                
-                if (IsDescendentOfCtor(descendant, out var ctorNode))
+
+                if (!IsMemberOfThisInstance(descendant))
+                {
+                    unassignedSymbols.Remove(symbol);
+                }
+
+                if (IsDescendentOf<TConstructorDeclarationSyntax>(descendant, out var ctorNode))
                 {
                     var ctorSymbol = model.GetDeclaredSymbol(ctorNode);
                     if (!ctorSymbol.IsStatic && symbol.IsStatic)
@@ -78,7 +86,12 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
                         unassignedSymbols.Remove(symbol);
                     }
 
-                    // assignments in the ctor don't matter other than the static modifiers point checked above
+                    if (descendant.FirstAncestorOrSelf<TLambdaSyntax>() != null)
+                    {
+                        unassignedSymbols.Remove(symbol);
+                    }
+
+                    // assignments in the ctor don't matter other than the static modifiers and lambdas point checked above
                     continue;
                 }
                 
@@ -89,12 +102,13 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
             }
         }
         
-        private bool IsDescendentOfCtor(SyntaxNode node, out TConstructorDeclarationSyntax ctor)
+        private bool IsDescendentOf<T>(SyntaxNode node, out T ctor) where T : SyntaxNode
         {
-            ctor = node.FirstAncestorOrSelf<TConstructorDeclarationSyntax>();
+            ctor = node.FirstAncestorOrSelf<T>();
             return ctor != null;
         }
 
         internal abstract bool CanBeReadonly(SemanticModel model, SyntaxNode node);
+        internal abstract bool IsMemberOfThisInstance(SyntaxNode node);
     }
 }

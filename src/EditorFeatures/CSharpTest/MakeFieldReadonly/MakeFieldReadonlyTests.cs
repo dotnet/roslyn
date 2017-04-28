@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeFieldReadonly
     {
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new CSharpMakeFieldReadonlyDiagnosticAnalyzer(), new CSharpMakeFieldReadonlyCodeFixProvider());
-
+        
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
         public async Task FieldIsPublic()
         {
@@ -37,6 +37,19 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeFieldReadonly
     class MyClass
     {
         internal int [|_foo|];
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        public async Task FieldIsEvent()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"namespace ConsoleApplication1
+{
+    class MyClass
+    {
+        private event System.EventHandler [|Foo|];
     }
 }");
         }
@@ -214,6 +227,107 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeFieldReadonly
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        public async Task FieldAssignedInLambdaInCtor()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"namespace ConsoleApplication1
+{
+    public class MyClass
+    {
+        private int [|_foo|];
+        public MyClass()
+        {
+            this.E += (_, __) => this._foo = 0;
+        }
+
+        public event EventHandler E;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        public async Task FieldAssignedInLambdaWithBlockInCtor()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"namespace ConsoleApplication1
+{
+    public class MyClass
+    {
+        private int [|_foo|];
+        public MyClass()
+        {
+            this.E += (_, __) => { this._foo = 0; }
+        }
+
+        public event EventHandler E;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        public async Task FieldAssignedInCtor_DifferentInstance()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"namespace ConsoleApplication1
+{
+    class MyClass
+    {
+        private int [|_foo|];
+        MyClass()
+        {
+            var foo = new MyClass();
+            foo._foo = 0;
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        public async Task FieldAssignedInCtor_DifferentInstance_ObjectInitializer()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"namespace ConsoleApplication1
+{
+    class MyClass
+    {
+        private int [|_foo|];
+        MyClass()
+        {
+            var foo = new MyClass { _foo = 0 };
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        public async Task FieldAssignedInCtor_QualifiedWithThis()
+        {
+            await TestInRegularAndScriptAsync(
+@"namespace ConsoleApplication1
+{
+    class MyClass
+    {
+        private int [|_foo|];
+        MyClass()
+        {
+            this._foo = 0;
+        }
+    }
+}",
+@"namespace ConsoleApplication1
+{
+    class MyClass
+    {
+        private readonly int _foo;
+        MyClass()
+        {
+            this._foo = 0;
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
         public async Task FieldReturnedInProperty()
         {
             await TestInRegularAndScriptAsync(
@@ -271,6 +385,34 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeFieldReadonly
         int Foo()
         {
             _foo = 0;
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        public async Task VariableAssignedToFieldInMethod()
+        {
+            await TestInRegularAndScriptAsync(
+@"namespace ConsoleApplication1
+{
+    class MyClass
+    {
+        private int [|_foo|];
+        int Foo()
+        {
+            var i = _foo;
+        }
+    }
+}",
+@"namespace ConsoleApplication1
+{
+    class MyClass
+    {
+        private readonly int _foo;
+        int Foo()
+        {
+            var i = _foo;
         }
     }
 }");
