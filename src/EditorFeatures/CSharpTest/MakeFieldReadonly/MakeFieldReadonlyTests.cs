@@ -15,46 +15,20 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeFieldReadonly
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new CSharpMakeFieldReadonlyDiagnosticAnalyzer(), new CSharpMakeFieldReadonlyCodeFixProvider());
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
-        public async Task FieldIsPublic()
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly),
+        InlineData("public"),
+        InlineData("internal"),
+        InlineData("protected"),
+        InlineData("protected internal")]
+        public async Task NonPrivateField(string accessibility)
         {
             await TestMissingInRegularAndScriptAsync(
-@"class MyClass
-{
-    public int [|_foo|];
-}");
+$@"class MyClass
+{{
+    {accessibility} int[| _foo |];
+}}");
         }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
-        public async Task FieldIsInternal()
-        {
-            await TestMissingInRegularAndScriptAsync(
-@"class MyClass
-{
-    internal int [|_foo|];
-}");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
-        public async Task FieldIsProtected()
-        {
-            await TestMissingInRegularAndScriptAsync(
-@"class MyClass
-{
-    protected int [|_foo|];
-}");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
-        public async Task FieldIsProtectedInternal()
-        {
-            await TestMissingInRegularAndScriptAsync(
-@"class MyClass
-{
-    protected internal int [|_foo|];
-}");
-        }
-
+        
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
         public async Task FieldIsEvent()
         {

@@ -1,9 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.MakeFieldReadonly
 {
@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
         {
             var typeSymbol = (ITypeSymbol)context.SemanticModel.GetDeclaredSymbol(context.Node);
 
-            var nonReadonlyFieldMembers = new HashSet<IFieldSymbol>();
+            var nonReadonlyFieldMembers = PooledHashSet<IFieldSymbol>.GetInstance();
             foreach (var item in typeSymbol.GetMembers())
             {
                 if (item is IFieldSymbol symbol &&
@@ -41,26 +41,27 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
                     nonReadonlyFieldMembers.Add(symbol);
                 }
             }
-
-            var membersCanBeReadonly = nonReadonlyFieldMembers;
+            
             foreach (var syntaxReference in typeSymbol.DeclaringSyntaxReferences)
             {
                 var typeNode = syntaxReference.SyntaxTree.GetRoot(context.CancellationToken).FindNode(syntaxReference.Span);
 
                 var semanticModelForTree = context.SemanticModel.Compilation.GetSemanticModel(syntaxReference.SyntaxTree);
-                GetUnassignedSymbols(semanticModelForTree, typeNode, membersCanBeReadonly, context.CancellationToken);
+                RemoveAssignedSymbols(semanticModelForTree, typeNode, nonReadonlyFieldMembers, context.CancellationToken);
             }
 
-            foreach (var symbol in membersCanBeReadonly)
+            foreach (var symbol in nonReadonlyFieldMembers)
             {
                 var diagnostic = Diagnostic.Create(
                    InfoDescriptor,
                    symbol.Locations[0]);
                 context.ReportDiagnostic(diagnostic);
             }
+
+            nonReadonlyFieldMembers.Free();
         }
 
-        private void GetUnassignedSymbols(SemanticModel model, SyntaxNode node, HashSet<IFieldSymbol> unassignedSymbols, CancellationToken cancellationToken)
+        private void RemoveAssignedSymbols(SemanticModel model, SyntaxNode node, PooledHashSet<IFieldSymbol> unassignedSymbols, CancellationToken cancellationToken)
         {
             foreach (var descendant in node.DescendantNodes())
             {

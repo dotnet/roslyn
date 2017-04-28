@@ -14,11 +14,15 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.MakeFieldReadonly
                 New VisualBasicMakeFieldReadonlyCodeFixProvider())
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
-        Public Async Function FieldIsPublic() As Task
+        <Theory, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly),
+        InlineData("Public"),
+        InlineData("Friend"),
+        InlineData("Protected"),
+        InlineData("Protected Friend")>
+        Public Async Function FieldIsPublic(accessibility As String) As Task
             Await TestMissingInRegularAndScriptAsync(
-"Class C
-    Public [|_foo|] As Integer
+$"Class C
+    {accessibility} [|_foo|] As Integer
 End Class")
         End Function
 
