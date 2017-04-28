@@ -1474,6 +1474,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_LanguageVersionCannotHaveLeadingZeroes = 8303,
         ERR_CompilerAndLanguageVersion = 8304,
         WRN_Experimental = 8305,
+        ERR_TupleInferredNamesNotAvailable = 8306,
 
         ERR_BadDynamicMethodArgDefaultLiteral = 9000,
         ERR_DefaultLiteralNotValid = 9001,

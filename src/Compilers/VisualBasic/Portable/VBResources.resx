@@ -5476,6 +5476,9 @@
   <data name="ERR_BadSourceCodeKind" xml:space="preserve">
     <value>Provided source code kind is unsupported or invalid: '{0}'</value>
   </data>
+  <data name="ERR_TupleInferredNamesNotAvailable" xml:space="preserve">
+    <value>Tuple element name '{0}' is inferred. Please use language version {1} or greater to access an element by its inferred name.</value>
+  </data>
   <data name="WRN_Experimental" xml:space="preserve">
     <value>'{0}' is for evaluation purposes only and is subject to change or removal in future updates.</value>
   </data>

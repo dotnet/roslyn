@@ -2831,7 +2831,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 elementLocations: elementLocations,
                 elementNames: elementNames,
                 compilation: this,
-                shouldCheckConstraints: false);
+                shouldCheckConstraints: false,
+                errorPositions: default(ImmutableArray<bool>));
         }
 
         protected override INamedTypeSymbol CommonCreateTupleTypeSymbol(
