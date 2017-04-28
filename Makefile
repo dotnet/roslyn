@@ -34,9 +34,11 @@ BUILD_CMD = dotnet build $(MSBUILD_ARGS)
 
 all: restore
 	@export PATH="$(BINARIES_PATH)/dotnet-cli:$(PATH)" ; \
+	export HOME="$(HOME_DIR)" ; \
 	$(BUILD_CMD) CrossPlatform.sln
 
 bootstrap: restore
+	export HOME="$(HOME_DIR)" ; \
 	export PATH="$(BINARIES_PATH)/dotnet-cli:$(PATH)" ; \
 	$(BUILD_CMD) src/Compilers/CSharp/CscCore && \
 	$(BUILD_CMD) src/Compilers/VisualBasic/VbcCore && \
@@ -47,6 +49,7 @@ bootstrap: restore
 
 test:
 	@export PATH="$(BINARIES_PATH)/dotnet-cli:$(PATH)" ; \
+	export HOME="$(HOME_DIR)" ; \
 	dotnet publish -r $(RUNTIME_ID) src/Test/DeployCoreClrTestRuntime -o $(BINARIES_PATH)/$(BUILD_CONFIGURATION)/CoreClrTest && \
 	build/scripts/tests.sh $(BUILD_CONFIGURATION)
 
