@@ -1616,8 +1616,10 @@ End Module").Path
         <Fact>
         Public Sub LanguageVersionAdded_Canary()
             ' When a new version is added, this test will break. This list must be checked:
+            ' - update the command-line error for bad /langver flag (<see cref="ERRID.IDS_VBCHelp"/>)
             ' - update the "UpgradeProject" codefixer
             ' - update the IDE drop-down for selecting Language Version
+            ' - update legacy project system to pass Language Version from MSBuild to IDE (see CVbcMSBuildHostObject::SetLanguageVersion)
             ' - update all the tests that call this canary
             ' - update the command-line documentation (CommandLine.md)
             AssertEx.SetEqual({"default", "9", "10", "11", "12", "14", "15", "15.3", "latest"},

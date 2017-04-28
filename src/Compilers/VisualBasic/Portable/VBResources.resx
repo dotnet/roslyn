@@ -5130,7 +5130,7 @@
                                   import_list:namespace,...
 /langversion:&lt;number&gt;             Specify language version: 
                                   9|9.0|10|10.0|11|11.0|12|12.0|14|14.0|15|
-                                  15.0|default|latest
+                                  15.0|15.3|default|latest
 /optionexplicit[+|-]              Require explicit declaration of variables.
 /optioninfer[+|-]                 Allow type inference of variables.
 /rootnamespace:&lt;string&gt;           Specifies the root Namespace for all type 
