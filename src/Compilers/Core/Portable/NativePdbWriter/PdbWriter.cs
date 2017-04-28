@@ -736,17 +736,48 @@ namespace Microsoft.Cci
 
         private const string SymWriterClsid = "0AE2DEB0-F901-478b-BB9F-881EE8066788";
 
-        private static bool s_MicrosoftDiaSymReaderNativeLoadFailed;
+        private const string LegacyDiaSymReaderModuleName = "diasymreader.dll";
+        private const string DiaSymReaderModuleName32 = "Microsoft.DiaSymReader.Native.x86.dll";
+        private const string DiaSymReaderModuleName64 = "Microsoft.DiaSymReader.Native.amd64.dll";
+
+        private static Exception s_MicrosoftDiaSymReaderNativeLoadFailure;
 
         [DefaultDllImportSearchPaths(DllImportSearchPath.AssemblyDirectory | DllImportSearchPath.SafeDirectories)]
-        [DllImport("Microsoft.DiaSymReader.Native.x86.dll", EntryPoint = "CreateSymWriter")]
+        [DllImport(DiaSymReaderModuleName32, EntryPoint = "CreateSymWriter")]
         private extern static void CreateSymWriter32(ref Guid id, [MarshalAs(UnmanagedType.IUnknown)]out object symWriter);
 
         [DefaultDllImportSearchPaths(DllImportSearchPath.AssemblyDirectory | DllImportSearchPath.SafeDirectories)]
-        [DllImport("Microsoft.DiaSymReader.Native.amd64.dll", EntryPoint = "CreateSymWriter")]
+        [DllImport(DiaSymReaderModuleName64, EntryPoint = "CreateSymWriter")]
         private extern static void CreateSymWriter64(ref Guid id, [MarshalAs(UnmanagedType.IUnknown)]out object symWriter);
 
-        private static string PlatformId => (IntPtr.Size == 4) ? "x86" : "amd64";
+        [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true, PreserveSig = true)]
+        private static extern IntPtr GetModuleHandle(string moduleName);
+
+        [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true, PreserveSig = true)]
+        private static extern int GetModuleFileName(IntPtr handle, [Out]StringBuilder buffer, [MarshalAs(UnmanagedType.U4)]int bufferLength);
+
+        private static string DiaSymReaderModuleName => (IntPtr.Size == 4) ? DiaSymReaderModuleName32 : DiaSymReaderModuleName64;
+
+        /// <summary>
+        /// Returns the full path to any loaded Microsoft.DiaSymReader.Native.XXX.dll module.
+        /// </summary>
+        private static string GetLoadedDiaSymReaderModulePath()
+        {
+            IntPtr handle = GetModuleHandle(s_MicrosoftDiaSymReaderNativeLoadFailure != null ? LegacyDiaSymReaderModuleName : DiaSymReaderModuleName);
+            if (handle == IntPtr.Zero)
+            {
+                return null;
+            }
+
+            var buffer = new StringBuilder(256);
+            int actualSize = GetModuleFileName(handle, buffer, buffer.Capacity);
+            if (actualSize == 0)
+            {
+                return null;
+            }
+
+            return buffer.ToString();
+        }
 
         private static Type GetCorSymWriterSxSType()
         {
@@ -764,7 +795,7 @@ namespace Microsoft.Cci
             object symWriter = null;
 
             // First try to load an implementation from Microsoft.DiaSymReader.Native, which supports determinism.
-            if (!s_MicrosoftDiaSymReaderNativeLoadFailed)
+            if (s_MicrosoftDiaSymReaderNativeLoadFailure == null)
             {
                 try
                 {
@@ -778,9 +809,9 @@ namespace Microsoft.Cci
                         CreateSymWriter64(ref guid, out symWriter);
                     }
                 }
-                catch (Exception)
+                catch (Exception e)
                 {
-                    s_MicrosoftDiaSymReaderNativeLoadFailed = true;
+                    s_MicrosoftDiaSymReaderNativeLoadFailure = e;
                     symWriter = null;
                 }
             }
@@ -806,9 +837,12 @@ namespace Microsoft.Cci
                 }
                 catch (Exception)
                 {
-                    throw new NotSupportedException(string.Format(CodeAnalysisResources.SymWriterNotAvailable, PlatformId));
+                    string fullPath = GetLoadedDiaSymReaderModulePath();
+                    throw new NotSupportedException((fullPath != null) ?
+                        string.Format(CodeAnalysisResources.SymWriterOlderVersionThanRequired, fullPath) :
+                        string.Format(CodeAnalysisResources.SymWriterNotAvailable, DiaSymReaderModuleName));
                 }
-
+               
                 // Correctness: If the stream is not specified or if it is non-empty the SymWriter appends data to it (provided it contains valid PDB)
                 // and the resulting PDB has Age = existing_age + 1.
                 _pdbStream = new ComMemoryStream();
@@ -817,7 +851,12 @@ namespace Microsoft.Cci
                 {
                     if (!(symWriter is ISymUnmanagedWriter7))
                     {
-                        throw new NotSupportedException(string.Format(CodeAnalysisResources.SymWriterNotDeterministic, PlatformId));
+                        if (s_MicrosoftDiaSymReaderNativeLoadFailure != null)
+                        {
+                            throw new NotSupportedException(s_MicrosoftDiaSymReaderNativeLoadFailure.Message, s_MicrosoftDiaSymReaderNativeLoadFailure);
+                        }
+
+                        throw new NotSupportedException(string.Format(CodeAnalysisResources.SymWriterNotDeterministic, GetLoadedDiaSymReaderModulePath()));
                     }
 
                     ((ISymUnmanagedWriter7)symWriter).InitializeDeterministic(new PdbMetadataWrapper(metadataWriter), _pdbStream);

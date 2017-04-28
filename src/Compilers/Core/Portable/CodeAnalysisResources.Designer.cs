@@ -1289,7 +1289,7 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Windows PDB writer is not available -- could not find Microsoft.DiaSymReader.Native.{0}.dll.
+        ///   Looks up a localized string similar to Windows PDB writer is not available -- could not find &apos;{0}&apos;.
         /// </summary>
         internal static string SymWriterNotAvailable {
             get {
@@ -1298,11 +1298,20 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Windows PDB writer doesn&apos;t support deterministic compilation -- could not find Microsoft.DiaSymReader.Native.{0}.dll.
+        ///   Looks up a localized string similar to Windows PDB writer doesn&apos;t support deterministic compilation: &apos;{0}&apos;. .
         /// </summary>
         internal static string SymWriterNotDeterministic {
             get {
                 return ResourceManager.GetString("SymWriterNotDeterministic", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The version of Windows PDB writer is older than required: &apos;{0}&apos;.
+        /// </summary>
+        internal static string SymWriterOlderVersionThanRequired {
+            get {
+                return ResourceManager.GetString("SymWriterOlderVersionThanRequired", resourceCulture);
             }
         }
         
