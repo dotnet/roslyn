@@ -1511,14 +1511,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return null;
                 }
 
-                var compilation = method.DeclaringCompilation;
-                var factory = compilation.GetBinderFactory(sourceMethod.SyntaxTree);
-
                 var bodySyntax = sourceMethod.BodySyntax;
 
                 if (bodySyntax != null)
                 {
-                    var inMethodBinder = factory.GetBinder(bodySyntax);
+                    var inMethodBinder = method.DeclaringCompilation.GetBinderFactory(sourceMethod.SyntaxTree).GetBinder(bodySyntax);
                     var binder = new ExecutableCodeBinder(bodySyntax, sourceMethod, inMethodBinder);
                     importChain = binder.ImportChain;
 

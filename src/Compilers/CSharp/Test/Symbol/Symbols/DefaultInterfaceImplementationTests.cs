@@ -3747,16 +3747,23 @@ public interface I1
 class Test1 : I1
 {}
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
-                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
-            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
-            compilation1.VerifyDiagnostics(
+            ValidateEventImplementation_101(source1, 
+                new[] {
                 // (4,25): error CS0065: 'I1.E1': event property must have both add and remove accessors
                 //     event System.Action E1 
                 Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "E1").WithArguments("I1.E1").WithLocation(4, 25)
-                );
+                },
+                haveAdd: true, haveRemove: false);
+        }
 
-            ValidateEventImplementationTest1_101(compilation1.SourceModule, haveAdd: true, haveRemove: false);
+        private void ValidateEventImplementation_101(string source1, DiagnosticDescription[] expected, bool haveAdd, bool haveRemove)
+        {
+            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation1.VerifyDiagnostics(expected);
+
+            ValidateEventImplementationTest1_101(compilation1.SourceModule, haveAdd, haveRemove);
 
             var source2 =
 @"
@@ -3769,7 +3776,7 @@ class Test2 : I1
 
             void Validate2(ModuleSymbol m)
             {
-                ValidateEventImplementationTest2_101(m, haveAdd: true, haveRemove: false);
+                ValidateEventImplementationTest2_101(m, haveAdd, haveRemove);
             }
 
             Validate2(compilation2.SourceModule);
@@ -3786,9 +3793,7 @@ class Test2 : I1
 
             if (haveAdd)
             {
-                Assert.False(addE1.IsAbstract);
-                Assert.True(addE1.IsVirtual);
-                Assert.True(addE1.IsMetadataVirtual());
+                ValidateAccessor(addE1);
             }
             else
             {
@@ -3797,17 +3802,34 @@ class Test2 : I1
 
             if (haveRemove)
             {
-                Assert.False(rmvE1.IsAbstract);
-                Assert.True(rmvE1.IsVirtual);
-                Assert.True(rmvE1.IsMetadataVirtual());
+                ValidateAccessor(rmvE1);
             }
             else
             {
                 Assert.Null(rmvE1);
             }
 
+            void ValidateAccessor(MethodSymbol accessor)
+            {
+                Assert.False(accessor.IsAbstract);
+                Assert.True(accessor.IsVirtual);
+                Assert.True(accessor.IsMetadataVirtual());
+                Assert.False(accessor.IsSealed);
+                Assert.False(accessor.IsStatic);
+                Assert.False(accessor.IsExtern);
+                Assert.False(accessor.IsAsync);
+                Assert.False(accessor.IsOverride);
+                Assert.Equal(Accessibility.Public, accessor.DeclaredAccessibility);
+            }
+
             Assert.False(e1.IsAbstract);
             Assert.True(e1.IsVirtual);
+            Assert.False(e1.IsSealed);
+            Assert.False(e1.IsStatic);
+            Assert.False(e1.IsExtern);
+            Assert.False(e1.IsOverride);
+            Assert.Equal(Accessibility.Public, e1.DeclaredAccessibility);
+
             Assert.True(i1.IsAbstract);
             Assert.True(i1.IsMetadataAbstract);
 
@@ -3881,6 +3903,11 @@ public interface I1
 class Test1 : I1
 {}
 ";
+            ValidateEventImplementation_102(source1);
+        }
+
+        private void ValidateEventImplementation_102(string source1)
+        {
             var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
@@ -3942,36 +3969,14 @@ public interface I1
 class Test1 : I1
 {}
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
-                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
-            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
-            compilation1.VerifyDiagnostics(
+            ValidateEventImplementation_101(source1,
+                new[] {
                 // (4,25): error CS0065: 'I1.E1': event property must have both add and remove accessors
                 //     event System.Action E1 
                 Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "E1").WithArguments("I1.E1").WithLocation(4, 25)
-                );
-
-            ValidateEventImplementationTest1_101(compilation1.SourceModule, haveAdd: false, haveRemove: true);
-
-            var source2 =
-@"
-class Test2 : I1
-{}
-";
-
-            var compilation2 = CreateStandardCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll);
-            Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
-
-            void Validate2(ModuleSymbol m)
-            {
-                ValidateEventImplementationTest2_101(m, haveAdd: false, haveRemove: true);
-            }
-
-            Validate2(compilation2.SourceModule);
-
-            compilation2.VerifyDiagnostics();
-            CompileAndVerify(compilation2, verify: false, symbolValidator: Validate2);
+                },
+                haveAdd: false, haveRemove: true);
         }
 
         [Fact]
@@ -3991,37 +3996,16 @@ class Test1 : I1
 {}
 ";
 
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
-                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
-            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
-            compilation1.VerifyDiagnostics(
+            ValidateEventImplementation_101(source1,
+                new[] {
                 // (6,12): error CS0073: An add or remove accessor must have a body
                 //         add;
                 Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";").WithLocation(6, 12),
                 // (4,25): error CS0065: 'I1.E1': event property must have both add and remove accessors
                 //     event System.Action E1 
                 Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "E1").WithArguments("I1.E1").WithLocation(4, 25)
-                );
-
-            ValidateEventImplementationTest1_101(compilation1.SourceModule, haveAdd: true, haveRemove: false);
-
-            var source2 =
-@"
-class Test2 : I1
-{}
-";
-
-            var compilation2 = CreateStandardCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll);
-            Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
-
-            void Validate2(ModuleSymbol m)
-            {
-                ValidateEventImplementationTest2_101(m, haveAdd: true, haveRemove: false);
-            }
-
-            Validate2(compilation2.SourceModule);
-            compilation2.VerifyDiagnostics();
-            CompileAndVerify(compilation2, verify: false, symbolValidator: Validate2);
+                },
+                haveAdd: true, haveRemove: false);
         }
 
         [Fact]
@@ -4040,39 +4024,17 @@ public interface I1
 class Test1 : I1
 {}
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
-                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
-            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
-            compilation1.VerifyDiagnostics(
+            ValidateEventImplementation_101(source1,
+                new[] {
                 // (6,15): error CS0073: An add or remove accessor must have a body
                 //         remove;
                 Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";").WithLocation(6, 15),
                 // (4,25): error CS0065: 'I1.E1': event property must have both add and remove accessors
                 //     event System.Action E1 
                 Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "E1").WithArguments("I1.E1").WithLocation(4, 25)
-                );
-
-            ValidateEventImplementationTest1_101(compilation1.SourceModule, haveAdd: false, haveRemove: true);
-
-            var source2 =
-@"
-class Test2 : I1
-{}
-";
-
-            var compilation2 = CreateStandardCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll);
-            Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
-
-            void Validate2(ModuleSymbol m)
-            {
-                ValidateEventImplementationTest2_101(m, haveAdd: false, haveRemove: true);
-            }
-
-            Validate2(compilation2.SourceModule);
-
-            compilation2.VerifyDiagnostics();
-            CompileAndVerify(compilation2, verify: false, symbolValidator: Validate2);
+                },
+                haveAdd: false, haveRemove: true);
         }
 
         [Fact]
@@ -4090,36 +4052,13 @@ public interface I1
 class Test1 : I1
 {}
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
-                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
-            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
-
-            compilation1.VerifyDiagnostics(
+            ValidateEventImplementation_101(source1,
+                new[] {
                 // (4,25): error CS0065: 'I1.E1': event property must have both add and remove accessors
                 //     event System.Action E1 
                 Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "E1").WithArguments("I1.E1").WithLocation(4, 25)
-                );
-
-            ValidateEventImplementationTest1_101(compilation1.SourceModule, haveAdd: false, haveRemove: false);
-
-            var source2 =
-@"
-class Test2 : I1
-{}
-";
-
-            var compilation2 = CreateStandardCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll);
-            Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
-
-            void Validate2(ModuleSymbol m)
-            {
-                ValidateEventImplementationTest2_101(m, haveAdd: false, haveRemove: false);
-            }
-
-            Validate2(compilation2.SourceModule);
-
-            compilation2.VerifyDiagnostics();
-            CompileAndVerify(compilation2, verify: false, symbolValidator: Validate2);
+                },
+                haveAdd: false, haveRemove: false);
         }
 
         [Fact]
@@ -4139,39 +4078,16 @@ public interface I1
 class Test1 : I1
 {}
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
-                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
-            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
-
-            compilation1.VerifyDiagnostics(
+            ValidateEventImplementation_101(source1,
+                new[] {
                 // (6,12): error CS0073: An add or remove accessor must have a body
                 //         add;
                 Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";").WithLocation(6, 12),
                 // (7,15): error CS0073: An add or remove accessor must have a body
                 //         remove;
                 Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";").WithLocation(7, 15)
-                );
-
-            ValidateEventImplementationTest1_101(compilation1.SourceModule, haveAdd: true, haveRemove: true);
-
-            var source2 =
-@"
-class Test2 : I1
-{}
-";
-
-            var compilation2 = CreateStandardCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll);
-            Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
-
-            void Validate2(ModuleSymbol m)
-            {
-                ValidateEventImplementationTest2_101(m, haveAdd: true, haveRemove: true);
-            }
-
-            Validate2(compilation2.SourceModule);
-
-            compilation2.VerifyDiagnostics();
-            CompileAndVerify(compilation2, verify: false, symbolValidator: Validate2);
+                },
+                haveAdd: true, haveRemove: true);
         }
 
         [Fact]
@@ -4191,11 +4107,8 @@ public interface I1
 class Test1 : I1
 {}
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
-                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
-            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
-
-            compilation1.VerifyDiagnostics(
+            ValidateEventImplementation_101(source1,
+                new[] {
                 // (8,7): error CS1519: Invalid token '=>' in class, struct, or interface member declaration
                 //     } => 0;
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=>").WithArguments("=>").WithLocation(8, 7),
@@ -4208,28 +4121,8 @@ class Test1 : I1
                 // (4,25): error CS0065: 'I1.E1': event property must have both add and remove accessors
                 //     event System.Action E1 
                 Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "E1").WithArguments("I1.E1")
-                );
-
-            ValidateEventImplementationTest1_101(compilation1.SourceModule, haveAdd: false, haveRemove: false);
-
-            var source2 =
-@"
-class Test2 : I1
-{}
-";
-
-            var compilation2 = CreateStandardCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll);
-            Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
-
-            void Validate2(ModuleSymbol m)
-            {
-                ValidateEventImplementationTest2_101(m, haveAdd: false, haveRemove: false);
-            }
-
-            Validate2(compilation2.SourceModule);
-
-            compilation2.VerifyDiagnostics();
-            CompileAndVerify(compilation2, verify: false, symbolValidator: Validate2);
+                },
+                haveAdd: false, haveRemove: false);
         }
 
         [Fact]
@@ -4249,36 +4142,13 @@ public interface I1
 class Test1 : I1
 {}
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
-                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
-            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
-
-            compilation1.VerifyDiagnostics(
+            ValidateEventImplementation_101(source1,
+                new[] {
                 // (7,15): error CS0073: An add or remove accessor must have a body
                 //         remove;
                 Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";").WithLocation(7, 15)
-                );
-
-            ValidateEventImplementationTest1_101(compilation1.SourceModule, haveAdd: true, haveRemove: true);
-
-            var source2 =
-@"
-class Test2 : I1
-{}
-";
-
-            var compilation2 = CreateStandardCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll);
-            Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
-
-            void Validate2(ModuleSymbol m)
-            {
-                ValidateEventImplementationTest2_101(m, haveAdd: true, haveRemove: true);
-            }
-
-            Validate2(compilation2.SourceModule);
-
-            compilation2.VerifyDiagnostics();
-            CompileAndVerify(compilation2, verify: false, symbolValidator: Validate2);
+                },
+                haveAdd: true, haveRemove: true);
         }
 
         [Fact]
@@ -4298,36 +4168,13 @@ public interface I1
 class Test1 : I1
 {}
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
-                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
-            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
-
-            compilation1.VerifyDiagnostics(
+            ValidateEventImplementation_101(source1,
+                new[] {
                 // (6,12): error CS0073: An add or remove accessor must have a body
                 //         add;
                 Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";").WithLocation(6, 12)
-                );
-
-            ValidateEventImplementationTest1_101(compilation1.SourceModule, haveAdd: true, haveRemove: true);
-
-            var source2 =
-@"
-class Test2 : I1
-{}
-";
-
-            var compilation2 = CreateStandardCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll);
-            Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
-
-            void Validate2(ModuleSymbol m)
-            {
-                ValidateEventImplementationTest2_101(m, haveAdd: true, haveRemove: true);
-            }
-
-            Validate2(compilation2.SourceModule);
-
-            compilation2.VerifyDiagnostics();
-            CompileAndVerify(compilation2, verify: false, symbolValidator: Validate2);
+                },
+                haveAdd: true, haveRemove: true);
         }
 
         [Fact]
@@ -4881,9 +4728,6 @@ class Test1 : I1
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             compilation1.VerifyDiagnostics(
-                // (4,32): error CS0106: The modifier 'static' is not valid for this item
-                //     static event System.Action E7 
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "E7").WithArguments("static").WithLocation(4, 32),
                 // (6,9): error CS8107: Feature 'default interface implementation' is not available in C# 7.  Please use language version 7.1 or greater.
                 //         add {} 
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "add").WithArguments("default interface implementation", "7.1").WithLocation(6, 9),
@@ -4892,7 +4736,32 @@ class Test1 : I1
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "remove").WithArguments("default interface implementation", "7.1").WithLocation(7, 9)
                 );
 
-            ValidateEventImplementation_501(compilation1.SourceModule, "Test1");
+            var derived = compilation1.GlobalNamespace.GetTypeMember("Test1");
+            var i1 = derived.Interfaces.Single();
+            Assert.Equal("I1", i1.ToTestDisplayString());
+
+            var e7 = i1.GetMember<EventSymbol>("E7");
+
+            Assert.False(e7.IsVirtual);
+            Assert.False(e7.IsAbstract);
+            Assert.True(e7.IsStatic);
+
+            Assert.Null(derived.FindImplementationForInterfaceMember(e7));
+
+            Assert.False(e7.AddMethod.IsVirtual);
+            Assert.False(e7.RemoveMethod.IsVirtual);
+
+            Assert.False(e7.AddMethod.IsMetadataVirtual());
+            Assert.False(e7.RemoveMethod.IsMetadataVirtual());
+
+            Assert.False(e7.AddMethod.IsAbstract);
+            Assert.False(e7.RemoveMethod.IsAbstract);
+
+            Assert.True(e7.AddMethod.IsStatic);
+            Assert.True(e7.RemoveMethod.IsStatic);
+
+            Assert.Null(derived.FindImplementationForInterfaceMember(e7.AddMethod));
+            Assert.Null(derived.FindImplementationForInterfaceMember(e7.RemoveMethod));
         }
 
         [Fact]
@@ -8201,7 +8070,6 @@ public interface I1
             var i1 = compilation1.GlobalNamespace.GetTypeMember("I1");
             var p1 = i1.GetMember<PropertySymbol>(propertyName);
             var p1get = p1.GetMethod;
-            var p1set = p1.SetMethod;
 
             Assert.False(p1.IsAbstract);
             Assert.True(p1.IsVirtual);
@@ -11746,7 +11614,7 @@ class Test2 : I1
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             // PROTOTYPE(DefaultInterfaceImplementation): The lack of errors for Test1 looks wrong. Private accessor is never virtual 
-            //                                            (the bahavior goes back to native compiler). So, it would be wrong
+            //                                            (the behavior goes back to native compiler). So, it would be wrong
             //                                            to have a MethodImpl to point to an accessor like this in an interface. 
             compilation1.VerifyDiagnostics(
                 // (34,12): error CS0551: Explicit interface implementation 'Test2.I1.P3' is missing accessor 'I1.P3.get'
@@ -14298,7 +14166,7 @@ class Test2 : I1
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             // PROTOTYPE(DefaultInterfaceImplementation): The lack of errors for Test1 looks wrong. Private accessor is never virtual 
-            //                                            (the bahavior goes back to native compiler). So, it would be wrong
+            //                                            (the behavior goes back to native compiler). So, it would be wrong
             //                                            to have a MethodImpl to point to an accessor like this in an interface. 
             compilation1.VerifyDiagnostics(
                 // (34,12): error CS0551: Explicit interface implementation 'Test2.I1.this[short]' is missing accessor 'I1.this[short].get'
@@ -14307,6 +14175,3266 @@ class Test2 : I1
                 // (39,12): error CS0551: Explicit interface implementation 'Test2.I1.this[int]' is missing accessor 'I1.this[int].set'
                 //     int I1.this[int x]
                 Diagnostic(ErrorCode.ERR_ExplicitPropertyMissingAccessor, "this").WithArguments("Test2.I1.this[int]", "I1.this[int].set").WithLocation(39, 12)
+                );
+        }
+
+        [Fact]
+        public void EventModifiers_01()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    public event System.Action P01;
+    protected event System.Action P02 {add{}}
+    protected internal event System.Action P03 {remove{}}
+    internal event System.Action P04 {add{}}
+    private event System.Action P05 {remove{}}
+    static event System.Action P06 {add{}}
+    virtual event System.Action P07 {remove{}}
+    sealed event System.Action P08 {add{}}
+    override event System.Action P09 {remove{}}
+    abstract event System.Action P10 {add{}}
+    extern event System.Action P11 {add{} remove{}}
+    extern event System.Action P12 {add; remove;}
+    extern event System.Action P13;
+}
+";
+            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation1.GetDiagnostics().Where(d => d.Code != (int)ErrorCode.ERR_EventNeedsBothAccessors).Verify(
+                // (5,35): error CS0106: The modifier 'protected' is not valid for this item
+                //     protected event System.Action P02 {add{}}
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P02").WithArguments("protected").WithLocation(5, 35),
+                // (6,44): error CS0106: The modifier 'protected internal' is not valid for this item
+                //     protected internal event System.Action P03 {remove{}}
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P03").WithArguments("protected internal").WithLocation(6, 44),
+                // (12,34): error CS0106: The modifier 'override' is not valid for this item
+                //     override event System.Action P09 {remove{}}
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P09").WithArguments("override").WithLocation(12, 34),
+                // (13,39): error CS0500: 'I1.P10.add' cannot declare a body because it is marked abstract
+                //     abstract event System.Action P10 {add{}}
+                Diagnostic(ErrorCode.ERR_AbstractHasBody, "add").WithArguments("I1.P10.add").WithLocation(13, 39),
+                // (14,37): error CS0179: 'I1.P11.add' cannot be extern and declare a body
+                //     extern event System.Action P11 {add{} remove{}}
+                Diagnostic(ErrorCode.ERR_ExternHasBody, "add").WithArguments("I1.P11.add").WithLocation(14, 37),
+                // (14,43): error CS0179: 'I1.P11.remove' cannot be extern and declare a body
+                //     extern event System.Action P11 {add{} remove{}}
+                Diagnostic(ErrorCode.ERR_ExternHasBody, "remove").WithArguments("I1.P11.remove").WithLocation(14, 43),
+                // (15,37): warning CS0626: Method, operator, or accessor 'I1.P12.add' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                //     extern event System.Action P12 {add; remove;}
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "add").WithArguments("I1.P12.add").WithLocation(15, 37),
+                // (15,40): error CS0073: An add or remove accessor must have a body
+                //     extern event System.Action P12 {add; remove;}
+                Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";").WithLocation(15, 40),
+                // (15,42): warning CS0626: Method, operator, or accessor 'I1.P12.remove' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                //     extern event System.Action P12 {add; remove;}
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "remove").WithArguments("I1.P12.remove").WithLocation(15, 42),
+                // (15,48): error CS0073: An add or remove accessor must have a body
+                //     extern event System.Action P12 {add; remove;}
+                Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";").WithLocation(15, 48),
+                // (16,32): warning CS0626: Method, operator, or accessor 'I1.P13.add' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                //     extern event System.Action P13;
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "P13").WithArguments("I1.P13.add").WithLocation(16, 32),
+                // (16,32): warning CS0626: Method, operator, or accessor 'I1.P13.remove' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                //     extern event System.Action P13;
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "P13").WithArguments("I1.P13.remove").WithLocation(16, 32)
+                );
+
+            ValidateSymbolsEventModifiers_01(compilation1);
+        }
+
+        private static void ValidateSymbolsEventModifiers_01(CSharpCompilation compilation1)
+        {
+            var i1 = compilation1.GetTypeByMetadataName("I1");
+            var p01 = i1.GetMember<EventSymbol>("P01");
+
+            Assert.True(p01.IsAbstract);
+            Assert.False(p01.IsVirtual);
+            Assert.False(p01.IsSealed);
+            Assert.False(p01.IsStatic);
+            Assert.False(p01.IsExtern);
+            Assert.False(p01.IsOverride);
+            Assert.Equal(Accessibility.Public, p01.DeclaredAccessibility);
+
+            VaidateP01Accessor(p01.AddMethod);
+            VaidateP01Accessor(p01.RemoveMethod);
+            void VaidateP01Accessor(MethodSymbol accessor)
+            {
+                Assert.True(accessor.IsAbstract);
+                Assert.False(accessor.IsVirtual);
+                Assert.True(accessor.IsMetadataVirtual());
+                Assert.False(accessor.IsSealed);
+                Assert.False(accessor.IsStatic);
+                Assert.False(accessor.IsExtern);
+                Assert.False(accessor.IsAsync);
+                Assert.False(accessor.IsOverride);
+                Assert.Equal(Accessibility.Public, accessor.DeclaredAccessibility);
+            }
+
+            var p02 = i1.GetMember<EventSymbol>("P02");
+            var p02get = p02.AddMethod;
+
+            Assert.False(p02.IsAbstract);
+            Assert.True(p02.IsVirtual);
+            Assert.False(p02.IsSealed);
+            Assert.False(p02.IsStatic);
+            Assert.False(p02.IsExtern);
+            Assert.False(p02.IsOverride);
+            Assert.Equal(Accessibility.Public, p02.DeclaredAccessibility);
+
+            Assert.False(p02get.IsAbstract);
+            Assert.True(p02get.IsVirtual);
+            Assert.True(p02get.IsMetadataVirtual());
+            Assert.False(p02get.IsSealed);
+            Assert.False(p02get.IsStatic);
+            Assert.False(p02get.IsExtern);
+            Assert.False(p02get.IsAsync);
+            Assert.False(p02get.IsOverride);
+            Assert.Equal(Accessibility.Public, p02get.DeclaredAccessibility);
+
+            var p03 = i1.GetMember<EventSymbol>("P03");
+            var p03set = p03.RemoveMethod;
+
+            Assert.False(p03.IsAbstract);
+            Assert.True(p03.IsVirtual);
+            Assert.False(p03.IsSealed);
+            Assert.False(p03.IsStatic);
+            Assert.False(p03.IsExtern);
+            Assert.False(p03.IsOverride);
+            Assert.Equal(Accessibility.Public, p03.DeclaredAccessibility);
+
+            Assert.False(p03set.IsAbstract);
+            Assert.True(p03set.IsVirtual);
+            Assert.True(p03set.IsMetadataVirtual());
+            Assert.False(p03set.IsSealed);
+            Assert.False(p03set.IsStatic);
+            Assert.False(p03set.IsExtern);
+            Assert.False(p03set.IsAsync);
+            Assert.False(p03set.IsOverride);
+            Assert.Equal(Accessibility.Public, p03set.DeclaredAccessibility);
+
+            var p04 = i1.GetMember<EventSymbol>("P04");
+            var p04get = p04.AddMethod;
+
+            Assert.False(p04.IsAbstract);
+            Assert.True(p04.IsVirtual);
+            Assert.False(p04.IsSealed);
+            Assert.False(p04.IsStatic);
+            Assert.False(p04.IsExtern);
+            Assert.False(p04.IsOverride);
+            Assert.Equal(Accessibility.Internal, p04.DeclaredAccessibility);
+
+            Assert.False(p04get.IsAbstract);
+            Assert.True(p04get.IsVirtual);
+            Assert.True(p04get.IsMetadataVirtual());
+            Assert.False(p04get.IsSealed);
+            Assert.False(p04get.IsStatic);
+            Assert.False(p04get.IsExtern);
+            Assert.False(p04get.IsAsync);
+            Assert.False(p04get.IsOverride);
+            Assert.Equal(Accessibility.Internal, p04get.DeclaredAccessibility);
+
+            var p05 = i1.GetMember<EventSymbol>("P05");
+            var p05set = p05.RemoveMethod;
+
+            Assert.False(p05.IsAbstract);
+            Assert.False(p05.IsVirtual);
+            Assert.False(p05.IsSealed);
+            Assert.False(p05.IsStatic);
+            Assert.False(p05.IsExtern);
+            Assert.False(p05.IsOverride);
+            Assert.Equal(Accessibility.Private, p05.DeclaredAccessibility);
+
+            Assert.False(p05set.IsAbstract);
+            Assert.False(p05set.IsVirtual);
+            Assert.False(p05set.IsMetadataVirtual());
+            Assert.False(p05set.IsSealed);
+            Assert.False(p05set.IsStatic);
+            Assert.False(p05set.IsExtern);
+            Assert.False(p05set.IsAsync);
+            Assert.False(p05set.IsOverride);
+            Assert.Equal(Accessibility.Private, p05set.DeclaredAccessibility);
+
+            var p06 = i1.GetMember<EventSymbol>("P06");
+            var p06get = p06.AddMethod;
+
+            Assert.False(p06.IsAbstract);
+            Assert.False(p06.IsVirtual);
+            Assert.False(p06.IsSealed);
+            Assert.True(p06.IsStatic);
+            Assert.False(p06.IsExtern);
+            Assert.False(p06.IsOverride);
+            Assert.Equal(Accessibility.Public, p06.DeclaredAccessibility);
+
+            Assert.False(p06get.IsAbstract);
+            Assert.False(p06get.IsVirtual);
+            Assert.False(p06get.IsMetadataVirtual());
+            Assert.False(p06get.IsSealed);
+            Assert.True(p06get.IsStatic);
+            Assert.False(p06get.IsExtern);
+            Assert.False(p06get.IsAsync);
+            Assert.False(p06get.IsOverride);
+            Assert.Equal(Accessibility.Public, p06get.DeclaredAccessibility);
+
+            var p07 = i1.GetMember<EventSymbol>("P07");
+            var p07set = p07.RemoveMethod;
+
+            Assert.False(p07.IsAbstract);
+            Assert.True(p07.IsVirtual);
+            Assert.False(p07.IsSealed);
+            Assert.False(p07.IsStatic);
+            Assert.False(p07.IsExtern);
+            Assert.False(p07.IsOverride);
+            Assert.Equal(Accessibility.Public, p07.DeclaredAccessibility);
+
+            Assert.False(p07set.IsAbstract);
+            Assert.True(p07set.IsVirtual);
+            Assert.True(p07set.IsMetadataVirtual());
+            Assert.False(p07set.IsSealed);
+            Assert.False(p07set.IsStatic);
+            Assert.False(p07set.IsExtern);
+            Assert.False(p07set.IsAsync);
+            Assert.False(p07set.IsOverride);
+            Assert.Equal(Accessibility.Public, p07set.DeclaredAccessibility);
+
+            var p08 = i1.GetMember<EventSymbol>("P08");
+            var p08get = p08.AddMethod;
+
+            Assert.False(p08.IsAbstract);
+            Assert.False(p08.IsVirtual);
+            Assert.False(p08.IsSealed);
+            Assert.False(p08.IsStatic);
+            Assert.False(p08.IsExtern);
+            Assert.False(p08.IsOverride);
+            Assert.Equal(Accessibility.Public, p08.DeclaredAccessibility);
+
+            Assert.False(p08get.IsAbstract);
+            Assert.False(p08get.IsVirtual);
+            Assert.False(p08get.IsMetadataVirtual());
+            Assert.False(p08get.IsSealed);
+            Assert.False(p08get.IsStatic);
+            Assert.False(p08get.IsExtern);
+            Assert.False(p08get.IsAsync);
+            Assert.False(p08get.IsOverride);
+            Assert.Equal(Accessibility.Public, p08get.DeclaredAccessibility);
+
+            var p09 = i1.GetMember<EventSymbol>("P09");
+            var p09set = p09.RemoveMethod;
+
+            Assert.False(p09.IsAbstract);
+            Assert.True(p09.IsVirtual);
+            Assert.False(p09.IsSealed);
+            Assert.False(p09.IsStatic);
+            Assert.False(p09.IsExtern);
+            Assert.False(p09.IsOverride);
+            Assert.Equal(Accessibility.Public, p09.DeclaredAccessibility);
+
+            Assert.False(p09set.IsAbstract);
+            Assert.True(p09set.IsVirtual);
+            Assert.True(p09set.IsMetadataVirtual());
+            Assert.False(p09set.IsSealed);
+            Assert.False(p09set.IsStatic);
+            Assert.False(p09set.IsExtern);
+            Assert.False(p09set.IsAsync);
+            Assert.False(p09set.IsOverride);
+            Assert.Equal(Accessibility.Public, p09set.DeclaredAccessibility);
+
+            var p10 = i1.GetMember<EventSymbol>("P10");
+            var p10get = p10.AddMethod;
+
+            Assert.True(p10.IsAbstract);
+            Assert.False(p10.IsVirtual);
+            Assert.False(p10.IsSealed);
+            Assert.False(p10.IsStatic);
+            Assert.False(p10.IsExtern);
+            Assert.False(p10.IsOverride);
+            Assert.Equal(Accessibility.Public, p10.DeclaredAccessibility);
+
+            Assert.True(p10get.IsAbstract);
+            Assert.False(p10get.IsVirtual);
+            Assert.True(p10get.IsMetadataVirtual());
+            Assert.False(p10get.IsSealed);
+            Assert.False(p10get.IsStatic);
+            Assert.False(p10get.IsExtern);
+            Assert.False(p10get.IsAsync);
+            Assert.False(p10get.IsOverride);
+            Assert.Equal(Accessibility.Public, p10get.DeclaredAccessibility);
+
+            foreach (var name in new[] { "P11", "P12", "P13" })
+            {
+                var p11 = i1.GetMember<EventSymbol>(name);
+
+                Assert.False(p11.IsAbstract);
+                Assert.True(p11.IsVirtual);
+                Assert.False(p11.IsSealed);
+                Assert.False(p11.IsStatic);
+                Assert.True(p11.IsExtern);
+                Assert.False(p11.IsOverride);
+                Assert.Equal(Accessibility.Public, p11.DeclaredAccessibility);
+
+                ValidateP11Accessor(p11.AddMethod);
+                ValidateP11Accessor(p11.RemoveMethod);
+                void ValidateP11Accessor(MethodSymbol accessor)
+                {
+                    Assert.False(accessor.IsAbstract);
+                    Assert.True(accessor.IsVirtual);
+                    Assert.True(accessor.IsMetadataVirtual());
+                    Assert.False(accessor.IsSealed);
+                    Assert.False(accessor.IsStatic);
+                    Assert.True(accessor.IsExtern);
+                    Assert.False(accessor.IsAsync);
+                    Assert.False(accessor.IsOverride);
+                    Assert.Equal(Accessibility.Public, accessor.DeclaredAccessibility);
+                }
+            }
+        }
+
+        [Fact]
+        public void EventModifiers_02()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    public event System.Action P01;
+    protected event System.Action P02 {add{}}
+    protected internal event System.Action P03 {remove{}}
+    internal event System.Action P04 {add{}}
+    private event System.Action P05 {remove{}}
+    static event System.Action P06 {add{}}
+    virtual event System.Action P07 {remove{}}
+    sealed event System.Action P08 {add{}}
+    override event System.Action P09 {remove{}}
+    abstract event System.Action P10 {add{}}
+    extern event System.Action P11 {add{} remove{}}
+    extern event System.Action P12 {add; remove;}
+    extern event System.Action P13;
+}
+";
+            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+                                                             parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation1.GetDiagnostics().Where(d => d.Code != (int)ErrorCode.ERR_EventNeedsBothAccessors).Verify(
+                // (4,32): error CS8503: The modifier 'public' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                //     public event System.Action P01;
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P01").WithArguments("public", "7", "7.1").WithLocation(4, 32),
+                // (5,35): error CS0106: The modifier 'protected' is not valid for this item
+                //     protected event System.Action P02 {add{}}
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P02").WithArguments("protected").WithLocation(5, 35),
+                // (5,40): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                //     protected event System.Action P02 {add{}}
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "add").WithArguments("default interface implementation", "7.1").WithLocation(5, 40),
+                // (6,44): error CS0106: The modifier 'protected internal' is not valid for this item
+                //     protected internal event System.Action P03 {remove{}}
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P03").WithArguments("protected internal").WithLocation(6, 44),
+                // (6,49): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                //     protected internal event System.Action P03 {remove{}}
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "remove").WithArguments("default interface implementation", "7.1").WithLocation(6, 49),
+                // (7,39): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                //     internal event System.Action P04 {add{}}
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "add").WithArguments("default interface implementation", "7.1").WithLocation(7, 39),
+                // (8,38): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                //     private event System.Action P05 {remove{}}
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "remove").WithArguments("default interface implementation", "7.1").WithLocation(8, 38),
+                // (9,37): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                //     static event System.Action P06 {add{}}
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "add").WithArguments("default interface implementation", "7.1").WithLocation(9, 37),
+                // (10,38): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                //     virtual event System.Action P07 {remove{}}
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "remove").WithArguments("default interface implementation", "7.1").WithLocation(10, 38),
+                // (11,37): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                //     sealed event System.Action P08 {add{}}
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "add").WithArguments("default interface implementation", "7.1").WithLocation(11, 37),
+                // (12,34): error CS0106: The modifier 'override' is not valid for this item
+                //     override event System.Action P09 {remove{}}
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P09").WithArguments("override").WithLocation(12, 34),
+                // (12,39): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                //     override event System.Action P09 {remove{}}
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "remove").WithArguments("default interface implementation", "7.1").WithLocation(12, 39),
+                // (13,39): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                //     abstract event System.Action P10 {add{}}
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "add").WithArguments("default interface implementation", "7.1").WithLocation(13, 39),
+                // (13,39): error CS0500: 'I1.P10.add' cannot declare a body because it is marked abstract
+                //     abstract event System.Action P10 {add{}}
+                Diagnostic(ErrorCode.ERR_AbstractHasBody, "add").WithArguments("I1.P10.add").WithLocation(13, 39),
+                // (14,37): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                //     extern event System.Action P11 {add{} remove{}}
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "add").WithArguments("default interface implementation", "7.1").WithLocation(14, 37),
+                // (14,37): error CS0179: 'I1.P11.add' cannot be extern and declare a body
+                //     extern event System.Action P11 {add{} remove{}}
+                Diagnostic(ErrorCode.ERR_ExternHasBody, "add").WithArguments("I1.P11.add").WithLocation(14, 37),
+                // (14,43): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                //     extern event System.Action P11 {add{} remove{}}
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "remove").WithArguments("default interface implementation", "7.1").WithLocation(14, 43),
+                // (14,43): error CS0179: 'I1.P11.remove' cannot be extern and declare a body
+                //     extern event System.Action P11 {add{} remove{}}
+                Diagnostic(ErrorCode.ERR_ExternHasBody, "remove").WithArguments("I1.P11.remove").WithLocation(14, 43),
+                // (15,37): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                //     extern event System.Action P12 {add; remove;}
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "add").WithArguments("default interface implementation", "7.1").WithLocation(15, 37),
+                // (15,37): warning CS0626: Method, operator, or accessor 'I1.P12.add' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                //     extern event System.Action P12 {add; remove;}
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "add").WithArguments("I1.P12.add").WithLocation(15, 37),
+                // (15,40): error CS0073: An add or remove accessor must have a body
+                //     extern event System.Action P12 {add; remove;}
+                Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";").WithLocation(15, 40),
+                // (15,42): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                //     extern event System.Action P12 {add; remove;}
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "remove").WithArguments("default interface implementation", "7.1").WithLocation(15, 42),
+                // (15,42): warning CS0626: Method, operator, or accessor 'I1.P12.remove' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                //     extern event System.Action P12 {add; remove;}
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "remove").WithArguments("I1.P12.remove").WithLocation(15, 42),
+                // (15,48): error CS0073: An add or remove accessor must have a body
+                //     extern event System.Action P12 {add; remove;}
+                Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";").WithLocation(15, 48),
+                // (16,32): error CS8503: The modifier 'extern' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                //     extern event System.Action P13;
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P13").WithArguments("extern", "7", "7.1").WithLocation(16, 32),
+                // (16,32): warning CS0626: Method, operator, or accessor 'I1.P13.add' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                //     extern event System.Action P13;
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "P13").WithArguments("I1.P13.add").WithLocation(16, 32),
+                // (16,32): warning CS0626: Method, operator, or accessor 'I1.P13.remove' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                //     extern event System.Action P13;
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "P13").WithArguments("I1.P13.remove").WithLocation(16, 32)
+                );
+
+            ValidateSymbolsEventModifiers_01(compilation1);
+        }
+
+        [Fact]
+        public void EventModifiers_03()
+        {
+            ValidateEventImplementation_102(@"
+public interface I1
+{
+    public virtual event System.Action E1 
+    {
+        add => System.Console.WriteLine(""add E1"");
+        remove => System.Console.WriteLine(""remove E1"");
+    }
+}
+
+class Test1 : I1
+{}
+");
+            ValidateEventImplementation_102(@"
+public interface I1
+{
+    public virtual event System.Action E1 
+    {
+        add {System.Console.WriteLine(""add E1"");}
+        remove {System.Console.WriteLine(""remove E1"");}
+    }
+}
+
+class Test1 : I1
+{}
+");
+        }
+
+        [Fact]
+        public void EventModifiers_04()
+        {
+            ValidateEventImplementation_101(@"
+public interface I1
+{
+    public virtual event System.Action E1 {}
+}
+
+class Test1 : I1
+{}
+",
+                new[] {
+                // (4,40): error CS0065: 'I1.E1': event property must have both add and remove accessors
+                //     public virtual event System.Action E1 {}
+                Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "E1").WithArguments("I1.E1").WithLocation(4, 40)
+                },
+                haveAdd: false, haveRemove: false);
+
+            ValidateEventImplementation_101(@"
+public interface I1
+{
+    public virtual event System.Action E1 
+    {
+        add;
+    }
+}
+
+class Test1 : I1
+{}
+",
+                new[] {
+                // (6,12): error CS0073: An add or remove accessor must have a body
+                //         add;
+                Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";"),
+                // (4,40): error CS0065: 'I1.E1': event property must have both add and remove accessors
+                //     public virtual event System.Action E1 
+                Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "E1").WithArguments("I1.E1").WithLocation(4, 40)
+                },
+                haveAdd: true, haveRemove: false);
+
+            ValidateEventImplementation_101(@"
+public interface I1
+{
+    public virtual event System.Action E1 
+    {
+        add {}
+    }
+}
+
+class Test1 : I1
+{}
+",
+                new[] {
+                // (4,40): error CS0065: 'I1.E1': event property must have both add and remove accessors
+                //     public virtual event System.Action E1 
+                Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "E1").WithArguments("I1.E1").WithLocation(4, 40)
+                },
+                haveAdd: true, haveRemove: false);
+
+
+            ValidateEventImplementation_101(@"
+public interface I1
+{
+    public virtual event System.Action E1 
+    {
+        add => throw null;
+    }
+}
+
+class Test1 : I1
+{}
+",
+                new[] {
+                // (4,40): error CS0065: 'I1.E1': event property must have both add and remove accessors
+                //     public virtual event System.Action E1 
+                Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "E1").WithArguments("I1.E1").WithLocation(4, 40)
+                },
+                haveAdd: true, haveRemove: false);
+
+            ValidateEventImplementation_101(@"
+public interface I1
+{
+    public virtual event System.Action E1 
+    {
+        remove;
+    }
+}
+
+class Test1 : I1
+{}
+",
+                new[] {
+                // (6,15): error CS0073: An add or remove accessor must have a body
+                //         remove;
+                Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";").WithLocation(6, 15),
+                // (4,40): error CS0065: 'I1.E1': event property must have both add and remove accessors
+                //     public virtual event System.Action E1 
+                Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "E1").WithArguments("I1.E1").WithLocation(4, 40)
+                },
+                haveAdd: false, haveRemove: true);
+
+            ValidateEventImplementation_101(@"
+public interface I1
+{
+    public virtual event System.Action E1 
+    {
+        remove {}
+    }
+}
+
+class Test1 : I1
+{}
+",
+                new[] {
+                // (4,40): error CS0065: 'I1.E1': event property must have both add and remove accessors
+                //     public virtual event System.Action E1 
+                Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "E1").WithArguments("I1.E1").WithLocation(4, 40)
+                },
+                haveAdd: false, haveRemove: true);
+
+            ValidateEventImplementation_101(@"
+public interface I1
+{
+    public virtual event System.Action E1 
+    {
+        remove => throw null;
+    }
+}
+
+class Test1 : I1
+{}
+",
+                new[] {
+                // (4,40): error CS0065: 'I1.E1': event property must have both add and remove accessors
+                //     public virtual event System.Action E1 
+                Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "E1").WithArguments("I1.E1").WithLocation(4, 40)
+                },
+                haveAdd: false, haveRemove: true);
+
+            ValidateEventImplementation_101(@"
+public interface I1
+{
+    public virtual event System.Action E1 
+    {
+        add;
+        remove;
+    }
+}
+
+class Test1 : I1
+{}
+",
+                new[] {
+                // (6,12): error CS0073: An add or remove accessor must have a body
+                //         add;
+                Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";"),
+                // (7,15): error CS0073: An add or remove accessor must have a body
+                //         remove;
+                Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";").WithLocation(7, 15)
+                },
+                haveAdd: true, haveRemove: true);
+
+            ValidateEventImplementation_101(@"
+public interface I1
+{
+    public virtual event System.Action E1;
+}
+
+class Test1 : I1
+{}
+",
+                new[] {
+                // (4,40): error CS0065: 'I1.E1': event property must have both add and remove accessors
+                //     public virtual event System.Action E1;
+                Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "E1").WithArguments("I1.E1").WithLocation(4, 40)
+                },
+                haveAdd: true, haveRemove: true);
+
+            ValidateEventImplementation_101(@"
+public interface I1
+{
+    public virtual event System.Action E1 = null;
+}
+
+class Test1 : I1
+{}
+",
+                new[] {
+                // (4,40): error CS0068: 'I1.E1': event in interface cannot have initializer
+                //     public virtual event System.Action E1 = null;
+                Diagnostic(ErrorCode.ERR_InterfaceEventInitializer, "E1").WithArguments("I1.E1").WithLocation(4, 40),
+                // (4,40): error CS0065: 'I1.E1': event property must have both add and remove accessors
+                //     public virtual event System.Action E1 = null;
+                Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "E1").WithArguments("I1.E1").WithLocation(4, 40),
+                // (4,40): warning CS0067: The event 'I1.E1' is never used
+                //     public virtual event System.Action E1 = null;
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E1").WithArguments("I1.E1").WithLocation(4, 40)
+                },
+                haveAdd: true, haveRemove: true);
+        }
+
+        [Fact]
+        public void EventModifiers_05()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    public abstract event System.Action P1; 
+}
+public interface I2
+{
+    event System.Action P2;
+}
+
+class Test1 : I1
+{
+    public event System.Action P1 
+    {
+        add
+        {
+            System.Console.WriteLine(""get_P1"");
+        }
+        remove => System.Console.WriteLine(""set_P1"");
+    }
+}
+class Test2 : I2
+{
+    public event System.Action P2 
+    {
+        add
+        {
+            System.Console.WriteLine(""get_P2"");
+        }
+        remove => System.Console.WriteLine(""set_P2"");
+    }
+
+    static void Main()
+    {
+        I1 x = new Test1();
+        x.P1 += null;
+        x.P1 -= null;
+        I2 y = new Test2();
+        y.P2 += null;
+        y.P2 -= null;
+    }
+}
+";
+
+            ValidateEventModifiers_05(source1);
+        }
+
+        private void ValidateEventModifiers_05(string source1)
+        {
+            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugExe,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+
+            CompileAndVerify(compilation1, expectedOutput:
+@"get_P1
+set_P1
+get_P2
+set_P2", symbolValidator: Validate);
+
+            Validate(compilation1.SourceModule);
+
+            void Validate(ModuleSymbol m)
+            {
+                for (int i = 1; i <= 2; i++)
+                {
+                    var test1 = m.GlobalNamespace.GetTypeMember("Test" + i);
+                    var i1 = m.GlobalNamespace.GetTypeMember("I" + i);
+                    var p1 = GetSingleEvent(i1);
+                    var test1P1 = GetSingleEvent(test1);
+
+                    Assert.True(p1.IsAbstract);
+                    Assert.False(p1.IsVirtual);
+                    Assert.False(p1.IsSealed);
+                    Assert.False(p1.IsStatic);
+                    Assert.False(p1.IsExtern);
+                    Assert.False(p1.IsOverride);
+                    Assert.Equal(Accessibility.Public, p1.DeclaredAccessibility);
+                    Assert.Same(test1P1, test1.FindImplementationForInterfaceMember(p1));
+
+                    ValidateAccessor(p1.AddMethod, test1P1.AddMethod);
+                    ValidateAccessor(p1.RemoveMethod, test1P1.RemoveMethod);
+
+                    void ValidateAccessor(MethodSymbol accessor, MethodSymbol implementation)
+                    {
+                        Assert.True(accessor.IsAbstract);
+                        Assert.False(accessor.IsVirtual);
+                        Assert.True(accessor.IsMetadataVirtual());
+                        Assert.False(accessor.IsSealed);
+                        Assert.False(accessor.IsStatic);
+                        Assert.False(accessor.IsExtern);
+                        Assert.False(accessor.IsAsync);
+                        Assert.False(accessor.IsOverride);
+                        Assert.Equal(Accessibility.Public, accessor.DeclaredAccessibility);
+                        Assert.Same(implementation, test1.FindImplementationForInterfaceMember(accessor));
+                    }
+                }
+            }
+        }
+
+        private static EventSymbol GetSingleEvent(NamedTypeSymbol container)
+        {
+            return container.GetMembers().OfType<EventSymbol>().Single();
+        }
+
+        private static EventSymbol GetSingleEvent(CSharpCompilation compilation, string containerName)
+        {
+            return GetSingleEvent(compilation.GetTypeByMetadataName(containerName));
+        }
+
+        private static EventSymbol GetSingleEvent(ModuleSymbol m, string containerName)
+        {
+            return GetSingleEvent(m.GlobalNamespace.GetTypeMember(containerName));
+        }
+
+        [Fact]
+        public void EventModifiers_06()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    public abstract event System.Action P1; 
+}
+";
+            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+                                                             parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation1.VerifyDiagnostics(
+                // (4,41): error CS8503: The modifier 'abstract' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                //     public abstract event System.Action P1; 
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P1").WithArguments("abstract", "7", "7.1").WithLocation(4, 41),
+                // (4,41): error CS8503: The modifier 'public' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                //     public abstract event System.Action P1; 
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P1").WithArguments("public", "7", "7.1").WithLocation(4, 41)
+                );
+
+            ValidateEventModifiers_06(compilation1);
+        }
+
+        private static void ValidateEventModifiers_06(CSharpCompilation compilation1)
+        {
+            var i1 = compilation1.GetTypeByMetadataName("I1");
+            var p1 = i1.GetMember<EventSymbol>("P1");
+
+            Assert.True(p1.IsAbstract);
+            Assert.False(p1.IsVirtual);
+            Assert.False(p1.IsSealed);
+            Assert.False(p1.IsStatic);
+            Assert.False(p1.IsExtern);
+            Assert.False(p1.IsOverride);
+            Assert.Equal(Accessibility.Public, p1.DeclaredAccessibility);
+
+            ValidateAccessor(p1.AddMethod);
+            ValidateAccessor(p1.RemoveMethod);
+
+            void ValidateAccessor(MethodSymbol accessor)
+            {
+                Assert.True(accessor.IsAbstract);
+                Assert.False(accessor.IsVirtual);
+                Assert.True(accessor.IsMetadataVirtual());
+                Assert.False(accessor.IsSealed);
+                Assert.False(accessor.IsStatic);
+                Assert.False(accessor.IsExtern);
+                Assert.False(accessor.IsAsync);
+                Assert.False(accessor.IsOverride);
+                Assert.Equal(Accessibility.Public, accessor.DeclaredAccessibility);
+            }
+        }
+
+        [Fact]
+        public void EventModifiers_07()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    public static event System.Action P1 
+    {
+        add
+        {
+            System.Console.WriteLine(""get_P1"");
+        }
+        remove 
+        {
+            System.Console.WriteLine(""set_P1"");
+        }
+    }
+
+    internal static event System.Action P2 
+    {
+        add
+        {
+            System.Console.WriteLine(""get_P2"");
+            P3 += value;
+        }
+        remove
+        {
+            System.Console.WriteLine(""set_P2"");
+            P3 -= value;
+        }
+    }
+
+    private static event System.Action P3 
+    {
+        add => System.Console.WriteLine(""get_P3"");
+        remove => System.Console.WriteLine(""set_P3"");
+    }
+}
+
+class Test1 : I1
+{
+    static void Main()
+    {
+        I1.P1 += null; 
+        I1.P1 -= null;
+        I1.P2 += null;
+        I1.P2 -= null;
+    }
+}
+";
+            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            CompileAndVerify(compilation1, expectedOutput:
+@"get_P1
+set_P1
+get_P2
+get_P3
+set_P2
+set_P3", symbolValidator: Validate);
+
+            Validate(compilation1.SourceModule);
+
+            void Validate(ModuleSymbol m)
+            {
+                var test1 = m.GlobalNamespace.GetTypeMember("Test1");
+                var i1 = m.GlobalNamespace.GetTypeMember("I1");
+
+                foreach (var tuple in new[] { (name: "P1", access: Accessibility.Public),
+                                              (name: "P2", access: Accessibility.Internal),
+                                              (name: "P3", access: Accessibility.Private)})
+                {
+                    var p1 = i1.GetMember<EventSymbol>(tuple.name);
+
+                    Assert.False(p1.IsAbstract);
+                    Assert.False(p1.IsVirtual);
+                    Assert.False(p1.IsSealed);
+                    Assert.True(p1.IsStatic);
+                    Assert.False(p1.IsExtern);
+                    Assert.False(p1.IsOverride);
+                    Assert.Equal(tuple.access, p1.DeclaredAccessibility);
+                    Assert.Null(test1.FindImplementationForInterfaceMember(p1));
+
+                    ValidateAccessor(p1.AddMethod);
+                    ValidateAccessor(p1.RemoveMethod);
+
+                    void ValidateAccessor(MethodSymbol accessor)
+                    {
+                        Assert.False(accessor.IsAbstract);
+                        Assert.False(accessor.IsVirtual);
+                        Assert.False(accessor.IsMetadataVirtual());
+                        Assert.False(accessor.IsSealed);
+                        Assert.True(accessor.IsStatic);
+                        Assert.False(accessor.IsExtern);
+                        Assert.False(accessor.IsAsync);
+                        Assert.False(accessor.IsOverride);
+                        Assert.Equal(tuple.access, accessor.DeclaredAccessibility);
+                        Assert.Null(test1.FindImplementationForInterfaceMember(accessor));
+                    }
+                }
+            }
+
+            var source2 =
+@"
+public interface I1
+{
+    public static event System.Action P1; 
+
+    internal static event System.Action P2 
+    {
+        add;
+        remove;
+    }
+
+    private static event System.Action P3 = null;
+}
+
+class Test1 : I1
+{
+    static void Main()
+    {
+    }
+}
+";
+            var compilation2 = CreateStandardCompilation(source2, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation2.VerifyDiagnostics(
+                // (8,12): error CS0073: An add or remove accessor must have a body
+                //         add;
+                Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";").WithLocation(8, 12),
+                // (9,15): error CS0073: An add or remove accessor must have a body
+                //         remove;
+                Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";").WithLocation(9, 15),
+                // (4,39): error CS0065: 'I1.P1': event property must have both add and remove accessors
+                //     public static event System.Action P1; 
+                Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "P1").WithArguments("I1.P1").WithLocation(4, 39),
+                // (12,40): error CS0068: 'I1.P3': event in interface cannot have initializer
+                //     private static event System.Action P3 = null;
+                Diagnostic(ErrorCode.ERR_InterfaceEventInitializer, "P3").WithArguments("I1.P3").WithLocation(12, 40),
+                // (12,40): error CS0065: 'I1.P3': event property must have both add and remove accessors
+                //     private static event System.Action P3 = null;
+                Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "P3").WithArguments("I1.P3").WithLocation(12, 40),
+                // (12,40): warning CS0067: The event 'I1.P3' is never used
+                //     private static event System.Action P3 = null;
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "P3").WithArguments("I1.P3").WithLocation(12, 40)
+                );
+
+            Validate(compilation2.SourceModule);
+        }
+
+        [Fact]
+        public void EventModifiers_08()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    abstract static event System.Action P1; 
+
+    virtual static event System.Action P2 {add {} remove{}} 
+    
+    sealed static event System.Action P3 {add; remove;}
+}
+
+class Test1 : I1
+{
+    event System.Action I1.P1 {add {} remove{}} 
+    event System.Action I1.P2 {add {} remove{}} 
+    event System.Action I1.P3 {add {} remove{}} 
+}
+
+class Test2 : I1
+{}
+";
+            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation1.VerifyDiagnostics(
+                // (8,46): error CS0073: An add or remove accessor must have a body
+                //     sealed static event System.Action P3 {add; remove;}
+                Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";").WithLocation(8, 46),
+                // (8,54): error CS0073: An add or remove accessor must have a body
+                //     sealed static event System.Action P3 {add; remove;}
+                Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";").WithLocation(8, 54),
+                // (6,40): error CS0112: A static member 'I1.P2' cannot be marked as override, virtual, or abstract
+                //     virtual static event System.Action P2 {add {} remove{}} 
+                Diagnostic(ErrorCode.ERR_StaticNotVirtual, "P2").WithArguments("I1.P2").WithLocation(6, 40),
+                // (8,39): error CS0238: 'I1.P3' cannot be sealed because it is not an override
+                //     sealed static event System.Action P3 {add; remove;}
+                Diagnostic(ErrorCode.ERR_SealedNonOverride, "P3").WithArguments("I1.P3").WithLocation(8, 39),
+                // (4,41): error CS0112: A static member 'I1.P1' cannot be marked as override, virtual, or abstract
+                //     abstract static event System.Action P1; 
+                Diagnostic(ErrorCode.ERR_StaticNotVirtual, "P1").WithArguments("I1.P1").WithLocation(4, 41),
+                // (13,28): error CS0539: 'Test1.P1' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     event System.Action I1.P1 {add {} remove{}} 
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "P1").WithArguments("Test1.P1").WithLocation(13, 28),
+                // (14,28): error CS0539: 'Test1.P2' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     event System.Action I1.P2 {add {} remove{}} 
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "P2").WithArguments("Test1.P2").WithLocation(14, 28),
+                // (15,28): error CS0539: 'Test1.P3' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     event System.Action I1.P3 {add {} remove{}} 
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "P3").WithArguments("Test1.P3").WithLocation(15, 28)
+                );
+
+            var test1 = compilation1.GetTypeByMetadataName("Test1");
+            var i1 = compilation1.GetTypeByMetadataName("I1");
+            var p1 = i1.GetMember<EventSymbol>("P1");
+
+            Assert.True(p1.IsAbstract);
+            Assert.False(p1.IsVirtual);
+            Assert.False(p1.IsSealed);
+            Assert.True(p1.IsStatic);
+            Assert.False(p1.IsExtern);
+            Assert.False(p1.IsOverride);
+            Assert.Equal(Accessibility.Public, p1.DeclaredAccessibility);
+            Assert.Null(test1.FindImplementationForInterfaceMember(p1));
+
+            ValidateAccessor1(p1.AddMethod);
+            ValidateAccessor1(p1.RemoveMethod);
+            void ValidateAccessor1(MethodSymbol accessor)
+            {
+                Assert.True(accessor.IsAbstract);
+                Assert.False(accessor.IsVirtual);
+                Assert.True(accessor.IsMetadataVirtual());
+                Assert.False(accessor.IsSealed);
+                Assert.True(accessor.IsStatic);
+                Assert.False(accessor.IsExtern);
+                Assert.False(accessor.IsAsync);
+                Assert.False(accessor.IsOverride);
+                Assert.Equal(Accessibility.Public, accessor.DeclaredAccessibility);
+                Assert.Null(test1.FindImplementationForInterfaceMember(accessor));
+            }
+
+            var p2 = i1.GetMember<EventSymbol>("P2");
+
+            Assert.False(p2.IsAbstract);
+            Assert.True(p2.IsVirtual);
+            Assert.False(p2.IsSealed);
+            Assert.True(p2.IsStatic);
+            Assert.False(p2.IsExtern);
+            Assert.False(p2.IsOverride);
+            Assert.Equal(Accessibility.Public, p2.DeclaredAccessibility);
+            Assert.Null(test1.FindImplementationForInterfaceMember(p2));
+
+            ValidateAccessor2(p2.AddMethod);
+            ValidateAccessor2(p2.RemoveMethod);
+            void ValidateAccessor2(MethodSymbol accessor)
+            {
+                Assert.False(accessor.IsAbstract);
+                Assert.True(accessor.IsVirtual);
+                Assert.True(accessor.IsMetadataVirtual());
+                Assert.False(accessor.IsSealed);
+                Assert.True(accessor.IsStatic);
+                Assert.False(accessor.IsExtern);
+                Assert.False(accessor.IsAsync);
+                Assert.False(accessor.IsOverride);
+                Assert.Equal(Accessibility.Public, accessor.DeclaredAccessibility);
+                Assert.Null(test1.FindImplementationForInterfaceMember(accessor));
+            }
+
+            var p3 = i1.GetMember<EventSymbol>("P3");
+
+            Assert.False(p3.IsAbstract);
+            Assert.False(p3.IsVirtual);
+            Assert.True(p3.IsSealed);
+            Assert.True(p3.IsStatic);
+            Assert.False(p3.IsExtern);
+            Assert.False(p3.IsOverride);
+            Assert.Equal(Accessibility.Public, p3.DeclaredAccessibility);
+            Assert.Null(test1.FindImplementationForInterfaceMember(p3));
+
+            ValidateAccessor3(p3.AddMethod);
+            ValidateAccessor3(p3.RemoveMethod);
+            void ValidateAccessor3(MethodSymbol accessor)
+            {
+                Assert.False(accessor.IsAbstract);
+                Assert.False(accessor.IsVirtual);
+                Assert.False(accessor.IsMetadataVirtual());
+                Assert.True(accessor.IsSealed);
+                Assert.True(accessor.IsStatic);
+                Assert.False(accessor.IsExtern);
+                Assert.False(accessor.IsAsync);
+                Assert.False(accessor.IsOverride);
+                Assert.Equal(Accessibility.Public, accessor.DeclaredAccessibility);
+                Assert.Null(test1.FindImplementationForInterfaceMember(accessor));
+            }
+        }
+
+        [Fact]
+        public void EventModifiers_09()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    private event System.Action P1 
+    {
+        add
+        { 
+            System.Console.WriteLine(""get_P1"");
+        }           
+        remove
+        { 
+            System.Console.WriteLine(""set_P1"");
+        }           
+    }
+    sealed void M()
+    {
+        P1 += null;
+        P1 -= null;
+    }
+}
+public interface I2
+{
+    private event System.Action P2 
+    {
+        add => System.Console.WriteLine(""get_P2"");
+        remove => System.Console.WriteLine(""set_P2"");
+    }
+
+    sealed void M()
+    {
+        P2 += null;
+        P2 -= null;
+    }
+}
+
+class Test1 : I1, I2
+{
+    static void Main()
+    {
+        I1 x1 = new Test1();
+        x1.M();
+        I2 x2 = new Test1();
+        x2.M();
+    }
+}
+";
+
+            ValidateEventModifiers_09(source1);
+        }
+
+        private void ValidateEventModifiers_09(string source1)
+        {
+            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            CompileAndVerify(compilation1, verify: false, symbolValidator: Validate);
+
+            Validate(compilation1.SourceModule);
+
+            void Validate(ModuleSymbol m)
+            {
+                var test1 = m.GlobalNamespace.GetTypeMember("Test1");
+
+                for (int i = 1; i <= 2; i++)
+                {
+                    var i1 = m.GlobalNamespace.GetTypeMember("I" + i);
+                    var p1 = GetSingleEvent(i1);
+
+                    Assert.False(p1.IsAbstract);
+                    Assert.False(p1.IsVirtual);
+                    Assert.False(p1.IsSealed);
+                    Assert.False(p1.IsStatic);
+                    Assert.False(p1.IsExtern);
+                    Assert.False(p1.IsOverride);
+                    Assert.Equal(Accessibility.Private, p1.DeclaredAccessibility);
+                    Assert.Null(test1.FindImplementationForInterfaceMember(p1));
+
+                    ValidateAccessor(p1.AddMethod);
+                    ValidateAccessor(p1.RemoveMethod);
+
+                    void ValidateAccessor(MethodSymbol acessor)
+                    {
+                        Assert.False(acessor.IsAbstract);
+                        Assert.False(acessor.IsVirtual);
+                        Assert.False(acessor.IsMetadataVirtual());
+                        Assert.False(acessor.IsSealed);
+                        Assert.False(acessor.IsStatic);
+                        Assert.False(acessor.IsExtern);
+                        Assert.False(acessor.IsAsync);
+                        Assert.False(acessor.IsOverride);
+                        Assert.Equal(Accessibility.Private, acessor.DeclaredAccessibility);
+                        Assert.Null(test1.FindImplementationForInterfaceMember(acessor));
+                    }
+                }
+            }
+        }
+
+        [Fact]
+        public void EventModifiers_10()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    abstract private event System.Action P1; 
+
+    virtual private event System.Action P2;
+
+    sealed private event System.Action P3 
+    {
+        add => throw null;
+        remove {}
+    }
+
+    private event System.Action P4 = null;
+}
+
+class Test1 : I1
+{
+}
+";
+            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation1.VerifyDiagnostics(
+                // (4,42): error CS0621: 'I1.P1': virtual or abstract members cannot be private
+                //     abstract private event System.Action P1; 
+                Diagnostic(ErrorCode.ERR_VirtualPrivate, "P1").WithArguments("I1.P1").WithLocation(4, 42),
+                // (6,41): error CS0065: 'I1.P2': event property must have both add and remove accessors
+                //     virtual private event System.Action P2;
+                Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "P2").WithArguments("I1.P2").WithLocation(6, 41),
+                // (6,41): error CS0621: 'I1.P2': virtual or abstract members cannot be private
+                //     virtual private event System.Action P2;
+                Diagnostic(ErrorCode.ERR_VirtualPrivate, "P2").WithArguments("I1.P2").WithLocation(6, 41),
+                // (8,40): error CS0238: 'I1.P3' cannot be sealed because it is not an override
+                //     sealed private event System.Action P3 
+                Diagnostic(ErrorCode.ERR_SealedNonOverride, "P3").WithArguments("I1.P3").WithLocation(8, 40),
+                // (14,33): error CS0068: 'I1.P4': event in interface cannot have initializer
+                //     private event System.Action P4 = null;
+                Diagnostic(ErrorCode.ERR_InterfaceEventInitializer, "P4").WithArguments("I1.P4").WithLocation(14, 33),
+                // (14,33): error CS0065: 'I1.P4': event property must have both add and remove accessors
+                //     private event System.Action P4 = null;
+                Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "P4").WithArguments("I1.P4").WithLocation(14, 33),
+                // (17,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
+                // class Test1 : I1
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("Test1", "I1.P1"),
+                // (14,33): warning CS0067: The event 'I1.P4' is never used
+                //     private event System.Action P4 = null;
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "P4").WithArguments("I1.P4").WithLocation(14, 33)
+                );
+
+            ValidateEventModifiers_10(compilation1);
+        }
+
+        private static void ValidateEventModifiers_10(CSharpCompilation compilation1)
+        {
+            var test1 = compilation1.GetTypeByMetadataName("Test1");
+            var i1 = compilation1.GetTypeByMetadataName("I1");
+            var p1 = i1.GetMembers().OfType<EventSymbol>().ElementAt(0);
+
+            Assert.True(p1.IsAbstract);
+            Assert.False(p1.IsVirtual);
+            Assert.False(p1.IsSealed);
+            Assert.False(p1.IsStatic);
+            Assert.False(p1.IsExtern);
+            Assert.False(p1.IsOverride);
+            Assert.Equal(Accessibility.Private, p1.DeclaredAccessibility);
+            Assert.Null(test1.FindImplementationForInterfaceMember(p1));
+
+            ValidateP1Accessor(p1.AddMethod);
+            ValidateP1Accessor(p1.RemoveMethod);
+            void ValidateP1Accessor(MethodSymbol accessor)
+            {
+                Assert.True(accessor.IsAbstract);
+                Assert.False(accessor.IsVirtual);
+                Assert.True(accessor.IsMetadataVirtual());
+                Assert.False(accessor.IsSealed);
+                Assert.False(accessor.IsStatic);
+                Assert.False(accessor.IsExtern);
+                Assert.False(accessor.IsAsync);
+                Assert.False(accessor.IsOverride);
+                Assert.Equal(Accessibility.Private, accessor.DeclaredAccessibility);
+                Assert.Null(test1.FindImplementationForInterfaceMember(accessor));
+            }
+
+            var p2 = i1.GetMembers().OfType<EventSymbol>().ElementAt(1);
+
+            Assert.False(p2.IsAbstract);
+            Assert.True(p2.IsVirtual);
+            Assert.False(p2.IsSealed);
+            Assert.False(p2.IsStatic);
+            Assert.False(p2.IsExtern);
+            Assert.False(p2.IsOverride);
+            Assert.Equal(Accessibility.Private, p2.DeclaredAccessibility);
+            Assert.Same(p2, test1.FindImplementationForInterfaceMember(p2));
+
+            ValidateP2Accessor(p2.AddMethod);
+            ValidateP2Accessor(p2.RemoveMethod);
+            void ValidateP2Accessor(MethodSymbol accessor)
+            {
+                Assert.False(accessor.IsAbstract);
+                Assert.True(accessor.IsVirtual);
+                Assert.True(accessor.IsMetadataVirtual());
+                Assert.False(accessor.IsSealed);
+                Assert.False(accessor.IsStatic);
+                Assert.False(accessor.IsExtern);
+                Assert.False(accessor.IsAsync);
+                Assert.False(accessor.IsOverride);
+                Assert.Equal(Accessibility.Private, accessor.DeclaredAccessibility);
+                Assert.Same(accessor, test1.FindImplementationForInterfaceMember(accessor));
+            }
+
+            var p3 = i1.GetMembers().OfType<EventSymbol>().ElementAt(2);
+
+            Assert.False(p3.IsAbstract);
+            Assert.False(p3.IsVirtual);
+            Assert.True(p3.IsSealed);
+            Assert.False(p3.IsStatic);
+            Assert.False(p3.IsExtern);
+            Assert.False(p3.IsOverride);
+            Assert.Equal(Accessibility.Private, p3.DeclaredAccessibility);
+            Assert.Null(test1.FindImplementationForInterfaceMember(p3));
+
+            ValidateP3Accessor(p3.AddMethod);
+            ValidateP3Accessor(p3.RemoveMethod);
+            void ValidateP3Accessor(MethodSymbol accessor)
+            {
+                Assert.False(accessor.IsAbstract);
+                Assert.False(accessor.IsVirtual);
+                Assert.False(accessor.IsMetadataVirtual());
+                Assert.True(accessor.IsSealed);
+                Assert.False(accessor.IsStatic);
+                Assert.False(accessor.IsExtern);
+                Assert.False(accessor.IsAsync);
+                Assert.False(accessor.IsOverride);
+                Assert.Equal(Accessibility.Private, accessor.DeclaredAccessibility);
+                Assert.Null(test1.FindImplementationForInterfaceMember(accessor));
+            }
+
+            var p4 = i1.GetMembers().OfType<EventSymbol>().ElementAt(3);
+
+            Assert.False(p4.IsAbstract);
+            Assert.False(p4.IsVirtual);
+            Assert.False(p4.IsSealed);
+            Assert.False(p4.IsStatic);
+            Assert.False(p4.IsExtern);
+            Assert.False(p4.IsOverride);
+            Assert.Equal(Accessibility.Private, p4.DeclaredAccessibility);
+            Assert.Null(test1.FindImplementationForInterfaceMember(p4));
+
+            ValidateP4Accessor(p4.AddMethod);
+            ValidateP4Accessor(p4.RemoveMethod);
+            void ValidateP4Accessor(MethodSymbol accessor)
+            {
+                Assert.False(accessor.IsAbstract);
+                Assert.False(accessor.IsVirtual);
+                Assert.False(accessor.IsMetadataVirtual());
+                Assert.False(accessor.IsSealed);
+                Assert.False(accessor.IsStatic);
+                Assert.False(accessor.IsExtern);
+                Assert.False(accessor.IsAsync);
+                Assert.False(accessor.IsOverride);
+                Assert.Equal(Accessibility.Private, accessor.DeclaredAccessibility);
+                Assert.Null(test1.FindImplementationForInterfaceMember(accessor));
+            }
+        }
+
+        [Fact]
+        public void EventModifiers_11()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    internal abstract event System.Action P1; 
+
+    sealed void Test()
+    {
+        P1 += null;
+        P1 -= null;
+    }
+}
+";
+
+            var source2 =
+@"
+class Test1 : I1
+{
+    static void Main()
+    {
+        I1 x = new Test1();
+        x.Test();
+    }
+
+    public event System.Action P1 
+    {
+        add
+        {
+            System.Console.WriteLine(""get_P1"");
+        }
+        remove
+        {
+            System.Console.WriteLine(""set_P1"");
+        }
+    }
+}
+";
+
+            ValidateEventModifiers_11(source1, source2,
+                // (2,15): error CS0535: 'Test2' does not implement interface member 'I1.P1'
+                // class Test2 : I1
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("Test2", "I1.P1").WithLocation(2, 15)
+                );
+        }
+
+        private void ValidateEventModifiers_11(string source1, string source2, params DiagnosticDescription[] expected)
+        {
+            var compilation1 = CreateStandardCompilation(source1 + source2, options: TestOptions.DebugExe,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            CompileAndVerify(compilation1, verify: false, symbolValidator: Validate1);
+
+            Validate1(compilation1.SourceModule);
+
+            void Validate1(ModuleSymbol m)
+            {
+                var test1 = m.GlobalNamespace.GetTypeMember("Test1");
+                var i1 = test1.Interfaces.Single();
+                var p1 = GetSingleEvent(i1);
+                var test1P1 = GetSingleEvent(test1);
+                var p1add = p1.AddMethod;
+                var p1remove = p1.RemoveMethod;
+
+                ValidateEvent(p1);
+                ValidateMethod(p1add);
+                ValidateMethod(p1remove);
+                Assert.Same(test1P1, test1.FindImplementationForInterfaceMember(p1));
+                Assert.Same(test1P1.AddMethod, test1.FindImplementationForInterfaceMember(p1add));
+                Assert.Same(test1P1.RemoveMethod, test1.FindImplementationForInterfaceMember(p1remove));
+            }
+
+            void ValidateEvent(EventSymbol p1)
+            {
+                Assert.True(p1.IsAbstract);
+                Assert.False(p1.IsVirtual);
+                Assert.False(p1.IsSealed);
+                Assert.False(p1.IsStatic);
+                Assert.False(p1.IsExtern);
+                Assert.False(p1.IsOverride);
+                Assert.Equal(Accessibility.Internal, p1.DeclaredAccessibility);
+            }
+
+            void ValidateMethod(MethodSymbol m1)
+            {
+                Assert.True(m1.IsAbstract);
+                Assert.False(m1.IsVirtual);
+                Assert.True(m1.IsMetadataVirtual());
+                Assert.False(m1.IsSealed);
+                Assert.False(m1.IsStatic);
+                Assert.False(m1.IsExtern);
+                Assert.False(m1.IsAsync);
+                Assert.False(m1.IsOverride);
+                Assert.Equal(Accessibility.Internal, m1.DeclaredAccessibility);
+            }
+
+            var compilation2 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation2.VerifyDiagnostics();
+
+            {
+                var i1 = compilation2.GetTypeByMetadataName("I1");
+                var p1 = GetSingleEvent(i1);
+                ValidateEvent(p1);
+                ValidateMethod(p1.AddMethod);
+                ValidateMethod(p1.RemoveMethod);
+            }
+
+            var compilation3 = CreateStandardCompilation(source2, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugExe,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            CompileAndVerify(compilation3, verify: false, symbolValidator: Validate1);
+
+            Validate1(compilation3.SourceModule);
+
+            var compilation4 = CreateStandardCompilation(source2, new[] { compilation2.EmitToImageReference() }, options: TestOptions.DebugExe,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            CompileAndVerify(compilation4, verify: false, symbolValidator: Validate1);
+
+            Validate1(compilation4.SourceModule);
+
+            var source3 =
+@"
+class Test2 : I1
+{
+}
+";
+
+            var compilation5 = CreateStandardCompilation(source3, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugDll,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation5.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation5.VerifyDiagnostics(expected);
+
+            {
+                var test2 = compilation5.GetTypeByMetadataName("Test2");
+                var i1 = compilation5.GetTypeByMetadataName("I1");
+                var p1 = GetSingleEvent(i1);
+                Assert.Null(test2.FindImplementationForInterfaceMember(p1));
+                Assert.Null(test2.FindImplementationForInterfaceMember(p1.AddMethod));
+                Assert.Null(test2.FindImplementationForInterfaceMember(p1.RemoveMethod));
+            }
+
+            var compilation6 = CreateStandardCompilation(source3, new[] { compilation2.EmitToImageReference() }, options: TestOptions.DebugDll,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation6.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation6.VerifyDiagnostics(expected);
+
+            {
+                var test2 = compilation6.GetTypeByMetadataName("Test2");
+                var i1 = compilation6.GetTypeByMetadataName("I1");
+                var p1 = GetSingleEvent(i1);
+                Assert.Null(test2.FindImplementationForInterfaceMember(p1));
+                Assert.Null(test2.FindImplementationForInterfaceMember(p1.AddMethod));
+                Assert.Null(test2.FindImplementationForInterfaceMember(p1.RemoveMethod));
+            }
+        }
+
+        [Fact]
+        public void EventModifiers_12()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    internal abstract event System.Action P1; 
+}
+
+class Test1 : I1
+{
+}
+";
+            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation1.VerifyDiagnostics(
+                // (7,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
+                // class Test1 : I1
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("Test1", "I1.P1").WithLocation(7, 15)
+                );
+
+            var test1 = compilation1.GetTypeByMetadataName("Test1");
+            var i1 = compilation1.GetTypeByMetadataName("I1");
+            var p1 = i1.GetMember<EventSymbol>("P1");
+            Assert.Null(test1.FindImplementationForInterfaceMember(p1));
+            Assert.Null(test1.FindImplementationForInterfaceMember(p1.AddMethod));
+            Assert.Null(test1.FindImplementationForInterfaceMember(p1.RemoveMethod));
+        }
+
+        [Fact]
+        public void EventModifiers_13()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    public sealed event System.Action P1 
+    {
+        add
+        { 
+            System.Console.WriteLine(""get_P1"");
+        }           
+        remove
+        { 
+            System.Console.WriteLine(""set_P1"");
+        }           
+    }
+}
+public interface I2
+{
+    public sealed event System.Action P2 
+    {
+        add => System.Console.WriteLine(""get_P2"");
+        remove => System.Console.WriteLine(""set_P2"");
+    }
+}
+
+class Test1 : I1
+{
+    static void Main()
+    {
+        I1 i1 = new Test1();
+        i1.P1 += null;
+        i1.P1 -= null;
+        I2 i2 = new Test2();
+        i2.P2 += null;
+        i2.P2 -= null;
+    }
+
+    public event System.Action P1 
+    {
+        add => throw null;          
+        remove => throw null;         
+    }
+}
+class Test2 : I2
+{
+    public event System.Action P2 
+    {
+        add => throw null;          
+        remove => throw null;         
+    }
+}
+";
+
+            ValidateEventModifiers_13(source1);
+        }
+
+        private void ValidateEventModifiers_13(string source1)
+        {
+            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugExe,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+
+            void Validate(ModuleSymbol m)
+            {
+                for (int i = 1; i <= 2; i++)
+                {
+                    var test1 = m.GlobalNamespace.GetTypeMember("Test" + i);
+                    var i1 = m.GlobalNamespace.GetTypeMember("I" + i);
+                    var p1 = GetSingleEvent(i1);
+
+                    Assert.False(p1.IsAbstract);
+                    Assert.False(p1.IsVirtual);
+                    Assert.False(p1.IsSealed);
+                    Assert.False(p1.IsStatic);
+                    Assert.False(p1.IsExtern);
+                    Assert.False(p1.IsOverride);
+                    Assert.Equal(Accessibility.Public, p1.DeclaredAccessibility);
+                    Assert.Null(test1.FindImplementationForInterfaceMember(p1));
+
+                    ValidateAccessor(p1.AddMethod);
+                    ValidateAccessor(p1.RemoveMethod);
+
+                    void ValidateAccessor(MethodSymbol acessor)
+                    {
+                        Assert.False(acessor.IsAbstract);
+                        Assert.False(acessor.IsVirtual);
+                        Assert.False(acessor.IsMetadataVirtual());
+                        Assert.False(acessor.IsSealed);
+                        Assert.False(acessor.IsStatic);
+                        Assert.False(acessor.IsExtern);
+                        Assert.False(acessor.IsAsync);
+                        Assert.False(acessor.IsOverride);
+                        Assert.Equal(Accessibility.Public, acessor.DeclaredAccessibility);
+                        Assert.Null(test1.FindImplementationForInterfaceMember(acessor));
+                    }
+                }
+            }
+
+            CompileAndVerify(compilation1, verify: false, symbolValidator: Validate);
+            Validate(compilation1.SourceModule);
+        }
+
+        [Fact]
+        public void EventModifiers_14()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    public sealed event System.Action P1 = null; 
+}
+public interface I2
+{
+    abstract sealed event System.Action P2 {add; remove;} 
+}
+public interface I3
+{
+    virtual sealed event System.Action P3 
+    {
+        add {}
+        remove {}
+    }
+}
+
+class Test1 : I1, I2, I3
+{
+    event System.Action I1.P1 { add => throw null; remove => throw null; }
+    event System.Action I2.P2 { add => throw null; remove => throw null; }
+    event System.Action I3.P3 { add => throw null; remove => throw null; }
+}
+
+class Test2 : I1, I2, I3
+{}
+";
+            ValidateEventModifiers_14(source1,
+                // (4,39): error CS0068: 'I1.P1': event in interface cannot have initializer
+                //     public sealed event System.Action P1 = null; 
+                Diagnostic(ErrorCode.ERR_InterfaceEventInitializer, "P1").WithArguments("I1.P1").WithLocation(4, 39),
+                // (4,39): error CS0065: 'I1.P1': event property must have both add and remove accessors
+                //     public sealed event System.Action P1; 
+                Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "P1").WithArguments("I1.P1").WithLocation(4, 39),
+                // (8,41): error CS0238: 'I2.P2' cannot be sealed because it is not an override
+                //     abstract sealed event System.Action P2 {add; remove;} 
+                Diagnostic(ErrorCode.ERR_SealedNonOverride, "P2").WithArguments("I2.P2").WithLocation(8, 41),
+                // (8,48): error CS0073: An add or remove accessor must have a body
+                //     abstract sealed event System.Action P2 {add; remove;} 
+                Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";").WithLocation(8, 48),
+                // (8,56): error CS0073: An add or remove accessor must have a body
+                //     abstract sealed event System.Action P2 {add; remove;} 
+                Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";").WithLocation(8, 56),
+                // (12,40): error CS0238: 'I3.P3' cannot be sealed because it is not an override
+                //     virtual sealed event System.Action P3 
+                Diagnostic(ErrorCode.ERR_SealedNonOverride, "P3").WithArguments("I3.P3").WithLocation(12, 40),
+                // (21,28): error CS0539: 'Test1.P1' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     event System.Action I1.P1 { add => throw null; remove => throw null; }
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "P1").WithArguments("Test1.P1").WithLocation(21, 28),
+                // (26,19): error CS0535: 'Test2' does not implement interface member 'I2.P2'
+                // class Test2 : I1, I2, I3
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test2", "I2.P2").WithLocation(26, 19),
+                // (4,39): warning CS0067: The event 'I1.P1' is never used
+                //     public sealed event System.Action P1 = null; 
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "P1").WithArguments("I1.P1").WithLocation(4, 39)
+                );
+        }
+
+        private void ValidateEventModifiers_14(string source1, params DiagnosticDescription[] expected)
+        {
+            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation1.VerifyDiagnostics(expected);
+
+            var test1 = compilation1.GetTypeByMetadataName("Test1");
+            var test2 = compilation1.GetTypeByMetadataName("Test2");
+            var p1 = GetSingleEvent(compilation1, "I1");
+
+            Assert.False(p1.IsAbstract);
+            Assert.False(p1.IsVirtual);
+            Assert.False(p1.IsSealed);
+            Assert.False(p1.IsStatic);
+            Assert.False(p1.IsExtern);
+            Assert.False(p1.IsOverride);
+            Assert.Equal(Accessibility.Public, p1.DeclaredAccessibility);
+            Assert.Null(test1.FindImplementationForInterfaceMember(p1));
+            Assert.Null(test2.FindImplementationForInterfaceMember(p1));
+
+            Validate1(p1.AddMethod);
+            Validate1(p1.RemoveMethod);
+            void Validate1(MethodSymbol accessor)
+            {
+                Assert.False(accessor.IsAbstract);
+                Assert.False(accessor.IsVirtual);
+                Assert.False(accessor.IsMetadataVirtual());
+                Assert.False(accessor.IsSealed);
+                Assert.False(accessor.IsStatic);
+                Assert.False(accessor.IsExtern);
+                Assert.False(accessor.IsAsync);
+                Assert.False(accessor.IsOverride);
+                Assert.Equal(Accessibility.Public, accessor.DeclaredAccessibility);
+                Assert.Null(test1.FindImplementationForInterfaceMember(accessor));
+                Assert.Null(test2.FindImplementationForInterfaceMember(accessor));
+            }
+
+            var p2 = GetSingleEvent(compilation1, "I2");
+            var test1P2 = test1.GetMembers().OfType<EventSymbol>().Where(p => p.Name.StartsWith("I2.")).Single();
+
+            Assert.True(p2.IsAbstract);
+            Assert.False(p2.IsVirtual);
+            Assert.True(p2.IsSealed);
+            Assert.False(p2.IsStatic);
+            Assert.False(p2.IsExtern);
+            Assert.False(p2.IsOverride);
+            Assert.Equal(Accessibility.Public, p2.DeclaredAccessibility);
+            Assert.Same(test1P2, test1.FindImplementationForInterfaceMember(p2));
+            Assert.Null(test2.FindImplementationForInterfaceMember(p2));
+
+            Validate2(p2.AddMethod, test1P2.AddMethod);
+            Validate2(p2.RemoveMethod, test1P2.RemoveMethod);
+            void Validate2(MethodSymbol accessor, MethodSymbol implementation)
+            {
+                Assert.True(accessor.IsAbstract);
+                Assert.False(accessor.IsVirtual);
+                Assert.True(accessor.IsMetadataVirtual());
+                Assert.True(accessor.IsSealed);
+                Assert.False(accessor.IsStatic);
+                Assert.False(accessor.IsExtern);
+                Assert.False(accessor.IsAsync);
+                Assert.False(accessor.IsOverride);
+                Assert.Equal(Accessibility.Public, accessor.DeclaredAccessibility);
+                Assert.Same(implementation, test1.FindImplementationForInterfaceMember(accessor));
+                Assert.Null(test2.FindImplementationForInterfaceMember(accessor));
+            }
+
+            var p3 = GetSingleEvent(compilation1, "I3");
+            var test1P3 = test1.GetMembers().OfType<EventSymbol>().Where(p => p.Name.StartsWith("I3.")).Single();
+
+            Assert.False(p3.IsAbstract);
+            Assert.True(p3.IsVirtual);
+            Assert.True(p3.IsSealed);
+            Assert.False(p3.IsStatic);
+            Assert.False(p3.IsExtern);
+            Assert.False(p3.IsOverride);
+            Assert.Equal(Accessibility.Public, p3.DeclaredAccessibility);
+            Assert.Same(test1P3, test1.FindImplementationForInterfaceMember(p3));
+            Assert.Same(p3, test2.FindImplementationForInterfaceMember(p3));
+
+            Validate3(p3.AddMethod, test1P3.AddMethod);
+            Validate3(p3.RemoveMethod, test1P3.RemoveMethod);
+            void Validate3(MethodSymbol accessor, MethodSymbol implementation)
+            {
+                Assert.False(accessor.IsAbstract);
+                Assert.True(accessor.IsVirtual);
+                Assert.True(accessor.IsMetadataVirtual());
+                Assert.True(accessor.IsSealed);
+                Assert.False(accessor.IsStatic);
+                Assert.False(accessor.IsExtern);
+                Assert.False(accessor.IsAsync);
+                Assert.False(accessor.IsOverride);
+                Assert.Equal(Accessibility.Public, accessor.DeclaredAccessibility);
+                Assert.Same(implementation, test1.FindImplementationForInterfaceMember(accessor));
+                Assert.Same(accessor, test2.FindImplementationForInterfaceMember(accessor));
+            }
+        }
+
+        [Fact]
+        public void EventModifiers_15()
+        {
+            var source1 =
+@"
+public interface I0
+{
+    abstract virtual event System.Action P0;
+}
+public interface I1
+{
+    abstract virtual event System.Action P1 { add { throw null; } }
+}
+public interface I2
+{
+    virtual abstract event System.Action P2 
+    {
+        add { throw null; }
+        remove { throw null; }
+    }
+}
+public interface I3
+{
+    abstract virtual event System.Action P3 { remove { throw null; } }
+}
+public interface I4
+{
+    abstract virtual event System.Action P4 { add => throw null; }
+}
+public interface I5
+{
+    abstract virtual event System.Action P5 
+    {
+        add => throw null;
+        remove => throw null;
+    }
+}
+public interface I6
+{
+    abstract virtual event System.Action P6 { remove => throw null; }
+}
+public interface I7
+{
+    abstract virtual event System.Action P7 { add; }
+}
+public interface I8
+{
+    abstract virtual event System.Action P8 { remove; } 
+}
+
+class Test1 : I0, I1, I2, I3, I4, I5, I6, I7, I8
+{
+    event System.Action I0.P0 
+    {
+        add { throw null; }
+        remove { throw null; }
+    }
+    event System.Action I1.P1 
+    {
+        add { throw null; }
+    }
+    event System.Action I2.P2 
+    {
+        add { throw null; }
+        remove { throw null; }
+    }
+    event System.Action I3.P3 
+    {
+        remove { throw null; }
+    }
+    event System.Action I4.P4 
+    {
+        add { throw null; }
+    }
+    event System.Action I5.P5 
+    {
+        add { throw null; }
+        remove { throw null; }
+    }
+    event System.Action I6.P6 
+    {
+        remove { throw null; }
+    }
+    event System.Action I7.P7 
+    {
+        add { throw null; }
+    }
+    event System.Action I8.P8 
+    {
+        remove { throw null; }
+    }
+}
+
+class Test2 : I0, I1, I2, I3, I4, I5, I6, I7, I8
+{}
+";
+            ValidateEventModifiers_15(source1,
+                // (4,42): error CS0503: The abstract method 'I0.P0' cannot be marked virtual
+                //     abstract virtual event System.Action P0;
+                Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "P0").WithArguments("I0.P0").WithLocation(4, 42),
+                // (8,42): error CS0065: 'I1.P1': event property must have both add and remove accessors
+                //     abstract virtual event System.Action P1 { add { throw null; } }
+                Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "P1").WithArguments("I1.P1").WithLocation(8, 42),
+                // (8,42): error CS0503: The abstract method 'I1.P1' cannot be marked virtual
+                //     abstract virtual event System.Action P1 { add { throw null; } }
+                Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "P1").WithArguments("I1.P1").WithLocation(8, 42),
+                // (8,47): error CS0500: 'I1.P1.add' cannot declare a body because it is marked abstract
+                //     abstract virtual event System.Action P1 { add { throw null; } }
+                Diagnostic(ErrorCode.ERR_AbstractHasBody, "add").WithArguments("I1.P1.add").WithLocation(8, 47),
+                // (12,42): error CS0503: The abstract method 'I2.P2' cannot be marked virtual
+                //     virtual abstract event System.Action P2 
+                Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "P2").WithArguments("I2.P2").WithLocation(12, 42),
+                // (14,9): error CS0500: 'I2.P2.add' cannot declare a body because it is marked abstract
+                //         add { throw null; }
+                Diagnostic(ErrorCode.ERR_AbstractHasBody, "add").WithArguments("I2.P2.add").WithLocation(14, 9),
+                // (15,9): error CS0500: 'I2.P2.remove' cannot declare a body because it is marked abstract
+                //         remove { throw null; }
+                Diagnostic(ErrorCode.ERR_AbstractHasBody, "remove").WithArguments("I2.P2.remove").WithLocation(15, 9),
+                // (20,42): error CS0065: 'I3.P3': event property must have both add and remove accessors
+                //     abstract virtual event System.Action P3 { remove { throw null; } }
+                Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "P3").WithArguments("I3.P3").WithLocation(20, 42),
+                // (20,42): error CS0503: The abstract method 'I3.P3' cannot be marked virtual
+                //     abstract virtual event System.Action P3 { remove { throw null; } }
+                Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "P3").WithArguments("I3.P3").WithLocation(20, 42),
+                // (20,47): error CS0500: 'I3.P3.remove' cannot declare a body because it is marked abstract
+                //     abstract virtual event System.Action P3 { remove { throw null; } }
+                Diagnostic(ErrorCode.ERR_AbstractHasBody, "remove").WithArguments("I3.P3.remove").WithLocation(20, 47),
+                // (24,42): error CS0065: 'I4.P4': event property must have both add and remove accessors
+                //     abstract virtual event System.Action P4 { add => throw null; }
+                Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "P4").WithArguments("I4.P4").WithLocation(24, 42),
+                // (24,42): error CS0503: The abstract method 'I4.P4' cannot be marked virtual
+                //     abstract virtual event System.Action P4 { add => throw null; }
+                Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "P4").WithArguments("I4.P4").WithLocation(24, 42),
+                // (24,47): error CS0500: 'I4.P4.add' cannot declare a body because it is marked abstract
+                //     abstract virtual event System.Action P4 { add => throw null; }
+                Diagnostic(ErrorCode.ERR_AbstractHasBody, "add").WithArguments("I4.P4.add").WithLocation(24, 47),
+                // (28,42): error CS0503: The abstract method 'I5.P5' cannot be marked virtual
+                //     abstract virtual event System.Action P5 
+                Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "P5").WithArguments("I5.P5").WithLocation(28, 42),
+                // (30,9): error CS0500: 'I5.P5.add' cannot declare a body because it is marked abstract
+                //         add => throw null;
+                Diagnostic(ErrorCode.ERR_AbstractHasBody, "add").WithArguments("I5.P5.add").WithLocation(30, 9),
+                // (31,9): error CS0500: 'I5.P5.remove' cannot declare a body because it is marked abstract
+                //         remove => throw null;
+                Diagnostic(ErrorCode.ERR_AbstractHasBody, "remove").WithArguments("I5.P5.remove").WithLocation(31, 9),
+                // (36,42): error CS0065: 'I6.P6': event property must have both add and remove accessors
+                //     abstract virtual event System.Action P6 { remove => throw null; }
+                Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "P6").WithArguments("I6.P6").WithLocation(36, 42),
+                // (36,42): error CS0503: The abstract method 'I6.P6' cannot be marked virtual
+                //     abstract virtual event System.Action P6 { remove => throw null; }
+                Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "P6").WithArguments("I6.P6").WithLocation(36, 42),
+                // (36,47): error CS0500: 'I6.P6.remove' cannot declare a body because it is marked abstract
+                //     abstract virtual event System.Action P6 { remove => throw null; }
+                Diagnostic(ErrorCode.ERR_AbstractHasBody, "remove").WithArguments("I6.P6.remove").WithLocation(36, 47),
+                // (40,42): error CS0065: 'I7.P7': event property must have both add and remove accessors
+                //     abstract virtual event System.Action P7 { add; }
+                Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "P7").WithArguments("I7.P7").WithLocation(40, 42),
+                // (40,42): error CS0503: The abstract method 'I7.P7' cannot be marked virtual
+                //     abstract virtual event System.Action P7 { add; }
+                Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "P7").WithArguments("I7.P7").WithLocation(40, 42),
+                // (40,50): error CS0073: An add or remove accessor must have a body
+                //     abstract virtual event System.Action P7 { add; }
+                Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";").WithLocation(40, 50),
+                // (44,42): error CS0065: 'I8.P8': event property must have both add and remove accessors
+                //     abstract virtual event System.Action P8 { remove; } 
+                Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "P8").WithArguments("I8.P8").WithLocation(44, 42),
+                // (44,42): error CS0503: The abstract method 'I8.P8' cannot be marked virtual
+                //     abstract virtual event System.Action P8 { remove; } 
+                Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "P8").WithArguments("I8.P8").WithLocation(44, 42),
+                // (44,53): error CS0073: An add or remove accessor must have a body
+                //     abstract virtual event System.Action P8 { remove; } 
+                Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";").WithLocation(44, 53),
+                // (54,28): error CS0065: 'Test1.I1.P1': event property must have both add and remove accessors
+                //     event System.Action I1.P1 
+                Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "P1").WithArguments("Test1.I1.P1").WithLocation(54, 28),
+                // (63,28): error CS0065: 'Test1.I3.P3': event property must have both add and remove accessors
+                //     event System.Action I3.P3 
+                Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "P3").WithArguments("Test1.I3.P3").WithLocation(63, 28),
+                // (67,28): error CS0065: 'Test1.I4.P4': event property must have both add and remove accessors
+                //     event System.Action I4.P4 
+                Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "P4").WithArguments("Test1.I4.P4").WithLocation(67, 28),
+                // (76,28): error CS0065: 'Test1.I6.P6': event property must have both add and remove accessors
+                //     event System.Action I6.P6 
+                Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "P6").WithArguments("Test1.I6.P6").WithLocation(76, 28),
+                // (80,28): error CS0065: 'Test1.I7.P7': event property must have both add and remove accessors
+                //     event System.Action I7.P7 
+                Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "P7").WithArguments("Test1.I7.P7").WithLocation(80, 28),
+                // (84,28): error CS0065: 'Test1.I8.P8': event property must have both add and remove accessors
+                //     event System.Action I8.P8 
+                Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "P8").WithArguments("Test1.I8.P8").WithLocation(84, 28),
+                // (90,15): error CS0535: 'Test2' does not implement interface member 'I0.P0'
+                // class Test2 : I0, I1, I2, I3, I4, I5, I6, I7, I8
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I0").WithArguments("Test2", "I0.P0").WithLocation(90, 15),
+                // (90,19): error CS0535: 'Test2' does not implement interface member 'I1.P1'
+                // class Test2 : I0, I1, I2, I3, I4, I5, I6, I7, I8
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("Test2", "I1.P1").WithLocation(90, 19),
+                // (90,23): error CS0535: 'Test2' does not implement interface member 'I2.P2'
+                // class Test2 : I0, I1, I2, I3, I4, I5, I6, I7, I8
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test2", "I2.P2").WithLocation(90, 23),
+                // (90,27): error CS0535: 'Test2' does not implement interface member 'I3.P3'
+                // class Test2 : I0, I1, I2, I3, I4, I5, I6, I7, I8
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I3").WithArguments("Test2", "I3.P3").WithLocation(90, 27),
+                // (90,31): error CS0535: 'Test2' does not implement interface member 'I4.P4'
+                // class Test2 : I0, I1, I2, I3, I4, I5, I6, I7, I8
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I4").WithArguments("Test2", "I4.P4").WithLocation(90, 31),
+                // (90,35): error CS0535: 'Test2' does not implement interface member 'I5.P5'
+                // class Test2 : I0, I1, I2, I3, I4, I5, I6, I7, I8
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I5").WithArguments("Test2", "I5.P5").WithLocation(90, 35),
+                // (90,39): error CS0535: 'Test2' does not implement interface member 'I6.P6'
+                // class Test2 : I0, I1, I2, I3, I4, I5, I6, I7, I8
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I6").WithArguments("Test2", "I6.P6").WithLocation(90, 39),
+                // (90,43): error CS0535: 'Test2' does not implement interface member 'I7.P7'
+                // class Test2 : I0, I1, I2, I3, I4, I5, I6, I7, I8
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I7").WithArguments("Test2", "I7.P7").WithLocation(90, 43),
+                // (90,47): error CS0535: 'Test2' does not implement interface member 'I8.P8'
+                // class Test2 : I0, I1, I2, I3, I4, I5, I6, I7, I8
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I8").WithArguments("Test2", "I8.P8").WithLocation(90, 47)
+                );
+        }
+
+        private void ValidateEventModifiers_15(string source1, params DiagnosticDescription[] expected)
+        {
+            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation1.VerifyDiagnostics(expected);
+
+            var test1 = compilation1.GetTypeByMetadataName("Test1");
+            var test2 = compilation1.GetTypeByMetadataName("Test2");
+
+            for (int i = 0; i <= 8; i++)
+            {
+                var i1 = compilation1.GetTypeByMetadataName("I" + i);
+                var p2 = GetSingleEvent(i1);
+                var test1P2 = test1.GetMembers().OfType<EventSymbol>().Where(p => p.Name.StartsWith(i1.Name)).Single();
+
+                Assert.True(p2.IsAbstract);
+                Assert.True(p2.IsVirtual);
+                Assert.False(p2.IsSealed);
+                Assert.False(p2.IsStatic);
+                Assert.False(p2.IsExtern);
+                Assert.False(p2.IsOverride);
+                Assert.Equal(Accessibility.Public, p2.DeclaredAccessibility);
+                Assert.Same(test1P2, test1.FindImplementationForInterfaceMember(p2));
+                Assert.Null(test2.FindImplementationForInterfaceMember(p2));
+
+                switch (i)
+                {
+                    case 3:
+                    case 6:
+                    case 8:
+                        Assert.Null(p2.AddMethod);
+                        ValidateAccessor(p2.RemoveMethod, test1P2.RemoveMethod);
+                        break;
+                    case 1:
+                    case 4:
+                    case 7:
+                        Assert.Null(p2.RemoveMethod);
+                        ValidateAccessor(p2.AddMethod, test1P2.AddMethod);
+                        break;
+                    default:
+                        ValidateAccessor(p2.AddMethod, test1P2.AddMethod);
+                        ValidateAccessor(p2.RemoveMethod, test1P2.RemoveMethod);
+                        break;
+                }
+
+                void ValidateAccessor(MethodSymbol accessor, MethodSymbol implementedBy)
+                {
+                    Assert.True(accessor.IsAbstract);
+                    Assert.True(accessor.IsVirtual);
+                    Assert.True(accessor.IsMetadataVirtual());
+                    Assert.False(accessor.IsSealed);
+                    Assert.False(accessor.IsStatic);
+                    Assert.False(accessor.IsExtern);
+                    Assert.False(accessor.IsAsync);
+                    Assert.False(accessor.IsOverride);
+                    Assert.Equal(Accessibility.Public, accessor.DeclaredAccessibility);
+                    Assert.Same(implementedBy, test1.FindImplementationForInterfaceMember(accessor));
+                    Assert.Null(test2.FindImplementationForInterfaceMember(accessor));
+                }
+            }
+        }
+
+        [Fact]
+        public void EventModifiers_16()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    extern event System.Action P1; 
+}
+public interface I2
+{
+    virtual extern event System.Action P2;
+}
+public interface I3
+{
+    static extern event System.Action P3; 
+}
+public interface I4
+{
+    private extern event System.Action P4;
+}
+public interface I5
+{
+    extern sealed event System.Action P5;
+}
+
+class Test1 : I1, I2, I3, I4, I5
+{
+}
+
+class Test2 : I1, I2, I3, I4, I5
+{
+    event System.Action I1.P1 { add{} remove{} }
+    event System.Action I2.P2 { add{} remove{} }
+}
+";
+            ValidateEventModifiers_16(source1);
+        }
+
+        private void ValidateEventModifiers_16(string source1)
+        {
+            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            CompileAndVerify(compilation1, verify: false, symbolValidator: Validate);
+
+            Validate(compilation1.SourceModule);
+
+            void Validate(ModuleSymbol m)
+            {
+                var test1 = m.GlobalNamespace.GetTypeMember("Test1");
+                var test2 = m.GlobalNamespace.GetTypeMember("Test2");
+                bool isSource = !(m is PEModuleSymbol);
+                var p1 = GetSingleEvent(m, "I1");
+                var test2P1 = test2.GetMembers().OfType<EventSymbol>().Where(p => p.Name.StartsWith("I1.")).Single();
+
+                Assert.False(p1.IsAbstract);
+                Assert.True(p1.IsVirtual);
+                Assert.False(p1.IsSealed);
+                Assert.False(p1.IsStatic);
+                Assert.Equal(isSource, p1.IsExtern);
+                Assert.False(p1.IsOverride);
+                Assert.Equal(Accessibility.Public, p1.DeclaredAccessibility);
+                Assert.Same(p1, test1.FindImplementationForInterfaceMember(p1));
+                Assert.Same(test2P1, test2.FindImplementationForInterfaceMember(p1));
+
+                ValidateP1Accessor(p1.AddMethod, test2P1.AddMethod);
+                ValidateP1Accessor(p1.RemoveMethod, test2P1.RemoveMethod);
+                void ValidateP1Accessor(MethodSymbol accessor, MethodSymbol implementation)
+                {
+                    Assert.False(accessor.IsAbstract);
+                    Assert.True(accessor.IsVirtual);
+                    Assert.True(accessor.IsMetadataVirtual());
+                    Assert.False(accessor.IsSealed);
+                    Assert.False(accessor.IsStatic);
+                    Assert.Equal(isSource, accessor.IsExtern);
+                    Assert.False(accessor.IsAsync);
+                    Assert.False(accessor.IsOverride);
+                    Assert.Equal(Accessibility.Public, accessor.DeclaredAccessibility);
+                    Assert.Same(accessor, test1.FindImplementationForInterfaceMember(accessor));
+                    Assert.Same(implementation, test2.FindImplementationForInterfaceMember(accessor));
+                }
+
+                var p2 = GetSingleEvent(m, "I2");
+                var test2P2 = test2.GetMembers().OfType<EventSymbol>().Where(p => p.Name.StartsWith("I2.")).Single();
+
+                Assert.False(p2.IsAbstract);
+                Assert.True(p2.IsVirtual);
+                Assert.False(p2.IsSealed);
+                Assert.False(p2.IsStatic);
+                Assert.Equal(isSource, p2.IsExtern);
+                Assert.False(p2.IsOverride);
+                Assert.Equal(Accessibility.Public, p2.DeclaredAccessibility);
+                Assert.Same(p2, test1.FindImplementationForInterfaceMember(p2));
+                Assert.Same(test2P2, test2.FindImplementationForInterfaceMember(p2));
+
+                ValidateP2Accessor(p2.AddMethod, test2P2.AddMethod);
+                ValidateP2Accessor(p2.RemoveMethod, test2P2.RemoveMethod);
+                void ValidateP2Accessor(MethodSymbol accessor, MethodSymbol implementation)
+                {
+                    Assert.False(accessor.IsAbstract);
+                    Assert.True(accessor.IsVirtual);
+                    Assert.True(accessor.IsMetadataVirtual());
+                    Assert.False(accessor.IsSealed);
+                    Assert.False(accessor.IsStatic);
+                    Assert.Equal(isSource, accessor.IsExtern);
+                    Assert.False(accessor.IsAsync);
+                    Assert.False(accessor.IsOverride);
+                    Assert.Equal(Accessibility.Public, accessor.DeclaredAccessibility);
+                    Assert.Same(accessor, test1.FindImplementationForInterfaceMember(accessor));
+                    Assert.Same(implementation, test2.FindImplementationForInterfaceMember(accessor));
+                }
+
+                var i3 = m.ContainingAssembly.GetTypeByMetadataName("I3");
+                var p3 = GetSingleEvent(i3);
+
+                Assert.False(p3.IsAbstract);
+                Assert.False(p3.IsVirtual);
+                Assert.False(p3.IsSealed);
+                Assert.True(p3.IsStatic);
+                Assert.Equal(isSource, p3.IsExtern);
+                Assert.False(p3.IsOverride);
+                Assert.Equal(Accessibility.Public, p3.DeclaredAccessibility);
+                Assert.Null(test1.FindImplementationForInterfaceMember(p3));
+                Assert.Null(test2.FindImplementationForInterfaceMember(p3));
+
+                ValidateP3Accessor(p3.AddMethod);
+                ValidateP3Accessor(p3.RemoveMethod);
+                void ValidateP3Accessor(MethodSymbol accessor)
+                {
+                    Assert.False(accessor.IsAbstract);
+                    Assert.False(accessor.IsVirtual);
+                    Assert.False(accessor.IsMetadataVirtual());
+                    Assert.False(accessor.IsSealed);
+                    Assert.True(accessor.IsStatic);
+                    Assert.Equal(isSource, accessor.IsExtern);
+                    Assert.False(accessor.IsAsync);
+                    Assert.False(accessor.IsOverride);
+                    Assert.Equal(Accessibility.Public, accessor.DeclaredAccessibility);
+                    Assert.Null(test1.FindImplementationForInterfaceMember(accessor));
+                    Assert.Null(test2.FindImplementationForInterfaceMember(accessor));
+                }
+
+                var p4 = GetSingleEvent(m, "I4");
+
+                Assert.False(p4.IsAbstract);
+                Assert.False(p4.IsVirtual);
+                Assert.False(p4.IsSealed);
+                Assert.False(p4.IsStatic);
+                Assert.Equal(isSource, p4.IsExtern);
+                Assert.False(p4.IsOverride);
+                Assert.Equal(Accessibility.Private, p4.DeclaredAccessibility);
+                Assert.Null(test1.FindImplementationForInterfaceMember(p4));
+                Assert.Null(test2.FindImplementationForInterfaceMember(p4));
+
+                ValidateP4Accessor(p4.AddMethod);
+                ValidateP4Accessor(p4.RemoveMethod);
+                void ValidateP4Accessor(MethodSymbol accessor)
+                {
+                    Assert.False(accessor.IsAbstract);
+                    Assert.False(accessor.IsVirtual);
+                    Assert.False(accessor.IsMetadataVirtual());
+                    Assert.False(accessor.IsSealed);
+                    Assert.False(accessor.IsStatic);
+                    Assert.Equal(isSource, accessor.IsExtern);
+                    Assert.False(accessor.IsAsync);
+                    Assert.False(accessor.IsOverride);
+                    Assert.Equal(Accessibility.Private, accessor.DeclaredAccessibility);
+                    Assert.Null(test1.FindImplementationForInterfaceMember(accessor));
+                    Assert.Null(test2.FindImplementationForInterfaceMember(accessor));
+                }
+
+                var p5 = GetSingleEvent(m, "I5");
+
+                Assert.False(p5.IsAbstract);
+                Assert.False(p5.IsVirtual);
+                Assert.False(p5.IsSealed);
+                Assert.False(p5.IsStatic);
+                Assert.Equal(isSource, p5.IsExtern);
+                Assert.False(p5.IsOverride);
+                Assert.Equal(Accessibility.Public, p5.DeclaredAccessibility);
+                Assert.Null(test1.FindImplementationForInterfaceMember(p5));
+                Assert.Null(test2.FindImplementationForInterfaceMember(p5));
+
+                ValidateP5Accessor(p5.AddMethod);
+                ValidateP5Accessor(p5.RemoveMethod);
+                void ValidateP5Accessor(MethodSymbol accessor)
+                {
+                    Assert.False(accessor.IsAbstract);
+                    Assert.False(accessor.IsVirtual);
+                    Assert.False(accessor.IsMetadataVirtual());
+                    Assert.False(accessor.IsSealed);
+                    Assert.False(accessor.IsStatic);
+                    Assert.Equal(isSource, accessor.IsExtern);
+                    Assert.False(accessor.IsAsync);
+                    Assert.False(accessor.IsOverride);
+                    Assert.Equal(Accessibility.Public, accessor.DeclaredAccessibility);
+                    Assert.Null(test1.FindImplementationForInterfaceMember(accessor));
+                    Assert.Null(test2.FindImplementationForInterfaceMember(accessor));
+                }
+            }
+        }
+
+        [Fact]
+        public void EventModifiers_17()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    abstract extern event System.Action P1; 
+}
+public interface I2
+{
+    extern event System.Action P2 = null; 
+}
+public interface I3
+{
+    static extern event System.Action P3 {add => throw null; remove => throw null;} 
+}
+public interface I4
+{
+    private extern event System.Action P4 { add {throw null;} remove {throw null;}}
+}
+
+class Test1 : I1, I2, I3, I4
+{
+}
+
+class Test2 : I1, I2, I3, I4
+{
+    event System.Action I1.P1 { add => throw null; remove => throw null;}
+    event System.Action I2.P2 { add => throw null; remove => throw null;}
+    event System.Action I3.P3 { add => throw null; remove => throw null;}
+    event System.Action I4.P4 { add => throw null; remove => throw null;}
+}
+";
+            ValidateEventModifiers_17(source1,
+                // (4,41): error CS0180: 'I1.P1' cannot be both extern and abstract
+                //     abstract extern event System.Action P1; 
+                Diagnostic(ErrorCode.ERR_AbstractAndExtern, "P1").WithArguments("I1.P1").WithLocation(4, 41),
+                // (8,32): error CS0068: 'I2.P2': event in interface cannot have initializer
+                //     extern event System.Action P2 = null; 
+                Diagnostic(ErrorCode.ERR_InterfaceEventInitializer, "P2").WithArguments("I2.P2").WithLocation(8, 32),
+                // (12,43): error CS0179: 'I3.P3.add' cannot be extern and declare a body
+                //     static extern event System.Action P3 {add => throw null; remove => throw null;} 
+                Diagnostic(ErrorCode.ERR_ExternHasBody, "add").WithArguments("I3.P3.add").WithLocation(12, 43),
+                // (12,62): error CS0179: 'I3.P3.remove' cannot be extern and declare a body
+                //     static extern event System.Action P3 {add => throw null; remove => throw null;} 
+                Diagnostic(ErrorCode.ERR_ExternHasBody, "remove").WithArguments("I3.P3.remove").WithLocation(12, 62),
+                // (16,45): error CS0179: 'I4.P4.add' cannot be extern and declare a body
+                //     private extern event System.Action P4 { add {throw null;} remove {throw null;}}
+                Diagnostic(ErrorCode.ERR_ExternHasBody, "add").WithArguments("I4.P4.add").WithLocation(16, 45),
+                // (16,63): error CS0179: 'I4.P4.remove' cannot be extern and declare a body
+                //     private extern event System.Action P4 { add {throw null;} remove {throw null;}}
+                Diagnostic(ErrorCode.ERR_ExternHasBody, "remove").WithArguments("I4.P4.remove").WithLocation(16, 63),
+                // (19,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
+                // class Test1 : I1, I2, I3, I4
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("Test1", "I1.P1").WithLocation(19, 15),
+                // (27,28): error CS0539: 'Test2.P3' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     event System.Action I3.P3 { add => throw null; remove => throw null;}
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "P3").WithArguments("Test2.P3").WithLocation(27, 28),
+                // (28,28): error CS0539: 'Test2.P4' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     event System.Action I4.P4 { add => throw null; remove => throw null;}
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "P4").WithArguments("Test2.P4").WithLocation(28, 28),
+                // (8,32): warning CS0067: The event 'I2.P2' is never used
+                //     extern event System.Action P2 = null; 
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "P2").WithArguments("I2.P2").WithLocation(8, 32)
+                );
+        }
+
+        private void ValidateEventModifiers_17(string source1, params DiagnosticDescription[] expected)
+        {
+            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation1.VerifyDiagnostics(expected);
+
+            var test1 = compilation1.GetTypeByMetadataName("Test1");
+            var test2 = compilation1.GetTypeByMetadataName("Test2");
+            var p1 = GetSingleEvent(compilation1, "I1");
+            var test2P1 = test2.GetMembers().OfType<EventSymbol>().Where(p => p.Name.StartsWith("I1.")).Single();
+
+            Assert.True(p1.IsAbstract);
+            Assert.False(p1.IsVirtual);
+            Assert.False(p1.IsSealed);
+            Assert.False(p1.IsStatic);
+            Assert.True(p1.IsExtern);
+            Assert.False(p1.IsOverride);
+            Assert.Equal(Accessibility.Public, p1.DeclaredAccessibility);
+            Assert.Null(test1.FindImplementationForInterfaceMember(p1));
+            Assert.Same(test2P1, test2.FindImplementationForInterfaceMember(p1));
+
+            ValidateP1Accessor(p1.AddMethod, test2P1.AddMethod);
+            ValidateP1Accessor(p1.RemoveMethod, test2P1.RemoveMethod);
+            void ValidateP1Accessor(MethodSymbol accessor, MethodSymbol implementation)
+            {
+                Assert.True(accessor.IsAbstract);
+                Assert.False(accessor.IsVirtual);
+                Assert.True(accessor.IsMetadataVirtual());
+                Assert.False(accessor.IsSealed);
+                Assert.False(accessor.IsStatic);
+                Assert.True(accessor.IsExtern);
+                Assert.False(accessor.IsAsync);
+                Assert.False(accessor.IsOverride);
+                Assert.Equal(Accessibility.Public, accessor.DeclaredAccessibility);
+                Assert.Null(test1.FindImplementationForInterfaceMember(accessor));
+                Assert.Same(implementation, test2.FindImplementationForInterfaceMember(accessor));
+            }
+
+            var p2 = GetSingleEvent(compilation1, "I2");
+            var test2P2 = test2.GetMembers().OfType<EventSymbol>().Where(p => p.Name.StartsWith("I2.")).Single();
+
+            Assert.False(p2.IsAbstract);
+            Assert.True(p2.IsVirtual);
+            Assert.False(p2.IsSealed);
+            Assert.False(p2.IsStatic);
+            Assert.True(p2.IsExtern);
+            Assert.False(p2.IsOverride);
+            Assert.Equal(Accessibility.Public, p2.DeclaredAccessibility);
+            Assert.Same(p2, test1.FindImplementationForInterfaceMember(p2));
+            Assert.Same(test2P2, test2.FindImplementationForInterfaceMember(p2));
+
+            ValidateP2Accessor(p2.AddMethod, test2P2.AddMethod);
+            ValidateP2Accessor(p2.RemoveMethod, test2P2.RemoveMethod);
+            void ValidateP2Accessor(MethodSymbol accessor, MethodSymbol implementation)
+            {
+                Assert.False(accessor.IsAbstract);
+                Assert.True(accessor.IsVirtual);
+                Assert.True(accessor.IsMetadataVirtual());
+                Assert.False(accessor.IsSealed);
+                Assert.False(accessor.IsStatic);
+                Assert.True(accessor.IsExtern);
+                Assert.False(accessor.IsAsync);
+                Assert.False(accessor.IsOverride);
+                Assert.Equal(Accessibility.Public, accessor.DeclaredAccessibility);
+                Assert.Same(accessor, test1.FindImplementationForInterfaceMember(accessor));
+                Assert.Same(implementation, test2.FindImplementationForInterfaceMember(accessor));
+            }
+
+            var p3 = GetSingleEvent(compilation1, "I3");
+            var test2P3 = test2.GetMembers().OfType<EventSymbol>().Where(p => p.Name.StartsWith("I3.")).Single();
+
+            Assert.False(p3.IsAbstract);
+            Assert.False(p3.IsVirtual);
+            Assert.False(p3.IsSealed);
+            Assert.True(p3.IsStatic);
+            Assert.True(p3.IsExtern);
+            Assert.False(p3.IsOverride);
+            Assert.Equal(Accessibility.Public, p3.DeclaredAccessibility);
+            Assert.Null(test1.FindImplementationForInterfaceMember(p3));
+            Assert.Null(test2.FindImplementationForInterfaceMember(p3));
+
+            ValidateP3Accessor(p3.AddMethod);
+            ValidateP3Accessor(p3.RemoveMethod);
+            void ValidateP3Accessor(MethodSymbol accessor)
+            {
+                Assert.False(accessor.IsAbstract);
+                Assert.False(accessor.IsVirtual);
+                Assert.False(accessor.IsMetadataVirtual());
+                Assert.False(accessor.IsSealed);
+                Assert.True(accessor.IsStatic);
+                Assert.True(accessor.IsExtern);
+                Assert.False(accessor.IsAsync);
+                Assert.False(accessor.IsOverride);
+                Assert.Equal(Accessibility.Public, accessor.DeclaredAccessibility);
+                Assert.Null(test1.FindImplementationForInterfaceMember(accessor));
+                Assert.Null(test2.FindImplementationForInterfaceMember(accessor));
+            }
+
+            var p4 = GetSingleEvent(compilation1, "I4");
+
+            Assert.False(p4.IsAbstract);
+            Assert.False(p4.IsVirtual);
+            Assert.False(p4.IsSealed);
+            Assert.False(p4.IsStatic);
+            Assert.True(p4.IsExtern);
+            Assert.False(p4.IsOverride);
+            Assert.Equal(Accessibility.Private, p4.DeclaredAccessibility);
+            Assert.Null(test1.FindImplementationForInterfaceMember(p4));
+            Assert.Null(test2.FindImplementationForInterfaceMember(p4));
+
+            ValidateP4Accessor(p4.AddMethod);
+            ValidateP4Accessor(p4.RemoveMethod);
+            void ValidateP4Accessor(MethodSymbol accessor)
+            {
+                Assert.False(accessor.IsAbstract);
+                Assert.False(accessor.IsVirtual);
+                Assert.False(accessor.IsMetadataVirtual());
+                Assert.False(accessor.IsSealed);
+                Assert.False(accessor.IsStatic);
+                Assert.True(accessor.IsExtern);
+                Assert.False(accessor.IsAsync);
+                Assert.False(accessor.IsOverride);
+                Assert.Equal(Accessibility.Private, accessor.DeclaredAccessibility);
+                Assert.Null(test1.FindImplementationForInterfaceMember(accessor));
+                Assert.Null(test2.FindImplementationForInterfaceMember(accessor));
+            }
+        }
+
+        [Fact]
+        public void EventModifiers_18()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    abstract event System.Action P1 {add => throw null; remove => throw null;} 
+}
+public interface I2
+{
+    abstract private event System.Action P2 = null; 
+}
+public interface I3
+{
+    static extern event System.Action P3;
+}
+public interface I4
+{
+    abstract static event System.Action P4 { add {throw null;} remove {throw null;}}
+}
+public interface I5
+{
+    override sealed event System.Action P5 { add {throw null;} remove {throw null;}}
+}
+
+class Test1 : I1, I2, I3, I4, I5
+{
+}
+
+class Test2 : I1, I2, I3, I4, I5
+{
+    event System.Action I1.P1 { add {throw null;} remove {throw null;}}
+    event System.Action I2.P2 { add {throw null;} remove {throw null;}}
+    event System.Action I3.P3 { add {throw null;} remove {throw null;}}
+    event System.Action I4.P4 { add {throw null;} remove {throw null;}}
+    event System.Action I5.P5 { add {throw null;} remove {throw null;}}
+}
+";
+            ValidateEventModifiers_18(source1,
+                // (4,38): error CS0500: 'I1.P1.add' cannot declare a body because it is marked abstract
+                //     abstract event System.Action P1 {add => throw null; remove => throw null;} 
+                Diagnostic(ErrorCode.ERR_AbstractHasBody, "add").WithArguments("I1.P1.add").WithLocation(4, 38),
+                // (4,57): error CS0500: 'I1.P1.remove' cannot declare a body because it is marked abstract
+                //     abstract event System.Action P1 {add => throw null; remove => throw null;} 
+                Diagnostic(ErrorCode.ERR_AbstractHasBody, "remove").WithArguments("I1.P1.remove").WithLocation(4, 57),
+                // (8,42): error CS0068: 'I2.P2': event in interface cannot have initializer
+                //     abstract private event System.Action P2 = null; 
+                Diagnostic(ErrorCode.ERR_InterfaceEventInitializer, "P2").WithArguments("I2.P2").WithLocation(8, 42),
+                // (8,42): error CS0621: 'I2.P2': virtual or abstract members cannot be private
+                //     abstract private event System.Action P2 = null; 
+                Diagnostic(ErrorCode.ERR_VirtualPrivate, "P2").WithArguments("I2.P2").WithLocation(8, 42),
+                // (16,46): error CS0500: 'I4.P4.add' cannot declare a body because it is marked abstract
+                //     abstract static event System.Action P4 { add {throw null;} remove {throw null;}}
+                Diagnostic(ErrorCode.ERR_AbstractHasBody, "add").WithArguments("I4.P4.add").WithLocation(16, 46),
+                // (16,64): error CS0500: 'I4.P4.remove' cannot declare a body because it is marked abstract
+                //     abstract static event System.Action P4 { add {throw null;} remove {throw null;}}
+                Diagnostic(ErrorCode.ERR_AbstractHasBody, "remove").WithArguments("I4.P4.remove").WithLocation(16, 64),
+                // (16,41): error CS0112: A static member 'I4.P4' cannot be marked as override, virtual, or abstract
+                //     abstract static event System.Action P4 { add {throw null;} remove {throw null;}}
+                Diagnostic(ErrorCode.ERR_StaticNotVirtual, "P4").WithArguments("I4.P4").WithLocation(16, 41),
+                // (20,41): error CS0106: The modifier 'override' is not valid for this item
+                //     override sealed event System.Action P5 { add {throw null;} remove {throw null;}}
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P5").WithArguments("override").WithLocation(20, 41),
+                // (23,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
+                // class Test1 : I1, I2, I3, I4, I5
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("Test1", "I1.P1").WithLocation(23, 15),
+                // (23,19): error CS0535: 'Test1' does not implement interface member 'I2.P2'
+                // class Test1 : I1, I2, I3, I4, I5
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I2.P2").WithLocation(23, 19),
+                // (31,28): error CS0539: 'Test2.P3' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     event System.Action I3.P3 { add {throw null;} remove {throw null;}}
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "P3").WithArguments("Test2.P3").WithLocation(31, 28),
+                // (32,28): error CS0539: 'Test2.P4' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     event System.Action I4.P4 { add {throw null;} remove {throw null;}}
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "P4").WithArguments("Test2.P4").WithLocation(32, 28),
+                // (33,28): error CS0539: 'Test2.P5' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     event System.Action I5.P5 { add {throw null;} remove {throw null;}}
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "P5").WithArguments("Test2.P5").WithLocation(33, 28),
+                // (12,39): warning CS0626: Method, operator, or accessor 'I3.P3.add' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                //     static extern event System.Action P3;
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "P3").WithArguments("I3.P3.add").WithLocation(12, 39),
+                // (12,39): warning CS0626: Method, operator, or accessor 'I3.P3.remove' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                //     static extern event System.Action P3;
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "P3").WithArguments("I3.P3.remove").WithLocation(12, 39),
+                // (8,42): warning CS0067: The event 'I2.P2' is never used
+                //     abstract private event System.Action P2 = null; 
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "P2").WithArguments("I2.P2").WithLocation(8, 42)
+                );
+        }
+
+        private void ValidateEventModifiers_18(string source1, params DiagnosticDescription[] expected)
+        {
+            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation1.VerifyDiagnostics(expected);
+
+            var test1 = compilation1.GetTypeByMetadataName("Test1");
+            var test2 = compilation1.GetTypeByMetadataName("Test2");
+            var p1 = GetSingleEvent(compilation1, "I1");
+            var test2P1 = test2.GetMembers().OfType<EventSymbol>().Where(p => p.Name.StartsWith("I1.")).Single();
+
+            Assert.True(p1.IsAbstract);
+            Assert.False(p1.IsVirtual);
+            Assert.False(p1.IsSealed);
+            Assert.False(p1.IsStatic);
+            Assert.False(p1.IsExtern);
+            Assert.False(p1.IsOverride);
+            Assert.Equal(Accessibility.Public, p1.DeclaredAccessibility);
+            Assert.Null(test1.FindImplementationForInterfaceMember(p1));
+            Assert.Same(test2P1, test2.FindImplementationForInterfaceMember(p1));
+
+            ValidateP1Accessor(p1.AddMethod, test2P1.AddMethod);
+            ValidateP1Accessor(p1.RemoveMethod, test2P1.RemoveMethod);
+            void ValidateP1Accessor(MethodSymbol accessor, MethodSymbol implementation)
+            {
+                Assert.True(accessor.IsAbstract);
+                Assert.False(accessor.IsVirtual);
+                Assert.True(accessor.IsMetadataVirtual());
+                Assert.False(accessor.IsSealed);
+                Assert.False(accessor.IsStatic);
+                Assert.False(accessor.IsExtern);
+                Assert.False(accessor.IsAsync);
+                Assert.False(accessor.IsOverride);
+                Assert.Equal(Accessibility.Public, accessor.DeclaredAccessibility);
+                Assert.Null(test1.FindImplementationForInterfaceMember(accessor));
+                Assert.Same(implementation, test2.FindImplementationForInterfaceMember(accessor));
+            }
+
+            var p2 = GetSingleEvent(compilation1, "I2");
+            var test2P2 = test2.GetMembers().OfType<EventSymbol>().Where(p => p.Name.StartsWith("I2.")).Single();
+
+            Assert.True(p2.IsAbstract);
+            Assert.False(p2.IsVirtual);
+            Assert.False(p2.IsSealed);
+            Assert.False(p2.IsStatic);
+            Assert.False(p2.IsExtern);
+            Assert.False(p2.IsOverride);
+            Assert.Equal(Accessibility.Private, p2.DeclaredAccessibility);
+            Assert.Null(test1.FindImplementationForInterfaceMember(p2));
+            Assert.Same(test2P2, test2.FindImplementationForInterfaceMember(p2));
+
+            ValidateP2Accessor(p2.AddMethod, test2P2.AddMethod);
+            ValidateP2Accessor(p2.RemoveMethod, test2P2.RemoveMethod);
+            void ValidateP2Accessor(MethodSymbol accessor, MethodSymbol implementation)
+            {
+                Assert.True(accessor.IsAbstract);
+                Assert.False(accessor.IsVirtual);
+                Assert.True(accessor.IsMetadataVirtual());
+                Assert.False(accessor.IsSealed);
+                Assert.False(accessor.IsStatic);
+                Assert.False(accessor.IsExtern);
+                Assert.False(accessor.IsAsync);
+                Assert.False(accessor.IsOverride);
+                Assert.Equal(Accessibility.Private, accessor.DeclaredAccessibility);
+                Assert.Null(test1.FindImplementationForInterfaceMember(accessor));
+                Assert.Same(implementation, test2.FindImplementationForInterfaceMember(accessor));
+            }
+
+            var p3 = GetSingleEvent(compilation1, "I3");
+            var test2P3 = test2.GetMembers().OfType<EventSymbol>().Where(p => p.Name.StartsWith("I3.")).Single();
+
+            Assert.False(p3.IsAbstract);
+            Assert.False(p3.IsVirtual);
+            Assert.False(p3.IsSealed);
+            Assert.True(p3.IsStatic);
+            Assert.True(p3.IsExtern);
+            Assert.False(p3.IsOverride);
+            Assert.Equal(Accessibility.Public, p3.DeclaredAccessibility);
+            Assert.Null(test1.FindImplementationForInterfaceMember(p3));
+            Assert.Null(test2.FindImplementationForInterfaceMember(p3));
+
+            ValidateP3Accessor(p3.AddMethod);
+            ValidateP3Accessor(p3.RemoveMethod);
+            void ValidateP3Accessor(MethodSymbol accessor)
+            {
+                Assert.False(accessor.IsAbstract);
+                Assert.False(accessor.IsVirtual);
+                Assert.False(accessor.IsMetadataVirtual());
+                Assert.False(accessor.IsSealed);
+                Assert.True(accessor.IsStatic);
+                Assert.True(accessor.IsExtern);
+                Assert.False(accessor.IsAsync);
+                Assert.False(accessor.IsOverride);
+                Assert.Equal(Accessibility.Public, accessor.DeclaredAccessibility);
+                Assert.Null(test1.FindImplementationForInterfaceMember(accessor));
+                Assert.Null(test2.FindImplementationForInterfaceMember(accessor));
+            }
+
+            var p4 = GetSingleEvent(compilation1, "I4");
+            var test2P4 = test2.GetMembers().OfType<EventSymbol>().Where(p => p.Name.StartsWith("I4.")).Single();
+
+            Assert.True(p4.IsAbstract);
+            Assert.False(p4.IsVirtual);
+            Assert.False(p4.IsSealed);
+            Assert.True(p4.IsStatic);
+            Assert.False(p4.IsExtern);
+            Assert.False(p4.IsOverride);
+            Assert.Equal(Accessibility.Public, p4.DeclaredAccessibility);
+            Assert.Null(test1.FindImplementationForInterfaceMember(p4));
+            Assert.Null(test2.FindImplementationForInterfaceMember(p4));
+
+            ValidateP4Accessor(p4.AddMethod);
+            ValidateP4Accessor(p4.RemoveMethod);
+            void ValidateP4Accessor(MethodSymbol accessor)
+            {
+                Assert.True(accessor.IsAbstract);
+                Assert.False(accessor.IsVirtual);
+                Assert.True(accessor.IsMetadataVirtual());
+                Assert.False(accessor.IsSealed);
+                Assert.True(accessor.IsStatic);
+                Assert.False(accessor.IsExtern);
+                Assert.False(accessor.IsAsync);
+                Assert.False(accessor.IsOverride);
+                Assert.Equal(Accessibility.Public, accessor.DeclaredAccessibility);
+                Assert.Null(test1.FindImplementationForInterfaceMember(accessor));
+                Assert.Null(test2.FindImplementationForInterfaceMember(accessor));
+            }
+
+            var p5 = GetSingleEvent(compilation1, "I5");
+
+            Assert.False(p5.IsAbstract);
+            Assert.False(p5.IsVirtual);
+            Assert.False(p5.IsSealed);
+            Assert.False(p5.IsStatic);
+            Assert.False(p5.IsExtern);
+            Assert.False(p5.IsOverride);
+            Assert.Equal(Accessibility.Public, p5.DeclaredAccessibility);
+            Assert.Null(test1.FindImplementationForInterfaceMember(p5));
+            Assert.Null(test2.FindImplementationForInterfaceMember(p5));
+
+            ValidateP5Accessor(p5.AddMethod);
+            ValidateP5Accessor(p5.RemoveMethod);
+            void ValidateP5Accessor(MethodSymbol accessor)
+            {
+                Assert.False(accessor.IsAbstract);
+                Assert.False(accessor.IsVirtual);
+                Assert.False(accessor.IsMetadataVirtual());
+                Assert.False(accessor.IsSealed);
+                Assert.False(accessor.IsStatic);
+                Assert.False(accessor.IsExtern);
+                Assert.False(accessor.IsAsync);
+                Assert.False(accessor.IsOverride);
+                Assert.Equal(Accessibility.Public, accessor.DeclaredAccessibility);
+                Assert.Null(test1.FindImplementationForInterfaceMember(accessor));
+                Assert.Null(test2.FindImplementationForInterfaceMember(accessor));
+            }
+        }
+
+        [Fact]
+        public void EventModifiers_19()
+        {
+            var source1 =
+@"
+
+public interface I2 {}
+
+public interface I1
+{
+    public event System.Action I2.P01 {add {} remove{}}
+    protected event System.Action I2.P02 {add {} remove{}}
+    protected internal event System.Action I2.P03 {add {} remove{}}
+    internal event System.Action I2.P04 {add {} remove{}}
+    private event System.Action I2.P05 {add {} remove{}}
+    static event System.Action I2.P06 {add {} remove{}}
+    virtual event System.Action I2.P07 {add {} remove{}}
+    sealed event System.Action I2.P08 {add {} remove{}}
+    override event System.Action I2.P09 {add {} remove{}}
+    abstract event System.Action I2.P10 {add {} remove{}}
+    extern event System.Action I2.P11 {add {} remove{}}
+}
+";
+            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation1.VerifyDiagnostics(
+                // (7,35): error CS0106: The modifier 'public' is not valid for this item
+                //     public event System.Action I2.P01 {add {} remove{}}
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P01").WithArguments("public").WithLocation(7, 35),
+                // (7,35): error CS0541: 'I1.P01': explicit interface declaration can only be declared in a class or struct
+                //     public event System.Action I2.P01 {add {} remove{}}
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "P01").WithArguments("I1.P01").WithLocation(7, 35),
+                // (8,38): error CS0106: The modifier 'protected' is not valid for this item
+                //     protected event System.Action I2.P02 {add {} remove{}}
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P02").WithArguments("protected").WithLocation(8, 38),
+                // (8,38): error CS0541: 'I1.P02': explicit interface declaration can only be declared in a class or struct
+                //     protected event System.Action I2.P02 {add {} remove{}}
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "P02").WithArguments("I1.P02").WithLocation(8, 38),
+                // (9,47): error CS0106: The modifier 'protected internal' is not valid for this item
+                //     protected internal event System.Action I2.P03 {add {} remove{}}
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P03").WithArguments("protected internal").WithLocation(9, 47),
+                // (9,47): error CS0541: 'I1.P03': explicit interface declaration can only be declared in a class or struct
+                //     protected internal event System.Action I2.P03 {add {} remove{}}
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "P03").WithArguments("I1.P03").WithLocation(9, 47),
+                // (10,37): error CS0106: The modifier 'internal' is not valid for this item
+                //     internal event System.Action I2.P04 {add {} remove{}}
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P04").WithArguments("internal").WithLocation(10, 37),
+                // (10,37): error CS0541: 'I1.P04': explicit interface declaration can only be declared in a class or struct
+                //     internal event System.Action I2.P04 {add {} remove{}}
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "P04").WithArguments("I1.P04").WithLocation(10, 37),
+                // (11,36): error CS0106: The modifier 'private' is not valid for this item
+                //     private event System.Action I2.P05 {add {} remove{}}
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P05").WithArguments("private").WithLocation(11, 36),
+                // (11,36): error CS0541: 'I1.P05': explicit interface declaration can only be declared in a class or struct
+                //     private event System.Action I2.P05 {add {} remove{}}
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "P05").WithArguments("I1.P05").WithLocation(11, 36),
+                // (12,35): error CS0106: The modifier 'static' is not valid for this item
+                //     static event System.Action I2.P06 {add {} remove{}}
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P06").WithArguments("static").WithLocation(12, 35),
+                // (12,35): error CS0541: 'I1.P06': explicit interface declaration can only be declared in a class or struct
+                //     static event System.Action I2.P06 {add {} remove{}}
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "P06").WithArguments("I1.P06").WithLocation(12, 35),
+                // (13,36): error CS0106: The modifier 'virtual' is not valid for this item
+                //     virtual event System.Action I2.P07 {add {} remove{}}
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P07").WithArguments("virtual").WithLocation(13, 36),
+                // (13,36): error CS0541: 'I1.P07': explicit interface declaration can only be declared in a class or struct
+                //     virtual event System.Action I2.P07 {add {} remove{}}
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "P07").WithArguments("I1.P07").WithLocation(13, 36),
+                // (14,35): error CS0106: The modifier 'sealed' is not valid for this item
+                //     sealed event System.Action I2.P08 {add {} remove{}}
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P08").WithArguments("sealed").WithLocation(14, 35),
+                // (14,35): error CS0541: 'I1.P08': explicit interface declaration can only be declared in a class or struct
+                //     sealed event System.Action I2.P08 {add {} remove{}}
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "P08").WithArguments("I1.P08").WithLocation(14, 35),
+                // (15,37): error CS0106: The modifier 'override' is not valid for this item
+                //     override event System.Action I2.P09 {add {} remove{}}
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P09").WithArguments("override").WithLocation(15, 37),
+                // (15,37): error CS0541: 'I1.P09': explicit interface declaration can only be declared in a class or struct
+                //     override event System.Action I2.P09 {add {} remove{}}
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "P09").WithArguments("I1.P09").WithLocation(15, 37),
+                // (16,37): error CS0106: The modifier 'abstract' is not valid for this item
+                //     abstract event System.Action I2.P10 {add {} remove{}}
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P10").WithArguments("abstract").WithLocation(16, 37),
+                // (16,37): error CS0541: 'I1.P10': explicit interface declaration can only be declared in a class or struct
+                //     abstract event System.Action I2.P10 {add {} remove{}}
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "P10").WithArguments("I1.P10").WithLocation(16, 37),
+                // (17,35): error CS0106: The modifier 'extern' is not valid for this item
+                //     extern event System.Action I2.P11 {add {} remove{}}
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P11").WithArguments("extern").WithLocation(17, 35),
+                // (17,35): error CS0541: 'I1.P11': explicit interface declaration can only be declared in a class or struct
+                //     extern event System.Action I2.P11 {add {} remove{}}
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "P11").WithArguments("I1.P11").WithLocation(17, 35)
+                );
+
+            ValidateEventModifiers_19(compilation1);
+
+            var compilation2 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+                                                             parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
+            Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation2.VerifyDiagnostics(
+                // (7,35): error CS0106: The modifier 'public' is not valid for this item
+                //     public event System.Action I2.P01 {add {} remove{}}
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P01").WithArguments("public").WithLocation(7, 35),
+                // (7,35): error CS0541: 'I1.P01': explicit interface declaration can only be declared in a class or struct
+                //     public event System.Action I2.P01 {add {} remove{}}
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "P01").WithArguments("I1.P01").WithLocation(7, 35),
+                // (7,40): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                //     public event System.Action I2.P01 {add {} remove{}}
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "add").WithArguments("default interface implementation", "7.1").WithLocation(7, 40),
+                // (7,47): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                //     public event System.Action I2.P01 {add {} remove{}}
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "remove").WithArguments("default interface implementation", "7.1").WithLocation(7, 47),
+                // (8,38): error CS0106: The modifier 'protected' is not valid for this item
+                //     protected event System.Action I2.P02 {add {} remove{}}
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P02").WithArguments("protected").WithLocation(8, 38),
+                // (8,38): error CS0541: 'I1.P02': explicit interface declaration can only be declared in a class or struct
+                //     protected event System.Action I2.P02 {add {} remove{}}
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "P02").WithArguments("I1.P02").WithLocation(8, 38),
+                // (8,43): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                //     protected event System.Action I2.P02 {add {} remove{}}
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "add").WithArguments("default interface implementation", "7.1").WithLocation(8, 43),
+                // (8,50): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                //     protected event System.Action I2.P02 {add {} remove{}}
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "remove").WithArguments("default interface implementation", "7.1").WithLocation(8, 50),
+                // (9,47): error CS0106: The modifier 'protected internal' is not valid for this item
+                //     protected internal event System.Action I2.P03 {add {} remove{}}
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P03").WithArguments("protected internal").WithLocation(9, 47),
+                // (9,47): error CS0541: 'I1.P03': explicit interface declaration can only be declared in a class or struct
+                //     protected internal event System.Action I2.P03 {add {} remove{}}
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "P03").WithArguments("I1.P03").WithLocation(9, 47),
+                // (9,52): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                //     protected internal event System.Action I2.P03 {add {} remove{}}
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "add").WithArguments("default interface implementation", "7.1").WithLocation(9, 52),
+                // (9,59): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                //     protected internal event System.Action I2.P03 {add {} remove{}}
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "remove").WithArguments("default interface implementation", "7.1").WithLocation(9, 59),
+                // (10,37): error CS0106: The modifier 'internal' is not valid for this item
+                //     internal event System.Action I2.P04 {add {} remove{}}
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P04").WithArguments("internal").WithLocation(10, 37),
+                // (10,37): error CS0541: 'I1.P04': explicit interface declaration can only be declared in a class or struct
+                //     internal event System.Action I2.P04 {add {} remove{}}
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "P04").WithArguments("I1.P04").WithLocation(10, 37),
+                // (10,42): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                //     internal event System.Action I2.P04 {add {} remove{}}
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "add").WithArguments("default interface implementation", "7.1").WithLocation(10, 42),
+                // (10,49): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                //     internal event System.Action I2.P04 {add {} remove{}}
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "remove").WithArguments("default interface implementation", "7.1").WithLocation(10, 49),
+                // (11,36): error CS0106: The modifier 'private' is not valid for this item
+                //     private event System.Action I2.P05 {add {} remove{}}
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P05").WithArguments("private").WithLocation(11, 36),
+                // (11,36): error CS0541: 'I1.P05': explicit interface declaration can only be declared in a class or struct
+                //     private event System.Action I2.P05 {add {} remove{}}
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "P05").WithArguments("I1.P05").WithLocation(11, 36),
+                // (11,41): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                //     private event System.Action I2.P05 {add {} remove{}}
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "add").WithArguments("default interface implementation", "7.1").WithLocation(11, 41),
+                // (11,48): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                //     private event System.Action I2.P05 {add {} remove{}}
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "remove").WithArguments("default interface implementation", "7.1").WithLocation(11, 48),
+                // (12,35): error CS0106: The modifier 'static' is not valid for this item
+                //     static event System.Action I2.P06 {add {} remove{}}
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P06").WithArguments("static").WithLocation(12, 35),
+                // (12,35): error CS0541: 'I1.P06': explicit interface declaration can only be declared in a class or struct
+                //     static event System.Action I2.P06 {add {} remove{}}
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "P06").WithArguments("I1.P06").WithLocation(12, 35),
+                // (12,40): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                //     static event System.Action I2.P06 {add {} remove{}}
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "add").WithArguments("default interface implementation", "7.1").WithLocation(12, 40),
+                // (12,47): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                //     static event System.Action I2.P06 {add {} remove{}}
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "remove").WithArguments("default interface implementation", "7.1").WithLocation(12, 47),
+                // (13,36): error CS0106: The modifier 'virtual' is not valid for this item
+                //     virtual event System.Action I2.P07 {add {} remove{}}
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P07").WithArguments("virtual").WithLocation(13, 36),
+                // (13,36): error CS0541: 'I1.P07': explicit interface declaration can only be declared in a class or struct
+                //     virtual event System.Action I2.P07 {add {} remove{}}
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "P07").WithArguments("I1.P07").WithLocation(13, 36),
+                // (13,41): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                //     virtual event System.Action I2.P07 {add {} remove{}}
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "add").WithArguments("default interface implementation", "7.1").WithLocation(13, 41),
+                // (13,48): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                //     virtual event System.Action I2.P07 {add {} remove{}}
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "remove").WithArguments("default interface implementation", "7.1").WithLocation(13, 48),
+                // (14,35): error CS0106: The modifier 'sealed' is not valid for this item
+                //     sealed event System.Action I2.P08 {add {} remove{}}
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P08").WithArguments("sealed").WithLocation(14, 35),
+                // (14,35): error CS0541: 'I1.P08': explicit interface declaration can only be declared in a class or struct
+                //     sealed event System.Action I2.P08 {add {} remove{}}
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "P08").WithArguments("I1.P08").WithLocation(14, 35),
+                // (14,40): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                //     sealed event System.Action I2.P08 {add {} remove{}}
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "add").WithArguments("default interface implementation", "7.1").WithLocation(14, 40),
+                // (14,47): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                //     sealed event System.Action I2.P08 {add {} remove{}}
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "remove").WithArguments("default interface implementation", "7.1").WithLocation(14, 47),
+                // (15,37): error CS0106: The modifier 'override' is not valid for this item
+                //     override event System.Action I2.P09 {add {} remove{}}
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P09").WithArguments("override").WithLocation(15, 37),
+                // (15,37): error CS0541: 'I1.P09': explicit interface declaration can only be declared in a class or struct
+                //     override event System.Action I2.P09 {add {} remove{}}
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "P09").WithArguments("I1.P09").WithLocation(15, 37),
+                // (15,42): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                //     override event System.Action I2.P09 {add {} remove{}}
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "add").WithArguments("default interface implementation", "7.1").WithLocation(15, 42),
+                // (15,49): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                //     override event System.Action I2.P09 {add {} remove{}}
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "remove").WithArguments("default interface implementation", "7.1").WithLocation(15, 49),
+                // (16,37): error CS0106: The modifier 'abstract' is not valid for this item
+                //     abstract event System.Action I2.P10 {add {} remove{}}
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P10").WithArguments("abstract").WithLocation(16, 37),
+                // (16,37): error CS0541: 'I1.P10': explicit interface declaration can only be declared in a class or struct
+                //     abstract event System.Action I2.P10 {add {} remove{}}
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "P10").WithArguments("I1.P10").WithLocation(16, 37),
+                // (16,42): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                //     abstract event System.Action I2.P10 {add {} remove{}}
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "add").WithArguments("default interface implementation", "7.1").WithLocation(16, 42),
+                // (16,49): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                //     abstract event System.Action I2.P10 {add {} remove{}}
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "remove").WithArguments("default interface implementation", "7.1").WithLocation(16, 49),
+                // (17,35): error CS0106: The modifier 'extern' is not valid for this item
+                //     extern event System.Action I2.P11 {add {} remove{}}
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P11").WithArguments("extern").WithLocation(17, 35),
+                // (17,35): error CS0541: 'I1.P11': explicit interface declaration can only be declared in a class or struct
+                //     extern event System.Action I2.P11 {add {} remove{}}
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "P11").WithArguments("I1.P11").WithLocation(17, 35),
+                // (17,40): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                //     extern event System.Action I2.P11 {add {} remove{}}
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "add").WithArguments("default interface implementation", "7.1").WithLocation(17, 40),
+                // (17,47): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                //     extern event System.Action I2.P11 {add {} remove{}}
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "remove").WithArguments("default interface implementation", "7.1").WithLocation(17, 47)
+                );
+
+            ValidateEventModifiers_19(compilation2);
+        }
+
+        private static void ValidateEventModifiers_19(CSharpCompilation compilation1)
+        {
+            var i1 = compilation1.GetTypeByMetadataName("I1");
+
+            foreach (var eventName in new[] { "I2.P01", "I2.P02", "I2.P03", "I2.P04", "I2.P05", "I2.P06",
+                                                 "I2.P07", "I2.P08", "I2.P09", "I2.P10", "I2.P11"})
+            {
+                ValidateEventModifiers_19(i1.GetMember<EventSymbol>(eventName));
+            }
+        }
+
+        private static void ValidateEventModifiers_19(EventSymbol p01)
+        {
+            Assert.False(p01.IsAbstract);
+            Assert.True(p01.IsVirtual);
+            Assert.False(p01.IsSealed);
+            Assert.False(p01.IsStatic);
+            Assert.False(p01.IsExtern);
+            Assert.False(p01.IsOverride);
+            Assert.Equal(Accessibility.Public, p01.DeclaredAccessibility);
+
+            ValidateAccessor(p01.AddMethod);
+            ValidateAccessor(p01.RemoveMethod);
+
+            void ValidateAccessor(MethodSymbol accessor)
+            {
+                Assert.False(accessor.IsAbstract);
+                Assert.True(accessor.IsVirtual);
+                Assert.True(accessor.IsMetadataVirtual());
+                Assert.False(accessor.IsSealed);
+                Assert.False(accessor.IsStatic);
+                Assert.False(accessor.IsExtern);
+                Assert.False(accessor.IsAsync);
+                Assert.False(accessor.IsOverride);
+                Assert.Equal(Accessibility.Public, accessor.DeclaredAccessibility);
+            }
+        }
+
+        [Fact]
+        public void EventModifiers_20()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    internal event System.Action P1
+    {
+        add 
+        {
+            System.Console.WriteLine(""get_P1"");
+        }
+        remove 
+        {
+            System.Console.WriteLine(""set_P1"");
+        }
+    }
+
+    void M2() 
+    {
+        P1 += null;
+        P1 -= null;
+    }
+}
+";
+
+            var source2 =
+@"
+class Test1 : I1
+{
+    static void Main()
+    {
+        I1 x = new Test1();
+        x.M2();
+    }
+}
+";
+
+            ValidateEventModifiers_20(source1, source2);
+        }
+
+        private void ValidateEventModifiers_20(string source1, string source2)
+        {
+            var compilation1 = CreateStandardCompilation(source1 + source2, options: TestOptions.DebugExe,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            CompileAndVerify(compilation1, verify: false, symbolValidator: Validate1);
+
+            Validate1(compilation1.SourceModule);
+
+            void Validate1(ModuleSymbol m)
+            {
+                var test1 = m.GlobalNamespace.GetTypeMember("Test1");
+                var i1 = test1.Interfaces.Single();
+                var p1 = GetSingleEvent(i1);
+                var p1add = p1.AddMethod;
+                var p1remove = p1.RemoveMethod;
+
+                ValidateEvent(p1);
+                ValidateMethod(p1add);
+                ValidateMethod(p1remove);
+                Assert.Same(p1, test1.FindImplementationForInterfaceMember(p1));
+                Assert.Same(p1add, test1.FindImplementationForInterfaceMember(p1add));
+                Assert.Same(p1remove, test1.FindImplementationForInterfaceMember(p1remove));
+            }
+
+            void ValidateEvent(EventSymbol p1)
+            {
+                Assert.False(p1.IsAbstract);
+                Assert.True(p1.IsVirtual);
+                Assert.False(p1.IsSealed);
+                Assert.False(p1.IsStatic);
+                Assert.False(p1.IsExtern);
+                Assert.False(p1.IsOverride);
+                Assert.Equal(Accessibility.Internal, p1.DeclaredAccessibility);
+            }
+
+            void ValidateMethod(MethodSymbol m1)
+            {
+                Assert.False(m1.IsAbstract);
+                Assert.True(m1.IsVirtual);
+                Assert.True(m1.IsMetadataVirtual());
+                Assert.False(m1.IsSealed);
+                Assert.False(m1.IsStatic);
+                Assert.False(m1.IsExtern);
+                Assert.False(m1.IsAsync);
+                Assert.False(m1.IsOverride);
+                Assert.Equal(Accessibility.Internal, m1.DeclaredAccessibility);
+            }
+
+            var compilation2 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation2.VerifyDiagnostics();
+
+            {
+                var i1 = compilation2.GetTypeByMetadataName("I1");
+                var p1 = GetSingleEvent(i1);
+
+                ValidateEvent(p1);
+                ValidateMethod(p1.AddMethod);
+                ValidateMethod(p1.RemoveMethod);
+            }
+
+            var compilation3 = CreateStandardCompilation(source2, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugExe,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            CompileAndVerify(compilation3, verify: false, symbolValidator: Validate1);
+
+            Validate1(compilation3.SourceModule);
+
+            var compilation4 = CreateStandardCompilation(source2, new[] { compilation2.EmitToImageReference() }, options: TestOptions.DebugExe,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            CompileAndVerify(compilation4, verify: false, symbolValidator: Validate1);
+
+            Validate1(compilation4.SourceModule);
+        }
+
+        [Fact]
+        public void EventModifiers_21()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    private static event System.Action P1 { add => throw null; remove => throw null; }
+
+    internal static event System.Action P2 { add => throw null; remove => throw null; }
+
+    public static event System.Action P3 { add => throw null; remove => throw null; }
+
+    static event System.Action P4 { add => throw null; remove => throw null; }
+}
+
+class Test1
+{
+    static void Main()
+    {
+        I1.P1 += null;
+        I1.P1 -= null;
+        I1.P2 += null;
+        I1.P2 -= null;
+        I1.P3 += null;
+        I1.P3 -= null;
+        I1.P4 += null;
+        I1.P4 -= null;
+    }
+}
+";
+            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation1.VerifyDiagnostics(
+                // (17,12): error CS0122: 'I1.P1' is inaccessible due to its protection level
+                //         I1.P1 += null;
+                Diagnostic(ErrorCode.ERR_BadAccess, "P1").WithArguments("I1.P1").WithLocation(17, 12),
+                // (18,12): error CS0122: 'I1.P1' is inaccessible due to its protection level
+                //         I1.P1 -= null;
+                Diagnostic(ErrorCode.ERR_BadAccess, "P1").WithArguments("I1.P1").WithLocation(18, 12)
+                );
+
+            var source2 =
+@"
+class Test2
+{
+    static void Main()
+    {
+        I1.P1 += null;
+        I1.P1 -= null;
+        I1.P2 += null;
+        I1.P2 -= null;
+        I1.P3 += null;
+        I1.P3 -= null;
+        I1.P4 += null;
+        I1.P4 -= null;
+    }
+}
+";
+            var compilation2 = CreateStandardCompilation(source2, new[] { compilation1.ToMetadataReference() },
+                                                         options: TestOptions.DebugDll,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation2.VerifyDiagnostics(
+                // (6,12): error CS0122: 'I1.P1' is inaccessible due to its protection level
+                //         I1.P1 += null;
+                Diagnostic(ErrorCode.ERR_BadAccess, "P1").WithArguments("I1.P1").WithLocation(6, 12),
+                // (7,12): error CS0122: 'I1.P1' is inaccessible due to its protection level
+                //         I1.P1 -= null;
+                Diagnostic(ErrorCode.ERR_BadAccess, "P1").WithArguments("I1.P1").WithLocation(7, 12),
+                // (8,12): error CS0122: 'I1.P2' is inaccessible due to its protection level
+                //         I1.P2 += null;
+                Diagnostic(ErrorCode.ERR_BadAccess, "P2").WithArguments("I1.P2").WithLocation(8, 12),
+                // (9,12): error CS0122: 'I1.P2' is inaccessible due to its protection level
+                //         I1.P2 -= null;
+                Diagnostic(ErrorCode.ERR_BadAccess, "P2").WithArguments("I1.P2").WithLocation(9, 12)
                 );
         }
     }

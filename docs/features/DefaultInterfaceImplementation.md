@@ -39,5 +39,6 @@ class Test1 : I1
 
 - Using **internal** and **private** modifiers with interface property/indexer accessors.
 
+- Using **public**, **internal**, **private**, **static**, **virtual**, **sealed**, **abstract** and **extern** modifiers with interface events.
 
 **Open issues and work items** are tracked in https://github.com/dotnet/roslyn/issues/17952.

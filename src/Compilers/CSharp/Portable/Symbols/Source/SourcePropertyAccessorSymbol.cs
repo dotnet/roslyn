@@ -409,7 +409,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return ModifierUtils.EffectiveAccessibility(this.DeclarationModifiers); }
         }
 
-        private DeclarationModifiers MakeModifiers(AccessorDeclarationSyntax syntax, bool isExplicitInterfaceImplementation, bool hasBody, Location location, DiagnosticBag diagnostics, out bool modifierErrors)
+        private DeclarationModifiers MakeModifiers(AccessorDeclarationSyntax syntax, bool isExplicitInterfaceImplementation, 
+            bool hasBody, Location location, DiagnosticBag diagnostics, out bool modifierErrors)
         {
             // No default accessibility. If unset, accessibility
             // will be inherited from the property.
