@@ -110,7 +110,7 @@
     </PropertyGroup>
 
     <!-- Publish binaries for CoreClr test -->
-    <MSBuild Projects="src/Test/DeployCoreClrTestRuntime/DeployCoreClrTestRuntime.csproj"
+    <MSBuild Projects="src\Test\DeployCoreClrTestRuntime\DeployCoreClrTestRuntime.csproj"
              Properties="RuntimeIdentifier=win7-x64"
              Targets="Publish" />
 
@@ -126,7 +126,7 @@
 
     <PropertyGroup>
       <VsixExpInstallerExe>$(NuGetPackageRoot)\roslyntools.microsoft.vsixexpinstaller\$(RoslynToolsMicrosoftVSIXExpInstallerVersion)\tools\VsixExpInstaller.exe</VsixExpInstallerExe>
-      <VsixExpInstallerArgs>/rootSuffix:RoslynDev /vsInstallDir:"$([System.IO.Path]::GetFullPath('$(MSBuildBinPath)\..\..\..'))"</VsixExpInstallerArgs>
+      <VsixExpInstallerArgs>-rootSuffix:RoslynDev -vsInstallDir:"$([System.IO.Path]::GetFullPath('$(MSBuildBinPath)\..\..\..'))"</VsixExpInstallerArgs>
     </PropertyGroup>
 
     <Exec Command="&quot;$(VsixExpInstallerExe)&quot; $(VsixExpInstallerArgs) $(OutputDirectory)\Vsix\CompilerExtension\Roslyn.Compilers.Extension.vsix" />
