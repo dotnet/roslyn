@@ -5061,6 +5061,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="IDS_FeatureAsyncMain" xml:space="preserve">
     <value>async main</value>
+  </data>
   <data name="ERR_TupleInferredNamesNotAvailable" xml:space="preserve">
     <value>Tuple element name '{0}' is inferred. Please use language version {1} or greater to access an element by its inferred name.</value>
   </data>
