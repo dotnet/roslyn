@@ -504,9 +504,7 @@
   <ItemGroup>
     <Compile Include="CodeFixes\SpellCheck\CSharpSpellCheckCodeFixProvider.cs" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="UseExpressionBody\Indexers\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="..\..\..\Compilers\CSharp\CSharpAnalyzerDriver\CSharpAnalyzerDriver.projitems" Label="Shared" />
   <Import Project="..\..\..\..\build\Targets\Imports.targets" />
 </Project>
