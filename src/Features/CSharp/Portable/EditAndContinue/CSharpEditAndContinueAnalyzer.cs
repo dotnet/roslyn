@@ -3108,7 +3108,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         {
             switch (n.Kind())
             {
-                case SyntaxKind.ForEachVariableStatement:
                 case SyntaxKind.LocalFunctionStatement:
                     return true;
                 default:

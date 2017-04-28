@@ -3435,5 +3435,92 @@ class C
 }
 ", methodToken: diff1.UpdatedMethods.Single());
         }
+
+
+        [Fact]
+        public void ForEachStatement_Deconstruction()
+        {
+            var source = @"
+class C
+{
+    public static (int, (bool, double))[] F() => new[] { (1, (true, 2.0)) };
+
+    public static void G()
+    {        
+        foreach (var (x, (y, z)) in F())
+        {
+            System.Console.WriteLine(x);
+        }
+    }
+}";
+
+            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll, references: s_valueTupleRefs);
+            var compilation1 = compilation0.WithSource(source);
+
+            var testData0 = new CompilationTestData();
+            var bytes0 = compilation0.EmitToArray(testData: testData0);
+            var methodData0 = testData0.GetMethodData("C.G");
+            var method0 = compilation0.GetMember<MethodSymbol>("C.G");
+            var generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), methodData0.EncDebugInfoProvider());
+
+            var method1 = compilation1.GetMember<MethodSymbol>("C.G");
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables: true)));
+
+            diff1.VerifyIL("C.G", @"
+{
+  // Code size       80 (0x50)
+  .maxstack  2
+  .locals init ([unchanged] V_0,
+                [int] V_1,
+                int V_2, //x
+                bool V_3, //y
+                double V_4, //z
+                [unchanged] V_5,
+                (int, (bool, double))[] V_6,
+                int V_7,
+                System.ValueTuple<bool, double> V_8)
+ -IL_0000:  nop
+ -IL_0001:  nop
+ -IL_0002:  call       ""(int, (bool, double))[] C.F()""
+  IL_0007:  stloc.s    V_6
+  IL_0009:  ldc.i4.0
+  IL_000a:  stloc.s    V_7
+ ~IL_000c:  br.s       IL_0047
+ -IL_000e:  ldloc.s    V_6
+  IL_0010:  ldloc.s    V_7
+  IL_0012:  ldelem     ""System.ValueTuple<int, (bool, double)>""
+  IL_0017:  dup
+  IL_0018:  ldfld      ""(bool, double) System.ValueTuple<int, (bool, double)>.Item2""
+  IL_001d:  stloc.s    V_8
+  IL_001f:  dup
+  IL_0020:  ldfld      ""int System.ValueTuple<int, (bool, double)>.Item1""
+  IL_0025:  stloc.2
+  IL_0026:  ldloc.s    V_8
+  IL_0028:  ldfld      ""bool System.ValueTuple<bool, double>.Item1""
+  IL_002d:  stloc.3
+  IL_002e:  ldloc.s    V_8
+  IL_0030:  ldfld      ""double System.ValueTuple<bool, double>.Item2""
+  IL_0035:  stloc.s    V_4
+  IL_0037:  pop
+ -IL_0038:  nop
+ -IL_0039:  ldloc.2
+  IL_003a:  call       ""void System.Console.WriteLine(int)""
+  IL_003f:  nop
+ -IL_0040:  nop
+ ~IL_0041:  ldloc.s    V_7
+  IL_0043:  ldc.i4.1
+  IL_0044:  add
+  IL_0045:  stloc.s    V_7
+ -IL_0047:  ldloc.s    V_7
+  IL_0049:  ldloc.s    V_6
+  IL_004b:  ldlen
+  IL_004c:  conv.i4
+  IL_004d:  blt.s      IL_000e
+ -IL_004f:  ret
+}
+", methodToken: diff1.UpdatedMethods.Single());
+        }
     }
 }
