@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
                             Return OperationKind.CompoundAssignmentExpression
                         End If
                     Case BoundKind.UserDefinedBinaryOperator
-                        Dim rightOperatorBinary As IBinaryOperatorExpression = DirectCast(value.Right, BoundUserDefinedBinaryOperator)
+                        Dim rightOperatorBinary As IBinaryOperatorExpression = DirectCast(Create(value.Right), IBinaryOperatorExpression)
                         ' It is not permissible to access the Left property of a BoundUserDefinedBinaryOperator unconditionally,
                         ' because that property can throw an exception if the operator expression is semantically invalid.
                         ' Fetching the left operand through IBinaryOperatorExpression is safe.
@@ -192,13 +192,14 @@ Namespace Microsoft.CodeAnalysis.Semantics
         Private Shared Function GetSwitchStatementCases(statement As BoundSelectStatement) As ImmutableArray(Of ISwitchCase)
             Dim cases = s_caseBlocksMappings.GetValue(statement,
                 Function(boundSelect)
-                    Return boundSelect.CaseBlocks.SelectAsArray(Function(boundCaseBlock)
-                                                                    ' `CaseElseClauseSyntax` is bound to `BoundCaseStatement` with an empty list of case clauses, 
-                                                                    ' so we explicitly create an IOperation node for Case-Else clause to differentiate it from Case clause.
-                                                                    Dim clauses As ImmutableArray(Of ICaseClause)
-                                                                    Dim caseStatement = boundCaseBlock.CaseStatement
-                                                                    If caseStatement.CaseClauses.IsEmpty AndAlso caseStatement.Syntax.Kind() = SyntaxKind.CaseElseStatement Then
-                                                                        clauses = ImmutableArray.Create(Of ICaseClause)(
+                    Return boundSelect.CaseBlocks.SelectAsArray(
+                        Function(boundCaseBlock)
+                            ' `CaseElseClauseSyntax` is bound to `BoundCaseStatement` with an empty list of case clauses, 
+                            ' so we explicitly create an IOperation node for Case-Else clause to differentiate it from Case clause.
+                            Dim clauses As ImmutableArray(Of ICaseClause)
+                            Dim caseStatement = boundCaseBlock.CaseStatement
+                            If caseStatement.CaseClauses.IsEmpty AndAlso caseStatement.Syntax.Kind() = SyntaxKind.CaseElseStatement Then
+                                clauses = ImmutableArray.Create(Of ICaseClause)(
                                                                             New SingleValueCaseClause(
                                                                                 value:=Nothing,
                                                                                 equality:=BinaryOperationKind.None,
@@ -207,15 +208,15 @@ Namespace Microsoft.CodeAnalysis.Semantics
                                                                                 syntax:=caseStatement.Syntax,
                                                                                 type:=Nothing,
                                                                                 constantValue:=Nothing))
-                                                                    Else
-                                                                        clauses = caseStatement.CaseClauses.SelectAsArray(Function(n) DirectCast(Create(n), ICaseClause))
-                                                                    End If
+                            Else
+                                clauses = caseStatement.CaseClauses.SelectAsArray(Function(n) DirectCast(Create(n), ICaseClause))
+                            End If
 
-                                                                    Dim body = ImmutableArray.Create(Of IOperation)(boundCaseBlock.Body)
-                                                                    Dim isInvalid = boundCaseBlock.HasErrors
-                                                                    Dim syntax = boundCaseBlock.Syntax
-                                                                    Return DirectCast(New SwitchCase(clauses, body, isInvalid, syntax, type:=Nothing, constantValue:=Nothing), ISwitchCase)
-                                                                End Function)
+                            Dim body = ImmutableArray.Create(Of IOperation)(Create(boundCaseBlock.Body))
+                            Dim isInvalid = boundCaseBlock.HasErrors
+                            Dim syntax = boundCaseBlock.Syntax
+                            Return DirectCast(New SwitchCase(clauses, body, isInvalid, syntax, type:=Nothing, constantValue:=Nothing), ISwitchCase)
+                        End Function)
                 End Function)
             Return DirectCast(cases, ImmutableArray(Of ISwitchCase))
         End Function
@@ -272,7 +273,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
 
         Private Shared ReadOnly s_loopTopMappings As New System.Runtime.CompilerServices.ConditionalWeakTable(Of BoundForToStatement, Object)
 
-        Private Shared Function IForLoopStatementBefore(boundForToStatement As BoundForToStatement) As ImmutableArray(Of IOperation)
+        Private Shared Function GetForLoopStatementBefore(boundForToStatement As BoundForToStatement) As ImmutableArray(Of IOperation)
             Dim result = s_loopTopMappings.GetValue(
                     boundForToStatement,
                     Function(boundFor)
@@ -281,7 +282,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
                         ' ControlVariable = InitialValue
                         Dim controlReference As IOperation = Create(boundFor.ControlVariable)
                         If controlReference IsNot Nothing Then
-                            statements.Add(OperationFactory.CreateAssignmentExpressionStatement(controlReference, boundFor.InitialValue, boundFor.InitialValue.Syntax))
+                            statements.Add(OperationFactory.CreateAssignmentExpressionStatement(controlReference, Create(boundFor.InitialValue), boundFor.InitialValue.Syntax))
                         End If
 
                         ' T0 = LimitValue
@@ -341,7 +342,17 @@ Namespace Microsoft.CodeAnalysis.Semantics
                                     stepValue = New BoundLiteral(Nothing, Semantics.Expression.SynthesizeNumeric(controlType, 1), controlType)
                                 End If
 
-                                Dim stepOperand As IOperation = If(stepValue.IsConstant, DirectCast(stepValue, IOperation), New Temporary(SyntheticLocalKind.ForLoopStepValue, boundFor, stepValue))
+                                Dim value = Create(stepValue)
+                                Dim stepOperand As IOperation =
+                                    If(stepValue.IsConstant,
+                                        value,
+                                        New SyntheticLocalReferenceExpression(
+                                            SyntheticLocalKind.ForLoopStepValue,
+                                            Create(boundFor),
+                                            isInvalid:=False,
+                                            syntax:=value.Syntax,
+                                            type:=value.Type,
+                                            constantValue:=Nothing))
                                 statements.Add(OperationFactory.CreateCompoundAssignmentExpressionStatement(controlReference, stepOperand, Semantics.Expression.DeriveAdditionKind(controlType), Nothing, stepValue.Syntax))
                             End If
                         End If
@@ -350,6 +361,151 @@ Namespace Microsoft.CodeAnalysis.Semantics
                     End Function)
 
             Return DirectCast(result, ImmutableArray(Of IOperation))
+        End Function
+
+        Private Shared ReadOnly s_loopConditionMappings As New System.Runtime.CompilerServices.ConditionalWeakTable(Of BoundForToStatement, IOperation)
+
+        Private Shared Function GetForWhileUntilLoopStatmentCondition(boundForToStatement As BoundForToStatement) As IOperation
+            Return s_loopConditionMappings.GetValue(
+                boundForToStatement,
+                Function(boundFor)
+                    Dim operationValue = Create(boundFor.LimitValue)
+                    Dim limitValue As IOperation =
+                        If(boundFor.LimitValue.IsConstant,
+                            operationValue,
+                            New SyntheticLocalReferenceExpression(
+                                SyntheticLocalKind.ForLoopLimitValue,
+                                Create(boundFor),
+                                isInvalid:=False,
+                                syntax:=operationValue.Syntax,
+                                type:=operationValue.Type,
+                                constantValue:=Nothing))
+
+                    Dim controlVariable As BoundExpression = boundFor.ControlVariable
+
+                    ' controlVariable can be a BoundBadExpression in case of error
+                    Dim booleanType As ITypeSymbol = controlVariable.ExpressionSymbol?.DeclaringCompilation.GetSpecialType(SpecialType.System_Boolean)
+
+                    Dim operators As BoundForToUserDefinedOperators = boundForToStatement.OperatorsOpt
+                    If operators IsNot Nothing Then
+                        ' Use the operator methods. Figure out the precise rules first.
+                        Return Nothing
+                    Else
+                        If boundFor.StepValue Is Nothing OrElse (boundFor.StepValue.IsConstant AndAlso boundFor.StepValue.ConstantValueOpt IsNot Nothing) Then
+                            ' Either ControlVariable <= LimitValue or ControlVariable >= LimitValue, depending on whether the step value is negative.
+
+                            Dim relationalCode As BinaryOperationKind = Helper.DeriveBinaryOperationKind(If(boundFor.StepValue IsNot Nothing AndAlso boundFor.StepValue.ConstantValueOpt.IsNegativeNumeric, BinaryOperatorKind.GreaterThanOrEqual, BinaryOperatorKind.LessThanOrEqual), controlVariable)
+                            Return OperationFactory.CreateBinaryOperatorExpression(relationalCode, Create(controlVariable), limitValue, booleanType, limitValue.Syntax)
+                        Else
+                            ' If(StepValue >= 0, ControlVariable <= LimitValue, ControlVariable >= LimitValue)
+
+                            Dim value = Create(boundFor.StepValue)
+                            Dim stepValue As IOperation = New SyntheticLocalReferenceExpression(
+                                SyntheticLocalKind.ForLoopStepValue,
+                                Create(boundFor),
+                                isInvalid:=False,
+                                syntax:=value.Syntax,
+                                type:=value.Type,
+                                constantValue:=Nothing)
+
+                            Dim stepRelationalCode As BinaryOperationKind = Helper.DeriveBinaryOperationKind(BinaryOperatorKind.GreaterThanOrEqual, boundFor.StepValue)
+                            Dim stepCondition As IOperation = OperationFactory.CreateBinaryOperatorExpression(stepRelationalCode,
+                                 stepValue,
+                                 OperationFactory.CreateLiteralExpression(Semantics.Expression.SynthesizeNumeric(stepValue.Type, 0), boundFor.StepValue.Type, boundFor.StepValue.Syntax),
+                                 booleanType,
+                                 boundFor.StepValue.Syntax)
+
+                            Dim positiveStepRelationalCode As BinaryOperationKind = Helper.DeriveBinaryOperationKind(BinaryOperatorKind.LessThanOrEqual, controlVariable)
+                            Dim positiveStepCondition As IOperation = OperationFactory.CreateBinaryOperatorExpression(positiveStepRelationalCode, Create(controlVariable), limitValue, booleanType, limitValue.Syntax)
+
+                            Dim negativeStepRelationalCode As BinaryOperationKind = Helper.DeriveBinaryOperationKind(BinaryOperatorKind.GreaterThanOrEqual, controlVariable)
+                            Dim negativeStepCondition As IOperation = OperationFactory.CreateBinaryOperatorExpression(negativeStepRelationalCode, Create(controlVariable), limitValue, booleanType, limitValue.Syntax)
+
+                            Return OperationFactory.CreateConditionalChoiceExpression(stepCondition, positiveStepCondition, negativeStepCondition, booleanType, limitValue.Syntax)
+                        End If
+                    End If
+                End Function)
+        End Function
+
+        Private Shared ReadOnly s_blockStatementsMappings As New System.Runtime.CompilerServices.ConditionalWeakTable(Of BoundBlock, Object)
+
+        Private Shared Function GetBlockStatementStatements(block As BoundBlock) As ImmutableArray(Of IOperation)
+            ' This is to filter out operations of kind None.
+            Dim statements = s_blockStatementsMappings.GetValue(
+                block,
+                Function(boundBlock)
+                    Return boundBlock.Statements.Select(Function(n) Create(n)).Where(Function(s) s.Kind <> OperationKind.None).ToImmutableArray()
+                End Function)
+            Return DirectCast(statements, ImmutableArray(Of IOperation))
+        End Function
+
+        Private Shared ReadOnly s_variablesMappings As New System.Runtime.CompilerServices.ConditionalWeakTable(Of BoundDimStatement, Object)
+
+        Private Shared Function GetVariableDeclarationStatementVariables(statement As BoundDimStatement) As ImmutableArray(Of IVariableDeclaration)
+            Dim variables = s_variablesMappings.GetValue(
+                statement,
+                Function(dimStatement)
+                    Dim builder = ArrayBuilder(Of IVariableDeclaration).GetInstance()
+                    For Each base In dimStatement.LocalDeclarations
+                        If base.Kind = BoundKind.LocalDeclaration Then
+                            Dim declaration = DirectCast(base, BoundLocalDeclaration)
+                            builder.Add(OperationFactory.CreateVariableDeclaration(declaration.LocalSymbol, Create(declaration.InitializerOpt), declaration.Syntax))
+                        ElseIf base.Kind = BoundKind.AsNewLocalDeclarations Then
+                            Dim asNewDeclarations = DirectCast(base, BoundAsNewLocalDeclarations)
+                            Dim localSymbols = asNewDeclarations.LocalDeclarations.SelectAsArray(Of ILocalSymbol)(Function(declaration) declaration.LocalSymbol)
+                            builder.Add(OperationFactory.CreateVariableDeclaration(localSymbols, Create(asNewDeclarations.Initializer), asNewDeclarations.Syntax))
+                        End If
+                    Next
+                    Return builder.ToImmutableAndFree()
+                End Function
+                                                               )
+            Return DirectCast(variables, ImmutableArray(Of IVariableDeclaration))
+        End Function
+
+        Private Shared ReadOnly s_variablesDeclMappings As New System.Runtime.CompilerServices.ConditionalWeakTable(Of BoundUsingStatement, VariableDeclarationStatement)
+
+        Private Shared Function GetUsingStatementDeclaration(boundUsingStatement As BoundUsingStatement) As IVariableDeclarationStatement
+            Return s_variablesDeclMappings.GetValue(
+                    boundUsingStatement,
+                    Function(boundUsing)
+                        Return New VariableDeclarationStatement(
+                            boundUsing.ResourceList.SelectAsArray(Function(n) DirectCast(Create(n), IVariableDeclaration)),
+                            isInvalid:=False,
+                            syntax:=Nothing,
+                            type:=Nothing,
+                            constantValue:=Nothing)
+                    End Function)
+        End Function
+
+        Private Shared ReadOnly s_expressionsMappings As New System.Runtime.CompilerServices.ConditionalWeakTable(Of BoundAddRemoveHandlerStatement, IEventAssignmentExpression)
+
+
+        Private Shared Function GetAddHandlerStatementExpression(handlerStatement As BoundAddHandlerStatement) As IOperation
+            Return s_expressionsMappings.GetValue(
+                handlerStatement,
+                Function(statement)
+                    Dim eventAccess As BoundEventAccess = TryCast(statement.EventAccess, BoundEventAccess)
+                    Dim [event] As IEventSymbol = eventAccess?.EventSymbol
+                    Dim instance = If([event] Is Nothing OrElse [event].IsStatic, Nothing, If(eventAccess IsNot Nothing, Create(eventAccess.ReceiverOpt), Nothing))
+
+                    Return New EventAssignmentExpression(
+                        [event], instance, Create(statement.Handler), adds:=True, isInvalid:=statement.HasErrors, syntax:=statement.Syntax, type:=Nothing, constantValue:=Nothing)
+                End Function)
+        End Function
+
+
+        Private Shared Function GetRemoveStatementExpression(handlerStatement As BoundRemoveHandlerStatement) As IOperation
+            Return s_expressionsMappings.GetValue(
+                handlerStatement,
+                Function(statement)
+                    Dim eventAccess As BoundEventAccess = TryCast(statement.EventAccess, BoundEventAccess)
+                    Dim [event] As IEventSymbol = eventAccess?.EventSymbol
+                    Dim instance = If([event] Is Nothing OrElse [event].IsStatic, Nothing, If(eventAccess IsNot Nothing, Create(eventAccess.ReceiverOpt), Nothing))
+
+                    Return New EventAssignmentExpression(
+                        [event], instance, Create(statement.Handler), adds:=False, isInvalid:=statement.HasErrors, syntax:=statement.Syntax, type:=Nothing, constantValue:=Nothing)
+
+                End Function)
         End Function
 
         Friend Class Helper

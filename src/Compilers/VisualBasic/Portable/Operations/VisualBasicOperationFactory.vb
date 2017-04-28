@@ -7,7 +7,18 @@ Imports Microsoft.CodeAnalysis.VisualBasic
 
 Namespace Microsoft.CodeAnalysis.Semantics
     Partial Friend NotInheritable Class VisualBasicOperationFactory
+
+        Private Shared ReadOnly s_cache As New System.Runtime.CompilerServices.ConditionalWeakTable(Of BoundNode, IOperation)
+
         Public Shared Function Create(boundNode As BoundNode) As IOperation
+            If boundNode Is Nothing Then
+                Return Nothing
+            End If
+
+            Return s_cache.GetValue(boundNode, Function(n) CreateInternal(n))
+        End Function
+
+        Private Shared Function CreateInternal(boundNode As BoundNode) As IOperation
             Select Case boundNode.Kind
                 Case BoundKind.AssignmentOperator
                     Return CreateBoundAssignmentOperatorOperation(DirectCast(boundNode, BoundAssignmentOperator))
@@ -234,7 +245,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Dim instance As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() If(boundCall.Method.IsShared, Nothing, DirectCast(Create(boundCall.ReceiverOpt), IOperation)))
 
             Dim method As IMethodSymbol = boundCall.Method
-            Dim receiver As IOperation = boundCall.ReceiverOpt
+            Dim receiver As IOperation = Create(boundCall.ReceiverOpt)
             Dim isVirtual As Boolean = method IsNot Nothing AndAlso instance IsNot Nothing AndAlso (method.IsVirtual OrElse method.IsAbstract OrElse method.IsOverride) AndAlso receiver.Kind <> BoundKind.MyBaseReference AndAlso receiver.Kind <> BoundKind.MyClassReference
 
             Dim argumentsInEvaluationOrder As Lazy(Of ImmutableArray(Of IArgument)) = New Lazy(Of ImmutableArray(Of IArgument))(Function() DeriveArguments(boundCall.Arguments, boundCall.Method.Parameters))
@@ -354,7 +365,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Return New LazyBinaryOperatorExpression(binaryOperationKind, leftOperand, rightOperand, usesOperatorMethod, operatorMethod, isInvalid, syntax, type, constantValue)
         End Function
         Private Shared Function CreateBoundBadExpressionOperation(boundBadExpression As BoundBadExpression) As IInvalidExpression
-            Dim children As Lazy(Of ImmutableArray(Of IOperation)) = New Lazy(Of ImmutableArray(Of IOperation))(Function() StaticCast(Of IOperation).From(boundBadExpression.ChildBoundNodes))
+            Dim children As Lazy(Of ImmutableArray(Of IOperation)) = New Lazy(Of ImmutableArray(Of IOperation))(Function() boundBadExpression.ChildBoundNodes.SelectAsArray(Function(n) Create(n)))
             Dim isInvalid As Boolean = boundBadExpression.HasErrors
             Dim syntax As SyntaxNode = boundBadExpression.Syntax
             Dim type As ITypeSymbol = boundBadExpression.Type
@@ -537,7 +548,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
                     If boundFieldAccess.FieldSymbol.IsShared Then
                         Return Nothing
                     Else
-                        Return boundFieldAccess.ReceiverOpt
+                        Return Create(boundFieldAccess.ReceiverOpt)
                     End If
                 End Function)
 
@@ -717,49 +728,10 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Return New LazyWhileUntilLoopStatement(isTopTest, isWhile, condition, loopKind, body, isInvalid, syntax, type, constantValue)
         End Function
         Private Shared Function CreateBoundForToStatementOperation(boundForToStatement As BoundForToStatement) As IForLoopStatement
-            Dim before As Lazy(Of ImmutableArray(Of IOperation)) = New Lazy(Of ImmutableArray(Of IOperation))(Function() Nothing ' Manual)
-            Dim atLoopBottom As Lazy(Of ImmutableArray(Of IOperation)) = New Lazy(Of ImmutableArray(Of IOperation))(Function() Nothing ' Manual)
+            Dim before As Lazy(Of ImmutableArray(Of IOperation)) = New Lazy(Of ImmutableArray(Of IOperation))(Function() GetForLoopStatementBefore(boundForToStatement))
+            Dim atLoopBottom As Lazy(Of ImmutableArray(Of IOperation)) = New Lazy(Of ImmutableArray(Of IOperation))(Function() GetForLoopStatementAtLoopBottom(boundForToStatement))
             Dim locals As ImmutableArray(Of ILocalSymbol) = ImmutableArray(Of ILocalSymbol).Empty
-            Dim condition As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() DirectCast(Create(s_loopConditionMappings.GetValue(
-                                Me,
-                                Function(BoundFor)
-                                    Dim limitValue As IOperation = If(BoundFor.LimitValue.IsConstant, DirectCast(BoundFor.LimitValue, IOperation), New Temporary(SyntheticLocalKind.ForLoopLimitValue, BoundFor, BoundFor.LimitValue))
-                                    Dim controlVariable As BoundExpression = BoundFor.ControlVariable
-
-                                    ' controlVariable can be a BoundBadExpression in case of error
-                                    Dim booleanType As ITypeSymbol = controlVariable.ExpressionSymbol?.DeclaringCompilation.GetSpecialType(SpecialType.System_Boolean)
-
-                                    Dim operators As BoundForToUserDefinedOperators = boundForToStatement.OperatorsOpt
-                                    If operators IsNot Nothing Then
-                                        ' Use the operator methods. Figure out the precise rules first.
-                                        Return Nothing
-                                    Else
-                                        If BoundFor.StepValue Is Nothing OrElse (BoundFor.StepValue.IsConstant AndAlso BoundFor.StepValue.ConstantValueOpt IsNot Nothing) Then
-                                            ' Either ControlVariable <= LimitValue or ControlVariable >= LimitValue, depending on whether the step value is negative.
-
-                                            Dim relationalCode As BinaryOperationKind = Helper.DeriveBinaryOperationKind(If(BoundFor.StepValue IsNot Nothing AndAlso BoundFor.StepValue.ConstantValueOpt.IsNegativeNumeric, BinaryOperatorKind.GreaterThanOrEqual, BinaryOperatorKind.LessThanOrEqual), controlVariable)
-                                            Return OperationFactory.CreateBinaryOperatorExpression(relationalCode, controlVariable, limitValue, booleanType, limitValue.Syntax)
-                                        Else
-                                            ' If(StepValue >= 0, ControlVariable <= LimitValue, ControlVariable >= LimitValue)
-
-                                            Dim stepValue As IOperation = New Temporary(SyntheticLocalKind.ForLoopStepValue, BoundFor, BoundFor.StepValue)
-                                            Dim stepRelationalCode As BinaryOperationKind = Helper.DeriveBinaryOperationKind(BinaryOperatorKind.GreaterThanOrEqual, BoundFor.StepValue)
-                                            Dim stepCondition As IOperation = OperationFactory.CreateBinaryOperatorExpression(stepRelationalCode,
-                                                                                         stepValue,
-                                                                                         OperationFactory.CreateLiteralExpression(Semantics.Expression.SynthesizeNumeric(stepValue.Type, 0), BoundFor.StepValue.Type, BoundFor.StepValue.Syntax),
-                                                                                         booleanType,
-                                                                                         BoundFor.StepValue.Syntax)
-
-                                            Dim positiveStepRelationalCode As BinaryOperationKind = Helper.DeriveBinaryOperationKind(BinaryOperatorKind.LessThanOrEqual, controlVariable)
-                                            Dim positiveStepCondition As IOperation = OperationFactory.CreateBinaryOperatorExpression(positiveStepRelationalCode, controlVariable, limitValue, booleanType, limitValue.Syntax)
-
-                                            Dim negativeStepRelationalCode As BinaryOperationKind = Helper.DeriveBinaryOperationKind(BinaryOperatorKind.GreaterThanOrEqual, controlVariable)
-                                            Dim negativeStepCondition As IOperation = OperationFactory.CreateBinaryOperatorExpression(negativeStepRelationalCode, controlVariable, limitValue, booleanType, limitValue.Syntax)
-
-                                            Return OperationFactory.CreateConditionalChoiceExpression(stepCondition, positiveStepCondition, negativeStepCondition, booleanType, limitValue.Syntax)
-                                        End If
-                                    End If
-                                End Function)), IOperation))
+            Dim condition As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() GetForWhileUntilLoopStatmentCondition(boundForToStatement))
             Dim loopKind As LoopKind = LoopKind.For
             Dim body As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() DirectCast(Create(boundForToStatement.Body), IOperation))
             Dim isInvalid As Boolean = boundForToStatement.HasErrors
@@ -801,7 +773,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Return New LazyCatchClause(handler, caughtType, filter, exceptionLocal, isInvalid, syntax, type, constantValue)
         End Function
         Private Shared Function CreateBoundBlockOperation(boundBlock As BoundBlock) As IBlockStatement
-            Dim statements As Lazy(Of ImmutableArray(Of IOperation)) = New Lazy(Of ImmutableArray(Of IOperation))(Function() Nothing ' Manual)
+            Dim statements As Lazy(Of ImmutableArray(Of IOperation)) = New Lazy(Of ImmutableArray(Of IOperation))(Function() GetBlockStatementStatements(boundBlock))
             Dim locals As ImmutableArray(Of ILocalSymbol) = boundBlock.Locals.As(Of ILocalSymbol)()
             Dim isInvalid As Boolean = boundBlock.HasErrors
             Dim syntax As SyntaxNode = boundBlock.Syntax
@@ -810,7 +782,18 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Return New LazyBlockStatement(statements, locals, isInvalid, syntax, type, constantValue)
         End Function
         Private Shared Function CreateBoundBadStatementOperation(boundBadStatement As BoundBadStatement) As IInvalidStatement
-            Dim children As Lazy(Of ImmutableArray(Of IOperation)) = New Lazy(Of ImmutableArray(Of IOperation))(Function() Nothing ' Manual)
+            Dim children As Lazy(Of ImmutableArray(Of IOperation)) = New Lazy(Of ImmutableArray(Of IOperation))(
+                Function()
+                    Dim builder As ArrayBuilder(Of IOperation) = ArrayBuilder(Of IOperation).GetInstance(boundBadStatement.ChildBoundNodes.Length)
+                    For Each childNode In boundBadStatement.ChildBoundNodes
+                        Dim operation = Create(childNode)
+                        If operation IsNot Nothing Then
+                            builder.Add(operation)
+                        End If
+                    Next
+
+                    Return builder.ToImmutableAndFree()
+                End Function)
             Dim isInvalid As Boolean = boundBadStatement.HasErrors
             Dim syntax As SyntaxNode = boundBadStatement.Syntax
             Dim type As ITypeSymbol = Nothing
@@ -846,7 +829,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Return New LazyWhileUntilLoopStatement(isTopTest, isWhile, condition, loopKind, body, isInvalid, syntax, type, constantValue)
         End Function
         Private Shared Function CreateBoundDimStatementOperation(boundDimStatement As BoundDimStatement) As IVariableDeclarationStatement
-            Dim declarations As Lazy(Of ImmutableArray(Of IVariableDeclaration)) = New Lazy(Of ImmutableArray(Of IVariableDeclaration))(Function() Nothing ' Manual)
+            Dim declarations As Lazy(Of ImmutableArray(Of IVariableDeclaration)) = New Lazy(Of ImmutableArray(Of IVariableDeclaration))(Function() GetVariableDeclarationStatementVariables(boundDimStatement))
             Dim isInvalid As Boolean = boundDimStatement.HasErrors
             Dim syntax As SyntaxNode = boundDimStatement.Syntax
             Dim type As ITypeSymbol = Nothing
@@ -938,11 +921,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
         End Function
         Private Shared Function CreateBoundUsingStatementOperation(boundUsingStatement As BoundUsingStatement) As IUsingStatement
             Dim body As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() DirectCast(Create(boundUsingStatement.Body), IOperation))
-            Dim declaration As Lazy(Of IVariableDeclarationStatement) = New Lazy(Of IVariableDeclarationStatement)(Function() DirectCast(Create(s_variablesMappings.GetValue(
-                                Me,
-                                Function(BoundUsing)
-                                    Return New Variables(BoundUsing.ResourceList.As(Of IVariableDeclaration))
-                                End Function)), IVariableDeclarationStatement))
+            Dim declaration As Lazy(Of IVariableDeclarationStatement) = New Lazy(Of IVariableDeclarationStatement)(Function() GetUsingStatementDeclaration(boundUsingStatement))
             Dim value As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() DirectCast(Create(boundUsingStatement.ResourceExpressionOpt), IOperation))
             Dim isInvalid As Boolean = boundUsingStatement.HasErrors
             Dim syntax As SyntaxNode = boundUsingStatement.Syntax
@@ -967,7 +946,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Return New LazyExpressionStatement(expression, isInvalid, syntax, type, constantValue)
         End Function
         Private Shared Function CreateBoundAddHandlerStatementOperation(boundAddHandlerStatement As BoundAddHandlerStatement) As IExpressionStatement
-            Dim expression As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() DirectCast(Create(Nothing ' Manual), IOperation))
+            Dim expression As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() GetAddHandlerStatementExpression(boundAddHandlerStatement))
             Dim isInvalid As Boolean = boundAddHandlerStatement.HasErrors
             Dim syntax As SyntaxNode = boundAddHandlerStatement.Syntax
             Dim type As ITypeSymbol = Nothing
@@ -975,15 +954,13 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Return New LazyExpressionStatement(expression, isInvalid, syntax, type, constantValue)
         End Function
         Private Shared Function CreateBoundRemoveHandlerStatementOperation(boundRemoveHandlerStatement As BoundRemoveHandlerStatement) As IExpressionStatement
-            Dim expression As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() DirectCast(Create(Nothing ' Manual), IOperation))
+            Dim expression As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() GetRemoveStatementExpression(boundRemoveHandlerStatement))
             Dim isInvalid As Boolean = boundRemoveHandlerStatement.HasErrors
             Dim syntax As SyntaxNode = boundRemoveHandlerStatement.Syntax
             Dim type As ITypeSymbol = Nothing
             Dim constantValue As [Optional](Of Object) = New [Optional](Of Object)()
             Return New LazyExpressionStatement(expression, isInvalid, syntax, type, constantValue)
         End Function
-
-
     End Class
 End Namespace
 
