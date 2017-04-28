@@ -7725,7 +7725,7 @@ Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "M3").WithArguments("NS.clx<T>.M3(
         [Fact]
         public void CS0503ERR_AbstractNotVirtual01()
         {
-            var text = @"namespace NS
+            var source = @"namespace NS
 {
     abstract public class clx
     {
@@ -7736,14 +7736,20 @@ Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "M3").WithArguments("NS.clx<T>.M3(
     } // class clx
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
-                new ErrorDescription { Code = (int)ErrorCode.ERR_AbstractNotVirtual, Line = 5, Column = 40 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_AbstractNotVirtual, Line = 6, Column = 41 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_AbstractNotVirtual, Line = 7, Column = 40 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_AbstractNotVirtual, Line = 8, Column = 53 });
 
-            var ns = comp.SourceModule.GlobalNamespace.GetMembers("NS").Single() as NamespaceSymbol;
-            // TODO...
+            var comp = CreateStandardCompilation(source).VerifyDiagnostics(
+               // (5,40): The abstract method 'clx.M1' cannot be marked virtual
+               Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "M1").WithArguments("method", "NS.clx.M1"),
+               // (6,41): The abstract method 'clx.M2<T>' cannot be marked virtual
+               Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "M2").WithArguments("method", "NS.clx.M2<T>"),
+               // (7,40): The abstract property 'clx.P' cannot be marked virtual
+               Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "P").WithArguments("property", "NS.clx.P"),
+               // (8,53): The abstract event 'clx.E' cannot be marked virtual
+               Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "E").WithArguments("event", "NS.clx.E"));
+
+            var nsNamespace = comp.SourceModule.GlobalNamespace.GetMembers("NS").Single() as NamespaceSymbol;
+            var clxClass = nsNamespace.GetMembers("clx").Single() as NamedTypeSymbol;
+            Assert.Equal(4, clxClass.GetMembers().Length);
         }
 
         [Fact]
