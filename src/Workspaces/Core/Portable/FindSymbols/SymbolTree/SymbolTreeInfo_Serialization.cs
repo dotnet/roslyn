@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 filePath,
                 loadOnly,
                 create: () => CreateSourceSymbolTreeInfo(solution, checksum, assembly, filePath, cancellationToken),
-                keySuffix: "",
+                keySuffix: "_Source",
                 getPersistedChecksum: info => info._checksum,
                 readObject: reader => ReadSymbolTreeInfo(reader, (c, names, nodes) => GetSpellCheckerTask(solution, c, filePath, names, nodes)),
                 writeObject: (w, i) => i.WriteTo(w),
