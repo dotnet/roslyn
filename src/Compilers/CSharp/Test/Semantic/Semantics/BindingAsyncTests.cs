@@ -3403,7 +3403,7 @@ class Test
         }
 
         [Fact, WorkItem(547081, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547081")]
-        public void Repro_17885()
+        public void Repro_17885_CSharp_71()
         {
             var source = @"
 using System.Threading.Tasks;
@@ -3434,6 +3434,8 @@ class Test
                 // (5,30): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
                 //     async public static Task Main()
                 Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "Main"),
+                // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
+                Diagnostic(ErrorCode.ERR_NoEntryPoint),
                 // (5,5): error CS8107: Feature 'async main' is not available in C# 7. Please use language version 7.1 or greater.
                 //     async public static Task Main()
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, @"async public static Task Main()

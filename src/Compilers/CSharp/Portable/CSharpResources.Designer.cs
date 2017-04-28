@@ -6882,7 +6882,18 @@ namespace Microsoft.CodeAnalysis.CSharp {
                 return ResourceManager.GetString("ERR_NonInvocableMemberCalled", resourceCulture);
             }
         }
-        
+
+        /// <summary>
+        ///   Looks up a localized string similar to Async Main methods must return Task or Task&lt;int&gt;.
+        /// </summary>
+        internal static string ERR_NonTaskMainCantBeAsync
+        {
+            get
+            {
+                return ResourceManager.GetString("ERR_NonTaskMainCantBeAsync", resourceCulture);
+            }
+        }
+
         /// <summary>
         ///   Looks up a localized string similar to Cannot embed interop types from assembly &apos;{0}&apos; because it is missing the &apos;{1}&apos; attribute..
         /// </summary>
@@ -9852,22 +9863,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
                 return ResourceManager.GetString("IDS_Covariantly", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to 
         ///                              Visual C# Compiler Options
         ///
         ///                        - OUTPUT FILES -
-        /// /out:&lt;file&gt;                   Specify output file name (default: base name of 
+        /// /out:&lt;file&gt;                   Specify output file name (default: base name of
         ///                               file with main class or first file)
-        /// /target:exe                   Build a console executable (default) (Short 
+        /// /target:exe                   Build a console executable (default) (Short
         ///                               form: /t:exe)
-        /// /target:winexe                Build a Windows executable (Short form: 
+        /// /target:winexe                Build a Windows executable (Short form:
         ///                               /t:winexe)
-        /// /target:library     [rest of string was truncated]&quot;;.
+        /// /target:library        [rest of string was truncated]&quot;;.
         /// </summary>
-        internal static string IDS_CSCHelp {
-            get {
+        internal static string IDS_CSCHelp
+        {
+            get
+            {
                 return ResourceManager.GetString("IDS_CSCHelp", resourceCulture);
             }
         }

@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Text;
@@ -222,12 +223,10 @@ public partial class A {
             var returnSyntax = m.ExtractReturnTypeSyntax();
 
             var tree = comp.SyntaxTrees.Single();
-            var model = comp.GetSemanticModel(tree);
-            var voidTokens = tree.GetRoot().DescendantTokens().Where(t => t.Kind() == SyntaxKind.VoidKeyword).ToList();
-            var node = tree.GetRoot().FindNode(voidTokens[0].Span);
+            var node = tree.GetRoot().DescendantNodes().OfType<PredefinedTypeSyntax>().Where(n => n.Keyword.Kind() == SyntaxKind.VoidKeyword).First();
 
-            var mLocations = tree.GetRoot().DescendantTokens().Where(t => t.ValueText == "M").ToList();
-            var otherSymbol = (MethodSymbol)model.GetDeclaredSymbolForNode(tree.GetRoot().FindNode(mLocations[1].Span));
+            var otherSymbol = m.PartialImplementationPart;
+            Assert.True(otherSymbol.IsPartialImplementation());
 
             Assert.Equal(node, returnSyntax);
             Assert.Equal(node, otherSymbol.ExtractReturnTypeSyntax());
@@ -252,12 +251,12 @@ public partial class A {
             var returnSyntax = m.ExtractReturnTypeSyntax();
 
             var tree = comp.SyntaxTrees.Single();
-            var model = comp.GetSemanticModel(tree);
-            var token = tree.GetRoot().DescendantTokens().Where(t => t.Kind() == SyntaxKind.VoidKeyword).Skip(1).First();
-            var node = tree.GetRoot().FindNode(token.Span);
+            var node = tree.GetRoot().DescendantNodes().OfType<PredefinedTypeSyntax>().Where(n => n.Keyword.Kind() == SyntaxKind.VoidKeyword).ToList()[1];
 
             var mLocations = tree.GetRoot().DescendantTokens().Where(t => t.ValueText == "M").ToList();
-            var otherSymbol = (MethodSymbol)model.GetDeclaredSymbolForNode(tree.GetRoot().FindNode(mLocations[0].Span));
+
+            var otherSymbol = m.PartialImplementationPart;
+            Assert.True(otherSymbol.IsPartialImplementation());
 
             Assert.Equal(node, returnSyntax);
             Assert.Equal(node, otherSymbol.ExtractReturnTypeSyntax());
@@ -279,8 +278,7 @@ public partial class A {
             var returnSyntax = m.ExtractReturnTypeSyntax();
 
             var tree = comp.SyntaxTrees.Single().GetRoot();
-            var token = tree.DescendantTokens().Where(t => t.Kind() == SyntaxKind.VoidKeyword).First();
-            var node = tree.FindNode(token.Span);
+            var node = tree.DescendantNodes().OfType<PredefinedTypeSyntax>().Where(n => n.Keyword.Kind() == SyntaxKind.VoidKeyword).Single();
 
             Assert.Equal(node, returnSyntax);
         }
@@ -301,8 +299,7 @@ public partial class A {
             var returnSyntax = m.ExtractReturnTypeSyntax();
 
             var tree = comp.SyntaxTrees.Single().GetRoot();
-            var token = tree.DescendantTokens().Where(t => t.Kind() == SyntaxKind.VoidKeyword).First();
-            var node = tree.FindNode(token.Span);
+            var node = tree.DescendantNodes().OfType<PredefinedTypeSyntax>().Where(n => n.Keyword.Kind() == SyntaxKind.VoidKeyword).Single();
 
             Assert.Equal(node, returnSyntax);
         }
