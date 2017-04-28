@@ -14,17 +14,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeFieldReadonly
     {
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new CSharpMakeFieldReadonlyDiagnosticAnalyzer(), new CSharpMakeFieldReadonlyCodeFixProvider());
-        
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
         public async Task FieldIsPublic()
         {
             await TestMissingInRegularAndScriptAsync(
-@"namespace ConsoleApplication1
+@"class MyClass
 {
-    class MyClass
-    {
-        public int [|_foo|];
-    }
+    public int [|_foo|];
 }");
         }
 
@@ -32,12 +29,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeFieldReadonly
         public async Task FieldIsInternal()
         {
             await TestMissingInRegularAndScriptAsync(
-@"namespace ConsoleApplication1
+@"class MyClass
 {
-    class MyClass
-    {
-        internal int [|_foo|];
-    }
+    internal int [|_foo|];
 }");
         }
 
@@ -45,12 +39,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeFieldReadonly
         public async Task FieldIsProtected()
         {
             await TestMissingInRegularAndScriptAsync(
-@"namespace ConsoleApplication1
+@"class MyClass
 {
-    class MyClass
-    {
-        protected int [|_foo|];
-    }
+    protected int [|_foo|];
 }");
         }
 
@@ -58,12 +49,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeFieldReadonly
         public async Task FieldIsProtectedInternal()
         {
             await TestMissingInRegularAndScriptAsync(
-@"namespace ConsoleApplication1
+@"class MyClass
 {
-    class MyClass
-    {
-        protected internal int [|_foo|];
-    }
+    protected internal int [|_foo|];
 }");
         }
 
@@ -71,12 +59,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeFieldReadonly
         public async Task FieldIsEvent()
         {
             await TestMissingInRegularAndScriptAsync(
-@"namespace ConsoleApplication1
+@"class MyClass
 {
-    class MyClass
-    {
-        private event System.EventHandler [|Foo|];
-    }
+    private event System.EventHandler [|Foo|];
 }");
         }
 
@@ -84,12 +69,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeFieldReadonly
         public async Task FieldIsReadonly()
         {
             await TestMissingInRegularAndScriptAsync(
-@"namespace ConsoleApplication1
+@"class MyClass
 {
-    class MyClass
-    {
-        private readonly int [|_foo|];
-    }
+    private readonly int [|_foo|];
 }");
         }
 
@@ -97,19 +79,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeFieldReadonly
         public async Task FieldNotAssigned()
         {
             await TestInRegularAndScriptAsync(
-@"namespace ConsoleApplication1
+@"class MyClass
 {
-    class MyClass
-    {
-        private int [|_foo|];
-    }
+    private int [|_foo|];
 }",
-@"namespace ConsoleApplication1
+@"class MyClass
 {
-    class MyClass
-    {
-        private readonly int _foo;
-    }
+    private readonly int _foo;
 }");
         }
 
@@ -117,19 +93,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeFieldReadonly
         public async Task FieldNotAssigned_Struct()
         {
             await TestInRegularAndScriptAsync(
-@"namespace ConsoleApplication1
+@"struct MyStruct
 {
-    struct MyStruct
-    {
-        private int [|_foo|];
-    }
+    private int [|_foo|];
 }",
-@"namespace ConsoleApplication1
+@"struct MyStruct
 {
-    struct MyStruct
-    {
-        private readonly int _foo;
-    }
+    private readonly int _foo;
 }");
         }
 
@@ -137,19 +107,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeFieldReadonly
         public async Task FieldAssignedInline()
         {
             await TestInRegularAndScriptAsync(
-@"namespace ConsoleApplication1
+@"class MyClass
 {
-    class MyClass
-    {
-        private int [|_foo|] = 0;
-    }
+    private int [|_foo|] = 0;
 }",
-@"namespace ConsoleApplication1
+@"class MyClass
 {
-    class MyClass
-    {
-        private readonly int _foo = 0;
-    }
+    private readonly int _foo = 0;
 }");
         }
 
@@ -157,20 +121,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeFieldReadonly
         public async Task MultipleFieldsAssignedInline_AllCanBeReadonly()
         {
             await TestInRegularAndScriptAsync(
-@"namespace ConsoleApplication1
+@"class MyClass
 {
-    class MyClass
-    {
-        private int [|_foo|] = 0, _bar = 0;
-    }
+    private int [|_foo|] = 0, _bar = 0;
 }",
-@"namespace ConsoleApplication1
+@"class MyClass
 {
-    class MyClass
-    {
-        private int _bar = 0;
-        private readonly int _foo = 0;
-    }
+    private int _bar = 0;
+    private readonly int _foo = 0;
 }");
         }
 
@@ -178,27 +136,21 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeFieldReadonly
         public async Task MultipleFieldsAssignedInline_OneIsAssignedInMethod()
         {
             await TestInRegularAndScriptAsync(
-@"namespace ConsoleApplication1
+@"class MyClass
 {
-    class MyClass
+    private int _foo = 0, [|_bar|] = 0;
+    Foo()
     {
-        private int _foo = 0, [|_bar|] = 0;
-        Foo()
-        {
-            _foo = 0;
-        }
+        _foo = 0;
     }
 }",
-@"namespace ConsoleApplication1
+@"class MyClass
 {
-    class MyClass
+    private int _foo = 0;
+    private readonly int _bar = 0;
+    Foo()
     {
-        private int _foo = 0;
-        private readonly int _bar = 0;
-        Foo()
-        {
-            _foo = 0;
-        }
+        _foo = 0;
     }
 }");
         }
@@ -207,20 +159,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeFieldReadonly
         public async Task MultipleFieldsAssignedInline_NoInitializer()
         {
             await TestInRegularAndScriptAsync(
-@"namespace ConsoleApplication1
+@"class MyClass
 {
-    class MyClass
-    {
-        private int [|_foo|], _bar = 0;
-    }
+    private int [|_foo|], _bar = 0;
 }",
-@"namespace ConsoleApplication1
+@"class MyClass
 {
-    class MyClass
-    {
-        private int _bar = 0;
-        private readonly int _foo;
-    }
+    private int _bar = 0;
+    private readonly int _foo;
 }");
         }
 
@@ -228,26 +174,20 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeFieldReadonly
         public async Task FieldAssignedInCtor()
         {
             await TestInRegularAndScriptAsync(
-@"namespace ConsoleApplication1
+@"class MyClass
 {
-    class MyClass
+    private int [|_foo|];
+    MyClass()
     {
-        private int [|_foo|];
-        MyClass()
-        {
-            _foo = 0;
-        }
+        _foo = 0;
     }
 }",
-@"namespace ConsoleApplication1
+@"class MyClass
 {
-    class MyClass
+    private readonly int _foo;
+    MyClass()
     {
-        private readonly int _foo;
-        MyClass()
-        {
-            _foo = 0;
-        }
+        _foo = 0;
     }
 }");
         }
@@ -256,18 +196,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeFieldReadonly
         public async Task FieldAssignedInLambdaInCtor()
         {
             await TestMissingInRegularAndScriptAsync(
-@"namespace ConsoleApplication1
+@"public class MyClass
 {
-    public class MyClass
+    private int [|_foo|];
+    public MyClass()
     {
-        private int [|_foo|];
-        public MyClass()
-        {
-            this.E += (_, __) => this._foo = 0;
-        }
-
-        public event EventHandler E;
+        this.E += (_, __) => this._foo = 0;
     }
+
+    public event EventHandler E;
 }");
         }
 
@@ -275,18 +212,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeFieldReadonly
         public async Task FieldAssignedInLambdaWithBlockInCtor()
         {
             await TestMissingInRegularAndScriptAsync(
-@"namespace ConsoleApplication1
+@"public class MyClass
 {
-    public class MyClass
+    private int [|_foo|];
+    public MyClass()
     {
-        private int [|_foo|];
-        public MyClass()
-        {
-            this.E += (_, __) => { this._foo = 0; }
-        }
-
-        public event EventHandler E;
+        this.E += (_, __) => { this._foo = 0; }
     }
+
+    public event EventHandler E;
 }");
         }
 
@@ -294,16 +228,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeFieldReadonly
         public async Task FieldAssignedInCtor_DifferentInstance()
         {
             await TestMissingInRegularAndScriptAsync(
-@"namespace ConsoleApplication1
+@"class MyClass
 {
-    class MyClass
+    private int [|_foo|];
+    MyClass()
     {
-        private int [|_foo|];
-        MyClass()
-        {
-            var foo = new MyClass();
-            foo._foo = 0;
-        }
+        var foo = new MyClass();
+        foo._foo = 0;
     }
 }");
         }
@@ -312,15 +243,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeFieldReadonly
         public async Task FieldAssignedInCtor_DifferentInstance_ObjectInitializer()
         {
             await TestMissingInRegularAndScriptAsync(
-@"namespace ConsoleApplication1
+@"class MyClass
 {
-    class MyClass
+    private int [|_foo|];
+    MyClass()
     {
-        private int [|_foo|];
-        MyClass()
-        {
-            var foo = new MyClass { _foo = 0 };
-        }
+        var foo = new MyClass { _foo = 0 };
     }
 }");
         }
@@ -329,26 +257,20 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeFieldReadonly
         public async Task FieldAssignedInCtor_QualifiedWithThis()
         {
             await TestInRegularAndScriptAsync(
-@"namespace ConsoleApplication1
+@"class MyClass
 {
-    class MyClass
+    private int [|_foo|];
+    MyClass()
     {
-        private int [|_foo|];
-        MyClass()
-        {
-            this._foo = 0;
-        }
+        this._foo = 0;
     }
 }",
-@"namespace ConsoleApplication1
+@"class MyClass
 {
-    class MyClass
+    private readonly int _foo;
+    MyClass()
     {
-        private readonly int _foo;
-        MyClass()
-        {
-            this._foo = 0;
-        }
+        this._foo = 0;
     }
 }");
         }
@@ -357,26 +279,20 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeFieldReadonly
         public async Task FieldReturnedInProperty()
         {
             await TestInRegularAndScriptAsync(
-@"namespace ConsoleApplication1
+@"class MyClass
 {
-    class MyClass
+    private int [|_foo|];
+    int Foo
     {
-        private int [|_foo|];
-        int Foo
-        {
-            get { return _foo; }
-        }
+        get { return _foo; }
     }
 }",
-@"namespace ConsoleApplication1
+@"class MyClass
 {
-    class MyClass
+    private readonly int _foo;
+    int Foo
     {
-        private readonly int _foo;
-        int Foo
-        {
-            get { return _foo; }
-        }
+        get { return _foo; }
     }
 }");
         }
@@ -385,16 +301,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeFieldReadonly
         public async Task FieldAssignedInProperty()
         {
             await TestMissingInRegularAndScriptAsync(
-@"namespace ConsoleApplication1
+@"class MyClass
 {
-    class MyClass
+    private int [|_foo|];
+    int Foo
     {
-        private int [|_foo|];
-        int Foo
-        {
-            get { return _foo; }
-            set { _foo = value; }
-        }
+        get { return _foo; }
+        set { _foo = value; }
     }
 }");
         }
@@ -403,15 +316,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeFieldReadonly
         public async Task FieldAssignedInMethod()
         {
             await TestMissingInRegularAndScriptAsync(
-@"namespace ConsoleApplication1
+@"class MyClass
 {
-    class MyClass
+    private int [|_foo|];
+    int Foo()
     {
-        private int [|_foo|];
-        int Foo()
-        {
-            _foo = 0;
-        }
+        _foo = 0;
     }
 }");
         }
@@ -420,26 +330,20 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeFieldReadonly
         public async Task VariableAssignedToFieldInMethod()
         {
             await TestInRegularAndScriptAsync(
-@"namespace ConsoleApplication1
+@"class MyClass
 {
-    class MyClass
+    private int [|_foo|];
+    int Foo()
     {
-        private int [|_foo|];
-        int Foo()
-        {
-            var i = _foo;
-        }
+        var i = _foo;
     }
 }",
-@"namespace ConsoleApplication1
+@"class MyClass
 {
-    class MyClass
+    private readonly int _foo;
+    int Foo()
     {
-        private readonly int _foo;
-        int Foo()
-        {
-            var i = _foo;
-        }
+        var i = _foo;
     }
 }");
         }
@@ -448,15 +352,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeFieldReadonly
         public async Task FieldAssignedInMethodWithCompoundOperator()
         {
             await TestMissingInRegularAndScriptAsync(
-@"namespace ConsoleApplication1
+@"class MyClass
 {
-    class MyClass
+    private int [|_foo|] = 0;
+    int Foo(int value)
     {
-        private int [|_foo|] = 0;
-        int Foo(int value)
-        {
-            _foo += value;
-        }
+        _foo += value;
     }
 }");
         }
@@ -465,15 +366,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeFieldReadonly
         public async Task FieldUsedWithPostfixIncrement()
         {
             await TestMissingInRegularAndScriptAsync(
-@"namespace ConsoleApplication1
+@"class MyClass
 {
-    class MyClass
+    private int [|_foo|] = 0;
+    int Foo(int value)
     {
-        private int [|_foo|] = 0;
-        int Foo(int value)
-        {
-            _foo++;
-        }
+        _foo++;
     }
 }");
         }
@@ -482,15 +380,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeFieldReadonly
         public async Task FieldUsedWithPrefixDecrement()
         {
             await TestMissingInRegularAndScriptAsync(
-@"namespace ConsoleApplication1
+@"class MyClass
 {
-    class MyClass
+    private int [|_foo|] = 0;
+    int Foo(int value)
     {
-        private int [|_foo|] = 0;
-        int Foo(int value)
-        {
-            --_foo;
-        }
+        --_foo;
     }
 }");
         }
@@ -499,18 +394,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeFieldReadonly
         public async Task AssignedInPartialClass()
         {
             await TestMissingInRegularAndScriptAsync(
-@"namespace ConsoleApplication1
+@"partial class MyClass
 {
-    partial class MyClass
+    private int [|_foo|];
+}
+partial class MyClass
+{
+    void SetFoo()
     {
-        private int [|_foo|];
-    }
-    partial class MyClass
-    {
-        void SetFoo()
-        {
-            _foo = 0;
-        }
+        _foo = 0;
     }
 }");
         }
@@ -519,32 +411,26 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeFieldReadonly
         public async Task PassedAsParameter()
         {
             await TestInRegularAndScriptAsync(
-@"namespace ConsoleApplication1
+@"class MyClass
 {
-    class MyClass
+    private int [|_foo|];
+    void Foo()
     {
-        private int [|_foo|];
-        void Foo()
-        {
-            Bar(_foo);
-        }
-        void Bar(int foo)
-        {
-        }
+        Bar(_foo);
+    }
+    void Bar(int foo)
+    {
     }
 }",
-@"namespace ConsoleApplication1
+@"class MyClass
 {
-    class MyClass
+    private readonly int _foo;
+    void Foo()
     {
-        private readonly int _foo;
-        void Foo()
-        {
-            Bar(_foo);
-        }
-        void Bar(int foo)
-        {
-        }
+        Bar(_foo);
+    }
+    void Bar(int foo)
+    {
     }
 }");
         }
@@ -553,15 +439,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeFieldReadonly
         public async Task PassedAsOutParameter()
         {
             await TestMissingInRegularAndScriptAsync(
-@"namespace ConsoleApplication1
+@"class MyClass
 {
-    class MyClass
+    private int [|_foo|];
+    void Foo()
     {
-        private int [|_foo|];
-        void Foo()
-        {
-            int.TryParse(""123"", out _foo);
-        }
+        int.TryParse(""123"", out _foo);
     }
 }");
         }
@@ -570,18 +453,65 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeFieldReadonly
         public async Task PassedAsRefParameter()
         {
             await TestMissingInRegularAndScriptAsync(
-@"namespace ConsoleApplication1
+@"class MyClass
 {
-    class MyClass
+    private int [|_foo|];
+    void Foo()
     {
-        private int [|_foo|];
-        void Foo()
-        {
-            Bar(ref _foo);
+        Bar(ref _foo);
+    }
+    void Bar(ref int foo)
+    {
+    }
+}");
         }
-        void Bar(ref int foo)
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        public async Task PassedAsOutParameterInCtor()
         {
+            await TestInRegularAndScriptAsync(
+@"class MyClass
+{
+    private int [|_foo|];
+    MyClass()
+    {
+        int.TryParse(""123"", out _foo);
+    }
+}",
+@"class MyClass
+{
+    private readonly int _foo;
+    MyClass()
+    {
+        int.TryParse(""123"", out _foo);
+    }
+}");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        public async Task PassedAsRefParameterInCtor()
+        {
+            await TestInRegularAndScriptAsync(
+@"class MyClass
+{
+    private int [|_foo|];
+    MyClass()
+    {
+        Bar(ref _foo);
+    }
+    void Bar(ref int foo)
+    {
+    }
+}",
+@"class MyClass
+{
+    private readonly int _foo;
+    MyClass()
+    {
+        Bar(ref _foo);
+    }
+    void Bar(ref int foo)
+    {
     }
 }");
         }
@@ -590,26 +520,20 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeFieldReadonly
         public async Task StaticFieldAssignedInStaticCtor()
         {
             await TestInRegularAndScriptAsync(
-@"namespace ConsoleApplication1
+@"class MyClass
 {
-    class MyClass
+    private static int [|_foo|];
+    static MyClass()
     {
-        private static int [|_foo|];
-        static MyClass()
-        {
-            _foo = 0;
-        }
+        _foo = 0;
     }
 }",
-@"namespace ConsoleApplication1
+@"class MyClass
 {
-    class MyClass
+    private static readonly int _foo;
+    static MyClass()
     {
-        private static readonly int _foo;
-        static MyClass()
-        {
-            _foo = 0;
-        }
+        _foo = 0;
     }
 }");
         }
@@ -618,15 +542,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeFieldReadonly
         public async Task StaticFieldAssignedInNonStaticCtor()
         {
             await TestMissingInRegularAndScriptAsync(
-@"namespace ConsoleApplication1
+@"class MyClass
 {
-    class MyClass
+    private static int [|_foo|];
+    MyClass()
     {
-        private static int [|_foo|];
-        MyClass()
-        {
-            _foo = 0;
-        }
+        _foo = 0;
     }
 }");
         }
@@ -635,22 +556,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeFieldReadonly
         public async Task FixAll()
         {
             await TestInRegularAndScriptAsync(
-@"namespace ConsoleApplication1
+@"class MyClass
 {
-    class MyClass
-    {
-        private int {|FixAllInDocument:_foo|} = 0, _bar = 0;
-        private int _fizz = 0;
-    }
+    private int {|FixAllInDocument:_foo|} = 0, _bar = 0;
+    private int _fizz = 0;
 }",
-@"namespace ConsoleApplication1
+@"class MyClass
 {
-    class MyClass
-    {
-        private readonly int _bar = 0;
-        private readonly int _foo = 0;
-        private readonly int _fizz = 0;
-    }
+    private readonly int _bar = 0;
+    private readonly int _foo = 0;
+    private readonly int _fizz = 0;
 }");
         }
     }

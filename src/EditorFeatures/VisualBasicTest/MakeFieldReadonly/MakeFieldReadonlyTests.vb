@@ -352,6 +352,27 @@ End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
+        Public Async Function PassedAsByRefParameterInCtor() As Task
+            Await TestInRegularAndScriptAsync(
+"Class C
+    Private [|_foo|] As Integer = 0
+    Sub New()
+        Bar(_foo)
+    End Sub
+    Sub Bar(ByRef value As Integer)
+    End Sub
+End Class",
+"Class C
+    Private ReadOnly _foo As Integer = 0
+    Sub New()
+        Bar(_foo)
+    End Sub
+    Sub Bar(ByRef value As Integer)
+    End Sub
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
         Public Async Function PassedAsByValParameter() As Task
             Await TestInRegularAndScriptAsync(
 "Class C

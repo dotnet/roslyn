@@ -14,11 +14,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.MakeFieldReadonly
             context.RegisterSyntaxNodeAction(AddressOf AnalyzeType, SyntaxKind.ClassBlock, SyntaxKind.StructureBlock, SyntaxKind.ModuleBlock)
         End Sub
 
-        Friend Overrides Function CanBeReadonly(name As IdentifierNameSyntax, model As SemanticModel, cancellationToken As CancellationToken) As Boolean
-            Return Not name.IsWrittenTo(model, cancellationToken)
+        Protected Overrides Function IsWrittenTo(name As IdentifierNameSyntax, model As SemanticModel, cancellationToken As CancellationToken) As Boolean
+            Return name.IsWrittenTo(model, cancellationToken)
         End Function
 
-        Friend Overrides Function IsMemberOfThisInstance(node As SyntaxNode) As Boolean
+        Protected Overrides Function IsMemberOfThisInstance(node As SyntaxNode) As Boolean
             ' if it is a qualified name, make sure it is `Me.name`
             Dim memberAccess = TryCast(node.Parent, MemberAccessExpressionSyntax)
             If memberAccess IsNot Nothing Then

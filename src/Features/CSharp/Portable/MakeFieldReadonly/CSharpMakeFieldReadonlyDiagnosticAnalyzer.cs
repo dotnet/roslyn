@@ -15,12 +15,10 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeFieldReadonly
         protected override void InitializeWorker(AnalysisContext context)
             => context.RegisterSyntaxNodeAction(AnalyzeType, SyntaxKind.ClassDeclaration, SyntaxKind.StructDeclaration);
 
-        internal override bool CanBeReadonly(IdentifierNameSyntax name, SemanticModel model, CancellationToken cancellationToken)
-        {
-            return !name.IsWrittenTo();
-        }
+        protected override bool IsWrittenTo(IdentifierNameSyntax name, SemanticModel model, CancellationToken cancellationToken)
+            => name.IsWrittenTo();
 
-        internal override bool IsMemberOfThisInstance(SyntaxNode node)
+        protected override bool IsMemberOfThisInstance(SyntaxNode node)
         {
             // if it is a qualified name, make sure it is `this.name`
             if (node.Parent is MemberAccessExpressionSyntax memberAccess)

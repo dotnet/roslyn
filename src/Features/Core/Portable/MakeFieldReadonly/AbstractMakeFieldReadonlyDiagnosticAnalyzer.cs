@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
 
                 if (!(descendant is TIdentifierNameSyntax name))
                 {
-                    return;
+                    continue;
                 }
 
                 var symbol = model.GetSymbolInfo(descendant).Symbol as IFieldSymbol;
@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
                     continue;
                 }
                 
-                if (!CanBeReadonly(name, model, cancellationToken))
+                if (IsWrittenTo(name, model, cancellationToken))
                 {
                     unassignedSymbols.Remove(symbol);
                 }
@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
             return ctor != null;
         }
 
-        internal abstract bool CanBeReadonly(TIdentifierNameSyntax node, SemanticModel model, CancellationToken cancellationToken);
-        internal abstract bool IsMemberOfThisInstance(SyntaxNode node);
+        protected abstract bool IsWrittenTo(TIdentifierNameSyntax node, SemanticModel model, CancellationToken cancellationToken);
+        protected abstract bool IsMemberOfThisInstance(SyntaxNode node);
     }
 }
