@@ -60,6 +60,7 @@
     <Compile Include="Attributes\AttributeTests_CallerInfoAttributes.cs" />
     <Compile Include="Attributes\AttributeTests_Conditional.cs" />
     <Compile Include="Attributes\AttributeTests_Dynamic.cs" />
+    <Compile Include="Attributes\AttributeTests_Experimental.cs" />
     <Compile Include="Attributes\AttributeTests_Locations.cs" />
     <Compile Include="Attributes\AttributeTests_MarshalAs.cs" />
     <Compile Include="Attributes\AttributeTests_Security.cs" />

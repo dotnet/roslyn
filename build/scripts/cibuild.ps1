@@ -11,6 +11,8 @@ param (
     [switch]$skipRestore = $false,
     [switch]$skipCommitPrinting = $false,
     [switch]$release = $false,
+    [switch]$skipCoreClrTests = $false,
+    [switch]$skipDesktopTests = $false,
     [parameter(ValueFromRemainingArguments=$true)] $badArgs)
 
 Set-StrictMode -version 2.0
@@ -24,6 +26,8 @@ function Print-Usage() {
     Write-Host "  -test64  Run units tests in the 64-bit runner."
     Write-Host "  -$testVsi  Run all integration tests."
     Write-Host "  -$testVsiNetCore  Run just dotnet core integration tests."
+    Write-Host "  -skipCoreClrTests  Skip running unit tests on CoreCLR"
+    Write-Host "  -skipDesktopTests  Skip running unit tests on Desktop"
 }
 
 function Run-MSBuild() {
@@ -156,13 +160,15 @@ try {
     $target = if ($skipTest) { "Build" } else { "BuildAndTest" }
     $test64Arg = if ($test64) { "true" } else { "false" }
     $testVsiArg = if ($testVsi) { "true" } else { "false" }
+    $skipCoreClrTestsArg = if ($skipCoreClrTests) { "true" } else { "false" }
+    $skipDesktopTestsArg = if ($skipDesktopTests) { "true" } else { "false" }
     $buildLog = Join-Path $binariesdir "Build.log"
 
     if ($testVsiNetCore) { 
-        Run-MSBuild /p:BootstrapBuildPath="$bootstrapDir" BuildAndTest.proj /t:$target /p:Configuration=$buildConfiguration /p:Test64=$test64Arg /p:TestVsi=true /p:Trait="Feature=NetCore" /p:PathMap="$($repoDir)=q:\roslyn" /p:Feature=pdb-path-determinism /fileloggerparameters:LogFile="$buildLog"`;verbosity=diagnostic /p:DeployExtension=false
+        Run-MSBuild /p:BootstrapBuildPath="$bootstrapDir" BuildAndTest.proj /t:$target /p:Configuration=$buildConfiguration /p:Test64=$test64Arg /p:TestVsi=true /p:SkipCoreClrTest=$skipCoreClrTestsArg /p:SkipDesktopTest=$skipDesktopTestsArg /p:Trait="Feature=NetCore" /p:PathMap="$($repoDir)=q:\roslyn" /p:Feature=pdb-path-determinism /fileloggerparameters:LogFile="$buildLog"`;verbosity=diagnostic /p:DeployExtension=false
     }
     else {
-        Run-MSBuild /p:BootstrapBuildPath="$bootstrapDir" BuildAndTest.proj /t:$target /p:Configuration=$buildConfiguration /p:Test64=$test64Arg /p:TestVsi=$testVsiArg /p:PathMap="$($repoDir)=q:\roslyn" /p:Feature=pdb-path-determinism /fileloggerparameters:LogFile="$buildLog"`;verbosity=diagnostic /p:DeployExtension=false
+        Run-MSBuild /p:BootstrapBuildPath="$bootstrapDir" BuildAndTest.proj /t:$target /p:Configuration=$buildConfiguration /p:Test64=$test64Arg /p:TestVsi=$testVsiArg /p:SkipCoreClrTest=$skipCoreClrTestsArg /p:SkipDesktopTest=$skipDesktopTestsArg /p:Trait="Feature=NetCore" /p:PathMap="$($repoDir)=q:\roslyn" /p:Feature=pdb-path-determinism /fileloggerparameters:LogFile="$buildLog"`;verbosity=diagnostic /p:DeployExtension=false
     }
 
     exit 0

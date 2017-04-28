@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using StreamJsonRpc;
 using Microsoft.CodeAnalysis.Remote;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Remote
 {
@@ -22,6 +23,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         public JsonRpcClient(
             Stream stream, object callbackTarget, bool useThisAsCallback, CancellationToken cancellationToken)
         {
+            Contract.Requires(stream != null);
+
             var target = useThisAsCallback ? this : callbackTarget;
             _cancellationToken = cancellationToken;
 

@@ -1,36 +1,30 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.ComponentModel;
-using System.Linq;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.Internal.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer
 {
-    internal sealed partial class DiagnosticItem : BaseItem
+    internal abstract partial class BaseDiagnosticItem : BaseItem
     {
-        private readonly DiagnosticDescriptor _descriptor;
-        private ReportDiagnostic _effectiveSeverity;
-        private readonly AnalyzerItem _analyzerItem;
-        private readonly IContextMenuController _contextMenuController;
+        protected readonly DiagnosticDescriptor _descriptor;
+        protected ReportDiagnostic _effectiveSeverity;
 
         public override event PropertyChangedEventHandler PropertyChanged;
 
-        public DiagnosticItem(AnalyzerItem analyzerItem, DiagnosticDescriptor descriptor, ReportDiagnostic effectiveSeverity, IContextMenuController contextMenuController)
+
+        public BaseDiagnosticItem(DiagnosticDescriptor descriptor, ReportDiagnostic effectiveSeverity)
             : base(string.Format("{0}: {1}", descriptor.Id, descriptor.Title))
         {
-            _analyzerItem = analyzerItem;
             _descriptor = descriptor;
             _effectiveSeverity = effectiveSeverity;
-            _contextMenuController = contextMenuController;
         }
 
         public override ImageMoniker IconMoniker
@@ -41,13 +35,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             }
         }
 
-        public AnalyzerItem AnalyzerItem
-        {
-            get
-            {
-                return _analyzerItem;
-            }
-        }
+        protected abstract Workspace Workspace { get; }
+        public abstract ProjectId ProjectId { get; }
+        protected abstract AnalyzerReference AnalyzerReference { get; }
 
         public DiagnosticDescriptor Descriptor
         {
@@ -70,14 +60,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             return new BrowseObject(this);
         }
 
-        public override IContextMenuController ContextMenuController
-        {
-            get
-            {
-                return _contextMenuController;
-            }
-        }
-
         public Uri GetHelpLink()
         {
             if (BrowserHelper.TryGetUri(Descriptor.HelpLinkUri, out var link))
@@ -87,7 +69,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
             if (!string.IsNullOrWhiteSpace(Descriptor.Id))
             {
-                _analyzerItem.AnalyzersFolder.Workspace.GetLanguageAndProjectType(_analyzerItem.AnalyzersFolder.ProjectId, out var language, out var projectType);
+                Workspace.GetLanguageAndProjectType(ProjectId, out var language, out var projectType);
 
                 // we use message format here since we don't have actual instance of diagnostic here. 
                 // (which means we do not have a message)
@@ -141,7 +123,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         {
             var ruleSetDocument = XDocument.Load(pathToRuleSet);
 
-            ruleSetDocument.SetSeverity(_analyzerItem.AnalyzerReference.Display, _descriptor.Id, value);
+            ruleSetDocument.SetSeverity(AnalyzerReference.Display, _descriptor.Id, value);
 
             ruleSetDocument.Save(pathToRuleSet);
         }

@@ -704,6 +704,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 other = SubstituteTypeParameters(other);
 
                 return _comparer.Equals(method.ReturnType, other.ReturnType) &&
+                    method.RefKind.Equals(other.RefKind) &&
                     method.Parameters.SequenceEqual(other.Parameters, AreParametersEqual) &&
                     method.TypeParameters.SequenceEqual(other.TypeParameters, AreTypesEqual);
             }
@@ -757,6 +758,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             {
                 Debug.Assert(StringOrdinalComparer.Equals(property.Name, other.Name));
                 return _comparer.Equals(property.Type, other.Type) &&
+                    property.RefKind.Equals(other.RefKind) &&
                     property.Parameters.SequenceEqual(other.Parameters, AreParametersEqual);
             }
 

@@ -191,6 +191,7 @@
     <Compile Include="Diagnostics\UseAutoProperty\UseAutoPropertyTests.vb" />
     <Compile Include="Expansion\LambdaParameterExpansionTests.vb" />
     <Compile Include="FindReferences\FindReferencesTests.Literals.vb" />
+    <Compile Include="FindReferences\FindReferencesTests.LocalFunctions.vb" />
     <Compile Include="FindReferences\FindReferencesTests.Tuples.vb" />
     <Compile Include="GoToImplementation\GoToImplementationTests.vb" />
     <Compile Include="IntelliSense\CompletionServiceTests.vb" />

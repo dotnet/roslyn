@@ -54,7 +54,7 @@ if (branchName.startsWith("features/")) {
   commitPullList = [true]
 } 
 
-// Windows     
+// Windows Desktop CLR
 commitPullList.each { isPr -> 
   ['debug', 'release'].each { configuration ->
         ['unit32', 'unit64'].each { buildTarget ->
@@ -62,7 +62,7 @@ commitPullList.each { isPr ->
             def myJob = job(jobName) {
         description("Windows ${configuration} tests on ${buildTarget}")
                   steps {
-                    batchFile(""".\\build\\scripts\\cibuild.cmd ${(configuration == 'debug') ? '/debug' : '/release'} ${(buildTarget == 'unit32') ? '/test32' : '/test64'}""")
+                    batchFile(""".\\build\\scripts\\cibuild.cmd ${(configuration == 'debug') ? '/debug' : '/release'} ${(buildTarget == 'unit32') ? '/test32' : '/test64'} /skipCoreClrTests""")
                   }
                 }
 
@@ -72,6 +72,25 @@ commitPullList.each { isPr ->
       Utilities.addXUnitDotNETResults(myJob, '**/xUnitResults/*.xml')
       addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
     }
+  }
+}
+
+// Windows CoreCLR
+commitPullList.each { isPr ->
+  ['debug', 'release'].each { configuration ->
+    def jobName = Utilities.getFullJobName(projectName, "windows_coreclr_test", isPr)
+    def myJob = job(jobName) {
+      description("Windows CoreCLR unit tests")
+            steps {
+              batchFile(""".\\build\\scripts\\cibuild.cmd ${(configuration == 'debug') ? '/debug' : '/release'} /skipDesktopTests""")
+            }
+    }
+
+    def triggerPhraseOnly = false
+    def triggerPhraseExtra = ""
+    Utilities.setMachineAffinity(myJob, 'Windows_NT', 'win2016-base')
+    Utilities.addXUnitDotNETResults(myJob, '**/xUnitResults/*.xml')
+    addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
   }
 }
 
