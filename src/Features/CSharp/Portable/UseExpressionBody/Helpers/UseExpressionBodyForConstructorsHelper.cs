@@ -1,32 +1,28 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Composition;
-using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
-    internal class UseExpressionBodyForConstructorsCodeFixProvider : AbstractUseExpressionBodyCodeFixProvider<ConstructorDeclarationSyntax>
+    internal class UseExpressionBodyForConstructorsHelper :
+        AbstractUseExpressionBodyHelper<ConstructorDeclarationSyntax>
     {
-        public UseExpressionBodyForConstructorsCodeFixProvider()
-            : base(IDEDiagnosticIds.UseExpressionBodyForConstructorsDiagnosticId,
-                   CSharpCodeStyleOptions.PreferExpressionBodiedConstructors,
-                   FeaturesResources.Use_expression_body_for_constructors,
-                   FeaturesResources.Use_block_body_for_constructors)
+        public UseExpressionBodyForConstructorsHelper()
+            : base(new LocalizableResourceString(nameof(FeaturesResources.Use_expression_body_for_constructors), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
+                   new LocalizableResourceString(nameof(FeaturesResources.Use_block_body_for_constructors), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
+                   CSharpCodeStyleOptions.PreferExpressionBodiedConstructors)
         {
         }
 
-        protected override SyntaxToken GetSemicolonToken(ConstructorDeclarationSyntax declaration)
-            => declaration.SemicolonToken;
+        public override BlockSyntax GetBody(ConstructorDeclarationSyntax declaration)
+            => declaration.Body;
 
-        protected override ArrowExpressionClauseSyntax GetExpressionBody(ConstructorDeclarationSyntax declaration)
+        public override ArrowExpressionClauseSyntax GetExpressionBody(ConstructorDeclarationSyntax declaration)
             => declaration.ExpressionBody;
 
-        protected override BlockSyntax GetBody(ConstructorDeclarationSyntax declaration)
-            => declaration.Body;
+        protected override SyntaxToken GetSemicolonToken(ConstructorDeclarationSyntax declaration)
+            => declaration.SemicolonToken;
 
         protected override ConstructorDeclarationSyntax WithSemicolonToken(ConstructorDeclarationSyntax declaration, SyntaxToken token)
             => declaration.WithSemicolonToken(token);

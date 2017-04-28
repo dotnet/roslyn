@@ -1,90 +1,102 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Immutable;
 using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
 {
-    internal abstract partial class AbstractUseExpressionBodyCodeFixProvider<TDeclaration> : 
-        SyntaxEditorBasedCodeFixProvider
+    /// <summary>
+    /// Helper class that allows us to share lots of logic between the diagnostic analyzer and the
+    /// code refactoring provider.  Those can't share a common base class due to their own inheritance
+    /// requirements with <see cref="DiagnosticAnalyzer"/> and <see cref="CodeRefactoringProvider"/>.
+    /// </summary>
+    internal abstract class AbstractUseExpressionBodyHelper<TDeclaration>
         where TDeclaration : SyntaxNode
     {
-        private readonly Option<CodeStyleOption<ExpressionBodyPreference>> _option;
-        private readonly string _useExpressionBodyTitle;
-        private readonly string _useBlockBodyTitle;
+        public readonly Option<CodeStyleOption<ExpressionBodyPreference>> Option;
+        public readonly LocalizableString UseExpressionBodyTitle;
+        public readonly LocalizableString UseBlockBodyTitle;
 
-        public sealed override ImmutableArray<string> FixableDiagnosticIds { get; }
-
-        protected AbstractUseExpressionBodyCodeFixProvider(
-            string diagnosticId,
-            Option<CodeStyleOption<ExpressionBodyPreference>> option,
-            string useExpressionBodyTitle,
-            string useBlockBodyTitle)
+        protected AbstractUseExpressionBodyHelper(
+            LocalizableString useExpressionBodyTitle,
+            LocalizableString useBlockBodyTitle,
+            Option<CodeStyleOption<ExpressionBodyPreference>> option)
         {
-            FixableDiagnosticIds = ImmutableArray.Create(diagnosticId);
-            _option = option;
-            _useExpressionBodyTitle = useExpressionBodyTitle;
-            _useBlockBodyTitle = useBlockBodyTitle;
+            Option = option;
+            UseExpressionBodyTitle = useExpressionBodyTitle;
+            UseBlockBodyTitle = useBlockBodyTitle;
         }
 
-        protected override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic)
-            => diagnostic.Severity != DiagnosticSeverity.Hidden;
+        public abstract BlockSyntax GetBody(TDeclaration declaration);
+        public abstract ArrowExpressionClauseSyntax GetExpressionBody(TDeclaration declaration);
 
-        public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
+        protected static BlockSyntax GetBodyFromSingleGetAccessor(AccessorListSyntax accessorList)
         {
-            var diagnostic = context.Diagnostics.First();
-            var documentOptionSet = await context.Document.GetOptionsAsync(context.CancellationToken).ConfigureAwait(false);
-
-            var priority = diagnostic.Severity == DiagnosticSeverity.Hidden
-                ? CodeActionPriority.Low
-                : CodeActionPriority.Medium;
-
-            context.RegisterCodeFix(
-                new MyCodeAction(diagnostic.GetMessage(), priority, c => FixAsync(context.Document, diagnostic, c)),
-                diagnostic);
-        }
-
-        protected override async Task FixAllAsync(
-            Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CancellationToken cancellationToken)
-        {
-            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-
-            foreach (var diagnostic in diagnostics)
+            if (accessorList != null &&
+                accessorList.Accessors.Count == 1 &&
+                accessorList.Accessors[0].AttributeLists.Count == 0 && 
+                accessorList.Accessors[0].IsKind(SyntaxKind.GetAccessorDeclaration))
             {
-                cancellationToken.ThrowIfCancellationRequested();
-                AddEdits(editor, diagnostic, options, cancellationToken);
+                return accessorList.Accessors[0].Body;
             }
+
+            return null;
         }
 
-        private void AddEdits(
-            SyntaxEditor editor, Diagnostic diagnostic,
-            OptionSet options, CancellationToken cancellationToken)
+        public virtual bool CanOfferUseExpressionBody(
+            OptionSet optionSet, TDeclaration declaration, bool forAnalyzer)
         {
-            var declarationLocation = diagnostic.AdditionalLocations[0];
-            var declaration = (TDeclaration)declarationLocation.FindNode(cancellationToken);
+            var preference = optionSet.GetOption(this.Option).Value;
+            var userPrefersExpressionBodies = preference != ExpressionBodyPreference.Never;
 
-            var updatedDeclaration = this.Update(declaration, options)
-                                         .WithAdditionalAnnotations(Formatter.Annotation);
+            // If the user likes expression bodies, then we offer expression bodies from the diagnostic analyzer.
+            // If the user does not like expression bodies then we offer expression bodies from the refactoring provider.
+            if (userPrefersExpressionBodies == forAnalyzer)
+            {
+                var expressionBody = this.GetExpressionBody(declaration);
+                if (expressionBody == null)
+                {
+                    // They don't have an expression body.  See if we could convert the block they 
+                    // have into one.
 
-            editor.ReplaceNode(declaration, updatedDeclaration);
+                    var options = declaration.SyntaxTree.Options;
+                    var body = this.GetBody(declaration);
+                    if (body.TryConvertToExpressionBody(options, preference,
+                            out var expressionWhenOnSingleLine, out var semicolonWhenOnSingleLine))
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
         }
 
-        private TDeclaration Update(TDeclaration declaration, OptionSet options)
+        public virtual bool CanOfferUseBlockBody(
+            OptionSet optionSet, TDeclaration declaration, bool forAnalyzer)
+        {
+            var preference = optionSet.GetOption(this.Option).Value;
+            var userPrefersBlockBodies = preference == ExpressionBodyPreference.Never;
+
+            // If the user likes block bodies, then we offer block bodies from the diagnostic analyzer.
+            // If the user does not like block bodies then we offer block bodies from the refactoring provider.
+            if (userPrefersBlockBodies == forAnalyzer)
+            {
+                // If we have an expression body, we can always convert it to a block body.
+                return this.GetExpressionBody(declaration) != null;
+            }
+
+            return false;
+        }
+
+        public TDeclaration Update(TDeclaration declaration, OptionSet options)
         {
             var preferExpressionBody = GetBody(declaration) != null;
             if (preferExpressionBody)
@@ -116,8 +128,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         protected abstract bool CreateReturnStatementForExpression(TDeclaration declaration);
 
         protected abstract SyntaxToken GetSemicolonToken(TDeclaration declaration);
-        protected abstract ArrowExpressionClauseSyntax GetExpressionBody(TDeclaration declaration);
-        protected abstract BlockSyntax GetBody(TDeclaration declaration);
 
         protected abstract TDeclaration WithSemicolonToken(TDeclaration declaration, SyntaxToken token);
         protected abstract TDeclaration WithExpressionBody(TDeclaration declaration, ArrowExpressionClauseSyntax expressionBody);
@@ -165,17 +175,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         protected virtual TDeclaration WithAccessorList(TDeclaration declaration, AccessorListSyntax accessorListSyntax)
         {
             throw new NotImplementedException();
-        }
-
-        private class MyCodeAction : CodeAction.DocumentChangeAction
-        {
-            internal override CodeActionPriority Priority { get; }
-
-            public MyCodeAction(string title, CodeActionPriority priority, Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(title, createChangedDocument)
-            {
-                this.Priority = priority;
-            }
         }
     }
 }

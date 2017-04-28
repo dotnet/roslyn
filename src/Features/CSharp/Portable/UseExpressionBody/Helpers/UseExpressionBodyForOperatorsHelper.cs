@@ -1,32 +1,28 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Composition;
-using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
-    internal class UseExpressionBodyForOperatorsCodeFixProvider : AbstractUseExpressionBodyCodeFixProvider<OperatorDeclarationSyntax>
+    internal class UseExpressionBodyForOperatorsHelper :
+        AbstractUseExpressionBodyHelper<OperatorDeclarationSyntax>
     {
-        public UseExpressionBodyForOperatorsCodeFixProvider()
-            : base(IDEDiagnosticIds.UseExpressionBodyForOperatorsDiagnosticId,
-                   CSharpCodeStyleOptions.PreferExpressionBodiedOperators,
-                   FeaturesResources.Use_expression_body_for_operators,
-                   FeaturesResources.Use_block_body_for_operators)
+        public UseExpressionBodyForOperatorsHelper()
+            : base(new LocalizableResourceString(nameof(FeaturesResources.Use_expression_body_for_operators), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
+                   new LocalizableResourceString(nameof(FeaturesResources.Use_block_body_for_operators), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
+                   CSharpCodeStyleOptions.PreferExpressionBodiedOperators)
         {
         }
 
-        protected override SyntaxToken GetSemicolonToken(OperatorDeclarationSyntax declaration)
-            => declaration.SemicolonToken;
+        public override BlockSyntax GetBody(OperatorDeclarationSyntax declaration)
+            => declaration.Body;
 
-        protected override ArrowExpressionClauseSyntax GetExpressionBody(OperatorDeclarationSyntax declaration)
+        public override ArrowExpressionClauseSyntax GetExpressionBody(OperatorDeclarationSyntax declaration)
             => declaration.ExpressionBody;
 
-        protected override BlockSyntax GetBody(OperatorDeclarationSyntax declaration)
-            => declaration.Body;
+        protected override SyntaxToken GetSemicolonToken(OperatorDeclarationSyntax declaration)
+            => declaration.SemicolonToken;
 
         protected override OperatorDeclarationSyntax WithSemicolonToken(OperatorDeclarationSyntax declaration, SyntaxToken token)
             => declaration.WithSemicolonToken(token);
@@ -40,5 +36,4 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         protected override bool CreateReturnStatementForExpression(OperatorDeclarationSyntax declaration)
             => true;
     }
-
 }
