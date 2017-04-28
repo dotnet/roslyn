@@ -7739,9 +7739,9 @@ Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "M3").WithArguments("NS.clx<T>.M3(
 
             var comp = CreateStandardCompilation(source).VerifyDiagnostics(
                // (5,40): The abstract method 'clx.M1' cannot be marked virtual
-               Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "M1").WithArguments("method", "NS.clx.M1"),
+               Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "M1").WithArguments("method", "NS.clx.M1()"),
                // (6,41): The abstract method 'clx.M2<T>' cannot be marked virtual
-               Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "M2").WithArguments("method", "NS.clx.M2<T>"),
+               Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "M2").WithArguments("method", "NS.clx.M2<T>(T)"),
                // (7,40): The abstract property 'clx.P' cannot be marked virtual
                Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "P").WithArguments("property", "NS.clx.P"),
                // (8,53): The abstract event 'clx.E' cannot be marked virtual
