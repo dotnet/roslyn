@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -52,10 +51,7 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
             if (GetVariableDeclaratorCount(fieldDeclaration) == 1)
             {
                 var generator = SyntaxGenerator.GetGenerator(document);
-                var modifiers = generator.GetModifiers(fieldDeclaration);
-
-                var newDeclaration = generator.WithModifiers(fieldDeclaration, modifiers | DeclarationModifiers.ReadOnly);
-                editor.ReplaceNode(fieldDeclaration, newDeclaration);
+                editor.SetModifiers(fieldDeclaration, generator.GetModifiers(fieldDeclaration) | DeclarationModifiers.ReadOnly);
             }
             else
             {
@@ -69,11 +65,9 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
                                                                 generator.GetModifiers(fieldDeclaration) | DeclarationModifiers.ReadOnly,
                                                                 GetInitializerNode(declaration))
                                                 .WithAdditionalAnnotations(Formatter.Annotation);
-
-                var newFieldDeclaration = generator.RemoveNode(fieldDeclaration, declaration);
-
+                
                 editor.InsertAfter(fieldDeclaration, newDeclaration);
-                editor.ReplaceNode(fieldDeclaration, newFieldDeclaration);
+                editor.RemoveNode(declaration);
             }
         }
 

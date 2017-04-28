@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.MakeFieldReadonly
         End Function
 
         Friend Overrides Function GetInitializerNode(declaration As ModifiedIdentifierSyntax) As SyntaxNode
-            Return CType(declaration.Parent, VariableDeclaratorSyntax).Initializer.Value
+            Return CType(declaration.Parent, VariableDeclaratorSyntax).Initializer?.Value
         End Function
     End Class
 End Namespace

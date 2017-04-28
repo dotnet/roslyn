@@ -14,7 +14,33 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeFieldReadonly
     {
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new CSharpMakeFieldReadonlyDiagnosticAnalyzer(), new CSharpMakeFieldReadonlyCodeFixProvider());
-        
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        public async Task FieldIsPublic()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"namespace ConsoleApplication1
+{
+    class MyClass
+    {
+        public int [|_foo|];
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        public async Task FieldIsInternal()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"namespace ConsoleApplication1
+{
+    class MyClass
+    {
+        internal int [|_foo|];
+    }
+}");
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
         public async Task FieldIsReadonly()
         {
@@ -134,6 +160,27 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeFieldReadonly
         {
             _foo = 0;
         }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        public async Task MultipleFieldsAssignedInline_NoInitializer()
+        {
+            await TestInRegularAndScriptAsync(
+@"namespace ConsoleApplication1
+{
+    class MyClass
+    {
+        private int [|_foo|], _bar = 0;
+    }
+}",
+@"namespace ConsoleApplication1
+{
+    class MyClass
+    {
+        private int _bar = 0;
+        private readonly int _foo;
     }
 }");
         }
@@ -398,6 +445,29 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeFieldReadonly
         {
             _foo = 0;
         }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        public async Task FixAll()
+        {
+            await TestInRegularAndScriptAsync(
+@"namespace ConsoleApplication1
+{
+    class MyClass
+    {
+        private int {|FixAllInDocument:_foo|} = 0, _bar = 0;
+        private int _fizz = 0;
+    }
+}",
+@"namespace ConsoleApplication1
+{
+    class MyClass
+    {
+        private readonly int _bar = 0;
+        private readonly int _foo = 0;
+        private readonly int _fizz = 0;
     }
 }");
         }

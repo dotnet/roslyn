@@ -15,6 +15,22 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.MakeFieldReadonly
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
+        Public Async Function FieldIsPublic() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"Class C
+    Public [|_foo|] As Integer
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
+        Public Async Function FieldIsFriend() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"Class C
+    Friend [|_foo|] As Integer
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
         Public Async Function FieldIsReadonly() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Class C
@@ -104,6 +120,18 @@ End Class",
     Private Sub Foo()
         _foo = 0
     End Sub
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
+        Public Async Function MultipleFieldsAssignedInline_NoInitializer() As Task
+            Await TestInRegularAndScriptAsync(
+"Class C
+    Private [|_foo|] As Integer, _bar As Integer = 0
+End Class",
+"Class C
+    Private _bar As Integer = 0
+    Private ReadOnly _foo As Integer
 End Class")
         End Function
 
@@ -256,6 +284,20 @@ End Class")
     Sub New()
         _foo = 0
     End Sub
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
+        Public Async Function FixAll() As Task
+            Await TestInRegularAndScriptAsync(
+"Class C
+    Private {|FixAllInDocument:_foo|} As Integer = 0, _bar As Integer = 0
+    Private _fizz As Integer = 0
+End Class",
+"Class C
+    Private ReadOnly _bar As Integer = 0
+    Private ReadOnly _foo As Integer = 0
+    Private ReadOnly _fizz As Integer = 0
 End Class")
         End Function
     End Class
