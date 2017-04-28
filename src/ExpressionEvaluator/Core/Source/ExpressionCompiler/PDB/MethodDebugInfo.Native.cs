@@ -123,7 +123,11 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     defaultNamespaceName = "";
                 }
 
-                ImmutableArray<HoistedLocalScopeRecord> hoistedLocalScopeRecords = ImmutableArray<HoistedLocalScopeRecord>.Empty;
+                // VB should read hoisted scope information from local variables:
+                var hoistedLocalScopeRecords = isVisualBasicMethod ?
+                    default(ImmutableArray<HoistedLocalScopeRecord>) : 
+                    ImmutableArray<HoistedLocalScopeRecord>.Empty;
+
                 ImmutableDictionary<int, ImmutableArray<bool>> dynamicLocalMap = null;
                 ImmutableDictionary<string, ImmutableArray<bool>> dynamicLocalConstantMap = null;
                 ImmutableDictionary<int, ImmutableArray<string>> tupleLocalMap = null;

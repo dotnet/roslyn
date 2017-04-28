@@ -7,6 +7,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Navigation;
@@ -31,11 +32,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences
         }
 
         public override DefinitionItem GetThirdPartyDefinitionItem(
-            Solution solution, ISymbol definition, CancellationToken cancellationToken)
+            Solution solution, DefinitionItem definitionItem, CancellationToken cancellationToken)
         {
             var symbolNavigationService = solution.Workspace.Services.GetService<ISymbolNavigationService>();
             if (!symbolNavigationService.WouldNavigateToSymbol(
-                    definition, solution, cancellationToken,
+                    definitionItem, solution, cancellationToken,
                     out var filePath, out var lineNumber, out var charOffset))
             {
                 return null;
@@ -43,7 +44,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences
 
             var displayParts = GetDisplayParts(filePath, lineNumber, charOffset);
             return new ExternalDefinitionItem(
-                GlyphTags.GetTags(definition.GetGlyph()), displayParts,
+                definitionItem.Tags, displayParts,
                 _serviceProvider, filePath, lineNumber, charOffset);
         }
 
@@ -93,7 +94,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences
                 string filePath,
                 int lineNumber,
                 int charOffset) 
-                : base(tags, displayParts, ImmutableArray<TaggedText>.Empty)
+                : base(tags, displayParts, ImmutableArray<TaggedText>.Empty,
+                       originationParts: default(ImmutableArray<TaggedText>),
+                       sourceSpans: default(ImmutableArray<DocumentSpan>),
+                       properties: null,
+                       displayIfNoReferences: true)
             {
                 _serviceProvider = serviceProvider;
                 _filePath = filePath;
@@ -101,9 +106,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences
                 _charOffset = charOffset;
             }
 
-            public override bool CanNavigateTo() => true;
+            public override bool CanNavigateTo(Workspace workspace) => true;
 
-            public override bool TryNavigateTo()
+            public override bool TryNavigateTo(Workspace workspace, bool isPreview)
             {
                 return TryOpenFile() && TryNavigateToPosition();
             }
