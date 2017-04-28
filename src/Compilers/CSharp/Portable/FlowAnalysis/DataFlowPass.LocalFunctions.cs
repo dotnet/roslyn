@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.State = pending.State;
                 BoundNode branch = pending.Branch;
 
-                //No need to check the parameters if we dont know the branch
+                // No need to check the parameters if we dont know the branch
                 if (branch != null)
                 {
                     LeaveParameters(localFuncSymbol.Parameters, branch?.Syntax,
