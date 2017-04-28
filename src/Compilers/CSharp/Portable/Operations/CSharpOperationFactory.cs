@@ -182,7 +182,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         private static IInvocationExpression CreateBoundCallOperation(BoundCall boundCall)
         {
             IMethodSymbol targetMethod = boundCall.Method;
-            Lazy<IOperation> instance = new Lazy<IOperation>(() => (IOperation)Create(((object)boundCall.Method == null || boundCall.Method.IsStatic) ? null : boundCall.ReceiverOpt));
+            Lazy<IOperation> instance = new Lazy<IOperation>(() => Create(((object)boundCall.Method == null || boundCall.Method.IsStatic) ? null : boundCall.ReceiverOpt));
             bool isVirtual = (object)boundCall.Method != null &&
                         boundCall.ReceiverOpt != null &&
                         (boundCall.Method.IsVirtual || boundCall.Method.IsAbstract || boundCall.Method.IsOverride) &&
@@ -206,7 +206,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         private static IFieldReferenceExpression CreateBoundFieldAccessOperation(BoundFieldAccess boundFieldAccess)
         {
             IFieldSymbol field = boundFieldAccess.FieldSymbol;
-            Lazy<IOperation> instance = new Lazy<IOperation>(() => (IOperation)Create(boundFieldAccess.FieldSymbol.IsStatic ? null : boundFieldAccess.ReceiverOpt));
+            Lazy<IOperation> instance = new Lazy<IOperation>(() => Create(boundFieldAccess.FieldSymbol.IsStatic ? null : boundFieldAccess.ReceiverOpt));
             ISymbol member = boundFieldAccess.FieldSymbol;
             bool isInvalid = boundFieldAccess.HasErrors;
             SyntaxNode syntax = boundFieldAccess.Syntax;
@@ -217,7 +217,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         private static IPropertyReferenceExpression CreateBoundPropertyAccessOperation(BoundPropertyAccess boundPropertyAccess)
         {
             IPropertySymbol property = boundPropertyAccess.PropertySymbol;
-            Lazy<IOperation> instance = new Lazy<IOperation>(() => (IOperation)Create(boundPropertyAccess.PropertySymbol.IsStatic ? null : boundPropertyAccess.ReceiverOpt));
+            Lazy<IOperation> instance = new Lazy<IOperation>(() => Create(boundPropertyAccess.PropertySymbol.IsStatic ? null : boundPropertyAccess.ReceiverOpt));
             ISymbol member = boundPropertyAccess.PropertySymbol;
             bool isInvalid = boundPropertyAccess.HasErrors;
             SyntaxNode syntax = boundPropertyAccess.Syntax;
@@ -228,7 +228,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         private static IIndexedPropertyReferenceExpression CreateBoundIndexerAccessOperation(BoundIndexerAccess boundIndexerAccess)
         {
             IPropertySymbol property = boundIndexerAccess.Indexer;
-            Lazy<IOperation> instance = new Lazy<IOperation>(() => (IOperation)Create(boundIndexerAccess.Indexer.IsStatic ? null : boundIndexerAccess.ReceiverOpt));
+            Lazy<IOperation> instance = new Lazy<IOperation>(() => Create(boundIndexerAccess.Indexer.IsStatic ? null : boundIndexerAccess.ReceiverOpt));
             ISymbol member = boundIndexerAccess.Indexer;
             Lazy<ImmutableArray<IArgument>> argumentsInEvaluationOrder = new Lazy<ImmutableArray<IArgument>>(() => DeriveArguments(boundIndexerAccess.Arguments, boundIndexerAccess.ArgumentNamesOpt, boundIndexerAccess.ArgsToParamsOpt, boundIndexerAccess.ArgumentRefKindsOpt, boundIndexerAccess.Indexer.Parameters, boundIndexerAccess.Syntax));
             bool isInvalid = boundIndexerAccess.HasErrors;
@@ -240,7 +240,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         private static IEventReferenceExpression CreateBoundEventAccessOperation(BoundEventAccess boundEventAccess)
         {
             IEventSymbol @event = boundEventAccess.EventSymbol;
-            Lazy<IOperation> instance = new Lazy<IOperation>(() => (IOperation)Create(boundEventAccess.EventSymbol.IsStatic ? null : boundEventAccess.ReceiverOpt));
+            Lazy<IOperation> instance = new Lazy<IOperation>(() => Create(boundEventAccess.EventSymbol.IsStatic ? null : boundEventAccess.ReceiverOpt));
             ISymbol member = boundEventAccess.EventSymbol;
             bool isInvalid = boundEventAccess.HasErrors;
             SyntaxNode syntax = boundEventAccess.Syntax;
@@ -251,8 +251,8 @@ namespace Microsoft.CodeAnalysis.Semantics
         private static IEventAssignmentExpression CreateBoundEventAssignmentOperatorOperation(BoundEventAssignmentOperator boundEventAssignmentOperator)
         {
             IEventSymbol @event = boundEventAssignmentOperator.Event;
-            Lazy<IOperation> eventInstance = new Lazy<IOperation>(() => (IOperation)Create(boundEventAssignmentOperator.Event.IsStatic ? null : boundEventAssignmentOperator.ReceiverOpt));
-            Lazy<IOperation> handlerValue = new Lazy<IOperation>(() => (IOperation)Create(boundEventAssignmentOperator.Argument));
+            Lazy<IOperation> eventInstance = new Lazy<IOperation>(() => Create(boundEventAssignmentOperator.Event.IsStatic ? null : boundEventAssignmentOperator.ReceiverOpt));
+            Lazy<IOperation> handlerValue = new Lazy<IOperation>(() => Create(boundEventAssignmentOperator.Argument));
             bool adds = boundEventAssignmentOperator.IsAddition;
             bool isInvalid = boundEventAssignmentOperator.HasErrors;
             SyntaxNode syntax = boundEventAssignmentOperator.Syntax;
@@ -337,7 +337,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             }
             else
             {
-                Lazy<IOperation> operand = new Lazy<IOperation>(() => (IOperation)Create(boundConversion.Operand));
+                Lazy<IOperation> operand = new Lazy<IOperation>(() => Create(boundConversion.Operand));
 
                 bool isExplicit = boundConversion.ExplicitCastInCode;
                 bool usesOperatorMethod = boundConversion.ConversionKind == CSharp.ConversionKind.ExplicitUserDefined || boundConversion.ConversionKind == CSharp.ConversionKind.ImplicitUserDefined;
@@ -351,7 +351,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         }
         private static IConversionExpression CreateBoundAsOperatorOperation(BoundAsOperator boundAsOperator)
         {
-            Lazy<IOperation> operand = new Lazy<IOperation>(() => (IOperation)Create(boundAsOperator.Operand));
+            Lazy<IOperation> operand = new Lazy<IOperation>(() => Create(boundAsOperator.Operand));
             ConversionKind conversionKind = Semantics.ConversionKind.TryCast;
             bool isExplicit = true;
             bool usesOperatorMethod = false;
@@ -364,7 +364,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         }
         private static IIsTypeExpression CreateBoundIsOperatorOperation(BoundIsOperator boundIsOperator)
         {
-            Lazy<IOperation> operand = new Lazy<IOperation>(() => (IOperation)Create(boundIsOperator.Operand));
+            Lazy<IOperation> operand = new Lazy<IOperation>(() => Create(boundIsOperator.Operand));
             ITypeSymbol isType = boundIsOperator.TargetType.Type;
             bool isInvalid = boundIsOperator.HasErrors;
             SyntaxNode syntax = boundIsOperator.Syntax;
@@ -393,7 +393,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         private static IArrayCreationExpression CreateBoundArrayCreationOperation(BoundArrayCreation boundArrayCreation)
         {
             ITypeSymbol elementType = GetArrayCreationElementType(boundArrayCreation);
-            Lazy<ImmutableArray<IOperation>> dimensionSizes = new Lazy<ImmutableArray<IOperation>>(() => boundArrayCreation.Bounds.SelectAsArray(n => (IOperation)Create(n)));
+            Lazy<ImmutableArray<IOperation>> dimensionSizes = new Lazy<ImmutableArray<IOperation>>(() => boundArrayCreation.Bounds.SelectAsArray(n => Create(n)));
             Lazy<IArrayInitializer> initializer = new Lazy<IArrayInitializer>(() => (IArrayInitializer)Create(boundArrayCreation.InitializerOpt));
             bool isInvalid = boundArrayCreation.HasErrors;
             SyntaxNode syntax = boundArrayCreation.Syntax;
@@ -403,7 +403,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         }
         private static IArrayInitializer CreateBoundArrayInitializationOperation(BoundArrayInitialization boundArrayInitialization)
         {
-            Lazy<ImmutableArray<IOperation>> elementValues = new Lazy<ImmutableArray<IOperation>>(() => boundArrayInitialization.Initializers.SelectAsArray(n => (IOperation)Create(n)));
+            Lazy<ImmutableArray<IOperation>> elementValues = new Lazy<ImmutableArray<IOperation>>(() => boundArrayInitialization.Initializers.SelectAsArray(n => Create(n)));
             bool isInvalid = boundArrayInitialization.HasErrors;
             SyntaxNode syntax = boundArrayInitialization.Syntax;
             ITypeSymbol type = boundArrayInitialization.Type;
@@ -438,8 +438,8 @@ namespace Microsoft.CodeAnalysis.Semantics
         }
         private static IAssignmentExpression CreateBoundAssignmentOperatorOperation(BoundAssignmentOperator boundAssignmentOperator)
         {
-            Lazy<IOperation> target = new Lazy<IOperation>(() => (IOperation)Create(boundAssignmentOperator.Left));
-            Lazy<IOperation> value = new Lazy<IOperation>(() => (IOperation)Create(boundAssignmentOperator.Right));
+            Lazy<IOperation> target = new Lazy<IOperation>(() => Create(boundAssignmentOperator.Left));
+            Lazy<IOperation> value = new Lazy<IOperation>(() => Create(boundAssignmentOperator.Right));
             bool isInvalid = boundAssignmentOperator.HasErrors;
             SyntaxNode syntax = boundAssignmentOperator.Syntax;
             ITypeSymbol type = boundAssignmentOperator.Type;
@@ -449,8 +449,8 @@ namespace Microsoft.CodeAnalysis.Semantics
         private static ICompoundAssignmentExpression CreateBoundCompoundAssignmentOperatorOperation(BoundCompoundAssignmentOperator boundCompoundAssignmentOperator)
         {
             BinaryOperationKind binaryOperationKind = Helper.DeriveBinaryOperationKind(boundCompoundAssignmentOperator.Operator.Kind);
-            Lazy<IOperation> target = new Lazy<IOperation>(() => (IOperation)Create(boundCompoundAssignmentOperator.Left));
-            Lazy<IOperation> value = new Lazy<IOperation>(() => (IOperation)Create(boundCompoundAssignmentOperator.Right));
+            Lazy<IOperation> target = new Lazy<IOperation>(() => Create(boundCompoundAssignmentOperator.Left));
+            Lazy<IOperation> value = new Lazy<IOperation>(() => Create(boundCompoundAssignmentOperator.Right));
             bool usesOperatorMethod = (boundCompoundAssignmentOperator.Operator.Kind & BinaryOperatorKind.TypeMask) == BinaryOperatorKind.UserDefined;
             IMethodSymbol operatorMethod = boundCompoundAssignmentOperator.Operator.Method;
             bool isInvalid = boundCompoundAssignmentOperator.HasErrors;
@@ -463,7 +463,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             UnaryOperationKind incrementOperationKind = Helper.DeriveUnaryOperationKind(boundIncrementOperator.OperatorKind);
             BinaryOperationKind binaryOperationKind = Helper.DeriveBinaryOperationKind(incrementOperationKind);
-            Lazy<IOperation> target = new Lazy<IOperation>(() => (IOperation)Create(boundIncrementOperator.Operand));
+            Lazy<IOperation> target = new Lazy<IOperation>(() => Create(boundIncrementOperator.Operand));
             Lazy<IOperation> value = new Lazy<IOperation>(() => CreateIncrementOneLiteralExpression(boundIncrementOperator));
             bool usesOperatorMethod = (boundIncrementOperator.OperatorKind & UnaryOperatorKind.TypeMask) == UnaryOperatorKind.UserDefined;
             IMethodSymbol operatorMethod = boundIncrementOperator.MethodOpt;
@@ -493,7 +493,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         private static IUnaryOperatorExpression CreateBoundUnaryOperatorOperation(BoundUnaryOperator boundUnaryOperator)
         {
             UnaryOperationKind unaryOperationKind = Helper.DeriveUnaryOperationKind(boundUnaryOperator.OperatorKind);
-            Lazy<IOperation> operand = new Lazy<IOperation>(() => (IOperation)Create(boundUnaryOperator.Operand));
+            Lazy<IOperation> operand = new Lazy<IOperation>(() => Create(boundUnaryOperator.Operand));
             bool usesOperatorMethod = (boundUnaryOperator.OperatorKind & UnaryOperatorKind.TypeMask) == UnaryOperatorKind.UserDefined;
             IMethodSymbol operatorMethod = boundUnaryOperator.MethodOpt;
             bool isInvalid = boundUnaryOperator.HasErrors;
@@ -505,8 +505,8 @@ namespace Microsoft.CodeAnalysis.Semantics
         private static IBinaryOperatorExpression CreateBoundBinaryOperatorOperation(BoundBinaryOperator boundBinaryOperator)
         {
             BinaryOperationKind binaryOperationKind = Helper.DeriveBinaryOperationKind(boundBinaryOperator.OperatorKind);
-            Lazy<IOperation> leftOperand = new Lazy<IOperation>(() => (IOperation)Create(boundBinaryOperator.Left));
-            Lazy<IOperation> rightOperand = new Lazy<IOperation>(() => (IOperation)Create(boundBinaryOperator.Right));
+            Lazy<IOperation> leftOperand = new Lazy<IOperation>(() => Create(boundBinaryOperator.Left));
+            Lazy<IOperation> rightOperand = new Lazy<IOperation>(() => Create(boundBinaryOperator.Right));
             bool usesOperatorMethod = (boundBinaryOperator.OperatorKind & BinaryOperatorKind.TypeMask) == BinaryOperatorKind.UserDefined;
             IMethodSymbol operatorMethod = boundBinaryOperator.MethodOpt;
             bool isInvalid = boundBinaryOperator.HasErrors;
@@ -517,9 +517,9 @@ namespace Microsoft.CodeAnalysis.Semantics
         }
         private static IConditionalChoiceExpression CreateBoundConditionalOperatorOperation(BoundConditionalOperator boundConditionalOperator)
         {
-            Lazy<IOperation> condition = new Lazy<IOperation>(() => (IOperation)Create(boundConditionalOperator.Condition));
-            Lazy<IOperation> ifTrueValue = new Lazy<IOperation>(() => (IOperation)Create(boundConditionalOperator.Consequence));
-            Lazy<IOperation> ifFalseValue = new Lazy<IOperation>(() => (IOperation)Create(boundConditionalOperator.Alternative));
+            Lazy<IOperation> condition = new Lazy<IOperation>(() => Create(boundConditionalOperator.Condition));
+            Lazy<IOperation> ifTrueValue = new Lazy<IOperation>(() => Create(boundConditionalOperator.Consequence));
+            Lazy<IOperation> ifFalseValue = new Lazy<IOperation>(() => Create(boundConditionalOperator.Alternative));
             bool isInvalid = boundConditionalOperator.HasErrors;
             SyntaxNode syntax = boundConditionalOperator.Syntax;
             ITypeSymbol type = boundConditionalOperator.Type;
@@ -528,8 +528,8 @@ namespace Microsoft.CodeAnalysis.Semantics
         }
         private static INullCoalescingExpression CreateBoundNullCoalescingOperatorOperation(BoundNullCoalescingOperator boundNullCoalescingOperator)
         {
-            Lazy<IOperation> primaryOperand = new Lazy<IOperation>(() => (IOperation)Create(boundNullCoalescingOperator.LeftOperand));
-            Lazy<IOperation> secondaryOperand = new Lazy<IOperation>(() => (IOperation)Create(boundNullCoalescingOperator.RightOperand));
+            Lazy<IOperation> primaryOperand = new Lazy<IOperation>(() => Create(boundNullCoalescingOperator.LeftOperand));
+            Lazy<IOperation> secondaryOperand = new Lazy<IOperation>(() => Create(boundNullCoalescingOperator.RightOperand));
             bool isInvalid = boundNullCoalescingOperator.HasErrors;
             SyntaxNode syntax = boundNullCoalescingOperator.Syntax;
             ITypeSymbol type = boundNullCoalescingOperator.Type;
@@ -538,7 +538,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         }
         private static IAwaitExpression CreateBoundAwaitExpressionOperation(BoundAwaitExpression boundAwaitExpression)
         {
-            Lazy<IOperation> awaitedValue = new Lazy<IOperation>(() => (IOperation)Create(boundAwaitExpression.Expression));
+            Lazy<IOperation> awaitedValue = new Lazy<IOperation>(() => Create(boundAwaitExpression.Expression));
             bool isInvalid = boundAwaitExpression.HasErrors;
             SyntaxNode syntax = boundAwaitExpression.Syntax;
             ITypeSymbol type = boundAwaitExpression.Type;
@@ -547,8 +547,8 @@ namespace Microsoft.CodeAnalysis.Semantics
         }
         private static IArrayElementReferenceExpression CreateBoundArrayAccessOperation(BoundArrayAccess boundArrayAccess)
         {
-            Lazy<IOperation> arrayReference = new Lazy<IOperation>(() => (IOperation)Create(boundArrayAccess.Expression));
-            Lazy<ImmutableArray<IOperation>> indices = new Lazy<ImmutableArray<IOperation>>(() => boundArrayAccess.Indices.SelectAsArray(n => (IOperation)Create(n)));
+            Lazy<IOperation> arrayReference = new Lazy<IOperation>(() => Create(boundArrayAccess.Expression));
+            Lazy<ImmutableArray<IOperation>> indices = new Lazy<ImmutableArray<IOperation>>(() => boundArrayAccess.Indices.SelectAsArray(n => Create(n)));
             bool isInvalid = boundArrayAccess.HasErrors;
             SyntaxNode syntax = boundArrayAccess.Syntax;
             ITypeSymbol type = boundArrayAccess.Type;
@@ -557,7 +557,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         }
         private static IPointerIndirectionReferenceExpression CreateBoundPointerIndirectionOperatorOperation(BoundPointerIndirectionOperator boundPointerIndirectionOperator)
         {
-            Lazy<IOperation> pointer = new Lazy<IOperation>(() => (IOperation)Create(boundPointerIndirectionOperator.Operand));
+            Lazy<IOperation> pointer = new Lazy<IOperation>(() => Create(boundPointerIndirectionOperator.Operand));
             bool isInvalid = boundPointerIndirectionOperator.HasErrors;
             SyntaxNode syntax = boundPointerIndirectionOperator.Syntax;
             ITypeSymbol type = boundPointerIndirectionOperator.Type;
@@ -566,7 +566,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         }
         private static IAddressOfExpression CreateBoundAddressOfOperatorOperation(BoundAddressOfOperator boundAddressOfOperator)
         {
-            Lazy<IOperation> reference = new Lazy<IOperation>(() => (IOperation)Create(boundAddressOfOperator.Operand));
+            Lazy<IOperation> reference = new Lazy<IOperation>(() => Create(boundAddressOfOperator.Operand));
             bool isInvalid = boundAddressOfOperator.HasErrors;
             SyntaxNode syntax = boundAddressOfOperator.Syntax;
             ITypeSymbol type = boundAddressOfOperator.Type;
@@ -584,8 +584,8 @@ namespace Microsoft.CodeAnalysis.Semantics
         }
         private static IConditionalAccessExpression CreateBoundConditionalAccessOperation(BoundConditionalAccess boundConditionalAccess)
         {
-            Lazy<IOperation> conditionalValue = new Lazy<IOperation>(() => (IOperation)Create(boundConditionalAccess.AccessExpression));
-            Lazy<IOperation> conditionalInstance = new Lazy<IOperation>(() => (IOperation)Create(boundConditionalAccess.Receiver));
+            Lazy<IOperation> conditionalValue = new Lazy<IOperation>(() => Create(boundConditionalAccess.AccessExpression));
+            Lazy<IOperation> conditionalInstance = new Lazy<IOperation>(() => Create(boundConditionalAccess.Receiver));
             bool isInvalid = boundConditionalAccess.HasErrors;
             SyntaxNode syntax = boundConditionalAccess.Syntax;
             ITypeSymbol type = boundConditionalAccess.Type;
@@ -603,7 +603,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         private static IFieldInitializer CreateBoundFieldEqualsValueOperation(BoundFieldEqualsValue boundFieldEqualsValue)
         {
             ImmutableArray<IFieldSymbol> initializedFields = ImmutableArray.Create<IFieldSymbol>(boundFieldEqualsValue.Field);
-            Lazy<IOperation> value = new Lazy<IOperation>(() => (IOperation)Create(boundFieldEqualsValue.Value));
+            Lazy<IOperation> value = new Lazy<IOperation>(() => Create(boundFieldEqualsValue.Value));
             OperationKind kind = OperationKind.FieldInitializerAtDeclaration;
             bool isInvalid = value.Value.IsInvalid;
             SyntaxNode syntax = boundFieldEqualsValue.Syntax;
@@ -614,7 +614,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         private static IPropertyInitializer CreateBoundPropertyEqualsValueOperation(BoundPropertyEqualsValue boundPropertyEqualsValue)
         {
             IPropertySymbol initializedProperty = boundPropertyEqualsValue.Property;
-            Lazy<IOperation> value = new Lazy<IOperation>(() => (IOperation)Create(boundPropertyEqualsValue.Value));
+            Lazy<IOperation> value = new Lazy<IOperation>(() => Create(boundPropertyEqualsValue.Value));
             OperationKind kind = OperationKind.PropertyInitializerAtDeclaration;
             bool isInvalid = value.Value.IsInvalid;
             SyntaxNode syntax = boundPropertyEqualsValue.Syntax;
@@ -625,7 +625,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         private static IParameterInitializer CreateBoundParameterEqualsValueOperation(BoundParameterEqualsValue boundParameterEqualsValue)
         {
             IParameterSymbol parameter = boundParameterEqualsValue.Parameter;
-            Lazy<IOperation> value = new Lazy<IOperation>(() => (IOperation)Create(boundParameterEqualsValue.Value));
+            Lazy<IOperation> value = new Lazy<IOperation>(() => Create(boundParameterEqualsValue.Value));
             OperationKind kind = OperationKind.ParameterInitializerAtDeclaration;
             bool isInvalid = value.Value.IsInvalid;
             SyntaxNode syntax = boundParameterEqualsValue.Syntax;
@@ -665,7 +665,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         }
         private static IReturnStatement CreateBoundYieldBreakStatementOperation(BoundYieldBreakStatement boundYieldBreakStatement)
         {
-            Lazy<IOperation> returnedValue = new Lazy<IOperation>(() => (IOperation)Create(null));
+            Lazy<IOperation> returnedValue = new Lazy<IOperation>(() => Create(null));
             bool isInvalid = boundYieldBreakStatement.HasErrors;
             SyntaxNode syntax = boundYieldBreakStatement.Syntax;
             ITypeSymbol type = null;
@@ -692,9 +692,9 @@ namespace Microsoft.CodeAnalysis.Semantics
         }
         private static IIfStatement CreateBoundIfStatementOperation(BoundIfStatement boundIfStatement)
         {
-            Lazy<IOperation> condition = new Lazy<IOperation>(() => (IOperation)Create(boundIfStatement.Condition));
-            Lazy<IOperation> ifTrueStatement = new Lazy<IOperation>(() => (IOperation)Create(boundIfStatement.Consequence));
-            Lazy<IOperation> ifFalseStatement = new Lazy<IOperation>(() => (IOperation)Create(boundIfStatement.AlternativeOpt));
+            Lazy<IOperation> condition = new Lazy<IOperation>(() => Create(boundIfStatement.Condition));
+            Lazy<IOperation> ifTrueStatement = new Lazy<IOperation>(() => Create(boundIfStatement.Consequence));
+            Lazy<IOperation> ifFalseStatement = new Lazy<IOperation>(() => Create(boundIfStatement.AlternativeOpt));
             bool isInvalid = boundIfStatement.HasErrors;
             SyntaxNode syntax = boundIfStatement.Syntax;
             ITypeSymbol type = null;
@@ -705,9 +705,9 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             bool isTopTest = true;
             bool isWhile = true;
-            Lazy<IOperation> condition = new Lazy<IOperation>(() => (IOperation)Create(boundWhileStatement.Condition));
+            Lazy<IOperation> condition = new Lazy<IOperation>(() => Create(boundWhileStatement.Condition));
             LoopKind loopKind = LoopKind.WhileUntil;
-            Lazy<IOperation> body = new Lazy<IOperation>(() => (IOperation)Create(boundWhileStatement.Body));
+            Lazy<IOperation> body = new Lazy<IOperation>(() => Create(boundWhileStatement.Body));
             bool isInvalid = boundWhileStatement.HasErrors;
             SyntaxNode syntax = boundWhileStatement.Syntax;
             ITypeSymbol type = null;
@@ -718,9 +718,9 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             bool isTopTest = false;
             bool isWhile = true;
-            Lazy<IOperation> condition = new Lazy<IOperation>(() => (IOperation)Create(boundDoStatement.Condition));
+            Lazy<IOperation> condition = new Lazy<IOperation>(() => Create(boundDoStatement.Condition));
             LoopKind loopKind = LoopKind.WhileUntil;
-            Lazy<IOperation> body = new Lazy<IOperation>(() => (IOperation)Create(boundDoStatement.Body));
+            Lazy<IOperation> body = new Lazy<IOperation>(() => Create(boundDoStatement.Body));
             bool isInvalid = boundDoStatement.HasErrors;
             SyntaxNode syntax = boundDoStatement.Syntax;
             ITypeSymbol type = null;
@@ -732,9 +732,9 @@ namespace Microsoft.CodeAnalysis.Semantics
             Lazy<ImmutableArray<IOperation>> before = new Lazy<ImmutableArray<IOperation>>(() => ToStatements(boundForStatement.Initializer));
             Lazy<ImmutableArray<IOperation>> atLoopBottom = new Lazy<ImmutableArray<IOperation>>(() => ToStatements(boundForStatement.Increment));
             ImmutableArray<ILocalSymbol> locals = boundForStatement.OuterLocals.As<ILocalSymbol>();
-            Lazy<IOperation> condition = new Lazy<IOperation>(() => (IOperation)Create(boundForStatement.Condition));
+            Lazy<IOperation> condition = new Lazy<IOperation>(() => Create(boundForStatement.Condition));
             LoopKind loopKind = LoopKind.For;
-            Lazy<IOperation> body = new Lazy<IOperation>(() => (IOperation)Create(boundForStatement.Body));
+            Lazy<IOperation> body = new Lazy<IOperation>(() => Create(boundForStatement.Body));
             bool isInvalid = boundForStatement.HasErrors;
             SyntaxNode syntax = boundForStatement.Syntax;
             ITypeSymbol type = null;
@@ -746,9 +746,9 @@ namespace Microsoft.CodeAnalysis.Semantics
             ILocalSymbol iterationVariable = boundForEachStatement.IterationVariables.Length == 1 ?
                                                                                     boundForEachStatement.IterationVariables.FirstOrDefault() :
                                                                                     null;
-            Lazy<IOperation> collection = new Lazy<IOperation>(() => (IOperation)Create(boundForEachStatement.Expression));
+            Lazy<IOperation> collection = new Lazy<IOperation>(() => Create(boundForEachStatement.Expression));
             LoopKind loopKind = LoopKind.ForEach;
-            Lazy<IOperation> body = new Lazy<IOperation>(() => (IOperation)Create(boundForEachStatement.Body));
+            Lazy<IOperation> body = new Lazy<IOperation>(() => Create(boundForEachStatement.Body));
             bool isInvalid = boundForEachStatement.HasErrors;
             SyntaxNode syntax = boundForEachStatement.Syntax;
             ITypeSymbol type = null;
@@ -757,7 +757,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         }
         private static ISwitchStatement CreateBoundSwitchStatementOperation(BoundSwitchStatement boundSwitchStatement)
         {
-            Lazy<IOperation> value = new Lazy<IOperation>(() => (IOperation)Create(boundSwitchStatement.Expression));
+            Lazy<IOperation> value = new Lazy<IOperation>(() => Create(boundSwitchStatement.Expression));
             Lazy<ImmutableArray<ISwitchCase>> cases = new Lazy<ImmutableArray<ISwitchCase>>(() => GetSwitchStatementCases(boundSwitchStatement));
             bool isInvalid = boundSwitchStatement.HasErrors;
             SyntaxNode syntax = boundSwitchStatement.Syntax;
@@ -767,7 +767,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         }
         private static ISingleValueCaseClause CreateBoundSwitchLabelOperation(BoundSwitchLabel boundSwitchLabel)
         {
-            Lazy<IOperation> value = new Lazy<IOperation>(() => (IOperation)Create(boundSwitchLabel.ExpressionOpt));
+            Lazy<IOperation> value = new Lazy<IOperation>(() => Create(boundSwitchLabel.ExpressionOpt));
             BinaryOperationKind equality = GetLabelEqualityKind(boundSwitchLabel);
             CaseKind caseKind = boundSwitchLabel.ExpressionOpt != null ? CaseKind.SingleValue : CaseKind.Default;
             bool isInvalid = boundSwitchLabel.HasErrors;
@@ -791,7 +791,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             Lazy<IBlockStatement> handler = new Lazy<IBlockStatement>(() => (IBlockStatement)Create(boundCatchBlock.Body));
             ITypeSymbol caughtType = boundCatchBlock.ExceptionTypeOpt;
-            Lazy<IOperation> filter = new Lazy<IOperation>(() => (IOperation)Create(boundCatchBlock.ExceptionFilterOpt));
+            Lazy<IOperation> filter = new Lazy<IOperation>(() => Create(boundCatchBlock.ExceptionFilterOpt));
             ILocalSymbol exceptionLocal = (boundCatchBlock.Locals.FirstOrDefault()?.DeclarationKind == CSharp.Symbols.LocalDeclarationKind.CatchVariable) ? boundCatchBlock.Locals.FirstOrDefault() : null;
             bool isInvalid = boundCatchBlock.Body.HasErrors || (boundCatchBlock.ExceptionFilterOpt != null && boundCatchBlock.ExceptionFilterOpt.HasErrors);
             SyntaxNode syntax = boundCatchBlock.Syntax;
@@ -802,7 +802,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         private static IFixedStatement CreateBoundFixedStatementOperation(BoundFixedStatement boundFixedStatement)
         {
             Lazy<IVariableDeclarationStatement> variables = new Lazy<IVariableDeclarationStatement>(() => (IVariableDeclarationStatement)Create(boundFixedStatement.Declarations));
-            Lazy<IOperation> body = new Lazy<IOperation>(() => (IOperation)Create(boundFixedStatement.Body));
+            Lazy<IOperation> body = new Lazy<IOperation>(() => Create(boundFixedStatement.Body));
             bool isInvalid = boundFixedStatement.HasErrors;
             SyntaxNode syntax = boundFixedStatement.Syntax;
             ITypeSymbol type = null;
@@ -811,9 +811,9 @@ namespace Microsoft.CodeAnalysis.Semantics
         }
         private static IUsingStatement CreateBoundUsingStatementOperation(BoundUsingStatement boundUsingStatement)
         {
-            Lazy<IOperation> body = new Lazy<IOperation>(() => (IOperation)Create(boundUsingStatement.Body));
+            Lazy<IOperation> body = new Lazy<IOperation>(() => Create(boundUsingStatement.Body));
             Lazy<IVariableDeclarationStatement> declaration = new Lazy<IVariableDeclarationStatement>(() => (IVariableDeclarationStatement)Create(boundUsingStatement.DeclarationsOpt));
-            Lazy<IOperation> value = new Lazy<IOperation>(() => (IOperation)Create(boundUsingStatement.ExpressionOpt));
+            Lazy<IOperation> value = new Lazy<IOperation>(() => Create(boundUsingStatement.ExpressionOpt));
             bool isInvalid = boundUsingStatement.HasErrors;
             SyntaxNode syntax = boundUsingStatement.Syntax;
             ITypeSymbol type = null;
@@ -822,7 +822,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         }
         private static IThrowStatement CreateBoundThrowStatementOperation(BoundThrowStatement boundThrowStatement)
         {
-            Lazy<IOperation> thrownObject = new Lazy<IOperation>(() => (IOperation)Create(boundThrowStatement.ExpressionOpt));
+            Lazy<IOperation> thrownObject = new Lazy<IOperation>(() => Create(boundThrowStatement.ExpressionOpt));
             bool isInvalid = boundThrowStatement.HasErrors;
             SyntaxNode syntax = boundThrowStatement.Syntax;
             ITypeSymbol type = null;
@@ -831,7 +831,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         }
         private static IReturnStatement CreateBoundReturnStatementOperation(BoundReturnStatement boundReturnStatement)
         {
-            Lazy<IOperation> returnedValue = new Lazy<IOperation>(() => (IOperation)Create(boundReturnStatement.ExpressionOpt));
+            Lazy<IOperation> returnedValue = new Lazy<IOperation>(() => Create(boundReturnStatement.ExpressionOpt));
             bool isInvalid = boundReturnStatement.HasErrors;
             SyntaxNode syntax = boundReturnStatement.Syntax;
             ITypeSymbol type = null;
@@ -840,7 +840,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         }
         private static IReturnStatement CreateBoundYieldReturnStatementOperation(BoundYieldReturnStatement boundYieldReturnStatement)
         {
-            Lazy<IOperation> returnedValue = new Lazy<IOperation>(() => (IOperation)Create(boundYieldReturnStatement.Expression));
+            Lazy<IOperation> returnedValue = new Lazy<IOperation>(() => Create(boundYieldReturnStatement.Expression));
             bool isInvalid = boundYieldReturnStatement.HasErrors;
             SyntaxNode syntax = boundYieldReturnStatement.Syntax;
             ITypeSymbol type = null;
@@ -849,8 +849,8 @@ namespace Microsoft.CodeAnalysis.Semantics
         }
         private static ILockStatement CreateBoundLockStatementOperation(BoundLockStatement boundLockStatement)
         {
-            Lazy<IOperation> lockedObject = new Lazy<IOperation>(() => (IOperation)Create(boundLockStatement.Argument));
-            Lazy<IOperation> body = new Lazy<IOperation>(() => (IOperation)Create(boundLockStatement.Body));
+            Lazy<IOperation> lockedObject = new Lazy<IOperation>(() => Create(boundLockStatement.Argument));
+            Lazy<IOperation> body = new Lazy<IOperation>(() => Create(boundLockStatement.Body));
             bool isInvalid = boundLockStatement.HasErrors;
             SyntaxNode syntax = boundLockStatement.Syntax;
             ITypeSymbol type = null;
@@ -887,7 +887,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         private static ILabelStatement CreateBoundLabelStatementOperation(BoundLabelStatement boundLabelStatement)
         {
             ILabelSymbol label = boundLabelStatement.Label;
-            Lazy<IOperation> labeledStatement = new Lazy<IOperation>(() => (IOperation)Create(null));
+            Lazy<IOperation> labeledStatement = new Lazy<IOperation>(() => Create(null));
             bool isInvalid = boundLabelStatement.HasErrors;
             SyntaxNode syntax = boundLabelStatement.Syntax;
             ITypeSymbol type = null;
@@ -897,7 +897,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         private static ILabelStatement CreateBoundLabeledStatementOperation(BoundLabeledStatement boundLabeledStatement)
         {
             ILabelSymbol label = boundLabeledStatement.Label;
-            Lazy<IOperation> labeledStatement = new Lazy<IOperation>(() => (IOperation)Create(boundLabeledStatement.Body));
+            Lazy<IOperation> labeledStatement = new Lazy<IOperation>(() => Create(boundLabeledStatement.Body));
             bool isInvalid = boundLabeledStatement.HasErrors;
             SyntaxNode syntax = boundLabeledStatement.Syntax;
             ITypeSymbol type = null;
@@ -906,7 +906,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         }
         private static IExpressionStatement CreateBoundExpressionStatementOperation(BoundExpressionStatement boundExpressionStatement)
         {
-            Lazy<IOperation> expression = new Lazy<IOperation>(() => (IOperation)Create(boundExpressionStatement.Expression));
+            Lazy<IOperation> expression = new Lazy<IOperation>(() => Create(boundExpressionStatement.Expression));
             bool isInvalid = boundExpressionStatement.HasErrors;
             SyntaxNode syntax = boundExpressionStatement.Syntax;
             ITypeSymbol type = null;

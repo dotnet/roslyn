@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Semantics
                 return ImmutableArray<IOperation>.Empty;
             }
 
-            return ImmutableArray.Create<IOperation>(Create(statement));
+            return ImmutableArray.Create(Create(statement));
         }
 
         private static readonly ConditionalWeakTable<BoundIncrementOperator, ILiteralExpression> s_incrementValueMappings = new ConditionalWeakTable<BoundIncrementOperator, ILiteralExpression>();
