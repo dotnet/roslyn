@@ -13,6 +13,12 @@
     <ServiceablePackage>true</ServiceablePackage>
     <NoWarn>$(NoWarn);42014</NoWarn>
     <CodeAnalysisRuleSet>..\BasicCodeAnalysisRules.ruleset</CodeAnalysisRuleSet>
+    <!-- This is required to prevent downgrade references from CscCore/VbcCode since we must
+         reference Microsoft.NETCore.App to target the shared framework (bug
+         https://github.com/dotnet/sdk/issues/1159) and NETCore.App
+         contains a reference to C# + VB CodeAnalysis. This ensures that the project
+         reference is a higher version than the NuGet reference. -->
+    <Version>$(NuGetPerBuildPreReleaseVersion)</Version>
   </PropertyGroup>
   <ItemGroup>
     <AssemblyVersionAttribute Include="Microsoft.CodeAnalysis.CommitHashAttribute">
