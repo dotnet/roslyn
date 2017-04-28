@@ -5154,7 +5154,6 @@
                                   - ADVANCED -
 /baseaddress:&lt;number&gt;             The base address for a library or module 
                                   (hex).
-/bugreport:&lt;file&gt;                 Create bug report file.
 /checksumalgorithm:&lt;alg&gt;          Specify algorithm for calculating source file 
                                   checksum stored in PDB. Supported values are:
                                   SHA1 (default) or SHA256.
