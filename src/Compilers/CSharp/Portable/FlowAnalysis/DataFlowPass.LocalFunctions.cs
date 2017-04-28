@@ -141,8 +141,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // of the function where the enumerable is returned.
             if (localFuncSymbol.IsIterator)
             {
-                //This causes an exception later if one of the parameters is out or ref
-                //Added the check bellow if (branch != null) to not check for LeaveParameters
+                // This causes an exception later if one of the parameters is out or ref
+                // Added the check bellow if (branch != null) to not check for LeaveParameters
                 PendingBranches.Add(new PendingBranch(null, this.State));
             }
 
@@ -166,7 +166,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.State = pending.State;
                 BoundNode branch = pending.Branch;
 
-                if (branch != null)//No need to check the parameters if we dont know the branch
+                //No need to check the parameters if we dont know the branch
+                if (branch != null)
                 {
                     LeaveParameters(localFuncSymbol.Parameters, branch?.Syntax,
                                     branch?.WasCompilerGenerated == true
