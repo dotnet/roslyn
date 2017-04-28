@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
                 var typeNode = syntaxReference.SyntaxTree.GetRoot().FindNode(syntaxReference.Span);
 
                 var semanticModelForTree = context.SemanticModel.Compilation.GetSemanticModel(syntaxReference.SyntaxTree);
-                WalkTree(semanticModelForTree, typeNode, membersCanBeReadonly);
+                GetUnassignedSymbols(semanticModelForTree, typeNode, membersCanBeReadonly);
             }
 
             foreach (var symbol in membersCanBeReadonly)
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
             }
         }
 
-        private void WalkTree(SemanticModel model, SyntaxNode node, HashSet<IFieldSymbol> unassignedSymbols)
+        private void GetUnassignedSymbols(SemanticModel model, SyntaxNode node, HashSet<IFieldSymbol> unassignedSymbols)
         {
             foreach (var descendant in node.DescendantNodes())
             {
