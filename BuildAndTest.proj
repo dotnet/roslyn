@@ -77,11 +77,11 @@
           SkipUnchangedFiles="true"
           UseHardlinksIfPossible="true" />
 
-    <MakeDir Directories="$(CoreClrTestDirectory)/xUnitResults" />
+    <MakeDir Directories="$(CoreClrTestDirectory)\xUnitResults" />
 
     <!-- Publish binaries for CoreClr test -->
     <MSBuild BuildInParallel="true"
-             Projects="src/Test/DeployCoreClrTestRuntime/DeployCoreClrTestRuntime.csproj"
+             Projects="src\Test\DeployCoreClrTestRuntime\DeployCoreClrTestRuntime.csproj"
              Properties="RuntimeIdentifier=win7-x64;PublishDir=$(CoreClrTestDirectory)"
              Targets="Publish" />
 
