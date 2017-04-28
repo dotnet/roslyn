@@ -137,6 +137,9 @@
     <Compile Include="Operations\UnaryAndBinaryOperationExtensions.cs" />
     <Compile Include="Operations\UnaryOperandKind.cs" />
     <Compile Include="Operations\UnaryOperationKind.cs" />
+    <Compile Include="Emit\AsyncMoveNextBodyDebugInfo.cs" />
+    <Compile Include="Emit\IteratorMoveNextBodyDebugInfo.cs" />
+    <Compile Include="Emit\StateMachineMoveNextDebugInfo.cs" />
     <Compile Include="Serialization\IObjectWritable.cs" />
     <Compile Include="Serialization\ObjectBinder.cs" />
     <Compile Include="Serialization\ObjectBinderSnapshot.cs" />

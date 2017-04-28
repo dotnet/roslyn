@@ -262,7 +262,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var foundAwait = result.Any(pending => pending.Branch?.Kind == BoundKind.AwaitExpression);
                 if (!foundAwait)
                 {
-                    Diagnostics.Add(ErrorCode.WRN_AsyncLacksAwaits, currentMethodOrLambda.Locations[0]);
+                    // If we're on a LambdaSymbol, then use its 'DiagnosticLocation'.  That will be
+                    // much better than using its 'Location' (which is the entire span of the lambda).
+                    var diagnosticLocation = currentMethodOrLambda is LambdaSymbol lambda
+                        ? lambda.DiagnosticLocation
+                        : currentMethodOrLambda.Locations[0];
+
+                    Diagnostics.Add(ErrorCode.WRN_AsyncLacksAwaits, diagnosticLocation);
                 }
             }
 

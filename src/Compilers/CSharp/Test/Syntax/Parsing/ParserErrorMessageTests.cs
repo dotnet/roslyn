@@ -317,7 +317,6 @@ public struct st { }
         public void CS0231ERR_ParamsLast()
         {
             var test = @"
-using System;
 public class MyClass {
     public void MyMeth(params int[] values, int i) {}
     public static int Main() {
@@ -326,7 +325,10 @@ public class MyClass {
 }
 ";
 
-            ParseAndValidate(test, Diagnostic(ErrorCode.ERR_ParamsLast, "params int[] values"));
+            CreateCompilationWithMscorlib45(test).VerifyDiagnostics(
+                // (3,24): error CS0231: A params parameter must be the last parameter in a formal parameter list
+                //     public void MyMeth(params int[] values, int i) {}
+                Diagnostic(ErrorCode.ERR_ParamsLast, "params int[] values").WithLocation(3, 24));
         }
 
         [Fact]
@@ -341,10 +343,10 @@ class Foo
 }
 ";
 
-            ParseAndValidate(test,
-    // (4,19): error CS0257: An __arglist parameter must be the last parameter in a formal parameter list
-    //   public void Bar(__arglist,  int b)
-    Diagnostic(ErrorCode.ERR_VarargsLast, "__arglist"));
+            CreateStandardCompilation(test).VerifyDiagnostics(
+                // (4,19): error CS0257: An __arglist parameter must be the last parameter in a formal parameter list
+                //   public void Bar(__arglist,  int b)
+                Diagnostic(ErrorCode.ERR_VarargsLast, "__arglist"));
         }
 
         [WorkItem(536668, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536668")]
@@ -924,7 +926,6 @@ public class C
         public void CS0746ERR_InvalidAnonymousTypeMemberDeclarator()
         {
             var test = @"
-using System;
 public class C
 {
     public static int Main()
@@ -936,14 +937,22 @@ public class C
 }
 ";
 
-            ParseAndValidate(test, Diagnostic(ErrorCode.ERR_InvalidAnonymousTypeMemberDeclarator, "a.b = 1"));
+            CreateStandardCompilation(test).VerifyDiagnostics(
+                // (7,23): error CS0746: Invalid anonymous type member declarator. Anonymous type members must be declared with a member assignment, simple name or member access.
+                //         var t = new { a.b = 1 };
+                Diagnostic(ErrorCode.ERR_InvalidAnonymousTypeMemberDeclarator, "a.b = 1").WithLocation(7, 23),
+                // (7,23): error CS0103: The name 'a' does not exist in the current context
+                //         var t = new { a.b = 1 };
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "a").WithArguments("a").WithLocation(7, 23),
+                // (6,13): warning CS0219: The variable 'i' is assigned but its value is never used
+                //         int i = 1;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "i").WithArguments("i").WithLocation(6, 13));
         }
 
         [Fact]
         public void CS0746ERR_InvalidAnonymousTypeMemberDeclarator_2()
         {
             var test = @"
-using System;
 public class C
 {
     public static void Main()
@@ -953,17 +962,19 @@ public class C
     }
 }
 ";
-            ParseAndValidate(test,
-    // (8,23): error CS0746: Invalid anonymous type member declarator. Anonymous type members must be declared with a member assignment, simple name or member access.
-    //         var t = new { s.Length = 1 };
-    Diagnostic(ErrorCode.ERR_InvalidAnonymousTypeMemberDeclarator, "s.Length = 1"));
+            CreateStandardCompilation(test).VerifyDiagnostics(
+                // (7,23): error CS0746: Invalid anonymous type member declarator. Anonymous type members must be declared with a member assignment, simple name or member access.
+                //         var t = new { s.Length = 1 };
+                Diagnostic(ErrorCode.ERR_InvalidAnonymousTypeMemberDeclarator, "s.Length = 1").WithLocation(7, 23),
+                // (7,23): error CS0200: Property or indexer 'string.Length' cannot be assigned to -- it is read only
+                //         var t = new { s.Length = 1 };
+                Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "s.Length").WithArguments("string.Length").WithLocation(7, 23));
         }
 
         [Fact]
         public void CS0746ERR_InvalidAnonymousTypeMemberDeclarator_3()
         {
             var test = @"
-using System;
 public class C
 {
     public static void Main()
@@ -973,7 +984,13 @@ public class C
     }
 }
 ";
-            ParseAndValidate(test, Diagnostic(ErrorCode.ERR_InvalidAnonymousTypeMemberDeclarator, "s.ToString() = 1"));
+            CreateStandardCompilation(test).VerifyDiagnostics(
+                // (7,23): error CS0746: Invalid anonymous type member declarator. Anonymous type members must be declared with a member assignment, simple name or member access.
+                //         var t = new { s.ToString() = 1 };
+                Diagnostic(ErrorCode.ERR_InvalidAnonymousTypeMemberDeclarator, "s.ToString() = 1").WithLocation(7, 23),
+                // (7,23): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+                //         var t = new { s.ToString() = 1 };
+                Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "s.ToString()").WithLocation(7, 23));
         }
 
         [Fact]
@@ -2115,12 +2132,11 @@ namespace x
         {
             e = new base;   // CS1031, not a type
             e = new this;   // CS1031, not a type
-            e = new ();     // CS1031, too few tuple elements
         }
     }
 }
 ";
-            // TODO: this appears to be a severe regression from Dev10, which neatly reported 3 errors.
+
             ParseAndValidate(text, TestOptions.Regular,
                 // (7,21): error CS1031: Type expected
                 //             e = new base;   // CS1031, not a type
@@ -2139,17 +2155,37 @@ namespace x
                 Diagnostic(ErrorCode.ERR_BadNewExpr, "this").WithLocation(8, 21),
                 // (8,21): error CS1002: ; expected
                 //             e = new this;   // CS1031, not a type
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "this").WithLocation(8, 21),
-                // (9,21): error CS8181: 'new' cannot be used with tuple type. Use a tuple literal expression instead.
-                //             e = new ();     // CS1031, too few tuple elements
-                Diagnostic(ErrorCode.ERR_NewWithTupleTypeSyntax, "()").WithLocation(9, 21),
-                // (9,22): error CS8124: Tuple must contain at least two elements.
-                //             e = new ();     // CS1031, too few tuple elements
-                Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(9, 22),
-                // (9,23): error CS1526: A new expression requires (), [], or {} after type
-                //             e = new ();     // CS1031, too few tuple elements
-                Diagnostic(ErrorCode.ERR_BadNewExpr, ";").WithLocation(9, 23)
-             );
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "this").WithLocation(8, 21));
+        }
+
+        [Fact]
+        public void CS1031ERR_TypeExpected02_Tuple()
+        {
+            var text = @"namespace x
+{
+    public class a
+    {
+        public static void Main()
+        {
+            var e = new ();
+        }
+    }
+}
+";
+
+            CreateStandardCompilation(text).VerifyDiagnostics(
+                // (7,26): error CS8124: Tuple must contain at least two elements.
+                //             var e = new ();
+                Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(7, 26),
+                // (7,27): error CS1526: A new expression requires (), [], or {} after type
+                //             var e = new ();
+                Diagnostic(ErrorCode.ERR_BadNewExpr, ";").WithLocation(7, 27),
+                // (7,25): error CS8181: 'new' cannot be used with tuple type. Use a tuple literal expression instead.
+                //             var e = new ();
+                Diagnostic(ErrorCode.ERR_NewWithTupleTypeSyntax, "()").WithLocation(7, 25),
+                // (7,25): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
+                //             var e = new ();
+                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "()").WithArguments("System.ValueTuple`2").WithLocation(7, 25));
         }
 
         [Fact]
@@ -2163,7 +2199,6 @@ namespace x
         {
             e = new base;   // CS1031, not a type
             e = new this;   // CS1031, not a type
-            e = new ();     // CS1031, not a type
         }
     }
 }
@@ -2187,20 +2222,68 @@ namespace x
                 Diagnostic(ErrorCode.ERR_BadNewExpr, "this").WithLocation(8, 21),
                 // (8,21): error CS1002: ; expected
                 //             e = new this;   // CS1031, not a type
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "this").WithLocation(8, 21),
-                // (9,21): error CS8181: 'new' cannot be used with tuple type. Use a tuple literal expression instead.
-                //             e = new ();     // CS1031, not a type
-                Diagnostic(ErrorCode.ERR_NewWithTupleTypeSyntax, "()").WithLocation(9, 21),
-                // (9,21): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7 or greater.
-                //             e = new ();     // CS1031, not a type
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "()").WithArguments("tuples", "7").WithLocation(9, 21),
-                // (9,22): error CS8124: Tuple must contain at least two elements.
-                //             e = new ();     // CS1031, not a type
-                Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(9, 22),
-                // (9,23): error CS1526: A new expression requires (), [], or {} after type
-                //             e = new ();     // CS1031, not a type
-                Diagnostic(ErrorCode.ERR_BadNewExpr, ";").WithLocation(9, 23)
-             );
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "this").WithLocation(8, 21));
+        }
+
+        [Fact]
+        public void CS1031ERR_TypeExpected02WithCSharp6_Tuple()
+        {
+            var text = @"namespace x
+{
+    public class a
+    {
+        public static void Main()
+        {
+            var e = new ();
+        }
+    }
+}
+";
+            CreateStandardCompilation(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6)).VerifyDiagnostics(
+                // (7,25): error CS8059: Feature 'tuples' is not available in C# 6.  Please use language version 7 or greater.
+                //             var e = new ();
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "()").WithArguments("tuples", "7").WithLocation(7, 25),
+                // (7,26): error CS8124: Tuple must contain at least two elements.
+                //             var e = new ();
+                Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(7, 26),
+                // (7,27): error CS1526: A new expression requires (), [], or {} after type
+                //             var e = new ();
+                Diagnostic(ErrorCode.ERR_BadNewExpr, ";").WithLocation(7, 27),
+                // (7,25): error CS8181: 'new' cannot be used with tuple type. Use a tuple literal expression instead.
+                //             var e = new ();
+                Diagnostic(ErrorCode.ERR_NewWithTupleTypeSyntax, "()").WithLocation(7, 25),
+                // (7,25): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
+                //             var e = new ();
+                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "()").WithArguments("System.ValueTuple`2").WithLocation(7, 25));
+        }
+
+        [Fact]
+        public void CS1031ERR_TypeExpected02WithCSharp7_Tuple()
+        {
+            var text = @"namespace x
+{
+    public class a
+    {
+        public static void Main()
+        {
+            var e = new ();
+        }
+    }
+}
+";
+            CreateStandardCompilation(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7)).VerifyDiagnostics(
+                // (7,26): error CS8124: Tuple must contain at least two elements.
+                //             var e = new ();
+                Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")"),
+                // (7,27): error CS1526: A new expression requires (), [], or {} after type
+                //             var e = new ();
+                Diagnostic(ErrorCode.ERR_BadNewExpr, ";"),
+                // (7,25): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
+                //             var e = new ();
+                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "()").WithArguments("System.ValueTuple`2"),
+                // (7,25): error CS8181: 'new' cannot be used with tuple type. Use a tuple literal expression instead.
+                //             var e = new ();
+                Diagnostic(ErrorCode.ERR_NewWithTupleTypeSyntax, "()"));
         }
 
         [WorkItem(541347, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541347")]
@@ -3785,7 +3868,10 @@ public class MyClass {
 }
 ";
 
-            ParseAndValidate(test, Diagnostic(ErrorCode.ERR_IndexerNeedsParam, "]"));
+            CreateStandardCompilation(test).VerifyDiagnostics(
+                // (4,14): error CS1551: Indexers must have at least one parameter
+                //     int this[] {
+                Diagnostic(ErrorCode.ERR_IndexerNeedsParam, "]").WithLocation(4, 14));
         }
 
         [Fact]

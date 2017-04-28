@@ -3118,7 +3118,7 @@ parse_member_name:;
                 semicolon);
         }
 
-        private MemberDeclarationSyntax ParseIndexerDeclaration(
+        private IndexerDeclarationSyntax ParseIndexerDeclaration(
             SyntaxListBuilder<AttributeListSyntax> attributes,
             SyntaxListBuilder modifiers,
             TypeSyntax type,
@@ -3136,11 +3136,6 @@ parse_member_name:;
             }
 
             var parameterList = this.ParseBracketedParameterList();
-            // TODO: ReportExtensionMethods(parameters, retval);
-            if (parameterList.Parameters.Count == 0)
-            {
-                parameterList = this.AddErrorToLastToken(parameterList, ErrorCode.ERR_IndexerNeedsParam);
-            }
 
             AccessorListSyntax accessorList = null;
             ArrowExpressionClauseSyntax expressionBody = null;
@@ -3816,11 +3811,6 @@ parse_member_name:;
                 if (this.CurrentToken.Kind != closeKind)
                 {
 tryAgain:
-                    int mustBeLastIndex = -1;
-                    bool mustBeLastHadParams = false;
-                    bool hasParams = false;
-                    bool hasArgList = false;
-
                     if (this.IsPossibleParameter() || this.CurrentToken.Kind == SyntaxKind.CommaToken)
                     {
                         // first parameter
@@ -3828,14 +3818,6 @@ tryAgain:
                         modifiers.Clear();
                         var parameter = this.ParseParameter(attributes, modifiers);
                         nodes.Add(parameter);
-                        hasParams = modifiers.Any((int)SyntaxKind.ParamsKeyword);
-                        hasArgList = parameter.Identifier.Kind == SyntaxKind.ArgListKeyword;
-                        bool mustBeLast = hasParams || hasArgList;
-                        if (mustBeLast && mustBeLastIndex == -1)
-                        {
-                            mustBeLastIndex = nodes.Count - 1;
-                            mustBeLastHadParams = hasParams;
-                        }
 
                         // additional parameters
                         while (true)
@@ -3857,15 +3839,6 @@ tryAgain:
                                 }
 
                                 nodes.Add(parameter);
-                                hasParams = modifiers.Any((int)SyntaxKind.ParamsKeyword);
-                                hasArgList = parameter.Identifier.Kind == SyntaxKind.ArgListKeyword;
-                                mustBeLast = hasParams || hasArgList;
-                                if (mustBeLast && mustBeLastIndex == -1)
-                                {
-                                    mustBeLastIndex = nodes.Count - 1;
-                                    mustBeLastHadParams = hasParams;
-                                }
-
                                 continue;
                             }
                             else if (this.SkipBadParameterListTokens(ref open, nodes, SyntaxKind.CommaToken, closeKind) == PostSkipAction.Abort)
@@ -3877,11 +3850,6 @@ tryAgain:
                     else if (this.SkipBadParameterListTokens(ref open, nodes, SyntaxKind.IdentifierToken, closeKind) == PostSkipAction.Continue)
                     {
                         goto tryAgain;
-                    }
-
-                    if (mustBeLastIndex >= 0 && mustBeLastIndex < nodes.Count - 1)
-                    {
-                        nodes[mustBeLastIndex] = this.AddError(nodes[mustBeLastIndex], mustBeLastHadParams ? ErrorCode.ERR_ParamsLast : ErrorCode.ERR_VarargsLast);
                     }
                 }
 
@@ -5460,7 +5428,7 @@ tryAgain:
             // remaining types & commas
             while (true)
             {
-                if (this.CurrentToken.Kind == SyntaxKind.GreaterThanToken || this.IsPossibleTypeParameterConstraintClauseStart())
+                if (this.CurrentToken.Kind == SyntaxKind.GreaterThanToken)
                 {
                     break;
                 }
@@ -5491,11 +5459,6 @@ tryAgain:
         // Parses the individual generic parameter/arguments in a name.
         private TypeSyntax ParseTypeArgument()
         {
-            if (this.IsPossibleTypeParameterConstraintClauseStart())
-            {
-                return this.AddError(this.CreateMissingIdentifierName(), ErrorCode.ERR_TypeExpected);
-            }
-
             var attrs = _pool.Allocate<AttributeListSyntax>();
             try
             {
@@ -10372,47 +10335,12 @@ tryAgain:
 
         private AnonymousObjectMemberDeclaratorSyntax ParseAnonymousTypeMemberInitializer()
         {
-            bool isNamedAssignment = this.IsNamedAssignment();
-
-            NameEqualsSyntax nameEquals = null;
-            if (isNamedAssignment)
-            {
-                nameEquals = ParseNameEquals();
-            }
+            var nameEquals = this.IsNamedAssignment()
+                ? ParseNameEquals()
+                : null;
 
             var expression = this.ParseExpressionCore();
-            if (!isNamedAssignment && !IsAnonymousTypeMemberExpression(expression))
-            {
-                expression = this.AddError(expression, ErrorCode.ERR_InvalidAnonymousTypeMemberDeclarator);
-            }
-
             return _syntaxFactory.AnonymousObjectMemberDeclarator(nameEquals, expression);
-        }
-
-        private static bool IsAnonymousTypeMemberExpression(ExpressionSyntax expr)
-        {
-            while (true)
-            {
-                switch (expr.Kind)
-                {
-                    case SyntaxKind.QualifiedName:
-                        expr = ((QualifiedNameSyntax)expr).Right;
-                        continue;
-                    case SyntaxKind.ConditionalAccessExpression:
-                        expr = ((ConditionalAccessExpressionSyntax)expr).WhenNotNull;
-                        if (expr.Kind == SyntaxKind.MemberBindingExpression)
-                        {
-                            return true;
-                        }
-
-                        continue;
-                    case SyntaxKind.IdentifierName:
-                    case SyntaxKind.SimpleMemberAccessExpression:
-                        return true;
-                    default:
-                        return false;
-                }
-            }
         }
 
         private bool IsInitializerMember()
@@ -10481,18 +10409,12 @@ tryAgain:
                 if (argumentList == null && initializer == null)
                 {
                     argumentList = _syntaxFactory.ArgumentList(
-                        this.AddError(SyntaxFactory.MissingToken(SyntaxKind.OpenParenToken), ErrorCode.ERR_BadNewExpr),
+                        this.EatToken(SyntaxKind.OpenParenToken, ErrorCode.ERR_BadNewExpr),
                         default(SeparatedSyntaxList<ArgumentSyntax>),
                         SyntaxFactory.MissingToken(SyntaxKind.CloseParenToken));
                 }
 
-                var objectCreation = _syntaxFactory.ObjectCreationExpression(@new, type, argumentList, initializer);
-                if (type.Kind == SyntaxKind.TupleType)
-                {
-                    objectCreation = this.AddError(objectCreation, type, ErrorCode.ERR_NewWithTupleTypeSyntax);
-                }
-
-                return objectCreation;
+                return _syntaxFactory.ObjectCreationExpression(@new, type, argumentList, initializer);
             }
         }
 

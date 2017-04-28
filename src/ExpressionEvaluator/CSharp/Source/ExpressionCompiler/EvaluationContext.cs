@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         private readonly MethodSymbol _currentFrame;
         private readonly ImmutableArray<LocalSymbol> _locals;
-        private readonly InScopeHoistedLocals _inScopeHoistedLocals;
+        private readonly ImmutableSortedSet<int> _inScopeHoistedLocalSlots;
         private readonly MethodDebugInfo<TypeSymbol, LocalSymbol> _methodDebugInfo;
 
         private EvaluationContext(
@@ -39,17 +39,17 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             CSharpCompilation compilation,
             MethodSymbol currentFrame,
             ImmutableArray<LocalSymbol> locals,
-            InScopeHoistedLocals inScopeHoistedLocals,
+            ImmutableSortedSet<int> inScopeHoistedLocalSlots,
             MethodDebugInfo<TypeSymbol, LocalSymbol> methodDebugInfo)
         {
-            Debug.Assert(inScopeHoistedLocals != null);
+            Debug.Assert(inScopeHoistedLocalSlots != null);
             Debug.Assert(methodDebugInfo != null);
 
             this.MethodContextReuseConstraints = methodContextReuseConstraints;
             this.Compilation = compilation;
             _currentFrame = currentFrame;
             _locals = locals;
-            _inScopeHoistedLocals = inScopeHoistedLocals;
+            _inScopeHoistedLocalSlots = inScopeHoistedLocalSlots;
             _methodDebugInfo = methodDebugInfo;
         }
 
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 compilation,
                 currentFrame,
                 default(ImmutableArray<LocalSymbol>),
-                InScopeHoistedLocals.Empty,
+                ImmutableSortedSet<int>.Empty,
                 MethodDebugInfo<TypeSymbol, LocalSymbol>.None);
         }
 
@@ -189,7 +189,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             var localInfo = metadataDecoder.GetLocalInfo(localSignatureHandle);
 
             var typedSymReader = (ISymUnmanagedReader3)symReader;
-            var inScopeHoistedLocals = InScopeHoistedLocals.Empty;
 
             var debugInfo = MethodDebugInfo<TypeSymbol, LocalSymbol>.ReadMethodDebugInfo(typedSymReader, symbolProvider, methodToken, methodVersion, ilOffset, isVisualBasicMethod: false);
 
@@ -202,10 +201,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 localInfo,
                 debugInfo.DynamicLocalMap,
                 debugInfo.TupleLocalMap);
-            if (!debugInfo.HoistedLocalScopeRecords.IsDefaultOrEmpty)
-            {
-                inScopeHoistedLocals = new CSharpInScopeHoistedLocals(debugInfo.GetInScopeHoistedLocalIndices(ilOffset, ref reuseSpan));
-            }
+
+            var inScopeHoistedLocals = debugInfo.GetInScopeHoistedLocalIndices(ilOffset, ref reuseSpan);
 
             localsBuilder.AddRange(debugInfo.LocalConstants);
 
@@ -224,7 +221,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 this.Compilation,
                 _currentFrame,
                 _locals,
-                _inScopeHoistedLocals,
+                _inScopeHoistedLocalSlots,
                 _methodDebugInfo);
         }
 

@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // Unless it is a constant, the decision tree acts on a copy of the input expression.
                 // We create a temp to represent that copy. Lowering will assign into this temp.
-                temp = new SynthesizedLocal(enclosingSymbol as MethodSymbol, type, SynthesizedLocalKind.PatternMatchingTemp, expression.Syntax, false, RefKind.None);
+                temp = new SynthesizedLocal(enclosingSymbol as MethodSymbol, type, SynthesizedLocalKind.PatternMatching, expression.Syntax, false, RefKind.None);
                 expression = new BoundLocal(expression.Syntax, temp, null, type);
             }
 

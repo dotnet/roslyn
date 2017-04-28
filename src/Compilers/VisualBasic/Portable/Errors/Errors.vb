@@ -1729,6 +1729,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ERR_BadDocumentationMode = 37286
         ERR_BadLanguageVersion = 37287
         ERR_InvalidPreprocessorConstantType = 37288
+        ERR_TupleInferredNamesNotAvailable = 37289
 
         ERR_NoRefOutWhenRefOnly = 37300
         ERR_NoNetModuleOutputWhenRefOutOrRefOnly = 37301
@@ -1953,9 +1954,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         WRN_UnableToLoadAnalyzer = 42378
 
         WRN_AttributeIgnoredWhenPublicSigning = 42379
+        WRN_Experimental = 42380
 
-        ' // AVAILABLE                             42380 - 49998
-        ERRWRN_Last = WRN_UnableToLoadAnalyzer + 1
+        ' // AVAILABLE                             42381 - 49998
+        ERRWRN_Last = WRN_Experimental
 
         '// HIDDENS AND INFOS BEGIN HERE
         HDN_UnusedImportClause = 50000

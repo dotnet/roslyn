@@ -2430,5 +2430,62 @@ End Class")
                 diagnosticId:=IDEDiagnosticIds.RemoveQualificationDiagnosticId,
                 diagnosticSeverity:=DiagnosticSeverity.Error)
         End Function
+
+        <WorkItem(15996, "https://github.com/dotnet/roslyn/issues/15996")>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        Public Async Function TestMemberOfBuiltInType1() As Task
+            Await TestInRegularAndScriptAsync(
+"Imports System
+Module Module1
+    Sub Main()
+        Dim var As [|UInt32|] = UInt32.MinValue
+    End Sub
+End Module",
+"Imports System
+Module Module1
+    Sub Main()
+        Dim var As UInteger = UInt32.MinValue
+    End Sub
+End Module",
+                options:=PreferIntrinsicPredefinedTypeInDeclaration())
+        End Function
+
+        <WorkItem(15996, "https://github.com/dotnet/roslyn/issues/15996")>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        Public Async Function TestMemberOfBuiltInType2() As Task
+            Await TestInRegularAndScriptAsync(
+"Imports System
+Module Module1
+    Sub Main()
+        Dim var As UInt32 = [|UInt32|].MinValue
+    End Sub
+End Module",
+"Imports System
+Module Module1
+    Sub Main()
+        Dim var As UInt32 = UInteger.MinValue
+    End Sub
+End Module",
+                options:=PreferIntrinsicTypeInMemberAccess())
+        End Function
+
+        <WorkItem(15996, "https://github.com/dotnet/roslyn/issues/15996")>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        Public Async Function TestMemberOfBuiltInType3() As Task
+            Await TestInRegularAndScriptAsync(
+"Imports System
+Module Module1
+    Sub Main()
+        [|UInt32|].Parse(""Foo"")
+    End Sub
+End Module",
+"Imports System
+Module Module1
+    Sub Main()
+        UInteger.Parse(""Foo"")
+    End Sub
+End Module",
+                options:=PreferIntrinsicTypeInMemberAccess())
+        End Function
     End Class
 End Namespace

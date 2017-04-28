@@ -102,10 +102,10 @@
     <Compile Include="FindReferences\StreamingFindUsagesPresenter.cs" />
     <Compile Include="FindReferences\ToolTips\DisposableToolTip.cs" />
     <Compile Include="FindReferences\TableEntriesSnapshot.cs" />
-    <Compile Include="FindReferences\TaggedTextAndHighlightSpan.cs" />
     <Compile Include="FindReferences\ToolTips\LazyToolTip.cs" />
     <Compile Include="ProjectSystem\DeferredProjectWorkspaceService.cs" />
     <Compile Include="Remote\JsonRpcClient.cs" />
+    <Compile Include="Remote\JsonRpcMessageHandler.cs" />
     <Compile Include="Remote\JsonRpcSession.cs" />
     <Compile Include="Remote\RemoteHostClientFactory.cs" />
     <Compile Include="Remote\ServiceHubRemoteHostClient.WorkspaceHost.cs" />

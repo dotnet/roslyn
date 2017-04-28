@@ -330,11 +330,11 @@
     <Compile Include="EditAndContinue\EditAndContinueWorkspaceServiceTests.vb" />
     <Compile Include="EditAndContinue\VsReadOnlyDocumentTrackerTests.vb" />
     <Compile Include="ExtractInterface\ExtractInterfaceViewModelTests.vb" />
-    <Compile Include="FindResults\FindResultsTests.vb" />
     <Compile Include="GenerateType\GenerateTypeViewModelTests.vb" />
     <Compile Include="GoToDefinition\GoToDefinitionApiTests.vb" />
     <Compile Include="Help\HelpTests.vb" />
     <Compile Include="LanguageBlockTests.vb" />
+    <Compile Include="SolutionExplorer\CpsDiagnosticItemTests.vb" />
     <Compile Include="SymbolSearch\SymbolSearchUpdateEngineTests.vb" />
     <Compile Include="Telemetry\VSTelemetryLoggerTest.vb" />
     <Compile Include="Utilities\VsNavInfoHelpers.vb" />
@@ -390,7 +390,7 @@
     <Compile Include="SolutionExplorer\AnalyzersFolderItemTests.vb" />
     <Compile Include="SolutionExplorer\AnalyzersFolderProviderTests.vb" />
     <Compile Include="SolutionExplorer\DiagnosticDescriptorComparerTests.vb" />
-    <Compile Include="SolutionExplorer\DiagnosticItemTests.vb" />
+    <Compile Include="SolutionExplorer\LegacyDiagnosticItemTests.vb" />
     <Compile Include="Venus\AbstractContainedLanguageCodeSupportTests.vb" />
     <Compile Include="Venus\ContainedDocumentTests_AdjustIndentation.vb" />
     <Compile Include="Venus\ContainedDocumentTests_UpdateText.vb" />

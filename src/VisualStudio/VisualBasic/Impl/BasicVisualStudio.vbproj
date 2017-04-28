@@ -134,6 +134,7 @@
     <Compile Include="Options\StyleViewModel.vb" />
     <Compile Include="Progression\VisualBasicGraphProvider.vb" />
     <Compile Include="Progression\VisualBasicProgressionLanguageService.vb" />
+    <Compile Include="ProjectSystemShim\VisualBasicEntryPointFinderService.vb" />
     <Compile Include="ProjectSystemShim\VisualBasicProjectOptionsHelper.vb" />
     <Compile Include="ProjectSystemShim\EntryPointFinder.vb" />
     <Compile Include="ProjectSystemShim\Interop\IVbBuildStatusCallback.vb" />

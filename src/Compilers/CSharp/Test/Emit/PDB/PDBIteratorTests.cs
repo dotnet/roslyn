@@ -1,9 +1,13 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.IO;
 using System.Linq;
+using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.Metadata.Tools;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -1350,7 +1354,7 @@ class C
           <namespace usingCount=""1"" />
         </using>
         <dynamicLocals>
-          <bucket flagCount=""1"" flags=""1"" slotId=""1"" localName=""d"" />
+          <bucket flags=""1"" slotId=""1"" localName=""d"" />
         </dynamicLocals>
       </customDebugInfo>
       <sequencePoints>
@@ -1473,6 +1477,61 @@ class C
     </method>
   </methods>
 </symbols>");
+        }
+
+        [Fact, WorkItem(8473, "https://github.com/dotnet/roslyn/issues/8473")]
+        public void PortableStateMachineDebugInfo()
+        {
+            string src = @"
+using System.Collections.Generic;
+public class C
+{
+    IEnumerable<int> M() { yield return 1; }
+}";
+            var compilation = CreateStandardCompilation(src, options: TestOptions.DebugDll);
+            compilation.VerifyDiagnostics();
+
+            var peStream = new MemoryStream();
+            var pdbStream = new MemoryStream();
+
+            var result = compilation.Emit(
+               peStream,
+               pdbStream,
+               options: EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.PortablePdb));
+
+            pdbStream.Position = 0;
+            using (var provider = MetadataReaderProvider.FromPortablePdbStream(pdbStream))
+            {
+                var mdReader = provider.GetMetadataReader();
+                var writer = new StringWriter();
+                var visualizer = new MetadataVisualizer(mdReader, writer);
+                visualizer.WriteMethodDebugInformation();
+
+                AssertEx.AssertEqualToleratingWhitespaceDifferences(@"
+MethodDebugInformation (index: 0x31, size: 40): 
+==================================================
+1: nil
+2: nil
+3: nil
+4: nil
+5: #22
+{
+  Kickoff Method: 0x06000001 (MethodDef)
+  Locals: 0x11000001 (StandAloneSig)
+  Document: #1
+  IL_0000: <hidden>
+  IL_001F: (5, 26) - (5, 27)
+  IL_0020: (5, 28) - (5, 43)
+  IL_0030: <hidden>
+  IL_0037: (5, 44) - (5, 45)
+}
+6: nil
+7: nil
+8: nil
+9: nil
+a: nil",
+                    writer.ToString());
+            }
         }
     }
 }
