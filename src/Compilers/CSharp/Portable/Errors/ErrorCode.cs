@@ -1243,7 +1243,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_InvalidDebugInfo = 7103,
         #endregion diagnostics introduced in C# 6
 
-        // huge gap here; unused 7103-8000
+        // huge gap here; unused 7104-8000
 
         #region more diagnostics introduced in Roslyn (C# 6)
         WRN_UnimplementedCommandLineSwitch = 8001,
