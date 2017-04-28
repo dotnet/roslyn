@@ -7,3 +7,5 @@ In C# 7, the compiler accepted a pattern of the form `dynamic identifier`, e.g. 
 - https://github.com/dotnet/roslyn/issues/17674 In C# 7, the compiler accepted an assignment statement of the form `_ = M();` where M is a `void` method. The compiler now rejects that.
 
 - https://github.com/dotnet/roslyn/issues/17173 Before C# 7.1, `csc` would accept leading zeroes in the `/langversion` option. Now it should reject it. Example: `csc.exe source.cs /langversion:07`.
+
+- https://github.com/dotnet/roslyn/issues/16870 In C# 7.0 and before C# 7.1, the compiler accepted self-assignments in deconstruction-assignment. The compiler now produces a warning for that. For instance, in `(x, y) = (x, 2);`.
