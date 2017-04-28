@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                    persistParseOptionsChecksum == parseOptionsChecksum;
         }
 
-        private static async Task<(Checksum textChecksum, Checksum parseOptionsChecksum)> GetChecksumsAsync(
+        public static async Task<(Checksum textChecksum, Checksum parseOptionsChecksum)> GetChecksumsAsync(
             Document document, CancellationToken cancellationToken)
         {
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
