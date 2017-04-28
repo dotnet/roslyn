@@ -109,11 +109,6 @@
       <VsixExpInstallerArgs>-rootSuffix:RoslynDev -vsInstallDir:"$([System.IO.Path]::GetFullPath('$(MSBuildBinPath)\..\..\..'))"</VsixExpInstallerArgs>
     </PropertyGroup>
 
-    <!-- Publish binaries for CoreClr test -->
-    <MSBuild Projects="src\Test\DeployCoreClrTestRuntime\DeployCoreClrTestRuntime.csproj"
-             Properties="RuntimeIdentifier=win7-x64"
-             Targets="Publish" />
-
     <!-- Run CoreClr tests -->
     <Exec Condition="'$(TestCoreClr)' == 'true'" Command="&quot;$(CoreRunExe)&quot; $(CoreRunArgs)" />
 
