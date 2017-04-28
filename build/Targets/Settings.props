@@ -34,10 +34,7 @@
     <NetStandard20RefPath>$(NuGetPackageRoot)/NETStandard.Library/$(NETStandardLibraryVersion)/build/netstandard2.0/ref/</NetStandard20RefPath>
     <MicrosoftCSharpRefPath>$(NuGetPackageRoot)/Microsoft.CSharp/$(MicrosoftCSharpVersion)/ref/netstandard1.0/</MicrosoftCSharpRefPath>
 
-    <!-- Workaround until we move to Microsoft.Net.Compilers.nupkg with this fix: https://github.com/dotnet/roslyn/commit/05c12ebfcdd08a02dbceded5327a8da7a7df23be:
-         Use the Microsoft.Net.Compilers.props file with the fix checked into the repo instead of the one that comes along with the nuget package:
-         $(NuGetPackageRoot)\Microsoft.Net.Compilers\$(ToolsetCompilerPackageVersion)\build\Microsoft.Net.Compilers.props -->
-    <ToolsetCompilerPropsFilePath>$(MSBuildThisFileDirectory)Microsoft.Net.Compilers.props</ToolsetCompilerPropsFilePath>
+    <ToolsetCompilerPropsFilePath>$(NuGetPackageRoot)\$(ToolsetCompilerPackageName)\$(ToolsetCompilerPackageVersion)\build\Microsoft.Net.Compilers.props</ToolsetCompilerPropsFilePath>
     <TargetFrameworkRootPath>$(NuGetPackageRoot)\RoslynTools.ReferenceAssemblies\$(RoslynToolsReferenceAssembliesVersion)\tools\Framework</TargetFrameworkRootPath>
 
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">15.0</VisualStudioVersion>
