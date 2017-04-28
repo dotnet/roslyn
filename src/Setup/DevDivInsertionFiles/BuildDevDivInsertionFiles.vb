@@ -98,14 +98,15 @@ Public Class BuildDevDivInsertionFiles
     ' the src/NuGet/Microsoft.Net.Compilers.nuspec file, the
     ' src/Setup/DevDivVsix/CompilersPackage/Microsoft.CodeAnalysis.Compilers.swr file,
     ' and src/Compilers/Extension/CompilerExtension.csproj file.
+    '
+    ' Note: Microsoft.DiaSymReader.Native.amd64.dll and Microsoft.DiaSymReader.Native.x86.dll
+    ' are installed by msbuild setup, not Roslyn.
     Private ReadOnly CompilerFiles As String() = {
         "Microsoft.CodeAnalysis.dll",
         "Microsoft.CodeAnalysis.CSharp.dll",
         "Microsoft.CodeAnalysis.Scripting.dll",
         "Microsoft.CodeAnalysis.CSharp.Scripting.dll",
         "Microsoft.CodeAnalysis.VisualBasic.dll",
-        "Microsoft.DiaSymReader.Native.amd64.dll",
-        "Microsoft.DiaSymReader.Native.x86.dll",
         "System.AppContext.dll",
         "System.Console.dll",
         "System.Diagnostics.FileVersionInfo.dll",
