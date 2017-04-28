@@ -468,7 +468,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Return New TypeParameterObjectCreationExpression(isInvalid, syntax, type, constantValue)
         End Function
         Private Shared Function CreateBoundArrayCreationOperation(boundArrayCreation As BoundArrayCreation) As IArrayCreationExpression
-            Dim elementType As ITypeSymbol = GetArrayCreationElementType(boundArrayCreation)
+            Dim elementType As ITypeSymbol = TryCast(boundArrayCreation.Type, IArrayTypeSymbol)?.ElementType
             Dim dimensionSizes As Lazy(Of ImmutableArray(Of IOperation)) = New Lazy(Of ImmutableArray(Of IOperation))(Function() boundArrayCreation.Bounds.SelectAsArray(Function(n) DirectCast(Create(n), IOperation)))
             Dim initializer As Lazy(Of IArrayInitializer) = New Lazy(Of IArrayInitializer)(Function() DirectCast(Create(boundArrayCreation.InitializerOpt), IArrayInitializer))
             Dim isInvalid As Boolean = boundArrayCreation.HasErrors

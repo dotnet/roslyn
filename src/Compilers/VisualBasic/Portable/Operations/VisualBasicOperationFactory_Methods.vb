@@ -121,7 +121,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
 
         Private Shared Function GetChildOfBadExpression(parent As BoundNode, index As Integer) As IOperation
             Dim badParent As BoundBadExpression = TryCast(parent, BoundBadExpression)
-            If badParent IsNot Nothing AndAlso badParent.ChildBoundNodes.Length > index Then
+            If badParent?.ChildBoundNodes.Length > index Then
                 Dim child As IOperation = Create(badParent.ChildBoundNodes(index))
                 If child IsNot Nothing Then
                     Return child
@@ -142,32 +142,34 @@ Namespace Microsoft.CodeAnalysis.Semantics
                         For Each memberAssignment In objectInitializerExpression.Initializers
                             Dim assignment = TryCast(memberAssignment, BoundAssignmentOperator)
                             Dim left = assignment?.Left
-                            If left IsNot Nothing Then
-                                Select Case left.Kind
-                                    Case BoundKind.FieldAccess
-                                        Dim field = DirectCast(left, BoundFieldAccess).FieldSymbol
-                                        Dim value = Create(assignment.Right)
-                                        builder.Add(New FieldInitializer(
-                                            ImmutableArray.Create(Of IFieldSymbol)(field),
-                                            value,
-                                            OperationKind.FieldInitializerInCreation,
-                                            field Is Nothing OrElse value.IsInvalid,
-                                            assignment.Syntax,
-                                            type:=Nothing,
-                                            constantValue:=Nothing))
-                                    Case BoundKind.PropertyAccess
-                                        Dim [property] = DirectCast(left, BoundPropertyAccess).PropertySymbol
-                                        Dim value = Create(assignment.Right)
-                                        builder.Add(New PropertyInitializer(
-                                            [property],
-                                            value,
-                                            OperationKind.PropertyInitializerInCreation,
-                                            [property] Is Nothing OrElse [property].SetMethod Is Nothing OrElse value.IsInvalid,
-                                            assignment.Syntax,
-                                            type:=Nothing,
-                                            constantValue:=Nothing))
-                                End Select
+                            If left Is Nothing Then
+                                Continue For
                             End If
+
+                            Select Case left.Kind
+                                Case BoundKind.FieldAccess
+                                    Dim field = DirectCast(left, BoundFieldAccess).FieldSymbol
+                                    Dim value = Create(assignment.Right)
+                                    builder.Add(New FieldInitializer(
+                                        ImmutableArray.Create(Of IFieldSymbol)(field),
+                                        value,
+                                        OperationKind.FieldInitializerInCreation,
+                                        field Is Nothing OrElse value.IsInvalid,
+                                        assignment.Syntax,
+                                        type:=Nothing,
+                                        constantValue:=Nothing))
+                                Case BoundKind.PropertyAccess
+                                    Dim [property] = DirectCast(left, BoundPropertyAccess).PropertySymbol
+                                    Dim value = Create(assignment.Right)
+                                    builder.Add(New PropertyInitializer(
+                                        [property],
+                                        value,
+                                        OperationKind.PropertyInitializerInCreation,
+                                        [property] Is Nothing OrElse [property].SetMethod Is Nothing OrElse value.IsInvalid,
+                                        assignment.Syntax,
+                                        type:=Nothing,
+                                        constantValue:=Nothing))
+                            End Select
                         Next
                         Return builder.ToImmutableAndFree()
                     End If
@@ -176,15 +178,6 @@ Namespace Microsoft.CodeAnalysis.Semantics
                 End Function)
 
             Return DirectCast(initializer, ImmutableArray(Of ISymbolInitializer))
-        End Function
-
-        Private Shared Function GetArrayCreationElementType(creation As BoundArrayCreation) As ITypeSymbol
-            Dim arrayType As IArrayTypeSymbol = TryCast(creation.Type, IArrayTypeSymbol)
-            If arrayType IsNot Nothing Then
-                Return arrayType.ElementType
-            End If
-
-            Return Nothing
         End Function
 
         Private Shared ReadOnly s_caseBlocksMappings As New System.Runtime.CompilerServices.ConditionalWeakTable(Of BoundSelectStatement, Object)
@@ -264,7 +257,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
                 Return clause.OperandOpt
             End If
 
-            If clause.ConditionOpt IsNot Nothing AndAlso clause.ConditionOpt.Kind = BoundKind.BinaryOperator Then
+            If clause.ConditionOpt?.Kind = BoundKind.BinaryOperator Then
                 Return DirectCast(clause.ConditionOpt, BoundBinaryOperator).Right
             End If
 
@@ -337,10 +330,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
 
                                 Dim controlType As VisualBasic.Symbols.TypeSymbol = boundFor.ControlVariable.Type
 
-                                Dim stepValue As BoundExpression = boundFor.StepValue
-                                If stepValue Is Nothing Then
-                                    stepValue = New BoundLiteral(Nothing, Semantics.Expression.SynthesizeNumeric(controlType, 1), controlType)
-                                End If
+                                Dim stepValue As BoundExpression = If(boundFor.StepValue, New BoundLiteral(Nothing, Semantics.Expression.SynthesizeNumeric(controlType, 1), controlType))
 
                                 Dim value = Create(stepValue)
                                 Dim stepOperand As IOperation =
