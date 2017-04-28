@@ -55,9 +55,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal const string RestFieldName = "Rest";
 
         private TupleTypeSymbol(Location locationOpt, NamedTypeSymbol underlyingType, ImmutableArray<Location> elementLocations,
-            ImmutableArray<string> elementNames, ImmutableArray<TypeSymbol> elementTypes, ImmutableArray<bool> inferredNamesPositions)
+            ImmutableArray<string> elementNames, ImmutableArray<TypeSymbol> elementTypes, ImmutableArray<bool> errorPositions)
             : this(locationOpt == null ? ImmutableArray<Location>.Empty : ImmutableArray.Create(locationOpt),
-                  underlyingType, elementLocations, elementNames, elementTypes, inferredNamesPositions)
+                  underlyingType, elementLocations, elementNames, elementTypes, errorPositions)
         {
         }
 
