@@ -28,7 +28,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             base.ErrorLevelWarning();
         }
 
-        [Fact(Skip = "Needs investigation"), Trait(Traits.Feature, Traits.Features.ErrorList)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19090"), Trait(Traits.Feature, Traits.Features.ErrorList)]
         [Trait(Traits.Feature, Traits.Features.NetCore)]
         public override void ErrorsDuringMethodBodyEditing()
         {
