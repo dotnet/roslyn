@@ -362,6 +362,7 @@
     <Compile Include="UseExplicitTupleName\UseExplicitTupleNameTests.cs" />
     <Compile Include="UseExpressionBody\Refactoring\UseExpressionBodyForConstructorsRefafactoringTests.cs" />
     <Compile Include="UseExpressionBody\Refactoring\UseExpressionBodyForConversionOperatorsRefafactoringTests.cs" />
+    <Compile Include="UseExpressionBody\Refactoring\UseExpressionBodyForIndexersRefafactoringTests.cs" />
     <Compile Include="UseExpressionBody\Refactoring\UseExpressionBodyForPropertiesRefafactoringTests.cs" />
     <Compile Include="UseExpressionBody\Refactoring\UseExpressionBodyForOperatorsRefafactoringTests.cs" />
     <Compile Include="UseExpressionBody\Refactoring\UseExpressionBodyForMethodsRefafactoringTests.cs" />
