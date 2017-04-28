@@ -42,7 +42,6 @@ IForEachLoopStatement (Iteration variable: System.String value) (LoopKind.ForEac
             VerifyOperationTreeAndDiagnosticsForTest<ForEachStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
-
         [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
         public void IForEachLoopStatement_List()
         {
@@ -864,5 +863,34 @@ IForEachLoopStatement (Iteration variable: System.String value) (LoopKind.ForEac
             VerifyOperationTreeAndDiagnosticsForTest<ForEachStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
+        public void IForEachLoopStatement_ImplicitlyTypedArray()
+        {
+            string source = @"
+class Program
+{
+    static void Main()
+    {
+        /*<bind>*/foreach (var i in new[]{ })
+        { }/*</bind>*/
+    }
+}
+
+";
+            string expectedOperationTree = @"
+IForEachLoopStatement (Iteration variable: ? i) (LoopKind.ForEach) (OperationKind.LoopStatement, IsInvalid) (Syntax: 'foreach (va ... { }')
+  Collection: IArrayCreationExpression (Element Type: ?) (OperationKind.ArrayCreationExpression, Type: ?[]) (Syntax: 'new[]{ }')
+      Dimension Sizes(1): ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: 'new[]{ }')
+      Initializer: IArrayInitializer (0 elements) (OperationKind.ArrayInitializer) (Syntax: '{ }')
+  Body: IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: '{ }')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0826: No best type found for implicitly-typed array
+                //         /*<bind>*/foreach (var i in new[]{ })
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new[]{ }").WithLocation(6, 37)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<ForEachStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
     }
 }

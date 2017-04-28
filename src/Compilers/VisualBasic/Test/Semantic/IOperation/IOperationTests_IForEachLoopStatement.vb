@@ -719,6 +719,31 @@ IForEachLoopStatement (Iteration variable: value As System.String) (LoopKind.For
 
             VerifyOperationTreeAndDiagnosticsForTest(Of ForEachBlockSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
+
+        <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
+        Public Sub IForEachLoopStatement_ImplicitlyTypedArray()
+            Dim source = <![CDATA[
+Class Program
+    Public Shared Sub Main()
+        Dim pets As String() = {"dog", "cat", "bird"}
+
+        For Each value As String In pets'BIND:"For Each value As String In pets"
+        Next
+    End Sub
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IForEachLoopStatement (Iteration variable: value As System.String) (LoopKind.ForEach) (OperationKind.LoopStatement) (Syntax: 'For Each va ... Next')
+  Collection: IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.Collections.IEnumerable) (Syntax: 'pets')
+      ILocalReferenceExpression: pets (OperationKind.LocalReferenceExpression, Type: System.String()) (Syntax: 'pets')
+  Body: IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: 'For Each va ... Next')
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of ForEachBlockSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
     End Class
 End Namespace
 
