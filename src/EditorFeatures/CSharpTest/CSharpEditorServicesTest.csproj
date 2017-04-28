@@ -361,6 +361,7 @@
     <Compile Include="UseCoalesceExpression\UseCoalesceExpressionTests.cs" />
     <Compile Include="UseExplicitTupleName\UseExplicitTupleNameTests.cs" />
     <Compile Include="UseExpressionBody\Refactoring\UseExpressionBodyForConstructorsRefafactoringTests.cs" />
+    <Compile Include="UseExpressionBody\Refactoring\UseExpressionBodyForConversionOperatorsRefafactoringTests.cs" />
     <Compile Include="UseExpressionBody\Refactoring\UseExpressionBodyForOperatorsRefafactoringTests.cs" />
     <Compile Include="UseExpressionBody\Refactoring\UseExpressionBodyForMethodsRefafactoringTests.cs" />
     <Compile Include="UseNullPropagation\UseNullPropagationTests.cs" />
