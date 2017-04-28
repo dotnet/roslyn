@@ -12,16 +12,16 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
 {
-    public class UseExpressionBodyForMethodsRefactoringTests : AbstractCSharpCodeActionTest
+    public class UseExpressionBodyForOperatorsRefactoringTests : AbstractCSharpCodeActionTest
     {
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
-            => new UseExpressionBodyForMethodsCodeRefactoringProvider();
+            => new UseExpressionBodyForOperatorsCodeRefactoringProvider();
 
         private IDictionary<OptionKey, object> UseExpressionBody =>
-            this.Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenPossibleWithNoneEnforcement);
+            this.Option(CSharpCodeStyleOptions.PreferExpressionBodiedOperators, CSharpCodeStyleOptions.WhenPossibleWithNoneEnforcement);
 
         private IDictionary<OptionKey, object> UseBlockBody =>
-            this.Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.NeverWithNoneEnforcement);
+            this.Option(CSharpCodeStyleOptions.PreferExpressionBodiedOperators, CSharpCodeStyleOptions.NeverWithNoneEnforcement);
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
         public async Task TestNotOfferedIfUserPrefersExpressionBodiesAndInBlockBody()
@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestMissingAsync(
 @"class C
 {
-    void Foo()
+    public static bool operator +(C c1, C c2)
     {
         [||]Bar();
     }
@@ -42,14 +42,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestInRegularAndScript1Async(
 @"class C
 {
-    void Foo()
+    public static bool operator +(C c1, C c2)
     {
         [||]Bar();
     }
 }",
 @"class C
 {
-    void Foo() => Bar();
+    public static bool operator +(C c1, C c2) => Bar();
 }", parameters: new TestParameters(options: UseBlockBody));
         }
 
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestMissingAsync(
 @"class C
 {
-    Action Foo()
+    public static bool operator +(C c1, C c2)
     {
         return () => { [||] };
     }
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestMissingAsync(
 @"class C
 {
-    void Foo() => [||]Bar();
+    public static bool operator +(C c1, C c2) => [||]Bar();
 }", parameters: new TestParameters(options: UseBlockBody));
         }
 
@@ -82,11 +82,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestInRegularAndScript1Async(
 @"class C
 {
-    void Foo() => [||]Bar();
+    public static bool operator +(C c1, C c2) => [||]Bar();
 }",
 @"class C
 {
-    void Foo() { Bar(); }
+    public static bool operator +(C c1, C c2) { return Bar(); }
 }", parameters: new TestParameters(options: UseExpressionBody));
         }
     }
