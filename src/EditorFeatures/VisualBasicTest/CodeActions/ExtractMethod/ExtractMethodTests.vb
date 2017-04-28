@@ -564,5 +564,69 @@ End Structure")
 
         End Function
 
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)>
+        Public Async Function TestTupleWithInferredNames() As Task
+            Await TestAsync(
+"Class Program
+    Sub Main()
+        Dim a = 1
+        Dim t = [|(a, b:=2)|]
+        System.Console.Write(t.a)
+    End Sub
+End Class
+Namespace System
+    Structure ValueTuple(Of T1, T2)
+    End Structure
+End Namespace",
+"Class Program
+    Sub Main()
+        Dim a = 1
+        Dim t = {|Rename:GetT|}(a)
+        System.Console.Write(t.a)
+    End Sub
+
+    Private Shared Function GetT(a As Integer) As (a As Integer, b As Integer)
+        Return (a, b:=2)
+    End Function
+End Class
+Namespace System
+    Structure ValueTuple(Of T1, T2)
+    End Structure
+End Namespace", TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_3))
+
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)>
+        Public Async Function TestTupleWithInferredNames_WithVB15() As Task
+            Await TestAsync(
+"Class Program
+    Sub Main()
+        Dim a = 1
+        Dim t = [|(a, b:=2)|]
+        System.Console.Write(t.a)
+    End Sub
+End Class
+Namespace System
+    Structure ValueTuple(Of T1, T2)
+    End Structure
+End Namespace",
+"Class Program
+    Sub Main()
+        Dim a = 1
+        Dim t = {|Rename:GetT|}(a)
+        System.Console.Write(t.a)
+    End Sub
+
+    Private Shared Function GetT(a As Integer) As (a As Integer, b As Integer)
+        Return (a, b:=2)
+    End Function
+End Class
+Namespace System
+    Structure ValueTuple(Of T1, T2)
+    End Structure
+End Namespace", TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15))
+
+        End Function
+
     End Class
 End Namespace
