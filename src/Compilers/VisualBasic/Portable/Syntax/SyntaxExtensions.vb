@@ -109,13 +109,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Returns Nothing if unsuccessful
         ''' </summary>
         <Extension>
-        Public Function TryGetInferredMemberName(expression As ExpressionSyntax) As String
-            If expression Is Nothing Then
+        Public Function TryGetInferredMemberName(syntax As SyntaxNode) As String
+            If syntax Is Nothing Then
+                Return Nothing
+            End If
+
+            Dim expr = TryCast(syntax, ExpressionSyntax)
+            If expr Is Nothing Then
                 Return Nothing
             End If
 
             Dim ignore As XmlNameSyntax = Nothing
-            Dim nameToken As SyntaxToken = expression.ExtractAnonymousTypeMemberName(ignore)
+            Dim nameToken As SyntaxToken = expr.ExtractAnonymousTypeMemberName(ignore)
             Return If(nameToken.Kind() = SyntaxKind.IdentifierToken, nameToken.ValueText, Nothing)
         End Function
     End Module

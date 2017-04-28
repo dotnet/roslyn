@@ -742,12 +742,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.ParenthesizedVariableDesignation:
                     {
                         var tuple = (ParenthesizedVariableDesignationSyntax)node;
-                        var builder = ArrayBuilder<BoundExpression>.GetInstance(tuple.Variables.Count);
+                        int count = tuple.Variables.Count;
+                        var builder = ArrayBuilder<BoundExpression>.GetInstance(count);
+                        var namesBuilder = ArrayBuilder<string>.GetInstance(count);
+
                         foreach (var n in tuple.Variables)
                         {
                             builder.Add(BindDeclarationVariables(declType, n, n, diagnostics));
+                            namesBuilder.Add(InferTupleElementName(n));
                         }
                         var subExpressions = builder.ToImmutableAndFree();
+
+                        var uniqueFieldNames = PooledHashSet<string>.GetInstance();
+                        RemoveDuplicateInferredTupleNames(namesBuilder, uniqueFieldNames);
+                        uniqueFieldNames.Free();
+
+                        var tupleNames = namesBuilder.ToImmutableAndFree();
+                        var inferredPositions = tupleNames.SelectAsArray(n => n != null);
+                        bool disallowInferredNames = this.Compilation.LanguageVersion.DisallowInferredTupleElementNames();
 
                         // We will not check constraints at this point as this code path
                         // is failure-only and the caller is expected to produce a diagnostic.
@@ -755,10 +767,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                             null,
                             subExpressions.SelectAsArray(e => e.Type),
                             default(ImmutableArray<Location>),
-                            default(ImmutableArray<string>),
+                            tupleNames,
                             Compilation,
-                            shouldCheckConstraints: false);
-                        return new BoundTupleLiteral(syntax, default(ImmutableArray<string>), default(ImmutableArray<bool>), subExpressions, tupleType);
+                            shouldCheckConstraints: false,
+                            errorPositions: disallowInferredNames ? inferredPositions : default(ImmutableArray<bool>));
+
+                        return new BoundTupleLiteral(syntax, default(ImmutableArray<string>), inferredPositions, subExpressions, tupleType);
                     }
                 default:
                     throw ExceptionUtilities.UnexpectedValue(node.Kind());
@@ -787,8 +801,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var elementLocations = ArrayBuilder<Location>.GetInstance(arguments.Count);
 
             // prepare names
-            var (elementNames, inferredPositions, hasErrors) = ExtractTupleElementNames(arguments, diagnostics,
-                withInference: this.Compilation.LanguageVersion.InferTupleElementNames());
+            var (elementNames, inferredPositions, hasErrors) = ExtractTupleElementNames(arguments, diagnostics);
 
             // prepare types and locations
             for (int i = 0; i < numElements; i++)
@@ -831,19 +844,24 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (hasNaturalType)
             {
+                bool disallowInferredNames = this.Compilation.LanguageVersion.DisallowInferredTupleElementNames();
+
                 tupleTypeOpt = TupleTypeSymbol.Create(node.Location, elements, locations, elementNames,
-                    this.Compilation, syntax: node, diagnostics: diagnostics, shouldCheckConstraints: true);
+                    this.Compilation, syntax: node, diagnostics: diagnostics, shouldCheckConstraints: true,
+                    errorPositions: disallowInferredNames ? inferredPositions : default(ImmutableArray<bool>));
             }
             else
             {
                 TupleTypeSymbol.VerifyTupleTypePresent(elements.Length, node, this.Compilation, diagnostics);
             }
 
+            // Always track the inferred positions in the bound node, so that conversions don't produce a warning
+            // for "dropped names" on tuple literal when the name was inferred.
             return new BoundTupleLiteral(node, elementNames, inferredPositions, boundArguments.ToImmutableAndFree(), tupleTypeOpt, hasErrors);
         }
 
         private static (ImmutableArray<string> elementNamesArray, ImmutableArray<bool> inferredArray, bool hasErrors) ExtractTupleElementNames(
-            SeparatedSyntaxList<ArgumentSyntax> arguments, DiagnosticBag diagnostics, bool withInference)
+            SeparatedSyntaxList<ArgumentSyntax> arguments, DiagnosticBag diagnostics)
         {
             bool hasErrors = false;
             int numElements = arguments.Count;
@@ -868,7 +886,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         hasErrors = true;
                     }
                 }
-                else if (withInference)
+                else
                 {
                     inferredName = InferTupleElementName(argumentSyntax.Expression);
                 }
@@ -954,19 +972,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             toRemove.Free();
         }
 
-        private static string InferTupleElementName(ExpressionSyntax element)
+        private static string InferTupleElementName(SyntaxNode syntax)
         {
-            SyntaxToken nameToken = element.ExtractAnonymousTypeMemberName();
-            if (nameToken.Kind() == SyntaxKind.IdentifierToken)
+            string name = syntax.TryGetInferredMemberName();
+
+            // Reserved names are never candidates to be inferred names, at any position
+            if (name == null || TupleTypeSymbol.IsElementNameReserved(name) != -1)
             {
-                string name = nameToken.ValueText;
-                // Reserved names are never candidates to be inferred names, at any position
-                if (TupleTypeSymbol.IsElementNameReserved(name) == -1)
-                {
-                    return name;
-                }
+                return null;
             }
-            return null;
+
+            return name;
         }
 
         private BoundExpression BindRefValue(RefValueExpressionSyntax node, DiagnosticBag diagnostics)
@@ -5540,56 +5556,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     Error(diagnostics, ErrorCode.ERR_NoSuchMemberOrExtensionNeedUsing, name, boundLeft.Type, plainName, "System");
                 }
-                else if (boundLeft.Type.IsTupleType && !Compilation.LanguageVersion.InferTupleElementNames()
-                    && IsMissingMemberAnInferredTupleName(boundLeft, plainName))
-                {
-                    Error(diagnostics, ErrorCode.ERR_TupleInferredNamesNotAvailable, name, boundLeft.Type, plainName,
-                        new CSharpRequiredLanguageVersion(LanguageVersion.CSharp7_1));
-                }
                 else
                 {
                     Error(diagnostics, ErrorCode.ERR_NoSuchMemberOrExtension, name, boundLeft.Type, plainName);
                 }
             }
-        }
-
-        /// <summary>
-        /// When reporting a missing member error on a tuple type, determine whether that member
-        /// could be an element with an inferred name (had the language version been above 7.1).
-        /// </summary>
-        private static bool IsMissingMemberAnInferredTupleName(BoundExpression boundLeft, string plainName)
-        {
-            Debug.Assert(boundLeft.Type.IsTupleType);
-
-            var declarations = boundLeft.Type.DeclaringSyntaxReferences;
-            if (declarations.Length != 1)
-            {
-                return false;
-            }
-
-            var syntax = declarations[0].GetSyntax();
-            if (syntax.Kind() != SyntaxKind.TupleExpression)
-            {
-                return false;
-            }
-
-            var arguments = ((TupleExpressionSyntax)syntax).Arguments;
-            var (elementNames, inferredPositions, _) = ExtractTupleElementNames(arguments, diagnostics: null, withInference: true);
-
-            if (elementNames.IsDefault || inferredPositions.IsDefault)
-            {
-                return false;
-            }
-
-            for (int i = 0; i < arguments.Count; i++)
-            {
-                if (elementNames[i]?.Equals(plainName, StringComparison.Ordinal) == true && inferredPositions[i])
-                {
-                    return true;
-                }
-            }
-
-            return false;
         }
 
         private bool WouldUsingSystemFindExtension(TypeSymbol receiver, string methodName)

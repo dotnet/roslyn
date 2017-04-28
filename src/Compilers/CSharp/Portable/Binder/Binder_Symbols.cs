@@ -480,8 +480,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                 elementNames.ToImmutableAndFree(),
                                             this.Compilation,
                                             this.ShouldCheckConstraints,
-                                            syntax,
-                                            diagnostics);
+                                            errorPositions: default(ImmutableArray<bool>),
+                                            syntax: syntax,
+                                            diagnostics: diagnostics);
         }
 
         private static void CollectTupleFieldMemberName(string name, int elementIndex, int tupleSize, ref ArrayBuilder<string> elementNames)
