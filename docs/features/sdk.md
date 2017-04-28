@@ -35,6 +35,9 @@ This set of Jenkins legs is considered functional and must pass on every merge:
 - Unit tests debug / release on x86 / amd64 
 - Build correctness
 - Microbuild
+- CoreClr
+- Linux
+- Integration Tests
 
 ## Big Items
 
