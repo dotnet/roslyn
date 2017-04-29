@@ -136,22 +136,25 @@ namespace BuildBoss
             return _document.XPathSelectElements("//mb:ItemGroup", _manager);
         }
 
-        internal List<ProjectKey> GetDeclaredProjectReferences()
+        internal List<ProjectKey> GetDeclaredProjectReferences(bool withoutRefOutputFalse = true)
         {
             var references = _document.XPathSelectElements("//mb:ProjectReference", _manager);
             var list = new List<ProjectKey>();
             var directory = Path.GetDirectoryName(_key.FilePath);
             foreach (var r in references)
             {
-                // Make sure to check for references that exist only for ordering purposes.  They don't count as 
-                // actual references.
-                var refOutputAssembly = r.Element(SharedUtil.MSBuildNamespace.GetName("ReferenceOutputAssembly"));
-                if (refOutputAssembly != null)
+                if (withoutRefOutputFalse)
                 {
-                    bool isRealReference;
-                    if (bool.TryParse(refOutputAssembly.Value.Trim().ToLower(), out isRealReference) && !isRealReference)
+                    // Make sure to check for references that exist only for ordering purposes.  They don't count as 
+                    // actual references.
+                    var refOutputAssembly = r.Element(SharedUtil.MSBuildNamespace.GetName("ReferenceOutputAssembly"));
+                    if (refOutputAssembly != null)
                     {
-                        continue;
+                        bool isRealReference;
+                        if (bool.TryParse(refOutputAssembly.Value.Trim().ToLower(), out isRealReference) && !isRealReference)
+                        {
+                            continue;
+                        }
                     }
                 }
 
