@@ -17,15 +17,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private readonly DeclarationInfo _declarationInfo;
 
         private SyntaxTreeIndex(
-            Checksum textChecksum,
-            Checksum parseOptionsChecksum,
+            Checksum checksum,
             LiteralInfo literalInfo,
             IdentifierInfo identifierInfo,
             ContextInfo contextInfo,
             DeclarationInfo declarationInfo)
         {
-            TextChecksum = textChecksum;
-            ParseOptionsChecksum = parseOptionsChecksum;
+            this.Checksum = checksum;
             _literalInfo = literalInfo;
             _identifierInfo = identifierInfo;
             _contextInfo = contextInfo;
