@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 create: () => CreateSourceSymbolTreeInfo(solution, checksum, assembly, filePath, cancellationToken),
                 keySuffix: "_Source",
                 getPersistedChecksum: info => info._checksum,
-                readObject: reader => ReadSymbolTreeInfo(reader, (c, names, nodes) => GetSpellCheckerTask(solution, c, filePath, names, nodes)),
+                readObject: reader => ReadSymbolTreeInfo(reader, (names, nodes) => GetSpellCheckerTask(solution, checksum, filePath, names, nodes)),
                 writeObject: (w, i) => i.WriteTo(w),
                 cancellationToken: cancellationToken);
         }
@@ -198,16 +198,17 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
         }
 
-        internal static SymbolTreeInfo ReadSymbolTreeInfo_ForTestingPurposesOnly(ObjectReader reader)
+        internal static SymbolTreeInfo ReadSymbolTreeInfo_ForTestingPurposesOnly(
+            ObjectReader reader, Checksum checksum)
         {
             return ReadSymbolTreeInfo(reader, 
-                (checksum, names, nodes) => Task.FromResult(
+                (names, nodes) => Task.FromResult(
                     new SpellChecker(checksum, nodes.Select(n => new StringSlice(names, n.NameSpan)))));
         }
 
         private static SymbolTreeInfo ReadSymbolTreeInfo(
             ObjectReader reader,
-            Func<Checksum, string, Node[], Task<SpellChecker>> createSpellCheckerTask)
+            Func<string, Node[], Task<SpellChecker>> createSpellCheckerTask)
         {
             try
             {
@@ -243,7 +244,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                         }
                     }
 
-                    var spellCheckerTask = createSpellCheckerTask(checksum, concatenatedNames, nodes);
+                    var spellCheckerTask = createSpellCheckerTask(concatenatedNames, nodes);
                     return new SymbolTreeInfo(checksum, concatenatedNames, nodes, spellCheckerTask, inheritanceMap);
                 }
             }
