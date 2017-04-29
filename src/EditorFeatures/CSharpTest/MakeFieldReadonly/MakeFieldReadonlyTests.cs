@@ -543,6 +543,20 @@ partial class MyClass
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        public async Task FieldTypeIsMutableStruct()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"struct MyStruct
+{
+    private int _foo;
+}
+class MyClass
+{
+    private MyStruct [|_foo|];
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
         public async Task FixAll()
         {
             await TestInRegularAndScriptAsync(

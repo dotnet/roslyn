@@ -452,6 +452,17 @@ End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
+        Public Async Function FieldIsMutableStructure() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"Structure S
+    Private _foo As Integer
+End Structure
+Class C
+    Private [|_foo|] As S
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
         Public Async Function FixAll() As Task
             Await TestInRegularAndScriptAsync(
 "Class C
