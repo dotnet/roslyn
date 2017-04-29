@@ -1,6 +1,10 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.IO
+Imports System.Reflection.Metadata
+Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.Test.Utilities
+Imports Microsoft.Metadata.Tools
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.PDB
@@ -172,6 +176,15 @@ End Module
     <methods>
         <method containingType="Module1+VB$StateMachine_1_Foo" name="MoveNext">
             <customDebugInfo>
+                <hoistedLocalScopes format="portable">
+                    <slot startOffset="0x41" endOffset="0x183"/>
+                    <slot/>
+                    <slot/>
+                    <slot startOffset="0x6d" endOffset="0xcf"/>
+                    <slot/>
+                    <slot/>
+                    <slot startOffset="0xf7" endOffset="0x167"/>
+                </hoistedLocalScopes>
                 <encLocalSlotMap>
                     <slot kind="20" offset="-1"/>
                     <slot kind="27" offset="-1"/>
@@ -251,6 +264,11 @@ End Class
 <symbols>
     <methods>
         <method containingType="C+VB$StateMachine_1_Iterator_Lambda_Hoisted" name="MoveNext">
+            <customDebugInfo>
+                <hoistedLocalScopes format="portable">
+                    <slot startOffset="0x19" endOffset="0x98"/>
+                </hoistedLocalScopes>
+            </customDebugInfo>
             <sequencePoints>
                 <entry offset="0x0" hidden="true"/>
                 <entry offset="0x19" hidden="true"/>
@@ -349,6 +367,12 @@ End Class
 <symbols>
     <methods>
         <method containingType="C+VB$StateMachine_1_Iterator_NoLambda_Hoisted" name="MoveNext">
+            <customDebugInfo>
+                <hoistedLocalScopes format="portable">
+                    <slot startOffset="0x19" endOffset="0x68"/>
+                    <slot startOffset="0x19" endOffset="0x68"/>
+                </hoistedLocalScopes>
+            </customDebugInfo>
             <sequencePoints>
                 <entry offset="0x0" hidden="true"/>
                 <entry offset="0x19" startLine="6" startColumn="13" endLine="6" endColumn="29"/>
@@ -475,5 +499,52 @@ End Module
 </symbols>)
         End Sub
 
+        <Fact, WorkItem(8473, "https://github.com/dotnet/roslyn/issues/8473")>
+        Public Sub PortableStateMachineDebugInfo()
+            Dim src = "
+Imports System.Collections.Generic
+Public Class C
+    Iterator Function M() As IEnumerable(Of Integer) 
+       Yield 1
+    End Function
+End Class"
+            Dim compilation = CreateCompilation(src, LatestVbReferences, options:=TestOptions.DebugDll)
+            compilation.VerifyDiagnostics()
+
+            Dim peStream = New MemoryStream()
+            Dim pdbStream = New MemoryStream()
+            Dim result = compilation.Emit(peStream, pdbStream, options:=EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.PortablePdb))
+            pdbStream.Position = 0
+
+            Using provider = MetadataReaderProvider.FromPortablePdbStream(pdbStream)
+                Dim mdReader = provider.GetMetadataReader()
+                Dim writer = New StringWriter()
+                Dim visualizer = New MetadataVisualizer(mdReader, writer)
+                visualizer.WriteMethodDebugInformation()
+
+                AssertEx.AssertEqualToleratingWhitespaceDifferences("
+MethodDebugInformation (index: 0x31, size: 40): 
+==================================================
+1: nil
+2: nil
+3: nil
+4: nil
+5: #22
+{
+  Kickoff Method: 0x06000002 (MethodDef)
+  Locals: 0x11000002 (StandAloneSig)
+  Document: #1
+  IL_0000: <hidden>
+  IL_0021: (4, 5) - (4, 53)
+  IL_0022: (5, 8) - (5, 15)
+  IL_003D: (6, 5) - (6, 17)
+}
+6: nil
+7: nil
+8: nil
+9: nil
+a: nil", writer.ToString())
+            End Using
+        End Sub
     End Class
 End Namespace

@@ -1969,5 +1969,43 @@ class C
     }
 }");
         }
+
+        [WorkItem(18668, "https://github.com/dotnet/roslyn/issues/18668")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        public async Task TestDefiniteAssignmentIssueWithVar()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+using System;
+
+class C
+{
+    static void M(bool condition)
+    {
+        [|var|] x = 1;
+        var result = condition && int.TryParse(""2"", out x);
+        Console.WriteLine(x);
+    }
+}");
+        }
+
+        [WorkItem(18668, "https://github.com/dotnet/roslyn/issues/18668")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        public async Task TestDefiniteAssignmentIssueWithNonVar()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+using System;
+
+class C
+{
+    static void M(bool condition)
+    {
+        [|int|] x = 1;
+        var result = condition && int.TryParse(""2"", out x);
+        Console.WriteLine(x);
+    }
+}");
+        }
     }
 }

@@ -1093,6 +1093,13 @@ End Module").Path
             parsedArgs.Errors.Verify()
             Assert.Equal(LanguageVersion.VisualBasic15, parsedArgs.ParseOptions.LanguageVersion)
 
+            parsedArgs = DefaultParse({"/langVERSION:15.3", "a.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify()
+            Assert.Equal(LanguageVersion.VisualBasic15_3, parsedArgs.ParseOptions.LanguageVersion)
+
+            ' The canary check is a reminder that this test needs to be updated when a language version is added
+            LanguageVersionAdded_Canary()
+
             parsedArgs = DefaultParse({"/langVERSION:default", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal(LanguageVersion.Default, parsedArgs.ParseOptions.SpecifiedLanguageVersion)
@@ -1101,7 +1108,7 @@ End Module").Path
             parsedArgs = DefaultParse({"/langVERSION:latest", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal(LanguageVersion.Latest, parsedArgs.ParseOptions.SpecifiedLanguageVersion)
-            Assert.Equal(LanguageVersion.VisualBasic15, parsedArgs.ParseOptions.LanguageVersion)
+            Assert.Equal(LanguageVersion.VisualBasic15_3, parsedArgs.ParseOptions.LanguageVersion)
 
             ' default: "current version"
             parsedArgs = DefaultParse({"a.vb"}, _baseDirectory)
@@ -1611,16 +1618,33 @@ End Module").Path
             ' When a new version is added, this test will break. This list must be checked:
             ' - update the "UpgradeProject" codefixer
             ' - update the IDE drop-down for selecting Language Version
-            ' - don't fix the canary test until you update all the tests that include it
-            Assert.Equal(LanguageVersion.VisualBasic15, LanguageVersion.Latest.MapSpecifiedToEffectiveVersion())
-            Assert.Equal(LanguageVersion.VisualBasic15, LanguageVersion.Default.MapSpecifiedToEffectiveVersion())
-        End Sub
-
-        <Fact>
-        Public Sub LanguageVersion_DisplayString()
-            AssertEx.SetEqual({"default", "9", "10", "11", "12", "14", "15", "latest"},
+            ' - update all the tests that call this canary
+            ' - update the command-line documentation (CommandLine.md)
+            AssertEx.SetEqual({"default", "9", "10", "11", "12", "14", "15", "15.3", "latest"},
                 System.Enum.GetValues(GetType(LanguageVersion)).Cast(Of LanguageVersion)().Select(Function(v) v.ToDisplayString()))
-            ' For minor versions, the format should be "x.y", such as "15.1"
+            ' For minor versions, the format should be "x.y", such as "15.3"
+        End Sub
+        <Fact>
+        Public Sub LanguageVersion_GetErrorCode()
+            Dim versions = System.Enum.GetValues(GetType(LanguageVersion)).
+                Cast(Of LanguageVersion)().
+                Except({LanguageVersion.Default, LanguageVersion.Latest}).
+                Select(Function(v) v.GetErrorName())
+
+            Dim errorCodes = {
+                "9.0",
+                "10.0",
+                "11.0",
+                "12.0",
+                "14.0",
+                "15.0",
+                "15.3"
+             }
+
+            AssertEx.SetEqual(versions, errorCodes)
+
+            ' The canary check is a reminder that this test needs to be updated when a language version is added
+            LanguageVersionAdded_Canary()
         End Sub
 
         <Fact>
@@ -1632,9 +1656,11 @@ End Module").Path
             Assert.Equal(LanguageVersion.VisualBasic14, LanguageVersion.VisualBasic14.MapSpecifiedToEffectiveVersion())
             Assert.Equal(LanguageVersion.VisualBasic15, LanguageVersion.VisualBasic15.MapSpecifiedToEffectiveVersion())
             Assert.Equal(LanguageVersion.VisualBasic15, LanguageVersion.Default.MapSpecifiedToEffectiveVersion())
-            Assert.Equal(LanguageVersion.VisualBasic15, LanguageVersion.Latest.MapSpecifiedToEffectiveVersion())
 
-            ' The canary check Is a reminder that this test needs to be updated when a language version Is added
+            Assert.Equal(LanguageVersion.VisualBasic15_3, LanguageVersion.VisualBasic15_3.MapSpecifiedToEffectiveVersion())
+            Assert.Equal(LanguageVersion.VisualBasic15_3, LanguageVersion.Latest.MapSpecifiedToEffectiveVersion())
+
+            ' The canary check is a reminder that this test needs to be updated when a language version is added
             LanguageVersionAdded_Canary()
         End Sub
 
@@ -1651,6 +1677,7 @@ End Module").Path
             InlineData("14.0", True, LanguageVersion.VisualBasic14),
             InlineData("15", True, LanguageVersion.VisualBasic15),
             InlineData("15.0", True, LanguageVersion.VisualBasic15),
+            InlineData("15.3", True, LanguageVersion.VisualBasic15_3),
             InlineData("DEFAULT", True, LanguageVersion.Default),
             InlineData("default", True, LanguageVersion.Default),
             InlineData("LATEST", True, LanguageVersion.Latest),
@@ -2282,6 +2309,7 @@ End Module").Path
             Dim file = CreateRuleSetFile(source)
             Dim parsedArgs = DefaultParse(New String() {"/ruleset:" + file.Path, "a.cs"}, _baseDirectory)
             parsedArgs.Errors.Verify()
+            Assert.Equal(expected:=file.Path, actual:=parsedArgs.RuleSetPath)
             Assert.True(parsedArgs.CompilationOptions.SpecificDiagnosticOptions.ContainsKey("CA1012"))
             Assert.True(parsedArgs.CompilationOptions.SpecificDiagnosticOptions("CA1012") = ReportDiagnostic.Error)
             Assert.True(parsedArgs.CompilationOptions.SpecificDiagnosticOptions.ContainsKey("CA1013"))
@@ -2306,6 +2334,7 @@ End Module").Path
             Dim file = CreateRuleSetFile(source)
             Dim parsedArgs = DefaultParse(New String() {"/ruleset:" + """" + file.Path + """", "a.cs"}, _baseDirectory)
             parsedArgs.Errors.Verify()
+            Assert.Equal(expected:=file.Path, actual:=parsedArgs.RuleSetPath)
         End Sub
 
         <Fact>
@@ -2313,23 +2342,28 @@ End Module").Path
             Dim parsedArgs = DefaultParse(New String() {"/ruleset", "a.cs"}, _baseDirectory)
             parsedArgs.Errors.Verify(
             Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("ruleset", ":<file>"))
+            Assert.Null(parsedArgs.RuleSetPath)
 
             parsedArgs = DefaultParse(New String() {"/ruleset", "a.cs"}, _baseDirectory)
             parsedArgs.Errors.Verify(
             Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("ruleset", ":<file>"))
+            Assert.Null(parsedArgs.RuleSetPath)
 
             parsedArgs = DefaultParse(New String() {"/ruleset:blah", "a.cs"}, _baseDirectory)
             parsedArgs.Errors.Verify(
             Diagnostic(ERRID.ERR_CantReadRulesetFile).WithArguments(Path.Combine(TempRoot.Root, "blah"), "File not found."))
+            Assert.Equal(expected:=Path.Combine(TempRoot.Root, "blah"), actual:=parsedArgs.RuleSetPath)
 
             parsedArgs = DefaultParse(New String() {"/ruleset:blah;blah.ruleset", "a.cs"}, _baseDirectory)
             parsedArgs.Errors.Verify(
             Diagnostic(ERRID.ERR_CantReadRulesetFile).WithArguments(Path.Combine(TempRoot.Root, "blah;blah.ruleset"), "File not found."))
+            Assert.Equal(expected:=Path.Combine(TempRoot.Root, "blah;blah.ruleset"), actual:=parsedArgs.RuleSetPath)
 
             Dim file = CreateRuleSetFile(New XDocument())
             parsedArgs = DefaultParse(New String() {"/ruleset:" + file.Path, "a.cs"}, _baseDirectory)
             'parsedArgs.Errors.Verify(
             '   Diagnostic(ERRID.ERR_CantReadRulesetFile).WithArguments(file.Path, "Root element is missing."))
+            Assert.Equal(expected:=file.Path, actual:=parsedArgs.RuleSetPath)
             Dim err = parsedArgs.Errors.Single()
 
             Assert.Equal(ERRID.ERR_CantReadRulesetFile, err.Code)

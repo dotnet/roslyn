@@ -42,7 +42,7 @@ class {|definition:C|}
             VerifyNone("void");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19059"), Trait(Traits.Feature, Traits.Features.Classification)]
         public void WrittenReference()
         {
             var markup = @"
