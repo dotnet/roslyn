@@ -79,6 +79,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public static async Task<Checksum> GetChecksumAsync(
             Document document, CancellationToken cancellationToken)
         {
+            // Since we build the SyntaxTreeIndex from a SyntaxTree, we need our checksum to change
+            // any time the SyntaxTree could have changed.  Right now, that can only happen if the
+            // text of the document changes, or the ParseOptions change.  So we get the checksums
+            // for both of those, and merge them together to make the final checksum.
+
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var textChecksum = Checksum.Create(WellKnownSynchronizationKinds.SourceText, text.GetChecksum());
 
