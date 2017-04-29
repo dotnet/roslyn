@@ -64,6 +64,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Diagnostics\DiagnosticComputer.cs" />
+    <Compile Include="Services\RemoteAssemblySerializationInfoService.cs" />
     <Compile Include="Services\AssetSource.cs" />
     <Compile Include="Services\AssetService.cs" />
     <Compile Include="Services\AssetStorage.cs" />

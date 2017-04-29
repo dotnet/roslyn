@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.Serialization;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
@@ -28,7 +29,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             Project project, CancellationToken cancellationToken)
         {
             var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-            var checksum = await project.State.GetChecksumAsync(cancellationToken).ConfigureAwait(false);
+            var stateChecksums = await project.State.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
+
+            var checksum = Checksum.Create("SymbolTree",
+                new Checksum[] { stateChecksums.Documents.Checksum, stateChecksums.CompilationOptions, stateChecksums.ParseOptions });
 
             return await LoadOrCreateSourceSymbolTreeInfoAsync(
                 project.Solution, compilation.Assembly, checksum, project.FilePath,

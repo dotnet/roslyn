@@ -10,6 +10,7 @@ using System.Reflection.Metadata;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Utilities;
 using Roslyn.Utilities;
@@ -132,13 +133,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             CancellationToken cancellationToken)
         {
             var filePath = reference.FilePath;
-            var checksum = IOUtilities.PerformIO(() =>
-            {
-                using (var stream = File.OpenRead(filePath))
-                {
-                    return Checksum.Create(stream);
-                }
-            }, null);
+            var serializer = new Serializer(solution.Workspace);
+            var checksum = serializer.CreateChecksum(reference, cancellationToken);
 
             return LoadOrCreateAsync(
                 solution,
