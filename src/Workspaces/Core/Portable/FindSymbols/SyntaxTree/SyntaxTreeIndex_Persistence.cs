@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     internal sealed partial class SyntaxTreeIndex : IObjectWritable
     {
         private const string PersistenceName = "<SyntaxTreeIndex>";
-        private const string SerializationFormat = "8";
+        private const string SerializationFormat = "9";
 
         public readonly Checksum Checksum;
 
@@ -37,26 +37,23 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         private static async Task<SyntaxTreeIndex> LoadAsync(
-            Document document, string persistenceName, string formatVersion,
-            Func<ObjectReader, Checksum, SyntaxTreeIndex> readFrom, CancellationToken cancellationToken)
+            Document document, Checksum checksum, CancellationToken cancellationToken)
         {
             var solution = document.Project.Solution;
             var persistentStorageService = (IPersistentStorageService2)solution.Workspace.Services.GetService<IPersistentStorageService>();
-
-            var checksum = await GetChecksumAsync(document, cancellationToken).ConfigureAwait(false);
 
             try
             {
                 // attempt to load from persisted state
                 using (var storage = persistentStorageService.GetStorage(solution, checkBranchId: false))
-                using (var stream = await storage.ReadStreamAsync(document, persistenceName, cancellationToken).ConfigureAwait(false))
+                using (var stream = await storage.ReadStreamAsync(document, PersistenceName, cancellationToken).ConfigureAwait(false))
                 using (var reader = ObjectReader.TryGetReader(stream))
                 {
                     if (reader != null)
                     {
-                        if (FormatAndChecksumMatches(reader, formatVersion, checksum))
+                        if (FormatAndChecksumMatches(reader, SerializationFormat, checksum))
                         {
-                            return readFrom(reader, checksum);
+                            return ReadFrom(reader, checksum);
                         }
                     }
                 }
@@ -96,12 +93,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return Checksum.Create(nameof(SyntaxTreeIndex), new[] { textChecksum, parseOptionsChecksum });
         }
 
-        private static async Task<bool> SaveAsync(
-            Document document, string persistenceName, string formatVersion, SyntaxTreeIndex data, CancellationToken cancellationToken)
+        private async Task<bool> SaveAsync(
+            Document document, CancellationToken cancellationToken)
         {
             var solution = document.Project.Solution;
             var persistentStorageService = (IPersistentStorageService2)solution.Workspace.Services.GetService<IPersistentStorageService>();
-            var checksum = await GetChecksumAsync(document, cancellationToken).ConfigureAwait(false);
 
             try
             {
@@ -109,11 +105,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 using (var stream = SerializableBytes.CreateWritableStream())
                 using (var writer = new ObjectWriter(stream, cancellationToken: cancellationToken))
                 {
-                    data.WriteFormatAndChecksum(writer, formatVersion);
-                    data.WriteTo(writer);
+                    this.WriteFormatAndChecksum(writer, SerializationFormat);
+                    this.WriteTo(writer);
 
                     stream.Position = 0;
-                    return await storage.WriteStreamAsync(document, persistenceName, stream, cancellationToken).ConfigureAwait(false);
+                    return await storage.WriteStreamAsync(document, PersistenceName, stream, cancellationToken).ConfigureAwait(false);
                 }
             }
             catch (Exception e) when (IOUtilities.IsNormalIOException(e))
@@ -125,22 +121,21 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         private static async Task<bool> PrecalculatedAsync(
-            Document document, string persistenceName, string formatVersion, CancellationToken cancellationToken)
+            Document document, Checksum checksum, CancellationToken cancellationToken)
         {
             var solution = document.Project.Solution;
             var persistentStorageService = (IPersistentStorageService2)solution.Workspace.Services.GetService<IPersistentStorageService>();
-            var checksum = await GetChecksumAsync(document, cancellationToken).ConfigureAwait(false);
 
             // check whether we already have info for this document
             try
             {
                 using (var storage = persistentStorageService.GetStorage(solution, checkBranchId: false))
-                using (var stream = await storage.ReadStreamAsync(document, persistenceName, cancellationToken).ConfigureAwait(false))
+                using (var stream = await storage.ReadStreamAsync(document, PersistenceName, cancellationToken).ConfigureAwait(false))
                 using (var reader = ObjectReader.TryGetReader(stream))
                 {
                     if (reader != null)
                     {
-                        return FormatAndChecksumMatches(reader, formatVersion, checksum);
+                        return FormatAndChecksumMatches(reader, SerializationFormat, checksum);
                     }
                 }
             }
@@ -176,14 +171,5 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return new SyntaxTreeIndex(
                 checksum, literalInfo.Value, identifierInfo.Value, contextInfo.Value, declarationInfo.Value);
         }
-
-        private Task<bool> SaveAsync(Document document, CancellationToken cancellationToken)
-            => SaveAsync(document, PersistenceName, SerializationFormat, this, cancellationToken);
-
-        private static Task<SyntaxTreeIndex> LoadAsync(Document document, CancellationToken cancellationToken)
-            => LoadAsync(document, PersistenceName, SerializationFormat, ReadFrom, cancellationToken);
-
-        private static Task<bool> PrecalculatedAsync(Document document, CancellationToken cancellationToken)
-            => PrecalculatedAsync(document, PersistenceName, SerializationFormat, cancellationToken);
     }
 }
