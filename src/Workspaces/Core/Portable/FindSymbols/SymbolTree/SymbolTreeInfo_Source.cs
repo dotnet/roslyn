@@ -26,11 +26,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         public static async Task<SymbolTreeInfo> GetInfoForSourceAssemblyAsync(
-            Project project, CancellationToken cancellationToken)
+            Project project, Checksum checksum, CancellationToken cancellationToken)
         {
             var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-
-            var checksum = await GetSourceSymbolsChecksumAsync(project, cancellationToken).ConfigureAwait(false);
 
             return await LoadOrCreateSourceSymbolTreeInfoAsync(
                 project.Solution, compilation.Assembly, checksum, project.FilePath,

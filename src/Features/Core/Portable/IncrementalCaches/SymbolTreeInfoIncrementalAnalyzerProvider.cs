@@ -107,21 +107,6 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
         private static string GetReferenceKey(PortableExecutableReference reference)
             => reference.FilePath ?? reference.Display;
 
-        private static async Task<Checksum> GetTotalProjectChecksumAsync(Project project, CancellationToken cancellationToken)
-        {
-            // We want to recompute the symbol trees for a project whenever its source symbols
-            // change, or if it's metadata references change.  So we get the checksums for both
-            // and we produce a final checksum out of that.
-            var projectSourceSymbolsChecksum = await SymbolTreeInfo.GetSourceSymbolsChecksumAsync(
-                project, cancellationToken).ConfigureAwait(false);
-
-            var projectStateChecksum = await project.State.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
-            var metadataReferencesChecksum = projectStateChecksum.MetadataReferences.Checksum;
-
-            return Checksum.Create(nameof(SymbolTreeInfoIncrementalAnalyzerProvider),
-                new[] { projectSourceSymbolsChecksum, metadataReferencesChecksum });
-        }
-
         private class SymbolTreeInfoCacheService : ISymbolTreeInfoCacheService
         {
             private readonly ConcurrentDictionary<ProjectId, ProjectInfo> _projectToInfo;
@@ -164,7 +149,7 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                 Project project, CancellationToken cancellationToken)
             {
                 if (_projectToInfo.TryGetValue(project.Id, out var projectInfo) &&
-                    projectInfo.Checksum == await GetTotalProjectChecksumAsync(project, cancellationToken).ConfigureAwait(false))
+                    projectInfo.Checksum == await SymbolTreeInfo.GetSourceSymbolsChecksumAsync(project, cancellationToken).ConfigureAwait(false))
                 {
                     return projectInfo.SymbolTreeInfo;
                 }
@@ -225,41 +210,41 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                     return;
                 }
 
-                // Check the semantic version of this project.  The semantic version will change
-                // if any of the source files changed, or if the project version itself changed.
-                // (The latter happens when something happens to the project like metadata 
-                // changing on disk).
-                var checksum = await GetTotalProjectChecksumAsync(project, cancellationToken).ConfigureAwait(false);
+                // Produce the indices for the source and metadata symbols in parallel.
+                var projectTask = UpdateSourceSymbolTreeInfoAsync(project, cancellationToken);
+                var referencesTask = UpdateReferencesAync(project, cancellationToken);
+
+                await Task.WhenAll(projectTask, referencesTask).ConfigureAwait(false);
+            }
+
+            private async Task UpdateSourceSymbolTreeInfoAsync(Project project, CancellationToken cancellationToken)
+            {
+                var checksum = await SymbolTreeInfo.GetSourceSymbolsChecksumAsync(project, cancellationToken).ConfigureAwait(false);
                 if (!_projectToInfo.TryGetValue(project.Id, out var projectInfo) ||
                     projectInfo.Checksum != checksum)
                 {
-                    var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-
-                    // Update the symbol tree infos for metadata and source in parallel.
-                    var referencesTask = UpdateReferencesAync(project, compilation, cancellationToken);
-                    var projectTask = SymbolTreeInfo.GetInfoForSourceAssemblyAsync(project, cancellationToken);
-
-                    await Task.WhenAll(referencesTask, projectTask).ConfigureAwait(false);
+                    var info = await SymbolTreeInfo.GetInfoForSourceAssemblyAsync(
+                        project, checksum, cancellationToken).ConfigureAwait(false);
 
                     // Mark that we're up to date with this project.  Future calls with the same 
                     // semantic version can bail out immediately.
-                    projectInfo = new ProjectInfo(checksum, await projectTask.ConfigureAwait(false));
+                    projectInfo = new ProjectInfo(checksum, info);
                     _projectToInfo.AddOrUpdate(project.Id, projectInfo, (_1, _2) => projectInfo);
                 }
             }
 
-            private Task UpdateReferencesAync(Project project, Compilation compilation, CancellationToken cancellationToken)
+            private Task UpdateReferencesAync(Project project, CancellationToken cancellationToken)
             {
                 // Process all metadata references in parallel.
                 var tasks = project.MetadataReferences.OfType<PortableExecutableReference>()
-                                   .Select(r => UpdateReferenceAsync(project, compilation, r, cancellationToken))
+                                   .Select(r => UpdateReferenceAsync(project, r, cancellationToken))
                                    .ToArray();
 
                 return Task.WhenAll(tasks);
             }
 
             private async Task UpdateReferenceAsync(
-                Project project, Compilation compilation, PortableExecutableReference reference, CancellationToken cancellationToken)
+                Project project, PortableExecutableReference reference, CancellationToken cancellationToken)
             {
                 var key = GetReferenceKey(reference);
                 if (key == null)

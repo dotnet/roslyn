@@ -59,6 +59,16 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
         }
 
+        public static Task<SymbolTreeInfo> TryGetInfoForMetadataReferenceAsync(
+            Solution solution, PortableExecutableReference reference,
+            bool loadOnly, CancellationToken cancellationToken)
+        {
+            var checksum = GetMetadataChecksum(solution, reference, cancellationToken);
+            return TryGetInfoForMetadataReferenceAsync(
+                solution, reference, checksum,
+                loadOnly, cancellationToken);
+        }
+
         /// <summary>
         /// Produces a <see cref="SymbolTreeInfo"/> for a given <see cref="PortableExecutableReference"/>.
         /// Note: can return <code>null</code> if we weren't able to actually load the metadata for some
