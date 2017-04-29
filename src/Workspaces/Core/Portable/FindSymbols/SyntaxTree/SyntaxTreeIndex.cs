@@ -11,21 +11,21 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 {
     internal sealed partial class SyntaxTreeIndex
     {
-        private readonly VersionStamp _version;
-
         private readonly LiteralInfo _literalInfo;
         private readonly IdentifierInfo _identifierInfo;
         private readonly ContextInfo _contextInfo;
         private readonly DeclarationInfo _declarationInfo;
 
         private SyntaxTreeIndex(
-            VersionStamp version,
+            Checksum textChecksum,
+            Checksum parseOptionsChecksum,
             LiteralInfo literalInfo,
             IdentifierInfo identifierInfo,
             ContextInfo contextInfo,
             DeclarationInfo declarationInfo)
         {
-            Version = version;
+            TextChecksum = textChecksum;
+            ParseOptionsChecksum = parseOptionsChecksum;
             _literalInfo = literalInfo;
             _identifierInfo = identifierInfo;
             _contextInfo = contextInfo;

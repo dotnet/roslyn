@@ -14,11 +14,9 @@ namespace Microsoft.CodeAnalysis.Serialization
             return false;
         }
 
-        public bool TryGetSerializationPrefixAndVersion(Solution solution, string assemblyFilePath, out string prefix, out VersionStamp version)
+        public bool TryGetSerializationPrefix(Solution solution, string assemblyFilePath, out string prefix)
         {
             prefix = string.Empty;
-            version = VersionStamp.Default;
-
             return false;
         }
     }

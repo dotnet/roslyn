@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -541,9 +542,8 @@ Inner i;
             ////var assembly = compilation.Assembly;
 
             // create symbol tree info from assembly
-            var version = VersionStamp.Create();
             var info = SymbolTreeInfo.CreateSourceSymbolTreeInfo(
-                solution, version, assembly, "", cancellationToken: CancellationToken.None);
+                solution, Checksum.Null, assembly, "", cancellationToken: CancellationToken.None);
 
             using (var writerStream = new MemoryStream())
             {

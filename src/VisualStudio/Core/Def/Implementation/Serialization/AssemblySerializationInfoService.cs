@@ -27,11 +27,9 @@ namespace Microsoft.CodeAnalysis.Serialization
             return true;
         }
 
-        public bool TryGetSerializationPrefixAndVersion(Solution solution, string assemblyFilePath, out string prefix, out VersionStamp version)
+        public bool TryGetSerializationPrefix(Solution solution, string assemblyFilePath, out string prefix)
         {
             prefix = PathUtilities.GetRelativePath(solution.FilePath, assemblyFilePath);
-            version = VersionStamp.Create(File.GetLastWriteTimeUtc(assemblyFilePath));
-
             return true;
         }
     }

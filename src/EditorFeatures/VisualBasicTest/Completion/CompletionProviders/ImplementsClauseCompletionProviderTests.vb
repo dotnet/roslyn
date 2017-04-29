@@ -777,7 +777,7 @@ End Class
         End Function
 
         <WorkItem(18006, "https://github.com/dotnet/roslyn/issues/18006")>
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/19056"), Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function ShowGenericTypes3() As Task
             Dim text = <text>Interface I(Of T)
     Sub Foo()
@@ -786,13 +786,13 @@ End Interface
 Class B(Of T)
     Implements I(Of Integer)
 
-    Public Sub Foo() Implements  
+    Public Sub Foo() Implements $$
     End Sub
 End Class
 
    </text>.Value
 
-            Await VerifyItemExistsAsync(text, "I(Of T)")
+            Await VerifyItemExistsAsync(text, "I(Of Integer)")
         End Function
     End Class
 End Namespace

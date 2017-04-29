@@ -60,6 +60,9 @@
     <Compile Include="..\..\..\VisualStudio\Core\Def\Telemetry\VSTelemetryLogger.cs">
       <Link>Telemetry\VSTelemetryLogger.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\VisualStudio\Core\Next\Remote\JsonRpcMessageHandler.cs">
+      <Link>Shared\JsonRpcMessageHandler.cs</Link>
+    </Compile>
     <Compile Include="Services\CodeAnalysisService_CodeLens.cs" />
     <Compile Include="Services\CodeAnalysisService_DesignerAttributes.cs" />
     <Compile Include="Services\CodeAnalysisService_DocumentHighlights.cs" />
