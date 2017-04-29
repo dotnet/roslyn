@@ -1498,6 +1498,16 @@ Eu concordo com todo o conteúdo supracitado:</target>
         <target state="translated">As configurações definidas aqui se aplicam somente a seu computador. Para definir essas configurações para viajar com sua solução, use arquivos .editorconfig.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Field_preferences_colon">
+        <source>Field preferences:</source>
+        <target state="new">Field preferences:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_readonly">
+        <source>Prefer readonly</source>
+        <target state="new">Prefer readonly</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>

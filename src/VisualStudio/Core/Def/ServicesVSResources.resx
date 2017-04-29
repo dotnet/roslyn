@@ -1016,4 +1016,10 @@ I agree to all of the foregoing:</value>
   <data name="Code_style_header_use_editor_config" xml:space="preserve">
     <value>The settings configured here only apply to your machine. To configure these settings to travel with your solution, use .editorconfig files.</value>
   </data>
+  <data name="Field_preferences_colon" xml:space="preserve">
+    <value>Field preferences:</value>
+  </data>
+  <data name="Prefer_readonly" xml:space="preserve">
+    <value>Prefer readonly</value>
+  </data>
 </root>

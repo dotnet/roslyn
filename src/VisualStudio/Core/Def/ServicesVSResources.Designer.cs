@@ -935,6 +935,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Field preferences:.
+        /// </summary>
+        internal static string Field_preferences_colon {
+            get {
+                return ResourceManager.GetString("Field_preferences_colon", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to File already exists.
         /// </summary>
         internal static string File_already_exists {
@@ -1782,6 +1791,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Prefer_predefined_type {
             get {
                 return ResourceManager.GetString("Prefer_predefined_type", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Prefer readonly.
+        /// </summary>
+        internal static string Prefer_readonly {
+            get {
+                return ResourceManager.GetString("Prefer_readonly", resourceCulture);
             }
         }
         

@@ -1498,6 +1498,16 @@ L'utente accetta le condizioni sopra riportate:</target>
         <target state="translated">Le impostazioni configurate qui si applicano solo al computer locale. Per configurare queste impostazioni in modo che siano associate alla soluzione, usare file con estensione editorconfig.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Field_preferences_colon">
+        <source>Field preferences:</source>
+        <target state="new">Field preferences:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_readonly">
+        <source>Prefer readonly</source>
+        <target state="new">Prefer readonly</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>

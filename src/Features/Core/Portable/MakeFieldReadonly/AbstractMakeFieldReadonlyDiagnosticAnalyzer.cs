@@ -28,6 +28,18 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
 
         internal void AnalyzeType(SyntaxNodeAnalysisContext context)
         {
+            var optionSet = context.Options.GetDocumentOptionSetAsync(context.Node.SyntaxTree, context.CancellationToken).GetAwaiter().GetResult();
+            if (optionSet == null)
+            {
+                return;
+            }
+
+            var option = optionSet.GetOption(CodeStyleOptions.PreferReadonly, context.Node.Language);
+            if (!option.Value)
+            {
+                return;
+            }
+
             var typeSymbol = (ITypeSymbol)context.SemanticModel.GetDeclaredSymbol(context.Node);
 
             var nonReadonlyFieldMembers = PooledHashSet<IFieldSymbol>.GetInstance();
@@ -53,8 +65,8 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
             foreach (var symbol in nonReadonlyFieldMembers)
             {
                 var diagnostic = Diagnostic.Create(
-                   InfoDescriptor,
-                   symbol.Locations[0]);
+                    GetDescriptorWithSeverity(option.Notification.Value),
+                    symbol.Locations[0]);
                 context.ReportDiagnostic(diagnostic);
             }
 

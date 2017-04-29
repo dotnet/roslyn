@@ -1498,6 +1498,16 @@ I agree to all of the foregoing:</source>
         <target state="translated">此处配置的设置仅适用于计算机。要配置这些设置以使用解决方案，请使用 .editorconfig 文件。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Field_preferences_colon">
+        <source>Field preferences:</source>
+        <target state="new">Field preferences:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_readonly">
+        <source>Prefer readonly</source>
+        <target state="new">Prefer readonly</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>
