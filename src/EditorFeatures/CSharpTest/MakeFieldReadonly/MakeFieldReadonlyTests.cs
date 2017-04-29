@@ -101,8 +101,24 @@ $@"class MyClass
 }",
 @"class MyClass
 {
-    private int _bar = 0;
     private readonly int _foo = 0;
+    private int _bar = 0;
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        public async Task ThreeFieldsAssignedInline_AllCanBeReadonly_SeparatesAllAndKeepsThemInOrder()
+        {
+            await TestInRegularAndScriptAsync(
+@"class MyClass
+{
+    private int _foo = 0, [|_bar|] = 0, _fizz = 0;
+}",
+@"class MyClass
+{
+    private int _foo = 0;
+    private readonly int _bar = 0;
+    private int _fizz = 0;
 }");
         }
 
@@ -139,8 +155,8 @@ $@"class MyClass
 }",
 @"class MyClass
 {
-    private int _bar = 0;
     private readonly int _foo;
+    private int _bar = 0;
 }");
         }
 
@@ -537,8 +553,7 @@ partial class MyClass
 }",
 @"class MyClass
 {
-    private readonly int _bar = 0;
-    private readonly int _foo = 0;
+    private readonly int _foo = 0, _bar = 0;
     private readonly int _fizz = 0;
 }");
         }

@@ -128,8 +128,34 @@ End Class")
     Private [|_foo|] As Integer = 0, _bar As Integer = 0
 End Class",
 "Class C
-    Private _bar As Integer = 0
     Private ReadOnly _foo As Integer = 0
+    Private _bar As Integer = 0
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
+        Public Async Function MultipleFieldsAssignedInline_AllCanBeReadonly_MultipleNamesInDeclarator() As Task
+            Await TestInRegularAndScriptAsync(
+"Class C
+    Private [|_foo|], _bar As Integer, _fizz As String = """"
+End Class",
+"Class C
+    Private ReadOnly [|_foo|] As Integer
+    Private _bar As Integer
+    Private _fizz As String = """"
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
+        Public Async Function ThreeFieldsAssignedInline_AllCanBeReadonly_SeparatesAllAndKeepsThemInOrder() As Task
+            Await TestInRegularAndScriptAsync(
+"Class C
+    Private _foo As Integer = 0, [|_bar|] As Integer = 0, _fizz As Integer = 0
+End Class",
+"Class C
+    Private _foo As Integer = 0
+    Private ReadOnly _bar As Integer = 0
+    Private _fizz As Integer = 0
 End Class")
         End Function
 
@@ -158,8 +184,8 @@ End Class")
     Private [|_foo|] As Integer, _bar As Integer = 0
 End Class",
 "Class C
-    Private _bar As Integer = 0
     Private ReadOnly _foo As Integer
+    Private _bar As Integer = 0
 End Class")
         End Function
 
@@ -181,7 +207,7 @@ End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
-        Public Async Function FieldAssignedInLambdaInCtor() As Task
+        Public Async Function FieldAssignedInMultilineLambdaInCtor() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Class C
     Private [|_foo|] As Integer = 0
@@ -197,7 +223,7 @@ End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
-        Public Async Function FieldAssignedInMultilineLambdaInCtor() As Task
+        Public Async Function FieldAssignedInLambdaInCtor() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Class C
     Private [|_foo|] As Integer = 0
@@ -433,8 +459,7 @@ End Class")
     Private _fizz As Integer = 0
 End Class",
 "Class C
-    Private ReadOnly _bar As Integer = 0
-    Private ReadOnly _foo As Integer = 0
+    Private ReadOnly _foo As Integer = 0, _bar As Integer = 0
     Private ReadOnly _fizz As Integer = 0
 End Class")
         End Function

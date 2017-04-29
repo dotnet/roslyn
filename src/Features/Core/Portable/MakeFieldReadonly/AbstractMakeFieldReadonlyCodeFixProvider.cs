@@ -1,7 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -14,10 +16,10 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.MakeFieldReadonly
 {
     internal abstract class AbstractMakeFieldReadonlyCodeFixProvider
-        <TFieldDeclarationSyntax, TVariableDeclaratorSyntax>
+        <TSymbolSyntax, TFieldDeclarationSyntax>
         : SyntaxEditorBasedCodeFixProvider
+        where TSymbolSyntax : SyntaxNode
         where TFieldDeclarationSyntax : SyntaxNode
-        where TVariableDeclaratorSyntax : SyntaxNode
     {
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.MakeFieldReadonlyDiagnosticId);
@@ -34,44 +36,60 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
             Document document, SyntaxEditor editor, ImmutableArray<Diagnostic> diagnostics,
             CancellationToken cancellationToken)
         {
+            var declarators = new List<TSymbolSyntax>();
+
             foreach (var diagnostic in diagnostics)
             {
                 var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                 var diagnosticSpan = diagnostic.Location.SourceSpan;
 
-                var variableDeclarator = (TVariableDeclaratorSyntax)root.FindNode(diagnosticSpan);
-
-                MakeFieldReadonly(document, editor, variableDeclarator);
+                declarators.Add(root.FindNode(diagnosticSpan).FirstAncestorOrSelf<TSymbolSyntax>());
             }
+
+            MakeFieldReadonly(document, editor, declarators);
         }
 
-        private async void MakeFieldReadonly(Document document, SyntaxEditor editor, TVariableDeclaratorSyntax declaration)
+        private async void MakeFieldReadonly(Document document, SyntaxEditor editor, List<TSymbolSyntax> declarators)
         {
-            var fieldDeclaration = (TFieldDeclarationSyntax)declaration.Parent.Parent;
-            if (GetVariableDeclaratorCount(fieldDeclaration) == 1)
-            {
-                editor.SetModifiers(fieldDeclaration, editor.Generator.GetModifiers(fieldDeclaration) | DeclarationModifiers.ReadOnly);
-            }
-            else
-            {
-                var model = await document.GetSemanticModelAsync().ConfigureAwait(false);
-                var symbol = (IFieldSymbol)model.GetDeclaredSymbol(declaration);
+            var declaratorsByField = declarators.GroupBy(g => g.FirstAncestorOrSelf<TFieldDeclarationSyntax>());
 
-                var generator = editor.Generator;
-                var newDeclaration = generator.FieldDeclaration(symbol.Name,
-                                                                generator.TypeExpression(symbol.Type),
-                                                                Accessibility.Private,
-                                                                generator.GetModifiers(fieldDeclaration) | DeclarationModifiers.ReadOnly,
-                                                                GetInitializerNode(declaration))
-                                                .WithAdditionalAnnotations(Formatter.Annotation);
-                
-                editor.InsertAfter(fieldDeclaration, newDeclaration);
-                editor.RemoveNode(declaration);
+            foreach (var fieldDeclarators in declaratorsByField)
+            {
+                var declarationDeclarators = GetVariableDeclarators(fieldDeclarators.Key);
+
+                if (declarationDeclarators.Count == fieldDeclarators.Count())
+                {
+                    editor.SetModifiers(fieldDeclarators.Key, editor.Generator.GetModifiers(fieldDeclarators.Key) | DeclarationModifiers.ReadOnly);
+                }
+                else
+                {
+                    var model = await document.GetSemanticModelAsync().ConfigureAwait(false);
+                    var generator = editor.Generator;
+                    
+                    foreach (var declarator in declarationDeclarators.Reverse())
+                    {
+                        var symbol = (IFieldSymbol)model.GetDeclaredSymbol(declarator);
+                        var modifiers = generator.GetModifiers(fieldDeclarators.Key);
+
+                        var newDeclaration = generator.FieldDeclaration(symbol.Name,
+                                                                        generator.TypeExpression(symbol.Type),
+                                                                        Accessibility.Private,
+                                                                        fieldDeclarators.Contains(declarator)
+                                                                            ? modifiers | DeclarationModifiers.ReadOnly
+                                                                            : modifiers,
+                                                                        GetInitializerNode(declarator))
+                                                      .WithAdditionalAnnotations(Formatter.Annotation);
+
+                        editor.InsertAfter(fieldDeclarators.Key, newDeclaration);
+                    }
+
+                    editor.RemoveNode(fieldDeclarators.Key);
+                }
             }
         }
-
-        protected abstract SyntaxNode GetInitializerNode(TVariableDeclaratorSyntax declaration);
-        protected abstract int GetVariableDeclaratorCount(TFieldDeclarationSyntax declaration);
+        
+        protected abstract SyntaxNode GetInitializerNode(TSymbolSyntax declaration);
+        protected abstract ImmutableList<TSymbolSyntax> GetVariableDeclarators(TFieldDeclarationSyntax declaration);
 
         protected override Task FixAllAsync(
             Document document,
