@@ -903,7 +903,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 }
 
                 // Check for support of the LangVersion property
-                if (vbcHostObject is IVbcHostObject3 && VbcHostObjectSupports(LangVersion))
+                if (vbcHostObject is IVbcHostObject3 && !DeferToICompilerOptionsHostObject(LangVersion, vbcHostObject))
                 {
                     IVbcHostObject3 vbcHostObject3 = (IVbcHostObject3)vbcHostObject;
                     CheckHostObjectSupport(param = nameof(LangVersion), vbcHostObject3.SetLanguageVersion(LangVersion));
@@ -956,13 +956,20 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
         // VbcHostObject doesn't support VB versions beyond 15,
         // so the LangVersion will be passed through ICompilerOptionsHostObject.SetCompilerOptions instead
-        private static bool VbcHostObjectSupports(string langVersion)
+        private static bool DeferToICompilerOptionsHostObject(string langVersion, IVbcHostObject vbcHostObject)
         {
-            if (langVersion == null)
+            if (!(vbcHostObject is ICompilerOptionsHostObject))
             {
-                return true;
+                return false;
             }
 
+            if (langVersion == null)
+            {
+                // CVbcMSBuildHostObject::SetLanguageVersion can handle null
+                return false;
+            }
+
+            // CVbcMSBuildHostObject::SetLanguageVersion can handle version below 15
             var supportedList = new[]
             {
                 "9", "9.0",
@@ -973,16 +980,15 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 "15", "15.0"
             };
 
-            int length = supportedList.Length;
-            for (int i = 0; i < length; i++)
+            for (int i = 0; i < supportedList.Length; i++)
             {
                 if (supportedList[i].Equals(langVersion, StringComparison.OrdinalIgnoreCase))
                 {
-                    return true;
+                    return false;
                 }
             }
 
-            return false;
+            return true;
         }
 
         /// <summary>
