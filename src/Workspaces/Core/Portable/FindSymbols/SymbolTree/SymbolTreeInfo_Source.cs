@@ -1,6 +1,9 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Collections;
@@ -43,9 +46,24 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // changed.  The only thing that can make those source-symbols change in that manner are if
             // the text of any document changes, or if options for the project change.  So we build our
             // checksum out of that data.
-            var stateChecksums = await project.State.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
-            var checksum = Checksum.Create(nameof(SymbolTreeInfo),
-                new Checksum[] { stateChecksums.Documents.Checksum, stateChecksums.CompilationOptions, stateChecksums.ParseOptions });
+            var serializer = new Serializer(project.Solution.Workspace);
+
+            var orderedDocumentIds = ChecksumCache.GetOrCreate(project.DocumentIds, _ => project.DocumentIds.OrderBy(id => id.Id).ToImmutableArray());
+            var textChecksumsTasks = orderedDocumentIds.Select(async id =>
+            {
+                var text = await project.GetDocument(id).GetTextAsync(cancellationToken).ConfigureAwait(false);
+                return ChecksumCache.GetOrCreate(text, _ => serializer.CreateChecksum(text, cancellationToken));
+            });
+
+            var textChecksums = await Task.WhenAll(textChecksumsTasks).ConfigureAwait(false);
+            var compilationOptionsChecksum = ChecksumCache.GetOrCreate(project.CompilationOptions, _ => serializer.CreateChecksum(project.CompilationOptions, cancellationToken));
+            var parseOptionsChecksum = ChecksumCache.GetOrCreate(project.ParseOptions, _ => serializer.CreateChecksum(project.ParseOptions, cancellationToken));
+
+            var allChecksums = textChecksums.ToList();
+            allChecksums.Add(compilationOptionsChecksum);
+            allChecksums.Add(parseOptionsChecksum);
+
+            var checksum = Checksum.Create(nameof(SymbolTreeInfo), allChecksums);
             return checksum;
         }
 
