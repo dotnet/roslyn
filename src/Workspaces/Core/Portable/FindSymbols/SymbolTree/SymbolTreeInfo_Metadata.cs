@@ -148,7 +148,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 keySuffix: "_Metadata",
                 getPersistedChecksum: info => info._checksum,
                 readObject: reader => ReadSymbolTreeInfo(reader, (names, nodes) => GetSpellCheckerTask(solution, checksum, filePath, names, nodes)),
-                writeObject: (w, i) => i.WriteTo(w),
                 cancellationToken: cancellationToken);
         }
 

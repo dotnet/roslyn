@@ -14,7 +14,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
-    internal partial class SymbolTreeInfo
+    internal partial class SymbolTreeInfo : IObjectWritable
     {
         private const string PrefixMetadataSymbolTreeInfo = "<SymbolTreeInfo>";
         private const string SerializationFormat = "17";
@@ -40,7 +40,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 keySuffix: "_Source",
                 getPersistedChecksum: info => info._checksum,
                 readObject: reader => ReadSymbolTreeInfo(reader, (names, nodes) => GetSpellCheckerTask(solution, checksum, filePath, names, nodes)),
-                writeObject: (w, i) => i.WriteTo(w),
                 cancellationToken: cancellationToken);
         }
 
@@ -63,7 +62,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 keySuffix: "_SpellChecker",
                 getPersistedChecksum: s => s.Checksum,
                 readObject: SpellChecker.ReadFrom,
-                writeObject: (w, i) => i.WriteTo(w),
                 cancellationToken: CancellationToken.None);
         }
 
@@ -80,8 +78,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             string keySuffix,
             Func<T, Checksum> getPersistedChecksum,
             Func<ObjectReader, T> readObject,
-            Action<ObjectWriter, T> writeObject,
-            CancellationToken cancellationToken) where T : class
+            CancellationToken cancellationToken) where T : class, IObjectWritable
         {
             if (checksum == null) 
             {
@@ -129,7 +126,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     using (var stream = SerializableBytes.CreateWritableStream())
                     using (var writer = new ObjectWriter(stream, cancellationToken: cancellationToken))
                     {
-                        writeObject(writer, result);
+                        result.WriteTo(writer);
                         stream.Position = 0;
 
                         await storage.WriteStreamAsync(key, stream, cancellationToken).ConfigureAwait(false);
@@ -140,7 +137,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return result;
         }
 
-        public void WriteTo(ObjectWriter writer)
+        void IObjectWritable.WriteTo(ObjectWriter writer)
         {
             writer.WriteString(SerializationFormat);
             _checksum.WriteTo(writer);
