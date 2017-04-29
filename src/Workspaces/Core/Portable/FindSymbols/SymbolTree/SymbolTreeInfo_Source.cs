@@ -30,6 +30,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
 
+            var checksum = await GetSourceSymbolsChecksumAsync(project, cancellationToken).ConfigureAwait(false);
+
+            return await LoadOrCreateSourceSymbolTreeInfoAsync(
+                project.Solution, compilation.Assembly, checksum, project.FilePath,
+                loadOnly: false, cancellationToken: cancellationToken).ConfigureAwait(false);
+        }
+
+        public static async Task<Checksum> GetSourceSymbolsChecksumAsync(Project project, CancellationToken cancellationToken)
+        {
             // The SymbolTree for source is built from the source-symbols from the project's compilation's
             // assembly.  Specifically, we only get the name, kind and parent/child relationship of all the
             // child symbols.  So we want to be able to reuse the index as long as none of these have 
@@ -39,10 +48,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var stateChecksums = await project.State.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
             var checksum = Checksum.Create(nameof(SymbolTreeInfo),
                 new Checksum[] { stateChecksums.Documents.Checksum, stateChecksums.CompilationOptions, stateChecksums.ParseOptions });
-
-            return await LoadOrCreateSourceSymbolTreeInfoAsync(
-                project.Solution, compilation.Assembly, checksum, project.FilePath,
-                loadOnly: false, cancellationToken: cancellationToken).ConfigureAwait(false);
+            return checksum;
         }
 
         internal static SymbolTreeInfo CreateSourceSymbolTreeInfo(

@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return result;
         }
 
-        void IObjectWritable.WriteTo(ObjectWriter writer)
+        public void WriteTo(ObjectWriter writer)
         {
             writer.WriteString(SerializationFormat);
             _checksum.WriteTo(writer);

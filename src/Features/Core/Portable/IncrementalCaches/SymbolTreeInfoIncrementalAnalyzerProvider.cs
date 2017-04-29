@@ -40,19 +40,19 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
     {
         private struct ProjectInfo
         {
-            public readonly VersionStamp VersionStamp;
+            public readonly Checksum Checksum;
             public readonly SymbolTreeInfo SymbolTreeInfo;
 
-            public ProjectInfo(VersionStamp versionStamp, SymbolTreeInfo info)
+            public ProjectInfo(Checksum checksum, SymbolTreeInfo info)
             {
-                VersionStamp = versionStamp;
+                Checksum = checksum;
                 SymbolTreeInfo = info;
             }
         }
 
         private struct MetadataInfo
         {
-            public readonly DateTime TimeStamp;
+            public readonly Checksum Checksum;
 
             /// <summary>
             /// Note: can be <code>null</code> if were unable to create a SymbolTreeInfo
@@ -67,9 +67,9 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
             /// </summary>
             public readonly HashSet<ProjectId> ReferencingProjects;
 
-            public MetadataInfo(DateTime timeStamp, SymbolTreeInfo info, HashSet<ProjectId> referencingProjects)
+            public MetadataInfo(Checksum checksum, SymbolTreeInfo info, HashSet<ProjectId> referencingProjects)
             {
-                TimeStamp = timeStamp;
+                Checksum = checksum;
                 SymbolTreeInfo = info;
                 ReferencingProjects = referencingProjects;
             }
@@ -102,28 +102,24 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
         }
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-        {
-            return new SymbolTreeInfoCacheService(_projectToInfo, _metadataPathToInfo);
-        }
+            => new SymbolTreeInfoCacheService(_projectToInfo, _metadataPathToInfo);
 
         private static string GetReferenceKey(PortableExecutableReference reference)
-        {
-            return reference.FilePath ?? reference.Display;
-        }
+            => reference.FilePath ?? reference.Display;
 
-        private static bool TryGetLastWriteTime(string path, out DateTime time)
+        private static async Task<Checksum> GetTotalProjectChecksumAsync(Project project, CancellationToken cancellationToken)
         {
-            var succeeded = false;
-            time = IOUtilities.PerformIO(
-                () =>
-                {
-                    var result = File.GetLastWriteTimeUtc(path);
-                    succeeded = true;
-                    return result;
-                },
-                default(DateTime));
+            // We want to recompute the symbol trees for a project whenever its source symbols
+            // change, or if it's metadata references change.  So we get the checksums for both
+            // and we produce a final checksum out of that.
+            var projectSourceSymbolsChecksum = await SymbolTreeInfo.GetSourceSymbolsChecksumAsync(
+                project, cancellationToken).ConfigureAwait(false);
 
-            return succeeded;
+            var projectStateChecksum = await project.State.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
+            var metadataReferencesChecksum = projectStateChecksum.MetadataReferences.Checksum;
+
+            return Checksum.Create(nameof(SymbolTreeInfoIncrementalAnalyzerProvider),
+                new[] { projectSourceSymbolsChecksum, metadataReferencesChecksum });
         }
 
         private class SymbolTreeInfoCacheService : ISymbolTreeInfoCacheService
@@ -144,15 +140,15 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                 PortableExecutableReference reference,
                 CancellationToken cancellationToken)
             {
+                var checksum = SymbolTreeInfo.GetMetadataChecksum(solution, reference, cancellationToken);
+
                 var key = GetReferenceKey(reference);
                 if (key != null)
                 {
-                    if (_metadataPathToInfo.TryGetValue(key, out var metadataInfo))
+                    if (_metadataPathToInfo.TryGetValue(key, out var metadataInfo) &&
+                        metadataInfo.Checksum == checksum)
                     {
-                        if (TryGetLastWriteTime(key, out var writeTime) && writeTime == metadataInfo.TimeStamp)
-                        {
-                            return metadataInfo.SymbolTreeInfo;
-                        }
+                        return metadataInfo.SymbolTreeInfo;
                     }
                 }
 
@@ -160,20 +156,17 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                 // Note: pass 'loadOnly' so we only attempt to load from disk, not to actually
                 // try to create the metadata.
                 var info = await SymbolTreeInfo.TryGetInfoForMetadataReferenceAsync(
-                    solution, reference, loadOnly: true, cancellationToken: cancellationToken).ConfigureAwait(false);
+                    solution, reference, checksum, loadOnly: true, cancellationToken: cancellationToken).ConfigureAwait(false);
                 return info;
             }
 
             public async Task<SymbolTreeInfo> TryGetSourceSymbolTreeInfoAsync(
                 Project project, CancellationToken cancellationToken)
             {
-                if (_projectToInfo.TryGetValue(project.Id, out var projectInfo))
+                if (_projectToInfo.TryGetValue(project.Id, out var projectInfo) &&
+                    projectInfo.Checksum == await GetTotalProjectChecksumAsync(project, cancellationToken).ConfigureAwait(false))
                 {
-                    var version = await project.GetSemanticVersionAsync(cancellationToken).ConfigureAwait(false);
-                    if (version == projectInfo.VersionStamp)
-                    {
-                        return projectInfo.SymbolTreeInfo;
-                    }
+                    return projectInfo.SymbolTreeInfo;
                 }
 
                 return null;
@@ -236,8 +229,9 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                 // if any of the source files changed, or if the project version itself changed.
                 // (The latter happens when something happens to the project like metadata 
                 // changing on disk).
-                var version = await project.GetSemanticVersionAsync(cancellationToken).ConfigureAwait(false);
-                if (!_projectToInfo.TryGetValue(project.Id, out var projectInfo) || projectInfo.VersionStamp != version)
+                var checksum = await GetTotalProjectChecksumAsync(project, cancellationToken).ConfigureAwait(false);
+                if (!_projectToInfo.TryGetValue(project.Id, out var projectInfo) ||
+                    projectInfo.Checksum != checksum)
                 {
                     var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
 
@@ -249,7 +243,7 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
 
                     // Mark that we're up to date with this project.  Future calls with the same 
                     // semantic version can bail out immediately.
-                    projectInfo = new ProjectInfo(version, await projectTask.ConfigureAwait(false));
+                    projectInfo = new ProjectInfo(checksum, await projectTask.ConfigureAwait(false));
                     _projectToInfo.AddOrUpdate(project.Id, projectInfo, (_1, _2) => projectInfo);
                 }
             }
@@ -273,21 +267,17 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                     return;
                 }
 
-                if (!TryGetLastWriteTime(key, out var lastWriteTime))
-                {
-                    // Couldn't get the write time.  Just ignore this reference.
-                    return;
-                }
-
-                if (!_metadataPathToInfo.TryGetValue(key, out var metadataInfo) || metadataInfo.TimeStamp == lastWriteTime)
+                var checksum = SymbolTreeInfo.GetMetadataChecksum(project.Solution, reference, cancellationToken);
+                if (!_metadataPathToInfo.TryGetValue(key, out var metadataInfo) ||
+                    metadataInfo.Checksum != checksum)
                 {
                     var info = await SymbolTreeInfo.TryGetInfoForMetadataReferenceAsync(
-                        project.Solution, reference, loadOnly: false, cancellationToken: cancellationToken).ConfigureAwait(false);
+                        project.Solution, reference, checksum, loadOnly: false, cancellationToken: cancellationToken).ConfigureAwait(false);
 
                     // Note, getting the info may fail (for example, bogus metadata).  That's ok.  
                     // We still want to cache that result so that don't try to continuously produce
                     // this info over and over again.
-                    metadataInfo = new MetadataInfo(lastWriteTime, info, metadataInfo.ReferencingProjects ?? new HashSet<ProjectId>());
+                    metadataInfo = new MetadataInfo(checksum, info, metadataInfo.ReferencingProjects ?? new HashSet<ProjectId>());
                     _metadataPathToInfo.AddOrUpdate(key, metadataInfo, (_1, _2) => metadataInfo);
                 }
 

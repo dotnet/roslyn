@@ -67,6 +67,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public static Task<SymbolTreeInfo> TryGetInfoForMetadataReferenceAsync(
             Solution solution,
             PortableExecutableReference reference,
+            Checksum checksum,
             bool loadOnly,
             CancellationToken cancellationToken)
         {
@@ -92,11 +93,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
 
             return TryGetInfoForMetadataReferenceSlowAsync(
-                solution, reference, loadOnly, metadata, cancellationToken);
+                solution, reference, checksum, loadOnly, metadata, cancellationToken);
         }
 
         private static async Task<SymbolTreeInfo> TryGetInfoForMetadataReferenceSlowAsync(
-            Solution solution, PortableExecutableReference reference,
+            Solution solution, PortableExecutableReference reference, Checksum checksum,
             bool loadOnly, Metadata metadata, CancellationToken cancellationToken)
         {
             // Find the lock associated with this piece of metadata.  This way only one thread is
@@ -111,7 +112,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 }
 
                 var info = await LoadOrCreateMetadataSymbolTreeInfoAsync(
-                    solution, reference, loadOnly, cancellationToken: cancellationToken).ConfigureAwait(false);
+                    solution, reference, checksum, loadOnly, cancellationToken).ConfigureAwait(false);
                 if (info == null && loadOnly)
                 {
                     return null;
@@ -126,18 +127,24 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
         }
 
-        private static Task<SymbolTreeInfo> LoadOrCreateMetadataSymbolTreeInfoAsync(
-            Solution solution,
-            PortableExecutableReference reference,
-            bool loadOnly,
-            CancellationToken cancellationToken)
+        public static Checksum GetMetadataChecksum(
+            Solution solution, PortableExecutableReference reference, CancellationToken cancellationToken)
         {
-            var filePath = reference.FilePath;
-
             // We can reuse the index for any given reference as long as it hasn't changed.
             // So our checksum is just the checksum for the PEReference itself.
             var serializer = new Serializer(solution.Workspace);
             var checksum = serializer.CreateChecksum(reference, cancellationToken);
+            return checksum;
+        }
+
+        private static Task<SymbolTreeInfo> LoadOrCreateMetadataSymbolTreeInfoAsync(
+            Solution solution,
+            PortableExecutableReference reference,
+            Checksum checksum,
+            bool loadOnly,
+            CancellationToken cancellationToken)
+        {
+            var filePath = reference.FilePath;
 
             return LoadOrCreateAsync(
                 solution,
