@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 {
                     if (reader != null)
                     {
-                        if (DataPreambleMatches(reader, formatVersion, checksum))
+                        if (FormatAndChecksumMatches(reader, formatVersion, checksum))
                         {
                             return readFrom(reader, checksum);
                         }
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return null;
         }
 
-        private static bool DataPreambleMatches(
+        private static bool FormatAndChecksumMatches(
             ObjectReader reader, string formatVersion, Checksum checksum)
         {
             return TryReadFormatAndChecksum(reader, formatVersion, out var persistChecksum) &&
@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 {
                     if (reader != null)
                     {
-                        return DataPreambleMatches(reader, formatVersion, checksum);
+                        return FormatAndChecksumMatches(reader, formatVersion, checksum);
                     }
                 }
             }
