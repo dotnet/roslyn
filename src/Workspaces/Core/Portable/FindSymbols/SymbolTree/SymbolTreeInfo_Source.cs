@@ -48,10 +48,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // checksum out of that data.
             var serializer = new Serializer(project.Solution.Workspace);
 
-            var orderedDocumentIds = ChecksumCache.GetOrCreate(project.DocumentIds, _ => project.DocumentIds.OrderBy(id => id.Id).ToImmutableArray());
-            var textChecksumsTasks = orderedDocumentIds.Select(async id =>
+            var textChecksumsTasks = project.Documents.Select(async d =>
             {
-                var text = await project.GetDocument(id).GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var text = await d.GetTextAsync(cancellationToken).ConfigureAwait(false);
                 return serializer.CreateChecksum(text, cancellationToken);
             });
 
