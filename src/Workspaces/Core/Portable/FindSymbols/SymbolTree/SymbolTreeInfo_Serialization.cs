@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             // See if we can even use serialization.  If not, we'll just have to make the value
             // from scratch.
-            if (checksum == null || ShouldCreateFromScratch(solution, filePath, out var prefix, cancellationToken))
+            if (checksum == null) // || ShouldCreateFromScratch(solution, filePath, out var prefix, cancellationToken))
             {
                 return loadOnly ? null : create();
             }
@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             using (var storage = persistentStorageService.GetStorage(solution, checkBranchId: false))
             {
                 // Get the unique key to identify our data.
-                var key = PrefixMetadataSymbolTreeInfo + prefix + keySuffix;
+                var key = PrefixMetadataSymbolTreeInfo + keySuffix;
                 using (var stream = await storage.ReadStreamAsync(key, cancellationToken).ConfigureAwait(false))
                 using (var reader = ObjectReader.TryGetReader(stream))
                 {
@@ -142,33 +142,33 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return result;
         }
 
-        private static bool ShouldCreateFromScratch(
-            Solution solution,
-            string filePath,
-            out string prefix,
-            CancellationToken cancellationToken)
-        {
-            prefix = null;
+        //private static bool ShouldCreateFromScratch(
+        //    Solution solution,
+        //    string filePath,
+        //    out string prefix,
+        //    CancellationToken cancellationToken)
+        //{
+        //    prefix = null;
 
-            var service = solution.Workspace.Services.GetService<IAssemblySerializationInfoService>();
-            if (service == null)
-            {
-                return true;
-            }
+        //    var service = solution.Workspace.Services.GetService<IAssemblySerializationInfoService>();
+        //    if (service == null)
+        //    {
+        //        return true;
+        //    }
 
-            // check whether the assembly that belong to a solution is something we can serialize
-            if (!service.Serializable(solution, filePath))
-            {
-                return true;
-            }
+        //    // check whether the assembly that belong to a solution is something we can serialize
+        //    if (!service.Serializable(solution, filePath))
+        //    {
+        //        return true;
+        //    }
 
-            if (!service.TryGetSerializationPrefix(solution, filePath, out prefix))
-            {
-                return true;
-            }
+        //    if (!service.TryGetSerializationPrefix(solution, filePath, out prefix))
+        //    {
+        //        return true;
+        //    }
 
-            return false;
-        }
+        //    return false;
+        //}
 
         public void WriteTo(ObjectWriter writer)
         {

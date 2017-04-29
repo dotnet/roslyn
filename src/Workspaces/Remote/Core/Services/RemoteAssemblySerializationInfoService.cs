@@ -5,8 +5,8 @@
 
 //namespace Microsoft.CodeAnalysis.Serialization
 //{
-//    [ExportWorkspaceService(typeof(IAssemblySerializationInfoService), ServiceLayer.Host), Shared]
-//    internal class VisualStudioAssemblySerializationInfoService : SimpleAssemblySerializationInfoService
+//    [ExportWorkspaceService(typeof(IAssemblySerializationInfoService), layer: WorkspaceKind.RemoteWorkspace), Shared]
+//    internal class RemoteAssemblySerializationInfoService : SimpleAssemblySerializationInfoService
 //    {
 //    }
 //}
