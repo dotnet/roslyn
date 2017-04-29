@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
             var stateChecksums = await project.State.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
 
-            var checksum = Checksum.Create("SymbolTree",
+            var checksum = Checksum.Create(nameof(SymbolTreeInfo),
                 new Checksum[] { stateChecksums.Documents.Checksum, stateChecksums.CompilationOptions, stateChecksums.ParseOptions });
 
             return await LoadOrCreateSourceSymbolTreeInfoAsync(

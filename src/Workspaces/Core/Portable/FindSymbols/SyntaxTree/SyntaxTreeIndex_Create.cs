@@ -154,11 +154,10 @@ $@"Invalid span in {nameof(declaredSymbolInfo)}.
                     }
                 }
 
-                var checksums = await GetChecksumsAsync(document, cancellationToken).ConfigureAwait(false);
+                var checksum = await GetChecksumAsync(document, cancellationToken).ConfigureAwait(false);
 
                 return new SyntaxTreeIndex(
-                    checksums.textChecksum,
-                    checksums.parseOptionsChecksum,
+                    checksum,
                     new LiteralInfo(
                         new BloomFilter(FalsePositiveProbability, stringLiterals, longLiterals)),
                     new IdentifierInfo(

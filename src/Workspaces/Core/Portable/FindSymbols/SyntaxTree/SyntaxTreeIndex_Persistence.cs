@@ -13,42 +13,37 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     internal sealed partial class SyntaxTreeIndex : IObjectWritable
     {
         private const string PersistenceName = "<SyntaxTreeIndex>";
-        private const string SerializationFormat = "7";
+        private const string SerializationFormat = "8";
 
-        public readonly Checksum TextChecksum;
-        public readonly Checksum ParseOptionsChecksum;
+        public readonly Checksum Checksum;
 
-        private void WriteFormatAndChecksums(ObjectWriter writer, string formatVersion)
+        private void WriteFormatAndChecksum(ObjectWriter writer, string formatVersion)
         {
             writer.WriteString(formatVersion);
-            TextChecksum.WriteTo(writer);
-            ParseOptionsChecksum.WriteTo(writer);
+            Checksum.WriteTo(writer);
         }
 
-        private static bool TryReadFormatAndChecksums(
-            ObjectReader reader, string formatVersion, 
-            out Checksum textChecksum, out Checksum parseOptionsChecksum)
+        private static bool TryReadFormatAndChecksum(
+            ObjectReader reader, string formatVersion, out Checksum checksum)
         {
-            textChecksum = null;
-            parseOptionsChecksum = null;
+            checksum = null;
             if (reader.ReadString() != formatVersion)
             {
                 return false;
             }
 
-            textChecksum = Checksum.ReadFrom(reader);
-            parseOptionsChecksum = Checksum.ReadFrom(reader);
+            checksum = Checksum.ReadFrom(reader);
             return true;
         }
 
         private static async Task<SyntaxTreeIndex> LoadAsync(
             Document document, string persistenceName, string formatVersion,
-            Func<ObjectReader, Checksum, Checksum, SyntaxTreeIndex> readFrom, CancellationToken cancellationToken)
+            Func<ObjectReader, Checksum, SyntaxTreeIndex> readFrom, CancellationToken cancellationToken)
         {
             var solution = document.Project.Solution;
             var persistentStorageService = (IPersistentStorageService2)solution.Workspace.Services.GetService<IPersistentStorageService>();
 
-            var (textChecksum, parseOptionsChecksum) = await GetChecksumsAsync(document, cancellationToken).ConfigureAwait(false);
+            var checksum = await GetChecksumAsync(document, cancellationToken).ConfigureAwait(false);
 
             try
             {
@@ -59,9 +54,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 {
                     if (reader != null)
                     {
-                        if (DataPreambleMatches(reader, formatVersion, textChecksum, parseOptionsChecksum))
+                        if (DataPreambleMatches(reader, formatVersion, checksum))
                         {
-                            return readFrom(reader, textChecksum, parseOptionsChecksum);
+                            return readFrom(reader, checksum);
                         }
                     }
                 }
@@ -75,14 +70,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         private static bool DataPreambleMatches(
-            ObjectReader reader, string formatVersion, Checksum textChecksum, Checksum parseOptionsChecksum)
+            ObjectReader reader, string formatVersion, Checksum checksum)
         {
-            return TryReadFormatAndChecksums(reader, formatVersion, out var persistTextChecksum, out var persistParseOptionsChecksum) &&
-                   persistTextChecksum == textChecksum &&
-                   persistParseOptionsChecksum == parseOptionsChecksum;
+            return TryReadFormatAndChecksum(reader, formatVersion, out var persistChecksum) &&
+                   persistChecksum == checksum;
         }
 
-        public static async Task<(Checksum textChecksum, Checksum parseOptionsChecksum)> GetChecksumsAsync(
+        public static async Task<Checksum> GetChecksumAsync(
             Document document, CancellationToken cancellationToken)
         {
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
@@ -94,7 +88,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var parseOptionsChecksum = ChecksumCache.GetOrCreate(
                 parseOptions, _ => serializer.CreateChecksum(parseOptions, cancellationToken));
 
-            return (textChecksum, parseOptionsChecksum);
+            return Checksum.Create(nameof(SyntaxTreeIndex), new[] { textChecksum, parseOptionsChecksum });
         }
 
         private static async Task<bool> SaveAsync(
@@ -102,7 +96,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             var solution = document.Project.Solution;
             var persistentStorageService = (IPersistentStorageService2)solution.Workspace.Services.GetService<IPersistentStorageService>();
-            var (textChecksum, parseOptionsChecksum) = await GetChecksumsAsync(document, cancellationToken).ConfigureAwait(false);
+            var checksum = await GetChecksumAsync(document, cancellationToken).ConfigureAwait(false);
 
             try
             {
@@ -110,7 +104,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 using (var stream = SerializableBytes.CreateWritableStream())
                 using (var writer = new ObjectWriter(stream, cancellationToken: cancellationToken))
                 {
-                    data.WriteFormatAndChecksums(writer, formatVersion);
+                    data.WriteFormatAndChecksum(writer, formatVersion);
                     data.WriteTo(writer);
 
                     stream.Position = 0;
@@ -130,7 +124,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             var solution = document.Project.Solution;
             var persistentStorageService = (IPersistentStorageService2)solution.Workspace.Services.GetService<IPersistentStorageService>();
-            var (textChecksum, parseOptionsChecksum) = await GetChecksumsAsync(document, cancellationToken).ConfigureAwait(false);
+            var checksum = await GetChecksumAsync(document, cancellationToken).ConfigureAwait(false);
 
             // check whether we already have info for this document
             try
@@ -141,7 +135,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 {
                     if (reader != null)
                     {
-                        return DataPreambleMatches(reader, formatVersion, textChecksum, parseOptionsChecksum);
+                        return DataPreambleMatches(reader, formatVersion, checksum);
                     }
                 }
             }
@@ -162,7 +156,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         private static SyntaxTreeIndex ReadFrom(
-            ObjectReader reader, Checksum textChecksum, Checksum parseOptionsChecksum)
+            ObjectReader reader, Checksum checksum)
         {
             var literalInfo = LiteralInfo.TryReadFrom(reader);
             var identifierInfo = IdentifierInfo.TryReadFrom(reader);
@@ -175,7 +169,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
 
             return new SyntaxTreeIndex(
-                textChecksum, parseOptionsChecksum, literalInfo.Value, identifierInfo.Value, contextInfo.Value, declarationInfo.Value);
+                checksum, literalInfo.Value, identifierInfo.Value, contextInfo.Value, declarationInfo.Value);
         }
 
         private Task<bool> SaveAsync(Document document, CancellationToken cancellationToken)
