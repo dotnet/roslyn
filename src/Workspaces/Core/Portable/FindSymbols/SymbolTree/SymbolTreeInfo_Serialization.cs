@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 loadOnly,
                 create: () => CreateSourceSymbolTreeInfo(solution, checksum, assembly, filePath, cancellationToken),
                 keySuffix: "_Source",
-                getPersistedChecksum: info => info._checksum,
+                getPersistedChecksum: info => info.Checksum,
                 readObject: reader => ReadSymbolTreeInfo(reader, (names, nodes) => GetSpellCheckerTask(solution, checksum, filePath, names, nodes)),
                 cancellationToken: cancellationToken);
         }
@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public void WriteTo(ObjectWriter writer)
         {
             writer.WriteString(SerializationFormat);
-            _checksum.WriteTo(writer);
+            Checksum.WriteTo(writer);
 
             writer.WriteString(_concatenatedNames);
 

@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 loadOnly,
                 create: () => CreateMetadataSymbolTreeInfo(solution, checksum, reference, cancellationToken),
                 keySuffix: "_Metadata",
-                getPersistedChecksum: info => info._checksum,
+                getPersistedChecksum: info => info.Checksum,
                 readObject: reader => ReadSymbolTreeInfo(reader, (names, nodes) => GetSpellCheckerTask(solution, checksum, filePath, names, nodes)),
                 cancellationToken: cancellationToken);
         }

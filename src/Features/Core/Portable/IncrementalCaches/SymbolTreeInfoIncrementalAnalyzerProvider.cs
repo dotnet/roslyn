@@ -38,22 +38,8 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
     [ExportWorkspaceServiceFactory(typeof(ISymbolTreeInfoCacheService))]
     internal class SymbolTreeInfoIncrementalAnalyzerProvider : IIncrementalAnalyzerProvider, IWorkspaceServiceFactory
     {
-        private struct ProjectInfo
-        {
-            public readonly Checksum Checksum;
-            public readonly SymbolTreeInfo SymbolTreeInfo;
-
-            public ProjectInfo(Checksum checksum, SymbolTreeInfo info)
-            {
-                Checksum = checksum;
-                SymbolTreeInfo = info;
-            }
-        }
-
         private struct MetadataInfo
         {
-            public readonly Checksum Checksum;
-
             /// <summary>
             /// Note: can be <code>null</code> if were unable to create a SymbolTreeInfo
             /// (for example, if the metadata was bogus and we couldn't read it in).
@@ -67,9 +53,8 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
             /// </summary>
             public readonly HashSet<ProjectId> ReferencingProjects;
 
-            public MetadataInfo(Checksum checksum, SymbolTreeInfo info, HashSet<ProjectId> referencingProjects)
+            public MetadataInfo(SymbolTreeInfo info, HashSet<ProjectId> referencingProjects)
             {
-                Checksum = checksum;
                 SymbolTreeInfo = info;
                 ReferencingProjects = referencingProjects;
             }
@@ -77,7 +62,7 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
 
         // Concurrent dictionaries so they can be read from the SymbolTreeInfoCacheService while 
         // they are being populated/updated by the IncrementalAnalyzer.
-        private readonly ConcurrentDictionary<ProjectId, ProjectInfo> _projectToInfo = new ConcurrentDictionary<ProjectId, ProjectInfo>();
+        private readonly ConcurrentDictionary<ProjectId, SymbolTreeInfo> _projectToInfo = new ConcurrentDictionary<ProjectId, SymbolTreeInfo>();
         private readonly ConcurrentDictionary<string, MetadataInfo> _metadataPathToInfo = new ConcurrentDictionary<string, MetadataInfo>();
 
         public IIncrementalAnalyzer CreateIncrementalAnalyzer(Workspace workspace)
@@ -109,11 +94,11 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
 
         private class SymbolTreeInfoCacheService : ISymbolTreeInfoCacheService
         {
-            private readonly ConcurrentDictionary<ProjectId, ProjectInfo> _projectToInfo;
+            private readonly ConcurrentDictionary<ProjectId, SymbolTreeInfo> _projectToInfo;
             private readonly ConcurrentDictionary<string, MetadataInfo> _metadataPathToInfo;
 
             public SymbolTreeInfoCacheService(
-                ConcurrentDictionary<ProjectId, ProjectInfo> projectToInfo,
+                ConcurrentDictionary<ProjectId, SymbolTreeInfo> projectToInfo,
                 ConcurrentDictionary<string, MetadataInfo> metadataPathToInfo)
             {
                 _projectToInfo = projectToInfo;
@@ -131,7 +116,7 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                 if (key != null)
                 {
                     if (_metadataPathToInfo.TryGetValue(key, out var metadataInfo) &&
-                        metadataInfo.Checksum == checksum)
+                        metadataInfo.SymbolTreeInfo.Checksum == checksum)
                     {
                         return metadataInfo.SymbolTreeInfo;
                     }
@@ -151,7 +136,7 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                 if (_projectToInfo.TryGetValue(project.Id, out var projectInfo) &&
                     projectInfo.Checksum == await SymbolTreeInfo.GetSourceSymbolsChecksumAsync(project, cancellationToken).ConfigureAwait(false))
                 {
-                    return projectInfo.SymbolTreeInfo;
+                    return projectInfo;
                 }
 
                 return null;
@@ -160,11 +145,11 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
 
         private class IncrementalAnalyzer : IncrementalAnalyzerBase
         {
-            private readonly ConcurrentDictionary<ProjectId, ProjectInfo> _projectToInfo;
+            private readonly ConcurrentDictionary<ProjectId, SymbolTreeInfo> _projectToInfo;
             private readonly ConcurrentDictionary<string, MetadataInfo> _metadataPathToInfo;
 
             public IncrementalAnalyzer(
-                ConcurrentDictionary<ProjectId, ProjectInfo> projectToInfo,
+                ConcurrentDictionary<ProjectId, SymbolTreeInfo> projectToInfo,
                 ConcurrentDictionary<string, MetadataInfo> metadataPathToInfo)
             {
                 _projectToInfo = projectToInfo;
@@ -223,12 +208,11 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                 if (!_projectToInfo.TryGetValue(project.Id, out var projectInfo) ||
                     projectInfo.Checksum != checksum)
                 {
-                    var info = await SymbolTreeInfo.GetInfoForSourceAssemblyAsync(
+                    projectInfo = await SymbolTreeInfo.GetInfoForSourceAssemblyAsync(
                         project, checksum, cancellationToken).ConfigureAwait(false);
 
                     // Mark that we're up to date with this project.  Future calls with the same 
                     // semantic version can bail out immediately.
-                    projectInfo = new ProjectInfo(checksum, info);
                     _projectToInfo.AddOrUpdate(project.Id, projectInfo, (_1, _2) => projectInfo);
                 }
             }
@@ -254,7 +238,7 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
 
                 var checksum = SymbolTreeInfo.GetMetadataChecksum(project.Solution, reference, cancellationToken);
                 if (!_metadataPathToInfo.TryGetValue(key, out var metadataInfo) ||
-                    metadataInfo.Checksum != checksum)
+                    metadataInfo.SymbolTreeInfo.Checksum != checksum)
                 {
                     var info = await SymbolTreeInfo.TryGetInfoForMetadataReferenceAsync(
                         project.Solution, reference, checksum, loadOnly: false, cancellationToken: cancellationToken).ConfigureAwait(false);
@@ -262,7 +246,7 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                     // Note, getting the info may fail (for example, bogus metadata).  That's ok.  
                     // We still want to cache that result so that don't try to continuously produce
                     // this info over and over again.
-                    metadataInfo = new MetadataInfo(checksum, info, metadataInfo.ReferencingProjects ?? new HashSet<ProjectId>());
+                    metadataInfo = new MetadataInfo( info, metadataInfo.ReferencingProjects ?? new HashSet<ProjectId>());
                     _metadataPathToInfo.AddOrUpdate(key, metadataInfo, (_1, _2) => metadataInfo);
                 }
 
