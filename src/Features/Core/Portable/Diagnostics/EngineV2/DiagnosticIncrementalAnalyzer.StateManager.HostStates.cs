@@ -3,6 +3,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 {
@@ -95,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                             yield return _compilerAnalyzer;
                         }
 
-                        foreach (var analyzer in _map.Keys)
+                        foreach (var (analyzer, _) in _map)
                         {
                             yield return analyzer;
                         }

@@ -420,7 +420,7 @@ namespace Microsoft.CodeAnalysis
             // update parse options for all documents too
             var docMap = _documentStates;
 
-            foreach (var docId in _documentStates.Keys)
+            foreach (var (docId, _) in _documentStates)
             {
                 var oldDocState = this.GetDocumentState(docId);
                 var newDocState = oldDocState.UpdateParseOptions(options);
