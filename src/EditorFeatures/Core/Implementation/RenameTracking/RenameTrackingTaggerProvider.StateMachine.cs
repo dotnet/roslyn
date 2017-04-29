@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
         {
             private readonly IInlineRenameService _inlineRenameService;
             private readonly IAsynchronousOperationListener _asyncListener;
-            private readonly ITextBuffer _buffer;
+            private readonly ITextBuffer2 _buffer;
             private readonly IDiagnosticAnalyzerService _diagnosticAnalyzerService;
 
             // Store committed sessions so they can be restored on undo/redo. The undo transactions
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
             private int _refCount;
 
             public TrackingSession TrackingSession { get; private set; }
-            public ITextBuffer Buffer => _buffer;
+            public ITextBuffer2 Buffer => _buffer;
 
             public event Action TrackingSessionUpdated = delegate { };
             public event Action<ITrackingSpan> TrackingSessionCleared = delegate { };
@@ -52,14 +52,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 IAsynchronousOperationListener asyncListener,
                 IDiagnosticAnalyzerService diagnosticAnalyzerService)
             {
-                _buffer = buffer;
-                _buffer.Changed += Buffer_Changed;
+                _buffer = (ITextBuffer2)buffer;
+                _buffer.ChangedAsync += Buffer_ChangedAsync;
                 _inlineRenameService = inlineRenameService;
                 _asyncListener = asyncListener;
                 _diagnosticAnalyzerService = diagnosticAnalyzerService;
             }
 
-            private void Buffer_Changed(object sender, TextContentChangedEventArgs e)
+            private void BufferChangedWorker(TextContentChangedEventArgs e)
             {
                 AssertIsForeground();
 
@@ -112,6 +112,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                         StartTrackingSession(e);
                     }
                 }
+            }
+
+            private Task Buffer_ChangedAsync(object sender, TextContentChangedEventArgs e)
+            {
+                return Task.Factory.SafeStartNew(
+                    () => BufferChangedWorker(e),
+                    CancellationToken.None,
+                    ForegroundTaskScheduler);
             }
 
             public void UpdateTrackingSessionIfRenamable()
@@ -376,7 +384,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 if (_refCount == 0)
                 {
                     this.Buffer.Properties.RemoveProperty(typeof(StateMachine));
-                    this.Buffer.Changed -= Buffer_Changed;
+                    this.Buffer.ChangedAsync -= Buffer_ChangedAsync;
                 }
             }
         }

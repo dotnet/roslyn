@@ -80,6 +80,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
             public void Cancel()
             {
                 AssertIsForeground();
+                Dismissed();
                 _cancellationTokenSource.Cancel();
             }
 

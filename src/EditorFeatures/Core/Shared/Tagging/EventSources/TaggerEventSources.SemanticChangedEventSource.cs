@@ -2,6 +2,7 @@
 
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Text;
@@ -25,12 +26,12 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             public override void Connect()
             {
                 base.Connect();
-                this.SubjectBuffer.Changed += OnSubjectBufferChanged;
+                this.SubjectBuffer.ChangedAsync += OnSubjectBufferChangedAsync;
             }
 
             public override void Disconnect()
             {
-                this.SubjectBuffer.Changed -= OnSubjectBufferChanged;
+                this.SubjectBuffer.ChangedAsync -= OnSubjectBufferChangedAsync;
                 base.Disconnect();
             }
 
@@ -44,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
                 _notificationService.OpenedDocumentSemanticChanged -= OnOpenedDocumentSemanticChanged;
             }
 
-            private void OnSubjectBufferChanged(object sender, TextContentChangedEventArgs e)
+            private Task OnSubjectBufferChangedAsync(object sender, TextContentChangedEventArgs e)
             {
                 // Whenever this subject buffer has changed, we always consider that to be a 
                 // semantic change.
@@ -52,6 +53,8 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
                 {
                     RaiseChanged();
                 }
+
+                return Task.CompletedTask;
             }
 
             private void OnOpenedDocumentSemanticChanged(object sender, Document document)

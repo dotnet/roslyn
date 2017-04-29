@@ -1,6 +1,6 @@
 ﻿{
   "dependencies": { 
-     "Microsoft.ServiceHub.Client": "1.0.177-rc-g56d40a8a02"
+     "Microsoft.ServiceHub.Client": "1.1.18-rc-g92b2150dd1"
   },
   "frameworks": {
     "net46": { }

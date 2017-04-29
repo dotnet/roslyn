@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting.Rules;
@@ -71,20 +72,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
             // TODO: Can contained documents be linked or shared?
             this.Project.AddDocument(this.ContainedDocument, isCurrentContext: true, hookupHandlers: true);
-            this.DataBuffer.Changed += OnDataBufferChanged;
+            this.DataBuffer.ChangedAsync += OnDataBufferChangedAsync;
         }
 
         private void OnDisconnect()
         {
-            this.DataBuffer.Changed -= OnDataBufferChanged;
+            this.DataBuffer.ChangedAsync -= OnDataBufferChangedAsync;
             this.Project.RemoveDocument(this.ContainedDocument);
         }
 
-        private void OnDataBufferChanged(object sender, TextContentChangedEventArgs e)
+        private Task OnDataBufferChangedAsync(object sender, TextContentChangedEventArgs e)
         {
             // we don't actually care what has changed in primary buffer. we just want to re-analyze secondary buffer
             // when primary buffer has changed to update diagnostic positions.
             _diagnosticAnalyzerService.Reanalyze(this.Workspace, documentIds: SpecializedCollections.SingletonEnumerable(this.ContainedDocument.Id));
+            return Task.CompletedTask;
         }
 
         public override void Dispose()

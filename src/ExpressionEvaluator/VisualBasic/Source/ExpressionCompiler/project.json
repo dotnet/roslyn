@@ -1,9 +1,9 @@
 {
   "dependencies": {
-    "Microsoft.VisualStudio.Debugger.Engine": "15.0.26201-gamma",
+    "Microsoft.VisualStudio.Debugger.Engine": "15.0.26424-alpha",
     "Microsoft.VisualStudio.Debugger.Metadata": {
-        "version": "15.0.26201-gamma",
-        "exclude": "compile"
+      "version": "15.0.26424-alpha",
+      "exclude": "compile"
     }
   },
   "frameworks": {

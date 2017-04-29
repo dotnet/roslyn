@@ -1,7 +1,9 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
+Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Editor.Host
+Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.Text.Shared.Extensions
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -12,7 +14,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticEndConstructCorrect
     ''' Tracks user's interaction with editor
     ''' </summary>
     Partial Friend Class AutomaticEndConstructCorrector
-        Private ReadOnly _buffer As ITextBuffer
+        Inherits ForegroundThreadAffinitizedObject
+
+        Private ReadOnly _buffer As ITextBuffer2
         Private ReadOnly _session As Session
         Private ReadOnly _waitIndicator As IWaitIndicator
 
@@ -22,7 +26,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticEndConstructCorrect
         Public Sub New(subjectBuffer As ITextBuffer, waitIndicator As IWaitIndicator)
             Contract.ThrowIfNull(subjectBuffer)
 
-            Me._buffer = subjectBuffer
+            Me._buffer = DirectCast(subjectBuffer, ITextBuffer2)
             Me._waitIndicator = waitIndicator
             Me._session = New Session(subjectBuffer)
 
@@ -33,7 +37,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticEndConstructCorrect
         Public Sub Connect()
             If _referencingViews = 0 Then
                 AddHandler _buffer.Changing, AddressOf OnTextBufferChanging
-                AddHandler _buffer.Changed, AddressOf OnTextBufferChanged
+                AddHandler _buffer.ChangedAsync, AddressOf OnTextBufferChanged
             End If
 
             _referencingViews = _referencingViews + 1
@@ -41,7 +45,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticEndConstructCorrect
 
         Public Sub Disconnect()
             If _referencingViews = 1 Then
-                RemoveHandler _buffer.Changed, AddressOf OnTextBufferChanged
+                RemoveHandler _buffer.ChangedAsync, AddressOf OnTextBufferChanged
                 RemoveHandler _buffer.Changing, AddressOf OnTextBufferChanging
             End If
 
@@ -64,15 +68,20 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticEndConstructCorrect
             _previousDocument = e.Before.GetOpenDocumentInCurrentContextWithChanges()
         End Sub
 
-        Private Sub OnTextBufferChanged(sender As Object, e As TextContentChangedEventArgs)
-            _waitIndicator.Wait(
+        Private Function OnTextBufferChanged(sender As Object, e As TextContentChangedEventArgs) As Task
+            Return Task.Factory.SafeStartNew(
+                Sub()
+                    _waitIndicator.Wait(
                 "IntelliSense",
                 allowCancel:=True,
                 action:=Sub(c) StartSession(e, c.CancellationToken))
-
-            ' clear previous document
-            _previousDocument = Nothing
-        End Sub
+                    ' clear previous document
+                    _previousDocument = Nothing
+                End Sub,
+                CancellationToken.None,
+                ForegroundTaskScheduler
+                )
+        End Function
 
         Private Sub StartSession(e As TextContentChangedEventArgs, cancellationToken As CancellationToken)
             If e.Changes.Count = 0 Then
