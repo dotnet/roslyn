@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             using (var storage = persistentStorageService.GetStorage(solution, checkBranchId: false))
             {
                 // Get the unique key to identify our data.
-                var key = PrefixMetadataSymbolTreeInfo + keySuffix;
+                var key = PrefixMetadataSymbolTreeInfo + keySuffix + "_" + filePath;
                 using (var stream = await storage.ReadStreamAsync(key, cancellationToken).ConfigureAwait(false))
                 using (var reader = ObjectReader.TryGetReader(stream))
                 {
