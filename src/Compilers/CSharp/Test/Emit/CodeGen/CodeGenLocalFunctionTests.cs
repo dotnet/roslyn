@@ -78,7 +78,7 @@ public class Class
             CompileAndVerify(comp);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/16783")]
+        [Fact]
         [WorkItem(16783, "https://github.com/dotnet/roslyn/issues/16783")]
         public void GenericDefaultParams()
         {
@@ -3972,6 +3972,79 @@ class Program
                 additionalRefs: new[] { SystemRuntimeFacadeRef, ValueTupleRef });
         }
 
+        [Fact]
+        [WorkItem(19119, "https://github.com/dotnet/roslyn/issues/19119")]
+        public void StructFrameInitUnnecesary()
+        {
+            var c = CompileAndVerify(@"
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            int q = 1;
+
+            if (q > 0)
+            {
+                int w = 2;
+                if (w > 0)
+                {
+                    int e = 3;
+                    if (e > 0)
+                    {
+                        void Print() => System.Console.WriteLine(q + w + e);
+
+                        Print();
+                    }
+                }
+            }
+        }
+    }", expectedOutput: "6");
+
+            //BUG: the "initobj" instructions in the following code are redundant.
+
+            c.VerifyIL("Program.Main", @"
+{
+  // Code size       87 (0x57)
+  .maxstack  3
+  .locals init (Program.<>c__DisplayClass0_0 V_0, //CS$<>8__locals0
+                Program.<>c__DisplayClass0_1 V_1, //CS$<>8__locals1
+                Program.<>c__DisplayClass0_2 V_2) //CS$<>8__locals2
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    ""Program.<>c__DisplayClass0_0""
+  IL_0008:  ldloca.s   V_0
+  IL_000a:  ldc.i4.1
+  IL_000b:  stfld      ""int Program.<>c__DisplayClass0_0.q""
+  IL_0010:  ldloc.0
+  IL_0011:  ldfld      ""int Program.<>c__DisplayClass0_0.q""
+  IL_0016:  ldc.i4.0
+  IL_0017:  ble.s      IL_0056
+  IL_0019:  ldloca.s   V_1
+  IL_001b:  initobj    ""Program.<>c__DisplayClass0_1""
+  IL_0021:  ldloca.s   V_1
+  IL_0023:  ldc.i4.2
+  IL_0024:  stfld      ""int Program.<>c__DisplayClass0_1.w""
+  IL_0029:  ldloc.1
+  IL_002a:  ldfld      ""int Program.<>c__DisplayClass0_1.w""
+  IL_002f:  ldc.i4.0
+  IL_0030:  ble.s      IL_0056
+  IL_0032:  ldloca.s   V_2
+  IL_0034:  initobj    ""Program.<>c__DisplayClass0_2""
+  IL_003a:  ldloca.s   V_2
+  IL_003c:  ldc.i4.3
+  IL_003d:  stfld      ""int Program.<>c__DisplayClass0_2.e""
+  IL_0042:  ldloc.2
+  IL_0043:  ldfld      ""int Program.<>c__DisplayClass0_2.e""
+  IL_0048:  ldc.i4.0
+  IL_0049:  ble.s      IL_0056
+  IL_004b:  ldloca.s   V_0
+  IL_004d:  ldloca.s   V_1
+  IL_004f:  ldloca.s   V_2
+  IL_0051:  call       ""void Program.<Main>g__Print0_0(ref Program.<>c__DisplayClass0_0, ref Program.<>c__DisplayClass0_1, ref Program.<>c__DisplayClass0_2)""
+  IL_0056:  ret
+}
+");
+        }
+        
         internal CompilationVerifier VerifyOutput(string source, string output, CSharpCompilationOptions options)
         {
             var comp = CreateCompilationWithMscorlib45AndCSruntime(source, options: options);
