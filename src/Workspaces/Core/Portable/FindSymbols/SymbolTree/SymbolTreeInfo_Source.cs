@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var textChecksumsTasks = orderedDocumentIds.Select(async id =>
             {
                 var text = await project.GetDocument(id).GetTextAsync(cancellationToken).ConfigureAwait(false);
-                return ChecksumCache.GetOrCreate(text, _ => serializer.CreateChecksum(text, cancellationToken));
+                return serializer.CreateChecksum(text, cancellationToken);
             });
 
             var textChecksums = await Task.WhenAll(textChecksumsTasks).ConfigureAwait(false);
