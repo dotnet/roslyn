@@ -45,7 +45,7 @@
     <SystemConsoleVersion>4.3.0</SystemConsoleVersion>
     <SystemDiagnosticsContractsVersion>4.3.0</SystemDiagnosticsContractsVersion>
     <SystemDiagnosticsDebugVersion>4.3.0</SystemDiagnosticsDebugVersion>
-    <SystemDiagnosticsFileVersionInfoVersion>4.3.0</SystemDiagnosticsFileVersionInfoVersion>
+    <SystemDiagnosticsFileVersionInfoVersion>4.0.0</SystemDiagnosticsFileVersionInfoVersion>
     <SystemDiagnosticsProcessVersion>4.3.0</SystemDiagnosticsProcessVersion>
     <SystemDiagnosticsStackTraceVersion>4.3.0</SystemDiagnosticsStackTraceVersion>
     <SystemDiagnosticsToolsVersion>4.3.0</SystemDiagnosticsToolsVersion>
@@ -82,7 +82,7 @@
     <SystemRuntimeInteropServicesRuntimeInformationVersion>4.3.0</SystemRuntimeInteropServicesRuntimeInformationVersion>
     <SystemRuntimeLoaderVersion>4.3.0</SystemRuntimeLoaderVersion>
     <SystemRuntimeNumericsVersion>4.3.0</SystemRuntimeNumericsVersion>
-    <SystemRuntimeSerializationJsonVersion>4.3.0</SystemRuntimeSerializationJsonVersion>
+    <SystemRuntimeSerializationJsonVersion>4.0.3</SystemRuntimeSerializationJsonVersion>
     <SystemRuntimeSerializationPrimitivesVersion>4.3.0</SystemRuntimeSerializationPrimitivesVersion>
     <SystemSecurityAccessControlVersion>4.3.0</SystemSecurityAccessControlVersion>
     <SystemSecurityCryptographyAlgorithmsVersion>4.3.0</SystemSecurityCryptographyAlgorithmsVersion>
@@ -91,7 +91,7 @@
     <SystemSecurityCryptographyX509CertificatesVersion>4.3.0</SystemSecurityCryptographyX509CertificatesVersion>
     <SystemSecurityPrincipalWindowsVersion>4.3.0</SystemSecurityPrincipalWindowsVersion>
     <SystemTextEncodingVersion>4.3.0</SystemTextEncodingVersion>
-    <SystemTextEncodingCodePagesVersion>4.3.0</SystemTextEncodingCodePagesVersion>
+    <SystemTextEncodingCodePagesVersion>4.0.1</SystemTextEncodingCodePagesVersion>
     <SystemTextEncodingExtensionsVersion>4.3.0</SystemTextEncodingExtensionsVersion>
     <SystemTextRegularExpressionsVersion>4.3.0</SystemTextRegularExpressionsVersion>
     <SystemThreadingVersion>4.3.0</SystemThreadingVersion>
