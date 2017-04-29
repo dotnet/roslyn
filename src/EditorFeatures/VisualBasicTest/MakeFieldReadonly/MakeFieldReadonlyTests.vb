@@ -140,7 +140,7 @@ End Class")
     Private [|_foo|], _bar As Integer, _fizz As String = """"
 End Class",
 "Class C
-    Private ReadOnly [|_foo|] As Integer
+    Private ReadOnly _foo As Integer
     Private _bar As Integer
     Private _fizz As String = """"
 End Class")
@@ -461,6 +461,25 @@ End Class",
 "Class C
     Private ReadOnly _foo As Integer = 0, _bar As Integer = 0
     Private ReadOnly _fizz As Integer = 0
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
+        Public Async Function FixAll_MultipleFieldsAssignedInline_TwoCanBeReadonly_MultipleNamesInDeclarator() As Task
+            Await TestInRegularAndScriptAsync(
+"Class C
+    Private _foo, {|FixAllInDocument:_bar|} As Integer, _fizz As String = """"
+    Sub Foo()
+        _foo = 0
+    End Sub
+End Class",
+"Class C
+    Private _foo As Integer
+    Private ReadOnly _bar As Integer
+    Private ReadOnly _fizz As String = """"
+    Sub Foo()
+        _foo = 0
+    End Sub
 End Class")
         End Function
     End Class
