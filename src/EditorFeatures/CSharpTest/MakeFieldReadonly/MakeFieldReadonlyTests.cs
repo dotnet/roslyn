@@ -50,6 +50,16 @@ $@"class MyClass
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        public async Task FieldIsConst()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class MyClass
+{
+    private const int [|_foo|];
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
         public async Task FieldNotAssigned()
         {
             await TestInRegularAndScriptAsync(
@@ -553,6 +563,32 @@ partial class MyClass
 class MyClass
 {
     private MyStruct [|_foo|];
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        public async Task FieldTypeIsCustomImmutableStruct()
+        {
+            await TestInRegularAndScriptAsync(
+@"struct MyStruct
+{
+    private readonly int _foo;
+    private const int _bar = 0;
+    private static int _fizz;
+}
+class MyClass
+{
+    private MyStruct [|_foo|];
+}",
+@"struct MyStruct
+{
+    private readonly int _foo;
+    private const int _bar = 0;
+    private static int _fizz;
+}
+class MyClass
+{
+    private readonly MyStruct _foo;
 }");
         }
 

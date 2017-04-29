@@ -48,6 +48,7 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
                 if (item is IFieldSymbol symbol &&
                     symbol.DeclaredAccessibility == Accessibility.Private &&
                     !symbol.IsReadOnly &&
+                    !symbol.IsConst &&
                     !symbol.IsImplicitlyDeclared &&
                     !IsMutableValueType(symbol.Type))
                 {
@@ -130,7 +131,23 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
         }
 
         private bool IsMutableValueType(ITypeSymbol type)
-            => type.IsValueType && type.SpecialType == SpecialType.None;
+        {
+            if (type.TypeKind != TypeKind.Struct)
+            {
+                return false;
+            }
+
+            foreach (var member in type.GetMembers())
+            {
+                if (member is IFieldSymbol fieldSymbol &&
+                    !(fieldSymbol.IsConst || fieldSymbol.IsReadOnly || fieldSymbol.IsStatic))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
 
         protected abstract bool IsWrittenTo(TIdentifierNameSyntax node, SemanticModel model, CancellationToken cancellationToken);
         protected abstract bool IsMemberOfThisInstance(SyntaxNode node);

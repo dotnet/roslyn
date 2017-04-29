@@ -27,30 +27,6 @@ End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
-        Public Async Function FieldIsFriend() As Task
-            Await TestMissingInRegularAndScriptAsync(
-"Class C
-    Friend [|_foo|] As Integer
-End Class")
-        End Function
-
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
-        Public Async Function FieldIsProtected() As Task
-            Await TestMissingInRegularAndScriptAsync(
-"Class C
-    Protected [|_foo|] As Integer
-End Class")
-        End Function
-
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
-        Public Async Function FieldIsProtectedFriend() As Task
-            Await TestMissingInRegularAndScriptAsync(
-"Class C
-    Protected Friend [|_foo|] As Integer
-End Class")
-        End Function
-
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
         Public Async Function FieldIsEvent() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Class C
@@ -63,6 +39,14 @@ End Class")
             Await TestMissingInRegularAndScriptAsync(
 "Class C
     Private ReadOnly [|_foo|] As Integer
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
+        Public Async Function FieldIsConst() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"Class C
+    Private Const [|_foo|] As Integer
 End Class")
         End Function
 
@@ -459,6 +443,27 @@ End Class")
 End Structure
 Class C
     Private [|_foo|] As S
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
+        Public Async Function FieldIsCustomImmutableStructure() As Task
+            Await TestInRegularAndScriptAsync(
+"Structure S
+    Private readonly _foo As Integer
+    Private Const _bar As Integer = 0
+    Private Shared _fizz As Integer
+End Structure
+Class C
+    Private [|_foo|] As S
+End Class",
+"Structure S
+    Private readonly _foo As Integer
+    Private Const _bar As Integer = 0
+    Private Shared _fizz As Integer
+End Structure
+Class C
+    Private ReadOnly _foo As S
 End Class")
         End Function
 
