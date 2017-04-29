@@ -555,7 +555,8 @@ Inner i;
                 using (var readerStream = new MemoryStream(writerStream.ToArray()))
                 using (var reader = ObjectReader.TryGetReader(readerStream))
                 {
-                    var readInfo = SymbolTreeInfo.ReadSymbolTreeInfo_ForTestingPurposesOnly(reader);
+                    var readInfo = SymbolTreeInfo.ReadSymbolTreeInfo_ForTestingPurposesOnly(
+                        reader, Checksum.Null);
 
                     info.AssertEquivalentTo(readInfo);
                 }

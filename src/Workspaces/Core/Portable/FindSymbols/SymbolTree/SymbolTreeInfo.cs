@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 {
     internal partial class SymbolTreeInfo
     {
-        private readonly Checksum _checksum;
+        public readonly Checksum Checksum;
 
         /// <summary>
         /// To prevent lots of allocations, we concatenate all the names in all our
@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             Node[] sortedNodes, 
             Task<SpellChecker> spellCheckerTask)
         {
-            _checksum = checksum;
+            Checksum = checksum;
             _concatenatedNames = concatenatedNames;
             _nodes = ImmutableArray.Create(sortedNodes);
             _spellCheckerTask = spellCheckerTask;
@@ -472,7 +472,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         internal void AssertEquivalentTo(SymbolTreeInfo other)
         {
-            Debug.Assert(_checksum.Equals(other._checksum));
+            Debug.Assert(Checksum.Equals(other.Checksum));
             Debug.Assert(_concatenatedNames == other._concatenatedNames);
             Debug.Assert(_nodes.Length == other._nodes.Length);
 

@@ -23,7 +23,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public static readonly ObjectPool<HashSet<long>> LongLiteralHashSetPool =
             new ObjectPool<HashSet<long>>(() => new HashSet<long>(), 20);
 
-        private static async Task<SyntaxTreeIndex> CreateInfoAsync(Document document, CancellationToken cancellationToken)
+        private static async Task<SyntaxTreeIndex> CreateIndexAsync(
+            Document document, Checksum checksum, CancellationToken cancellationToken)
         {
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
             var ignoreCase = syntaxFacts != null && !syntaxFacts.IsCaseSensitive;
@@ -153,8 +154,6 @@ $@"Invalid span in {nameof(declaredSymbolInfo)}.
                         }
                     }
                 }
-
-                var checksum = await GetChecksumAsync(document, cancellationToken).ConfigureAwait(false);
 
                 return new SyntaxTreeIndex(
                     checksum,

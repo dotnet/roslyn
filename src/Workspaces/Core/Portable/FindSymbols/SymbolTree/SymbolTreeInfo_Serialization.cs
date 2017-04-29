@@ -14,7 +14,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
-    internal partial class SymbolTreeInfo
+    internal partial class SymbolTreeInfo : IObjectWritable
     {
         private const string PrefixMetadataSymbolTreeInfo = "<SymbolTreeInfo>";
         private const string SerializationFormat = "17";
@@ -38,9 +38,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 loadOnly,
                 create: () => CreateSourceSymbolTreeInfo(solution, checksum, assembly, filePath, cancellationToken),
                 keySuffix: "_Source",
-                getPersistedChecksum: info => info._checksum,
-                readObject: reader => ReadSymbolTreeInfo(reader, (c, names, nodes) => GetSpellCheckerTask(solution, c, filePath, names, nodes)),
-                writeObject: (w, i) => i.WriteTo(w),
+                getPersistedChecksum: info => info.Checksum,
+                readObject: reader => ReadSymbolTreeInfo(reader, (names, nodes) => GetSpellCheckerTask(solution, checksum, filePath, names, nodes)),
                 cancellationToken: cancellationToken);
         }
 
@@ -63,7 +62,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 keySuffix: "_SpellChecker",
                 getPersistedChecksum: s => s.Checksum,
                 readObject: SpellChecker.ReadFrom,
-                writeObject: (w, i) => i.WriteTo(w),
                 cancellationToken: CancellationToken.None);
         }
 
@@ -80,12 +78,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             string keySuffix,
             Func<T, Checksum> getPersistedChecksum,
             Func<ObjectReader, T> readObject,
-            Action<ObjectWriter, T> writeObject,
-            CancellationToken cancellationToken) where T : class
+            CancellationToken cancellationToken) where T : class, IObjectWritable
         {
-            // See if we can even use serialization.  If not, we'll just have to make the value
-            // from scratch.
-            if (checksum == null) // || ShouldCreateFromScratch(solution, filePath, out var prefix, cancellationToken))
+            if (checksum == null) 
             {
                 return loadOnly ? null : create();
             }
@@ -131,7 +126,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     using (var stream = SerializableBytes.CreateWritableStream())
                     using (var writer = new ObjectWriter(stream, cancellationToken: cancellationToken))
                     {
-                        writeObject(writer, result);
+                        result.WriteTo(writer);
                         stream.Position = 0;
 
                         await storage.WriteStreamAsync(key, stream, cancellationToken).ConfigureAwait(false);
@@ -142,38 +137,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return result;
         }
 
-        //private static bool ShouldCreateFromScratch(
-        //    Solution solution,
-        //    string filePath,
-        //    out string prefix,
-        //    CancellationToken cancellationToken)
-        //{
-        //    prefix = null;
-
-        //    var service = solution.Workspace.Services.GetService<IAssemblySerializationInfoService>();
-        //    if (service == null)
-        //    {
-        //        return true;
-        //    }
-
-        //    // check whether the assembly that belong to a solution is something we can serialize
-        //    if (!service.Serializable(solution, filePath))
-        //    {
-        //        return true;
-        //    }
-
-        //    if (!service.TryGetSerializationPrefix(solution, filePath, out prefix))
-        //    {
-        //        return true;
-        //    }
-
-        //    return false;
-        //}
-
         public void WriteTo(ObjectWriter writer)
         {
             writer.WriteString(SerializationFormat);
-            _checksum.WriteTo(writer);
+            Checksum.WriteTo(writer);
 
             writer.WriteString(_concatenatedNames);
 
@@ -198,16 +165,17 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
         }
 
-        internal static SymbolTreeInfo ReadSymbolTreeInfo_ForTestingPurposesOnly(ObjectReader reader)
+        internal static SymbolTreeInfo ReadSymbolTreeInfo_ForTestingPurposesOnly(
+            ObjectReader reader, Checksum checksum)
         {
             return ReadSymbolTreeInfo(reader, 
-                (checksum, names, nodes) => Task.FromResult(
+                (names, nodes) => Task.FromResult(
                     new SpellChecker(checksum, nodes.Select(n => new StringSlice(names, n.NameSpan)))));
         }
 
         private static SymbolTreeInfo ReadSymbolTreeInfo(
             ObjectReader reader,
-            Func<Checksum, string, Node[], Task<SpellChecker>> createSpellCheckerTask)
+            Func<string, Node[], Task<SpellChecker>> createSpellCheckerTask)
         {
             try
             {
@@ -243,7 +211,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                         }
                     }
 
-                    var spellCheckerTask = createSpellCheckerTask(checksum, concatenatedNames, nodes);
+                    var spellCheckerTask = createSpellCheckerTask(concatenatedNames, nodes);
                     return new SymbolTreeInfo(checksum, concatenatedNames, nodes, spellCheckerTask, inheritanceMap);
                 }
             }

@@ -59,6 +59,16 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
         }
 
+        public static Task<SymbolTreeInfo> TryGetInfoForMetadataReferenceAsync(
+            Solution solution, PortableExecutableReference reference,
+            bool loadOnly, CancellationToken cancellationToken)
+        {
+            var checksum = GetMetadataChecksum(solution, reference, cancellationToken);
+            return TryGetInfoForMetadataReferenceAsync(
+                solution, reference, checksum,
+                loadOnly, cancellationToken);
+        }
+
         /// <summary>
         /// Produces a <see cref="SymbolTreeInfo"/> for a given <see cref="PortableExecutableReference"/>.
         /// Note: can return <code>null</code> if we weren't able to actually load the metadata for some
@@ -67,6 +77,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public static Task<SymbolTreeInfo> TryGetInfoForMetadataReferenceAsync(
             Solution solution,
             PortableExecutableReference reference,
+            Checksum checksum,
             bool loadOnly,
             CancellationToken cancellationToken)
         {
@@ -92,11 +103,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
 
             return TryGetInfoForMetadataReferenceSlowAsync(
-                solution, reference, loadOnly, metadata, cancellationToken);
+                solution, reference, checksum, loadOnly, metadata, cancellationToken);
         }
 
         private static async Task<SymbolTreeInfo> TryGetInfoForMetadataReferenceSlowAsync(
-            Solution solution, PortableExecutableReference reference,
+            Solution solution, PortableExecutableReference reference, Checksum checksum,
             bool loadOnly, Metadata metadata, CancellationToken cancellationToken)
         {
             // Find the lock associated with this piece of metadata.  This way only one thread is
@@ -111,7 +122,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 }
 
                 var info = await LoadOrCreateMetadataSymbolTreeInfoAsync(
-                    solution, reference, loadOnly, cancellationToken: cancellationToken).ConfigureAwait(false);
+                    solution, reference, checksum, loadOnly, cancellationToken).ConfigureAwait(false);
                 if (info == null && loadOnly)
                 {
                     return null;
@@ -126,15 +137,24 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
         }
 
+        public static Checksum GetMetadataChecksum(
+            Solution solution, PortableExecutableReference reference, CancellationToken cancellationToken)
+        {
+            // We can reuse the index for any given reference as long as it hasn't changed.
+            // So our checksum is just the checksum for the PEReference itself.
+            var serializer = new Serializer(solution.Workspace);
+            var checksum = serializer.CreateChecksum(reference, cancellationToken);
+            return checksum;
+        }
+
         private static Task<SymbolTreeInfo> LoadOrCreateMetadataSymbolTreeInfoAsync(
             Solution solution,
             PortableExecutableReference reference,
+            Checksum checksum,
             bool loadOnly,
             CancellationToken cancellationToken)
         {
             var filePath = reference.FilePath;
-            var serializer = new Serializer(solution.Workspace);
-            var checksum = serializer.CreateChecksum(reference, cancellationToken);
 
             return LoadOrCreateAsync(
                 solution,
@@ -143,9 +163,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 loadOnly,
                 create: () => CreateMetadataSymbolTreeInfo(solution, checksum, reference, cancellationToken),
                 keySuffix: "_Metadata",
-                getPersistedChecksum: info => info._checksum,
-                readObject: reader => ReadSymbolTreeInfo(reader, (version, names, nodes) => GetSpellCheckerTask(solution, version, filePath, names, nodes)),
-                writeObject: (w, i) => i.WriteTo(w),
+                getPersistedChecksum: info => info.Checksum,
+                readObject: reader => ReadSymbolTreeInfo(reader, (names, nodes) => GetSpellCheckerTask(solution, checksum, filePath, names, nodes)),
                 cancellationToken: cancellationToken);
         }
 

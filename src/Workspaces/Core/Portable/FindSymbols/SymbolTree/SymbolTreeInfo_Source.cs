@@ -1,6 +1,9 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Collections;
@@ -26,17 +29,41 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         public static async Task<SymbolTreeInfo> GetInfoForSourceAssemblyAsync(
-            Project project, CancellationToken cancellationToken)
+            Project project, Checksum checksum, CancellationToken cancellationToken)
         {
             var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-            var stateChecksums = await project.State.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
-
-            var checksum = Checksum.Create(nameof(SymbolTreeInfo),
-                new Checksum[] { stateChecksums.Documents.Checksum, stateChecksums.CompilationOptions, stateChecksums.ParseOptions });
 
             return await LoadOrCreateSourceSymbolTreeInfoAsync(
                 project.Solution, compilation.Assembly, checksum, project.FilePath,
                 loadOnly: false, cancellationToken: cancellationToken).ConfigureAwait(false);
+        }
+
+        public static async Task<Checksum> GetSourceSymbolsChecksumAsync(Project project, CancellationToken cancellationToken)
+        {
+            // The SymbolTree for source is built from the source-symbols from the project's compilation's
+            // assembly.  Specifically, we only get the name, kind and parent/child relationship of all the
+            // child symbols.  So we want to be able to reuse the index as long as none of these have 
+            // changed.  The only thing that can make those source-symbols change in that manner are if
+            // the text of any document changes, or if options for the project change.  So we build our
+            // checksum out of that data.
+            var serializer = new Serializer(project.Solution.Workspace);
+
+            var textChecksumsTasks = project.Documents.Select(async d =>
+            {
+                var text = await d.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                return serializer.CreateChecksum(text, cancellationToken);
+            });
+
+            var textChecksums = await Task.WhenAll(textChecksumsTasks).ConfigureAwait(false);
+            var compilationOptionsChecksum = ChecksumCache.GetOrCreate(project.CompilationOptions, _ => serializer.CreateChecksum(project.CompilationOptions, cancellationToken));
+            var parseOptionsChecksum = ChecksumCache.GetOrCreate(project.ParseOptions, _ => serializer.CreateChecksum(project.ParseOptions, cancellationToken));
+
+            var allChecksums = textChecksums.ToList();
+            allChecksums.Add(compilationOptionsChecksum);
+            allChecksums.Add(parseOptionsChecksum);
+
+            var checksum = Checksum.Create(nameof(SymbolTreeInfo), allChecksums);
+            return checksum;
         }
 
         internal static SymbolTreeInfo CreateSourceSymbolTreeInfo(
