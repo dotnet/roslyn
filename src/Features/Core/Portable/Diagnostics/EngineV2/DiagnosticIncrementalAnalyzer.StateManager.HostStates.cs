@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         }
 
                         // TODO: for now, this is static, but in future, we might consider making this a dynamic so that we process cheaper analyzer first.
-                        foreach (var set in _map.Values)
+                        foreach (var (_, set) in _map)
                         {
                             yield return set;
                         }

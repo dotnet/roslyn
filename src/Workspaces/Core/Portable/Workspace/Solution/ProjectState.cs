@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis
         {
             // this may produce a version that is out of sync with the actual Document versions.
             var latestVersion = VersionStamp.Default;
-            foreach (var doc in documentStates.Values)
+            foreach (var (_, doc) in documentStates)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            foreach (var additionalDoc in additionalDocumentStates.Values)
+            foreach (var (_, additionalDoc) in additionalDocumentStates)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis
         {
             // this may produce a version that is out of sync with the actual Document versions.
             var latestVersion = VersionStamp.Default;
-            foreach (var doc in documentStates.Values)
+            foreach (var (_, doc) in documentStates)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis
                 latestVersion = version.GetNewerVersion(latestVersion);
             }
 
-            foreach (var additionalDoc in additionalDocumentStates.Values)
+            foreach (var (_, additionalDoc) in additionalDocumentStates)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
