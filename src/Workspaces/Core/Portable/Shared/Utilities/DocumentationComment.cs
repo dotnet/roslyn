@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         /// <summary>
         /// Used for <see cref="CommentBuilder.TrimEachLine"/> method, to prevent new allocation of string
         /// </summary>
-        private static readonly string[] s_NewLineAsStringArray = new string[] { Environment.NewLine };
+        private static readonly string[] s_NewLineAsStringArray = new string[] { "\n" };
 
         private DocumentationComment()
         {

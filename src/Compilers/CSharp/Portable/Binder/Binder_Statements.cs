@@ -461,7 +461,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 block = null;
                 hasErrors = true;
-                // TODO(https://github.com/dotnet/roslyn/issues/14900): Better error message
                 diagnostics.Add(ErrorCode.ERR_LocalFunctionMissingBody, localSymbol.Locations[0], localSymbol);
             }
 
