@@ -1322,6 +1322,7 @@ struct S
 
         [Fact]
         [WorkItem(18813, "https://github.com/dotnet/roslyn/issues/18813")]
+        public void LocalIEnumerableFunctionWithOutParameter()
         {
             var comp = CreateStandardCompilation(@"
 class c
