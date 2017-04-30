@@ -44,6 +44,5 @@ This set of Jenkins legs is considered functional and must pass on every merge:
 These are the big items that are broken and need some wokr
 
 - RepoUtil: needs to understand PackageReference and can be massively simplified now
-- CoreCLR unit tests
 - Delete the DeployCompilerGeneratorToolsRuntime project.  Not neeeded anymor 
 
