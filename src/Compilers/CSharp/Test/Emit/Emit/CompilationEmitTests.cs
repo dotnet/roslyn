@@ -262,9 +262,11 @@ public class C
 
                 VerifyEntryPoint(output, expectZero: false);
                 VerifyMethods(output, new[] { "void C.Main()", "C..ctor()" });
+                VerifyMVID(output, hasMvidSection: false);
 
                 VerifyEntryPoint(metadataOutput, expectZero: true);
                 VerifyMethods(metadataOutput, new[] { "C..ctor()" });
+                VerifyMVID(metadataOutput, hasMvidSection: true);
             }
 
             void VerifyEntryPoint(MemoryStream stream, bool expectZero)
@@ -272,6 +274,34 @@ public class C
                 stream.Position = 0;
                 int entryPoint = new PEHeaders(stream).CorHeader.EntryPointTokenOrRelativeVirtualAddress;
                 Assert.Equal(expectZero, entryPoint == 0);
+            }
+        }
+
+        /// <summary>
+        /// Extract the MVID using two different methods (PEReader and MvidReader) and compare them. 
+        /// We only expect an .mvid section in ref assemblies.
+        /// </summary>
+        void VerifyMVID(MemoryStream stream, bool hasMvidSection)
+        {
+            Guid mvidFromModuleDefinition;
+            stream.Position = 0;
+            using (var reader = new PEReader(stream))
+            {
+                var metadataReader = reader.GetMetadataReader();
+                mvidFromModuleDefinition = metadataReader.GetGuid(metadataReader.GetModuleDefinition().Mvid);
+
+                stream.Position = 0;
+                var mvidFromMvidReader = BuildTasks.MvidReader.ReadAssemblyMvid(stream);
+
+                if (hasMvidSection)
+                {
+                    Assert.Equal(mvidFromModuleDefinition, mvidFromMvidReader);
+                }
+                else
+                {
+                    Assert.NotEqual(Guid.Empty, mvidFromModuleDefinition);
+                    Assert.Equal(Guid.Empty, mvidFromMvidReader);
+                }
             }
         }
 
@@ -296,6 +326,8 @@ public class C
                 VerifyMethods(output, new[] { "System.Int32 C.<PrivateSetter>k__BackingField", "System.Int32 C.PrivateSetter.get", "void C.PrivateSetter.set",
                     "C..ctor()", "System.Int32 C.PrivateSetter { get; private set; }" });
                 VerifyMethods(metadataOutput, new[] { "System.Int32 C.PrivateSetter.get", "C..ctor()", "System.Int32 C.PrivateSetter { get; }" });
+                VerifyMVID(output, hasMvidSection: false);
+                VerifyMVID(metadataOutput, hasMvidSection: true);
             }
         }
 
