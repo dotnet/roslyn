@@ -1318,5 +1318,37 @@ struct S
                 //         Local();
                 Diagnostic(ErrorCode.ERR_UseDefViolationField, "Local()").WithArguments("_x").WithLocation(14, 9));
         }
+
+
+        [Fact]
+        [WorkItem(18813, "https://github.com/dotnet/roslyn/issues/18813")]
+        {
+            var comp = CreateStandardCompilation(@"
+class c
+{
+    static void Main(string[] args)
+    {
+        System.Collections.Generic.IEnumerable<string> getFoo(int count, out bool foobar)
+        {
+            foobar = true;
+            yield return ""foo"";
+        }
+
+        getFoo(1, out bool myBool);
+    }
+}");
+
+            comp.VerifyDiagnostics(
+                // (6,9): error CS0177: The out parameter 'foobar' must be assigned to before control leaves the current method
+                //         System.Collections.Generic.IEnumerable<string> getFoo(int count, out bool foobar)
+                Diagnostic(ErrorCode.ERR_ParamUnassigned, @"System.Collections.Generic.IEnumerable<string> getFoo(int count, out bool foobar)
+        {
+            foobar = true;
+            yield return ""foo"";
+        }").WithArguments("foobar").WithLocation(6, 9),
+                // (6,83): error CS1623: Iterators cannot have ref or out parameters
+                //         System.Collections.Generic.IEnumerable<string> getFoo(int count, out bool foobar)
+                Diagnostic(ErrorCode.ERR_BadIteratorArgType, "foobar").WithLocation(6, 83));
+        }
     }
 }
