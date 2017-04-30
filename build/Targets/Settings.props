@@ -65,15 +65,7 @@
       {RawFileName};
     </AssemblySearchPaths>
 
-    <!-- DO NOT MERGE this is set in the old build but not in the new SDK.  Need to figure out what is 
-         going on with this -->
     <NoWarn>$(NoWarn);1701</NoWarn>
-
-    <!-- DO NOT MERGE  hack to test out the basic premise I outlined in the following
-         https://github.com/dotnet/sdk/issues/1083#issuecomment-292013375 
-
-         This needs to be conditional to support a fresh restore -->
-    <!-- <RoslynNetSdkRootPath>$(NuGetPackageRoot)\Microsoft.NET.Sdk\$(MicrosoftNetSdkVersion)\Sdk\</RoslynNetSdkRootPath>  -->
     <RoslynNetSdkRootPath>$(MSBuildSDKsPath)\Microsoft.NET.Sdk\Sdk\</RoslynNetSdkRootPath> 
     <RestoreProjectStyle>PackageReference</RestoreProjectStyle>
   </PropertyGroup>
@@ -243,13 +235,8 @@
     <DebugType>full</DebugType>
     <RootNamespace Condition="'$(MSBuildTargetsLanguageName)' == 'VisualBasic'"></RootNamespace>
     <DefineConstants Condition="'$(InitialDefineConstants)' != ''">$(InitialDefineConstants)</DefineConstants>
-  </PropertyGroup>
 
-  <!-- 
-       https://github.com/dotnet/sdk/issues/752
-
-       The NoWarn property is still being unconditionally set.  -->
-  <PropertyGroup>
+    <!-- The NoWarn property is still being unconditionally set.  https://github.com/dotnet/sdk/issues/752 -->
     <NoWarn>$(NoWarn);1591</NoWarn>
   </PropertyGroup>
 </Project>
