@@ -1,7 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
-Imports System.Linq
 Imports System.Runtime.CompilerServices
 Imports Microsoft.CodeAnalysis.VisualBasic
 
@@ -131,7 +130,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Return OperationFactory.CreateInvalidExpression(parent.Syntax, ImmutableArray(Of IOperation).Empty)
         End Function
 
-        Private Shared ReadOnly s_memberInitializersMappings As New System.Runtime.CompilerServices.ConditionalWeakTable(Of BoundObjectCreationExpression, Object)
+        Private Shared ReadOnly s_memberInitializersMappings As New ConditionalWeakTable(Of BoundObjectCreationExpression, Object)
 
         Private Shared Function GetObjectCreationMemberInitializers(expression As BoundObjectCreationExpression) As ImmutableArray(Of ISymbolInitializer)
             Dim initializer = s_memberInitializersMappings.GetValue(expression,
@@ -180,7 +179,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Return DirectCast(initializer, ImmutableArray(Of ISymbolInitializer))
         End Function
 
-        Private Shared ReadOnly s_caseBlocksMappings As New System.Runtime.CompilerServices.ConditionalWeakTable(Of BoundSelectStatement, Object)
+        Private Shared ReadOnly s_caseBlocksMappings As New ConditionalWeakTable(Of BoundSelectStatement, Object)
 
         Private Shared Function GetSwitchStatementCases(statement As BoundSelectStatement) As ImmutableArray(Of ISwitchCase)
             Dim cases = s_caseBlocksMappings.GetValue(statement,
@@ -205,7 +204,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
                                 clauses = caseStatement.CaseClauses.SelectAsArray(Function(n) DirectCast(Create(n), ICaseClause))
                             End If
 
-                            Dim body = ImmutableArray.Create(Of IOperation)(Create(boundCaseBlock.Body))
+                            Dim body = ImmutableArray.Create(Create(boundCaseBlock.Body))
                             Dim isInvalid = boundCaseBlock.HasErrors
                             Dim syntax = boundCaseBlock.Syntax
                             Return DirectCast(New SwitchCase(clauses, body, isInvalid, syntax, type:=Nothing, constantValue:=Nothing), ISwitchCase)
@@ -264,7 +263,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Return Nothing
         End Function
 
-        Private Shared ReadOnly s_loopTopMappings As New System.Runtime.CompilerServices.ConditionalWeakTable(Of BoundForToStatement, Object)
+        Private Shared ReadOnly s_loopTopMappings As New ConditionalWeakTable(Of BoundForToStatement, Object)
 
         Private Shared Function GetForLoopStatementBefore(boundForToStatement As BoundForToStatement) As ImmutableArray(Of IOperation)
             Dim result = s_loopTopMappings.GetValue(
@@ -312,7 +311,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Return DirectCast(result, ImmutableArray(Of IOperation))
         End Function
 
-        Private Shared ReadOnly s_loopBottomMappings As New System.Runtime.CompilerServices.ConditionalWeakTable(Of BoundForToStatement, Object)
+        Private Shared ReadOnly s_loopBottomMappings As New ConditionalWeakTable(Of BoundForToStatement, Object)
 
         Private Shared Function GetForLoopStatementAtLoopBottom(boundForToStatement As BoundForToStatement) As ImmutableArray(Of IOperation)
             Dim result = s_loopBottomMappings.GetValue(
@@ -429,7 +428,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Return DirectCast(statements, ImmutableArray(Of IOperation))
         End Function
 
-        Private Shared ReadOnly s_variablesMappings As New System.Runtime.CompilerServices.ConditionalWeakTable(Of BoundDimStatement, Object)
+        Private Shared ReadOnly s_variablesMappings As New ConditionalWeakTable(Of BoundDimStatement, Object)
 
         Private Shared Function GetVariableDeclarationStatementVariables(statement As BoundDimStatement) As ImmutableArray(Of IVariableDeclaration)
             Dim variables = s_variablesMappings.GetValue(
@@ -452,7 +451,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Return DirectCast(variables, ImmutableArray(Of IVariableDeclaration))
         End Function
 
-        Private Shared ReadOnly s_variablesDeclMappings As New System.Runtime.CompilerServices.ConditionalWeakTable(Of BoundUsingStatement, VariableDeclarationStatement)
+        Private Shared ReadOnly s_variablesDeclMappings As New ConditionalWeakTable(Of BoundUsingStatement, VariableDeclarationStatement)
 
         Private Shared Function GetUsingStatementDeclaration(boundUsingStatement As BoundUsingStatement) As IVariableDeclarationStatement
             Return s_variablesDeclMappings.GetValue(
@@ -467,7 +466,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
                     End Function)
         End Function
 
-        Private Shared ReadOnly s_expressionsMappings As New System.Runtime.CompilerServices.ConditionalWeakTable(Of BoundAddRemoveHandlerStatement, IEventAssignmentExpression)
+        Private Shared ReadOnly s_expressionsMappings As New ConditionalWeakTable(Of BoundAddRemoveHandlerStatement, IEventAssignmentExpression)
 
 
         Private Shared Function GetAddHandlerStatementExpression(handlerStatement As BoundAddHandlerStatement) As IOperation
