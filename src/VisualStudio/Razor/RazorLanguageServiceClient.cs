@@ -10,13 +10,13 @@ using Microsoft.CodeAnalysis.Remote;
 
 namespace Microsoft.VisualStudio.LanguageServices.Razor
 {
-    internal sealed class RazorLangaugeServiceClient
+    internal sealed class RazorLanguageServiceClient
     {
         private const string RazorServiceName = "razorLanguageService";
 
         private readonly RemoteHostClient _client;
 
-        internal RazorLangaugeServiceClient(RemoteHostClient client)
+        internal RazorLanguageServiceClient(RemoteHostClient client)
         {
             _client = client;
         }

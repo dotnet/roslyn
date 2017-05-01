@@ -9,11 +9,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
 {
     internal static class RazorLanguageServiceClientFactory
     {
-        public static async Task<RazorLangaugeServiceClient> CreateAsync(Workspace workspace, CancellationToken cancellationToken = default(CancellationToken))
+        public static async Task<RazorLanguageServiceClient> CreateAsync(Workspace workspace, CancellationToken cancellationToken = default(CancellationToken))
         {
             var clientFactory = workspace.Services.GetRequiredService<IRemoteHostClientService>();
             var client = await clientFactory.TryGetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
-            return client == null ? null : new RazorLangaugeServiceClient(client);
+            return client == null ? null : new RazorLanguageServiceClient(client);
         }
     }
 }

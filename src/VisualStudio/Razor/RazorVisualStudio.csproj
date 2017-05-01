@@ -21,7 +21,7 @@
     <Reference Include="System.Core" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="RazorLangaugeServiceClient.cs" />
+    <Compile Include="RazorLanguageServiceClient.cs" />
     <Compile Include="RazorLanguageServiceClientFactory.cs" />
   </ItemGroup>
   <ItemGroup>
