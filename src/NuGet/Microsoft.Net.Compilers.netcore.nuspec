@@ -29,7 +29,7 @@
   </metadata>
   <files>
     <file src="$emptyDirPath$/_._" target="ref/netcoreapp1.0" />
-    <file src="Exes/CscCore/csc.exe" target="runtimes/any/native" />
-    <file src="Exes/VbcCore/vbc.exe" target="runtimes/any/native" />
+    <file src="Exes/CscCore/csc.dll" target="runtimes/any/native" />
+    <file src="Exes/VbcCore/vbc.dll" target="runtimes/any/native" />
   </files>
 </package>
