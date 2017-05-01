@@ -576,5 +576,48 @@ IOperation:  (OperationKind.None) (Syntax: 'switch (x) ... }')
 
             VerifyOperationTreeAndDiagnosticsForTest<SwitchSectionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
+
+        [Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")]
+        public void ParameterReference_DefaultPatternSwitchStatement()
+        {
+            string source = @"
+internal class Class
+{
+    public void M(int x)
+    {
+        switch (x)
+        {
+            case var y when (x >= 10):
+                break;
+
+            /*<bind>*/default:/*</bind>*/
+                break;
+        }
+    }
+}
+";
+            string expectedOperationTree = @"
+IOperation:  (OperationKind.None) (Syntax: 'switch (x) ... }')
+  Children(4): IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
+    IOperation:  (OperationKind.None) (Syntax: 'case var y  ... break;')
+      Children(2): IOperation:  (OperationKind.None) (Syntax: 'case var y  ...  (x >= 10):')
+          Children(2): IOperation:  (OperationKind.None) (Syntax: 'var y')
+              Children(2): ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'var y')
+                IOperation:  (OperationKind.None) (Syntax: 'var')
+            IBinaryOperatorExpression (BinaryOperationKind.IntegerGreaterThanOrEqual) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'x >= 10')
+              Left: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
+              Right: ILiteralExpression (Text: 10) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
+        IBranchStatement (BranchKind.Break) (OperationKind.BranchStatement) (Syntax: 'break;')
+    IOperation:  (OperationKind.None) (Syntax: 'default:/*< ... break;')
+      Children(2): IOperation:  (OperationKind.None) (Syntax: 'default:')
+          Children(1): IOperation:  (OperationKind.None) (Syntax: 'default:')
+        IBranchStatement (BranchKind.Break) (OperationKind.BranchStatement) (Syntax: 'break;')
+    IOperation:  (OperationKind.None) (Syntax: 'default:')
+      Children(1): IOperation:  (OperationKind.None) (Syntax: 'default:')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<DefaultSwitchLabelSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
     }
 }

@@ -58,8 +58,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             protected override OperationKind ExpressionKind => OperationKind.None;
 
-            protected override ImmutableArray<IOperation> Children => ImmutableArray.Create<IOperation>(this.Value);
-
             public override void Accept(OperationVisitor visitor)
             {
                 throw ExceptionUtilities.Unreachable;

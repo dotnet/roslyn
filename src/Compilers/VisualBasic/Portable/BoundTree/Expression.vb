@@ -6,7 +6,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Partial Friend Class BoundExpression
+    Friend Partial Class BoundExpression
         Protected Overrides ReadOnly Property OperationKind As OperationKind
             Get
                 Return Me.ExpressionKind
@@ -49,7 +49,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Friend Class BoundAssignmentOperator
+    Friend Partial Class BoundAssignmentOperator
         Implements IAssignmentExpression
         Implements ICompoundAssignmentExpression
 
@@ -138,7 +138,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Friend Class BoundMeReference
+    Friend Partial Class BoundMeReference
         Implements IInstanceReferenceExpression
 
         Private ReadOnly Property IInstanceReferenceExpression_InstanceReferenceKind As InstanceReferenceKind Implements IInstanceReferenceExpression.InstanceReferenceKind
@@ -160,7 +160,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Friend Class BoundMyBaseReference
+    Friend Partial Class BoundMyBaseReference
         Implements IInstanceReferenceExpression
 
         Private ReadOnly Property IInstanceReferenceExpression_InstanceReferenceKind As InstanceReferenceKind Implements IInstanceReferenceExpression.InstanceReferenceKind
@@ -182,7 +182,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Friend Class BoundMyClassReference
+    Friend Partial Class BoundMyClassReference
         Implements IInstanceReferenceExpression
 
         Private ReadOnly Property IInstanceReferenceExpression_InstanceReferenceKind As InstanceReferenceKind Implements IInstanceReferenceExpression.InstanceReferenceKind
@@ -204,7 +204,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Friend Class BoundLiteral
+    Friend Partial Class BoundLiteral
         Implements ILiteralExpression
 
         Private ReadOnly Property ILiteralExpression_Text As String Implements ILiteralExpression.Text
@@ -226,7 +226,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Friend Class BoundAwaitOperator
+    Friend Partial Class BoundAwaitOperator
         Implements IAwaitExpression
 
         Private ReadOnly Property IAwaitExpression_AwaitedValue As IOperation Implements IAwaitExpression.AwaitedValue
@@ -248,7 +248,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Friend Class BoundLambda
+    Friend Partial Class BoundLambda
         Implements ILambdaExpression
 
         Private ReadOnly Property ILambdaExpression_Body As IBlockStatement Implements ILambdaExpression.Body
@@ -276,7 +276,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Friend Class BoundCall
+    Friend Partial Class BoundCall
         Implements IInvocationExpression
 
         Private ReadOnly Property IHasArgumentsExpression_ArgumentsInEvaluationOrder As ImmutableArray(Of IArgument) Implements IHasArgumentsExpression.ArgumentsInEvaluationOrder
@@ -503,7 +503,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Class
     End Class
 
-    Partial Friend Class BoundOmittedArgument
+    Friend Partial Class BoundOmittedArgument
         Implements IOmittedArgumentExpression
 
         Protected Overrides Function ExpressionKind() As OperationKind
@@ -519,7 +519,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Friend Class BoundParenthesized
+    Friend Partial Class BoundParenthesized
         Implements IParenthesizedExpression
 
         Private ReadOnly Property IParenthesizedExpression_Operand As IOperation Implements IParenthesizedExpression.Operand
@@ -541,7 +541,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Friend Class BoundArrayAccess
+    Friend Partial Class BoundArrayAccess
         Implements IArrayElementReferenceExpression
 
         Private ReadOnly Property IArrayElementReferenceExpression_ArrayReference As IOperation Implements IArrayElementReferenceExpression.ArrayReference
@@ -569,7 +569,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Friend Class BoundUnaryOperator
+    Friend Partial Class BoundUnaryOperator
         Implements IUnaryOperatorExpression
 
         Private ReadOnly Property IHasOperatorMethodExpression_OperatorMethod As IMethodSymbol Implements IHasOperatorMethodExpression.OperatorMethod
@@ -609,7 +609,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Friend Class BoundUserDefinedUnaryOperator
+    Friend Partial Class BoundUserDefinedUnaryOperator
         Implements IUnaryOperatorExpression
 
         Private ReadOnly Property IHasOperatorMethodExpression_OperatorMethod As IMethodSymbol Implements IHasOperatorMethodExpression.OperatorMethod
@@ -666,7 +666,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Friend Class BoundBinaryOperator
+    Friend Partial Class BoundBinaryOperator
         Implements IBinaryOperatorExpression
 
         Private ReadOnly Property IBinaryOperatorExpression_LeftOperand As IOperation Implements IBinaryOperatorExpression.LeftOperand
@@ -712,7 +712,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Friend Class BoundUserDefinedBinaryOperator
+    Friend Partial Class BoundUserDefinedBinaryOperator
         Implements IBinaryOperatorExpression
 
         Private ReadOnly Property IBinaryOperatorExpression_LeftOperand As IOperation Implements IBinaryOperatorExpression.LeftOperand
@@ -810,7 +810,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Friend Class BoundBinaryConditionalExpression
+    Friend Partial Class BoundBinaryConditionalExpression
         Implements INullCoalescingExpression
 
         Private ReadOnly Property INullCoalescingExpression_PrimaryOperand As IOperation Implements INullCoalescingExpression.PrimaryOperand
@@ -838,7 +838,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Friend Class BoundUserDefinedShortCircuitingOperator
+    Friend Partial Class BoundUserDefinedShortCircuitingOperator
         Implements IBinaryOperatorExpression
 
         Private ReadOnly Property IBinaryOperatorExpression_LeftOperand As IOperation Implements IBinaryOperatorExpression.LeftOperand
@@ -884,7 +884,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Friend Class BoundBadExpression
+    Friend Partial Class BoundBadExpression
         Implements IInvalidExpression
 
         Protected Overrides ReadOnly Property Children As ImmutableArray(Of IOperation) Implements IInvalidExpression.Children
@@ -906,7 +906,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Friend Class BoundTryCast
+    Friend Partial Class BoundTryCast
         Implements IConversionExpression
 
         Private ReadOnly Property IConversionExpression_ConversionKind As Semantics.ConversionKind Implements IConversionExpression.ConversionKind
@@ -952,7 +952,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Friend Class BoundDirectCast
+    Friend Partial Class BoundDirectCast
         Implements IConversionExpression
 
         Private ReadOnly Property IConversionExpression_ConversionKind As Semantics.ConversionKind Implements IConversionExpression.ConversionKind
@@ -998,7 +998,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Friend Class BoundConversion
+    Friend Partial Class BoundConversion
         Implements IConversionExpression
 
         Private ReadOnly Property IConversionExpression_ConversionKind As Semantics.ConversionKind Implements IConversionExpression.ConversionKind
@@ -1044,7 +1044,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Friend Class BoundUserDefinedConversion
+    Friend Partial Class BoundUserDefinedConversion
         Implements IConversionExpression
 
         Private ReadOnly Property IConversionExpression_ConversionKind As Semantics.ConversionKind Implements IConversionExpression.ConversionKind
@@ -1090,7 +1090,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Friend Class BoundTernaryConditionalExpression
+    Friend Partial Class BoundTernaryConditionalExpression
         Implements IConditionalChoiceExpression
 
         Private ReadOnly Property IConditionalChoiceExpression_Condition As IOperation Implements IConditionalChoiceExpression.Condition
@@ -1124,7 +1124,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Friend Class BoundTypeOf
+    Friend Partial Class BoundTypeOf
         Implements IIsTypeExpression
 
         Private ReadOnly Property IIsTypeExpression_IsType As ITypeSymbol Implements IIsTypeExpression.IsType
@@ -1152,7 +1152,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Friend Class BoundObjectCreationExpression
+    Friend Partial Class BoundObjectCreationExpression
         Implements IObjectCreationExpression
 
         Private Shared ReadOnly s_memberInitializersMappings As New System.Runtime.CompilerServices.ConditionalWeakTable(Of BoundObjectCreationExpression, Object)
@@ -1340,7 +1340,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
     End Class
 
-    Partial Friend Class BoundNewT
+    Friend Partial Class BoundNewT
         Implements ITypeParameterObjectCreationExpression
 
         Protected Overrides Function ExpressionKind() As OperationKind
@@ -1356,7 +1356,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Friend Class BoundArrayCreation
+    Friend Partial Class BoundArrayCreation
         Implements IArrayCreationExpression
 
         Private ReadOnly Property IArrayCreationExpression_DimensionSizes As ImmutableArray(Of IOperation) Implements IArrayCreationExpression.DimensionSizes
@@ -1396,7 +1396,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Friend Class BoundArrayInitialization
+    Friend Partial Class BoundArrayInitialization
         Implements IArrayInitializer
 
         Private ReadOnly Property IArrayInitializer_ElementValues As ImmutableArray(Of IOperation) Implements IArrayInitializer.ElementValues
@@ -1417,7 +1417,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Friend Class BoundPropertyAccess
+    Friend Partial Class BoundPropertyAccess
         Implements IIndexedPropertyReferenceExpression
 
         Private ReadOnly Property IMemberReferenceExpression_Instance As IOperation Implements IMemberReferenceExpression.Instance
@@ -1461,7 +1461,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Friend Class BoundEventAccess
+    Friend Partial Class BoundEventAccess
         Implements IEventReferenceExpression
 
         Private ReadOnly Property IMemberReferenceExpression_Instance As IOperation Implements IMemberReferenceExpression.Instance
@@ -1499,7 +1499,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Friend Class BoundDelegateCreationExpression
+    Friend Partial Class BoundDelegateCreationExpression
         Implements IMethodBindingExpression
 
         Private ReadOnly Property IMemberReferenceExpression_Instance As IOperation Implements IMemberReferenceExpression.Instance
@@ -1543,7 +1543,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Friend Class BoundFieldAccess
+    Friend Partial Class BoundFieldAccess
         Implements IFieldReferenceExpression
 
         Private ReadOnly Property IFieldReferenceExpression_Field As IFieldSymbol Implements IFieldReferenceExpression.Field
@@ -1581,7 +1581,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Friend Class BoundConditionalAccess
+    Friend Partial Class BoundConditionalAccess
         Implements IConditionalAccessExpression
 
         Private ReadOnly Property IConditionalAccessExpression_ConditionalValue As IOperation Implements IConditionalAccessExpression.ConditionalValue
@@ -1609,7 +1609,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Friend Class BoundConditionalAccessReceiverPlaceholder
+    Friend Partial Class BoundConditionalAccessReceiverPlaceholder
         Implements IConditionalAccessInstanceExpression
 
         Protected Overrides Function ExpressionKind() As OperationKind
@@ -1625,7 +1625,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Friend Class BoundParameter
+    Friend Partial Class BoundParameter
         Implements IParameterReferenceExpression
 
         Private ReadOnly Property IParameterReferenceExpression_Parameter As IParameterSymbol Implements IParameterReferenceExpression.Parameter
@@ -1647,7 +1647,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Friend Class BoundLocal
+    Friend Partial Class BoundLocal
         Implements ILocalReferenceExpression
 
         Private ReadOnly Property ILocalReferenceExpression_Local As ILocalSymbol Implements ILocalReferenceExpression.Local
@@ -1669,7 +1669,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Friend Class BoundLateMemberAccess
+    Friend Partial Class BoundLateMemberAccess
         Implements ILateBoundMemberReferenceExpression
 
         Private ReadOnly Property ILateBoundMemberReferenceExpression_Instance As IOperation Implements ILateBoundMemberReferenceExpression.Instance
@@ -1697,7 +1697,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Friend Class BoundFieldInitializer
+    Friend Partial Class BoundFieldInitializer
         Implements IFieldInitializer
 
         Private ReadOnly Property IFieldInitializer_InitializedFields As ImmutableArray(Of IFieldSymbol) Implements IFieldInitializer.InitializedFields
@@ -1725,7 +1725,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Friend Class BoundPropertyInitializer
+    Friend Partial Class BoundPropertyInitializer
         Implements IPropertyInitializer
 
         Private ReadOnly Property IPropertyInitializer_InitializedProperty As IPropertySymbol Implements IPropertyInitializer.InitializedProperty
@@ -1753,7 +1753,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Friend Class BoundParameterEqualsValue
+    Friend Partial Class BoundParameterEqualsValue
         Implements IParameterInitializer
 
         Private ReadOnly Property IOperation_IsInvalid As Boolean Implements IOperation.IsInvalid
@@ -1807,7 +1807,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Friend Class BoundTypeArguments
+    Friend Partial Class BoundTypeArguments
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -1841,7 +1841,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Friend Class BoundWithLValueExpressionPlaceholder
+    Friend Partial Class BoundWithLValueExpressionPlaceholder
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -1855,7 +1855,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Friend Class BoundWithRValueExpressionPlaceholder
+    Friend Partial Class BoundWithRValueExpressionPlaceholder
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -1869,7 +1869,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Friend Class BoundRValuePlaceholder
+    Friend Partial Class BoundRValuePlaceholder
         Implements IPlaceholderExpression
 
         Protected Overrides Function ExpressionKind() As OperationKind
@@ -1885,7 +1885,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Friend Class BoundLValuePlaceholder
+    Friend Partial Class BoundLValuePlaceholder
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -1899,7 +1899,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Friend Class BoundDup
+    Friend Partial Class BoundDup
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -1913,7 +1913,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Friend Class BoundBadVariable
+    Friend Partial Class BoundBadVariable
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -1927,16 +1927,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Friend Class BoundArrayLength
+    Friend Partial Class BoundArrayLength
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
-
-        Protected Overrides ReadOnly Property Children As ImmutableArray(Of IOperation)
-            Get
-                Return ImmutableArray.Create(Of IOperation)(Me.Expression)
-            End Get
-        End Property
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
             visitor.VisitNoneOperation(Me)
@@ -1947,7 +1941,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Friend Class BoundGetType
+    Friend Partial Class BoundGetType
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -1967,7 +1961,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Friend Class BoundFieldInfo
+    Friend Partial Class BoundFieldInfo
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -1981,7 +1975,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Friend Class BoundMethodInfo
+    Friend Partial Class BoundMethodInfo
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -1995,7 +1989,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Friend Class BoundTypeExpression
+    Friend Partial Class BoundTypeExpression
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -2009,7 +2003,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Friend Class BoundTypeOrValueExpression
+    Friend Partial Class BoundTypeOrValueExpression
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -2023,7 +2017,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Friend Class BoundNamespaceExpression
+    Friend Partial Class BoundNamespaceExpression
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -2037,7 +2031,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Friend Class BoundNullableIsTrueOperator
+    Friend Partial Class BoundNullableIsTrueOperator
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -2057,7 +2051,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Friend Class BoundCompoundAssignmentTargetPlaceholder
+    Friend Partial Class BoundCompoundAssignmentTargetPlaceholder
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -2071,27 +2065,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Friend Class BoundReferenceAssignment
-        Protected Overrides Function ExpressionKind() As OperationKind
-            Return OperationKind.None
-        End Function
-
-        Protected Overrides ReadOnly Property Children As ImmutableArray(Of IOperation)
-            Get
-                Return ImmutableArray.Create(Of IOperation)(Me.LValue)
-            End Get
-        End Property
-
-        Public Overrides Sub Accept(visitor As OperationVisitor)
-            visitor.VisitNoneOperation(Me)
-        End Sub
-
-        Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Return visitor.VisitNoneOperation(Me, argument)
-        End Function
-    End Class
-
-    Partial Friend Class BoundAddressOfOperator
+    Friend Partial Class BoundReferenceAssignment
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -2105,7 +2079,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Friend Class BoundSequencePointExpression
+    Friend Partial Class BoundAddressOfOperator
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -2119,7 +2093,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Friend Class BoundMethodGroup
+    Friend Partial Class BoundSequencePointExpression
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -2133,7 +2107,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Friend Class BoundPropertyGroup
+    Friend Partial Class BoundMethodGroup
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -2147,7 +2121,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Friend Class BoundAttribute
+    Friend Partial Class BoundPropertyGroup
+        Protected Overrides Function ExpressionKind() As OperationKind
+            Return OperationKind.None
+        End Function
+
+        Public Overrides Sub Accept(visitor As OperationVisitor)
+            visitor.VisitNoneOperation(Me)
+        End Sub
+
+        Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
+            Return visitor.VisitNoneOperation(Me, argument)
+        End Function
+    End Class
+
+    Friend Partial Class BoundAttribute
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -2167,7 +2155,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Friend MustInherit Class BoundTupleExpression
+    Friend Partial MustInherit Class BoundTupleExpression
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -2187,7 +2175,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Friend Class BoundLateInvocation
+    Friend Partial Class BoundLateInvocation
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -2207,7 +2195,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Friend Class BoundLateAddressOfOperator
+    Friend Partial Class BoundLateAddressOfOperator
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -2227,7 +2215,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Friend Class BoundNoPiaObjectCreationExpression
+    Friend Partial Class BoundNoPiaObjectCreationExpression
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -2247,7 +2235,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Friend Class BoundAnonymousTypeCreationExpression
+    Friend Partial Class BoundAnonymousTypeCreationExpression
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -2267,7 +2255,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Friend Class BoundAnonymousTypePropertyAccess
+    Friend Partial Class BoundAnonymousTypePropertyAccess
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -2281,7 +2269,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Friend Class BoundAnonymousTypeFieldInitializer
+    Friend Partial Class BoundAnonymousTypeFieldInitializer
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -2301,7 +2289,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Friend Class BoundObjectInitializerExpression
+    Friend Partial Class BoundObjectInitializerExpression
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -2321,7 +2309,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Friend Class BoundCollectionInitializerExpression
+    Friend Partial Class BoundCollectionInitializerExpression
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -2341,7 +2329,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Friend Class BoundArrayLiteral
+    Friend Partial Class BoundArrayLiteral
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -2361,7 +2349,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Friend Class BoundSequence
+    Friend Partial Class BoundSequence
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -2375,7 +2363,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Friend Class BoundValueTypeMeReference
+    Friend Partial Class BoundValueTypeMeReference
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -2389,7 +2377,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Friend Class BoundPreviousSubmissionReference
+    Friend Partial Class BoundPreviousSubmissionReference
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -2403,7 +2391,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Friend Class BoundHostObjectMemberReference
+    Friend Partial Class BoundHostObjectMemberReference
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -2417,7 +2405,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Friend Class BoundPseudoVariable
+    Friend Partial Class BoundPseudoVariable
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -2431,7 +2419,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Friend Class BoundByRefArgumentPlaceholder
+    Friend Partial Class BoundByRefArgumentPlaceholder
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -2445,27 +2433,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Friend Class BoundByRefArgumentWithCopyBack
-        Protected Overrides Function ExpressionKind() As OperationKind
-            Return OperationKind.None
-        End Function
-
-        Protected Overrides ReadOnly Property Children As ImmutableArray(Of IOperation)
-            Get
-                Return ImmutableArray.Create(Of IOperation)(Me.OriginalArgument, Me.InConversion, Me.InPlaceholder, Me.OutConversion, Me.OutPlaceholder)
-            End Get
-        End Property
-
-        Public Overrides Sub Accept(visitor As OperationVisitor)
-            visitor.VisitNoneOperation(Me)
-        End Sub
-
-        Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Return visitor.VisitNoneOperation(Me, argument)
-        End Function
-    End Class
-
-    Partial Friend Class BoundLateBoundArgumentSupportingAssignmentWithCapture
+    Friend Partial Class BoundByRefArgumentWithCopyBack
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -2485,7 +2453,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Friend Class BoundLabel
+    Friend Partial Class BoundLateBoundArgumentSupportingAssignmentWithCapture
+        Protected Overrides Function ExpressionKind() As OperationKind
+            Return OperationKind.None
+        End Function
+
+        Protected Overrides ReadOnly Property Children As ImmutableArray(Of IOperation)
+            Get
+                Return ImmutableArray.Create(Of IOperation)(Me.OriginalArgument)
+            End Get
+        End Property
+
+        Public Overrides Sub Accept(visitor As OperationVisitor)
+            visitor.VisitNoneOperation(Me)
+        End Sub
+
+        Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
+            Return visitor.VisitNoneOperation(Me, argument)
+        End Function
+    End Class
+
+    Friend Partial Class BoundLabel
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -2499,7 +2487,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Friend Class UnboundLambda
+    Friend Partial Class UnboundLambda
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -2513,7 +2501,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Friend Class BoundQueryExpression
+    Friend Partial Class BoundQueryExpression
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -2533,11 +2521,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Friend Class BoundQueryPart
+    Friend Partial Class BoundQueryPart
         Protected MustOverride Overrides ReadOnly Property Children As ImmutableArray(Of IOperation)
     End Class
 
-    Partial Friend Class BoundQuerySource
+    Friend Partial Class BoundQuerySource
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -2557,7 +2545,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Friend Class BoundToQueryableCollectionConversion
+    Friend Partial Class BoundToQueryableCollectionConversion
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -2577,7 +2565,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Friend Class BoundQueryableSource
+    Friend Partial Class BoundQueryableSource
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -2597,7 +2585,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Friend Class BoundQueryClause
+    Friend Partial Class BoundQueryClause
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -2617,7 +2605,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Friend Class BoundOrdering
+    Friend Partial Class BoundOrdering
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -2637,7 +2625,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Friend Class BoundQueryLambda
+    Friend Partial Class BoundQueryLambda
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -2657,7 +2645,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Friend Class BoundRangeVariableAssignment
+    Friend Partial Class BoundRangeVariableAssignment
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -2677,7 +2665,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Friend Class GroupTypeInferenceLambda
+    Friend Partial Class GroupTypeInferenceLambda
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -2691,14 +2679,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Friend Class BoundAggregateClause
+    Friend Partial Class BoundAggregateClause
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
 
         Protected Overrides ReadOnly Property Children As ImmutableArray(Of IOperation)
             Get
-                Return ImmutableArray.Create(Of IOperation)(Me.CapturedGroupOpt, Me.GroupPlaceholderOpt, Me.UnderlyingExpression)
+                Return ImmutableArray.Create(Of IOperation)(Me.CapturedGroupOpt, Me.UnderlyingExpression)
             End Get
         End Property
 
@@ -2711,7 +2699,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Friend Class BoundGroupAggregation
+    Friend Partial Class BoundGroupAggregation
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -2731,7 +2719,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Friend Class BoundRangeVariable
+    Friend Partial Class BoundRangeVariable
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -2745,7 +2733,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Friend Class BoundXmlName
+    Friend Partial Class BoundXmlName
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -2759,7 +2747,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Friend Class BoundXmlNamespace
+    Friend Partial Class BoundXmlNamespace
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -2773,7 +2761,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Friend Class BoundXmlDocument
+    Friend Partial Class BoundXmlDocument
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -2787,7 +2775,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Friend Class BoundXmlDeclaration
+    Friend Partial Class BoundXmlDeclaration
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -2801,7 +2789,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Friend Class BoundXmlProcessingInstruction
+    Friend Partial Class BoundXmlProcessingInstruction
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -2815,7 +2803,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Friend Class BoundXmlComment
+    Friend Partial Class BoundXmlComment
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -2829,7 +2817,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Friend Class BoundXmlAttribute
+    Friend Partial Class BoundXmlAttribute
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -2843,7 +2831,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Friend Class BoundXmlElement
+    Friend Partial Class BoundXmlElement
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -2857,7 +2845,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Friend Class BoundXmlMemberAccess
+    Friend Partial Class BoundXmlMemberAccess
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -2871,7 +2859,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Friend Class BoundXmlEmbeddedExpression
+    Friend Partial Class BoundXmlEmbeddedExpression
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -2885,7 +2873,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Friend Class BoundXmlCData
+    Friend Partial Class BoundXmlCData
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -2899,7 +2887,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Friend Class BoundUnstructuredExceptionHandlingCatchFilter
+    Friend Partial Class BoundUnstructuredExceptionHandlingCatchFilter
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -2913,7 +2901,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Friend Class BoundSpillSequence
+    Friend Partial Class BoundSpillSequence
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -2927,7 +2915,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Friend Class BoundMidResult
+    Friend Partial Class BoundMidResult
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -2947,7 +2935,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Friend Class BoundLoweredConditionalAccess
+    Friend Partial Class BoundLoweredConditionalAccess
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -2961,16 +2949,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Friend Class BoundComplexConditionalAccessReceiver
+    Friend Partial Class BoundComplexConditionalAccessReceiver
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
-
-        Protected Overrides ReadOnly Property Children As ImmutableArray(Of IOperation)
-            Get
-                Return ImmutableArray.Create(Of IOperation)(Me.ValueTypeReceiver, Me.ReferenceTypeReceiver)
-            End Get
-        End Property
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
             visitor.VisitNoneOperation(Me)
@@ -2981,7 +2963,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Friend Class BoundNameOfOperator
+    Friend Partial Class BoundNameOfOperator
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -3001,7 +2983,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Friend Class BoundTypeAsValueExpression
+    Friend Partial Class BoundTypeAsValueExpression
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -3021,7 +3003,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Friend Class BoundInterpolatedStringExpression
+    Friend Partial Class BoundInterpolatedStringExpression
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -3041,7 +3023,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Friend Class BoundInterpolation
+    Friend Partial Class BoundInterpolation
         Protected Overrides ReadOnly Property Children As ImmutableArray(Of IOperation)
             Get
                 Return ImmutableArray.Create(Of IOperation)(Me.Expression, Me.AlignmentOpt, Me.FormatStringOpt)
@@ -3049,7 +3031,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
     End Class
 
-    Partial Friend Class BoundModuleVersionId
+    Friend Partial Class BoundModuleVersionId
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -3063,7 +3045,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Friend Class BoundModuleVersionIdString
+    Friend Partial Class BoundModuleVersionIdString
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -3077,7 +3059,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Friend Class BoundMethodDefIndex
+    Friend Partial Class BoundMethodDefIndex
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -3091,7 +3073,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Friend Class BoundMaximumMethodDefIndex
+    Friend Partial Class BoundMaximumMethodDefIndex
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -3105,7 +3087,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Friend Class BoundInstrumentationPayloadRoot
+    Friend Partial Class BoundInstrumentationPayloadRoot
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -3119,7 +3101,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Friend Class BoundSourceDocumentIndex
+    Friend Partial Class BoundSourceDocumentIndex
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function

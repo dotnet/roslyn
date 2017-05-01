@@ -66,6 +66,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Override this property to return the child operations if the IOperation API corresponding to this bound node is not yet designed or implemented.
         ''' </summary>
+        ''' <remarks>
+        ''' Note that any of the child operation nodes may be null.
+        ''' </remarks>
         Protected Overridable ReadOnly Property Children As ImmutableArray(Of IOperation)
             Get
                 Return ImmutableArray(Of IOperation).Empty
@@ -1794,12 +1797,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return OperationKind.None
         End Function
 
-        Protected Overrides ReadOnly Property Children As ImmutableArray(Of IOperation)
-            Get
-                Return ImmutableArray.Create(Of IOperation)(Me.Condition)
-            End Get
-        End Property
-
         Public Overrides Sub Accept(visitor As OperationVisitor)
             visitor.VisitNoneOperation(Me)
         End Sub
@@ -1910,12 +1907,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return OperationKind.None
         End Function
 
-        Protected Overrides ReadOnly Property Children As ImmutableArray(Of IOperation)
-            Get
-                Return Me.Jumps.As(Of IOperation).Insert(0, Me.Value)
-            End Get
-        End Property
-
         Public Overrides Sub Accept(visitor As OperationVisitor)
             visitor.VisitNoneOperation(Me)
         End Sub
@@ -1929,12 +1920,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Protected Overrides Function StatementKind() As OperationKind
             Return OperationKind.None
         End Function
-
-        Protected Overrides ReadOnly Property Children As ImmutableArray(Of IOperation)
-            Get
-                Return Me.Jumps.As(Of IOperation).InsertRange(0, {Me.ResumeLabel, Me.ResumeNextLabel})
-            End Get
-        End Property
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
             visitor.VisitNoneOperation(Me)

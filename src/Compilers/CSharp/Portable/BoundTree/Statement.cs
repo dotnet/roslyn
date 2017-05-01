@@ -32,6 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Override this property to return the child operations if the IOperation API corresponding to this bound node is not yet designed or implemented.
         /// </summary>
+        /// <remarks>Note that any of the child operation nodes may be null.</remarks>
         protected virtual ImmutableArray<IOperation> Children => ImmutableArray<IOperation>.Empty;
 
         public virtual void Accept(OperationVisitor visitor)
@@ -795,8 +796,6 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         protected override OperationKind StatementKind => OperationKind.None;
 
-        protected override ImmutableArray<IOperation> Children => ImmutableArray.Create<IOperation>(this.Condition);
-
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitNoneOperation(this);
@@ -883,7 +882,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     builder.Add(section);
                 }
-                builder.Add(this.DefaultLabel);
 
                 return builder.ToImmutable();
             }

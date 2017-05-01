@@ -14,6 +14,10 @@ namespace Microsoft.CodeAnalysis
     [InternalImplementationOnly]
     internal interface IOperationWithChildren: IOperation
     {
+        /// <summary>
+        /// An array of child operations for this operation.
+        /// </summary>
+        /// <remarks>Note that any of the child operation nodes may be null.</remarks>
         ImmutableArray<IOperation> Children { get; }
     }
 }
