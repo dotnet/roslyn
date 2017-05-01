@@ -42,7 +42,7 @@ namespace Roslyn.Test.Utilities
                 Debug.Assert(sta.Threads.Length == 1);
                 Debug.Assert(sta.Threads[0] == Thread.CurrentThread);
 
-                using (await _wpfTestSerializationGate.DisposableWaitAsync())
+                using (await _wpfTestSerializationGate.DisposableWaitAsync(CancellationToken.None))
                 {
                     try
                     {

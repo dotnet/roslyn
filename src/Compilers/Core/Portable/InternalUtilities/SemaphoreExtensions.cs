@@ -8,7 +8,7 @@ namespace Roslyn.Utilities
 {
     internal static class SemaphoreExtensions
     {
-        public static SemaphoreDisposer DisposableWait(this Semaphore semaphore, CancellationToken cancellationToken = default(CancellationToken))
+        public static SemaphoreDisposer DisposableWait(this Semaphore semaphore, CancellationToken cancellationToken)
         {
             if (cancellationToken.CanBeCanceled)
             {
@@ -27,7 +27,7 @@ namespace Roslyn.Utilities
             return new SemaphoreDisposer(semaphore);
         }
 
-        public static Task<SemaphoreDisposer> DisposableWaitAsync(this Semaphore semaphore, CancellationToken cancellationToken = default(CancellationToken))
+        public static Task<SemaphoreDisposer> DisposableWaitAsync(this Semaphore semaphore, CancellationToken cancellationToken)
         {
             return Task.Run(() => DisposableWait(semaphore, cancellationToken));
         }
