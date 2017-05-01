@@ -103,6 +103,7 @@
     <NoStdLib>true</NoStdLib>
     <FrameworkPathOverride>$(NuGetPackageRoot)\Microsoft.NetFX20\$(MicrosoftNetFX20Version)\lib\net20</FrameworkPathOverride>
     <ExecuteAsTool>false</ExecuteAsTool>
+    <GenerateResourceMSBuildRuntime>CurrentRuntime</GenerateResourceMSBuildRuntime>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(DevEnvDir)' == ''">
