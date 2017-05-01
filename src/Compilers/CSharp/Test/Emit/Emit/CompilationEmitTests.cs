@@ -282,23 +282,22 @@ public class C
         /// </summary>
         private void VerifyMvid(MemoryStream stream, bool hasMvidSection)
         {
-            Guid mvidFromModuleDefinition;
             stream.Position = 0;
             using (var reader = new PEReader(stream))
             {
                 var metadataReader = reader.GetMetadataReader();
-                mvidFromModuleDefinition = metadataReader.GetGuid(metadataReader.GetModuleDefinition().Mvid);
+                Guid mvidFromModuleDefinition = metadataReader.GetGuid(metadataReader.GetModuleDefinition().Mvid);
 
                 stream.Position = 0;
                 var mvidFromMvidReader = BuildTasks.MvidReader.ReadAssemblyMvidOrEmpty(stream);
 
+                Assert.NotEqual(Guid.Empty, mvidFromModuleDefinition);
                 if (hasMvidSection)
                 {
                     Assert.Equal(mvidFromModuleDefinition, mvidFromMvidReader);
                 }
                 else
                 {
-                    Assert.NotEqual(Guid.Empty, mvidFromModuleDefinition);
                     Assert.Equal(Guid.Empty, mvidFromMvidReader);
                 }
             }
@@ -589,6 +588,20 @@ public class C
             else
             {
                 AssertEx.NotEqual(image1, image2, message: $"Expecting difference for includePrivateMembers={includePrivateMembers} case, but they matched.");
+            }
+
+            var mvid1 = BuildTasks.MvidReader.ReadAssemblyMvidOrEmpty(new MemoryStream(image1.DangerousGetUnderlyingArray()));
+            var mvid2 = BuildTasks.MvidReader.ReadAssemblyMvidOrEmpty(new MemoryStream(image2.DangerousGetUnderlyingArray()));
+
+            if (!includePrivateMembers)
+            {
+                Assert.NotEqual(Guid.Empty, mvid1);
+                Assert.Equal(expectMatch, mvid1 == mvid2);
+            }
+            else
+            {
+                Assert.Equal(Guid.Empty, mvid1);
+                Assert.Equal(Guid.Empty, mvid2);
             }
         }
 

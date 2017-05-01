@@ -37,10 +37,12 @@ The `/refout` parameter specifies a file path where the ref assembly should be o
 The `/refonly` parameter is a flag that indicates that a ref assembly should be output instead of an implementation assembly. 
 The `/refonly` parameter is not allowed together with the `/refout` parameter, as it doesn't make sense to have both the primary and secondary outputs be ref assemblies. Also, the `/refonly` parameter silently disables outputting PDBs, as ref assemblies cannot be executed. 
 The `/refonly` parameter translates to `EmitMetadataOnly` being `true`, and `IncludePrivateMembers` being `false` in the `Emit` API (see details below).
+Neither `/refonly` nor `/refout` are permitted with `/target:module` or `/addmodule` options.
 
 When the compiler produces documentation, the contents produced will match the APIs that go into the primary output. In other words, the documentation will be filtered down when using the `/refonly` parameter.
 
 The compilation from the command-line will either produce both assemblies (implementation and ref) or neither. There is no "partial success" scenario.
+
 
 ### CscTask/CoreCompile
 The `CoreCompile` target will support a new output, called `IntermediateRefAssembly`, which parallels the existing `IntermediateAssembly`.
@@ -68,10 +70,9 @@ As mentioned above, there may be further refinements after C# 7.1:
 - produce ref assemblies even when there are errors outside method bodies (emitting error types when `EmitOptions.TolerateErrors` is set)
 
 ## Open questions
-- should explicit method implementations be included in ref assemblies? (answer: no. The interfaces that are declared as implemented are what matter to consuming compilations)
+- should explicit method implementations be included in ref assemblies?
 - Non-public attributes on public APIs (emit attribute based on accessibility rule)
 - ref assemblies and NoPia
-- `/refout` and `/addmodule`, should we disallow this combination? (answer: yes. This will not be supported in C# 7.1)
 
 ## Related issues
 - Produce ref assemblies from command-line and msbuild (https://github.com/dotnet/roslyn/issues/2184)

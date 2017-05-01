@@ -3,125 +3,117 @@
 using System;
 using System.Diagnostics;
 using System.IO;
-using System.Text;
 
 namespace Microsoft.CodeAnalysis.BuildTasks
 {
-    public sealed class MvidReader : BinaryReader
+    public static class MvidReader
     {
-        public MvidReader(Stream stream) : base(stream)
-        {
-        }
-
         public static Guid ReadAssemblyMvidOrEmpty(Stream stream)
         {
-            try
-            {
-                var mvidReader = new MvidReader(stream);
-                return mvidReader.TryFindMvid();
-            }
-            catch (EndOfStreamException)
-            {
-            }
-
-            return Guid.Empty;
+            return ReadAssemblyMvidOrEmpty(new BinaryReader(stream));
         }
 
-        public Guid TryFindMvid()
+        private static Guid ReadAssemblyMvidOrEmpty(BinaryReader reader)
         {
             Guid empty = Guid.Empty;
 
-            // DOS Header (64), DOS Stub (64), PE Signature (4), COFF Header (20), PE Header (224)
-            if (BaseStream.Length < 64 + 64 + 4 + 20 + 224)
+            // DOS Header (64), DOS Stub (64), PE Signature (4), COFF Header (20), PE Header (224), 1x Section Header (40)
+            if (reader.BaseStream.Length < 64 + 64 + 4 + 20 + 224 + 40)
             {
                 return empty;
             }
 
             // DOS Header: PE (2)
-            if (ReadUInt16() != 0x5a4d)
+            if (reader.ReadUInt16() != 0x5a4d)
             {
                 return empty;
             }
 
             // DOS Header: Start (58)
-            Skip(58);
+            Skip(58, reader);
 
             // DOS Header: Address of PE Signature
-            MoveTo(ReadUInt32());
+            MoveTo(reader.ReadUInt32(), reader);
 
             // PE Signature ('P' 'E' null null)
-            if (ReadUInt32() != 0x00004550)
+            if (reader.ReadUInt32() != 0x00004550)
             {
                 return empty;
             }
 
             // COFF Header: Machine (2)
-            Skip(2);
+            Skip(2, reader);
 
             // COFF Header: NumberOfSections (2)
-            ushort sections = ReadUInt16();
+            ushort sections = reader.ReadUInt16();
 
             // COFF Header: TimeDateStamp (4), PointerToSymbolTable (4), NumberOfSymbols (4)
-            Skip(12);
+            Skip(12, reader);
 
             // COFF Header: OptionalHeaderSize (2)
-            ushort optionalHeaderSize = ReadUInt16();
+            ushort optionalHeaderSize = reader.ReadUInt16();
 
             // COFF Header: Characteristics (2)
-            Skip(2);
+            Skip(2, reader);
 
             // Optional header
-            Skip(optionalHeaderSize);
+            Skip(optionalHeaderSize, reader);
 
             // Section headers
-            return FindMvidInSections(sections);
+            return FindMvidInSections(sections, reader);
         }
 
-        private Guid FindMvidInSections(ushort count)
+        private static Guid FindMvidInSections(ushort count, BinaryReader reader)
         {
-            for (int i = 0; i < count; i++)
+            // .mvid section must be first, if it's there
+            // Section: Name (8)
+            byte[] name = reader.ReadBytes(8);
+            if (name.Length == 8 && name[0] == '.' &&
+                name[1] == 'm' && name[2] == 'v' && name[3] == 'i' && name[4] == 'd' && name[5] == '\0')
             {
-                // Section: Name (8)
-                byte[] name = ReadBytes(8);
-                if (name.Length == 8 && name[0] == '.' &&
-                    name[1] == 'm' && name[2] == 'v' && name[3] == 'i' && name[4] == 'd' && name[5] == '\0')
+                // Section: VirtualSize (4)
+                uint virtualSize = reader.ReadUInt32();
+
+                // Section: VirtualAddress (4), SizeOfRawData (4)
+                Skip(8, reader);
+
+                // Section: PointerToRawData (4)
+                uint pointerToRawData = reader.ReadUInt32();
+
+                // The .mvid section only stores a Guid
+                if (virtualSize != 16)
                 {
-                    // Section: VirtualSize (4)
-                    uint virtualSize = ReadUInt32();
-
-                    // Section: VirtualAddress (4), SizeOfRawData (4)
-                    Skip(8);
-
-                    // Section: PointerToRawData (4)
-                    uint pointerToRawData = ReadUInt32();
-
-                    // The .mvid section only stores a Guid
-                    Debug.Assert(virtualSize == 16);
-
-                    BaseStream.Position = pointerToRawData;
-                    byte[] guidBytes = new byte[16];
-                    BaseStream.Read(guidBytes, 0, 16);
-
-                    return new Guid(guidBytes);
+                    Debug.Assert(false);
+                    return Guid.Empty;
                 }
 
-                // Section: VirtualSize (4), VirtualAddress (4), SizeOfRawData (4),
-                // PointerToRawData (4), PointerToRelocations (4), PointerToLineNumbers (4),
-                // NumberOfRelocations (2), NumberOfLineNumbers (2), Characteristics (4)
-                Skip(4 + 4 + 4 + 4 + 4 + 4 + 2 + 2 + 4);
+                if (MoveTo(pointerToRawData, reader))
+                {
+                    byte[] guidBytes = new byte[16];
+                    if (reader.BaseStream.Read(guidBytes, 0, 16) == 16)
+                    {
+                        return new Guid(guidBytes);
+                    }
+                }
             }
 
             return Guid.Empty;
         }
 
-        public void Skip(int bytes)
+        private static void Skip(int bytes, BinaryReader reader)
         {
-            BaseStream.Seek(bytes, SeekOrigin.Current);
+            reader.BaseStream.Seek(bytes, SeekOrigin.Current);
         }
 
-        public void MoveTo(uint position)
+        private static bool MoveTo(uint position, BinaryReader reader)
         {
-            BaseStream.Seek(position, SeekOrigin.Begin);
+            if (reader.BaseStream.Length < position)
+            {
+                return false;
+            }
+
+            reader.BaseStream.Seek(position, SeekOrigin.Begin);
+            return true;
         }
     }
 }
