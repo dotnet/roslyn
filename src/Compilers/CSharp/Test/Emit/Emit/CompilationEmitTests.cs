@@ -49,7 +49,6 @@ class X
                 Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "x"));
         }
 
-
         [Fact]
         public void CompilationEmitWithQuotedMainType()
         {

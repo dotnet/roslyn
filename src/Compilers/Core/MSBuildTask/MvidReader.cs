@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 // Section: Name (8)
                 byte[] name = ReadBytes(8);
                 if (name.Length == 8 && name[0] == '.' &&
-                    name[1] == 'm' && name[2] == 'v' && name[3] == 'i' && name[4] == 'd')
+                    name[1] == 'm' && name[2] == 'v' && name[3] == 'i' && name[4] == 'd' && name[5] == '\0')
                 {
                     // Section: VirtualSize (4)
                     uint virtualSize = ReadUInt32();
@@ -104,13 +104,11 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
                     return new Guid(guidBytes);
                 }
-                else
-                {
-                    // Section: VirtualSize (4), VirtualAddress (4), SizeOfRawData (4),
-                    // PointerToRawData (4), PointerToRelocations (4), PointerToLineNumbers (4),
-                    // NumberOfRelocations (2), NumberOfLineNumbers (2), Characteristics (4)
-                    Skip(4 + 4 + 4 + 4 + 4 + 4 + 2 + 2 + 4);
-                }
+
+                // Section: VirtualSize (4), VirtualAddress (4), SizeOfRawData (4),
+                // PointerToRawData (4), PointerToRelocations (4), PointerToLineNumbers (4),
+                // NumberOfRelocations (2), NumberOfLineNumbers (2), Characteristics (4)
+                Skip(4 + 4 + 4 + 4 + 4 + 4 + 2 + 2 + 4);
             }
 
             return Guid.Empty;
