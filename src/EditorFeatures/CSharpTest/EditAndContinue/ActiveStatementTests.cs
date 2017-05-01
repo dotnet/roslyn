@@ -3463,6 +3463,55 @@ class Test
         }
 
         [Fact]
+        public void ForEachVariable_Update_Leaf1()
+        {
+            string src1 = @"
+class Test
+{
+    public static (int, bool)[] e1 = new (int, bool)[1];
+    public static (int, bool)[] e2 = new (int, bool)[1];
+    
+    static void Main(string[] args)
+    {
+        foreach ((var a1, var a2) in e1)
+        {
+            foreach ((int b1, bool b2) in e1)
+            {
+                foreach (var c in e1)
+                {
+                    <AS:0>System.Console.Write();</AS:0>
+                }
+            }
+        }
+    }
+}";
+            string src2 = @"
+class Test
+{
+    public static (int, bool)[] e1 = new (int, bool)[1];
+    public static (int, bool)[] e2 = new (int, bool)[1];
+    
+    static void Main(string[] args)
+    {
+        foreach ((int b1, bool b2) in e1)
+        {
+            foreach (var c in e1)
+            {
+                foreach ((var a1, var a2) in e1)
+                {
+                    <AS:0>System.Console.Write();</AS:0>
+                }
+            }
+        }
+    }
+}";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active);
+        }
+
+        [Fact]
         public void ForEach_Update_Leaf2()
         {
             string src1 = @"
