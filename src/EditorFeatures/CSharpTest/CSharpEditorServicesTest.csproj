@@ -5,6 +5,7 @@
   <PropertyGroup>
     <StartupObject />
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <RuntimeIdentifiers>win7</RuntimeIdentifiers>
     <TargetFrameworkProfile />
   </PropertyGroup>
   <ItemGroup Label="Project References">
@@ -161,6 +162,42 @@
     <Reference Include="System.XML" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="WindowsBase" />
+    <PackageReference Include="Microsoft.VisualStudio.Composition">
+      <Version>$(MicrosoftVisualStudioCompositionVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Platform.VSEditor">
+      <Version>$(MicrosoftVisualStudioPlatformVSEditorVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Platform.VSEditor.Interop">
+      <Version>$(MicrosoftVisualStudioPlatformVSEditorInteropVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="BasicUndo">
+      <Version>$(BasicUndoVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.InteractiveWindow">
+      <Version>$(MicrosoftVisualStudioInteractiveWindowVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Language.Intellisense">
+      <Version>$(MicrosoftVisualStudioLanguageIntellisenseVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Text.Internal">
+      <Version>$(MicrosoftVisualStudioTextInternalVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Language.CallHierarchy">
+      <Version>$(MicrosoftVisualStudioLanguageCallHierarchyVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Language.NavigateTo.Interfaces">
+      <Version>$(MicrosoftVisualStudioLanguageNavigateToInterfacesVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Language.StandardClassification">
+      <Version>$(MicrosoftVisualStudioLanguageStandardClassificationVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Text.UI">
+      <Version>$(MicrosoftVisualStudioTextUIVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Text.UI.Wpf">
+      <Version>$(MicrosoftVisualStudioTextUIWpfVersion)</Version>
+    </PackageReference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AddBraces\AddBracesFixAllTests.cs" />
@@ -472,7 +509,6 @@
     <Compile Include="TypeInferrer\TypeInferrerTests.Delegate.cs" />
     <Compile Include="TypeInferrer\TypeInferrerTests.cs" />
     <Compile Include="Workspaces\WorkspaceTests.cs" />
-    <None Include="project.json" />
     <None Include="PerfTests\CSharpPerfFindRefs.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -587,7 +623,6 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
-  <ItemGroup />
   <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
   </ItemGroup>

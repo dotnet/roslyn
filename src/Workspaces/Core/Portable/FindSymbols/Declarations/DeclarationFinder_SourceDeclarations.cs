@@ -1,16 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PatternMatching;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
@@ -118,17 +114,19 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private static async Task<(bool, ImmutableArray<SymbolAndProjectId>)> TryFindSourceDeclarationsWithNormalQueryInRemoteProcessAsync(
             Solution solution, string name, bool ignoreCase, SymbolFilter criteria, CancellationToken cancellationToken)
         {
-            var session = await SymbolFinder.TryGetRemoteSessionAsync(solution, cancellationToken).ConfigureAwait(false);
-            if (session != null)
+            using (var session = await SymbolFinder.TryGetRemoteSessionAsync(solution, cancellationToken).ConfigureAwait(false))
             {
-                var result = await session.InvokeAsync<SerializableSymbolAndProjectId[]>(
-                    nameof(IRemoteSymbolFinder.FindSolutionSourceDeclarationsWithNormalQueryAsync),
-                    name, ignoreCase, criteria).ConfigureAwait(false);
+                if (session != null)
+                {
+                    var result = await session.InvokeAsync<SerializableSymbolAndProjectId[]>(
+                        nameof(IRemoteSymbolFinder.FindSolutionSourceDeclarationsWithNormalQueryAsync),
+                        name, ignoreCase, criteria).ConfigureAwait(false);
 
-                var rehydrated = await RehydrateAsync(
-                    solution, result, cancellationToken).ConfigureAwait(false);
+                    var rehydrated = await RehydrateAsync(
+                        solution, result, cancellationToken).ConfigureAwait(false);
 
-                return (true, rehydrated);
+                    return (true, rehydrated);
+                }
             }
 
             return (false, ImmutableArray<SymbolAndProjectId>.Empty);
@@ -137,17 +135,19 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private static async Task<(bool, ImmutableArray<SymbolAndProjectId>)> TryFindSourceDeclarationsWithNormalQueryInRemoteProcessAsync(
             Project project, string name, bool ignoreCase, SymbolFilter criteria, CancellationToken cancellationToken)
         {
-            var session = await SymbolFinder.TryGetRemoteSessionAsync(project.Solution, cancellationToken).ConfigureAwait(false);
-            if (session != null)
+            using (var session = await SymbolFinder.TryGetRemoteSessionAsync(project.Solution, cancellationToken).ConfigureAwait(false))
             {
-                var result = await session.InvokeAsync<SerializableSymbolAndProjectId[]>(
-                    nameof(IRemoteSymbolFinder.FindProjectSourceDeclarationsWithNormalQueryAsync),
-                    project.Id, name, ignoreCase, criteria).ConfigureAwait(false);
+                if (session != null)
+                {
+                    var result = await session.InvokeAsync<SerializableSymbolAndProjectId[]>(
+                        nameof(IRemoteSymbolFinder.FindProjectSourceDeclarationsWithNormalQueryAsync),
+                        project.Id, name, ignoreCase, criteria).ConfigureAwait(false);
 
-                var rehydrated = await RehydrateAsync(
-                    project.Solution, result, cancellationToken).ConfigureAwait(false);
+                    var rehydrated = await RehydrateAsync(
+                        project.Solution, result, cancellationToken).ConfigureAwait(false);
 
-                return (true, rehydrated);
+                    return (true, rehydrated);
+                }
             }
 
             return (false, ImmutableArray<SymbolAndProjectId>.Empty);
@@ -156,17 +156,19 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private static async Task<(bool, ImmutableArray<SymbolAndProjectId>)> TryFindSourceDeclarationsWithPatternInRemoteProcessAsync(
             Project project, string pattern, SymbolFilter criteria, CancellationToken cancellationToken)
         {
-            var session = await SymbolFinder.TryGetRemoteSessionAsync(project.Solution, cancellationToken).ConfigureAwait(false);
-            if (session != null)
+            using (var session = await SymbolFinder.TryGetRemoteSessionAsync(project.Solution, cancellationToken).ConfigureAwait(false))
             {
-                var result = await session.InvokeAsync<SerializableSymbolAndProjectId[]>(
-                    nameof(IRemoteSymbolFinder.FindProjectSourceDeclarationsWithPatternAsync),
-                    project.Id, pattern, criteria).ConfigureAwait(false);
+                if (session != null)
+                {
+                    var result = await session.InvokeAsync<SerializableSymbolAndProjectId[]>(
+                        nameof(IRemoteSymbolFinder.FindProjectSourceDeclarationsWithPatternAsync),
+                        project.Id, pattern, criteria).ConfigureAwait(false);
 
-                var rehydrated = await RehydrateAsync(
-                    project.Solution, result, cancellationToken).ConfigureAwait(false);
+                    var rehydrated = await RehydrateAsync(
+                        project.Solution, result, cancellationToken).ConfigureAwait(false);
 
-                return (true, rehydrated);
+                    return (true, rehydrated);
+                }
             }
 
             return (false, ImmutableArray<SymbolAndProjectId>.Empty);
@@ -219,53 +221,36 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // we don't want to check the whole pattern against it (as it will clearly fail), instead
             // we only want to check the 'WL' portion.  Then, after we get all the candidate symbols
             // we'll check if the full name matches the full pattern.
-            var patternMatcher = new PatternMatcher(pattern);
-            using (var query = SearchQuery.CreateCustom(
-                k => !patternMatcher.GetMatchesForLastSegmentOfPattern(k).IsDefaultOrEmpty))
-            {
+            var (namePart, containerPart) = PatternMatcher.GetNameAndContainer(pattern);
 
+            var dotIndex = pattern.LastIndexOf('.');
+            var isDottedPattern = dotIndex >= 0;
+
+            // If we don't have a dot in the pattern, just make a pattern matcher for the entire
+            // pattern they passed in.  Otherwise, make a pattern matcher just for the part after
+            // the dot.
+            using (var nameMatcher = PatternMatcher.CreatePatternMatcher(namePart, includeMatchedSpans: false))
+            using (var query = SearchQuery.CreateCustom(nameMatcher.Matches))
+            {
                 var symbolAndProjectIds = await SymbolFinder.FindSourceDeclarationsWithCustomQueryAsync(
                     project, query, criteria, cancellationToken).ConfigureAwait(false);
 
-                var result = ArrayBuilder<SymbolAndProjectId>.GetInstance();
-
-                // Now see if the symbols the compiler returned actually match the full pattern.
-                foreach (var symbolAndProjectId in symbolAndProjectIds)
+                if (symbolAndProjectIds.Length == 0 ||
+                    !isDottedPattern)
                 {
-                    var symbol = symbolAndProjectId.Symbol;
-
-                    // As an optimization, don't bother getting the container for this symbol if this
-                    // isn't a dotted pattern.  Getting the container could cause lots of string 
-                    // allocations that we don't if we're never going to check it.
-                    var matches = !patternMatcher.IsDottedPattern
-                        ? new PatternMatches(patternMatcher.GetMatches(GetSearchName(symbol)))
-                        : patternMatcher.GetMatches(GetSearchName(symbol), GetContainer(symbol));
-
-                    if (matches.IsEmpty)
-                    {
-                        // Didn't actually match the full pattern, ignore it.
-                        continue;
-                    }
-
-                    result.Add(symbolAndProjectId);
+                    // If it wasn't a dotted pattern, or we didn't get anything back, then we're done.
+                    // We can just return whatever set of results we got so far.
+                    return symbolAndProjectIds;
                 }
 
-                return result.ToImmutableAndFree();
+                // Ok, we had a dotted pattern.  Have to see if the symbol's container matches the 
+                // pattern as well.
+                using (var containerPatternMatcher = PatternMatcher.CreateDotSeparatedContainerMatcher(containerPart))
+                {
+                    return symbolAndProjectIds.WhereAsArray(t =>
+                        containerPatternMatcher.Matches(GetContainer(t.Symbol)));
+                }
             }
-        }
-
-        private static string GetSearchName(ISymbol symbol)
-        {
-            if (symbol.IsConstructor() || symbol.IsStaticConstructor())
-            {
-                return symbol.ContainingType.Name;
-            }
-            else if (symbol.IsIndexer() && symbol.Name == WellKnownMemberNames.Indexer)
-            {
-                return "this";
-            }
-
-            return symbol.Name;
         }
 
         private static string GetContainer(ISymbol symbol)

@@ -177,6 +177,15 @@
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="WindowsBase" />
+    <PackageReference Include="Microsoft.VisualStudio.Language.Intellisense">
+      <Version>$(MicrosoftVisualStudioLanguageIntellisenseVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Text.UI">
+      <Version>$(MicrosoftVisualStudioTextUIVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Text.UI.Wpf">
+      <Version>$(MicrosoftVisualStudioTextUIWpfVersion)</Version>
+    </PackageReference>
   </ItemGroup>
   <ItemGroup>
     <Import Include="Microsoft.CodeAnalysis.Editor.Shared.Extensions" />
@@ -208,9 +217,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="My Project\" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="project.json" />
   </ItemGroup>
   <ItemGroup>
     <PublicAPI Include="PublicAPI.Shipped.txt" />

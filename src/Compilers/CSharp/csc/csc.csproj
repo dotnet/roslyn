@@ -14,6 +14,7 @@
     <LargeAddressAware>true</LargeAddressAware>
     <StartupObject>Microsoft.CodeAnalysis.CSharp.CommandLine.Program</StartupObject>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <RuntimeIdentifiers>win7</RuntimeIdentifiers>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Core\Portable\CodeAnalysis.csproj">
@@ -29,6 +30,9 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup>
     <Reference Include="System" />
+    <PackageReference Include="Microsoft.DiaSymReader.Native">
+      <Version>$(MicrosoftDiaSymReaderNativeVersion)</Version>
+    </PackageReference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\Shared\BuildClient.cs">
@@ -59,7 +63,6 @@
     <None Include="csc.rsp">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="project.json" />
   </ItemGroup>
   <Import Project="..\..\Core\CommandLine\CommandLine.projitems" Label="Shared" />
   <Import Project="..\..\..\..\build\Targets\Imports.targets" />

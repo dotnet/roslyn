@@ -5852,11 +5852,416 @@ End Class
         End Sub
 
         <Fact>
+        Public Sub TupleCreationWithInferredNamesWithVB15()
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Class C
+    Dim e As Integer = 5
+    Dim f As Integer = 6
+    Dim instance As C = Nothing
+    Sub M()
+        Dim a As Integer = 1
+        Dim b As Integer = 3
+        Dim Item4 As Integer = 4
+        Dim g As Integer = 7
+        Dim Rest As Integer = 9
+        Dim y As (x As Integer, Integer, b As Integer, Integer, Integer, Integer, f As Integer, Integer, Integer, Integer) =
+            (a, (a), b:=2, b, Item4, instance.e, Me.f, g, g, Rest)
+        Dim z = (x:=b, b)
+        System.Console.Write(y)
+        System.Console.Write(z)
+    End Sub
+End Class
+    </file>
+</compilation>,
+                additionalRefs:=s_valueTupleRefs,
+                parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15),
+                sourceSymbolValidator:=
+                    Sub(m As ModuleSymbol)
+                        Dim compilation = m.DeclaringCompilation
+                        Dim tree = compilation.SyntaxTrees.First()
+                        Dim model = compilation.GetSemanticModel(tree)
+                        Dim nodes = tree.GetCompilationUnitRoot().DescendantNodes()
+
+                        Dim yTuple = nodes.OfType(Of TupleExpressionSyntax)().ElementAt(0)
+                        Assert.Equal("(a As System.Int32, System.Int32, b As System.Int32, System.Int32, System.Int32, e As System.Int32, f As System.Int32, System.Int32, System.Int32, System.Int32)",
+                            model.GetTypeInfo(yTuple).Type.ToTestDisplayString())
+
+                        Dim zTuple = nodes.OfType(Of TupleExpressionSyntax)().ElementAt(1)
+                        Assert.Equal("(x As System.Int32, b As System.Int32)", model.GetTypeInfo(zTuple).Type.ToTestDisplayString())
+                    End Sub)
+
+            verifier.VerifyDiagnostics()
+        End Sub
+
+        <Fact>
+        Public Sub TupleCreationWithInferredNames()
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Class C
+    Dim e As Integer = 5
+    Dim f As Integer = 6
+    Dim instance As C = Nothing
+    Sub M()
+        Dim a As Integer = 1
+        Dim b As Integer = 3
+        Dim Item4 As Integer = 4
+        Dim g As Integer = 7
+        Dim Rest As Integer = 9
+        Dim y As (x As Integer, Integer, b As Integer, Integer, Integer, Integer, f As Integer, Integer, Integer, Integer) =
+            (a, (a), b:=2, b, Item4, instance.e, Me.f, g, g, Rest)
+        Dim z = (x:=b, b)
+        System.Console.Write(y)
+        System.Console.Write(z)
+    End Sub
+End Class
+    </file>
+</compilation>,
+                additionalRefs:=s_valueTupleRefs,
+                parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_3),
+                sourceSymbolValidator:=
+                    Sub(m As ModuleSymbol)
+                        Dim compilation = m.DeclaringCompilation
+                        Dim tree = compilation.SyntaxTrees.First()
+                        Dim model = compilation.GetSemanticModel(tree)
+                        Dim nodes = tree.GetCompilationUnitRoot().DescendantNodes()
+
+                        Dim yTuple = nodes.OfType(Of TupleExpressionSyntax)().ElementAt(0)
+                        Assert.Equal("(a As System.Int32, System.Int32, b As System.Int32, System.Int32, System.Int32, e As System.Int32, f As System.Int32, System.Int32, System.Int32, System.Int32)",
+                            model.GetTypeInfo(yTuple).Type.ToTestDisplayString())
+
+                        Dim zTuple = nodes.OfType(Of TupleExpressionSyntax)().ElementAt(1)
+                        Assert.Equal("(x As System.Int32, b As System.Int32)", model.GetTypeInfo(zTuple).Type.ToTestDisplayString())
+                    End Sub)
+
+            verifier.VerifyDiagnostics()
+        End Sub
+
+        <Fact>
+        Public Sub TupleCreationWithInferredNames2()
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Class C
+    Dim e As Integer = 5
+    Dim instance As C = Nothing
+    Function M() As Integer
+        Dim y As (Integer?, object) = (instance?.e, (e, instance.M()))
+        System.Console.Write(y)
+        Return 42
+    End Function
+End Class
+    </file>
+</compilation>,
+                additionalRefs:=s_valueTupleRefs,
+                parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_3),
+                sourceSymbolValidator:=
+                    Sub(m As ModuleSymbol)
+                        Dim compilation = m.DeclaringCompilation
+                        Dim tree = compilation.SyntaxTrees.First()
+                        Dim model = compilation.GetSemanticModel(tree)
+                        Dim nodes = tree.GetCompilationUnitRoot().DescendantNodes()
+
+                        Dim yTuple = nodes.OfType(Of TupleExpressionSyntax)().ElementAt(0)
+                        Assert.Equal("(e As System.Nullable(Of System.Int32), (e As System.Int32, M As System.Int32))",
+                            model.GetTypeInfo(yTuple).Type.ToTestDisplayString())
+                    End Sub)
+
+            verifier.VerifyDiagnostics()
+        End Sub
+
+        <Fact>
+        Public Sub MissingMemberAccessWithVB15()
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Class C
+    Sub M()
+        Dim a As Integer = 1
+        Dim t = (a, 2)
+        System.Console.Write(t.A)
+        System.Console.Write(GetTuple().a)
+    End Sub
+    Function GetTuple() As (Integer, Integer)
+        Return (1, 2)
+    End Function
+End Class
+    </file>
+</compilation>,
+                additionalRefs:=s_valueTupleRefs,
+                parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15))
+
+            comp.AssertTheseDiagnostics(<errors>
+BC37289: Tuple element name 'a' is inferred. Please use language version 15.3 or greater to access an element by its inferred name.
+        System.Console.Write(t.A)
+                             ~~~
+BC30456: 'a' is not a member of '(Integer, Integer)'.
+        System.Console.Write(GetTuple().a)
+                             ~~~~~~~~~~~~
+                                        </errors>)
+        End Sub
+
+        <Fact>
+        Public Sub UseSiteDiagnosticOnTupleField()
+            Dim missingComp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation name="UseSiteDiagnosticOnTupleField_missingComp">
+    <file name="missing.vb">
+Public Class Missing
+End Class
+    </file>
+</compilation>)
+            missingComp.VerifyDiagnostics()
+
+            Dim libComp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="lib.vb">
+Public Class C
+    Public Shared Function GetTuple() As (Missing, Integer)
+        Throw New System.Exception()
+    End Function
+End Class
+    </file>
+</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef, missingComp.ToMetadataReference()})
+            libComp.VerifyDiagnostics()
+
+            Dim source =
+                <compilation>
+                    <file name="a.vb">
+Class D
+    Sub M()
+        System.Console.Write(C.GetTuple().Item1)
+    End Sub
+End Class
+    </file>
+                </compilation>
+
+            Dim comp15 = CreateCompilationWithMscorlibAndVBRuntime(source,
+                additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef, libComp.ToMetadataReference()},
+                parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15))
+
+            comp15.AssertTheseDiagnostics(<errors>
+BC30652: Reference required to assembly 'UseSiteDiagnosticOnTupleField_missingComp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' containing the type 'Missing'. Add one to your project.
+        System.Console.Write(C.GetTuple().Item1)
+                             ~~~~~~~~~~~~
+                                          </errors>)
+
+            Dim comp15_3 = CreateCompilationWithMscorlibAndVBRuntime(source,
+                additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef, libComp.ToMetadataReference()},
+                parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_3))
+
+            comp15_3.AssertTheseDiagnostics(<errors>
+BC30652: Reference required to assembly 'UseSiteDiagnosticOnTupleField_missingComp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' containing the type 'Missing'. Add one to your project.
+        System.Console.Write(C.GetTuple().Item1)
+                             ~~~~~~~~~~~~
+                                          </errors>)
+        End Sub
+
+        <Fact>
+        Public Sub UseSiteDiagnosticOnTupleField2()
+            Dim source =
+                <compilation>
+                    <file name="a.vb">
+Class C
+    Sub M()
+        Dim a = 1
+        Dim t = (a, 2)
+        System.Console.Write(t.a)
+    End Sub
+End Class
+Namespace System
+    Public Structure ValueTuple(Of T1, T2)
+        Public Sub New(item1 As T1, item2 As T2)
+        End Sub
+    End Structure
+End Namespace
+                    </file>
+                </compilation>
+
+            Dim comp15 = CreateCompilationWithMscorlibAndVBRuntime(source,
+                parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15))
+
+            comp15.AssertTheseDiagnostics(<errors>
+BC35000: Requested operation is not available because the runtime library function 'ValueTuple.Item1' is not defined.
+        System.Console.Write(t.a)
+                             ~~~
+                                          </errors>)
+
+            Dim comp15_3 = CreateCompilationWithMscorlibAndVBRuntime(source,
+                parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_3))
+
+            comp15_3.AssertTheseDiagnostics(<errors>
+BC35000: Requested operation is not available because the runtime library function 'ValueTuple.Item1' is not defined.
+        System.Console.Write(t.a)
+                             ~~~
+                                            </errors>)
+        End Sub
+
+        <Fact>
+        Public Sub MissingMemberAccessWithExtensionWithVB15()
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Imports System
+Class C
+    Sub M()
+        Dim a As Integer = 1
+        Dim t = (a, 2)
+        System.Console.Write(t.A)
+        System.Console.Write(GetTuple().a)
+    End Sub
+    Function GetTuple() As (Integer, Integer)
+        Return (1, 2)
+    End Function
+End Class
+Module Extensions
+    &lt;System.Runtime.CompilerServices.Extension()&gt;
+    Public Function A(self As (Integer, Action)) As String
+        Return Nothing
+    End Function
+End Module
+    </file>
+</compilation>,
+                additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef},
+                parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15))
+
+            comp.AssertTheseDiagnostics(<errors>
+BC37289: Tuple element name 'a' is inferred. Please use language version 15.3 or greater to access an element by its inferred name.
+        System.Console.Write(t.A)
+                             ~~~
+BC30456: 'a' is not a member of '(Integer, Integer)'.
+        System.Console.Write(GetTuple().a)
+                             ~~~~~~~~~~~~
+                                        </errors>)
+        End Sub
+
+        <Fact>
+        Public Sub MissingMemberAccessWithVB15_3()
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Class C
+    Sub M()
+        Dim a As Integer = 1
+        Dim t = (a, 2)
+        System.Console.Write(t.b)
+    End Sub
+End Class
+    </file>
+</compilation>,
+                additionalRefs:=s_valueTupleRefs,
+                parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_3))
+
+            comp.AssertTheseDiagnostics(<errors>
+BC30456: 'b' is not a member of '(a As Integer, Integer)'.
+        System.Console.Write(t.b)
+                             ~~~
+                                        </errors>)
+        End Sub
+
+        <Fact>
+        Public Sub InferredNamesInLinq()
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Imports System.Collections.Generic
+Imports System.Linq
+Class C
+    Dim f1 As Integer = 0
+    Dim f2 As Integer = 1
+    Shared Sub Main(list As IEnumerable(Of C))
+        Dim result = list.Select(Function(c) (c.f1, c.f2)).Where(Function(t) t.f2 = 1) ' t and result have names f1 and f2
+        System.Console.Write(result.Count())
+    End Sub
+End Class
+    </file>
+</compilation>,
+                additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef, LinqAssemblyRef},
+                parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_3),
+                sourceSymbolValidator:=
+                    Sub(m As ModuleSymbol)
+                        Dim compilation = m.DeclaringCompilation
+                        Dim tree = compilation.SyntaxTrees.First()
+                        Dim model = compilation.GetSemanticModel(tree)
+                        Dim nodes = tree.GetCompilationUnitRoot().DescendantNodes()
+
+                        Dim node = nodes.OfType(Of TupleExpressionSyntax)().Single()
+
+                        Dim result = tree.GetRoot().DescendantNodes().OfType(Of VariableDeclaratorSyntax)().ElementAt(2).Names(0)
+                        Dim resultSymbol = model.GetDeclaredSymbol(result)
+                        Assert.Equal("result As System.Collections.Generic.IEnumerable(Of (f1 As System.Int32, f2 As System.Int32))", resultSymbol.ToTestDisplayString())
+                    End Sub)
+
+            verifier.VerifyDiagnostics()
+        End Sub
+
+        <Fact>
+        Public Sub InferredNamesInTernary()
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Class C
+    Shared Sub Main()
+        Dim i = 1
+        Dim flag = False
+        Dim t = If(flag, (i, 2), (i, 3))
+        System.Console.Write(t.i)
+    End Sub
+End Class
+    </file>
+</compilation>,
+                additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef, LinqAssemblyRef},
+                parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_3),
+                expectedOutput:="1")
+
+            verifier.VerifyDiagnostics()
+        End Sub
+
+        <Fact>
+        Public Sub InferredNames_ExtensionNowFailsInVB15ButNotVB15_3()
+            Dim source = <compilation>
+                             <file name="a.vb">
+Imports System
+Class C
+    Shared Sub Main()
+        Dim M As Action = Sub() Console.Write("lambda")
+        Dim t = (1, M)
+        t.M()
+    End Sub
+End Class
+Module Extensions
+    &lt;System.Runtime.CompilerServices.Extension()&gt;
+    Public Sub M(self As (Integer, Action))
+        Console.Write("extension")
+    End Sub
+End Module
+    </file>
+                         </compilation>
+            ' When VB 15 shipped, no tuple element would be found/inferred, so the extension method was called.
+            ' The VB 15.3 compiler disallows that, even when LanguageVersion is 15.
+            Dim comp15 = CreateCompilationWithMscorlibAndVBRuntime(source,
+                additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef},
+                parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15))
+            comp15.AssertTheseDiagnostics(<errors>
+BC37289: Tuple element name 'M' is inferred. Please use language version 15.3 or greater to access an element by its inferred name.
+        t.M()
+        ~~~
+                                          </errors>)
+
+            Dim verifier15_3 = CompileAndVerify(source,
+                additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef},
+                parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_3),
+                expectedOutput:="lambda")
+            verifier15_3.VerifyDiagnostics()
+        End Sub
+
+        <Fact>
         Public Sub LongTupleWithArgumentEvaluation()
 
             Dim verifier = CompileAndVerify(
 <compilation>
-    <file name="a.vb">
+                                  <file name="a.vb">
 Class C
     Shared Sub Main()
         Dim x = (a:=PrintAndReturn(1), b:=2, c:=3, d:=PrintAndReturn(4), e:=5, f:=6, g:=PrintAndReturn(7), h:=PrintAndReturn("Alice"), i:=2, j:=3, k:=4, l:=5, m:=6, n:=PrintAndReturn(7), o:=PrintAndReturn("Bob"), p:=2, q:=PrintAndReturn(3))

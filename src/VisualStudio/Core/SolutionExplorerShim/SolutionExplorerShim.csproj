@@ -57,6 +57,27 @@
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
     <Reference Include="WindowsBase" />
+    <PackageReference Include="EnvDTE">
+      <Version>$(EnvDTEVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.CodeAnalysis.Sdk.UI">
+      <Version>$(MicrosoftVisualStudioCodeAnalysisSdkUIVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Language.Intellisense">
+      <Version>$(MicrosoftVisualStudioLanguageIntellisenseVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.ComponentModelHost">
+      <Version>$(MicrosoftVisualStudioComponentModelHostVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Diagnostics.PerformanceProvider">
+      <Version>$(MicrosoftVisualStudioDiagnosticsPerformanceProviderVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.ImageCatalog">
+      <Version>$(MicrosoftVisualStudioImageCatalogVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.Build.Framework">
+      <Version>$(MicrosoftBuildFrameworkVersion)</Version>
+    </PackageReference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AnalyzerItem\AnalyzerItem.BrowseObject.cs" />
@@ -72,19 +93,24 @@
     <Compile Include="AnalyzersFolderItem\AnalyzersFolderItemProvider.cs" />
     <Compile Include="BaseItem.cs" />
     <Compile Include="BrowseObjectAttributes.cs" />
-    <Compile Include="DiagnosticItem\DiagnosticItem.BrowseObject.cs" />
-    <Compile Include="DiagnosticItem\DiagnosticItemProvider.cs" />
+    <Compile Include="DiagnosticItem\BaseDiagnosticItem.cs" />
+    <Compile Include="DiagnosticItem\BaseDiagnosticItemSource.cs" />
+    <Compile Include="DiagnosticItem\CpsDiagnosticItem.cs" />
+    <Compile Include="DiagnosticItem\CpsDiagnosticItemProvider.cs" />
+    <Compile Include="DiagnosticItem\CpsDiagnosticItemSource.cs" />
+    <Compile Include="DiagnosticItem\BaseDiagnosticItem.BrowseObject.cs" />
+    <Compile Include="DiagnosticItem\LegacyDiagnosticItemProvider.cs" />
     <Compile Include="AnalyzerReferenceManager.cs" />
     <Compile Include="ContextMenuController.cs" />
-    <Compile Include="DiagnosticItem\DiagnosticItemSource.DiagnosticDescriptorComparer.cs" />
+    <Compile Include="DiagnosticItem\BaseDiagnosticItemSource.DiagnosticDescriptorComparer.cs" />
     <Compile Include="DiagnosticItem\RuleSelectionImage.cs" />
     <Compile Include="HierarchyItemToProjectIdMap.cs" />
     <Compile Include="IAnalyzersCommandHandler.cs" />
     <Compile Include="IHierarchyItemToProjectIdMap.cs" />
     <Compile Include="ISolutionExplorerWorkspaceProvider.cs" />
     <Compile Include="LocalizableProperties.cs" />
-    <Compile Include="DiagnosticItem\DiagnosticItemSource.cs" />
-    <Compile Include="DiagnosticItem\DiagnosticItem.cs" />
+    <Compile Include="DiagnosticItem\LegacyDiagnosticItemSource.cs" />
+    <Compile Include="DiagnosticItem\LegacyDiagnosticItem.cs" />
     <Compile Include="RuleSetDocumentExtensions.cs" />
     <Compile Include="SolutionExplorerShim.Designer.cs">
       <AutoGen>True</AutoGen>
@@ -108,9 +134,6 @@
       <SubType>Designer</SubType>
       <LastGenOutput>SolutionExplorerShim.Designer.cs</LastGenOutput>
     </EmbeddedResource>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="project.json" />
   </ItemGroup>
   <Import Project="..\..\..\..\build\Targets\Imports.targets" />
 </Project>

@@ -122,10 +122,10 @@ class C
           <namespace usingCount=""0"" />
         </using>
         <dynamicLocals>
-          <bucket flagCount=""5"" flags=""00100"" slotId=""0"" localName=""x"" />
-          <bucket flagCount=""5"" flags=""00010"" slotId=""0"" localName=""y"" />
-          <bucket flagCount=""4"" flags=""0001"" slotId=""0"" localName=""x"" />
-          <bucket flagCount=""4"" flags=""0001"" slotId=""0"" localName=""y"" />
+          <bucket flags=""00100"" slotId=""0"" localName=""x"" />
+          <bucket flags=""00010"" slotId=""0"" localName=""y"" />
+          <bucket flags=""0001"" slotId=""0"" localName=""x"" />
+          <bucket flags=""0001"" slotId=""0"" localName=""y"" />
         </dynamicLocals>
         <tupleElementNames>
           <local elementNames=""|A|B|"" slotIndex=""0"" localName=""x"" scopeStart=""0x0"" scopeEnd=""0x0"" />

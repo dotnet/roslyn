@@ -101,7 +101,7 @@ End Class
 }}
 "
             Dim comp = CreateCompilation(source)
-            WithRuntimeInstancePortableBug(comp,
+            WithRuntimeInstance(comp,
                 Sub(runtime)
                     Dim context As EvaluationContext
                     Dim testData As CompilationTestData
@@ -208,7 +208,7 @@ End Class
 }}
 "
             Dim comp = CreateCompilation(source)
-            WithRuntimeInstancePortableBug(comp,
+            WithRuntimeInstance(comp,
                 Sub(runtime)
 
                     Dim context As EvaluationContext
@@ -290,7 +290,7 @@ End Class
 }}
 "
             Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll, assemblyName:=GetUniqueName())
-            WithRuntimeInstancePortableBug(comp,
+            WithRuntimeInstance(comp,
                 Sub(runtime)
 
                     Dim context As EvaluationContext
@@ -1435,7 +1435,7 @@ Class C
 End Class
 "
             Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll)
-            WithRuntimeInstancePortableBug(comp,
+            WithRuntimeInstance(comp,
                 Sub(runtime)
                     Dim blocks As ImmutableArray(Of MetadataBlock) = Nothing
                     Dim moduleVersionId As Guid = Nothing

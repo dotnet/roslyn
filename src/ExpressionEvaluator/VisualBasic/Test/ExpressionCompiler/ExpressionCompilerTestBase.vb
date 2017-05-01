@@ -45,14 +45,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.UnitTests
             _runtimeInstances.Free()
         End Sub
 
-        ' TODO: remove -- workaround for bug https://github.com/dotnet/roslyn/issues/8473 in the VB compiler
-        ' https://github.com/dotnet/roslyn/issues/8473
-        Friend Shared Sub WithRuntimeInstancePortableBug(compilation As Compilation, validator As Action(Of RuntimeInstance))
-            Using instance = RuntimeInstance.Create(compilation, Nothing, DebugInformationFormat.Pdb, includeLocalSignatures:=True, includeIntrinsicAssembly:=True)
-                validator(instance)
-            End Using
-        End Sub
-
         Friend Shared Sub WithRuntimeInstance(compilation As Compilation, validator As Action(Of RuntimeInstance))
             WithRuntimeInstance(compilation, Nothing, validator)
         End Sub

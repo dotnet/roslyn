@@ -340,7 +340,7 @@ BC31030: Conditional compilation constant '2' is not valid: Identifier expected.
         End Sub
 
         <Fact>
-        Public Sub DiagnositcsInCompilationOptionsParseOptionsAreDedupedWithParseTreesParseOptions()
+        Public Sub DiagnosticsInCompilationOptionsParseOptionsAreDedupedWithParseTreesParseOptions()
             Dim dict1 = New Dictionary(Of String, Object)
             dict1.Add("1", Nothing)
             Dim dict2 = New Dictionary(Of String, Object)
@@ -372,7 +372,7 @@ BC31030: Conditional compilation constant '2' is not valid: Identifier expected.
         End Sub
 
         <Fact>
-        Public Sub DiagnositcsInCompilationOptionsParseOptionsAreReportedSeparately()
+        Public Sub DiagnosticsInCompilationOptionsParseOptionsAreReportedSeparately()
             Dim dict1 = New Dictionary(Of String, Object)
             dict1.Add("1", Nothing)
             Dim dict2 = New Dictionary(Of String, Object)

@@ -27,6 +27,27 @@
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.Core" />
+    <PackageReference Include="Microsoft.VisualStudio.Text.Data">
+      <Version>$(MicrosoftVisualStudioTextDataVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Text.Logic">
+      <Version>$(MicrosoftVisualStudioTextLogicVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Text.UI">
+      <Version>$(MicrosoftVisualStudioTextUIVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Text.UI.Wpf">
+      <Version>$(MicrosoftVisualStudioTextUIWpfVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Text.Internal">
+      <Version>$(MicrosoftVisualStudioTextInternalVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.CoreUtility">
+      <Version>$(MicrosoftVisualStudioCoreUtilityVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Utilities">
+      <Version>$(MicrosoftVisualStudioUtilitiesVersion)</Version>
+    </PackageReference>
   </ItemGroup>
   <ItemGroup>
     <!-- InternalsVisibleTo go here -->
@@ -80,7 +101,6 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <None Include="project.json" />
     <PublicAPI Include="PublicAPI.Shipped.txt" />
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
