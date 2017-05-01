@@ -1,7 +1,4 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-
-extern alias MSBuildTask;
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -18,7 +15,6 @@ using Roslyn.Test.Utilities;
 using Xunit;
 using System.Xml;
 using System.Threading.Tasks;
-using MSBuildTask::Microsoft.CodeAnalysis.BuildTasks;
 using Microsoft.CodeAnalysis.CommandLine;
 using Moq;
 

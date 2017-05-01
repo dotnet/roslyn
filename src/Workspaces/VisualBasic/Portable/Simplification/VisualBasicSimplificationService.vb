@@ -25,7 +25,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                 New VisualBasicEscapingReducer(), ' order before VisualBasicMiscellaneousReducer, see RenameNewOverload test
                 New VisualBasicMiscellaneousReducer(),
                 New VisualBasicCastReducer(),
-                New VisualBasicVariableDeclaratorReducer())
+                New VisualBasicVariableDeclaratorReducer(),
+                New VisualBasicInferredMemberNameReducer())
 
         Public Sub New()
             MyBase.New(s_reducers)

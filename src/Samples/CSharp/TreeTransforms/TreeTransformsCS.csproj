@@ -12,6 +12,7 @@
     <RootNamespace>TreeTransformsCS</RootNamespace>
     <AssemblyName>TreeTransformsCS</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <RuntimeIdentifiers>win7-x86</RuntimeIdentifiers>
     <TargetFrameworkProfile></TargetFrameworkProfile>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
   </PropertyGroup>
@@ -41,9 +42,6 @@
     <Compile Include="Transforms.cs" />
     <Compile Include="TransformVisitor.cs" />
     <Compile Include="TreeTransformTests.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="project.json" />
   </ItemGroup>
   <Import Project="..\..\..\..\build\Targets\Imports.targets" />
 </Project>

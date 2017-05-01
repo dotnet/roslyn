@@ -648,7 +648,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         locations.Add(argumentSyntax.GetLocation)
                     End If
 
-                    Binder.CollectTupleFieldMemberNames(name, i + 1, numElements, elementNames)
+                    Binder.CollectTupleFieldMemberName(name, i, numElements, elementNames)
                 Next
 
                 If hasExplicitNames Then
@@ -677,8 +677,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                 If(elementNames Is Nothing, Nothing, elementNames.ToImmutableAndFree()),
                                                 binder.Compilation,
                                                 binder.ShouldCheckConstraints,
-                                                syntax,
-                                                diagnostics)
+                                                errorPositions:=Nothing,
+                                                syntax:=syntax,
+                                                diagnostics:=diagnostics)
             End Function
 
             Private Shared Sub AnalyzeLookupResultForIllegalBaseTypeReferences(lookupResult As LookupResult,
