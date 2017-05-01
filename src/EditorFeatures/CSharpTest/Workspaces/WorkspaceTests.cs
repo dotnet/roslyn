@@ -220,7 +220,7 @@ class D { }
 
                 await VerifyRootTypeNameAsync(workspace, "C");
 
-                workspace.OnDocumentClosed(document.Id);
+                workspace.CloseDocument(document.Id);
             }
         }
 
@@ -405,7 +405,7 @@ class D { }
 
                 workspace.AddTestProject(project1);
                 workspace.OnDocumentOpened(document.Id, document.GetOpenTextContainer());
-                workspace.OnDocumentClosed(document.Id);
+                workspace.CloseDocument(document.Id);
                 workspace.OnProjectRemoved(project1.Id);
             }
         }
@@ -425,7 +425,7 @@ class D { }
 
                 Assert.Throws<ArgumentException>(() => workspace.OnDocumentRemoved(document.Id));
 
-                workspace.OnDocumentClosed(document.Id);
+                workspace.CloseDocument(document.Id);
                 workspace.OnProjectRemoved(project1.Id);
             }
         }
@@ -692,7 +692,7 @@ class D { }
                 var syntaxTree = await doc.GetSyntaxTreeAsync(CancellationToken.None);
                 Assert.True(syntaxTree.GetRoot().Width() > 0, "syntaxTree.GetRoot().Width should be > 0");
 
-                workspace.OnDocumentClosed(document.Id);
+                workspace.CloseDocument(document.Id);
                 workspace.OnProjectRemoved(project1.Id);
             }
         }

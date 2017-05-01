@@ -2290,5 +2290,40 @@ namespace ConsoleApplication1
     }
 }", Class("Debug"));
         }
+
+        [WorkItem(18956, "https://github.com/dotnet/roslyn/issues/18956")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestVarInPattern1()
+        {
+            await TestAsync(
+@"
+class Program
+{
+    void Main(string s)
+    {
+        if (s is var v)
+        {
+        }
+    }
+}", Keyword("var"));
+        }
+
+        [WorkItem(18956, "https://github.com/dotnet/roslyn/issues/18956")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestVarInPattern2()
+        {
+            await TestAsync(
+@"
+class Program
+{
+    void Main(string s)
+    {
+        switch (s)
+        {
+            case var v:
+        }
+    }
+}", Keyword("var"));
+        }
     }
 }

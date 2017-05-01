@@ -6,6 +6,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.VisualStudio.LanguageServices.Remote;
 using Roslyn.Utilities;
 using StreamJsonRpc;
 
@@ -66,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Remote
             // due to this issue - https://github.com/dotnet/roslyn/issues/16900#issuecomment-277378950
             // all sub type must explicitly start JsonRpc once everything is
             // setup
-            Rpc = new JsonRpc(stream, stream, this);
+            Rpc = new JsonRpc(new JsonRpcMessageHandler(stream, stream), this);
             Rpc.JsonSerializer.Converters.Add(AggregateJsonConverter.Instance);
             Rpc.Disconnected += OnRpcDisconnected;
         }

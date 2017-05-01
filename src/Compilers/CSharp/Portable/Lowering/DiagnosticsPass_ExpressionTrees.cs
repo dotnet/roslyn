@@ -112,9 +112,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        public override BoundNode VisitDeconstructionAssignmentOperator(BoundDeconstructionAssignmentOperator node)
+        {
+            if (!node.HasAnyErrors)
+            {
+                CheckForDeconstructionAssignmentToSelf((BoundTupleLiteral)node.Left, node.Right);
+            }
+
+            return base.VisitDeconstructionAssignmentOperator(node);
+        }
+
         public override BoundNode VisitAssignmentOperator(BoundAssignmentOperator node)
         {
             CheckForAssignmentToSelf(node);
+
             if (_inExpressionLambda && node.Left.Kind != BoundKind.ObjectInitializerMember && node.Left.Kind != BoundKind.DynamicObjectInitializerMember)
             {
                 Error(ErrorCode.ERR_ExpressionTreeContainsAssignment, node);
