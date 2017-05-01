@@ -1403,10 +1403,12 @@ d.cs
             Assert.True(rangeEnd > rangeStart);
 
             string helpRange = help.Substring(rangeStart, rangeEnd - rangeStart).ToLowerInvariant();
-
+            var acceptableFollowingChar = new[] { '\r', '\n', ',' };
             foreach (var version in expected)
             {
-                Assert.True(helpRange.Contains(version), $"Missing version '{version}'");
+                var foundIndex = helpRange.IndexOf(version);
+                Assert.True(foundIndex > 0, $"Missing version '{version}'");
+                Assert.True(Array.IndexOf(acceptableFollowingChar, helpRange[foundIndex + version.Length]) >= 0);
             }
 
             // The canary check is a reminder that this test needs to be updated when a language version is added

@@ -1706,9 +1706,12 @@ End Module").Path
             Assert.True(rangeEnd > rangeStart)
 
             Dim helpRange = help.Substring(rangeStart, rangeEnd - rangeStart).ToLowerInvariant()
+            Dim acceptableFollowingChar = {CChar(vbCr), CChar(vbLf), "|"c}
 
             For Each v In expected
-                Assert.True(helpRange.Contains(v), $"Missing version '{v}'")
+                Dim foundIndex = helpRange.IndexOf(v)
+                Assert.True(foundIndex > 0, $"Missing version '{v}'")
+                Assert.True(Array.IndexOf(acceptableFollowingChar, helpRange(foundIndex + v.Length)) >= 0)
             Next
 
             ' The canary check is a reminder that this test needs to be updated when a language version is added
