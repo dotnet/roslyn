@@ -262,11 +262,11 @@ public class C
 
                 VerifyEntryPoint(output, expectZero: false);
                 VerifyMethods(output, new[] { "void C.Main()", "C..ctor()" });
-                VerifyMVID(output, hasMvidSection: false);
+                VerifyMvid(output, hasMvidSection: false);
 
                 VerifyEntryPoint(metadataOutput, expectZero: true);
                 VerifyMethods(metadataOutput, new[] { "C..ctor()" });
-                VerifyMVID(metadataOutput, hasMvidSection: true);
+                VerifyMvid(metadataOutput, hasMvidSection: true);
             }
 
             void VerifyEntryPoint(MemoryStream stream, bool expectZero)
@@ -281,7 +281,7 @@ public class C
         /// Extract the MVID using two different methods (PEReader and MvidReader) and compare them. 
         /// We only expect an .mvid section in ref assemblies.
         /// </summary>
-        void VerifyMVID(MemoryStream stream, bool hasMvidSection)
+        private void VerifyMvid(MemoryStream stream, bool hasMvidSection)
         {
             Guid mvidFromModuleDefinition;
             stream.Position = 0;
@@ -291,7 +291,7 @@ public class C
                 mvidFromModuleDefinition = metadataReader.GetGuid(metadataReader.GetModuleDefinition().Mvid);
 
                 stream.Position = 0;
-                var mvidFromMvidReader = BuildTasks.MvidReader.ReadAssemblyMvid(stream);
+                var mvidFromMvidReader = BuildTasks.MvidReader.ReadAssemblyMvidOrEmpty(stream);
 
                 if (hasMvidSection)
                 {
@@ -326,8 +326,8 @@ public class C
                 VerifyMethods(output, new[] { "System.Int32 C.<PrivateSetter>k__BackingField", "System.Int32 C.PrivateSetter.get", "void C.PrivateSetter.set",
                     "C..ctor()", "System.Int32 C.PrivateSetter { get; private set; }" });
                 VerifyMethods(metadataOutput, new[] { "System.Int32 C.PrivateSetter.get", "C..ctor()", "System.Int32 C.PrivateSetter { get; }" });
-                VerifyMVID(output, hasMvidSection: false);
-                VerifyMVID(metadataOutput, hasMvidSection: true);
+                VerifyMvid(output, hasMvidSection: false);
+                VerifyMvid(metadataOutput, hasMvidSection: true);
             }
         }
 

@@ -3,6 +3,7 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Text;
 
 namespace Microsoft.CodeAnalysis.BuildTasks
 {
@@ -12,12 +13,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         {
         }
 
-        public static Guid ReadAssemblyMvid(Stream stream)
+        public static Guid ReadAssemblyMvidOrEmpty(Stream stream)
         {
             try
             {
                 var mvidReader = new MvidReader(stream);
-                return mvidReader.FindMvid();
+                return mvidReader.TryFindMvid();
             }
             catch (EndOfStreamException)
             {
@@ -26,7 +27,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             return Guid.Empty;
         }
 
-        public Guid FindMvid()
+        public Guid TryFindMvid()
         {
             Guid empty = Guid.Empty;
 
@@ -76,46 +77,24 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             return FindMvidInSections(sections);
         }
 
-        string ReadSectionName()
-        {
-            int length = 8;
-            int read = 0;
-            var buffer = new char[length];
-            var bytes = ReadBytes(length);
-            while (read < length)
-            {
-                var current = bytes[read];
-                if (current == 0)
-                    break;
-
-                buffer[read++] = (char)current;
-            }
-
-            return new string(buffer, 0, read);
-        }
-
-        Guid FindMvidInSections(ushort count)
+        private Guid FindMvidInSections(ushort count)
         {
             for (int i = 0; i < count; i++)
             {
                 // Section: Name (8)
-                string name = ReadSectionName();
-
-                // Section: VirtualSize (4)
-                uint virtualSize = ReadUInt32();
-
-                // Section: VirtualAddress (4), SizeOfRawData (4)
-                Skip(8);
-
-                // Section: PointerToRawData (4)
-                uint pointerToRawData = ReadUInt32();
-
-                // Section: PointerToRelocations (4), PointerToLineNumbers (4), NumberOfRelocations (2),
-                // NumberOfLineNumbers (2), Characteristics (4)
-                Skip(16);
-
-                if (name.Equals(".mvid", StringComparison.Ordinal))
+                byte[] name = ReadBytes(8);
+                if (name.Length == 8 && name[0] == '.' &&
+                    name[1] == 'm' && name[2] == 'v' && name[3] == 'i' && name[4] == 'd')
                 {
+                    // Section: VirtualSize (4)
+                    uint virtualSize = ReadUInt32();
+
+                    // Section: VirtualAddress (4), SizeOfRawData (4)
+                    Skip(8);
+
+                    // Section: PointerToRawData (4)
+                    uint pointerToRawData = ReadUInt32();
+
                     // The .mvid section only stores a Guid
                     Debug.Assert(virtualSize == 16);
 
@@ -124,6 +103,13 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     BaseStream.Read(guidBytes, 0, 16);
 
                     return new Guid(guidBytes);
+                }
+                else
+                {
+                    // Section: VirtualSize (4), VirtualAddress (4), SizeOfRawData (4),
+                    // PointerToRawData (4), PointerToRelocations (4), PointerToLineNumbers (4),
+                    // NumberOfRelocations (2), NumberOfLineNumbers (2), Characteristics (4)
+                    Skip(4 + 4 + 4 + 4 + 4 + 4 + 2 + 2 + 4);
                 }
             }
 

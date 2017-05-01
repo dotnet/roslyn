@@ -140,6 +140,7 @@
     <Compile Include="Emit\AsyncMoveNextBodyDebugInfo.cs" />
     <Compile Include="Emit\IteratorMoveNextBodyDebugInfo.cs" />
     <Compile Include="Emit\StateMachineMoveNextDebugInfo.cs" />
+    <Compile Include="PEWriter\ExtendedPEBuilder.cs" />
     <Compile Include="Serialization\IObjectWritable.cs" />
     <Compile Include="Serialization\ObjectBinder.cs" />
     <Compile Include="Serialization\ObjectBinderSnapshot.cs" />

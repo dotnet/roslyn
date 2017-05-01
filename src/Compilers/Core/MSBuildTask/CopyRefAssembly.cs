@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         {
             using (FileStream source = File.OpenRead(path))
             {
-                return MvidReader.ReadAssemblyMvid(source);
+                return MvidReader.ReadAssemblyMvidOrEmpty(source);
             }
         }
     }
