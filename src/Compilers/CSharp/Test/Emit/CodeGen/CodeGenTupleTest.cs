@@ -3838,7 +3838,8 @@ class C2
             var model = compilation.GetSemanticModel(tree);
             var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
 
-            // PROTOTYPE(tuple-names) The type for int? was not picked up
+            // The type for int? was not picked up
+            // Follow-up issue: https://github.com/dotnet/roslyn/issues/19144
             var yTuple = nodes.OfType<TupleExpressionSyntax>().ElementAt(0);
             Assert.Equal("(? e, (System.Int32 e, System.Int32, System.Int32, System.Int32))",
                 model.GetTypeInfo(yTuple).Type.ToTestDisplayString());
