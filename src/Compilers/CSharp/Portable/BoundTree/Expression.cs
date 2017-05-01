@@ -2101,8 +2101,6 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         protected override OperationKind ExpressionKind => OperationKind.None;
 
-        protected override ImmutableArray<IOperation> Children => ImmutableArray.Create<IOperation>(this.Expression);
-
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitNoneOperation(this);
