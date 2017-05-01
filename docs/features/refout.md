@@ -43,7 +43,6 @@ When the compiler produces documentation, the contents produced will match the A
 
 The compilation from the command-line will either produce both assemblies (implementation and ref) or neither. There is no "partial success" scenario.
 
-
 ### CscTask/CoreCompile
 The `CoreCompile` target will support a new output, called `IntermediateRefAssembly`, which parallels the existing `IntermediateAssembly`.
 The `Csc` task will support a new output, called `OutputRefAssembly`, which parallels the existing `OutputAssembly`.

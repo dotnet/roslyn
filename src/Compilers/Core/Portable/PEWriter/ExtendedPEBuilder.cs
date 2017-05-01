@@ -24,7 +24,7 @@ namespace Microsoft.Cci
         private Blob _mvidSectionFixup = default(Blob);
 
         // Only include the .mvid section in ref assemblies
-        private bool _withMvidSection;
+        private readonly bool _withMvidSection;
 
         public ExtendedPEBuilder(
             PEHeaderBuilder header,

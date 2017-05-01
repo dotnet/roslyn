@@ -23,17 +23,17 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 return empty;
             }
 
-            // DOS Header: PE (2)
-            if (reader.ReadUInt16() != 0x5a4d)
+            // DOS Header: Magic number (2)
+            if (reader.ReadUInt16() != 0x5a4d) // "MZ"
             {
                 return empty;
             }
 
-            // DOS Header: Start (58)
-            Skip(58, reader);
+            // DOS Header: Address of PE Signature (at 0x3C)
+            MoveTo(0x3C, reader);
+            uint lfanew = reader.ReadUInt32();
 
-            // DOS Header: Address of PE Signature
-            MoveTo(reader.ReadUInt32(), reader);
+            MoveTo(lfanew, reader); // jump over the MS DOS Stub to the PE Signature
 
             // PE Signature ('P' 'E' null null)
             if (reader.ReadUInt32() != 0x00004550)
@@ -65,6 +65,11 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
         private static Guid FindMvidInSections(ushort count, BinaryReader reader)
         {
+            if (count == 0)
+            {
+                return Guid.Empty;
+            }
+
             // .mvid section must be first, if it's there
             // Section: Name (8)
             byte[] name = reader.ReadBytes(8);
