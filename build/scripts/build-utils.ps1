@@ -299,7 +299,7 @@ function Restore-Packages([string]$msbuildDir = "", [string]$project = "") {
 }
 
 # Restore all of the projects that the repo consumes
-function Restore-All([string]$msbuild = "") {
-    Restore-Packages -msbuild $msbuild
+function Restore-All([string]$msbuildDir = "") {
+    Restore-Packages -msbuildDir $msbuildDir
 }
 
