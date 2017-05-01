@@ -790,7 +790,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     const DeclarationModifiers allowedAccess = (DeclarationModifiers.AccessibilityMask & ~(DeclarationModifiers.Protected | DeclarationModifiers.ProtectedInternal));
 
                     // This is needed to make sure we can detect 'public' modifier specified explicitly and
-                    // check it agains language version below.
+                    // check it against language version below.
                     defaultAccess = DeclarationModifiers.None;
 
                     allowedModifiers |= allowedAccess | DeclarationModifiers.Extern | DeclarationModifiers.Async;

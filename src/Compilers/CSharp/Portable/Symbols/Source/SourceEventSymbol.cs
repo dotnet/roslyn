@@ -405,22 +405,39 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             bool isInterface = this.ContainingType.IsInterface;
             var defaultAccess = isInterface ? DeclarationModifiers.Public : DeclarationModifiers.Private;
+            var defaultInterfaceImplementationModifiers = DeclarationModifiers.None;
 
             // Check that the set of modifiers is allowed
             var allowedModifiers = DeclarationModifiers.Unsafe;
             if (!explicitInterfaceImplementation)
             {
-                allowedModifiers |= DeclarationModifiers.New;
+                allowedModifiers |= DeclarationModifiers.New |
+                                    DeclarationModifiers.Sealed |
+                                    DeclarationModifiers.Abstract |
+                                    DeclarationModifiers.Static |
+                                    DeclarationModifiers.Virtual;
 
                 if (!isInterface)
                 {
                     allowedModifiers |=
                         DeclarationModifiers.AccessibilityMask |
-                        DeclarationModifiers.Sealed |
-                        DeclarationModifiers.Abstract |
-                        DeclarationModifiers.Static |
-                        DeclarationModifiers.Virtual |
                         DeclarationModifiers.Override;
+                }
+                else
+                {
+                    const DeclarationModifiers allowedAccess = (DeclarationModifiers.AccessibilityMask & ~(DeclarationModifiers.Protected | DeclarationModifiers.ProtectedInternal));
+
+                    // This is needed to make sure we can detect 'public' modifier specified explicitly and
+                    // check it against language version below.
+                    defaultAccess = DeclarationModifiers.None;
+
+                    allowedModifiers |= allowedAccess | DeclarationModifiers.Extern;
+                    defaultInterfaceImplementationModifiers |= DeclarationModifiers.Sealed |
+                                                               DeclarationModifiers.Abstract |
+                                                               DeclarationModifiers.Static |
+                                                               DeclarationModifiers.Virtual |
+                                                               DeclarationModifiers.Extern |
+                                                               allowedAccess;
                 }
             }
 
@@ -433,12 +450,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             this.CheckUnsafeModifier(mods, diagnostics);
 
-            // Let's overwrite modifiers for interface methods with what they are supposed to be. 
+            ModifierUtils.ReportDefaultInterfaceImplementationModifiers(!isFieldLike, mods,
+                                                                        defaultInterfaceImplementationModifiers,
+                                                                        location, diagnostics);
+
+            // Let's overwrite modifiers for interface events with what they are supposed to be. 
             // Proper errors must have been reported by now.
             if (isInterface)
             {
-                mods = (mods & ~DeclarationModifiers.AccessibilityMask) | DeclarationModifiers.Public |
-                       (isFieldLike ? DeclarationModifiers.Abstract : DeclarationModifiers.Virtual);
+                mods = ModifierUtils.AdjustModifiersForAnInterfaceMember(mods, !isFieldLike);
             }
 
             return mods;

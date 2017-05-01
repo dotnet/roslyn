@@ -80,6 +80,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // Don't initialize this.type - we'll just use the type of the field (which is lazy and handles var)
             }
 
+            if (inInterfaceType && !this.IsAbstract && !this.IsExtern)
+            {
+                diagnostics.Add(ErrorCode.ERR_EventNeedsBothAccessors, this.Locations[0], this);
+            }
+
             // Accessors will assume that Type is available.
             _addMethod = new SynthesizedFieldLikeEventAccessorSymbol(this, isAdder: true);
             _removeMethod = new SynthesizedFieldLikeEventAccessorSymbol(this, isAdder: false);

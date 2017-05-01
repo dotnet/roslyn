@@ -831,13 +831,27 @@ interface i1
     event myDelegate myevent { add; remove; }
 }
 ";
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateStandardCompilation(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest)).VerifyDiagnostics(
                 // (6,35): error CS0073: An add or remove accessor must have a body
                 //     event myDelegate myevent { add; remove; }
                 Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";").WithLocation(6, 35),
                 // (6,43): error CS0073: An add or remove accessor must have a body
                 //     event myDelegate myevent { add; remove; }
                 Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";").WithLocation(6, 43));
+
+            CreateStandardCompilation(text, parseOptions: TestOptions.Regular7).VerifyDiagnostics(
+                // (6,35): error CS0073: An add or remove accessor must have a body
+                //     event myDelegate myevent { add; remove; }
+                Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";").WithLocation(6, 35),
+                // (6,43): error CS0073: An add or remove accessor must have a body
+                //     event myDelegate myevent { add; remove; }
+                Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";").WithLocation(6, 43),
+                // (6,32): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                //     event myDelegate myevent { add; remove; }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "add").WithArguments("default interface implementation", "7.1").WithLocation(6, 32),
+                // (6,37): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                //     event myDelegate myevent { add; remove; }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "remove").WithArguments("default interface implementation", "7.1").WithLocation(6, 37));
         }
 
         [WorkItem(542570, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542570")]

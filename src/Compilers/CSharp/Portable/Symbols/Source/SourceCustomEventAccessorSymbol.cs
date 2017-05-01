@@ -62,8 +62,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 isExtensionMethod: false,
                 isMetadataVirtualIgnoringModifiers: explicitInterfaceImplementations.Any());
 
-            var bodyOpt = syntax.Body;
-            if (bodyOpt != null)
+            if (@event.ContainingType.IsInterface)
+            {
+                Binder.CheckFeatureAvailability(syntax, MessageID.IDS_DefaultInterfaceImplementation, diagnostics, this.Location);
+
+                if (!ContainingAssembly.RuntimeSupportsDefaultInterfaceImplementation)
+                {
+                    diagnostics.Add(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, this.Location);
+                }
+            }
+
+            if (syntax.Body != null || syntax.ExpressionBody != null)
             {
                 if (IsExtern && !IsAbstract)
                 {
@@ -72,15 +81,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 else if (IsAbstract && !IsExtern)
                 {
                     diagnostics.Add(ErrorCode.ERR_AbstractHasBody, this.Location, this);
-                }
-                else if (@event.ContainingType.IsInterface)
-                {
-                    Binder.CheckFeatureAvailability(syntax, MessageID.IDS_DefaultInterfaceImplementation, diagnostics, this.Location);
-
-                    if (!ContainingAssembly.RuntimeSupportsDefaultInterfaceImplementation)
-                    {
-                        diagnostics.Add(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, this.Location);
-                    }
                 }
                 // Do not report error for IsAbstract && IsExtern. Dev10 reports CS0180 only
                 // in that case ("member cannot be both extern and abstract").
