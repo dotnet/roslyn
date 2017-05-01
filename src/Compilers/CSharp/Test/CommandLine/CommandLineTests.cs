@@ -1393,6 +1393,27 @@ d.cs
         }
 
         [Fact]
+        public void LanguageVersion_CommandLineUsage()
+        {
+            var expected = Enum.GetValues(typeof(LanguageVersion)).Cast<LanguageVersion>().Select(v => v.ToDisplayString());
+            string help = CSharpResources.IDS_CSCHelp;
+
+            var rangeStart = help.IndexOf("/langversion");
+            var rangeEnd = help.IndexOf("/delaysign");
+            Assert.True(rangeEnd > rangeStart);
+
+            string helpRange = help.Substring(rangeStart, rangeEnd - rangeStart).ToLowerInvariant();
+
+            foreach (var version in expected)
+            {
+                Assert.True(helpRange.Contains(version), $"Missing version '{version}'");
+            }
+
+            // The canary check is a reminder that this test needs to be updated when a language version is added
+            LanguageVersionAdded_Canary();
+        }
+
+        [Fact]
         [WorkItem(546961, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546961")]
         public void Define()
         {

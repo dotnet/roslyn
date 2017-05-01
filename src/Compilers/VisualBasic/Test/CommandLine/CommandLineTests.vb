@@ -1626,6 +1626,7 @@ End Module").Path
                 System.Enum.GetValues(GetType(LanguageVersion)).Cast(Of LanguageVersion)().Select(Function(v) v.ToDisplayString()))
             ' For minor versions, the format should be "x.y", such as "15.3"
         End Sub
+
         <Fact>
         Public Sub LanguageVersion_GetErrorCode()
             Dim versions = System.Enum.GetValues(GetType(LanguageVersion)).
@@ -1690,6 +1691,25 @@ End Module").Path
             Dim version As LanguageVersion
             Assert.Equal(success, input.TryParse(version))
             Assert.Equal(expected, version)
+
+            ' The canary check is a reminder that this test needs to be updated when a language version is added
+            LanguageVersionAdded_Canary()
+        End Sub
+
+        <Fact>
+        Public Sub LanguageVersion_CommandLineUsage()
+            Dim expected = [Enum].GetValues(GetType(LanguageVersion)).Cast(Of LanguageVersion)().Select(Function(v) v.ToDisplayString())
+            Dim help = VBResources.IDS_VBCHelp
+
+            Dim rangeStart = help.IndexOf("/langversion")
+            Dim rangeEnd = help.IndexOf("/optionexplicit")
+            Assert.True(rangeEnd > rangeStart)
+
+            Dim helpRange = help.Substring(rangeStart, rangeEnd - rangeStart).ToLowerInvariant()
+
+            For Each v In expected
+                Assert.True(helpRange.Contains(v), $"Missing version '{v}'")
+            Next
 
             ' The canary check is a reminder that this test needs to be updated when a language version is added
             LanguageVersionAdded_Canary()
