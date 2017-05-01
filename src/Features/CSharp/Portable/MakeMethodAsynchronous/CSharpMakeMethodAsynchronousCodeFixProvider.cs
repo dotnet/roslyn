@@ -33,12 +33,8 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeMethodAsynchronous
             return CSharpFeaturesResources.Make_method_async_remain_void;
         }
 
-        protected override bool IsMethodOrAnonymousFunction(SyntaxNode node)
-        {
-            return node.IsKind(SyntaxKind.MethodDeclaration)
-                || node.IsAnyLambdaOrAnonymousMethod()
-                || node.IsKind(SyntaxKind.LocalFunctionStatement);
-        }
+        protected override bool IsAsyncSupportingFunctionSyntax(SyntaxNode node)
+            => node.IsAsyncSupportingFunctionSyntax();
 
         protected override SyntaxNode AddAsyncTokenAndFixReturnType(
             bool keepVoid, IMethodSymbol methodSymbolOpt, SyntaxNode node,

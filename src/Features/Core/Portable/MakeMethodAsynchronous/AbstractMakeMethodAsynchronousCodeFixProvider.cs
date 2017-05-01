@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.MakeMethodAsynchronous
 {
     internal abstract class AbstractMakeMethodAsynchronousCodeFixProvider : CodeFixProvider
     {
-        protected abstract bool IsMethodOrAnonymousFunction(SyntaxNode node);
+        protected abstract bool IsAsyncSupportingFunctionSyntax(SyntaxNode node);
         protected abstract SyntaxNode AddAsyncTokenAndFixReturnType(
             bool keepVoid, IMethodSymbol methodSymbolOpt, SyntaxNode node,
             INamedTypeSymbol taskType, INamedTypeSymbol taskOfTType, INamedTypeSymbol valueTaskOfTType);
@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.MakeMethodAsynchronous
         private SyntaxNode GetContainingFunction(Diagnostic diagnostic, CancellationToken cancellationToken)
         {
             var token = diagnostic.Location.FindToken(cancellationToken);
-            var node = token.GetAncestor(IsMethodOrAnonymousFunction);
+            var node = token.GetAncestor(IsAsyncSupportingFunctionSyntax);
             return node;
         }
 

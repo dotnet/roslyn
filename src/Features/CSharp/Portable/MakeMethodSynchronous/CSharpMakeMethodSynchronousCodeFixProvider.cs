@@ -17,12 +17,8 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeMethodSynchronous
 
         public override ImmutableArray<string> FixableDiagnosticIds { get; } = ImmutableArray.Create(CS1998);
 
-        protected override bool IsMethodOrAnonymousFunction(SyntaxNode node)
-        {
-            return node.IsKind(SyntaxKind.MethodDeclaration)
-                || node.IsAnyLambdaOrAnonymousMethod()
-                || node.IsKind(SyntaxKind.LocalFunctionStatement);
-        }
+        protected override bool IsAsyncSupportingFunctionSyntax(SyntaxNode node)
+            => node.IsAsyncSupportingFunctionSyntax();
 
         protected override SyntaxNode RemoveAsyncTokenAndFixReturnType(IMethodSymbol methodSymbolOpt, SyntaxNode node, ITypeSymbol taskType, ITypeSymbol taskOfTType)
         {
