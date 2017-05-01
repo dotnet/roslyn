@@ -2598,7 +2598,7 @@ class C
                 // (6,26): error CS1525: Invalid expression term '='
                 //         const var (x, y) = (1, 2);
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "=").WithArguments("=").WithLocation(6, 26),
-                // (6,19): error CS8111: '(x, y)' is a local function and must therefore always have a body.
+                // (6,19): error CS8112: '(x, y)' is a local function and must therefore always have a body.
                 //         const var (x, y) = (1, 2);
                 Diagnostic(ErrorCode.ERR_LocalFunctionMissingBody, "").WithArguments("(x, y)").WithLocation(6, 19),
                 // (6,20): error CS0246: The type or namespace name 'x' could not be found (are you missing a using directive or an assembly reference?)
