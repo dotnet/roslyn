@@ -7612,5 +7612,390 @@ namespace ConsoleApplication1
         }
 
         #endregion
+
+        #region "regression tests"
+
+        [Fact, WorkItem(16195, "https://github.com/dotnet/roslyn/issues/16195")]
+        public void TestMatchWithTypeParameter_01()
+        {
+            var source =
+@"using System;
+class Program
+{
+    public static void Main(string[] args)
+    {
+        Console.Write(M1<int>(2));
+        Console.Write(M2<int>(3));
+        Console.Write(M1<int>(1.1));
+        Console.Write(M2<int>(1.1));
+    }
+    public static T M1<T>(ValueType o)
+    {
+        return o is T t ? t : default(T);
+    }
+    public static T M2<T>(ValueType o)
+    {
+        switch (o)
+        {
+            case T t:
+                return t;
+            default:
+                return default(T);
+        }
+    }
+}
+";
+            CreateStandardCompilation(source).VerifyDiagnostics(
+                // (13,21): error CS9003: An expression of type 'ValueType' cannot be handled by a pattern of type 'T' in C# 7. Please use language version 7.1 or greater.
+                //         return o is T t ? t : default(T);
+                Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "T").WithArguments("System.ValueType", "T", "7", "7.1").WithLocation(13, 21),
+                // (19,18): error CS9003: An expression of type 'ValueType' cannot be handled by a pattern of type 'T' in C# 7. Please use language version 7.1 or greater.
+                //             case T t:
+                Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "T").WithArguments("System.ValueType", "T", "7", "7.1").WithLocation(19, 18)
+                );
+            var compVerifier = CompileAndVerify(source,
+                options: TestOptions.ReleaseDll.WithOutputKind(OutputKind.ConsoleApplication),
+                parseOptions: TestOptions.Regular7_1,
+                expectedOutput: "2300");
+            compVerifier.VerifyIL("Program.M1<T>",
+@"{
+  // Code size       46 (0x2e)
+  .maxstack  2
+  .locals init (T V_0, //t
+                object V_1,
+                T V_2)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.1
+  IL_0002:  ldloc.1
+  IL_0003:  isinst     ""T""
+  IL_0008:  ldnull
+  IL_0009:  cgt.un
+  IL_000b:  dup
+  IL_000c:  brtrue.s   IL_0019
+  IL_000e:  ldloca.s   V_2
+  IL_0010:  initobj    ""T""
+  IL_0016:  ldloc.2
+  IL_0017:  br.s       IL_001f
+  IL_0019:  ldloc.1
+  IL_001a:  unbox.any  ""T""
+  IL_001f:  stloc.0
+  IL_0020:  brtrue.s   IL_002c
+  IL_0022:  ldloca.s   V_2
+  IL_0024:  initobj    ""T""
+  IL_002a:  ldloc.2
+  IL_002b:  ret
+  IL_002c:  ldloc.0
+  IL_002d:  ret
+}"
+            );
+            compVerifier.VerifyIL("Program.M2<T>",
+@"{
+  // Code size       51 (0x33)
+  .maxstack  2
+  .locals init (System.ValueType V_0,
+                T V_1,
+                object V_2,
+                T V_3)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  brfalse.s  IL_0029
+  IL_0005:  ldloc.0
+  IL_0006:  stloc.2
+  IL_0007:  ldloc.2
+  IL_0008:  isinst     ""T""
+  IL_000d:  ldnull
+  IL_000e:  cgt.un
+  IL_0010:  dup
+  IL_0011:  brtrue.s   IL_001e
+  IL_0013:  ldloca.s   V_3
+  IL_0015:  initobj    ""T""
+  IL_001b:  ldloc.3
+  IL_001c:  br.s       IL_0024
+  IL_001e:  ldloc.2
+  IL_001f:  unbox.any  ""T""
+  IL_0024:  stloc.1
+  IL_0025:  brfalse.s  IL_0029
+  IL_0027:  ldloc.1
+  IL_0028:  ret
+  IL_0029:  ldloca.s   V_3
+  IL_002b:  initobj    ""T""
+  IL_0031:  ldloc.3
+  IL_0032:  ret
+}"
+            );
+            compVerifier = CompileAndVerify(source,
+                options: TestOptions.DebugDll.WithOutputKind(OutputKind.ConsoleApplication),
+                parseOptions: TestOptions.Regular7_1,
+                expectedOutput: "2300");
+            compVerifier.VerifyIL("Program.M1<T>",
+@"{
+  // Code size       52 (0x34)
+  .maxstack  2
+  .locals init (T V_0, //t
+                object V_1,
+                T V_2,
+                T V_3)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.1
+  IL_0003:  ldloc.1
+  IL_0004:  isinst     ""T""
+  IL_0009:  ldnull
+  IL_000a:  cgt.un
+  IL_000c:  dup
+  IL_000d:  brtrue.s   IL_001a
+  IL_000f:  ldloca.s   V_2
+  IL_0011:  initobj    ""T""
+  IL_0017:  ldloc.2
+  IL_0018:  br.s       IL_0020
+  IL_001a:  ldloc.1
+  IL_001b:  unbox.any  ""T""
+  IL_0020:  stloc.0
+  IL_0021:  brtrue.s   IL_002e
+  IL_0023:  ldloca.s   V_2
+  IL_0025:  initobj    ""T""
+  IL_002b:  ldloc.2
+  IL_002c:  br.s       IL_002f
+  IL_002e:  ldloc.0
+  IL_002f:  stloc.3
+  IL_0030:  br.s       IL_0032
+  IL_0032:  ldloc.3
+  IL_0033:  ret
+}"
+            );
+            compVerifier.VerifyIL("Program.M2<T>",
+@"{
+  // Code size       82 (0x52)
+  .maxstack  2
+  .locals init (System.ValueType V_0,
+                T V_1,
+                System.ValueType V_2,
+                T V_3, //t
+                System.ValueType V_4,
+                object V_5,
+                T V_6,
+                T V_7)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.2
+  IL_0003:  ldloc.2
+  IL_0004:  stloc.s    V_4
+  IL_0006:  ldloc.s    V_4
+  IL_0008:  stloc.0
+  IL_0009:  ldloc.0
+  IL_000a:  brtrue.s   IL_000e
+  IL_000c:  br.s       IL_0036
+  IL_000e:  ldloc.0
+  IL_000f:  stloc.s    V_5
+  IL_0011:  ldloc.s    V_5
+  IL_0013:  isinst     ""T""
+  IL_0018:  ldnull
+  IL_0019:  cgt.un
+  IL_001b:  dup
+  IL_001c:  brtrue.s   IL_002a
+  IL_001e:  ldloca.s   V_6
+  IL_0020:  initobj    ""T""
+  IL_0026:  ldloc.s    V_6
+  IL_0028:  br.s       IL_0031
+  IL_002a:  ldloc.s    V_5
+  IL_002c:  unbox.any  ""T""
+  IL_0031:  stloc.1
+  IL_0032:  brfalse.s  IL_0036
+  IL_0034:  br.s       IL_0038
+  IL_0036:  br.s       IL_0041
+  IL_0038:  ldloc.1
+  IL_0039:  stloc.3
+  IL_003a:  br.s       IL_003c
+  IL_003c:  ldloc.3
+  IL_003d:  stloc.s    V_7
+  IL_003f:  br.s       IL_004f
+  IL_0041:  ldloca.s   V_6
+  IL_0043:  initobj    ""T""
+  IL_0049:  ldloc.s    V_6
+  IL_004b:  stloc.s    V_7
+  IL_004d:  br.s       IL_004f
+  IL_004f:  ldloc.s    V_7
+  IL_0051:  ret
+}"
+            );
+        }
+
+        [Fact, WorkItem(16195, "https://github.com/dotnet/roslyn/issues/16195")]
+        public void TestMatchWithTypeParameter_02()
+        {
+            var source =
+@"using System;
+class Program
+{
+    public static void Main(string[] args)
+    {
+        Console.Write(M1(2));
+        Console.Write(M2(3));
+        Console.Write(M1(1.1));
+        Console.Write(M2(1.1));
+    }
+    public static int M1<T>(T o)
+    {
+        return o is int t ? t : default(int);
+    }
+    public static int M2<T>(T o)
+    {
+        switch (o)
+        {
+            case int t:
+                return t;
+            default:
+                return default(int);
+        }
+    }
+}";
+            CreateStandardCompilation(source).VerifyDiagnostics(
+                // (13,21): error CS9003: An expression of type 'T' cannot be handled by a pattern of type 'int' in C# 7. Please use language version 7.1 or greater.
+                //         return o is int t ? t : default(int);
+                Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "int").WithArguments("T", "int", "7", "7.1").WithLocation(13, 21),
+                // (19,18): error CS9003: An expression of type 'T' cannot be handled by a pattern of type 'int' in C# 7. Please use language version 7.1 or greater.
+                //             case int t:
+                Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "int").WithArguments("T", "int", "7", "7.1").WithLocation(19, 18)
+                );
+            var compVerifier = CompileAndVerify(source,
+                options: TestOptions.ReleaseDll.WithOutputKind(OutputKind.ConsoleApplication),
+                parseOptions: TestOptions.Regular7_1,
+                expectedOutput: "2300");
+            compVerifier.VerifyIL("Program.M1<T>",
+@"{
+  // Code size       38 (0x26)
+  .maxstack  1
+  .locals init (int V_0, //t
+                int? V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  box        ""T""
+  IL_0006:  isinst     ""int?""
+  IL_000b:  unbox.any  ""int?""
+  IL_0010:  stloc.1
+  IL_0011:  ldloca.s   V_1
+  IL_0013:  call       ""int int?.GetValueOrDefault()""
+  IL_0018:  stloc.0
+  IL_0019:  ldloca.s   V_1
+  IL_001b:  call       ""bool int?.HasValue.get""
+  IL_0020:  brtrue.s   IL_0024
+  IL_0022:  ldc.i4.0
+  IL_0023:  ret
+  IL_0024:  ldloc.0
+  IL_0025:  ret
+}"
+            );
+            compVerifier.VerifyIL("Program.M2<T>",
+@"{
+  // Code size       48 (0x30)
+  .maxstack  1
+  .locals init (T V_0,
+                int V_1,
+                int? V_2)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  box        ""T""
+  IL_0008:  brfalse.s  IL_002e
+  IL_000a:  ldloc.0
+  IL_000b:  box        ""T""
+  IL_0010:  isinst     ""int?""
+  IL_0015:  unbox.any  ""int?""
+  IL_001a:  stloc.2
+  IL_001b:  ldloca.s   V_2
+  IL_001d:  call       ""int int?.GetValueOrDefault()""
+  IL_0022:  stloc.1
+  IL_0023:  ldloca.s   V_2
+  IL_0025:  call       ""bool int?.HasValue.get""
+  IL_002a:  brfalse.s  IL_002e
+  IL_002c:  ldloc.1
+  IL_002d:  ret
+  IL_002e:  ldc.i4.0
+  IL_002f:  ret
+}"
+            );
+            compVerifier = CompileAndVerify(source,
+                options: TestOptions.DebugDll.WithOutputKind(OutputKind.ConsoleApplication),
+                parseOptions: TestOptions.Regular7_1,
+                expectedOutput: "2300");
+            compVerifier.VerifyIL("Program.M1<T>",
+@"{
+  // Code size       44 (0x2c)
+  .maxstack  1
+  .locals init (int V_0, //t
+                int? V_1,
+                int V_2)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  box        ""T""
+  IL_0007:  isinst     ""int?""
+  IL_000c:  unbox.any  ""int?""
+  IL_0011:  stloc.1
+  IL_0012:  ldloca.s   V_1
+  IL_0014:  call       ""int int?.GetValueOrDefault()""
+  IL_0019:  stloc.0
+  IL_001a:  ldloca.s   V_1
+  IL_001c:  call       ""bool int?.HasValue.get""
+  IL_0021:  brtrue.s   IL_0026
+  IL_0023:  ldc.i4.0
+  IL_0024:  br.s       IL_0027
+  IL_0026:  ldloc.0
+  IL_0027:  stloc.2
+  IL_0028:  br.s       IL_002a
+  IL_002a:  ldloc.2
+  IL_002b:  ret
+}"
+            );
+            compVerifier.VerifyIL("Program.M2<T>",
+@"{
+  // Code size       75 (0x4b)
+  .maxstack  1
+  .locals init (T V_0,
+                int V_1,
+                T V_2,
+                int V_3, //t
+                T V_4,
+                int? V_5,
+                int V_6)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.2
+  IL_0003:  ldloc.2
+  IL_0004:  stloc.s    V_4
+  IL_0006:  ldloc.s    V_4
+  IL_0008:  stloc.0
+  IL_0009:  ldloc.0
+  IL_000a:  box        ""T""
+  IL_000f:  brtrue.s   IL_0013
+  IL_0011:  br.s       IL_0038
+  IL_0013:  ldloc.0
+  IL_0014:  box        ""T""
+  IL_0019:  isinst     ""int?""
+  IL_001e:  unbox.any  ""int?""
+  IL_0023:  stloc.s    V_5
+  IL_0025:  ldloca.s   V_5
+  IL_0027:  call       ""int int?.GetValueOrDefault()""
+  IL_002c:  stloc.1
+  IL_002d:  ldloca.s   V_5
+  IL_002f:  call       ""bool int?.HasValue.get""
+  IL_0034:  brfalse.s  IL_0038
+  IL_0036:  br.s       IL_003a
+  IL_0038:  br.s       IL_0043
+  IL_003a:  ldloc.1
+  IL_003b:  stloc.3
+  IL_003c:  br.s       IL_003e
+  IL_003e:  ldloc.3
+  IL_003f:  stloc.s    V_6
+  IL_0041:  br.s       IL_0048
+  IL_0043:  ldc.i4.0
+  IL_0044:  stloc.s    V_6
+  IL_0046:  br.s       IL_0048
+  IL_0048:  ldloc.s    V_6
+  IL_004a:  ret
+}"
+            );
+        }
+
+        #endregion "regression tests"
     }
 }
