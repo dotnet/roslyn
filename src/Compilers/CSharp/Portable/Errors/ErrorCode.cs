@@ -345,7 +345,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         //ERR_PredefinedTypeBadType = 520,
         ERR_StructWithBaseConstructorCall = 522,
         ERR_StructLayoutCycle = 523,
-        ERR_InterfacesCannotContainTypes = 524,
+        //ERR_InterfacesCannotContainTypes = 524,
         ERR_InterfacesCantContainFields = 525,
         ERR_InterfacesCantContainConstructors = 526,
         ERR_NonInterfaceInInterfaceList = 527,

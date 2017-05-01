@@ -5372,15 +5372,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos;: interfaces cannot declare types.
-        /// </summary>
-        internal static string ERR_InterfacesCannotContainTypes {
-            get {
-                return ResourceManager.GetString("ERR_InterfacesCannotContainTypes", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Interfaces cannot contain constructors.
         /// </summary>
         internal static string ERR_InterfacesCantContainConstructors {

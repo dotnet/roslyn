@@ -1457,9 +1457,6 @@ If such a class is used as a base class and if the deriving class defines a dest
   <data name="ERR_StructLayoutCycle" xml:space="preserve">
     <value>Struct member '{0}' of type '{1}' causes a cycle in the struct layout</value>
   </data>
-  <data name="ERR_InterfacesCannotContainTypes" xml:space="preserve">
-    <value>'{0}': interfaces cannot declare types</value>
-  </data>
   <data name="ERR_InterfacesCantContainFields" xml:space="preserve">
     <value>Interfaces cannot contain fields</value>
   </data>
