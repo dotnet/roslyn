@@ -1395,7 +1395,9 @@ d.cs
         [Fact]
         public void LanguageVersion_CommandLineUsage()
         {
-            var expected = Enum.GetValues(typeof(LanguageVersion)).Cast<LanguageVersion>().Select(v => v.ToDisplayString());
+            var expected = Enum.GetValues(typeof(LanguageVersion)).Cast<LanguageVersion>()
+                .Where(v => v != LanguageVersion.CSharp1 && v != LanguageVersion.CSharp2)
+                .Select(v => v.ToDisplayString());
             string help = CSharpResources.IDS_CSCHelp;
 
             var rangeStart = help.IndexOf("/langversion");
@@ -1403,12 +1405,13 @@ d.cs
             Assert.True(rangeEnd > rangeStart);
 
             string helpRange = help.Substring(rangeStart, rangeEnd - rangeStart).ToLowerInvariant();
-            var acceptableFollowingChar = new[] { '\r', '\n', ',' };
+            var acceptableSurroundingChar = new[] { '\r', '\n', ',' , ' '};
             foreach (var version in expected)
             {
                 var foundIndex = helpRange.IndexOf(version);
                 Assert.True(foundIndex > 0, $"Missing version '{version}'");
-                Assert.True(Array.IndexOf(acceptableFollowingChar, helpRange[foundIndex + version.Length]) >= 0);
+                Assert.True(Array.IndexOf(acceptableSurroundingChar, helpRange[foundIndex - 1]) >= 0);
+                Assert.True(Array.IndexOf(acceptableSurroundingChar, helpRange[foundIndex + version.Length]) >= 0);
             }
 
             // The canary check is a reminder that this test needs to be updated when a language version is added
