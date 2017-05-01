@@ -283,7 +283,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     location = new SourceLocation(node);
                 }
-                
+
                 bool reported = false;
                 if (parameter.IsThis)
                 {

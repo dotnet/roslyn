@@ -1322,7 +1322,7 @@ struct S
 
         [Fact]
         [WorkItem(18813, "https://github.com/dotnet/roslyn/issues/18813")]
-        public void LocalIEnumerableFunctionWithOutParameter()
+        public void LocalIEnumerableFunctionWithOutParameter1()
         {
             var comp = CreateStandardCompilation(@"
 class c
@@ -1340,16 +1340,45 @@ class c
 }");
 
             comp.VerifyDiagnostics(
-                // (6,9): error CS0177: The out parameter 'foobar' must be assigned to before control leaves the current method
-                //         System.Collections.Generic.IEnumerable<string> getFoo(int count, out bool foobar)
-                Diagnostic(ErrorCode.ERR_ParamUnassigned, @"System.Collections.Generic.IEnumerable<string> getFoo(int count, out bool foobar)
-        {
-            foobar = true;
-            yield return ""foo"";
-        }").WithArguments("foobar").WithLocation(6, 9),
                 // (6,83): error CS1623: Iterators cannot have ref or out parameters
                 //         System.Collections.Generic.IEnumerable<string> getFoo(int count, out bool foobar)
-                Diagnostic(ErrorCode.ERR_BadIteratorArgType, "foobar").WithLocation(6, 83));
+                Diagnostic(ErrorCode.ERR_BadIteratorArgType, "foobar"),
+                // (6,56): error CS0177: The out parameter 'foobar' must be assigned to before control leaves the current method
+                //         System.Collections.Generic.IEnumerable<string> getFoo(int count, out bool foobar)
+                Diagnostic(ErrorCode.ERR_ParamUnassigned, "getFoo").WithArguments("foobar").WithLocation(6, 56));
+        }
+
+        [Fact]
+        [WorkItem(18813, "https://github.com/dotnet/roslyn/issues/18813")]
+        public void LocalIEnumerableFunctionWithOutParameter2()
+        {
+            var comp = CreateStandardCompilation(@"
+class c
+{
+    static void Main(string[] args)
+    {
+        System.Collections.Generic.IEnumerable<string> getFoo(int count, out bool foobar)
+        {
+            foobar = false;
+            for (int i = 0; i < count; i++)
+            {
+                foreach (var val in getFoo(3, out var bar))
+                yield return ""foo"";
+            }
+            yield return ""foo"";
+        }
+
+        getFoo(1, out bool myBool);
+    }
+}");
+
+            comp.VerifyDiagnostics(
+                // (6,83): error CS1623: Iterators cannot have ref or out parameters
+                //         System.Collections.Generic.IEnumerable<string> getFoo(int count, out bool foobar)
+                Diagnostic(ErrorCode.ERR_BadIteratorArgType, "foobar"),
+                // (6,56): error CS0177: The out parameter 'foobar' must be assigned to before control leaves the current method
+                //         System.Collections.Generic.IEnumerable<string> getFoo(int count, out bool foobar)
+                Diagnostic(ErrorCode.ERR_ParamUnassigned, "getFoo").WithArguments("foobar").WithLocation(6, 56));
         }
     }
 }

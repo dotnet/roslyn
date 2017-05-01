@@ -141,8 +141,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             // of the function where the enumerable is returned.
             if (localFuncSymbol.IsIterator)
             {
-                // This causes an exception later if one of the parameters is out or ref
-                // Added the check bellow if (branch != null) to not check for LeaveParameters
                 PendingBranches.Add(new PendingBranch(null, this.State));
             }
 
@@ -168,8 +166,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // If the branch syntax is null we can take the localFunc syntax.
                 // This will only be used incase of any diagnostics need to be created and the location is null
-                var syntax = branch?.Syntax ?? localFunc.Syntax; 
-                LeaveParameters(localFuncSymbol.Parameters, syntax, branch?.WasCompilerGenerated == true ? location : null);
+                var syntax = branch?.Syntax ?? localFunc.Syntax;
+                LeaveParameters(localFuncSymbol.Parameters, syntax, location);
 
                 IntersectWith(ref stateAtReturn, ref this.State);
             }
