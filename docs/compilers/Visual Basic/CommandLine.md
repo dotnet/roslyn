@@ -4,6 +4,7 @@
 | ---- | ---- |
 | **OUTPUT FILE**
 | `/out:`*file* | Specifies the output file name.
+| `/refout:`*file* | Specify the reference assembly's output file name
 | `/target:exe` | Create a console application (default). (Short form: `/t`)
 | `/target:winexe` | Create a Windows application.
 | `/target:library` | Create a library assembly.
@@ -34,6 +35,7 @@
 | `/debug:portable` | Emit debugging information in the portable format.
 | `/debug:pdbonly` | Emit PDB file only.
 | `/deterministic` | Produce a deterministic assembly (including module version GUID and timestamp)
+| `/refonly | Produce a reference assembly, instead of a full assembly, as the primary output 
 | **ERRORS AND WARNINGS**
 | `/nowarn` | Disable all warnings.
 | `/nowarn:`*number_list* | Disable a list of individual warnings.
