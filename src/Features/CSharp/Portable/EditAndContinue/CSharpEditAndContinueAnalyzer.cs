@@ -306,7 +306,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     break;
 
                 case SyntaxKind.ForEachStatement:
-                    statementPart = (int)GetStatementPart((ForEachStatementSyntax)node, position);
+                case SyntaxKind.ForEachVariableStatement:
+                    statementPart = (int)GetStatementPart((CommonForEachStatementSyntax)node, position);
                     break;
 
                 case SyntaxKind.VariableDeclaration:
@@ -352,7 +353,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             }
         }
 
-        private static ForEachPart GetStatementPart(ForEachStatementSyntax node, int position)
+        private static ForEachPart GetStatementPart(CommonForEachStatementSyntax node, int position)
         {
             return position < node.OpenParenToken.SpanStart ? ForEachPart.ForEach :
                    position < node.InKeyword.SpanStart ? ForEachPart.VariableDeclaration :
@@ -369,6 +370,27 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
                 case ForEachPart.VariableDeclaration:
                     return TextSpan.FromBounds(node.Type.SpanStart, node.Identifier.Span.End);
+
+                case ForEachPart.In:
+                    return node.InKeyword.Span;
+
+                case ForEachPart.Expression:
+                    return node.Expression.Span;
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(part);
+            }
+        }
+
+        private static TextSpan GetActiveSpan(ForEachVariableStatementSyntax node, ForEachPart part)
+        {
+            switch (part)
+            {
+                case ForEachPart.ForEach:
+                    return node.ForEachKeyword.Span;
+
+                case ForEachPart.VariableDeclaration:
+                    return TextSpan.FromBounds(node.Variable.SpanStart, node.Variable.Span.End);
 
                 case ForEachPart.In:
                     return node.InKeyword.Span;
@@ -601,6 +623,10 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     span = GetActiveSpan((ForEachStatementSyntax)node, (ForEachPart)statementPart);
                     return true;
 
+                case SyntaxKind.ForEachVariableStatement:
+                    span = GetActiveSpan((ForEachVariableStatementSyntax)node, (ForEachPart)statementPart);
+                    return true;
+
                 case SyntaxKind.DoStatement:
                     // The active statement of DoStatement node is the while condition,
                     // which is lexically not the closest breakpoint span (the body is).
@@ -737,6 +763,12 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     // only check the expression, edits in the body and the variable declaration are allowed:
                     return AreEquivalentActiveStatements((ForEachStatementSyntax)oldStatement, (ForEachStatementSyntax)newStatement);
 
+                case SyntaxKind.ForEachVariableStatement:
+                    Debug.Assert(statementPart != 0);
+
+                    // only check the expression, edits in the body and the variable declaration are allowed:
+                    return AreEquivalentActiveStatements((ForEachVariableStatementSyntax)oldStatement, (ForEachVariableStatementSyntax)newStatement);
+
                 case SyntaxKind.IfStatement:
                     // only check the condition, edits in the body are allowed:
                     return AreEquivalentActiveStatements((IfStatementSyntax)oldStatement, (IfStatementSyntax)newStatement);
@@ -811,6 +843,13 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         {
             // This is conservative, we might be able to allow changing the type.
             return AreEquivalentIgnoringLambdaBodies(oldNode.Type, newNode.Type)
+                && AreEquivalentIgnoringLambdaBodies(oldNode.Expression, newNode.Expression);
+        }
+
+        private static bool AreEquivalentActiveStatements(ForEachVariableStatementSyntax oldNode, ForEachVariableStatementSyntax newNode)
+        {
+            // This is conservative, we might be able to allow changing the variable.
+            return AreEquivalentIgnoringLambdaBodies(oldNode.Variable, newNode.Variable)
                 && AreEquivalentIgnoringLambdaBodies(oldNode.Expression, newNode.Expression);
         }
 
@@ -3205,6 +3244,10 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             ReportUnmatchedStatements<ForEachStatementSyntax>(diagnostics, match, (int)SyntaxKind.ForEachStatement, oldActiveStatement, newActiveStatement,
                 areEquivalent: AreEquivalentActiveStatements,
                 areSimilar: (n1, n2) => SyntaxFactory.AreEquivalent(n1.Identifier, n2.Identifier));
+
+            ReportUnmatchedStatements<ForEachVariableStatementSyntax>(diagnostics, match, (int)SyntaxKind.ForEachVariableStatement, oldActiveStatement, newActiveStatement,
+                areEquivalent: AreEquivalentActiveStatements,
+                areSimilar: (n1, n2) => SyntaxFactory.AreEquivalent(n1.Variable, n2.Variable));
         }
 
         private static bool DeclareSameIdentifiers(SeparatedSyntaxList<VariableDeclaratorSyntax> oldVariables, SeparatedSyntaxList<VariableDeclaratorSyntax> newVariables)

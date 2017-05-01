@@ -3328,6 +3328,43 @@ class Test
         }
 
         [Fact]
+        public void ForEachDeconstructionVariable_Update()
+        {
+            string src1 = @"
+class Test
+{
+    private static (int, (bool, double))[] F() { <AS:0>return new[] { (1, (true, 2.0)) };</AS:0> }
+
+    static void Main(string[] args)
+    {
+        foreach (<AS:1>(int i, (bool b, double d))</AS:1> in F())
+        {
+            System.Console.Write(0);
+        }
+    }
+}";
+            string src2 = @"
+class Test
+{
+    private static (int, (bool, double))[] F() { <AS:0>return new[] { (1, (true, 2.0)) };</AS:0> }
+
+    static void Main(string[] args)
+    {
+        foreach (<AS:1>(int i, (var b, double d))</AS:1> in F())
+        {
+            System.Console.Write(1);
+        }
+    }
+}";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active,
+                Diagnostic(RudeEditKind.ActiveStatementUpdate, "(int i, (var b, double d))"),
+                Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "(int i, (var b, double d))", "deconstruction"));
+        }
+
+        [Fact]
         public void ForEach_Reorder_Leaf1()
         {
             string src1 = @"
@@ -3466,6 +3503,49 @@ class Test
                 Diagnostic(RudeEditKind.InsertAroundActiveStatement, "foreach (var b in e1)", CSharpFeaturesResources.foreach_statement),
                 Diagnostic(RudeEditKind.InsertAroundActiveStatement, "foreach (var c in e1)", CSharpFeaturesResources.foreach_statement),
                 Diagnostic(RudeEditKind.InsertAroundActiveStatement, "foreach (var a in e1)", CSharpFeaturesResources.foreach_statement));
+        }
+
+        [Fact]
+        public void ForEachVariable_Update_Leaf2()
+        {
+            string src1 = @"
+class Test
+{
+    public static (int, bool)[] e1 = new (int, bool)[1];
+    public static (int, bool)[] e2 = new (int, bool)[1];
+    
+    static void Main(string[] args)
+    {
+        <AS:0>System.Console.Write();</AS:0>
+    }
+}";
+            string src2 = @"
+class Test
+{
+    public static (int, bool)[] e1 = new (int, bool)[1];
+    public static (int, bool)[] e2 = new (int, bool)[1];
+    
+    static void Main(string[] args)
+    {
+        foreach ((int b1, bool b2) in e1)
+        {
+            foreach (var c in e1)
+            {
+                foreach ((var a1, var a2) in e1)
+                {
+                    <AS:0>System.Console.Write();</AS:0>
+                }
+            }
+        }
+    }
+}";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active,
+                Diagnostic(RudeEditKind.InsertAroundActiveStatement, "foreach (var c in e1)", "foreach statement"),
+                Diagnostic(RudeEditKind.InsertAroundActiveStatement, "(int b1, bool b2)", "deconstruction"),
+                Diagnostic(RudeEditKind.InsertAroundActiveStatement, "(var a1, var a2)", "deconstruction"));
         }
 
         [Fact]

@@ -3436,7 +3436,6 @@ class C
 ", methodToken: diff1.UpdatedMethods.Single());
         }
 
-
         [Fact]
         public void ForEachStatement_Deconstruction()
         {
