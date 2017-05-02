@@ -64,12 +64,12 @@
 - Overload resolution, override/hide/implement (OHI)
 - Inheritance (virtual, override, abstract, new)
 - Anonymous types
-- Tuples
+- Tuple types and literals (elements with explicit or inferred names, long tuples)
 - Local functions
 - Unsafe code
 - LINQ
 - Constructors, properties, indexers, events, operators, and destructors.
-- Async
+- Async (task-like types)
 - Lvalues: the synthesized fields are mutable 
     - Ref / out parameters
     - Compound operators (+=, /=, etc ..) 
