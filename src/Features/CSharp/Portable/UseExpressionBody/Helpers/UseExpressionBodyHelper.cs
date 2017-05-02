@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -20,7 +21,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
 
         public abstract bool CanOfferUseExpressionBody(OptionSet optionSet, SyntaxNode declaration, bool forAnalyzer);
         public abstract bool CanOfferUseBlockBody(OptionSet optionSet, SyntaxNode declaration, bool forAnalyzer);
-        public abstract SyntaxNode Update(SyntaxNode declaration, OptionSet options);
+        public abstract SyntaxNode Update(SyntaxNode declaration, OptionSet options, bool useExpressionBody);
+
+        public abstract Location GetDiagnosticLocation(SyntaxNode declaration);
 
         public static readonly ImmutableArray<UseExpressionBodyHelper> Helpers =
             ImmutableArray.Create<UseExpressionBodyHelper>(

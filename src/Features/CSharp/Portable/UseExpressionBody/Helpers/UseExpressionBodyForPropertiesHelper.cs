@@ -2,7 +2,9 @@
 
 using System;
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
@@ -58,5 +60,40 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         }
 
         protected override bool CreateReturnStatementForExpression(PropertyDeclarationSyntax declaration) => true;
+
+        protected override bool TryConvertToExpressionBody(
+            PropertyDeclarationSyntax declaration, ParseOptions options, 
+            ExpressionBodyPreference conversionPreference, 
+            out ArrowExpressionClauseSyntax arrowExpression, 
+            out SyntaxToken semicolonToken)
+        {
+            if (base.TryConvertToExpressionBody(declaration, options, conversionPreference, out arrowExpression, out semicolonToken))
+            {
+                return true;
+            }
+
+            var getAccessor = GetSingleGetAccessor(declaration.AccessorList);
+            if (getAccessor.ExpressionBody != null &&
+                BlockSyntaxExtensions.MatchesPreference(getAccessor.ExpressionBody.Expression, conversionPreference))
+            {
+                arrowExpression = SyntaxFactory.ArrowExpressionClause(getAccessor.ExpressionBody.Expression);
+                semicolonToken = getAccessor.SemicolonToken;
+                return true;
+            }
+
+            return false;
+        }
+
+        protected override Location GetDiagnosticLocation(PropertyDeclarationSyntax declaration)
+        {
+            var body = GetBody(declaration);
+            if (body != null)
+            {
+                return base.GetDiagnosticLocation(declaration);
+            }
+
+            var getAccessor = GetSingleGetAccessor(declaration.AccessorList);
+            return getAccessor.ExpressionBody.GetLocation();
+        }
     }
 }

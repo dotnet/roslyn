@@ -82,7 +82,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             {
                 context.RegisterRefactoring(new MyCodeAction(
                     helper.UseExpressionBodyTitle.ToString(),
-                    c => UpdateDocumentAsync(document, root, declaration, optionSet, helper, c)));
+                    c => UpdateDocumentAsync(
+                        document, root, declaration, optionSet, helper, 
+                        useExpressionBody: true, cancellationToken: c)));
                 succeeded = true;
             }
 
@@ -90,7 +92,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             {
                 context.RegisterRefactoring(new MyCodeAction(
                     helper.UseBlockBodyTitle.ToString(),
-                    c => UpdateDocumentAsync(document, root, declaration, optionSet, helper, c)));
+                    c => UpdateDocumentAsync(
+                        document, root, declaration, optionSet, helper, 
+                        useExpressionBody: false, cancellationToken: c)));
                 succeeded = true;
             }
 
@@ -112,10 +116,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
 
         private Task<Document> UpdateDocumentAsync(
             Document document, SyntaxNode root, SyntaxNode declaration,
-            OptionSet options, UseExpressionBodyHelper helper,
+            OptionSet options, UseExpressionBodyHelper helper, bool useExpressionBody,
             CancellationToken cancellationToken)
         {
-            var updatedDeclaration = helper.Update(declaration, options)
+            var updatedDeclaration = helper.Update(declaration, options, useExpressionBody)
                                            .WithAdditionalAnnotations(Formatter.Annotation);
             var newRoot = root.ReplaceNode(declaration, updatedDeclaration);
 

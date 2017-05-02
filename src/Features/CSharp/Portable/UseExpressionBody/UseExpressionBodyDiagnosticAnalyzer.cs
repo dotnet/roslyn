@@ -89,12 +89,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             {
                 var location = severity == DiagnosticSeverity.Hidden
                     ? declaration.GetLocation()
-                    : helper.GetBody(declaration).Statements[0].GetLocation();
+                    : helper.GetDiagnosticLocation(declaration);
 
                 var additionalLocations = ImmutableArray.Create(declaration.GetLocation());
+                var properties = ImmutableDictionary<string, string>.Empty.Add(nameof(UseExpressionBody), "");
                 return Diagnostic.Create(
                     CreateDescriptorWithId(helper.DiagnosticId, helper.UseExpressionBodyTitle, helper.UseExpressionBodyTitle, severity, GetCustomTags(severity)),
-                    location, additionalLocations: additionalLocations);
+                    location, additionalLocations: additionalLocations, properties: properties);
             }
 
             if (helper.CanOfferUseBlockBody(optionSet, declaration, forAnalyzer: true))

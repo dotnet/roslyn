@@ -41,18 +41,22 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             SyntaxKinds = syntaxKinds;
         }
 
-        protected static BlockSyntax GetBodyFromSingleGetAccessor(AccessorListSyntax accessorList)
+        protected static AccessorDeclarationSyntax GetSingleGetAccessor(AccessorListSyntax accessorList)
         {
             if (accessorList != null &&
                 accessorList.Accessors.Count == 1 &&
-                accessorList.Accessors[0].AttributeLists.Count == 0 && 
+                accessorList.Accessors[0].AttributeLists.Count == 0 &&
                 accessorList.Accessors[0].IsKind(SyntaxKind.GetAccessorDeclaration))
             {
-                return accessorList.Accessors[0].Body;
+                return accessorList.Accessors[0];
             }
 
             return null;
         }
+
+
+        protected static BlockSyntax GetBodyFromSingleGetAccessor(AccessorListSyntax accessorList)
+            => GetSingleGetAccessor(accessorList)?.Body;
 
         public override BlockSyntax GetBody(SyntaxNode declaration)
             => GetBody((TDeclaration)declaration);
@@ -66,8 +70,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         public override bool CanOfferUseBlockBody(OptionSet optionSet, SyntaxNode declaration, bool forAnalyzer)
             => CanOfferUseBlockBody(optionSet, (TDeclaration)declaration, forAnalyzer);
 
-        public override SyntaxNode Update(SyntaxNode declaration, OptionSet options)
-            => Update((TDeclaration)declaration, options);
+        public override SyntaxNode Update(SyntaxNode declaration, OptionSet options, bool useExpressionBody)
+            => Update((TDeclaration)declaration, options, useExpressionBody);
+
+        public override Location GetDiagnosticLocation(SyntaxNode declaration)
+            => GetDiagnosticLocation((TDeclaration)declaration);
+
+        protected virtual Location GetDiagnosticLocation(TDeclaration declaration)
+            => this.GetBody(declaration).Statements[0].GetLocation();
 
         public virtual bool CanOfferUseExpressionBody(
             OptionSet optionSet, TDeclaration declaration, bool forAnalyzer)
@@ -86,19 +96,26 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
                     // have into one.
 
                     var options = declaration.SyntaxTree.Options;
-                    var body = this.GetBody(declaration);
-
                     var conversionPreference = forAnalyzer ? preference : ExpressionBodyPreference.WhenPossible;
 
-                    if (body.TryConvertToExpressionBody(options, conversionPreference,
-                            out var expressionWhenOnSingleLine, out var semicolonWhenOnSingleLine))
-                    {
-                        return true;
-                    }
+                    return TryConvertToExpressionBody(declaration, options, conversionPreference,
+                        out var expressionWhenOnSingleLine, out var semicolonWhenOnSingleLine);
                 }
             }
 
             return false;
+        }
+
+        protected virtual bool TryConvertToExpressionBody(
+            TDeclaration declaration,
+            ParseOptions options, ExpressionBodyPreference conversionPreference, 
+            out ArrowExpressionClauseSyntax expressionWhenOnSingleLine, 
+            out SyntaxToken semicolonWhenOnSingleLine)
+        {
+            var body = this.GetBody(declaration);
+
+            return body.TryConvertToExpressionBody(options, conversionPreference,
+                out expressionWhenOnSingleLine, out semicolonWhenOnSingleLine);
         }
 
         public virtual bool CanOfferUseBlockBody(
@@ -118,12 +135,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             return false;
         }
 
-        public TDeclaration Update(TDeclaration declaration, OptionSet options)
+        public TDeclaration Update(TDeclaration declaration, OptionSet options, bool useExpressionBody)
         {
-            var preferExpressionBody = GetBody(declaration) != null;
-            if (preferExpressionBody)
+            if (useExpressionBody)
             {
-                GetBody(declaration).TryConvertToExpressionBody(declaration.SyntaxTree.Options,
+                TryConvertToExpressionBody(declaration, declaration.SyntaxTree.Options,
                     ExpressionBodyPreference.WhenPossible, out var expressionBody, out var semicolonToken);
 
                 var trailingTrivia = semicolonToken.TrailingTrivia

@@ -59,14 +59,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         }
 
         private void AddEdits(
-            SyntaxEditor editor, Diagnostic diagnostic,
+            SyntaxEditor editor, Diagnostic diagnostic, 
             OptionSet options, CancellationToken cancellationToken)
         {
             var declarationLocation = diagnostic.AdditionalLocations[0];
             var helper = _helpers.Single(h => h.DiagnosticId == diagnostic.Id);
             var declaration = declarationLocation.FindNode(cancellationToken);
+            var useExpressionBody = diagnostic.Properties.ContainsKey(nameof(UseExpressionBody));
 
-            var updatedDeclaration = helper.Update(declaration, options)
+            var updatedDeclaration = helper.Update(declaration, options, useExpressionBody)
                                            .WithAdditionalAnnotations(Formatter.Annotation);
 
             editor.ReplaceNode(declaration, updatedDeclaration);
