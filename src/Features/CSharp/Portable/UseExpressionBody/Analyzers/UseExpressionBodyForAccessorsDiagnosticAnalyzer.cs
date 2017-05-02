@@ -10,9 +10,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
     internal class UseExpressionBodyForAccessorsDiagnosticAnalyzer : 
         AbstractUseExpressionBodyDiagnosticAnalyzer<AccessorDeclarationSyntax>
     {
-        private readonly UseExpressionBodyForPropertiesDiagnosticAnalyzer propertyAnalyzer = new UseExpressionBodyForPropertiesDiagnosticAnalyzer();
-        private readonly UseExpressionBodyForIndexersDiagnosticAnalyzer indexerAnalyzer = new UseExpressionBodyForIndexersDiagnosticAnalyzer();
-
         public UseExpressionBodyForAccessorsDiagnosticAnalyzer()
             : base(UseExpressionBodyForAccessorsHelper.Instance)
         {
