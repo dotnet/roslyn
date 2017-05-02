@@ -572,6 +572,49 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
         }
 
+        [Fact]
+        public async Task TestPersistableChecksum()
+        {
+            var code = "class A { }";
+
+            var projectId1 = ProjectId.CreateNewId();
+            var solution1 = new AdhocWorkspace().AddSolution(SolutionInfo.Create(
+                SolutionId.CreateNewId(), VersionStamp.Create(), "test.sln",
+                new ProjectInfo[]
+                {
+                    ProjectInfo.Create(projectId1, VersionStamp.Create(), "Project", "Project.Dll", LanguageNames.CSharp, "test.csproj",
+                        documents: new DocumentInfo[]
+                        {
+                            DocumentInfo.Create(DocumentId.CreateNewId(projectId1), "Document", loader: TextLoader.From(TextAndVersion.Create(SourceText.From(code), VersionStamp.Create(), filePath: "test.cs")), filePath: "test.cs")
+                        },
+                        additionalDocuments: new DocumentInfo[]
+                        {
+                            DocumentInfo.Create(DocumentId.CreateNewId(projectId1), "Document", loader: TextLoader.From(TextAndVersion.Create(SourceText.From(code), VersionStamp.Create(), filePath: "additional.txt")), filePath: "additional.txt")
+                        })
+                }));
+
+            var projectId2 = ProjectId.CreateNewId();
+            var solution2 = new AdhocWorkspace().AddSolution(SolutionInfo.Create(
+                SolutionId.CreateNewId(), VersionStamp.Create(), "test.sln",
+                new ProjectInfo[]
+                {
+                    ProjectInfo.Create(projectId2, VersionStamp.Create(), "Project", "Project.Dll", LanguageNames.CSharp, "test.csproj",
+                        documents: new DocumentInfo[]
+                        {
+                            DocumentInfo.Create(DocumentId.CreateNewId(projectId2), "Document", loader: TextLoader.From(TextAndVersion.Create(SourceText.From(code), VersionStamp.Create(), filePath: "test.cs")), filePath: "test.cs")
+                        },
+                        additionalDocuments: new DocumentInfo[]
+                        {
+                            DocumentInfo.Create(DocumentId.CreateNewId(projectId2), "Document", loader: TextLoader.From(TextAndVersion.Create(SourceText.From(code), VersionStamp.Create(), filePath: "additional.txt")), filePath: "additional.txt")
+                        })
+                }));
+
+
+            Assert.Equal(await solution1.State.GetChecksumAsync(CancellationToken.None), await solution2.State.GetChecksumAsync(CancellationToken.None));
+            Assert.Equal(await solution1.State.ProjectStates.Values.First().GetChecksumAsync(CancellationToken.None), await solution2.State.ProjectStates.Values.First().GetChecksumAsync(CancellationToken.None));
+            Assert.Equal(await solution1.State.ProjectStates.Values.First().DocumentStates.Values.First().GetChecksumAsync(CancellationToken.None), await solution2.State.ProjectStates.Values.First().DocumentStates.Values.First().GetChecksumAsync(CancellationToken.None));
+        }
+
         private async Task<string> GetXmlDocumentAsync(HostServices services)
         {
             using (var tempRoot = new TempRoot())
