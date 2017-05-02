@@ -19,12 +19,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         private readonly AbstractUseExpressionBodyHelper<TDeclaration> _helper;
 
         protected AbstractUseExpressionBodyDiagnosticAnalyzer(
-            string diagnosticId,
-            ImmutableArray<SyntaxKind> syntaxKinds,
             AbstractUseExpressionBodyHelper<TDeclaration> helper)
-            : base(diagnosticId, helper.UseExpressionBodyTitle)
+            : base(helper.DiagnosticId, helper.UseExpressionBodyTitle)
         {
-            _syntaxKinds = syntaxKinds;
+            _syntaxKinds = helper.SyntaxKinds;
             _helper = helper;
         }
 

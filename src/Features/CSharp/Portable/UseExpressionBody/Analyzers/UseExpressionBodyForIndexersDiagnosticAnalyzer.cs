@@ -11,9 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         AbstractUseExpressionBodyDiagnosticAnalyzer<IndexerDeclarationSyntax>
     {
         public UseExpressionBodyForIndexersDiagnosticAnalyzer()
-            : base(IDEDiagnosticIds.UseExpressionBodyForIndexersDiagnosticId,
-                   ImmutableArray.Create(SyntaxKind.IndexerDeclaration),
-                   UseExpressionBodyForIndexersHelper.Instance)
+            : base(UseExpressionBodyForIndexersHelper.Instance)
         {
         }
     }

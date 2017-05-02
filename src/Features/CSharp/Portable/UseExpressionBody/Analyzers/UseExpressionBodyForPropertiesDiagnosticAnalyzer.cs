@@ -11,9 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         AbstractUseExpressionBodyDiagnosticAnalyzer<PropertyDeclarationSyntax>
     {
         public UseExpressionBodyForPropertiesDiagnosticAnalyzer()
-            : base(IDEDiagnosticIds.UseExpressionBodyForPropertiesDiagnosticId,
-                   ImmutableArray.Create(SyntaxKind.PropertyDeclaration),
-                   UseExpressionBodyForPropertiesHelper.Instance)
+            : base(UseExpressionBodyForPropertiesHelper.Instance)
         {
         }
     }

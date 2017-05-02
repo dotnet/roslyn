@@ -1,7 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
 {
@@ -11,9 +13,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         public static readonly UseExpressionBodyForOperatorsHelper Instance = new UseExpressionBodyForOperatorsHelper();
 
         private UseExpressionBodyForOperatorsHelper()
-            : base(new LocalizableResourceString(nameof(FeaturesResources.Use_expression_body_for_operators), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
+            : base(IDEDiagnosticIds.UseExpressionBodyForOperatorsDiagnosticId,
+                   new LocalizableResourceString(nameof(FeaturesResources.Use_expression_body_for_operators), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
                    new LocalizableResourceString(nameof(FeaturesResources.Use_block_body_for_operators), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
-                   CSharpCodeStyleOptions.PreferExpressionBodiedOperators)
+                   CSharpCodeStyleOptions.PreferExpressionBodiedOperators,
+                   ImmutableArray.Create(SyntaxKind.OperatorDeclaration))
         {
         }
 

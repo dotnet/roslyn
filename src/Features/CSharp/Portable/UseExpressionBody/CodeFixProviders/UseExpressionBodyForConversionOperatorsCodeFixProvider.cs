@@ -11,8 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
     internal class UseExpressionBodyForConversionOperatorsCodeFixProvider : AbstractUseExpressionBodyCodeFixProvider<ConversionOperatorDeclarationSyntax>
     {
         public UseExpressionBodyForConversionOperatorsCodeFixProvider()
-            : base(IDEDiagnosticIds.UseExpressionBodyForConversionOperatorsDiagnosticId,
-                   UseExpressionBodyForConversionOperatorsHelper.Instance)
+            : base(UseExpressionBodyForConversionOperatorsHelper.Instance)
         {
         }
     }

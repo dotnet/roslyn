@@ -11,8 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
     internal class UseExpressionBodyForConstructorsCodeFixProvider : AbstractUseExpressionBodyCodeFixProvider<ConstructorDeclarationSyntax>
     {
         public UseExpressionBodyForConstructorsCodeFixProvider()
-            : base(IDEDiagnosticIds.UseExpressionBodyForConstructorsDiagnosticId,
-                   UseExpressionBodyForConstructorsHelper.Instance)
+            : base(UseExpressionBodyForConstructorsHelper.Instance)
         {
         }
     }

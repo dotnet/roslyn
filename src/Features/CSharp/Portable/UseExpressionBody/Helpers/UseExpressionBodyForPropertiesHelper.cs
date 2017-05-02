@@ -1,8 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
@@ -13,9 +15,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         public static readonly UseExpressionBodyForPropertiesHelper Instance = new UseExpressionBodyForPropertiesHelper();
 
         private UseExpressionBodyForPropertiesHelper()
-            : base(new LocalizableResourceString(nameof(FeaturesResources.Use_expression_body_for_properties), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
+            : base(IDEDiagnosticIds.UseExpressionBodyForPropertiesDiagnosticId,
+                   new LocalizableResourceString(nameof(FeaturesResources.Use_expression_body_for_properties), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
                    new LocalizableResourceString(nameof(FeaturesResources.Use_block_body_for_properties), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
-                   CSharpCodeStyleOptions.PreferExpressionBodiedProperties)
+                   CSharpCodeStyleOptions.PreferExpressionBodiedProperties,
+                   ImmutableArray.Create(SyntaxKind.PropertyDeclaration))
         {
         }
 

@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -23,15 +24,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         public readonly Option<CodeStyleOption<ExpressionBodyPreference>> Option;
         public readonly LocalizableString UseExpressionBodyTitle;
         public readonly LocalizableString UseBlockBodyTitle;
+        public readonly string DiagnosticId;
+        public readonly ImmutableArray<SyntaxKind> SyntaxKinds;
 
         protected AbstractUseExpressionBodyHelper(
+            string diagnosticId,
             LocalizableString useExpressionBodyTitle,
             LocalizableString useBlockBodyTitle,
-            Option<CodeStyleOption<ExpressionBodyPreference>> option)
+            Option<CodeStyleOption<ExpressionBodyPreference>> option,
+            ImmutableArray<SyntaxKind> syntaxKinds)
         {
+            DiagnosticId = diagnosticId;
             Option = option;
             UseExpressionBodyTitle = useExpressionBodyTitle;
             UseBlockBodyTitle = useBlockBodyTitle;
+            SyntaxKinds = syntaxKinds;
         }
 
         public abstract BlockSyntax GetBody(TDeclaration declaration);

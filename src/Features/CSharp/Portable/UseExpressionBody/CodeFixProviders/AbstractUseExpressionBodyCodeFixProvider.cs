@@ -24,10 +24,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         public sealed override ImmutableArray<string> FixableDiagnosticIds { get; }
 
         protected AbstractUseExpressionBodyCodeFixProvider(
-            string diagnosticId,
             AbstractUseExpressionBodyHelper<TDeclaration> helper)
         {
-            FixableDiagnosticIds = ImmutableArray.Create(diagnosticId);
+            FixableDiagnosticIds = ImmutableArray.Create(helper.DiagnosticId);
             _helper = helper;
         }
 

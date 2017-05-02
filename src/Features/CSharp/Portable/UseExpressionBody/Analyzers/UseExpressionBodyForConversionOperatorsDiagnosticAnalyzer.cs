@@ -11,9 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         AbstractUseExpressionBodyDiagnosticAnalyzer<ConversionOperatorDeclarationSyntax>
     {
         public UseExpressionBodyForConversionOperatorsDiagnosticAnalyzer()
-            : base(IDEDiagnosticIds.UseExpressionBodyForConversionOperatorsDiagnosticId,
-                   ImmutableArray.Create(SyntaxKind.ConversionOperatorDeclaration),
-                   UseExpressionBodyForConversionOperatorsHelper.Instance)
+            : base(UseExpressionBodyForConversionOperatorsHelper.Instance)
         {
         }
     }
