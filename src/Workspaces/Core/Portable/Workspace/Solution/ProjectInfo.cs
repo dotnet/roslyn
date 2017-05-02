@@ -438,7 +438,6 @@ namespace Microsoft.CodeAnalysis
                 // per session or not content based value. basically not
                 // persistable. these information will not be included in checksum
                 Id.WriteTo(writer);
-                writer.WriteBoolean(HasAllInformation);
                 Version.WriteTo(writer);
 
                 writer.WriteString(FilePath);
@@ -447,6 +446,7 @@ namespace Microsoft.CodeAnalysis
                 writer.WriteString(Language);
                 writer.WriteString(OutputFilePath);
                 writer.WriteBoolean(IsSubmission);
+                writer.WriteBoolean(HasAllInformation);
 
                 // TODO: once CompilationOptions, ParseOptions, ProjectReference, MetadataReference, AnalyzerReference supports
                 //       serialization, we should include those here as well.
@@ -455,7 +455,6 @@ namespace Microsoft.CodeAnalysis
             public static ProjectAttributes ReadFrom(ObjectReader reader)
             {
                 var projectId = ProjectId.ReadFrom(reader);
-                var hasAllInformation = reader.ReadBoolean();
                 var version = VersionStamp.ReadFrom(reader);
 
                 var filePath = reader.ReadString();
@@ -464,6 +463,7 @@ namespace Microsoft.CodeAnalysis
                 var language = reader.ReadString();
                 var outputFilePath = reader.ReadString();
                 var isSubmission = reader.ReadBoolean();
+                var hasAllInformation = reader.ReadBoolean();
 
                 return new ProjectAttributes(projectId, version, name, assemblyName, language, filePath, outputFilePath, isSubmission, hasAllInformation);
             }
@@ -500,6 +500,7 @@ namespace Microsoft.CodeAnalysis
                             writer.WriteString(Language);
                             writer.WriteString(OutputFilePath);
                             writer.WriteBoolean(IsSubmission);
+                            writer.WriteBoolean(HasAllInformation);
 
                             _lazyChecksum = Checksum.Create(stream);
                         }
