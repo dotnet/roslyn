@@ -54,9 +54,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 return serializer.CreateChecksum(text, cancellationToken);
             });
 
-            var textChecksums = await Task.WhenAll(textChecksumsTasks).ConfigureAwait(false);
             var compilationOptionsChecksum = ChecksumCache.GetOrCreate(project.CompilationOptions, _ => serializer.CreateChecksum(project.CompilationOptions, cancellationToken));
             var parseOptionsChecksum = ChecksumCache.GetOrCreate(project.ParseOptions, _ => serializer.CreateChecksum(project.ParseOptions, cancellationToken));
+            var textChecksums = await Task.WhenAll(textChecksumsTasks).ConfigureAwait(false);
 
             var allChecksums = ArrayBuilder<Checksum>.GetInstance();
             try
