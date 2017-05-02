@@ -32,7 +32,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             var nestedHierarchy = hierarchyItem.HierarchyIdentity.NestedHierarchy;
             var nestedHierarchyId = hierarchyItem.HierarchyIdentity.NestedItemID;
 
-            if (!nestedHierarchy.TryGetCanonicalName(nestedHierarchyId, out string nestedCanonicalName))
+            if (!nestedHierarchy.TryGetCanonicalName(nestedHierarchyId, out string nestedCanonicalName)
+                || !nestedHierarchy.TryGetItemName(nestedHierarchyId, out string nestedName))
             {
                 projectId = default(ProjectId);
                 return false;
@@ -42,7 +43,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                     .Where(p =>
                     {
                         if (p.Hierarchy.TryGetCanonicalName((uint)VSConstants.VSITEMID.Root, out string projectCanonicalName)
-                            && projectCanonicalName.Equals(nestedCanonicalName, System.StringComparison.OrdinalIgnoreCase))
+                            && p.Hierarchy.TryGetItemName((uint)VSConstants.VSITEMID.Root, out string projectName)
+                            && projectCanonicalName.Equals(nestedCanonicalName, System.StringComparison.OrdinalIgnoreCase)
+                            && projectName.Equals(nestedName))
                         {
                             if (targetFrameworkMoniker == null)
                             {
