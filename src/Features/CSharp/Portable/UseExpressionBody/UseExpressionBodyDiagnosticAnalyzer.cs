@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
 
             if (helper.CanOfferUseBlockBody(optionSet, declaration, forAnalyzer: true))
             {
-                // They have an expression body.  Create a diagnostic to conver it to a block
+                // They have an expression body.  Create a diagnostic to convert it to a block
                 // if they don't want expression bodies for this member.  
                 var location = severity == DiagnosticSeverity.Hidden
                     ? declaration.GetLocation()
