@@ -162,6 +162,10 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Sets the <see cref="CurrentSolution"/> of this workspace. This method does not raise a <see cref="WorkspaceChanged"/> event.
         /// </summary>
+        /// <remarks>
+        /// This method does not guarantee that linked files will have the same contents. Callers 
+        /// should enforce that policy before passing in the new solution.
+        /// </remarks>
         protected Solution SetCurrentSolution(Solution solution)
         {
             var currentSolution = Volatile.Read(ref _latestSolution);
@@ -851,7 +855,7 @@ namespace Microsoft.CodeAnalysis
                 newText,
                 mode,
                 CheckAdditionalDocumentIsInCurrentSolution,
-                (solution, docId) => ImmutableArray.Create(docId),
+                (solution, docId) => ImmutableArray.Create(docId), // We do not support the concept of linked additional documents
                 (solution, docId, text, preservationMode) => solution.WithAdditionalDocumentText(docId, text, preservationMode),
                 WorkspaceChangeKind.AdditionalDocumentChanged,
                 isCodeDocument: false);
@@ -894,10 +898,15 @@ namespace Microsoft.CodeAnalysis
                     }
                 }
 
+                // In the case of linked files, we may have already updated all of the linked
+                // documents during an earlier call to this method. We may have no work to do here.
                 if (updatedDocumentIds.Count > 0)
                 {
                     var newSolution = SetCurrentSolution(updatedSolution);
 
+                    // Prior to the unification of the callers of this method, the
+                    // OnAdditionalDocumentTextChanged method did not fire any sort of synchronous
+                    // update notification event, so we preserve that behavior here.
                     if (isCodeDocument)
                     {
                         foreach (var updatedDocumentId in updatedDocumentIds)
