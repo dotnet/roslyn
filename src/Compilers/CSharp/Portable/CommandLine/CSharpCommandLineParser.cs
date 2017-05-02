@@ -88,6 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             List<ResourceDescription> managedResources = new List<ResourceDescription>();
             List<CommandLineSourceFile> sourceFiles = new List<CommandLineSourceFile>();
             List<CommandLineSourceFile> additionalFiles = new List<CommandLineSourceFile>();
+            List<CommandLineSourceFile> editorConfigFiles = new List<CommandLineSourceFile>();
             List<CommandLineSourceFile> embeddedFiles = new List<CommandLineSourceFile>();
             bool sourceFilesSpecified = false;
             bool embedAllSourceFiles = false;
@@ -1122,6 +1123,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                             additionalFiles.AddRange(ParseSeparatedFileArgument(value, baseDirectory, diagnostics));
                             continue;
 
+                        case "editorconfig":
+                            if (string.IsNullOrEmpty(value))
+                            {
+                                AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, "<file list>", name);
+                                continue;
+                            }
+
+                            editorConfigFiles.AddRange(ParseSeparatedFileArgument(value, baseDirectory, diagnostics));
+
+                            continue;
+
                         case "embed":
                             if (string.IsNullOrEmpty(value))
                             {
@@ -1301,6 +1313,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 MetadataReferences = metadataReferences.AsImmutable(),
                 AnalyzerReferences = analyzers.AsImmutable(),
                 AdditionalFiles = additionalFiles.AsImmutable(),
+                EditorConfigFiles = editorConfigFiles.AsImmutable(),
                 ReferencePaths = referencePaths,
                 SourcePaths = sourcePaths.AsImmutable(),
                 KeyFileSearchPaths = keyFileSearchPaths.AsImmutable(),
