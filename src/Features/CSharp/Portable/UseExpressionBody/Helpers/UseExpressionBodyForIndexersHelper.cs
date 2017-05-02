@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.Options;
 namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
 {
     internal class UseExpressionBodyForIndexersHelper :
-        AbstractUseExpressionBodyHelper<IndexerDeclarationSyntax>
+        UseExpressionBodyHelper<IndexerDeclarationSyntax>
     {
         public static readonly UseExpressionBodyForIndexersHelper Instance = new UseExpressionBodyForIndexersHelper();
 

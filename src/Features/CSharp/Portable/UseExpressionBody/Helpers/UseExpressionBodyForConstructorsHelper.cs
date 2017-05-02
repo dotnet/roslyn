@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
 {
     internal class UseExpressionBodyForConstructorsHelper :
-        AbstractUseExpressionBodyHelper<ConstructorDeclarationSyntax>
+        UseExpressionBodyHelper<ConstructorDeclarationSyntax>
     {
         public static readonly UseExpressionBodyForConstructorsHelper Instance = new UseExpressionBodyForConstructorsHelper();
 

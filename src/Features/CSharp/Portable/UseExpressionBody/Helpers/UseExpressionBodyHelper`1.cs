@@ -13,38 +13,12 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
 {
-    internal abstract class UseExpressionBodyHelper
-    {
-        public abstract Option<CodeStyleOption<ExpressionBodyPreference>> Option { get; }
-        public abstract LocalizableString UseExpressionBodyTitle { get; }
-        public abstract LocalizableString UseBlockBodyTitle { get; }
-        public abstract string DiagnosticId { get; }
-        public abstract ImmutableArray<SyntaxKind> SyntaxKinds { get; }
-
-        public abstract BlockSyntax GetBody(SyntaxNode declaration);
-        public abstract ArrowExpressionClauseSyntax GetExpressionBody(SyntaxNode declaration);
-
-        public abstract bool CanOfferUseExpressionBody(OptionSet optionSet, SyntaxNode declaration, bool forAnalyzer);
-        public abstract bool CanOfferUseBlockBody(OptionSet optionSet, SyntaxNode declaration, bool forAnalyzer);
-        public abstract SyntaxNode Update(SyntaxNode declaration, OptionSet options);
-
-        public static readonly ImmutableArray<UseExpressionBodyHelper> Helpers =
-            ImmutableArray.Create<UseExpressionBodyHelper>(
-                UseExpressionBodyForConstructorsHelper.Instance,
-                UseExpressionBodyForConversionOperatorsHelper.Instance,
-                UseExpressionBodyForIndexersHelper.Instance,
-                UseExpressionBodyForMethodsHelper.Instance,
-                UseExpressionBodyForOperatorsHelper.Instance,
-                UseExpressionBodyForPropertiesHelper.Instance,
-                UseExpressionBodyForAccessorsHelper.Instance);
-    }
-
     /// <summary>
     /// Helper class that allows us to share lots of logic between the diagnostic analyzer and the
     /// code refactoring provider.  Those can't share a common base class due to their own inheritance
     /// requirements with <see cref="DiagnosticAnalyzer"/> and <see cref="CodeRefactoringProvider"/>.
     /// </summary>
-    internal abstract class AbstractUseExpressionBodyHelper<TDeclaration> : UseExpressionBodyHelper
+    internal abstract class UseExpressionBodyHelper<TDeclaration> : UseExpressionBodyHelper
         where TDeclaration : SyntaxNode
     {
         public override Option<CodeStyleOption<ExpressionBodyPreference>> Option { get; }
@@ -53,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         public override string DiagnosticId { get; }
         public override ImmutableArray<SyntaxKind> SyntaxKinds { get; }
 
-        protected AbstractUseExpressionBodyHelper(
+        protected UseExpressionBodyHelper(
             string diagnosticId,
             LocalizableString useExpressionBodyTitle,
             LocalizableString useBlockBodyTitle,

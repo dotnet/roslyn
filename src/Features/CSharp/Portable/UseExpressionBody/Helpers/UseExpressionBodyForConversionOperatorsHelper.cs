@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
 {
     internal class UseExpressionBodyForConversionOperatorsHelper :
-        AbstractUseExpressionBodyHelper<ConversionOperatorDeclarationSyntax>
+        UseExpressionBodyHelper<ConversionOperatorDeclarationSyntax>
     {
         public static readonly UseExpressionBodyForConversionOperatorsHelper Instance = new UseExpressionBodyForConversionOperatorsHelper();
 
