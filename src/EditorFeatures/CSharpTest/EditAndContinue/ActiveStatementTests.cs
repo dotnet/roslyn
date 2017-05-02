@@ -8124,8 +8124,7 @@ class C
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2);
 
-            edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "x is string s", CSharpFeaturesResources.is_pattern));
+            edits.VerifyRudeDiagnostics(active);
         }
 
         [Fact]
@@ -8154,8 +8153,7 @@ class C
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2);
 
-            edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "var (x, y) = x", CSharpFeaturesResources.deconstruction));
+            edits.VerifyRudeDiagnostics(active);
         }
 
         [Fact]
@@ -8214,8 +8212,7 @@ class C
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2);
 
-            edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "var (x, y) = o2", CSharpFeaturesResources.deconstruction));
+            edits.VerifyRudeDiagnostics(active);
         }
 
         [Fact]
@@ -8244,8 +8241,7 @@ class C
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2);
 
-            edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "(int x, int y) = o2", CSharpFeaturesResources.deconstruction));
+            edits.VerifyRudeDiagnostics(active);
         }
 
         [Fact]
@@ -8274,8 +8270,7 @@ class C
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2);
 
-            edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "(int, int)", CSharpFeaturesResources.tuple));
+            edits.VerifyRudeDiagnostics(active);
         }
 
         [Fact]
@@ -8334,8 +8329,7 @@ class C
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2);
 
-            edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "var x", CSharpFeaturesResources.out_var));
+            edits.VerifyRudeDiagnostics(active);
         }
 
         [Fact]
@@ -8363,8 +8357,7 @@ class C
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2);
 
-            edits.VerifyRudeDiagnostics(active,
-               Diagnostic(RudeEditKind.UpdateAroundActiveStatement, null, "out variable"));
+            edits.VerifyRudeDiagnostics(active);
         }
 
         [Fact]
@@ -8393,8 +8386,7 @@ class C
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2);
 
-            edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "ref int", CSharpFeaturesResources.ref_local_or_expression));
+            edits.VerifyRudeDiagnostics(active);
         }
 
         [Fact]
@@ -8423,8 +8415,7 @@ class C
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2);
 
-            edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "var (x, y) = o2", CSharpFeaturesResources.deconstruction));
+            edits.VerifyRudeDiagnostics(active);
         }
 
         [Fact]
@@ -8455,8 +8446,7 @@ class C
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2);
 
-            edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "(x, y) = o2", CSharpFeaturesResources.deconstruction));
+            edits.VerifyRudeDiagnostics(active);
         }
 
         [Fact]
@@ -8467,7 +8457,7 @@ class C
 {
     static void F(object o1, object o2)
     {
-        <AS:0>Console.WriteLine(1);</AS:0>
+        <AS:0>System.Console.WriteLine(1);</AS:0>
         switch (o1)
         {
             case int i:
@@ -8481,7 +8471,7 @@ class C
 {
     static void F(object o1, object o2)
     {
-        <AS:0>Console.WriteLine(1);</AS:0>
+        <AS:0>System.Console.WriteLine(1);</AS:0>
         switch (o2)
         {
             case int i:
@@ -8493,8 +8483,8 @@ class C
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2);
 
-            edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "int i", CSharpFeaturesResources.v7_switch));
+            edits.VerifyRudeDiagnostics(active);
+            edits.VerifySemanticDiagnostics(Diagnostic(RudeEditKind.UpdateAroundActiveStatement, null, "C# 7 enhanced switch statement"));
         }
 
         #endregion

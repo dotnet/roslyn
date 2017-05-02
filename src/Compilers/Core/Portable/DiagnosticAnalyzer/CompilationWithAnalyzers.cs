@@ -678,12 +678,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                                     await computeTask.ConfigureAwait(false);
                                 }
-                                catch (OperationCanceledException ex)
+                                catch (OperationCanceledException)
                                 {
                                     cancellationToken.ThrowIfCancellationRequested();
                                     if (!cts.IsCancellationRequested)
                                     {
-                                        throw ex;
+                                        throw;
                                     }
 
                                     suspendend = true;

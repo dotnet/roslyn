@@ -15,10 +15,10 @@ namespace BuildBoss
         private readonly ProjectKey _key;
         private readonly XDocument _document;
         private readonly XmlNamespaceManager _manager;
+        private readonly XNamespace _namespace;
 
-        internal ProjectUtil(string filePath) :this(new ProjectKey(filePath), XDocument.Load(filePath))
+        internal ProjectUtil(string filePath) : this(new ProjectKey(filePath), XDocument.Load(filePath))
         {
-
         }
 
         internal ProjectUtil(ProjectKey key, XDocument document)
@@ -27,6 +27,7 @@ namespace BuildBoss
             _document = document;
             _manager = new XmlNamespaceManager(new NameTable());
             _manager.AddNamespace("mb", SharedUtil.MSBuildNamespaceUriRaw);
+            _namespace = SharedUtil.MSBuildNamespace;
         }
 
         internal RoslynProjectData GetRoslynProjectData()
@@ -61,7 +62,7 @@ namespace BuildBoss
                 return true;
             }
             else
-            { 
+            {
                 var outputType = FindSingleProperty("OutputType");
                 switch (outputType?.Value.Trim())
                 {
@@ -145,7 +146,7 @@ namespace BuildBoss
             {
                 // Make sure to check for references that exist only for ordering purposes.  They don't count as 
                 // actual references.
-                var refOutputAssembly = r.Element(SharedUtil.MSBuildNamespace.GetName("ReferenceOutputAssembly"));
+                var refOutputAssembly = r.Element(_namespace.GetName("ReferenceOutputAssembly"));
                 if (refOutputAssembly != null)
                 {
                     bool isRealReference;
@@ -161,6 +162,36 @@ namespace BuildBoss
             }
 
             return list;
+        }
+
+
+        internal List<PackageReference> GetPackageReferences()
+        {
+            var list = new List<PackageReference>();
+            foreach (var packageRef in _document.XPathSelectElements("//mb:PackageReference", _manager))
+            {
+                list.Add(GetPackageReference(packageRef));
+            }
+
+            return list;
+        }
+
+        internal PackageReference GetPackageReference(XElement element)
+        {
+            var name = element.Attribute("Include")?.Value ?? "";
+            var version = element.Attribute("Version");
+            if (version != null)
+            {
+                return new PackageReference(name, version.Value);
+            }
+
+            var elem = element.Element(_namespace.GetName("Version"));
+            if (element == null)
+            {
+                throw new Exception($"Could not find a Version for package reference {name}");
+            }
+
+            return new PackageReference(name, elem.Value.Trim());
         }
 
         internal XElement FindSingleProperty(string localName) => GetAllPropertyGroupElements().SingleOrDefault(x => x.Name.LocalName == localName);
