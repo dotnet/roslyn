@@ -58,12 +58,20 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var compilationOptionsChecksum = ChecksumCache.GetOrCreate(project.CompilationOptions, _ => serializer.CreateChecksum(project.CompilationOptions, cancellationToken));
             var parseOptionsChecksum = ChecksumCache.GetOrCreate(project.ParseOptions, _ => serializer.CreateChecksum(project.ParseOptions, cancellationToken));
 
-            var allChecksums = textChecksums.ToList();
-            allChecksums.Add(compilationOptionsChecksum);
-            allChecksums.Add(parseOptionsChecksum);
+            var allChecksums = ArrayBuilder<Checksum>.GetInstance();
+            try
+            {
+                allChecksums.AddRange(textChecksums);
+                allChecksums.Add(compilationOptionsChecksum);
+                allChecksums.Add(parseOptionsChecksum);
 
-            var checksum = Checksum.Create(nameof(SymbolTreeInfo), allChecksums);
-            return checksum;
+                var checksum = Checksum.Create(nameof(SymbolTreeInfo), allChecksums);
+                return checksum;
+            }
+            finally
+            {
+                allChecksums.Free();
+            }
         }
 
         internal static SymbolTreeInfo CreateSourceSymbolTreeInfo(
