@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
     public class UseExpressionBodyForAccessorsRefactoringTests : AbstractCSharpCodeActionTest
     {
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
-            => new UseExpressionBodyForAccessorsCodeRefactoringProvider();
+            => new UseExpressionBodyCodeRefactoringProvider();
 
         private IDictionary<OptionKey, object> UseExpressionBodyForAccessors_BlockBodyForProperties =>
             OptionsSet(
@@ -38,9 +38,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
                 this.SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.NeverWithNoneEnforcement));
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
-        public async Task TestNotOfferedIfUserPrefersExpressionBodiesAndInBlockBody()
+        public async Task TestUpdatePropertyIfPropertyWantsBlockAndAccesorWantsExpression()
         {
-            await TestMissingAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     int Foo
@@ -50,6 +50,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             [||]return Bar();
         }
     }
+}",
+@"class C
+{
+    int Foo => Bar();
 }", parameters: new TestParameters(options: UseExpressionBodyForAccessors_BlockBodyForProperties));
         }
 
@@ -90,9 +94,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
-        public async Task TestNotOfferedIfUserPrefersBlockBodiesAndInBlockBody2()
+        public async Task TestOfferExpressionBodyForPropertyIfPropertyAndAccessorBothPreferExpressions()
         {
-            await TestMissingAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     int Foo
@@ -102,6 +106,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             return [||]Bar();
         }
     }
+}",
+@"class C
+{
+    int Foo => [||]Bar();
 }", parameters: new TestParameters(options: UseBlockBodyForAccessors_BlockBodyForProperties));
         }
 

@@ -13,19 +13,45 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
 {
+    internal abstract class UseExpressionBodyHelper
+    {
+        public abstract Option<CodeStyleOption<ExpressionBodyPreference>> Option { get; }
+        public abstract LocalizableString UseExpressionBodyTitle { get; }
+        public abstract LocalizableString UseBlockBodyTitle { get; }
+        public abstract string DiagnosticId { get; }
+        public abstract ImmutableArray<SyntaxKind> SyntaxKinds { get; }
+
+        public abstract BlockSyntax GetBody(SyntaxNode declaration);
+        public abstract ArrowExpressionClauseSyntax GetExpressionBody(SyntaxNode declaration);
+
+        public abstract bool CanOfferUseExpressionBody(OptionSet optionSet, SyntaxNode declaration, bool forAnalyzer);
+        public abstract bool CanOfferUseBlockBody(OptionSet optionSet, SyntaxNode declaration, bool forAnalyzer);
+        public abstract SyntaxNode Update(SyntaxNode declaration, OptionSet options);
+
+        public static readonly ImmutableArray<UseExpressionBodyHelper> Helpers =
+            ImmutableArray.Create<UseExpressionBodyHelper>(
+                UseExpressionBodyForConstructorsHelper.Instance,
+                UseExpressionBodyForConversionOperatorsHelper.Instance,
+                UseExpressionBodyForIndexersHelper.Instance,
+                UseExpressionBodyForMethodsHelper.Instance,
+                UseExpressionBodyForOperatorsHelper.Instance,
+                UseExpressionBodyForPropertiesHelper.Instance,
+                UseExpressionBodyForAccessorsHelper.Instance);
+    }
+
     /// <summary>
     /// Helper class that allows us to share lots of logic between the diagnostic analyzer and the
     /// code refactoring provider.  Those can't share a common base class due to their own inheritance
     /// requirements with <see cref="DiagnosticAnalyzer"/> and <see cref="CodeRefactoringProvider"/>.
     /// </summary>
-    internal abstract class AbstractUseExpressionBodyHelper<TDeclaration>
+    internal abstract class AbstractUseExpressionBodyHelper<TDeclaration> : UseExpressionBodyHelper
         where TDeclaration : SyntaxNode
     {
-        public readonly Option<CodeStyleOption<ExpressionBodyPreference>> Option;
-        public readonly LocalizableString UseExpressionBodyTitle;
-        public readonly LocalizableString UseBlockBodyTitle;
-        public readonly string DiagnosticId;
-        public readonly ImmutableArray<SyntaxKind> SyntaxKinds;
+        public override Option<CodeStyleOption<ExpressionBodyPreference>> Option { get; }
+        public override LocalizableString UseExpressionBodyTitle { get; }
+        public override LocalizableString UseBlockBodyTitle { get; }
+        public override string DiagnosticId { get; }
+        public override ImmutableArray<SyntaxKind> SyntaxKinds { get; }
 
         protected AbstractUseExpressionBodyHelper(
             string diagnosticId,
@@ -41,9 +67,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             SyntaxKinds = syntaxKinds;
         }
 
-        public abstract BlockSyntax GetBody(TDeclaration declaration);
-        public abstract ArrowExpressionClauseSyntax GetExpressionBody(TDeclaration declaration);
-
         protected static BlockSyntax GetBodyFromSingleGetAccessor(AccessorListSyntax accessorList)
         {
             if (accessorList != null &&
@@ -56,6 +79,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
 
             return null;
         }
+
+        public override BlockSyntax GetBody(SyntaxNode declaration)
+            => GetBody((TDeclaration)declaration);
+
+        public override ArrowExpressionClauseSyntax GetExpressionBody(SyntaxNode declaration)
+            => GetExpressionBody((TDeclaration)declaration);
+
+        public override bool CanOfferUseExpressionBody(OptionSet optionSet, SyntaxNode declaration, bool forAnalyzer)
+            => CanOfferUseExpressionBody(optionSet, (TDeclaration)declaration, forAnalyzer);
+
+        public override bool CanOfferUseBlockBody(OptionSet optionSet, SyntaxNode declaration, bool forAnalyzer)
+            => CanOfferUseBlockBody(optionSet, (TDeclaration)declaration, forAnalyzer);
+
+        public override SyntaxNode Update(SyntaxNode declaration, OptionSet options)
+            => Update((TDeclaration)declaration, options);
 
         public virtual bool CanOfferUseExpressionBody(
             OptionSet optionSet, TDeclaration declaration, bool forAnalyzer)
@@ -134,6 +172,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
                            default(SyntaxToken));
             }
         }
+
+        protected abstract BlockSyntax GetBody(TDeclaration declaration);
+
+        protected abstract ArrowExpressionClauseSyntax GetExpressionBody(TDeclaration declaration);
 
         protected abstract bool CreateReturnStatementForExpression(TDeclaration declaration);
 

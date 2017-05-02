@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
     public class UseExpressionBodyForPropertiesRefactoringTests : AbstractCSharpCodeActionTest
     {
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
-            => new UseExpressionBodyForPropertiesCodeRefactoringProvider();
+            => new UseExpressionBodyCodeRefactoringProvider();
 
         private IDictionary<OptionKey, object> UseExpressionBodyForAccessors_BlockBodyForProperties =>
             OptionsSet(
@@ -54,9 +54,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
-        public async Task TestNotOfferedIfUserPrefersExpressionBodiesAndInBlockBody2()
+        public async Task TestUpdateAccessorIfAccessWantsBlockAndPropertyWantsExpression()
         {
-            await TestMissingAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     int Foo
@@ -65,6 +65,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
         {
             [||]return Bar();
         }
+    }
+}",
+@"class C
+{
+    int Foo
+    {
+        get => Bar();
     }
 }", parameters: new TestParameters(options: UseBlockBodyForAccessors_ExpressionBodyForProperties));
         }

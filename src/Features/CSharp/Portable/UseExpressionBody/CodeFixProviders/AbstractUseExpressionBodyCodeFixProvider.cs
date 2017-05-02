@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -15,19 +16,17 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
 {
-    internal abstract partial class AbstractUseExpressionBodyCodeFixProvider<TDeclaration> : 
+    [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
+    internal partial class UseExpressionBodyCodeFixProvider : 
         SyntaxEditorBasedCodeFixProvider
-        where TDeclaration : SyntaxNode
     {
-        private readonly AbstractUseExpressionBodyHelper<TDeclaration> _helper;
-
         public sealed override ImmutableArray<string> FixableDiagnosticIds { get; }
 
-        protected AbstractUseExpressionBodyCodeFixProvider(
-            AbstractUseExpressionBodyHelper<TDeclaration> helper)
+        private static readonly ImmutableArray<UseExpressionBodyHelper> _helpers = UseExpressionBodyHelper.Helpers;
+
+        public UseExpressionBodyCodeFixProvider()
         {
-            FixableDiagnosticIds = ImmutableArray.Create(helper.DiagnosticId);
-            _helper = helper;
+            FixableDiagnosticIds = _helpers.SelectAsArray(h => h.DiagnosticId);
         }
 
         protected override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic)
@@ -65,10 +64,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             OptionSet options, CancellationToken cancellationToken)
         {
             var declarationLocation = diagnostic.AdditionalLocations[0];
-            var declaration = (TDeclaration)declarationLocation.FindNode(cancellationToken);
+            var helper = _helpers.Single(h => h.DiagnosticId == diagnostic.Id);
+            var declaration = declarationLocation.FindNode(cancellationToken);
 
-            var updatedDeclaration = _helper.Update(declaration, options)
-                                            .WithAdditionalAnnotations(Formatter.Annotation);
+            var updatedDeclaration = helper.Update(declaration, options)
+                                           .WithAdditionalAnnotations(Formatter.Annotation);
 
             editor.ReplaceNode(declaration, updatedDeclaration);
         }

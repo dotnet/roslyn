@@ -21,10 +21,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         {
         }
 
-        public override BlockSyntax GetBody(OperatorDeclarationSyntax declaration)
+        protected override BlockSyntax GetBody(OperatorDeclarationSyntax declaration)
             => declaration.Body;
 
-        public override ArrowExpressionClauseSyntax GetExpressionBody(OperatorDeclarationSyntax declaration)
+        protected override ArrowExpressionClauseSyntax GetExpressionBody(OperatorDeclarationSyntax declaration)
             => declaration.ExpressionBody;
 
         protected override SyntaxToken GetSemicolonToken(OperatorDeclarationSyntax declaration)

@@ -18,8 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
     public class UseExpressionBodyForAccessorsTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
-            => (new UseExpressionBodyForAccessorsDiagnosticAnalyzer(),
-                new UseExpressionBodyForAccessorsCodeFixProvider());
+            => (new UseExpressionBodyDiagnosticAnalyzer(), new UseExpressionBodyCodeFixProvider());
 
         private IDictionary<OptionKey, object> UseExpressionBody =>
             OptionsSet(
@@ -60,9 +59,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
-        public async Task TestMissingIfPropertyIsOn()
+        public async Task TestUpdatePropertyInsteadOfAccessor()
         {
-            await TestMissingInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     int Foo
@@ -72,7 +71,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             [|return|] Bar();
         }
     }
-}", new TestParameters(options: UseExpressionBodyIncludingPropertiesAndIndexers));
+}",
+@"class C
+{
+    int Foo => Bar();
+}", parameters: new TestParameters(options: UseExpressionBodyIncludingPropertiesAndIndexers));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
@@ -99,9 +102,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
-        public async Task TestMissingIfIndexerIsOn()
+        public async Task TestUpdateIndexerIfIndexerAndAccessorCanBeUpdated()
         {
-            await TestMissingInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     int this[int i]
@@ -111,7 +114,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             [|return|] Bar();
         }
     }
-}", new TestParameters(options: UseExpressionBodyIncludingPropertiesAndIndexers));
+}",
+@"class C
+{
+    int this[int i] => Bar();
+}", parameters: new TestParameters(options: UseExpressionBodyIncludingPropertiesAndIndexers));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]

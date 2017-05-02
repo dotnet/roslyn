@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,16 +15,13 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
 {
-    internal abstract class AbstractUseExpressionBodyCodeRefactoringProvider<TDeclaration> :
-        CodeRefactoringProvider
-        where TDeclaration : SyntaxNode
+    [ExportCodeRefactoringProvider(LanguageNames.CSharp), Shared]
+    internal class UseExpressionBodyCodeRefactoringProvider : CodeRefactoringProvider
     {
-        private readonly AbstractUseExpressionBodyHelper<TDeclaration> _helper;
+        private static readonly ImmutableArray<UseExpressionBodyHelper> _helpers = UseExpressionBodyHelper.Helpers;
 
-        protected AbstractUseExpressionBodyCodeRefactoringProvider(
-            AbstractUseExpressionBodyHelper<TDeclaration> helper)
+        public UseExpressionBodyCodeRefactoringProvider()
         {
-            _helper = helper;
         }
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
@@ -54,35 +52,71 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
                 return;
             }
 
-            var declaration = node.FirstAncestorOrSelf<TDeclaration>();
-            if (declaration == null)
-            {
-                return;
-            }
-
             var optionSet = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
 
-            if (_helper.CanOfferUseExpressionBody(optionSet, declaration, forAnalyzer: false))
+            foreach (var helper in _helpers)
             {
-                context.RegisterRefactoring(new MyCodeAction(
-                    _helper.UseExpressionBodyTitle.ToString(),
-                    c => UpdateDocumentAsync(document, root, declaration, optionSet, c)));
-            }
-
-            if (_helper.CanOfferUseBlockBody(optionSet, declaration, forAnalyzer: false))
-            {
-                context.RegisterRefactoring(new MyCodeAction(
-                    _helper.UseBlockBodyTitle.ToString(),
-                    c => UpdateDocumentAsync(document, root, declaration, optionSet, c)));
+                var succeeded = TryComputeRefactoring(context, root, node, optionSet, helper);
+                if (succeeded)
+                {
+                    return;
+                }
             }
         }
 
-        private Task<Document> UpdateDocumentAsync(
-            Document document, SyntaxNode root, TDeclaration declaration,
-            DocumentOptionSet options, CancellationToken cancellationToken)
+        private bool TryComputeRefactoring(
+            CodeRefactoringContext context,
+            SyntaxNode root, SyntaxNode node, OptionSet optionSet,
+            UseExpressionBodyHelper helper)
         {
-            var updatedDeclaration = _helper.Update(declaration, options)
-                                            .WithAdditionalAnnotations(Formatter.Annotation);
+            var declaration = GetDeclaration(node, helper);
+            if (declaration == null)
+            {
+                return false;
+            }
+
+            var document = context.Document;
+
+            bool succeeded = false;
+            if (helper.CanOfferUseExpressionBody(optionSet, declaration, forAnalyzer: false))
+            {
+                context.RegisterRefactoring(new MyCodeAction(
+                    helper.UseExpressionBodyTitle.ToString(),
+                    c => UpdateDocumentAsync(document, root, declaration, optionSet, helper, c)));
+                succeeded = true;
+            }
+
+            if (helper.CanOfferUseBlockBody(optionSet, declaration, forAnalyzer: false))
+            {
+                context.RegisterRefactoring(new MyCodeAction(
+                    helper.UseBlockBodyTitle.ToString(),
+                    c => UpdateDocumentAsync(document, root, declaration, optionSet, helper, c)));
+                succeeded = true;
+            }
+
+            return succeeded;
+        }
+
+        private SyntaxNode GetDeclaration(SyntaxNode node, UseExpressionBodyHelper helper)
+        {
+            for (var current = node; current != null; current = current.Parent)
+            {
+                if (helper.SyntaxKinds.Contains(current.Kind()))
+                {
+                    return current;
+                }
+            }
+
+            return null;
+        }
+
+        private Task<Document> UpdateDocumentAsync(
+            Document document, SyntaxNode root, SyntaxNode declaration,
+            OptionSet options, UseExpressionBodyHelper helper,
+            CancellationToken cancellationToken)
+        {
+            var updatedDeclaration = helper.Update(declaration, options)
+                                           .WithAdditionalAnnotations(Formatter.Annotation);
             var newRoot = root.ReplaceNode(declaration, updatedDeclaration);
 
             return Task.FromResult(document.WithSyntaxRoot(newRoot));

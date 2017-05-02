@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
     public class UseExpressionBodyForOperatorsRefactoringTests : AbstractCSharpCodeActionTest
     {
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
-            => new UseExpressionBodyForOperatorsCodeRefactoringProvider();
+            => new UseExpressionBodyCodeRefactoringProvider();
 
         private IDictionary<OptionKey, object> UseExpressionBody =>
             this.Option(CSharpCodeStyleOptions.PreferExpressionBodiedOperators, CSharpCodeStyleOptions.WhenPossibleWithNoneEnforcement);

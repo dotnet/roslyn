@@ -2,28 +2,31 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
 {
-    internal abstract class AbstractUseExpressionBodyDiagnosticAnalyzer<TDeclaration> :
-        AbstractCodeStyleDiagnosticAnalyzer
-        where TDeclaration : SyntaxNode
+    [DiagnosticAnalyzer(LanguageNames.CSharp)]
+    internal class UseExpressionBodyDiagnosticAnalyzer : AbstractCodeStyleDiagnosticAnalyzer
     {
         private readonly ImmutableArray<SyntaxKind> _syntaxKinds;
 
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; }
+
         public override bool OpenFileOnly(Workspace workspace) => false;
 
-        private readonly AbstractUseExpressionBodyHelper<TDeclaration> _helper;
+        private static readonly ImmutableArray<UseExpressionBodyHelper> _helpers = UseExpressionBodyHelper.Helpers;
 
-        protected AbstractUseExpressionBodyDiagnosticAnalyzer(
-            AbstractUseExpressionBodyHelper<TDeclaration> helper)
-            : base(helper.DiagnosticId, helper.UseExpressionBodyTitle)
+        public UseExpressionBodyDiagnosticAnalyzer()
+            : base(_helpers[0].DiagnosticId, _helpers[0].UseExpressionBodyTitle)
         {
-            _syntaxKinds = helper.SyntaxKinds;
-            _helper = helper;
+            _syntaxKinds = _helpers.SelectMany(h => h.SyntaxKinds).ToImmutableArray();
+            SupportedDiagnostics = _helpers.SelectAsArray(
+                h => CreateDescriptorWithId(h.DiagnosticId, h.UseExpressionBodyTitle, h.UseExpressionBodyTitle, DiagnosticSeverity.Hidden));
         }
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
@@ -42,41 +45,69 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
                 return;
             }
 
-            var diagnostic = AnalyzeSyntax(optionSet, (TDeclaration)context.Node);
-            if (diagnostic != null)
+            var nodeKind = context.Node.Kind();
+
+            // Don't offer a fix on an accessor, if we would also offer it on the property/indexer.
+            if (UseExpressionBodyForAccessorsHelper.Instance.SyntaxKinds.Contains(nodeKind))
             {
-                context.ReportDiagnostic(diagnostic);
+                var grandparent = context.Node.Parent.Parent;
+
+                if (grandparent.Kind() == SyntaxKind.PropertyDeclaration &&
+                    AnalyzeSyntax(optionSet, grandparent, UseExpressionBodyForPropertiesHelper.Instance) != null)
+                {
+                    return;
+                }
+
+                if (grandparent.Kind() == SyntaxKind.IndexerDeclaration &&
+                    AnalyzeSyntax(optionSet, grandparent, UseExpressionBodyForIndexersHelper.Instance) != null)
+                {
+                    return;
+                }
+            }
+
+            foreach (var helper in _helpers)
+            {
+                if (helper.SyntaxKinds.Contains(nodeKind))
+                {
+                    var diagnostic = AnalyzeSyntax(optionSet, context.Node, helper);
+                    if (diagnostic != null)
+                    {
+                        context.ReportDiagnostic(diagnostic);
+                        return;
+                    }
+                }
             }
         }
 
-        private Diagnostic AnalyzeSyntax(OptionSet optionSet, TDeclaration declaration)
+        private Diagnostic AnalyzeSyntax(
+            OptionSet optionSet, SyntaxNode declaration, UseExpressionBodyHelper helper)
         {
-            var preferExpressionBodiedOption = optionSet.GetOption(_helper.Option);
+            var preferExpressionBodiedOption = optionSet.GetOption(helper.Option);
             var severity = preferExpressionBodiedOption.Notification.Value;
 
-            if (_helper.CanOfferUseExpressionBody(optionSet, declaration, forAnalyzer: true))
+            if (helper.CanOfferUseExpressionBody(optionSet, declaration, forAnalyzer: true))
             {
                 var location = severity == DiagnosticSeverity.Hidden
                     ? declaration.GetLocation()
-                    : _helper.GetBody(declaration).Statements[0].GetLocation();
+                    : helper.GetBody(declaration).Statements[0].GetLocation();
 
                 var additionalLocations = ImmutableArray.Create(declaration.GetLocation());
                 return Diagnostic.Create(
-                    CreateDescriptorWithTitle(_helper.UseExpressionBodyTitle, severity, GetCustomTags(severity)),
+                    CreateDescriptorWithId(helper.DiagnosticId, helper.UseExpressionBodyTitle, helper.UseExpressionBodyTitle, severity, GetCustomTags(severity)),
                     location, additionalLocations: additionalLocations);
             }
 
-            if (_helper.CanOfferUseBlockBody(optionSet, declaration, forAnalyzer: true))
+            if (helper.CanOfferUseBlockBody(optionSet, declaration, forAnalyzer: true))
             {
                 // They have an expression body.  Create a diagnostic to conver it to a block
                 // if they don't want expression bodies for this member.  
                 var location = severity == DiagnosticSeverity.Hidden
                     ? declaration.GetLocation()
-                    : _helper.GetExpressionBody(declaration).GetLocation();
+                    : helper.GetExpressionBody(declaration).GetLocation();
 
                 var additionalLocations = ImmutableArray.Create(declaration.GetLocation());
                 return Diagnostic.Create(
-                    CreateDescriptorWithTitle(_helper.UseBlockBodyTitle, severity, GetCustomTags(severity)),
+                    CreateDescriptorWithId(helper.DiagnosticId, helper.UseBlockBodyTitle, helper.UseBlockBodyTitle, severity, GetCustomTags(severity)),
                     location, additionalLocations: additionalLocations);
             }
 

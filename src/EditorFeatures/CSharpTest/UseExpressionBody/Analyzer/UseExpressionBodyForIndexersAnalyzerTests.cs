@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
     public class UseExpressionBodyForIndexersAnalyzerTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
-            => (new UseExpressionBodyForIndexersDiagnosticAnalyzer(), new UseExpressionBodyForIndexersCodeFixProvider());
+            => (new UseExpressionBodyDiagnosticAnalyzer(), new UseExpressionBodyCodeFixProvider());
 
         private IDictionary<OptionKey, object> UseExpressionBody =>
             OptionsSet(
