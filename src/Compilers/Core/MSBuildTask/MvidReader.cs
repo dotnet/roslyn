@@ -28,13 +28,13 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             {
                 return s_empty;
             }
-            if (!ReadUInt32(reader, out uint lfanew))
+            if (!ReadUInt32(reader, out uint pointerToPeSignature))
             {
                 return s_empty;
             }
 
             // jump over the MS DOS Stub to the PE Signature
-            if (!MoveTo(lfanew, reader))
+            if (!MoveTo(pointerToPeSignature, reader))
             {
                 return s_empty;
             }
