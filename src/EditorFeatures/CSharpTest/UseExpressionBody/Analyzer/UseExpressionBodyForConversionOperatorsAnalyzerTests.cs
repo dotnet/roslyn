@@ -14,11 +14,10 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
 {
-    public class UseExpressionBodyForOperatorsTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    public class UseExpressionBodyForConversionOperatorsAnalyzerTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
-            => (new UseExpressionBodyForOperatorsDiagnosticAnalyzer(),
-                new UseExpressionBodyForOperatorsCodeFixProvider());
+            => (new UseExpressionBodyDiagnosticAnalyzer(), new UseExpressionBodyCodeFixProvider());
 
         private IDictionary<OptionKey, object> UseExpressionBody =>
             Option(CSharpCodeStyleOptions.PreferExpressionBodiedOperators, CSharpCodeStyleOptions.WhenPossibleWithNoneEnforcement);
@@ -32,14 +31,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    public static C operator +(C c1, C c2)
+    public static implicit operator C(int i)
     {
         [|Bar|]();
     }
 }",
 @"class C
 {
-    public static C operator +(C c1, C c2) => Bar();
+    public static implicit operator C(int i) => Bar();
 }", options: UseExpressionBody);
         }
 
@@ -49,14 +48,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    public static C operator +(C c1, C c2)
+    public static implicit operator C(int i)
     {
         return [|Bar|]();
     }
 }",
 @"class C
 {
-    public static C operator +(C c1, C c2) => Bar();
+    public static implicit operator C(int i) => Bar();
 }", options: UseExpressionBody);
         }
 
@@ -66,14 +65,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    public static C operator +(C c1, C c2)
+    public static implicit operator C(int i)
     {
         [|throw|] new NotImplementedException();
     }
 }",
 @"class C
 {
-    public static C operator +(C c1, C c2) => throw new NotImplementedException();
+    public static implicit operator C(int i) => throw new NotImplementedException();
 }", options: UseExpressionBody);
         }
 
@@ -83,14 +82,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    public static C operator +(C c1, C c2)
+    public static implicit operator C(int i)
     {
         [|throw|] new NotImplementedException(); // comment
     }
 }",
 @"class C
 {
-    public static C operator +(C c1, C c2) => throw new NotImplementedException(); // comment
+    public static implicit operator C(int i) => throw new NotImplementedException(); // comment
 }", ignoreTrivia: false, options: UseExpressionBody);
         }
 
@@ -100,11 +99,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    public static C operator +(C c1, C c2) [|=>|] Bar();
+    public static implicit operator C(int i) [|=>|] Bar();
 }",
 @"class C
 {
-    public static C operator +(C c1, C c2)
+    public static implicit operator C(int i)
     {
         return Bar();
     }
@@ -117,11 +116,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    public static C operator +(C c1, C c2) [|=>|] throw new NotImplementedException();
+    public static implicit operator C(int i) [|=>|] throw new NotImplementedException();
 }",
 @"class C
 {
-    public static C operator +(C c1, C c2)
+    public static implicit operator C(int i)
     {
         throw new NotImplementedException();
     }
@@ -134,11 +133,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    public static C operator +(C c1, C c2) [|=>|] throw new NotImplementedException(); // comment
+    public static implicit operator C(int i) [|=>|] throw new NotImplementedException(); // comment
 }",
 @"class C
 {
-    public static C operator +(C c1, C c2)
+    public static implicit operator C(int i)
     {
         throw new NotImplementedException(); // comment
     }

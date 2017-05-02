@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Composition;
-using Microsoft.CodeAnalysis.CodeFixes;
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -9,25 +8,28 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
-    internal class UseExpressionBodyForMethodsCodeFixProvider : AbstractUseExpressionBodyCodeFixProvider<MethodDeclarationSyntax>
+    internal class UseExpressionBodyForMethodsHelper : 
+        UseExpressionBodyHelper<MethodDeclarationSyntax>
     {
-        public UseExpressionBodyForMethodsCodeFixProvider()
+        public static readonly UseExpressionBodyForMethodsHelper Instance = new UseExpressionBodyForMethodsHelper();
+
+        private UseExpressionBodyForMethodsHelper()
             : base(IDEDiagnosticIds.UseExpressionBodyForMethodsDiagnosticId,
+                   new LocalizableResourceString(nameof(FeaturesResources.Use_expression_body_for_methods), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
+                   new LocalizableResourceString(nameof(FeaturesResources.Use_block_body_for_methods), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
                    CSharpCodeStyleOptions.PreferExpressionBodiedMethods,
-                   FeaturesResources.Use_expression_body_for_methods,
-                   FeaturesResources.Use_block_body_for_methods)
+                   ImmutableArray.Create(SyntaxKind.MethodDeclaration))
         {
         }
 
-        protected override SyntaxToken GetSemicolonToken(MethodDeclarationSyntax declaration)
-            => declaration.SemicolonToken;
+        protected override BlockSyntax GetBody(MethodDeclarationSyntax declaration)
+            => declaration.Body;
 
         protected override ArrowExpressionClauseSyntax GetExpressionBody(MethodDeclarationSyntax declaration)
             => declaration.ExpressionBody;
 
-        protected override BlockSyntax GetBody(MethodDeclarationSyntax declaration)
-            => declaration.Body;
+        protected override SyntaxToken GetSemicolonToken(MethodDeclarationSyntax declaration)
+            => declaration.SemicolonToken;
 
         protected override MethodDeclarationSyntax WithSemicolonToken(MethodDeclarationSyntax declaration, SyntaxToken token)
             => declaration.WithSemicolonToken(token);
@@ -41,5 +43,4 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         protected override bool CreateReturnStatementForExpression(MethodDeclarationSyntax declaration)
             => !declaration.ReturnType.IsVoid();
     }
-
 }

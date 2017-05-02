@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -14,17 +14,16 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
 {
-    public class UseExpressionBodyForConstructorsTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    public class UseExpressionBodyForOperatorsAnalyzerTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
-            => (new UseExpressionBodyForConstructorsDiagnosticAnalyzer(),
-                new UseExpressionBodyForConstructorsCodeFixProvider());
+            => (new UseExpressionBodyDiagnosticAnalyzer(), new UseExpressionBodyCodeFixProvider());
 
         private IDictionary<OptionKey, object> UseExpressionBody =>
-            Option(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CSharpCodeStyleOptions.WhenPossibleWithNoneEnforcement);
+            Option(CSharpCodeStyleOptions.PreferExpressionBodiedOperators, CSharpCodeStyleOptions.WhenPossibleWithNoneEnforcement);
 
         private IDictionary<OptionKey, object> UseBlockBody =>
-            Option(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CSharpCodeStyleOptions.NeverWithNoneEnforcement);
+            Option(CSharpCodeStyleOptions.PreferExpressionBodiedOperators, CSharpCodeStyleOptions.NeverWithNoneEnforcement);
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
         public async Task TestUseExpressionBody1()
@@ -32,14 +31,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    public C()
+    public static C operator +(C c1, C c2)
     {
         [|Bar|]();
     }
 }",
 @"class C
 {
-    public C() => Bar();
+    public static C operator +(C c1, C c2) => Bar();
 }", options: UseExpressionBody);
         }
 
@@ -49,14 +48,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    public C()
+    public static C operator +(C c1, C c2)
     {
-        a = [|Bar|]();
+        return [|Bar|]();
     }
 }",
 @"class C
 {
-    public C() => a = Bar();
+    public static C operator +(C c1, C c2) => Bar();
 }", options: UseExpressionBody);
         }
 
@@ -66,14 +65,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    public C()
+    public static C operator +(C c1, C c2)
     {
         [|throw|] new NotImplementedException();
     }
 }",
 @"class C
 {
-    public C() => throw new NotImplementedException();
+    public static C operator +(C c1, C c2) => throw new NotImplementedException();
 }", options: UseExpressionBody);
         }
 
@@ -83,14 +82,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    public C()
+    public static C operator +(C c1, C c2)
     {
         [|throw|] new NotImplementedException(); // comment
     }
 }",
 @"class C
 {
-    public C() => throw new NotImplementedException(); // comment
+    public static C operator +(C c1, C c2) => throw new NotImplementedException(); // comment
 }", ignoreTrivia: false, options: UseExpressionBody);
         }
 
@@ -100,30 +99,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    public C() [|=>|] Bar();
+    public static C operator +(C c1, C c2) [|=>|] Bar();
 }",
 @"class C
 {
-    public C()
+    public static C operator +(C c1, C c2)
     {
-        Bar();
-    }
-}", options: UseBlockBody);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
-        public async Task TestUseBlockBody2()
-        {
-            await TestInRegularAndScriptAsync(
-@"class C
-{
-    public C() [|=>|] a = Bar();
-}",
-@"class C
-{
-    public C()
-    {
-        a = Bar();
+        return Bar();
     }
 }", options: UseBlockBody);
         }
@@ -134,11 +116,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    public C() [|=>|] throw new NotImplementedException();
+    public static C operator +(C c1, C c2) [|=>|] throw new NotImplementedException();
 }",
 @"class C
 {
-    public C()
+    public static C operator +(C c1, C c2)
     {
         throw new NotImplementedException();
     }
@@ -151,11 +133,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    public C() [|=>|] throw new NotImplementedException(); // comment
+    public static C operator +(C c1, C c2) [|=>|] throw new NotImplementedException(); // comment
 }",
 @"class C
 {
-    public C()
+    public static C operator +(C c1, C c2)
     {
         throw new NotImplementedException(); // comment
     }
