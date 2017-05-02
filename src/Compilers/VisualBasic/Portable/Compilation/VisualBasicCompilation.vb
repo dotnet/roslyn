@@ -2606,7 +2606,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                           elementTypes:=typesBuilder.ToImmutableAndFree(),
                                           elementLocations:=elementLocations,
                                           elementNames:=elementNames, compilation:=Me,
-                                          shouldCheckConstraints:=False)
+                                          shouldCheckConstraints:=False, errorPositions:=Nothing)
         End Function
 
         Protected Overrides Function CommonCreateTupleTypeSymbol(
@@ -2627,7 +2627,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 locationOpt:=Nothing,
                 tupleCompatibleType:=underlyingType.EnsureVbSymbolOrNothing(Of NamedTypeSymbol)(NameOf(underlyingType)),
                 elementLocations:=elementLocations,
-                elementNames:=elementNames)
+                elementNames:=elementNames,
+                errorPositions:=Nothing)
         End Function
 
         Protected Overrides Function CommonCreatePointerTypeSymbol(elementType As ITypeSymbol) As IPointerTypeSymbol

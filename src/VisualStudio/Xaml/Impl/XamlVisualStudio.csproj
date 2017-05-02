@@ -78,10 +78,28 @@
     <Compile Include="XamlStaticTypeDefinitions.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="project.json" />
-  </ItemGroup>
-  <ItemGroup>
     <Reference Include="System" />
+    <PackageReference Include="Microsoft.VisualStudio.Editor">
+      <Version>$(MicrosoftVisualStudioEditorVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.ImageCatalog">
+      <Version>$(MicrosoftVisualStudioImageCatalogVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Shell.15.0">
+      <Version>$(MicrosoftVisualStudioShell150Version)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Shell.Framework">
+      <Version>$(MicrosoftVisualStudioShellFrameworkVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.ComponentModelHost">
+      <Version>$(MicrosoftVisualStudioComponentModelHostVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Diagnostics.PerformanceProvider">
+      <Version>$(MicrosoftVisualStudioDiagnosticsPerformanceProviderVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Newtonsoft.Json">
+      <Version>$(NewtonsoftJsonVersion)</Version>
+    </PackageReference>
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources.resx">

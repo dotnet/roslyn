@@ -60,9 +60,74 @@
     <Reference Include="System.Design" />
     <Reference Include="System.Drawing" />
     <Reference Include="WindowsBase" />
+    <PackageReference Include="Microsoft.VisualStudio.Imaging">
+      <Version>$(MicrosoftVisualStudioImagingVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Utilities">
+      <Version>$(MicrosoftVisualStudioUtilitiesVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.ImageCatalog">
+      <Version>$(MicrosoftVisualStudioImageCatalogVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Text.UI">
+      <Version>$(MicrosoftVisualStudioTextUIVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.CoreUtility">
+      <Version>$(MicrosoftVisualStudioCoreUtilityVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Language.Intellisense">
+      <Version>$(MicrosoftVisualStudioLanguageIntellisenseVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Text.Data">
+      <Version>$(MicrosoftVisualStudioTextDataVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Text.Logic">
+      <Version>$(MicrosoftVisualStudioTextLogicVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Text.UI.Wpf">
+      <Version>$(MicrosoftVisualStudioTextUIWpfVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Editor">
+      <Version>$(MicrosoftVisualStudioEditorVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Shell.Framework">
+      <Version>$(MicrosoftVisualStudioShellFrameworkVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Shell.15.0">
+      <Version>$(MicrosoftVisualStudioShell150Version)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Language.NavigateTo.Interfaces">
+      <Version>$(MicrosoftVisualStudioLanguageNavigateToInterfacesVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.ComponentModelHost">
+      <Version>$(MicrosoftVisualStudioComponentModelHostVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="NuGet.VisualStudio">
+      <Version>$(NuGetVisualStudioVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Imaging.Interop.14.0.DesignTime">
+      <Version>$(MicrosoftVisualStudioImagingInterop140DesignTimeVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.ServiceHub.Client">
+      <Version>$(MicrosoftServiceHubClientVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Newtonsoft.Json">
+      <Version>$(NewtonsoftJsonVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="RoslynDependencies.Microsoft.VisualStudio.Workspace">
+      <Version>$(RoslynDependenciesMicrosoftVisualStudioWorkspaceVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="System.Collections.Immutable">
+      <Version>$(SystemCollectionsImmutableVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.Tpl.Dataflow">
+      <Version>$(MicrosoftTplDataflowVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Diagnostics.PerformanceProvider">
+      <Version>$(MicrosoftVisualStudioDiagnosticsPerformanceProviderVersion)</Version>
+    </PackageReference>
   </ItemGroup>
   <ItemGroup>
-    <None Include="project.json" />
     <PublicAPI Include="PublicAPI.Shipped.txt" />
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
@@ -105,6 +170,7 @@
     <Compile Include="FindReferences\ToolTips\LazyToolTip.cs" />
     <Compile Include="ProjectSystem\DeferredProjectWorkspaceService.cs" />
     <Compile Include="Remote\JsonRpcClient.cs" />
+    <Compile Include="Remote\JsonRpcMessageHandler.cs" />
     <Compile Include="Remote\JsonRpcSession.cs" />
     <Compile Include="Remote\RemoteHostClientFactory.cs" />
     <Compile Include="Remote\ServiceHubRemoteHostClient.WorkspaceHost.cs" />
@@ -126,6 +192,5 @@
     <InternalsVisibleTo Include="Roslyn.VisualStudio.RemoteHostClientMock" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Next.UnitTests" />
   </ItemGroup>
-  <ItemGroup />
   <Import Project="..\..\..\..\build\Targets\Imports.targets" />
 </Project>

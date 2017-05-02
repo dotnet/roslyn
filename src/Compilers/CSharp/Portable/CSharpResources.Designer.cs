@@ -9062,6 +9062,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Tuple element name &apos;{0}&apos; is inferred. Please use language version {1} or greater to access an element by its inferred name..
+        /// </summary>
+        internal static string ERR_TupleInferredNamesNotAvailable {
+            get {
+                return ResourceManager.GetString("ERR_TupleInferredNamesNotAvailable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Tuple element name &apos;{0}&apos; is only allowed at position {1}..
         /// </summary>
         internal static string ERR_TupleReservedElementName {

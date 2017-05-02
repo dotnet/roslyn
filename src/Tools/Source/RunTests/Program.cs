@@ -24,6 +24,9 @@ namespace RunTests
 
         internal static int Main(string[] args)
         {
+            Logger.Log("RunTest command line");
+            Logger.Log(string.Join(" ", args));
+
             var options = Options.Parse(args);
             if (options == null)
             {
@@ -64,7 +67,7 @@ namespace RunTests
             WriteLogFile(options);
             DisplayResults(options.Display, result.TestResults);
 
-            if (CanUseWebStorage())
+            if (CanUseWebStorage() && options.UseCachedResults)
             {
                 await SendRunStats(options, testExecutor.DataStorage, elapsed, result, assemblyInfoList.Count, cancellationToken).ConfigureAwait(true);
             }
