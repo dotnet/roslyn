@@ -4,7 +4,8 @@
 
   <!-- This controls the version numbers of the build that we are producing -->
 
-  <Import Project="Dependencies.props" />
+  <Import Project="Packages.props" />
+  <Import Project="FixedPackages.props" />
 
   <PropertyGroup>
     <!-- This is the assembly version of Roslyn from the .NET assembly perspective. It should only be revved during significant point releases. -->

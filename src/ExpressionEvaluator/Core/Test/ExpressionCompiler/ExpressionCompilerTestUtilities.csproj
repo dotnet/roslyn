@@ -15,6 +15,21 @@
   </PropertyGroup>
   <ItemGroup Label="File References">
     <Reference Include="System" />
+    <PackageReference Include="Microsoft.VisualStudio.Debugger.Engine">
+      <Version>$(MicrosoftVisualStudioDebuggerEngineVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.DiaSymReader">
+      <Version>$(MicrosoftDiaSymReaderVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="xunit">
+      <Version>$(xunitVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="xunit.runner.console">
+      <Version>$(xunitrunnerconsoleVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="xunit.runner.visualstudio">
+      <Version>$(xunitrunnervisualstudioVersion)</Version>
+    </PackageReference>
   </ItemGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\..\Test\Utilities\Portable\TestUtilities.csproj">
@@ -62,7 +77,6 @@
     <Compile Include="RuntimeInstance.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="project.json" />
     <None Include="Resources\Empty.dll" />
     <None Include="Resources\LibraryA.winmd" />
     <None Include="Resources\LibraryB.winmd" />
@@ -78,6 +92,5 @@
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
-  <ItemGroup />
   <Import Project="..\..\..\..\..\build\Targets\Imports.targets" />
 </Project>
