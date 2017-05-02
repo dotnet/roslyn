@@ -162,10 +162,10 @@ try {
     $buildLog = Join-Path $binariesdir "Build.log"
 
     if ($testVsiNetCore) { 
-        Run-MSBuild /p:BootstrapBuildPath="$bootstrapDir" BuildAndTest.proj /p:Configuration=$buildConfiguration /p:Test64=$test64Arg /p:TestVsi=true /p:Trait="Feature=NetCore" /p:PathMap="$($repoDir)=q:\roslyn" /p:Feature=pdb-path-determinism /fileloggerparameters:LogFile="$buildLog"`;verbosity=diagnostic /p:DeployExtension=false
+        Run-MSBuild /p:BootstrapBuildPath="$bootstrapDir" BuildAndTest.proj /p:Configuration=$buildConfiguration /p:Test64=$test64Arg /p:TestVsi=true /p:Trait="Feature=NetCore" /p:PathMap="$($repoDir)=q:\roslyn" /p:Feature=pdb-path-determinism /fileloggerparameters:LogFile="$buildLog"`;verbosity=diagnostic /p:DeployExtension=false /p:RoslynRuntimeIdentifier=win7-x64
     }
     else {
-        Run-MSBuild /p:BootstrapBuildPath="$bootstrapDir" BuildAndTest.proj /p:Configuration=$buildConfiguration /p:Test64=$test64Arg /p:TestVsi=$testVsiArg /p:TestDesktop=$testDesktop /p:TestCoreClr=$testCoreClr /p:PathMap="$($repoDir)=q:\roslyn" /p:Feature=pdb-path-determinism /fileloggerparameters:LogFile="$buildLog"`;verbosity=diagnostic /p:DeployExtension=false
+        Run-MSBuild /p:BootstrapBuildPath="$bootstrapDir" BuildAndTest.proj /p:Configuration=$buildConfiguration /p:Test64=$test64Arg /p:TestVsi=$testVsiArg /p:TestDesktop=$testDesktop /p:TestCoreClr=$testCoreClr /p:PathMap="$($repoDir)=q:\roslyn" /p:Feature=pdb-path-determinism /fileloggerparameters:LogFile="$buildLog"`;verbosity=diagnostic /p:DeployExtension=false /p:RoslynRuntimeIdentifier=win7-x64
     }
 
     exit 0
