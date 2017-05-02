@@ -343,13 +343,15 @@ public class C
             peBlob.WriteContentTo(peStream);
 
             peStream.Position = 0;
-            var peReader = new PEReader(peStream);
-            AssertEx.Equal(new[] { ".text", ".rsrc", ".reloc", ".mvid" },
-                peReader.PEHeaders.SectionHeaders.Select(h => h.Name));
+            using (var peReader = new PEReader(peStream))
+            {
+                AssertEx.Equal(new[] { ".text", ".rsrc", ".reloc", ".mvid" },
+                    peReader.PEHeaders.SectionHeaders.Select(h => h.Name));
 
-            peStream.Position = 0;
-            var mvid = BuildTasks.MvidReader.ReadAssemblyMvidOrEmpty(peStream);
-            Assert.Equal(TestPEBuilder.s_mvid, mvid);
+                peStream.Position = 0;
+                var mvid = BuildTasks.MvidReader.ReadAssemblyMvidOrEmpty(peStream);
+                Assert.Equal(TestPEBuilder.s_mvid, mvid);
+            }
         }
 
         /// <summary>

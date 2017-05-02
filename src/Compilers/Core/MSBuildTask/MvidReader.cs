@@ -8,6 +8,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 {
     public static class MvidReader
     {
+        private static readonly Guid s_empty = Guid.Empty;
+
         public static Guid ReadAssemblyMvidOrEmpty(Stream stream)
         {
             return ReadAssemblyMvidOrEmpty(new BinaryReader(stream));
@@ -15,49 +17,69 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
         private static Guid ReadAssemblyMvidOrEmpty(BinaryReader reader)
         {
-            Guid empty = Guid.Empty;
-
-            // DOS Header (64), DOS Stub (64), PE Signature (4), COFF Header (20), PE Header (224), 1x Section Header (40)
-            if (reader.BaseStream.Length < 64 + 64 + 4 + 20 + 224 + 40)
-            {
-                return empty;
-            }
-
             // DOS Header: Magic number (2)
-            if (reader.ReadUInt16() != 0x5a4d) // "MZ"
+            if (!ReadUInt16(reader, out ushort magicNumber) || magicNumber != 0x5a4d) // "MZ"
             {
-                return empty;
+                return s_empty;
             }
 
             // DOS Header: Address of PE Signature (at 0x3C)
-            MoveTo(0x3C, reader);
-            uint lfanew = reader.ReadUInt32();
+            if (!MoveTo(0x3C, reader))
+            {
+                return s_empty;
+            }
+            if (!ReadUInt32(reader, out uint lfanew))
+            {
+                return s_empty;
+            }
 
-            MoveTo(lfanew, reader); // jump over the MS DOS Stub to the PE Signature
+            // jump over the MS DOS Stub to the PE Signature
+            if (!MoveTo(lfanew, reader))
+            {
+                return s_empty;
+            }
 
             // PE Signature ('P' 'E' null null)
-            if (reader.ReadUInt32() != 0x00004550)
+            if (!ReadUInt32(reader, out uint peSig) || peSig != 0x00004550)
             {
-                return empty;
+                return s_empty;
             }
 
             // COFF Header: Machine (2)
-            Skip(2, reader);
+            if (!Skip(2, reader))
+            {
+                return s_empty;
+            }
 
             // COFF Header: NumberOfSections (2)
-            ushort sections = reader.ReadUInt16();
+            if (!ReadUInt16(reader, out ushort sections))
+            {
+                return s_empty;
+            }
 
             // COFF Header: TimeDateStamp (4), PointerToSymbolTable (4), NumberOfSymbols (4)
-            Skip(12, reader);
+            if (!Skip(12, reader))
+            {
+                return s_empty;
+            }
 
             // COFF Header: OptionalHeaderSize (2)
-            ushort optionalHeaderSize = reader.ReadUInt16();
+            if (!ReadUInt16(reader, out ushort optionalHeaderSize))
+            {
+                return s_empty;
+            }
 
             // COFF Header: Characteristics (2)
-            Skip(2, reader);
+            if (!Skip(2, reader))
+            {
+                return s_empty;
+            }
 
             // Optional header
-            Skip(optionalHeaderSize, reader);
+            if (!Skip(optionalHeaderSize, reader))
+            {
+                return s_empty;
+            }
 
             // Section headers
             return FindMvidInSections(sections, reader);
@@ -67,58 +89,116 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         {
             for (int i = 0; i < count; i++)
             {
-
-                // .mvid section must be first, if it's there
                 // Section: Name (8)
-                byte[] name = reader.ReadBytes(8);
+                if (!ReadBytes(reader, 8, out byte[] name))
+                {
+                    return s_empty;
+                }
+
                 if (name.Length == 8 && name[0] == '.' &&
                     name[1] == 'm' && name[2] == 'v' && name[3] == 'i' && name[4] == 'd' && name[5] == '\0')
                 {
                     // Section: VirtualSize (4)
-                    uint virtualSize = reader.ReadUInt32();
+                    if (!ReadUInt32(reader, out uint virtualSize) || virtualSize != 16)
+                    {
+                        // The .mvid section only stores a Guid
+                        return s_empty;
+                    }
 
                     // Section: VirtualAddress (4), SizeOfRawData (4)
-                    Skip(8, reader);
+                    if (!Skip(8, reader))
+                    {
+                        return s_empty;
+                    }
 
                     // Section: PointerToRawData (4)
-                    uint pointerToRawData = reader.ReadUInt32();
-
-                    // The .mvid section only stores a Guid
-                    if (virtualSize != 16)
+                    if (!ReadUInt32(reader, out uint pointerToRawData))
                     {
-                        Debug.Assert(false);
-                        return Guid.Empty;
+                        return s_empty;
                     }
 
-                    if (MoveTo(pointerToRawData, reader))
-                    {
-                        byte[] guidBytes = new byte[16];
-                        if (reader.BaseStream.Read(guidBytes, 0, 16) == 16)
-                        {
-                            return new Guid(guidBytes);
-                        }
-                    }
+                    return ReadMvidSection(reader, pointerToRawData);
                 }
                 else
                 {
                     // Section: VirtualSize (4), VirtualAddress (4), SizeOfRawData (4),
                     // PointerToRawData (4), PointerToRelocations (4), PointerToLineNumbers (4),
                     // NumberOfRelocations (2), NumberOfLineNumbers (2), Characteristics (4)
-                    Skip(4 + 4 + 4 + 4 + 4 + 4 + 2 + 2 + 4, reader);
+                    if (!Skip(4 + 4 + 4 + 4 + 4 + 4 + 2 + 2 + 4, reader))
+                    {
+                        return s_empty;
+                    }
                 }
             }
 
-            return Guid.Empty;
+            return s_empty;
         }
 
-        private static void Skip(int bytes, BinaryReader reader)
+        private static Guid ReadMvidSection(BinaryReader reader, uint pointerToMvidSection)
         {
+            if (!MoveTo(pointerToMvidSection, reader))
+            {
+                return s_empty;
+            }
+
+            if (!ReadBytes(reader, 16, out byte[] guidBytes))
+            {
+                return s_empty;
+            }
+
+            return new Guid(guidBytes);
+        }
+
+        private static bool ReadUInt16(BinaryReader reader, out ushort output)
+        {
+            if (reader.BaseStream.Position + 2 >= reader.BaseStream.Length)
+            {
+                output = 0;
+                return false;
+            }
+
+            output = reader.ReadUInt16();
+            return true;
+        }
+
+        private static bool ReadUInt32(BinaryReader reader, out uint output)
+        {
+            if (reader.BaseStream.Position + 4 >= reader.BaseStream.Length)
+            {
+                output = 0;
+                return false;
+            }
+
+            output = reader.ReadUInt32();
+            return true;
+        }
+
+        private static bool ReadBytes(BinaryReader reader, int count, out byte[] output)
+        {
+            if (reader.BaseStream.Position + count >= reader.BaseStream.Length)
+            {
+                output = null;
+                return false;
+            }
+
+            output = reader.ReadBytes(count);
+            return true;
+        }
+
+        private static bool Skip(int bytes, BinaryReader reader)
+        {
+            if (reader.BaseStream.Position + bytes >= reader.BaseStream.Length)
+            {
+                return false;
+            }
+
             reader.BaseStream.Seek(bytes, SeekOrigin.Current);
+            return true;
         }
 
         private static bool MoveTo(uint position, BinaryReader reader)
         {
-            if (reader.BaseStream.Length < position)
+            if (position >= reader.BaseStream.Length)
             {
                 return false;
             }
