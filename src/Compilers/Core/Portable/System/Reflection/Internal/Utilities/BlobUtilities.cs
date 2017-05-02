@@ -35,7 +35,7 @@ namespace Roslyn.Reflection
         {
             fixed (byte* ptr = &buffer[start])
             {
-                *(double*)ptr = value;
+                *(long*)ptr = *(long*)&value;
             }
         }
 
@@ -43,7 +43,7 @@ namespace Roslyn.Reflection
         {
             fixed (byte* ptr = &buffer[start])
             {
-                *(float*)ptr = value;
+                *(int*)ptr = *(int*)&value;
             }
         }
 
