@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis
             string filePath = null,
             bool isGenerated = false)
         {
-            return new DocumentInfo(new DocumentAttributes(id, name, folders, sourceCodeKind, filePath, isGenerated), loader);
+            return new DocumentInfo(new DocumentAttributes(id, name, folders, sourceCodeKind, filePath, projectFilePath: null, isGenerated: isGenerated), loader);
         }
 
         private DocumentInfo With(
