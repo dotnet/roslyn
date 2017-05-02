@@ -1014,7 +1014,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     builder.Append(' ');
                 }
 
-                AppendTokens(parameter.Type, builder);
+                if (parameter.Type != null)
+                {
+                    AppendTokens(parameter.Type, builder);
+                }
+                else
+                {
+                    builder.Append(parameter.Identifier.Text);
+                }
 
                 first = false;
             }

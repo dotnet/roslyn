@@ -1892,5 +1892,35 @@ class Program
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        public async Task TestTupleWithInferredNames()
+        {
+            await TestAsync(@"
+class Program
+{
+    void M()
+    {
+        int a = 1;
+        var t = [|(a, b: 2)|];
+        System.Console.Write(t.a);
+    }
+}",
+@"
+class Program
+{
+    void M()
+    {
+        int a = 1;
+        var t = {|Rename:GetT|}(a);
+        System.Console.Write(t.a);
+    }
+
+    private static (int a, int b) GetT(int a)
+    {
+        return (a, b: 2);
+    }
+}", TestOptions.Regular7_1);
+        }
     }
 }

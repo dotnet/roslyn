@@ -1552,5 +1552,38 @@ sealed class D : B
     }
 }");
         }
+
+        [WorkItem(13932, "https://github.com/dotnet/roslyn/issues/13932")]
+        [WorkItem(5898, "https://github.com/dotnet/roslyn/issues/5898")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestAutoProperties()
+        {
+            await TestInRegularAndScript1Async(
+@"abstract class AbstractClass
+{
+    public abstract int ReadOnlyProp { get; }
+    public abstract int ReadWriteProp { get; set; }
+    public abstract int WriteOnlyProp { set; }
+}
+
+class [|C|] : AbstractClass
+{
+}",
+@"abstract class AbstractClass
+{
+    public abstract int ReadOnlyProp { get; }
+    public abstract int ReadWriteProp { get; set; }
+    public abstract int WriteOnlyProp { set; }
+}
+
+class C : AbstractClass
+{
+    public override int ReadOnlyProp { get; }
+    public override int ReadWriteProp { get; set; }
+    public override int WriteOnlyProp { set => throw new System.NotImplementedException(); }
+}", parameters: new TestParameters(options: Option(
+    ImplementTypeOptions.PropertyGenerationBehavior,
+    ImplementTypePropertyGenerationBehavior.PreferAutoProperties)));
+        }
     }
 }

@@ -4051,5 +4051,208 @@ class Program
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TupleWithInferredName_LeaveExplicitName()
+        {
+            var code =
+@"class C
+{
+    static int y = 2;
+    void M()
+    {
+        int a = 1;
+        var t = (a, x: [|C.y|]);
+    }
+}";
+
+            var expected =
+            @"class C
+{
+    static int y = 2;
+    void M()
+    {
+        int a = 1;
+        int {|Rename:y1|} = C.y;
+        var t = (a, x: y1);
+    }
+}";
+
+            await TestInRegularAndScriptAsync(code, expected, ignoreTrivia: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TupleWithInferredName_InferredNameBecomesExplicit()
+        {
+            var code =
+@"class C
+{
+    static int y = 2;
+    void M()
+    {
+        int x = 1;
+        var t = (x, [|C.y|]);
+    }
+}";
+
+            var expected =
+            @"class C
+{
+    static int y = 2;
+    void M()
+    {
+        int x = 1;
+        int {|Rename:y1|} = C.y;
+        var t = (x, y: y1);
+    }
+}";
+
+            await TestInRegularAndScriptAsync(code, expected, ignoreTrivia: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TupleWithInferredName_AllOccurrences()
+        {
+            var code =
+@"class C
+{
+    static int y = 2;
+    void M()
+    {
+        int x = 1;
+        var t = (x, [|C.y|]);
+        var t2 = (C.y, x);
+    }
+}";
+
+            var expected =
+            @"class C
+{
+    static int y = 2;
+    void M()
+    {
+        int x = 1;
+        int {|Rename:y1|} = C.y;
+        var t = (x, y: y1);
+        var t2 = (y: y1, x);
+    }
+}";
+            await TestInRegularAndScriptAsync(code, expected, index: 1, ignoreTrivia: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TupleWithInferredName_NoDuplicateNames()
+        {
+            var code =
+@"class C
+{
+    static int y = 2;
+    void M()
+    {
+        int x = 1;
+        var t = (C.y, [|C.y|]);
+    }
+}";
+
+            var expected =
+            @"class C
+{
+    static int y = 2;
+    void M()
+    {
+        int x = 1;
+        int {|Rename:y1|} = C.y;
+        var t = (y1, y1);
+    }
+}";
+            await TestInRegularAndScriptAsync(code, expected, index: 1, ignoreTrivia: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task AnonymousTypeWithInferredName_LeaveExplicitName()
+        {
+            var code =
+@"class C
+{
+    static int y = 2;
+    void M()
+    {
+        int a = 1;
+        var t = new { a, x= [|C.y|] };
+    }
+}";
+
+            var expected =
+            @"class C
+{
+    static int y = 2;
+    void M()
+    {
+        int a = 1;
+        int {|Rename:y1|} = C.y;
+        var t = new { a, x= y1 };
+    }
+}";
+
+            await TestInRegularAndScriptAsync(code, expected, ignoreTrivia: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task AnonymousTypeWithInferredName_InferredNameBecomesExplicit()
+        {
+            var code =
+@"class C
+{
+    static int y = 2;
+    void M()
+    {
+        int x = 1;
+        var t = new { x, [|C.y|] };
+    }
+}";
+
+            var expected =
+            @"class C
+{
+    static int y = 2;
+    void M()
+    {
+        int x = 1;
+        int {|Rename:y1|} = C.y;
+        var t = new { x, y = y1 };
+    }
+}";
+
+            await TestInRegularAndScriptAsync(code, expected, ignoreTrivia: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task AnonymousTypeWithInferredName_NoDuplicatesAllowed()
+        {
+            var code =
+@"class C
+{
+    static int y = 2;
+    void M()
+    {
+        int x = 1;
+        var t = new { C.y, [|C.y|] }; // this is an error already
+    }
+}";
+
+            var expected =
+            @"class C
+{
+    static int y = 2;
+    void M()
+    {
+        int x = 1;
+        int {|Rename:y1|} = C.y;
+        var t = new { y= y1, y= y1 }; // this is an error already
+    }
+}";
+
+            await TestInRegularAndScriptAsync(code, expected, index: 1, ignoreTrivia: false);
+        }
     }
 }

@@ -1353,6 +1353,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 case SyntaxKind.RefExpression:
                 case SyntaxKind.DeclarationPattern:
                 case SyntaxKind.SimpleAssignmentExpression:
+                case SyntaxKind.WhenClause:
+                case SyntaxKind.SingleVariableDesignation:
+                case SyntaxKind.CasePatternSwitchLabel:
                     return node.Span;
 
                 default:
@@ -3105,18 +3108,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         {
             switch (n.Kind())
             {
-                case SyntaxKind.IsPatternExpression:
                 case SyntaxKind.ForEachVariableStatement:
-                case SyntaxKind.TupleType:
-                case SyntaxKind.TupleExpression:
                 case SyntaxKind.LocalFunctionStatement:
-                case SyntaxKind.DeclarationExpression:
-                case SyntaxKind.RefType:
-                case SyntaxKind.RefExpression:
-                case SyntaxKind.DeclarationPattern:
                     return true;
-                case SyntaxKind.SimpleAssignmentExpression:
-                    return ((AssignmentExpressionSyntax)n).IsDeconstruction();
                 default:
                     return false;
             }

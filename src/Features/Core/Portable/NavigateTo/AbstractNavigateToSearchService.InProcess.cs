@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -9,7 +8,6 @@ using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.PatternMatching;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.NavigateTo
@@ -33,55 +31,84 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         private static async Task<ImmutableArray<INavigateToSearchResult>> FindNavigableDeclaredSymbolInfosAsync(
             Project project, Document searchDocument, string pattern, CancellationToken cancellationToken)
         {
-            var containsDots = pattern.IndexOf('.') >= 0;
-            using (var patternMatcher = new PatternMatcher(pattern, allowFuzzyMatching: true))
+            // If the user created a dotted pattern then we'll grab the last part of the name
+            var (patternName, patternContainerOpt) = PatternMatcher.GetNameAndContainer(pattern);
+            var nameMatcher = PatternMatcher.CreatePatternMatcher(patternName, includeMatchedSpans: true, allowFuzzyMatching: true);
+
+            var containerMatcherOpt = patternContainerOpt != null
+                ? PatternMatcher.CreateDotSeparatedContainerMatcher(patternContainerOpt)
+                : null;
+
+            using (nameMatcher)
+            using (containerMatcherOpt)
             {
-                var result = ArrayBuilder<INavigateToSearchResult>.GetInstance();
-                foreach (var document in project.Documents)
+                var nameMatches = ArrayBuilder<PatternMatch>.GetInstance();
+                var containerMatches = ArrayBuilder<PatternMatch>.GetInstance();
+
+                try
                 {
-                    if (searchDocument != null && document != searchDocument)
-                    {
-                        continue;
-                    }
-
-                    cancellationToken.ThrowIfCancellationRequested();
-                    var declarationInfo = await document.GetSyntaxTreeIndexAsync(cancellationToken).ConfigureAwait(false);
-
-                    foreach (var declaredSymbolInfo in declarationInfo.DeclaredSymbolInfos)
-                    {
-                        cancellationToken.ThrowIfCancellationRequested();
-                        var patternMatches = patternMatcher.GetMatches(
-                            declaredSymbolInfo.Name,
-                            declaredSymbolInfo.FullyQualifiedContainerName,
-                            includeMatchSpans: true);
-
-                        if (!patternMatches.IsEmpty)
-                        {
-                            result.Add(ConvertResult(containsDots, declaredSymbolInfo, document, patternMatches));
-                        }
-                    }
+                    return await FindNavigableDeclaredSymbolInfosAsync(
+                        project, searchDocument, nameMatcher, containerMatcherOpt,
+                        nameMatches, containerMatches, cancellationToken).ConfigureAwait(false);
                 }
-
-                return result.ToImmutableAndFree();
+                finally
+                {
+                    nameMatches.Free();
+                    containerMatches.Free();
+                }
             }
         }
 
-        private static INavigateToSearchResult ConvertResult(
-            bool containsDots, DeclaredSymbolInfo declaredSymbolInfo, 
-            Document document, PatternMatches matches)
+        private static async Task<ImmutableArray<INavigateToSearchResult>> FindNavigableDeclaredSymbolInfosAsync(
+            Project project, Document searchDocument,
+            PatternMatcher nameMatcher, PatternMatcher containerMatcherOpt,
+            ArrayBuilder<PatternMatch> nameMatches, ArrayBuilder<PatternMatch> containerMatches,
+            CancellationToken cancellationToken)
         {
-            var matchKind = GetNavigateToMatchKind(containsDots, matches);
+            var result = ArrayBuilder<INavigateToSearchResult>.GetInstance();
+            foreach (var document in project.Documents)
+            {
+                if (searchDocument != null && document != searchDocument)
+                {
+                    continue;
+                }
+
+                cancellationToken.ThrowIfCancellationRequested();
+                var declarationInfo = await document.GetSyntaxTreeIndexAsync(cancellationToken).ConfigureAwait(false);
+
+                foreach (var declaredSymbolInfo in declarationInfo.DeclaredSymbolInfos)
+                {
+                    nameMatches.Clear();
+                    containerMatches.Clear();
+
+                    cancellationToken.ThrowIfCancellationRequested();
+                    if (nameMatcher.AddMatches(declaredSymbolInfo.Name, nameMatches) &&
+                        containerMatcherOpt?.AddMatches(declaredSymbolInfo.FullyQualifiedContainerName, containerMatches) != false)
+                    { 
+                        result.Add(ConvertResult(
+                            declaredSymbolInfo, document, nameMatches, containerMatches));
+                    }
+                }
+            }
+
+            return result.ToImmutableAndFree();
+        }
+
+        private static INavigateToSearchResult ConvertResult(
+            DeclaredSymbolInfo declaredSymbolInfo, Document document,
+            ArrayBuilder<PatternMatch> nameMatches, ArrayBuilder<PatternMatch> containerMatches)
+        {
+            var matchKind = GetNavigateToMatchKind(nameMatches);
 
             // A match is considered to be case sensitive if all its constituent pattern matches are
             // case sensitive. 
-            var isCaseSensitive = matches.All(m => m.IsCaseSensitive);
+            var isCaseSensitive = nameMatches.All(m => m.IsCaseSensitive) && containerMatches.All(m => m.IsCaseSensitive);
             var kind = GetItemKind(declaredSymbolInfo);
             var navigableItem = NavigableItemFactory.GetItemFromDeclaredSymbolInfo(declaredSymbolInfo, document);
 
             return new SearchResult(
-                document, declaredSymbolInfo, kind, matchKind, 
-                isCaseSensitive, navigableItem,
-                matches.CandidateMatches.SelectMany(m => m.MatchedSpans).ToImmutableArray());
+                document, declaredSymbolInfo, kind, matchKind, isCaseSensitive, navigableItem,
+                nameMatches.SelectMany(m => m.MatchedSpans).ToImmutableArray());
         }
 
         private static string GetItemKind(DeclaredSymbolInfo declaredSymbolInfo)
@@ -120,61 +147,21 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             }
         }
 
-        private static NavigateToMatchKind GetNavigateToMatchKind(
-            bool containsDots, PatternMatches matchResult)
+        private static NavigateToMatchKind GetNavigateToMatchKind(ArrayBuilder<PatternMatch> nameMatches)
         {
-            // NOTE(cyrusn): Unfortunately, the editor owns how sorting of NavigateToItems works,
-            // and they only provide four buckets for sorting items before they sort by the name
-            // of the items.  Because of this, we only have coarse granularity for bucketing things.
-            //
-            // So the question becomes: what do we do if we have multiple match results, and we
-            // need to map to a single MatchKind.
-            //
-            // First, consider a main reason we have multiple match results.  And this happened
-            // when the user types a dotted name (like "Microsoft.CodeAnalysis.ISymbol").  Such
-            // a name would match actual entities: Microsoft.CodeAnalysis.ISymbol *and* 
-            // Microsoft.CodeAnalysis.IAliasSymbol.  The first will be an [Exact, Exact, Exact] 
-            // match, and the second will be an [Exact, Exact, CamelCase] match.  In this
-            // case our belief is that the names will go from least specific to most specific. 
-            // So, the left items may match lots of stuff, while the rightmost items will match
-            // a smaller set of items.  As such, we use the last pattern match to try to decide
-            // what type of editor MatchKind to map to.
-            if (containsDots)
+            if (nameMatches.Any(r => r.Kind == PatternMatchKind.Exact))
             {
-                var lastResult = matchResult.CandidateMatches.LastOrNullable();
-                if (lastResult.HasValue)
-                {
-                    switch (lastResult.Value.Kind)
-                    {
-                        case PatternMatchKind.Exact:
-                            return NavigateToMatchKind.Exact;
-                        case PatternMatchKind.Prefix:
-                            return NavigateToMatchKind.Prefix;
-                        case PatternMatchKind.Substring:
-                            return NavigateToMatchKind.Substring;
-                    }
-                }
+                return NavigateToMatchKind.Exact;
             }
-            else
+
+            if (nameMatches.Any(r => r.Kind == PatternMatchKind.Prefix))
             {
-                // If it wasn't a dotted name, and we have multiple results, that's because they
-                // had a something like a space separated pattern.  In that case, there's no
-                // clear indication as to what is the most important part of the pattern.  So 
-                // we make the result as good as any constituent part.
-                if (matchResult.Any(r => r.Kind == PatternMatchKind.Exact))
-                {
-                    return NavigateToMatchKind.Exact;
-                }
+                return NavigateToMatchKind.Prefix;
+            }
 
-                if (matchResult.Any(r => r.Kind == PatternMatchKind.Prefix))
-                {
-                    return NavigateToMatchKind.Prefix;
-                }
-
-                if (matchResult.Any(r => r.Kind == PatternMatchKind.Substring))
-                {
-                    return NavigateToMatchKind.Substring;
-                }
+            if (nameMatches.Any(r => r.Kind == PatternMatchKind.Substring))
+            {
+                return NavigateToMatchKind.Substring;
             }
 
             return NavigateToMatchKind.Regular;

@@ -1288,7 +1288,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             DiagnosticBag diagnosticsForThisMethod = DiagnosticBag.GetInstance();
             try
             {
-                Cci.AsyncMethodBodyDebugInfo asyncDebugInfo = null;
+                StateMachineMoveNextBodyDebugInfo moveNextBodyDebugInfoOpt = null;
 
                 var codeGen = new CodeGen.CodeGenerator(method, block, builder, moduleBuilder, diagnosticsForThisMethod, optimizations, emittingPdb);
 
@@ -1298,30 +1298,56 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return null;
                 }
 
-                // We need to save additional debugging information for MoveNext of an async state machine.
-                var stateMachineMethod = method as SynthesizedStateMachineMethod;
-                bool isStateMachineMoveNextMethod = stateMachineMethod != null && method.Name == WellKnownMemberNames.MoveNextMethodName;
+                bool isAsyncStateMachine;
+                MethodSymbol kickoffMethod;
 
-                if (isStateMachineMoveNextMethod && stateMachineMethod.StateMachineType.KickoffMethod.IsAsync)
+                if (method is SynthesizedStateMachineMethod stateMachineMethod && 
+                    method.Name == WellKnownMemberNames.MoveNextMethodName)
                 {
-                    int asyncCatchHandlerOffset;
-                    ImmutableArray<int> asyncYieldPoints;
-                    ImmutableArray<int> asyncResumePoints;
-                    codeGen.Generate(out asyncCatchHandlerOffset, out asyncYieldPoints, out asyncResumePoints);
+                    kickoffMethod = stateMachineMethod.StateMachineType.KickoffMethod;
+                    Debug.Assert(kickoffMethod != null);
 
-                    var kickoffMethod = stateMachineMethod.StateMachineType.KickoffMethod;
+                    isAsyncStateMachine = kickoffMethod.IsAsync;
+
+                    // Async void method may be partial. Debug info needs to be associated with the emitted definition, 
+                    // but the kickoff method is the method implementation (the part with body).
+                    kickoffMethod = kickoffMethod.PartialDefinitionPart ?? kickoffMethod;
+                }
+                else
+                {
+                    kickoffMethod = null;
+                    isAsyncStateMachine = false;
+                }
+
+                if (isAsyncStateMachine)
+                {
+                    codeGen.Generate(out int asyncCatchHandlerOffset, out var asyncYieldPoints, out var asyncResumePoints);
 
                     // The exception handler IL offset is used by the debugger to treat exceptions caught by the marked catch block as "user unhandled".
                     // This is important for async void because async void exceptions generally result in the process being terminated,
                     // but without anything useful on the call stack. Async Task methods on the other hand return exceptions as the result of the Task.
                     // So it is undesirable to consider these exceptions "user unhandled" since there may well be user code that is awaiting the task.
                     // This is a heuristic since it's possible that there is no user code awaiting the task.
-                    asyncDebugInfo = new Cci.AsyncMethodBodyDebugInfo(kickoffMethod, kickoffMethod.ReturnsVoid ? asyncCatchHandlerOffset : -1, asyncYieldPoints, asyncResumePoints);
+                    moveNextBodyDebugInfoOpt = new AsyncMoveNextBodyDebugInfo(
+                        kickoffMethod, 
+                        kickoffMethod.ReturnsVoid ? asyncCatchHandlerOffset : -1,
+                        asyncYieldPoints, 
+                        asyncResumePoints);
                 }
                 else
                 {
                     codeGen.Generate();
+
+                    if ((object)kickoffMethod != null)
+                    {
+                        moveNextBodyDebugInfoOpt = new IteratorMoveNextBodyDebugInfo(kickoffMethod);
+                    }
                 }
+
+                // Compiler-generated MoveNext methods have hoisted local scopes.
+                // These are built by call to CodeGen.Generate.
+                var stateMachineHoistedLocalScopes = ((object)kickoffMethod != null) ?
+                    builder.GetHoistedLocalScopes() : default(ImmutableArray<StateMachineHoistedLocalScope>);
 
                 // Translate the imports even if we are not writing PDBs. The translation has an impact on generated metadata 
                 // and we don't want to emit different metadata depending on whether or we emit with PDB stream.
@@ -1345,13 +1371,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (moduleBuilder.SaveTestData)
                 {
                     moduleBuilder.SetMethodTestData(method, builder.GetSnapshot());
-                }
-
-                // Only compiler-generated MoveNext methods have iterator scopes.  See if this is one.
-                var stateMachineHoistedLocalScopes = default(ImmutableArray<StateMachineHoistedLocalScope>);
-                if (isStateMachineMoveNextMethod)
-                {
-                    stateMachineHoistedLocalScopes = builder.GetHoistedLocalScopes();
                 }
 
                 var stateMachineHoistedLocalSlots = default(ImmutableArray<EncHoistedLocalInfo>);
@@ -1388,7 +1407,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     stateMachineHoistedLocalScopes,
                     stateMachineHoistedLocalSlots,
                     stateMachineAwaiterSlots,
-                    asyncDebugInfo,
+                    moveNextBodyDebugInfoOpt,
                     dynamicAnalysisDataOpt);
             }
             finally

@@ -2868,7 +2868,7 @@ class C
 
             Assert.Equal("var (a,b)", declarations[0].ToString());
             var typeInfo = model.GetTypeInfo(declarations[0]);
-            Assert.Equal("(var, var)", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal("(var a, var b)", typeInfo.Type.ToTestDisplayString());
             Assert.Equal(typeInfo.Type, typeInfo.ConvertedType);
             Assert.True(model.GetConversion(declarations[0]).IsIdentity);
             var symbolInfo = model.GetSymbolInfo(declarations[0]);
@@ -2919,7 +2919,7 @@ class C
 
             var tuple = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().Single();
             typeInfo = model.GetTypeInfo(tuple);
-            Assert.Equal("((var, var), var, System.Int32)", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal("((var a, var b), var c, System.Int32 d)", typeInfo.Type.ToTestDisplayString());
             Assert.Equal(typeInfo.Type, typeInfo.ConvertedType);
             Assert.True(model.GetConversion(tuple).IsIdentity);
             symbolInfo = model.GetSymbolInfo(tuple);
@@ -3001,7 +3001,7 @@ class C
 
             Assert.Equal("var (a,b)", declarations[0].ToString());
             var typeInfo = model.GetTypeInfo(declarations[0]);
-            Assert.Equal("(var, var)", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal("(var a, var b)", typeInfo.Type.ToTestDisplayString());
             Assert.Equal(typeInfo.Type, typeInfo.ConvertedType);
             Assert.True(model.GetConversion(declarations[0]).IsIdentity);
             var symbolInfo = model.GetSymbolInfo(declarations[0]);
@@ -3052,7 +3052,7 @@ class C
 
             var tuple = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().Single();
             typeInfo = model.GetTypeInfo(tuple);
-            Assert.Equal("((var, var), var, System.Int32)", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal("((var a, var b), var c, System.Int32 d)", typeInfo.Type.ToTestDisplayString());
             Assert.Equal(typeInfo.Type, typeInfo.ConvertedType);
             Assert.True(model.GetConversion(tuple).IsIdentity);
             symbolInfo = model.GetSymbolInfo(tuple);
@@ -3273,7 +3273,7 @@ class C
 
             Assert.Equal("var (a,b)", declarations[0].ToString());
             var typeInfo = model.GetTypeInfo(declarations[0]);
-            Assert.Equal("(System.Int32, System.Int32)", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal("(System.Int32 a, System.Int32 b)", typeInfo.Type.ToTestDisplayString());
             Assert.Equal(typeInfo.Type, typeInfo.ConvertedType);
             Assert.True(model.GetConversion(declarations[0]).IsIdentity);
             var symbolInfo = model.GetSymbolInfo(declarations[0]);
@@ -3339,7 +3339,7 @@ using var = System.Int32;
 
             Assert.Equal("var (a,b)", declarations[0].ToString());
             var typeInfo = model.GetTypeInfo(declarations[0]);
-            Assert.Equal("(System.Int32, System.Int32)", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal("(System.Int32 a, System.Int32 b)", typeInfo.Type.ToTestDisplayString());
             Assert.Equal(typeInfo.Type, typeInfo.ConvertedType);
             Assert.True(model.GetConversion(declarations[0]).IsIdentity);
             var symbolInfo = model.GetSymbolInfo(declarations[0]);
@@ -3785,7 +3785,7 @@ class C
 
             Assert.Equal("var (a,b)", declarations[0].ToString());
             var typeInfo = model.GetTypeInfo(declarations[0]);
-            Assert.Equal("(var, var)", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal("(var a, var b)", typeInfo.Type.ToTestDisplayString());
             Assert.Equal(typeInfo.Type, typeInfo.ConvertedType);
             Assert.True(model.GetConversion(declarations[0]).IsIdentity);
             var symbolInfo = model.GetSymbolInfo(declarations[0]);
@@ -3839,7 +3839,7 @@ class C
 
             Assert.Equal("((var (a,b), var c), int d)", tuples[0].ToString());
             typeInfo = model.GetTypeInfo(tuples[0]);
-            Assert.Equal("(((var, var), var), System.Int32)", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal("(((var a, var b), var c), System.Int32 d)", typeInfo.Type.ToTestDisplayString());
             Assert.Equal(typeInfo.Type, typeInfo.ConvertedType);
             Assert.True(model.GetConversion(tuples[0]).IsIdentity);
             symbolInfo = model.GetSymbolInfo(tuples[0]);
@@ -3850,7 +3850,7 @@ class C
 
             Assert.Equal("(var (a,b), var c)", tuples[1].ToString());
             typeInfo = model.GetTypeInfo(tuples[1]);
-            Assert.Equal("((var, var), var)", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal("((var a, var b), var c)", typeInfo.Type.ToTestDisplayString());
             Assert.Equal(typeInfo.Type, typeInfo.ConvertedType);
             Assert.True(model.GetConversion(tuples[1]).IsIdentity);
             symbolInfo = model.GetSymbolInfo(tuples[1]);
@@ -3932,7 +3932,7 @@ class C
 
             Assert.Equal("var (a,b)", declarations[0].ToString());
             var typeInfo = model.GetTypeInfo(declarations[0]);
-            Assert.Equal("(var, var)", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal("(var a, var b)", typeInfo.Type.ToTestDisplayString());
             Assert.Equal(typeInfo.Type, typeInfo.ConvertedType);
             Assert.True(model.GetConversion(declarations[0]).IsIdentity);
             var symbolInfo = model.GetSymbolInfo(declarations[0]);
@@ -3986,7 +3986,7 @@ class C
 
             Assert.Equal("((var (a,b), var c), int d)", tuples[0].ToString());
             typeInfo = model.GetTypeInfo(tuples[0]);
-            Assert.Equal("(((var, var), var), System.Int32)", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal("(((var a, var b), var c), System.Int32 d)", typeInfo.Type.ToTestDisplayString());
             Assert.Equal(typeInfo.Type, typeInfo.ConvertedType);
             Assert.True(model.GetConversion(tuples[0]).IsIdentity);
             symbolInfo = model.GetSymbolInfo(tuples[0]);
@@ -3996,7 +3996,7 @@ class C
 
             Assert.Equal("(var (a,b), var c)", tuples[1].ToString());
             typeInfo = model.GetTypeInfo(tuples[1]);
-            Assert.Equal("((var, var), var)", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal("((var a, var b), var c)", typeInfo.Type.ToTestDisplayString());
             Assert.Equal(typeInfo.Type, typeInfo.ConvertedType);
             Assert.True(model.GetConversion(tuples[1]).IsIdentity);
             symbolInfo = model.GetSymbolInfo(tuples[1]);
@@ -4258,7 +4258,7 @@ class C
 
             Assert.Equal("var ((a,b), c)", declarations[0].ToString());
             var typeInfo = model.GetTypeInfo(declarations[0]);
-            Assert.Equal("((var, var), var)", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal("((var a, var b), var c)", typeInfo.Type.ToTestDisplayString());
             Assert.Equal(typeInfo.Type, typeInfo.ConvertedType);
             Assert.True(model.GetConversion(declarations[0]).IsIdentity);
             var symbolInfo = model.GetSymbolInfo(declarations[0]);
@@ -4291,7 +4291,7 @@ class C
 
             var tuple = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().Single();
             typeInfo = model.GetTypeInfo(tuple);
-            Assert.Equal("(((var, var), var), System.Int32)", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal("(((var a, var b), var c), System.Int32 d)", typeInfo.Type.ToTestDisplayString());
             Assert.Equal(typeInfo.Type, typeInfo.ConvertedType);
             Assert.True(model.GetConversion(tuple).IsIdentity);
             symbolInfo = model.GetSymbolInfo(tuple);
@@ -4370,7 +4370,7 @@ class C
 
             Assert.Equal("var ((a,b), c)", declarations[0].ToString());
             var typeInfo = model.GetTypeInfo(declarations[0]);
-            Assert.Equal("((var, var), var)", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal("((var a, var b), var c)", typeInfo.Type.ToTestDisplayString());
             Assert.Equal(typeInfo.Type, typeInfo.ConvertedType);
             Assert.True(model.GetConversion(declarations[0]).IsIdentity);
             var symbolInfo = model.GetSymbolInfo(declarations[0]);
@@ -4403,7 +4403,7 @@ class C
 
             var tuple = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().Single();
             typeInfo = model.GetTypeInfo(tuple);
-            Assert.Equal("(((var, var), var), System.Int32)", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal("(((var a, var b), var c), System.Int32 d)", typeInfo.Type.ToTestDisplayString());
             Assert.Equal(typeInfo.Type, typeInfo.ConvertedType);
             Assert.True(model.GetConversion(tuple).IsIdentity);
             symbolInfo = model.GetSymbolInfo(tuple);
