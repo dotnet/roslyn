@@ -140,10 +140,41 @@ namespace BuildBoss
         {
             var allGood = true;
 
-            var declaredList = _projectUtil.GetDeclaredProjectReferences();
+            var declaredEntryList = _projectUtil.GetDeclaredProjectReferences();
+            var declaredList = declaredEntryList.Select(x => x.ProjectKey).ToList();
             allGood &= CheckProjectReferencesComplete(textWriter, declaredList);
             allGood &= CheckUnitTestReferenceRestriction(textWriter, declaredList);
             allGood &= CheckTransitiveReferences(textWriter, declaredList);
+            allGood &= CheckProjectReferencesHaveCorrectGuid(textWriter, declaredEntryList);
+
+            return allGood;
+        }
+
+        /// <summary>
+        /// Ensure that all ProjectReference entries in the file have the correct GUID when
+        /// the Project child element is present.
+        /// </summary>
+        private bool CheckProjectReferencesHaveCorrectGuid(TextWriter textWriter, List<ProjectReferenceEntry> entryList)
+        {
+            var allGood = true;
+            foreach (var entry in entryList)
+            {
+                if (!_solutionMap.TryGetValue(entry.ProjectKey, out var data))
+                {
+                    textWriter.WriteLine($"Project not recognized {entry.FileName}");
+                    allGood = false;
+                    continue;
+                }
+
+                var dataGuid = data.ProjectUtil.GetProjectGuid();
+                if (dataGuid != entry.Project)
+                {
+                    textWriter.WriteLine($"Project Reference GUID for {entry.ProjectKey.FileName} doesn't match ProjectGuid");
+                    textWriter.WriteLine($"\tProject Guid {dataGuid}");
+                    textWriter.WriteLine($"\tReference Guid {entry.Project}");
+                    allGood = false;
+                }
+            }
 
             return allGood;
         }
@@ -294,7 +325,7 @@ namespace BuildBoss
                 list.Add(current);
                 foreach (var dep in data.ProjectUtil.GetDeclaredProjectReferences())
                 {
-                    toVisit.Enqueue(dep);
+                    toVisit.Enqueue(dep.ProjectKey);
                 }
             }
 
@@ -358,7 +389,7 @@ namespace BuildBoss
                 allGood = false;
             }
 
-            var set = new HashSet<ProjectKey>(_projectUtil.GetDeclaredProjectReferences());
+            var set = new HashSet<ProjectKey>(_projectUtil.GetDeclaredProjectReferences().Select(x => x.ProjectKey));
             foreach (var projectData in _solutionMap.Values)
             {
                 var rosData = projectData.ProjectUtil.TryGetRoslynProjectData();
