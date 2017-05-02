@@ -28,7 +28,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return ((featureFlag IsNot Nothing) AndAlso options.Features.ContainsKey(featureFlag))
         End Function
 
-        ''' <summary>Report the unavailibility of a language feature.</summary>
+        ''' <summary>Report the unavailability of a language feature.</summary>
         ''' <typeparam name="TNode"></typeparam>
         ''' <param name="feature">Language feature to report as unavailable.</param>
         ''' <param name="options">The parse options being used.</param>
@@ -64,11 +64,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return If(feature.IsAvailable(options), node, feature.ReportFeatureUnavailable(options, node))
         End Function
 
-        ''' <summary>Returns false and reports an error if the feature is un-available.</summary>
+        ''' <summary>Returns false and reports an error if the feature is unavailable.</summary>
         ''' <param name="feature">Language feature to check is available.</param>
         ''' <param name="options">The parse options being used.</param>
         ''' <param name="diagnostics">The diagnostics to which add this diagnostic.</param>
-        ''' <param name="location">The location to report the diagnotic.</param>
+        ''' <param name="location">The location to report the diagnostic.</param>
         <Extension>
         Public Function IsAvailable(feature As Feature, options As VisualBasicParseOptions, diagnostics As DiagnosticBag, location As Location) As Boolean
             If feature.IsAvailable(options) Then Return True
