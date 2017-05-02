@@ -11,6 +11,7 @@
     <RootNamespace>Microsoft.CodeAnalysis.CSharp.UnitTests</RootNamespace>
     <AssemblyName>Roslyn.ExpressionEvaluator.CSharp.ExpressionCompiler.UnitTests</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <RuntimeIdentifiers>win7</RuntimeIdentifiers>
     <RoslynProjectType>UnitTest</RoslynProjectType>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
@@ -70,6 +71,21 @@
     <Reference Include="System" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Xml" />
+    <PackageReference Include="Microsoft.VisualStudio.Debugger.Engine">
+      <Version>$(MicrosoftVisualStudioDebuggerEngineVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.DiaSymReader">
+      <Version>$(MicrosoftDiaSymReaderVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="xunit">
+      <Version>$(xunitVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="xunit.runner.console">
+      <Version>$(xunitrunnerconsoleVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="xunit.runner.visualstudio">
+      <Version>$(xunitrunnervisualstudioVersion)</Version>
+    </PackageReference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AccessibilityTests.cs" />
@@ -94,9 +110,6 @@
     <Compile Include="TupleTests.cs" />
     <Compile Include="UsingDebugInfoTests.cs" />
     <Compile Include="WinMdTests.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="project.json" />
   </ItemGroup>
   <ItemGroup>
     <None Include="PerfTests\DebuggerSteppingTestcase.xml">

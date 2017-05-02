@@ -4467,7 +4467,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
  /define:&lt;symbol list&gt;         Define conditional compilation symbol(s) (Short 
                                form: /d)
  /langversion:&lt;string&gt;         Specify language version mode: ISO-1, ISO-2, 3, 
-                               4, 5, 6, Default, or Latest
+                               4, 5, 6, 7, 7.1, Default, or Latest
 
                         - SECURITY -
  /delaysign[+|-]               Delay-sign the assembly using only the public 
@@ -4488,7 +4488,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
 
                         - ADVANCED -
  /baseaddress:&lt;address&gt;        Base address for the library to be built
- /bugreport:&lt;file&gt;             Create a 'Bug Report' file
  /checksumalgorithm:&lt;alg&gt;      Specify algorithm for calculating source file 
                                checksum stored in PDB. Supported values are:
                                SHA1 (default) or SHA256.
@@ -5058,6 +5057,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_CompilerAndLanguageVersion" xml:space="preserve">
     <value>Compiler version: '{0}'. Language version: {1}.</value>
+  </data>
+  <data name="ERR_TupleInferredNamesNotAvailable" xml:space="preserve">
+    <value>Tuple element name '{0}' is inferred. Please use language version {1} or greater to access an element by its inferred name.</value>
   </data>
   <data name="WRN_DefaultInSwitch" xml:space="preserve">
     <value>Did you mean to use the default switch label (`default:`) rather than `case default:`? If you really mean to use the default literal, consider `case (default):` or another literal (`case 0:` or `case null:`) as appropriate.</value>

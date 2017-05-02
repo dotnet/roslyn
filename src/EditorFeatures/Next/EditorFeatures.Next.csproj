@@ -49,9 +49,62 @@
     <Reference Include="System.Core" />
     <Reference Include="System.Drawing" />
     <Reference Include="$(NuGetPackageRoot)\VS.ExternalAPIs.CodingConventions\1.0.60704.2\Microsoft.VisualStudio.CodingConventions.dll" />
+    <PackageReference Include="Microsoft.VisualStudio.CoreUtility">
+      <Version>$(MicrosoftVisualStudioCoreUtilityVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Editor">
+      <Version>$(MicrosoftVisualStudioEditorVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Imaging">
+      <Version>$(MicrosoftVisualStudioImagingVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Imaging.Interop.14.0.DesignTime">
+      <Version>$(MicrosoftVisualStudioImagingInterop140DesignTimeVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Shell.Interop.14.0.DesignTime">
+      <Version>$(MicrosoftVisualStudioShellInterop140DesignTimeVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.ImageCatalog">
+      <Version>$(MicrosoftVisualStudioImageCatalogVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Language.Intellisense">
+      <Version>$(MicrosoftVisualStudioLanguageIntellisenseVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Text.Data">
+      <Version>$(MicrosoftVisualStudioTextDataVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Text.Logic">
+      <Version>$(MicrosoftVisualStudioTextLogicVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Text.UI">
+      <Version>$(MicrosoftVisualStudioTextUIVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Text.UI.Wpf">
+      <Version>$(MicrosoftVisualStudioTextUIWpfVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Utilities">
+      <Version>$(MicrosoftVisualStudioUtilitiesVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Language.NavigateTo.Interfaces">
+      <Version>$(MicrosoftVisualStudioLanguageNavigateToInterfacesVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Validation">
+      <Version>$(MicrosoftVisualStudioValidationVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Threading">
+      <Version>$(MicrosoftVisualStudioThreadingVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="System.Collections.Immutable">
+      <Version>$(SystemCollectionsImmutableVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.Tpl.Dataflow">
+      <Version>$(MicrosoftTplDataflowVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="VS.ExternalAPIs.CodingConventions">
+      <Version>$(VSExternalAPIsCodingConventionsVersion)</Version>
+    </PackageReference>
   </ItemGroup>
   <ItemGroup>
-    <None Include="project.json" />
     <PublicAPI Include="PublicAPI.Shipped.txt" />
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
@@ -70,6 +123,5 @@
     <Compile Include="Options\EditorConfigDocumentOptionsProviderFactory.cs" />
     <Compile Include="Options\EditorConfigDocumentOptionsProvider.cs" />
   </ItemGroup>
-  <ItemGroup />
   <Import Project="..\..\..\build\Targets\Imports.targets" />
 </Project>
