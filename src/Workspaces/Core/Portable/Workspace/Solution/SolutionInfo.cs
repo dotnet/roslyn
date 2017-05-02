@@ -113,11 +113,11 @@ namespace Microsoft.CodeAnalysis
 
             public void WriteTo(ObjectWriter writer)
             {
+                // these information is volatile. it can be different
+                // per session or not content based value. basically not
+                // persistable. these information will not be included in checksum
                 Id.WriteTo(writer);
-
-                // TODO: figure out a way to send version info over as well.
-                //       right now, version get updated automatically, so 2 can't be exactly match
-                // info.Version.WriteTo(writer);
+                Version.WriteTo(writer);
 
                 writer.WriteString(FilePath);
             }
@@ -125,10 +125,11 @@ namespace Microsoft.CodeAnalysis
             public static SolutionAttributes ReadFrom(ObjectReader reader)
             {
                 var solutionId = SolutionId.ReadFrom(reader);
-                // var version = VersionStamp.ReadFrom(reader);
+                var version = VersionStamp.ReadFrom(reader);
+
                 var filePath = reader.ReadString();
 
-                return new SolutionAttributes(solutionId, VersionStamp.Create(), filePath);
+                return new SolutionAttributes(solutionId, version, filePath);
             }
 
             private Checksum _lazyChecksum;
@@ -138,7 +139,28 @@ namespace Microsoft.CodeAnalysis
                 {
                     if (_lazyChecksum == null)
                     {
-                        _lazyChecksum = Checksum.Create(nameof(SolutionAttributes), this);
+                        using (var stream = SerializableBytes.CreateWritableStream())
+                        using (var writer = new ObjectWriter(stream))
+                        {
+                            writer.WriteString(nameof(SolutionAttributes));
+
+                            // first try non volatile info for checksum.
+                            if (FilePath != null)
+                            {
+                                // these information is not volatile. it won't be different
+                                // per session, basically persistable content based values. 
+                                // only these information will be included in checksum
+                                writer.WriteString(FilePath);
+                            }
+                            else
+                            {
+                                // this checksum is not persistable because
+                                // this info doesn't have non volatile info
+                                Id.WriteTo(writer);
+                            }
+
+                            _lazyChecksum = Checksum.Create(stream);
+                        }
                     }
 
                     return _lazyChecksum;
