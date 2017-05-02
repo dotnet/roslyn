@@ -31,11 +31,6 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="project.json">
-      <SubType>Designer</SubType>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\CSharpAnalyzers\CSharpAnalyzers.csproj">
       <Project>{409C5A1C-D4DE-43C4-86E1-F598C60B794B}</Project>
       <Name>CSharpAnalyzers</Name>
@@ -63,6 +58,11 @@
   </ItemGroup>
   <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.VisualStudio.QualityTools.UnitTestFramework">
+      <Version>$(MicrosoftVisualStudioQualityToolsUnitTestFrameworkVersion)</Version>
+    </PackageReference>
   </ItemGroup>
   <Import Project="..\..\..\..\..\..\build\Targets\Imports.targets" />
 </Project>
