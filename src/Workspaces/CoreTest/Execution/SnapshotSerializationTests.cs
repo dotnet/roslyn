@@ -585,11 +585,11 @@ namespace Microsoft.CodeAnalysis.UnitTests
                     ProjectInfo.Create(projectId1, VersionStamp.Create(), "Project", "Project.Dll", LanguageNames.CSharp, "test.csproj",
                         documents: new DocumentInfo[]
                         {
-                            DocumentInfo.Create(DocumentId.CreateNewId(projectId1), "Document", loader: TextLoader.From(TextAndVersion.Create(SourceText.From(code), VersionStamp.Create(), filePath: "test.cs")), filePath: "test.cs")
+                            DocumentInfo.Create(DocumentId.CreateNewId(projectId1), "Document", loader: TextLoader.From(TextAndVersion.Create(SourceText.From(code), VersionStamp.Create(), filePath: "test.cs")), filePath: "test.cs").WithProjectFilePath("test.csproj")
                         },
                         additionalDocuments: new DocumentInfo[]
                         {
-                            DocumentInfo.Create(DocumentId.CreateNewId(projectId1), "Document", loader: TextLoader.From(TextAndVersion.Create(SourceText.From(code), VersionStamp.Create(), filePath: "additional.txt")), filePath: "additional.txt")
+                            DocumentInfo.Create(DocumentId.CreateNewId(projectId1), "Document", loader: TextLoader.From(TextAndVersion.Create(SourceText.From(code), VersionStamp.Create(), filePath: "additional.txt")), filePath: "additional.txt").WithProjectFilePath("test.csproj")
                         })
                 }));
 
@@ -601,11 +601,11 @@ namespace Microsoft.CodeAnalysis.UnitTests
                     ProjectInfo.Create(projectId2, VersionStamp.Create(), "Project", "Project.Dll", LanguageNames.CSharp, "test.csproj",
                         documents: new DocumentInfo[]
                         {
-                            DocumentInfo.Create(DocumentId.CreateNewId(projectId2), "Document", loader: TextLoader.From(TextAndVersion.Create(SourceText.From(code), VersionStamp.Create(), filePath: "test.cs")), filePath: "test.cs")
+                            DocumentInfo.Create(DocumentId.CreateNewId(projectId2), "Document", loader: TextLoader.From(TextAndVersion.Create(SourceText.From(code), VersionStamp.Create(), filePath: "test.cs")), filePath: "test.cs").WithProjectFilePath("test.csproj")
                         },
                         additionalDocuments: new DocumentInfo[]
                         {
-                            DocumentInfo.Create(DocumentId.CreateNewId(projectId2), "Document", loader: TextLoader.From(TextAndVersion.Create(SourceText.From(code), VersionStamp.Create(), filePath: "additional.txt")), filePath: "additional.txt")
+                            DocumentInfo.Create(DocumentId.CreateNewId(projectId2), "Document", loader: TextLoader.From(TextAndVersion.Create(SourceText.From(code), VersionStamp.Create(), filePath: "additional.txt")), filePath: "additional.txt").WithProjectFilePath("test.csproj")
                         })
                 }));
 
