@@ -81,11 +81,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // text of the document changes, or the ParseOptions change.  So we get the checksums
             // for both of those, and merge them together to make the final checksum.
 
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            var textChecksum = Checksum.Create(WellKnownSynchronizationKinds.SourceText, text.GetChecksum());
+            var documentChecksumState = await document.State.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
+            var textChecksum = documentChecksumState.Text;
 
             var parseOptions = document.Project.ParseOptions;
-
             var serializer = new Serializer(document.Project.Solution.Workspace);
             var parseOptionsChecksum = ChecksumCache.GetOrCreate(
                 parseOptions, _ => serializer.CreateChecksum(parseOptions, cancellationToken));
