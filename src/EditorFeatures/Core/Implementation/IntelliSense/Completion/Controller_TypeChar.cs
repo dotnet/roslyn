@@ -269,13 +269,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
         private CompletionHelper GetCompletionHelper()
         {
+            // Crash if we don't find a document, we're already in a bad state.
             var document = GetDocument();
-            if (document != null)
-            {
-                return CompletionHelper.GetHelper(document);
-            }
-
-            return null;
+            return CompletionHelper.GetHelper(document);
         }
 
         private bool IsTextualTriggerCharacter(CompletionService completionService, char ch, OptionSet options)
