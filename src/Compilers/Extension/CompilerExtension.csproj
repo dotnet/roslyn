@@ -144,7 +144,7 @@
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
     </ProjectReference>
     <ProjectReference Include="..\VisualBasic\vbc\vbc.csproj">
-      <Project>{2ac2755d-9437-4271-bbde-1a3795a0c320}</Project>
+      <Project>{e58ee9d7-1239-4961-a0c1-f9ec3952c4c1}</Project>
       <Name>vbc</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bGetCopyToOutputDirectoryItems</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup%3b</IncludeOutputGroupsInVSIXLocalOnly>
