@@ -47,15 +47,16 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // the text of any document changes, or if options for the project change.  So we build our
             // checksum out of that data.
             var serializer = new Serializer(project.Solution.Workspace);
+            var projectStateChecksums = await project.State.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
 
             var textChecksumsTasks = project.Documents.Select(async d =>
             {
-                var text = await d.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                return serializer.CreateChecksum(text, cancellationToken);
+                var documentStateChecksum = await d.State.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
+                return documentStateChecksum.Text;
             });
 
-            var compilationOptionsChecksum = ChecksumCache.GetOrCreate(project.CompilationOptions, _ => serializer.CreateChecksum(project.CompilationOptions, cancellationToken));
-            var parseOptionsChecksum = ChecksumCache.GetOrCreate(project.ParseOptions, _ => serializer.CreateChecksum(project.ParseOptions, cancellationToken));
+            var compilationOptionsChecksum = projectStateChecksums.CompilationOptions;
+            var parseOptionsChecksum = projectStateChecksums.ParseOptions;
             var textChecksums = await Task.WhenAll(textChecksumsTasks).ConfigureAwait(false);
 
             var allChecksums = ArrayBuilder<Checksum>.GetInstance();
