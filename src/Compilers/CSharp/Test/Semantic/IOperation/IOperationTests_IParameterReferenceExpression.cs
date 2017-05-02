@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -137,7 +138,6 @@ IOperation:  (OperationKind.None) (Syntax: 'from cust i ... t cust.Name')
                     IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'cust.Name')
                       IPropertyReferenceExpression: System.String Customer.Name { get; set; } (OperationKind.PropertyReferenceExpression, Type: System.String) (Syntax: 'cust.Name')
                         Instance Receiver: IOperation:  (OperationKind.None) (Syntax: 'cust')
-                            Children(1): IParameterReferenceExpression: cust (OperationKind.ParameterReferenceExpression, Type: Customer) (Syntax: 'cust')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -380,8 +380,8 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'var y /*<bi ... *</bind>*/;')
     Variables: Local_1: dynamic y
     Initializer: IOperation:  (OperationKind.None) (Syntax: 'd[x]')
-        Children(2): IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
-          IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: dynamic) (Syntax: 'd')
+        Children(2): IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: dynamic) (Syntax: 'd')
+          IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -402,9 +402,9 @@ class Class1
 ";
             string expectedOperationTree = @"
 IOperation:  (OperationKind.None) (Syntax: 'x.M(y)')
-  Children(2): IParameterReferenceExpression: y (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'y')
-    IOperation:  (OperationKind.None) (Syntax: 'x.M')
+  Children(2): IOperation:  (OperationKind.None) (Syntax: 'x.M')
       Children(1): IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: dynamic) (Syntax: 'x')
+    IParameterReferenceExpression: y (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'y')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -425,8 +425,8 @@ class Class1
 ";
             string expectedOperationTree = @"
 IOperation:  (OperationKind.None) (Syntax: 'x(y)')
-  Children(2): IParameterReferenceExpression: y (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'y')
-    IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: dynamic) (Syntax: 'x')
+  Children(2): IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: dynamic) (Syntax: 'x')
+    IParameterReferenceExpression: y (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'y')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -565,8 +565,7 @@ IOperation:  (OperationKind.None) (Syntax: 'switch (x) ... }')
     IOperation:  (OperationKind.None) (Syntax: 'case var y  ... break;')
       Children(2): IOperation:  (OperationKind.None) (Syntax: 'case var y  ...  (x >= 10):')
           Children(2): IOperation:  (OperationKind.None) (Syntax: 'var y')
-              Children(2): ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'var y')
-                IOperation:  (OperationKind.None) (Syntax: 'var')
+              Children(1): ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'var y')
             IBinaryOperatorExpression (BinaryOperationKind.IntegerGreaterThanOrEqual) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'x >= 10')
               Left: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
               Right: ILiteralExpression (Text: 10) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
@@ -598,12 +597,11 @@ internal class Class
 ";
             string expectedOperationTree = @"
 IOperation:  (OperationKind.None) (Syntax: 'switch (x) ... }')
-  Children(4): IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
+  Children(3): IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
     IOperation:  (OperationKind.None) (Syntax: 'case var y  ... break;')
       Children(2): IOperation:  (OperationKind.None) (Syntax: 'case var y  ...  (x >= 10):')
           Children(2): IOperation:  (OperationKind.None) (Syntax: 'var y')
-              Children(2): ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'var y')
-                IOperation:  (OperationKind.None) (Syntax: 'var')
+              Children(1): ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'var y')
             IBinaryOperatorExpression (BinaryOperationKind.IntegerGreaterThanOrEqual) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'x >= 10')
               Left: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
               Right: ILiteralExpression (Text: 10) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
@@ -612,12 +610,101 @@ IOperation:  (OperationKind.None) (Syntax: 'switch (x) ... }')
       Children(2): IOperation:  (OperationKind.None) (Syntax: 'default:')
           Children(1): IOperation:  (OperationKind.None) (Syntax: 'default:')
         IBranchStatement (BranchKind.Break) (OperationKind.BranchStatement) (Syntax: 'break;')
-    IOperation:  (OperationKind.None) (Syntax: 'default:')
-      Children(1): IOperation:  (OperationKind.None) (Syntax: 'default:')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<DefaultSwitchLabelSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")]
+        public void ParameterReference_UserDefinedLogicalConditionalOperator()
+        {
+            string source = @"
+class A<T>
+{
+    public static bool operator true(A<T> o) { return true; }
+    public static bool operator false(A<T> o) { return false; }
+}
+class B : A<object>
+{
+    public static B operator &(B x, B y) { return x; }
+}
+class C : B
+{
+    public static C operator |(C x, C y) { return x; }
+}
+class P
+{
+    static void M(C x, C y)
+    {
+        if (/*<bind>*/x && y/*</bind>*/)
+        {
+        }
+    }
+}
+";
+            string expectedOperationTree = @"
+IOperation:  (OperationKind.None) (Syntax: 'x && y')
+  Children(2): IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: B) (Syntax: 'x')
+      IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: C) (Syntax: 'x')
+    IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: B) (Syntax: 'y')
+      IParameterReferenceExpression: y (OperationKind.ParameterReferenceExpression, Type: C) (Syntax: 'y')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<BinaryExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")]
+        public void ParameterReference_NoPiaObjectCreation()
+        {
+            var sources0 = @"
+using System;
+using System.Runtime.InteropServices;
+
+[assembly: ImportedFromTypeLib(""_.dll"")]
+[assembly: Guid(""f9c2d51d-4f44-45f0-9eda-c9d599b58257"")]
+[ComImport()]
+[Guid(""f9c2d51d-4f44-45f0-9eda-c9d599b58277"")]
+[CoClass(typeof(C))]
+public interface I
+        {
+            int P { get; set; }
+        }
+[Guid(""f9c2d51d-4f44-45f0-9eda-c9d599b58278"")]
+public class C
+{
+    public C(object o)
+    {
+    }
+}
+";
+            var sources1 = @"
+struct S
+{
+	public I F(object x)
+	{
+		return /*<bind>*/new I(x)/*</bind>*/;
+    }
+}
+";
+            var compilation0 = CreateStandardCompilation(sources0);
+            compilation0.VerifyDiagnostics();
+
+            var compilation1 = CreateStandardCompilation(
+                sources1,
+                references: new[] { MscorlibRef, SystemRef, compilation0.EmitToImageReference(embedInteropTypes: true) });
+
+            string expectedOperationTree = @"
+IOperation:  (OperationKind.None) (Syntax: 'new I(x)')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                    // (6,25): error CS1729: 'I' does not contain a constructor that takes 1 arguments
+                    // 		return /*<bind>*/new I(x)/*</bind>*/;
+                    Diagnostic(ErrorCode.ERR_BadCtorArgCount, "(x)").WithArguments("I", "1").WithLocation(6, 25)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(compilation1, expectedOperationTree, expectedDiagnostics);
         }
     }
 }

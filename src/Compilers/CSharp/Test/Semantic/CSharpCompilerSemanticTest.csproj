@@ -61,6 +61,7 @@
     <Compile Include="Diagnostics\GetDiagnosticsTests.cs" />
     <Compile Include="IOperation\IOperationTests_IArgument.cs" />
     <Compile Include="IOperation\IOperationTests_IIfStatement.cs" />
+    <Compile Include="IOperation\IOperationTests_IFieldReferenceExpression.cs" />
     <Compile Include="IOperation\IOperationTests_IParameterReferenceExpression.cs" />
     <Compile Include="IOperation\IOperationTests_ISymbolInitializer.cs" />
     <Compile Include="IOperation\IOperationTests_InvalidExpression.cs" />

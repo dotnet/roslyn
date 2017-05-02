@@ -1826,12 +1826,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return OperationKind.None
         End Function
 
-        Protected Overrides ReadOnly Property Children As ImmutableArray(Of IOperation)
-            Get
-                Return ImmutableArray.Create(Of IOperation)(Me.UnderlyingLValue)
-            End Get
-        End Property
-
         Public Overrides Sub Accept(visitor As OperationVisitor)
             visitor.VisitNoneOperation(Me)
         End Sub
@@ -1945,12 +1939,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
-
-        Protected Overrides ReadOnly Property Children As ImmutableArray(Of IOperation)
-            Get
-                Return ImmutableArray.Create(Of IOperation)(Me.SourceType)
-            End Get
-        End Property
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
             visitor.VisitNoneOperation(Me)
@@ -2457,12 +2445,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
-
-        Protected Overrides ReadOnly Property Children As ImmutableArray(Of IOperation)
-            Get
-                Return ImmutableArray.Create(Of IOperation)(Me.OriginalArgument)
-            End Get
-        End Property
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
             visitor.VisitNoneOperation(Me)
@@ -2987,12 +2969,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
-
-        Protected Overrides ReadOnly Property Children As ImmutableArray(Of IOperation)
-            Get
-                Return ImmutableArray.Create(Of IOperation)(Me.Expression)
-            End Get
-        End Property
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
             visitor.VisitNoneOperation(Me)

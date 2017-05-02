@@ -100,6 +100,132 @@ IOperation:  (OperationKind.None) (Syntax: 'From cust I ... t cust.Name')
             VerifyOperationTreeAndDiagnosticsForTest(Of QueryExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")>
+        Public Sub ParameterReference_QueryExpressionAggregateClause()
+            Dim source = <![CDATA[
+Option Strict Off
+Option Infer On
+
+Imports System
+Imports System.Collections
+Imports System.Linq
+
+
+Class C
+    Public Sub Method(x As Integer)
+        Console.WriteLine(Aggregate y In New Integer() {x} Into Count())'BIND:"Aggregate y In New Integer() {x} Into Count()"
+    End Sub
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IOperation:  (OperationKind.None) (Syntax: 'Aggregate y ... nto Count()')
+  Children(1): IOperation:  (OperationKind.None) (Syntax: 'Aggregate y ... nto Count()')
+      Children(1): IOperation:  (OperationKind.None) (Syntax: 'Count()')
+          Children(1): IOperation:  (OperationKind.None) (Syntax: 'Count()')
+              Children(1): IInvocationExpression ( Function System.Collections.Generic.IEnumerable(Of System.Int32).Count() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'Count()')
+                  Instance Receiver: IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32)) (Syntax: 'y In New Integer() {x}')
+                      IOperation:  (OperationKind.None) (Syntax: 'y In New Integer() {x}')
+                        Children(1): IOperation:  (OperationKind.None) (Syntax: 'New Integer() {x}')
+                            Children(1): IArrayCreationExpression (Element Type: System.Int32) (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: 'New Integer() {x}')
+                                Dimension Sizes(1): ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: 'New Integer() {x}')
+                                Initializer: IArrayInitializer (1 elements) (OperationKind.ArrayInitializer) (Syntax: '{x}')
+                                    Element Values(1): IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of QueryExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")>
+        Public Sub ParameterReference_QueryExpressionOrderByClause()
+            Dim source = <![CDATA[
+Option Strict Off
+Option Infer On
+
+Imports System
+Imports System.Collections
+Imports System.Linq
+
+
+Class C
+    Public Sub Method(x As String())
+        Console.WriteLine(From y In x Order By y.Length)'BIND:"From y In x Order By y.Length"
+    End Sub
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: 'From y In x ... By y.Length')
+  IOperation:  (OperationKind.None) (Syntax: 'From y In x ... By y.Length')
+    Children(1): IOperation:  (OperationKind.None) (Syntax: 'Order By y.Length')
+        Children(1): IOperation:  (OperationKind.None) (Syntax: 'y.Length')
+            Children(1): IInvocationExpression ( Function System.Collections.Generic.IEnumerable(Of System.String).OrderBy(Of System.Int32)(keySelector As System.Func(Of System.String, System.Int32)) As System.Linq.IOrderedEnumerable(Of System.String)) (OperationKind.InvocationExpression, Type: System.Linq.IOrderedEnumerable(Of System.String)) (Syntax: 'y.Length')
+                Instance Receiver: IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.String)) (Syntax: 'y In x')
+                    IOperation:  (OperationKind.None) (Syntax: 'y In x')
+                      Children(1): IOperation:  (OperationKind.None) (Syntax: 'x')
+                          Children(1): IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.String()) (Syntax: 'x')
+                Arguments(1): IArgument (ArgumentKind.DefaultValue, Matching Parameter: keySelector) (OperationKind.Argument) (Syntax: 'y.Length')
+                    IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.Func(Of System.String, System.Int32)) (Syntax: 'y.Length')
+                      IOperation:  (OperationKind.None) (Syntax: 'y.Length')
+                        Children(1): IIndexedPropertyReferenceExpression: ReadOnly Property System.String.Length As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'y.Length')
+                            Instance Receiver: IOperation:  (OperationKind.None) (Syntax: 'y')
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of QueryExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")>
+        Public Sub ParameterReference_QueryExpressionGroupByClause()
+            Dim source = <![CDATA[
+Option Strict Off
+Option Infer On
+
+Imports System
+Imports System.Collections
+Imports System.Linq
+
+
+Class C
+    Public Sub Method(x As String())
+        Dim c = From y In x Group By w = x, z = y Into Count()'BIND:"From y In x Group By w = x, z = y Into Count()"
+    End Sub
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IOperation:  (OperationKind.None) (Syntax: 'From y In x ... nto Count()')
+  Children(1): IOperation:  (OperationKind.None) (Syntax: 'Group By w  ... nto Count()')
+      Children(1): IInvocationExpression ( Function System.Collections.Generic.IEnumerable(Of System.String).GroupBy(Of <anonymous type: Key w As System.String(), Key z As System.String>, <anonymous type: Key w As System.String(), Key z As System.String, Key Count As System.Int32>)(keySelector As System.Func(Of System.String, <anonymous type: Key w As System.String(), Key z As System.String>), resultSelector As System.Func(Of <anonymous type: Key w As System.String(), Key z As System.String>, System.Collections.Generic.IEnumerable(Of System.String), <anonymous type: Key w As System.String(), Key z As System.String, Key Count As System.Int32>)) As System.Collections.Generic.IEnumerable(Of <anonymous type: Key w As System.String(), Key z As System.String, Key Count As System.Int32>)) (OperationKind.InvocationExpression, Type: System.Collections.Generic.IEnumerable(Of <anonymous type: Key w As System.String(), Key z As System.String, Key Count As System.Int32>)) (Syntax: 'Group By w  ... nto Count()')
+          Instance Receiver: IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.String)) (Syntax: 'y In x')
+              IOperation:  (OperationKind.None) (Syntax: 'y In x')
+                Children(1): IOperation:  (OperationKind.None) (Syntax: 'x')
+                    Children(1): IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.String()) (Syntax: 'x')
+          Arguments(2): IArgument (ArgumentKind.DefaultValue, Matching Parameter: keySelector) (OperationKind.Argument) (Syntax: 'x')
+              IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.Func(Of System.String, <anonymous type: Key w As System.String(), Key z As System.String>)) (Syntax: 'x')
+                IOperation:  (OperationKind.None) (Syntax: 'x')
+                  Children(1): IOperation:  (OperationKind.None) (Syntax: 'Group By w  ... nto Count()')
+                      Children(2): IOperation:  (OperationKind.None) (Syntax: 'w = x')
+                          Children(1): IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.String()) (Syntax: 'x')
+                        IOperation:  (OperationKind.None) (Syntax: 'z = y')
+                          Children(1): IOperation:  (OperationKind.None) (Syntax: 'y')
+            IArgument (ArgumentKind.DefaultValue, Matching Parameter: resultSelector) (OperationKind.Argument) (Syntax: 'Group By w  ... nto Count()')
+              IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.Func(Of <anonymous type: Key w As System.String(), Key z As System.String>, System.Collections.Generic.IEnumerable(Of System.String), <anonymous type: Key w As System.String(), Key z As System.String, Key Count As System.Int32>)) (Syntax: 'Group By w  ... nto Count()')
+                IOperation:  (OperationKind.None) (Syntax: 'Group By w  ... nto Count()')
+                  Children(1): IOperation:  (OperationKind.None) (Syntax: 'Group By w  ... nto Count()')
+                      Children(3): IOperation:  (OperationKind.None) (Syntax: 'w')
+                        IOperation:  (OperationKind.None) (Syntax: 'z')
+                        IOperation:  (OperationKind.None) (Syntax: 'Count()')
+                          Children(1): IOperation:  (OperationKind.None) (Syntax: 'Count()')
+                              Children(1): IInvocationExpression ( Function System.Collections.Generic.IEnumerable(Of System.String).Count() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'Count()')
+                                  Instance Receiver: IParameterReferenceExpression: $VB$ItAnonymous (OperationKind.ParameterReferenceExpression, Type: System.Collections.Generic.IEnumerable(Of System.String)) (Syntax: 'Group By w  ... nto Count()')
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of QueryExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
         <Fact(Skip:="https://github.com/dotnet/roslyn/issues/18781"), WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")>
         Public Sub ParameterReference_ObjectAndCollectionInitializer()
             Dim source = <![CDATA[
@@ -399,6 +525,107 @@ IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'Public S
             Dim expectedDiagnostics = String.Empty
 
             VerifyOperationTreeAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")>
+        Public Sub ParameterReference_LateAddressOfOperator()
+            Dim source = <![CDATA[
+Option Strict Off
+
+Class Class1
+    Public Sub M(x As Object)
+        Dim y = AddressOf x.Method'BIND:"AddressOf x.Method"
+    End Sub
+    Public Sub M2(x As Boolean?)
+
+    End Sub
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IOperation:  (OperationKind.None) (Syntax: 'AddressOf x.Method')
+  Children(1): ILateBoundMemberReferenceExpression (Member name: Method) (OperationKind.LateBoundMemberReferenceExpression, Type: System.Object) (Syntax: 'x.Method')
+      Instance Receiver: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'x')
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of UnaryExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")>
+        Public Sub ParameterReference_NullableIsTrueOperator()
+            Dim source = <![CDATA[
+Option Strict Off
+
+Class Class1
+    Public Sub M(x As Boolean?)
+        If x Then'BIND:"If x Then"
+        End If
+    End Sub
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IIfStatement (OperationKind.IfStatement) (Syntax: 'If x Then'B ... End If')
+  Condition: IOperation:  (OperationKind.None) (Syntax: 'x')
+      Children(1): IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Nullable(Of System.Boolean)) (Syntax: 'x')
+  IfTrue: IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: 'If x Then'B ... End If')
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of MultiLineIfBlockSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")>
+        Public Sub ParameterReference_NoPiaObjectCreation()
+            Dim sources0 = <compilation>
+                               <file name="a.vb"><![CDATA[
+Imports System.Runtime.InteropServices
+<Assembly: ImportedFromTypeLib("_.dll")>
+<Assembly: Guid("f9c2d51d-4f44-45f0-9eda-c9d599b58257")>
+<ComImport()>
+<Guid("f9c2d51d-4f44-45f0-9eda-c9d599b58277")>
+<CoClass(GetType(C))>
+Public Interface I
+    Property P As Integer
+End Interface
+<Guid("f9c2d51d-4f44-45f0-9eda-c9d599b58278")>
+Public Class C
+    Public Sub New(o As Object)
+    End Sub
+End Class
+]]></file>
+                           </compilation>
+            Dim sources1 = <compilation>
+                               <file name="a.vb"><![CDATA[
+Structure S
+    Function F(x as Object) As I
+        Return New I(x)'BIND:"New I(x)"
+    End Function
+End Structure
+]]></file>
+                           </compilation>
+            Dim compilation0 = CreateCompilationWithMscorlib(sources0)
+            compilation0.AssertTheseDiagnostics()
+
+            ' No errors for /r:_.dll
+            Dim compilation1 = CreateCompilationWithReferences(
+                sources1,
+                references:={MscorlibRef, SystemRef, compilation0.EmitToImageReference(embedInteropTypes:=True)})
+
+            Dim expectedOperationTree = <![CDATA[
+IInvalidExpression (OperationKind.InvalidExpression, Type: I, IsInvalid) (Syntax: 'New I(x)')
+  Children(2): IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'x')
+    IOperation:  (OperationKind.None) (Syntax: 'New I(x)')
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC30516: Overload resolution failed because no accessible 'New' accepts this number of arguments.
+        Return New I(x)'BIND:"New I(x)"
+               ~~~~~~~~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of ObjectCreationExpressionSyntax)(compilation1, "a.vb", expectedOperationTree, expectedDiagnostics)
         End Sub
     End Class
 End Namespace

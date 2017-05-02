@@ -1419,7 +1419,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         protected override OperationKind ExpressionKind => OperationKind.None;
 
-        protected override ImmutableArray<IOperation> Children => this.Arguments.Add(this.ReceiverOpt).As<IOperation>();
+        protected override ImmutableArray<IOperation> Children => this.Arguments.Insert(0, this.ReceiverOpt).As<IOperation>();
 
         public override void Accept(OperationVisitor visitor)
         {
@@ -1567,7 +1567,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal partial class BoundDeclarationPattern
     {
-        protected override ImmutableArray<IOperation> Children => ImmutableArray<IOperation>.Empty;
+        protected override ImmutableArray<IOperation> Children => ImmutableArray.Create<IOperation>(this.VariableAccess);
     }
 
     internal partial class BoundConstantPattern
@@ -1583,8 +1583,6 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal partial class BoundArgListOperator
     {
         protected override OperationKind ExpressionKind => OperationKind.None;
-
-        protected override ImmutableArray<IOperation> Children => this.Arguments.As<IOperation>();
 
         public override void Accept(OperationVisitor visitor)
         {
@@ -2100,6 +2098,8 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal partial class BoundFixedLocalCollectionInitializer
     {
         protected override OperationKind ExpressionKind => OperationKind.None;
+
+        protected override ImmutableArray<IOperation> Children => ImmutableArray.Create<IOperation>(this.Expression);
 
         public override void Accept(OperationVisitor visitor)
         {
