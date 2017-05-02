@@ -480,21 +480,17 @@ namespace Microsoft.CodeAnalysis
                         {
                             writer.WriteString(nameof(ProjectAttributes));
 
-                            // first try non volatile info for checksum.
-                            if (FilePath != null)
-                            {
-                                // these information is not volatile. it won't be different
-                                // per session, basically persistable content based values. 
-                                // only these information will be included in checksum
-                                writer.WriteString(FilePath);
-                            }
-                            else
+                            if (FilePath == null)
                             {
                                 // this checksum is not persistable because
                                 // this info doesn't have non volatile info
                                 Id.WriteTo(writer);
                             }
 
+                            // these information is not volatile. it won't be different
+                            // per session, basically persistable content based values. 
+                            // only these information will be included in checksum
+                            writer.WriteString(FilePath);
                             writer.WriteString(Name);
                             writer.WriteString(AssemblyName);
                             writer.WriteString(Language);

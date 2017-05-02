@@ -261,23 +261,20 @@ namespace Microsoft.CodeAnalysis
                         {
                             writer.WriteString(nameof(DocumentAttributes));
 
-                            // first try non volatile info for checksum.
-                            if (FilePath != null && ProjectFilePath != null)
-                            {
-                                // these information is not volatile. it won't be different
-                                // per session, basically persistable content based values. 
-                                // only these information will be included in checksum
-                                writer.WriteString(FilePath);
-
-                                // we need project file path due to linked file
-                                writer.WriteString(ProjectFilePath);
-                            }
-                            else
+                            if (FilePath == null || ProjectFilePath == null)
                             {
                                 // this checksum is not persistable because
                                 // this info doesn't have non volatile info
                                 Id.WriteTo(writer);
                             }
+
+                            // these information is not volatile. it won't be different
+                            // per session, basically persistable content based values. 
+                            // only these information will be included in checksum
+                            writer.WriteString(FilePath);
+
+                            // we need project file path due to linked file
+                            writer.WriteString(ProjectFilePath);
 
                             writer.WriteString(Name);
                             writer.WriteValue(Folders.ToArray());
