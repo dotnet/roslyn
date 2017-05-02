@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -69,7 +68,7 @@ namespace Microsoft.Cci
             MethodDefinitionHandle entryPointHandle;
             MethodDefinitionHandle debugEntryPointHandle;
             mdWriter.GetEntryPoints(out entryPointHandle, out debugEntryPointHandle);
-            
+
             if (!debugEntryPointHandle.IsNil)
             {
                 nativePdbWriterOpt?.SetEntryPoint((uint)MetadataTokens.GetToken(debugEntryPointHandle));
@@ -186,7 +185,7 @@ namespace Microsoft.Cci
                 debugDirectoryBuilder = null;
             }
 
-            var peBuilder = new ManagedPEBuilder(
+            var peBuilder = new ExtendedPEBuilder(
                 peHeaderBuilder,
                 metadataRootBuilder,
                 ilBuilder,
@@ -197,12 +196,13 @@ namespace Microsoft.Cci
                 CalculateStrongNameSignatureSize(context.Module),
                 entryPointHandle,
                 properties.CorFlags,
-                deterministicIdProvider);
+                deterministicIdProvider,
+                metadataOnly && !context.IncludePrivateMembers);
 
             var peBlob = new BlobBuilder();
-            var peContentId = peBuilder.Serialize(peBlob);
+            var peContentId = peBuilder.Serialize(peBlob, out Blob mvidSectionFixup);
 
-            PatchModuleVersionIds(mvidFixup, mvidStringFixup, peContentId.Guid);
+            PatchModuleVersionIds(mvidFixup, mvidSectionFixup, mvidStringFixup, peContentId.Guid);
 
             try
             {
@@ -216,11 +216,18 @@ namespace Microsoft.Cci
             return true;
         }
 
-        private static void PatchModuleVersionIds(Blob guidFixup, Blob stringFixup, Guid mvid)
+        private static void PatchModuleVersionIds(Blob guidFixup, Blob guidSectionFixup, Blob stringFixup, Guid mvid)
         {
             if (!guidFixup.IsDefault)
             {
                 var writer = new BlobWriter(guidFixup);
+                writer.WriteGuid(mvid);
+                Debug.Assert(writer.RemainingBytes == 0);
+            }
+
+            if (!guidSectionFixup.IsDefault)
+            {
+                var writer = new BlobWriter(guidSectionFixup);
                 writer.WriteGuid(mvid);
                 Debug.Assert(writer.RemainingBytes == 0);
             }

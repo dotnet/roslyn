@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
@@ -48,7 +49,6 @@ class X
                 // (7,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
                 Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "x"));
         }
-
 
         [Fact]
         public void CompilationEmitWithQuotedMainType()
@@ -262,9 +262,11 @@ public class C
 
                 VerifyEntryPoint(output, expectZero: false);
                 VerifyMethods(output, new[] { "void C.Main()", "C..ctor()" });
+                VerifyMvid(output, hasMvidSection: false);
 
                 VerifyEntryPoint(metadataOutput, expectZero: true);
                 VerifyMethods(metadataOutput, new[] { "C..ctor()" });
+                VerifyMvid(metadataOutput, hasMvidSection: true);
             }
 
             void VerifyEntryPoint(MemoryStream stream, bool expectZero)
@@ -272,6 +274,110 @@ public class C
                 stream.Position = 0;
                 int entryPoint = new PEHeaders(stream).CorHeader.EntryPointTokenOrRelativeVirtualAddress;
                 Assert.Equal(expectZero, entryPoint == 0);
+            }
+        }
+
+        private class TestResourceSectionBuilder : ResourceSectionBuilder
+        {
+            public TestResourceSectionBuilder()
+            {
+            }
+
+            protected override void Serialize(BlobBuilder builder, SectionLocation location)
+            {
+                builder.WriteInt32(0x12345678);
+                builder.WriteInt32(location.PointerToRawData);
+                builder.WriteInt32(location.RelativeVirtualAddress);
+            }
+        }
+
+        private class TestPEBuilder : ManagedPEBuilder
+        {
+            public static readonly Guid s_mvid = Guid.Parse("a78fa2c3-854e-42bf-8b8d-75a450a6dc18");
+
+            public TestPEBuilder(PEHeaderBuilder header,
+                MetadataRootBuilder metadataRootBuilder,
+                BlobBuilder ilStream,
+                ResourceSectionBuilder nativeResources)
+                : base(header, metadataRootBuilder, ilStream, nativeResources: nativeResources)
+            {
+            }
+
+            protected override ImmutableArray<Section> CreateSections()
+            {
+                return base.CreateSections().Add(
+                     new Section(".mvid", SectionCharacteristics.MemRead |
+                        SectionCharacteristics.ContainsInitializedData |
+                        SectionCharacteristics.MemDiscardable));
+            }
+
+            protected override BlobBuilder SerializeSection(string name, SectionLocation location)
+            {
+                if (name.Equals(".mvid", StringComparison.Ordinal))
+                {
+                    var sectionBuilder = new BlobBuilder();
+                    sectionBuilder.WriteGuid(s_mvid);
+                    return sectionBuilder;
+                }
+
+                return base.SerializeSection(name, location);
+            }
+        }
+
+        [Fact]
+        public void MvidSectionNotFirst()
+        {
+            var ilBuilder = new BlobBuilder();
+            var metadataBuilder = new MetadataBuilder();
+
+            var peBuilder = new TestPEBuilder(
+                PEHeaderBuilder.CreateLibraryHeader(),
+                new MetadataRootBuilder(metadataBuilder),
+                ilBuilder,
+                nativeResources: new TestResourceSectionBuilder());
+
+            var peBlob = new BlobBuilder();
+            peBuilder.Serialize(peBlob);
+
+            var peStream = new MemoryStream();
+            peBlob.WriteContentTo(peStream);
+
+            peStream.Position = 0;
+            using (var peReader = new PEReader(peStream))
+            {
+                AssertEx.Equal(new[] { ".text", ".rsrc", ".reloc", ".mvid" },
+                    peReader.PEHeaders.SectionHeaders.Select(h => h.Name));
+
+                peStream.Position = 0;
+                var mvid = BuildTasks.MvidReader.ReadAssemblyMvidOrEmpty(peStream);
+                Assert.Equal(TestPEBuilder.s_mvid, mvid);
+            }
+        }
+
+        /// <summary>
+        /// Extract the MVID using two different methods (PEReader and MvidReader) and compare them. 
+        /// We only expect an .mvid section in ref assemblies.
+        /// </summary>
+        private void VerifyMvid(MemoryStream stream, bool hasMvidSection)
+        {
+            stream.Position = 0;
+            using (var reader = new PEReader(stream))
+            {
+                var metadataReader = reader.GetMetadataReader();
+                Guid mvidFromModuleDefinition = metadataReader.GetGuid(metadataReader.GetModuleDefinition().Mvid);
+
+                stream.Position = 0;
+                var mvidFromMvidReader = BuildTasks.MvidReader.ReadAssemblyMvidOrEmpty(stream);
+
+                Assert.NotEqual(Guid.Empty, mvidFromModuleDefinition);
+                if (hasMvidSection)
+                {
+                    Assert.Equal(mvidFromModuleDefinition, mvidFromMvidReader);
+                }
+                else
+                {
+                    Assert.Equal(Guid.Empty, mvidFromMvidReader);
+                }
             }
         }
 
@@ -296,6 +402,8 @@ public class C
                 VerifyMethods(output, new[] { "System.Int32 C.<PrivateSetter>k__BackingField", "System.Int32 C.PrivateSetter.get", "void C.PrivateSetter.set",
                     "C..ctor()", "System.Int32 C.PrivateSetter { get; private set; }" });
                 VerifyMethods(metadataOutput, new[] { "System.Int32 C.PrivateSetter.get", "C..ctor()", "System.Int32 C.PrivateSetter { get; }" });
+                VerifyMvid(output, hasMvidSection: false);
+                VerifyMvid(metadataOutput, hasMvidSection: true);
             }
         }
 
@@ -558,6 +666,20 @@ public class C
             else
             {
                 AssertEx.NotEqual(image1, image2, message: $"Expecting difference for includePrivateMembers={includePrivateMembers} case, but they matched.");
+            }
+
+            var mvid1 = BuildTasks.MvidReader.ReadAssemblyMvidOrEmpty(new MemoryStream(image1.DangerousGetUnderlyingArray()));
+            var mvid2 = BuildTasks.MvidReader.ReadAssemblyMvidOrEmpty(new MemoryStream(image2.DangerousGetUnderlyingArray()));
+
+            if (!includePrivateMembers)
+            {
+                Assert.NotEqual(Guid.Empty, mvid1);
+                Assert.Equal(expectMatch, mvid1 == mvid2);
+            }
+            else
+            {
+                Assert.Equal(Guid.Empty, mvid1);
+                Assert.Equal(Guid.Empty, mvid2);
             }
         }
 

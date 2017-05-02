@@ -32,11 +32,12 @@ Two mutually exclusive command-line parameters will be added to `csc.exe` and `v
 - `/refout`
 - `/refonly`
 
-The `/refout` parameter specifies a file path where the ref assembly should be output. This translates to `metadataPeStream` in the `Emit` API (see details below).
+The `/refout` parameter specifies a file path where the ref assembly should be output. This translates to `metadataPeStream` in the `Emit` API (see details below). The filename for the ref assembly should generally match that of the primary assembly, but it can be in a different folder.
 
 The `/refonly` parameter is a flag that indicates that a ref assembly should be output instead of an implementation assembly. 
 The `/refonly` parameter is not allowed together with the `/refout` parameter, as it doesn't make sense to have both the primary and secondary outputs be ref assemblies. Also, the `/refonly` parameter silently disables outputting PDBs, as ref assemblies cannot be executed. 
 The `/refonly` parameter translates to `EmitMetadataOnly` being `true`, and `IncludePrivateMembers` being `false` in the `Emit` API (see details below).
+Neither `/refonly` nor `/refout` are permitted with `/target:module` or `/addmodule` options.
 
 When the compiler produces documentation, the contents produced will match the APIs that go into the primary output. In other words, the documentation will be filtered down when using the `/refonly` parameter.
 
@@ -47,13 +48,14 @@ The `CoreCompile` target will support a new output, called `IntermediateRefAssem
 The `Csc` task will support a new output, called `OutputRefAssembly`, which parallels the existing `OutputAssembly`.
 Both of those basically map to the `/refout` command-line parameter.
 
-An additional task, called `CopyRefAssembly`, will be provided along with the existing `Csc` task. It takes a `SourcePath` and a `DestinationPath` and generally copies the file from the source over to the destination. But if it can determine that the contents of those two files match, then the destination file is left untouched.
+An additional task, called `CopyRefAssembly`, will be provided along with the existing `Csc` task. It takes a `SourcePath` and a `DestinationPath` and generally copies the file from the source over to the destination. But if it can determine that the contents of those two files match (by comparing their MVIDs, see details below), then the destination file is left untouched.
 
 ### CodeAnalysis APIs
 It is already possible to produce metadata-only assemblies by using `EmitOptions.EmitMetadataOnly`, which is used in IDE scenarios with cross-language dependencies.
 The compiler will be updated to honour the `EmitOptions.IncludePrivateMembers` flag as well. When combined with `EmitMetadataOnly` or a `metadataPeStream` in `Emit`, a ref assembly will be produced.
-The diagnostic check for emitting methods lacking a body (`void M();`) will be moved from declaration diagnostics to regular diagnostics, so that code will successfully emit with `EmitMetadataOnly`.
+The diagnostic check for emitting methods lacking a body (`void M();`) will be filtered from declaration diagnostics, so that code will successfully emit with `EmitMetadataOnly`.
 Later on, the `EmitOptions.TolerateErrors` flag will allow emitting error types as well.
+`Emit` is also modified to produce a new PE section called ".mvid" containing a copy of the MVID, when producing ref assemblies. This makes it easy for `CopyRefAssembly` to extract and compare MVIDs from ref assemblies.
 
 Going back to the 4 driving scenarios:
 1. For a regular compilation, `EmitMetadataOnly` is left to `false` and no `metadataPeStream` is passed into `Emit`.
@@ -70,7 +72,6 @@ As mentioned above, there may be further refinements after C# 7.1:
 - should explicit method implementations be included in ref assemblies?
 - Non-public attributes on public APIs (emit attribute based on accessibility rule)
 - ref assemblies and NoPia
-- `/refout` and `/addmodule`, should we disallow this combination?
 
 ## Related issues
 - Produce ref assemblies from command-line and msbuild (https://github.com/dotnet/roslyn/issues/2184)
