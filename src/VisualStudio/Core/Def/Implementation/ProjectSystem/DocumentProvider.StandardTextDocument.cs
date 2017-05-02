@@ -158,6 +158,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 var abstractProject = this.Project as AbstractProject;
                 if (abstractProject != null)
                 {
+                    // set project file path if possible. this will let us have persistable checksum
+                    // for the document
                     info = info.WithProjectFilePath(abstractProject.ProjectFilePath);
                 }
 
