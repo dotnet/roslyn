@@ -1470,6 +1470,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (IsCandidate && !IsTaskLike)
                     {
                         intOrVoidEntryPoints.Add(candidate);
+                        perCandidateBag.Free();
                     }
                     else if (IsTaskLike)
                     {
@@ -1479,6 +1480,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         noMainFoundDiagnostics.Add(ErrorCode.WRN_InvalidMainSig, candidate.Locations.First(), candidate);
                         noMainFoundDiagnostics.AddRange(perCandidateBag);
+                        perCandidateBag.Free();
                     }
                 }
 
@@ -1500,7 +1502,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     viableEntryPoints.Add(candidate);
                 }
 
-                if (viableEntryPoints.IsEmpty())
+                if (viableEntryPoints.Count == 0)
                 {
                     foreach (var (IsValid, Candidate, SpecificDiagnostics) in taskEntryPoints)
                     {
@@ -1524,7 +1526,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                             diagnostics.AddRange(SpecificDiagnostics);
                             viableEntryPoints.Add(Candidate);
                         }
+
                     }
+                }
+
+                foreach (var (_, _, SpecificDiagnostics) in taskEntryPoints)
+                {
+                    SpecificDiagnostics.Free();
                 }
 
                 if (viableEntryPoints.Count == 0)
@@ -1570,6 +1578,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     entryPoint = viableEntryPoints[0];
                 }
 
+                intOrVoidEntryPoints.Free();
+                taskEntryPoints.Free();
                 viableEntryPoints.Free();
                 noMainFoundDiagnostics.Free();
                 return entryPoint;
