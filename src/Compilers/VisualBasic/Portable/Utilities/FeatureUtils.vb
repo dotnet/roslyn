@@ -1,6 +1,8 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+Imports System.Runtime.CompilerServices
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
+
     ''' <summary>
     ''' Utility methods to help with checking the availability of language features.
     ''' </summary>
@@ -13,14 +15,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <param name="feature">Language feature to check is available.</param>
         ''' <param name="options">The parse options being used.</param>
         ''' <returns>True if the feature's language version is compatible with the specified language version.</returns>
-        <Runtime.CompilerServices.Extension>
+        <Extension>
         Private Function IsInLanguageVersion(feature As Feature, options As VisualBasicParseOptions) As Boolean
             Dim required = feature.GetLanguageVersion()
             Dim current = options.LanguageVersion
             Return required <= current
         End Function
 
-        <Runtime.CompilerServices.Extension>
+        <Extension>
         Private Function CheckFeatures(feature As Feature, options As VisualBasicParseOptions) As Boolean
             Dim featureFlag = feature.GetFeatureFlag()
             Return ((featureFlag IsNot Nothing) AndAlso options.Features.ContainsKey(featureFlag))
@@ -32,7 +34,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <param name="options">The parse options being used.</param>
         ''' <param name="node">The node to attach the diagnostic (Feature Unavailable).</param>
         ''' <returns>Return the node with the diagnostic attached to it.</returns>
-        <Runtime.CompilerServices.Extension>
+        <Extension>
         Public Function ReportFeatureUnavailable(Of TNode As VisualBasicSyntaxNode)(feature As Feature, options As VisualBasicParseOptions, node As TNode) As TNode
             Dim featureName = ErrorFactory.ErrorInfo(feature.GetResourceId())
             Dim requiredVersion As New VisualBasicRequiredLanguageVersion(feature.GetLanguageVersion())
@@ -45,8 +47,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' </summary>
         ''' <param name="feature">Language feature to check is available.</param>
         ''' <param name="options">The parse options being used.</param>
-        ''' <returns></returns>
-        <Runtime.CompilerServices.Extension>
+        <Extension>
         Public Function IsAvailable(feature As Feature, options As VisualBasicParseOptions) As Boolean
             Return feature.CheckFeatures(options) OrElse feature.IsInLanguageVersion(options)
         End Function
@@ -58,8 +59,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <param name="node">The node to attach the potential diagnostic (Feature Unavailable).</param>
         ''' <param name="feature">Language feature to check is available.</param>
         ''' <param name="options">The parse options being used.</param>
-        ''' <returns></returns>
-        <Runtime.CompilerServices.Extension>
+        <Extension>
         Public Function CheckFeatureAvailable(Of TNode As VisualBasicSyntaxNode)(node As TNode, feature As Feature, options As VisualBasicParseOptions) As TNode
             Return If(feature.IsAvailable(options), node, feature.ReportFeatureUnavailable(options, node))
         End Function
@@ -69,8 +69,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <param name="options">The parse options being used.</param>
         ''' <param name="diagnostics">The diagnostics to which add this diagnostic.</param>
         ''' <param name="location">The location to report the diagnotic.</param>
-        ''' <returns></returns>
-        <Runtime.CompilerServices.Extension>
+        <Extension>
         Public Function IsAvailable(feature As Feature, options As VisualBasicParseOptions, diagnostics As DiagnosticBag, location As Location) As Boolean
             If feature.IsAvailable(options) Then Return True
             Dim featureName = ErrorFactory.ErrorInfo(feature.GetResourceId())
