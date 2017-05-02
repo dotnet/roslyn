@@ -14,7 +14,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
     [ExportIncrementalAnalyzerProvider(Name, new[] { WorkspaceKind.Host }), Shared]
     internal class DesignerAttributeIncrementalAnalyzerProvider : IIncrementalAnalyzerProvider
     {
-        public const string Name = "DesignerAttributeIncrementalAnalyzerProvider";
+        public const string Name = nameof(DesignerAttributeIncrementalAnalyzerProvider);
 
         private readonly IServiceProvider _serviceProvider;
         private readonly IForegroundNotificationService _notificationService;

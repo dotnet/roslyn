@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -9,10 +10,12 @@ using Microsoft.CodeAnalysis.DesignerAttributes;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Versions;
 using Microsoft.VisualStudio.Designer.Interfaces;
@@ -24,10 +27,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
 {
     internal partial class DesignerAttributeIncrementalAnalyzer : ForegroundThreadAffinitizedObject, IIncrementalAnalyzer
     {
+        private const string StreamName = "<DesignerAttribute>";
+        private const string FormatVersion = "3";
+
         private readonly IForegroundNotificationService _notificationService;
 
         private readonly IServiceProvider _serviceProvider;
-        private readonly DesignerAttributeState _state;
         private readonly IAsynchronousOperationListener _listener;
 
         /// <summary>
@@ -48,13 +53,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
             _notificationService = notificationService;
 
             _listener = new AggregateAsynchronousOperationListener(asyncListeners, FeatureAttribute.DesignerAttribute);
-            _state = new DesignerAttributeState();
-        }
-
-        public Task DocumentResetAsync(Document document, CancellationToken cancellationToken)
-        {
-            _state.Remove(document.Id);
-            return _state.PersistAsync(document, new Data(VersionStamp.Default, VersionStamp.Default, designerAttributeArgument: null), cancellationToken);
         }
 
         public bool NeedsReanalysisOnOptionChanged(object sender, OptionChangedEventArgs e)
@@ -62,133 +60,248 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
             return false;
         }
 
-        public async Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, InvocationReasons reasons, CancellationToken cancellationToken)
+        public async Task AnalyzeProjectAsync(Project project, bool semanticsChanged, InvocationReasons reasons, CancellationToken cancellationToken)
         {
-            Contract.ThrowIfFalse(document.IsFromPrimaryBranch());
-
+            Contract.ThrowIfFalse(project.IsFromPrimaryBranch());
             cancellationToken.ThrowIfCancellationRequested();
 
-            if (!document.Project.Solution.Workspace.Options.GetOption(InternalFeatureOnOffOptions.DesignerAttributes))
+            var vsWorkspace = project.Solution.Workspace as VisualStudioWorkspaceImpl;
+            if (vsWorkspace == null)
             {
                 return;
             }
 
-            // use tree version so that things like compiler option changes are considered
-            var textVersion = await document.GetTextVersionAsync(cancellationToken).ConfigureAwait(false);
-            var projectVersion = await document.Project.GetDependentVersionAsync(cancellationToken).ConfigureAwait(false);
-            var semanticVersion = await document.Project.GetDependentSemanticVersionAsync(cancellationToken).ConfigureAwait(false);
-
-            var existingData = await _state.TryGetExistingDataAsync(document, cancellationToken).ConfigureAwait(false);
-            if (existingData != null)
+            if (!vsWorkspace.Options.GetOption(InternalFeatureOnOffOptions.DesignerAttributes))
             {
-                // check whether we can use the data as it is (can happen when re-using persisted data from previous VS session)
-                if (CheckVersions(document, textVersion, projectVersion, semanticVersion, existingData))
+                return;
+            }
+
+            // CPS projects do not support designer attributes.  So we just skip these projects entirely.
+            var isCPSProject = await Task.Factory.StartNew(
+                () => vsWorkspace.IsCPSProject(project),
+                cancellationToken,
+                TaskCreationOptions.None,
+                this.ForegroundTaskScheduler).ConfigureAwait(false);
+
+            if (isCPSProject)
+            {
+                return;
+            }
+
+            var pathToResult = await TryAnalyzeProjectInRemoteProcessAsync(project, cancellationToken).ConfigureAwait(false);
+            if (pathToResult == null)
+            {
+                pathToResult = await TryAnalyzeProjectInCurrentProcessAsync(project, cancellationToken).ConfigureAwait(false);
+            }
+
+            cancellationToken.ThrowIfCancellationRequested();
+            RegisterDesignerAttributes(project, pathToResult);
+        }
+
+        private async Task<ImmutableDictionary<string, DesignerAttributeResult>> TryAnalyzeProjectInCurrentProcessAsync(
+            Project project, CancellationToken cancellationToken)
+        {
+            // use tree version so that things like compiler option changes are considered
+            var projectVersion = await project.GetDependentVersionAsync(cancellationToken).ConfigureAwait(false);
+            var semanticVersion = await project.GetDependentSemanticVersionAsync(cancellationToken).ConfigureAwait(false);
+
+            var designerAttributeData = await ReadExistingDataAsync(project, cancellationToken).ConfigureAwait(false);
+
+            if (designerAttributeData == null ||
+                !project.CanReusePersistedDependentSemanticVersion(projectVersion, semanticVersion, designerAttributeData.SemanticVersion))
+            {
+                designerAttributeData = await ComputeAndPersistDesignerAttributeDataAsync(
+                    project, semanticVersion, cancellationToken).ConfigureAwait(false);
+            }
+
+            return designerAttributeData.PathToResult;
+        }
+
+        private async Task<DesignerAttributeData> ComputeAndPersistDesignerAttributeDataAsync(
+            Project project, VersionStamp semanticVersion, CancellationToken cancellationToken)
+        {
+            var service = project.LanguageServices.GetService<IDesignerAttributeService>();
+
+            var builder = ImmutableDictionary.CreateBuilder<string, DesignerAttributeResult>();
+            foreach (var document in project.Documents)
+            {
+                var result = await service.ScanDesignerAttributesAsync(document, cancellationToken).ConfigureAwait(false);
+                builder[document.FilePath] = result;
+            }
+
+            var data = new DesignerAttributeData(semanticVersion, builder.ToImmutable());
+            PersistData(project, data, cancellationToken);
+            return data;
+        }
+
+        private async Task<DesignerAttributeData> ReadExistingDataAsync(
+            Project project, CancellationToken cancellationToken)
+        {
+            try
+            {
+                var solution = project.Solution;
+                var workspace = project.Solution.Workspace;
+
+                var storageService = workspace.Services.GetService<IPersistentStorageService>();
+                using (var persistenceService = storageService.GetStorage(solution))
+                using (var stream = await persistenceService.ReadStreamAsync(project, StreamName, cancellationToken).ConfigureAwait(false))
+                using (var reader = ObjectReader.TryGetReader(stream, cancellationToken))
                 {
-                    RegisterDesignerAttribute(document, existingData.DesignerAttributeArgument);
-                    return;
+                    if (reader != null)
+                    {
+                        var version = reader.ReadString();
+                        if (version == FormatVersion)
+                        {
+                            var semanticVersion = VersionStamp.ReadFrom(reader);
+
+                            var resultCount = reader.ReadInt32();
+                            var builder = ImmutableDictionary.CreateBuilder<string, DesignerAttributeResult>();
+
+                            for (var i = 0; i < resultCount; i++)
+                            {
+                                var filePath = reader.ReadString();
+                                var attribute = reader.ReadString();
+                                var containsErrors = reader.ReadBoolean();
+                                var notApplicable = reader.ReadBoolean();
+
+                                builder[filePath] = new DesignerAttributeResult(filePath, attribute, containsErrors, notApplicable);
+                            }
+
+                            return new DesignerAttributeData(semanticVersion, builder.ToImmutable());
+                        }
+                    }
                 }
             }
-
-            var result = await ScanDesignerAttributesOnRemoteHostIfPossibleAsync(document, cancellationToken).ConfigureAwait(false);
-            if (result.NotApplicable)
+            catch (Exception e) when (IOUtilities.IsNormalIOException(e))
             {
-                _state.Remove(document.Id);
-                return;
+                // Storage APIs can throw arbitrary exceptions.
             }
 
-            // we checked all types in the document, but couldn't find designer attribute, but we can't say this document doesn't have designer attribute
-            // if the document also contains some errors.
-            var designerAttributeArgumentOpt = result.ContainsErrors ? new Optional<string>() : new Optional<string>(result.DesignerAttributeArgument);
-            await RegisterDesignerAttributeAndSaveStateAsync(document, textVersion, semanticVersion, designerAttributeArgumentOpt, cancellationToken).ConfigureAwait(false);
+            return null;
         }
 
-        private async Task<DesignerAttributeResult> ScanDesignerAttributesOnRemoteHostIfPossibleAsync(Document document, CancellationToken cancellationToken)
+        private void PersistData(
+            Project project, DesignerAttributeData data, CancellationToken cancellationToken)
         {
-            var service = document.GetLanguageService<IDesignerAttributeService>();
-            if (service == null)
+            try
             {
-                return new DesignerAttributeResult(designerAttributeArgument: null, containsErrors: true, notApplicable: true);
+                var solution = project.Solution;
+                var workspace = project.Solution.Workspace;
+
+                var storageService = workspace.Services.GetService<IPersistentStorageService>();
+                using (var persistenceService = storageService.GetStorage(solution))
+                using (var stream = SerializableBytes.CreateWritableStream())
+                using (var writer = new ObjectWriter(stream, cancellationToken: cancellationToken))
+                {
+                    writer.WriteString(FormatVersion);
+                    data.SemanticVersion.WriteTo(writer);
+
+                    writer.WriteInt32(data.PathToResult.Count);
+
+                    foreach (var kvp in data.PathToResult)
+                    {
+                        var result = kvp.Value;
+                        writer.WriteString(result.FilePath);
+                        writer.WriteString(result.DesignerAttributeArgument);
+                        writer.WriteBoolean(result.ContainsErrors);
+                        writer.WriteBoolean(result.NotApplicable);
+                    }
+                }
+            }
+            catch (Exception e) when (IOUtilities.IsNormalIOException(e))
+            {
+                // Storage APIs can throw arbitrary exceptions.
+            }
+        }
+
+        private async Task<ImmutableDictionary<string, DesignerAttributeResult>> TryAnalyzeProjectInRemoteProcessAsync(Project project, CancellationToken cancellationToken)
+        {
+            using (var session = await TryGetRemoteSessionAsync(project.Solution, cancellationToken).ConfigureAwait(false))
+            {
+                if (session == null)
+                {
+                    return null;
+                }
+
+                var serializedResults = await session.InvokeAsync<DesignerAttributeResult[]>(
+                    nameof(IRemoteDesignerAttributeService.ScanDesignerAttributesAsync), project.Id).ConfigureAwait(false);
+
+                var data = serializedResults.ToImmutableDictionary(kvp => kvp.FilePath);
+                return data;
+            }
+        }
+
+        private static async Task<RemoteHostClient.Session> TryGetRemoteSessionAsync(
+            Solution solution, CancellationToken cancellationToken)
+        {
+            var client = await solution.Workspace.TryGetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
+            if (client == null)
+            {
+                return null;
             }
 
-            return await service.ScanDesignerAttributesAsync(document, cancellationToken).ConfigureAwait(false);
+            return await client.TryCreateCodeAnalysisServiceSessionAsync(
+                solution, cancellationToken).ConfigureAwait(false);
         }
 
-        private bool CheckVersions(
-            Document document, VersionStamp textVersion, VersionStamp dependentProjectVersion, VersionStamp dependentSemanticVersion, Data existingData)
+        private void RegisterDesignerAttributes(
+            Project project, ImmutableDictionary<string, DesignerAttributeResult> pathToResult)
         {
-            // first check full version to see whether we can reuse data in same session, if we can't, check timestamp only version to see whether
-            // we can use it cross-session.
-            return document.CanReusePersistedTextVersion(textVersion, existingData.TextVersion) &&
-                   document.Project.CanReusePersistedDependentSemanticVersion(dependentProjectVersion, dependentSemanticVersion, existingData.SemanticVersion);
-        }
-
-        private async Task RegisterDesignerAttributeAndSaveStateAsync(
-            Document document, VersionStamp textVersion, VersionStamp semanticVersion, Optional<string> designerAttributeArgumentOpt, CancellationToken cancellationToken)
-        {
-            if (!designerAttributeArgumentOpt.HasValue)
+            _notificationService.RegisterNotification(() =>
             {
-                // no value means it couldn't determine whether this document has designer attribute or not.
-                // one of such case is when base type is error type.
-                return;
-            }
-
-            var data = new Data(textVersion, semanticVersion, designerAttributeArgumentOpt.Value);
-            await _state.PersistAsync(document, data, cancellationToken).ConfigureAwait(false);
-
-            RegisterDesignerAttribute(document, designerAttributeArgumentOpt.Value);
+                foreach (var document in project.Documents)
+                {
+                    if (pathToResult.TryGetValue(document.FilePath, out var result))
+                    {
+                        RegisterDesignerAttribute(document, result.DesignerAttributeArgument);
+                    }
+                }
+            }, _listener.BeginAsyncOperation("RegisterDesignerAttribute"));
         }
 
         private void RegisterDesignerAttribute(Document document, string designerAttributeArgument)
         {
-            var workspace = document.Project.Solution.Workspace as VisualStudioWorkspaceImpl;
-            if (workspace == null)
+            var workspace = (VisualStudioWorkspaceImpl)document.Project.Solution.Workspace;
+
+            var vsDocument = workspace.GetHostDocument(document.Id);
+            if (vsDocument == null)
             {
                 return;
             }
 
-            var documentId = document.Id;
-            _notificationService.RegisterNotification(() =>
+            uint itemId = vsDocument.GetItemId();
+            if (itemId == (uint)VSConstants.VSITEMID.Nil)
             {
-                var vsDocument = workspace.GetHostDocument(documentId);
-                if (vsDocument == null)
+                // it is no longer part of the solution
+                return;
+            }
+
+            if (ErrorHandler.Succeeded(vsDocument.Project.Hierarchy.GetProperty(itemId, (int)__VSHPROPID.VSHPROPID_ItemSubType, out var currentValue)))
+            {
+                var currentStringValue = string.IsNullOrEmpty(currentValue as string) ? null : (string)currentValue;
+                if (string.Equals(currentStringValue, designerAttributeArgument, StringComparison.OrdinalIgnoreCase))
                 {
+                    // PERF: Avoid sending the message if the project system already has the current value.
                     return;
                 }
+            }
 
-                uint itemId = vsDocument.GetItemId();
-                if (itemId == (uint)VSConstants.VSITEMID.Nil)
+            try
+            {
+                var designer = GetDesignerFromForegroundThread();
+                if (designer != null)
                 {
-                    // it is no longer part of the solution
-                    return;
+                    designer.RegisterDesignViewAttribute(vsDocument.Project.Hierarchy, (int)itemId, dwClass: 0, pwszAttributeValue: designerAttributeArgument);
                 }
-
-                if (ErrorHandler.Succeeded(vsDocument.Project.Hierarchy.GetProperty(itemId, (int)__VSHPROPID.VSHPROPID_ItemSubType, out var currentValue)))
-                {
-                    var currentStringValue = string.IsNullOrEmpty(currentValue as string) ? null : (string)currentValue;
-                    if (string.Equals(currentStringValue, designerAttributeArgument, StringComparison.OrdinalIgnoreCase))
-                    {
-                        // PERF: Avoid sending the message if the project system already has the current value.
-                        return;
-                    }
-                }
-
-                try
-                {
-                    var designer = GetDesignerFromForegroundThread();
-                    if (designer != null)
-                    {
-                        designer.RegisterDesignViewAttribute(vsDocument.Project.Hierarchy, (int)itemId, dwClass: 0, pwszAttributeValue: designerAttributeArgument);
-                    }
-                }
-                catch
-                {
-                    // DevDiv # 933717
-                    // turns out RegisterDesignViewAttribute can throw in certain cases such as a file failed to be checked out by source control
-                    // or IVSHierarchy failed to set a property for this project
-                    //
-                    // just swallow it. don't crash VS.
-                }
-            }, _listener.BeginAsyncOperation("RegisterDesignerAttribute"));
+            }
+            catch
+            {
+                // DevDiv # 933717
+                // turns out RegisterDesignViewAttribute can throw in certain cases such as a file failed to be checked out by source control
+                // or IVSHierarchy failed to set a property for this project
+                //
+                // just swallow it. don't crash VS.
+            }
         }
 
         private IVSMDDesignerService GetDesignerFromForegroundThread()
@@ -204,54 +317,34 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
             return _dotNotAccessDirectlyDesigner;
         }
 
-        public void RemoveDocument(DocumentId documentId)
-        {
-            _state.Remove(documentId);
-        }
-
-        private class Data
-        {
-            public readonly VersionStamp TextVersion;
-            public readonly VersionStamp SemanticVersion;
-            public readonly string DesignerAttributeArgument;
-
-            public Data(VersionStamp textVersion, VersionStamp semanticVersion, string designerAttributeArgument)
-            {
-                this.TextVersion = textVersion;
-                this.SemanticVersion = semanticVersion;
-                this.DesignerAttributeArgument = designerAttributeArgument;
-            }
-        }
-
         #region unused
+
         public Task NewSolutionSnapshotAsync(Solution solution, CancellationToken cancellationToken)
-        {
-            return SpecializedTasks.EmptyTask;
-        }
+            => SpecializedTasks.EmptyTask;
+
+        public Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, InvocationReasons reasons, CancellationToken cancellationToken)
+            => SpecializedTasks.EmptyTask;
 
         public Task DocumentOpenAsync(Document document, CancellationToken cancellationToken)
-        {
-            return SpecializedTasks.EmptyTask;
-        }
+            => SpecializedTasks.EmptyTask;
 
         public Task DocumentCloseAsync(Document document, CancellationToken cancellationToken)
-        {
-            return SpecializedTasks.EmptyTask;
-        }
+            => SpecializedTasks.EmptyTask;
+
+        public Task DocumentResetAsync(Document document, CancellationToken cancellationToken)
+            => SpecializedTasks.EmptyTask;
 
         public Task AnalyzeSyntaxAsync(Document document, InvocationReasons reasons, CancellationToken cancellationToken)
-        {
-            return SpecializedTasks.EmptyTask;
-        }
+            => SpecializedTasks.EmptyTask;
 
-        public Task AnalyzeProjectAsync(Project project, bool semanticsChanged, InvocationReasons reasons, CancellationToken cancellationToken)
+        public void RemoveDocument(DocumentId documentId)
         {
-            return SpecializedTasks.EmptyTask;
         }
 
         public void RemoveProject(ProjectId projectId)
         {
         }
+
         #endregion
     }
 }

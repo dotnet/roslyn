@@ -6,6 +6,6 @@ namespace Microsoft.CodeAnalysis.DesignerAttributes
 {
     internal interface IRemoteDesignerAttributeService
     {
-        Task<DesignerAttributeResult> ScanDesignerAttributesAsync(DocumentId documentId);
+        Task<DesignerAttributeResult[]> ScanDesignerAttributesAsync(ProjectId projectId);
     }
 }

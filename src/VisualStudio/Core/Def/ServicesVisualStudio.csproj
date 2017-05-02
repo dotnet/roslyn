@@ -57,6 +57,7 @@
     <Compile Include="Implementation\AnalyzerDependency\IgnorableAssemblyIdentityList.cs" />
     <Compile Include="Implementation\AnalyzerDependency\IgnorableAssemblyNameList.cs" />
     <Compile Include="Implementation\AnalyzerDependency\IgnorableAssemblyNamePrefixList.cs" />
+    <Compile Include="Implementation\DesignerAttribute\DesignerAttributeData.cs" />
     <Compile Include="Implementation\Diagnostics\VisualStudioVenusSpanMappingService.cs" />
     <Compile Include="Implementation\Diagnostics\VisualStudioWorkspaceDiagnosticAnalyzerProviderService.AnalyzerAssemblyLoader.cs" />
     <Compile Include="Implementation\EditAndContinue\Interop\NativeMethods.cs" />
@@ -494,7 +495,6 @@
     <Compile Include="Implementation\Debugging\IProximityExpressionsService.cs" />
     <Compile Include="Implementation\DesignerAttribute\DesignerAttributeIncrementalAnalyzer.cs" />
     <Compile Include="Implementation\DesignerAttribute\DesignerAttributeIncrementalAnalyzerProvider.cs" />
-    <Compile Include="Implementation\DesignerAttribute\DesignerAttributeState.cs" />
     <Compile Include="Implementation\Diagnostics\VisualStudioWorkspaceDiagnosticAnalyzerProviderService.cs" />
     <Compile Include="Implementation\Diagnostics\VisualStudioDiagnosticAnalyzerService.cs" />
     <Compile Include="Implementation\Diagnostics\IVisualStudioDiagnosticAnalyzerService.cs" />
