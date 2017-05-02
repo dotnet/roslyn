@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         protected virtual Location GetDiagnosticLocation(TDeclaration declaration)
             => this.GetBody(declaration).Statements[0].GetLocation();
 
-        public virtual bool CanOfferUseExpressionBody(
+        public bool CanOfferUseExpressionBody(
             OptionSet optionSet, TDeclaration declaration, bool forAnalyzer)
         {
             var preference = optionSet.GetOption(this.Option).Value;

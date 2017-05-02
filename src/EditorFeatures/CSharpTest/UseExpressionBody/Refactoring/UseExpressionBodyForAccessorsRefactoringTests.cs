@@ -124,17 +124,22 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
-        public async Task TestNotOfferedIfUserPrefersBlockBodiesAndInExpressionBody2()
+        public async Task TestOfferedForPropertyIfUserPrefersBlockPropertiesAndHasBlockProperty()
         {
-            await TestMissingAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     int Foo { get => [||]Bar(); }
+}",
+
+@"class C
+{
+    int Foo => Bar();
 }", parameters: new TestParameters(options: UseBlockBodyForAccessors_BlockBodyForProperties));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
-        public async Task TestOfferedIfUserPrefersExpressionBodiesAndInExpressionBody()
+        public async Task TestOfferForPropertyIfPropertyPrefersBlockButCouldBecomeExpressionBody()
         {
             await TestInRegularAndScript1Async(
 @"class C
@@ -143,21 +148,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
 }",
 @"class C
 {
-    int Foo { get { return Bar(); } }
-}", parameters: new TestParameters(options: UseExpressionBodyForAccessors_BlockBodyForProperties));
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
-        public async Task TestOfferedIfUserPrefersExpressionBodiesAndInExpressionBody2()
-        {
-            await TestInRegularAndScript1Async(
-@"class C
-{
-    int Foo { get => [||]Bar(); }
-}",
-@"class C
-{
-    int Foo { get { return Bar(); } }
+    int Foo => Bar();
 }", parameters: new TestParameters(options: UseExpressionBodyForAccessors_BlockBodyForProperties));
         }
     }

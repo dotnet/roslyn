@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             }
 
             var getAccessor = GetSingleGetAccessor(declaration.AccessorList);
-            if (getAccessor.ExpressionBody != null &&
+            if (getAccessor?.ExpressionBody != null &&
                 BlockSyntaxExtensions.MatchesPreference(getAccessor.ExpressionBody.Expression, conversionPreference))
             {
                 arrowExpression = SyntaxFactory.ArrowExpressionClause(getAccessor.ExpressionBody.Expression);
