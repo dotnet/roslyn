@@ -153,7 +153,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     folders: this.Folders,
                     sourceCodeKind: this.SourceCodeKind,
                     loader: this.Loader,
-                    filePath: this.FilePath);
+                    filePath: this.FilePath).WithProjectFilePath(this.Project.CreateProjectInfoForCurrentState().FilePath);
             }
 
             internal void ProcessOpen(ITextBuffer openedBuffer, bool isCurrentContext)

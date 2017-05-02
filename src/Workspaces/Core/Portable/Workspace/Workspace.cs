@@ -1383,7 +1383,7 @@ namespace Microsoft.CodeAnalysis
                 doc.Name,
                 doc.Folders,
                 sourceDoc != null ? sourceDoc.SourceCodeKind : SourceCodeKind.Regular,
-                filePath: doc.FilePath);
+                filePath: doc.FilePath).WithProjectFilePath(doc.Project.FilePath);
         }
 
         /// <summary>

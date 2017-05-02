@@ -161,7 +161,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 folders: this.Folders,
                 sourceCodeKind: _sourceCodeKind,
                 loader: this.Loader,
-                filePath: this.Key.Moniker);
+                filePath: this.Key.Moniker).WithProjectFilePath(this.Project.ProjectFilePath);
         }
 
         public bool IsOpen

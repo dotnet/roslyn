@@ -548,7 +548,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 documentInfo.SourceCodeKind,
                 textLoader,
                 documentInfo.FilePath,
-                documentInfo.IsGenerated);
+                documentInfo.IsGenerated).WithProjectFilePath(documentInfo.ProjectFilePath);
         }
 
         private Project AddDocument(Project project, DocumentInfo documentInfo, bool additionalText)
