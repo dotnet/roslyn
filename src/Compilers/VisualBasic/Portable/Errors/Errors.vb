@@ -754,7 +754,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         'ERR_UnableToOpenFile1 = 31027
         ERR_EventHandlerSignatureIncompatible2 = 31029
         ERR_ConditionalCompilationConstantNotValid = 31030
-        ERR_ProjectCCError1 = 31030
         'ERR_ProjectCCError0 = 31031
         ERR_InterfaceImplementedTwice1 = 31033
         ERR_InterfaceNotImplemented1 = 31035
