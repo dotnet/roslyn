@@ -65,40 +65,46 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
         private static Guid FindMvidInSections(ushort count, BinaryReader reader)
         {
-            if (count == 0)
+            for (int i = 0; i < count; i++)
             {
-                return Guid.Empty;
-            }
 
-            // .mvid section must be first, if it's there
-            // Section: Name (8)
-            byte[] name = reader.ReadBytes(8);
-            if (name.Length == 8 && name[0] == '.' &&
-                name[1] == 'm' && name[2] == 'v' && name[3] == 'i' && name[4] == 'd' && name[5] == '\0')
-            {
-                // Section: VirtualSize (4)
-                uint virtualSize = reader.ReadUInt32();
-
-                // Section: VirtualAddress (4), SizeOfRawData (4)
-                Skip(8, reader);
-
-                // Section: PointerToRawData (4)
-                uint pointerToRawData = reader.ReadUInt32();
-
-                // The .mvid section only stores a Guid
-                if (virtualSize != 16)
+                // .mvid section must be first, if it's there
+                // Section: Name (8)
+                byte[] name = reader.ReadBytes(8);
+                if (name.Length == 8 && name[0] == '.' &&
+                    name[1] == 'm' && name[2] == 'v' && name[3] == 'i' && name[4] == 'd' && name[5] == '\0')
                 {
-                    Debug.Assert(false);
-                    return Guid.Empty;
-                }
+                    // Section: VirtualSize (4)
+                    uint virtualSize = reader.ReadUInt32();
 
-                if (MoveTo(pointerToRawData, reader))
-                {
-                    byte[] guidBytes = new byte[16];
-                    if (reader.BaseStream.Read(guidBytes, 0, 16) == 16)
+                    // Section: VirtualAddress (4), SizeOfRawData (4)
+                    Skip(8, reader);
+
+                    // Section: PointerToRawData (4)
+                    uint pointerToRawData = reader.ReadUInt32();
+
+                    // The .mvid section only stores a Guid
+                    if (virtualSize != 16)
                     {
-                        return new Guid(guidBytes);
+                        Debug.Assert(false);
+                        return Guid.Empty;
                     }
+
+                    if (MoveTo(pointerToRawData, reader))
+                    {
+                        byte[] guidBytes = new byte[16];
+                        if (reader.BaseStream.Read(guidBytes, 0, 16) == 16)
+                        {
+                            return new Guid(guidBytes);
+                        }
+                    }
+                }
+                else
+                {
+                    // Section: VirtualSize (4), VirtualAddress (4), SizeOfRawData (4),
+                    // PointerToRawData (4), PointerToRelocations (4), PointerToLineNumbers (4),
+                    // NumberOfRelocations (2), NumberOfLineNumbers (2), Characteristics (4)
+                    Skip(4 + 4 + 4 + 4 + 4 + 4 + 2 + 2 + 4, reader);
                 }
             }
 

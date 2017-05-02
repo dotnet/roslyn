@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
@@ -274,6 +275,81 @@ public class C
                 int entryPoint = new PEHeaders(stream).CorHeader.EntryPointTokenOrRelativeVirtualAddress;
                 Assert.Equal(expectZero, entryPoint == 0);
             }
+        }
+
+        private class TestResourceSectionBuilder : ResourceSectionBuilder
+        {
+            public TestResourceSectionBuilder()
+            {
+            }
+
+            protected override void Serialize(BlobBuilder builder, SectionLocation location)
+            {
+                builder.WriteInt32(0x12345678);
+                builder.WriteInt32(location.PointerToRawData);
+                builder.WriteInt32(location.RelativeVirtualAddress);
+            }
+        }
+
+        private class TestPEBuilder : ManagedPEBuilder
+        {
+            public static readonly Guid s_mvid = Guid.Parse("a78fa2c3-854e-42bf-8b8d-75a450a6dc18");
+
+            public TestPEBuilder(PEHeaderBuilder header,
+                MetadataRootBuilder metadataRootBuilder,
+                BlobBuilder ilStream,
+                ResourceSectionBuilder nativeResources)
+                : base(header, metadataRootBuilder, ilStream, nativeResources: nativeResources)
+            {
+            }
+
+            protected override ImmutableArray<Section> CreateSections()
+            {
+                return base.CreateSections().Add(
+                     new Section(".mvid", SectionCharacteristics.MemRead |
+                        SectionCharacteristics.ContainsInitializedData |
+                        SectionCharacteristics.MemDiscardable));
+            }
+
+            protected override BlobBuilder SerializeSection(string name, SectionLocation location)
+            {
+                if (name.Equals(".mvid", StringComparison.Ordinal))
+                {
+                    var sectionBuilder = new BlobBuilder();
+                    sectionBuilder.WriteGuid(s_mvid);
+                    return sectionBuilder;
+                }
+
+                return base.SerializeSection(name, location);
+            }
+        }
+
+        [Fact]
+        public void MvidSectionNotFirst()
+        {
+            var ilBuilder = new BlobBuilder();
+            var metadataBuilder = new MetadataBuilder();
+
+            var peBuilder = new TestPEBuilder(
+                PEHeaderBuilder.CreateLibraryHeader(),
+                new MetadataRootBuilder(metadataBuilder),
+                ilBuilder,
+                nativeResources: new TestResourceSectionBuilder());
+
+            var peBlob = new BlobBuilder();
+            peBuilder.Serialize(peBlob);
+
+            var peStream = new MemoryStream();
+            peBlob.WriteContentTo(peStream);
+
+            peStream.Position = 0;
+            var peReader = new PEReader(peStream);
+            AssertEx.Equal(new[] { ".text", ".rsrc", ".reloc", ".mvid" },
+                peReader.PEHeaders.SectionHeaders.Select(h => h.Name));
+
+            peStream.Position = 0;
+            var mvid = BuildTasks.MvidReader.ReadAssemblyMvidOrEmpty(peStream);
+            Assert.Equal(TestPEBuilder.s_mvid, mvid);
         }
 
         /// <summary>
