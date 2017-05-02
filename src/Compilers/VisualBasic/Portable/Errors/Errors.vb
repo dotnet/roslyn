@@ -1730,6 +1730,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ERR_BadDocumentationMode = 37286
         ERR_BadLanguageVersion = 37287
         ERR_InvalidPreprocessorConstantType = 37288
+        ERR_TupleInferredNamesNotAvailable = 37289
 
         '// WARNINGS BEGIN HERE
         WRN_UseOfObsoleteSymbol2 = 40000

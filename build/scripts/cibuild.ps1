@@ -1,5 +1,6 @@
 [CmdletBinding(PositionalBinding=$false)]
 param (
+    [switch]$test32 = $false,
     [switch]$test64 = $false,
     [switch]$testDeterminism = $false,
     [switch]$testBuildCorrectness = $false,
@@ -7,12 +8,11 @@ param (
     [switch]$testPerfRun = $false,
     [switch]$testVsi = $false,
     [switch]$testVsiNetCore = $false,
-    [switch]$skipTest = $false,
+    [switch]$testDesktop = $false,
+    [switch]$testCoreClr = $false,
     [switch]$skipRestore = $false,
     [switch]$skipCommitPrinting = $false,
     [switch]$release = $false,
-    [switch]$skipCoreClrTests = $false,
-    [switch]$skipDesktopTests = $false,
     [parameter(ValueFromRemainingArguments=$true)] $badArgs)
 
 Set-StrictMode -version 2.0
@@ -20,14 +20,14 @@ $ErrorActionPreference = "Stop"
 
 function Print-Usage() {
     Write-Host "Usage: cibuild.cmd [-debug^|-release] [-test32^|-test64] [-restore]"
-    Write-Host "  -debug   Perform debug build.  This is the default."
-    Write-Host "  -release Perform release build."
-    Write-Host "  -test32  Run unit tests in the 32-bit runner.  This is the default."
-    Write-Host "  -test64  Run units tests in the 64-bit runner."
-    Write-Host "  -$testVsi  Run all integration tests."
-    Write-Host "  -$testVsiNetCore  Run just dotnet core integration tests."
-    Write-Host "  -skipCoreClrTests  Skip running unit tests on CoreCLR"
-    Write-Host "  -skipDesktopTests  Skip running unit tests on Desktop"
+    Write-Host "  -debug            Perform debug build.  This is the default."
+    Write-Host "  -release          Perform release build."
+    Write-Host "  -test32           Run unit tests in the 32-bit runner.  This is the default."
+    Write-Host "  -test64           Run units tests in the 64-bit runner."
+    Write-Host "  -testDesktop      Run desktop unit tests"
+    Write-Host "  -testCoreClr      Run CoreClr unit tests"
+    Write-Host "  -testVsi          Run all integration tests."
+    Write-Host "  -testVsiNetCore   Run just dotnet core integration tests."
 }
 
 function Run-MSBuild() {
@@ -114,7 +114,7 @@ try {
     Terminate-BuildProcesses
 
     if ($testDeterminism) {
-        Exec-Block { & ".\build\scripts\test-determinism.ps1" -buildDir $bootstrapDir } | Out-Host
+        Exec-Block { & ".\build\scripts\test-determinism.ps1" -bootstrapDir $bootstrapDir } | Out-Host
         Terminate-BuildProcesses
         exit 0
     }
@@ -157,18 +157,15 @@ try {
         exit 0
     }
 
-    $target = if ($skipTest) { "Build" } else { "BuildAndTest" }
-    $test64Arg = if ($test64) { "true" } else { "false" }
+    $test64Arg = if ($test64 -and (-not $test32)) { "true" } else { "false" }
     $testVsiArg = if ($testVsi) { "true" } else { "false" }
-    $skipCoreClrTestsArg = if ($skipCoreClrTests) { "true" } else { "false" }
-    $skipDesktopTestsArg = if ($skipDesktopTests) { "true" } else { "false" }
     $buildLog = Join-Path $binariesdir "Build.log"
 
     if ($testVsiNetCore) { 
-        Run-MSBuild /p:BootstrapBuildPath="$bootstrapDir" BuildAndTest.proj /t:$target /p:Configuration=$buildConfiguration /p:Test64=$test64Arg /p:TestVsi=true /p:SkipCoreClrTest=$skipCoreClrTestsArg /p:SkipDesktopTest=$skipDesktopTestsArg /p:Trait="Feature=NetCore" /p:PathMap="$($repoDir)=q:\roslyn" /p:Feature=pdb-path-determinism /fileloggerparameters:LogFile="$buildLog"`;verbosity=diagnostic /p:DeployExtension=false
+        Run-MSBuild /p:BootstrapBuildPath="$bootstrapDir" BuildAndTest.proj /p:Configuration=$buildConfiguration /p:Test64=$test64Arg /p:TestVsi=true /p:Trait="Feature=NetCore" /p:PathMap="$($repoDir)=q:\roslyn" /p:Feature=pdb-path-determinism /fileloggerparameters:LogFile="$buildLog"`;verbosity=diagnostic /p:DeployExtension=false /p:RoslynRuntimeIdentifier=win7-x64
     }
     else {
-        Run-MSBuild /p:BootstrapBuildPath="$bootstrapDir" BuildAndTest.proj /t:$target /p:Configuration=$buildConfiguration /p:Test64=$test64Arg /p:TestVsi=$testVsiArg /p:SkipCoreClrTest=$skipCoreClrTestsArg /p:SkipDesktopTest=$skipDesktopTestsArg /p:Trait="Feature=NetCore" /p:PathMap="$($repoDir)=q:\roslyn" /p:Feature=pdb-path-determinism /fileloggerparameters:LogFile="$buildLog"`;verbosity=diagnostic /p:DeployExtension=false
+        Run-MSBuild /p:BootstrapBuildPath="$bootstrapDir" BuildAndTest.proj /p:Configuration=$buildConfiguration /p:Test64=$test64Arg /p:TestVsi=$testVsiArg /p:TestDesktop=$testDesktop /p:TestCoreClr=$testCoreClr /p:PathMap="$($repoDir)=q:\roslyn" /p:Feature=pdb-path-determinism /fileloggerparameters:LogFile="$buildLog"`;verbosity=diagnostic /p:DeployExtension=false /p:RoslynRuntimeIdentifier=win7-x64
     }
 
     exit 0
