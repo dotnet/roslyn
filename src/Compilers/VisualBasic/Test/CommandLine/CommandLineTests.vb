@@ -1616,14 +1616,17 @@ End Module").Path
         <Fact>
         Public Sub LanguageVersionAdded_Canary()
             ' When a new version is added, this test will break. This list must be checked:
+            ' - update the command-line error for bad /langver flag (<see cref="ERRID.IDS_VBCHelp"/>)
             ' - update the "UpgradeProject" codefixer
             ' - update the IDE drop-down for selecting Language Version
+            ' - update legacy project system to pass Language Version from MSBuild to IDE (see CVbcMSBuildHostObject::SetLanguageVersion)
             ' - update all the tests that call this canary
             ' - update the command-line documentation (CommandLine.md)
             AssertEx.SetEqual({"default", "9", "10", "11", "12", "14", "15", "15.3", "latest"},
                 System.Enum.GetValues(GetType(LanguageVersion)).Cast(Of LanguageVersion)().Select(Function(v) v.ToDisplayString()))
             ' For minor versions, the format should be "x.y", such as "15.3"
         End Sub
+
         <Fact>
         Public Sub LanguageVersion_GetErrorCode()
             Dim versions = System.Enum.GetValues(GetType(LanguageVersion)).
@@ -1688,6 +1691,29 @@ End Module").Path
             Dim version As LanguageVersion
             Assert.Equal(success, input.TryParse(version))
             Assert.Equal(expected, version)
+
+            ' The canary check is a reminder that this test needs to be updated when a language version is added
+            LanguageVersionAdded_Canary()
+        End Sub
+
+        <Fact>
+        Public Sub LanguageVersion_CommandLineUsage()
+            Dim expected = [Enum].GetValues(GetType(LanguageVersion)).Cast(Of LanguageVersion)().Select(Function(v) v.ToDisplayString())
+            Dim help = VBResources.IDS_VBCHelp
+
+            Dim rangeStart = help.IndexOf("/langversion")
+            Dim rangeEnd = help.IndexOf("/optionexplicit")
+            Assert.True(rangeEnd > rangeStart)
+
+            Dim helpRange = help.Substring(rangeStart, rangeEnd - rangeStart).ToLowerInvariant()
+            Dim acceptableSurroundingChar = {CChar(vbCr), CChar(vbLf), "|"c, " "c}
+
+            For Each v In expected
+                Dim foundIndex = helpRange.IndexOf(v)
+                Assert.True(foundIndex > 0, $"Missing version '{v}'")
+                Assert.True(Array.IndexOf(acceptableSurroundingChar, helpRange(foundIndex - 1)) >= 0)
+                Assert.True(Array.IndexOf(acceptableSurroundingChar, helpRange(foundIndex + v.Length)) >= 0)
+            Next
 
             ' The canary check is a reminder that this test needs to be updated when a language version is added
             LanguageVersionAdded_Canary()

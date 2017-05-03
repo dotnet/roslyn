@@ -162,18 +162,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return asset;
             }
 
-            private CompilationWithAnalyzers CreateAnalyzerDriver(CompilationWithAnalyzers analyzerDriver, Func<DiagnosticAnalyzer, bool> predicate)
-            {
-                var analyzers = analyzerDriver.Analyzers.Where(predicate).ToImmutableArray();
-                if (analyzers.Length == 0)
-                {
-                    // we can't create analyzer driver with 0 analyzers
-                    return null;
-                }
-
-                return analyzerDriver.Compilation.WithAnalyzers(analyzers, analyzerDriver.AnalysisOptions);
-            }
-
             private async Task<DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>> GetCompilerAnalysisResultAsync(Stream stream, Dictionary<string, DiagnosticAnalyzer> analyzerMap, Project project, CancellationToken cancellationToken)
             {
                 // handling of cancellation and exception
