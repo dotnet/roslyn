@@ -159,7 +159,7 @@ try {
 
     $test64Arg = if ($test64 -and (-not $test32)) { "true" } else { "false" }
     $testVsiArg = if ($testVsi) { "true" } else { "false" }
-    $testVsiNetCoreArg = if ($testVsiNetCore) } { "true" } else { "false" }
+    $testVsiNetCoreArg = if ($testVsiNetCore) { "true" } else { "false" }
     $buildLog = Join-Path $binariesdir "Build.log"
 
     # To help the VS SDK team track down their issues around install via build temporarily 
@@ -172,7 +172,7 @@ try {
         Write-Host "The testVsiNetCore option can't be combined with other test arguments"
     }
 
-    Run-MSBuild /p:BootstrapBuildPath="$bootstrapDir" BuildAndTest.proj /p:Configuration=$buildConfiguration /p:Test64=$test64Arg /p:TestVsi=$testVsiArg /p:TestDesktop=$testDesktop /p:TestCoreClr=$testCoreClr /p:TestVsiNetCore=$testVsiNetCoreArg /p:PathMap="$($repoDir)=q:\roslyn" /p:Feature=pdb-path-determinism /fileloggerparameters:LogFile="$buildLog"`;verbosity=diagnostic /p:DeployExtension=false /p:RoslynRuntimeIdentifier=win7-x64 /p:DeployExtensionViaBuild=$deployExtensionViaBuild
+    Run-MSBuild /p:BootstrapBuildPath="$bootstrapDir" BuildAndTest.proj /p:Configuration=$buildConfiguration /p:Test64=$test64Arg /p:TestVsi=$testVsiArg /p:TestDesktop=$testDesktop /p:TestCoreClr=$testCoreClr /p:TestVsiNetCore=$testVsiNetCoreArg /p:PathMap="$($repoDir)=q:\roslyn" /p:Feature=pdb-path-determinism /fileloggerparameters:LogFile="$buildLog"`;verbosity=diagnostic /p:DeployExtension=false /p:RoslynRuntimeIdentifier=win7-x64 /p:DeployExtensionViaBuild=$deployExtensionViaBuild /p:TreatWarningsAsErrors=true
 
     exit 0
 }
