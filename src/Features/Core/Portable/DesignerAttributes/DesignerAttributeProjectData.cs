@@ -31,9 +31,9 @@ namespace Microsoft.CodeAnalysis.DesignerAttributes
             try
             {
                 var solution = project.Solution;
-                var storageService = solution.Workspace.Services.GetService<IPersistentStorageService>();
+                var storageService = (IPersistentStorageService2)solution.Workspace.Services.GetService<IPersistentStorageService>();
 
-                using (var persistenceService = storageService.GetStorage(solution))
+                using (var persistenceService = storageService.GetStorage(solution, checkBranchId: false))
                 using (var stream = await persistenceService.ReadStreamAsync(project, StreamName, cancellationToken).ConfigureAwait(false))
                 using (var reader = ObjectReader.TryGetReader(stream, cancellationToken))
                 {
@@ -70,14 +70,14 @@ namespace Microsoft.CodeAnalysis.DesignerAttributes
             return null;
         }
 
-        public void Persist(Project project, CancellationToken cancellationToken)
+        public async Task PersistAsync(Project project, CancellationToken cancellationToken)
         {
             try
             {
                 var solution = project.Solution;
-                var storageService = solution.Workspace.Services.GetService<IPersistentStorageService>();
+                var storageService = (IPersistentStorageService2)solution.Workspace.Services.GetService<IPersistentStorageService>();
 
-                using (var persistenceService = storageService.GetStorage(solution))
+                using (var storage = storageService.GetStorage(solution, checkBranchId: false))
                 using (var stream = SerializableBytes.CreateWritableStream())
                 using (var writer = new ObjectWriter(stream, cancellationToken: cancellationToken))
                 {
@@ -94,6 +94,8 @@ namespace Microsoft.CodeAnalysis.DesignerAttributes
                         writer.WriteBoolean(result.ContainsErrors);
                         writer.WriteBoolean(result.NotApplicable);
                     }
+
+                    await storage.WriteStreamAsync(project, StreamName, stream, cancellationToken).ConfigureAwait(false);
                 }
             }
             catch (Exception e) when (IOUtilities.IsNormalIOException(e))

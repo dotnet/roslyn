@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.DesignerAttributes
             }
 
             var data = new DesignerAttributeProjectData(semanticVersion, builder.ToImmutable());
-            data.Persist(project, cancellationToken);
+            await data.PersistAsync(project, cancellationToken).ConfigureAwait(false);
             return data;
         }
     }
