@@ -4,6 +4,7 @@ using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
 using System.Collections.Immutable;
+using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -80,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return result;
                 }
 
-                Debug.Assert((object)loweredPattern.Variable != null && loweredInput.Type == loweredPattern.Variable.GetTypeOrReturnType());
+                Debug.Assert((object)loweredPattern.Variable != null && loweredInput.Type.Equals(loweredPattern.Variable.GetTypeOrReturnType(), TypeCompareKind.IgnoreDynamicAndTupleNames));
 
                 var assignment = _factory.AssignmentExpression(loweredPattern.VariableAccess, loweredInput);
                 return _factory.MakeSequence(assignment, result);
@@ -141,9 +142,36 @@ namespace Microsoft.CodeAnalysis.CSharp
                 );
         }
 
+        private bool MatchIsIrrefutable(TypeSymbol sourceType, TypeSymbol targetType, bool requiredNullTest)
+        {
+            // use site diagnostics will already have been reported during binding.
+            HashSet<DiagnosticInfo> ignoredDiagnostics = null;
+            switch (_compilation.Conversions.ClassifyBuiltInConversion(sourceType, targetType, ref ignoredDiagnostics).Kind)
+            {
+                case ConversionKind.Boxing:
+                case ConversionKind.ImplicitReference:
+                case ConversionKind.Identity:
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
         BoundExpression MakeIsDeclarationPattern(SyntaxNode syntax, BoundExpression loweredInput, BoundExpression loweredTarget, bool requiresNullTest)
         {
             var type = loweredTarget.Type;
+            requiresNullTest = requiresNullTest && !loweredInput.Type.IsNonNullableValueType();
+
+            // It is possible that the input value is already of the correct type, in which case the pattern
+            // is irrefutable, and we can just do the assignment and return true (or perform the null test).
+            if (MatchIsIrrefutable(loweredInput.Type, loweredTarget.Type, requiresNullTest))
+            {
+                var convertedInput = _factory.Convert(loweredTarget.Type, loweredInput);
+                var assignment = _factory.AssignmentExpression(loweredTarget, convertedInput);
+                return requiresNullTest
+                    ? _factory.ObjectNotEqual(assignment, _factory.Null(type))
+                    : _factory.MakeSequence(assignment, _factory.Literal(true));
+            }
 
             // a pattern match of the form "expression is Type identifier" is equivalent to
             // an invocation of one of these helpers:
@@ -154,36 +182,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 //     t = e as T;
                 //     return t != null;
                 // }
-                if (loweredInput.Type == type)
-                {
-                    // CONSIDER: this can be done whenever input.Type is a subtype of type for improved code
-                    var assignment = _factory.AssignmentExpression(loweredTarget, loweredInput);
-                    return requiresNullTest
-                        ? _factory.ObjectNotEqual(assignment, _factory.Null(type))
-                        : _factory.MakeSequence(assignment, _factory.Literal(true));
-                }
-                else
-                {
-                    return _factory.ObjectNotEqual(
-                        _factory.AssignmentExpression(loweredTarget, _factory.As(loweredInput, type)),
-                        _factory.Null(type));
-                }
+                return _factory.ObjectNotEqual(
+                    _factory.AssignmentExpression(loweredTarget, _factory.As(loweredInput, type)),
+                    _factory.Null(type));
             }
             else if (type.IsValueType)
             {
                 // The type here is not a Nullable<T> instance type, as that would have led to the semantic error:
                 // ERR_PatternNullableType: It is not legal to use nullable type '{0}' in a pattern; use the underlying type '{1}' instead.
                 Debug.Assert(!type.IsNullableType());
-
-                // It is possible that the input value is already of the correct type, in which case the pattern
-                // is irrefutable (there is no way for a non-nullable value type to be null), and we can just do
-                // the assignment and return true.
-                if (loweredInput.Type == type)
-                {
-                    return _factory.MakeSequence(
-                        _factory.AssignmentExpression(loweredTarget, loweredInput),
-                        _factory.Literal(true));
-                }
 
                 // It may be possible to improve this code by only assigning t when returning
                 // true (avoid returning a new default value)

@@ -219,7 +219,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Store the input expression into a temp
                     if (decisionTree.Expression != expression)
                     {
-                        _loweredDecisionTree.Add(_factory.Assignment(decisionTree.Expression, expression));
+                        var convertedExpression = _factory.Convert(decisionTree.Expression.Type, expression);
+                        _loweredDecisionTree.Add(_factory.Assignment(decisionTree.Expression, convertedExpression));
                     }
 
                     if (_declaredTempSet.Add(decisionTree.Temp))
