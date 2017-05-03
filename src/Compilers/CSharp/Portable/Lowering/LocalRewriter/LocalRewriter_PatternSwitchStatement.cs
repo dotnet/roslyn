@@ -402,7 +402,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var loweredRight = kv.Key;
                         var loweredLeft = kv.Value;
-                        Debug.Assert(loweredLeft.Type.Equals(loweredRight.Type, TypeCompareKind.IgnoreDynamicAndTupleNames));
+                        loweredRight = _factory.Convert(loweredLeft.Type, loweredRight);
                         addBindings.Add(_factory.ExpressionStatement(
                             _localRewriter.MakeStaticAssignmentOperator(
                                 _factory.Syntax, loweredLeft, loweredRight, RefKind.None, loweredLeft.Type, false)));

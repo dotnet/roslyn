@@ -2,7 +2,7 @@
 
 namespace Microsoft.CodeAnalysis.Host
 {
-    internal class NoOpPersistentStorageService : IPersistentStorageService
+    internal class NoOpPersistentStorageService : IPersistentStorageService2
     {
         public static readonly IPersistentStorageService Instance = new NoOpPersistentStorageService();
 
@@ -11,6 +11,9 @@ namespace Microsoft.CodeAnalysis.Host
         }
 
         public IPersistentStorage GetStorage(Solution solution)
+            => NoOpPersistentStorage.Instance;
+
+        public IPersistentStorage GetStorage(Solution solution, bool checkBranchId)
             => NoOpPersistentStorage.Instance;
     }
 }
