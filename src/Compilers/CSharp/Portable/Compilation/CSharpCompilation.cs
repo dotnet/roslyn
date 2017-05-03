@@ -1489,12 +1489,21 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var viableEntryPoints = ArrayBuilder<MethodSymbol>.GetInstance();
 
-                foreach (var candidate in intOrVoidEntryPoints)
+                bool CheckGenericity(MethodSymbol candidate)
                 {
                     if (candidate.IsGenericMethod || candidate.ContainingType.IsGenericType)
                     {
                         // a single error for partial methods:
                         noMainFoundDiagnostics.Add(ErrorCode.WRN_MainCantBeGeneric, candidate.Locations.First(), candidate);
+                        return false;
+                    }
+                    return true;
+                }
+
+                foreach (var candidate in intOrVoidEntryPoints)
+                {
+                    if (!CheckGenericity(candidate))
+                    {
                         continue;
                     }
                     if (candidate.IsAsync)
@@ -1516,10 +1525,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             continue;
                         }
 
-                        if (Candidate.IsGenericMethod || Candidate.ContainingType.IsGenericType)
+                        if (!CheckGenericity(Candidate))
                         {
-                            // a single error for partial methods:
-                            noMainFoundDiagnostics.Add(ErrorCode.WRN_MainCantBeGeneric, Candidate.Locations.First(), Candidate);
                             continue;
                         }
 
@@ -1529,7 +1536,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                             diagnostics.AddRange(SpecificDiagnostics);
                             viableEntryPoints.Add(Candidate);
                         }
-
                     }
                 }
 

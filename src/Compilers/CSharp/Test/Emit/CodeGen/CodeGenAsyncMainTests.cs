@@ -55,6 +55,9 @@ static class Program {
 }";
             var sourceCompilation = CreateStandardCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
             sourceCompilation.VerifyEmitDiagnostics(
+                // (11,12): warning CS1986: 'await' requires that the type Task<int> have a suitable GetAwaiter method
+                //     static Task<int> Main() {
+                Diagnostic(ErrorCode.ERR_BadAwaitArg, "Task<int>").WithArguments("System.Threading.Tasks.Task<int>").WithLocation(11, 12),
                 // (11,22): warning CS0028: 'Program.Main()' has the wrong signature to be an entry point
                 //     static Task<int> Main() {
                 Diagnostic(ErrorCode.WRN_InvalidMainSig, "Main").WithArguments("Program.Main()").WithLocation(11, 22),
@@ -108,6 +111,9 @@ static class Program {
 }";
             var sourceCompilation = CreateStandardCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
             sourceCompilation.VerifyEmitDiagnostics(
+                // (11,12): warning CS1986: 'await' requires that the type Task<int> have a suitable GetAwaiter method
+                //     static Task<int> Main() {
+                Diagnostic(ErrorCode.ERR_BadAwaitArg, "Task<int>").WithArguments("System.Threading.Tasks.Task<int>").WithLocation(11, 12),
                 // (11,22): warning CS0028: 'Program.Main()' has the wrong signature to be an entry point
                 //     static Task<int> Main() {
                 Diagnostic(ErrorCode.WRN_InvalidMainSig, "Main").WithArguments("Program.Main()").WithLocation(11, 22),
