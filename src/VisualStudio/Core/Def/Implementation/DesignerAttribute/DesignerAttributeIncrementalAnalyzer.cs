@@ -78,6 +78,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
                 return;
             }
 
+#if false
             // CPS projects do not support designer attributes.  So we just skip these projects entirely.
             var isCPSProject = await Task.Factory.StartNew(
                 () => vsWorkspace.IsCPSProject(project),
@@ -89,6 +90,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
             {
                 return;
             }
+#endif
 
             // Try to compute this data in the remote process.  If that fails, then compute
             // the results in the local process.
