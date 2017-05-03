@@ -4,6 +4,9 @@ using System;
 
 namespace Microsoft.CodeAnalysis.DesignerAttributes
 {
+    /// <summary>
+    /// Marshalling type to pass designer attribute data to/from the OOP process.
+    /// </summary>
     internal struct DesignerAttributeDocumentData : IEquatable<DesignerAttributeDocumentData>
     {
         public string FilePath;
