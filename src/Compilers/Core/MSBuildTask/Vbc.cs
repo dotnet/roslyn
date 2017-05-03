@@ -980,12 +980,9 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 "15", "15.0"
             };
 
-            for (int i = 0; i < supportedList.Length; i++)
+            if (Array.IndexOf(supportedList, langVersion) >= 0)
             {
-                if (supportedList[i].Equals(langVersion, StringComparison.OrdinalIgnoreCase))
-                {
-                    return false;
-                }
+                return false;
             }
 
             return true;

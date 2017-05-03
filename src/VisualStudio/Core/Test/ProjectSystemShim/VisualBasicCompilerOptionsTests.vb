@@ -49,6 +49,67 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
 
         <WpfFact()>
         <Trait(Traits.Feature, Traits.Features.ProjectSystemShims)>
+        Public Sub SetCompilerOptions_LangVersion14()
+            Using environment = New TestEnvironment()
+                Dim project = CreateVisualBasicProject(environment, "Test")
+
+                Dim compilerOptionsHost = DirectCast(project, Implementation.ProjectSystem.Interop.ICompilerOptionsHostObject)
+                Dim supported As Boolean
+                compilerOptionsHost.SetCompilerOptions("/langversion:14", supported)
+
+                Dim workspaceProject = environment.Workspace.CurrentSolution.Projects.Single()
+                Dim options = DirectCast(workspaceProject.ParseOptions, VisualBasicParseOptions)
+
+                ' SetCompilerOptions only handles versions 15.3 and up
+                Assert.Equal(LanguageVersion.VisualBasic15, options.LanguageVersion)
+                Assert.Equal(LanguageVersion.VisualBasic15, options.SpecifiedLanguageVersion)
+
+                project.Disconnect()
+            End Using
+        End Sub
+
+        <WpfFact()>
+        <Trait(Traits.Feature, Traits.Features.ProjectSystemShims)>
+        Public Sub SetCompilerOptions_LangVersion15()
+            Using environment = New TestEnvironment()
+                Dim project = CreateVisualBasicProject(environment, "Test")
+
+                Dim compilerOptionsHost = DirectCast(project, Implementation.ProjectSystem.Interop.ICompilerOptionsHostObject)
+                Dim supported As Boolean
+                compilerOptionsHost.SetCompilerOptions("/langversion:15", supported)
+
+                Dim workspaceProject = environment.Workspace.CurrentSolution.Projects.Single()
+                Dim options = DirectCast(workspaceProject.ParseOptions, VisualBasicParseOptions)
+
+                Assert.Equal(LanguageVersion.VisualBasic15, options.LanguageVersion)
+                Assert.Equal(LanguageVersion.VisualBasic15, options.SpecifiedLanguageVersion)
+
+                project.Disconnect()
+            End Using
+        End Sub
+
+        <WpfFact()>
+        <Trait(Traits.Feature, Traits.Features.ProjectSystemShims)>
+        Public Sub SetCompilerOptions_LangVersionDefault()
+            Using environment = New TestEnvironment()
+                Dim project = CreateVisualBasicProject(environment, "Test")
+
+                Dim compilerOptionsHost = DirectCast(project, Implementation.ProjectSystem.Interop.ICompilerOptionsHostObject)
+                Dim supported As Boolean
+                compilerOptionsHost.SetCompilerOptions("/langversion:Default", supported)
+
+                Dim workspaceProject = environment.Workspace.CurrentSolution.Projects.Single()
+                Dim options = DirectCast(workspaceProject.ParseOptions, VisualBasicParseOptions)
+
+                Assert.Equal(LanguageVersion.Default.MapSpecifiedToEffectiveVersion(), options.LanguageVersion)
+                Assert.Equal(LanguageVersion.Default.MapSpecifiedToEffectiveVersion(), options.SpecifiedLanguageVersion)
+
+                project.Disconnect()
+            End Using
+        End Sub
+
+        <WpfFact()>
+        <Trait(Traits.Feature, Traits.Features.ProjectSystemShims)>
         Public Sub SetCompilerOptions_LangVersion15_3()
             Using environment = New TestEnvironment()
                 Dim project = CreateVisualBasicProject(environment, "Test")
@@ -61,6 +122,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
                 Dim options = DirectCast(workspaceProject.ParseOptions, VisualBasicParseOptions)
 
                 Assert.Equal(LanguageVersion.VisualBasic15_3, options.LanguageVersion)
+                Assert.Equal(LanguageVersion.VisualBasic15_3, options.SpecifiedLanguageVersion)
 
                 project.Disconnect()
             End Using
@@ -79,7 +141,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
                 Dim workspaceProject = environment.Workspace.CurrentSolution.Projects.Single()
                 Dim options = DirectCast(workspaceProject.ParseOptions, VisualBasicParseOptions)
 
-                Assert.Equal(LanguageVersion.VisualBasic15_3, options.LanguageVersion)
+                Assert.Equal(LanguageVersion.Latest.MapSpecifiedToEffectiveVersion(), options.LanguageVersion)
+                Assert.Equal(LanguageVersion.Latest.MapSpecifiedToEffectiveVersion(), options.SpecifiedLanguageVersion)
 
                 project.Disconnect()
             End Using
