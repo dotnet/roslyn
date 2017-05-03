@@ -31,9 +31,8 @@ namespace Microsoft.CodeAnalysis.DesignerAttributes
             try
             {
                 var solution = project.Solution;
-                var workspace = project.Solution.Workspace;
+                var storageService = solution.Workspace.Services.GetService<IPersistentStorageService>();
 
-                var storageService = workspace.Services.GetService<IPersistentStorageService>();
                 using (var persistenceService = storageService.GetStorage(solution))
                 using (var stream = await persistenceService.ReadStreamAsync(project, StreamName, cancellationToken).ConfigureAwait(false))
                 using (var reader = ObjectReader.TryGetReader(stream, cancellationToken))
@@ -71,15 +70,13 @@ namespace Microsoft.CodeAnalysis.DesignerAttributes
             return null;
         }
 
-        public void Persist(
-            Project project, CancellationToken cancellationToken)
+        public void Persist(Project project, CancellationToken cancellationToken)
         {
             try
             {
                 var solution = project.Solution;
-                var workspace = project.Solution.Workspace;
+                var storageService = solution.Workspace.Services.GetService<IPersistentStorageService>();
 
-                var storageService = workspace.Services.GetService<IPersistentStorageService>();
                 using (var persistenceService = storageService.GetStorage(solution))
                 using (var stream = SerializableBytes.CreateWritableStream())
                 using (var writer = new ObjectWriter(stream, cancellationToken: cancellationToken))
