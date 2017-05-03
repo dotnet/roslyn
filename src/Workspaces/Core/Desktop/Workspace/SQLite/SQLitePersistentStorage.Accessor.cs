@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.SQLite
             protected abstract void BindFirstParameter(SqlStatement statement, TDatabaseId dataId);
             protected abstract TWriteQueueKey GetWriteQueueKey(TKey key);
 
-            public Task<Stream> ReadStreamAsync(TKey key, CancellationToken cancellationToken)
+            public async Task<Stream> ReadStreamAsync(TKey key, CancellationToken cancellationToken)
             {
                 // Note: we're technically fully synchronous.  However, we're called from several
                 // async methods.  We just return a Task<stream> here so that all our callers don't
@@ -64,12 +64,12 @@ namespace Microsoft.CodeAnalysis.SQLite
                         {
                             // Ensure all pending document writes to this name are flushed to the DB so that 
                             // we can find them below.
-                            FlushPendingWrites(connection, key);
+                            await FlushPendingWritesAsync(connection, key, cancellationToken).ConfigureAwait(false);
 
                             try
                             {
                                 // Lookup the row from the DocumentData table corresponding to our dataId.
-                                return Task.FromResult(ReadBlob(connection, dataId));
+                                return ReadBlob(connection, dataId);
                             }
                             catch (Exception ex)
                             {
@@ -79,10 +79,10 @@ namespace Microsoft.CodeAnalysis.SQLite
                     }
                 }
 
-                return SpecializedTasks.Default<Stream>();
+                return null;
             }
 
-            public Task<bool> WriteStreamAsync(
+            public async Task<bool> WriteStreamAsync(
                 TKey key, Stream stream, CancellationToken cancellationToken)
             {
                 // Note: we're technically fully synchronous.  However, we're called from several
@@ -100,29 +100,29 @@ namespace Microsoft.CodeAnalysis.SQLite
                         {
                             var (bytes, length, pooled) = GetBytes(stream);
 
-                            AddWriteTask(key, con =>
+                            await AddWriteTaskAsync(key, con =>
                             {
                                 InsertOrReplaceBlob(con, dataId, bytes, length);
                                 if (pooled)
                                 {
                                     ReturnPooledBytes(bytes);
                                 }
-                            });
+                            }, cancellationToken).ConfigureAwait(false);
 
-                            return SpecializedTasks.True;
+                            return true;
                         }
                     }
                 }
 
-                return SpecializedTasks.False;
+                return false;
             }
 
-            private void FlushPendingWrites(SqlConnection connection, TKey key)
-                => Storage.FlushSpecificWrites(
-                    connection, _writeQueueKeyToWrites, _writeQueueKeyToCountdown, GetWriteQueueKey(key));
+            private Task FlushPendingWritesAsync(SqlConnection connection, TKey key, CancellationToken cancellationToken)
+                => Storage.FlushSpecificWritesAsync(
+                    connection, _writeQueueKeyToWrites, _writeQueueKeyToCountdown, GetWriteQueueKey(key), cancellationToken);
 
-            private void AddWriteTask(TKey key, Action<SqlConnection> action)
-                => Storage.AddWriteTask(_writeQueueKeyToWrites, GetWriteQueueKey(key), action);
+            private Task AddWriteTaskAsync(TKey key, Action<SqlConnection> action, CancellationToken cancellationToken)
+                => Storage.AddWriteTaskAsync(_writeQueueKeyToWrites, GetWriteQueueKey(key), action, cancellationToken);
 
             private Stream ReadBlob(
                  SqlConnection connection, TDatabaseId dataId)

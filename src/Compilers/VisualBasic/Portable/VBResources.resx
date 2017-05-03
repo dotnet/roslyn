@@ -5130,7 +5130,7 @@
                                   import_list:namespace,...
 /langversion:&lt;number&gt;             Specify language version: 
                                   9|9.0|10|10.0|11|11.0|12|12.0|14|14.0|15|
-                                  15.0|default|latest
+                                  15.0|15.3|default|latest
 /optionexplicit[+|-]              Require explicit declaration of variables.
 /optioninfer[+|-]                 Allow type inference of variables.
 /rootnamespace:&lt;string&gt;           Specifies the root Namespace for all type 
@@ -5154,7 +5154,6 @@
                                   - ADVANCED -
 /baseaddress:&lt;number&gt;             The base address for a library or module 
                                   (hex).
-/bugreport:&lt;file&gt;                 Create bug report file.
 /checksumalgorithm:&lt;alg&gt;          Specify algorithm for calculating source file 
                                   checksum stored in PDB. Supported values are:
                                   SHA1 (default) or SHA256.
@@ -5475,6 +5474,9 @@
   </data>
   <data name="ERR_BadSourceCodeKind" xml:space="preserve">
     <value>Provided source code kind is unsupported or invalid: '{0}'</value>
+  </data>
+  <data name="ERR_TupleInferredNamesNotAvailable" xml:space="preserve">
+    <value>Tuple element name '{0}' is inferred. Please use language version {1} or greater to access an element by its inferred name.</value>
   </data>
   <data name="WRN_Experimental" xml:space="preserve">
     <value>'{0}' is for evaluation purposes only and is subject to change or removal in future updates.</value>
