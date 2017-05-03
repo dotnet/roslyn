@@ -166,6 +166,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // If the branch syntax is null we can take the localFunc syntax.
                 // This will only be used incase of any diagnostics need to be created and the location is null
+                var syntax = branch?.Syntax ?? localFunc.Syntax;
+                LeaveParameters(localFuncSymbol.Parameters, syntax, branch?.WasCompilerGenerated == true ? location : null);
 
                 IntersectWith(ref stateAtReturn, ref this.State);
             }
