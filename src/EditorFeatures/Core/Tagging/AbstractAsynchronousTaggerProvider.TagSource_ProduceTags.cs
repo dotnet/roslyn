@@ -604,9 +604,9 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                     {
                         var snapshot = spansToTag.First(s => s.SnapshotSpan.Snapshot.TextBuffer == latestBuffer).SnapshotSpan.Snapshot;
 
-                        if (oldTagTrees.ContainsKey(latestBuffer))
+                        if (oldTagTrees.TryGetValue(latestBuffer, out var previousSpans))
                         {
-                            var difference = ComputeDifference(snapshot, newTagTrees[latestBuffer], oldTagTrees[latestBuffer]);
+                            var difference = ComputeDifference(snapshot, newTagTrees[latestBuffer], previousSpans);
                             bufferToChanges[latestBuffer] = difference;
                         }
                         else
