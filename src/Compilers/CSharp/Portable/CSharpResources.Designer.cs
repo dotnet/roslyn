@@ -5561,7 +5561,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Unable to read debug information of method &apos;{0}&apos; (token 0x{1}) from assembly &apos;{2}&apos;.
+        ///   Looks up a localized string similar to Unable to read debug information of method &apos;{0}&apos; (token 0x{1:X8}) from assembly &apos;{2}&apos;.
         /// </summary>
         internal static string ERR_InvalidDebugInfo {
             get {
@@ -10823,6 +10823,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string NotACSharpSymbol {
             get {
                 return ResourceManager.GetString("NotACSharpSymbol", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The parent of {0} must not be null unless this is a speculative semantic model..
+        /// </summary>
+        internal static string ParentMustNotBeNullUnlessSpeculativeSemanticModel {
+            get {
+                return ResourceManager.GetString("ParentMustNotBeNullUnlessSpeculativeSemanticModel", resourceCulture);
             }
         }
         

@@ -5077,6 +5077,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>'{0}' is a local function and must therefore always have a body.</value>
   </data>
   <data name="ERR_InvalidDebugInfo" xml:space="preserve">
-    <value>Unable to read debug information of method '{0}' (token 0x{1}) from assembly '{2}'</value>
+    <value>Unable to read debug information of method '{0}' (token 0x{1:X8}) from assembly '{2}'</value>
+  </data>
+  <data name="ParentMustNotBeNullUnlessSpeculativeSemanticModel" xml:space="preserve">
+    <value>The parent of {0} must not be null unless this is a speculative semantic model.</value>
   </data>
 </root>

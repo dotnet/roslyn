@@ -1028,15 +1028,6 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The parent of {0} must not be null unless this is a speculative semantic model..
-        /// </summary>
-        internal static string ParentMustNotBeNullUnlessSpeculativeSemanticModel {
-            get {
-                return ResourceManager.GetString("ParentMustNotBeNullUnlessSpeculativeSemanticModel", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Path returned by {0}.ResolveMetadataFile must be absolute: &apos;{1}&apos;.
         /// </summary>
         internal static string PathReturnedByResolveMetadataFileMustBeAbsolute {

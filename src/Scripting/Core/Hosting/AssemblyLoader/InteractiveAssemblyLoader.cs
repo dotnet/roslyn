@@ -309,7 +309,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                         
                         // error: attempt to load an assembly with the same identity as already loaded assembly but different content
                         throw new InteractiveAssemblyLoaderException(
-                            string.Format(ScriptingResources.AssemblyAlreadyLoaded, 
+                            string.Format(null, ScriptingResources.AssemblyAlreadyLoaded, 
                             identity.Name, 
                             identity.Version, 
                             loadedAssemblyWithEqualNameAndVersionOpt.LocationOpt, 
@@ -322,7 +322,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                     {
                         // error: attempt to load an assembly with the same identity as already loaded assembly but different content
                         throw new InteractiveAssemblyLoaderException(
-                            string.Format(ScriptingResources.AssemblyAlreadyLoadedNotSigned,
+                            string.Format(null, ScriptingResources.AssemblyAlreadyLoadedNotSigned,
                             identity.Name,
                             conflictingLoadedAssemblyOpt.LocationOpt,
                             assemblyFilePathOpt)

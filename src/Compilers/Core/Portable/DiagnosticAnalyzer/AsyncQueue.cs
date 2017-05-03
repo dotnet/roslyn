@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             if (!EnqueueCore(value))
             {
-                throw new InvalidOperationException(string.Format(CodeAnalysisResources.CannotCallWhenQueueIsCompleted, nameof(Enqueue)));
+                throw new InvalidOperationException(string.Format(null, CodeAnalysisResources.CannotCallWhenQueueIsCompleted, nameof(Enqueue)));
             }
         }
 
@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             if (!CompleteCore())
             {
-                throw new InvalidOperationException(string.Format(CodeAnalysisResources.CannotCallWhenQueueIsCompleted, nameof(Complete)));
+                throw new InvalidOperationException(string.Format(null, CodeAnalysisResources.CannotCallWhenQueueIsCompleted, nameof(Complete)));
             }
         }
 

@@ -1828,7 +1828,7 @@ done:
                     return null;
                 }
                 
-                throw new ArgumentException(string.Format(CodeAnalysisResources.ParentMustNotBeNullUnlessSpeculativeSemanticModel, nameof(node)), nameof(node));
+                throw new ArgumentException(string.Format(null, CSharpResources.ParentMustNotBeNullUnlessSpeculativeSemanticModel, nameof(node)), nameof(node));
             }
 
             // skip up past parens and ref expressions, as we have no bound nodes for them.

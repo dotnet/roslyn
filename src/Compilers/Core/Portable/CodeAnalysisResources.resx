@@ -603,7 +603,4 @@
   <data name="NonReadOnlyMembersAreNotSupportedInCSharp" xml:space="preserve">
     <value>Non-ReadOnly members are not supported in C# anonymous types.</value>
   </data>
-  <data name="ParentMustNotBeNullUnlessSpeculativeSemanticModel" xml:space="preserve">
-    <value>The parent of {0} must not be null unless this is a speculative semantic model.</value>
-  </data>
 </root>

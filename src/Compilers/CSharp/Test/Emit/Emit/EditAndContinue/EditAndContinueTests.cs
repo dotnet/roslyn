@@ -7135,7 +7135,7 @@ class C
 
             diff1.EmitResult.Diagnostics.Verify(
                 // (6,14): error CS7038: Failed to emit module 'Unable to read debug information of method 'C.F()' (token 0x06000001) from assembly 'PdbReadingErrorsAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null''.
-                Diagnostic(ErrorCode.ERR_InvalidDebugInfo, "F").WithArguments("C.F()", "06000001", "PdbReadingErrorsAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(6, 14));
+                Diagnostic(ErrorCode.ERR_InvalidDebugInfo, "F").WithArguments("C.F()", "100663297", "PdbReadingErrorsAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(6, 14));
         }
 
         [Fact]

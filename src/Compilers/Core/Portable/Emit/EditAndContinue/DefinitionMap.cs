@@ -236,9 +236,9 @@ namespace Microsoft.CodeAnalysis.Emit
                     diagnostics.Add(MessageProvider.CreateDiagnostic(
                         MessageProvider.ERR_InvalidDebugInfo,
                         method.Locations.First(),
-                        MessageProvider.GetErrorDisplayString(method),
-                        MetadataTokens.GetToken(previousHandle).ToString("X8"),
-                        MessageProvider.GetErrorDisplayString(method.ContainingAssembly)
+                        method,
+                        MetadataTokens.GetToken(previousHandle),
+                        method.ContainingAssembly
                     ));
 
                     return null;
