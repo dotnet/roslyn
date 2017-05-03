@@ -112,9 +112,13 @@ namespace Microsoft.CodeAnalysis.SQLite
                     // We're currently under a lock, so tell the continuation to run 
                     // *asynchronously* so that the TPL does not try to execute it inline
                     // with this thread.
+                    //
+                    // Note: this flushing is not cancellable.  We've already removed the
+                    // writes from the write queue.  If we were not to write them out we
+                    // would be losing data.
                     var nextTask = existingWriteTask.ContinueWith(
                         _ => ProcessWriteQueue(connection, writesToProcess),
-                        cancellationToken,
+                        CancellationToken.None,
                         TaskContinuationOptions.RunContinuationsAsynchronously,
                         TaskScheduler.Default);
 
