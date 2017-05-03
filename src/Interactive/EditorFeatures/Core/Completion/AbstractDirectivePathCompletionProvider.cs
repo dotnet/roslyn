@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.Completion.FileSystem
         protected static bool IsDirectorySeparator(char ch) =>
              ch == '/' || ch == '\\' && !PathUtilities.IsUnixLikePlatform;
 
-       protected abstract bool TryGetStringLiteralToken(SyntaxTree tree, int position, out SyntaxToken stringLiteral, CancellationToken cancellationToken);
+        protected abstract bool TryGetStringLiteralToken(SyntaxTree tree, int position, out SyntaxToken stringLiteral, CancellationToken cancellationToken);
 
         public sealed override async Task ProvideCompletionsAsync(CompletionContext context)
         {

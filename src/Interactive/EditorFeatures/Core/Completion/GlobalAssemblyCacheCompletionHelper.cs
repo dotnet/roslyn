@@ -2,15 +2,15 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using System.Collections.Immutable;
-using System.Threading;
 
 namespace Microsoft.CodeAnalysis.Editor.Completion.FileSystem
 {
@@ -19,49 +19,48 @@ namespace Microsoft.CodeAnalysis.Editor.Completion.FileSystem
         private static readonly Lazy<List<string>> s_lazyAssemblySimpleNames =
             new Lazy<List<string>>(() => GlobalAssemblyCache.Instance.GetAssemblySimpleNames().ToList());
 
-        private readonly CompletionProvider _completionProvider;
-        private readonly TextSpan _textChangeSpan;
         private readonly CompletionItemRules _itemRules;
 
-        public GlobalAssemblyCacheCompletionHelper(
-            CompletionProvider completionProvider, 
-            TextSpan textChangeSpan, 
-            CompletionItemRules itemRules = null)
+        public GlobalAssemblyCacheCompletionHelper(CompletionItemRules itemRules)
         {
-            _completionProvider = completionProvider;
-            _textChangeSpan = textChangeSpan;
+            Debug.Assert(itemRules != null);
             _itemRules = itemRules;
         }
 
-        internal Task<ImmutableArray<CompletionItem>> GetItemsAsync(string pathSoFar, CancellationToken cancellationToken)
+        public Task<ImmutableArray<CompletionItem>> GetItemsAsync(string directoryPath, CancellationToken cancellationToken)
         {
-            return Task.Run(() => GetCompletionsWorker(pathSoFar).ToImmutableArray(), cancellationToken);
+            return Task.Run(() => GetItems(directoryPath, cancellationToken));
         }
 
-        private IEnumerable<CompletionItem> GetCompletionsWorker(string pathSoFar)
+        // internal for testing
+        internal ImmutableArray<CompletionItem> GetItems(string directoryPath, CancellationToken cancellationToken)
         {
-            var comma = pathSoFar.IndexOf(',');
+            var result = ArrayBuilder<CompletionItem>.GetInstance();
+
+            var comma = directoryPath.IndexOf(',');
             if (comma >= 0)
             {
-                var path = pathSoFar.Substring(0, comma);
-                return from identity in GetAssemblyIdentities(path)
-                       let text = identity.GetDisplayName()
-                       select CommonCompletionItem.Create(text, glyph: Glyph.Assembly, rules: _itemRules);
+                var partialName = directoryPath.Substring(0, comma);
+                foreach (var identity in GetAssemblyIdentities(partialName))
+                {
+                    result.Add(CommonCompletionItem.Create(identity.GetDisplayName(), glyph: Glyph.Assembly, rules: _itemRules));
+                }
             }
             else
             {
-                return from displayName in s_lazyAssemblySimpleNames.Value
-                       select CommonCompletionItem.Create(
-                           displayName,
-                           description: GlobalAssemblyCache.Instance.ResolvePartialName(displayName).GetDisplayName().ToSymbolDisplayParts(),
-                           glyph: Glyph.Assembly,
-                           rules: _itemRules);
+                foreach (var displayName in s_lazyAssemblySimpleNames.Value)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    result.Add(CommonCompletionItem.Create(displayName, glyph: Glyph.Assembly, rules: _itemRules));
+                }
             }
+
+            return result.ToImmutableAndFree();
         }
 
-        private IEnumerable<AssemblyIdentity> GetAssemblyIdentities(string pathSoFar)
+        private IEnumerable<AssemblyIdentity> GetAssemblyIdentities(string partialName)
         {
-            return IOUtilities.PerformIO(() => GlobalAssemblyCache.Instance.GetAssemblyIdentities(pathSoFar),
+            return IOUtilities.PerformIO(() => GlobalAssemblyCache.Instance.GetAssemblyIdentities(partialName),
                 SpecializedCollections.EmptyEnumerable<AssemblyIdentity>());
         }
     }

@@ -294,7 +294,6 @@
     <Compile Include="Completion\CompletionProviders\CrefCompletionProviderTests.cs" />
     <Compile Include="Completion\CompletionProviders\EnumAndCompletionListTagCompletionProviderTests.cs" />
     <Compile Include="Completion\CompletionProviders\ExternAliasCompletionProviderTests.cs" />
-    <Compile Include="Completion\CompletionProviders\GlobalAssemblyCacheCompletionHelperTests.cs" />
     <Compile Include="Completion\CompletionProviders\KeywordCompletionProviderTests.cs" />
     <Compile Include="Completion\CompletionProviders\NamedParameterCompletionProviderTests.cs" />
     <Compile Include="Completion\CompletionProviders\ObjectCreationCompletionProviderTests.cs" />

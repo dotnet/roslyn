@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Editor.Completion.FileSystem
         {
             if (GacFileResolver.IsAvailable && pathThroughLastSlash.IndexOfAny(s_pathIndicators) < 0)
             {
-                var gacHelper = new GlobalAssemblyCacheCompletionHelper(this, context.CompletionListSpan, itemRules: s_rules);
+                var gacHelper = new GlobalAssemblyCacheCompletionHelper(s_rules);
                 context.AddItems(await gacHelper.GetItemsAsync(pathThroughLastSlash, context.CancellationToken).ConfigureAwait(false));
             }
 
