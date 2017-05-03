@@ -215,9 +215,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 var isSuppressed = !diag.IsEnabledByDefault;
 
                 // If the user said something about it, that overrides the author.
-                if (diagnosticOptions.ContainsKey(diag.Id))
+                if (diagnosticOptions.TryGetValue(diag.Id, out var severity))
                 {
-                    isSuppressed = diagnosticOptions[diag.Id] == ReportDiagnostic.Suppress;
+                    isSuppressed = severity == ReportDiagnostic.Suppress;
                 }
 
                 if (!isSuppressed)
