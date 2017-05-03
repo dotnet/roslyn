@@ -4,14 +4,14 @@ using System;
 
 namespace Microsoft.CodeAnalysis.DesignerAttributes
 {
-    internal struct DesignerAttributeResult : IEquatable<DesignerAttributeResult>
+    internal struct DesignerAttributeDocumentData : IEquatable<DesignerAttributeDocumentData>
     {
         public string FilePath;
         public string DesignerAttributeArgument;
         public bool ContainsErrors;
         public bool NotApplicable;
 
-        public DesignerAttributeResult(string filePath, string designerAttributeArgument, bool containsErrors, bool notApplicable)
+        public DesignerAttributeDocumentData(string filePath, string designerAttributeArgument, bool containsErrors, bool notApplicable)
         {
             FilePath = filePath;
             DesignerAttributeArgument = designerAttributeArgument;
@@ -20,9 +20,9 @@ namespace Microsoft.CodeAnalysis.DesignerAttributes
         }
 
         public override bool Equals(object obj)
-            => Equals((DesignerAttributeResult)obj);
+            => Equals((DesignerAttributeDocumentData)obj);
 
-        public bool Equals(DesignerAttributeResult other)
+        public bool Equals(DesignerAttributeDocumentData other)
         {
             return FilePath == other.FilePath &&
                    DesignerAttributeArgument == other.DesignerAttributeArgument &&

@@ -28,9 +28,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
 {
     internal partial class DesignerAttributeIncrementalAnalyzer : ForegroundThreadAffinitizedObject, IIncrementalAnalyzer
     {
-        private const string StreamName = "<DesignerAttribute>";
-        private const string FormatVersion = "3";
-
         private readonly IForegroundNotificationService _notificationService;
 
         private readonly IServiceProvider _serviceProvider;
@@ -43,8 +40,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
         /// </summary>
         private IVSMDDesignerService _dotNotAccessDirectlyDesigner;
 
-        private readonly ConcurrentDictionary<ProjectId, ImmutableDictionary<string, DesignerAttributeResult>> _lastReportedProjectData =
-            new ConcurrentDictionary<ProjectId, ImmutableDictionary<string, DesignerAttributeResult>>();
+        /// <summary>
+        /// Keep track of the last results we reported to VS.  We can use this to diff future results
+        /// to report only what actually changed.
+        /// </summary>
+        private readonly ConcurrentDictionary<ProjectId, ImmutableDictionary<string, DesignerAttributeDocumentData>> _lastReportedProjectData =
+            new ConcurrentDictionary<ProjectId, ImmutableDictionary<string, DesignerAttributeDocumentData>>();
 
         public DesignerAttributeIncrementalAnalyzer(
             IServiceProvider serviceProvider,
@@ -92,133 +93,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
                 return;
             }
 
+            // Try to compute this data in the remote process.  If that fails, then compute
+            // the results in the local process.
             var pathToResult = await TryAnalyzeProjectInRemoteProcessAsync(project, cancellationToken).ConfigureAwait(false);
             if (pathToResult == null)
             {
-                pathToResult = await TryAnalyzeProjectInCurrentProcessAsync(project, cancellationToken).ConfigureAwait(false);
+                pathToResult = await AbstractDesignerAttributeService.TryAnalyzeProjectInCurrentProcessAsync(
+                    project, cancellationToken).ConfigureAwait(false);
             }
 
             cancellationToken.ThrowIfCancellationRequested();
+
+            // Once we get the current data, diff it and report the results to VS.
             RegisterDesignerAttributes(project, pathToResult);
         }
 
-        private async Task<ImmutableDictionary<string, DesignerAttributeResult>> TryAnalyzeProjectInCurrentProcessAsync(
-            Project project, CancellationToken cancellationToken)
-        {
-            // use tree version so that things like compiler option changes are considered
-            var projectVersion = await project.GetDependentVersionAsync(cancellationToken).ConfigureAwait(false);
-            var semanticVersion = await project.GetDependentSemanticVersionAsync(cancellationToken).ConfigureAwait(false);
-
-            var designerAttributeData = await ReadExistingDataAsync(project, cancellationToken).ConfigureAwait(false);
-
-            if (designerAttributeData == null ||
-                !project.CanReusePersistedDependentSemanticVersion(projectVersion, semanticVersion, designerAttributeData.SemanticVersion))
-            {
-                designerAttributeData = await ComputeAndPersistDesignerAttributeDataAsync(
-                    project, semanticVersion, cancellationToken).ConfigureAwait(false);
-            }
-
-            return designerAttributeData.PathToResult;
-        }
-
-        private async Task<DesignerAttributeData> ComputeAndPersistDesignerAttributeDataAsync(
-            Project project, VersionStamp semanticVersion, CancellationToken cancellationToken)
-        {
-            var service = project.LanguageServices.GetService<IDesignerAttributeService>();
-
-            var builder = ImmutableDictionary.CreateBuilder<string, DesignerAttributeResult>();
-            foreach (var document in project.Documents)
-            {
-                var result = await service.ScanDesignerAttributesAsync(document, cancellationToken).ConfigureAwait(false);
-                builder[document.FilePath] = result;
-            }
-
-            var data = new DesignerAttributeData(semanticVersion, builder.ToImmutable());
-            PersistData(project, data, cancellationToken);
-            return data;
-        }
-
-        private async Task<DesignerAttributeData> ReadExistingDataAsync(
-            Project project, CancellationToken cancellationToken)
-        {
-            try
-            {
-                var solution = project.Solution;
-                var workspace = project.Solution.Workspace;
-
-                var storageService = workspace.Services.GetService<IPersistentStorageService>();
-                using (var persistenceService = storageService.GetStorage(solution))
-                using (var stream = await persistenceService.ReadStreamAsync(project, StreamName, cancellationToken).ConfigureAwait(false))
-                using (var reader = ObjectReader.TryGetReader(stream, cancellationToken))
-                {
-                    if (reader != null)
-                    {
-                        var version = reader.ReadString();
-                        if (version == FormatVersion)
-                        {
-                            var semanticVersion = VersionStamp.ReadFrom(reader);
-
-                            var resultCount = reader.ReadInt32();
-                            var builder = ImmutableDictionary.CreateBuilder<string, DesignerAttributeResult>();
-
-                            for (var i = 0; i < resultCount; i++)
-                            {
-                                var filePath = reader.ReadString();
-                                var attribute = reader.ReadString();
-                                var containsErrors = reader.ReadBoolean();
-                                var notApplicable = reader.ReadBoolean();
-
-                                builder[filePath] = new DesignerAttributeResult(filePath, attribute, containsErrors, notApplicable);
-                            }
-
-                            return new DesignerAttributeData(semanticVersion, builder.ToImmutable());
-                        }
-                    }
-                }
-            }
-            catch (Exception e) when (IOUtilities.IsNormalIOException(e))
-            {
-                // Storage APIs can throw arbitrary exceptions.
-            }
-
-            return null;
-        }
-
-        private void PersistData(
-            Project project, DesignerAttributeData data, CancellationToken cancellationToken)
-        {
-            try
-            {
-                var solution = project.Solution;
-                var workspace = project.Solution.Workspace;
-
-                var storageService = workspace.Services.GetService<IPersistentStorageService>();
-                using (var persistenceService = storageService.GetStorage(solution))
-                using (var stream = SerializableBytes.CreateWritableStream())
-                using (var writer = new ObjectWriter(stream, cancellationToken: cancellationToken))
-                {
-                    writer.WriteString(FormatVersion);
-                    data.SemanticVersion.WriteTo(writer);
-
-                    writer.WriteInt32(data.PathToResult.Count);
-
-                    foreach (var kvp in data.PathToResult)
-                    {
-                        var result = kvp.Value;
-                        writer.WriteString(result.FilePath);
-                        writer.WriteString(result.DesignerAttributeArgument);
-                        writer.WriteBoolean(result.ContainsErrors);
-                        writer.WriteBoolean(result.NotApplicable);
-                    }
-                }
-            }
-            catch (Exception e) when (IOUtilities.IsNormalIOException(e))
-            {
-                // Storage APIs can throw arbitrary exceptions.
-            }
-        }
-
-        private async Task<ImmutableDictionary<string, DesignerAttributeResult>> TryAnalyzeProjectInRemoteProcessAsync(Project project, CancellationToken cancellationToken)
+        private async Task<ImmutableDictionary<string, DesignerAttributeDocumentData>> TryAnalyzeProjectInRemoteProcessAsync(Project project, CancellationToken cancellationToken)
         {
             using (var session = await TryGetRemoteSessionAsync(project.Solution, cancellationToken).ConfigureAwait(false))
             {
@@ -227,7 +117,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
                     return null;
                 }
 
-                var serializedResults = await session.InvokeAsync<DesignerAttributeResult[]>(
+                var serializedResults = await session.InvokeAsync<DesignerAttributeDocumentData[]>(
                     nameof(IRemoteDesignerAttributeService.ScanDesignerAttributesAsync), project.Id).ConfigureAwait(false);
 
                 var data = serializedResults.ToImmutableDictionary(kvp => kvp.FilePath);
@@ -249,12 +139,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
         }
 
         private void RegisterDesignerAttributes(
-            Project project, ImmutableDictionary<string, DesignerAttributeResult> pathToResult)
+            Project project, ImmutableDictionary<string, DesignerAttributeDocumentData> pathToResult)
         {
             // Diff this result against the last result we reported for this project.
             // If there are any changes report them all at once to VS.
             var lastPathToResult = _lastReportedProjectData.GetOrAdd(
-                project.Id, ImmutableDictionary<string, DesignerAttributeResult>.Empty);
+                project.Id, ImmutableDictionary<string, DesignerAttributeDocumentData>.Empty);
 
             _lastReportedProjectData[project.Id] = pathToResult;
 
@@ -276,11 +166,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
             }, _listener.BeginAsyncOperation("RegisterDesignerAttribute"));
         }
 
-        private ImmutableDictionary<string, DesignerAttributeResult> GetDifference(
-            ImmutableDictionary<string, DesignerAttributeResult> oldFileToResult,
-            ImmutableDictionary<string, DesignerAttributeResult> newFileToResult)
+        private ImmutableDictionary<string, DesignerAttributeDocumentData> GetDifference(
+            ImmutableDictionary<string, DesignerAttributeDocumentData> oldFileToResult,
+            ImmutableDictionary<string, DesignerAttributeDocumentData> newFileToResult)
         {
-            var difference = ImmutableDictionary.CreateBuilder<string, DesignerAttributeResult>();
+            var difference = ImmutableDictionary.CreateBuilder<string, DesignerAttributeDocumentData>();
 
             foreach (var newKvp in newFileToResult)
             {
