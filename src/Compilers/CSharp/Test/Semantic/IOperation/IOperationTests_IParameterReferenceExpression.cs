@@ -69,7 +69,7 @@ IOperation:  (OperationKind.None) (Syntax: 'var (x, y) = point')
   Children(2): IOperation:  (OperationKind.None) (Syntax: 'var (x, y)')
       Children(2): ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
         ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'y')
-    IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: (System.Int32, System.Int32)) (Syntax: 'point')
+    IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: (System.Int32 x, System.Int32 y)) (Syntax: 'point')
       IParameterReferenceExpression: point (OperationKind.ParameterReferenceExpression, Type: Point) (Syntax: 'point')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
