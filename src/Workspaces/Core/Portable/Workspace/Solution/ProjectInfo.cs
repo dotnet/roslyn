@@ -438,7 +438,6 @@ namespace Microsoft.CodeAnalysis
                 // per session or not content based value. basically not
                 // persistable. these information will not be included in checksum
                 Id.WriteTo(writer);
-                Version.WriteTo(writer);
 
                 writer.WriteString(FilePath);
                 writer.WriteString(Name);
@@ -455,7 +454,6 @@ namespace Microsoft.CodeAnalysis
             public static ProjectAttributes ReadFrom(ObjectReader reader)
             {
                 var projectId = ProjectId.ReadFrom(reader);
-                var version = VersionStamp.ReadFrom(reader);
 
                 var filePath = reader.ReadString();
                 var name = reader.ReadString();
@@ -465,7 +463,8 @@ namespace Microsoft.CodeAnalysis
                 var isSubmission = reader.ReadBoolean();
                 var hasAllInformation = reader.ReadBoolean();
 
-                return new ProjectAttributes(projectId, version, name, assemblyName, language, filePath, outputFilePath, isSubmission, hasAllInformation);
+                // version won't be synced to remote host. service running in remote host should use checksum for persisting data rather than version.
+                return new ProjectAttributes(projectId, VersionStamp.Create(), name, assemblyName, language, filePath, outputFilePath, isSubmission, hasAllInformation);
             }
 
             private Checksum _lazyChecksum;

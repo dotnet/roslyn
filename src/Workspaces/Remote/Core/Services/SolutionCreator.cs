@@ -540,7 +540,6 @@ namespace Microsoft.CodeAnalysis.Remote
                     VersionStamp.Create(),
                     documentInfo.FilePath));
 
-            // TODO: do we need version?
             return DocumentInfo.Create(
                 documentInfo.Id,
                 documentInfo.Name,

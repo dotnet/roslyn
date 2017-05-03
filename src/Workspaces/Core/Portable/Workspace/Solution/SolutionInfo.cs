@@ -117,7 +117,6 @@ namespace Microsoft.CodeAnalysis
                 // per session or not content based value. basically not
                 // persistable. these information will not be included in checksum
                 Id.WriteTo(writer);
-                Version.WriteTo(writer);
 
                 writer.WriteString(FilePath);
             }
@@ -125,11 +124,12 @@ namespace Microsoft.CodeAnalysis
             public static SolutionAttributes ReadFrom(ObjectReader reader)
             {
                 var solutionId = SolutionId.ReadFrom(reader);
-                var version = VersionStamp.ReadFrom(reader);
 
                 var filePath = reader.ReadString();
 
-                return new SolutionAttributes(solutionId, version, filePath);
+                // version won't be synched to remote host. remote host should use
+                // checksum to persist data
+                return new SolutionAttributes(solutionId, VersionStamp.Create(), filePath);
             }
 
             private Checksum _lazyChecksum;
