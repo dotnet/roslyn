@@ -5,12 +5,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.FileSystem;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using System.Collections.Immutable;
+using System.Threading;
 
 namespace Microsoft.CodeAnalysis.Editor.Completion.FileSystem
 {
@@ -18,6 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.Completion.FileSystem
     {
         private static readonly Lazy<List<string>> s_lazyAssemblySimpleNames =
             new Lazy<List<string>>(() => GlobalAssemblyCache.Instance.GetAssemblySimpleNames().ToList());
+
         private readonly CompletionProvider _completionProvider;
         private readonly TextSpan _textChangeSpan;
         private readonly CompletionItemRules _itemRules;
@@ -32,15 +33,9 @@ namespace Microsoft.CodeAnalysis.Editor.Completion.FileSystem
             _itemRules = itemRules;
         }
 
-        public IEnumerable<CompletionItem> GetItems(string pathSoFar, string documentPath)
+        internal Task<ImmutableArray<CompletionItem>> GetItemsAsync(string pathSoFar, CancellationToken cancellationToken)
         {
-            var containsSlash = pathSoFar.Contains(@"/") || pathSoFar.Contains(@"\");
-            if (containsSlash)
-            {
-                return SpecializedCollections.EmptyEnumerable<CompletionItem>();
-            }
-
-            return GetCompletionsWorker(pathSoFar).ToList();
+            return Task.Run(() => GetCompletionsWorker(pathSoFar).ToImmutableArray(), cancellationToken);
         }
 
         private IEnumerable<CompletionItem> GetCompletionsWorker(string pathSoFar)

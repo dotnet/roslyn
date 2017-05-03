@@ -6,13 +6,13 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.CSharp.Completion.FileSystem;
-using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders
 {
+    [Trait(Traits.Feature, Traits.Features.Completion)]
     public class LoadDirectiveCompletionProviderTests : AbstractCSharpCompletionProviderTests
     {
         public LoadDirectiveCompletionProviderTests(CSharpTestWorkspaceFixture workspaceFixture) : base(workspaceFixture)
@@ -40,47 +40,30 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion
                 glyph, matchPriority, hasSuggestionItem);
         }
 
-        private async Task VerifyItemExistsInScriptAsync(string markup, string expected)
+        [Fact]
+        public async Task IsCommitCharacterTest()
         {
-            await VerifyItemExistsAsync(markup, expected, expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script, usePreviousCharAsTrigger: false);
+            var commitCharacters = new[] { '"', '\\' };
+            await VerifyCommitCharactersAsync("#load \"$$", textTypedSoFar: "", validChars: commitCharacters);
         }
 
-        private async Task VerifyItemIsAbsentInInteractiveAsync(string markup, string expected)
+        [Fact]
+        public void IsTextualTriggerCharacterTest()
         {
-            await VerifyItemIsAbsentAsync(markup, expected, expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script, usePreviousCharAsTrigger: false);
-        }
+            var validMarkupList = new[]
+            {
+                "#load \"$$/",
+                "#load \"$$\\",
+                "#load \"$$,",
+                "#load \"$$A",
+                "#load \"$$!",
+                "#load \"$$(",
+            };
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task NetworkPath()
-        {
-            await VerifyItemExistsInScriptAsync(
-                @"#load ""$$",
-                @"\\");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task NetworkPathAfterInitialBackslash()
-        {
-            await VerifyItemExistsInScriptAsync(
-                @"#load ""\$$",
-                @"\\");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task UpOneDirectoryNotShownAtRoot()
-        {
-            // after so many ".." we should be at the root drive an should no longer suggest the parent.  we can determine
-            // our current directory depth by counting the number of backslashes present in the current working directory
-            // and after that many references to "..", we are at the root.
-            int depth = Directory.GetCurrentDirectory().Count(c => c == Path.DirectorySeparatorChar);
-            var pathToRoot = string.Concat(Enumerable.Repeat(@"..\", depth));
-
-            await VerifyItemExistsInScriptAsync(
-                @"#load ""$$",
-                "..");
-            await VerifyItemIsAbsentInInteractiveAsync(
-                @"#load """ + pathToRoot + "$$",
-                "..");
+            foreach (var markup in validMarkupList)
+            {
+                VerifyTextualTriggerCharacter(markup, shouldTriggerWithTriggerOnLettersEnabled: true, shouldTriggerWithTriggerOnLettersDisabled: true);
+            }
         }
     }
 }

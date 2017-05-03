@@ -307,8 +307,8 @@
     <Compile Include="Completion\CompletionProviders\SymbolCompletionProviderTests.cs" />
     <Compile Include="Completion\CompletionProviders\SymbolCompletionProviderTests_NoInteractive.cs" />
     <Compile Include="Completion\CompletionProviders\XmlDocumentationCommentCompletionProviderTests.cs" />
-    <Compile Include="Completion\LoadDirectiveCompletionProviderTests.cs" />
-    <Compile Include="Completion\ReferenceDirectiveCompletionProviderTests.cs" />
+    <Compile Include="Completion\CompletionProviders\LoadDirectiveCompletionProviderTests.cs" />
+    <Compile Include="Completion\CompletionProviders\ReferenceDirectiveCompletionProviderTests.cs" />
     <Compile Include="Diagnostics\NamingStyles\NamingStylesTests.cs" />
     <Compile Include="Diagnostics\UseImplicitOrExplicitType\UseExplicitTypeTests.cs" />
     <Compile Include="Diagnostics\UseImplicitOrExplicitType\UseExplicitTypeTests_FixAllTests.cs" />

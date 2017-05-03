@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.Completion.FileSystem;
@@ -70,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntelliSense.Completion
         {
             var helper = new GlobalAssemblyCacheCompletionHelper(null, new TextSpan());
 
-            return helper.GetItems(pathSoFar, documentPath: null);
+            return helper.GetItemsAsync(pathSoFar, CancellationToken.None).Result;
         }
     }
 }
