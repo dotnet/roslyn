@@ -758,16 +758,11 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     return true;
 
                 case SyntaxKind.ForEachStatement:
-                    Debug.Assert(statementPart != 0);
-
-                    // only check the expression, edits in the body and the variable declaration are allowed:
-                    return AreEquivalentActiveStatements((ForEachStatementSyntax)oldStatement, (ForEachStatementSyntax)newStatement);
-
                 case SyntaxKind.ForEachVariableStatement:
                     Debug.Assert(statementPart != 0);
 
                     // only check the expression, edits in the body and the variable declaration are allowed:
-                    return AreEquivalentActiveStatements((ForEachVariableStatementSyntax)oldStatement, (ForEachVariableStatementSyntax)newStatement);
+                    return AreEquivalentActiveStatements((CommonForEachStatementSyntax)oldStatement, (CommonForEachStatementSyntax)newStatement);
 
                 case SyntaxKind.IfStatement:
                     // only check the condition, edits in the body are allowed:
@@ -839,18 +834,35 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 (SyntaxNode)newNode.Declaration ?? newNode.Expression);
         }
 
-        private static bool AreEquivalentActiveStatements(ForEachStatementSyntax oldNode, ForEachStatementSyntax newNode)
+        private static bool AreEquivalentActiveStatements(CommonForEachStatementSyntax oldNode, CommonForEachStatementSyntax newNode)
         {
-            // This is conservative, we might be able to allow changing the type.
-            return AreEquivalentIgnoringLambdaBodies(oldNode.Type, newNode.Type)
-                && AreEquivalentIgnoringLambdaBodies(oldNode.Expression, newNode.Expression);
+            if (oldNode.Kind() != newNode.Kind() || !AreEquivalentIgnoringLambdaBodies(oldNode.Expression, newNode.Expression))
+            {
+                return false;
+            }
+
+            switch (oldNode.Kind())
+            {
+                case SyntaxKind.ForEachStatement: return AreEquivalentIgnoringLambdaBodies(((ForEachStatementSyntax)oldNode).Type, ((ForEachStatementSyntax)newNode).Type);
+                case SyntaxKind.ForEachVariableStatement: return AreEquivalentIgnoringLambdaBodies(((ForEachVariableStatementSyntax)oldNode).Variable, ((ForEachVariableStatementSyntax)newNode).Variable);
+                default: throw ExceptionUtilities.UnexpectedValue(oldNode.Kind());
+            }
         }
 
-        private static bool AreEquivalentActiveStatements(ForEachVariableStatementSyntax oldNode, ForEachVariableStatementSyntax newNode)
+
+        private static bool AreSimilarActiveStatements(CommonForEachStatementSyntax oldNode, CommonForEachStatementSyntax newNode)
         {
-            // This is conservative, we might be able to allow changing the variable.
-            return AreEquivalentIgnoringLambdaBodies(oldNode.Variable, newNode.Variable)
-                && AreEquivalentIgnoringLambdaBodies(oldNode.Expression, newNode.Expression);
+            if (oldNode.Kind() != newNode.Kind())
+            {
+                return false;
+            }
+
+            switch (oldNode.Kind())
+            {
+                case SyntaxKind.ForEachStatement: return AreEquivalentIgnoringLambdaBodies(((ForEachStatementSyntax)oldNode).Type, ((ForEachStatementSyntax)newNode).Type);
+                case SyntaxKind.ForEachVariableStatement: return AreEquivalentIgnoringLambdaBodies(((ForEachVariableStatementSyntax)oldNode).Variable, ((ForEachVariableStatementSyntax)newNode).Variable);
+                default: throw ExceptionUtilities.UnexpectedValue(oldNode.Kind());
+            }
         }
 
         internal override bool IsMethod(SyntaxNode declaration)
@@ -1298,8 +1310,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     return TextSpan.FromBounds(forStatement.ForKeyword.SpanStart, forStatement.CloseParenToken.Span.End);
 
                 case SyntaxKind.ForEachStatement:
-                    var forEachStatement = (ForEachStatementSyntax)node;
-                    return TextSpan.FromBounds(forEachStatement.ForEachKeyword.SpanStart, forEachStatement.CloseParenToken.Span.End);
+                case SyntaxKind.ForEachVariableStatement:
+                    var commonForEachStatement = (CommonForEachStatementSyntax)node;
+                    return TextSpan.FromBounds(commonForEachStatement.ForEachKeyword.SpanStart, commonForEachStatement.CloseParenToken.Span.End);
 
                 case SyntaxKind.LabeledStatement:
                     return ((LabeledStatementSyntax)node).Identifier.Span;
@@ -1380,9 +1393,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
                 case SyntaxKind.GroupClause:
                     return ((GroupClauseSyntax)node).GroupKeyword.Span;
-
-                case SyntaxKind.ForEachVariableStatement:
-                    return ((ForEachVariableStatementSyntax)node).Variable.Span;
 
                 case SyntaxKind.IsPatternExpression:
                 case SyntaxKind.TupleType:
@@ -1588,6 +1598,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     return CSharpFeaturesResources.lock_statement;
 
                 case SyntaxKind.ForEachStatement:
+                case SyntaxKind.ForEachVariableStatement:
                     return CSharpFeaturesResources.foreach_statement;
 
                 case SyntaxKind.CheckedStatement:
@@ -1642,9 +1653,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
                 case SyntaxKind.IsPatternExpression:
                     return CSharpFeaturesResources.is_pattern;
-
-                case SyntaxKind.ForEachVariableStatement:
-                    return CSharpFeaturesResources.deconstruction;
 
                 case SyntaxKind.SimpleAssignmentExpression:
                     if (((AssignmentExpressionSyntax)node).IsDeconstruction())
@@ -3241,13 +3249,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                         DeclareSameIdentifiers(using1.Declaration.Variables, using2.Declaration.Variables);
                 });
 
-            ReportUnmatchedStatements<ForEachStatementSyntax>(diagnostics, match, (int)SyntaxKind.ForEachStatement, oldActiveStatement, newActiveStatement,
+            ReportUnmatchedStatements<CommonForEachStatementSyntax>(diagnostics, match, new int[] { (int)SyntaxKind.ForEachStatement, (int)SyntaxKind.ForEachVariableStatement }, oldActiveStatement, newActiveStatement,
                 areEquivalent: AreEquivalentActiveStatements,
-                areSimilar: (n1, n2) => SyntaxFactory.AreEquivalent(n1.Identifier, n2.Identifier));
-
-            ReportUnmatchedStatements<ForEachVariableStatementSyntax>(diagnostics, match, (int)SyntaxKind.ForEachVariableStatement, oldActiveStatement, newActiveStatement,
-                areEquivalent: AreEquivalentActiveStatements,
-                areSimilar: (n1, n2) => SyntaxFactory.AreEquivalent(n1.Variable, n2.Variable));
+                areSimilar: AreSimilarActiveStatements);
         }
 
         private static bool DeclareSameIdentifiers(SeparatedSyntaxList<VariableDeclaratorSyntax> oldVariables, SeparatedSyntaxList<VariableDeclaratorSyntax> newVariables)
