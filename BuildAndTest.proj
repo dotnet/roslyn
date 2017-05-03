@@ -75,6 +75,7 @@
 
     <!-- Publish binaries for CoreClr test -->
     <MSBuild BuildInParallel="true"
+             Condition="'$(TestCoreClr)' == 'true'"
              Projects="src\Test\DeployCoreClrTestRuntime\DeployCoreClrTestRuntime.csproj"
              Properties="RuntimeIdentifier=win7-x64;PublishDir=$(CoreClrTestDirectory)"
              Targets="Publish" />
