@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.SQLite
                 if (_flushAllTask == null)
                 {
                     var token = _shutdownTokenSource.Token;
-                    var delay =
+                    _flushAllTask =
                         Task.Delay(FlushAllDelayMS, token)
                             .ContinueWith(
                                 async _ => await FlushAllPendingWritesAsync(token).ConfigureAwait(false),
