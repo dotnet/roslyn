@@ -85,6 +85,9 @@ namespace Microsoft.CodeAnalysis.SQLite
             {
                 // Have to acquire the semaphore.  We're going to mutate the shared 'keyToWriteActions'
                 // and 'keyToWriteTask' collections.
+                //
+                // Note: by blocking on _writeQueueGate we are guaranteed to see all the writes
+                // performed by FlushAllPendingWritesAsync.
                 using (await _writeQueueGate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
                 {
                     // Get the writes we need to process.
