@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
@@ -41,6 +42,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
         /// access this field through <see cref="GetDesignerFromForegroundThread"/>
         /// </summary>
         private IVSMDDesignerService _dotNotAccessDirectlyDesigner;
+
+        private readonly ConcurrentDictionary<ProjectId, ImmutableDictionary<string, DesignerAttributeResult>> _lastReportedProjectData =
+            new ConcurrentDictionary<ProjectId, ImmutableDictionary<string, DesignerAttributeResult>>();
 
         public DesignerAttributeIncrementalAnalyzer(
             IServiceProvider serviceProvider,
@@ -247,16 +251,52 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
         private void RegisterDesignerAttributes(
             Project project, ImmutableDictionary<string, DesignerAttributeResult> pathToResult)
         {
+            // Diff this result against the last result we reported for this project.
+            // If there are any changes report them all at once to VS.
+            var lastPathToResult = _lastReportedProjectData.GetOrAdd(
+                project.Id, ImmutableDictionary<string, DesignerAttributeResult>.Empty);
+
+            _lastReportedProjectData[project.Id] = pathToResult;
+
+            var difference = GetDifference(lastPathToResult, pathToResult);
+            if (difference.Count == 0)
+            {
+                return;
+            }
+
             _notificationService.RegisterNotification(() =>
             {
                 foreach (var document in project.Documents)
                 {
-                    if (pathToResult.TryGetValue(document.FilePath, out var result))
+                    if (difference.TryGetValue(document.FilePath, out var result))
                     {
                         RegisterDesignerAttribute(document, result.DesignerAttributeArgument);
                     }
                 }
             }, _listener.BeginAsyncOperation("RegisterDesignerAttribute"));
+        }
+
+        private ImmutableDictionary<string, DesignerAttributeResult> GetDifference(
+            ImmutableDictionary<string, DesignerAttributeResult> oldFileToResult,
+            ImmutableDictionary<string, DesignerAttributeResult> newFileToResult)
+        {
+            var difference = ImmutableDictionary.CreateBuilder<string, DesignerAttributeResult>();
+
+            foreach (var newKvp in newFileToResult)
+            {
+                // 1) If this result is for a new document.  We always need to report it
+                // 2) If both the old and new data have this result, then report it if it is different.
+                var filePath = newKvp.Key;
+                var newResult = newKvp.Value;
+
+                if (!oldFileToResult.TryGetValue(filePath, out var oldResult) ||
+                    !newResult.Equals(oldResult))
+                {
+                    difference.Add(filePath, newResult);
+                }
+            }
+
+            return difference.ToImmutable();
         }
 
         private void RegisterDesignerAttribute(Document document, string designerAttributeArgument)

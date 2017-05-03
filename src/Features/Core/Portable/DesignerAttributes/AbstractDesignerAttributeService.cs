@@ -8,22 +8,6 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.DesignerAttributes
 {
-    internal struct DesignerAttributeResult
-    {
-        public string FilePath;
-        public string DesignerAttributeArgument;
-        public bool ContainsErrors;
-        public bool NotApplicable;
-
-        public DesignerAttributeResult(string filePath, string designerAttributeArgument, bool containsErrors, bool notApplicable)
-        {
-            FilePath = filePath;
-            DesignerAttributeArgument = designerAttributeArgument;
-            ContainsErrors = containsErrors;
-            NotApplicable = notApplicable;
-        }
-    }
-
     internal abstract class AbstractDesignerAttributeService : IDesignerAttributeService
     {
         protected abstract bool ProcessOnlyFirstTypeDefined();
