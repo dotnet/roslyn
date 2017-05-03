@@ -166,7 +166,7 @@ try {
     # re-enabling the build based deployment
     # 
     # https://github.com/dotnet/roslyn/issues/17456
-    $deployExtensionViaBuild = if ($testVsi -or $testVsiNetCore) { "true" } else { "false" }
+    $deployExtensionViaBuild = $false
 
     if ($testVsiNetCore -and ($test32 -or $test64 -or $testVsi)) {
         Write-Host "The testVsiNetCore option can't be combined with other test arguments"
