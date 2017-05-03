@@ -1762,6 +1762,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
+            if (Binder.ReportUseSiteDiagnostics(baseConstructor, diagnostics, diagnosticsLocation))
+            {
+                return null;
+            }
+
             // UNDONE: If this happens then something is deeply wrong. Should we give a better error?
             bool hasErrors = false;
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;

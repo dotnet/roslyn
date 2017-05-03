@@ -238,7 +238,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (this.RefKind == RefKind.RefReadOnly)
             {
-                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeIsReadOnlyAttribute());
+                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeIsReadOnlyAttribute(this));
             }
         }
     }

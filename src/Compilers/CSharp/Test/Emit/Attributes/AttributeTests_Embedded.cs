@@ -9,7 +9,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class AttributeTests_Embedded : CSharpTestBase
     {
-
         [Fact]
         public void ReferencingEmbeddedAttributesFromADifferentAssemblyFails_Internal()
         {
@@ -88,7 +87,7 @@ class Program
                 //         var obj2 = new TestReference.TestType2();
                 Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "TestType2").WithArguments("TestType2", "TestReference").WithLocation(7, 38));
         }
-        
+
         [Fact]
         public void EmbeddedAttributeInSourceIsAllowedIfCompilerDoesNotNeedToGenerateOne()
         {
@@ -247,6 +246,47 @@ public class Test
         }
 
         [Fact]
+        public void SynthesizingAttributeRequiresSystemAttribute_NoSystemObject()
+        {
+            var code = @"
+namespace System
+{
+    public class Attribute {}
+    public class Void {}
+}
+public class Test
+{
+    public object M(ref readonly object x) { return x; } // should trigger synthesizing IsReadOnly
+}";
+
+            CreateCompilation(code).VerifyEmitDiagnostics(CodeAnalysis.Emit.EmitOptions.Default.WithRuntimeMetadataVersion("v4.0.30319"),
+                // (4,18): error CS0518: Predefined type 'System.Object' is not defined or imported
+                //     public class Attribute {}
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "Attribute").WithArguments("System.Object"),
+                // (7,14): error CS0518: Predefined type 'System.Object' is not defined or imported
+                // public class Test
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "Test").WithArguments("System.Object"),
+                // (5,18): error CS0518: Predefined type 'System.Object' is not defined or imported
+                //     public class Void {}
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "Void").WithArguments("System.Object").WithLocation(5, 18),
+                // (9,34): error CS0518: Predefined type 'System.Object' is not defined or imported
+                //     public object M(ref readonly object x) { return x; } // should trigger synthesizing IsReadOnly
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "object").WithArguments("System.Object").WithLocation(9, 34),
+                // (9,12): error CS0518: Predefined type 'System.Object' is not defined or imported
+                //     public object M(ref readonly object x) { return x; } // should trigger synthesizing IsReadOnly
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "object").WithArguments("System.Object").WithLocation(9, 12),
+                // (5,18): error CS1729: 'object' does not contain a constructor that takes 0 arguments
+                //     public class Void {}
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "Void").WithArguments("object", "0").WithLocation(5, 18),
+                // (4,18): error CS1729: 'object' does not contain a constructor that takes 0 arguments
+                //     public class Attribute {}
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "Attribute").WithArguments("object", "0").WithLocation(4, 18),
+                // (7,14): error CS1729: 'object' does not contain a constructor that takes 0 arguments
+                // public class Test
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "Test").WithArguments("object", "0").WithLocation(7, 14));
+        }
+
+        [Fact]
         public void SynthesizingAttributeRequiresSystemAttribute_NoSystemVoid()
         {
             var code = @"
@@ -261,9 +301,16 @@ public class Test
 }";
 
             CreateCompilation(code).VerifyEmitDiagnostics(CodeAnalysis.Emit.EmitOptions.Default.WithRuntimeMetadataVersion("v4.0.30319"),
-                // (4,5): error CS0518: Predefined type 'System.Void' is not defined or imported
+                // (7,14): error CS0518: Predefined type 'System.Void' is not defined or imported
+                // public class Test
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "Test").WithArguments("System.Void").WithLocation(7, 14),
+                // (4,18): error CS0518: Predefined type 'System.Void' is not defined or imported
                 //     public class Attribute {}
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "public class Attribute {}").WithArguments("System.Void").WithLocation(4, 5));
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "Attribute").WithArguments("System.Void").WithLocation(4, 18),
+                // error CS0518: Predefined type 'System.Void' is not defined or imported
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Void").WithLocation(1, 1),
+                // error CS0518: Predefined type 'System.Void' is not defined or imported
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Void").WithLocation(1, 1));
         }
 
         [Fact]

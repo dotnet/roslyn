@@ -450,8 +450,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (Options.OutputKind == OutputKind.NetModule)
                 {
-                    var attributeName = WellKnownTypes.GetMetadataName(WellKnownType.System_Runtime_CompilerServices_IsReadOnlyAttribute);
-                    diagnostics.Add(ErrorCode.ERR_PredefinedTypeNotFound, location, attributeName);
+                    Binder.ReportUseSiteDiagnostics(userDefinedAttribute, diagnostics, location);
                 }
                 else
                 {

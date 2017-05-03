@@ -36,8 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (_baseType is MissingMetadataTypeSymbol)
             {
-                var attributeName = WellKnownTypes.GetMetadataName(WellKnownType.System_Attribute);
-                diagnostics.Add(ErrorCode.ERR_PredefinedTypeNotFound, Location.None, attributeName);
+                Binder.ReportUseSiteDiagnostics(_baseType, diagnostics, Location.None);
             }
 
             Constructor = new SynthesizedEmbeddedAttributeConstructorSymbol(this);

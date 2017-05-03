@@ -1037,6 +1037,51 @@ End]]>)
 ]]>)
         End Sub
 
+        <Fact>
+        Public Sub SynthesizingDefaultConstructorsWithMsCorLibMissing_Nothing()
+            Dim comp = CompilationUtils.CreateCompilation("
+Namespace System
+    Public Class Object
+    End Class
+End Namespace
+Class Test
+End Class
+")
+
+            CompilationUtils.AssertTheseDiagnostics(comp, <expected>
+BC30002: Type 'System.Void' is not defined.
+    Public Class Object
+    ~~~~~~~~~~~~~~~~~~~~
+BC30183: Keyword is not valid as an identifier.
+    Public Class Object
+                 ~~~~~~
+BC30002: Type 'System.Void' is not defined.
+Class Test
+~~~~~~~~~~~
+</expected>)
+        End Sub
+
+        <Fact>
+        Public Sub SynthesizingDefaultConstructorsWithMsCorLibMissing_NoSystemObject()
+            Dim comp = CompilationUtils.CreateCompilation("
+Namespace System
+    Public Class Void
+    End Class
+End Namespace
+Class Test
+End Class
+", options:=TestOptions.ReleaseDll.WithModuleName("testModule"))
+
+            CompilationUtils.AssertTheseDiagnostics(comp, <expected>
+BC31091: Import of type 'Object' from assembly or module 'testModule' failed.
+    Public Class Void
+                 ~~~~
+BC31091: Import of type 'Object' from assembly or module 'testModule' failed.
+Class Test
+      ~~~~
+</expected>)
+        End Sub
+
     End Class
 
 End Namespace
