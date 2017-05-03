@@ -137,10 +137,10 @@ namespace BuildBoss
             return _document.XPathSelectElements("//mb:ItemGroup", _manager);
         }
 
-        internal List<ProjectKey> GetDeclaredProjectReferences()
+        internal List<ProjectReferenceEntry> GetDeclaredProjectReferences()
         {
             var references = _document.XPathSelectElements("//mb:ProjectReference", _manager);
-            var list = new List<ProjectKey>();
+            var list = new List<ProjectReferenceEntry>();
             var directory = Path.GetDirectoryName(_key.FilePath);
             foreach (var r in references)
             {
@@ -156,9 +156,16 @@ namespace BuildBoss
                     }
                 }
 
+                Guid? project = null;
+                var projectElement = r.Element(_namespace.GetName("Project"));
+                if (projectElement != null)
+                {
+                    project = Guid.Parse(projectElement.Value.Trim());
+                }
+
                 var relativePath = r.Attribute("Include").Value;
                 var path = Path.Combine(directory, relativePath);
-                list.Add(new ProjectKey(path));
+                list.Add(new ProjectReferenceEntry(path, project));
             }
 
             return list;
