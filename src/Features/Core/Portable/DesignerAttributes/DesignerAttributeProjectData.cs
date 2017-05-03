@@ -95,6 +95,7 @@ namespace Microsoft.CodeAnalysis.DesignerAttributes
                         writer.WriteBoolean(result.NotApplicable);
                     }
 
+                    stream.Position = 0;
                     await storage.WriteStreamAsync(project, StreamName, stream, cancellationToken).ConfigureAwait(false);
                 }
             }
