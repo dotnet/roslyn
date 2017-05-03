@@ -1467,19 +1467,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var perCandidateBag = DiagnosticBag.GetInstance();
                     var (IsCandidate, IsTaskLike) = HasEntryPointSignature(candidate, perCandidateBag);
 
-                    if (IsCandidate && !IsTaskLike)
-                    {
-                        intOrVoidEntryPoints.Add(candidate);
-                        perCandidateBag.Free();
-                    }
-                    else if (IsTaskLike)
+                    if (IsTaskLike)
                     {
                         taskEntryPoints.Add((IsCandidate, candidate, perCandidateBag));
                     }
                     else
                     {
-                        noMainFoundDiagnostics.Add(ErrorCode.WRN_InvalidMainSig, candidate.Locations.First(), candidate);
-                        noMainFoundDiagnostics.AddRange(perCandidateBag);
+                        if (IsCandidate)
+                        {
+                            intOrVoidEntryPoints.Add(candidate);
+                            Debug.Assert(perCandidateBag.IsEmptyWithoutResolution);
+                        }
+                        else
+                        {
+                            noMainFoundDiagnostics.Add(ErrorCode.WRN_InvalidMainSig, candidate.Locations.First(), candidate);
+                            noMainFoundDiagnostics.AddRange(perCandidateBag);
+                        }
                         perCandidateBag.Free();
                     }
                 }
@@ -1506,17 +1509,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     foreach (var (IsValid, Candidate, SpecificDiagnostics) in taskEntryPoints)
                     {
-                        if (Candidate.IsGenericMethod || Candidate.ContainingType.IsGenericType)
-                        {
-                            // a single error for partial methods:
-                            noMainFoundDiagnostics.Add(ErrorCode.WRN_MainCantBeGeneric, Candidate.Locations.First(), Candidate);
-                            continue;
-                        }
-
                         if (!IsValid)
                         {
                             noMainFoundDiagnostics.Add(ErrorCode.WRN_InvalidMainSig, Candidate.Locations.First(), Candidate);
                             noMainFoundDiagnostics.AddRange(SpecificDiagnostics);
+                            continue;
+                        }
+
+                        if (Candidate.IsGenericMethod || Candidate.ContainingType.IsGenericType)
+                        {
+                            // a single error for partial methods:
+                            noMainFoundDiagnostics.Add(ErrorCode.WRN_MainCantBeGeneric, Candidate.Locations.First(), Candidate);
                             continue;
                         }
 
@@ -1541,13 +1544,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 } 
                 else if ((object)mainType == null)
                 {
-                    // Only add warning diagnostics.  The reason that Error diagnostics can end up in `noMainFoundDiagnostics` is when 
+                    // Turns error diagnostics into warnings. The reason that Error diagnostics can end up in `noMainFoundDiagnostics` is when 
                     // HasEntryPointSignature yields some Error Diagnostics when people implement Task or Task<T> incorrectly.
                     //
                     // We can't add those Errors to the general diagnostics bag because it would break previously-working programs.
                     // The fact that these warnings are not added when csc is invoked with /main is possibly a bug, and is tracked at
                     // https://github.com/dotnet/roslyn/issues/18964
-                    diagnostics.AddRange(noMainFoundDiagnostics.AsEnumerable().Where(d => d.Severity == DiagnosticSeverity.Warning));
+                    foreach (var diagnostic in noMainFoundDiagnostics.AsEnumerable())
+                    {
+                        if (diagnostic.Severity == DiagnosticSeverity.Error) {
+                            diagnostics.Add(diagnostic.WithSeverity(DiagnosticSeverity.Warning));
+                        }
+                        else
+                        {
+                            diagnostics.Add(diagnostic);
+                        }
+                    }
                 }
 
                 MethodSymbol entryPoint = null;
