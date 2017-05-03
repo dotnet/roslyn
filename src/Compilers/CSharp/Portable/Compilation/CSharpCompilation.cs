@@ -1462,6 +1462,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // there were not any main methods found.
                 DiagnosticBag noMainFoundDiagnostics = DiagnosticBag.GetInstance();
 
+                bool CheckValid(MethodSymbol candidate, bool isCandidate, DiagnosticBag specificDiagnostics) 
+                {
+                    if (!isCandidate)
+                    {
+                        noMainFoundDiagnostics.Add(ErrorCode.WRN_InvalidMainSig, candidate.Locations.First(), candidate);
+                        noMainFoundDiagnostics.AddRange(specificDiagnostics);
+                        return false;
+                    }
+
+                    if (candidate.IsGenericMethod || candidate.ContainingType.IsGenericType)
+                    {
+                        // a single error for partial methods:
+                        noMainFoundDiagnostics.Add(ErrorCode.WRN_MainCantBeGeneric, candidate.Locations.First(), candidate);
+                        return false;
+                    }
+                    return true;
+                }
+
                 foreach (var candidate in entryPointCandidates)
                 {
                     var perCandidateBag = DiagnosticBag.GetInstance();
@@ -1473,15 +1491,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else
                     {
-                        if (IsCandidate)
+                        if (CheckValid(candidate, IsCandidate, perCandidateBag))
                         {
                             intOrVoidEntryPoints.Add(candidate);
-                            Debug.Assert(perCandidateBag.IsEmptyWithoutResolution);
-                        }
-                        else
-                        {
-                            noMainFoundDiagnostics.Add(ErrorCode.WRN_InvalidMainSig, candidate.Locations.First(), candidate);
-                            noMainFoundDiagnostics.AddRange(perCandidateBag);
                         }
                         perCandidateBag.Free();
                     }
@@ -1489,23 +1501,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var viableEntryPoints = ArrayBuilder<MethodSymbol>.GetInstance();
 
-                bool CheckGenericity(MethodSymbol candidate)
-                {
-                    if (candidate.IsGenericMethod || candidate.ContainingType.IsGenericType)
-                    {
-                        // a single error for partial methods:
-                        noMainFoundDiagnostics.Add(ErrorCode.WRN_MainCantBeGeneric, candidate.Locations.First(), candidate);
-                        return false;
-                    }
-                    return true;
-                }
-
                 foreach (var candidate in intOrVoidEntryPoints)
                 {
-                    if (!CheckGenericity(candidate))
-                    {
-                        continue;
-                    }
                     if (candidate.IsAsync)
                     {
                         diagnostics.Add(ErrorCode.ERR_NonTaskMainCantBeAsync, candidate.Locations.First(), candidate);
@@ -1518,14 +1515,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     foreach (var (IsValid, Candidate, SpecificDiagnostics) in taskEntryPoints)
                     {
-                        if (!IsValid)
-                        {
-                            noMainFoundDiagnostics.Add(ErrorCode.WRN_InvalidMainSig, Candidate.Locations.First(), Candidate);
-                            noMainFoundDiagnostics.AddRange(SpecificDiagnostics);
-                            continue;
-                        }
-
-                        if (!CheckGenericity(Candidate))
+                        if (!CheckValid(Candidate, IsValid, SpecificDiagnostics))
                         {
                             continue;
                         }
