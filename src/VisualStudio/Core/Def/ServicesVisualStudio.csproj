@@ -493,7 +493,6 @@
     <Compile Include="Implementation\Debugging\IProximityExpressionsService.cs" />
     <Compile Include="Implementation\DesignerAttribute\DesignerAttributeIncrementalAnalyzer.cs" />
     <Compile Include="Implementation\DesignerAttribute\DesignerAttributeIncrementalAnalyzerProvider.cs" />
-    <Compile Include="Implementation\DesignerAttribute\DesignerAttributeState.cs" />
     <Compile Include="Implementation\Diagnostics\VisualStudioWorkspaceDiagnosticAnalyzerProviderService.cs" />
     <Compile Include="Implementation\Diagnostics\VisualStudioDiagnosticAnalyzerService.cs" />
     <Compile Include="Implementation\Diagnostics\IVisualStudioDiagnosticAnalyzerService.cs" />
