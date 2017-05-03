@@ -45,6 +45,7 @@
     <VisualStudioReferenceAssemblyVersion Condition="'$(VisualStudioReferenceAssemblyVersion)' == ''">$(VisualStudioReferenceMajorVersion).0.0.0</VisualStudioReferenceAssemblyVersion>
     <VisualStudioCodename>Dev$(VisualStudioReferenceMajorVersion)</VisualStudioCodename>
     <MinimumVisualStudioVersion>$(VisualStudioVersion)</MinimumVisualStudioVersion>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
 
     <!-- Disable AppX packaging for the Roslyn source. Not setting this to false has the side effect
          that any builds of portable projects end up in a sub folder of $(OutputPath). Search for this flag in
