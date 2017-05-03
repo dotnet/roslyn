@@ -1,6 +1,12 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Target Name="DiscoverEditorConfigFiles" Condition="'$(DiscoverEditorConfigFiles)' != 'false'" BeforeTargets="CoreCompile">
+    <DiscoverEditorConfigFiles InputFiles="@(Compile);@(AdditionalFile)">
+      <Output TaskParameter="EditorConfigFiles" ItemName="EditorConfigFiles" />
+    </DiscoverEditorConfigFiles>
+  </Target>
+  
   <Target Name="CoreCompile"
           Inputs="$(MSBuildAllProjects);
                   @(Compile);
@@ -16,7 +22,8 @@
                   @(CustomAdditionalCompileInputs);
                   $(ResolvedCodeAnalysisRuleSet);
                   @(AdditionalFiles);
-                  @(EmbeddedFiles)"
+                  @(EmbeddedFiles);
+                  @(EditorConfigFiles)"
           Outputs="@(DocFileItem);
                    @(IntermediateAssembly);
                    @(_DebugSymbolsIntermediatePath);
@@ -85,6 +92,7 @@
          DelaySign="$(DelaySign)"
          DisabledWarnings="$(NoWarn)"
          DocumentationFile="@(DocFileItem)"
+         EditorConfigFiles="@(EditorConfigFiles)"
          EmbeddedFiles="@(EmbeddedFiles)"
          EmitDebugInformation="$(DebugSymbols)"
          EnvironmentVariables="$(CscEnvironment)"
