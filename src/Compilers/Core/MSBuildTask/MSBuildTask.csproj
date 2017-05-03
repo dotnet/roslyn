@@ -55,6 +55,7 @@
     </Compile>
     <Compile Include="AssemblyResolution.cs" />
     <Compile Include="CanonicalError.cs" />
+    <Compile Include="LocateEditorConfigFiles.cs" />
     <Compile Include="ValidateBootstrap.cs" />
     <Compile Include="CommandLineBuilderExtension.cs" />
     <Compile Include="Csc.cs" />
@@ -73,6 +74,9 @@
     <Compile Include="RCWForCurrentContext.cs" />
     <Compile Include="Utilities.cs" />
     <Compile Include="Vbc.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleToTest Include="Microsoft.Build.Tasks.CodeAnalysis.UnitTests" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="ErrorString.resx">

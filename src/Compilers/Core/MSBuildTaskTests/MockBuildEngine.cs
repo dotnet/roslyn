@@ -2,18 +2,19 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Text;
 using Microsoft.Build.Framework;
 
-namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
+namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 {
-    internal class MockEngine : IBuildEngine
+    internal class MockBuildEngine : IBuildEngine
     {
         public int ColumnNumberOfTaskNode
         {
             get
             {
-                throw new NotImplementedException();
+                return 1;
             }
         }
 
@@ -29,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         {
             get
             {
-                throw new NotImplementedException();
+                return 1;
             }
         }
 
@@ -37,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         {
             get
             {
-                throw new NotImplementedException();
+                return "Project.csproj";
             }
         }
 
@@ -46,23 +47,23 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             throw new NotImplementedException();
         }
 
-        private readonly StringBuilder _messages = new StringBuilder();
-        private readonly StringBuilder _errors = new StringBuilder();
-        private readonly StringBuilder _warnings = new StringBuilder();
+        private readonly List<string> _messages = new List<string>();
+        private readonly List<string> _errors = new List<string>();
+        private readonly List<string> _warnings = new List<string>();
 
         public void LogCustomEvent(CustomBuildEventArgs e)
         {
             throw new NotImplementedException();
         }
 
-        public void LogErrorEvent(BuildErrorEventArgs e) => _errors.AppendLine(e.Message);
+        public void LogErrorEvent(BuildErrorEventArgs e) => _errors.Add(e.Message);
 
-        public void LogMessageEvent(BuildMessageEventArgs e) => _messages.AppendLine(e.Message);
+        public void LogMessageEvent(BuildMessageEventArgs e) => _messages.Add(e.Message);
 
-        public void LogWarningEvent(BuildWarningEventArgs e) => _warnings.AppendLine(e.Message);
+        public void LogWarningEvent(BuildWarningEventArgs e) => _warnings.Add(e.Message);
 
-        public string Messages => _messages.ToString();
-        public string Errors => _errors.ToString();
-        public string Warnings => _warnings.ToString();
+        public IList<string> Messages => _messages;
+        public IList<string> Errors => _errors;
+        public IList<string> Warnings => _warnings;
     }
 }
