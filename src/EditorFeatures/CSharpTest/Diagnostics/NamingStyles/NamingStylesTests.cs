@@ -306,5 +306,18 @@ class D : C
     internal override void [|m|]() { }
 }", new TestParameters(options: MethodNamesArePascalCase));
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        [WorkItem(19106, "https://github.com/dotnet/roslyn/issues/19106")]
+        public async Task TestMissingOnSymbolsWithNoName()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+namespace Microsoft.CodeAnalysis.Host
+{
+    internal interface 
+[|}|]
+", new TestParameters(options: InterfaceNamesStartWithI));
+        }
     }
 }
