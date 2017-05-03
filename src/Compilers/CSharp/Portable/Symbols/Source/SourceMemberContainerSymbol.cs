@@ -223,21 +223,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private DeclarationModifiers MakeModifiers(TypeKind typeKind, DiagnosticBag diagnostics)
         {
-            var defaultAccess = this.ContainingSymbol is NamespaceSymbol
-                ? DeclarationModifiers.Internal
-                : DeclarationModifiers.Private;
-
+            Symbol containingSymbol = this.ContainingSymbol;
+            DeclarationModifiers defaultAccess;
             var allowedModifiers = DeclarationModifiers.AccessibilityMask | DeclarationModifiers.Partial;
 
-            if (ContainingSymbol is TypeSymbol)
+            if (containingSymbol.Kind == SymbolKind.Namespace)
             {
-                if (ContainingType.IsInterface)
+                defaultAccess = DeclarationModifiers.Internal;
+            }
+            else
+            {
+                allowedModifiers |= DeclarationModifiers.New;
+
+                if (((NamedTypeSymbol)containingSymbol).IsInterface)
                 {
-                    allowedModifiers |= DeclarationModifiers.All;
+                    defaultAccess = DeclarationModifiers.Public;
+                    allowedModifiers &= ~(DeclarationModifiers.Protected | DeclarationModifiers.ProtectedInternal);
                 }
                 else
                 {
-                    allowedModifiers |= DeclarationModifiers.New;
+                    defaultAccess = DeclarationModifiers.Private;
                 }
             }
 
@@ -1083,7 +1088,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     foreach (var t in symbols)
                     {
-                        diagnostics.Add(ErrorCode.ERR_InterfacesCannotContainTypes, t.Locations[0], t);
+                        Binder.CheckFeatureAvailability(t.DeclaringSyntaxReferences[0].GetSyntax(), MessageID.IDS_DefaultInterfaceImplementation, diagnostics, t.Locations[0]);
                     }
                 }
 

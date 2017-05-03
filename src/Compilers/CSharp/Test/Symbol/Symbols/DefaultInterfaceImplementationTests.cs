@@ -7180,9 +7180,6 @@ public interface I1
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             compilation1.VerifyDiagnostics(
-                // (27,22): error CS0524: 'I1.I2': interfaces cannot declare types
-                //     public interface I2 : I1
-                Diagnostic(ErrorCode.ERR_InterfacesCannotContainTypes, "I2").WithArguments("I1.I2").WithLocation(27, 22),
                 // (4,16): error CS0525: Interfaces cannot contain fields
                 //     public int F1;
                 Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "F1").WithLocation(4, 16)
@@ -7237,9 +7234,6 @@ public interface I1
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             compilation1.VerifyDiagnostics(
-                // (27,22): error CS0524: 'I1.I2': interfaces cannot declare types
-                //     public interface I2
-                Diagnostic(ErrorCode.ERR_InterfacesCannotContainTypes, "I2").WithArguments("I1.I2").WithLocation(27, 22),
                 // (4,16): error CS0525: Interfaces cannot contain fields
                 //     public int F1;
                 Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "F1").WithLocation(4, 16),
@@ -8761,18 +8755,18 @@ class Test1 : I1, I2, I3, I4, I5, I6, I7
                             break;
                     }
 
-                    void ValidateAccessor(MethodSymbol acessor)
+                    void ValidateAccessor(MethodSymbol accessor)
                     {
-                        Assert.False(acessor.IsAbstract);
-                        Assert.False(acessor.IsVirtual);
-                        Assert.False(acessor.IsMetadataVirtual());
-                        Assert.False(acessor.IsSealed);
-                        Assert.False(acessor.IsStatic);
-                        Assert.False(acessor.IsExtern);
-                        Assert.False(acessor.IsAsync);
-                        Assert.False(acessor.IsOverride);
-                        Assert.Equal(Accessibility.Private, acessor.DeclaredAccessibility);
-                        Assert.Null(test1.FindImplementationForInterfaceMember(acessor));
+                        Assert.False(accessor.IsAbstract);
+                        Assert.False(accessor.IsVirtual);
+                        Assert.False(accessor.IsMetadataVirtual());
+                        Assert.False(accessor.IsSealed);
+                        Assert.False(accessor.IsStatic);
+                        Assert.False(accessor.IsExtern);
+                        Assert.False(accessor.IsAsync);
+                        Assert.False(accessor.IsOverride);
+                        Assert.Equal(Accessibility.Private, accessor.DeclaredAccessibility);
+                        Assert.Null(test1.FindImplementationForInterfaceMember(accessor));
                     }
                 }
             }
@@ -9321,18 +9315,18 @@ class Test7 : I7
                             break;
                     }
 
-                    void ValidateAccessor(MethodSymbol acessor)
+                    void ValidateAccessor(MethodSymbol accessor)
                     {
-                        Assert.False(acessor.IsAbstract);
-                        Assert.False(acessor.IsVirtual);
-                        Assert.False(acessor.IsMetadataVirtual());
-                        Assert.False(acessor.IsSealed);
-                        Assert.False(acessor.IsStatic);
-                        Assert.False(acessor.IsExtern);
-                        Assert.False(acessor.IsAsync);
-                        Assert.False(acessor.IsOverride);
-                        Assert.Equal(Accessibility.Public, acessor.DeclaredAccessibility);
-                        Assert.Null(test1.FindImplementationForInterfaceMember(acessor));
+                        Assert.False(accessor.IsAbstract);
+                        Assert.False(accessor.IsVirtual);
+                        Assert.False(accessor.IsMetadataVirtual());
+                        Assert.False(accessor.IsSealed);
+                        Assert.False(accessor.IsStatic);
+                        Assert.False(accessor.IsExtern);
+                        Assert.False(accessor.IsAsync);
+                        Assert.False(accessor.IsOverride);
+                        Assert.Equal(Accessibility.Public, accessor.DeclaredAccessibility);
+                        Assert.Null(test1.FindImplementationForInterfaceMember(accessor));
                     }
                 }
             }
@@ -15383,18 +15377,18 @@ class Test1 : I1, I2
                     ValidateAccessor(p1.AddMethod);
                     ValidateAccessor(p1.RemoveMethod);
 
-                    void ValidateAccessor(MethodSymbol acessor)
+                    void ValidateAccessor(MethodSymbol accessor)
                     {
-                        Assert.False(acessor.IsAbstract);
-                        Assert.False(acessor.IsVirtual);
-                        Assert.False(acessor.IsMetadataVirtual());
-                        Assert.False(acessor.IsSealed);
-                        Assert.False(acessor.IsStatic);
-                        Assert.False(acessor.IsExtern);
-                        Assert.False(acessor.IsAsync);
-                        Assert.False(acessor.IsOverride);
-                        Assert.Equal(Accessibility.Private, acessor.DeclaredAccessibility);
-                        Assert.Null(test1.FindImplementationForInterfaceMember(acessor));
+                        Assert.False(accessor.IsAbstract);
+                        Assert.False(accessor.IsVirtual);
+                        Assert.False(accessor.IsMetadataVirtual());
+                        Assert.False(accessor.IsSealed);
+                        Assert.False(accessor.IsStatic);
+                        Assert.False(accessor.IsExtern);
+                        Assert.False(accessor.IsAsync);
+                        Assert.False(accessor.IsOverride);
+                        Assert.Equal(Accessibility.Private, accessor.DeclaredAccessibility);
+                        Assert.Null(test1.FindImplementationForInterfaceMember(accessor));
                     }
                 }
             }
@@ -15847,18 +15841,18 @@ class Test2 : I2
                     ValidateAccessor(p1.AddMethod);
                     ValidateAccessor(p1.RemoveMethod);
 
-                    void ValidateAccessor(MethodSymbol acessor)
+                    void ValidateAccessor(MethodSymbol accessor)
                     {
-                        Assert.False(acessor.IsAbstract);
-                        Assert.False(acessor.IsVirtual);
-                        Assert.False(acessor.IsMetadataVirtual());
-                        Assert.False(acessor.IsSealed);
-                        Assert.False(acessor.IsStatic);
-                        Assert.False(acessor.IsExtern);
-                        Assert.False(acessor.IsAsync);
-                        Assert.False(acessor.IsOverride);
-                        Assert.Equal(Accessibility.Public, acessor.DeclaredAccessibility);
-                        Assert.Null(test1.FindImplementationForInterfaceMember(acessor));
+                        Assert.False(accessor.IsAbstract);
+                        Assert.False(accessor.IsVirtual);
+                        Assert.False(accessor.IsMetadataVirtual());
+                        Assert.False(accessor.IsSealed);
+                        Assert.False(accessor.IsStatic);
+                        Assert.False(accessor.IsExtern);
+                        Assert.False(accessor.IsAsync);
+                        Assert.False(accessor.IsOverride);
+                        Assert.Equal(Accessibility.Public, accessor.DeclaredAccessibility);
+                        Assert.Null(test1.FindImplementationForInterfaceMember(accessor));
                     }
                 }
             }
@@ -17435,6 +17429,499 @@ class Test2
                 // (9,12): error CS0122: 'I1.P2' is inaccessible due to its protection level
                 //         I1.P2 -= null;
                 Diagnostic(ErrorCode.ERR_BadAccess, "P2").WithArguments("I1.P2").WithLocation(9, 12)
+                );
+        }
+
+        [Fact]
+        public void NestedTypes_01()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    interface T1
+    {
+        void M1();
+    }
+
+    class T2
+    {}
+
+    struct T3
+    {}
+
+    enum T4
+    {
+        B
+    }
+}
+
+class Test1 : I1.T1
+{
+    static void Main()
+    {
+        I1.T1 a = new Test1();
+        a.M1();
+        System.Console.WriteLine(new I1.T2());
+        System.Console.WriteLine(new I1.T3());
+        System.Console.WriteLine(I1.T4.B);
+    }
+
+    public void M1()
+    {
+        System.Console.WriteLine(""M1"");
+    }
+}
+";
+            ValidateNestedTypes_01(source1);
+        }
+
+        private void ValidateNestedTypes_01(string source1, Accessibility expected = Accessibility.Public)
+        {
+            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugExe,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+
+            for (int i = 1; i <= 4; i++)
+            {
+                Assert.Equal(expected, compilation1.GetMember("I1.T" + i).DeclaredAccessibility);
+            }
+
+            CompileAndVerify(compilation1, expectedOutput:
+@"M1
+I1+T2
+I1+T3
+B");
+        }
+
+        [Fact]
+        public void NestedTypes_02()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    interface T1
+    {
+        void M1();
+    }
+
+    class T2
+    {}
+
+    struct T3
+    {}
+
+    enum T4
+    {
+        B
+    }
+}
+
+class Test1 : I1.T1
+{
+    static void Main()
+    {
+        I1.T1 a = new Test1();
+        a.M1();
+        System.Console.WriteLine(new I1.T2());
+        System.Console.WriteLine(new I1.T3());
+        System.Console.WriteLine(I1.T4.B);
+    }
+
+    public void M1()
+    {
+        System.Console.WriteLine(""M1"");
+    }
+}
+";
+            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugExe,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+
+            for (int i = 1; i <= 4; i++)
+            {
+                Assert.Equal(Accessibility.Public, compilation1.GetMember("I1.T" + i).DeclaredAccessibility);
+            }
+
+            compilation1.VerifyDiagnostics(
+                // (4,15): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                //     interface T1
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "T1").WithArguments("default interface implementation", "7.1").WithLocation(4, 15),
+                // (9,11): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                //     class T2
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "T2").WithArguments("default interface implementation", "7.1").WithLocation(9, 11),
+                // (12,12): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                //     struct T3
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "T3").WithArguments("default interface implementation", "7.1").WithLocation(12, 12),
+                // (15,10): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                //     enum T4
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "T4").WithArguments("default interface implementation", "7.1").WithLocation(15, 10)
+                );
+        }
+
+        [Fact]
+        public void NestedTypes_03()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    public interface T1
+    {
+        void M1();
+    }
+
+    public class T2
+    {}
+
+    public struct T3
+    {}
+
+    public enum T4
+    {
+        B
+    }
+}
+
+class Test1 : I1.T1
+{
+    static void Main()
+    {
+        I1.T1 a = new Test1();
+        a.M1();
+        System.Console.WriteLine(new I1.T2());
+        System.Console.WriteLine(new I1.T3());
+        System.Console.WriteLine(I1.T4.B);
+    }
+
+    public void M1()
+    {
+        System.Console.WriteLine(""M1"");
+    }
+}
+";
+            ValidateNestedTypes_01(source1);
+        }
+
+        [Fact]
+        public void NestedTypes_04()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    protected interface T1
+    {
+        void M1();
+    }
+
+    protected class T2
+    {}
+
+    protected struct T3
+    {}
+
+    protected enum T4
+    {
+        B
+    }
+}
+
+class Test1 : I1.T1
+{
+    static void Main()
+    {
+        I1.T1 a = new Test1();
+        a.M1();
+        System.Console.WriteLine(new I1.T2());
+        System.Console.WriteLine(new I1.T3());
+        System.Console.WriteLine(I1.T4.B);
+    }
+
+    public void M1()
+    {
+        System.Console.WriteLine(""M1"");
+    }
+}
+";
+            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugExe,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+
+            for (int i = 1; i <= 4; i++)
+            {
+                Assert.Equal(Accessibility.Public, compilation1.GetMember("I1.T" + i).DeclaredAccessibility);
+            }
+
+            compilation1.VerifyDiagnostics(
+                // (4,25): error CS0106: The modifier 'protected' is not valid for this item
+                //     protected interface T1
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "T1").WithArguments("protected").WithLocation(4, 25),
+                // (9,21): error CS0106: The modifier 'protected' is not valid for this item
+                //     protected class T2
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "T2").WithArguments("protected").WithLocation(9, 21),
+                // (12,22): error CS0106: The modifier 'protected' is not valid for this item
+                //     protected struct T3
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "T3").WithArguments("protected").WithLocation(12, 22),
+                // (15,20): error CS0106: The modifier 'protected' is not valid for this item
+                //     protected enum T4
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "T4").WithArguments("protected").WithLocation(15, 20)
+                );
+        }
+
+        [Fact]
+        public void NestedTypes_05()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    protected internal interface T1
+    {
+        void M1();
+    }
+
+    protected internal class T2
+    {}
+
+    protected internal struct T3
+    {}
+
+    protected internal enum T4
+    {
+        B
+    }
+}
+
+class Test1 : I1.T1
+{
+    static void Main()
+    {
+        I1.T1 a = new Test1();
+        a.M1();
+        System.Console.WriteLine(new I1.T2());
+        System.Console.WriteLine(new I1.T3());
+        System.Console.WriteLine(I1.T4.B);
+    }
+
+    public void M1()
+    {
+        System.Console.WriteLine(""M1"");
+    }
+}
+";
+            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugExe,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+
+            for (int i = 1; i <= 4; i++)
+            {
+                Assert.Equal(Accessibility.Public, compilation1.GetMember("I1.T" + i).DeclaredAccessibility);
+            }
+
+            compilation1.VerifyDiagnostics(
+                // (4,34): error CS0106: The modifier 'protected internal' is not valid for this item
+                //     protected internal interface T1
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "T1").WithArguments("protected internal").WithLocation(4, 34),
+                // (9,30): error CS0106: The modifier 'protected internal' is not valid for this item
+                //     protected internal class T2
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "T2").WithArguments("protected internal").WithLocation(9, 30),
+                // (12,31): error CS0106: The modifier 'protected internal' is not valid for this item
+                //     protected internal struct T3
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "T3").WithArguments("protected internal").WithLocation(12, 31),
+                // (15,29): error CS0106: The modifier 'protected internal' is not valid for this item
+                //     protected internal enum T4
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "T4").WithArguments("protected internal").WithLocation(15, 29)
+                );
+        }
+
+        [Fact]
+        public void NestedTypes_06()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    internal interface T1
+    {
+        void M1();
+    }
+
+    internal class T2
+    {}
+
+    internal struct T3
+    {}
+
+    internal enum T4
+    {
+        B
+    }
+}
+";
+            var source2 =
+@"
+class Test1 : I1.T1
+{
+    static void Main()
+    {
+        I1.T1 a = new Test1();
+        a.M1();
+        System.Console.WriteLine(new I1.T2());
+        System.Console.WriteLine(new I1.T3());
+        System.Console.WriteLine(I1.T4.B);
+    }
+
+    public void M1()
+    {
+        System.Console.WriteLine(""M1"");
+    }
+}
+";
+            ValidateNestedTypes_01(source1 + source2, Accessibility.Internal);
+
+            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+
+            var compilation2 = CreateStandardCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe);
+
+            var expected = new[] {
+                // (2,18): error CS0122: 'I1.T1' is inaccessible due to its protection level
+                // class Test1 : I1.T1
+                Diagnostic(ErrorCode.ERR_BadAccess, "T1").WithArguments("I1.T1").WithLocation(2, 18),
+                // (6,12): error CS0122: 'I1.T1' is inaccessible due to its protection level
+                //         I1.T1 a = new Test1();
+                Diagnostic(ErrorCode.ERR_BadAccess, "T1").WithArguments("I1.T1").WithLocation(6, 12),
+                // (7,11): error CS0122: 'I1.T1.M1()' is inaccessible due to its protection level
+                //         a.M1();
+                Diagnostic(ErrorCode.ERR_BadAccess, "M1").WithArguments("I1.T1.M1()").WithLocation(7, 11),
+                // (8,41): error CS0122: 'I1.T2' is inaccessible due to its protection level
+                //         System.Console.WriteLine(new I1.T2());
+                Diagnostic(ErrorCode.ERR_BadAccess, "T2").WithArguments("I1.T2").WithLocation(8, 41),
+                // (9,41): error CS0122: 'I1.T3' is inaccessible due to its protection level
+                //         System.Console.WriteLine(new I1.T3());
+                Diagnostic(ErrorCode.ERR_BadAccess, "T3").WithArguments("I1.T3").WithLocation(9, 41),
+                // (10,37): error CS0122: 'I1.T4' is inaccessible due to its protection level
+                //         System.Console.WriteLine(I1.T4.B);
+                Diagnostic(ErrorCode.ERR_BadAccess, "T4").WithArguments("I1.T4").WithLocation(10, 37)
+                };
+            compilation2.VerifyDiagnostics(expected);
+
+            var compilation3 = CreateStandardCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe);
+
+            compilation3.VerifyDiagnostics(expected);
+        }
+
+        [Fact]
+        public void NestedTypes_07()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    private interface T1
+    {
+        void M1();
+    }
+
+    private class T2
+    {}
+
+    private struct T3
+    {}
+
+    private enum T4
+    {
+        B
+    }
+
+    class Test1 : I1.T1
+    {
+        static void Main()
+        {
+            I1.T1 a = new Test1();
+            a.M1();
+            System.Console.WriteLine(new I1.T2());
+            System.Console.WriteLine(new I1.T3());
+            System.Console.WriteLine(I1.T4.B);
+        }
+
+        public void M1()
+        {
+            System.Console.WriteLine(""M1"");
+        }
+    }
+}
+";
+            ValidateNestedTypes_01(source1, Accessibility.Private);
+        }
+
+        [Fact]
+        public void NestedTypes_08()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    private interface T1
+    {
+        void M1();
+    }
+
+    private class T2
+    {}
+
+    private struct T3
+    {}
+
+    private enum T4
+    {
+        B
+    }
+}
+
+class Test1 : I1.T1
+{
+    static void Main()
+    {
+        I1.T1 a = new Test1();
+        a.M1();
+        System.Console.WriteLine(new I1.T2());
+        System.Console.WriteLine(new I1.T3());
+        System.Console.WriteLine(I1.T4.B);
+    }
+
+    public void M1()
+    {
+        System.Console.WriteLine(""M1"");
+    }
+}
+";
+
+            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation1.VerifyDiagnostics(
+                // (21,18): error CS0122: 'I1.T1' is inaccessible due to its protection level
+                // class Test1 : I1.T1
+                Diagnostic(ErrorCode.ERR_BadAccess, "T1").WithArguments("I1.T1").WithLocation(21, 18),
+                // (25,12): error CS0122: 'I1.T1' is inaccessible due to its protection level
+                //         I1.T1 a = new Test1();
+                Diagnostic(ErrorCode.ERR_BadAccess, "T1").WithArguments("I1.T1").WithLocation(25, 12),
+                // (26,11): error CS0122: 'I1.T1.M1()' is inaccessible due to its protection level
+                //         a.M1();
+                Diagnostic(ErrorCode.ERR_BadAccess, "M1").WithArguments("I1.T1.M1()").WithLocation(26, 11),
+                // (27,41): error CS0122: 'I1.T2' is inaccessible due to its protection level
+                //         System.Console.WriteLine(new I1.T2());
+                Diagnostic(ErrorCode.ERR_BadAccess, "T2").WithArguments("I1.T2").WithLocation(27, 41),
+                // (28,41): error CS0122: 'I1.T3' is inaccessible due to its protection level
+                //         System.Console.WriteLine(new I1.T3());
+                Diagnostic(ErrorCode.ERR_BadAccess, "T3").WithArguments("I1.T3").WithLocation(28, 41),
+                // (29,37): error CS0122: 'I1.T4' is inaccessible due to its protection level
+                //         System.Console.WriteLine(I1.T4.B);
+                Diagnostic(ErrorCode.ERR_BadAccess, "T4").WithArguments("I1.T4").WithLocation(29, 37)
                 );
         }
     }

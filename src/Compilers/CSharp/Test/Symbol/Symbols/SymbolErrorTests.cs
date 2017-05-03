@@ -8758,17 +8758,24 @@ struct S6<T>
     }
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
-                new ErrorDescription { Code = (int)ErrorCode.ERR_InterfacesCannotContainTypes, Line = 5, Column = 19 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_InterfacesCannotContainTypes, Line = 6, Column = 22 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_InterfacesCannotContainTypes, Line = 7, Column = 16 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_InterfacesCannotContainTypes, Line = 8, Column = 22 }
-                // new ErrorDescription { Code = (int)ErrorCode.ERR_InterfacesCannotContainTypes,
-                // Line = 9, Column = 32 }
+            var comp = CreateStandardCompilation(text, parseOptions: TestOptions.Regular7);
+            
+            comp.VerifyDiagnostics(
+                // (5,19): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                //         interface IBar { }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "IBar").WithArguments("default interface implementation", "7.1").WithLocation(5, 19),
+                // (6,22): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                //         public class cly {}
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "cly").WithArguments("default interface implementation", "7.1").WithLocation(6, 22),
+                // (7,16): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                //         struct S { }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "S").WithArguments("default interface implementation", "7.1").WithLocation(7, 16),
+                // (8,22): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                //         private enum E { zero,  one }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "E").WithArguments("default interface implementation", "7.1").WithLocation(8, 22)
                 );
 
             var ns = comp.SourceModule.GlobalNamespace.GetMembers("NS").Single() as NamespaceSymbol;
-            // TODO...
         }
 
         [Fact]
