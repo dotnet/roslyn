@@ -2426,12 +2426,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return OperationKind.None
         End Function
 
-        Protected Overrides ReadOnly Property Children As ImmutableArray(Of IOperation)
-            Get
-                Return ImmutableArray.Create(Of IOperation)(Me.OriginalArgument)
-            End Get
-        End Property
-
         Public Overrides Sub Accept(visitor As OperationVisitor)
             visitor.VisitNoneOperation(Me)
         End Sub

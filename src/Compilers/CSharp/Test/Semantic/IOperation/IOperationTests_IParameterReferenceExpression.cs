@@ -706,5 +706,32 @@ IOperation:  (OperationKind.None) (Syntax: 'new I(x)')
 
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(compilation1, expectedOperationTree, expectedDiagnostics);
         }
+
+        [Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")]
+        public void ParameterReference_ArgListOperator()
+        {
+            string source = @"
+using System;
+class C
+{
+    static void Method(int x, bool y)
+    {
+        M(1, /*<bind>*/__arglist(x, y)/*</bind>*/);
+    }
+    
+    static void M(int x, __arglist)
+    {
+    } 
+}
+";
+            string expectedOperationTree = @"
+IOperation:  (OperationKind.None) (Syntax: '__arglist(x, y)')
+  Children(2): IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
+    IParameterReferenceExpression: y (OperationKind.ParameterReferenceExpression, Type: System.Boolean) (Syntax: 'y')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
     }
 }
