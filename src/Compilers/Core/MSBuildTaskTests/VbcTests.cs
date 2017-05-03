@@ -283,5 +283,19 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             vbc.EmbeddedFiles = MSBuildUtil.CreateTaskItems();
             Assert.Equal(@"/optionstrict:custom /debug:portable /out:test.exe test.vb", vbc.GenerateResponseFileContents());
         }
+
+        [Fact]
+        public void EditorConfig()
+        {
+            var vbc = new Vbc();
+            vbc.Sources = MSBuildUtil.CreateTaskItems("test.vb");
+            vbc.EditorConfigFiles = MSBuildUtil.CreateTaskItems(".editorconfig");
+            Assert.Equal(@"/optionstrict:custom /out:test.exe /editorconfig:.editorconfig test.vb", vbc.GenerateResponseFileContents());
+
+            vbc = new Vbc();
+            vbc.Sources = MSBuildUtil.CreateTaskItems("test.vb", "subdir\\test.vb");
+            vbc.EditorConfigFiles = MSBuildUtil.CreateTaskItems(".editorconfig", "subdir\\.editorconfig");
+            Assert.Equal(@"/optionstrict:custom /out:test.exe /editorconfig:.editorconfig /editorconfig:subdir\.editorconfig test.vb subdir\test.vb", vbc.GenerateResponseFileContents());
+        }
     }
 }

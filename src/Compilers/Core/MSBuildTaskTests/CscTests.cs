@@ -286,5 +286,19 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             csc.EmbeddedFiles = MSBuildUtil.CreateTaskItems();
             Assert.Equal(@"/debug:portable /out:test.exe test.cs", csc.GenerateResponseFileContents());
         }
+
+        [Fact]
+        public void EditorConfig()
+        {
+            var csc = new Csc();
+            csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
+            csc.EditorConfigFiles = MSBuildUtil.CreateTaskItems(".editorconfig");
+            Assert.Equal(@"/out:test.exe /editorconfig:.editorconfig test.cs", csc.GenerateResponseFileContents());
+
+            csc = new Csc();
+            csc.Sources = MSBuildUtil.CreateTaskItems("test.cs", "subdir\\test.cs");
+            csc.EditorConfigFiles = MSBuildUtil.CreateTaskItems(".editorconfig", "subdir\\.editorconfig");
+            Assert.Equal(@"/out:test.exe /editorconfig:.editorconfig /editorconfig:subdir\.editorconfig test.cs subdir\test.cs", csc.GenerateResponseFileContents());
+        }
     }
 }
