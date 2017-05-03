@@ -108,6 +108,10 @@ namespace Microsoft.CodeAnalysis.SQLite
 
                     // We have our own writes to process.  Enqueue the task to write 
                     // these out after the existing write-task for this queue completes.
+                    // 
+                    // We're currently under a lock, so tell the continuation to run 
+                    // *asynchronously* so that the TPL does not try to execute it inline
+                    // with this thread.
                     var nextTask = existingWriteTask.ContinueWith(
                         _ => ProcessWriteQueue(connection, writesToProcess),
                         cancellationToken,
