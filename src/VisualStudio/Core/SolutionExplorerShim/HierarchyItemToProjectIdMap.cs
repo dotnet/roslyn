@@ -29,10 +29,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                 return false;
             }
 
+            // A project node is represented in two different hierarchies: the solution's IVsHierarchy (where it is a leaf node)
+            // and the project's own IVsHierarchy (where it is the root node). The IVsHierarchyItem joins them together for the
+            // purpose of creating the tree displayed in Solution Explorer. The project's hierarchy is what is passed from the
+            // project system to the language service, so that's the one the one to query here. To do that we need to get
+            // the "nested" hierarchy from the IVsHierarchyItem.
             var nestedHierarchy = hierarchyItem.HierarchyIdentity.NestedHierarchy;
             var nestedHierarchyId = hierarchyItem.HierarchyIdentity.NestedItemID;
 
-            if (!nestedHierarchy.TryGetCanonicalName(nestedHierarchyId, out string nestedCanonicalName))
+            if (!nestedHierarchy.TryGetCanonicalName(nestedHierarchyId, out string nestedCanonicalName)
+                || !nestedHierarchy.TryGetItemName(nestedHierarchyId, out string nestedName))
             {
                 projectId = default(ProjectId);
                 return false;
@@ -41,8 +47,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             var project = _workspace.DeferredState.ProjectTracker.ImmutableProjects
                     .Where(p =>
                     {
+                        // Here we try to match the hierarchy from Solution Explorer to a hierarchy from the Roslyn project.
+                        // The canonical name of a hierarchy item must be unique _within_ an hierarchy, but since we're
+                        // examining multiple hierarchies the canonical name could be the same. Indeed this happens when two
+                        // project files are in the same folder--they both use the full path to the _folder_ as the canonical
+                        // name. To distinguish them we also examine the "regular" name, which will necessarily be different
+                        // if the two projects are in the same folder.
                         if (p.Hierarchy.TryGetCanonicalName((uint)VSConstants.VSITEMID.Root, out string projectCanonicalName)
-                            && projectCanonicalName.Equals(nestedCanonicalName, System.StringComparison.OrdinalIgnoreCase))
+                            && p.Hierarchy.TryGetItemName((uint)VSConstants.VSITEMID.Root, out string projectName)
+                            && projectCanonicalName.Equals(nestedCanonicalName, System.StringComparison.OrdinalIgnoreCase)
+                            && projectName.Equals(nestedName))
                         {
                             if (targetFrameworkMoniker == null)
                             {
