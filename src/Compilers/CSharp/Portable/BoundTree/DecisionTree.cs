@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public static DecisionTree Create(BoundExpression expression, TypeSymbol type, Symbol enclosingSymbol)
         {
-            Debug.Assert(expression.Type == type);
+            Debug.Assert(expression.Type.Equals(type, TypeCompareKind.IgnoreDynamicAndTupleNames));
             LocalSymbol temp = null;
             if (expression.ConstantValue == null)
             {
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 expression = new BoundLocal(expression.Syntax, temp, null, type);
             }
 
-            if (expression.Type.CanContainNull())
+            if (type.CanContainNull() || type.SpecialType == SpecialType.None)
             {
                 // We need the ByType decision tree to separate null from non-null values.
                 // Note that, for the purpose of the decision tree (and subsumption), we

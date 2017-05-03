@@ -52,7 +52,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // For purposes of subsumption, we do not take into consideration the value
                 // of the input expression. Therefore we consider null possible if the type permits.
                 Syntax = label.Syntax;
-                var subsumedErrorCode = CheckSubsumed(label.Pattern, _subsumptionTree, inputCouldBeNull: true);
+                var inputCouldBeNull = !_subsumptionTree.Type.IsNonNullableValueType();
+                var subsumedErrorCode = CheckSubsumed(label.Pattern, _subsumptionTree, inputCouldBeNull: inputCouldBeNull);
                 if (subsumedErrorCode != 0 && subsumedErrorCode != ErrorCode.ERR_NoImplicitConvCast)
                 {
                     if (!label.HasErrors)

@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                if (defaultLabel != null)
+                if (defaultLabel != null && !loweredDecisionTree.MatchIsComplete)
                 {
                     Add(loweredDecisionTree, (e, t) => new DecisionTree.Guarded(loweredExpression, loweredExpression.Type, default(ImmutableArray<KeyValuePair<BoundExpression, BoundExpression>>), defaultSection, null, defaultLabel));
                 }
@@ -402,6 +402,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var loweredRight = kv.Key;
                         var loweredLeft = kv.Value;
+                        Debug.Assert(loweredLeft.Type.Equals(loweredRight.Type, TypeCompareKind.IgnoreDynamicAndTupleNames));
                         addBindings.Add(_factory.ExpressionStatement(
                             _localRewriter.MakeStaticAssignmentOperator(
                                 _factory.Syntax, loweredLeft, loweredRight, RefKind.None, loweredLeft.Type, false)));
