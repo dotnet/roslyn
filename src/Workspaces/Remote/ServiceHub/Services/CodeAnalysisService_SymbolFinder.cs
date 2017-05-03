@@ -15,14 +15,24 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             var solution = await GetSolutionAsync().ConfigureAwait(false);
 
-            var symbolAndProjectId = await symbolAndProjectIdArg.RehydrateAsync(
+            var symbolAndProjectId = await symbolAndProjectIdArg.TryRehydrateAsync(
                 solution, CancellationToken).ConfigureAwait(false);
+
+            var progressCallback = new FindReferencesProgressCallback(this);
+
+            if (!symbolAndProjectId.HasValue)
+            {
+                await progressCallback.OnStartedAsync().ConfigureAwait(false);
+                await progressCallback.OnCompletedAsync().ConfigureAwait(false);
+                return;
+            }
+
             var documents = documentArgs?.Select(solution.GetDocument)
                                          .ToImmutableHashSet();
 
-            var progressCallback = new FindReferencesProgressCallback(this);
             await SymbolFinder.FindReferencesInCurrentProcessAsync(
-                symbolAndProjectId, solution, progressCallback, documents, CancellationToken).ConfigureAwait(false);
+                symbolAndProjectId.Value, solution, 
+                progressCallback, documents, CancellationToken).ConfigureAwait(false);
         }
 
         public async Task FindLiteralReferencesAsync(object value)
@@ -40,10 +50,13 @@ namespace Microsoft.CodeAnalysis.Remote
             var solution = await GetSolutionAsync().ConfigureAwait(false);
             var project = solution.GetProject(projectId);
 
-            var result = await DeclarationFinder.FindAllDeclarationsWithNormalQueryInCurrentProcessAsync(
-                project, SearchQuery.Create(name, searchKind), criteria, this.CancellationToken).ConfigureAwait(false);
+            using (var query = SearchQuery.Create(name, searchKind))
+            {
+                var result = await DeclarationFinder.FindAllDeclarationsWithNormalQueryInCurrentProcessAsync(
+                    project, query, criteria, this.CancellationToken).ConfigureAwait(false);
 
-            return result.Select(SerializableSymbolAndProjectId.Dehydrate).ToArray();
+                return result.Select(SerializableSymbolAndProjectId.Dehydrate).ToArray();
+            }
         }
 
         public async Task<SerializableSymbolAndProjectId[]> FindSolutionSourceDeclarationsWithNormalQueryAsync(

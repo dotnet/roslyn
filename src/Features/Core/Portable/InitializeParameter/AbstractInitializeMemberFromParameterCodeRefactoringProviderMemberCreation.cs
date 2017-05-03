@@ -483,12 +483,17 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         /// appropriate field/property names based on the user's preference.
         /// </summary>
         private List<string> GetParameterWordParts(IParameterSymbol parameter)
-            => CreateWords(StringBreaker.BreakIntoWordParts(parameter.Name), parameter.Name);
+        {
+            using (var breaks = StringBreaker.BreakIntoWordParts(parameter.Name))
+            {
+                return CreateWords(breaks, parameter.Name);
+            }
+        }
 
         private List<string> CreateWords(StringBreaks wordBreaks, string name)
         {
-            var result = new List<string>(wordBreaks.Count);
-            for (var i = 0; i < wordBreaks.Count; i++)
+            var result = new List<string>(wordBreaks.GetCount());
+            for (int i = 0, n = wordBreaks.GetCount(); i < n; i++)
             {
                 var br = wordBreaks[i];
                 result.Add(name.Substring(br.Start, br.Length));

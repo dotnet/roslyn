@@ -1599,22 +1599,20 @@ class Program
 
             CompileAndVerify(text, parseOptions: TestOptions.Regular, expectedOutput: "42", verify: false).VerifyIL("Program.M()", @"
 {
-  // Code size       34 (0x22)
+  // Code size       26 (0x1a)
   .maxstack  5
   .locals init (Program.<>c__DisplayClass0_0 V_0) //CS$<>8__locals0
   IL_0000:  ldloca.s   V_0
-  IL_0002:  initobj    ""Program.<>c__DisplayClass0_0""
-  IL_0008:  ldloca.s   V_0
-  IL_000a:  ldc.i4.1
-  IL_000b:  newarr     ""int""
-  IL_0010:  dup
-  IL_0011:  ldc.i4.0
-  IL_0012:  ldc.i4.s   40
-  IL_0014:  stelem.i4
-  IL_0015:  stfld      ""int[] Program.<>c__DisplayClass0_0.arr""
-  IL_001a:  ldloca.s   V_0
-  IL_001c:  call       ""ref int Program.<M>g__N0_0(ref Program.<>c__DisplayClass0_0)""
-  IL_0021:  ret
+  IL_0002:  ldc.i4.1
+  IL_0003:  newarr     ""int""
+  IL_0008:  dup
+  IL_0009:  ldc.i4.0
+  IL_000a:  ldc.i4.s   40
+  IL_000c:  stelem.i4
+  IL_000d:  stfld      ""int[] Program.<>c__DisplayClass0_0.arr""
+  IL_0012:  ldloca.s   V_0
+  IL_0014:  call       ""ref int Program.<M>g__N0_0(ref Program.<>c__DisplayClass0_0)""
+  IL_0019:  ret
 }").VerifyIL("Program.<M>g__N0_0", @"
 {
   // Code size       24 (0x18)

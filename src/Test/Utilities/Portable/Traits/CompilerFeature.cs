@@ -19,6 +19,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         RefLocalsReturns,
         OutVar,
         Patterns,
+        DefaultLiteral,
         DefaultInterfaceImplementation,
     }
 }

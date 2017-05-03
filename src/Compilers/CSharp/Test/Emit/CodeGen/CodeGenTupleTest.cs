@@ -2090,7 +2090,7 @@ class C
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("C.<Test>d__1<T>.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
 {
-  // Code size      191 (0xbf)
+  // Code size      183 (0xb7)
   .maxstack  3
   .locals init (int V_0,
                 T V_1,
@@ -2132,7 +2132,7 @@ class C
     IL_004e:  ldloca.s   V_2
     IL_0050:  ldarg.0
     IL_0051:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<T>.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter, C.<Test>d__1<T>>(ref System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter, ref C.<Test>d__1<T>)""
-    IL_0056:  leave.s    IL_00be
+    IL_0056:  leave.s    IL_00b6
     IL_0058:  ldarg.0
     IL_0059:  ldfld      ""System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter C.<Test>d__1<T>.<>u__1""
     IL_005e:  stloc.2
@@ -2146,34 +2146,32 @@ class C
     IL_006f:  stfld      ""int C.<Test>d__1<T>.<>1__state""
     IL_0074:  ldloca.s   V_2
     IL_0076:  call       ""void System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.GetResult()""
-    IL_007b:  ldloca.s   V_2
-    IL_007d:  initobj    ""System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter""
-    IL_0083:  ldarg.0
-    IL_0084:  ldflda     ""(T f1, T f2) C.<Test>d__1<T>.<x>5__1""
-    IL_0089:  ldfld      ""T System.ValueTuple<T, T>.Item1""
-    IL_008e:  stloc.1
-    IL_008f:  leave.s    IL_00aa
+    IL_007b:  ldarg.0
+    IL_007c:  ldflda     ""(T f1, T f2) C.<Test>d__1<T>.<x>5__1""
+    IL_0081:  ldfld      ""T System.ValueTuple<T, T>.Item1""
+    IL_0086:  stloc.1
+    IL_0087:  leave.s    IL_00a2
   }
   catch System.Exception
   {
-    IL_0091:  stloc.s    V_4
+    IL_0089:  stloc.s    V_4
+    IL_008b:  ldarg.0
+    IL_008c:  ldc.i4.s   -2
+    IL_008e:  stfld      ""int C.<Test>d__1<T>.<>1__state""
     IL_0093:  ldarg.0
-    IL_0094:  ldc.i4.s   -2
-    IL_0096:  stfld      ""int C.<Test>d__1<T>.<>1__state""
-    IL_009b:  ldarg.0
-    IL_009c:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<T> C.<Test>d__1<T>.<>t__builder""
-    IL_00a1:  ldloc.s    V_4
-    IL_00a3:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<T>.SetException(System.Exception)""
-    IL_00a8:  leave.s    IL_00be
+    IL_0094:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<T> C.<Test>d__1<T>.<>t__builder""
+    IL_0099:  ldloc.s    V_4
+    IL_009b:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<T>.SetException(System.Exception)""
+    IL_00a0:  leave.s    IL_00b6
   }
+  IL_00a2:  ldarg.0
+  IL_00a3:  ldc.i4.s   -2
+  IL_00a5:  stfld      ""int C.<Test>d__1<T>.<>1__state""
   IL_00aa:  ldarg.0
-  IL_00ab:  ldc.i4.s   -2
-  IL_00ad:  stfld      ""int C.<Test>d__1<T>.<>1__state""
-  IL_00b2:  ldarg.0
-  IL_00b3:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<T> C.<Test>d__1<T>.<>t__builder""
-  IL_00b8:  ldloc.1
-  IL_00b9:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<T>.SetResult(T)""
-  IL_00be:  ret
+  IL_00ab:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<T> C.<Test>d__1<T>.<>t__builder""
+  IL_00b0:  ldloc.1
+  IL_00b1:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<T>.SetResult(T)""
+  IL_00b6:  ret
 }
 ");
         }
@@ -2206,7 +2204,7 @@ class C
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("C.<Test>d__1<T>.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
 {
-  // Code size      197 (0xc5)
+  // Code size      189 (0xbd)
   .maxstack  3
   .locals init (int V_0,
                 string V_1,
@@ -2248,7 +2246,7 @@ class C
     IL_004e:  ldloca.s   V_2
     IL_0050:  ldarg.0
     IL_0051:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<string>.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter, C.<Test>d__1<T>>(ref System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter, ref C.<Test>d__1<T>)""
-    IL_0056:  leave.s    IL_00c4
+    IL_0056:  leave.s    IL_00bc
     IL_0058:  ldarg.0
     IL_0059:  ldfld      ""System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter C.<Test>d__1<T>.<>u__1""
     IL_005e:  stloc.2
@@ -2262,35 +2260,33 @@ class C
     IL_006f:  stfld      ""int C.<Test>d__1<T>.<>1__state""
     IL_0074:  ldloca.s   V_2
     IL_0076:  call       ""void System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.GetResult()""
-    IL_007b:  ldloca.s   V_2
-    IL_007d:  initobj    ""System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter""
-    IL_0083:  ldarg.0
-    IL_0084:  ldflda     ""(T f1, T f2) C.<Test>d__1<T>.<x>5__1""
-    IL_0089:  constrained. ""System.ValueTuple<T, T>""
-    IL_008f:  callvirt   ""string object.ToString()""
-    IL_0094:  stloc.1
-    IL_0095:  leave.s    IL_00b0
+    IL_007b:  ldarg.0
+    IL_007c:  ldflda     ""(T f1, T f2) C.<Test>d__1<T>.<x>5__1""
+    IL_0081:  constrained. ""System.ValueTuple<T, T>""
+    IL_0087:  callvirt   ""string object.ToString()""
+    IL_008c:  stloc.1
+    IL_008d:  leave.s    IL_00a8
   }
   catch System.Exception
   {
-    IL_0097:  stloc.s    V_4
+    IL_008f:  stloc.s    V_4
+    IL_0091:  ldarg.0
+    IL_0092:  ldc.i4.s   -2
+    IL_0094:  stfld      ""int C.<Test>d__1<T>.<>1__state""
     IL_0099:  ldarg.0
-    IL_009a:  ldc.i4.s   -2
-    IL_009c:  stfld      ""int C.<Test>d__1<T>.<>1__state""
-    IL_00a1:  ldarg.0
-    IL_00a2:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<string> C.<Test>d__1<T>.<>t__builder""
-    IL_00a7:  ldloc.s    V_4
-    IL_00a9:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<string>.SetException(System.Exception)""
-    IL_00ae:  leave.s    IL_00c4
+    IL_009a:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<string> C.<Test>d__1<T>.<>t__builder""
+    IL_009f:  ldloc.s    V_4
+    IL_00a1:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<string>.SetException(System.Exception)""
+    IL_00a6:  leave.s    IL_00bc
   }
+  IL_00a8:  ldarg.0
+  IL_00a9:  ldc.i4.s   -2
+  IL_00ab:  stfld      ""int C.<Test>d__1<T>.<>1__state""
   IL_00b0:  ldarg.0
-  IL_00b1:  ldc.i4.s   -2
-  IL_00b3:  stfld      ""int C.<Test>d__1<T>.<>1__state""
-  IL_00b8:  ldarg.0
-  IL_00b9:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<string> C.<Test>d__1<T>.<>t__builder""
-  IL_00be:  ldloc.1
-  IL_00bf:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<string>.SetResult(string)""
-  IL_00c4:  ret
+  IL_00b1:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<string> C.<Test>d__1<T>.<>t__builder""
+  IL_00b6:  ldloc.1
+  IL_00b7:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<string>.SetResult(string)""
+  IL_00bc:  ret
 }
 ");
         }
@@ -2349,7 +2345,7 @@ namespace System
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("C.<Test>d__1<T>.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
 {
-  // Code size      197 (0xc5)
+  // Code size      189 (0xbd)
   .maxstack  3
   .locals init (int V_0,
                 T V_1,
@@ -2391,7 +2387,7 @@ namespace System
     IL_004e:  ldloca.s   V_2
     IL_0050:  ldarg.0
     IL_0051:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<T>.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter, C.<Test>d__1<T>>(ref System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter, ref C.<Test>d__1<T>)""
-    IL_0056:  leave.s    IL_00c4
+    IL_0056:  leave.s    IL_00bc
     IL_0058:  ldarg.0
     IL_0059:  ldfld      ""System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter C.<Test>d__1<T>.<>u__1""
     IL_005e:  stloc.2
@@ -2405,36 +2401,34 @@ namespace System
     IL_006f:  stfld      ""int C.<Test>d__1<T>.<>1__state""
     IL_0074:  ldloca.s   V_2
     IL_0076:  call       ""void System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.GetResult()""
-    IL_007b:  ldloca.s   V_2
-    IL_007d:  initobj    ""System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter""
-    IL_0083:  ldarg.0
-    IL_0084:  ldflda     ""(T f1, T f2) C.<Test>d__1<T>.<x>5__1""
-    IL_0089:  ldarg.0
-    IL_008a:  ldfld      ""T C.<Test>d__1<T>.a""
-    IL_008f:  call       ""T System.ValueTuple<T, T>.Test<T>(T)""
-    IL_0094:  stloc.1
-    IL_0095:  leave.s    IL_00b0
+    IL_007b:  ldarg.0
+    IL_007c:  ldflda     ""(T f1, T f2) C.<Test>d__1<T>.<x>5__1""
+    IL_0081:  ldarg.0
+    IL_0082:  ldfld      ""T C.<Test>d__1<T>.a""
+    IL_0087:  call       ""T System.ValueTuple<T, T>.Test<T>(T)""
+    IL_008c:  stloc.1
+    IL_008d:  leave.s    IL_00a8
   }
   catch System.Exception
   {
-    IL_0097:  stloc.s    V_4
+    IL_008f:  stloc.s    V_4
+    IL_0091:  ldarg.0
+    IL_0092:  ldc.i4.s   -2
+    IL_0094:  stfld      ""int C.<Test>d__1<T>.<>1__state""
     IL_0099:  ldarg.0
-    IL_009a:  ldc.i4.s   -2
-    IL_009c:  stfld      ""int C.<Test>d__1<T>.<>1__state""
-    IL_00a1:  ldarg.0
-    IL_00a2:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<T> C.<Test>d__1<T>.<>t__builder""
-    IL_00a7:  ldloc.s    V_4
-    IL_00a9:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<T>.SetException(System.Exception)""
-    IL_00ae:  leave.s    IL_00c4
+    IL_009a:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<T> C.<Test>d__1<T>.<>t__builder""
+    IL_009f:  ldloc.s    V_4
+    IL_00a1:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<T>.SetException(System.Exception)""
+    IL_00a6:  leave.s    IL_00bc
   }
+  IL_00a8:  ldarg.0
+  IL_00a9:  ldc.i4.s   -2
+  IL_00ab:  stfld      ""int C.<Test>d__1<T>.<>1__state""
   IL_00b0:  ldarg.0
-  IL_00b1:  ldc.i4.s   -2
-  IL_00b3:  stfld      ""int C.<Test>d__1<T>.<>1__state""
-  IL_00b8:  ldarg.0
-  IL_00b9:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<T> C.<Test>d__1<T>.<>t__builder""
-  IL_00be:  ldloc.1
-  IL_00bf:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<T>.SetResult(T)""
-  IL_00c4:  ret
+  IL_00b1:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<T> C.<Test>d__1<T>.<>t__builder""
+  IL_00b6:  ldloc.1
+  IL_00b7:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<T>.SetResult(T)""
+  IL_00bc:  ret
 }
 ");
         }
@@ -2493,7 +2487,7 @@ namespace System
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("C.<Test>d__1<T>.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
 {
-  // Code size      187 (0xbb)
+  // Code size      179 (0xb3)
   .maxstack  3
   .locals init (int V_0,
                 T V_1,
@@ -2533,7 +2527,7 @@ namespace System
     IL_0044:  ldloca.s   V_2
     IL_0046:  ldarg.0
     IL_0047:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<T>.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter, C.<Test>d__1<T>>(ref System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter, ref C.<Test>d__1<T>)""
-    IL_004c:  leave.s    IL_00ba
+    IL_004c:  leave.s    IL_00b2
     IL_004e:  ldarg.0
     IL_004f:  ldfld      ""System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter C.<Test>d__1<T>.<>u__1""
     IL_0054:  stloc.2
@@ -2547,36 +2541,34 @@ namespace System
     IL_0065:  stfld      ""int C.<Test>d__1<T>.<>1__state""
     IL_006a:  ldloca.s   V_2
     IL_006c:  call       ""void System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.GetResult()""
-    IL_0071:  ldloca.s   V_2
-    IL_0073:  initobj    ""System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter""
-    IL_0079:  ldarg.0
-    IL_007a:  ldflda     ""(int f1, int f2) C.<Test>d__1<T>.<x>5__1""
-    IL_007f:  ldarg.0
-    IL_0080:  ldfld      ""T C.<Test>d__1<T>.a""
-    IL_0085:  call       ""T System.ValueTuple<int, int>.Test<T>(T)""
-    IL_008a:  stloc.1
-    IL_008b:  leave.s    IL_00a6
+    IL_0071:  ldarg.0
+    IL_0072:  ldflda     ""(int f1, int f2) C.<Test>d__1<T>.<x>5__1""
+    IL_0077:  ldarg.0
+    IL_0078:  ldfld      ""T C.<Test>d__1<T>.a""
+    IL_007d:  call       ""T System.ValueTuple<int, int>.Test<T>(T)""
+    IL_0082:  stloc.1
+    IL_0083:  leave.s    IL_009e
   }
   catch System.Exception
   {
-    IL_008d:  stloc.s    V_4
+    IL_0085:  stloc.s    V_4
+    IL_0087:  ldarg.0
+    IL_0088:  ldc.i4.s   -2
+    IL_008a:  stfld      ""int C.<Test>d__1<T>.<>1__state""
     IL_008f:  ldarg.0
-    IL_0090:  ldc.i4.s   -2
-    IL_0092:  stfld      ""int C.<Test>d__1<T>.<>1__state""
-    IL_0097:  ldarg.0
-    IL_0098:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<T> C.<Test>d__1<T>.<>t__builder""
-    IL_009d:  ldloc.s    V_4
-    IL_009f:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<T>.SetException(System.Exception)""
-    IL_00a4:  leave.s    IL_00ba
+    IL_0090:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<T> C.<Test>d__1<T>.<>t__builder""
+    IL_0095:  ldloc.s    V_4
+    IL_0097:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<T>.SetException(System.Exception)""
+    IL_009c:  leave.s    IL_00b2
   }
+  IL_009e:  ldarg.0
+  IL_009f:  ldc.i4.s   -2
+  IL_00a1:  stfld      ""int C.<Test>d__1<T>.<>1__state""
   IL_00a6:  ldarg.0
-  IL_00a7:  ldc.i4.s   -2
-  IL_00a9:  stfld      ""int C.<Test>d__1<T>.<>1__state""
-  IL_00ae:  ldarg.0
-  IL_00af:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<T> C.<Test>d__1<T>.<>t__builder""
-  IL_00b4:  ldloc.1
-  IL_00b5:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<T>.SetResult(T)""
-  IL_00ba:  ret
+  IL_00a7:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<T> C.<Test>d__1<T>.<>t__builder""
+  IL_00ac:  ldloc.1
+  IL_00ad:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<T>.SetResult(T)""
+  IL_00b2:  ret
 }
 ");
         }
@@ -3521,6 +3513,429 @@ class C
 
             var verifier = CompileAndVerify(source, expectedOutput: @"1 2 3 4 5 6 7 Alice 2 3 4 5 6 7 Bob 2 3", additionalRefs: new[] { MscorlibRef, ValueTupleRef, SystemRuntimeFacadeRef }, sourceSymbolValidator: validator);
             verifier.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TupleCreationWithInferredNamesWithCSharp7()
+        {
+            var source = @"
+class C
+{
+    int e = 5;
+    int f = 6;
+    C instance = null;
+    void M()
+    {
+        int a = 1;
+        int b = 3;
+        int Item4 = 4;
+        int g = 7;
+        int Rest = 9;
+        (int x, int, int b, int, int, int, int f, int, int, int) y = (a, (a), b: 2, b, Item4, instance.e, this.f, g, g, Rest);
+        var z = (x: b, b);
+        System.Console.Write(y);
+        System.Console.Write(z);
+    }
+}
+";
+
+            Action<ModuleSymbol> validator = module =>
+            {
+                var sourceModule = (SourceModuleSymbol)module;
+                var compilation = sourceModule.DeclaringCompilation;
+                var tree = compilation.SyntaxTrees.First();
+                var model = compilation.GetSemanticModel(tree);
+                var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+
+                var yTuple = nodes.OfType<TupleExpressionSyntax>().ElementAt(0);
+                Assert.Equal("(System.Int32 a, System.Int32, System.Int32 b, System.Int32, System.Int32, System.Int32 e, System.Int32 f, System.Int32, System.Int32, System.Int32)",
+                    model.GetTypeInfo(yTuple).Type.ToTestDisplayString());
+
+                var zTuple = nodes.OfType<TupleExpressionSyntax>().ElementAt(1);
+                Assert.Equal("(System.Int32 x, System.Int32 b)", model.GetTypeInfo(zTuple).Type.ToTestDisplayString());
+            };
+
+            var verifier = CompileAndVerify(source, additionalRefs: new[] { MscorlibRef, ValueTupleRef, SystemRuntimeFacadeRef }, sourceSymbolValidator: validator);
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void MissingMemberAccessWithCSharp7()
+        {
+            var source = @"
+class C
+{
+    void M()
+    {
+        int a = 1;
+        var t = (a, 2);
+        System.Console.Write(t.a);
+        System.Console.Write(GetTuple().a);
+    }
+    (int, int) GetTuple()
+    {
+        return (1, 2);
+    }
+}
+";
+            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics(
+                // (8,32): error CS8305: Tuple element name 'a' is inferred. Please use language version 7.1 or greater to access an element by its inferred name.
+                //         System.Console.Write(t.a);
+                Diagnostic(ErrorCode.ERR_TupleInferredNamesNotAvailable, "a").WithArguments("a", "7.1").WithLocation(8, 32),
+                // (9,41): error CS1061: '(int, int)' does not contain a definition for 'a' and no extension method 'a' accepting a first argument of type '(int, int)' could be found (are you missing a using directive or an assembly reference?)
+                //         System.Console.Write(GetTuple().a);
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "a").WithArguments("(int, int)", "a").WithLocation(9, 41)
+                );
+        }
+
+        [Fact]
+        public void UseSiteDiagnosticOnTupleField()
+        {
+            var missing_cs = @"public class Missing { }";
+
+            var lib_cs = @"
+public class C
+{
+    public static (Missing, int) GetTuple()
+    {
+        throw null;
+    }
+}
+";
+            var source_cs = @"
+class D
+{
+    void M()
+    {
+        System.Console.Write(C.GetTuple().Item1);
+    }
+}";
+            var missingComp = CreateStandardCompilation(missing_cs, assemblyName: "UseSiteDiagnosticOnTupleField_missingComp");
+            missingComp.VerifyDiagnostics();
+
+            var libComp = CreateStandardCompilation(lib_cs,
+                references: new[] { ValueTupleRef, SystemRuntimeFacadeRef, missingComp.ToMetadataReference() });
+            libComp.VerifyDiagnostics();
+
+            var comp7 = CreateStandardCompilation(source_cs,
+                references: new[] { ValueTupleRef, SystemRuntimeFacadeRef, libComp.ToMetadataReference() }, parseOptions: TestOptions.Regular);
+
+            comp7.VerifyDiagnostics(
+                // (6,30): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'UseSiteDiagnosticOnTupleField_missingComp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //         System.Console.Write(C.GetTuple().Item1);
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "C.GetTuple").WithArguments("Missing", "UseSiteDiagnosticOnTupleField_missingComp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"),
+                // (6,43): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'UseSiteDiagnosticOnTupleField_missingComp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //         System.Console.Write(C.GetTuple().Item1);
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "Item1").WithArguments("Missing", "UseSiteDiagnosticOnTupleField_missingComp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null")
+                );
+
+            var comp7_1 = CreateStandardCompilation(source_cs, assemblyName: "UseSiteDiagnosticOnTupleField_comp7_1",
+                references: new[] { ValueTupleRef, SystemRuntimeFacadeRef, libComp.ToMetadataReference() }, parseOptions: TestOptions.Regular7_1);
+
+            comp7_1.VerifyDiagnostics(
+                // (6,30): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'UseSiteDiagnosticOnTupleField_missingComp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //         System.Console.Write(C.GetTuple().Item1);
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "C.GetTuple").WithArguments("Missing", "UseSiteDiagnosticOnTupleField_missingComp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"),
+                // (6,43): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'UseSiteDiagnosticOnTupleField_missingComp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //         System.Console.Write(C.GetTuple().Item1);
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "Item1").WithArguments("Missing", "UseSiteDiagnosticOnTupleField_missingComp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null")
+                );
+        }
+
+        [Fact]
+        public void UseSiteDiagnosticOnTupleField2()
+        {
+            var source_cs = @"
+public class C
+{
+    void M()
+    {
+        int a = 1;
+        var t = (a, 2);
+        System.Console.Write(t.a);
+    }
+}
+namespace System
+{
+    public struct ValueTuple<T1, T2>
+    {
+        public ValueTuple(T1 item1, T2 item2) { }
+    }
+}
+";
+
+            var comp7 = CreateStandardCompilation(source_cs, parseOptions: TestOptions.Regular, assemblyName: "UseSiteDiagnosticOnTupleField2_comp7");
+            comp7.VerifyDiagnostics(
+                // (8,32): error CS8128: Member 'Item1' was not found on type 'ValueTuple<T1, T2>' from assembly 'UseSiteDiagnosticOnTupleField2_comp7, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //         System.Console.Write(t.a);
+                Diagnostic(ErrorCode.ERR_PredefinedTypeMemberNotFoundInAssembly, "a").WithArguments("Item1", "System.ValueTuple<T1, T2>", "UseSiteDiagnosticOnTupleField2_comp7, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null")
+                );
+
+            var comp7_1 = CreateStandardCompilation(source_cs, parseOptions: TestOptions.Regular7_1, assemblyName: "UseSiteDiagnosticOnTupleField2_comp7_1");
+            comp7_1.VerifyDiagnostics(
+                // (8,32): error CS8128: Member 'Item1' was not found on type 'ValueTuple<T1, T2>' from assembly 'UseSiteDiagnosticOnTupleField2_comp7_1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //         System.Console.Write(t.a);
+                Diagnostic(ErrorCode.ERR_PredefinedTypeMemberNotFoundInAssembly, "a").WithArguments("Item1", "System.ValueTuple<T1, T2>", "UseSiteDiagnosticOnTupleField2_comp7_1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(8, 32)
+                );
+        }
+
+        [Fact]
+        public void MissingMemberAccessWithExtensionWithCSharp7()
+        {
+            var source = @"
+class C
+{
+    void M()
+    {
+        int a = 1;
+        var t = (a, 2);
+        System.Console.Write(t.a);
+        System.Console.Write(t.a());
+        System.Console.Write(GetTuple().a);
+    }
+    (int, int) GetTuple()
+    {
+        return (1, 2);
+    }
+}
+public static class Extensions
+{
+    public static string a(this (int, int) self) { return ""hello""; }
+}
+";
+            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef });
+            comp.VerifyDiagnostics(
+                // (8,32): error CS8305: Tuple element name 'a' is inferred. Please use language version 7.1 or greater to access an element by its inferred name.
+                //         System.Console.Write(t.a);
+                Diagnostic(ErrorCode.ERR_TupleInferredNamesNotAvailable, "a").WithArguments("a", "7.1").WithLocation(8, 32),
+                // (10,30): error CS1503: Argument 1: cannot convert from 'method group' to 'string'
+                //         System.Console.Write(GetTuple().a);
+                Diagnostic(ErrorCode.ERR_BadArgType, "GetTuple().a").WithArguments("1", "method group", "string")
+                );
+        }
+
+        [Fact]
+        public void MissingMemberAccessWithCSharp7_1()
+        {
+            var source = @"
+class C
+{
+    void M()
+    {
+        int a = 1;
+        var t = (a, 2);
+        System.Console.Write(t.a);
+        System.Console.Write(t.b);
+    }
+}
+";
+            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.DebugDll, parseOptions: TestOptions.Regular7_1);
+            comp.VerifyDiagnostics(
+                // (9,32): error CS1061: '(int a, int)' does not contain a definition for 'b' and no extension method 'b' accepting a first argument of type '(int a, int)' could be found (are you missing a using directive or an assembly reference?)
+                //         System.Console.Write(t.b);
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "b").WithArguments("(int a, int)", "b").WithLocation(9, 32)
+                );
+        }
+
+        [Fact]
+        public void TupleCreationWithInferredNames()
+        {
+            var source = @"
+class C
+{
+    int e = 5;
+    int f = 6;
+    C instance = null;
+    string M()
+    {
+        int a = 1;
+        int b = 3;
+        int Item4 = 4;
+        int g = 7;
+        int Rest = 9;
+        (int x, int, int b, int, int, int, int f, int, int, int) y = (a, (a), b: 2, b, Item4, instance.e, this.f, g, g, Rest);
+        var z = (x: b, b);
+        System.Console.Write(y);
+        System.Console.Write(z);
+        return null;
+    }
+
+    int P
+    {
+        set
+        {
+            var t = (M(), value);
+            System.Console.Write(t.value);
+        }
+    }
+}
+";
+
+            Action<ModuleSymbol> validator = module =>
+            {
+                var sourceModule = (SourceModuleSymbol)module;
+                var compilation = sourceModule.DeclaringCompilation;
+                var tree = compilation.SyntaxTrees.First();
+                var model = compilation.GetSemanticModel(tree);
+                var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+
+                var yTuple = nodes.OfType<TupleExpressionSyntax>().ElementAt(0);
+                Assert.Equal("(System.Int32 a, System.Int32, System.Int32 b, System.Int32, System.Int32, System.Int32 e, System.Int32 f, System.Int32, System.Int32, System.Int32)",
+                    model.GetTypeInfo(yTuple).Type.ToTestDisplayString());
+
+                var zTuple = nodes.OfType<TupleExpressionSyntax>().ElementAt(1);
+                Assert.Equal("(System.Int32 x, System.Int32 b)", model.GetTypeInfo(zTuple).Type.ToTestDisplayString());
+
+                var tTuple = nodes.OfType<TupleExpressionSyntax>().ElementAt(2);
+                Assert.Equal("(System.String, System.Int32 value)", model.GetTypeInfo(tTuple).Type.ToTestDisplayString());
+            };
+
+            var verifier = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1),
+                additionalRefs: new[] { MscorlibRef, ValueTupleRef, SystemRuntimeFacadeRef }, sourceSymbolValidator: validator);
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TupleCreationWithInferredNames2()
+        {
+            var source = @"
+class C
+{
+    private int e = 5;
+}
+class C2
+{
+    C instance = null;
+    C2 instance2 = null;
+    int M()
+    {
+        var y = (instance?.e, (instance.e, instance2.M(), checked(instance.e), default(int)));
+        System.Console.Write(y);
+        return 42;
+    }
+}
+";
+
+            var compilation = CreateStandardCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1),
+                references: new[] { MscorlibRef, ValueTupleRef, SystemRuntimeFacadeRef });
+            compilation.VerifyDiagnostics(
+                // (12,27): error CS0122: 'C.e' is inaccessible due to its protection level
+                //         var y = (instance?.e, (instance.e, instance2.M(), checked(instance.e), default(int)));
+                Diagnostic(ErrorCode.ERR_BadAccess, ".e").WithArguments("C.e").WithLocation(12, 27),
+                // (12,41): error CS0122: 'C.e' is inaccessible due to its protection level
+                //         var y = (instance?.e, (instance.e, instance2.M(), checked(instance.e), default(int)));
+                Diagnostic(ErrorCode.ERR_BadAccess, "e").WithArguments("C.e").WithLocation(12, 41),
+                // (12,76): error CS0122: 'C.e' is inaccessible due to its protection level
+                //         var y = (instance?.e, (instance.e, instance2.M(), checked(instance.e), default(int)));
+                Diagnostic(ErrorCode.ERR_BadAccess, "e").WithArguments("C.e").WithLocation(12, 76),
+                // (4,17): warning CS0414: The field 'C.e' is assigned but its value is never used
+                //     private int e = 5;
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "e").WithArguments("C.e")
+                );
+
+            var tree = compilation.SyntaxTrees.First();
+            var model = compilation.GetSemanticModel(tree);
+            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+
+            // The type for int? was not picked up
+            // Follow-up issue: https://github.com/dotnet/roslyn/issues/19144
+            var yTuple = nodes.OfType<TupleExpressionSyntax>().ElementAt(0);
+            Assert.Equal("(? e, (System.Int32 e, System.Int32, System.Int32, System.Int32))",
+                model.GetTypeInfo(yTuple).Type.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void InferredNamesInLinq()
+        {
+            var source = @"
+using System.Collections.Generic;
+using System.Linq;
+class C
+{
+    int f1 = 0;
+    int f2 = 1;
+    static void M(IEnumerable<C> list)
+    {
+        var result = list.Select(c => (c.f1, c.f2)).Where(t => t.f2 == 1); // t and result have names f1 and f2
+        System.Console.Write(result.Count());
+    }
+}
+";
+
+            Action<ModuleSymbol> validator = module =>
+            {
+                var sourceModule = (SourceModuleSymbol)module;
+                var compilation = sourceModule.DeclaringCompilation;
+                var tree = compilation.SyntaxTrees.First();
+                var model = compilation.GetSemanticModel(tree);
+                var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+
+                var result = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Where(d => d.Identifier.ValueText == "result").Single();
+                var resultSymbol = model.GetDeclaredSymbol(result);
+                Assert.Equal("System.Collections.Generic.IEnumerable<(System.Int32 f1, System.Int32 f2)> result", resultSymbol.ToTestDisplayString());
+            };
+
+            var verifier = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1),
+                additionalRefs: new[] { MscorlibRef, ValueTupleRef, SystemRuntimeFacadeRef, LinqAssemblyRef }, sourceSymbolValidator: validator);
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void InferredNamesInTernary()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        var i = 1;
+        var flag = false;
+        var t = flag ? (i, 2) : (i, 3);
+        System.Console.Write(t.i);
+    }
+}
+";
+
+            var verifier = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1),
+                additionalRefs: new[] { MscorlibRef, ValueTupleRef, SystemRuntimeFacadeRef, LinqAssemblyRef },
+                expectedOutput:"1");
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void InferredNames_ExtensionNowFailsInCSharp7ButNotCSharp7_1()
+        {
+            var source = @"
+using System;
+class C
+{
+    static void Main()
+    {
+        Action M = () => Console.Write(""lambda"");
+        (1, M).M();
+    }
+}
+static class Extension
+{
+    public static void M(this (int, Action) t) => Console.Write(""extension"");
+}
+";
+
+            // When C# 7.0 shipped, no tuple element would be found/inferred, so the extension method was called.
+            // The C# 7.1 compiler disallows that, even when LanguageVersion is 7.0
+            var comp7 = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7),
+                references: new[] { MscorlibRef, ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef });
+            comp7.VerifyDiagnostics(
+                // (8,16): error CS8305: Tuple element name 'M' is inferred. Please use language version 7.1 or greater to access an element by its inferred name.
+                //         (1, M).M();
+                Diagnostic(ErrorCode.ERR_TupleInferredNamesNotAvailable, "M").WithArguments("M", "7.1")
+               );
+
+            var verifier7_1 = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1),
+                additionalRefs: new[] { MscorlibRef, ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef },
+                expectedOutput: "lambda");
+            verifier7_1.VerifyDiagnostics();
         }
 
         [Fact]
@@ -15110,6 +15525,41 @@ class C
         }
 
         [Fact]
+        public void GetSymbolInfo_WithInferredName()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        string Bob = ""hello"";
+        var x1 = (Alice: 1, Bob);
+
+        var Alice = x1.Alice;
+        var BobCopy = x1.Bob;
+    }
+}
+";
+
+            var tree = Parse(source, options: TestOptions.Regular7_1);
+            var comp = CreateStandardCompilation(tree, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics();
+
+            var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
+            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+
+            var x1Bob = nodes.OfType<MemberAccessExpressionSyntax>().ElementAt(1);
+            Assert.Equal("x1.Bob", x1Bob.ToString());
+            var x1Symbol = model.GetSymbolInfo(x1Bob.Expression).Symbol as LocalSymbol;
+            Assert.Equal("(System.Int32 Alice, System.String Bob)", x1Symbol.Type.ToTestDisplayString());
+            var bobField = x1Symbol.Type.GetMember("Bob");
+
+            Assert.Equal(SymbolKind.Field, bobField.Kind);
+            var secondElement = nodes.OfType<TupleExpressionSyntax>().First().Arguments[1];
+            Assert.Equal(secondElement.GetLocation(), bobField.Locations[0]);
+        }
+
+        [Fact]
         public void CompileTupleLib()
         {
             string additionalSource = @"
@@ -19264,7 +19714,7 @@ class C
             // NOTE: !!! There should be an IL local for  " (byte x, int y) v2 " , it should not be captured 
             verifier.VerifyIL("C.<Test>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
 {
-  // Code size      201 (0xc9)
+  // Code size      193 (0xc1)
   .maxstack  3
   .locals init (int V_0,
                 long V_1,
@@ -19311,7 +19761,7 @@ class C
     IL_0058:  ldloca.s   V_3
     IL_005a:  ldarg.0
     IL_005b:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<long>.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter, C.<Test>d__1>(ref System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter, ref C.<Test>d__1)""
-    IL_0060:  leave.s    IL_00c8
+    IL_0060:  leave.s    IL_00c0
     IL_0062:  ldarg.0
     IL_0063:  ldfld      ""System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter C.<Test>d__1.<>u__1""
     IL_0068:  stloc.3
@@ -19325,34 +19775,32 @@ class C
     IL_0079:  stfld      ""int C.<Test>d__1.<>1__state""
     IL_007e:  ldloca.s   V_3
     IL_0080:  call       ""void System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.GetResult()""
-    IL_0085:  ldloca.s   V_3
-    IL_0087:  initobj    ""System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter""
-    IL_008d:  ldarg.0
-    IL_008e:  ldflda     ""(long a, int b) C.<Test>d__1.<v1>5__1""
-    IL_0093:  ldfld      ""long System.ValueTuple<long, int>.Item1""
-    IL_0098:  stloc.1
-    IL_0099:  leave.s    IL_00b4
+    IL_0085:  ldarg.0
+    IL_0086:  ldflda     ""(long a, int b) C.<Test>d__1.<v1>5__1""
+    IL_008b:  ldfld      ""long System.ValueTuple<long, int>.Item1""
+    IL_0090:  stloc.1
+    IL_0091:  leave.s    IL_00ac
   }
   catch System.Exception
   {
-    IL_009b:  stloc.s    V_5
+    IL_0093:  stloc.s    V_5
+    IL_0095:  ldarg.0
+    IL_0096:  ldc.i4.s   -2
+    IL_0098:  stfld      ""int C.<Test>d__1.<>1__state""
     IL_009d:  ldarg.0
-    IL_009e:  ldc.i4.s   -2
-    IL_00a0:  stfld      ""int C.<Test>d__1.<>1__state""
-    IL_00a5:  ldarg.0
-    IL_00a6:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<long> C.<Test>d__1.<>t__builder""
-    IL_00ab:  ldloc.s    V_5
-    IL_00ad:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<long>.SetException(System.Exception)""
-    IL_00b2:  leave.s    IL_00c8
+    IL_009e:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<long> C.<Test>d__1.<>t__builder""
+    IL_00a3:  ldloc.s    V_5
+    IL_00a5:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<long>.SetException(System.Exception)""
+    IL_00aa:  leave.s    IL_00c0
   }
+  IL_00ac:  ldarg.0
+  IL_00ad:  ldc.i4.s   -2
+  IL_00af:  stfld      ""int C.<Test>d__1.<>1__state""
   IL_00b4:  ldarg.0
-  IL_00b5:  ldc.i4.s   -2
-  IL_00b7:  stfld      ""int C.<Test>d__1.<>1__state""
-  IL_00bc:  ldarg.0
-  IL_00bd:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<long> C.<Test>d__1.<>t__builder""
-  IL_00c2:  ldloc.1
-  IL_00c3:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<long>.SetResult(long)""
-  IL_00c8:  ret
+  IL_00b5:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<long> C.<Test>d__1.<>t__builder""
+  IL_00ba:  ldloc.1
+  IL_00bb:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<long>.SetResult(long)""
+  IL_00c0:  ret
 }
 ");
         }

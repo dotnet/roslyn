@@ -521,7 +521,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                  {
                      IInvocationExpression invocation = (IInvocationExpression)operationContext.Operation;
                      long priorArgumentValue = long.MinValue;
-                     foreach (IArgument argument in invocation.ArgumentsInParameterOrder)
+                     foreach (IArgument argument in invocation.ArgumentsInEvaluationOrder)
                      {
                          if (argument.IsInvalid)
                          {
@@ -820,16 +820,19 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                  (operationContext) =>
                  {
                      var declarationStatement = (IVariableDeclarationStatement)operationContext.Operation;
-                     if (declarationStatement.Variables.Length > 3)
+                     if (declarationStatement.GetDeclaredVariables().Count() > 3)
                      {
                          Report(operationContext, declarationStatement.Syntax, TooManyLocalVarDeclarationsDescriptor);
                      }
 
-                     foreach (var decl in declarationStatement.Variables)
+                     foreach (var decl in declarationStatement.Declarations)
                      {
-                         if (decl.InitialValue != null && !decl.InitialValue.IsInvalid)
+                         if (decl.Initializer != null && !decl.Initializer.IsInvalid)
                          {
-                             Report(operationContext, decl.Syntax, LocalVarInitializedDeclarationDescriptor);
+                             foreach (var symbol in decl.Variables)
+                             {
+                                Report(operationContext, symbol.DeclaringSyntaxReferences.Single().GetSyntax(), LocalVarInitializedDeclarationDescriptor);
+                             }
                          }
                      }
                  },
@@ -1085,23 +1088,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                  {
                      IInvocationExpression invocation = (IInvocationExpression)operationContext.Operation;
 
-                     foreach (IArgument argument in invocation.ArgumentsInSourceOrder)
-                     {
-                         if (argument.Parameter.IsParams)
-                         {
-                             IArrayCreationExpression arrayValue = argument.Value as IArrayCreationExpression;
-                             if (arrayValue != null)
-                             {
-                                 Optional<object> dimensionSize = arrayValue.DimensionSizes[0].ConstantValue;
-                                 if (dimensionSize.HasValue && IntegralValue(dimensionSize.Value) > 3)
-                                 {
-                                     operationContext.ReportDiagnostic(Diagnostic.Create(LongParamsDescriptor, argument.Value.Syntax.GetLocation()));
-                                 }
-                             }
-                         }
-                     }
-
-                     foreach (IArgument argument in invocation.ArgumentsInParameterOrder)
+                     foreach (IArgument argument in invocation.ArgumentsInEvaluationOrder)
                      {
                          if (argument.Parameter.IsParams)
                          {
@@ -1129,7 +1116,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                         operationContext.ReportDiagnostic(Diagnostic.Create(InvalidConstructorDescriptor, creation.Syntax.GetLocation()));
                     }
 
-                    foreach (IArgument argument in creation.ArgumentsInParameterOrder)
+                    foreach (IArgument argument in creation.ArgumentsInEvaluationOrder)
                     {
                         if (argument.Parameter.IsParams)
                         {
@@ -1714,7 +1701,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true);
 
-        // since we don't expect to see the first diagnostic, we created this one to make sure 
+        // since we don't expect to see the first diagnostic, we created this one to make sure
         // the test didn't pass because the analyzer crashed.
         public static readonly DiagnosticDescriptor ParamsArrayOperationDescriptor = new DiagnosticDescriptor(
             "ParamsArray",

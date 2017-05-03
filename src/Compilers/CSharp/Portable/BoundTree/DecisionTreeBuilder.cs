@@ -237,7 +237,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (forType == null)
             {
                 var type = value.Value.Type;
-                var localSymbol = new SynthesizedLocal(_enclosingSymbol as MethodSymbol, type, SynthesizedLocalKind.PatternMatchingTemp, Syntax, false, RefKind.None);
+                var localSymbol = new SynthesizedLocal(_enclosingSymbol as MethodSymbol, type, SynthesizedLocalKind.PatternMatching, Syntax, false, RefKind.None);
                 var narrowedExpression = new BoundLocal(Syntax, localSymbol, null, type);
                 forType = new DecisionTree.ByValue(narrowedExpression, value.Value.Type.TupleUnderlyingTypeOrSelf(), localSymbol);
                 byType.TypeAndDecision.Add(new KeyValuePair<TypeSymbol, DecisionTree>(value.Value.Type, forType));
@@ -329,7 +329,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (result == null)
             {
-                var localSymbol = new SynthesizedLocal(_enclosingSymbol as MethodSymbol, type, SynthesizedLocalKind.PatternMatchingTemp, Syntax, false, RefKind.None);
+                var localSymbol = new SynthesizedLocal(_enclosingSymbol as MethodSymbol, type, SynthesizedLocalKind.PatternMatching, Syntax, false, RefKind.None);
                 var expression = new BoundLocal(Syntax, localSymbol, null, type);
                 result = makeDecision(expression, type);
                 Debug.Assert(result.Temp == null);

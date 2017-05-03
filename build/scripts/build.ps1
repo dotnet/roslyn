@@ -4,6 +4,7 @@ param (
     [switch]$build = $false, 
     [switch]$restore = $false,
     [switch]$test = $false,
+    [switch]$test64 = $false,
     [switch]$clean = $false,
     [switch]$clearPackageCache = $false,
     [string]$project = "",
@@ -17,7 +18,8 @@ function Print-Usage() {
     Write-Host "Build.ps1"
     Write-Host "`t-build                Run a build operation (default false)"
     Write-Host "`t-restore              Run a restore operation (default false)"
-    Write-Host "`t-test                 Run tests (default false)"
+    Write-Host "`t-test                 Run unit tests (default false)"
+    Write-Host "`t-test64               Run unit tests in 64 bit mode"
     Write-Host "`t-clean                Do a clean build / restore (default false)"
     Write-Host "`t-clearPackageCache    Clear package cache before restoring"
     Write-Host "`t-project <path>       Project the build or restore should target"
@@ -33,12 +35,16 @@ function Run-Build() {
     $target = if ($project -ne "") { $project } else { Join-Path $repoDir "Roslyn.sln" }
     $buildArgs = "$buildArgs $target"
 
-    Invoke-Expression "& `"$msbuild`" $buildArgs"
+    Exec-Command $msbuild $buildArgs | Out-Host
 }
 
 function Run-Test() {
     $proj = Join-Path $repoDir "BuildAndTest.proj"
-    Invoke-Expression "& `"$msbuild`" /v:m /p:SkipCoreClr=true /t:Test $proj"
+    $args = "/v:m /p:SkipCoreClr=true /p:ManualTest=true /t:Test $proj"
+    if ($test64) { 
+        $args += " /p:Test64=true"
+    }
+    Exec-Command $msbuild $args | Out-Host
 }
 
 try {
@@ -68,7 +74,7 @@ try {
         Run-Build
     }
 
-    if ($test) { 
+    if ($test -or $test64) { 
         Run-Test
     }
 }

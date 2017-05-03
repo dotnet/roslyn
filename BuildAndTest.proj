@@ -4,8 +4,6 @@
 
   <Import Project="$(MSBuildThisFileDirectory)build\Targets\Versions.props" />
 
-  <!-- At the moment Jenkins runs on a machine without any build of Visual Studio 2015.  Hence we must
-       use a 2013 compatible solution. -->
   <PropertyGroup>
     <RoslynSolution Condition="'$(RoslynSolution)' == ''">$(MSBuildThisFileDirectory)Roslyn.sln</RoslynSolution>
     <SamplesSolution>$(MSBuildThisFileDirectory)src\Samples\Samples.sln</SamplesSolution>
@@ -17,7 +15,7 @@
     <RunTestArgs Condition="'$(NoTrait)' != ''">$(RunTestArgs) -notrait:$(NoTrait)</RunTestArgs>
     <IncludePattern Condition="'$(IncludePattern)' == '' AND '$(TestVsi)' != 'true'">*.UnitTests.dll</IncludePattern>
     <IncludePattern Condition="'$(IncludePattern)' == '' AND '$(TestVsi)' == 'true'">*.IntegrationTests.dll</IncludePattern>
-    <OutputDirectory>Binaries\$(Configuration)</OutputDirectory>
+    <OutputDirectory>$(MSBuildThisFileDirectory)Binaries\$(Configuration)\</OutputDirectory>
     <RunTestArgs>$(RunTestArgs) -log:&quot;$(OutputDirectory)\runtests.log&quot;</RunTestArgs>
     <CoreClrTestDirectory>$(OutputDirectory)\CoreClrTest</CoreClrTestDirectory>
     <MSBuildCommonProperties>
@@ -63,7 +61,11 @@
              Targets="Rebuild" />
   </Target>
 
-  <Target Name="Test">
+  <Target
+    Name="Test" 
+    DependsOnTargets="DeployRoslynVsix"
+    Condition="'$(TestDesktop)' == 'true' or '$(TestCoreClr)' == 'true' or '$(TestVsi)' == 'true'">
+
     <ItemGroup>
       <AssembliesToCopyLocal Include="$(NuGetPackageRoot)\xunit\$(xunitVersion)\*.dll;
                                       $(NuGetPackageRoot)\xunit.assert\$(xunitassertVersion)\lib\portable-net45+netcore45+wp8+wpa81\*.dll" />
@@ -77,15 +79,21 @@
 
     <MakeDir Directories="$(CoreClrTestDirectory)\xUnitResults" />
 
+    <!-- Publish binaries for CoreClr test -->
+    <MSBuild BuildInParallel="true"
+             Projects="src\Test\DeployCoreClrTestRuntime\DeployCoreClrTestRuntime.csproj"
+             Properties="RuntimeIdentifier=win7-x64;PublishDir=$(CoreClrTestDirectory)"
+             Targets="Publish" />
+
     <ItemGroup>
 
       <!-- MakeConst unit tests tracked by https://github.com/dotnet/roslyn/issues/5918 -->
       <TestAssemblies Condition="'$(Test64)' != 'true'"
-                      Include="$(OutputDirectory)\UnitTests*\**\$(IncludePattern);" />
+                      Include="$(OutputDirectory)UnitTests*\**\$(IncludePattern);" />
 
       <TestAssemblies Condition="'$(Test64)' == 'true'"
-                      Include="$(OutputDirectory)\UnitTests*\**\$(IncludePattern);"
-                      Exclude="$(OutputDirectory)\UnitTests*\**\Roslyn.Interactive*" />
+                      Include="$(OutputDirectory)UnitTests*\**\$(IncludePattern);"
+                      Exclude="$(OutputDirectory)UnitTests*\**\Roslyn.Interactive*" />
 
       <CoreTestAssemblies Include="$(CoreClrTestDirectory)\$(IncludePattern)" />
     </ItemGroup>
@@ -96,22 +104,31 @@
       <RunTestsExe>Binaries\$(Configuration)\Exes\RunTests\RunTests.exe</RunTestsExe>
       <RunTestsArgs>$(NuGetPackageRoot)\xunit.runner.console\$(xunitrunnerconsoleVersion)\tools $(RunTestArgs) @(TestAssemblies, ' ')</RunTestsArgs>
       <VsixExpInstallerExe>$(NuGetPackageRoot)\roslyntools.microsoft.vsixexpinstaller\$(RoslynToolsMicrosoftVSIXExpInstallerVersion)\tools\VsixExpInstaller.exe</VsixExpInstallerExe>
-      <VsixExpInstallerArgs>/rootSuffix:RoslynDev /vsInstallDir:"$([System.IO.Path]::GetFullPath('$(MSBuildBinPath)\..\..\..'))"</VsixExpInstallerArgs>
+      <VsixExpInstallerArgs>-rootSuffix:RoslynDev -vsInstallDir:"$([System.IO.Path]::GetFullPath('$(MSBuildBinPath)\..\..\..'))"</VsixExpInstallerArgs>
     </PropertyGroup>
 
-    <Exec Condition="'$(TestVsi)' != 'true' AND '$(SkipCoreClr)' != 'true'" Command="&quot;$(CoreRunExe)&quot; $(CoreRunArgs)" />
+    <!-- Run CoreClr tests -->
+    <Exec Condition="'$(TestCoreClr)' == 'true'" Command="&quot;$(CoreRunExe)&quot; $(CoreRunArgs)" />
 
-    <!-- Manually deploy any VSIX required by our integration tests (https://github.com/dotnet/roslyn/issues/17456) -->
-    <Exec Condition="'$(TestVsi)' == 'true'" Command="&quot;$(VsixExpInstallerExe)&quot; $(VsixExpInstallerArgs) $(OutputDirectory)\Vsix\CompilerExtension\Roslyn.Compilers.Extension.vsix" />
-    <Exec Condition="'$(TestVsi)' == 'true'" Command="&quot;$(VsixExpInstallerExe)&quot; $(VsixExpInstallerArgs) $(OutputDirectory)\Vsix\VisualStudioSetup\Roslyn.VisualStudio.Setup.vsix" />
-    <Exec Condition="'$(TestVsi)' == 'true'" Command="&quot;$(VsixExpInstallerExe)&quot; $(VsixExpInstallerArgs) $(OutputDirectory)\Vsix\VisualStudioSetup.Next\Roslyn.VisualStudio.Setup.Next.vsix" />
-    <Exec Condition="'$(TestVsi)' == 'true'" Command="&quot;$(VsixExpInstallerExe)&quot; $(VsixExpInstallerArgs) $(OutputDirectory)\Vsix\VisualStudioInteractiveComponents\Roslyn.VisualStudio.InteractiveComponents.vsix" />
-    <Exec Condition="'$(TestVsi)' == 'true'" Command="&quot;$(VsixExpInstallerExe)&quot; $(VsixExpInstallerArgs) $(OutputDirectory)\Vsix\ExpressionEvaluatorPackage\ExpressionEvaluatorPackage.vsix" />
-    <Exec Condition="'$(TestVsi)' == 'true'" Command="&quot;$(VsixExpInstallerExe)&quot; $(VsixExpInstallerArgs) $(OutputDirectory)\Vsix\VisualStudioDiagnosticsWindow\Roslyn.VisualStudio.DiagnosticsWindow.vsix" />
-    <Exec Condition="'$(TestVsi)' == 'true'" Command="&quot;$(VsixExpInstallerExe)&quot; $(VsixExpInstallerArgs) $(OutputDirectory)\Vsix\VisualStudioIntegrationTestSetup\Microsoft.VisualStudio.IntegrationTest.Setup.vsix" />
+    <!-- Run Desktop tests -->
+    <Exec Condition="'$(TestDesktop)' == 'true' or '$(TestVsi)' == 'true'" Command="&quot;$(RunTestsExe)&quot; $(RunTestsArgs)" />
+  </Target>
 
-    <Exec Command="&quot;$(RunTestsExe)&quot; $(RunTestsArgs)" />
+  <!-- Manually deploy any VSIX required by our integration tests (https://github.com/dotnet/roslyn/issues/17456) -->
+  <Target Name="DeployRoslynVsix" Condition="'$(TestVsi)' == 'true'">
 
+    <PropertyGroup>
+      <VsixExpInstallerExe>$(NuGetPackageRoot)\roslyntools.microsoft.vsixexpinstaller\$(RoslynToolsMicrosoftVSIXExpInstallerVersion)\tools\VsixExpInstaller.exe</VsixExpInstallerExe>
+      <VsixExpInstallerArgs>-rootSuffix:RoslynDev -vsInstallDir:"$([System.IO.Path]::GetFullPath('$(MSBuildBinPath)\..\..\..'))"</VsixExpInstallerArgs>
+    </PropertyGroup>
+
+    <Exec Command="&quot;$(VsixExpInstallerExe)&quot; $(VsixExpInstallerArgs) $(OutputDirectory)\Vsix\CompilerExtension\Roslyn.Compilers.Extension.vsix" />
+    <Exec Command="&quot;$(VsixExpInstallerExe)&quot; $(VsixExpInstallerArgs) $(OutputDirectory)\Vsix\VisualStudioSetup\Roslyn.VisualStudio.Setup.vsix" />
+    <Exec Command="&quot;$(VsixExpInstallerExe)&quot; $(VsixExpInstallerArgs) $(OutputDirectory)\Vsix\VisualStudioSetup.Next\Roslyn.VisualStudio.Setup.Next.vsix" />
+    <Exec Command="&quot;$(VsixExpInstallerExe)&quot; $(VsixExpInstallerArgs) $(OutputDirectory)\Vsix\VisualStudioInteractiveComponents\Roslyn.VisualStudio.InteractiveComponents.vsix" />
+    <Exec Command="&quot;$(VsixExpInstallerExe)&quot; $(VsixExpInstallerArgs) $(OutputDirectory)\Vsix\ExpressionEvaluatorPackage\ExpressionEvaluatorPackage.vsix" />
+    <Exec Command="&quot;$(VsixExpInstallerExe)&quot; $(VsixExpInstallerArgs) $(OutputDirectory)\Vsix\VisualStudioDiagnosticsWindow\Roslyn.VisualStudio.DiagnosticsWindow.vsix" />
+    <Exec Command="&quot;$(VsixExpInstallerExe)&quot; $(VsixExpInstallerArgs) $(OutputDirectory)\Vsix\VisualStudioIntegrationTestSetup\Microsoft.VisualStudio.IntegrationTest.Setup.vsix" />
   </Target>
 
   <Target Name="BuildAndTest" DependsOnTargets="Build;Test" />

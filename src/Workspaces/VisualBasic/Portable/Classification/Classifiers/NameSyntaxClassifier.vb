@@ -80,9 +80,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification.Classifiers
                             Dim token = GetNameToken(node)
                             Return SpecializedCollections.SingletonEnumerable(
                                 New ClassifiedSpan(token.Span, ClassificationTypeNames.Keyword))
+                        Else
+                            ' We bound to a constructor, but we weren't something like the 'New' in 'X.New'.
+                            ' This can happen when we're actually just binding the full node 'X.New'.  In this
+                            ' case, don't return anything for this full node.  We'll end up hitting the 
+                            ' 'New' node as the worker walks down, and we'll classify it then.
+                            Return Nothing
                         End If
-
-                        symbol = method.ContainingType
                     End If
                 End If
 

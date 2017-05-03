@@ -213,7 +213,7 @@ class C
     void Foo()
     {
         Func<Task> f =
-            async [|()|] => { };
+            async () [|=>|] { };
     }
 }",
 @"
@@ -242,7 +242,7 @@ class C
     void Foo()
     {
         Func<string, Task> f =
-            async [|a|] => { };
+            async a [|=>|] { };
     }
 }",
 @"
@@ -258,6 +258,7 @@ class C
 }",
 ignoreTrivia: false);
         }
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
         public async Task TestLambdaWithExpressionBody()
         {
@@ -270,7 +271,7 @@ class C
     void Foo()
     {
         Func<string, Task> f =
-            async [|a|] => 1;
+            async a [|=>|] 1;
     }
 }",
 @"

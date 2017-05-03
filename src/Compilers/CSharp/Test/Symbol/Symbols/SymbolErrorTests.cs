@@ -7706,17 +7706,38 @@ class MyClass : I
         protected abstract internal void M3(sbyte p) { }
         public abstract object P { get { return null; } set { } }
         public abstract event System.Action E { add { } remove { } }
+        public abstract event System.Action X { add => throw null; remove => throw null; }
     } // class clx
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
-                new ErrorDescription { Code = (int)ErrorCode.ERR_AbstractHasBody, Line = 5, Column = 30 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_AbstractHasBody, Line = 6, Column = 34 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_AbstractHasBody, Line = 7, Column = 42 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_AbstractHasBody, Line = 8, Column = 36 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_AbstractHasBody, Line = 8, Column = 57 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_AbstractHasBody, Line = 9, Column = 49 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_AbstractHasBody, Line = 9, Column = 57 });
+            var comp = CreateStandardCompilation(text).VerifyDiagnostics(
+                // (5,30): error CS0500: 'clx.M1()' cannot declare a body because it is marked abstract
+                //         abstract public void M1() { }
+                Diagnostic(ErrorCode.ERR_AbstractHasBody, "M1").WithArguments("NS.clx.M1()").WithLocation(5, 30),
+                // (6,34): error CS0500: 'clx.M2()' cannot declare a body because it is marked abstract
+                //         internal abstract object M2() { return null; }
+                Diagnostic(ErrorCode.ERR_AbstractHasBody, "M2").WithArguments("NS.clx.M2()").WithLocation(6, 34),
+                // (7,42): error CS0500: 'clx.M3(sbyte)' cannot declare a body because it is marked abstract
+                //         protected abstract internal void M3(sbyte p) { }
+                Diagnostic(ErrorCode.ERR_AbstractHasBody, "M3").WithArguments("NS.clx.M3(sbyte)").WithLocation(7, 42),
+                // (8,36): error CS0500: 'clx.P.get' cannot declare a body because it is marked abstract
+                //         public abstract object P { get { return null; } set { } }
+                Diagnostic(ErrorCode.ERR_AbstractHasBody, "get").WithArguments("NS.clx.P.get").WithLocation(8, 36),
+                // (8,57): error CS0500: 'clx.P.set' cannot declare a body because it is marked abstract
+                //         public abstract object P { get { return null; } set { } }
+                Diagnostic(ErrorCode.ERR_AbstractHasBody, "set").WithArguments("NS.clx.P.set").WithLocation(8, 57),
+                // (9,49): error CS0500: 'clx.E.add' cannot declare a body because it is marked abstract
+                //         public abstract event System.Action E { add { } remove { } }
+                Diagnostic(ErrorCode.ERR_AbstractHasBody, "add").WithArguments("NS.clx.E.add").WithLocation(9, 49),
+                // (9,57): error CS0500: 'clx.E.remove' cannot declare a body because it is marked abstract
+                //         public abstract event System.Action E { add { } remove { } }
+                Diagnostic(ErrorCode.ERR_AbstractHasBody, "remove").WithArguments("NS.clx.E.remove").WithLocation(9, 57),
+                // (10,49): error CS0500: 'clx.X.add' cannot declare a body because it is marked abstract
+                //         public abstract event System.Action X { add => throw null; remove => throw null; }
+                Diagnostic(ErrorCode.ERR_AbstractHasBody, "add").WithArguments("NS.clx.X.add").WithLocation(10, 49),
+                // (10,68): error CS0500: 'clx.X.remove' cannot declare a body because it is marked abstract
+                //         public abstract event System.Action X { add => throw null; remove => throw null; }
+                Diagnostic(ErrorCode.ERR_AbstractHasBody, "remove").WithArguments("NS.clx.X.remove").WithLocation(10, 68));
 
             var ns = comp.SourceModule.GlobalNamespace.GetMembers("NS").Single() as NamespaceSymbol;
             // TODO...
@@ -19329,9 +19350,13 @@ static class A
     public static int f1<T>() { return 1; }
 }
 ";
-            DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
-                new ErrorDescription { Code = (int)ErrorCode.ERR_InvalidAnonymousTypeMemberDeclarator, Line = 3, Column = 22 }
-            );
+            CreateStandardCompilation(text).VerifyDiagnostics(
+                // (3,22): error CS0746: Invalid anonymous type member declarator. Anonymous type members must be declared with a member assignment, simple name or member access.
+                //     object F = new { f1<int> };
+                Diagnostic(ErrorCode.ERR_InvalidAnonymousTypeMemberDeclarator, "f1<int>").WithLocation(3, 22),
+                // (3,22): error CS0828: Cannot assign method group to anonymous type property
+                //     object F = new { f1<int> };
+                Diagnostic(ErrorCode.ERR_AnonymousTypePropertyAssignedBadValue, "f1<int>").WithArguments("method group").WithLocation(3, 22));
         }
 
         [Fact]

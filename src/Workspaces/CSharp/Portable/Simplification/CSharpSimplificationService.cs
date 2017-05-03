@@ -30,7 +30,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 new CSharpExtensionMethodReducer(),
                 new CSharpParenthesesReducer(),
                 new CSharpEscapingReducer(),
-                new CSharpMiscellaneousReducer());
+                new CSharpMiscellaneousReducer(),
+                new CSharpInferredMemberNameReducer());
 
         public CSharpSimplificationService() : base(s_reducers)
         {
@@ -86,6 +87,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
             }
 
             if (SyntaxFacts.GetKeywordKind(syntaxToken.ValueText) == SyntaxKind.None && SyntaxFacts.GetContextualKeywordKind(syntaxToken.ValueText) == SyntaxKind.None)
+            {
+                return syntaxToken;
+            }
+
+            if (SyntaxFacts.GetContextualKeywordKind(syntaxToken.ValueText) == SyntaxKind.UnderscoreToken)
             {
                 return syntaxToken;
             }
@@ -183,6 +189,35 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                     }
                 }
             }
+        }
+
+        // Is the tuple on either side of a deconstruction (top-level or nested)?
+        private static bool IsTupleInDeconstruction(SyntaxNode tuple)
+        {
+            Contract.Assert(tuple.IsKind(SyntaxKind.TupleExpression));
+            var currentTuple = tuple;
+            do
+            {
+                var parent = currentTuple.Parent;
+                if (parent.IsKind(SyntaxKind.SimpleAssignmentExpression))
+                {
+                    return true;
+                }
+
+                if (!parent.IsKind(SyntaxKind.Argument))
+                {
+                    return false;
+                }
+
+                var grandParent = parent.Parent;
+                if (!grandParent.IsKind(SyntaxKind.TupleExpression))
+                {
+                    return false;
+                }
+
+                currentTuple = grandParent;
+            }
+            while (true);
         }
     }
 }

@@ -11,6 +11,7 @@
     <AssemblyName>FormatSolution</AssemblyName>
     <MyType>Console</MyType>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <RuntimeIdentifiers>win7</RuntimeIdentifiers>
     <ScrubbedSamplePath>VisualBasic\FormatSolution</ScrubbedSamplePath>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <OptionStrict>Off</OptionStrict>
@@ -53,7 +54,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Program.vb" />
-    <None Include="project.json" />
     <None Include="TestSolutionForVB\CSharpProject\CSharpClass.cs">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -73,7 +73,6 @@
   <ItemGroup>
     <Folder Include="My Project\" />
   </ItemGroup>
-  <ItemGroup />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

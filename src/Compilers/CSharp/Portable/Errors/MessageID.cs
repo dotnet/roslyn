@@ -127,8 +127,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureExpressionBodiedAccessor = MessageBase + 12715,
         IDS_FeatureExpressionBodiedDeOrConstructor = MessageBase + 12716,
         IDS_ThrowExpression = MessageBase + 12717,
+        IDS_FeatureDefaultLiteral = MessageBase + 12718,
+        IDS_FeatureInferredTupleNames = MessageBase + 12719,
 
-        IDS_DefaultInterfaceImplementation = MessageBase + 12718,
+        IDS_DefaultInterfaceImplementation = MessageBase + 12720,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -186,6 +188,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (feature)
             {
                 // C# 7.1 features.
+                case MessageID.IDS_FeatureDefaultLiteral:
+                case MessageID.IDS_FeatureInferredTupleNames:
                 case MessageID.IDS_DefaultInterfaceImplementation:
                     return LanguageVersion.CSharp7_1;
 
