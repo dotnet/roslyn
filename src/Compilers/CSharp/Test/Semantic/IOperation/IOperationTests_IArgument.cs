@@ -27,14 +27,14 @@ IInvocationExpression (static void P.M2(System.Int32 x, System.Double y)) (Opera
   Arguments(2): IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: '1')
       ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
     IArgument (ArgumentKind.Explicit, Matching Parameter: y) (OperationKind.Argument) (Syntax: '2.0')
-      ILiteralExpression (OperationKind.LiteralExpression, Type: System.Double, Constant: 2) (Syntax: '2.0')
+      ILiteralExpression (Text: 2) (OperationKind.LiteralExpression, Type: System.Double, Constant: 2) (Syntax: '2.0')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18549")]
+        [Fact]
         public void PositionalArgumentWithDefaultValue()
         {
             string source = @"
@@ -86,7 +86,7 @@ IInvocationExpression (static void P.M2(System.Int32 x, [System.Double y = 0])) 
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18549")]
+        [Fact]
         public void NamedArgumentListedOutOfParameterOrder()
         {
             string source = @"
@@ -111,8 +111,7 @@ IInvocationExpression (static void P.M2(System.Int32 x, [System.Double y = 0])) 
 
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
-
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18549")]
+        
         public void NamedArgumentInParameterOrderWithDefaultValue()
         {
             string source = @"
@@ -139,8 +138,8 @@ IInvocationExpression (static void P.M2([System.Int32 x = 1], [System.Int32 y = 
 
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
-
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18549")]
+        
+        [Fact]
         public void NamedArgumentOutOfParameterOrderWithDefaultValue()
         {
             string source = @"
@@ -168,7 +167,7 @@ IInvocationExpression (static void P.M2([System.Int32 x = 1], [System.Int32 y = 
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18549")]
+        [Fact]
         public void NamedAndPositionalArgumentsWithDefaultValue()
         {
             string source = @"
@@ -255,7 +254,7 @@ IInvocationExpression ( void P.M2(ref System.Int32 x, out System.Int32 y)) (Oper
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18549")]
+        [Fact]
         public void NamedRefAndOutArgumentsOutOfParameterOrder()
         {
             string source = @"
@@ -271,13 +270,20 @@ class P
     void M2(ref int x, out int y) { y = 10; }
 }
 ";
-            string expectedOperationTree = @"";
+            string expectedOperationTree = @"
+IInvocationExpression ( void P.M2(ref System.Int32 x, out System.Int32 y)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'M2(y: out b, x: ref a)')
+  Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: P) (Syntax: 'M2')
+  Arguments(2): IArgument (ArgumentKind.Explicit, Matching Parameter: y) (OperationKind.Argument) (Syntax: 'b')
+      ILocalReferenceExpression: b (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'b')
+    IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: 'a')
+      ILocalReferenceExpression: a (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'a')
+";
             var expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18549")]
+        [Fact]
         public void DefaultValueOfNewStruct()
         {
             string source = @"
@@ -293,13 +299,18 @@ class P
 
 struct S { }
 ";
-            string expectedOperationTree = @"";
+            string expectedOperationTree = @"
+IInvocationExpression ( void P.M2([S sobj = default(S)])) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'M2()')
+  Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: P) (Syntax: 'M2')
+  Arguments(1): IArgument (ArgumentKind.DefaultValue, Matching Parameter: sobj) (OperationKind.Argument) (Syntax: 'M2()')
+      IDefaultValueExpression (OperationKind.DefaultValueExpression, Type: S) (Syntax: 'M2()')
+";
             var expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18549")]
+        [Fact]
         public void DefaultValueOfDefaultStruct()
         {
             string source = @"
@@ -315,13 +326,18 @@ class P
 
 struct S { }
 ";
-            string expectedOperationTree = @"";
+            string expectedOperationTree = @"
+IInvocationExpression ( void P.M2([S sobj = default(S)])) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'M2()')
+  Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: P) (Syntax: 'M2')
+  Arguments(1): IArgument (ArgumentKind.DefaultValue, Matching Parameter: sobj) (OperationKind.Argument) (Syntax: 'M2()')
+      IDefaultValueExpression (OperationKind.DefaultValueExpression, Type: S) (Syntax: 'M2()')
+";
             var expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18549")]
+        [Fact]
         public void DefaultValueOfConstant()
         {
             string source = @"
@@ -379,7 +395,7 @@ IInvocationExpression (static void Extensions.E1(this P p, [System.Int32 x = 0],
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18549")]
+        [Fact]
         public void NamedArgumentOutOfParameterOrderForExtensionMethod()
         {
             string source = @"
@@ -412,7 +428,7 @@ IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'this.E1(y: 1,
             VerifyOperationTreeAndDiagnosticsForTest<ExpressionStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18549")]
+        [Fact]
         public void NamedArgumentWithDefaultValueForExtensionMethod()
         {
             string source = @"
@@ -491,10 +507,10 @@ IInvocationExpression ( void P.M2(System.Int32 x, params System.Double[] array))
   Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: P) (Syntax: 'M2')
   Arguments(2): IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: '1')
       ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
-    IArgument (ArgumentKind.ParamArray, Matching Parameter: array) (OperationKind.Argument) (Syntax: '0.1')
-      IArrayCreationExpression (Element Type: System.Double) (OperationKind.ArrayCreationExpression, Type: System.Double[]) (Syntax: '0.1')
-        Dimension Sizes(1): ILiteralExpression (Text: 2) (OperationKind.LiteralExpression, Type: null, Constant: 2) (Syntax: '0.1')
-        Initializer: IArrayInitializer (2 elements) (OperationKind.ArrayInitializer) (Syntax: '0.1')
+    IArgument (ArgumentKind.ParamArray, Matching Parameter: array) (OperationKind.Argument) (Syntax: 'M2(1, 0.1, 0.2)')
+      IArrayCreationExpression (Element Type: System.Double) (OperationKind.ArrayCreationExpression, Type: System.Double[]) (Syntax: 'M2(1, 0.1, 0.2)')
+        Dimension Sizes(1): ILiteralExpression (Text: 2) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: 'M2(1, 0.1, 0.2)')
+        Initializer: IArrayInitializer (2 elements) (OperationKind.ArrayInitializer) (Syntax: 'M2(1, 0.1, 0.2)')
             Element Values(2): ILiteralExpression (Text: 0.1) (OperationKind.LiteralExpression, Type: System.Double, Constant: 0.1) (Syntax: '0.1')
               ILiteralExpression (Text: 0.2) (OperationKind.LiteralExpression, Type: System.Double, Constant: 0.2) (Syntax: '0.2')
 ";
@@ -503,7 +519,7 @@ IInvocationExpression ( void P.M2(System.Int32 x, params System.Double[] array))
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18549")]
+        [Fact]
         public void ParamsArrayArgumentInExpandedFormWithNoArgument()
         {
             string source = @"
@@ -524,15 +540,15 @@ IInvocationExpression ( void P.M2(System.Int32 x, params System.Double[] array))
       ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
     IArgument (ArgumentKind.ParamArray, Matching Parameter: array) (OperationKind.Argument) (Syntax: 'M2(1)')
       IArrayCreationExpression (Element Type: System.Double) (OperationKind.ArrayCreationExpression, Type: System.Double[]) (Syntax: 'M2(1)')
-        Dimension Sizes(1): ILiteralExpression (Text: 0) (OperationKind.LiteralExpression, Type: null, Constant: 0) (Syntax: 'M2(1)')
-        Initializer: IArrayInitializer (OperationKind.ArrayInitializer) (Syntax: 'M2(1)')
+        Dimension Sizes(1): ILiteralExpression (Text: 0) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: 'M2(1)')
+        Initializer: IArrayInitializer (0 elements) (OperationKind.ArrayInitializer) (Syntax: 'M2(1)')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18549")]
+        [Fact]
         public void DefaultValueAndParamsArrayArgumentInExpandedFormWithNoArgument()
         {
             string source = @"
@@ -562,7 +578,7 @@ IInvocationExpression ( void P.M2([System.Int32 x = 0], params System.Double[] a
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18549")]
+        [Fact]
         public void DefaultValueAndNamedParamsArrayArgumentInNormalForm()
         {
             string source = @"
@@ -590,7 +606,7 @@ IInvocationExpression ( void P.M2([System.Int32 x = 0], params System.Double[] a
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18549")]
+        [Fact]
         public void DefaultValueAndNamedParamsArrayArgumentInExpandedForm()
         {
             string source = @"
@@ -607,10 +623,10 @@ class P
             string expectedOperationTree = @"
 IInvocationExpression ( void P.M2([System.Int32 x = 0], params System.Double[] array)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'M2(array: 1)')
   Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: P) (Syntax: 'M2')
-  Arguments(2): IArgument (ArgumentKind.ParamArray, Matching Parameter: array) (OperationKind.Argument) (Syntax: '1')
-      IArrayCreationExpression (Element Type: System.Double) (OperationKind.ArrayCreationExpression, Type: System.Double[]) (Syntax: '1')
-        Dimension Sizes(1): ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: null, Constant: 1) (Syntax: '1')
-        Initializer: IArrayInitializer (OperationKind.ArrayInitializer) (Syntax: '1')
+  Arguments(2): IArgument (ArgumentKind.ParamArray, Matching Parameter: array) (OperationKind.Argument) (Syntax: 'M2(array: 1)')
+      IArrayCreationExpression (Element Type: System.Double) (OperationKind.ArrayCreationExpression, Type: System.Double[]) (Syntax: 'M2(array: 1)')
+        Dimension Sizes(1): ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: 'M2(array: 1)')
+        Initializer: IArrayInitializer (1 elements) (OperationKind.ArrayInitializer) (Syntax: 'M2(array: 1)')
             Element Values(1): IConversionExpression (ConversionKind.CSharp, Implicit) (OperationKind.ConversionExpression, Type: System.Double, Constant: 1) (Syntax: '1')
                 ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
     IArgument (ArgumentKind.DefaultValue, Matching Parameter: x) (OperationKind.Argument) (Syntax: 'M2(array: 1)')
@@ -649,7 +665,7 @@ IInvocationExpression ( void P.M2([System.Int32 x = 0], params System.Double[] a
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18549")]
+        [Fact]
         public void PositionalArgumentAndNamedParamsArrayArgumentInExpandedForm()
         {
             string source = @"
@@ -668,10 +684,10 @@ IInvocationExpression ( void P.M2([System.Int32 x = 0], params System.Double[] a
   Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: P) (Syntax: 'M2')
   Arguments(2): IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: '1')
       ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
-    IArgument (ArgumentKind.ParamArray, Matching Parameter: array) (OperationKind.Argument) (Syntax: '1')
-      IArrayCreationExpression (Element Type: System.Double) (OperationKind.ArrayCreationExpression, Type: System.Double[]) (Syntax: '1')
-        Dimension Sizes(1): ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: null, Constant: 1) (Syntax: '1')
-        Initializer: IArrayInitializer (OperationKind.ArrayInitializer) (Syntax: '1')
+    IArgument (ArgumentKind.ParamArray, Matching Parameter: array) (OperationKind.Argument) (Syntax: 'M2(1, array: 1)')
+      IArrayCreationExpression (Element Type: System.Double) (OperationKind.ArrayCreationExpression, Type: System.Double[]) (Syntax: 'M2(1, array: 1)')
+        Dimension Sizes(1): ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: 'M2(1, array: 1)')
+        Initializer: IArrayInitializer (1 elements) (OperationKind.ArrayInitializer) (Syntax: 'M2(1, array: 1)')
             Element Values(1): IConversionExpression (ConversionKind.CSharp, Implicit) (OperationKind.ConversionExpression, Type: System.Double, Constant: 1) (Syntax: '1')
                 ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
 ";
@@ -680,7 +696,7 @@ IInvocationExpression ( void P.M2([System.Int32 x = 0], params System.Double[] a
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18549")]
+        [Fact]
         public void NamedArgumentAndNamedParamsArrayArgumentInNormalFormOutOfParameterOrder()
         {
             string source = @"
@@ -709,7 +725,7 @@ IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'M2(array: a, 
             VerifyOperationTreeAndDiagnosticsForTest<ExpressionStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18549")]
+        [Fact]
         public void NamedArgumentAndNamedParamsArrayArgumentInExpandedFormOutOfParameterOrder()
         {
             string source = @"
@@ -726,16 +742,83 @@ class P
             string expectedOperationTree = @"
 IInvocationExpression ( void P.M2([System.Int32 x = 0], params System.Double[] array)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'M2(array: 1, x: 10)')
   Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: P) (Syntax: 'M2')
-  Arguments(2): IArgument (ArgumentKind.ParamArray, Matching Parameter: array) (OperationKind.Argument) (Syntax: '1')
-      IArrayCreationExpression (Element Type: System.Double) (OperationKind.ArrayCreationExpression, Type: System.Double[]) (Syntax: '1')
-        Dimension Sizes(1): ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: null, Constant: 1) (Syntax: '1')
-        Initializer: IArrayInitializer (OperationKind.ArrayInitializer) (Syntax: '1')
+  Arguments(2): IArgument (ArgumentKind.ParamArray, Matching Parameter: array) (OperationKind.Argument) (Syntax: 'M2(array: 1, x: 10)')
+      IArrayCreationExpression (Element Type: System.Double) (OperationKind.ArrayCreationExpression, Type: System.Double[]) (Syntax: 'M2(array: 1, x: 10)')
+        Dimension Sizes(1): ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: 'M2(array: 1, x: 10)')
+        Initializer: IArrayInitializer (1 elements) (OperationKind.ArrayInitializer) (Syntax: 'M2(array: 1, x: 10)')
             Element Values(1): IConversionExpression (ConversionKind.CSharp, Implicit) (OperationKind.ConversionExpression, Type: System.Double, Constant: 1) (Syntax: '1')
                 ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
     IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: '10')
       ILiteralExpression (Text: 10) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact]
+        public void CallerInfoAttributes()
+        {
+            string source = @"
+using System.Runtime.CompilerServices;
+
+class P
+{
+    void M1()
+    {
+        /*<bind>*/M2()/*</bind>*/;
+    }
+
+    void M2(
+        [CallerMemberName] string memberName = null,
+        [CallerFilePath] string sourceFilePath = null,
+        [CallerLineNumber] int sourceLineNumber = 0)
+    { }
+}
+";
+            string expectedOperationTree = @"
+IInvocationExpression ( void P.M2([System.String memberName = null], [System.String sourceFilePath = null], [System.Int32 sourceLineNumber = 0])) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'M2()')
+  Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: P) (Syntax: 'M2')
+  Arguments(3): IArgument (ArgumentKind.DefaultValue, Matching Parameter: memberName) (OperationKind.Argument) (Syntax: 'M2()')
+      ILiteralExpression (Text: ) (OperationKind.LiteralExpression, Type: System.String, Constant: """") (Syntax: 'M2()')
+    IArgument (ArgumentKind.DefaultValue, Matching Parameter: sourceFilePath) (OperationKind.Argument) (Syntax: 'M2()')
+      ILiteralExpression (Text: ) (OperationKind.LiteralExpression, Type: System.String, Constant: """") (Syntax: 'M2()')
+    IArgument (ArgumentKind.DefaultValue, Matching Parameter: sourceLineNumber) (OperationKind.Argument) (Syntax: 'M2()')
+      ILiteralExpression (Text: 8) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 8) (Syntax: 'M2()')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact]
+        public void ExtraArgument()
+        {
+            string source = @"
+class P
+{
+    void M1()
+    {
+        /*<bind>*/M2(1, 2)/*</bind>*/;
+    }
+
+    void M2(int x = 0)
+    { }
+}
+";
+            string expectedOperationTree = @"
+IInvocationExpression ( void P.M2([System.Int32 x = 0])) (OperationKind.InvocationExpression, Type: System.Void, IsInvalid) (Syntax: 'M2(1, 2)')
+  Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: P) (Syntax: 'M2')
+  Arguments(2): IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: '1')
+      ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+    IArgument (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument, IsInvalid) (Syntax: '2')
+      ILiteralExpression (Text: 2) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS1501: No overload for method 'M2' takes 2 arguments
+                //         /*<bind>*/M2(1, 2)/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_BadArgCount, "M2").WithArguments("M2", "2").WithLocation(6, 19)
+            };
 
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }

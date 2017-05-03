@@ -1,12 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Semantics;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -358,7 +359,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// itself. <paramref name="optionalParametersMethod"/> is needed for indexers since getter and setter
         /// may have distinct optional parameter values.
         /// </summary>
-        private ImmutableArray<BoundExpression> MakeArguments(
+        internal ImmutableArray<BoundExpression> MakeArguments(
             SyntaxNode syntax,
             ImmutableArray<BoundExpression> rewrittenArguments,
             Symbol methodOrIndexer,
@@ -370,6 +371,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool invokedAsExtensionMethod = false,
             ThreeState enableCallerInfo = ThreeState.Unknown)
         {
+            Debug.Assert(!_inOperationContext);
+
             // Either the methodOrIndexer is a property, in which case the method used
             // for optional parameters is an accessor of that property (or an overridden
             // property), or the methodOrIndexer is used for optional parameters directly.
@@ -385,38 +388,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             //
             // If none of those are the case then we can just take an early out.
 
-            // An applicable "vararg" method could not possibly be applicable in its expanded
-            // form, and cannot possibly have named arguments or used optional parameters, 
-            // because the __arglist() argument has to be positional and in the last position. 
-
-
-            if (methodOrIndexer.GetIsVararg())
+            if (TryReturnEarly(ref rewrittenArguments, methodOrIndexer, expanded, argsToParamsOpt, invokedAsExtensionMethod, out var isComReceiver, out var temporariesBuilder))
             {
-                Debug.Assert(rewrittenArguments.Length == methodOrIndexer.GetParameterCount() + 1);
-                Debug.Assert(argsToParamsOpt.IsDefault);
-                Debug.Assert(!expanded);
-                temps = default(ImmutableArray<LocalSymbol>);
+                temps = temporariesBuilder?.ToImmutableAndFree() ?? default(ImmutableArray<LocalSymbol>);
                 return rewrittenArguments;
             }
 
-            var receiverNamedType = invokedAsExtensionMethod ?
-                                    ((MethodSymbol)methodOrIndexer).Parameters[0].Type as NamedTypeSymbol :
-                                    methodOrIndexer.ContainingType;
-
-            bool isComReceiver = (object)receiverNamedType != null && receiverNamedType.IsComImport;
-
-            ArrayBuilder<LocalSymbol> temporariesBuilder = ArrayBuilder<LocalSymbol>.GetInstance();
-            rewrittenArguments = _factory.MakeTempsForDiscardArguments(rewrittenArguments, temporariesBuilder);
-
-            if (rewrittenArguments.Length == methodOrIndexer.GetParameterCount() &&
-                argsToParamsOpt.IsDefault &&
-                !expanded &&
-                !isComReceiver)
-            {
-                temps = temporariesBuilder.ToImmutableAndFree();
-                return rewrittenArguments;
-            }
-
+            Debug.Assert(temporariesBuilder != null);
 
             // We have:
             // * a list of arguments, already converted to their proper types, 
@@ -512,6 +490,105 @@ namespace Microsoft.CodeAnalysis.CSharp
             return actualArguments.AsImmutableOrNull();
         }
 
+        internal ImmutableArray<BoundExpression> MakeArguments(
+            SyntaxNode syntax,
+            ImmutableArray<BoundExpression> arguments,
+            Symbol methodOrIndexer,
+            MethodSymbol optionalParametersMethod,
+            bool expanded,
+            ImmutableArray<int> argsToParamsOpt,
+            bool invokedAsExtensionMethod,
+            /* out */ ArrayBuilder<ArgumentKind> argumentKindBuilder,
+            /* out */ ArrayBuilder<ParameterSymbol> parameterSymbolBuilder,
+            ThreeState enableCallerInfo = ThreeState.Unknown)
+        {
+            Debug.Assert(_inOperationContext && argumentKindBuilder.IsEmpty() && parameterSymbolBuilder.IsEmpty());
+
+            // Either the methodOrIndexer is a property, in which case the method used
+            // for optional parameters is an accessor of that property (or an overridden
+            // property), or the methodOrIndexer is used for optional parameters directly.
+            Debug.Assert(((methodOrIndexer.Kind == SymbolKind.Property) && optionalParametersMethod.IsAccessor()) ||
+                ReferenceEquals(methodOrIndexer, optionalParametersMethod));
+
+            // We need to do a fancy rewrite under the following circumstances:
+            // (1) a params array is being used; we need to generate the array.
+            // (2) there were named arguments that reordered the arguments; we might
+            //     have to generate temporaries to ensure that the arguments are 
+            //     evaluated in source code order, not the actual call order.
+            // (3) there were optional parameters that had no corresponding arguments.
+            //
+            // If none of those are the case then we can just take an early out.
+
+            ImmutableArray<ParameterSymbol> parameters = methodOrIndexer.GetParameters();
+
+            if (TryReturnEarly(ref arguments, methodOrIndexer, expanded, argsToParamsOpt, invokedAsExtensionMethod, out var isComReceiver, out var temporariesBuilder))
+            {
+                // In this case, the invocation is not in expanded form and there's no named argument provided.
+                // So we just return list of arguments as is.
+                for(int i = 0; i < arguments.Length; ++i)
+                {
+                    argumentKindBuilder.Add(ArgumentKind.Explicit);
+                    parameterSymbolBuilder.Add(parameters[i]);
+                }
+                return arguments;
+            }
+
+            Debug.Assert(temporariesBuilder == null);
+
+            ArrayBuilder<BoundExpression> argumentsBuilder = ArrayBuilder<BoundExpression>.GetInstance(parameters.Length);
+            ArrayBuilder<ParameterSymbol> missingParametersBuilder = ArrayBuilder<ParameterSymbol>.GetInstance(parameters.Length);
+
+            BuildArgumentsInEvaluationOrder(syntax, methodOrIndexer, expanded, argsToParamsOpt, arguments, argumentsBuilder, argumentKindBuilder, parameterSymbolBuilder, missingParametersBuilder);
+
+            AppendMissingOptionalArguments(syntax, missingParametersBuilder.ToImmutableAndFree(), argumentsBuilder, argumentKindBuilder, parameterSymbolBuilder);
+
+            return argumentsBuilder.ToImmutableAndFree();
+        }
+
+        // temporariesBuilder will be null when _inOperationContext is true.
+        private bool TryReturnEarly(
+            ref ImmutableArray<BoundExpression> rewrittenArguments,
+            Symbol methodOrIndexer,
+            bool expanded,
+            ImmutableArray<int> argsToParamsOpt,
+            bool invokedAsExtensionMethod,
+            out bool isComReceiver,
+            out ArrayBuilder<LocalSymbol> temporariesBuilder)
+        {
+            temporariesBuilder = null;
+
+            // An applicable "vararg" method could not possibly be applicable in its expanded
+            // form, and cannot possibly have named arguments or used optional parameters, 
+            // because the __arglist() argument has to be positional and in the last position. 
+
+            if (methodOrIndexer.GetIsVararg())
+            {
+                Debug.Assert(rewrittenArguments.Length == methodOrIndexer.GetParameterCount() + 1);
+                Debug.Assert(argsToParamsOpt.IsDefault);
+                Debug.Assert(!expanded);
+                isComReceiver = false;
+                temporariesBuilder = null;
+                return true;
+            }
+
+            var receiverNamedType = invokedAsExtensionMethod ?
+                                    ((MethodSymbol)methodOrIndexer).Parameters[0].Type as NamedTypeSymbol :
+                                    methodOrIndexer.ContainingType;
+
+            isComReceiver = (object)receiverNamedType != null && receiverNamedType.IsComImport;
+
+            if (!_inOperationContext)
+            {
+                temporariesBuilder = ArrayBuilder<LocalSymbol>.GetInstance();
+                rewrittenArguments = _factory.MakeTempsForDiscardArguments(rewrittenArguments, temporariesBuilder);
+            }
+
+            return rewrittenArguments.Length == methodOrIndexer.GetParameterCount() &&
+                argsToParamsOpt.IsDefault &&
+                !expanded &&
+                !isComReceiver;
+        }
+
         private static ImmutableArray<RefKind> GetRefKindsOrNull(ArrayBuilder<RefKind> refKinds)
         {
             foreach (var refKind in refKinds)
@@ -584,7 +661,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                if (IsSafeForReordering(argument, refKind))
+                if (IsSafeForReordering(argument, refKind) || _inOperationContext)
                 {
                     arguments[p] = argument;
                     refKinds[p] = refKind;
@@ -597,6 +674,90 @@ namespace Microsoft.CodeAnalysis.CSharp
                     arguments[p] = temp;
                 }
             }
+        }
+
+        // This fills in the arguments and parameters arrays in evaluation order.
+        private void BuildArgumentsInEvaluationOrder(
+            SyntaxNode syntax,
+            Symbol methodOrIndexer,
+            bool expanded,
+            ImmutableArray<int> argsToParamsOpt,
+            ImmutableArray<BoundExpression> arguments,
+            /* out */ ArrayBuilder<BoundExpression> argumentsBuilder,
+            /* out */ ArrayBuilder<ArgumentKind> argumentKindsBuilder,
+            /* out */ ArrayBuilder<ParameterSymbol> parametersBuilder,
+            /* out */ ArrayBuilder<ParameterSymbol> missingParametersBuilder)
+        {
+            ImmutableArray<ParameterSymbol> parameters = methodOrIndexer.GetParameters();
+            PooledHashSet<int> processedPeremeters = PooledHashSet<int>.GetInstance();
+
+            for (int a = 0; a < arguments.Length; ++a)
+            {
+                BoundExpression argument = arguments[a];
+
+                int p = (!argsToParamsOpt.IsDefault) ? argsToParamsOpt[a] : a;
+                var parameter = parameters[p];
+
+                bool processed = processedPeremeters.Add(p);
+                Debug.Assert(processed);
+
+                bool isParamArray = false;
+                if (expanded && p == parameters.Length - 1)
+                {
+                    isParamArray = true;
+
+                    ArrayBuilder<BoundExpression> paramArray = ArrayBuilder<BoundExpression>.GetInstance();
+                    paramArray.Add(argument);
+
+                    int remainingArgument = a + 1;
+                    for (; remainingArgument < arguments.Length; ++remainingArgument)
+                    {
+                        int remainingParameter = (!argsToParamsOpt.IsDefault) ? argsToParamsOpt[remainingArgument] : remainingArgument;
+                        if (remainingParameter != parameters.Length - 1)
+                        {
+                            break;
+                        }
+                        else
+                        {
+                            paramArray.Add(arguments[remainingArgument]);
+                        }
+                    }
+                    // Set loop variable to index of the last processed argument.
+                    a = remainingArgument - 1;
+
+                    var paramArrayType = parameters[p].Type;
+                    var arrayArgs = paramArray.ToImmutableAndFree();
+
+                    argument = CreateParamArrayArgument(syntax, methodOrIndexer, paramArrayType, arrayArgs);
+                }
+
+                argumentsBuilder.Add(argument);
+                argumentKindsBuilder.Add(isParamArray ? ArgumentKind.ParamArray : ArgumentKind.Explicit);
+                parametersBuilder.Add(parameter);
+            }
+
+            // Create an empty array for omitted param array argument.
+            ParameterSymbol lastParameter;
+            if (expanded && (lastParameter = parameters.Last()).IsParams && !processedPeremeters.Contains(parameters.Length - 1))
+            {
+                var argument = CreateParamArrayArgument(syntax, methodOrIndexer, lastParameter.Type, ImmutableArray<BoundExpression>.Empty);
+
+                argumentsBuilder.Add(argument);
+                argumentKindsBuilder.Add(ArgumentKind.ParamArray);
+                parametersBuilder.Add(lastParameter);
+
+                processedPeremeters.Add(parameters.Length - 1);
+            }
+
+            // Fill in parameters with missing arguments.
+            for (int i = 0; i < parameters.Length; ++i)
+            {
+                if (!processedPeremeters.Contains(i))
+                {
+                    missingParametersBuilder.Add(parameters[i]);
+                }
+            }
+            processedPeremeters.Free();
         }
 
         private BoundExpression BuildParamsArray(
@@ -632,12 +793,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var paramArrayType = parameters[paramsParam].Type;
             var arrayArgs = paramArray.ToImmutableAndFree();
+            return CreateParamArrayArgument(syntax, methodOrIndexer, paramArrayType, arrayArgs);
+        }
+
+        private BoundExpression CreateParamArrayArgument(SyntaxNode syntax, Symbol methodOrIndexer, TypeSymbol paramArrayType, ImmutableArray<BoundExpression> arrayArgs)
+        {
 
             // If this is a zero-length array, rather than using "new T[0]", optimize with "Array.Empty<T>()" 
             // if it's available.  However, we also disable the optimization if we're in an expression lambda, the 
             // point of which is just to represent the semantics of an operation, and we don't know that all consumers
             // of expression lambdas will appropriately understand Array.Empty<T>().
-            if (arrayArgs.Length == 0 && !_inExpressionLambda)
+            if (arrayArgs.Length == 0 && !_inExpressionLambda && !_inOperationContext)
             {
                 ArrayTypeSymbol ats = paramArrayType as ArrayTypeSymbol;
                 if (ats != null) // could be null if there's a semantic error, e.g. the params parameter type isn't an array
@@ -820,6 +986,25 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        private void AppendMissingOptionalArguments(SyntaxNode syntax,
+            ImmutableArray<ParameterSymbol> missingParameters,
+            ArrayBuilder<BoundExpression> argumentsBuilder,
+            ArrayBuilder<ArgumentKind> argumentKindsBuilder,
+            ArrayBuilder<ParameterSymbol> parametersBuilder,
+            ThreeState enableCallerInfo = ThreeState.Unknown)
+        {
+            foreach (var parameter in missingParameters)
+            {
+                Debug.Assert(parameter.IsOptional);
+
+                var defaultArgument = GetDefaultParameterValue(syntax, parameter, enableCallerInfo);
+
+                argumentsBuilder.Add(defaultArgument);
+                argumentKindsBuilder.Add(ArgumentKind.DefaultValue);
+                parametersBuilder.Add(parameter);
+            }
+        }
+
         private static SourceLocation GetCallerLocation(SyntaxNode syntax, ThreeState enableCallerInfo)
         {
             switch (enableCallerInfo)
@@ -902,91 +1087,113 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (parameter.IsCallerLineNumber && ((callerSourceLocation = GetCallerLocation(syntax, enableCallerInfo)) != null))
             {
                 int line = callerSourceLocation.SourceTree.GetDisplayLineNumber(callerSourceLocation.SourceSpan);
-                BoundExpression lineLiteral = MakeLiteral(syntax, ConstantValue.Create(line), _compilation.GetSpecialType(SpecialType.System_Int32));
 
-                if (parameterType.IsNullableType())
+                if (_inOperationContext)
                 {
-                    defaultValue = MakeConversionNode(lineLiteral, parameterType.GetNullableUnderlyingType(), false);
-
-                    // wrap it in a nullable ctor.
-                    defaultValue = new BoundObjectCreationExpression(
-                        syntax,
-                        UnsafeGetNullableMethod(syntax, parameterType, SpecialMember.System_Nullable_T__ctor),
-                        defaultValue);
+                    defaultValue = MakeLiteral(syntax, ConstantValue.Create(line), parameter.ContainingAssembly.GetSpecialType(SpecialType.System_Int32));
                 }
                 else
                 {
-                    defaultValue = MakeConversionNode(lineLiteral, parameterType, false);
+                    BoundExpression lineLiteral = MakeLiteral(syntax, ConstantValue.Create(line), _compilation.GetSpecialType(SpecialType.System_Int32));
+
+                    if (parameterType.IsNullableType())
+                    {
+                        defaultValue = MakeConversionNode(lineLiteral, parameterType.GetNullableUnderlyingType(), false);
+
+                        // wrap it in a nullable ctor.
+                        defaultValue = new BoundObjectCreationExpression(
+                            syntax,
+                            UnsafeGetNullableMethod(syntax, parameterType, SpecialMember.System_Nullable_T__ctor),
+                            defaultValue);
+                    }
+                    else
+                    {
+                        defaultValue = MakeConversionNode(lineLiteral, parameterType, false);
+                    }
                 }
             }
             else if (parameter.IsCallerFilePath && ((callerSourceLocation = GetCallerLocation(syntax, enableCallerInfo)) != null))
             {
-                string path = callerSourceLocation.SourceTree.GetDisplayPath(callerSourceLocation.SourceSpan, _compilation.Options.SourceReferenceResolver);
-                BoundExpression memberNameLiteral = MakeLiteral(syntax, ConstantValue.Create(path), _compilation.GetSpecialType(SpecialType.System_String));
-                defaultValue = MakeConversionNode(memberNameLiteral, parameterType, false);
+                if (_inOperationContext)
+                {
+                    string path = syntax.SyntaxTree.FilePath;
+                    defaultValue = MakeLiteral(syntax, ConstantValue.Create(path), parameter.ContainingAssembly.GetSpecialType(SpecialType.System_String));
+                }
+                else
+                {
+                    string path = callerSourceLocation.SourceTree.GetDisplayPath(callerSourceLocation.SourceSpan, _compilation.Options.SourceReferenceResolver);
+                    BoundExpression memberNameLiteral = MakeLiteral(syntax, ConstantValue.Create(path), _compilation.GetSpecialType(SpecialType.System_String));
+                    defaultValue = MakeConversionNode(memberNameLiteral, parameterType, false);
+                }
             }
             else if (parameter.IsCallerMemberName && ((callerSourceLocation = GetCallerLocation(syntax, enableCallerInfo)) != null))
             {
-                string memberName;
-
-                switch (_factory.TopLevelMethod.MethodKind)
+                if (_inOperationContext)
                 {
-                    case MethodKind.Constructor:
-                    case MethodKind.StaticConstructor:
-                        // See if the code is actually part of a field, field-like event or property initializer and return the name of the corresponding member.
-                        var memberDecl = syntax.Ancestors().OfType<MemberDeclarationSyntax>().FirstOrDefault();
+                    defaultValue = MakeLiteral(syntax, ConstantValue.Create(string.Empty), parameter.ContainingAssembly.GetSpecialType(SpecialType.System_String));
+                }
+                else
+                {
+                    string memberName;
 
-                        if (memberDecl != null)
-                        {
-                            BaseFieldDeclarationSyntax fieldDecl;
+                    switch (_factory.TopLevelMethod.MethodKind)
+                    {
+                        case MethodKind.Constructor:
+                        case MethodKind.StaticConstructor:
+                            // See if the code is actually part of a field, field-like event or property initializer and return the name of the corresponding member.
+                            var memberDecl = syntax.Ancestors().OfType<MemberDeclarationSyntax>().FirstOrDefault();
 
-                            if (memberDecl.Kind() == SyntaxKind.PropertyDeclaration)
+                            if (memberDecl != null)
                             {
-                                var propDecl = (PropertyDeclarationSyntax)memberDecl;
-                                EqualsValueClauseSyntax initializer = propDecl.Initializer;
+                                BaseFieldDeclarationSyntax fieldDecl;
 
-                                if (initializer != null && initializer.Span.Contains(syntax.Span))
+                                if (memberDecl.Kind() == SyntaxKind.PropertyDeclaration)
                                 {
-                                    memberName = propDecl.Identifier.ValueText;
-                                    break;
-                                }
-                            }
-                            else if ((fieldDecl = memberDecl as BaseFieldDeclarationSyntax) != null)
-                            {
-                                memberName = null;
-
-                                foreach (VariableDeclaratorSyntax varDecl in fieldDecl.Declaration.Variables)
-                                {
-                                    EqualsValueClauseSyntax initializer = varDecl.Initializer;
+                                    var propDecl = (PropertyDeclarationSyntax)memberDecl;
+                                    EqualsValueClauseSyntax initializer = propDecl.Initializer;
 
                                     if (initializer != null && initializer.Span.Contains(syntax.Span))
                                     {
-                                        memberName = varDecl.Identifier.ValueText;
+                                        memberName = propDecl.Identifier.ValueText;
                                         break;
                                     }
                                 }
-
-                                if (memberName != null)
+                                else if ((fieldDecl = memberDecl as BaseFieldDeclarationSyntax) != null)
                                 {
-                                    break;
+                                    memberName = null;
+
+                                    foreach (VariableDeclaratorSyntax varDecl in fieldDecl.Declaration.Variables)
+                                    {
+                                        EqualsValueClauseSyntax initializer = varDecl.Initializer;
+
+                                        if (initializer != null && initializer.Span.Contains(syntax.Span))
+                                        {
+                                            memberName = varDecl.Identifier.ValueText;
+                                            break;
+                                        }
+                                    }
+
+                                    if (memberName != null)
+                                    {
+                                        break;
+                                    }
                                 }
                             }
-                        }
 
-                        goto default;
+                            goto default;
 
-                    default:
-                        memberName = _factory.TopLevelMethod.GetMemberCallerName();
-                        break;
+                        default:
+                            memberName = _factory.TopLevelMethod.GetMemberCallerName();
+                            break;
+                    }
+                    BoundExpression memberNameLiteral = MakeLiteral(syntax, ConstantValue.Create(memberName), _compilation.GetSpecialType(SpecialType.System_String));
+                    defaultValue = MakeConversionNode(memberNameLiteral, parameterType, false);
                 }
-
-                BoundExpression memberNameLiteral = MakeLiteral(syntax, ConstantValue.Create(memberName), _compilation.GetSpecialType(SpecialType.System_String));
-                defaultValue = MakeConversionNode(memberNameLiteral, parameterType, false);
             }
             else if (defaultConstantValue == ConstantValue.NotAvailable)
             {
                 // There is no constant value given for the parameter in source/metadata.
-                if (parameterType.IsDynamic() || parameterType.SpecialType == SpecialType.System_Object)
+                if ((parameterType.IsDynamic() || parameterType.SpecialType == SpecialType.System_Object) && !_inOperationContext)
                 {
                     // We have something like M([Optional] object x). We have special handling for such situations.
                     defaultValue = GetDefaultParameterSpecial(syntax, parameter);
@@ -1008,19 +1215,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // We have something like M(double? x = 1.23), so replace the argument
                 // with new double?(1.23).
 
-                TypeSymbol constantType = _compilation.GetSpecialType(defaultConstantValue.SpecialType);
-                defaultValue = MakeLiteral(syntax, defaultConstantValue, constantType);
+                if (_inOperationContext)
+                {
+                    defaultValue = MakeLiteral(syntax, defaultConstantValue, parameterType);
+                }
+                else
+                {
+                    TypeSymbol constantType = _compilation.GetSpecialType(defaultConstantValue.SpecialType);
+                    defaultValue = MakeLiteral(syntax, defaultConstantValue, constantType);
 
-                // The parameter's underlying type might not match the constant type. For example, we might have
-                // a default value of 5 (an integer) but a parameter type of decimal?.
+                    // The parameter's underlying type might not match the constant type. For example, we might have
+                    // a default value of 5 (an integer) but a parameter type of decimal?.
 
-                defaultValue = MakeConversionNode(defaultValue, parameterType.GetNullableUnderlyingType(), @checked: false, acceptFailingConversion: true);
+                    defaultValue = MakeConversionNode(defaultValue, parameterType.GetNullableUnderlyingType(), @checked: false, acceptFailingConversion: true);
 
-                // Finally, wrap it in a nullable ctor.
-                defaultValue = new BoundObjectCreationExpression(
-                    syntax,
-                    UnsafeGetNullableMethod(syntax, parameterType, SpecialMember.System_Nullable_T__ctor),
-                    defaultValue);
+                    // Finally, wrap it in a nullable ctor.
+                    defaultValue = new BoundObjectCreationExpression(
+                        syntax,
+                        UnsafeGetNullableMethod(syntax, parameterType, SpecialMember.System_Nullable_T__ctor),
+                        defaultValue);
+
+                }
             }
             else if (defaultConstantValue.IsNull || defaultConstantValue.IsBad)
             {
@@ -1030,10 +1245,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // We have something like M(double x = 1.23), so replace the argument with 1.23.
 
-                TypeSymbol constantType = _compilation.GetSpecialType(defaultConstantValue.SpecialType);
-                defaultValue = MakeLiteral(syntax, defaultConstantValue, constantType);
-                // The parameter type might not match the constant type.
-                defaultValue = MakeConversionNode(defaultValue, parameterType, @checked: false, acceptFailingConversion: true);
+                if (_inOperationContext)
+                {
+                    defaultValue = MakeLiteral(syntax, defaultConstantValue, parameterType);
+                }
+                else
+                {
+                    TypeSymbol constantType = _compilation.GetSpecialType(defaultConstantValue.SpecialType);
+                    defaultValue = MakeLiteral(syntax, defaultConstantValue, constantType);
+                    // The parameter type might not match the constant type.
+                    defaultValue = MakeConversionNode(defaultValue, parameterType, @checked: false, acceptFailingConversion: true);
+                }
             }
 
             return defaultValue;

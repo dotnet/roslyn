@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
@@ -59,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             !this.ReceiverOpt.SuppressVirtualCalls;
 
         ImmutableArray<IArgument> IHasArgumentsExpression.ArgumentsInEvaluationOrder
-            => DeriveArguments(this.Arguments, this.ArgumentNamesOpt, this.ArgsToParamsOpt, this.ArgumentRefKindsOpt, this.Method.Parameters, this.Syntax);
+            => DeriveArguments(this, this.Method, this.Method, this.Arguments, this.ArgumentNamesOpt, this.ArgsToParamsOpt, this.ArgumentRefKindsOpt, this.Method.Parameters, this.Expanded,  this.Syntax, this.InvokedAsExtensionMethod);
 
         protected override OperationKind ExpressionKind => OperationKind.InvocationExpression;
 
@@ -73,13 +74,97 @@ namespace Microsoft.CodeAnalysis.CSharp
             return visitor.VisitInvocationExpression(this, argument);
         }
 
+        private static readonly ConditionalWeakTable<BoundExpression, IEnumerable<IArgument>> s_callToArgumentsMappings 
+            = new ConditionalWeakTable<BoundExpression, IEnumerable<IArgument>>();
+
         // TODO: We need to reuse the logic in `LocalRewriter.MakeArguments` instead of using private implementation. 
         //       Also. this implementation here was for the (now removed) API `ArgumentsInParameter`, which doesn't fulfill
         //       the contract of `ArgumentsInEvaluationOrder` plus it doesn't handle various scenarios correctly even for parameter order, 
         //       e.g. default arguments, erroneous code, etc. 
         //       https://github.com/dotnet/roslyn/issues/18549
-        internal static ImmutableArray<IArgument> DeriveArguments(ImmutableArray<BoundExpression> boundArguments, ImmutableArray<string> argumentNamesOpt, ImmutableArray<int> argumentsToParametersOpt, ImmutableArray<RefKind> argumentRefKindsOpt, ImmutableArray<Symbols.ParameterSymbol> parameters, SyntaxNode invocationSyntax)
+        internal static ImmutableArray<IArgument> DeriveArguments(
+            BoundExpression boundNode,
+            Symbol methodOrIndexer,
+            MethodSymbol optionalParametersMethod,
+            ImmutableArray<BoundExpression> boundArguments,
+            ImmutableArray<string> argumentNamesOpt,
+            ImmutableArray<int> argumentsToParametersOpt,
+            ImmutableArray<RefKind> argumentRefKindsOpt,
+            ImmutableArray<ParameterSymbol> parameters,
+            bool expanded,
+            SyntaxNode invocationSyntax,
+            bool invokedAsExtensionMethod = false)
         {
+            return (ImmutableArray<IArgument>) s_callToArgumentsMappings.GetValue(
+                boundNode, 
+                (n) =>
+                {
+                    //TODO: https://github.com/dotnet/roslyn/issues/18722
+                    //      Right now, for errornous code, we try to recover as much data as we can
+                    //      and expose them as IArguments, so user needs to check IsInvalid firdt before using 
+                    //      anything we returned. Need to implement a new interface for invalid invocation instead.
+                    if (n.HasErrors)
+                    {
+                        ArrayBuilder<IArgument> argumentsWithErrors = ArrayBuilder<IArgument>.GetInstance(boundArguments.Length);
+                        for (int a = 0; a < boundArguments.Length; a++)
+                        {
+                            var parameter = argumentsToParametersOpt.IsDefault
+                                            ? (a < parameters.Length
+                                                ? parameters[a]
+                                                : null)
+                                            : (argumentsToParametersOpt[a] > 0
+                                                ? parameters[argumentsToParametersOpt[a]]
+                                                : null);
+
+                            argumentsWithErrors.Add(new Argument(ArgumentKind.Explicit, parameter, boundArguments[a]));
+                        }
+
+                        return argumentsWithErrors.ToImmutableAndFree();
+                    }
+
+                    var diagnosticBag = new DiagnosticBag();
+                    var factory = new SyntheticBoundNodeFactory(invocationSyntax, diagnosticBag);
+                    var localRewriter = new LocalRewriter(
+                                            compilation: null,
+                                            containingMethod: null,
+                                            containingMethodOrdinal: 0,
+                                            rootStatement: null,
+                                            containingType: null,
+                                            factory: factory,
+                                            previousSubmissionFields: null,
+                                            allowOmissionOfConditionalCalls: false,
+                                            diagnostics: diagnosticBag,
+                                            instrumenter: null,
+                                            inOperationContext: true);
+
+                    var argumentKindBuilder = ArrayBuilder<ArgumentKind>.GetInstance(parameters.Length);
+                    var parameterSymbolBuilder = ArrayBuilder<ParameterSymbol>.GetInstance(parameters.Length);
+
+                    var derivedArguments = localRewriter.MakeArguments(
+                        syntax: invocationSyntax,
+                        arguments: boundArguments,
+                        methodOrIndexer: methodOrIndexer,
+                        optionalParametersMethod: optionalParametersMethod,
+                        expanded: expanded,
+                        argsToParamsOpt: argumentsToParametersOpt,
+                        invokedAsExtensionMethod: invokedAsExtensionMethod,
+                        argumentKindBuilder: argumentKindBuilder,
+                        parameterSymbolBuilder: parameterSymbolBuilder);
+                    
+                    Debug.Assert(derivedArguments.Length == parameters.Length 
+                              && derivedArguments.Length == argumentKindBuilder.Count
+                              && derivedArguments.Length == parameterSymbolBuilder.Count);
+                    
+                    ArrayBuilder<IArgument> argumentsInEvaluationBuilder = ArrayBuilder<IArgument>.GetInstance(parameters.Length);
+                    for (int a = 0; a < derivedArguments.Length; a++)
+                    {
+                        argumentsInEvaluationBuilder.Add(new Argument(argumentKindBuilder[a], parameterSymbolBuilder[a], derivedArguments[a]));
+                    }
+
+                    return argumentsInEvaluationBuilder.ToImmutableAndFree();
+                });
+
+
             ArrayBuilder<IArgument> arguments = ArrayBuilder<IArgument>.GetInstance(boundArguments.Length);
             for (int parameterIndex = 0; parameterIndex < parameters.Length; parameterIndex++)
             {
@@ -355,7 +440,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ISymbol IMemberReferenceExpression.Member => this.Indexer;
 
-        ImmutableArray<IArgument> IHasArgumentsExpression.ArgumentsInEvaluationOrder => BoundCall.DeriveArguments(this.Arguments, this.ArgumentNamesOpt, this.ArgsToParamsOpt, this.ArgumentRefKindsOpt, this.Indexer.Parameters, this.Syntax);
+        ImmutableArray<IArgument> IHasArgumentsExpression.ArgumentsInEvaluationOrder 
+            => BoundCall.DeriveArguments(this, this.Indexer, this.Indexer.GetOwnOrInheritedGetMethod(),this.Arguments, this.ArgumentNamesOpt, this.ArgsToParamsOpt, this.ArgumentRefKindsOpt, this.Indexer.Parameters, this.Expanded, this.Syntax);
 
         protected override OperationKind ExpressionKind => OperationKind.IndexedPropertyReferenceExpression;
 
@@ -450,7 +536,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal partial class BoundLiteral : ILiteralExpression
     {
-        string ILiteralExpression.Text => this.Syntax.ToString();
+        string ILiteralExpression.Text
+        {
+            get
+            {
+                object value;
+                return ((ILiteralExpression)this).ConstantValue.HasValue 
+                    ? ((value = this.ConstantValue.Value) == null ? "null" : value.ToString()) 
+                    : this.Syntax.ToString();
+            }
+        }
 
         protected override OperationKind ExpressionKind => OperationKind.LiteralExpression;
 
@@ -489,7 +584,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         IMethodSymbol IObjectCreationExpression.Constructor => this.Constructor;
 
-        ImmutableArray<IArgument> IHasArgumentsExpression.ArgumentsInEvaluationOrder => BoundCall.DeriveArguments(this.Arguments, this.ArgumentNamesOpt, this.ArgsToParamsOpt, this.ArgumentRefKindsOpt, this.Constructor.Parameters, this.Syntax);
+        ImmutableArray<IArgument> IHasArgumentsExpression.ArgumentsInEvaluationOrder 
+            => BoundCall.DeriveArguments(this, this.Constructor, this.Constructor, this.Arguments, this.ArgumentNamesOpt, this.ArgsToParamsOpt, this.ArgumentRefKindsOpt, this.Constructor.Parameters, this.Expanded, this.Syntax);
 
         ImmutableArray<IOperation> IObjectCreationExpression.Initializers => GetChildInitializers(this.InitializerExpressionOpt).As<IOperation>();
 

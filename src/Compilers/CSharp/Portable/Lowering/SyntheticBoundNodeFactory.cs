@@ -165,6 +165,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.CurrentType = currentClassOpt;
             this.Syntax = node;
             this.Diagnostics = diagnostics;
+        }                                                                                
+
+        public SyntheticBoundNodeFactory(SyntaxNode node, DiagnosticBag diagnostics)
+        {                                          
+            this.Syntax = node;
+            this.Diagnostics = diagnostics;
         }
 
         [Conditional("DEBUG")]

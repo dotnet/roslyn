@@ -3,7 +3,6 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -30,9 +29,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly Instrumenter _instrumenter;
         private readonly BoundStatement _rootStatement;
 
+        private bool _inOperationContext;
+
         private Dictionary<BoundValuePlaceholderBase, BoundExpression> _placeholderReplacementMapDoNotUseDirectly;
 
-        private LocalRewriter(
+        internal LocalRewriter(
             CSharpCompilation compilation,
             MethodSymbol containingMethod,
             int containingMethodOrdinal,
@@ -42,20 +43,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             SynthesizedSubmissionFields previousSubmissionFields,
             bool allowOmissionOfConditionalCalls,
             DiagnosticBag diagnostics,
-            Instrumenter instrumenter)
+            Instrumenter instrumenter,
+            bool inOperationContext = false)
         {
             _compilation = compilation;
             _factory = factory;
             _factory.CurrentMethod = containingMethod;
-            Debug.Assert(factory.CurrentType == (containingType ?? containingMethod.ContainingType));
+            Debug.Assert(factory.CurrentType == (containingType ?? containingMethod?.ContainingType));
             _dynamicFactory = new LoweredDynamicOperationFactory(factory, containingMethodOrdinal);
             _previousSubmissionFields = previousSubmissionFields;
             _allowOmissionOfConditionalCalls = allowOmissionOfConditionalCalls;
             _diagnostics = diagnostics;
 
-            Debug.Assert(instrumenter != null);
+            Debug.Assert(instrumenter != null || inOperationContext);
             _instrumenter = instrumenter;
             _rootStatement = rootStatement;
+
+            _inOperationContext = inOperationContext;
         }
 
         /// <summary>
