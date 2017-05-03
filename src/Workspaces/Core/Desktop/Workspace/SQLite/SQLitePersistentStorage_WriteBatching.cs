@@ -75,13 +75,13 @@ namespace Microsoft.CodeAnalysis.SQLite
             // Get the task that is responsible for doing the writes for this queue.
             // This task will complete when all previously enqueued writes for this queue
             // complete, and all the currently enqueued writes for this queue complete as well.
-            var writeTask = await GetWriteTask().ConfigureAwait(false);
+            var writeTask = await GetWriteTaskAsync().ConfigureAwait(false);
             await writeTask.ConfigureAwait(false);
 
             return;
 
             // Local functions
-            async Task<Task> GetWriteTask()
+            async Task<Task> GetWriteTaskAsync()
             {
                 // Have to acquire the semaphore.  We're going to mutate the shared 'keyToWriteActions'
                 // and 'keyToWriteTask' collections.
