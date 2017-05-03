@@ -35,6 +35,7 @@
     <Compile Include="PackageReference.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="ProjectData.cs" />
+    <Compile Include="ProjectReferenceEntry.cs" />
     <Compile Include="ProjectUtil.cs" />
     <Compile Include="ProjectKey.cs" />
     <Compile Include="ProjectType.cs" />

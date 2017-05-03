@@ -215,7 +215,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                     isRenameLocation ||
                     token.ValueText == _replacementText ||
                     isOldText ||
-                    _possibleNameConflicts.Contains(token.ValueText);
+                    _possibleNameConflicts.Contains(token.ValueText) ||
+                    IsPossiblyDestructorConflict(token, _replacementText);
 
                 if (tokenNeedsConflictCheck)
                 {
@@ -228,6 +229,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                 }
 
                 return newToken;
+            }
+
+            private bool IsPossiblyDestructorConflict(SyntaxToken token, string replacementText)
+            {
+                return _replacementText == "Finalize" &&
+                    token.IsKind(SyntaxKind.IdentifierToken) && 
+                    token.Parent.IsKind(SyntaxKind.DestructorDeclaration);
             }
 
             private SyntaxNode Complexify(SyntaxNode originalNode, SyntaxNode newNode)

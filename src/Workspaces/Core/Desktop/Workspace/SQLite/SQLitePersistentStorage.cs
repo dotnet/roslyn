@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.SQLite
         {
             // Flush all pending writes so that all data our features wanted written
             // are definitely persisted to the DB.
-            FlushAllPendingWrites();
+            FlushAllPendingWritesAsync(CancellationToken.None).Wait();
 
             lock (_connectionGate)
             {

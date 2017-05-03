@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -14,17 +14,16 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
 {
-    public class UseExpressionBodyForConversionOperatorsTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    public class UseExpressionBodyForConstructorsAnalyzerTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
-            => (new UseExpressionBodyForConversionOperatorsDiagnosticAnalyzer(),
-                new UseExpressionBodyForConversionOperatorsCodeFixProvider());
+            => (new UseExpressionBodyDiagnosticAnalyzer(), new UseExpressionBodyCodeFixProvider());
 
         private IDictionary<OptionKey, object> UseExpressionBody =>
-            Option(CSharpCodeStyleOptions.PreferExpressionBodiedOperators, CSharpCodeStyleOptions.WhenPossibleWithNoneEnforcement);
+            Option(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CSharpCodeStyleOptions.WhenPossibleWithNoneEnforcement);
 
         private IDictionary<OptionKey, object> UseBlockBody =>
-            Option(CSharpCodeStyleOptions.PreferExpressionBodiedOperators, CSharpCodeStyleOptions.NeverWithNoneEnforcement);
+            Option(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CSharpCodeStyleOptions.NeverWithNoneEnforcement);
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
         public async Task TestUseExpressionBody1()
@@ -32,14 +31,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    public static implicit operator C(int i)
+    public C()
     {
         [|Bar|]();
     }
 }",
 @"class C
 {
-    public static implicit operator C(int i) => Bar();
+    public C() => Bar();
 }", options: UseExpressionBody);
         }
 
@@ -49,14 +48,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    public static implicit operator C(int i)
+    public C()
     {
-        return [|Bar|]();
+        a = [|Bar|]();
     }
 }",
 @"class C
 {
-    public static implicit operator C(int i) => Bar();
+    public C() => a = Bar();
 }", options: UseExpressionBody);
         }
 
@@ -66,14 +65,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    public static implicit operator C(int i)
+    public C()
     {
         [|throw|] new NotImplementedException();
     }
 }",
 @"class C
 {
-    public static implicit operator C(int i) => throw new NotImplementedException();
+    public C() => throw new NotImplementedException();
 }", options: UseExpressionBody);
         }
 
@@ -83,14 +82,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    public static implicit operator C(int i)
+    public C()
     {
         [|throw|] new NotImplementedException(); // comment
     }
 }",
 @"class C
 {
-    public static implicit operator C(int i) => throw new NotImplementedException(); // comment
+    public C() => throw new NotImplementedException(); // comment
 }", ignoreTrivia: false, options: UseExpressionBody);
         }
 
@@ -100,13 +99,30 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    public static implicit operator C(int i) [|=>|] Bar();
+    public C() [|=>|] Bar();
 }",
 @"class C
 {
-    public static implicit operator C(int i)
+    public C()
     {
-        return Bar();
+        Bar();
+    }
+}", options: UseBlockBody);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        public async Task TestUseBlockBody2()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    public C() [|=>|] a = Bar();
+}",
+@"class C
+{
+    public C()
+    {
+        a = Bar();
     }
 }", options: UseBlockBody);
         }
@@ -117,11 +133,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    public static implicit operator C(int i) [|=>|] throw new NotImplementedException();
+    public C() [|=>|] throw new NotImplementedException();
 }",
 @"class C
 {
-    public static implicit operator C(int i)
+    public C()
     {
         throw new NotImplementedException();
     }
@@ -134,11 +150,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    public static implicit operator C(int i) [|=>|] throw new NotImplementedException(); // comment
+    public C() [|=>|] throw new NotImplementedException(); // comment
 }",
 @"class C
 {
-    public static implicit operator C(int i)
+    public C()
     {
         throw new NotImplementedException(); // comment
     }

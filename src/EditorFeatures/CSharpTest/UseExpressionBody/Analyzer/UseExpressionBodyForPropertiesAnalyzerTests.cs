@@ -1,6 +1,5 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -15,26 +14,25 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
 {
-    public class UseExpressionBodyForAccessorsTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    public class UseExpressionBodyForPropertiesAnalyzerTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
-            => (new UseExpressionBodyForAccessorsDiagnosticAnalyzer(),
-                new UseExpressionBodyForAccessorsCodeFixProvider());
+            => (new UseExpressionBodyDiagnosticAnalyzer(), new UseExpressionBodyCodeFixProvider());
 
         private IDictionary<OptionKey, object> UseExpressionBody =>
             OptionsSet(
-                SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.WhenPossibleWithSuggestionEnforcement),
-                SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.NeverWithSuggestionEnforcement),
-                SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, CSharpCodeStyleOptions.NeverWithSuggestionEnforcement));
-
-        private IDictionary<OptionKey, object> UseExpressionBodyIncludingPropertiesAndIndexers =>
-            OptionsSet(
-                SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.WhenPossibleWithSuggestionEnforcement),
-                SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.WhenPossibleWithSuggestionEnforcement),
-                SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, CSharpCodeStyleOptions.WhenPossibleWithSuggestionEnforcement));
+                SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.WhenPossibleWithNoneEnforcement),
+                SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithNoneEnforcement));
 
         private IDictionary<OptionKey, object> UseBlockBody =>
-            Option(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithSuggestionEnforcement);
+            OptionsSet(
+                SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.NeverWithNoneEnforcement),
+                SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithNoneEnforcement));
+
+        private IDictionary<OptionKey, object> UseBlockBodyExceptAccessor =>
+            OptionsSet(
+                SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.NeverWithNoneEnforcement),
+                SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.WhenPossibleWithNoneEnforcement));
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
         public async Task TestUseExpressionBody1()
@@ -52,15 +50,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
 }",
 @"class C
 {
-    int Foo
-    {
-        get => Bar();
-    }
+    int Foo => Bar();
 }", options: UseExpressionBody);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
-        public async Task TestMissingIfPropertyIsOn()
+        public async Task TestMissingWithSetter()
         {
             await TestMissingInRegularAndScriptAsync(
 @"class C
@@ -71,53 +66,35 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
         {
             [|return|] Bar();
         }
+
+        set
+        {
+        }
     }
-}", new TestParameters(options: UseExpressionBodyIncludingPropertiesAndIndexers));
+}", new TestParameters(options: UseExpressionBody));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
-        public async Task TestOnIndexer1()
-        {
-            await TestInRegularAndScriptAsync(
-@"class C
-{
-    int this[int i]
-    {
-        get
-        {
-            [|return|] Bar();
-        }
-    }
-}",
-@"class C
-{
-    int this[int i]
-    {
-        get => Bar();
-        }
-    }", options: UseExpressionBody);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
-        public async Task TestMissingIfIndexerIsOn()
+        public async Task TestMissingWithAttribute()
         {
             await TestMissingInRegularAndScriptAsync(
 @"class C
 {
-    int this[int i]
+    int Foo
     {
+        [A]
         get
         {
             [|return|] Bar();
         }
     }
-}", new TestParameters(options: UseExpressionBodyIncludingPropertiesAndIndexers));
+}", new TestParameters(options: UseExpressionBody));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
-        public async Task TestOnSetter1()
+        public async Task TestMissingOnSetter1()
         {
-            await TestInRegularAndScriptAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class C
 {
     int Foo
@@ -127,44 +104,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             [|Bar|]();
         }
     }
-}",
-@"class C
-{
-    int Foo
-    {
-        set => [|Bar|]();
-        }
-    }", options: UseExpressionBody);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
-        public async Task TestMissingWithOnlySetter()
-        {
-            await TestActionCountAsync(
-@"class C
-{
-    int Foo
-    {
-        set => [|Bar|]();
-    }
-}", count: 1, parameters: new TestParameters(options: UseExpressionBody));
-
-            // There is a hidden diagnostic that still offers to convert expression-body to block-body.
-            await TestInRegularAndScriptAsync(
-@"class C
-{
-    int Foo
-    {
-        set => [|Bar|]();
-    }
-}",
-@"class C
-{
-    int Foo
-    {
-        set { Bar(); }
-    }
-}", options: UseExpressionBody);
+}", new TestParameters(options: UseExpressionBody));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
@@ -183,11 +123,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
 }",
 @"class C
 {
-    int Foo
-    {
-        get => throw new NotImplementedException();
-        }
-    }", options: UseExpressionBody);
+    int Foo => throw new NotImplementedException();
+}", options: UseExpressionBody);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
@@ -206,10 +143,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
 }",
 @"class C
 {
-    int Foo
-    {
-        get => throw new NotImplementedException(); // comment
-    }
+    int Foo => throw new NotImplementedException(); // comment
 }", ignoreTrivia: false, options: UseExpressionBody);
         }
 
@@ -219,11 +153,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    int Foo
-    {
-        get [|=>|] Bar();
-        }
-    }",
+    int Foo [|=>|] Bar();
+}",
 @"class C
 {
     int Foo
@@ -237,26 +168,20 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
-        public async Task TestUseBlockBodyForSetter1()
+        public async Task TestUseBlockBodyIfAccessorWantExpression1()
         {
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    int Foo
-    {
-        set [|=>|] Bar();
-        }
-    }",
+    int Foo [|=>|] Bar();
+}",
 @"class C
 {
     int Foo
     {
-        set
-        {
-            Bar();
+        get => Bar();
         }
-    }
-}", options: UseBlockBody);
+    }", options: UseBlockBodyExceptAccessor);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
@@ -265,11 +190,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    int Foo
-    {
-        get [|=>|] throw new NotImplementedException();
-        }
-    }",
+    int Foo [|=>|] throw new NotImplementedException();
+}",
 @"class C
 {
     int Foo
@@ -288,10 +210,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    int Foo
-    {
-        get [|=>|] throw new NotImplementedException(); // comment
-    }
+    int Foo [|=>|] throw new NotImplementedException(); // comment
 }",
 @"class C
 {
@@ -303,6 +222,27 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
         }
     }
 }", ignoreTrivia: false, options: UseBlockBody);
+        }
+
+        [WorkItem(16386, "https://github.com/dotnet/roslyn/issues/16386")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        public async Task TestUseExpressionBodyKeepTrailingTrivia()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    private string _prop = ""HELLO THERE!"";
+    public string Prop { get { [|return|] _prop; } }
+
+    public string OtherThing => ""Pickles"";
+}",
+@"class C
+{
+    private string _prop = ""HELLO THERE!"";
+    public string Prop => _prop;
+
+    public string OtherThing => ""Pickles"";
+}", ignoreTrivia: false, options: UseExpressionBody);
         }
     }
 }

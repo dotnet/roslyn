@@ -1916,20 +1916,14 @@ lVbRuntimePlus:
                             End If
 
                             ' Expression evaluated successfully --> add to 'defines'
-                            If defines.ContainsKey(symbolName) Then
-                                defines = defines.Remove(symbolName)
-                            End If
-                            defines = defines.Add(symbolName, value)
+                            defines = defines.SetItem(symbolName, value)
 
                         ElseIf tokens.Current.Kind = SyntaxKind.CommaToken OrElse
                             tokens.Current.Kind = SyntaxKind.ColonToken OrElse
                             tokens.Current.Kind = SyntaxKind.EndOfFileToken Then
                             ' We have no value being assigned, so we'll just assign it to true
 
-                            If defines.ContainsKey(symbolName) Then
-                                defines = defines.Remove(symbolName)
-                            End If
-                            defines = defines.Add(symbolName, InternalSyntax.CConst.Create(True))
+                            defines = defines.SetItem(symbolName, InternalSyntax.CConst.Create(True))
 
                         ElseIf tokens.Current.Kind = SyntaxKind.BadToken Then
                             GetErrorStringForRemainderOfConditionalCompilation(tokens, parsedTokensAsString)
