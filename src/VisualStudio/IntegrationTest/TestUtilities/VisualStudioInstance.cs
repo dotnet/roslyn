@@ -39,7 +39,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
         public GenerateTypeDialog_OutOfProc GenerateTypeDialog { get; }
 
+        public ImmediateWindow_OutOfProc ImmediateWindow { get; set; }
+
         public InlineRenameDialog_OutOfProc InlineRenameDialog { get; set; }
+
+        public LocalsWindow_OutOfProc LocalsWindow { get; set; }
 
         public PreviewChangesDialog_OutOfProc PreviewChangesDialog { get; }
 
@@ -48,6 +52,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         public Shell_OutOfProc Shell { get; }
 
         public SolutionExplorer_OutOfProc SolutionExplorer { get; }
+
+        public WatchWindow_OutOfProc WatchWindow { get; }
 
         public VisualStudioWorkspace_OutOfProc Workspace { get; }
 
@@ -100,10 +106,13 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             ExtractInterfaceDialog = new ExtractInterfaceDialog_OutOfProc(this);
             FindReferencesWindow = new FindReferencesWindow_OutOfProc(this);
             GenerateTypeDialog = new GenerateTypeDialog_OutOfProc(this);
+            ImmediateWindow = new ImmediateWindow_OutOfProc(this);
             InlineRenameDialog = new InlineRenameDialog_OutOfProc(this);
+            LocalsWindow = new LocalsWindow_OutOfProc(this);
             PreviewChangesDialog = new PreviewChangesDialog_OutOfProc(this);
             Shell = new Shell_OutOfProc(this);
             SolutionExplorer = new SolutionExplorer_OutOfProc(this);
+            WatchWindow = new WatchWindow_OutOfProc(this);
             Workspace = new VisualStudioWorkspace_OutOfProc(this);
 
             SendKeys = new SendKeys(this);

@@ -29,6 +29,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
         public void Stop(bool waitForDesignMode) => _debuggerInProc.Stop(waitForDesignMode);
 
+        public void SetNextStatement() => _debuggerInProc.SetNextStatement();
+
         public string EvaluateExpression(string expression) => _debuggerInProc.EvaluateExpression(expression);
     }
 }

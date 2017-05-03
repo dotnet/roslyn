@@ -4,6 +4,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Xunit;
+using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
 namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 {
@@ -13,7 +14,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
         public BasicEditAndContinue(VisualStudioInstanceFactory instanceFactory) : base(instanceFactory)
         {
             VisualStudio.SolutionExplorer.CreateSolution(nameof(BasicBuild));
-            var testProj = new Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils.Project("TestProj");
+            var testProj = new ProjectUtils.Project("TestProj");
             VisualStudio.SolutionExplorer.AddProject(testProj, WellKnownProjectTemplates.ConsoleApplication, LanguageNames.VisualBasic);
         }
 
@@ -123,90 +124,85 @@ End Module");
         [Fact]
         public void EnCWhileDebuggingFromImmediateWindow()
         {
-            //    <Scenario Name = "EnC while debugging from Immediate window" >
-            //      < SetEditorText >
-            //        < ![CDATA[Imports System
+            VisualStudio.Editor.SetText(@"
+Imports System
 
+Module Module1
+    Sub Main()
+        Dim x = 4
+        Console.WriteLine(x)
+    End Sub
+End Module");
 
-            //Module Module1
-            //    Sub Main()
-            //        Dim x = 4
-            //        Console.WriteLine(x)
-            //    End Sub
-            //End Module]] >
-            //      </ SetEditorText >
-            //      < WaitForWorkspace />
-            //      < Debug >
-            //        < SetBreakPoint code="Dim x" charsOffset="1"/>
-            //      </Debug>
+            VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
+            VisualStudio.Debugger.StartDebugging(waitForBreakMode: true); // ?
+            SetBreakPoint("Dim x", charsOffset: 1);
             //      <ImmediateWindow>
             //        <TypeText text = "Module1.Main{(}{)}{ENTER}" />
             //      </ ImmediateWindow >
+            VisualStudio.ImmediateWindow.ExecuteCommand("Module1.Main{(}{)}");
+
             //      < WaitForBuild />
             //      < Debug >
             //        < TryWaitForBreakMode />
-            //        < ReplaceText oldText="x = 4" newText="x = 42"/>
-            //        <StepOver waitForBreakOrEnd = "true" />
-            //      </ Debug >
-            //      < ImmediateWindow >
-            //        < ValidateCommand command="?x" expectedResult="42" />
-            //      </ImmediateWindow>
-            //    </Scenario>
+
+            VisualStudio.Editor.ReplaceText("x = 4", "x = 42");
+            VisualStudio.Debugger.StepOver(waitForBreakOrEnd: true);
+
+            VisualStudio.ImmediateWindow.Verify.ValidateCommand("?x", "42");
+            VisualStudio.ImmediateWindow.ExecuteCommand("Module1.Main{(}{)}");
         }
 
         [Fact]
         public void MultiProjectDebuggingWhereNotAllModulesAreLoaded()
         {
-            //    <Scenario Name = "Multi project debugging where not all modules are loaded"
-            //             Description="This scenario exists to catch asserts or crashes, no specific functional verification required">
+
             //      <AddProject ProjectName = "CSharpLibrary1" LanguageName="C#" ProjectTemplate="None"/>
             //      <AddItem ProjectName = "CSharpLibrary1" FileName="File1.cs"/>
             //      <AddProject ProjectName = "BasicLibrary1" LanguageName="Visual Basic" ProjectTemplate="None"/>
             //      <AddItem ProjectName = "BasicLibrary1" FileName="Class1.vb"/>
-            //      <OpenFile FileName = "Class1.vb" />
-            //      < SetEditorText >
-            //        < ![CDATA[Imports System
 
+            var basicLibrary1 = new ProjectUtils.Project("BasicLibrary1");
+            VisualStudio.SolutionExplorer.OpenFile(basicLibrary1, "Class1.vb");
+            VisualStudio.Editor.SetText(@"
+Imports System
+Public Class Class1
+    Public Sub New()
+    End Sub
 
-            //Public Class Class1
-            //    Public Sub New()
-            //    End Sub
-            //    Public Sub PrintX(x As Integer)
-            //        Console.WriteLine(x)
-            //    End Sub
-            //End Class]] >
-            //      </ SetEditorText >
-            //      < AddProjectReference FromProjectName="TestProj" ToProjectName="BasicLibrary1"/>
-            //      <OpenFile FileName = "Module1.vb" />
-            //      < SetEditorText >
-            //        < ![CDATA[Imports System
-            //Imports BasicLibrary1
+    Public Sub PrintX(x As Integer)
+        Console.WriteLine(x)
+    End Sub
+End Class
+");
 
-            //Module Module1
-            //    Sub Main()
-            //        Dim c As New Class1()
-            //        c.PrintX(5)
-            //    End Sub
-            //End Module]] >
-            //      </ SetEditorText >
-            //      < WaitForWorkspace />
+            var project = new ProjectUtils.Project(ProjectName);
+            VisualStudio.SolutionExplorer.AddProjectReference(project, new ProjectUtils.ProjectReference("BasicLibrary1"));
+            VisualStudio.SolutionExplorer.OpenFile(project, "Module1.vb");
+
+            VisualStudio.Editor.SetText(@"
+Imports System
+Imports BasicLibrary1
+
+Module Module1
+    Sub Main()
+        Dim c As New Class1()
+        c.PrintX(5)
+    End Sub
+End Module
+");
+
+            VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
             //      < Debug ExpectModalDialog="false">
-            //        <SetBreakPoint code = "PrintX" charsOffset="1"/>
-            //        <StartDebugging waitForBreakMode = "true" />
-            //        < ReplaceText oldText="5" newText="42"/>
-            //        <StepOver waitForBreakOrEnd = "false" />
-            //      </ Debug >
+
+            SetBreakPoint("PrintX", charsOffset: 1);
+            VisualStudio.Debugger.StartDebugging(waitForBreakMode: true);
+            VisualStudio.Editor.ReplaceText("5", "42");
+            VisualStudio.Debugger.StepOver(waitForBreakOrEnd: false);
+
             //      < VerifyErrorList Count="0" />
-            //    </Scenario>
+            VisualStudio.ErrorList.Verify.NoBuildErrors();
         }
-
-
-
-
-
-
-
-
 
         [Fact]
         public void DocumentStateTrackingReadonlyInRunMode()
@@ -258,135 +254,109 @@ End Module");
         }
 
         [Fact]
+        // BUG: 1048346
         public void LocalsWindowUpdatesAfterLocalGetsItsTypeUpdatedDuringEnC()
         {
-            //    < !--BUG: 1048346 -->
-            //    <Scenario Name = "Locals window updates after local gets its type updated during EnC" >
             //      < OpenFile FileName= "Module1.vb" />
-            //      < SetEditorText >
-            //        < ![CDATA[Imports System
+            VisualStudio.Editor.SetText(@"
+Imports System
+Module Module1
+    Sub Main()
+        Dim foo As String = ""abc""
+        Console.WriteLine(foo)
+    End Sub
+End Module
+");
+            VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
 
-            //Module Module1
-            //    Sub Main()
-            //        Dim foo As String = "abc"
-            //        Console.WriteLine(foo)
-            //    End Sub
-            //End Module]] >
-            //      </ SetEditorText >
-            //      < WaitForWorkspace />
-            //      < Debug >
-            //        < SetBreakPoint code= "End Sub" />
-            //        < StartDebugging waitForBreakMode= "true" />
-            //      </ Debug >
-            //      < ReplaceText >
-            //          < OldText >
-            //             < ![CDATA[Dim foo As String = "abc"]] >
-            //          </ OldText >
-            //          < NewText >
-            //             < ![CDATA[Dim foo As Single = 10]] >
-            //          </ NewText >
-            //      </ ReplaceText >
-            //      < Debug >
+            SetBreakPoint("End Sub");
+            VisualStudio.Debugger.StartDebugging(waitForBreakMode: true);
+
+            VisualStudio.Editor.ReplaceText("Dim foo As String = \"abc\"", "Dim foo As Single = 10");
+
+
             //        < SetNextStatement code= "Sub Main()" />
-            //        < Continue />
-            //      </ Debug >
-            //      < LocalsWindow >
-            //        < CheckEntry entryName= "foo" expectedValue= "10" expectedType= "Single" />
-            //      </ LocalsWindow >
-            //    </ Scenario >
+            VisualStudio.Editor.SelectTextInCurrentDocument("Sub Main()");
+            // placeCursor.Execute(engine);
+            VisualStudio.Debugger.SetNextStatement();
+
+            // Single
+            VisualStudio.LocalsWindow.Verify.CheckEntry("foo", "10", typeof(float));
         }
 
         [Fact]
+        //    BUG: 1137131
         public void LocalsWindowUpdatesCorrectlyDuringEnC()
         {
-            //    < !--BUG: 1137131
-            //    <Scenario Name = "Locals window updates correctly during EnC" >
             //      < OpenFile FileName= "Module1.vb" />
-            //      < SetEditorText >
-            //        < ![CDATA[Imports System
+            VisualStudio.Editor.SetText(@"
+Imports System
 
-            //Module Module1
-            //    Sub Main()
-            //        bar(5)
-            //    End Sub
+Module Module1
+    Sub Main()
+        bar(5)
+    End Sub
 
+    Function bar(ByVal moo As Long) As Decimal
+        Dim iInt As Integer = 0
+        Dim lLng As Long = 5
+        
+        iInt += 30
+        Return 4
+    End Function
+End Module
+");
+            VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
+            SetBreakPoint("Function bar(ByVal moo As Long) As Decimal");
+            VisualStudio.Debugger.StartDebugging(waitForBreakMode: true);
+            VisualStudio.Editor.ReplaceText("Dim lLng As Long = 5", "Dim lLng As Long = 444");
+            SetBreakPoint("Return 4");
 
-            //    Function bar(ByVal moo As Long) As Decimal
-            //        Dim iInt As Integer = 0
-            //        Dim lLng As Long = 5
-
-
-            //        iInt += 30
-
-
-            //        Return 4
-            //    End Function
-            //End Module]] >
-            //      </ SetEditorText >
-            //      < WaitForWorkspace />
-            //      < Debug >
-            //        < SetBreakPoint code= "Function bar(ByVal moo As Long) As Decimal" />
-            //        < StartDebugging waitForBreakMode= "true" />
-            //        < ReplaceText oldText= "Dim lLng As Long = 5" newText= "Dim lLng As Long = 444" />
-            //        < SetBreakPoint code= "Return 4" />
             //        < Continue />
-            //      </ Debug >
-            //      < LocalsWindow >
-            //        < CheckEntry entryName= "bar" expectedValue= "0" expectedType= "Decimal" />
-            //        < CheckEntry entryName= "moo" expectedValue= "5" expectedType= "Long" />
-            //        < CheckEntry entryName= "iInt" expectedValue= "30" expectedType= "Integer" />
-            //        < CheckEntry entryName= "lLng" expectedValue= "444" expectedType= "Long" />
-            //      </ LocalsWindow >
-            //    </ Scenario >
-            //    -->
+            // TODO: actually this continue debugging not re-starts it
+            VisualStudio.Debugger.StartDebugging(waitForBreakMode: true);
+
+            VisualStudio.LocalsWindow.Verify.CheckEntry("bar", "0", typeof(decimal));
+            VisualStudio.LocalsWindow.Verify.CheckEntry("moo", "5", typeof(long));
+            VisualStudio.LocalsWindow.Verify.CheckEntry("iInt", "30", typeof(int));
+            VisualStudio.LocalsWindow.Verify.CheckEntry("lLng", "444", typeof(long));
         }
 
         [Fact]
+        // BUG: 1137131 (Attachment)
         public void WatchWindowUpdatesCorrectlyDuringEnC()
         {
-            //    < !--BUG: 1137131 (Attachment)
-            //    <Scenario Name = "Watch window updates correctly during EnC" >
-            //      < SetEditorText >
-            //        < ![CDATA[Imports System
 
-            //Module Module1
-            //    Sub Main()
-            //        Dim iInt As Integer = 0
-            //        System.Diagnostics.Debugger.Break()
-            //    End Sub
-            //End Module]] >
-            //      </ SetEditorText >
-            //      < WaitForWorkspace />
-            //      < Debug >
-            //        < StartDebugging waitForBreakMode= "true" />
-            //      </ Debug >
-            //      < WatchWindow >
-            //        < AddEntry expression= "iInt" />
-            //        < CheckEntry entryName= "iInt" expectedValue= "0" expectedType= "Integer" />
-            //      </ WatchWindow >
-            //      < ReplaceText >
-            //        < OldText >
-            //          < ![CDATA[System.Diagnostics.Debugger.Break()]] >
-            //        </ OldText >
-            //        < NewText >
-            //          < ![CDATA[iInt = 5
-            //        System.Diagnostics.Debugger.Break()]] >
-            //        </ NewText >
-            //      </ ReplaceText >
-            //      < Debug >
+            VisualStudio.Editor.SetText(@"
+Imports System
+
+Module Module1
+    Sub Main()
+        Dim iInt As Integer = 0
+        System.Diagnostics.Debugger.Break()
+    End Sub
+End Module
+");
+
+            VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
+            VisualStudio.Debugger.StartDebugging(waitForBreakMode: true);
+
+            VisualStudio.WatchWindow.AddEntry("iInt");
+            VisualStudio.WatchWindow.Verify.CheckEntry("iInt", "0", typeof(int));
+
+            VisualStudio.Editor.ReplaceText("System.Diagnostics.Debugger.Break()", @"iInt = 5
+System.Diagnostics.Debugger.Break()");
+
             //        < SetNextStatement code= "iInt = 5" />
-            //        < Continue />
-            //      </ Debug >
-            //      < WatchWindow >
-            //        < CheckEntry entryName= "iInt" expectedValue= "5" expectedType= "Integer" />
+            VisualStudio.Editor.SelectTextInCurrentDocument("iInt = 5");
+            // placeCursor.Execute(engine);
+            VisualStudio.Debugger.SetNextStatement();
 
-            //    < DeleteAllEntries />
-            //      </ WatchWindow >
-            //    </ Scenario >
-            //    -->
+            VisualStudio.WatchWindow.Verify.CheckEntry("iInt", "5", typeof(int));
+            VisualStudio.WatchWindow.DeleteAllEntries();
         }
 
-        public override void Dispose()
+        public new void Dispose()
         {
             //  < CleanupScenario >
             //    < Debug >

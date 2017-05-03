@@ -30,10 +30,13 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         public void Stop(bool waitForDesignMode) => _debugger.Stop(WaitForDesignMode: waitForDesignMode);
 
+        public void SetNextStatement() => _debugger.SetNextStatement();
+
         public string EvaluateExpression(string expression)
         {
             // TODO any wait patterns?
             return _debugger.GetExpression(expression).Value;
+          //  _debugger.CurrentMode
         }
 
         public void SetOptions()
