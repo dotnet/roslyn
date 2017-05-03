@@ -12,6 +12,7 @@ namespace Microsoft.CodeAnalysis.Packaging
     internal interface IPackageInstallerService : IWorkspaceService
     {
         bool IsEnabled { get; }
+        bool IsEnabledForProject(ProjectId projectId);
 
         bool IsInstalled(Workspace workspace, ProjectId projectId, string packageName);
 
