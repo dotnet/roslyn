@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
     /// Locates the applicable set of .editorconfig files based on given inputs. Walks through
     /// parent directories locating the ones that exist.
     /// </summary>
-    public sealed class LocateEditorConfigFiles : Task
+    public sealed class DiscoverEditorConfigFiles : Task
     {
         /// <summary>
         /// The set of source and other files that we should find the applicable .editorconfig files to.
@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         [Output]
         public ITaskItem[] EditorConfigFiles { get; private set; }
 
-        public LocateEditorConfigFiles()
+        public DiscoverEditorConfigFiles()
         {
             TaskResources = ErrorString.ResourceManager;
         }
