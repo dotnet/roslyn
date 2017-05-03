@@ -1465,6 +1465,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ExpressionTreeContainsDiscard = 8207,
         ERR_PatternDynamicType = 8208,
         ERR_VoidAssignment = 8209,
+        ERR_VoidInTuple = 8210,
         #endregion more stragglers for C# 7
 
         ERR_Merge_conflict_marker_encountered = 8300,
@@ -1472,6 +1473,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_FeatureNotAvailableInVersion7_1 = 8302,
         ERR_LanguageVersionCannotHaveLeadingZeroes = 8303,
         ERR_CompilerAndLanguageVersion = 8304,
+        WRN_Experimental = 8305,
+        ERR_TupleInferredNamesNotAvailable = 8306,
 
         ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation = 8501,
         ERR_RuntimeDoesNotSupportDefaultInterfaceImplementationForMember = 8502,
@@ -1479,5 +1482,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         // PROTOTYPE(DefaultInterfaceImplementation): Should add this error code to the list monitored by the UpgradeProject code fixer.
         // This PR can be used to find the relevant code and test files: https://github.com/dotnet/roslyn/pull/18045.
         ERR_DefaultInterfaceImplementationModifier = 8503,
+
+        ERR_BadDynamicMethodArgDefaultLiteral = 9000,
+        ERR_DefaultLiteralNotValid = 9001,
+        WRN_DefaultInSwitch = 9002,
     }
 }

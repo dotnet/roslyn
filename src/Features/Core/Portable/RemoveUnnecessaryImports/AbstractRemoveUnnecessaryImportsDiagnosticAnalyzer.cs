@@ -64,7 +64,12 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
             var tree = context.SemanticModel.SyntaxTree;
             var cancellationToken = context.CancellationToken;
 
-            var workspace = ((WorkspaceAnalyzerOptions)context.Options).Workspace;
+            if (!(context.Options is WorkspaceAnalyzerOptions workspaceOptions))
+            {
+                return;
+            }
+
+            var workspace = workspaceOptions.Workspace;
             var service = workspace.Services.GetLanguageServices(context.SemanticModel.Compilation.Language)
                                             .GetService<IUnnecessaryImportsService>();
 

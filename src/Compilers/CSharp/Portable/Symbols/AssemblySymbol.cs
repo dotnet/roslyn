@@ -486,11 +486,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return CorLibrary.GetDeclaredSpecialType(type);
         }
 
-        internal NamedTypeSymbol GetWellKnownType(WellKnownType type)
-        {
-            return this.GetTypeByMetadataName(WellKnownTypes.GetMetadataName(type));
-        }
-
         internal static TypeSymbol DynamicType
         {
             get

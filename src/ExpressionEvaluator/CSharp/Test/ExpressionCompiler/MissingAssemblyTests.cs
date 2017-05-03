@@ -801,11 +801,40 @@ class UseLinq
   // Code size        2 (0x2)
   .maxstack  1
   .locals init (int V_0, //x
-                (int, int) V_1, //y
+                (int x, int) V_1, //y
                 (int, int, (int, int)) V_2) //z
   IL_0000:  ldloc.1
   IL_0001:  ret
 }");
+        }
+
+        [Fact]
+        public void TupleNoSystemRuntimeWithCSharp7_1()
+        {
+            var source =
+@"class C
+{
+    static void M()
+    {
+        var x = 1;
+        var y = (x, 2);
+        var z = (3, 4, (5, 6));
+    }
+}";
+            TupleContextNoSystemRuntime(
+                source,
+                "C.M",
+                "y",
+@"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (int V_0, //x
+                (int x, int) V_1, //y
+                (int, int, (int, int)) V_2) //z
+  IL_0000:  ldloc.1
+  IL_0001:  ret
+}",
+LanguageVersion.CSharp7_1);
         }
 
         [WorkItem(16879, "https://github.com/dotnet/roslyn/issues/16879")]
@@ -830,16 +859,47 @@ class UseLinq
   // Code size        2 (0x2)
   .maxstack  1
   .locals init (int V_0, //x
-                (int, int) V_1, //y
+                (int x, int) V_1, //y
                 (int, int, (int, int)) V_2) //z
   IL_0000:  ldloc.0
   IL_0001:  ret
 }");
         }
 
-        private static void TupleContextNoSystemRuntime(string source, string methodName, string expression, string expectedIL)
+        [Fact]
+        public void NonTupleNoSystemRuntimeWithCSharp7_1()
         {
-            var comp = CreateStandardCompilation(source, new[] { SystemRuntimeFacadeRef, ValueTupleRef }, options: TestOptions.DebugDll);
+            var source =
+@"class C
+{
+    static void M()
+    {
+        var x = 1;
+        var y = (x, 2);
+        var z = (3, 4, (5, 6));
+    }
+}";
+            TupleContextNoSystemRuntime(
+                source,
+                "C.M",
+                "x",
+@"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (int V_0, //x
+                (int x, int) V_1, //y
+                (int, int, (int, int)) V_2) //z
+  IL_0000:  ldloc.0
+  IL_0001:  ret
+}",
+LanguageVersion.CSharp7_1);
+        }
+
+        private static void TupleContextNoSystemRuntime(string source, string methodName, string expression, string expectedIL,
+            LanguageVersion languageVersion = LanguageVersion.CSharp7)
+        {
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion),
+                references: new[] { SystemRuntimeFacadeRef, ValueTupleRef }, options: TestOptions.DebugDll);
             using (var systemRuntime = SystemRuntimeFacadeRef.ToModuleInstance())
             {
                 WithRuntimeInstance(comp, new[] { MscorlibRef, ValueTupleRef }, runtime =>

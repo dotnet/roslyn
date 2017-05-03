@@ -68,7 +68,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         {
             var hierarchyMapper = TryGetProjectMap();
             if (hierarchyMapper != null &&
-                hierarchyMapper.TryGetProjectId(parentItem, out var projectId))
+                hierarchyMapper.TryGetProjectId(parentItem, targetFrameworkMoniker: null, projectId: out var projectId))
             {
                 var workspace = TryGetWorkspace();
                 return new AnalyzersFolderItemSource(workspace, projectId, item, _commandHandler);

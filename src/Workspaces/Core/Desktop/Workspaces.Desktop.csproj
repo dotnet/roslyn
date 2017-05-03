@@ -22,6 +22,18 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Xml" />
+    <PackageReference Include="ManagedEsent">
+      <Version>$(ManagedEsentVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="SQLitePCLRaw.bundle_green">
+      <Version>$(SQLitePCLRawbundle_greenVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.Build">
+      <Version>$(MicrosoftBuildVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.Build.Tasks.Core">
+      <Version>$(MicrosoftBuildTasksCoreVersion)</Version>
+    </PackageReference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\..\Compilers\Core\Portable\EncodedStringText.cs">
@@ -187,7 +199,6 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <None Include="project.json" />
     <PublicAPI Include="PublicAPI.Shipped.txt" />
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
