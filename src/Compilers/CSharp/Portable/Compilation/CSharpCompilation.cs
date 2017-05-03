@@ -1636,8 +1636,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// Checks if the method has an entry point compatible signature, i.e.
-        /// - the return type is either void, int, <see cref="System.Threading.Tasks.Task" />,
-        /// or <see cref="System.Threading.Tasks.Task{T}" /> where T is an int.
+        /// - the return type is either void, int, or returns a <see cref="System.Threading.Tasks.Task" />,
+        /// or <see cref="System.Threading.Tasks.Task{T}" /> where the resturn type of GetAwaiter().GetResult() 
+        /// is either void or int.
         /// - has either no parameter or a single parameter of type string[]
         /// </summary>
         private (bool IsCandidate, bool IsTaskLike) HasEntryPointSignature(MethodSymbol method, DiagnosticBag bag)

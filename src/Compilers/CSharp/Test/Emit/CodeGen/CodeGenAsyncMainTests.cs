@@ -7,10 +7,10 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
+    [CompilerTrait(CompilerFeature.AsyncMain)]
     public class CodeGenAsyncMainTests : EmitMetadataTestBase
     {
         [Fact]
-        [CompilerTrait(CompilerFeature.AsyncMain)]
         public void MultipleMainsOneOfWhichHasBadTaskType_WithMainType()
         {
             var source = @"
@@ -36,7 +36,6 @@ static class Program {
         }
 
         [Fact]
-        [CompilerTrait(CompilerFeature.AsyncMain)]
         public void MultipleMainsOneOfWhichHasBadTaskType_CSharp7()
         {
             var source = @"
@@ -65,7 +64,6 @@ static class Program {
         }
 
         [Fact]
-        [CompilerTrait(CompilerFeature.AsyncMain)]
         public void MultipleMainsOneOfWhichHasBadTaskType_CSharp7_WithExplicitMain()
         {
             var source = @"
@@ -91,7 +89,6 @@ static class Program {
         }
 
         [Fact]
-        [CompilerTrait(CompilerFeature.AsyncMain)]
         public void MultipleMainsOneOfWhichHasBadTaskType_CSharp71()
         {
             var source = @"
@@ -120,7 +117,6 @@ static class Program {
         }
 
         [Fact]
-        [CompilerTrait(CompilerFeature.AsyncMain)]
         public void MultipleMainsOneOfWhichHasBadTaskType_CSharp71_WithExplicitMain()
         {
             var source = @"
@@ -146,7 +142,6 @@ static class Program {
         }
 
         [Fact]
-        [CompilerTrait(CompilerFeature.AsyncMain)]
         public void GetResultReturnsSomethingElse_CSharp7()
         {
             var source = @"
@@ -191,7 +186,6 @@ static class Program {
         }
 
         [Fact]
-        [CompilerTrait(CompilerFeature.AsyncMain)]
         public void GetResultReturnsSomethingElse_CSharp71()
         {
             var source = @"
@@ -236,7 +230,6 @@ static class Program {
         }
 
         [Fact]
-        [CompilerTrait(CompilerFeature.AsyncMain)]
         public void TaskOfTGetAwaiterReturnsVoid_CSharp7()
         {
             var source = @"
@@ -274,7 +267,6 @@ static class Program {
         }
 
         [Fact]
-        [CompilerTrait(CompilerFeature.AsyncMain)]
         public void TaskOfTGetAwaiterReturnsVoid_CSharp71()
         {
             var source = @"
@@ -312,7 +304,6 @@ static class Program {
         }
 
         [Fact]
-        [CompilerTrait(CompilerFeature.AsyncMain)]
         public void TaskGetAwaiterReturnsVoid()
         {
             var source = @"
@@ -346,7 +337,6 @@ static class Program {
         }
 
         [Fact]
-        [CompilerTrait(CompilerFeature.AsyncMain)]
         public void MissingMethodsOnTask()
         {
             var source = @"
@@ -378,7 +368,6 @@ static class Program {
         }
 
         [Fact]
-        [CompilerTrait(CompilerFeature.AsyncMain)]
         public void EmitTaskOfIntReturningMainWithoutInt()
         {
             var corAssembly = @"
@@ -421,7 +410,6 @@ static class Program {
         }
 
         [Fact]
-        [CompilerTrait(CompilerFeature.AsyncMain)]
         public void EmitTaskReturningMainWithoutVoid()
         {
             var corAssembly = @"
@@ -462,28 +450,6 @@ static class Program {
         }
 
         [Fact]
-        [CompilerTrait(CompilerFeature.AsyncMain)]
-        public void AsyncEmitMainOfIntTest()
-        {
-            var source = @"
-using System;
-using System.Threading.Tasks;
-
-class Program {
-    static async Task<int> Main() {
-        Console.Write(""hello "");
-        await Task.Factory.StartNew(() => 5);
-        Console.Write(""async main"");
-        return 10;
-    }
-}";
-            var c = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
-            var verifier = CompileAndVerify(c, expectedOutput: "hello async main", expectedReturnCode: 10);
-
-        }
-
-        [Fact]
-        [CompilerTrait(CompilerFeature.AsyncMain)]
         public void AsyncEmitMainTest()
         {
             var source = @"
@@ -502,7 +468,6 @@ class Program {
         }
 
         [Fact]
-        [CompilerTrait(CompilerFeature.AsyncMain)]
         public void AsyncMainTestCodegenWithErrors()
         {
             var source = @"
@@ -525,7 +490,6 @@ class Program {
 
 
         [Fact]
-        [CompilerTrait(CompilerFeature.AsyncMain)]
         public void AsyncEmitMainOfIntTest_StringArgs()
         {
             var source = @"
@@ -545,7 +509,6 @@ class Program {
         }
 
         [Fact]
-        [CompilerTrait(CompilerFeature.AsyncMain)]
         public void AsyncEmitMainOfIntTest_ParamsStringArgs()
         {
             var source = @"
@@ -565,7 +528,6 @@ class Program {
         }
 
         [Fact]
-        [CompilerTrait(CompilerFeature.AsyncMain)]
         public void AsyncEmitMainTest_StringArgs()
         {
             var source = @"
@@ -584,7 +546,6 @@ class Program {
         }
 
         [Fact]
-        [CompilerTrait(CompilerFeature.AsyncMain)]
         public void AsyncEmitMainTestCodegenWithErrors_StringArgs()
         {
             var source = @"
@@ -606,7 +567,6 @@ class Program {
         }
 
         [Fact]
-        [CompilerTrait(CompilerFeature.AsyncMain)]
         public void AsyncEmitMainOfIntTest_StringArgs_WithArgs()
         {
             var source = @"
@@ -626,7 +586,6 @@ class Program {
         }
 
         [Fact]
-        [CompilerTrait(CompilerFeature.AsyncMain)]
         public void AsyncEmitMainTest_StringArgs_WithArgs()
         {
             var source = @"
@@ -645,7 +604,6 @@ class Program {
         }
 
         [Fact]
-        [CompilerTrait(CompilerFeature.AsyncMain)]
         public void MainCanBeAsyncWithArgs()
         {
             var source = @"
@@ -668,7 +626,6 @@ class A
         }
 
         [Fact]
-        [CompilerTrait(CompilerFeature.AsyncMain)]
         public void MainCanReturnTaskWithArgs_NoAsync()
         {
             var source = @"
@@ -692,7 +649,6 @@ class A
 
 
         [Fact]
-        [CompilerTrait(CompilerFeature.AsyncMain)]
         public void MainCantBeAsyncWithRefTask()
         {
             var source = @"
@@ -715,7 +671,6 @@ class A
         }
 
         [Fact]
-        [CompilerTrait(CompilerFeature.AsyncMain)]
         public void MainCantBeAsyncWithArgs_CSharp7()
         {
             var source = @"
@@ -741,7 +696,6 @@ class A
         }
 
         [Fact]
-        [CompilerTrait(CompilerFeature.AsyncMain)]
         public void MainCanReturnTask()
         {
             var source = @"
@@ -761,7 +715,6 @@ class A
             Assert.Equal("System.Threading.Tasks.Task A.Main()", entry.ToTestDisplayString());
         }
         [Fact]
-        [CompilerTrait(CompilerFeature.AsyncMain)]
         public void MainCanReturnTask_NoAsync()
         {
             var source = @"
@@ -782,32 +735,6 @@ class A
         }
 
         [Fact]
-        [CompilerTrait(CompilerFeature.AsyncMain)]
-        public void MainCantBeAsyncVoid()
-        {
-            var source = @"
-using System.Threading.Tasks;
-
-class A
-{
-    async static void Main()
-    {
-        await Task.Factory.StartNew(() => { });
-    }
-}";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
-            compilation.VerifyDiagnostics(
-                // (6,23): warning CS0028: 'A.Main()' has the wrong signature to be an entry point
-                //     async static void Main()
-                Diagnostic(ErrorCode.WRN_InvalidMainSig, "Main").WithArguments("A.Main()").WithLocation(6, 23),
-                // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
-                Diagnostic(ErrorCode.ERR_NoEntryPoint).WithLocation(1, 1));
-            var entry = compilation.GetEntryPoint(CancellationToken.None);
-            Assert.Null(entry);
-        }
-
-        [Fact]
-        [CompilerTrait(CompilerFeature.AsyncMain)]
         public void MainCantBeAsyncVoid_CSharp7()
         {
             var source = @"
@@ -830,7 +757,6 @@ class A
         }
 
         [Fact]
-        [CompilerTrait(CompilerFeature.AsyncMain)]
         public void MainCantBeAsyncInt()
         {
             var source = @"
@@ -858,7 +784,6 @@ class A
         }
 
         [Fact]
-        [CompilerTrait(CompilerFeature.AsyncMain)]
         public void MainCantBeAsyncInt_CSharp7()
         {
             var source = @"
@@ -884,7 +809,6 @@ class A
         }
 
         [Fact]
-        [CompilerTrait(CompilerFeature.AsyncMain)]
         public void MainCanReturnTaskAndGenericOnInt_WithArgs()
         {
             var source = @"
@@ -905,7 +829,6 @@ class A
         }
 
         [Fact]
-        [CompilerTrait(CompilerFeature.AsyncMain)]
         public void MainCanReturnTaskAndGenericOnInt_WithArgs_NoAsync()
         {
             var source = @"
@@ -926,7 +849,6 @@ class A
         }
 
         [Fact]
-        [CompilerTrait(CompilerFeature.AsyncMain)]
         public void MainCantBeAsyncAndGenericOnInt_WithArgs_Csharp7()
         {
             var source = @"
@@ -952,7 +874,6 @@ class A
         }
 
         [Fact]
-        [CompilerTrait(CompilerFeature.AsyncMain)]
         public void MainCanReturnTaskAndGenericOnInt()
         {
             var source = @"
@@ -973,7 +894,6 @@ class A
         }
 
         [Fact]
-        [CompilerTrait(CompilerFeature.AsyncMain)]
         public void MainCanReturnTaskAndGenericOnInt_NoAsync()
         {
             var source = @"
@@ -994,7 +914,6 @@ class A
         }
 
         [Fact]
-        [CompilerTrait(CompilerFeature.AsyncMain)]
         public void MainCantBeAsyncAndGenericOnInt_CSharp7()
         {
             var source = @"
@@ -1015,11 +934,11 @@ class A
     {
         return await Task.Factory.StartNew(() => 5);
     }").WithArguments("async main", "7.1").WithLocation(6, 5),
+                // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
                 Diagnostic(ErrorCode.ERR_NoEntryPoint).WithLocation(1, 1));
         }
 
         [Fact]
-        [CompilerTrait(CompilerFeature.AsyncMain)]
         public void MainCantBeAsyncAndGenericOverFloats()
         {
             var source = @"
@@ -1043,7 +962,6 @@ class A
         }
 
         [Fact]
-        [CompilerTrait(CompilerFeature.AsyncMain)]
         public void MainCantBeAsync_AndGeneric()
         {
             var source = @"
@@ -1065,7 +983,6 @@ class A
         }
 
         [Fact]
-        [CompilerTrait(CompilerFeature.AsyncMain)]
         public void MainCantBeAsync_AndBadSig()
         {
             var source = @"
@@ -1087,7 +1004,6 @@ class A
         }
 
         [Fact]
-        [CompilerTrait(CompilerFeature.AsyncMain)]
         public void MainCantBeAsync_AndGeneric_AndBadSig()
         {
             var source = @"
@@ -1109,7 +1025,6 @@ class A
         }
 
         [Fact]
-        [CompilerTrait(CompilerFeature.AsyncMain)]
         public void TaskMainAndNonTaskMain()
         {
             var source = @"
@@ -1132,7 +1047,6 @@ class A
         }
 
         [Fact]
-        [CompilerTrait(CompilerFeature.AsyncMain)]
         public void TaskMainAndNonTaskMain_WithExplicitMain()
         {
             var source = @"
@@ -1155,7 +1069,6 @@ class A
         }
 
         [Fact]
-        [CompilerTrait(CompilerFeature.AsyncMain)]
         public void TaskOfFloatMainAndNonTaskMain()
         {
             var source = @"
@@ -1183,7 +1096,6 @@ class A
         }
 
         [Fact]
-        [CompilerTrait(CompilerFeature.AsyncMain)]
         public void TaskOfFloatMainAndNonTaskMain_WithExplicitMain()
         {
             var source = @"
