@@ -49,6 +49,44 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
 
         <WpfFact()>
         <Trait(Traits.Feature, Traits.Features.ProjectSystemShims)>
+        Public Sub SetCompilerOptions_LangVersion15_3()
+            Using environment = New TestEnvironment()
+                Dim project = CreateVisualBasicProject(environment, "Test")
+
+                Dim compilerOptionsHost = DirectCast(project, Implementation.ProjectSystem.Interop.ICompilerOptionsHostObject)
+                Dim supported As Boolean
+                compilerOptionsHost.SetCompilerOptions("/langversion:15.3", supported)
+
+                Dim workspaceProject = environment.Workspace.CurrentSolution.Projects.Single()
+                Dim options = DirectCast(workspaceProject.ParseOptions, VisualBasicParseOptions)
+
+                Assert.Equal(LanguageVersion.VisualBasic15_3, options.LanguageVersion)
+
+                project.Disconnect()
+            End Using
+        End Sub
+
+        <WpfFact()>
+        <Trait(Traits.Feature, Traits.Features.ProjectSystemShims)>
+        Public Sub SetCompilerOptions_LangVersionLatest()
+            Using environment = New TestEnvironment()
+                Dim project = CreateVisualBasicProject(environment, "Test")
+
+                Dim compilerOptionsHost = DirectCast(project, Implementation.ProjectSystem.Interop.ICompilerOptionsHostObject)
+                Dim supported As Boolean
+                compilerOptionsHost.SetCompilerOptions("/langversion:latest", supported)
+
+                Dim workspaceProject = environment.Workspace.CurrentSolution.Projects.Single()
+                Dim options = DirectCast(workspaceProject.ParseOptions, VisualBasicParseOptions)
+
+                Assert.Equal(LanguageVersion.VisualBasic15_3, options.LanguageVersion)
+
+                project.Disconnect()
+            End Using
+        End Sub
+
+        <WpfFact()>
+        <Trait(Traits.Feature, Traits.Features.ProjectSystemShims)>
         <WorkItem(530980, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530980")>
         Public Sub DocumentationModeSetToParseIfNotProducingDocFile()
             Using environment = New TestEnvironment()
