@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.DesignerAttributes
             // If we have no persisted data, or the persisted data is for a previous version of 
             // the project, then compute the results for the current project snapshot.
             if (designerAttributeData == null ||
-                !project.CanReusePersistedDependentSemanticVersion(projectVersion, semanticVersion, designerAttributeData.SemanticVersion))
+                !VersionStamp.CanReusePersistedVersion(semanticVersion, designerAttributeData.SemanticVersion))
             {
                 designerAttributeData = await ComputeAndPersistDesignerAttributeProjectDataAsync(
                     project, semanticVersion, cancellationToken).ConfigureAwait(false);
