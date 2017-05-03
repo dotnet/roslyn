@@ -129,11 +129,16 @@ namespace Microsoft.CodeAnalysis.DesignerAttributes
         {
             var service = project.LanguageServices.GetService<IDesignerAttributeService>();
 
+            var tasks = project.Documents.Select(
+                d => service.ScanDesignerAttributesAsync(d, cancellationToken)).ToArray();
+
+            await Task.WhenAll(tasks).ConfigureAwait(false);
+
             var builder = ImmutableDictionary.CreateBuilder<string, DesignerAttributeDocumentData>();
-            foreach (var document in project.Documents)
+            foreach (var task in tasks)
             {
-                var result = await service.ScanDesignerAttributesAsync(document, cancellationToken).ConfigureAwait(false);
-                builder[document.FilePath] = result;
+                var result = await task.ConfigureAwait(false);
+                builder[result.FilePath] = result;
             }
 
             var data = new DesignerAttributeProjectData(semanticVersion, builder.ToImmutable());
