@@ -16,9 +16,6 @@ namespace Microsoft.CodeAnalysis.DesignerAttributes
 {
     internal abstract class AbstractDesignerAttributeService : IDesignerAttributeService
     {
-        private const string StreamName = "<DesignerAttribute>";
-        private const string FormatVersion = "3";
-
         protected abstract bool ProcessOnlyFirstTypeDefined();
         protected abstract IEnumerable<SyntaxNode> GetAllTopLevelTypeDefined(SyntaxNode root);
         protected abstract bool HasAttributesOrBaseTypeOrIsPartial(SyntaxNode typeNode);
@@ -116,7 +113,8 @@ namespace Microsoft.CodeAnalysis.DesignerAttributes
             var semanticVersion = await project.GetDependentSemanticVersionAsync(cancellationToken).ConfigureAwait(false);
 
             // Get whatever data we've current persisted.
-            var designerAttributeData = await ReadExistingDataAsync(project, cancellationToken).ConfigureAwait(false);
+            var designerAttributeData = await DesignerAttributeProjectData.ReadAsync(
+                project, cancellationToken).ConfigureAwait(false);
 
             // If we have no persisted data, or the persisted data is for a previous version of 
             // the project, then compute the results for the current project snapshot.
@@ -143,88 +141,8 @@ namespace Microsoft.CodeAnalysis.DesignerAttributes
             }
 
             var data = new DesignerAttributeProjectData(semanticVersion, builder.ToImmutable());
-            PersistProjectData(project, data, cancellationToken);
+            data.Persist(project, cancellationToken);
             return data;
-        }
-
-        private static async Task<DesignerAttributeProjectData> ReadExistingDataAsync(
-            Project project, CancellationToken cancellationToken)
-        {
-            try
-            {
-                var solution = project.Solution;
-                var workspace = project.Solution.Workspace;
-
-                var storageService = workspace.Services.GetService<IPersistentStorageService>();
-                using (var persistenceService = storageService.GetStorage(solution))
-                using (var stream = await persistenceService.ReadStreamAsync(project, StreamName, cancellationToken).ConfigureAwait(false))
-                using (var reader = ObjectReader.TryGetReader(stream, cancellationToken))
-                {
-                    if (reader != null)
-                    {
-                        var version = reader.ReadString();
-                        if (version == FormatVersion)
-                        {
-                            var semanticVersion = VersionStamp.ReadFrom(reader);
-
-                            var resultCount = reader.ReadInt32();
-                            var builder = ImmutableDictionary.CreateBuilder<string, DesignerAttributeDocumentData>();
-
-                            for (var i = 0; i < resultCount; i++)
-                            {
-                                var filePath = reader.ReadString();
-                                var attribute = reader.ReadString();
-                                var containsErrors = reader.ReadBoolean();
-                                var notApplicable = reader.ReadBoolean();
-
-                                builder[filePath] = new DesignerAttributeDocumentData(filePath, attribute, containsErrors, notApplicable);
-                            }
-
-                            return new DesignerAttributeProjectData(semanticVersion, builder.ToImmutable());
-                        }
-                    }
-                }
-            }
-            catch (Exception e) when (IOUtilities.IsNormalIOException(e))
-            {
-                // Storage APIs can throw arbitrary exceptions.
-            }
-
-            return null;
-        }
-
-        private static void PersistProjectData(
-            Project project, DesignerAttributeProjectData data, CancellationToken cancellationToken)
-        {
-            try
-            {
-                var solution = project.Solution;
-                var workspace = project.Solution.Workspace;
-
-                var storageService = workspace.Services.GetService<IPersistentStorageService>();
-                using (var persistenceService = storageService.GetStorage(solution))
-                using (var stream = SerializableBytes.CreateWritableStream())
-                using (var writer = new ObjectWriter(stream, cancellationToken: cancellationToken))
-                {
-                    writer.WriteString(FormatVersion);
-                    data.SemanticVersion.WriteTo(writer);
-
-                    writer.WriteInt32(data.PathToDocumentData.Count);
-
-                    foreach (var kvp in data.PathToDocumentData)
-                    {
-                        var result = kvp.Value;
-                        writer.WriteString(result.FilePath);
-                        writer.WriteString(result.DesignerAttributeArgument);
-                        writer.WriteBoolean(result.ContainsErrors);
-                        writer.WriteBoolean(result.NotApplicable);
-                    }
-                }
-            }
-            catch (Exception e) when (IOUtilities.IsNormalIOException(e))
-            {
-                // Storage APIs can throw arbitrary exceptions.
-            }
         }
     }
 }
