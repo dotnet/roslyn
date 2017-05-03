@@ -33,6 +33,8 @@ namespace Microsoft.CodeAnalysis.DesignerAttributes
                    NotApplicable == other.NotApplicable;
         }
 
+        // Currently no need for GetHashCode.  If we end up using this as a key in a dictionary,
+        // feel free to add.
         public override int GetHashCode()
             => throw new NotImplementedException();
     }
