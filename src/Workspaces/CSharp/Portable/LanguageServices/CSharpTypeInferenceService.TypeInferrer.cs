@@ -337,10 +337,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             private IEnumerable<TypeInferenceInfo> InferTypeInTupleExpression(
-                TupleExpressionSyntax parent, ArgumentSyntax argument)
+                TupleExpressionSyntax tupleExpression, ArgumentSyntax argument)
             {
-                var index = parent.Arguments.IndexOf(argument);
-                var parentTypes = InferTypes(parent);
+                var index = tupleExpression.Arguments.IndexOf(argument);
+                var parentTypes = InferTypes(tupleExpression);
 
                 return parentTypes.Select(typeInfo => typeInfo.InferredType)
                                   .OfType<INamedTypeSymbol>()
