@@ -5072,6 +5072,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>A tuple may not contain a value of type 'void'.</value>
   </data>
   <data name="ERR_NonTaskMainCantBeAsync" xml:space="preserve">
-    <value>Async Main methods must return Task or Task&lt;int&gt;</value>
+    <value>A void or int returning Main cannot be async</value>
   </data>
 </root>

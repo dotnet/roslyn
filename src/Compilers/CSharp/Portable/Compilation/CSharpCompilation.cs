@@ -1453,7 +1453,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                var intOrVoidEntryPoints = ArrayBuilder<MethodSymbol>.GetInstance();
                 // Validity and diagnostics are also tracked because they must be conditionally handled 
                 // if there are not any "traditional" entrypoints found.
                 var taskEntryPoints = ArrayBuilder<(bool IsValid, MethodSymbol Candidate, DiagnosticBag SpecificDiagnostics)>.GetInstance();
@@ -1480,6 +1479,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return true;
                 }
 
+                var viableEntryPoints = ArrayBuilder<MethodSymbol>.GetInstance();
+
                 foreach (var candidate in entryPointCandidates)
                 {
                     var perCandidateBag = DiagnosticBag.GetInstance();
@@ -1491,24 +1492,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else
                     {
-                        if (CheckValid(candidate, IsCandidate, perCandidateBag))
+                        if (!CheckValid(candidate, IsCandidate, perCandidateBag))
                         {
-                            intOrVoidEntryPoints.Add(candidate);
+                            continue;
                         }
+                        if (candidate.IsAsync)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_NonTaskMainCantBeAsync, candidate.Locations.First(), candidate);
+                            continue;
+                        }
+                        viableEntryPoints.Add(candidate);
                         perCandidateBag.Free();
                     }
-                }
-
-                var viableEntryPoints = ArrayBuilder<MethodSymbol>.GetInstance();
-
-                foreach (var candidate in intOrVoidEntryPoints)
-                {
-                    if (candidate.IsAsync)
-                    {
-                        diagnostics.Add(ErrorCode.ERR_NonTaskMainCantBeAsync, candidate.Locations.First(), candidate);
-                        continue;
-                    }
-                    viableEntryPoints.Add(candidate);
                 }
 
                 if (viableEntryPoints.Count == 0)
@@ -1586,7 +1581,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     entryPoint = viableEntryPoints[0];
                 }
 
-                intOrVoidEntryPoints.Free();
                 taskEntryPoints.Free();
                 viableEntryPoints.Free();
                 noMainFoundDiagnostics.Free();
