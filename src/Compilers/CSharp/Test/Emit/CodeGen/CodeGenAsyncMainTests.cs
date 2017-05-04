@@ -1057,17 +1057,21 @@ using System.Threading.Tasks;
 
 class A
 {
-    async void Main(string[] args)
+    async static void Main(string[] args)
     {
         await Task.Factory.StartNew(() => { });
         System.Console.WriteLine(""Async Void Main"");
     }
 }";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe).VerifyDiagnostics(
+                // (6,23): error CS4009: A void or int returning entry point cannot be async
+                //     async static void Main(string[] args)
+                Diagnostic(ErrorCode.ERR_NonTaskMainCantBeAsync, "Main").WithArguments("A.Main(string[])").WithLocation(6, 23),
                 // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
                 Diagnostic(ErrorCode.ERR_NoEntryPoint).WithLocation(1, 1));
         }
 
+        [Fact]
         public void AsyncVoidMain_CSharp71()
         {
             var source = @"
@@ -1075,13 +1079,18 @@ using System.Threading.Tasks;
 
 class A
 {
-    async void Main(string[] args)
+    static async void Main(string[] args)
     {
         await Task.Factory.StartNew(() => { });
         System.Console.WriteLine(""Async Void Main"");
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1)).VerifyDiagnostics();
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1)).VerifyDiagnostics(
+                // (6,23): warning CS0028: 'A.Main(string[])' has the wrong signature to be an entry point
+                //     static async void Main(string[] args)
+                Diagnostic(ErrorCode.WRN_InvalidMainSig, "Main").WithArguments("A.Main(string[])").WithLocation(6, 23),
+                // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
+                Diagnostic(ErrorCode.ERR_NoEntryPoint).WithLocation(1, 1));
         }
 
         [Fact]
