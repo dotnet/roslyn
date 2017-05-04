@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
             isEnabledByDefault: true,
             customTags: WellKnownDiagnosticTags.Telemetry);
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => 
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics =>
             ImmutableArray.Create(CreateCodeActionEquivalenceKeyRule, OverrideCodeActionEquivalenceKeyRule);
 
         public override void Initialize(AnalysisContext context)
