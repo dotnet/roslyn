@@ -515,43 +515,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ImmutableArray<IArgument> IHasArgumentsExpression.ArgumentsInEvaluationOrder => BoundCall.DeriveArguments(this.Arguments, this.ArgumentNamesOpt, this.ArgsToParamsOpt, this.ArgumentRefKindsOpt, this.Constructor.Parameters, this.Syntax);
 
-        ImmutableArray<ISymbolInitializer> IObjectCreationExpression.MemberInitializers
-        {
-            get
-            {
-                return (ImmutableArray<ISymbolInitializer>)s_memberInitializersMappings.GetValue(this,
-                    objectCreationExpression =>
-                    {
-                        var objectInitializerExpression = this.InitializerExpressionOpt as BoundObjectInitializerExpression;
-                        if (objectInitializerExpression != null)
-                        {
-                            var builder = ArrayBuilder<ISymbolInitializer>.GetInstance(objectInitializerExpression.Initializers.Length);
-                            foreach (var memberAssignment in objectInitializerExpression.Initializers)
-                            {
-                                var assignment = memberAssignment as BoundAssignmentOperator;
-                                var leftSymbol = (assignment?.Left as BoundObjectInitializerMember)?.MemberSymbol;
-
-                                if ((object)leftSymbol == null)
-                                {
-                                    continue;
-                                }
-
-                                switch (leftSymbol.Kind)
-                                {
-                                    case SymbolKind.Field:
-                                        builder.Add(new FieldInitializer(assignment.Syntax, (IFieldSymbol)leftSymbol, assignment.Right));
-                                        break;
-                                    case SymbolKind.Property:
-                                        builder.Add(new PropertyInitializer(assignment.Syntax, (IPropertySymbol)leftSymbol, assignment.Right));
-                                        break;
-                                }
-                            }
-                            return builder.ToImmutableAndFree();
-                        }
-                        return ImmutableArray<ISymbolInitializer>.Empty;
-                    });
-            }
-        }
+        ImmutableArray<IOperation> IObjectCreationExpression.Initializers => GetChildInitializers(this.InitializerExpressionOpt).As<IOperation>();
 
         internal static ImmutableArray<BoundExpression> GetChildInitializers(BoundExpression objectOrCollectionInitializer)
         {

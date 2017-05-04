@@ -226,7 +226,7 @@ IOperation:  (OperationKind.None) (Syntax: 'From y In x ... nto Count()')
             VerifyOperationTreeAndDiagnosticsForTest(Of QueryExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/18781"), WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")>
+        <Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")>
         Public Sub ParameterReference_ObjectAndCollectionInitializer()
             Dim source = <![CDATA[
 Imports System.Collections.Generic
@@ -238,33 +238,48 @@ Friend Class [Class]
     Public Property C As [Class]
 
     Public Sub M(x As Integer, y As Integer, z As Integer)
-        Dim c = New [Class]() With {'BIND:"New [Class]() With {"
+        Dim c = New [Class]() With {'BIND:"New [Class]() With {"'BIND:"New [Class]() With {'BIND:"New [Class]() With {""
             .X = x,
             .Y = {x, y, 3},
             .Z = New Dictionary(Of Integer, Integer) From {{x, y}},
             .C = New [Class]() With {.X = z}
         }
     End Sub
-End Class
-]]>.Value
+End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IObjectCreationExpression (Constructor: Sub [Class]..ctor()) (OperationKind.ObjectCreationExpression, Type: [Class]) (Syntax: 'New [Class] ... }')
-  Member Initializers(4): IPropertyInitializer (Property: Property [Class].X As System.Int32) (OperationKind.PropertyInitializerInCreation) (Syntax: '.X = x')
-      IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
-    IPropertyInitializer (Property: Property [Class].Y As System.Int32()) (OperationKind.PropertyInitializerInCreation) (Syntax: '.Y = {x, y, 3}')
-      IArrayCreationExpression (Element Type: System.Int32) (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: '{x, y, 3}')
-        Dimension Sizes(1): ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 3) (Syntax: '{x, y, 3}')
-        Initializer: IArrayInitializer (3 elements) (OperationKind.ArrayInitializer) (Syntax: '{x, y, 3}')
-            Element Values(3): IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
-              IParameterReferenceExpression: y (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'y')
-              ILiteralExpression (Text: 3) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 3) (Syntax: '3')
-    IPropertyInitializer (Property: Property [Class].Z As System.Collections.Generic.Dictionary(Of System.Int32, System.Int32)) (OperationKind.PropertyInitializerInCreation) (Syntax: '.Z = New Di ... om {{x, y}}')
-      IObjectCreationExpression (Constructor: Sub System.Collections.Generic.Dictionary(Of System.Int32, System.Int32)..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Collections.Generic.Dictionary(Of System.Int32, System.Int32)) (Syntax: 'New Diction ... om {{x, y}}')
-    IPropertyInitializer (Property: Property [Class].C As [Class]) (OperationKind.PropertyInitializerInCreation) (Syntax: '.C = New [C ... th {.X = z}')
-      IObjectCreationExpression (Constructor: Sub [Class]..ctor()) (OperationKind.ObjectCreationExpression, Type: [Class]) (Syntax: 'New [Class] ... th {.X = z}')
-        Member Initializers(1): IPropertyInitializer (Property: Property [Class].X As System.Int32) (OperationKind.PropertyInitializerInCreation) (Syntax: '.X = z')
-            IParameterReferenceExpression: z (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'z')
+  Initializers(4): IAssignmentExpression (OperationKind.AssignmentExpression, Type: System.Void) (Syntax: '.X = x')
+      Left: IIndexedPropertyReferenceExpression: Property [Class].X As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'X')
+          Instance Receiver: IOperation:  (OperationKind.None) (Syntax: 'New [Class] ... }')
+      Right: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
+    IAssignmentExpression (OperationKind.AssignmentExpression, Type: System.Void) (Syntax: '.Y = {x, y, 3}')
+      Left: IIndexedPropertyReferenceExpression: Property [Class].Y As System.Int32() (OperationKind.PropertyReferenceExpression, Type: System.Int32()) (Syntax: 'Y')
+          Instance Receiver: IOperation:  (OperationKind.None) (Syntax: 'New [Class] ... }')
+      Right: IArrayCreationExpression (Element Type: System.Int32) (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: '{x, y, 3}')
+          Dimension Sizes(1): ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 3) (Syntax: '{x, y, 3}')
+          Initializer: IArrayInitializer (3 elements) (OperationKind.ArrayInitializer) (Syntax: '{x, y, 3}')
+              Element Values(3): IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
+                IParameterReferenceExpression: y (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'y')
+                ILiteralExpression (Text: 3) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 3) (Syntax: '3')
+    IAssignmentExpression (OperationKind.AssignmentExpression, Type: System.Void) (Syntax: '.Z = New Di ... om {{x, y}}')
+      Left: IIndexedPropertyReferenceExpression: Property [Class].Z As System.Collections.Generic.Dictionary(Of System.Int32, System.Int32) (OperationKind.PropertyReferenceExpression, Type: System.Collections.Generic.Dictionary(Of System.Int32, System.Int32)) (Syntax: 'Z')
+          Instance Receiver: IOperation:  (OperationKind.None) (Syntax: 'New [Class] ... }')
+      Right: IObjectCreationExpression (Constructor: Sub System.Collections.Generic.Dictionary(Of System.Int32, System.Int32)..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Collections.Generic.Dictionary(Of System.Int32, System.Int32)) (Syntax: 'New Diction ... om {{x, y}}')
+          Initializers(1): IInvocationExpression ( Sub System.Collections.Generic.Dictionary(Of System.Int32, System.Int32).Add(key As System.Int32, value As System.Int32)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: '{x, y}')
+              Instance Receiver: IOperation:  (OperationKind.None) (Syntax: 'New Diction ... om {{x, y}}')
+              Arguments(2): IArgument (ArgumentKind.Explicit, Matching Parameter: key) (OperationKind.Argument) (Syntax: 'x')
+                  IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
+                IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: 'y')
+                  IParameterReferenceExpression: y (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'y')
+    IAssignmentExpression (OperationKind.AssignmentExpression, Type: System.Void) (Syntax: '.C = New [C ... th {.X = z}')
+      Left: IIndexedPropertyReferenceExpression: Property [Class].C As [Class] (OperationKind.PropertyReferenceExpression, Type: [Class]) (Syntax: 'C')
+          Instance Receiver: IOperation:  (OperationKind.None) (Syntax: 'New [Class] ... }')
+      Right: IObjectCreationExpression (Constructor: Sub [Class]..ctor()) (OperationKind.ObjectCreationExpression, Type: [Class]) (Syntax: 'New [Class] ... th {.X = z}')
+          Initializers(1): IAssignmentExpression (OperationKind.AssignmentExpression, Type: System.Void) (Syntax: '.X = z')
+              Left: IIndexedPropertyReferenceExpression: Property [Class].X As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'X')
+                  Instance Receiver: IOperation:  (OperationKind.None) (Syntax: 'New [Class] ... th {.X = z}')
+              Right: IParameterReferenceExpression: z (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'z')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
