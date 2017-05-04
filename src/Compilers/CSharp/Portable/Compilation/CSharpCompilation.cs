@@ -1453,15 +1453,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                // Validity and diagnostics are also tracked because they must be conditionally handled 
+                // Validity and diagnostics are also tracked because they must be conditionally handled
                 // if there are not any "traditional" entrypoints found.
                 var taskEntryPoints = ArrayBuilder<(bool IsValid, MethodSymbol Candidate, DiagnosticBag SpecificDiagnostics)>.GetInstance();
 
-                // These diagnostics (warning only) are added to the compilation only if 
+                // These diagnostics (warning only) are added to the compilation only if
                 // there were not any main methods found.
                 DiagnosticBag noMainFoundDiagnostics = DiagnosticBag.GetInstance();
 
-                bool CheckValid(MethodSymbol candidate, bool isCandidate, DiagnosticBag specificDiagnostics) 
+                bool CheckValid(MethodSymbol candidate, bool isCandidate, DiagnosticBag specificDiagnostics)
                 {
                     if (!isCandidate)
                     {
@@ -1513,7 +1513,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     foreach (var (IsValid, Candidate, SpecificDiagnostics) in taskEntryPoints)
                     {
                         // PROTOTYPE(async-main): Get the diagnostic to point to a smaller syntax piece.
-                        if (CheckValid(Candidate, IsValid, SpecificDiagnostics) && 
+                        if (CheckValid(Candidate, IsValid, SpecificDiagnostics) &&
                             CheckFeatureAvailability(Candidate.GetNonNullSyntaxNode(), MessageID.IDS_FeatureAsyncMain, diagnostics))
                         {
                             diagnostics.AddRange(SpecificDiagnostics);
@@ -1530,10 +1530,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (viableEntryPoints.Count == 0)
                 {
                     diagnostics.AddRange(noMainFoundDiagnostics);
-                } 
+                }
                 else if ((object)mainType == null)
                 {
-                    // Turns error diagnostics into warnings. The reason that Error diagnostics can end up in `noMainFoundDiagnostics` is when 
+                    // Filters out diagnostics so that only InvalidMainSig and MainCant'BeGeneric are left.
+                    // The reason that Error diagnostics can end up in `noMainFoundDiagnostics` is when
                     // HasEntryPointSignature yields some Error Diagnostics when people implement Task or Task<T> incorrectly.
                     //
                     // We can't add those Errors to the general diagnostics bag because it would break previously-working programs.
@@ -1541,10 +1542,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // https://github.com/dotnet/roslyn/issues/18964
                     foreach (var diagnostic in noMainFoundDiagnostics.AsEnumerable())
                     {
-                        if (diagnostic.Severity == DiagnosticSeverity.Error) {
-                            diagnostics.Add(diagnostic.WithSeverity(DiagnosticSeverity.Warning));
-                        }
-                        else
+                        if (diagnostic.Code == (int)ErrorCode.WRN_InvalidMainSig || diagnostic.Code == (int)ErrorCode.WRN_MainCantBeGeneric)
                         {
                             diagnostics.Add(diagnostic);
                         }
@@ -1625,7 +1623,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Checks if the method has an entry point compatible signature, i.e.
         /// - the return type is either void, int, or returns a <see cref="System.Threading.Tasks.Task" />,
-        /// or <see cref="System.Threading.Tasks.Task{T}" /> where the return type of GetAwaiter().GetResult() 
+        /// or <see cref="System.Threading.Tasks.Task{T}" /> where the return type of GetAwaiter().GetResult()
         /// is either void or int.
         /// - has either no parameter or a single parameter of type string[]
         /// </summary>
@@ -1646,13 +1644,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     return (false, false);
                 }
-            }
-
-            // Prior to 7.1, async methods were considered to "have the entrypoint signature".
-            // In order to keep back-compat, we need to let these through if compiling using a previous language version.
-            if (!returnsTaskOrTaskOfInt && method.IsAsync && this.LanguageVersion >= LanguageVersion.CSharp7_1)
-            {
-                return (false, returnsTaskOrTaskOfInt);
             }
 
             if (method.RefKind != RefKind.None)
