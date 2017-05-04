@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly Workspace _workspace;
         private readonly OptionSet _optionSet;
 
-        public WorkspaceAnalyzerOptions(AnalyzerOptions options, Workspace workspace, OptionSet optionSet)
+        public WorkspaceAnalyzerOptions(AnalyzerOptions options, OptionSet optionSet, Workspace workspace)
             : base(options.AdditionalFiles)
         {
             _workspace = workspace;
