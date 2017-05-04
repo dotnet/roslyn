@@ -3081,12 +3081,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     type: GetSpecialType(SpecialType.System_Object, diagnostics, node));
             }
 
-            if (operand.Kind == BoundKind.MethodGroup)
-            {
-                Error(diagnostics, ErrorCode.ERR_NoExplicitBuiltinConv, node, MessageID.IDS_MethodGroup.Localize(), targetType);
-                return new BoundAsOperator(node, operand, typeExpression, Conversion.NoConversion, resultType, hasErrors: true);
-            }
-
             var operandType = operand.Type;
             Debug.Assert((object)operandType != null);
             var operandTypeKind = operandType.TypeKind;
