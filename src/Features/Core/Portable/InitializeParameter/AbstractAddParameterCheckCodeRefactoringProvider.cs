@@ -377,8 +377,18 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         private static SyntaxNode CreateArgumentNullException(
             Compilation compilation, SyntaxGenerator generator, IParameterSymbol parameter)
         {
+            var argumentNullExceptionType = compilation.GetTypeByMetadataName(typeof(ArgumentNullException).FullName);
+            if (argumentNullExceptionType == null)
+            {
+                return generator.ObjectCreationExpression(
+                    generator.QualifiedName(
+                        generator.IdentifierName(nameof(System)),
+                        generator.IdentifierName(nameof(ArgumentNullException))),
+                    generator.NameOfExpression(generator.IdentifierName(parameter.Name)));
+            }
+
             return generator.ObjectCreationExpression(
-                compilation.GetTypeByMetadataName("System.ArgumentNullException"),
+                argumentNullExceptionType,
                 generator.NameOfExpression(generator.IdentifierName(parameter.Name)));
         }
 
