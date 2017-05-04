@@ -1116,6 +1116,40 @@ class A
         }
 
         [Fact]
+        public void TaskIntAndTaskFloat_CSharp7()
+        {
+            var source = @"
+using System.Threading.Tasks;
+
+class A
+{
+    async static Task<int> Main()
+    {
+        System.Console.WriteLine(""Task<int>"");
+        return 0;
+    }
+
+    async static Task<float> Main(string[] args)
+    {
+        System.Console.WriteLine(""Task<float>"");
+        return 0.0F;
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1)).VerifyDiagnostics(
+                // (6,28): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //     async static Task<int> Main()
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "Main").WithLocation(6, 28),
+                // (12,30): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //     async static Task<float> Main(string[] args)
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "Main").WithLocation(12, 30),
+                // (12,30): warning CS0028: 'A.Main(string[])' has the wrong signature to be an entry point
+                //     async static Task<float> Main(string[] args)
+                Diagnostic(ErrorCode.WRN_InvalidMainSig, "Main").WithArguments("A.Main(string[])").WithLocation(12, 30));
+            CompileAndVerify(compilation, expectedOutput: "Task<int>", expectedReturnCode: 0);
+        }
+
+
+        [Fact]
         public void TaskOfFloatMainAndNonTaskMain()
         {
             var source = @"
