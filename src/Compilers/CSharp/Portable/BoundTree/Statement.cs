@@ -876,7 +876,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                var builder = ImmutableArray.CreateBuilder<IOperation>(this.SwitchSections.Length + 2);
+                var builder = ImmutableArray.CreateBuilder<IOperation>(this.SwitchSections.Length + 1);
                 builder.Add(this.Expression);
                 foreach (var section in this.SwitchSections)
                 {
@@ -902,7 +902,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     partial class BoundPatternSwitchSection
     {
-        protected override ImmutableArray<IOperation> Children => this.SwitchLabels.As<IOperation>().AddRange(this.Statements).ToImmutableArray();
+        protected override ImmutableArray<IOperation> Children => this.SwitchLabels.As<IOperation>().AddRange(this.Statements);
     }
 
     partial class BoundPatternSwitchLabel
