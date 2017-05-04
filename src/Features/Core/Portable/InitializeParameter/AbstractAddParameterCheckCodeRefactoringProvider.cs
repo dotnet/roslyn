@@ -117,7 +117,10 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         {
             if (statement is IIfStatement ifStatement)
             {
-                if (ifStatement.Condition is IBinaryOperatorExpression binaryOperator)
+                var condition = ifStatement.Condition;
+                condition = UnwrapImplicitConversion(condition);
+
+                if (condition is IBinaryOperatorExpression binaryOperator)
                 {
                     // Look for code of the form "if (p == null)" or "if (null == p)"
                     if (IsNullCheck(binaryOperator.LeftOperand, binaryOperator.RightOperand, parameter) ||
@@ -127,7 +130,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                     }
                 }
                 else if (parameter.Type.SpecialType == SpecialType.System_String &&
-                         IsStringCheck(ifStatement.Condition, parameter))
+                         IsStringCheck(condition, parameter))
                 {
                     return true;
                 }

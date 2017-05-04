@@ -704,5 +704,22 @@ class C
     }
 }", index: 2);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestMissingOnUnboundTypeWithExistingNullCheck()
+        {
+            await TestMissingAsync(
+@"
+class C
+{
+    public C(String [||]s)
+    {
+        if (s == null)
+        {
+            throw new System.Exception();
+        }
+    }
+}");
+        }
     }
 }
