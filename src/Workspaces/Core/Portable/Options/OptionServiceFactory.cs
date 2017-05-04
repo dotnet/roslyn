@@ -40,11 +40,6 @@ namespace Microsoft.CodeAnalysis.Options
             private readonly IGlobalOptionService _globalOptionService;
             private readonly IWorkspaceTaskScheduler _taskQueue;
 
-            /// <summary>
-            /// Gate guarding <see cref="_eventHandlers"/> and <see cref="_documentOptionsProviders"/>.
-            /// </summary>
-            private readonly object _gate = new object();
-
             private ImmutableArray<EventHandler<OptionChangedEventArgs>> _eventHandlers =
                 ImmutableArray<EventHandler<OptionChangedEventArgs>>.Empty;
 
@@ -86,28 +81,25 @@ namespace Microsoft.CodeAnalysis.Options
 
             private ImmutableArray<EventHandler<OptionChangedEventArgs>> GetEventHandlers()
             {
-                lock (_gate)
-                {
-                    return _eventHandlers;
-                }
+                return _eventHandlers;
             }
 
             public event EventHandler<OptionChangedEventArgs> OptionChanged
             {
                 add
                 {
-                    lock (_gate)
-                    {
-                        _eventHandlers = _eventHandlers.Add(value);
-                    }
+                    InterlockedUpdate(
+                        ref _eventHandlers,
+                        (original, added) => original.Add(added),
+                        value);
                 }
 
                 remove
                 {
-                    lock (_gate)
-                    {
-                        _eventHandlers = _eventHandlers.Remove(value);
-                    }
+                    InterlockedUpdate(
+                        ref _eventHandlers,
+                        (original, removed) => original.Remove(removed),
+                        value);
                 }
             }
 
@@ -125,20 +117,28 @@ namespace Microsoft.CodeAnalysis.Options
 
             public void RegisterDocumentOptionsProvider(IDocumentOptionsProvider documentOptionsProvider)
             {
-                lock (_gate)
+                InterlockedUpdate(
+                    ref _documentOptionsProviders,
+                    (original, added) => original.Add(added),
+                    documentOptionsProvider);
+            }
+
+            private static void InterlockedUpdate<T, TArg>(ref ImmutableArray<T> array, Func<ImmutableArray<T>, TArg, ImmutableArray<T>> update, TArg argument)
+            {
+                while (true)
                 {
-                    _documentOptionsProviders = _documentOptionsProviders.Add(documentOptionsProvider);
+                    var original = array;
+                    var updated = update(original, argument);
+                    if (original == updated || ImmutableInterlocked.InterlockedCompareExchange(ref array, updated, original) == original)
+                    {
+                        return;
+                    }
                 }
             }
 
             public async Task<OptionSet> GetUpdatedOptionSetForDocumentAsync(Document document, OptionSet optionSet, CancellationToken cancellationToken)
             {
-                ImmutableArray<IDocumentOptionsProvider> documentOptionsProviders;
-
-                lock (_gate)
-                {
-                    documentOptionsProviders = _documentOptionsProviders;
-                }
+                var documentOptionsProviders = _documentOptionsProviders;
 
                 var realizedDocumentOptions = new List<IDocumentOptions>();
 
