@@ -5,6 +5,7 @@
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">x64</Platform>
     <PlatformTarget>x64</PlatformTarget>
+    <Platforms>x64</Platforms>
     <OutputType>Exe</OutputType>
     <AssemblyName>DeployCoreClrTestRuntime_DoNotUse</AssemblyName>
     <Prefer32Bit>false</Prefer32Bit>
