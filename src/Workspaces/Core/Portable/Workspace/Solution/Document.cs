@@ -467,7 +467,7 @@ namespace Microsoft.CodeAnalysis
             return GetOptionsAsync(Project.Solution.Options, cancellationToken);
         }
 
-        internal Task<DocumentOptionSet> GetOptionsAsync(OptionSet globalOptionSet, CancellationToken cancellationToken = default(CancellationToken))
+        internal Task<DocumentOptionSet> GetOptionsAsync(OptionSet globalOptionSet, CancellationToken cancellationToken)
         {
             // TODO: we have this workaround since Solution.Options is not actually snapshot but just return Workspace.Options which violate snapshot model.
             //       this doesn't validate whether same optionset is given to invalidate the cache or not. this is not new since existing implementation
