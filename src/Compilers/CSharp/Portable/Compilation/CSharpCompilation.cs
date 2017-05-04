@@ -1492,16 +1492,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else
                     {
-                        if (!CheckValid(candidate, IsCandidate, perCandidateBag))
+                        if (CheckValid(candidate, IsCandidate, perCandidateBag))
                         {
-                            continue;
+                            if (candidate.IsAsync)
+                            {
+                                diagnostics.Add(ErrorCode.ERR_NonTaskMainCantBeAsync, candidate.Locations.First(), candidate);
+                            }
+                            else
+                            {
+                                viableEntryPoints.Add(candidate);
+                            }
                         }
-                        if (candidate.IsAsync)
-                        {
-                            diagnostics.Add(ErrorCode.ERR_NonTaskMainCantBeAsync, candidate.Locations.First(), candidate);
-                            continue;
-                        }
-                        viableEntryPoints.Add(candidate);
                         perCandidateBag.Free();
                     }
                 }
@@ -1510,13 +1511,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     foreach (var (IsValid, Candidate, SpecificDiagnostics) in taskEntryPoints)
                     {
-                        if (!CheckValid(Candidate, IsValid, SpecificDiagnostics))
-                        {
-                            continue;
-                        }
-
                         // PROTOTYPE(async-main): Get the diagnostic to point to a smaller syntax piece.
-                        if (CheckFeatureAvailability(Candidate.GetNonNullSyntaxNode(), MessageID.IDS_FeatureAsyncMain, diagnostics))
+                        if (CheckValid(Candidate, IsValid, SpecificDiagnostics) && 
+                            CheckFeatureAvailability(Candidate.GetNonNullSyntaxNode(), MessageID.IDS_FeatureAsyncMain, diagnostics))
                         {
                             diagnostics.AddRange(SpecificDiagnostics);
                             viableEntryPoints.Add(Candidate);

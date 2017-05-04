@@ -251,9 +251,7 @@ public partial class A {
             var returnSyntax = m.ExtractReturnTypeSyntax();
 
             var tree = comp.SyntaxTrees.Single();
-            var node = tree.GetRoot().DescendantNodes().OfType<PredefinedTypeSyntax>().Where(n => n.Keyword.Kind() == SyntaxKind.VoidKeyword).ToList().Last();
-
-            var mLocations = tree.GetRoot().DescendantTokens().Where(t => t.ValueText == "M").ToList();
+            var node = tree.GetRoot().DescendantNodes().OfType<PredefinedTypeSyntax>().Where(n => n.Keyword.Kind() == SyntaxKind.VoidKeyword).Last();
 
             var otherSymbol = m.PartialImplementationPart;
             Assert.True(otherSymbol.IsPartialImplementation());
