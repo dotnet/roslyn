@@ -569,19 +569,27 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void CheckRefReadOnlySymbols(MethodSymbol symbol)
         {
+            var foundRefReadOnly = false;
+
             if (symbol.ReturnsByRefReadonly)
             {
-                var location = symbol.ReturnType.Locations.FirstOrDefault() ?? Location.None;
-                _factory.CompilationState.ModuleBuilderOpt?.EnsureIsReadOnlyAttributeExists();
+                foundRefReadOnly = true;
+            }
+            else
+            {
+                foreach (var parameter in symbol.Parameters)
+                {
+                    if (parameter.RefKind == RefKind.RefReadOnly)
+                    {
+                        foundRefReadOnly = true;
+                        break;
+                    }
+                }
             }
 
-            foreach (var parameter in symbol.Parameters)
+            if (foundRefReadOnly)
             {
-                if (parameter.RefKind == RefKind.RefReadOnly)
-                {
-                    var location = parameter.Locations.FirstOrDefault() ?? Location.None;
-                    _factory.CompilationState.ModuleBuilderOpt?.EnsureIsReadOnlyAttributeExists();
-                }
+                _factory.CompilationState.ModuleBuilderOpt?.EnsureIsReadOnlyAttributeExists();
             }
         }
     }

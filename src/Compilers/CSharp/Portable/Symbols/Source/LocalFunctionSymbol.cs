@@ -207,7 +207,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
-
             var diagnostics = DiagnosticBag.GetInstance();
             TypeSyntax returnTypeSyntax = _syntax.ReturnType.SkipRef();
             TypeSymbol returnType = _binder.BindType(returnTypeSyntax, diagnostics);
