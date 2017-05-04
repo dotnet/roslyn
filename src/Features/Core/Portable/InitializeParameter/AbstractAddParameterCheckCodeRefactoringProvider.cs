@@ -241,11 +241,13 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             Compilation compilation, SyntaxGenerator generator,
             IParameterSymbol parameter, string methodName)
         {
+            var stringType = compilation.GetSpecialType(SpecialType.System_String);
+
             // generates: if (string.IsXXX(s)) throw new ArgumentException("message", nameof(s))
             return (TStatementSyntax)generator.IfStatement(
                 generator.InvocationExpression(
                     generator.MemberAccessExpression(
-                        generator.TypeExpression(SpecialType.System_String),
+                        generator.TypeExpression(stringType),
                         generator.IdentifierName(methodName)),
                     generator.Argument(generator.IdentifierName(parameter.Name))),
                 SpecializedCollections.SingletonEnumerable(

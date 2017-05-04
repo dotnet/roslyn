@@ -705,6 +705,7 @@ class C
 }", index: 2);
         }
 
+        [WorkItem(19173, "https://github.com/dotnet/roslyn/issues/19173")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
         public async Task TestMissingOnUnboundTypeWithExistingNullCheck()
         {
@@ -720,6 +721,39 @@ class C
         }
     }
 }");
+        }
+
+        [WorkItem(19174, "https://github.com/dotnet/roslyn/issues/19174")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestRespectPredefinedTypePreferences()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+
+class Program
+{
+    static void Main([||]String bar)
+    {
+    }
+}",
+@"
+using System;
+
+class Program
+{
+    static void Main(String bar)
+    {
+        if (String.IsNullOrEmpty(bar))
+        {
+            throw new ArgumentException(""message"", nameof(bar));
+        }
+    }
+}", index: 1,
+    parameters: new TestParameters(
+        options: Option(
+            CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess,
+            CodeStyleOptions.FalseWithSuggestionEnforcement)));
         }
     }
 }
