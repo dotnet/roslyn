@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         BoundExpression MakeIsDeclarationPattern(SyntaxNode syntax, BoundExpression loweredInput, BoundExpression loweredTarget, bool requiresNullTest)
         {
             var type = loweredTarget.Type;
-            requiresNullTest = requiresNullTest && !loweredInput.Type.CanContainNull();
+            requiresNullTest = requiresNullTest && loweredInput.Type.CanContainNull();
 
             // It is possible that the input value is already of the correct type, in which case the pattern
             // is irrefutable, and we can just do the assignment and return true (or perform the null test).
@@ -216,8 +216,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // bool Is<T>(this object i, out T o)
                 // {
                 //     // inefficient because it performs the type test twice, and also because it boxes the input.
-                //     bool s = i is T;
-                //     o = s ? (T)i : default(T);
+                //     bool s;
+                //     o = (s = i is T) ? (T)i : default(T);
                 //     return s;
                 // }
 
@@ -230,8 +230,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ImmutableArray.Create(s, i),
                     ImmutableArray.Create<BoundExpression>(
                         _factory.AssignmentExpression(_factory.Local(i), _factory.Convert(tmpType, loweredInput)),
-                        _factory.AssignmentExpression(_factory.Local(s), _factory.Is(_factory.Local(i), type)),
-                        _factory.AssignmentExpression(loweredTarget, _factory.Conditional(_factory.Local(s), _factory.Convert(type, _factory.Local(i)), _factory.Default(type), type))
+                        _factory.AssignmentExpression(loweredTarget, _factory.Conditional(
+                            _factory.AssignmentExpression(_factory.Local(s), _factory.Is(_factory.Local(i), type)),
+                            _factory.Convert(type, _factory.Local(i)),
+                            _factory.Default(type), type))
                         ),
                     _factory.Local(s)
                     );
