@@ -12,6 +12,7 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
+using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
 
@@ -30,46 +31,54 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         }
 
-        private static IWpfTextViewHost GetActiveTextViewHost()
-        {
-            // The active text view might not have finished composing yet, waiting for the application to 'idle'
-            // means that it is done pumping messages (including WM_PAINT) and the window should return the correct text view
-            WaitForApplicationIdle();
-
-            var activeVsTextView = (IVsUserData)GetActiveVsTextView();
-
-            var hresult = activeVsTextView.GetData(immediateWindowGuid, out var wpfTextViewHost);
-            Marshal.ThrowExceptionForHR(hresult);
-
-            return (IWpfTextViewHost)wpfTextViewHost;
-        }
-
-        private static IVsTextView GetActiveVsTextView()
-        {
-            var vsTextManager = GetGlobalService<SVsTextManager, IVsTextManager>();
-
-            var hresult = vsTextManager.GetActiveView(fMustHaveFocus: 1, pBuffer: null, ppView: out var vsTextView);
-            Marshal.ThrowExceptionForHR(hresult);
-
-            return vsTextView;
-        }
-
         public static ImmediateWindow_InProc Create()
             => new ImmediateWindow_InProc();
 
+
         public void ExecuteCommand(string command)
-        { 
-            Window win = ((DTE2)GetDTE()).Windows.Item(ToolWindowGuids80.ImmediateWindow);
-            win.Activate();
-        //    win...Document.
+        {
+            //var immediateWindow = (((DTE2)GetDTE()).ToolWindows.GetToolWindow("Immediate Window"));//.CommandWindow;
 
-       //     win.Object
-     //       OutputWindow ow;
+            //((CommandWindow)immediateWindow).SendInput(immediateWindow.GetType().ToString(), Execute: false);
+            var toolWindow = GetToolWindow(new Guid(ToolWindowGuids80.ImmediateWindow));
+            toolWindow.Show();
+            //toolWindow..SetProperty()
+            //commandWindow.SendInput(command, Execute: true);
+            
+        }
 
-        // .ToolWindows.GetToolWindow("Immediate Window");.Windows..CreateLinkedWindowFrame.CreateToolWindow.CreateToolWindow(.Item(EnvDTE.Constants.vsext_wk_ImmedWindow);
+        private void GetView(IVsWindowFrame frame)
+        {
+            object docView = null;
+            if (ErrorHandler.Failed(frame.GetProperty((int)__VSFPROPID.VSFPROPID_DocView, out docView)))
+            {
+                // TODO: Report error
+                return null;
+            }
 
-   //     var outputWindowPane = OW.OutputWindowPanes.Add("A New Pane");
-   //     outputWindowPane.OutputString(command);
+            if (docView is IVsCodeWindow)
+            {
+                IVsTextView textView;
+                if (ErrorHandler.Failed(((IVsCodeWindow)docView).GetPrimaryView(out textView)))
+                {
+                    // TODO: Report error
+                    return null;
+                }
+
+                var model = (IComponentModel)Package.GetGlobalService(typeof(SComponentModel));
+                var adapterFactory = model.GetService<IVsEditorAdaptersFactoryService>();
+                var wpfTextView = adapterFactory.GetWpfTextView(textView);
+                return wpfTextView;
+            }
+        }
+
+        private IVsWindowFrame GetToolWindow(Guid identifier)
+        {
+            var _shellService = GetGlobalService<SVsUIShell, IVsUIShell>();
+            IVsWindowFrame frame;
+            _shellService.FindToolWindow((uint)(__VSFINDTOOLWIN.FTW_fForceCreate | __VSFINDTOOLWIN.FTW_fFindFirst), ref identifier, out frame);
+
+            return frame;
         }
     }
 }

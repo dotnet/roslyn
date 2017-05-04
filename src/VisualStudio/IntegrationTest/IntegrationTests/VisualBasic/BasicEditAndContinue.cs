@@ -140,7 +140,8 @@ End Module");
             //      <ImmediateWindow>
             //        <TypeText text = "Module1.Main{(}{)}{ENTER}" />
             //      </ ImmediateWindow >
-            VisualStudio.ImmediateWindow.ExecuteCommand("Module1.Main{(}{)}");
+
+            VisualStudio.ImmediateWindow.ExecuteCommand("Module1.Main()");
 
             //      < WaitForBuild />
             //      < Debug >
@@ -150,7 +151,7 @@ End Module");
             VisualStudio.Debugger.StepOver(waitForBreakOrEnd: true);
 
             VisualStudio.ImmediateWindow.Verify.ValidateCommand("?x", "42");
-            VisualStudio.ImmediateWindow.ExecuteCommand("Module1.Main{(}{)}");
+            VisualStudio.ImmediateWindow.ExecuteCommand("Module1.Main()");
         }
 
         [Fact]

@@ -39,6 +39,7 @@
     <Compile Include="InProcess\ErrorList_InProc.cs" />
     <Compile Include="Common\ClassifiedToken.cs" />
     <Compile Include="InProcess\ImmediateWindow_InProc.cs" />
+    <Compile Include="InProcess\LocalsWindow_InProc.cs" />
     <Compile Include="InProcess\TextViewWindow_InProc.cs" />
     <Compile Include="InProcess\CSharpInteractiveWindow_InProc.cs" />
     <Compile Include="DialogHelpers.cs" />
