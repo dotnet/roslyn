@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
 using Roslyn.Utilities;
 
@@ -27,6 +28,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
 
         public async Task<DiagnosticAnalysisResultMap<string, DiagnosticAnalysisResultBuilder>> GetDiagnosticsAsync(
             IEnumerable<AnalyzerReference> hostAnalyzers,
+            OptionSet options,
             IEnumerable<string> analyzerIds,
             bool reportSuppressedDiagnostics,
             bool logAnalyzerExecutionTime,
@@ -43,13 +45,14 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             var cacheService = _project.Solution.Workspace.Services.GetService<IProjectCacheService>();
             using (var cache = cacheService.EnableCaching(_project.Id))
             {
-                return await AnalyzeAsync(analyzerMap, analyzers, reportSuppressedDiagnostics, logAnalyzerExecutionTime, cancellationToken).ConfigureAwait(false);
+                return await AnalyzeAsync(analyzerMap, analyzers, options, reportSuppressedDiagnostics, logAnalyzerExecutionTime, cancellationToken).ConfigureAwait(false);
             }
         }
 
         private async Task<DiagnosticAnalysisResultMap<string, DiagnosticAnalysisResultBuilder>> AnalyzeAsync(
             BidirectionalMap<string, DiagnosticAnalyzer> analyzerMap,
             ImmutableArray<DiagnosticAnalyzer> analyzers,
+            OptionSet options,
             bool reportSuppressedDiagnostics,
             bool logAnalyzerExecutionTime,
             CancellationToken cancellationToken)
@@ -68,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             // TODO: can we support analyzerExceptionFilter in remote host? 
             //       right now, host doesn't support watson, we might try to use new NonFatal watson API?
             var analyzerOptions = new CompilationWithAnalyzersOptions(
-                    options: new WorkspaceAnalyzerOptions(_project.AnalyzerOptions, _project.Solution.Workspace),
+                    options: new WorkspaceAnalyzerOptions(_project.AnalyzerOptions, _project.Solution.Workspace, MergeOptions(_project.Solution.Options, options)),
                     onAnalyzerException: OnAnalyzerException,
                     analyzerExceptionFilter: null,
                     concurrentAnalysis: useConcurrent,
@@ -139,6 +142,17 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             // TODO: probably need something like analyzer service so that we don't do this repeatedly?
             return new BidirectionalMap<string, DiagnosticAnalyzer>(
                 hostAnalyzers.Concat(project.AnalyzerReferences).SelectMany(r => r.GetAnalyzers(project.Language)).Select(a => KeyValuePair.Create(a.GetAnalyzerId(), a)));
+        }
+
+        private OptionSet MergeOptions(OptionSet workspaceOptions, OptionSet userOptions)
+        {
+            var newOptions = workspaceOptions;
+            foreach (var key in userOptions.GetChangedOptions(workspaceOptions))
+            {
+                newOptions = newOptions.WithChangedOption(key, userOptions.GetOption(key));
+            }
+
+            return newOptions;
         }
     }
 }
