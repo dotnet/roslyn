@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis
     public class EmbeddedAttribute : System.Attribute { }
 }");
 
-            var moduleRef = ModuleMetadata.CreateFromImage(module.EmitToArray());
+            var moduleRef = ModuleMetadata.CreateFromImage(module.EmitToArray()).GetReference();
 
             var code = @"
 class Test
@@ -158,7 +158,7 @@ class Test
     }
 }";
 
-            CreateCompilationWithMscorlib(code, references: new[] { moduleRef.GetReference() }).VerifyEmitDiagnostics(
+            CreateCompilationWithMscorlib(code, references: new[] { moduleRef }).VerifyEmitDiagnostics(
                 // error CS8004: Type 'EmbeddedAttribute' exported from module 'testModule.netmodule' conflicts with type declared in primary module of this assembly.
                 Diagnostic(ErrorCode.ERR_ExportedTypeConflictsWithDeclaration).WithArguments("Microsoft.CodeAnalysis.EmbeddedAttribute", "testModule.netmodule").WithLocation(1, 1));
         }

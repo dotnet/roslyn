@@ -19,12 +19,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly Symbol _containingSymbol;
         private readonly DeclarationModifiers _declarationModifiers;
         private readonly ImmutableArray<LocalFunctionTypeParameterSymbol> _typeParameters;
+        private readonly RefKind _refKind;
 
         private ImmutableArray<ParameterSymbol> _lazyParameters;
         private bool _lazyIsVarArg;
         private ImmutableArray<TypeParameterConstraintClause> _lazyTypeParameterConstraints;
         private TypeSymbol _lazyReturnType;
-        private RefKind _refKind;
         private TypeSymbol _iteratorElementType;
 
         // Lock for initializing lazy fields and registering their diagnostics
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (returnType.ReadOnlyKeyword.Kind() == SyntaxKind.ReadOnlyKeyword)
                 {
                     _refKind = RefKind.RefReadOnly;
-                    DeclaringCompilation.EnsureIsReadOnlyAttributeExists(_declarationDiagnostics, returnType.Location);
+                    DeclaringCompilation.EnsureIsReadOnlyAttributeExists(_declarationDiagnostics, returnType.Location, modifyCompilation: false);
                 }
                 else
                 {
@@ -161,7 +161,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 arglistToken: out arglistToken,
                 allowRefOrOut: true,
                 allowThis: true,
-                diagnostics: diagnostics);
+                diagnostics: diagnostics,
+                modifyCompilation: false);
 
             var isVararg = arglistToken.Kind() == SyntaxKind.ArgListKeyword;
             if (isVararg)

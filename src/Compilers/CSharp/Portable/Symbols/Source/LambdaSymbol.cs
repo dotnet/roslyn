@@ -43,6 +43,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _isAsync = unboundLambda.IsAsync;
             // No point in making this lazy. We are always going to need these soon after creation of the symbol.
             _parameters = MakeParameters(compilation, unboundLambda, parameterTypes, parameterRefKinds, diagnostics);
+
+            if (_refKind == RefKind.RefReadOnly)
+            {
+                compilation.EnsureIsReadOnlyAttributeExists(diagnostics, _syntax.Location, modifyCompilation: false);
+            }
         }
 
         public LambdaSymbol(
@@ -361,18 +366,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     type = new ExtendedErrorTypeSymbol(compilation, name: string.Empty, arity: 0, errorInfo: null);
                     refKind = RefKind.None;
                 }
-
-                if (refKind == RefKind.RefReadOnly)
-                {
-                    compilation.EnsureIsReadOnlyAttributeExists(diagnostics, unboundLambda.ParameterLocation(p));
-                }
-
+                
                 var name = unboundLambda.ParameterName(p);
                 var location = unboundLambda.ParameterLocation(p);
                 var locations = ImmutableArray.Create<Location>(location);
                 var parameter = new SourceSimpleParameterSymbol(this, type, p, refKind, name, locations);
 
                 builder.Add(parameter);
+
+                if (refKind == RefKind.RefReadOnly)
+                {
+                    compilation.EnsureIsReadOnlyAttributeExists(diagnostics, location, modifyCompilation: false);
+                }
             }
 
             var result = builder.ToImmutableAndFree();

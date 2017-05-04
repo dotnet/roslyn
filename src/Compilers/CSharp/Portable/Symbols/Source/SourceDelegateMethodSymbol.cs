@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (refKind == RefKind.RefReadOnly)
             {
-                delegateType.DeclaringCompilation.EnsureIsReadOnlyAttributeExists(diagnostics, syntax.ReturnType.Location);
+                delegateType.DeclaringCompilation.EnsureIsReadOnlyAttributeExists(diagnostics, syntax.ReturnType.Location, modifyCompilation: true);
             }
 
             // reuse types to avoid reporting duplicate errors if missing:
@@ -254,7 +254,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     binder, this, syntax.ParameterList, out arglistToken,
                     allowRefOrOut: true,
                     allowThis: false,
-                    diagnostics: diagnostics);
+                    diagnostics: diagnostics,
+                    modifyCompilation: true);
 
                 if (arglistToken.Kind() == SyntaxKind.ArgListKeyword)
                 {

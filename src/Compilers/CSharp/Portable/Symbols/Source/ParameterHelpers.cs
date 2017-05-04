@@ -20,6 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             out SyntaxToken arglistToken,
             DiagnosticBag diagnostics,
             bool allowRefOrOut,
+            bool modifyCompilation,
             bool allowThis)
         {
             arglistToken = default(SyntaxToken);
@@ -38,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (refKind == RefKind.RefReadOnly)
                 {
-                    owner.DeclaringCompilation.EnsureIsReadOnlyAttributeExists(diagnostics, parameterSyntax.Location);
+                    owner.DeclaringCompilation.EnsureIsReadOnlyAttributeExists(diagnostics, parameterSyntax.Location, modifyCompilation: modifyCompilation);
                 }
 
                 if (thisKeyword.Kind() != SyntaxKind.None && !allowThis)

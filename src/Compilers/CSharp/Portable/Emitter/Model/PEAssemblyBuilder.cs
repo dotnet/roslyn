@@ -179,8 +179,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         private void CreateEmbeddedAttributesIfNeeded(DiagnosticBag diagnostics)
         {
-            _sourceAssembly.DeclaringCompilation.FreezeNeedsGeneratedIsReadOnlyAttribute();
-            if (_sourceAssembly.DeclaringCompilation.NeedsGeneratedIsReadOnlyAttribute)
+            if (this.NeedsGeneratedIsReadOnlyAttribute)
             {
                 CreateEmbeddedAttributeIfNeeded(
                     ref _lazyEmbeddedAttribute,

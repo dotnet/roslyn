@@ -83,7 +83,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 bodyBinder, this, parameterList, out arglistToken,
                 allowRefOrOut: true,
                 allowThis: false,
-                diagnostics: diagnostics);
+                diagnostics: diagnostics,
+                modifyCompilation: true);
 
             _lazyIsVararg = (arglistToken.Kind() == SyntaxKind.ArgListKeyword);
             _lazyReturnType = bodyBinder.GetSpecialType(SpecialType.System_Void, diagnostics, syntax);

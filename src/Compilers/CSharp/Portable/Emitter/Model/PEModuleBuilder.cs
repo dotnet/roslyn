@@ -40,6 +40,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         /// </summary>
         private Dictionary<FieldSymbol, NamedTypeSymbol> _fixedImplementationTypes;
 
+        private bool _needsGeneratedIsReadOnlyAttribute_IsFrozen;
+        private bool _needsGeneratedIsReadOnlyAttribute_Value;
+
+        /// <summary>
+        /// Returns a value indicating whether this builder has a symbol that needs IsReadOnlyAttribute to be generated during emit phase.
+        /// The value is set during during lowering the symbols that need that attribute, and is frozen on first trial to get it.
+        /// Freezing is needed to make sure that nothing tries to modify the value after the value is read.
+        /// </summary>
+        internal bool NeedsGeneratedIsReadOnlyAttribute
+        {
+            get
+            {
+                _needsGeneratedIsReadOnlyAttribute_IsFrozen = true;
+                return Compilation.NeedsGeneratedIsReadOnlyAttribute || _needsGeneratedIsReadOnlyAttribute_Value;
+            }
+            private set
+            {
+                Debug.Assert(!_needsGeneratedIsReadOnlyAttribute_IsFrozen);
+                _needsGeneratedIsReadOnlyAttribute_Value = value;
+            }
+        }
+
         internal PEModuleBuilder(
             SourceModuleSymbol sourceModule,
             EmitOptions emitOptions,
@@ -1402,6 +1424,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
             // For modules, this attribute should be present. Only assemblies generate and embed this type.
             return Compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_IsReadOnlyAttribute__ctor);
+        }
+
+        internal void EnsureIsReadOnlyAttributeExists()
+        {
+            // Don't report any errors. They should be reported during binding.
+            if (Compilation.CheckIfIsReadOnlyAttributeNeeded(diagnosticsOpt: null, locationOpt: null))
+            {
+                NeedsGeneratedIsReadOnlyAttribute = true;
+            }
         }
     }
 }

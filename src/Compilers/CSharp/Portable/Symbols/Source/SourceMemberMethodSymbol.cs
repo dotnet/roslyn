@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (_refKind == RefKind.RefReadOnly)
             {
-                this.DeclaringCompilation.EnsureIsReadOnlyAttributeExists(diagnostics, syntax.ReturnType.Location);
+                this.DeclaringCompilation.EnsureIsReadOnlyAttributeExists(diagnostics, syntax.ReturnType.Location, modifyCompilation: true);
             }
 
             if (hasBlockBody || _isExpressionBodied)
@@ -172,7 +172,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 signatureBinder, this, syntax.ParameterList, out arglistToken,
                 allowRefOrOut: true,
                 allowThis: true,
-                diagnostics: diagnostics);
+                diagnostics: diagnostics,
+                modifyCompilation: true);
 
             _lazyIsVararg = (arglistToken.Kind() == SyntaxKind.ArgListKeyword);
             RefKind refKind;

@@ -131,7 +131,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 out arglistToken,
                 allowRefOrOut: true,
                 allowThis: false,
-                diagnostics: diagnostics);
+                diagnostics: diagnostics,
+                modifyCompilation: true);
 
             if (arglistToken.Kind() == SyntaxKind.ArgListKeyword)
             {

@@ -31,30 +31,26 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private Symbol[] _lazyWellKnownTypeMembers;
 
-        private bool _needsGeneratedIsReadOnlyAttribute_Frozen;
-        private bool _needsGeneratedIsReadOnlyAttribute;
+        private bool _needsGeneratedIsReadOnlyAttribute_IsFrozen;
+        private bool _needsGeneratedIsReadOnlyAttribute_Value;
 
         /// <summary>
         /// Returns a value indicating whether this compilation has a member that needs IsReadOnlyAttribute to be generated during emit phase.
-        /// The value is set during during binding the symbols that need that attribute, and is frozen before emitting.
-        /// Freezing is needed to make sure that nothing tries to modify the value after the compilation is emitted.
+        /// The value is set during during binding the symbols that need that attribute, and is frozen on first trial to get it.
+        /// Freezing is needed to make sure that nothing tries to modify the value after the value is read.
         /// </summary>
         internal bool NeedsGeneratedIsReadOnlyAttribute
         {
             get
             {
-                return _needsGeneratedIsReadOnlyAttribute;
+                _needsGeneratedIsReadOnlyAttribute_IsFrozen = true;
+                return _needsGeneratedIsReadOnlyAttribute_Value;
             }
-            set
+            private set
             {
-                Debug.Assert(!_needsGeneratedIsReadOnlyAttribute_Frozen);
-                _needsGeneratedIsReadOnlyAttribute = value;
+                Debug.Assert(!_needsGeneratedIsReadOnlyAttribute_IsFrozen);
+                _needsGeneratedIsReadOnlyAttribute_Value = value;
             }
-        }
-
-        internal void FreezeNeedsGeneratedIsReadOnlyAttribute()
-        {
-            _needsGeneratedIsReadOnlyAttribute_Frozen = true;
         }
 
         /// <summary>
@@ -442,7 +438,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             return TrySynthesizeAttribute(WellKnownMember.System_Diagnostics_DebuggerStepThroughAttribute__ctor);
         }
 
-        internal void EnsureIsReadOnlyAttributeExists(DiagnosticBag diagnostics, Location location)
+        internal void EnsureIsReadOnlyAttributeExists(DiagnosticBag diagnostics, Location location, bool modifyCompilation)
+        {
+            var isNeeded = CheckIfIsReadOnlyAttributeNeeded(diagnostics, location);
+
+            if (isNeeded && modifyCompilation)
+            {
+                NeedsGeneratedIsReadOnlyAttribute = true;
+            }
+        }
+
+        internal bool CheckIfIsReadOnlyAttributeNeeded(DiagnosticBag diagnosticsOpt, Location locationOpt)
         {
             var userDefinedAttribute = GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_IsReadOnlyAttribute);
 
@@ -450,19 +456,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (Options.OutputKind == OutputKind.NetModule)
                 {
-                    Binder.ReportUseSiteDiagnostics(userDefinedAttribute, diagnostics, location);
+                    if (diagnosticsOpt != null)
+                    {
+                        Debug.Assert(Binder.ReportUseSiteDiagnostics(userDefinedAttribute, diagnosticsOpt, locationOpt));
+                    }
                 }
                 else
                 {
-                    NeedsGeneratedIsReadOnlyAttribute = true;
+                    return true;
                 }
             }
-            else if (!userDefinedAttribute.InstanceConstructors.Any(constructor => constructor.ParameterCount == 0))
+            else if (diagnosticsOpt != null && !userDefinedAttribute.InstanceConstructors.Any(constructor => constructor.ParameterCount == 0))
             {
                 var attributeName = WellKnownTypes.GetMetadataName(WellKnownType.System_Runtime_CompilerServices_IsReadOnlyAttribute);
                 var constructorName = WellKnownMembers.GetDescriptor(WellKnownMember.System_Runtime_CompilerServices_IsReadOnlyAttribute__ctor);
-                diagnostics.Add(ErrorCode.ERR_MissingPredefinedMember, location, attributeName, constructorName.Name);
+                diagnosticsOpt.Add(ErrorCode.ERR_MissingPredefinedMember, locationOpt, attributeName, constructorName.Name);
             }
+
+            return false;
         }
 
         internal SynthesizedAttributeData SynthesizeDebuggableAttribute()
