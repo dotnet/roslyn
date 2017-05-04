@@ -264,7 +264,7 @@ namespace Roslyn.Diagnostics.Analyzers
                 {
                     return GetSiblingNamesToRemoveFromUnshippedTextCore(symbol);
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
                     Debug.Assert(false, ex.Message);
                     return string.Empty;
@@ -390,7 +390,7 @@ namespace Roslyn.Diagnostics.Analyzers
                 {
                     publicApiName += $" (forwarded, contained in {symbol.ContainingAssembly.Name})";
                 }
-    
+
                 return publicApiName;
             }
 

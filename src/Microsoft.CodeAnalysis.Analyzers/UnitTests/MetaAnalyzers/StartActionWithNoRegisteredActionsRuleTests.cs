@@ -316,7 +316,7 @@ class MyAnalyzer : DiagnosticAnalyzer
 
             VerifyCSharp(source, addLanguageSpecificCodeAnalysisReference: false);
         }
-    
+
         [Fact]
         public void VisualBasic_NoDiagnosticCases()
         {
@@ -528,7 +528,7 @@ End Class
 
         private static DiagnosticResult GetExpectedDiagnostic(string language, int line, int column, string parameterName, StartActionKind kind)
         {
-            string arg2;            
+            string arg2;
             switch (kind)
             {
                 case StartActionKind.CompilationStartAction:
