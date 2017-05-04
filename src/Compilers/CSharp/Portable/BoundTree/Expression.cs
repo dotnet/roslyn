@@ -163,162 +163,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     return argumentsInEvaluationBuilder.ToImmutableAndFree();
                 });
-
-
-            ArrayBuilder<IArgument> arguments = ArrayBuilder<IArgument>.GetInstance(boundArguments.Length);
-            for (int parameterIndex = 0; parameterIndex < parameters.Length; parameterIndex++)
-            {
-                int argumentIndex = -1;
-                if (argumentsToParametersOpt.IsDefault)
-                {
-                    argumentIndex = parameterIndex;
-                }
-                else
-                {
-                    argumentIndex = argumentsToParametersOpt.IndexOf(parameterIndex);
-                }
-
-                if ((uint)argumentIndex >= (uint)boundArguments.Length)
-                {
-                    // No argument has been supplied for the parameter at `parameterIndex`:
-                    // 1. `argumentIndex == -1' when the arguments are specified out of parameter order, and no argument is provided for parameter corresponding to `parameters[parameterIndex]`.
-                    // 2. `argumentIndex >= boundArguments.Length` when the arguments are specified in parameter order, and no argument is provided at `parameterIndex`.
-
-                    Symbols.ParameterSymbol parameter = parameters[parameterIndex];
-                    if (parameter.HasExplicitDefaultValue)
-                    {
-                        // The parameter is optional with a default value.
-                        arguments.Add(new Argument(ArgumentKind.DefaultValue, parameter, new LiteralExpression(parameter.ExplicitDefaultConstantValue, parameter.Type, invocationSyntax)));
-                    }
-                    else
-                    {
-                        // If the invocation is semantically valid, the parameter will be a params array and an empty array will be provided.
-                        // If the argument is otherwise omitted for a parameter with no default value, the invocation is not valid and a null argument will be provided.
-                        arguments.Add(DeriveArgument(parameterIndex, boundArguments.Length, boundArguments, argumentNamesOpt, argumentRefKindsOpt, parameters, invocationSyntax));
-                    }
-                }
-                else
-                {
-                    arguments.Add(DeriveArgument(parameterIndex, argumentIndex, boundArguments, argumentNamesOpt, argumentRefKindsOpt, parameters, invocationSyntax));
-                }
-            }
-
-            return arguments.ToImmutableAndFree();
         }
 
-        private static readonly ConditionalWeakTable<BoundExpression, IArgument> s_argumentMappings = new ConditionalWeakTable<BoundExpression, IArgument>();
-
-        private static IArgument DeriveArgument(int parameterIndex, int argumentIndex, ImmutableArray<BoundExpression> boundArguments, ImmutableArray<string> argumentNamesOpt, ImmutableArray<RefKind> argumentRefKindsOpt, ImmutableArray<Symbols.ParameterSymbol> parameters, SyntaxNode invocationSyntax)
+        private class Argument : IArgument
         {
-            if ((uint)argumentIndex >= (uint)boundArguments.Length)
-            {
-                // Check for an omitted argument that becomes an empty params array.
-                if (parameters.Length > 0)
-                {
-                    Symbols.ParameterSymbol lastParameter = parameters[parameters.Length - 1];
-                    if (lastParameter.IsParams)
-                    {
-                        return new Argument(ArgumentKind.ParamArray, lastParameter, CreateParamArray(lastParameter, boundArguments, argumentIndex, invocationSyntax));
-                    }
-                }
-
-                // There is no supplied argument and there is no params parameter. Any action is suspect at this point.
-                return new SimpleArgument(null, new InvalidExpression(invocationSyntax, ImmutableArray<IOperation>.Empty));
-            }
-
-            return s_argumentMappings.GetValue(
-                boundArguments[argumentIndex],
-                (argument) =>
-                {
-                    string nameOpt = !argumentNamesOpt.IsDefaultOrEmpty ? argumentNamesOpt[argumentIndex] : null;
-                    Symbols.ParameterSymbol parameterOpt = (uint)parameterIndex < (uint)parameters.Length ? parameters[parameterIndex] : null;
-
-                    if ((object)nameOpt == null)
-                    {
-                        RefKind refMode = argumentRefKindsOpt.IsDefaultOrEmpty ? RefKind.None : argumentRefKindsOpt[argumentIndex];
-
-                        if (refMode != RefKind.None)
-                        {
-                            return new Argument(ArgumentKind.Explicit, parameterOpt, argument);
-                        }
-
-                        if (argumentIndex >= parameters.Length - 1 &&
-                            parameters.Length > 0 &&
-                            parameters[parameters.Length - 1].IsParams &&
-                            // An argument that is an array of the appropriate type is not a params argument.
-                            (boundArguments.Length > argumentIndex + 1 ||
-                             ((object)argument.Type != null && // If argument type is null, we are in an error scenario and cannot tell if it is a param array, or not. 
-                              (argument.Type.TypeKind != TypeKind.Array ||
-                              !argument.Type.Equals(parameters[parameters.Length - 1].Type, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds)))))
-                        {
-                            return new Argument(ArgumentKind.ParamArray, parameters[parameters.Length - 1], CreateParamArray(parameters[parameters.Length - 1], boundArguments, argumentIndex, invocationSyntax));
-                        }
-                        else
-                        {
-                            return new SimpleArgument(parameterOpt, argument);
-                        }
-                    }
-
-                    return new Argument(ArgumentKind.Explicit, parameterOpt, argument);
-                });
-        }
-
-        private static IOperation CreateParamArray(IParameterSymbol parameter, ImmutableArray<BoundExpression> boundArguments, int firstArgumentElementIndex, SyntaxNode invocationSyntax)
-        {
-            if (parameter.Type.TypeKind == TypeKind.Array)
-            {
-                IArrayTypeSymbol arrayType = (IArrayTypeSymbol)parameter.Type;
-                ArrayBuilder<IOperation> builder = ArrayBuilder<IOperation>.GetInstance(boundArguments.Length - firstArgumentElementIndex);
-                for (int index = firstArgumentElementIndex; index < boundArguments.Length; index++)
-                {
-                    builder.Add(boundArguments[index]);
-                }
-
-                var paramArrayArguments = builder.ToImmutableAndFree();
-
-
-                // Use the invocation syntax node if there is no actual syntax available for the argument (because the paramarray is empty.)
-                return new ArrayCreationExpression(arrayType, paramArrayArguments, paramArrayArguments.Length > 0 ? paramArrayArguments[0].Syntax : invocationSyntax);
-            }
-
-            return new InvalidExpression(invocationSyntax, ImmutableArray<IOperation>.Empty);
-        }
-
-        internal static IArgument ArgumentMatchingParameter(ImmutableArray<BoundExpression> arguments, ImmutableArray<int> argumentsToParametersOpt, ImmutableArray<string> argumentNamesOpt, ImmutableArray<RefKind> argumentRefKindsOpt, ISymbol targetMethod, ImmutableArray<Symbols.ParameterSymbol> parameters, IParameterSymbol parameter, SyntaxNode invocationSyntax)
-        {
-            int argumentIndex = ArgumentIndexMatchingParameter(argumentsToParametersOpt, targetMethod, parameter);
-            if (argumentIndex >= 0)
-            {
-                return DeriveArgument(parameter.Ordinal, argumentIndex, arguments, argumentNamesOpt, argumentRefKindsOpt, parameters, invocationSyntax);
-            }
-
-            return null;
-        }
-
-        private static int ArgumentIndexMatchingParameter(ImmutableArray<int> argumentsToParametersOpt, ISymbol targetMethod, IParameterSymbol parameter)
-        {
-            if (parameter.ContainingSymbol == targetMethod)
-            {
-                int parameterIndex = parameter.Ordinal;
-                if (!argumentsToParametersOpt.IsDefaultOrEmpty)
-                {
-                    return argumentsToParametersOpt.IndexOf(parameterIndex);
-                }
-
-                return parameterIndex;
-            }
-
-            return -1;
-        }
-
-        private abstract class ArgumentBase : IArgument
-        {
-            public ArgumentBase(IParameterSymbol parameter, IOperation value)
+            public Argument(ArgumentKind kind, IParameterSymbol parameter, IOperation value)
             {
                 Debug.Assert(value != null);
 
                 this.Value = value;
                 this.Parameter = parameter;
+                this.ArgumentKind = kind;
             }
 
             public IParameterSymbol Parameter { get; }
@@ -339,7 +194,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public Optional<object> ConstantValue => default(Optional<object>);
 
-            public abstract ArgumentKind ArgumentKind { get; }
+            public ArgumentKind ArgumentKind { get; }
 
             void IOperation.Accept(OperationVisitor visitor)
             {
@@ -350,26 +205,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return visitor.VisitArgument(this, argument);
             }
-        }
-
-        private sealed class SimpleArgument : ArgumentBase
-        {
-            public SimpleArgument(IParameterSymbol parameter, IOperation value)
-                : base(parameter, value)
-            { }
-
-            public override ArgumentKind ArgumentKind => ArgumentKind.Explicit;
-        }
-
-        private sealed class Argument : ArgumentBase
-        {
-            public Argument(ArgumentKind kind, IParameterSymbol parameter, IOperation value)
-                : base(parameter, value)
-            {
-                this.ArgumentKind = kind;
-            }
-
-            public override ArgumentKind ArgumentKind { get; }
         }
     }
 
