@@ -1696,19 +1696,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         protected void ReportUnmatchedStatements<TSyntaxNode>(
             List<RudeEditDiagnostic> diagnostics,
             Match<SyntaxNode> match,
-            int syntaxKind,
-            SyntaxNode oldActiveStatement,
-            SyntaxNode newActiveStatement,
-            Func<TSyntaxNode, TSyntaxNode, bool> areEquivalent,
-            Func<TSyntaxNode, TSyntaxNode, bool> areSimilar)
-            where TSyntaxNode : SyntaxNode
-        {
-            ReportUnmatchedStatements(diagnostics, match, new[] { syntaxKind }, oldActiveStatement, newActiveStatement, areEquivalent, areSimilar);
-        }
-
-            protected void ReportUnmatchedStatements<TSyntaxNode>(
-            List<RudeEditDiagnostic> diagnostics,
-            Match<SyntaxNode> match,
             int[] syntaxKinds,
             SyntaxNode oldActiveStatement,
             SyntaxNode newActiveStatement,
