@@ -31,13 +31,22 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 var controller = new DesktopBuildServerController(appSettings);
                 return controller.Run(args);
             }
-            catch (TypeInitializationException ex) when (ex.InnerException is FileNotFoundException)
+            catch (FileNotFoundException e)
             {
-                // Assume FileNotFoundException was the result of a missing
-                // compiler assembly. Log the exception and terminate the process.
-                CompilerServerLogger.LogException(ex, "File not found");
-                return CommonCompiler.Failed;
+                // Assume the exception was the result of a missing compiler assembly.
+                LogException(e);
             }
+            catch (TypeInitializationException e) when (e.InnerException is FileNotFoundException)
+            {
+                // Assume the exception was the result of a missing compiler assembly.
+                LogException((FileNotFoundException)e.InnerException);
+            }
+            return CommonCompiler.Failed;
+        }
+
+        private static void LogException(FileNotFoundException e)
+        {
+            CompilerServerLogger.LogException(e, "File not found");
         }
     }
 }
