@@ -9026,6 +9026,184 @@ struct B : I1
             compVerifier.VerifyDiagnostics();
         }
 
+        [Fact, WorkItem(16195, "https://github.com/dotnet/roslyn/issues/16195")]
+        public void TestIgnoreDynamicVsObjectAndTupleElementNames_01()
+        {
+            var source =
+@"public class Generic<T>
+{
+    public enum Color { Red, Blue }
+}
+class Program
+{
+    public static void Main(string[] args)
+    {
+    }
+    public static void M2(object o)
+    {
+        switch (o)
+        {
+            case Generic<long>.Color c:
+            case Generic<object>.Color.Red:
+            case Generic<(int x, int y)>.Color.Blue:
+            case Generic<string>.Color.Red:
+            case Generic<dynamic>.Color.Red: // error: duplicate case
+            case Generic<(int z, int w)>.Color.Blue: // error: duplicate case
+            case Generic<(int z, long w)>.Color.Blue:
+            default:
+                break;
+        }
+    }
+}
+";
+            CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }).VerifyDiagnostics(
+                // (18,13): error CS8120: The switch case has already been handled by a previous case.
+                //             case Generic<dynamic>.Color.Red: // error: duplicate case
+                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "case Generic<dynamic>.Color.Red:").WithLocation(18, 13),
+                // (19,13): error CS8120: The switch case has already been handled by a previous case.
+                //             case Generic<(int z, int w)>.Color.Blue: // error: duplicate case
+                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "case Generic<(int z, int w)>.Color.Blue:").WithLocation(19, 13)
+                );
+        }
+
+        [Fact, WorkItem(16195, "https://github.com/dotnet/roslyn/issues/16195")]
+        public void TestIgnoreDynamicVsObjectAndTupleElementNames_02()
+        {
+            var source =
+@"using System;
+public class Generic<T>
+{
+    public enum Color { Red, Blue }
+}
+class Program
+{
+    public static void Main(string[] args)
+    {
+        Console.WriteLine(M1<Generic<int>.Color>(Generic<long>.Color.Red));                      // False
+        Console.WriteLine(M1<Generic<string>.Color>(Generic<object>.Color.Red));                 // False
+        Console.WriteLine(M1<Generic<(int x, int y)>.Color>(Generic<(int z, int w)>.Color.Red)); // True
+        Console.WriteLine(M1<Generic<object>.Color>(Generic<dynamic>.Color.Blue));               // True
+
+        Console.WriteLine(M2(Generic<long>.Color.Red));    // Generic<long>.Color.Red
+        Console.WriteLine(M2(Generic<object>.Color.Blue)); // Generic<dynamic>.Color.Blue
+        Console.WriteLine(M2(Generic<int>.Color.Red));     // None
+        Console.WriteLine(M2(Generic<dynamic>.Color.Red)); // Generic<object>.Color.Red
+    }
+    public static bool M1<T>(object o)
+    {
+        return o is T t;
+    }
+    public static string M2(object o)
+    {
+        switch (o)
+        {
+            case Generic<long>.Color c:
+                return ""Generic<long>.Color."" + c;
+            case Generic<object>.Color.Red:
+                return ""Generic<object>.Color.Red"";
+            case Generic<dynamic>.Color.Blue:
+                return ""Generic<dynamic>.Color.Blue"";
+            default:
+                return ""None"";
+        }
+    }
+}
+";
+            var compilation = CreateStandardCompilation(source,
+                    options: TestOptions.DebugDll.WithOutputKind(OutputKind.ConsoleApplication),
+                    references: new[] { ValueTupleRef, SystemRuntimeFacadeRef })
+                .VerifyDiagnostics();
+            var compVerifier = CompileAndVerify(compilation,
+                expectedOutput: @"False
+False
+True
+True
+Generic<long>.Color.Red
+Generic<dynamic>.Color.Blue
+None
+Generic<object>.Color.Red");
+            compVerifier.VerifyDiagnostics();
+            compVerifier.VerifyIL("Program.M2",
+@"{
+  // Code size      154 (0x9a)
+  .maxstack  2
+  .locals init (object V_0,
+                Generic<long>.Color V_1,
+                Generic<object>.Color V_2,
+                object V_3,
+                Generic<long>.Color V_4, //c
+                object V_5,
+                Generic<long>.Color? V_6,
+                Generic<object>.Color? V_7,
+                int V_8,
+                string V_9)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.3
+  IL_0003:  ldloc.3
+  IL_0004:  stloc.s    V_5
+  IL_0006:  ldloc.s    V_5
+  IL_0008:  stloc.0
+  IL_0009:  ldloc.0
+  IL_000a:  brtrue.s   IL_000e
+  IL_000c:  br.s       IL_0060
+  IL_000e:  ldloc.0
+  IL_000f:  isinst     ""Generic<long>.Color?""
+  IL_0014:  unbox.any  ""Generic<long>.Color?""
+  IL_0019:  stloc.s    V_6
+  IL_001b:  ldloca.s   V_6
+  IL_001d:  call       ""Generic<long>.Color Generic<long>.Color?.GetValueOrDefault()""
+  IL_0022:  stloc.1
+  IL_0023:  ldloca.s   V_6
+  IL_0025:  call       ""bool Generic<long>.Color?.HasValue.get""
+  IL_002a:  brfalse.s  IL_002e
+  IL_002c:  br.s       IL_0062
+  IL_002e:  ldloc.0
+  IL_002f:  isinst     ""Generic<object>.Color?""
+  IL_0034:  unbox.any  ""Generic<object>.Color?""
+  IL_0039:  stloc.s    V_7
+  IL_003b:  ldloca.s   V_7
+  IL_003d:  call       ""Generic<object>.Color Generic<object>.Color?.GetValueOrDefault()""
+  IL_0042:  stloc.2
+  IL_0043:  ldloca.s   V_7
+  IL_0045:  call       ""bool Generic<object>.Color?.HasValue.get""
+  IL_004a:  brfalse.s  IL_0060
+  IL_004c:  ldloc.2
+  IL_004d:  stloc.s    V_8
+  IL_004f:  ldloc.s    V_8
+  IL_0051:  brfalse.s  IL_005c
+  IL_0053:  br.s       IL_0055
+  IL_0055:  ldloc.s    V_8
+  IL_0057:  ldc.i4.1
+  IL_0058:  beq.s      IL_005e
+  IL_005a:  br.s       IL_0060
+  IL_005c:  br.s       IL_007c
+  IL_005e:  br.s       IL_0085
+  IL_0060:  br.s       IL_008e
+  IL_0062:  ldloc.1
+  IL_0063:  stloc.s    V_4
+  IL_0065:  br.s       IL_0067
+  IL_0067:  ldstr      ""Generic<long>.Color.""
+  IL_006c:  ldloc.s    V_4
+  IL_006e:  box        ""Generic<long>.Color""
+  IL_0073:  call       ""string string.Concat(object, object)""
+  IL_0078:  stloc.s    V_9
+  IL_007a:  br.s       IL_0097
+  IL_007c:  ldstr      ""Generic<object>.Color.Red""
+  IL_0081:  stloc.s    V_9
+  IL_0083:  br.s       IL_0097
+  IL_0085:  ldstr      ""Generic<dynamic>.Color.Blue""
+  IL_008a:  stloc.s    V_9
+  IL_008c:  br.s       IL_0097
+  IL_008e:  ldstr      ""None""
+  IL_0093:  stloc.s    V_9
+  IL_0095:  br.s       IL_0097
+  IL_0097:  ldloc.s    V_9
+  IL_0099:  ret
+}"
+            );
+        }
+
         #endregion "regression tests"
     }
 }
