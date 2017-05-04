@@ -8,6 +8,6 @@ namespace Microsoft.CodeAnalysis.DesignerAttributes
 {
     internal interface IDesignerAttributeService : ILanguageService
     {
-        Task<DesignerAttributeResult> ScanDesignerAttributesAsync(Document document, CancellationToken cancellationToken);
+        Task<DesignerAttributeDocumentData> ScanDesignerAttributesAsync(Document document, CancellationToken cancellationToken);
     }
 }

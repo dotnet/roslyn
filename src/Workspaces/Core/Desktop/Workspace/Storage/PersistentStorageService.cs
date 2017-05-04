@@ -167,6 +167,14 @@ namespace Microsoft.CodeAnalysis.Storage
                 return true;
             }
 
+            var workspace = solution.Workspace;
+            if (workspace.Kind == WorkspaceKind.RemoteWorkspace ||
+                workspace.Kind == WorkspaceKind.RemoteTemporaryWorkspace)
+            {
+                // Storage is always available in the remote server.
+                return true;
+            }
+
             if (_solutionSizeTracker == null)
             {
                 return false;

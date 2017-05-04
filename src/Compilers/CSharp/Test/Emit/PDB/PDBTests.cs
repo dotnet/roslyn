@@ -2657,6 +2657,142 @@ class Program
 </symbols>"
 );
         }
+        
+        [Fact]
+        public void ForEachStatement_Deconstruction()
+        {
+            var source = @"
+public class C
+{
+    public static (int, (bool, double))[] F() => new[] { (1, (true, 2.0)) };
+
+    public static void Main()
+    {
+        foreach (var (c, (d, e)) in F())
+        {
+            System.Console.WriteLine(c);
+        }
+    }
+}
+";
+            var c = CreateStandardCompilation(source, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.DebugDll);
+            var v = CompileAndVerify(c);
+
+            v.VerifyIL("C.Main", @"
+{
+  // Code size       72 (0x48)
+  .maxstack  2
+  .locals init ((int, (bool, double))[] V_0,
+                int V_1,
+                int V_2, //c
+                bool V_3, //d
+                double V_4, //e
+                System.ValueTuple<bool, double> V_5)
+  // sequence point: {
+  IL_0000:  nop
+  // sequence point: foreach
+  IL_0001:  nop
+  // sequence point: F()
+  IL_0002:  call       ""(int, (bool, double))[] C.F()""
+  IL_0007:  stloc.0
+  IL_0008:  ldc.i4.0
+  IL_0009:  stloc.1
+  // sequence point: <hidden>
+  IL_000a:  br.s       IL_0041
+  // sequence point: var (c, (d, e))
+  IL_000c:  ldloc.0
+  IL_000d:  ldloc.1
+  IL_000e:  ldelem     ""System.ValueTuple<int, (bool, double)>""
+  IL_0013:  dup
+  IL_0014:  ldfld      ""(bool, double) System.ValueTuple<int, (bool, double)>.Item2""
+  IL_0019:  stloc.s    V_5
+  IL_001b:  dup
+  IL_001c:  ldfld      ""int System.ValueTuple<int, (bool, double)>.Item1""
+  IL_0021:  stloc.2
+  IL_0022:  ldloc.s    V_5
+  IL_0024:  ldfld      ""bool System.ValueTuple<bool, double>.Item1""
+  IL_0029:  stloc.3
+  IL_002a:  ldloc.s    V_5
+  IL_002c:  ldfld      ""double System.ValueTuple<bool, double>.Item2""
+  IL_0031:  stloc.s    V_4
+  IL_0033:  pop
+  // sequence point: {
+  IL_0034:  nop
+  // sequence point: System.Console.WriteLine(c);
+  IL_0035:  ldloc.2
+  IL_0036:  call       ""void System.Console.WriteLine(int)""
+  IL_003b:  nop
+  // sequence point: }
+  IL_003c:  nop
+  // sequence point: <hidden>
+  IL_003d:  ldloc.1
+  IL_003e:  ldc.i4.1
+  IL_003f:  add
+  IL_0040:  stloc.1
+  // sequence point: in
+  IL_0041:  ldloc.1
+  IL_0042:  ldloc.0
+  IL_0043:  ldlen
+  IL_0044:  conv.i4
+  IL_0045:  blt.s      IL_000c
+  // sequence point: }
+  IL_0047:  ret
+}
+", sequencePoints: "C.Main", source: source);
+
+            v.VerifyPdb(@"
+<symbols>
+  <methods>
+    <method containingType=""C"" name=""F"">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount=""0"" />
+        </using>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""4"" startColumn=""50"" endLine=""4"" endColumn=""76"" />
+      </sequencePoints>
+    </method>
+    <method containingType=""C"" name=""Main"">
+      <customDebugInfo>
+        <forward declaringType=""C"" methodName=""F"" />
+        <encLocalSlotMap>
+          <slot kind=""6"" offset=""11"" />
+          <slot kind=""8"" offset=""11"" />
+          <slot kind=""0"" offset=""25"" />
+          <slot kind=""0"" offset=""29"" />
+          <slot kind=""0"" offset=""32"" />
+          <slot kind=""temp"" />
+        </encLocalSlotMap>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" />
+        <entry offset=""0x1"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""16"" />
+        <entry offset=""0x2"" startLine=""8"" startColumn=""37"" endLine=""8"" endColumn=""40"" />
+        <entry offset=""0xa"" hidden=""true"" />
+        <entry offset=""0xc"" startLine=""8"" startColumn=""18"" endLine=""8"" endColumn=""33"" />
+        <entry offset=""0x34"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""10"" />
+        <entry offset=""0x35"" startLine=""10"" startColumn=""13"" endLine=""10"" endColumn=""41"" />
+        <entry offset=""0x3c"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""10"" />
+        <entry offset=""0x3d"" hidden=""true"" />
+        <entry offset=""0x41"" startLine=""8"" startColumn=""34"" endLine=""8"" endColumn=""36"" />
+        <entry offset=""0x47"" startLine=""12"" startColumn=""5"" endLine=""12"" endColumn=""6"" />
+      </sequencePoints>
+      <scope startOffset=""0x0"" endOffset=""0x48"">
+        <scope startOffset=""0xc"" endOffset=""0x3d"">
+          <local name=""c"" il_index=""2"" il_start=""0xc"" il_end=""0x3d"" attributes=""0"" />
+          <local name=""d"" il_index=""3"" il_start=""0xc"" il_end=""0x3d"" attributes=""0"" />
+          <local name=""e"" il_index=""4"" il_start=""0xc"" il_end=""0x3d"" attributes=""0"" />
+        </scope>
+      </scope>
+    </method>
+  </methods>
+</symbols>");
+        }
+
+        #endregion
+
+        #region Switch
 
         [Fact]
         public void SwitchWithPattern_01()
@@ -2843,6 +2979,7 @@ class Student : Person { public double GPA; }
 </symbols>"
 );
         }
+
         #endregion
 
         #region DoStatement
