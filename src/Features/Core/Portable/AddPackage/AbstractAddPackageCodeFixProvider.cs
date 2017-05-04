@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.AddPackage
             if (symbolSearchService != null &&
                 installerService != null &&
                 searchNugetPackages &&
-                installerService.IsEnabledForProject(document.Project.Id))
+                installerService.IsEnabled(document.Project.Id))
             {
                 foreach (var packageSource in installerService.PackageSources)
                 {

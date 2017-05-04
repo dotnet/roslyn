@@ -77,11 +77,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
 
         public event EventHandler PackageSourcesChanged;
 
-        public bool IsEnabled => _packageServices != null;
+        private bool IsEnabled => _packageServices != null;
 
-        public bool IsEnabledForProject(ProjectId projectId)
+        bool IPackageInstallerService.IsEnabled(ProjectId projectId)
         {
-            if (!IsEnabled)
+            if (_packageServices == null)
             {
                 return false;
             }
