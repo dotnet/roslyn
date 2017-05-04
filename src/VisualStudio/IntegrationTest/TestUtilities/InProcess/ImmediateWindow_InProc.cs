@@ -50,20 +50,13 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         private void GetView(IVsWindowFrame frame)
         {
             object docView = null;
-            if (ErrorHandler.Failed(frame.GetProperty((int)__VSFPROPID.VSFPROPID_DocView, out docView)))
-            {
-                // TODO: Report error
-                return null;
-            }
-
-            if (docView is IVsCodeWindow)
+            frame.GetProperty((int)__VSFPROPID.VSFPROPID_DocView, out docView);
+            
+            if (docView is IVswin)
             {
                 IVsTextView textView;
-                if (ErrorHandler.Failed(((IVsCodeWindow)docView).GetPrimaryView(out textView)))
-                {
-                    // TODO: Report error
-                    return null;
-                }
+                ((IVsCodeWindow)docView).GetPrimaryView(out textView);
+                
 
                 var model = (IComponentModel)Package.GetGlobalService(typeof(SComponentModel));
                 var adapterFactory = model.GetService<IVsEditorAdaptersFactoryService>();
