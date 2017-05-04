@@ -77,6 +77,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
                 @"'C', Folder, 'Text|Z:\5CC'",
                 @"'D', Folder, 'Text|Z:\5CD'");
 
+            AssertItemsEqual(fsc.GetItems(@"Z:", CancellationToken.None),
+                @"'Z:', Folder, 'Text|Z:'");
+
             AssertItemsEqual(fsc.GetItems(@"\", CancellationToken.None),
                 @"'\\', , 'Text|\5C\5C'");
         }

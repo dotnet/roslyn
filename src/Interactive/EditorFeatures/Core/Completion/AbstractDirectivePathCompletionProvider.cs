@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Editor.Completion.FileSystem
     internal abstract class AbstractDirectivePathCompletionProvider : CompletionProvider
     {
         protected static bool IsDirectorySeparator(char ch) =>
-             ch == '/' || ch == '\\' && !PathUtilities.IsUnixLikePlatform;
+             ch == '/' || (ch == '\\' && !PathUtilities.IsUnixLikePlatform);
 
         protected abstract bool TryGetStringLiteralToken(SyntaxTree tree, int position, out SyntaxToken stringLiteral, CancellationToken cancellationToken);
 

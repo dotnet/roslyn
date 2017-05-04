@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Completion
 {
     internal class FileSystemCompletionHelper
     {
-        private static char[] s_windowsDirectorySeparator = { '\\' };
+        private static readonly char[] s_windowsDirectorySeparator = { '\\' };
 
         private readonly Glyph _folderGlyph;
         private readonly Glyph _fileGlyph;
@@ -27,8 +27,6 @@ namespace Microsoft.CodeAnalysis.Completion
         private readonly string _baseDirectoryOpt;
 
         private readonly ImmutableArray<string> _allowableExtensions;
-
-        private readonly Lazy<string[]> _lazyGetDrives;
         private readonly CompletionItemRules _itemRules;
 
         public FileSystemCompletionHelper(
@@ -48,13 +46,11 @@ namespace Microsoft.CodeAnalysis.Completion
             _folderGlyph = folderGlyph;
             _fileGlyph = fileGlyph;
             _itemRules = itemRules;
-
-            _lazyGetDrives = new Lazy<string[]>(GetLogicalDrives);
         }
 
         // virtual for testing
-        protected virtual string[] GetLogicalDrives() => 
-            IOUtilities.PerformIO(CorLightup.Desktop.GetLogicalDrives, Array.Empty<string>());
+        protected virtual string[] GetLogicalDrives()
+            => IOUtilities.PerformIO(CorLightup.Desktop.GetLogicalDrives, Array.Empty<string>());
 
         // virtual for testing
         protected virtual bool DirectoryExists(string fullPath)
@@ -67,67 +63,46 @@ namespace Microsoft.CodeAnalysis.Completion
         protected virtual IEnumerable<string> EnumerateDirectories(string fullDirectoryPath)
         {
             Debug.Assert(PathUtilities.IsAbsolute(fullDirectoryPath));
-            try
-            {
-                return Directory.EnumerateDirectories(fullDirectoryPath);
-            }
-            catch
-            {
-                return Array.Empty<string>();
-            }
+            return IOUtilities.PerformIO(() => Directory.EnumerateDirectories(fullDirectoryPath), Array.Empty<string>());
         }
 
         // virtual for testing
         protected virtual IEnumerable<string> EnumerateFiles(string fullDirectoryPath)
         {
             Debug.Assert(PathUtilities.IsAbsolute(fullDirectoryPath));
-            try
-            {
-                return Directory.EnumerateFiles(fullDirectoryPath);
-            }
-            catch
-            {
-                return Array.Empty<string>();
-            }
+            return IOUtilities.PerformIO(() => Directory.EnumerateFiles(fullDirectoryPath), Array.Empty<string>());
         }
 
         // virtual for testing
         protected virtual bool IsVisibleFileSystemEntry(string fullPath)
         {
             Debug.Assert(PathUtilities.IsAbsolute(fullPath));
-            try
-            {
-                return (File.GetAttributes(fullPath) & (FileAttributes.Hidden | FileAttributes.System)) == 0;
-            }
-            catch
-            {
-                return false;
-            }
+            return IOUtilities.PerformIO(() => (File.GetAttributes(fullPath) & (FileAttributes.Hidden | FileAttributes.System)) == 0, false);
         }
 
-        private CompletionItem CreateNetworkRoot() =>
-            CommonCompletionItem.Create(
+        private CompletionItem CreateNetworkRoot()
+            => CommonCompletionItem.Create(
                 "\\\\",
                 glyph: null,
                 description: "\\\\".ToSymbolDisplayParts(),
                 rules: _itemRules);
 
-        private CompletionItem CreateUnixRoot() =>
-             CommonCompletionItem.Create(
+        private CompletionItem CreateUnixRoot() 
+            => CommonCompletionItem.Create(
                 "/",
                 glyph: _folderGlyph,
                 description: "/".ToSymbolDisplayParts(),
                 rules: _itemRules);
 
-        private CompletionItem CreateFileSystemEntryItem(string fullPath, bool isDirectory) => 
-            CommonCompletionItem.Create(
+        private CompletionItem CreateFileSystemEntryItem(string fullPath, bool isDirectory) 
+            => CommonCompletionItem.Create(
                 PathUtilities.GetFileName(fullPath),
                 glyph: isDirectory ? _folderGlyph : _fileGlyph,
                 description: fullPath.ToSymbolDisplayParts(),
                 rules: _itemRules);
 
-        private CompletionItem CreateLogicalDriveItem(string drive) =>
-            CommonCompletionItem.Create(
+        private CompletionItem CreateLogicalDriveItem(string drive) 
+            => CommonCompletionItem.Create(
                 drive,
                 glyph: _folderGlyph,
                 description: drive.ToSymbolDisplayParts(),
@@ -216,7 +191,13 @@ namespace Microsoft.CodeAnalysis.Completion
                     break;
 
                 case PathKind.RelativeToDriveDirectory:
-                    // these paths are not supported
+                    // Paths "C:dir" are not supported, but when the path doesn't include any directory, i.e. "C:",
+                    // we return the drive itself.
+                    if (directoryPath.Length == 2)
+                    {
+                        result.Add(CreateLogicalDriveItem(directoryPath));
+                    }
+
                     break;
 
                 default:
