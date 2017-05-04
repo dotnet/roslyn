@@ -1,6 +1,5 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
@@ -849,20 +848,15 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             }
         }
 
-
         private static bool AreSimilarActiveStatements(CommonForEachStatementSyntax oldNode, CommonForEachStatementSyntax newNode)
         {
-            if (oldNode.Kind() != newNode.Kind())
-            {
-                return false;
-            }
+            List<SyntaxToken> oldTokens = null;
+            List<SyntaxToken> newTokens = null;
 
-            switch (oldNode.Kind())
-            {
-                case SyntaxKind.ForEachStatement: return AreEquivalentIgnoringLambdaBodies(((ForEachStatementSyntax)oldNode).Type, ((ForEachStatementSyntax)newNode).Type);
-                case SyntaxKind.ForEachVariableStatement: return AreEquivalentIgnoringLambdaBodies(((ForEachVariableStatementSyntax)oldNode).Variable, ((ForEachVariableStatementSyntax)newNode).Variable);
-                default: throw ExceptionUtilities.UnexpectedValue(oldNode.Kind());
-            }
+            StatementSyntaxComparer.GetLocalNames(oldNode, ref oldTokens);
+            StatementSyntaxComparer.GetLocalNames(newNode, ref newTokens);
+
+            return DeclareSameIdentifiers(oldTokens.ToArray(), newTokens.ToArray());
         }
 
         internal override bool IsMethod(SyntaxNode declaration)
@@ -3256,14 +3250,19 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         private static bool DeclareSameIdentifiers(SeparatedSyntaxList<VariableDeclaratorSyntax> oldVariables, SeparatedSyntaxList<VariableDeclaratorSyntax> newVariables)
         {
-            if (oldVariables.Count != newVariables.Count)
+            return DeclareSameIdentifiers(oldVariables.Select(v => v.Identifier).ToArray(), newVariables.Select(v => v.Identifier).ToArray());
+        }
+
+        private static bool DeclareSameIdentifiers(SyntaxToken[] oldVariables, SyntaxToken[] newVariables)
+        {
+            if (oldVariables.Length != newVariables.Length)
             {
                 return false;
             }
 
-            for (int i = 0; i < oldVariables.Count; i++)
+            for (int i = 0; i < oldVariables.Length; i++)
             {
-                if (!SyntaxFactory.AreEquivalent(oldVariables[i].Identifier, newVariables[i].Identifier))
+                if (!SyntaxFactory.AreEquivalent(oldVariables[i], newVariables[i]))
                 {
                     return false;
                 }
