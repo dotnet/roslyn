@@ -799,6 +799,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 }
             }
 
+            // Try to eliminate cases without actually calling CanReplaceWithReducedName. For expressions of the form
+            // 'this.Name' or 'base.Name', no additional check here is required.
+            if (!memberAccess.Expression.IsKind(SyntaxKind.ThisExpression, SyntaxKind.BaseExpression))
+            {
+                var actualSymbol = semanticModel.GetSymbolInfo(memberAccess.Name, cancellationToken);
+                if (actualSymbol.GetAnySymbol() is null)
+                {
+                    return false;
+                }
+
+                // Get a syntax node that's not part of the tree to make sure we speculate on just the name.
+                var speculativeTree = memberAccess.Name.WithoutTrivia();
+                var symbolInfo = semanticModel.GetSpeculativeSymbolInfo(memberAccess.SpanStart, speculativeTree, SpeculativeBindingOption.BindAsExpression);
+                if (!IsReplacementCandidate(actualSymbol, symbolInfo))
+                {
+                    return false;
+                }
+            }
+
             replacementNode = memberAccess.Name
                 .WithLeadingTrivia(memberAccess.GetLeadingTriviaForSimplifiedMemberAccess())
                 .WithTrailingTrivia(memberAccess.GetTrailingTrivia());
@@ -810,6 +829,38 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
 
             return memberAccess.CanReplaceWithReducedName(replacementNode, semanticModel, cancellationToken);
+        }
+
+        /// <summary>
+        /// Determines if <paramref name="speculativeSymbol"/> contains a superset of the symbols in
+        /// <paramref name="actualSymbol"/>.
+        /// </summary>
+        private static bool IsReplacementCandidate(SymbolInfo actualSymbol, SymbolInfo speculativeSymbol)
+        {
+            if (!(speculativeSymbol.Symbol is null))
+            {
+                return Equals(actualSymbol.Symbol, speculativeSymbol.Symbol);
+            }
+
+            if (speculativeSymbol.CandidateSymbols.IsDefault)
+            {
+                return false;
+            }
+
+            if (!(actualSymbol.Symbol is null))
+            {
+                return speculativeSymbol.CandidateSymbols.Contains(actualSymbol.Symbol);
+            }
+
+            foreach (var symbol in actualSymbol.CandidateSymbols)
+            {
+                if (!speculativeSymbol.CandidateSymbols.Contains(symbol))
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         private static SyntaxTriviaList GetLeadingTriviaForSimplifiedMemberAccess(this MemberAccessExpressionSyntax memberAccess)
