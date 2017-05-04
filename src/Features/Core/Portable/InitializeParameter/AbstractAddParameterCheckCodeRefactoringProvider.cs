@@ -374,21 +374,25 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             return null;
         }
 
+        private static SyntaxNode GetTypeNode(
+            Compilation compilation, SyntaxGenerator generator, Type type)
+        {
+            var typeSymbol = compilation.GetTypeByMetadataName(type.FullName);
+            if (typeSymbol == null)
+            {
+                return generator.QualifiedName(
+                    generator.IdentifierName(nameof(System)),
+                    generator.IdentifierName(type.Name));
+            }
+
+            return generator.TypeExpression(typeSymbol);
+        }
+
         private static SyntaxNode CreateArgumentNullException(
             Compilation compilation, SyntaxGenerator generator, IParameterSymbol parameter)
         {
-            var argumentNullExceptionType = compilation.GetTypeByMetadataName(typeof(ArgumentNullException).FullName);
-            if (argumentNullExceptionType == null)
-            {
-                return generator.ObjectCreationExpression(
-                    generator.QualifiedName(
-                        generator.IdentifierName(nameof(System)),
-                        generator.IdentifierName(nameof(ArgumentNullException))),
-                    generator.NameOfExpression(generator.IdentifierName(parameter.Name)));
-            }
-
             return generator.ObjectCreationExpression(
-                argumentNullExceptionType,
+                GetTypeNode(compilation, generator, typeof(ArgumentNullException)),
                 generator.NameOfExpression(generator.IdentifierName(parameter.Name)));
         }
 
@@ -398,7 +402,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             // Note "message" is not localized.  It is the name of the first parameter of 
             // "ArgumentException"
             return generator.ObjectCreationExpression(
-                compilation.GetTypeByMetadataName("System.ArgumentException"),
+                GetTypeNode(compilation, generator, typeof(ArgumentException)),
                 generator.LiteralExpression("message"),
                 generator.NameOfExpression(generator.IdentifierName(parameter.Name)));
         }
