@@ -30,11 +30,12 @@ namespace Microsoft.CodeAnalysis.SQLite
                 new MultiDictionary<TWriteQueueKey, Action<SqlConnection>>();
 
             /// <summary>
-            /// Keep track of how many threads are trying to write out this particular queue.  All threads
-            /// trying to write out the queue will wait until all the writes are done.
+            /// The task responsible for writing out all the batched actions we have for a particular
+            /// queue.  When new reads come in for that queue they can 'await' this write-task completing
+            /// so that all reads for the queue observe any previously completed writes.
             /// </summary>
-            private readonly Dictionary<TWriteQueueKey, CountdownEvent> _writeQueueKeyToCountdown =
-                new Dictionary<TWriteQueueKey, CountdownEvent>();
+            private readonly Dictionary<TWriteQueueKey, Task> _writeQueueKeyToWriteTask =
+                new Dictionary<TWriteQueueKey, Task>();
 
             public Accessor(SQLitePersistentStorage storage)
             {
@@ -119,7 +120,7 @@ namespace Microsoft.CodeAnalysis.SQLite
 
             private Task FlushPendingWritesAsync(SqlConnection connection, TKey key, CancellationToken cancellationToken)
                 => Storage.FlushSpecificWritesAsync(
-                    connection, _writeQueueKeyToWrites, _writeQueueKeyToCountdown, GetWriteQueueKey(key), cancellationToken);
+                    connection, _writeQueueKeyToWrites, _writeQueueKeyToWriteTask, GetWriteQueueKey(key), cancellationToken);
 
             private Task AddWriteTaskAsync(TKey key, Action<SqlConnection> action, CancellationToken cancellationToken)
                 => Storage.AddWriteTaskAsync(_writeQueueKeyToWrites, GetWriteQueueKey(key), action, cancellationToken);
