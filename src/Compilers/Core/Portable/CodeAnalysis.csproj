@@ -78,6 +78,8 @@
     <Compile Include="Operations\IIncrementExpression.cs" />
     <Compile Include="Operations\IIndexedPropertyReferenceExpression.cs" />
     <Compile Include="Operations\IInstanceReferenceExpression.cs" />
+    <Compile Include="Operations\IInterpolatedStringExpression.cs" />
+    <Compile Include="Operations\IInterpolation.cs" />
     <Compile Include="Operations\IInvalidExpression.cs" />
     <Compile Include="Operations\IInvalidStatement.cs" />
     <Compile Include="Operations\IInvocationExpression.cs" />
@@ -99,7 +101,7 @@
     <Compile Include="Operations\IOmittedArgumentExpression.cs" />
     <Compile Include="Operations\ObjectCreationExpression_IHasArgumentsExpression.cs" />
     <Compile Include="Operations\Operation.cs" />
-    <Compile Include="Operations\IOperationKind.cs" />
+    <Compile Include="Operations\OperationKind.cs" />
     <Compile Include="Operations\IParameterInitializer.cs" />
     <Compile Include="Operations\IParameterReferenceExpression.cs" />
     <Compile Include="Operations\IParenthesizedExpression.cs" />

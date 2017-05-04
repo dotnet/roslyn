@@ -2099,18 +2099,20 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    internal partial class BoundInterpolatedString
+    internal partial class BoundInterpolatedString : IInterpolatedStringExpression
     {
-        protected override OperationKind ExpressionKind => OperationKind.None;
+        protected override OperationKind ExpressionKind => OperationKind.InterpolatedStringExpression;
+
+        ImmutableArray<IOperation> IInterpolatedStringExpression.Parts => this.Parts.As<IOperation>();
 
         public override void Accept(OperationVisitor visitor)
         {
-            visitor.VisitNoneOperation(this);
+            visitor.VisitInterpolatedStringExpression(this);
         }
 
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
-            return visitor.VisitNoneOperation(this, argument);
+            return visitor.VisitInterpolatedStringExpression(this, argument);
         }
     }
 
@@ -2144,18 +2146,24 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    internal partial class BoundStringInsert
+    internal partial class BoundStringInsert : IInterpolation
     {
-        protected override OperationKind ExpressionKind => OperationKind.None;
+        protected override OperationKind ExpressionKind => OperationKind.Interpolation;
+
+        IOperation IInterpolation.Alignment => this.Alignment;
+
+        IOperation IInterpolation.Expression => this.Value;
+
+        IOperation IInterpolation.FormatString => this.Format;
 
         public override void Accept(OperationVisitor visitor)
         {
-            visitor.VisitNoneOperation(this);
+            visitor.VisitInterpolation(this);
         }
 
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
-            return visitor.VisitNoneOperation(this, argument);
+            return visitor.VisitInterpolation(this, argument);
         }
     }
 

@@ -512,5 +512,15 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             base.VisitInvalidExpression(operation);
         }
+
+        public override void VisitInterpolatedStringExpression(IInterpolatedStringExpression operation)
+        {
+            base.VisitInterpolatedStringExpression(operation);
+        }
+
+        public override void VisitInterpolation(IInterpolation operation)
+        {
+            base.VisitInterpolation(operation);
+        }
     }
 }

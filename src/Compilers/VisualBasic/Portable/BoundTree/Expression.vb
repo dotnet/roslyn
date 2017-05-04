@@ -2846,17 +2846,59 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundInterpolatedStringExpression
+    Partial Friend Class BoundInterpolatedStringExpression
+        Implements IInterpolatedStringExpression
+
         Protected Overrides Function ExpressionKind() As OperationKind
-            Return OperationKind.None
+            Return OperationKind.InterpolatedStringExpression
         End Function
 
+        Public ReadOnly Property IInterpolatedStringExpression_Parts As ImmutableArray(Of IOperation) Implements IInterpolatedStringExpression.Parts
+            Get
+                Return Me.Contents.As(Of IOperation)()
+            End Get
+        End Property
+
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            visitor.VisitNoneOperation(Me)
+            visitor.VisitInterpolatedStringExpression(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Return visitor.VisitNoneOperation(Me, argument)
+            Return visitor.VisitInterpolatedStringExpression(Me, argument)
+        End Function
+    End Class
+
+    Partial Friend Class BoundInterpolation
+        Implements IInterpolation
+
+        Private ReadOnly Property IInterpolation_Expression As IOperation Implements IInterpolation.Expression
+            Get
+                Return Me.Expression
+            End Get
+        End Property
+
+        Public ReadOnly Property IInterpolation_Alignment As IOperation Implements IInterpolation.Alignment
+            Get
+                Return Me.AlignmentOpt
+            End Get
+        End Property
+
+        Public ReadOnly Property IInterpolation_FormatString As IOperation Implements IInterpolation.FormatString
+            Get
+                Return Me.FormatStringOpt
+            End Get
+        End Property
+
+        Protected Overrides Function ExpressionKind() As OperationKind
+            Return OperationKind.Interpolation
+        End Function
+
+        Public Overrides Sub Accept(visitor As OperationVisitor)
+            visitor.VisitInterpolation(Me)
+        End Sub
+
+        Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
+            Return visitor.VisitInterpolation(Me, argument)
         End Function
     End Class
 
