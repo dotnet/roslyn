@@ -275,8 +275,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         else
                         {
-                            Debug.Assert(byValue.Default.Type.Equals(type, TypeCompareKind.IgnoreDynamicAndTupleNames));
-                            result = Add(byValue.Default, makeDecision);
+                            result = AddByType(byValue.Default, type, makeDecision);
                         }
 
                         if (byValue.Default.MatchIsComplete)

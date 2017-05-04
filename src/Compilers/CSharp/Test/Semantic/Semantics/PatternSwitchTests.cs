@@ -3070,5 +3070,37 @@ class Program
                 Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(11, 17)
                 );
         }
+
+        [Fact]
+        public void ByValueThenByTypeTwice()
+        {
+            var source =
+@"
+class Program
+{
+    static bool b = false;
+    static int i = 2;
+    static void Main(string[] args)
+    {
+        switch (i)
+        {
+            case 1:
+                break;
+            case System.IComparable c when b:
+                break;
+            case System.IFormattable f when b:
+                break;
+            default:
+                System.Console.WriteLine(nameof(Main));
+                break;
+        }
+    }
+}
+";
+            var compilation = CreateStandardCompilation(
+                source, options: TestOptions.ReleaseExe, references: new[] { SystemRuntimeFacadeRef, ValueTupleRef });
+            compilation.VerifyDiagnostics();
+            var comp = CompileAndVerify(compilation, expectedOutput: "Main");
+        }
     }
 }

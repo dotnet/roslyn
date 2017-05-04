@@ -94,10 +94,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 return _factory.Sequence(ImmutableArray.Create(temp),
                          sideEffects: ImmutableArray<BoundExpression>.Empty,
-                         result: MakeIsDeclarationPattern(loweredPattern.Syntax, loweredInput, discard, requiresNullTest: true));
+                         result: MakeIsDeclarationPattern(loweredPattern.Syntax, loweredInput, discard, requiresNullTest: loweredInput.Type.CanContainNull()));
             }
 
-            return MakeIsDeclarationPattern(loweredPattern.Syntax, loweredInput, loweredPattern.VariableAccess, requiresNullTest: true);
+            return MakeIsDeclarationPattern(loweredPattern.Syntax, loweredInput, loweredPattern.VariableAccess, requiresNullTest: loweredInput.Type.CanContainNull());
         }
 
         /// <summary>
@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         BoundExpression MakeIsDeclarationPattern(SyntaxNode syntax, BoundExpression loweredInput, BoundExpression loweredTarget, bool requiresNullTest)
         {
             var type = loweredTarget.Type;
-            requiresNullTest = requiresNullTest && !loweredInput.Type.IsNonNullableValueType();
+            requiresNullTest = requiresNullTest && !loweredInput.Type.CanContainNull();
 
             // It is possible that the input value is already of the correct type, in which case the pattern
             // is irrefutable, and we can just do the assignment and return true (or perform the null test).

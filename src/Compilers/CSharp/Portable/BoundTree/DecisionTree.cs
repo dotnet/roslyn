@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public static DecisionTree Create(BoundExpression expression, TypeSymbol type, Symbol enclosingSymbol)
         {
-            Debug.Assert(expression.Type.Equals(type, TypeCompareKind.IgnoreDynamicAndTupleNames));
+            Debug.Assert(expression.Type == type);
             LocalSymbol temp = null;
             if (expression.ConstantValue == null)
             {
@@ -104,8 +104,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 // If it is a (e.g. builtin) value type, we can switch on its (constant) values.
-                // If it isn't a builtin, in practice we will only use the Default part of the
-                // ByValue.
                 return new ByValue(expression, type, temp);
             }
         }
