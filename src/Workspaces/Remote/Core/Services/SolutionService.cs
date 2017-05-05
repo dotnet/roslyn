@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Options;
@@ -33,7 +34,8 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             var currentSolution = GetAvailableSolution(solutionChecksum);
             if (currentSolution != null)
-            {
+            { 
+                Debug.WriteLine("**** Cache Hit outside of lock " + (currentSolution.Workspace is RemoteWorkspace).ToString());
                 return currentSolution;
             }
 
@@ -43,6 +45,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 currentSolution = GetAvailableSolution(solutionChecksum);
                 if (currentSolution != null)
                 {
+                    Debug.WriteLine("**** Cache Hit inside of lock " + (currentSolution.Workspace is RemoteWorkspace).ToString());
                     return currentSolution;
                 }
 
@@ -61,6 +64,7 @@ namespace Microsoft.CodeAnalysis.Remote
             if (primarySolutionChecksum == solutionChecksum)
             {
                 // nothing changed
+                Debug.WriteLine("**** Primary workspace up to date");
                 return;
             }
 
@@ -78,12 +82,14 @@ namespace Microsoft.CodeAnalysis.Remote
             if (await updater.IsIncrementalUpdateAsync(solutionChecksum).ConfigureAwait(false))
             {
                 // solution has updated
+                Debug.WriteLine("**** Incremental solution update!");
                 return await updater.CreateSolutionAsync(solutionChecksum).ConfigureAwait(false);
             }
 
             // new solution. bulk sync all asset for the solution
             await _assetService.SynchronizeSolutionAssetsAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
 
+            Debug.WriteLine("**** Not same as primary workspace! new temporary workspace created!");
             var workspace = new TemporaryWorkspace(await updater.CreateSolutionInfoAsync(solutionChecksum).ConfigureAwait(false));
             return workspace.CurrentSolution;
         }
@@ -95,6 +101,7 @@ namespace Microsoft.CodeAnalysis.Remote
             if (await updater.IsIncrementalUpdateAsync(solutionChecksum).ConfigureAwait(false))
             {
                 // solution has updated
+                Debug.WriteLine("**** Primary worksace incremental update!");
                 s_primaryWorkspace.UpdateSolution(await updater.CreateSolutionAsync(solutionChecksum).ConfigureAwait(false));
 
                 return s_primaryWorkspace.CurrentSolution;
@@ -103,6 +110,7 @@ namespace Microsoft.CodeAnalysis.Remote
             // new solution. bulk sync all asset for the solution
             await _assetService.SynchronizeSolutionAssetsAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
 
+            Debug.WriteLine("**** New Primary workspace!");
             s_primaryWorkspace.ClearSolution();
             s_primaryWorkspace.AddSolution(await updater.CreateSolutionInfoAsync(solutionChecksum).ConfigureAwait(false));
 

@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Internal.Log;
+using System.Diagnostics;
 
 namespace Microsoft.VisualStudio.LanguageServices.Remote
 {
@@ -121,6 +122,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 {
                     var solution = _service.Workspace.CurrentSolution;
                     var checksum = await solution.State.GetChecksumAsync(cancellationToken).ConfigureAwait(false);
+                     
+                    Debug.WriteLine("**** Update Remote Primary Workspace");
 
                     await remoteHostClient.RunOnRemoteHostAsync(
                         WellKnownRemoteHostServices.RemoteHostService, solution,
