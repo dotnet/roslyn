@@ -4000,47 +4000,41 @@ class Program
         }
     }", expectedOutput: "6");
 
-            //BUG: the "initobj" instructions in the following code are redundant.
+            //NOTE: the following code should not have "initobj" instructions.
 
             c.VerifyIL("Program.Main", @"
 {
-  // Code size       87 (0x57)
+  // Code size       63 (0x3f)
   .maxstack  3
   .locals init (Program.<>c__DisplayClass0_0 V_0, //CS$<>8__locals0
                 Program.<>c__DisplayClass0_1 V_1, //CS$<>8__locals1
                 Program.<>c__DisplayClass0_2 V_2) //CS$<>8__locals2
   IL_0000:  ldloca.s   V_0
-  IL_0002:  initobj    ""Program.<>c__DisplayClass0_0""
-  IL_0008:  ldloca.s   V_0
-  IL_000a:  ldc.i4.1
-  IL_000b:  stfld      ""int Program.<>c__DisplayClass0_0.q""
-  IL_0010:  ldloc.0
-  IL_0011:  ldfld      ""int Program.<>c__DisplayClass0_0.q""
-  IL_0016:  ldc.i4.0
-  IL_0017:  ble.s      IL_0056
-  IL_0019:  ldloca.s   V_1
-  IL_001b:  initobj    ""Program.<>c__DisplayClass0_1""
-  IL_0021:  ldloca.s   V_1
-  IL_0023:  ldc.i4.2
-  IL_0024:  stfld      ""int Program.<>c__DisplayClass0_1.w""
-  IL_0029:  ldloc.1
-  IL_002a:  ldfld      ""int Program.<>c__DisplayClass0_1.w""
-  IL_002f:  ldc.i4.0
-  IL_0030:  ble.s      IL_0056
-  IL_0032:  ldloca.s   V_2
-  IL_0034:  initobj    ""Program.<>c__DisplayClass0_2""
-  IL_003a:  ldloca.s   V_2
-  IL_003c:  ldc.i4.3
-  IL_003d:  stfld      ""int Program.<>c__DisplayClass0_2.e""
-  IL_0042:  ldloc.2
-  IL_0043:  ldfld      ""int Program.<>c__DisplayClass0_2.e""
-  IL_0048:  ldc.i4.0
-  IL_0049:  ble.s      IL_0056
-  IL_004b:  ldloca.s   V_0
-  IL_004d:  ldloca.s   V_1
-  IL_004f:  ldloca.s   V_2
-  IL_0051:  call       ""void Program.<Main>g__Print0_0(ref Program.<>c__DisplayClass0_0, ref Program.<>c__DisplayClass0_1, ref Program.<>c__DisplayClass0_2)""
-  IL_0056:  ret
+  IL_0002:  ldc.i4.1
+  IL_0003:  stfld      ""int Program.<>c__DisplayClass0_0.q""
+  IL_0008:  ldloc.0
+  IL_0009:  ldfld      ""int Program.<>c__DisplayClass0_0.q""
+  IL_000e:  ldc.i4.0
+  IL_000f:  ble.s      IL_003e
+  IL_0011:  ldloca.s   V_1
+  IL_0013:  ldc.i4.2
+  IL_0014:  stfld      ""int Program.<>c__DisplayClass0_1.w""
+  IL_0019:  ldloc.1
+  IL_001a:  ldfld      ""int Program.<>c__DisplayClass0_1.w""
+  IL_001f:  ldc.i4.0
+  IL_0020:  ble.s      IL_003e
+  IL_0022:  ldloca.s   V_2
+  IL_0024:  ldc.i4.3
+  IL_0025:  stfld      ""int Program.<>c__DisplayClass0_2.e""
+  IL_002a:  ldloc.2
+  IL_002b:  ldfld      ""int Program.<>c__DisplayClass0_2.e""
+  IL_0030:  ldc.i4.0
+  IL_0031:  ble.s      IL_003e
+  IL_0033:  ldloca.s   V_0
+  IL_0035:  ldloca.s   V_1
+  IL_0037:  ldloca.s   V_2
+  IL_0039:  call       ""void Program.<Main>g__Print0_0(ref Program.<>c__DisplayClass0_0, ref Program.<>c__DisplayClass0_1, ref Program.<>c__DisplayClass0_2)""
+  IL_003e:  ret
 }
 ");
         }

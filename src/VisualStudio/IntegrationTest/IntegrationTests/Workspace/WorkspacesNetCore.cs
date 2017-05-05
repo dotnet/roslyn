@@ -41,7 +41,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.Workspace
             base.MetadataReference();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19223"), Trait(Traits.Feature, Traits.Features.Workspace)]
         public override void ProjectReference()
         {
             base.ProjectReference();
