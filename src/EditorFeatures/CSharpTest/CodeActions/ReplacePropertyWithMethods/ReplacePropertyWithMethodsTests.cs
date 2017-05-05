@@ -1416,6 +1416,120 @@ ignoreTrivia: false);
 }", ignoreTrivia: false);
         }
 
+        [WorkItem(19235, "https://github.com/dotnet/roslyn/issues/19235")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
+        public async Task TestWithDirectives1()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    int [||]Prop
+    {
+        get
+        {
+#if true
+            return 0;
+#else
+            return 1;
+#endif
+        }
+    }
+}",
+    @"class C
+{
+    private int GetProp()
+    {
+#if true
+        return 0;
+#else
+            return 1;
+#endif
+    }
+}", ignoreTrivia: false);
+        }
+
+        [WorkItem(19235, "https://github.com/dotnet/roslyn/issues/19235")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
+        public async Task TestWithDirectives2()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    int [||]Prop
+    {
+        get
+        {
+#if true
+            return 0;
+#else
+            return 1;
+#endif
+        }
+    }
+}",
+    @"class C
+{
+    private int GetProp() =>
+#if true
+            0;
+#else
+            return 1;
+#endif
+}", ignoreTrivia: false,
+    options: PreferExpressionBodiedMethods);
+        }
+
+        [WorkItem(19235, "https://github.com/dotnet/roslyn/issues/19235")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
+        public async Task TestWithDirectives3()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    int [||]Prop =>
+#if true
+        0;
+#else
+        1;
+#endif
+}",
+@"class C
+{
+    private int GetProp() =>
+#if true
+        0;
+#else
+        1;
+#endif
+}", ignoreTrivia: false);
+        }
+
+        [WorkItem(19235, "https://github.com/dotnet/roslyn/issues/19235")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
+        public async Task TestWithDirectives4()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    int [||]Prop =>
+#if true
+        0;
+#else
+        1;
+#endif
+}",
+@"class C
+{
+    private int GetProp() =>
+#if true
+        0;
+#else
+        1;
+#endif
+}", ignoreTrivia: false,
+    options: PreferExpressionBodiedMethods);
+        }
+
         private IDictionary<OptionKey, object> PreferExpressionBodiedMethods =>
             OptionsSet(SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenPossibleWithSuggestionEnforcement));
     }

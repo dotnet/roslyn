@@ -128,8 +128,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             // If the user does not like block bodies then we offer block bodies from the refactoring provider.
             if (userPrefersBlockBodies == forAnalyzer)
             {
-                // If we have an expression body, we can always convert it to a block body.
-                return this.GetExpressionBody(declaration) != null;
+                return this.GetExpressionBody(declaration)?.TryConvertToBlock(
+                    SyntaxFactory.Token(SyntaxKind.SemicolonToken), false, out var block) == true;
             }
 
             return false;
@@ -180,11 +180,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         {
             var expressionBody = GetExpressionBody(declaration);
             var semicolonToken = GetSemicolonToken(declaration);
-            var block = expressionBody.ConvertToBlock(
-                GetSemicolonToken(declaration),
-                CreateReturnStatementForExpression(declaration));
 
-            return WithBody(declaration, block);
+            if (expressionBody.TryConvertToBlock(
+                    GetSemicolonToken(declaration),
+                    CreateReturnStatementForExpression(declaration),
+                    out var block))
+            {
+                return WithBody(declaration, block);
+            }
+
+            return declaration;
         }
 
         protected TDeclaration WithAccessorList(
@@ -196,7 +201,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             var expressionBodyPreference = options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors).Value;
 
             AccessorDeclarationSyntax accessor;
-            if (expressionBodyPreference != ExpressionBodyPreference.Never)
+            if (expressionBodyPreference != ExpressionBodyPreference.Never ||
+                !expressionBody.TryConvertToBlock(GetSemicolonToken(declaration), CreateReturnStatementForExpression(declaration), out var block))
             {
                 accessor = SyntaxFactory.AccessorDeclaration(SyntaxKind.GetAccessorDeclaration)
                                         .WithExpressionBody(expressionBody)
@@ -204,9 +210,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             }
             else
             {
-                var block = expressionBody.ConvertToBlock(
-                    GetSemicolonToken(declaration),
-                    CreateReturnStatementForExpression(declaration));
                 accessor = SyntaxFactory.AccessorDeclaration(SyntaxKind.GetAccessorDeclaration, block);
             }
 
