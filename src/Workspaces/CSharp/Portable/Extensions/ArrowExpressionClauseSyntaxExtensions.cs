@@ -23,9 +23,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return false;
             }
 
+            var openBrace = SyntaxFactory.Token(SyntaxKind.OpenBraceToken)
+                             .WithTrailingTrivia(arrowExpression.ArrowToken.TrailingTrivia);
+
             var statement = ConvertToStatement(arrowExpression.Expression, semicolonToken, createReturnStatementForExpression);
-            statement = statement.WithPrependedLeadingTrivia(arrowExpression.ArrowToken.TrailingTrivia);
-            block = SyntaxFactory.Block(statement);
+
+            block = SyntaxFactory.Block(
+                openBrace,
+                SyntaxFactory.SingletonList(statement), 
+                SyntaxFactory.Token(SyntaxKind.CloseBraceToken));
             return true;
         }
 
@@ -41,8 +47,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
             else if (createReturnStatementForExpression)
             {
-                return SyntaxFactory.ReturnStatement(expression)
-                                    .WithSemicolonToken(semicolonToken);
+                if (expression.GetLeadingTrivia().Any(t => t.IsSingleOrMultiLineComment()))
+                {
+                    return SyntaxFactory.ReturnStatement(expression.WithLeadingTrivia(SyntaxFactory.ElasticSpace))
+                                        .WithSemicolonToken(semicolonToken)
+                                        .WithLeadingTrivia(expression.GetLeadingTrivia())
+                                        .WithPrependedLeadingTrivia(SyntaxFactory.ElasticMarker);
+                }
+                else
+                {
+                    return SyntaxFactory.ReturnStatement(expression)
+                                        .WithSemicolonToken(semicolonToken);
+                }
             }
             else
             {

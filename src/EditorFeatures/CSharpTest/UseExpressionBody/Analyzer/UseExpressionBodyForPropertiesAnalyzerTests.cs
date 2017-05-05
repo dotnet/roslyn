@@ -342,5 +342,27 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
 #endif
 }", parameters: new TestParameters(options: UseBlockBody));
         }
+
+        [WorkItem(19193, "https://github.com/dotnet/roslyn/issues/19193")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        public async Task TestMoveTriviaFromExpressionToReturnStatement()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    int Foo(int i) [|=>|]
+        //comment
+        i * i;
+}",
+@"class C
+{
+    int Foo(int i)
+    {
+        //comment
+        return i * i;
+    }
+}", ignoreTrivia: false,
+    options: UseBlockBody);
+        }
     }
 }
