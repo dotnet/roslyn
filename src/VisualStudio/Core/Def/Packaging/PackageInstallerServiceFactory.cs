@@ -290,7 +290,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             {
                 // Nuget may throw an ArgumentException when there is something about the project 
                 // they do not like/support.
-                Console.WriteLine(e);
             }
             catch (Exception e) when (FatalError.ReportWithoutCrash(e))
             {
