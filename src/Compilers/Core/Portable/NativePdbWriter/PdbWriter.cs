@@ -736,17 +736,25 @@ namespace Microsoft.Cci
 
         private const string SymWriterClsid = "0AE2DEB0-F901-478b-BB9F-881EE8066788";
 
-        private static bool s_MicrosoftDiaSymReaderNativeLoadFailed;
+        private const string LegacyDiaSymReaderModuleName = "diasymreader.dll";
+        private const string DiaSymReaderModuleName32 = "Microsoft.DiaSymReader.Native.x86.dll";
+        private const string DiaSymReaderModuleName64 = "Microsoft.DiaSymReader.Native.amd64.dll";
+
+        private static string s_MicrosoftDiaSymReaderNativeLoadFailure;
 
         [DefaultDllImportSearchPaths(DllImportSearchPath.AssemblyDirectory | DllImportSearchPath.SafeDirectories)]
-        [DllImport("Microsoft.DiaSymReader.Native.x86.dll", EntryPoint = "CreateSymWriter")]
+        [DllImport(DiaSymReaderModuleName32, EntryPoint = "CreateSymWriter")]
         private extern static void CreateSymWriter32(ref Guid id, [MarshalAs(UnmanagedType.IUnknown)]out object symWriter);
 
         [DefaultDllImportSearchPaths(DllImportSearchPath.AssemblyDirectory | DllImportSearchPath.SafeDirectories)]
-        [DllImport("Microsoft.DiaSymReader.Native.amd64.dll", EntryPoint = "CreateSymWriter")]
+        [DllImport(DiaSymReaderModuleName64, EntryPoint = "CreateSymWriter")]
         private extern static void CreateSymWriter64(ref Guid id, [MarshalAs(UnmanagedType.IUnknown)]out object symWriter);
 
-        private static string PlatformId => (IntPtr.Size == 4) ? "x86" : "amd64";
+        private static string DiaSymReaderModuleName 
+            => (IntPtr.Size == 4) ? DiaSymReaderModuleName32 : DiaSymReaderModuleName64;
+
+        private static string LoadedDiaSymReaderModuleName
+            => s_MicrosoftDiaSymReaderNativeLoadFailure != null ? LegacyDiaSymReaderModuleName : DiaSymReaderModuleName;
 
         private static Type GetCorSymWriterSxSType()
         {
@@ -764,7 +772,7 @@ namespace Microsoft.Cci
             object symWriter = null;
 
             // First try to load an implementation from Microsoft.DiaSymReader.Native, which supports determinism.
-            if (!s_MicrosoftDiaSymReaderNativeLoadFailed)
+            if (s_MicrosoftDiaSymReaderNativeLoadFailure == null)
             {
                 try
                 {
@@ -778,9 +786,9 @@ namespace Microsoft.Cci
                         CreateSymWriter64(ref guid, out symWriter);
                     }
                 }
-                catch (Exception)
+                catch (Exception e)
                 {
-                    s_MicrosoftDiaSymReaderNativeLoadFailed = true;
+                    s_MicrosoftDiaSymReaderNativeLoadFailure = e.Message;
                     symWriter = null;
                 }
             }
@@ -806,25 +814,25 @@ namespace Microsoft.Cci
                 }
                 catch (Exception)
                 {
-                    throw new NotSupportedException(string.Format(CodeAnalysisResources.SymWriterNotAvailable, PlatformId));
+                    throw new NotSupportedException(string.Format(CodeAnalysisResources.SymWriterOlderVersionThanRequired, LoadedDiaSymReaderModuleName));
                 }
 
                 // Correctness: If the stream is not specified or if it is non-empty the SymWriter appends data to it (provided it contains valid PDB)
                 // and the resulting PDB has Age = existing_age + 1.
                 _pdbStream = new ComMemoryStream();
 
-                if (_deterministic)
+                if (!_deterministic)
                 {
-                    if (!(symWriter is ISymUnmanagedWriter7))
-                    {
-                        throw new NotSupportedException(string.Format(CodeAnalysisResources.SymWriterNotDeterministic, PlatformId));
-                    }
-
-                    ((ISymUnmanagedWriter7)symWriter).InitializeDeterministic(new PdbMetadataWrapper(metadataWriter), _pdbStream);
+                    symWriter.Initialize(new PdbMetadataWrapper(metadataWriter), _fileName, _pdbStream, fullBuild: true);
+                }
+                else if (symWriter is ISymUnmanagedWriter7 symWriter7)
+                {
+                    symWriter7.InitializeDeterministic(new PdbMetadataWrapper(metadataWriter), _pdbStream);
                 }
                 else
                 {
-                    symWriter.Initialize(new PdbMetadataWrapper(metadataWriter), _fileName, _pdbStream, fullBuild: true);
+                    throw new NotSupportedException(s_MicrosoftDiaSymReaderNativeLoadFailure ??
+                        string.Format(CodeAnalysisResources.SymWriterNotDeterministic, LoadedDiaSymReaderModuleName));
                 }
 
                 _metadataWriter = metadataWriter;
