@@ -60,7 +60,7 @@ static class Program {
                 Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Task<int>").WithArguments("", "System.Threading.Tasks.Task<T>", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "System.Threading.Tasks.Task<TResult>"),
                 // (11,22): warning CS0028: 'Program.Main()' has the wrong signature to be an entry point
                 //     static Task<int> Main() {
-                Diagnostic(ErrorCode.WRN_InvalidMainSig, "Main").WithArguments("Program.Main()"));
+                Diagnostic(ErrorCode.WRN_InvalidMainSig, "Main").WithArguments("Program.Main()").WithLocation(11, 22));
         }
 
         [Fact]
@@ -746,7 +746,7 @@ class A
 }";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
             compilation.VerifyDiagnostics(
-// (6,22): error CS1983: The return type of an async method must be void, Task or Task<T>
+                // (6,22): error CS1983: The return type of an async method must be void, Task or Task<T>
                 //     async static int Main()
                 Diagnostic(ErrorCode.ERR_BadAsyncReturn, "Main"),
                 // (6,22): error CS4009: A void or int returning entry point cannot be async
@@ -1063,7 +1063,7 @@ class A
         return 1;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7)).VerifyDiagnostics(
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe).VerifyDiagnostics(
                 // (11,22): error CS1983: The return type of an async method must be void, Task or Task<T>
                 //     async static int Main()
                 Diagnostic(ErrorCode.ERR_BadAsyncReturn, "Main").WithLocation(11, 22),
@@ -1092,7 +1092,7 @@ class A
     }
 }";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1)).VerifyDiagnostics(
-// (6,23): error CS4009: A void or int returning entry point cannot be async
+                // (6,23): error CS4009: A void or int returning entry point cannot be async
                 //     static async void Main(string[] args)
                 Diagnostic(ErrorCode.ERR_NonTaskMainCantBeAsync, "Main").WithArguments("A.Main(string[])").WithLocation(6, 23),
                 // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
