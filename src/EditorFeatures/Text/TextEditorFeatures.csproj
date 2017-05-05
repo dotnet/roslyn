@@ -28,25 +28,25 @@
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.Core" />
     <PackageReference Include="Microsoft.VisualStudio.Text.Data">
-      <Version>$(MicrosoftVisualStudioTextDataVersion)</Version>
+      <Version>15.0.26201-alpha</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Text.Logic">
-      <Version>$(MicrosoftVisualStudioTextLogicVersion)</Version>
+      <Version>15.0.26201-alpha</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Text.UI">
-      <Version>$(MicrosoftVisualStudioTextUIVersion)</Version>
+      <Version>15.0.26201-alpha</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Text.UI.Wpf">
-      <Version>$(MicrosoftVisualStudioTextUIWpfVersion)</Version>
+      <Version>15.0.26201-alpha</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Text.Internal">
-      <Version>$(MicrosoftVisualStudioTextInternalVersion)</Version>
+      <Version>15.0.26201-alpha</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.CoreUtility">
-      <Version>$(MicrosoftVisualStudioCoreUtilityVersion)</Version>
+      <Version>15.0.26201-alpha</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Utilities">
-      <Version>$(MicrosoftVisualStudioUtilitiesVersion)</Version>
+      <Version>15.0.26201-alpha</Version>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>

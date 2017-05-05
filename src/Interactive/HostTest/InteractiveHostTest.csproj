@@ -157,7 +157,7 @@
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq" />
     <PackageReference Include="Microsoft.ServiceHub.Client">
-      <Version>$(MicrosoftServiceHubClientVersion)</Version>
+      <Version>1.0.177-rc-g56d40a8a02</Version>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>

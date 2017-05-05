@@ -61,7 +61,7 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.VisualStudio.QualityTools.UnitTestFramework">
-      <Version>$(MicrosoftVisualStudioQualityToolsUnitTestFrameworkVersion)</Version>
+      <Version>10.0.0.0-alpha</Version>
     </PackageReference>
   </ItemGroup>
   <Import Project="..\..\..\..\..\..\build\Targets\Imports.targets" />

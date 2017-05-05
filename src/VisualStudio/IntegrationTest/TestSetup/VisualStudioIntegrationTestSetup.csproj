@@ -63,10 +63,10 @@
       <Private>true</Private>
     </Reference>
     <PackageReference Include="Microsoft.Diagnostics.Runtime">
-      <Version>$(MicrosoftDiagnosticsRuntimeVersion)</Version>
+      <Version>0.8.31-beta</Version>
     </PackageReference>
     <PackageReference Include="VS.ExternalAPIs.CodingConventions">
-      <Version>$(VSExternalAPIsCodingConventionsVersion)</Version>
+      <Version>1.0.60704.2</Version>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>

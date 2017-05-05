@@ -23,16 +23,16 @@
     <Reference Include="System" />
     <Reference Include="System.Xml" />
     <PackageReference Include="ManagedEsent">
-      <Version>$(ManagedEsentVersion)</Version>
+      <Version>1.9.4</Version>
     </PackageReference>
     <PackageReference Include="SQLitePCLRaw.bundle_green">
-      <Version>$(SQLitePCLRawbundle_greenVersion)</Version>
+      <Version>1.1.2</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.Build">
-      <Version>$(MicrosoftBuildVersion)</Version>
+      <Version>15.1.0-preview-000458-02</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.Build.Tasks.Core">
-      <Version>$(MicrosoftBuildTasksCoreVersion)</Version>
+      <Version>15.1.0-preview-000458-02</Version>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>

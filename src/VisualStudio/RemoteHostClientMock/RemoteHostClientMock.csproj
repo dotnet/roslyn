@@ -70,13 +70,13 @@
     <Reference Include="System.Data" />
     <Reference Include="WindowsBase" />
     <PackageReference Include="Newtonsoft.Json">
-      <Version>$(NewtonsoftJsonVersion)</Version>
+      <Version>8.0.3</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.ComponentModelHost">
-      <Version>$(MicrosoftVisualStudioComponentModelHostVersion)</Version>
+      <Version>15.0.26201-alpha</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Diagnostics.PerformanceProvider">
-      <Version>$(MicrosoftVisualStudioDiagnosticsPerformanceProviderVersion)</Version>
+      <Version>15.0.26201-alpha</Version>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>

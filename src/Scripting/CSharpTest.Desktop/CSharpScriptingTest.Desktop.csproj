@@ -24,7 +24,7 @@
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq" />
     <PackageReference Include="System.Diagnostics.Process">
-      <Version>$(SystemDiagnosticsProcessVersion)</Version>
+      <Version>4.3.0</Version>
     </PackageReference>
   </ItemGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />

@@ -178,13 +178,13 @@
     <Reference Include="System.Xml.Linq" />
     <Reference Include="WindowsBase" />
     <PackageReference Include="Microsoft.VisualStudio.Language.Intellisense">
-      <Version>$(MicrosoftVisualStudioLanguageIntellisenseVersion)</Version>
+      <Version>15.0.26201-alpha</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Text.UI">
-      <Version>$(MicrosoftVisualStudioTextUIVersion)</Version>
+      <Version>15.0.26201-alpha</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Text.UI.Wpf">
-      <Version>$(MicrosoftVisualStudioTextUIWpfVersion)</Version>
+      <Version>15.0.26201-alpha</Version>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>

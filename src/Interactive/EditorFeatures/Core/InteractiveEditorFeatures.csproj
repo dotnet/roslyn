@@ -62,16 +62,16 @@
     <Reference Include="System.Xml.Linq" />
     <Reference Include="WindowsBase" />
     <PackageReference Include="Microsoft.VisualStudio.InteractiveWindow">
-      <Version>$(MicrosoftVisualStudioInteractiveWindowVersion)</Version>
+      <Version>2.0.0-rc3-61304-01</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Language.Intellisense">
-      <Version>$(MicrosoftVisualStudioLanguageIntellisenseVersion)</Version>
+      <Version>15.0.26201-alpha</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Editor">
-      <Version>$(MicrosoftVisualStudioEditorVersion)</Version>
+      <Version>15.0.26201-alpha</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Language.StandardClassification">
-      <Version>$(MicrosoftVisualStudioLanguageStandardClassificationVersion)</Version>
+      <Version>15.0.26201-alpha</Version>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>

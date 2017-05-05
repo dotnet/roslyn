@@ -68,10 +68,10 @@
     <Reference Include="System.Xaml" />
     <Reference Include="WindowsBase" />
     <PackageReference Include="EnvDTE">
-      <Version>$(EnvDTEVersion)</Version>
+      <Version>8.0.1</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Editor">
-      <Version>$(MicrosoftVisualStudioEditorVersion)</Version>
+      <Version>15.0.26201-alpha</Version>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>

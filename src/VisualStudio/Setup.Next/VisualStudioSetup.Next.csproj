@@ -129,22 +129,22 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.VisualStudio.Shell.Framework">
-      <Version>$(MicrosoftVisualStudioShellFrameworkVersion)</Version>
+      <Version>15.0.26201-alpha</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Shell.15.0">
-      <Version>$(MicrosoftVisualStudioShell150Version)</Version>
+      <Version>15.0.26201-alpha</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Shell.Immutable.10.0">
-      <Version>$(MicrosoftVisualStudioShellImmutable100Version)</Version>
+      <Version>15.0.26201-alpha</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Shell.Immutable.11.0">
-      <Version>$(MicrosoftVisualStudioShellImmutable110Version)</Version>
+      <Version>15.0.25413-Preview5</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.CallHierarchy.Package.Definitions">
-      <Version>$(MicrosoftVisualStudioCallHierarchyPackageDefinitionsVersion)</Version>
+      <Version>15.0.26201-alpha</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Diagnostics.PerformanceProvider">
-      <Version>$(MicrosoftVisualStudioDiagnosticsPerformanceProviderVersion)</Version>
+      <Version>15.0.26201-alpha</Version>
     </PackageReference>
   </ItemGroup>
   <Import Project="..\..\..\build\Targets\Imports.targets" />

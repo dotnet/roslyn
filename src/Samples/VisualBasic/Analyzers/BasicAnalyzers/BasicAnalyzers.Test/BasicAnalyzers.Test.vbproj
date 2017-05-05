@@ -22,7 +22,7 @@
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq" />
     <PackageReference Include="Microsoft.VisualStudio.QualityTools.UnitTestFramework">
-      <Version>$(MicrosoftVisualStudioQualityToolsUnitTestFrameworkVersion)</Version>
+      <Version>10.0.0.0-alpha</Version>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>

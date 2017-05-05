@@ -46,7 +46,7 @@
     </ProjectReference>
     <Reference Include="System" />
     <PackageReference Include="Microsoft.Composition">
-      <Version>$(MicrosoftCompositionVersion)</Version>
+      <Version>1.0.27</Version>
     </PackageReference>
   </ItemGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />

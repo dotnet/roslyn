@@ -80,25 +80,25 @@
   <ItemGroup>
     <Reference Include="System" />
     <PackageReference Include="Microsoft.VisualStudio.Editor">
-      <Version>$(MicrosoftVisualStudioEditorVersion)</Version>
+      <Version>15.0.26201-alpha</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.ImageCatalog">
-      <Version>$(MicrosoftVisualStudioImageCatalogVersion)</Version>
+      <Version>15.0.26201-alpha</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Shell.15.0">
-      <Version>$(MicrosoftVisualStudioShell150Version)</Version>
+      <Version>15.0.26201-alpha</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Shell.Framework">
-      <Version>$(MicrosoftVisualStudioShellFrameworkVersion)</Version>
+      <Version>15.0.26201-alpha</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.ComponentModelHost">
-      <Version>$(MicrosoftVisualStudioComponentModelHostVersion)</Version>
+      <Version>15.0.26201-alpha</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Diagnostics.PerformanceProvider">
-      <Version>$(MicrosoftVisualStudioDiagnosticsPerformanceProviderVersion)</Version>
+      <Version>15.0.26201-alpha</Version>
     </PackageReference>
     <PackageReference Include="Newtonsoft.Json">
-      <Version>$(NewtonsoftJsonVersion)</Version>
+      <Version>8.0.3</Version>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
