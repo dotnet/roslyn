@@ -814,7 +814,7 @@ interface I
 interface I
 {
     object Foo { get; set; }
-}");
+}", index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
@@ -843,8 +843,7 @@ interface I
 interface I
 {
     object Foo { get; }
-}",
-index: 1);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
@@ -1509,7 +1508,7 @@ interface ITest
 interface ITest
 {
     bool SomeProp { get; set; }
-}");
+}", index: 1);
         }
 
         [WorkItem(539468, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539468")]
@@ -1533,8 +1532,7 @@ interface ITest
 interface ITest
 {
     bool SomeProp { get; }
-}",
-index: 1);
+}");
         }
 
         [WorkItem(539468, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539468")]
@@ -7128,7 +7126,35 @@ class C
 
         [WorkItem(17621, "https://github.com/dotnet/roslyn/issues/17621")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public async Task TestWithMatchingTypeName()
+        public async Task TestWithMatchingTypeName1()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+
+public class Foo
+{
+    public Foo(String foo)
+    {
+        [|String|] = foo;
+    }
+}",
+@"using System;
+
+public class Foo
+{
+    public Foo(String foo)
+    {
+        String = foo;
+    }
+
+    public string String { get; }
+}");
+        }
+
+        [WorkItem(17621, "https://github.com/dotnet/roslyn/issues/17621")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestWithMatchingTypeName2()
         {
             await TestInRegularAndScript1Async(
 @"
@@ -7151,7 +7177,7 @@ public class Foo
     }
 
     public string String { get; private set; }
-}");
+}", index: 1);
         }
 
         [WorkItem(18275, "https://github.com/dotnet/roslyn/issues/18275")]
@@ -7227,6 +7253,29 @@ class C
         _bar = 1;
         _foo = 0;
     }
+}");
+        }
+
+        [WorkItem(19239, "https://github.com/dotnet/roslyn/issues/19239")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestGenerateReadOnlyPropertyInConstructor()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Class
+{
+    public Class()
+    {
+        [|Bar|] = 1;
+    }
+}",
+@"class Class
+{
+    public Class()
+    {
+        Bar = 1;
+    }
+
+    public int Bar { get; }
 }");
         }
     }

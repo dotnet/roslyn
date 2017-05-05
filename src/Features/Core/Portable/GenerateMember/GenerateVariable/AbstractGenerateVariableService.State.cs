@@ -38,7 +38,6 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
             public ITypeSymbol LocalType { get; private set; }
 
             public bool ReadOnlyFieldFirst { get; private set; }
-            public bool ReadOnlyPropertyFirst { get; private set; }
 
             public bool IsWrittenTo { get; private set; }
             public bool IsOnlyWrittenTo { get; private set; }
@@ -257,7 +256,6 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 this.IsInMemberContext = this.SimpleNameOpt != this.SimpleNameOrMemberAccessExpressionOpt ||
                                          syntaxFacts.IsObjectInitializerNamedAssignmentIdentifier(this.SimpleNameOrMemberAccessExpressionOpt);
 
-                this.ReadOnlyPropertyFirst = DetermineReadOnlyFirst(document, SymbolKind.Property, cancellationToken);
                 this.ReadOnlyFieldFirst = DetermineReadOnlyFirst(document, SymbolKind.Field, cancellationToken);
 
                 return true;

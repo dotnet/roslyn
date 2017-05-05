@@ -108,22 +108,16 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 return;
             }
 
-            if (!state.ReadOnlyPropertyFirst)
-            {
-                GenerateWritableProperty(result, document, state);
-            }
+            var isOnlyReadAndIsInInterface = state.TypeToGenerateIn.TypeKind == TypeKind.Interface && !state.IsWrittenTo;
 
-            if (state.TypeToGenerateIn.TypeKind == TypeKind.Interface && !state.IsWrittenTo)
+            if (isOnlyReadAndIsInInterface || state.IsInConstructor)
             {
                 result.Add(new GenerateVariableCodeAction(
                     (TService)this, document, state, generateProperty: true,
                     isReadonly: true, isConstant: false, returnsByRef: state.IsInRefContext));
             }
 
-            if (state.ReadOnlyPropertyFirst)
-            {
-                GenerateWritableProperty(result, document, state);
-            }
+            GenerateWritableProperty(result, document, state);
         }
 
         private void GenerateWritableProperty(ArrayBuilder<CodeAction> result, SemanticDocument document, State state)
