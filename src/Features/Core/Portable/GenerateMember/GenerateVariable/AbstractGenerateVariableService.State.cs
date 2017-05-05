@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
             public ITypeSymbol TypeMemberType { get; private set; }
             public ITypeSymbol LocalType { get; private set; }
 
-            public bool ReadOnlyFieldFirst { get; private set; }
+            public bool OfferReadOnlyFieldFirst { get; private set; }
 
             public bool IsWrittenTo { get; private set; }
             public bool IsOnlyWrittenTo { get; private set; }
@@ -256,7 +256,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 this.IsInMemberContext = this.SimpleNameOpt != this.SimpleNameOrMemberAccessExpressionOpt ||
                                          syntaxFacts.IsObjectInitializerNamedAssignmentIdentifier(this.SimpleNameOrMemberAccessExpressionOpt);
 
-                this.ReadOnlyFieldFirst = DetermineReadOnlyFirst(document, SymbolKind.Field, cancellationToken);
+                this.OfferReadOnlyFieldFirst = DetermineReadOnlyFirst(document, SymbolKind.Field, cancellationToken);
 
                 return true;
             }
@@ -269,16 +269,20 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
 
                 if (syntaxFacts.IsLeftSideOfAssignment(simpleName))
                 {
-                    var assignment = simpleName.Parent;
-                    if (syntaxFacts.IsSimpleAssignmentStatement(assignment.Parent))
+                    var assignmentStatement = simpleName.Ancestors().FirstOrDefault(syntaxFacts.IsSimpleAssignmentStatement);
+                    if (assignmentStatement != null)
                     {
-                        var statement = assignment.Parent;
-                        var block = statement.Parent;
-                        var children = block.ChildNodesAndTokens();
+                        syntaxFacts.GetPartsOfAssignmentStatement(assignmentStatement, out var left, out var right);
 
-                        var statementindex = GetStatementindex(children, statement);
-                        return IsReadOnlyMemberAssignment(document, symbolKind, children, statementindex - 1, cancellationToken) ||
-                               IsReadOnlyMemberAssignment(document, symbolKind, children, statementindex + 1, cancellationToken);
+                        if (left == simpleName)
+                        {
+                            var block = assignmentStatement.Parent;
+                            var children = block.ChildNodesAndTokens();
+
+                            var statementindex = GetStatementindex(children, assignmentStatement);
+                            return IsReadOnlyMemberAssignment(document, symbolKind, children, statementindex - 1, cancellationToken) ||
+                                   IsReadOnlyMemberAssignment(document, symbolKind, children, statementindex + 1, cancellationToken);
+                        }
                     }
                 }
 

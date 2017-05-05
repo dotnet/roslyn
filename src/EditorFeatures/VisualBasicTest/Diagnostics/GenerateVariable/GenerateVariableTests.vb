@@ -106,6 +106,29 @@ End Interface",
 End Module
 Interface IFoo
     ReadOnly Property Blah As String()
+End Interface")
+        End Function
+
+        <WorkItem(539694, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539694")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        Public Async Function TestGenerateReadWriteProperty() As Task
+            Await TestInRegularAndScriptAsync(
+"Module Program
+    Sub Main(args As String())
+        Dim i As IFoo
+        Main(i.[|Blah|])
+    End Sub
+End Module
+Interface IFoo
+End Interface",
+"Module Program
+    Sub Main(args As String())
+        Dim i As IFoo
+        Main(i.Blah)
+    End Sub
+End Module
+Interface IFoo
+    Property Blah As String()
 End Interface",
 index:=1)
         End Function
@@ -168,7 +191,29 @@ index:=1)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
-        Public Async Function TestGeneratePropertyOnInterface() As Threading.Tasks.Task
+        Public Async Function TestGeneratePropertyOnInterface1() As Threading.Tasks.Task
+            Await TestInRegularAndScriptAsync(
+"Interface IFoo
+End Interface
+Class C
+    Sub Main
+        Dim foo As IFoo
+        Dim b = foo.[|Bar|]
+    End Sub
+End Class",
+"Interface IFoo
+    ReadOnly Property Bar As Object
+End Interface
+Class C
+    Sub Main
+        Dim foo As IFoo
+        Dim b = foo.Bar
+    End Sub
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        Public Async Function TestGeneratePropertyOnInterface2() As Threading.Tasks.Task
             Await TestInRegularAndScriptAsync(
 "Interface IFoo
 End Interface
@@ -186,7 +231,7 @@ Class C
         Dim foo As IFoo
         Dim b = foo.Bar
     End Sub
-End Class")
+End Class", index:=1)
         End Function
 
         <WorkItem(539796, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539796")>
@@ -2515,6 +2560,50 @@ End Class",
         tuple = (a:=1, ""hello"") 
  End Sub
 End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        Public Async Function TestPreferReadOnlyIfAfterReadOnlyAssignment() As Task 
+            await TestInRegularAndScriptAsync(
+"class C
+    private readonly _foo as integer
+
+    public sub new()
+        _foo = 0
+        [|_bar|] = 1
+    end sub
+end class",
+"class C
+    private readonly _foo as integer
+    Private ReadOnly _bar As Integer
+
+    public sub new()
+        _foo = 0
+        _bar = 1
+    end sub
+end class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        Public Async Function TestPreferReadOnlyIfBeforeReadOnlyAssignment() As Task
+            Await TestInRegularAndScriptAsync(
+"class C
+    private readonly _foo as integer
+
+    public sub new()
+        [|_bar|] = 1
+        _foo = 0
+    end sub
+end class",
+"class C
+    private readonly _foo as integer
+    Private ReadOnly _bar As Integer
+
+    public sub new()
+        _bar = 1
+        _foo = 0
+    end sub
+end class")
         End Function
     End Class
 End Namespace

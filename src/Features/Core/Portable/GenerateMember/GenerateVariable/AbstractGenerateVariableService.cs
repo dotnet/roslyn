@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 }
                 else
                 {
-                    if (!state.ReadOnlyFieldFirst)
+                    if (!state.OfferReadOnlyFieldFirst)
                     {
                         GenerateWriteableField(result, document, state);
                     }
@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                             isReadonly: true, isConstant: false, returnsByRef: false));
                     }
 
-                    if (state.ReadOnlyFieldFirst)
+                    if (state.OfferReadOnlyFieldFirst)
                     {
                         GenerateWriteableField(result, document, state);
                     }
