@@ -6619,7 +6619,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.DebugExe);
+            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.DebugExe);
             comp.VerifyEmitDiagnostics();
             CompileAndVerify(comp, expectedOutput: "(1, )");
 
@@ -6652,7 +6652,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.DebugExe);
+            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.DebugExe);
             comp.VerifyEmitDiagnostics();
             CompileAndVerify(comp, expectedOutput: "(1, )");
 
@@ -6689,7 +6689,7 @@ struct C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.DebugExe);
+            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.DebugExe);
             comp.VerifyEmitDiagnostics();
             CompileAndVerify(comp, expectedOutput: "CCC");
 
@@ -6746,7 +6746,7 @@ struct C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.DebugExe);
+            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.DebugExe);
             comp.VerifyEmitDiagnostics(
                 // (6,18): error CS8305: The first operand of an 'as' operator may not be a tuple literal without a natural type.
                 //         var x4 = (1, null) as C;
@@ -22865,7 +22865,7 @@ class C
     }
 }";
 
-            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
                 // (6,17): error CS8304: The first operand of an 'as' operator may not be a tuple literal without a natural type.
                 //         var x = (0, null) as (int, T)?;
