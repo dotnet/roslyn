@@ -7175,5 +7175,59 @@ class C
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestPreferReadOnlyIfAfterReadOnlyAssignment()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Class
+{
+    private readonly int _foo;
+
+    public Class()
+    {
+        _foo = 0;
+        [|_bar|] = 1;
+    }
+}",
+@"class Class
+{
+    private readonly int _foo;
+    private readonly int _bar;
+
+    public Class()
+    {
+        _foo = 0;
+        _bar = 1;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestPreferReadOnlyIfBeforeReadOnlyAssignment()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Class
+{
+    private readonly int _foo;
+
+    public Class()
+    {
+        [|_bar|] = 1;
+        _foo = 0;
+    }
+}",
+@"class Class
+{
+    private readonly int _foo;
+    private readonly int _bar;
+
+    public Class()
+    {
+        _bar = 1;
+        _foo = 0;
+    }
+}");
+        }
     }
 }

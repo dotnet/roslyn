@@ -1,5 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -35,6 +36,9 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
 
             public ITypeSymbol TypeMemberType { get; private set; }
             public ITypeSymbol LocalType { get; private set; }
+
+            public bool ReadOnlyFieldFirst { get; private set; }
+            public bool ReadOnlyPropertyFirst { get; private set; }
 
             public bool IsWrittenTo { get; private set; }
             public bool IsOnlyWrittenTo { get; private set; }
@@ -252,7 +256,104 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 this.IsInConstructor = DetermineIsInConstructor(document);
                 this.IsInMemberContext = this.SimpleNameOpt != this.SimpleNameOrMemberAccessExpressionOpt ||
                                          syntaxFacts.IsObjectInitializerNamedAssignmentIdentifier(this.SimpleNameOrMemberAccessExpressionOpt);
+
+                this.ReadOnlyPropertyFirst = DetermineReadOnlyFirst(document, SymbolKind.Property, cancellationToken);
+                this.ReadOnlyFieldFirst = DetermineReadOnlyFirst(document, SymbolKind.Field, cancellationToken);
+
                 return true;
+            }
+
+            private bool DetermineReadOnlyFirst(
+                SemanticDocument document, SymbolKind symbolKind, CancellationToken cancellationToken)
+            {
+                var syntaxFacts = document.Document.GetLanguageService<ISyntaxFactsService>();
+                var simpleName = this.SimpleNameOpt;
+
+                if (syntaxFacts.IsLeftSideOfAssignment(simpleName))
+                {
+                    var assignment = simpleName.Parent;
+                    if (syntaxFacts.IsSimpleAssignmentStatement(assignment.Parent))
+                    {
+                        var statement = assignment.Parent;
+                        var block = statement.Parent;
+                        var children = block.ChildNodesAndTokens();
+
+                        var statementindex = GetStatementindex(children, statement);
+                        return IsReadOnlyMemberAssignment(document, symbolKind, children, statementindex - 1, cancellationToken) ||
+                               IsReadOnlyMemberAssignment(document, symbolKind, children, statementindex + 1, cancellationToken);
+                    }
+                }
+
+                return false;
+            }
+
+            private bool IsReadOnlyMemberAssignment(
+                SemanticDocument document, SymbolKind symbolKind, 
+                ChildSyntaxList children, int index,
+                CancellationToken cancellationToken)
+            {
+                var syntaxFacts = document.Document.GetLanguageService<ISyntaxFactsService>();
+                if (index >=  0 && index < children.Count)
+                {
+                    var sibling = children[index];
+                    if (sibling.IsNode)
+                    {
+                        var siblingNode = sibling.AsNode();
+                        if (syntaxFacts.IsSimpleAssignmentStatement(siblingNode))
+                        {
+                            syntaxFacts.GetPartsOfAssignmentStatement(
+                                siblingNode, out var left, out var right);
+
+                            var symbol = document.SemanticModel.GetSymbolInfo(left, cancellationToken).Symbol;
+                            if (symbol?.Kind == symbolKind &&
+                                symbol.ContainingType.Equals(this.ContainingType))
+                            {
+                                return IsReadOnly(symbol);
+                            }
+                        }
+                    }
+                }
+
+                return false;
+            }
+
+            private bool IsReadOnly(ISymbol symbol)
+            {
+                switch (symbol)
+                {
+                    case IFieldSymbol field: return field.IsReadOnly;
+                    case IPropertySymbol property:
+                        if (property.SetMethod == null)
+                        {
+                            return true;
+                        }
+
+                        if (property.ContainingType.GetMembers().OfType<IFieldSymbol>().Any(
+                                f => property.SetMethod.Equals(f.AssociatedSymbol)))
+                        {
+                            return true;
+                        }
+
+                        return false;
+                }
+
+                throw ExceptionUtilities.Unreachable;
+            }
+
+            private int GetStatementindex(ChildSyntaxList children, SyntaxNode statement)
+            {
+                var index = 0;
+                foreach (var child in children)
+                {
+                    if (child == statement)
+                    {
+                        return index;
+                    }
+
+                    index++;
+                }
+
+                throw ExceptionUtilities.Unreachable;
             }
 
             private void DetermineFieldType(
