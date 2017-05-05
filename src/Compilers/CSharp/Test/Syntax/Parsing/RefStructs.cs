@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
         }
 
         [Fact]
-        public void RefStruct001()
+        public void RefStructSimple()
         {
             var text = @"
 class Program
@@ -28,6 +28,49 @@ class Program
     ref struct S1{}
 
     public ref struct S2{}
+}
+";
+
+            var comp = CreateCompilationWithMscorlib45(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7), options: TestOptions.DebugDll);
+            comp.VerifyDiagnostics(
+            );
+        }
+
+        [Fact]
+        public void RefStructErr()
+        {
+            var text = @"
+class Program
+{
+    ref class S1{}
+
+    public ref unsafe struct S2{}
+}
+";
+
+            var comp = CreateCompilationWithMscorlib45(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7), options: TestOptions.DebugDll);
+            comp.VerifyDiagnostics(
+                // (4,9): error CS1031: Type expected
+                //     ref class S1{}
+                Diagnostic(ErrorCode.ERR_TypeExpected, "class").WithLocation(4, 9),
+                // (6,16): error CS1031: Type expected
+                //     public ref unsafe struct S2{}
+                Diagnostic(ErrorCode.ERR_TypeExpected, "unsafe").WithLocation(6, 16),
+                // (6,30): error CS0227: Unsafe code may only appear if compiling with /unsafe
+                //     public ref unsafe struct S2{}
+                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "S2").WithLocation(6, 30)
+            );
+        }
+
+        [Fact]
+        public void RefStructPartial()
+        {
+            var text = @"
+class Program
+{
+    partial ref struct S1{}
+
+    partial ref struct S1{}
 }
 ";
 

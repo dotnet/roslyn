@@ -20,31 +20,59 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public class SpanStackSafetyTests : CompilingTestBase
     {
         private static string spanSource = @"
-
 namespace System
 {
-    public struct Span<T>
+    public ref struct Span<T>
     {
         public ref T this[int i] => throw null;
         public override int GetHashCode() => 1;
     }
 
-    public struct ReadonlySpan<T>
+    public ref struct ReadonlySpan<T>
     {
         public ref readonly T this[int i] => throw null;
         public override int GetHashCode() => 2;
     }
+
+    public ref struct SpanLike<T>
+    {
+    }
 }
+
+namespace System.Runtime.CompilerServices
+{
+    [AttributeUsage(AttributeTargets.Struct)]
+    public sealed class IsByRefLikeAttribute: Attribute
+    {
+        public IsByRefLikeAttribute(){}
+    }
+}
+
 ";
         //PROTOTYPE(span): this will be updated when rules for defining span are implemented
         //                 most likely we would just pick the actual binary/corlib where
         //                 span lives.
         private static CSharpCompilation CreateCompilationWithMscorlibAndSpan(string text, CSharpCompilationOptions options = null)
         {
+            var reference = CreateCompilationWithMscorlib45(
+                spanSource,
+                references: new List<MetadataReference>() { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef },
+                options: TestOptions.ReleaseDll).EmitToImageReference();
+
+            var comp = CreateCompilationWithMscorlib45(
+                text, 
+                references: new List<MetadataReference>() { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef, reference}, 
+                options: options ?? TestOptions.ReleaseExe);
+
+            return comp;
+        }
+
+        private static CSharpCompilation CreateCompilationWithMscorlibAndSpanSrc(string text, CSharpCompilationOptions options = null)
+        {
             var textWitSpan = new string[] { text, spanSource };
             var comp = CreateCompilationWithMscorlib45(
-                textWitSpan, 
-                references: new List<MetadataReference>() { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef }, 
+                textWitSpan,
+                references: new List<MetadataReference>() { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef },
                 options: options ?? TestOptions.ReleaseExe);
 
             return comp;
@@ -62,6 +90,7 @@ class Program
     {
         object x = new Span<int>();
         object y = new ReadonlySpan<byte>();
+        object z = new SpanLike<int>();
     }
 }
 ";
@@ -74,7 +103,24 @@ class Program
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "new Span<int>()").WithArguments("System.Span<int>", "object").WithLocation(8, 20),
                 // (9,20): error CS0029: Cannot implicitly convert type 'System.ReadonlySpan<byte>' to 'object'
                 //         object y = new ReadonlySpan<byte>();
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "new ReadonlySpan<byte>()").WithArguments("System.ReadonlySpan<byte>", "object").WithLocation(9, 20)
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "new ReadonlySpan<byte>()").WithArguments("System.ReadonlySpan<byte>", "object").WithLocation(9, 20),
+                // (10,20): error CS0029: Cannot implicitly convert type 'System.SpanLike<int>' to 'object'
+                //         object z = new SpanLike<int>();
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "new SpanLike<int>()").WithArguments("System.SpanLike<int>", "object")
+            );
+
+            comp = CreateCompilationWithMscorlibAndSpanSrc(text);
+
+            comp.VerifyDiagnostics(
+                // (8,20): error CS0029: Cannot implicitly convert type 'System.Span<int>' to 'object'
+                //         object x = new Span<int>();
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "new Span<int>()").WithArguments("System.Span<int>", "object").WithLocation(8, 20),
+                // (9,20): error CS0029: Cannot implicitly convert type 'System.ReadonlySpan<byte>' to 'object'
+                //         object y = new ReadonlySpan<byte>();
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "new ReadonlySpan<byte>()").WithArguments("System.ReadonlySpan<byte>", "object").WithLocation(9, 20),
+                // (10,20): error CS0029: Cannot implicitly convert type 'System.SpanLike<int>' to 'object'
+                //         object z = new SpanLike<int>();
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "new SpanLike<int>()").WithArguments("System.SpanLike<int>", "object")
             );
         }
 
@@ -222,7 +268,7 @@ class Program
         }
 
         [Fact]
-        public void Fields()
+        public void FieldsSpan()
         {
             var text = @"
 using System;
@@ -236,11 +282,16 @@ public class Program
     public static Span<byte> fs;
     public Span<int> fi; 
 
-    public struct S1
+    public ref struct S1
     {
-        //PROTOTYPE(span): instance Span fields in structs are ok for now, - until span-like types can be declared
         public static Span<byte> fs1;
         public Span<int> fi1; 
+    }
+
+    public struct S2
+    {
+        public static Span<byte> fs2;
+        public Span<int> fi2; 
     }
 }
 ";
@@ -248,15 +299,111 @@ public class Program
             CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text);
 
             comp.VerifyDiagnostics(
-                // (16,23): error CS0610: Field or property cannot be of type 'Span<byte>'
+                // (22,16): error CS0610: Field or property cannot be of type 'Span<int>'
+                //         public Span<int> fi1; 
+                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "Span<int>").WithArguments("System.Span<int>"),
+                // (21,23): error CS0610: Field or property cannot be of type 'Span<byte>'
                 //         public static Span<byte> fs1;
-                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "Span<byte>").WithArguments("System.Span<byte>").WithLocation(16, 23),
+                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "Span<byte>").WithArguments("System.Span<byte>"),
                 // (10,19): error CS0610: Field or property cannot be of type 'Span<byte>'
                 //     public static Span<byte> fs;
-                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "Span<byte>").WithArguments("System.Span<byte>").WithLocation(10, 19),
+                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "Span<byte>").WithArguments("System.Span<byte>"),
                 // (11,12): error CS0610: Field or property cannot be of type 'Span<int>'
                 //     public Span<int> fi; 
-                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "Span<int>").WithArguments("System.Span<int>").WithLocation(11, 12)
+                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "Span<int>").WithArguments("System.Span<int>"),
+                // (15,23): error CS0610: Field or property cannot be of type 'Span<byte>'
+                //         public static Span<byte> fs1;
+                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "Span<byte>").WithArguments("System.Span<byte>")
+            );
+
+            comp = CreateCompilationWithMscorlibAndSpanSrc(text);
+
+            comp.VerifyDiagnostics(
+                // (22,16): error CS0610: Field or property cannot be of type 'Span<int>'
+                //         public Span<int> fi1; 
+                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "Span<int>").WithArguments("System.Span<int>"),
+                // (21,23): error CS0610: Field or property cannot be of type 'Span<byte>'
+                //         public static Span<byte> fs1;
+                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "Span<byte>").WithArguments("System.Span<byte>"),
+                // (10,19): error CS0610: Field or property cannot be of type 'Span<byte>'
+                //     public static Span<byte> fs;
+                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "Span<byte>").WithArguments("System.Span<byte>"),
+                // (11,12): error CS0610: Field or property cannot be of type 'Span<int>'
+                //     public Span<int> fi; 
+                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "Span<int>").WithArguments("System.Span<int>"),
+                // (15,23): error CS0610: Field or property cannot be of type 'Span<byte>'
+                //         public static Span<byte> fs1;
+                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "Span<byte>").WithArguments("System.Span<byte>")
+            );
+        }
+
+        [Fact]
+        public void FieldsSpanLike()
+        {
+            var text = @"
+using System;
+
+public class Program
+{
+    static void Main()
+    {
+    }
+
+    public static SpanLike<byte> fs;
+    public SpanLike<int> fi; 
+
+    public ref struct S1
+    {
+        public static SpanLike<byte> fs1;
+        public SpanLike<int> fi1; 
+    }
+
+    public struct S2
+    {
+        public static SpanLike<byte> fs2;
+        public SpanLike<int> fi2; 
+    }
+}
+";
+
+            CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text);
+
+            comp.VerifyDiagnostics(
+                // (22,16): error CS0610: Field or property cannot be of type 'SpanLike<int>'
+                //         public SpanLike<int> fi2; 
+                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "SpanLike<int>").WithArguments("System.SpanLike<int>").WithLocation(22, 16),
+                // (21,23): error CS0610: Field or property cannot be of type 'SpanLike<byte>'
+                //         public static SpanLike<byte> fs2;
+                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "SpanLike<byte>").WithArguments("System.SpanLike<byte>").WithLocation(21, 23),
+                // (10,19): error CS0610: Field or property cannot be of type 'SpanLike<byte>'
+                //     public static SpanLike<byte> fs;
+                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "SpanLike<byte>").WithArguments("System.SpanLike<byte>").WithLocation(10, 19),
+                // (11,12): error CS0610: Field or property cannot be of type 'SpanLike<int>'
+                //     public SpanLike<int> fi; 
+                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "SpanLike<int>").WithArguments("System.SpanLike<int>").WithLocation(11, 12),
+                // (15,23): error CS0610: Field or property cannot be of type 'SpanLike<byte>'
+                //         public static SpanLike<byte> fs1;
+                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "SpanLike<byte>").WithArguments("System.SpanLike<byte>").WithLocation(15, 23)
+            );
+
+            comp = CreateCompilationWithMscorlibAndSpanSrc(text);
+
+            comp.VerifyDiagnostics(
+                // (22,16): error CS0610: Field or property cannot be of type 'SpanLike<int>'
+                //         public SpanLike<int> fi2; 
+                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "SpanLike<int>").WithArguments("System.SpanLike<int>").WithLocation(22, 16),
+                // (21,23): error CS0610: Field or property cannot be of type 'SpanLike<byte>'
+                //         public static SpanLike<byte> fs2;
+                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "SpanLike<byte>").WithArguments("System.SpanLike<byte>").WithLocation(21, 23),
+                // (10,19): error CS0610: Field or property cannot be of type 'SpanLike<byte>'
+                //     public static SpanLike<byte> fs;
+                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "SpanLike<byte>").WithArguments("System.SpanLike<byte>").WithLocation(10, 19),
+                // (11,12): error CS0610: Field or property cannot be of type 'SpanLike<int>'
+                //     public SpanLike<int> fi; 
+                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "SpanLike<int>").WithArguments("System.SpanLike<int>").WithLocation(11, 12),
+                // (15,23): error CS0610: Field or property cannot be of type 'SpanLike<byte>'
+                //         public static SpanLike<byte> fs1;
+                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "SpanLike<byte>").WithArguments("System.SpanLike<byte>").WithLocation(15, 23)
             );
         }
 

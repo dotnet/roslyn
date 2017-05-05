@@ -1444,6 +1444,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             Debug.Assert(this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword);
             switch (this.PeekToken(1).Kind)
             {
+                case SyntaxKind.RefKeyword:
+                    return this.PeekToken(2).Kind == SyntaxKind.StructKeyword;
                 case SyntaxKind.StructKeyword:
                 case SyntaxKind.ClassKeyword:
                 case SyntaxKind.InterfaceKeyword:
