@@ -13,6 +13,7 @@
     <OutputType>Exe</OutputType>
     <AssemblyName>ConsoleClassifier</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <RuntimeIdentifiers>win7</RuntimeIdentifiers>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <ScrubbedSamplePath>CSharp\ConsoleClassifier</ScrubbedSamplePath>
   </PropertyGroup>
@@ -51,13 +52,13 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <PackageReference Include="Microsoft.Composition">
+      <Version>$(MicrosoftCompositionVersion)</Version>
+    </PackageReference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Program.cs" />
     <Compile Include="Range.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="project.json" />
   </ItemGroup>
   <Import Project="..\..\..\..\build\Targets\Imports.targets" />
 </Project>

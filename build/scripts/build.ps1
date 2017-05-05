@@ -40,7 +40,7 @@ function Run-Build() {
 
 function Run-Test() {
     $proj = Join-Path $repoDir "BuildAndTest.proj"
-    $args = "/v:m /p:SkipCoreClr=true /p:ManualTest=true /t:Test $proj"
+    $args = "/v:m /p:ManualTest=true /t:Test /p:TestDesktop=true $proj"
     if ($test64) { 
         $args += " /p:Test64=true"
     }

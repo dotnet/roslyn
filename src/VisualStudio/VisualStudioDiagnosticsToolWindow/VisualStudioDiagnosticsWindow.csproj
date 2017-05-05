@@ -23,6 +23,7 @@
     <MinimumVisualStudioVersion>$(VisualStudioVersion)</MinimumVisualStudioVersion>
     <TargetVsixContainerName>Roslyn.VisualStudio.DiagnosticsWindow.vsix</TargetVsixContainerName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <RuntimeIdentifiers>win7</RuntimeIdentifiers>
     <RoslynProjectType>Vsix</RoslynProjectType>
   </PropertyGroup>
   <ItemGroup Label="Project References">
@@ -84,6 +85,24 @@
     <Reference Include="System.Xaml" />
     <Reference Include="System.XML" />
     <Reference Include="WindowsBase" />
+    <PackageReference Include="EnvDTE">
+      <Version>$(EnvDTEVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="EnvDTE80">
+      <Version>$(EnvDTE80Version)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.ComponentModelHost">
+      <Version>$(MicrosoftVisualStudioComponentModelHostVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Diagnostics.PerformanceProvider">
+      <Version>$(MicrosoftVisualStudioDiagnosticsPerformanceProviderVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Text.UI">
+      <Version>$(MicrosoftVisualStudioTextUIVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Text.UI.Wpf">
+      <Version>$(MicrosoftVisualStudioTextUIWpfVersion)</Version>
+    </PackageReference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DiagnosticsWindow.cs" />
@@ -135,7 +154,6 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Resources\Package.ico" />
-    <None Include="project.json" />
     <None Include="source.extension.vsixmanifest">
       <SubType>Designer</SubType>
     </None>

@@ -2682,17 +2682,13 @@ class C
             CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
                 // (4,12): error CS0246: The type or namespace name 'IVsTask' could not be found (are you missing a using directive or an assembly reference?)
                 //     public IVsTask ResolveReferenceAsync()
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "IVsTask").WithArguments("IVsTask"),
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "IVsTask").WithArguments("IVsTask").WithLocation(4, 12),
                 // (6,21): error CS1061: 'C' does not contain a definition for 'VsTasksService' and no extension method 'VsTasksService' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
                 //         return this.VsTasksService.InvokeAsync(async delegate
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "VsTasksService").WithArguments("C", "VsTasksService"),
-                // (6,48): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "VsTasksService").WithArguments("C", "VsTasksService").WithLocation(6, 21),
+                // (6,54): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
                 //         return this.VsTasksService.InvokeAsync(async delegate
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, @"async delegate
-        {
-            return null;
-        }")
-                );
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "delegate").WithLocation(6, 54));
         }
 
         [Fact, WorkItem(627123, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/627123")]

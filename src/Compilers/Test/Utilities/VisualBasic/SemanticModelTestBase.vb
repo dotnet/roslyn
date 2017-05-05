@@ -169,7 +169,7 @@ Public MustInherit Class SemanticModelTestBase : Inherits BasicTestBase
     Friend Function GetOperationTreeForTest(Of TSyntaxNode As SyntaxNode)(testSrc As String, Optional compilationOptions As VisualBasicCompilationOptions = Nothing, Optional parseOptions As VisualBasicParseOptions = Nothing, Optional which As Integer = 0) As String
         Dim fileName = "a.vb"
         Dim syntaxTree = Parse(testSrc, fileName, parseOptions)
-        Dim compilation = CreateCompilationWithMscorlib45AndVBRuntime({syntaxTree}, references:=DefaultVbReferences, options:=If(compilationOptions, TestOptions.ReleaseDll))
+        Dim compilation = CreateCompilationWithMscorlib45AndVBRuntime({syntaxTree}, references:=DefaultVbReferences.Append({ValueTupleRef, SystemRuntimeFacadeRef}), options:=If(compilationOptions, TestOptions.ReleaseDll))
         Return GetOperationTreeForTest(Of TSyntaxNode)(compilation, fileName, which)
     End Function
 
@@ -196,7 +196,7 @@ Public MustInherit Class SemanticModelTestBase : Inherits BasicTestBase
     Friend Sub VerifyOperationTreeAndDiagnosticsForTest(Of TSyntaxNode As SyntaxNode)(testSrc As String, expectedOperationTree As String, expectedDiagnostics As String, Optional compilationOptions As VisualBasicCompilationOptions = Nothing, Optional parseOptions As VisualBasicParseOptions = Nothing, Optional which As Integer = 0)
         Dim fileName = "a.vb"
         Dim syntaxTree = Parse(testSrc, fileName, parseOptions)
-        Dim compilation = CreateCompilationWithMscorlib45AndVBRuntime({syntaxTree}, references:=DefaultVbReferences, options:=If(compilationOptions, TestOptions.ReleaseDll))
+        Dim compilation = CreateCompilationWithMscorlib45AndVBRuntime({syntaxTree}, references:=DefaultVbReferences.Append({ValueTupleRef, SystemRuntimeFacadeRef}), options:=If(compilationOptions, TestOptions.ReleaseDll))
         VerifyOperationTreeAndDiagnosticsForTest(Of TSyntaxNode)(compilation, fileName, expectedOperationTree, expectedDiagnostics, which)
     End Sub
 

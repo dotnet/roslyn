@@ -273,7 +273,7 @@ public class C
       </scope>
     </method>
   </methods>
-</symbols>");
+</symbols>", format: DebugInformationFormat.Pdb);
 
             var release = CreateStandardCompilation(source, new[] { CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseWinMD);
             release.VerifyPdb(@"
@@ -302,7 +302,7 @@ public class C
       </scope>
     </method>
   </methods>
-</symbols>");
+</symbols>", format: DebugInformationFormat.Pdb);
         }
 
         [Fact, WorkItem(1067635, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1067635")]
@@ -337,7 +337,7 @@ public class C
       </scope>
     </method>
   </methods>
-</symbols>");
+</symbols>", format: DebugInformationFormat.Pdb);
 
             var release = CreateStandardCompilation(source, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.ReleaseWinMD);
             release.VerifyPdb(
@@ -354,7 +354,7 @@ public class C
       </sequencePoints>
     </method>
   </methods>
-</symbols>");
+</symbols>", format: DebugInformationFormat.Pdb);
         }
 
         [Fact]
@@ -2657,6 +2657,142 @@ class Program
 </symbols>"
 );
         }
+        
+        [Fact]
+        public void ForEachStatement_Deconstruction()
+        {
+            var source = @"
+public class C
+{
+    public static (int, (bool, double))[] F() => new[] { (1, (true, 2.0)) };
+
+    public static void Main()
+    {
+        foreach (var (c, (d, e)) in F())
+        {
+            System.Console.WriteLine(c);
+        }
+    }
+}
+";
+            var c = CreateStandardCompilation(source, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.DebugDll);
+            var v = CompileAndVerify(c);
+
+            v.VerifyIL("C.Main", @"
+{
+  // Code size       72 (0x48)
+  .maxstack  2
+  .locals init ((int, (bool, double))[] V_0,
+                int V_1,
+                int V_2, //c
+                bool V_3, //d
+                double V_4, //e
+                System.ValueTuple<bool, double> V_5)
+  // sequence point: {
+  IL_0000:  nop
+  // sequence point: foreach
+  IL_0001:  nop
+  // sequence point: F()
+  IL_0002:  call       ""(int, (bool, double))[] C.F()""
+  IL_0007:  stloc.0
+  IL_0008:  ldc.i4.0
+  IL_0009:  stloc.1
+  // sequence point: <hidden>
+  IL_000a:  br.s       IL_0041
+  // sequence point: var (c, (d, e))
+  IL_000c:  ldloc.0
+  IL_000d:  ldloc.1
+  IL_000e:  ldelem     ""System.ValueTuple<int, (bool, double)>""
+  IL_0013:  dup
+  IL_0014:  ldfld      ""(bool, double) System.ValueTuple<int, (bool, double)>.Item2""
+  IL_0019:  stloc.s    V_5
+  IL_001b:  dup
+  IL_001c:  ldfld      ""int System.ValueTuple<int, (bool, double)>.Item1""
+  IL_0021:  stloc.2
+  IL_0022:  ldloc.s    V_5
+  IL_0024:  ldfld      ""bool System.ValueTuple<bool, double>.Item1""
+  IL_0029:  stloc.3
+  IL_002a:  ldloc.s    V_5
+  IL_002c:  ldfld      ""double System.ValueTuple<bool, double>.Item2""
+  IL_0031:  stloc.s    V_4
+  IL_0033:  pop
+  // sequence point: {
+  IL_0034:  nop
+  // sequence point: System.Console.WriteLine(c);
+  IL_0035:  ldloc.2
+  IL_0036:  call       ""void System.Console.WriteLine(int)""
+  IL_003b:  nop
+  // sequence point: }
+  IL_003c:  nop
+  // sequence point: <hidden>
+  IL_003d:  ldloc.1
+  IL_003e:  ldc.i4.1
+  IL_003f:  add
+  IL_0040:  stloc.1
+  // sequence point: in
+  IL_0041:  ldloc.1
+  IL_0042:  ldloc.0
+  IL_0043:  ldlen
+  IL_0044:  conv.i4
+  IL_0045:  blt.s      IL_000c
+  // sequence point: }
+  IL_0047:  ret
+}
+", sequencePoints: "C.Main", source: source);
+
+            v.VerifyPdb(@"
+<symbols>
+  <methods>
+    <method containingType=""C"" name=""F"">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount=""0"" />
+        </using>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""4"" startColumn=""50"" endLine=""4"" endColumn=""76"" />
+      </sequencePoints>
+    </method>
+    <method containingType=""C"" name=""Main"">
+      <customDebugInfo>
+        <forward declaringType=""C"" methodName=""F"" />
+        <encLocalSlotMap>
+          <slot kind=""6"" offset=""11"" />
+          <slot kind=""8"" offset=""11"" />
+          <slot kind=""0"" offset=""25"" />
+          <slot kind=""0"" offset=""29"" />
+          <slot kind=""0"" offset=""32"" />
+          <slot kind=""temp"" />
+        </encLocalSlotMap>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" />
+        <entry offset=""0x1"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""16"" />
+        <entry offset=""0x2"" startLine=""8"" startColumn=""37"" endLine=""8"" endColumn=""40"" />
+        <entry offset=""0xa"" hidden=""true"" />
+        <entry offset=""0xc"" startLine=""8"" startColumn=""18"" endLine=""8"" endColumn=""33"" />
+        <entry offset=""0x34"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""10"" />
+        <entry offset=""0x35"" startLine=""10"" startColumn=""13"" endLine=""10"" endColumn=""41"" />
+        <entry offset=""0x3c"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""10"" />
+        <entry offset=""0x3d"" hidden=""true"" />
+        <entry offset=""0x41"" startLine=""8"" startColumn=""34"" endLine=""8"" endColumn=""36"" />
+        <entry offset=""0x47"" startLine=""12"" startColumn=""5"" endLine=""12"" endColumn=""6"" />
+      </sequencePoints>
+      <scope startOffset=""0x0"" endOffset=""0x48"">
+        <scope startOffset=""0xc"" endOffset=""0x3d"">
+          <local name=""c"" il_index=""2"" il_start=""0xc"" il_end=""0x3d"" attributes=""0"" />
+          <local name=""d"" il_index=""3"" il_start=""0xc"" il_end=""0x3d"" attributes=""0"" />
+          <local name=""e"" il_index=""4"" il_start=""0xc"" il_end=""0x3d"" attributes=""0"" />
+        </scope>
+      </scope>
+    </method>
+  </methods>
+</symbols>");
+        }
+
+        #endregion
+
+        #region Switch
 
         [Fact]
         public void SwitchWithPattern_01()
@@ -2843,6 +2979,7 @@ class Student : Person { public double GPA; }
 </symbols>"
 );
         }
+
         #endregion
 
         #region DoStatement
@@ -5200,6 +5337,164 @@ public class C
 </symbols>");
         }
 
+        [Fact]
+        public void HiddenMethods()
+        {
+            var src = @"
+using System;
+
+class C
+{
+#line hidden
+    public static void H()
+    {
+        F();
+    }
+
+#line default
+    public static void G()
+    {
+        F();
+    }
+
+#line hidden
+    public static void F()
+    {
+        {
+            const int z = 1;
+            var (x, y) = (1,2);
+            Console.WriteLine(x + z);
+        }
+        {
+            dynamic x = 1;
+            Console.WriteLine(x);
+        }
+    }
+}";
+            var c = CreateCompilationWithMscorlibAndSystemCore(src, references: new[] { CSharpRef, ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.DebugDll);
+
+            c.VerifyPdb(@"
+<symbols>
+  <methods>
+    <method containingType=""C"" name=""G"">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount=""1"" />
+        </using>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""14"" startColumn=""5"" endLine=""14"" endColumn=""6"" />
+        <entry offset=""0x1"" startLine=""15"" startColumn=""9"" endLine=""15"" endColumn=""13"" />
+        <entry offset=""0x7"" startLine=""16"" startColumn=""5"" endLine=""16"" endColumn=""6"" />
+      </sequencePoints>
+      <scope startOffset=""0x0"" endOffset=""0x8"">
+        <namespace name=""System"" />
+      </scope>
+    </method>
+  </methods>
+</symbols>");
+        }
+
+        [Fact]
+        public void HiddenEntryPoint()
+        {
+            var src = @"
+class C
+{
+#line hidden
+    public static void Main()
+    {
+    }
+}";
+            var c = CreateCompilationWithMscorlibAndSystemCore(src, references: new[] { CSharpRef, ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.DebugExe);
+
+            // Note: Dev10 emitted a hidden sequence point to #line hidden method, 
+            // which enabled the debugger to locate the first user visible sequence point starting from the entry point.
+            // Roslyn does not emit such sequence point. We could potentially synthesize one but that would defeat the purpose of 
+            // #line hidden directive. 
+            c.VerifyPdb(@"
+<symbols>
+  <entryPoint declaringType=""C"" methodName=""Main"" />
+  <methods>
+    <method containingType=""C"" name=""Main"" format=""windows"">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount=""0"" />
+        </using>
+      </customDebugInfo>
+    </method>
+  </methods>
+</symbols>");
+
+        }
+
+        [Fact]
+        public void HiddenIterator()
+        {
+            var src = @"
+using System;
+using System.Collections.Generic;
+
+class C
+{
+    public static void Main()
+    {
+        F();
+    }
+
+#line hidden
+    public static IEnumerable<int> F()
+    {
+        {
+            const int z = 1;
+            var (x, y) = (1,2);
+            Console.WriteLine(x + z);
+        }
+        {
+            dynamic x = 1;
+            Console.WriteLine(x);
+        }
+
+        yield return 1;
+    }
+}";
+            var c = CreateCompilationWithMscorlibAndSystemCore(src, references: new[] { CSharpRef, ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.DebugDll);
+            
+            // We don't really need the debug info for kickoff method when the entire iterator method is hidden, 
+            // but it doesn't hurt and removing it would need extra effort that's unnecessary.
+            c.VerifyPdb(@"
+<symbols>
+  <methods>
+    <method containingType=""C"" name=""Main"">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount=""2"" />
+        </using>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""8"" startColumn=""5"" endLine=""8"" endColumn=""6"" />
+        <entry offset=""0x1"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""13"" />
+        <entry offset=""0x7"" startLine=""10"" startColumn=""5"" endLine=""10"" endColumn=""6"" />
+      </sequencePoints>
+      <scope startOffset=""0x0"" endOffset=""0x8"">
+        <namespace name=""System"" />
+        <namespace name=""System.Collections.Generic"" />
+      </scope>
+    </method>
+    <method containingType=""C"" name=""F"">
+      <customDebugInfo>
+        <forwardIterator name=""&lt;F&gt;d__1"" />
+        <encLocalSlotMap>
+          <slot kind=""0"" offset=""61"" />
+          <slot kind=""0"" offset=""64"" />
+          <slot kind=""0"" offset=""158"" />
+        </encLocalSlotMap>
+      </customDebugInfo>
+    </method>
+  </methods>
+</symbols>");
+        }
+
         #endregion
 
         #region Nested Types
@@ -5932,6 +6227,95 @@ class C
     </method>
   </methods>
 </symbols>");
+        }
+
+        #endregion
+
+        #region OutVar
+
+        [Fact]
+        public void SyntaxOffset_OutVarInConstructor()
+        {
+            var source = @"
+class B
+{
+    B(out int z) { z = 2; } 
+}
+
+class C
+{
+    int F = G(out var v1);    
+    int P => G(out var v2);    
+
+    C() 
+    : base(out var v3)
+    { 
+        G(out var v4);
+    }
+
+    int G(out int x) 
+    {
+        x = 1;
+        return 2;
+    }
+}
+";
+
+            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            c.VerifyDiagnostics(
+                // (9,19): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
+                //     int F = G(out var v1);    
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "var v1").WithLocation(9, 19),
+                // (9,13): error CS0236: A field initializer cannot reference the non-static field, method, or property 'C.G(out int)'
+                //     int F = G(out var v1);    
+                Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "G(out var v1)").WithArguments("C.G(out int)").WithLocation(9, 13),
+                // (13,16): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
+                //     : base(out var v3)
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "var v3").WithLocation(13, 16),
+                // (13,7): error CS1729: 'object' does not contain a constructor that takes 1 arguments
+                //     : base(out var v3)
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "base").WithArguments("object", "1").WithLocation(13, 7));
+        }
+
+        [Fact]
+        public void SyntaxOffset_OutVarInMethod()
+        {
+            var source = @"class C { int G(out int x) { int z = 1; G(out var y); G(out var w); return x = y; } }";
+
+            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            c.VerifyPdb("C.G", @"
+<symbols>
+  <methods>
+    <method containingType=""C"" name=""G"" parameterNames=""x"">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount=""0"" />
+        </using>
+        <encLocalSlotMap>
+          <slot kind=""0"" offset=""6"" />
+          <slot kind=""0"" offset=""23"" />
+          <slot kind=""0"" offset=""37"" />
+          <slot kind=""temp"" />
+          <slot kind=""21"" offset=""0"" />
+        </encLocalSlotMap>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""1"" startColumn=""28"" endLine=""1"" endColumn=""29"" />
+        <entry offset=""0x1"" startLine=""1"" startColumn=""30"" endLine=""1"" endColumn=""40"" />
+        <entry offset=""0x3"" startLine=""1"" startColumn=""41"" endLine=""1"" endColumn=""54"" />
+        <entry offset=""0xc"" startLine=""1"" startColumn=""55"" endLine=""1"" endColumn=""68"" />
+        <entry offset=""0x15"" startLine=""1"" startColumn=""69"" endLine=""1"" endColumn=""82"" />
+        <entry offset=""0x1f"" startLine=""1"" startColumn=""83"" endLine=""1"" endColumn=""84"" />
+      </sequencePoints>
+      <scope startOffset=""0x0"" endOffset=""0x22"">
+        <local name=""z"" il_index=""0"" il_start=""0x0"" il_end=""0x22"" attributes=""0"" />
+        <local name=""y"" il_index=""1"" il_start=""0x0"" il_end=""0x22"" attributes=""0"" />
+        <local name=""w"" il_index=""2"" il_start=""0x0"" il_end=""0x22"" attributes=""0"" />
+      </scope>
+    </method>
+  </methods>
+</symbols>
+");
         }
 
         #endregion
