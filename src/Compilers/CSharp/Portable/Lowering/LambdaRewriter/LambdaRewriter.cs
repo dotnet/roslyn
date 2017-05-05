@@ -892,6 +892,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     node.InvokedAsExtensionMethod,
                     node.ArgsToParamsOpt,
                     node.ResultKind,
+                    node.BinderOpt,
                     this.VisitType(node.Type));
 
                 return PartiallyLowerLocalFunctionReference(withArguments);

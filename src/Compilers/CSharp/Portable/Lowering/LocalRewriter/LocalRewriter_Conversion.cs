@@ -745,7 +745,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 BoundExpression rewrittenConversion = MakeConversionNode(syntax, rewrittenOperand, conversion.UnderlyingConversions[0], rewrittenType.GetNullableUnderlyingType(), @checked);
                 MethodSymbol ctor = UnsafeGetNullableMethod(syntax, rewrittenType, SpecialMember.System_Nullable_T__ctor);
-                return new BoundObjectCreationExpression(syntax, ctor, rewrittenConversion);
+                return new BoundObjectCreationExpression(syntax, ctor, null, rewrittenConversion);
             }
             else
             {
@@ -851,6 +851,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression consequence = new BoundObjectCreationExpression(
                 syntax,
                 UnsafeGetNullableMethod(syntax, type, SpecialMember.System_Nullable_T__ctor),
+                null,
                 MakeConversionNode(
                     syntax,
                     BoundCall.Synthesized(syntax, boundTemp, getValueOrDefault),
@@ -926,6 +927,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new BoundObjectCreationExpression(
                     syntax,
                     UnsafeGetNullableMethod(syntax, type, SpecialMember.System_Nullable_T__ctor),
+                    null,
                     MakeConversionNode(
                         syntax,
                         nonNullValue,
@@ -1031,7 +1033,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert(resultType.IsNullableType() && resultType.GetNullableUnderlyingType() == call.Method.ReturnType);
                 MethodSymbol ctor = UnsafeGetNullableMethod(call.Syntax, resultType, SpecialMember.System_Nullable_T__ctor);
-                return new BoundObjectCreationExpression(call.Syntax, ctor, call);
+                return new BoundObjectCreationExpression(call.Syntax, ctor, null, call);
             }
 
             return call;

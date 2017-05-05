@@ -1201,6 +1201,7 @@
     <Field Name="InvokedAsExtensionMethod" Type="bool"/>
     <Field Name="ArgsToParamsOpt" Type="ImmutableArray&lt;int&gt;" Null="allow"/>
     <Field Name="ResultKind" PropertyOverrides="true" Type="LookupResultKind"/>
+    <Field Name="BinderOpt" Type="Binder" Null="allow"/>
   </Node>
 
   <Node Name="BoundEventAssignmentOperator" Base="BoundExpression">
@@ -1246,6 +1247,7 @@
     <Field Name="ArgsToParamsOpt" Type="ImmutableArray&lt;int&gt;" Null="allow"/>
     <Field Name="ConstantValueOpt" Type="ConstantValue" Null="allow"/>
     <Field Name="InitializerExpressionOpt" Type="BoundExpression" Null="allow"/>
+    <Field Name="BinderOpt" Type="Binder" Null="allow"/>
   </Node>
   
 
@@ -1491,6 +1493,7 @@
     <Field Name="ArgumentRefKindsOpt" Type="ImmutableArray&lt;RefKind&gt;" Null="allow"/>
     <Field Name="Expanded" Type="bool"/>
     <Field Name="ArgsToParamsOpt" Type="ImmutableArray&lt;int&gt;" Null="allow"/>
+    <Field Name="BinderOpt" Type="Binder" Null="allow"/>
   </Node>
 
   <Node Name="BoundDynamicIndexerAccess" Base="BoundExpression">

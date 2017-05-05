@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             !this.ReceiverOpt.SuppressVirtualCalls;
 
         ImmutableArray<IArgument> IHasArgumentsExpression.ArgumentsInEvaluationOrder
-            => DeriveArguments(this, this.Method, this.Method, this.Arguments, this.ArgumentNamesOpt, this.ArgsToParamsOpt, this.ArgumentRefKindsOpt, this.Method.Parameters, this.Expanded,  this.Syntax, this.InvokedAsExtensionMethod);
+            => DeriveArguments(this, this.BinderOpt, this.Method, this.Method, this.Arguments, this.ArgumentNamesOpt, this.ArgsToParamsOpt, this.ArgumentRefKindsOpt, this.Method.Parameters, this.Expanded,  this.Syntax, this.InvokedAsExtensionMethod);
 
         protected override OperationKind ExpressionKind => OperationKind.InvocationExpression;
 
@@ -77,13 +77,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static readonly ConditionalWeakTable<BoundExpression, IEnumerable<IArgument>> s_callToArgumentsMappings 
             = new ConditionalWeakTable<BoundExpression, IEnumerable<IArgument>>();
 
-        // TODO: We need to reuse the logic in `LocalRewriter.MakeArguments` instead of using private implementation. 
-        //       Also. this implementation here was for the (now removed) API `ArgumentsInParameter`, which doesn't fulfill
-        //       the contract of `ArgumentsInEvaluationOrder` plus it doesn't handle various scenarios correctly even for parameter order, 
-        //       e.g. default arguments, erroneous code, etc. 
-        //       https://github.com/dotnet/roslyn/issues/18549
         internal static ImmutableArray<IArgument> DeriveArguments(
             BoundExpression boundNode,
+            Binder binder,
             Symbol methodOrIndexer,
             MethodSymbol optionalParametersMethod,
             ImmutableArray<BoundExpression> boundArguments,
@@ -141,6 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var parameterSymbolBuilder = ArrayBuilder<ParameterSymbol>.GetInstance(parameters.Length);
 
                     var derivedArguments = localRewriter.MakeArguments(
+                        binder: binder,
                         syntax: invocationSyntax,
                         arguments: boundArguments,
                         methodOrIndexer: methodOrIndexer,
@@ -276,7 +273,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ISymbol IMemberReferenceExpression.Member => this.Indexer;
 
         ImmutableArray<IArgument> IHasArgumentsExpression.ArgumentsInEvaluationOrder 
-            => BoundCall.DeriveArguments(this, this.Indexer, this.Indexer.GetOwnOrInheritedGetMethod(),this.Arguments, this.ArgumentNamesOpt, this.ArgsToParamsOpt, this.ArgumentRefKindsOpt, this.Indexer.Parameters, this.Expanded, this.Syntax);
+            => BoundCall.DeriveArguments(this, this.BinderOpt, this.Indexer, this.Indexer.GetOwnOrInheritedGetMethod(),this.Arguments, this.ArgumentNamesOpt, this.ArgsToParamsOpt, this.ArgumentRefKindsOpt, this.Indexer.Parameters, this.Expanded, this.Syntax);
 
         protected override OperationKind ExpressionKind => OperationKind.IndexedPropertyReferenceExpression;
 
@@ -420,7 +417,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         IMethodSymbol IObjectCreationExpression.Constructor => this.Constructor;
 
         ImmutableArray<IArgument> IHasArgumentsExpression.ArgumentsInEvaluationOrder 
-            => BoundCall.DeriveArguments(this, this.Constructor, this.Constructor, this.Arguments, this.ArgumentNamesOpt, this.ArgsToParamsOpt, this.ArgumentRefKindsOpt, this.Constructor.Parameters, this.Expanded, this.Syntax);
+            => BoundCall.DeriveArguments(this, this.BinderOpt, this.Constructor, this.Constructor, this.Arguments, this.ArgumentNamesOpt, this.ArgsToParamsOpt, this.ArgumentRefKindsOpt, this.Constructor.Parameters, this.Expanded, this.Syntax);
 
         ImmutableArray<IOperation> IObjectCreationExpression.Initializers => GetChildInitializers(this.InitializerExpressionOpt).As<IOperation>();
 

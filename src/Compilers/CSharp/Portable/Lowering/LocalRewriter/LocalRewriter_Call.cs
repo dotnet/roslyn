@@ -224,6 +224,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     invokedAsExtensionMethod: invokedAsExtensionMethod,
                     argsToParamsOpt: default(ImmutableArray<int>),
                     resultKind: resultKind,
+                    binderOpt: null,
                     type: type);
             }
             else
@@ -239,6 +240,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     node.InvokedAsExtensionMethod,
                     default(ImmutableArray<int>),
                     node.ResultKind,
+                    node.BinderOpt,
                     node.Type);
             }
 
@@ -491,6 +493,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         internal ImmutableArray<BoundExpression> MakeArguments(
+            Binder binder,
             SyntaxNode syntax,
             ImmutableArray<BoundExpression> arguments,
             Symbol methodOrIndexer,
@@ -825,6 +828,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             invokedAsExtensionMethod: false,
                             argsToParamsOpt: default(ImmutableArray<int>),
                             resultKind: LookupResultKind.Viable,
+                            binderOpt: null,
                             type: arrayEmpty.ReturnType);
                     }
                 }
@@ -1104,6 +1108,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         defaultValue = new BoundObjectCreationExpression(
                             syntax,
                             UnsafeGetNullableMethod(syntax, parameterType, SpecialMember.System_Nullable_T__ctor),
+                            null,
                             defaultValue);
                     }
                     else
@@ -1233,6 +1238,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     defaultValue = new BoundObjectCreationExpression(
                         syntax,
                         UnsafeGetNullableMethod(syntax, parameterType, SpecialMember.System_Nullable_T__ctor),
+                        null,
                         defaultValue);
 
                 }
@@ -1286,14 +1292,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // new UnknownWrapper(default(object))
                 var methodSymbol = (MethodSymbol)_compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_InteropServices_UnknownWrapper__ctor);
                 var argument = new BoundDefaultExpression(syntax, parameter.Type);
-                defaultValue = new BoundObjectCreationExpression(syntax, methodSymbol, argument);
+                defaultValue = new BoundObjectCreationExpression(syntax, methodSymbol, null, argument);
             }
             else if (parameter.IsIDispatchConstant)
             {
                 // new DispatchWrapper(default(object))
                 var methodSymbol = (MethodSymbol)_compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_InteropServices_DispatchWrapper__ctor);
                 var argument = new BoundDefaultExpression(syntax, parameter.Type);
-                defaultValue = new BoundObjectCreationExpression(syntax, methodSymbol, argument);
+                defaultValue = new BoundObjectCreationExpression(syntax, methodSymbol, null, argument);
             }
             else
             {
