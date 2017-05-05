@@ -10,11 +10,13 @@ namespace BuildBoss
     {
         internal string Name { get; }
         internal string Version { get; }
+        internal bool IsVersionAttribute { get; }
 
-        internal PackageReference(string name, string version)
+        internal PackageReference(string name, string version, bool isVersionAttribute)
         {
             Name = name;
             Version = version;
+            IsVersionAttribute = isVersionAttribute;
         }
 
         public override string ToString() => $"{Name} - {Version}";

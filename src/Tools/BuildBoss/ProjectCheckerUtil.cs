@@ -17,15 +17,17 @@ namespace BuildBoss
         private readonly ProjectData _data;
         private readonly ProjectUtil _projectUtil;
         private readonly Dictionary<ProjectKey, ProjectData> _solutionMap;
+        private readonly Dictionary<string, string> _packageVersionMap;
 
         internal ProjectFileType ProjectType => _data.ProjectFileType;
         internal string ProjectFilePath => _data.FilePath;
 
-        internal ProjectCheckerUtil(ProjectData data, Dictionary<ProjectKey, ProjectData> solutionMap)
+        internal ProjectCheckerUtil(ProjectData data, Dictionary<ProjectKey, ProjectData> solutionMap, Dictionary<string, string> packageVersionMap)
         {
             _data = data;
             _projectUtil = data.ProjectUtil;
             _solutionMap = solutionMap;
+            _packageVersionMap = packageVersionMap;
         }
 
         public bool Check(TextWriter textWriter)
@@ -181,16 +183,72 @@ namespace BuildBoss
 
         private bool CheckPackageReferences(TextWriter textWriter)
         {
-            var allGood = true;
-            foreach (var packageRef in _projectUtil.GetPackageReferences())
+            var list = _projectUtil.GetPackageReferences();
+            if (_projectUtil.IsSdkProject)
             {
+                return CheckPackageReferencesSdk(textWriter, list);
+            }
+            else
+            {
+                return CheckPackageReferencesLegacy(textWriter, list);
+            }
+        }
+
+        /// <summary>
+        /// Validate the package references on a new SDK project.  Here we should be using MSBuild property
+        /// names and the simple inline syntax.
+        /// </summary>
+        private bool CheckPackageReferencesSdk(TextWriter textWriter, List<PackageReference> packageRefList)
+        {
+            var allGood = true;
+            foreach (var packageRef in packageRefList)
+            {
+                if (!packageRef.IsVersionAttribute)
+                {
+                    textWriter.WriteLine($"PackageReference {packageRef.Name} should have Version as an attribute");
+                    allGood = false;
+                }
+
                 var name = packageRef.Name.Replace(".", "");
-                var floatingName = $"$({name}Version)";
-                var fixedName = $"$({name}FixedVersion)";
+                var floatingName = $"$({SharedUtil.PackageNameToVersionKey(name)})";
+                var fixedName = $"$({SharedUtil.PackageNameToFixedVersionKey(name)})";
                 if (packageRef.Version != floatingName && packageRef.Version != fixedName)
                 {
                     textWriter.WriteLine($"PackageReference {packageRef.Name} has incorrect version {packageRef.Version}");
                     textWriter.WriteLine($"Allowed values are {floatingName} or {fixedName}");
+                    allGood = false;
+                }
+            }
+
+            return allGood;
+        }
+
+        /// <summary>
+        /// Validate the package references on a legacy project.  Here we should be using Version as a full
+        /// child element and the expanded version.  Evaluated properties don't work in this mode during 
+        /// Visual Studio design time.
+        /// </summary>
+        private bool CheckPackageReferencesLegacy(TextWriter textWriter, List<PackageReference> packageRefList)
+        {
+            var allGood = true;
+            foreach (var packageRef in packageRefList)
+            {
+                if (packageRef.IsVersionAttribute)
+                {
+                    textWriter.WriteLine($"PackageReference {packageRef.Name} should have Version as a child element");
+                    allGood = false;
+                }
+
+                if (!_packageVersionMap.TryGetValue(SharedUtil.PackageNameToVersionKey(packageRef.Name), out var storedVersion))
+                {
+                    textWriter.WriteLine($"Could not locate a package named {packageRef.Name} in Packages.props");
+                    allGood = false;
+                }
+                else if (!StringComparer.OrdinalIgnoreCase.Equals(storedVersion, packageRef.Version))
+                {
+                    textWriter.WriteLine($"PackageReference {packageRef.Name} has an invalid version");
+                    textWriter.WriteLine($"\tPackages.props {storedVersion}");
+                    textWriter.WriteLine($"\tListed version {packageRef.Version}");
                     allGood = false;
                 }
             }
