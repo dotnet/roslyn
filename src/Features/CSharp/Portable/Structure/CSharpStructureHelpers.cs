@@ -18,6 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
         public const string Ellipsis = "...";
         public const string MultiLineCommentSuffix = "*/";
         public const int MaxXmlDocCommentBannerLength = 120;
+        private static readonly char[] s_newLineCharacters = new char[] { '\r', '\n' };
 
         private static int GetCollapsibleStart(SyntaxToken firstToken)
         {
@@ -113,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             }
             else if (comment.IsMultiLineComment())
             {
-                var lineBreakStart = comment.ToString().IndexOfAny(new char[] { '\r', '\n' });
+                var lineBreakStart = comment.ToString().IndexOfAny(s_newLineCharacters);
 
                 var text = comment.ToString();
                 if (lineBreakStart >= 0)
@@ -122,7 +123,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                 }
                 else
                 {
-                    text = text.EndsWith(MultiLineCommentSuffix) ? text.Substring(0, text.Length - MultiLineCommentSuffix.Length) : text;
+                    text = text.Length >= "/**/".Length && text.EndsWith(MultiLineCommentSuffix) 
+                        ? text.Substring(0, text.Length - MultiLineCommentSuffix.Length)
+                        : text;
                 }
 
                 return CreateCommentBannerTextWithPrefix(text, "/*");

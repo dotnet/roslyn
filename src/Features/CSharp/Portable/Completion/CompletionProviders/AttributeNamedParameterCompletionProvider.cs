@@ -1,5 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -14,7 +15,6 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using System;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
@@ -23,6 +23,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         private const string EqualsString = "=";
         private const string SpaceEqualsString = " =";
         private const string ColonString = ":";
+
+        private static readonly CompletionItemRules _spaceItemFilterRule = CompletionItemRules.Default.WithFilterCharacterRule(
+            CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, ' '));
 
         internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
         {
@@ -145,13 +148,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var text = await semanticModel.SyntaxTree.GetTextAsync(context.CancellationToken).ConfigureAwait(false);
             var q = from p in attributeNamedParameters
                     where !existingNamedParameters.Contains(p.Name)
-                    select SymbolCompletionItem.Create(
+                    select SymbolCompletionItem.CreateWithSymbolId(
                        displayText: p.Name.ToIdentifierToken().ToString() + SpaceEqualsString,
                        insertionText: null,
-                       symbol: p,
+                       symbols: ImmutableArray.Create(p),
                        contextPosition: token.SpanStart,
                        sortText: p.Name,
-                       rules: CompletionItemRules.Default);
+                       rules: _spaceItemFilterRule);
             return q.ToImmutableArray();
         }
 
@@ -165,10 +168,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return from pl in parameterLists
                    from p in pl
                    where !existingNamedParameters.Contains(p.Name)
-                   select SymbolCompletionItem.Create(
+                   select SymbolCompletionItem.CreateWithSymbolId(
                        displayText: p.Name.ToIdentifierToken().ToString() + ColonString,
                        insertionText: null,
-                       symbol: p,
+                       symbols: ImmutableArray.Create(p),
                        contextPosition: token.SpanStart,
                        sortText: p.Name,
                        rules: CompletionItemRules.Default);

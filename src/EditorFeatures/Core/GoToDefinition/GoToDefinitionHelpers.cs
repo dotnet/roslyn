@@ -3,13 +3,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Threading;
+using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Navigation;
-using Microsoft.CodeAnalysis.Options;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
@@ -38,10 +37,15 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
             // We can't go to the definition of the alias, so use the target type.
 
             var solution = project.Solution;
-            if (symbol is IAliasSymbol &&
-                NavigableItemFactory.GetPreferredSourceLocations(solution, symbol).All(l => project.Solution.GetDocument(l.SourceTree) == null))
+            if (alias != null)
             {
-                symbol = ((IAliasSymbol)symbol).Target;
+                var sourceLocations = NavigableItemFactory.GetPreferredSourceLocations(
+                    solution, symbol, cancellationToken);
+
+                if (sourceLocations.All(l => project.Solution.GetDocument(l.SourceTree) == null))
+                {
+                    symbol = alias.Target;
+                }
             }
 
             var definition = SymbolFinder.FindSourceDefinitionAsync(symbol, solution, cancellationToken).WaitAndGetResult(cancellationToken);
@@ -49,51 +53,32 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
 
             symbol = definition ?? symbol;
 
+            // If it is a partial method declaration with no body, choose to go to the implementation
+            // that has a method body.
+            if (symbol is IMethodSymbol method)
+            {
+                symbol = method.PartialImplementationPart ?? symbol;
+            }
+
             var definitions = ArrayBuilder<DefinitionItem>.GetInstance();
-            if (thirdPartyNavigationAllowed )
+            var definitionItem = symbol.ToClassifiedDefinitionItemAsync(
+                solution, includeHiddenLocations: true, cancellationToken: cancellationToken).WaitAndGetResult(cancellationToken);
+
+            if (thirdPartyNavigationAllowed)
             {
                 var factory = solution.Workspace.Services.GetService<IDefinitionsAndReferencesFactory>();
-                var thirdPartyItem = factory?.GetThirdPartyDefinitionItem(solution, symbol);
+                var thirdPartyItem = factory?.GetThirdPartyDefinitionItem(solution, definitionItem, cancellationToken);
                 definitions.AddIfNotNull(thirdPartyItem);
             }
 
-            // If it is a partial method declaration with no body, choose to go to the implementation
-            // that has a method body.
-            if (symbol is IMethodSymbol)
-            {
-                symbol = ((IMethodSymbol)symbol).PartialImplementationPart ?? symbol;
-            }
+            definitions.Add(definitionItem);
 
-            var options = project.Solution.Options;
+            var presenter = streamingPresenters.FirstOrDefault()?.Value;
+            var title = string.Format(EditorFeaturesResources._0_declarations,
+                FindUsagesHelpers.GetDisplayName(symbol));
 
-            definitions.Add(symbol.ToDefinitionItem(solution, includeHiddenLocations: true));
-
-            var presenter = GetFindUsagesPresenter(streamingPresenters);
             return presenter.TryNavigateToOrPresentItemsAsync(
-                EditorFeaturesResources.Go_to_Definition,
-                definitions.ToImmutableAndFree(),
-                alwaysShowDeclarations: true).WaitAndGetResult(cancellationToken);
-        }
-
-        private static IStreamingFindUsagesPresenter GetFindUsagesPresenter(
-            IEnumerable<Lazy<IStreamingFindUsagesPresenter>> streamingPresenters)
-        {
-            try
-            {
-                return streamingPresenters.FirstOrDefault()?.Value;
-            }
-            catch
-            {
-                return null;
-            }
-        }
-
-        private static bool TryThirdPartyNavigation(ISymbol symbol, Solution solution)
-        {
-            var symbolNavigationService = solution.Workspace.Services.GetService<ISymbolNavigationService>();
-
-            // Notify of navigation so third parties can intercept the navigation
-            return symbolNavigationService.TrySymbolNavigationNotify(symbol, solution);
+                project.Solution.Workspace, title, definitions.ToImmutableAndFree()).WaitAndGetResult(cancellationToken);
         }
     }
 }

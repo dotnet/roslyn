@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -84,15 +85,16 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 return (node.Parent is GlobalStatementSyntax) ? node.Parent : node;
             }
 
-            protected override OperationStatus<IMethodSymbol> GenerateMethodDefinition(CancellationToken cancellationToken)
+            protected override async Task<OperationStatus<IMethodSymbol>> GenerateMethodDefinitionAsync(CancellationToken cancellationToken)
             {
-                var result = CreateMethodBody(cancellationToken);
+                var result = await CreateMethodBodyAsync(cancellationToken).ConfigureAwait(false);
 
                 var methodSymbol = CodeGenerationSymbolFactory.CreateMethodSymbol(
-                    attributes: SpecializedCollections.EmptyList<AttributeData>(),
+                    attributes: ImmutableArray<AttributeData>.Empty,
                     accessibility: Accessibility.Private,
                     modifiers: CreateMethodModifiers(),
                     returnType: this.AnalyzerResult.ReturnType,
+                    returnsByRef: false,
                     explicitInterfaceSymbol: null,
                     name: _methodName.ToString(),
                     typeParameters: CreateMethodTypeParameters(cancellationToken),
@@ -134,7 +136,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 // field initializer, constructor initializer, expression bodied member case
                 if (selectedNode is ConstructorInitializerSyntax ||
                     selectedNode is FieldDeclarationSyntax ||
-                    IsExpressionBodiedMember(selectedNode))
+                    IsExpressionBodiedMember(selectedNode) || 
+                    IsExpressionBodiedAccessor(selectedNode))
                 {
                     var statement = await GetStatementOrInitializerContainingInvocationToExtractedMethodAsync(this.CallSiteAnnotation, cancellationToken).ConfigureAwait(false);
                     return SpecializedCollections.SingletonEnumerable(statement);
@@ -146,9 +149,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 var postProcessor = new PostProcessor(semanticModel, context.SpanStart);
                 var statements = SpecializedCollections.EmptyEnumerable<StatementSyntax>();
 
-                statements = AddSplitOrMoveDeclarationOutStatementsToCallSite(statements, cancellationToken);
+                statements = await AddSplitOrMoveDeclarationOutStatementsToCallSiteAsync(statements, cancellationToken).ConfigureAwait(false);
                 statements = postProcessor.MergeDeclarationStatements(statements);
-                statements = AddAssignmentStatementToCallSite(statements, cancellationToken);
+                statements = await AddAssignmentStatementToCallSiteAsync(statements, cancellationToken).ConfigureAwait(false);
                 statements = await AddInvocationAtCallSiteAsync(statements, cancellationToken).ConfigureAwait(false);
                 statements = AddReturnIfUnreachable(statements, cancellationToken);
 
@@ -156,9 +159,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             }
 
             private bool IsExpressionBodiedMember(SyntaxNode node)
-            {
-                return node is MemberDeclarationSyntax && ((MemberDeclarationSyntax)node).GetExpressionBody() != null;
-            }
+                => node is MemberDeclarationSyntax member && member.GetExpressionBody() != null;
+
+            private bool IsExpressionBodiedAccessor(SyntaxNode node)
+                => node is AccessorDeclarationSyntax accessor && accessor.ExpressionBody != null;
 
             private SimpleNameSyntax CreateMethodNameForInvocation()
             {
@@ -216,18 +220,18 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                                 SyntaxKind.OutKeyword : SyntaxKind.None;
             }
 
-            private OperationStatus<List<SyntaxNode>> CreateMethodBody(CancellationToken cancellationToken)
+            private async Task<OperationStatus<ImmutableArray<SyntaxNode>>> CreateMethodBodyAsync(CancellationToken cancellationToken)
             {
                 var statements = GetInitialStatementsForMethodDefinitions();
 
-                statements = SplitOrMoveDeclarationIntoMethodDefinition(statements, cancellationToken);
+                statements = await SplitOrMoveDeclarationIntoMethodDefinitionAsync(statements, cancellationToken).ConfigureAwait(false);
                 statements = MoveDeclarationOutFromMethodDefinition(statements, cancellationToken);
                 statements = AppendReturnStatementIfNeeded(statements);
                 statements = CleanupCode(statements);
 
                 // set output so that we can use it in negative preview
                 var wrapped = WrapInCheckStatementIfNeeded(statements);
-                return CheckActiveStatements(statements).With(wrapped.ToList<SyntaxNode>());
+                return CheckActiveStatements(statements).With(wrapped.ToImmutableArray<SyntaxNode>());
             }
 
             private IEnumerable<StatementSyntax> WrapInCheckStatementIfNeeded(IEnumerable<StatementSyntax> statements)
@@ -519,7 +523,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 return identifier;
             }
 
-            private IEnumerable<StatementSyntax> SplitOrMoveDeclarationIntoMethodDefinition(
+            private async Task<IEnumerable<StatementSyntax>> SplitOrMoveDeclarationIntoMethodDefinitionAsync(
                 IEnumerable<StatementSyntax> statements,
                 CancellationToken cancellationToken)
             {
@@ -527,7 +531,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 var context = this.InsertionPoint.GetContext();
                 var postProcessor = new PostProcessor(semanticModel, context.SpanStart);
 
-                var declStatements = CreateDeclarationStatements(AnalyzerResult.GetVariablesToSplitOrMoveIntoMethodDefinition(cancellationToken), cancellationToken);
+                var declStatements = await CreateDeclarationStatementsAsync(AnalyzerResult.GetVariablesToSplitOrMoveIntoMethodDefinition(cancellationToken), cancellationToken).ConfigureAwait(false);
                 declStatements = postProcessor.MergeDeclarationStatements(declStatements);
 
                 return declStatements.Concat(statements);
@@ -611,7 +615,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 return SyntaxFactory.ExpressionStatement(CreateAssignmentExpression(identifier, rvalue));
             }
 
-            protected override StatementSyntax CreateDeclarationStatement(
+            protected override async Task<StatementSyntax> CreateDeclarationStatementAsync(
                 VariableInfo variable,
                 ExpressionSyntax initialValue,
                 CancellationToken cancellationToken)
@@ -620,12 +624,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 // to a method, the initialValue will be a method-call.  Types are not
                 // apperant with method calls (i.e. as opposed to a 'new XXX()' expression,
                 // where the type is apperant).
+
+                var options = await SemanticDocument.Document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
                 var type = variable.GetVariableType(this.SemanticDocument);
                 var typeNode = initialValue == null
                     ? type.GenerateTypeSyntax()
-                    : type.GenerateTypeSyntaxOrVar(
-                          this.SemanticDocument.Document.Project.Solution.Options,
-                          typeIsApperant: false);
+                    : type.GenerateTypeSyntaxOrVar(options, typeIsApparent: false);
 
                 var equalsValueClause = initialValue == null ? null : SyntaxFactory.EqualsValueClause(value: initialValue);
 

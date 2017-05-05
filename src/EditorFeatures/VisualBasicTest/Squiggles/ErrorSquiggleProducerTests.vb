@@ -19,13 +19,13 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Squiggles
         Private _producer As New DiagnosticTagProducer(Of IErrorTag)
 
         Private Async Function ProduceSquiggles(content As String) As Task(Of ImmutableArray(Of ITagSpan(Of IErrorTag)))
-            Using workspace = Await TestWorkspace.CreateVisualBasicAsync(content)
+            Using workspace = TestWorkspace.CreateVisualBasic(content)
                 Return (Await _producer.GetDiagnosticsAndErrorSpans(workspace)).Item2
             End Using
         End Function
 
         Private Async Function ProduceSquiggles(analyzerMap As Dictionary(Of String, DiagnosticAnalyzer()), content As String) As Task(Of ImmutableArray(Of ITagSpan(Of IErrorTag)))
-            Using workspace = Await TestWorkspace.CreateVisualBasicAsync(content)
+            Using workspace = TestWorkspace.CreateVisualBasic(content)
                 Return (Await _producer.GetDiagnosticsAndErrorSpans(workspace, analyzerMap)).Item2
             End Using
         End Function
@@ -99,7 +99,7 @@ End Class"
                         New VisualBasicRemoveUnnecessaryImportsDiagnosticAnalyzer()
                     })
 
-            Using workspace = Await TestWorkspace.CreateVisualBasicAsync(content)
+            Using workspace = TestWorkspace.CreateVisualBasic(content)
                 Dim options As New Dictionary(Of OptionKey, Object)
                 Dim language = workspace.Projects.Single().Language
                 Dim preferIntrinsicPredefinedTypeOption = New OptionKey(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, language)

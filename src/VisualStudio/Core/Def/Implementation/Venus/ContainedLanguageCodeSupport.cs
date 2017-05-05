@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
@@ -60,7 +61,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             var tree = document.GetSyntaxTreeSynchronously(cancellationToken);
             var typeNode = type.DeclaringSyntaxReferences.Where(r => r.SyntaxTree == tree).Select(r => r.GetSyntax(cancellationToken)).First();
             var codeModel = document.Project.LanguageServices.GetService<ICodeModelNavigationPointService>();
-            var point = codeModel.GetStartPoint(typeNode, EnvDTE.vsCMPart.vsCMPartBody);
+            var options = document.GetOptionsAsync(cancellationToken).WaitAndGetResult_Venus(cancellationToken);
+            var point = codeModel.GetStartPoint(typeNode, options, EnvDTE.vsCMPart.vsCMPartBody);
             var reservedNames = semanticModel.LookupSymbols(point.Value.Position, type).Select(m => m.Name);
 
             return NameGenerator.EnsureUniqueness(name, reservedNames, document.Project.LanguageServices.GetService<ISyntaxFactsService>().IsCaseSensitive);
@@ -172,26 +174,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 throw new InvalidOperationException(ServicesVSResources.Event_type_is_invalid);
             }
 
-            var handlesExpressions = useHandlesClause ?
-                new[]
-                {
-                    syntaxFactory.MemberAccessExpression(
+            var handlesExpressions = useHandlesClause
+                ? ImmutableArray.Create(syntaxFactory.MemberAccessExpression(
                         objectName != null ? syntaxFactory.IdentifierName(objectName) : syntaxFactory.ThisExpression(),
-                        syntaxFactory.IdentifierName(nameOfEvent))
-                }
-            : null;
+                        syntaxFactory.IdentifierName(nameOfEvent)))
+                : default(ImmutableArray<SyntaxNode>);
 
             var invokeMethod = ((INamedTypeSymbol)eventType).DelegateInvokeMethod;
             var newMethod = CodeGenerationSymbolFactory.CreateMethodSymbol(
-                attributes: null,
+                attributes: default(ImmutableArray<AttributeData>),
                 accessibility: Accessibility.Protected,
                 modifiers: new DeclarationModifiers(),
                 returnType: targetDocument.Project.GetCompilationAsync(cancellationToken).WaitAndGetResult_Venus(cancellationToken).GetSpecialType(SpecialType.System_Void),
+                returnsByRef: false,
                 explicitInterfaceSymbol: null,
                 name: eventHandlerName,
-                typeParameters: null,
-                parameters: invokeMethod.Parameters.ToArray(),
-                statements: null,
+                typeParameters: default(ImmutableArray<ITypeParameterSymbol>),
+                parameters: invokeMethod.Parameters,
+                statements: default(ImmutableArray<SyntaxNode>),
                 handlesExpressions: handlesExpressions);
 
             var annotation = new SyntaxAnnotation();
@@ -203,7 +203,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
             var position = type.Locations.First(loc => loc.SourceTree == targetSyntaxTree).SourceSpan.Start;
             var destinationType = syntaxFacts.GetContainingTypeDeclaration(targetSyntaxTree.GetRoot(cancellationToken), position);
-            var insertionPoint = codeModel.GetEndPoint(destinationType, EnvDTE.vsCMPart.vsCMPartBody);
+            var options = targetDocument.GetOptionsAsync(cancellationToken).WaitAndGetResult_Venus(cancellationToken);
+            var insertionPoint = codeModel.GetEndPoint(destinationType, options, EnvDTE.vsCMPart.vsCMPartBody);
 
             if (insertionPoint == null)
             {
@@ -262,10 +263,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             var memberNode = member.DeclaringSyntaxReferences.Select(r => r.GetSyntax(cancellationToken)).FirstOrDefault();
             if (memberNode != null)
             {
-                var navigationPoint = codeModel.GetStartPoint(memberNode, EnvDTE.vsCMPart.vsCMPartNavigate);
+                var memberNodeDocument = thisDocument.Project.Solution.GetDocument(memberNode.SyntaxTree);
+                var options = memberNodeDocument.GetOptionsAsync(cancellationToken).WaitAndGetResult_Venus(cancellationToken);
+                var navigationPoint = codeModel.GetStartPoint(memberNode, options, EnvDTE.vsCMPart.vsCMPartNavigate);
                 if (navigationPoint != null)
                 {
-                    targetDocument = thisDocument.Project.Solution.GetDocument(memberNode.SyntaxTree);
+                    targetDocument = memberNodeDocument;
                     textSpan = navigationPoint.Value.ToVsTextSpan();
                     return true;
                 }

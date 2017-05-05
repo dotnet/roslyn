@@ -117,7 +117,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             If Instrument(node) Then
-                result = _instrumenter.InstrumentLocalInitialization(node, result)
+                result = _instrumenterOpt.InstrumentLocalInitialization(node, result)
             End If
 
             Return result

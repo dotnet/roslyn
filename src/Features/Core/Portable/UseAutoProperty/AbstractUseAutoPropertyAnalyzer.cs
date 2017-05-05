@@ -1,5 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -14,7 +15,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
         public const string SymbolEquivalenceKey = nameof(SymbolEquivalenceKey);
     }
 
-    internal abstract class AbstractUseAutoPropertyAnalyzer<TPropertyDeclaration, TFieldDeclaration, TVariableDeclarator, TExpression> : 
+    internal abstract class AbstractUseAutoPropertyAnalyzer<TPropertyDeclaration, TFieldDeclaration, TVariableDeclarator, TExpression> :
         AbstractCodeStyleDiagnosticAnalyzer
         where TPropertyDeclaration : SyntaxNode
         where TFieldDeclaration : SyntaxNode
@@ -29,6 +30,9 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
         {
         }
 
+        public override bool OpenFileOnly(Workspace workspace) => false;
+        public override DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.ProjectAnalysis;
+
         protected abstract void RegisterIneligibleFieldsAction(CompilationStartAnalysisContext context, ConcurrentBag<IFieldSymbol> ineligibleFields);
         protected abstract bool SupportsReadOnlyProperties(Compilation compilation);
         protected abstract bool SupportsPropertyInitializer(Compilation compilation);
@@ -42,10 +46,10 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
                {
                    var analysisResults = new ConcurrentBag<AnalysisResult>();
                    var ineligibleFields = new ConcurrentBag<IFieldSymbol>();
-               
+
                    csac.RegisterSymbolAction(sac => AnalyzeProperty(analysisResults, sac), SymbolKind.Property);
                    RegisterIneligibleFieldsAction(csac, ineligibleFields);
-               
+
                    csac.RegisterCompilationEndAction(cac => Process(analysisResults, ineligibleFields, cac));
                });
 

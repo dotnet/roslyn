@@ -1,10 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.CSharp.UnitTests.Emit;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -5280,7 +5276,7 @@ class C
     void M() => System.Console.WriteLine(""M"");
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
 
             compilation.VerifyDiagnostics(
     // (16,32): error CS0029: Cannot implicitly convert type 'void' to 'object'
@@ -5410,7 +5406,7 @@ class C<T>
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
 
             compilation.VerifyDiagnostics(
     // (15,33): error CS0023: Operator '?' cannot be applied to operand of type 'T'
@@ -5539,7 +5535,7 @@ unsafe class C
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.DebugExe.WithAllowUnsafe(true));
+            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe.WithAllowUnsafe(true));
 
             compilation.VerifyDiagnostics(
     // (16,40): error CS0023: Operator '?' cannot be applied to operand of type 'void*'
@@ -5676,7 +5672,7 @@ class C<T>
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
 
             compilation.VerifyDiagnostics(
     // (15,17): error CS0023: Operator '?' cannot be applied to operand of type 'T'
@@ -6890,6 +6886,341 @@ namespace ConsoleApplication9
   IL_000d:  ldarg.0
   IL_000e:  call       ""T ConsoleApplication9.Program.A<T>.Value.get""
   IL_0013:  ret
+}");
+        }
+
+        [Fact, WorkItem(15670, "https://github.com/dotnet/roslyn/issues/15670")]
+        public void ConditionalAccessOffOfUnconstrainedDefault1()
+        {
+            var source = @"
+using System;
+
+public class Test<T>
+{
+    public string Run()
+    {
+        return default(T)?.ToString();
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        Console.WriteLine(""--"");
+        Console.WriteLine(new Test<string>().Run());
+        Console.WriteLine(""--"");
+        Console.WriteLine(new Test<int>().Run());
+        Console.WriteLine(""--"");
+    }
+}
+";
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput:
+@"--
+
+--
+0
+--");
+
+            verifier.VerifyIL("Test<T>.Run", @"
+{
+  // Code size       48 (0x30)
+  .maxstack  1
+  .locals init (T V_0,
+                string V_1)
+  IL_0000:  nop
+  IL_0001:  ldloca.s   V_0
+  IL_0003:  initobj    ""T""
+  IL_0009:  ldloc.0
+  IL_000a:  box        ""T""
+  IL_000f:  brtrue.s   IL_0014
+  IL_0011:  ldnull
+  IL_0012:  br.s       IL_002b
+  IL_0014:  ldloca.s   V_0
+  IL_0016:  initobj    ""T""
+  IL_001c:  ldloc.0
+  IL_001d:  stloc.0
+  IL_001e:  ldloca.s   V_0
+  IL_0020:  constrained. ""T""
+  IL_0026:  callvirt   ""string object.ToString()""
+  IL_002b:  stloc.1
+  IL_002c:  br.s       IL_002e
+  IL_002e:  ldloc.1
+  IL_002f:  ret
+}");
+        }
+
+        [Fact, WorkItem(15670, "https://github.com/dotnet/roslyn/issues/15670")]
+        public void ConditionalAccessOffOfUnconstrainedDefault2()
+        {
+            var source = @"
+using System;
+
+public class Test<T>
+{
+    public string Run()
+    {
+        var v = default(T);
+        return v?.ToString();
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        Console.WriteLine(""--"");
+        Console.WriteLine(new Test<string>().Run());
+        Console.WriteLine(""--"");
+        Console.WriteLine(new Test<int>().Run());
+        Console.WriteLine(""--"");
+    }
+}
+";
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput:
+@"--
+
+--
+0
+--");
+
+            verifier.VerifyIL("Test<T>.Run", @"
+{
+  // Code size       38 (0x26)
+  .maxstack  1
+  .locals init (T V_0, //v
+                string V_1)
+  IL_0000:  nop
+  IL_0001:  ldloca.s   V_0
+  IL_0003:  initobj    ""T""
+  IL_0009:  ldloc.0
+  IL_000a:  box        ""T""
+  IL_000f:  brtrue.s   IL_0014
+  IL_0011:  ldnull
+  IL_0012:  br.s       IL_0021
+  IL_0014:  ldloca.s   V_0
+  IL_0016:  constrained. ""T""
+  IL_001c:  callvirt   ""string object.ToString()""
+  IL_0021:  stloc.1
+  IL_0022:  br.s       IL_0024
+  IL_0024:  ldloc.1
+  IL_0025:  ret
+}");
+        }
+
+        [Fact, WorkItem(15670, "https://github.com/dotnet/roslyn/issues/15670")]
+        public void ConditionalAccessOffOfInterfaceConstrainedDefault1()
+        {
+            var source = @"
+using System;
+
+public class Test<T> where T : IComparable
+{
+    public string Run()
+    {
+        return default(T)?.ToString();
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        Console.WriteLine(""--"");
+        Console.WriteLine(new Test<string>().Run());
+        Console.WriteLine(""--"");
+        Console.WriteLine(new Test<int>().Run());
+        Console.WriteLine(""--"");
+    }
+}
+";
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput:
+@"--
+
+--
+0
+--");
+
+            verifier.VerifyIL("Test<T>.Run", @"
+{
+  // Code size       48 (0x30)
+  .maxstack  1
+  .locals init (T V_0,
+                string V_1)
+  IL_0000:  nop
+  IL_0001:  ldloca.s   V_0
+  IL_0003:  initobj    ""T""
+  IL_0009:  ldloc.0
+  IL_000a:  box        ""T""
+  IL_000f:  brtrue.s   IL_0014
+  IL_0011:  ldnull
+  IL_0012:  br.s       IL_002b
+  IL_0014:  ldloca.s   V_0
+  IL_0016:  initobj    ""T""
+  IL_001c:  ldloc.0
+  IL_001d:  stloc.0
+  IL_001e:  ldloca.s   V_0
+  IL_0020:  constrained. ""T""
+  IL_0026:  callvirt   ""string object.ToString()""
+  IL_002b:  stloc.1
+  IL_002c:  br.s       IL_002e
+  IL_002e:  ldloc.1
+  IL_002f:  ret
+}");
+        }
+
+        [Fact, WorkItem(15670, "https://github.com/dotnet/roslyn/issues/15670")]
+        public void ConditionalAccessOffOfInterfaceConstrainedDefault2()
+        {
+            var source = @"
+using System;
+
+public class Test<T> where T : IComparable
+{
+    public string Run()
+    {
+        var v = default(T);
+        return v?.ToString();
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        Console.WriteLine(""--"");
+        Console.WriteLine(new Test<string>().Run());
+        Console.WriteLine(""--"");
+        Console.WriteLine(new Test<int>().Run());
+        Console.WriteLine(""--"");
+    }
+}
+";
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput:
+@"--
+
+--
+0
+--");
+
+            verifier.VerifyIL("Test<T>.Run", @"
+{
+  // Code size       38 (0x26)
+  .maxstack  1
+  .locals init (T V_0, //v
+                string V_1)
+  IL_0000:  nop
+  IL_0001:  ldloca.s   V_0
+  IL_0003:  initobj    ""T""
+  IL_0009:  ldloc.0
+  IL_000a:  box        ""T""
+  IL_000f:  brtrue.s   IL_0014
+  IL_0011:  ldnull
+  IL_0012:  br.s       IL_0021
+  IL_0014:  ldloca.s   V_0
+  IL_0016:  constrained. ""T""
+  IL_001c:  callvirt   ""string object.ToString()""
+  IL_0021:  stloc.1
+  IL_0022:  br.s       IL_0024
+  IL_0024:  ldloc.1
+  IL_0025:  ret
+}");
+        }
+
+        [Fact, WorkItem(15670, "https://github.com/dotnet/roslyn/issues/15670")]
+        public void ConditionalAccessOffOfClassConstrainedDefault1()
+        {
+            var source = @"
+using System;
+
+public class Test<T> where T : class
+{
+    public string Run()
+    {
+        return default(T)?.ToString();
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        Console.WriteLine(""--"");
+        Console.WriteLine(new Test<string>().Run());
+        Console.WriteLine(""--"");
+    }
+}
+";
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput:
+@"--
+
+--");
+
+            verifier.VerifyIL("Test<T>.Run", @"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  .locals init (string V_0)
+  IL_0000:  nop
+  IL_0001:  ldnull
+  IL_0002:  stloc.0
+  IL_0003:  br.s       IL_0005
+  IL_0005:  ldloc.0
+  IL_0006:  ret
+}");
+        }
+
+        [Fact, WorkItem(15670, "https://github.com/dotnet/roslyn/issues/15670")]
+        public void ConditionalAccessOffOfClassConstrainedDefault2()
+        {
+            var source = @"
+using System;
+
+public class Test<T> where T : class
+{
+    public string Run()
+    {
+        var v = default(T);
+        return v?.ToString();
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        Console.WriteLine(""--"");
+        Console.WriteLine(new Test<string>().Run());
+        Console.WriteLine(""--"");
+    }
+}
+";
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput:
+@"--
+
+--");
+
+            verifier.VerifyIL("Test<T>.Run", @"
+{
+  // Code size       32 (0x20)
+  .maxstack  2
+  .locals init (T V_0, //v
+                string V_1)
+  IL_0000:  nop
+  IL_0001:  ldloca.s   V_0
+  IL_0003:  initobj    ""T""
+  IL_0009:  ldloc.0
+  IL_000a:  box        ""T""
+  IL_000f:  dup
+  IL_0010:  brtrue.s   IL_0016
+  IL_0012:  pop
+  IL_0013:  ldnull
+  IL_0014:  br.s       IL_001b
+  IL_0016:  callvirt   ""string object.ToString()""
+  IL_001b:  stloc.1
+  IL_001c:  br.s       IL_001e
+  IL_001e:  ldloc.1
+  IL_001f:  ret
 }");
         }
     }

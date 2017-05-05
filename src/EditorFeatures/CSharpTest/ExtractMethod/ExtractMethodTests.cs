@@ -7355,130 +7355,6 @@ class Program
             await TestExtractMethodAsync(code, expected);
         }
 
-        [WorkItem(538229, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538229")]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
-        public async Task Bug3790()
-        {
-            var code = @"class Test
-{
-    void method()
-    {
-        static void Main(string[] args)
-        {
-            int v = 0;
-            for(int i=0 ; i<5; i++)
-            {
-                [|v = v + i;|]
-            }
-        }
-    }
-}";
-            var expected = @"class Test
-{
-    void method()
-    {
-        static void Main(string[] args)
-        {
-            int v = 0;
-            for(int i=0 ; i<5; i++)
-            {
-                v = NewMethod(v, i);
-            }
-        }
-    }
-
-    private static int NewMethod(int v, int i)
-    {
-        v = v + i;
-        return v;
-    }
-}";
-
-            await TestExtractMethodAsync(code, expected);
-        }
-
-        [WorkItem(538229, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538229")]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
-        public async Task Bug3790_1()
-        {
-            var code = @"class Test
-{
-    void method()
-    {
-        static void Main(string[] args)
-        {
-            int v = 0;
-            for(int i=0 ; i<5; i++)
-            {
-                [|v = v + i|];
-            }
-        }
-    }
-}";
-            var expected = @"class Test
-{
-    void method()
-    {
-        static void Main(string[] args)
-        {
-            int v = 0;
-            for(int i=0 ; i<5; i++)
-            {
-                v = NewMethod(v, i);
-            }
-        }
-    }
-
-    private static int NewMethod(int v, int i)
-    {
-        return v + i;
-    }
-}";
-
-            await TestExtractMethodAsync(code, expected);
-        }
-
-        [WorkItem(538229, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538229")]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
-        public async Task Bug3790_2()
-        {
-            var code = @"class Test
-{
-    void method()
-    {
-        static void Main(string[] args)
-        {
-            int v = 0;
-            for(int i=0 ; i<5; i++)
-            {
-                [|i = v = v + i|];
-            }
-        }
-    }
-}";
-            var expected = @"class Test
-{
-    void method()
-    {
-        static void Main(string[] args)
-        {
-            int v = 0;
-            for(int i=0 ; i<5; i++)
-            {
-                i = NewMethod(ref v, i);
-            }
-        }
-    }
-
-    private static int NewMethod(ref int v, int i)
-    {
-        return v = v + i;
-    }
-}";
-
-            await TestExtractMethodAsync(code, expected);
-        }
-
         [WorkItem(540333, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540333")]
         [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task Bug6560()
@@ -10231,12 +10107,12 @@ namespace ClassLibrary9
         [WpfFact]
         [Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         [Trait(Traits.Feature, Traits.Features.Interactive)]
-        public async Task ExtractMethodCommandDisabledInSubmission()
+        public void ExtractMethodCommandDisabledInSubmission()
         {
             var exportProvider = MinimalTestExportProvider.CreateExportProvider(
                 TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(typeof(InteractiveDocumentSupportsFeatureService)));
 
-            using (var workspace = await TestWorkspace.CreateAsync(XElement.Parse(@"
+            using (var workspace = TestWorkspace.Create(XElement.Parse(@"
                 <Workspace>
                     <Submission Language=""C#"" CommonReferences=""true"">  
                         typeof(string).$$Name

@@ -214,6 +214,26 @@ class MyClass
                 type:="int[,]")
         End Function
 
+        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <WorkItem(8437, "https://github.com/dotnet/roslyn/issues/8437")>
+        Public Async Function ChangeSignature_ParameterDisplay_RefReturns() As Tasks.Task
+            Dim markup = <Text><![CDATA[
+class MyClass
+{
+    public ref int $$M(int[,] x)
+    {
+    }
+}"]]></Text>
+
+            Dim viewModelTestState = Await GetViewModelTestStateAsync(markup, LanguageNames.CSharp)
+            Dim viewModel = viewModelTestState.ViewModel
+            VerifyOpeningState(viewModel, "public ref int M(int[,] x)")
+            VerifyParameterInfo(
+                viewModel,
+                parameterIndex:=0,
+                type:="int[,]")
+        End Function
+
         Private Sub VerifyAlteredState(
            viewModelTestState As ChangeSignatureViewModelTestState,
            Optional monitor As PropertyChangedTestMonitor = Nothing,
@@ -310,16 +330,18 @@ class MyClass
 
         End Sub
 
-        Private Async Function GetViewModelTestStateAsync(markup As XElement, languageName As String) As Tasks.Task(Of ChangeSignatureViewModelTestState)
+        Private Async Function GetViewModelTestStateAsync(
+            markup As XElement,
+            languageName As String) As Tasks.Task(Of ChangeSignatureViewModelTestState)
 
             Dim workspaceXml =
             <Workspace>
-                <Project Language=<%= languageName %> CommonReferences="true">
+                <Project Language=<%= languageName %> CommonReferences="true" Features="refLocalsAndReturns">
                     <Document><%= markup.NormalizedValue.Replace(vbCrLf, vbLf) %></Document>
                 </Project>
             </Workspace>
 
-            Using workspace = Await TestWorkspace.CreateAsync(workspaceXml)
+            Using workspace = TestWorkspace.Create(workspaceXml)
                 Dim doc = workspace.Documents.Single()
                 Dim workspaceDoc = workspace.CurrentSolution.GetDocument(doc.Id)
                 If (Not doc.CursorPosition.HasValue) Then

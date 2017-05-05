@@ -1,9 +1,0 @@
-{
-  "dependencies": {
-    "System.Linq.Expressions": "4.1.0",
-    "System.Threading.Tasks.Parallel": "4.0.1"
-  },
-  "frameworks": {
-    "netstandard1.3": {}
-  }
-}

@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             DefaultVisit(symbol);
         }
 
-        public virtual void VisitDiscarded(DiscardedSymbol symbol)
+        public virtual void VisitDiscard(DiscardSymbol symbol)
         {
             DefaultVisit(symbol);
         }

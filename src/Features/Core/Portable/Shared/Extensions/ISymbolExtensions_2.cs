@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     var containingType = symbol.ContainingType;
                     if (containingType != null && containingType.TypeKind == TypeKind.Enum)
                     {
-                        return Glyph.EnumMember;
+                        return Glyph.EnumMemberPublic;
                     }
 
                     publicIcon = ((IFieldSymbol)symbol).IsConst ? Glyph.ConstantPublic : Glyph.FieldPublic;
@@ -47,6 +47,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     return Glyph.Label;
 
                 case SymbolKind.Local:
+                case SymbolKind.Discard:
                     return Glyph.Local;
 
                 case SymbolKind.NamedType:

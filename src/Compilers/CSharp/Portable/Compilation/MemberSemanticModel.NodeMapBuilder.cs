@@ -223,13 +223,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// <param name="currentBoundNode">The bound node.</param>
             private bool ShouldAddNode(BoundNode currentBoundNode)
             {
-                BoundBlock block;
-
                 // Do not add compiler generated nodes.
-                if (currentBoundNode.WasCompilerGenerated &&
-                    (currentBoundNode.Kind != BoundKind.Block ||
-                     (block = (BoundBlock)currentBoundNode).Statements.Length != 1 ||
-                     block.Statements.Single().WasCompilerGenerated))
+                if (currentBoundNode.WasCompilerGenerated)
                 {
                     return false;
                 }
@@ -253,14 +248,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             public override BoundNode VisitBinaryOperator(BoundBinaryOperator node)
             {
                 throw ExceptionUtilities.Unreachable;
-            }
-
-            public override BoundNode VisitDeconstructionAssignmentOperator(BoundDeconstructionAssignmentOperator node)
-            {
-                VisitList(node.LeftVariables);
-                Visit(node.Right);
-                // don't map the deconstruction, conversion or assignment steps
-                return null;
             }
 
             protected override bool ConvertInsufficientExecutionStackExceptionToCancelledByStackGuardException()

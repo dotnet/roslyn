@@ -7,7 +7,6 @@ using Microsoft.CodeAnalysis.Editor.Implementation.Interactive;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.InteractiveWindow.Commands;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Completion.CompletionProviders
 {
@@ -44,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.Completion.CompletionProviders
                                 {
                                     string completion = GetCompletionString(commandName);
                                     context.AddItem(CommonCompletionItem.Create(
-                                        completion, description: command.Description.ToSymbolDisplayParts(), glyph: Glyph.Intrinsic));
+                                        completion, CompletionItemRules.Default, description: command.Description.ToSymbolDisplayParts(), glyph: Glyph.Intrinsic));
                                 }
                             }
                         }

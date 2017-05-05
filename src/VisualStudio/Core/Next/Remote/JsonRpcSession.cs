@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -17,47 +16,69 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 {
     internal class JsonRpcSession : RemoteHostClient.Session
     {
-        private static int s_sessionId = 0;
+        private static int s_sessionId = 1;
 
         // current session id
         private readonly int _currentSessionId;
 
-        // communication channel related to snapshot information
-        private readonly SnapshotJsonRpcClient _snapshotClient;
-
         // communication channel related to service information
         private readonly ServiceJsonRpcClient _serviceClient;
+
+        // communication channel related to snapshot information
+        private readonly SnapshotJsonRpcClient _snapshotClientOpt;
 
         // close connection when cancellation has raised
         private readonly CancellationTokenRegistration _cancellationRegistration;
 
         public static async Task<JsonRpcSession> CreateAsync(
-            PinnedRemotableDataScope snapshot,
-            Stream snapshotStream,
+            Optional<Func<CancellationToken, Task<PinnedRemotableDataScope>>> getSnapshotAsync,
             object callbackTarget,
             Stream serviceStream,
+            Stream snapshotStreamOpt,
             CancellationToken cancellationToken)
         {
-            var session = new JsonRpcSession(snapshot, snapshotStream, callbackTarget, serviceStream, cancellationToken);
+            var snapshot = getSnapshotAsync.Value == null ? null : await getSnapshotAsync.Value(cancellationToken).ConfigureAwait(false);
 
-            await session.InitializeAsync().ConfigureAwait(false);
+            JsonRpcSession session;
+            try
+            {
+                session = new JsonRpcSession(snapshot, callbackTarget, serviceStream, snapshotStreamOpt, cancellationToken);
+            }
+            catch
+            {
+                snapshot?.Dispose();
+                throw;
+            }
+
+            try
+            {
+                await session.InitializeAsync().ConfigureAwait(false);
+            }
+            catch when (!cancellationToken.IsCancellationRequested)
+            {
+                // The session disposes of itself when cancellation is requested.
+                session.Dispose();
+                throw;
+            }
 
             return session;
         }
 
         private JsonRpcSession(
             PinnedRemotableDataScope snapshot,
-            Stream snapshotStream,
             object callbackTarget,
             Stream serviceStream,
+            Stream snapshotStreamOpt,
             CancellationToken cancellationToken) :
             base(snapshot, cancellationToken)
         {
+            Contract.Requires((snapshot == null) == (snapshotStreamOpt == null));
+
             // get session id
             _currentSessionId = Interlocked.Increment(ref s_sessionId);
 
-            _snapshotClient = new SnapshotJsonRpcClient(this, snapshotStream, cancellationToken);
             _serviceClient = new ServiceJsonRpcClient(serviceStream, callbackTarget, cancellationToken);
+            _snapshotClientOpt = snapshot == null ? null : new SnapshotJsonRpcClient(this, snapshotStreamOpt, cancellationToken);
 
             // dispose session when cancellation has raised
             _cancellationRegistration = CancellationToken.Register(Dispose);
@@ -65,43 +86,33 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
         private async Task InitializeAsync()
         {
-            CancellationToken.ThrowIfCancellationRequested();
+            // all roslyn remote service must based on ServiceHubServiceBase which implements Initialize method
+            if (_snapshotClientOpt != null)
+            {
+                await _snapshotClientOpt.InvokeAsync(WellKnownServiceHubServices.ServiceHubServiceBase_Initialize, _currentSessionId, PinnedScopeOpt.SolutionChecksum).ConfigureAwait(false);
+            }
 
-            try
-            {
-                // all roslyn remote service must based on ServiceHubServiceBase which implements Initialize method
-                await _snapshotClient.InvokeAsync(WellKnownServiceHubServices.ServiceHubServiceBase_Initialize, _currentSessionId, PinnedScope.SolutionChecksum.ToArray()).ConfigureAwait(false);
-                await _serviceClient.InvokeAsync(WellKnownServiceHubServices.ServiceHubServiceBase_Initialize, _currentSessionId, PinnedScope.SolutionChecksum.ToArray()).ConfigureAwait(false);
-            }
-            catch (ObjectDisposedException)
-            {
-                // object disposed exception can be thrown from StreamJsonRpc if JsonRpc is disposed in the middle of read/write.
-                // the way we added cancellation support to the JsonRpc which doesn't support cancellation natively
-                // can cause this exception to happen. newer version supports cancellation token natively, but
-                // we can't use it now, so we will catch object disposed exception and check cancellation token
-                CancellationToken.ThrowIfCancellationRequested();
-                throw;
-            }
+            await _serviceClient.InvokeAsync(WellKnownServiceHubServices.ServiceHubServiceBase_Initialize, _currentSessionId, PinnedScopeOpt?.SolutionChecksum).ConfigureAwait(false);
         }
 
         public override Task InvokeAsync(string targetName, params object[] arguments)
         {
-            return _serviceClient.InvokeAsync(targetName, arguments.Concat(PinnedScope.SolutionChecksum.ToArray()).ToArray());
+            return _serviceClient.InvokeAsync(targetName, arguments);
         }
 
         public override Task<T> InvokeAsync<T>(string targetName, params object[] arguments)
         {
-            return _serviceClient.InvokeAsync<T>(targetName, arguments.Concat(PinnedScope.SolutionChecksum.ToArray()).ToArray());
+            return _serviceClient.InvokeAsync<T>(targetName, arguments);
         }
 
         public override Task InvokeAsync(string targetName, IEnumerable<object> arguments, Func<Stream, CancellationToken, Task> funcWithDirectStreamAsync)
         {
-            return _serviceClient.InvokeAsync(targetName, arguments.Concat(PinnedScope.SolutionChecksum.ToArray()).ToArray(), funcWithDirectStreamAsync);
+            return _serviceClient.InvokeAsync(targetName, arguments, funcWithDirectStreamAsync);
         }
 
         public override Task<T> InvokeAsync<T>(string targetName, IEnumerable<object> arguments, Func<Stream, CancellationToken, Task<T>> funcWithDirectStreamAsync)
         {
-            return _serviceClient.InvokeAsync<T>(targetName, arguments.Concat(PinnedScope.SolutionChecksum.ToArray()).ToArray(), funcWithDirectStreamAsync);
+            return _serviceClient.InvokeAsync<T>(targetName, arguments, funcWithDirectStreamAsync);
         }
 
         protected override void OnDisposed()
@@ -111,7 +122,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
             // dispose service and snapshot channels
             _serviceClient.Dispose();
-            _snapshotClient.Dispose();
+            _snapshotClientOpt?.Dispose();
         }
 
         /// <summary>
@@ -128,6 +139,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             {
                 // this one doesn't need cancellation token since it has nothing to cancel
                 _callbackTarget = callbackTarget;
+
+                StartListening();
             }
         }
 
@@ -149,16 +162,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             public SnapshotJsonRpcClient(JsonRpcSession owner, Stream stream, CancellationToken cancellationToken)
                 : base(stream, callbackTarget: null, useThisAsCallback: true, cancellationToken: cancellationToken)
             {
+                Contract.ThrowIfNull(owner.PinnedScopeOpt);
+
                 _owner = owner;
                 _source = new CancellationTokenSource();
+
+                StartListening();
             }
 
-            private PinnedRemotableDataScope PinnedScope => _owner.PinnedScope;
+            private PinnedRemotableDataScope PinnedScope => _owner.PinnedScopeOpt;
 
             /// <summary>
             /// this is callback from remote host side to get asset associated with checksum from VS.
             /// </summary>
-            public async Task RequestAssetAsync(int sessionId, byte[][] checksums, string streamName)
+            public async Task RequestAssetAsync(int sessionId, Checksum[] checksums, string streamName)
             {
                 try
                 {
@@ -167,7 +184,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     using (Logger.LogBlock(FunctionId.JsonRpcSession_RequestAssetAsync, streamName, _source.Token))
                     using (var stream = await DirectStream.GetAsync(streamName, _source.Token).ConfigureAwait(false))
                     {
-                        using (var writer = new StreamObjectWriter(stream))
+                        using (var writer = new ObjectWriter(stream))
                         {
                             writer.WriteInt32(sessionId);
 
@@ -189,7 +206,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 }
             }
 
-            private async Task WriteAssetAsync(ObjectWriter writer, byte[][] checksums)
+            private async Task WriteAssetAsync(ObjectWriter writer, Checksum[] checksums)
             {
                 // special case
                 if (checksums.Length == 0)
@@ -213,20 +230,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 return SpecializedTasks.EmptyTask;
             }
 
-            private async Task WriteOneAssetAsync(ObjectWriter writer, byte[] checksum)
+            private async Task WriteOneAssetAsync(ObjectWriter writer, Checksum checksum)
             {
-                var remotableData = PinnedScope.GetRemotableData(new Checksum(checksum), _source.Token) ?? RemotableData.Null;
+                var remotableData = PinnedScope.GetRemotableData(checksum, _source.Token) ?? RemotableData.Null;
                 writer.WriteInt32(1);
 
-                writer.WriteValue(checksum);
+                checksum.WriteTo(writer);
                 writer.WriteString(remotableData.Kind);
 
                 await remotableData.WriteObjectToAsync(writer, _source.Token).ConfigureAwait(false);
             }
 
-            private async Task WriteMultipleAssetsAsync(ObjectWriter writer, byte[][] checksums)
+            private async Task WriteMultipleAssetsAsync(ObjectWriter writer, Checksum[] checksums)
             {
-                var remotableDataMap = PinnedScope.GetRemotableData(checksums.Select(c => new Checksum(c)), _source.Token);
+                var remotableDataMap = PinnedScope.GetRemotableData(checksums, _source.Token);
                 writer.WriteInt32(remotableDataMap.Count);
 
                 foreach (var kv in remotableDataMap)
@@ -234,7 +251,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     var checksum = kv.Key;
                     var remotableData = kv.Value;
 
-                    writer.WriteValue(checksum.ToArray());
+                    checksum.WriteTo(writer);
                     writer.WriteString(remotableData.Kind);
 
                     await remotableData.WriteObjectToAsync(writer, _source.Token).ConfigureAwait(false);

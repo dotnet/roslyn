@@ -31,10 +31,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.GenerateDefaultConstructors
 
             var service = document.GetLanguageService<IGenerateDefaultConstructorsService>();
             var actions = await service.GenerateDefaultConstructorsAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
-            if (!actions.IsDefault)
-            {
-                context.RegisterRefactorings(actions);
-            }
+            context.RegisterRefactorings(actions);
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Collections.Immutable
 Imports CompilationCreationTestHelpers
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
@@ -1146,6 +1147,87 @@ End Class
             Assert.Equal("<I<System.Int32>.F>d__0", stateMachineClass.Name) ' The name has been reconstructed correctly.
             Assert.Equal("C.<I<System.Int32>.F>d__0", stateMachineClass.ToTestDisplayString()) ' SymbolDisplay works.
             Assert.Equal(stateMachineClass, comp.GetTypeByMetadataName("C+<I<System.Int32>.F>d__0")) ' GetTypeByMetadataName works.
+        End Sub
+
+        <WorkItem(233668, "https://devdiv.visualstudio.com/defaultcollection/DevDiv/_workitems#_a=edit&id=233668")>
+        <Fact>
+        Public Sub EmptyNamespaceNames()
+            Dim ilSource = <![CDATA[
+.class public A
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() { ret }
+}
+.namespace '.N'
+{
+  .class public B
+  {
+    .method public hidebysig specialname rtspecialname instance void .ctor() { ret }
+  }
+}
+.namespace '.'
+{
+  .class public C
+  {
+    .method public hidebysig specialname rtspecialname instance void .ctor() { ret }
+  }
+}
+.namespace '..'
+{
+  .class public D
+  {
+    .method public hidebysig specialname rtspecialname instance void .ctor() { ret }
+  }
+}
+.namespace '..N'
+{
+  .class public E
+  {
+    .method public hidebysig specialname rtspecialname instance void .ctor() { ret }
+  }
+}
+.namespace N.M
+{
+  .class public F
+  {
+    .method public hidebysig specialname rtspecialname instance void .ctor() { ret }
+  }
+}
+.namespace 'N.M.'
+{
+  .class public G
+  {
+    .method public hidebysig specialname rtspecialname instance void .ctor() { ret }
+  }
+}
+.namespace 'N.M..'
+{
+  .class public H
+  {
+    .method public hidebysig specialname rtspecialname instance void .ctor() { ret }
+  }
+}
+]]>.Value
+            Dim vbSource =
+                <compilation>
+                    <file name="a.vb"/>
+                </compilation>
+            Dim comp = CreateCompilationWithCustomILSource(vbSource, ilSource)
+            comp.AssertTheseDiagnostics()
+            Dim builder = ArrayBuilder(Of String).GetInstance()
+            Dim [module] = comp.GetMember(Of NamedTypeSymbol)("A").ContainingModule
+            GetAllNamespaceNames(builder, [module].GlobalNamespace)
+            Assert.Equal({"Global", "", ".", "..N", ".N", "N", "N.M", "N.M."}, builder)
+            builder.Free()
+        End Sub
+
+        Private Shared Sub GetAllNamespaceNames(builder As ArrayBuilder(Of String), [namespace] As NamespaceSymbol)
+            builder.Add([namespace].ToTestDisplayString())
+            For Each member In [namespace].GetMembers()
+                If member.Kind <> SymbolKind.Namespace Then
+                    Continue For
+                End If
+                GetAllNamespaceNames(builder, DirectCast(member, NamespaceSymbol))
+            Next
         End Sub
 
     End Class

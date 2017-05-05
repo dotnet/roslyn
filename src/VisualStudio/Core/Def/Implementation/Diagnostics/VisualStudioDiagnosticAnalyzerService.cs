@@ -35,7 +35,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
             }
 
             // Analyzers are only supported for C# and VB currently.
-            var projectsWithHierarchy = _workspace.ProjectTracker.ImmutableProjects
+            var projectsWithHierarchy = (_workspace.DeferredState?.ProjectTracker.ImmutableProjects ?? ImmutableArray<AbstractProject>.Empty)
                 .Where(p => p.Language == LanguageNames.CSharp || p.Language == LanguageNames.VisualBasic)
                 .Where(p => p.Hierarchy == hierarchyOpt)
                 .Select(p => _workspace.CurrentSolution.GetProject(p.Id));

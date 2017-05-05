@@ -43,17 +43,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 var enclosingLambdaExpression = parent.GetAncestorsOrThis(n => (n is SimpleLambdaExpressionSyntax || n is ParenthesizedLambdaExpressionSyntax)).FirstOrDefault();
                 if (enclosingLambdaExpression != null)
                 {
-                    if (enclosingLambdaExpression is SimpleLambdaExpressionSyntax)
+                    if (enclosingLambdaExpression is SimpleLambdaExpressionSyntax simpleLambda)
                     {
-                        if (((SimpleLambdaExpressionSyntax)enclosingLambdaExpression).AsyncKeyword.Kind() == SyntaxKind.AsyncKeyword)
+                        if (simpleLambda.AsyncKeyword.Kind() == SyntaxKind.AsyncKeyword)
                         {
                             return token;
                         }
                     }
 
-                    if (enclosingLambdaExpression is ParenthesizedLambdaExpressionSyntax)
+                    if (enclosingLambdaExpression is ParenthesizedLambdaExpressionSyntax parenLamdba)
                     {
-                        if (((ParenthesizedLambdaExpressionSyntax)enclosingLambdaExpression).AsyncKeyword.Kind() == SyntaxKind.AsyncKeyword)
+                        if (parenLamdba.AsyncKeyword.Kind() == SyntaxKind.AsyncKeyword)
                         {
                             return token;
                         }

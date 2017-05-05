@@ -1291,6 +1291,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Dim closeParen As PunctuationSyntax = Nothing
             TryEatNewLineAndGetToken(SyntaxKind.CloseParenToken, closeParen, createIfMissing:=True)
 
+            If argumentBuilder.Count < 2 Then
+                argumentBuilder.AddSeparator(InternalSyntaxFactory.MissingToken(SyntaxKind.CommaToken))
+
+                Dim missing = SyntaxFactory.IdentifierName(InternalSyntaxFactory.MissingIdentifier())
+                missing = ReportSyntaxError(missing, ERRID.ERR_TupleTooFewElements)
+                argumentBuilder.Add(SyntaxFactory.SimpleArgument(nameColonEquals:=Nothing, expression:=missing))
+            End If
+
             Dim arguments = argumentBuilder.ToList
             _pool.Free(argumentBuilder)
 

@@ -366,6 +366,29 @@ namespace Roslyn.Utilities
             {
                 return File.GetLastWriteTimeUtc(fullPath);
             }
+            catch (IOException)
+            {
+                throw;
+            }
+            catch (Exception e)
+            {
+                throw new IOException(e.Message, e);
+            }
+        }
+
+        /// <exception cref="IOException"/>
+        internal static long GetFileLength(string fullPath)
+        {
+            Debug.Assert(PathUtilities.IsAbsolute(fullPath));
+            try
+            {
+                var info = new FileInfo(fullPath);
+                return info.Length;
+            }
+            catch (IOException)
+            {
+                throw;
+            }
             catch (Exception e)
             {
                 throw new IOException(e.Message, e);

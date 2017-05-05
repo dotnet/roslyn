@@ -62,17 +62,12 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 return None;
             }
 
-            var symReader4 = symReader as ISymUnmanagedReader4;
-            if (symReader4 != null) // TODO: VB Portable PDBs
+            if (symReader is ISymUnmanagedReader5 symReader5)
             {
-                byte* metadata;
-                int size;
-
-                // TODO: version
-                int hr = symReader4.GetPortableDebugMetadata(out metadata, out size);
+                int hr = symReader5.GetPortableDebugMetadataByVersion(methodVersion, out byte* metadata, out int size);
                 SymUnmanagedReaderExtensions.ThrowExceptionForHR(hr);
 
-                if (metadata != null)
+                if (hr == 0)
                 {
                     var mdReader = new MetadataReader(metadata, size);
                     try
@@ -128,7 +123,11 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     defaultNamespaceName = "";
                 }
 
-                ImmutableArray<HoistedLocalScopeRecord> hoistedLocalScopeRecords = ImmutableArray<HoistedLocalScopeRecord>.Empty;
+                // VB should read hoisted scope information from local variables:
+                var hoistedLocalScopeRecords = isVisualBasicMethod ?
+                    default(ImmutableArray<HoistedLocalScopeRecord>) : 
+                    ImmutableArray<HoistedLocalScopeRecord>.Empty;
+
                 ImmutableDictionary<int, ImmutableArray<bool>> dynamicLocalMap = null;
                 ImmutableDictionary<string, ImmutableArray<bool>> dynamicLocalConstantMap = null;
                 ImmutableDictionary<int, ImmutableArray<string>> tupleLocalMap = null;
@@ -143,7 +142,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                         if (!customDebugInfoRecord.IsDefault)
                         {
                             hoistedLocalScopeRecords = CustomDebugInfoReader.DecodeStateMachineHoistedLocalScopesRecord(customDebugInfoRecord)
-                                .SelectAsArray(s => new HoistedLocalScopeRecord(s.StartOffset, s.EndOffset - s.StartOffset + 1));
+                                .SelectAsArray(s => new HoistedLocalScopeRecord(s.StartOffset, s.Length));
                         }
 
                         GetCSharpDynamicLocalInfo(

@@ -42,6 +42,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
         private bool CanHandle(string errorId)
         {
+            // make sure we have error id, otherwise, we simple don't support
+            // this error
+            if (errorId == null)
+            {
+                // record NFW to see who violates contract.
+                WatsonReporter.Report(new Exception("errorId is null"));
+                return false;
+            }
+
             // we accept all compiler diagnostics
             if (errorId.StartsWith(_errorCodePrefix))
             {
@@ -177,7 +186,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                     throw new ArgumentException(ServicesVSResources.Not_a_valid_value, nameof(nPriority));
             }
 
-            if (iStartLine < 0 || iStartColumn < 0)
+            if (bstrFileName == null || iStartLine < 0 || iStartColumn < 0)
             {
                 // we now takes care of errors that is not belong to file as well.
                 var projectDiagnostic = GetDiagnosticData(

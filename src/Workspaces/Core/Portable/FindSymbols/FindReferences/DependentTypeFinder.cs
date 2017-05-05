@@ -658,7 +658,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 (inheritanceQuery.DerivesFromSystemValueType && info.Kind == DeclaredSymbolInfoKind.Struct) ||
                 (inheritanceQuery.DerivesFromSystemMulticastDelegate && info.Kind == DeclaredSymbolInfoKind.Delegate))
             {
-                var symbol = await ResolveAsync(document, info, cachedModels, cancellationToken).ConfigureAwait(false) as INamedTypeSymbol;
+                var symbol = await TryResolveAsync(document, info, cachedModels, cancellationToken).ConfigureAwait(false) as INamedTypeSymbol;
                 if (symbol != null)
                 {
                     result.Add(SymbolAndProjectId.Create(symbol, projectId));
@@ -671,7 +671,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 // Also, we can't just look for an empty inheritance list.  We may have 
                 // something like: "class C : IFoo".  This type derives from object, despite
                 // having a non-empty list.
-                var symbol = await ResolveAsync(document, info, cachedModels, cancellationToken).ConfigureAwait(false) as INamedTypeSymbol;
+                var symbol = await TryResolveAsync(document, info, cachedModels, cancellationToken).ConfigureAwait(false) as INamedTypeSymbol;
                 if (symbol?.BaseType?.SpecialType == SpecialType.System_Object)
                 {
                     result.Add(SymbolAndProjectId.Create(symbol, projectId));
@@ -680,7 +680,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             else if (AnyInheritanceNamesMatch(info, inheritanceQuery.TypeNames))
             {
                 // Looks like we have a potential match.  Actually check if the symbol is viable.
-                var symbol = await ResolveAsync(document, info, cachedModels, cancellationToken).ConfigureAwait(false) as INamedTypeSymbol;
+                var symbol = await TryResolveAsync(document, info, cachedModels, cancellationToken).ConfigureAwait(false) as INamedTypeSymbol;
                 if (symbol != null)
                 {
                     if (typeImmediatelyMatches(typesToSearchFor, symbol))
@@ -705,13 +705,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return false;
         }
 
-        private static async Task<ISymbol> ResolveAsync(
+        private static async Task<ISymbol> TryResolveAsync(
             Document document, DeclaredSymbolInfo info, ConcurrentSet<SemanticModel> cachedModels, 
             CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             cachedModels.Add(semanticModel);
-            return info.Resolve(semanticModel, cancellationToken);
+            return info.TryResolve(semanticModel, cancellationToken);
         }
 
         private class InheritanceQuery

@@ -70,7 +70,7 @@ namespace Roslyn.Utilities
                         return;
                     }
 
-                    if (!_trackKinds || (_trackKinds && child.RawKind == kind))
+                    if (!_trackKinds || child.RawKind == kind)
                     {
                         ordinal++;
                     }
@@ -99,7 +99,7 @@ namespace Roslyn.Utilities
                 }
             }
 
-            if (!_trackKinds || (_trackKinds && current.RawKind == _kind))
+            if (!_trackKinds || current.RawKind == _kind)
             {
                 nodeOrToken = current;
                 return true;
@@ -113,7 +113,7 @@ namespace Roslyn.Utilities
             var ordinal = segment.Ordinal;
             foreach (var child in current.ChildNodesAndTokens())
             {
-                if (!_trackKinds || (_trackKinds && child.RawKind == segment.Kind))
+                if (!_trackKinds || child.RawKind == segment.Kind)
                 {
                     if (ordinal == 0)
                     {

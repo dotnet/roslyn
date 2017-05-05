@@ -44,7 +44,7 @@ def generate(boolean isPr) {
         prTrigger.permitOrg('Microsoft')
         prTrigger.permitOrg('dotnet')
         prTrigger.setCustomTriggerPhrase("(?i)^\\s*(@dotnet-bot\\s+)?(re)?test\\s+perf(\\s+please)?\\s*\$" )
-        prTrigger.triggerForBranch('master');
+        prTrigger.triggerForBranch(branchName);
         prTrigger.setGithubContext('Performance Test Run')
         prTrigger.emitTrigger(myJob)
     }

@@ -1,8 +1,10 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="..\..\..\..\build\Targets\Settings.props" />
   <PropertyGroup>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <ProjectGuid>{7BE3DEEB-87F8-4E15-9C21-4F94B0B1C2D6}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
@@ -41,12 +43,9 @@
       <Private>false</Private>
     </ProjectReference>
   </ItemGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' "></PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' "></PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup>
-    <Reference Include="envdte, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <Private>false</Private>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.ComponentModel.Composition" />
@@ -55,18 +54,30 @@
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
-    <Reference Include="VSLangProj, Version=7.0.3300.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="VSLangProj80, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="VSLangProj140, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <Private>false</Private>
-    </Reference>
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
     <Reference Include="WindowsBase" />
+    <PackageReference Include="EnvDTE">
+      <Version>$(EnvDTEVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.CodeAnalysis.Sdk.UI">
+      <Version>$(MicrosoftVisualStudioCodeAnalysisSdkUIVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Language.Intellisense">
+      <Version>$(MicrosoftVisualStudioLanguageIntellisenseVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.ComponentModelHost">
+      <Version>$(MicrosoftVisualStudioComponentModelHostVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Diagnostics.PerformanceProvider">
+      <Version>$(MicrosoftVisualStudioDiagnosticsPerformanceProviderVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.ImageCatalog">
+      <Version>$(MicrosoftVisualStudioImageCatalogVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.Build.Framework">
+      <Version>$(MicrosoftBuildFrameworkVersion)</Version>
+    </PackageReference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AnalyzerItem\AnalyzerItem.BrowseObject.cs" />
@@ -82,19 +93,24 @@
     <Compile Include="AnalyzersFolderItem\AnalyzersFolderItemProvider.cs" />
     <Compile Include="BaseItem.cs" />
     <Compile Include="BrowseObjectAttributes.cs" />
-    <Compile Include="DiagnosticItem\DiagnosticItem.BrowseObject.cs" />
-    <Compile Include="DiagnosticItem\DiagnosticItemProvider.cs" />
+    <Compile Include="DiagnosticItem\BaseDiagnosticItem.cs" />
+    <Compile Include="DiagnosticItem\BaseDiagnosticItemSource.cs" />
+    <Compile Include="DiagnosticItem\CpsDiagnosticItem.cs" />
+    <Compile Include="DiagnosticItem\CpsDiagnosticItemProvider.cs" />
+    <Compile Include="DiagnosticItem\CpsDiagnosticItemSource.cs" />
+    <Compile Include="DiagnosticItem\BaseDiagnosticItem.BrowseObject.cs" />
+    <Compile Include="DiagnosticItem\LegacyDiagnosticItemProvider.cs" />
     <Compile Include="AnalyzerReferenceManager.cs" />
     <Compile Include="ContextMenuController.cs" />
-    <Compile Include="DiagnosticItem\DiagnosticItemSource.DiagnosticDescriptorComparer.cs" />
+    <Compile Include="DiagnosticItem\BaseDiagnosticItemSource.DiagnosticDescriptorComparer.cs" />
     <Compile Include="DiagnosticItem\RuleSelectionImage.cs" />
     <Compile Include="HierarchyItemToProjectIdMap.cs" />
     <Compile Include="IAnalyzersCommandHandler.cs" />
     <Compile Include="IHierarchyItemToProjectIdMap.cs" />
     <Compile Include="ISolutionExplorerWorkspaceProvider.cs" />
     <Compile Include="LocalizableProperties.cs" />
-    <Compile Include="DiagnosticItem\DiagnosticItemSource.cs" />
-    <Compile Include="DiagnosticItem\DiagnosticItem.cs" />
+    <Compile Include="DiagnosticItem\LegacyDiagnosticItemSource.cs" />
+    <Compile Include="DiagnosticItem\LegacyDiagnosticItem.cs" />
     <Compile Include="RuleSetDocumentExtensions.cs" />
     <Compile Include="SolutionExplorerShim.Designer.cs">
       <AutoGen>True</AutoGen>
@@ -118,9 +134,6 @@
       <SubType>Designer</SubType>
       <LastGenOutput>SolutionExplorerShim.Designer.cs</LastGenOutput>
     </EmbeddedResource>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="project.json" />
   </ItemGroup>
   <Import Project="..\..\..\..\build\Targets\Imports.targets" />
 </Project>

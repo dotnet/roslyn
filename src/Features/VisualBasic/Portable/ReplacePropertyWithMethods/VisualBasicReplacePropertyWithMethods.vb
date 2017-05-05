@@ -10,7 +10,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithProperty
     <ExportLanguageService(GetType(IReplacePropertyWithMethodsService), LanguageNames.VisualBasic), [Shared]>
-    Friend Class VisualBasicReplacePropertyWithMethods
+    Partial Friend Class VisualBasicReplacePropertyWithMethods
         Inherits AbstractReplacePropertyWithMethodsService(Of IdentifierNameSyntax, ExpressionSyntax, StatementSyntax)
 
         Public Overrides Function GetPropertyDeclaration(token As SyntaxToken) As SyntaxNode
@@ -42,25 +42,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithP
             Return containingProperty
         End Function
 
-        Public Overrides Function GetReplacementMembers(
+        Public Overrides Function GetReplacementMembersAsync(
                 document As Document,
                 [property] As IPropertySymbol,
                 propertyDeclarationNode As SyntaxNode,
                 propertyBackingField As IFieldSymbol,
                 desiredGetMethodName As String,
                 desiredSetMethodName As String,
-                cancellationToken As CancellationToken) As IList(Of SyntaxNode)
+                cancellationToken As CancellationToken) As Task(Of IList(Of SyntaxNode))
 
             Dim propertyStatement = TryCast(propertyDeclarationNode, PropertyStatementSyntax)
             If propertyStatement Is Nothing Then
-                Return SpecializedCollections.EmptyList(Of SyntaxNode)
+                Return Task.FromResult(SpecializedCollections.EmptyList(Of SyntaxNode))
             End If
 
-            Return ConvertPropertyToMembers(
+            Return Task.FromResult(ConvertPropertyToMembers(
                 SyntaxGenerator.GetGenerator(document), [property],
                 propertyStatement, propertyBackingField,
                 desiredGetMethodName, desiredSetMethodName,
-                cancellationToken)
+                cancellationToken))
         End Function
 
         Private Function ConvertPropertyToMembers(
@@ -83,14 +83,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithP
             If getMethod IsNot Nothing Then
                 result.Add(GetGetMethod(
                     generator, propertyStatement, propertyBackingField,
-                    getMethod, desiredGetMethodName, cancellationToken))
+                    getMethod, desiredGetMethodName,
+                    copyLeadingTrivia:=True,
+                    cancellationToken:=cancellationToken))
             End If
 
             Dim setMethod = [property].SetMethod
             If setMethod IsNot Nothing Then
                 result.Add(GetSetMethod(
                     generator, propertyStatement, propertyBackingField,
-                    setMethod, desiredSetMethodName, cancellationToken))
+                    setMethod, desiredSetMethodName,
+                    copyLeadingTrivia:=getMethod Is Nothing,
+                    cancellationToken:=cancellationToken))
             End If
 
             Return result
@@ -102,6 +106,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithP
                 propertyBackingField As IFieldSymbol,
                 getMethod As IMethodSymbol,
                 desiredGetMethodName As String,
+                copyLeadingTrivia As Boolean,
                 cancellationToken As CancellationToken) As SyntaxNode
             Dim statements = New List(Of SyntaxNode)()
 
@@ -117,7 +122,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithP
                 statements.Add(generator.ReturnStatement(fieldReference))
             End If
 
-            Return generator.MethodDeclaration(getMethod, desiredGetMethodName, statements)
+            Dim methodDeclaration = generator.MethodDeclaration(getMethod, desiredGetMethodName, statements)
+            methodDeclaration = CopyLeadingTriviaOver(propertyStatement, methodDeclaration, copyLeadingTrivia)
+            Return methodDeclaration
         End Function
 
         Private Shared Function WithFormattingAnnotation(statement As StatementSyntax) As StatementSyntax
@@ -130,6 +137,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithP
                 propertyBackingField As IFieldSymbol,
                 setMethod As IMethodSymbol,
                 desiredSetMethodName As String,
+                copyLeadingTrivia As Boolean,
                 cancellationToken As CancellationToken) As SyntaxNode
             Dim statements = New List(Of SyntaxNode)()
 
@@ -146,7 +154,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithP
                     fieldReference, generator.IdentifierName(setMethod.Parameters(0).Name)))
             End If
 
-            Return generator.MethodDeclaration(setMethod, desiredSetMethodName, statements)
+            Dim methodDeclaration = generator.MethodDeclaration(setMethod, desiredSetMethodName, statements)
+            methodDeclaration = CopyLeadingTriviaOver(propertyStatement, methodDeclaration, copyLeadingTrivia)
+            Return methodDeclaration
+        End Function
+
+        Private Function CopyLeadingTriviaOver(propertyStatement As PropertyStatementSyntax,
+                                               methodDeclaration As SyntaxNode,
+                                               copyLeadingTrivia As Boolean) As SyntaxNode
+            If copyLeadingTrivia Then
+                Return methodDeclaration.WithLeadingTrivia(
+                    propertyStatement.GetLeadingTrivia().Select(AddressOf ConvertTrivia))
+            End If
+
+            Return methodDeclaration
+        End Function
+
+        Private Function ConvertTrivia(trivia As SyntaxTrivia) As SyntaxTrivia
+            If trivia.Kind() = SyntaxKind.DocumentationCommentTrivia Then
+                Dim converted = ConvertValueToReturnsRewriter.instance.Visit(trivia.GetStructure())
+                Return SyntaxFactory.Trivia(DirectCast(converted, StructuredTriviaSyntax))
+            End If
+
+            Return trivia
         End Function
 
         Public Overrides Function GetPropertyNodeToReplace(propertyDeclaration As SyntaxNode) As SyntaxNode

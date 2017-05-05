@@ -40,13 +40,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
             private Task<bool> _newIdentifierBindsTask = SpecializedTasks.False;
 
             private readonly string _originalName;
-            public string OriginalName { get { return _originalName; } }
+            public string OriginalName => _originalName;
 
             private readonly ITrackingSpan _trackingSpan;
-            public ITrackingSpan TrackingSpan { get { return _trackingSpan; } }
+            public ITrackingSpan TrackingSpan => _trackingSpan;
 
             private bool _forceRenameOverloads;
-            public bool ForceRenameOverloads { get { return _forceRenameOverloads; } }
+            public bool ForceRenameOverloads => _forceRenameOverloads;
 
             public TrackingSession(StateMachine stateMachine, SnapshotSpan snapshotSpan, IAsynchronousOperationListener asyncListener)
             {
@@ -179,6 +179,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                         }
                         else
                         {
+                            // We do not yet support renaming (inline rename or rename tracking) on
+                            // named tuple elements.
+                            if (renameSymbolInfo.Symbols.Single().ContainingType?.IsTupleType() == true)
+                            {
+                                return TriggerIdentifierKind.NotRenamable;
+                            }
+
                             return await DetermineIfRenamableSymbolAsync(renameSymbolInfo.Symbols.Single(), document, token).ConfigureAwait(false);
                         }
                     }

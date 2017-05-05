@@ -202,9 +202,9 @@ namespace Microsoft.Cci
             return this;
         }
 
-        PrimitiveTypeCode ITypeReference.TypeCode(EmitContext context)
+        PrimitiveTypeCode ITypeReference.TypeCode
         {
-            throw ExceptionUtilities.Unreachable;
+            get { throw ExceptionUtilities.Unreachable; }
         }
 
         ushort INamedTypeReference.GenericParameterCount

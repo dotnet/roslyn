@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -20,18 +21,21 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MoveType
         private string RenameFileCodeActionTitle = FeaturesResources.Rename_file_to_0;
         private string RenameTypeCodeActionTitle = FeaturesResources.Rename_type_to_0;
 
-        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace)
-        {
-            return new MoveTypeCodeRefactoringProvider();
-        }
+        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
+            => new MoveTypeCodeRefactoringProvider();
 
         protected async Task TestRenameTypeToMatchFileAsync(
-           string originalCode,
-           string expectedCode = null,
-           bool expectedCodeAction = true,
-           bool compareTokens = true)
+            string originalCode,
+            string expectedCode = null,
+            bool expectedCodeAction = true,
+            bool ignoreTrivia = true,
+            string fixAllActionEquivalenceKey = null,
+            object fixProviderData = null)
         {
-            using (var workspace = await CreateWorkspaceFromFileAsync(originalCode, parseOptions: null, compilationOptions: null))
+            var testOptions = new TestParameters(
+                fixAllActionEquivalenceKey: fixAllActionEquivalenceKey, 
+                fixProviderData: fixProviderData);
+            using (var workspace = CreateWorkspaceFromOptions(originalCode, testOptions))
             {
                 if (expectedCodeAction)
                 {
@@ -44,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MoveType
                     var codeActionTitle = string.Format(RenameTypeCodeActionTitle, expectedText.Substring(span.Start, span.Length));
 
                     var oldSolutionAndNewSolution = await TestOperationAsync(
-                        workspace, expectedText, codeActionTitle, compareTokens);
+                        testOptions, workspace, expectedText, codeActionTitle, ignoreTrivia);
 
                     // the original source document does not exist in the new solution.
                     var newSolution = oldSolutionAndNewSolution.Item2;
@@ -55,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MoveType
                 }
                 else
                 {
-                    var actions = await GetCodeActionsAsync(workspace, fixAllActionEquivalenceKey: null);
+                    var actions = await GetCodeActionsAsync(workspace, testOptions);
 
                     if (actions != null)
                     {
@@ -70,10 +74,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MoveType
             string originalCode,
             string expectedDocumentName = null,
             bool expectedCodeAction = true,
-            bool compareTokens = true,
-            IList<string> destinationDocumentContainers = null)
+            bool ignoreTrivia = true,
+            IList<string> destinationDocumentContainers = null,
+            string fixAllActionEquivalenceKey = null,
+            object fixProviderData = null)
         {
-            using (var workspace = await CreateWorkspaceFromFileAsync(originalCode, parseOptions: null, compilationOptions: null))
+            var testOptions = new TestParameters(
+                fixAllActionEquivalenceKey: fixAllActionEquivalenceKey, fixProviderData: fixProviderData);
+            using (var workspace = CreateWorkspaceFromOptions(originalCode, testOptions))
             {
                 if (expectedCodeAction)
                 {
@@ -87,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MoveType
 
                     // a new document with the same text as old document is added.
                     var oldSolutionAndNewSolution = await TestOperationAsync(
-                        workspace, expectedText, codeActionTitle, compareTokens);
+                        testOptions, workspace, expectedText, codeActionTitle, ignoreTrivia);
 
                     // the original source document does not exist in the new solution.
                     var newSolution = oldSolutionAndNewSolution.Item2;
@@ -101,7 +109,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MoveType
                 }
                 else
                 {
-                    var actions = await GetCodeActionsAsync(workspace, fixAllActionEquivalenceKey: null);
+                    var actions = await GetCodeActionsAsync(workspace, testOptions);
 
                     if (actions != null)
                     {
@@ -113,22 +121,23 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MoveType
         }
 
         private async Task<Tuple<Solution, Solution>> TestOperationAsync(
+            TestParameters parameters,
             Workspaces.TestWorkspace workspace,
             string expectedCode,
             string operation,
-            bool compareTokens)
+            bool ignoreTrivia)
         {
-            var actions = await GetCodeActionsAsync(workspace, fixAllActionEquivalenceKey: null);
+            var actions = await GetCodeActionsAsync(workspace, parameters);
             var action = actions.Single(a => a.Title.Equals(operation, StringComparison.CurrentCulture));
             var operations = await action.GetOperationsAsync(CancellationToken.None);
 
             return await TestOperationsAsync(workspace,
                 expectedText: expectedCode,
                 operations: operations,
-                conflictSpans: null,
-                renameSpans: null,
-                warningSpans: null,
-                compareTokens: compareTokens,
+                conflictSpans: ImmutableArray<TextSpan>.Empty,
+                renameSpans: ImmutableArray<TextSpan>.Empty,
+                warningSpans: ImmutableArray<TextSpan>.Empty,
+                ignoreTrivia: ignoreTrivia,
                 expectedChangedDocumentId: null);
         }
 
@@ -137,26 +146,29 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MoveType
             string expectedSourceTextAfterRefactoring,
             string expectedDocumentName,
             string destinationDocumentText,
-            IList<string> destinationDocumentContainers = null,
+            ImmutableArray<string> destinationDocumentContainers = default(ImmutableArray<string>),
             bool expectedCodeAction = true,
             int index = 0,
-            bool compareTokens = true)
+            bool ignoreTrivia = true,
+            Action<Workspace> onAfterWorkspaceCreated = null)
         {
+            var testOptions = new TestParameters();
             if (expectedCodeAction)
             {
-                using (var workspace = await CreateWorkspaceFromFileAsync(originalCode, parseOptions: null, compilationOptions: null))
+                using (var workspace = CreateWorkspaceFromFile(originalCode, testOptions))
                 {
+                    onAfterWorkspaceCreated?.Invoke(workspace);
+
                     // replace with default values on null.
-                    if (destinationDocumentContainers == null)
-                    {
-                        destinationDocumentContainers = Array.Empty<string>();
-                    }
+                    destinationDocumentContainers = destinationDocumentContainers.NullToEmpty();
 
                     var sourceDocumentId = workspace.Documents[0].Id;
 
                     // Verify the newly added document and its text
-                    var oldSolutionAndNewSolution = await TestAddDocumentAsync(workspace,
-                        destinationDocumentText, index, expectedDocumentName, destinationDocumentContainers, compareTokens: compareTokens);
+                    var oldSolutionAndNewSolution = await TestAddDocumentAsync(
+                        testOptions, workspace,
+                        destinationDocumentText, index, expectedDocumentName,
+                        destinationDocumentContainers, ignoreTrivia);
 
                     // Verify source document's text after moving type.
                     var oldSolution = oldSolutionAndNewSolution.Item1;
@@ -166,7 +178,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MoveType
 
                     var modifiedSourceDocument = newSolution.GetDocument(sourceDocumentId);
 
-                    if (compareTokens)
+                    if (ignoreTrivia)
                     {
                         TokenUtilities.AssertTokensEqual(
                             expectedSourceTextAfterRefactoring, (await modifiedSourceDocument.GetTextAsync()).ToString(), GetLanguage());
@@ -179,7 +191,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MoveType
             }
             else
             {
-                await TestMissingAsync(originalCode, parseOptions: null);
+                await TestMissingAsync(originalCode);
             }
         }
     }

@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.Recommendations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
@@ -30,21 +29,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
             var ts = s as ITypeSymbol;
             return ts != null && ts.IsIntrinsicType();
-        }
-
-        public static string GetInsertionText(ISymbol symbol, SyntaxContext context)
-        {
-            if (CommonCompletionUtilities.TryRemoveAttributeSuffix(symbol, context, out var name))
-            {
-                // Cannot escape Attribute name with the suffix removed. Only use the name with
-                // the suffix removed if it does not need to be escaped.
-                if (name.Equals(name.EscapeIdentifier()))
-                {
-                    return name;
-                }
-            }
-
-            return symbol.Name.EscapeIdentifier(isQueryContext: context.IsInQuery);
         }
 
         internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
@@ -91,12 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         }
 
         protected override (string displayText, string insertionText) GetDisplayAndInsertionText(ISymbol symbol, SyntaxContext context)
-        {
-            var insertionText = GetInsertionText(symbol, context);
-            var displayText = symbol.GetArity() == 0 ? insertionText : string.Format("{0}<>", insertionText);
-
-            return (displayText, insertionText);
-        }
+            => CompletionUtilities.GetDisplayAndInsertionText(symbol, context);
 
         protected override CompletionItemRules GetCompletionItemRules(List<ISymbol> symbols, SyntaxContext context, bool preselect)
         {
@@ -161,12 +140,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
 
             return rule;
-        }
-
-        protected override CompletionItemRules GetCompletionItemRules(IReadOnlyList<ISymbol> symbols, SyntaxContext context)
-        {
-            // Unused
-            throw new NotImplementedException();
         }
 
         protected override CompletionItemSelectionBehavior PreselectedItemSelectionBehavior => CompletionItemSelectionBehavior.HardSelection;

@@ -24,10 +24,10 @@ if [ -z "$RID" ]; then
     fi
 fi
 
-VERSIONS_TARGETS=$CONTAINING_DIR/../Targets/VSL.Versions.targets
-CORECLR_VERSION_SUFFIX="$(grep -o '<CoreClrVersionSuffix>.*</CoreClrVersionSuffix>' $VERSIONS_TARGETS | sed 's/ *<\/*CoreClrVersionSuffix> *//g')"
+DEPENDENCIES=$CONTAINING_DIR/../Targets/Dependencies.props
+CORECLR_VERSION="$(grep -o '<MicrosoftNETCoreRuntimeCoreCLRVersion>.*</MicrosoftNETCoreRuntimeCoreCLRVersion>' $DEPENDENCIES | sed 's/ *<\/*MicrosoftNETCoreRuntimeCoreCLRVersion> *//g')"
 
-CROSSGEN_UTIL=~/.nuget/packages/runtime.$RID.Microsoft.NETCore.Runtime.CoreCLR/1.0.2$CORECLR_VERSION_SUFFIX/tools/crossgen
+CROSSGEN_UTIL=~/.nuget/packages/runtime.$RID.Microsoft.NETCore.Runtime.CoreCLR/$CORECLR_VERSION/tools/crossgen
 
 cd $BIN_DIR
 

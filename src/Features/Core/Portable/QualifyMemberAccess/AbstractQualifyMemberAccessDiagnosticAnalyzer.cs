@@ -12,7 +12,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.QualifyMemberAccess
 {
     internal abstract class AbstractQualifyMemberAccessDiagnosticAnalyzer<TLanguageKindEnum> :
-        AbstractCodeStyleDiagnosticAnalyzer, IBuiltInAnalyzer
+        AbstractCodeStyleDiagnosticAnalyzer
         where TLanguageKindEnum : struct
     {
         protected AbstractQualifyMemberAccessDiagnosticAnalyzer() 
@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
         {
         }
 
-        public bool OpenFileOnly(Workspace workspace)
+        public override bool OpenFileOnly(Workspace workspace)
         {
             var qualifyFieldAccessOption = workspace.Options.GetOption(CodeStyleOptions.QualifyFieldAccess, GetLanguageName()).Notification;
             var qualifyPropertyAccessOption = workspace.Options.GetOption(CodeStyleOptions.QualifyPropertyAccess, GetLanguageName()).Notification;
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
                    ImmutableArray.Create(OperationKind.FieldReferenceExpression, OperationKind.PropertyReferenceExpression, OperationKind.MethodBindingExpression)
                });
 
-        public DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
+        public override DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
         private void AnalyzeOperation(OperationAnalysisContext context)
         {
@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
                 case SymbolKind.Event:
                     return CodeStyleOptions.QualifyEventAccess;
                 default:
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.UnexpectedValue(symbolKind);
             }
         }
     }

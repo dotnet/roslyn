@@ -177,6 +177,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void VisitLocal(ILocalSymbol symbol)
         {
+            if (symbol.IsRef && 
+                format.LocalOptions.IncludesOption(SymbolDisplayLocalOptions.IncludeRef))
+            {
+                AddKeyword(SyntaxKind.RefKeyword);
+                AddSpace();
+            }
+
             if (format.LocalOptions.IncludesOption(SymbolDisplayLocalOptions.IncludeType))
             {
                 symbol.Type.Accept(this);
@@ -198,7 +205,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public override void VisitDiscarded(IDiscardedSymbol symbol)
+        public override void VisitDiscard(IDiscardSymbol symbol)
         {
             if (format.LocalOptions.IncludesOption(SymbolDisplayLocalOptions.IncludeType))
             {

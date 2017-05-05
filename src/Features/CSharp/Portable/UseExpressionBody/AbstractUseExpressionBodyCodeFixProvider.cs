@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         SyntaxEditorBasedCodeFixProvider
         where TDeclaration : SyntaxNode
     {
-        private readonly Option<CodeStyleOption<bool>> _option;
+        private readonly Option<CodeStyleOption<ExpressionBodyPreference>> _option;
         private readonly string _useExpressionBodyTitle;
         private readonly string _useBlockBodyTitle;
 
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
 
         protected AbstractUseExpressionBodyCodeFixProvider(
             string diagnosticId,
-            Option<CodeStyleOption<bool>> option,
+            Option<CodeStyleOption<ExpressionBodyPreference>> option,
             string useExpressionBodyTitle,
             string useBlockBodyTitle)
         {
@@ -41,60 +41,67 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             _useBlockBodyTitle = useBlockBodyTitle;
         }
 
-        public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
+        protected override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic)
+            => diagnostic.Severity != DiagnosticSeverity.Hidden;
+
+        public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var diagnostic = context.Diagnostics.First();
-            var option = context.Document.Project.Solution.Workspace.Options.GetOption(_option);
-            var title = option.Value
-                ? _useExpressionBodyTitle
-                : _useBlockBodyTitle;
+            var documentOptionSet = await context.Document.GetOptionsAsync(context.CancellationToken).ConfigureAwait(false);
+
+            var priority = diagnostic.Severity == DiagnosticSeverity.Hidden
+                ? CodeActionPriority.Low
+                : CodeActionPriority.Medium;
 
             context.RegisterCodeFix(
-                new MyCodeAction(title, c => FixAsync(context.Document, diagnostic, c)),
+                new MyCodeAction(diagnostic.GetMessage(), priority, c => FixAsync(context.Document, diagnostic, c)),
                 diagnostic);
-
-            return SpecializedTasks.EmptyTask;
         }
 
-        protected override Task FixAllAsync(
+        protected override async Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
-            var options = document.Project.Solution.Options;
-            var preferExpressionBody = options.GetOption(_option).Value;
+            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
 
             foreach (var diagnostic in diagnostics)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                AddEdits(editor, diagnostic, options, preferExpressionBody, cancellationToken);
+                AddEdits(editor, diagnostic, options, cancellationToken);
             }
-
-            return SpecializedTasks.EmptyTask;
         }
 
         private void AddEdits(
             SyntaxEditor editor, Diagnostic diagnostic,
-            OptionSet options, bool preferExpressionBody,
-            CancellationToken cancellationToken)
+            OptionSet options, CancellationToken cancellationToken)
         {
             var declarationLocation = diagnostic.AdditionalLocations[0];
             var declaration = (TDeclaration)declarationLocation.FindNode(cancellationToken);
 
-            var updatedDeclaration = this.Update(declaration, preferExpressionBody, options)
+            var updatedDeclaration = this.Update(declaration, options)
                                          .WithAdditionalAnnotations(Formatter.Annotation);
 
             editor.ReplaceNode(declaration, updatedDeclaration);
         }
 
-        private TDeclaration Update(TDeclaration declaration, bool preferExpressionBody, OptionSet options)
+        private TDeclaration Update(TDeclaration declaration, OptionSet options)
         {
+            var preferExpressionBody = GetBody(declaration) != null;
             if (preferExpressionBody)
             {
+                GetBody(declaration).TryConvertToExpressionBody(declaration.SyntaxTree.Options,
+                    ExpressionBodyPreference.WhenPossible, out var expressionBody, out var semicolonToken);
+
+                var trailingTrivia = semicolonToken.TrailingTrivia
+                                                   .Where(t => t.Kind() != SyntaxKind.EndOfLineTrivia)
+                                                   .Concat(declaration.GetTrailingTrivia());
+                semicolonToken = semicolonToken.WithTrailingTrivia(trailingTrivia);
+
                 return WithSemicolonToken(
                            WithExpressionBody(
                                WithBody(declaration, null),
-                               GetBody(declaration).TryConvertToExpressionBody(declaration.SyntaxTree.Options)),
-                           GetFirstStatementSemicolon(GetBody(declaration)));
+                               expressionBody),
+                           semicolonToken);
             }
             else
             {
@@ -128,37 +135,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             return WithBody(declaration, block);
         }
 
-        private SyntaxToken GetFirstStatementSemicolon(BlockSyntax body)
-        {
-            var firstStatement = body.Statements[0];
-            if (firstStatement.IsKind(SyntaxKind.ExpressionStatement))
-            {
-                return ((ExpressionStatementSyntax)firstStatement).SemicolonToken;
-            }
-            else if (firstStatement.IsKind(SyntaxKind.ReturnStatement))
-            {
-                return ((ReturnStatementSyntax)firstStatement).SemicolonToken;
-            }
-            else if (firstStatement.IsKind(SyntaxKind.ThrowStatement))
-            {
-                return ((ThrowStatementSyntax)firstStatement).SemicolonToken;
-            }
-            else
-            {
-                return SyntaxFactory.Token(SyntaxKind.SemicolonToken);
-            }
-        }
-
         protected TDeclaration WithAccessorList(
             TDeclaration declaration, OptionSet options)
         {
             var expressionBody = GetExpressionBody(declaration);
             var semicolonToken = GetSemicolonToken(declaration);
 
-            var preferExpressionBodiedAccessors = options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors).Value;
+            var expressionBodyPreference = options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors).Value;
 
             AccessorDeclarationSyntax accessor;
-            if (preferExpressionBodiedAccessors)
+            if (expressionBodyPreference != ExpressionBodyPreference.Never)
             {
                 accessor = SyntaxFactory.AccessorDeclaration(SyntaxKind.GetAccessorDeclaration)
                                         .WithExpressionBody(expressionBody)
@@ -183,9 +169,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
+            internal override CodeActionPriority Priority { get; }
+
+            public MyCodeAction(string title, CodeActionPriority priority, Func<CancellationToken, Task<Document>> createChangedDocument)
                 : base(title, createChangedDocument)
             {
+                this.Priority = priority;
             }
         }
     }

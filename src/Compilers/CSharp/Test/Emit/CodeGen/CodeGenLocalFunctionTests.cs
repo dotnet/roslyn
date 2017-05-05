@@ -31,6 +31,486 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
     public class CodeGenLocalFunctionTests : CSharpTestBase
     {
         [Fact]
+        [WorkItem(17890, "https://github.com/dotnet/roslyn/issues/17890")]
+        public void Repro17890()
+        {
+            var comp = CreateCompilationWithMscorlib46(@"
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+public class Class
+{
+   public class Item
+   {
+      public int Id { get; set; }
+   }
+
+   public class ItemsContainer : IDisposable
+   {
+      public List<Item> Items { get; set; }
+
+      public void Dispose()
+      {
+      }
+   }
+
+   public static void CompilerError()
+   {
+      using (var itemsContainer = new ItemsContainer())
+      {
+         Item item = null;
+
+         itemsContainer.Items.Where(x => x.Id == item.Id);
+
+         void Local1()
+         {
+            itemsContainer.Items = null;
+         }
+
+         void Local2()
+         {
+            Local1();
+         }
+      }
+   }
+}", references: new[] { LinqAssemblyRef });
+            CompileAndVerify(comp);
+        }
+
+        [Fact]
+        [WorkItem(16783, "https://github.com/dotnet/roslyn/issues/16783")]
+        public void GenericDefaultParams()
+        {
+            CompileAndVerify(@"
+using System;
+class C
+{
+    public void M()
+    {
+        void Local<T>(T t = default(T))
+        {
+            Console.WriteLine(t);
+        }
+        Local<int>();
+    }
+}
+
+class C2
+{
+    public static void Main()
+    {
+        new C().M();
+    }
+}", expectedOutput: "0");
+        }
+
+        [Fact]
+        public void GenericCaptureDefaultParams()
+        {
+            CompileAndVerify(@"
+using System;
+class C<T>
+{
+    public void M()
+    {
+        void Local(T t = default(T))
+        {
+            Console.WriteLine(t);
+        }
+        Local();
+    }
+}
+
+class C2
+{
+    public static void Main()
+    {
+        new C<int>().M();
+    }
+}", expectedOutput: "0");
+        }
+
+        [Fact]
+        public void NameofRecursiveDefaultParameter()
+        {
+            var comp = CreateStandardCompilation(@"
+using System;
+class C
+{
+    public static void Main()
+    {
+        void Local(string s = nameof(Local))
+        {
+            Console.WriteLine(s);
+        }
+        Local();
+    }
+}", options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+            comp.DeclarationDiagnostics.Verify();
+            CompileAndVerify(comp, expectedOutput: "Local");
+        }
+
+        [Fact]
+        [WorkItem(16895, "https://github.com/dotnet/roslyn/issues/16895")]
+        public void CaptureVarNestedLambdaSkipScope()
+        {
+            var src = @"
+using System;
+class C
+{
+
+    public static void Main()
+    {
+        var d = """";
+        {
+            int x = 0;
+            void M()
+            {
+                if (d != null)
+                {
+                    Action a = () => x++;
+                    a();
+                }
+            }
+            M();
+            Console.WriteLine(x);
+        }
+    }
+}";
+            CompileAndVerify(src, expectedOutput: "1");
+        }
+
+        [Fact]
+        [WorkItem(16895, "https://github.com/dotnet/roslyn/issues/16895")]
+        public void CaptureVarNestedLambdaSkipScope2()
+        {
+            var src = @"
+using System;
+class C
+{
+    class D : IDisposable { public void Dispose() {} }
+
+    public static void Main()
+    {
+        using (var d = new D())
+        {
+            int x = 0;
+            void M()
+            {
+                if (d != null)
+                {
+                    Action a = () => x++;
+                    a();
+                }
+            }
+            M();
+            Console.WriteLine(x);
+        }
+    }
+}";
+            CompileAndVerify(src, expectedOutput: "1");
+        }
+
+        [Fact]
+        [WorkItem(16895, "https://github.com/dotnet/roslyn/issues/16895")]
+        public void CaptureVarNestedLambdaSkipScope3()
+        {
+            var src = @"
+using System;
+class C
+{
+
+    public static void Main()
+    {
+        var d = """";
+        {
+            int x = 0;
+            void M()
+            {
+                if (d != null)
+                {
+                    void Local() => x++;
+                    Action a = Local;
+                    a();
+                }
+            }
+            M();
+            Console.WriteLine(x);
+        }
+    }
+}";
+            CompileAndVerify(src, expectedOutput: "1");
+        }
+
+        [Fact]
+        [WorkItem(16895, "https://github.com/dotnet/roslyn/issues/16895")]
+        public void CaptureVarNestedLambdaSkipScope4()
+        {
+            var src = @"
+using System;
+class C
+{
+
+    public static void Main()
+    {
+        var d = """";
+        {
+            int y = 0;
+            {
+                int x = 0;
+                void M()
+                {
+                    if (d != null)
+                    {
+                        Action a = () => x++;;
+                        a();
+                    }
+                }
+                M();
+                Console.WriteLine(x);
+            }
+            y++;
+        }
+    }
+}";
+            CompileAndVerify(src, expectedOutput: "1");
+        }
+
+        [Fact]
+        [WorkItem(16895, "https://github.com/dotnet/roslyn/issues/16895")]
+        public void CaptureVarNestedLambdaSkipScope5()
+        {
+            var src = @"
+using System;
+class C
+{
+
+    public static void Main()
+    {
+        int x = 0;
+        {
+            int y = 0;
+            void L()
+            {
+                int z = 0;
+                void L2()
+                {
+                    if (x == 0 && z == 0)
+                    {
+                        Action a = () => y++;
+                        a();
+                    }
+                }
+                L2();
+            }
+            L();
+            Console.WriteLine(y);
+        }
+    }
+}";
+            CompileAndVerify(src, expectedOutput: "1");
+        }
+
+        [Fact]
+        [WorkItem(16895, "https://github.com/dotnet/roslyn/issues/16895")]
+        public void CaptureVarNestedLambdaSkipScope6()
+        {
+            var src = @"
+using System;
+class C
+{
+
+    public static void Main()
+    {
+        int x = 0;
+        {
+            int y = 0;
+            void L()
+            {
+                int z = 0;
+                void L2()
+                {
+                    if (x == 0 && y == 0)
+                    {
+                        Action a = () => z++;
+                        a();
+                    }
+                    y++;
+                }
+                L2();
+                Console.WriteLine(z);
+            }
+            L();
+            Console.WriteLine(y);
+        }
+        ((Action)(() => x++))();
+        Console.WriteLine(x);
+    }
+}";
+            CompileAndVerify(src, expectedOutput: @"1
+1
+1");
+        }
+
+        [Fact]
+        [WorkItem(16895, "https://github.com/dotnet/roslyn/issues/16895")]
+        public void CaptureVarNestedLambdaSkipScope7()
+        {
+            var src = @"
+using System;
+using System.Threading.Tasks;
+class C
+{
+
+    public static void Main()
+    {
+        int x = 0;
+        {
+            int y = 0;
+            void L()
+            {
+                if (x == 0)
+                {
+                    async Task L2()
+                    {
+                        await Task.Delay(1);
+                        y++;
+                    }
+                    L2().Wait();
+                }
+            }
+            L();
+            Console.WriteLine(y);
+        }
+        Console.WriteLine(x);
+    }
+}";
+            CompileAndVerify(src,
+                additionalRefs: new[] { MscorlibRef_v46 },
+                expectedOutput: @"1
+0");
+        }
+
+        [Fact]
+        [WorkItem(16895, "https://github.com/dotnet/roslyn/issues/16895")]
+        public void CaptureVarNestedLambdaSkipScope8()
+        {
+            var src = @"
+using System;
+using System.Collections.Generic;
+class C
+{
+
+    public static void Main()
+    {
+        int x = 0;
+        {
+            int y = 0;
+            void L()
+            {
+                if (x == 0)
+                {
+                    IEnumerable<int> L2()
+                    {
+                        yield return 0;
+                        y++;
+                    }
+                    foreach (var i in L2()) { }
+                }
+            }
+            L();
+            Console.WriteLine(y);
+        }
+        Console.WriteLine(x);
+    }
+}";
+            CompileAndVerify(src,
+                additionalRefs: new[] { MscorlibRef_v46 },
+                expectedOutput: @"1
+0");
+        }
+
+        [Fact]
+        [WorkItem(16895, "https://github.com/dotnet/roslyn/issues/16895")]
+        public void LocalFunctionCaptureSkipScope()
+        {
+            var src = @"
+using System;
+class C
+{
+    public static void Main(string[] args)
+    {
+        {
+            int uncaptured = 0;
+            uncaptured++;
+
+            {
+                int x = 0;
+                bool Local(int y) => x == 0 && args == null && y == 0;
+                Local(0);
+            }
+        }
+    }
+}";
+            CompileAndVerify(src);
+        }
+
+
+        [Fact]
+        [WorkItem(16399, "https://github.com/dotnet/roslyn/issues/16399")]
+        public void RecursiveGenericLocalFunctionIterator()
+        {
+            var src = @"
+using System;
+using System.Collections.Generic;
+using System.Linq;
+public static class EnumerableExtensions
+{
+    static void Main(string[] args)
+    {
+        GetLeaves<object>(new List<object>(), list => null);
+
+        var results = GetLeaves<object>(
+            new object[] {
+                new[] { ""a"", ""b""},
+                new[] { ""c"" },
+                new[] { new[] { ""d"" } }
+            }, node => node is string ? null : (IEnumerable<object>)node);
+
+        foreach (var i in results)
+        {
+            Console.WriteLine(i);
+        }
+    }
+
+
+    public static IEnumerable<T> GetLeaves<T>(T root, Func<T, IEnumerable<T>> getChildren)
+    {
+        return GetLeaves(root);
+
+        IEnumerable<T> GetLeaves(T node)
+        {
+            var children = getChildren(node);
+            if (children == null)
+            {
+                return new[] { node };
+            }
+            else
+            {
+                return children.SelectMany(GetLeaves);
+            }
+        }
+    }
+}";
+            VerifyOutput(src, @"a
+b
+c
+d");
+        }
+
+        [Fact]
         [WorkItem(243633, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems/edit/243633")]
         public void CaptureGenericFieldAndParameter()
         {
@@ -214,7 +694,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(src);
+            var comp = CreateStandardCompilation(src);
             comp.VerifyEmitDiagnostics();
         }
 
@@ -577,25 +1057,6 @@ Console.Write(' ');
 NamedOptional();
 ";
             VerifyOutputInMain(source, "3 2", "System");
-        }
-
-        [Fact]
-        public void CallerMemberName()
-        {
-            var source = @"
-void CallerMemberName([CallerMemberName] string s = null)
-{
-    Console.Write(s);
-}
-void LocalFuncName()
-{
-    CallerMemberName();
-}
-LocalFuncName();
-Console.Write(' ');
-CallerMemberName();
-";
-            VerifyOutputInMain(source, "Main Main", "System", "System.Runtime.CompilerServices");
         }
 
 
@@ -2135,7 +2596,7 @@ class Program
     }
     static object D(object val)
     {
-        T Local<T>(T valu) where T : object
+        T Local<T>(T valu) where T : class
         {
             return valu;
         }
@@ -3073,6 +3534,46 @@ class Program
         }
 
         [Fact]
+        public void UnsafeCalls()
+        {
+            var src = @"
+using System;
+class C
+{
+    public static void Main(string[] args)
+    {
+        int x = 2;
+        int y = 0;
+
+        unsafe void Local(ref int x2)
+        {
+            fixed (int* ptr = &x2)
+            {
+                Local2(ptr);
+            }
+        }
+        unsafe int* Local2(int* ptr)
+        {
+            (*ptr)++;
+            y++;
+
+            return null;
+        }
+
+        while (x < 10)
+        {
+            Local(ref x);
+            x++;
+        }
+
+        Console.WriteLine(x);
+        Console.WriteLine(y);
+    }
+}";
+            VerifyOutput(src, "10\r\n4", TestOptions.ReleaseExe.WithAllowUnsafe(true));
+        }
+
+        [Fact]
         [WorkItem(15322, "https://github.com/dotnet/roslyn/issues/15322")]
         public void UseBeforeDeclaration()
         {
@@ -3086,6 +3587,458 @@ void Assign() { x = 5; }";
             VerifyOutputInMain(src, "5");
         }
 
+        [Fact]
+        [WorkItem(15558, "https://github.com/dotnet/roslyn/issues/15558")]
+        public void CapturingSharesVar()
+        {
+            var src = @"
+int i = 0;
+
+int oldi<T>()
+    where T : struct
+    => (i += @sizeof<T>()) - @sizeof<T>();
+
+int @sizeof<T>()
+    where T : struct
+    => typeof(T).IsAssignableFrom(typeof(long))
+        ? sizeof(long)
+        : 1;
+
+while (i < 10)
+    System.Console.WriteLine(oldi<byte>());";
+
+            VerifyOutputInMain(src, @"0
+1
+2
+3
+4
+5
+6
+7
+8
+9");
+        }
+        
+        [Fact]
+        [WorkItem(15599, "https://github.com/dotnet/roslyn/issues/15599")]
+        public void NestedLocalFuncCapture()
+        {
+            var src = @"
+using System;
+public class C {
+    int instance = 11;
+    public void M() {
+        int M() => instance;
+
+        {
+            int local = 11;
+            bool M2() => local == M();
+            Console.WriteLine(M2());
+        }
+    }
+
+    public static void Main() => new C().M();
+}";
+            VerifyOutput(src, "True");
+        }
+
+        [Fact]
+        [WorkItem(15599, "https://github.com/dotnet/roslyn/issues/15599")]
+        public void NestedLocalFuncCapture2()
+        {
+            var src = @"
+using System;
+public class C {
+    int instance = 0b1;
+    public void M() {
+        int var1 = 0b10;
+        int M() => var1 + instance;
+
+        {
+            int local = 0b100;
+            int M2() => local + M();
+            Console.WriteLine(M2());
+        }
+    }
+
+    public static void Main() => new C().M();
+}";
+            VerifyOutput(src, "7");
+        }
+
+        [Fact]
+        [WorkItem(15751, "https://github.com/dotnet/roslyn/issues/15751")]
+        public void RecursiveGenericLocalFunction()
+        {
+            var src = @"
+void Local<T>(T t, int count)
+{
+    if (count > 0)
+    {
+        Console.Write(t);
+        Local(t, count - 1);
+    }
+}
+
+Local(""A"", 5);
+";
+            VerifyOutputInMain(src, "AAAAA", "System");
+        }
+
+        [Fact]
+        [WorkItem(15751, "https://github.com/dotnet/roslyn/issues/15751")]
+        public void RecursiveGenericLocalFunction2()
+        {
+            var src = @"
+void Local<T>(T t, int count)
+{
+    if (count > 0)
+    {
+        Console.Write(t);
+        var action = new Action<T, int>(Local);
+        action(t, count - 1);
+    }
+}
+
+Local(""A"", 5);
+";
+            VerifyOutputInMain(src, "AAAAA", "System");
+        }
+
+        [Fact]
+        [WorkItem(15751, "https://github.com/dotnet/roslyn/issues/15751")]
+        public void RecursiveGenericLocalFunction3()
+        {
+            var src = @"
+void Local<T>(T t, int count)
+{
+    if (count > 0)
+    {
+        Console.Write(t);
+        var action = (Action<T, int>)Local;
+        action(t, count - 1);
+    }
+}
+
+Local(""A"", 5);
+";
+            VerifyOutputInMain(src, "AAAAA", "System");
+        }
+
+        [Fact]
+        [WorkItem(15751, "https://github.com/dotnet/roslyn/issues/15751")]
+        public void RecursiveGenericLocalFunction4()
+        {
+            var src = @"
+using System;
+class C
+{
+    public static void M<T>(T t)
+    {
+        void Local<U>(U u, int count)
+        {
+            if (count > 0)
+            {
+                Console.Write(t);
+                Console.Write(u);
+                Local(u, count - 1);
+            }
+        }
+        Local(""A"", 5);
+    }
+
+    public static void Main()
+    {
+        C.M(""B"");
+    }
+}";
+            VerifyOutput(src, "BABABABABA");
+        }
+
+        [Fact]
+        [WorkItem(15751, "https://github.com/dotnet/roslyn/issues/15751")]
+        public void RecursiveGenericLocalFunction5()
+        {
+            var src = @"
+using System;
+class C<T1>
+{
+    T1 t1;
+
+    public C(T1 t1)
+    {
+        this.t1 = t1;
+    }
+
+    public void M<T2>(T2 t2)
+    {
+        void L1<T3>(T3 t3)
+        {
+            void L2<T4>(T4 t4)
+            {
+                void L3<U>(U u, int count)
+                {
+                    if (count > 0)
+                    {
+                        Console.Write(t1);
+                        Console.Write(t2);
+                        Console.Write(t3);
+                        Console.Write(t4);
+                        Console.Write(u);
+                        L3(u, count - 1);
+                    }
+                }
+                L3(""A"", 5);
+            }
+            L2(""B"");
+        }
+        L1(""C"");
+    }
+
+}
+
+class Program
+{
+    public static void Main()
+    {
+        var c = new C<string>(""D"");
+        c.M(""E"");
+    }
+}";
+            VerifyOutput(src, "DECBADECBADECBADECBADECBA");
+        }
+
+        [Fact]
+        [WorkItem(15751, "https://github.com/dotnet/roslyn/issues/15751")]
+        public void RecursiveGenericLocalFunction6()
+        {
+            var src = @"
+using System;
+class C<T1>
+{
+    T1 t1;
+
+    public C(T1 t1)
+    {
+        this.t1 = t1;
+    }
+
+    public void M<T2>(T2 t2)
+    {
+        void L1<T3>(T3 t3)
+        {
+            void L2<T4>(T4 t4)
+            {
+                void L3<U>(U u, int count)
+                {
+                    if (count > 0)
+                    {
+                        Console.Write(t1);
+                        Console.Write(t2);
+                        Console.Write(t3);
+                        Console.Write(t4);
+                        Console.Write(u);
+                        var a = new Action<U, int>(L3);
+                        a(u, count - 1);
+                    }
+                }
+                var b = new Action<string, int>(L3);
+                b(""A"", 5);
+            }
+            var c = new Action<string>(L2);
+            c(""B"");
+        }
+        var d = new Action<string>(L1);
+        d(""C"");
+    }
+
+}
+
+class Program
+{
+    public static void Main()
+    {
+        var c = new C<string>(""D"");
+        c.M(""E"");
+    }
+}";
+            VerifyOutput(src, "DECBADECBADECBADECBADECBA");
+        }
+
+        [Fact]
+        [WorkItem(15751, "https://github.com/dotnet/roslyn/issues/15751")]
+        public void RecursiveGenericLocalFunction7()
+        {
+            var src = @"
+using System;
+class C<T1>
+{
+    T1 t1;
+
+    public C(T1 t1)
+    {
+        this.t1 = t1;
+    }
+
+    public void M<T2>(T2 t2)
+    {
+        void L1<T3>(T3 t3)
+        {
+            void L2<T4>(T4 t4)
+            {
+                void L3<U>(U u, int count)
+                {
+                    if (count > 0)
+                    {
+                        Console.Write(t1);
+                        Console.Write(t2);
+                        Console.Write(t3);
+                        Console.Write(t4);
+                        Console.Write(u);
+                        var a = (Action<U, int>)(L3);
+                        a(u, count - 1);
+                    }
+                }
+                var b = (Action<string, int>)(L3);
+                b(""A"", 5);
+            }
+            var c = (Action<string>)(L2);
+            c(""B"");
+        }
+        var d = (Action<string>)(L1);
+        d(""C"");
+    }
+
+}
+
+class Program
+{
+    public static void Main()
+    {
+        var c = new C<string>(""D"");
+        c.M(""E"");
+    }
+}";
+            VerifyOutput(src, "DECBADECBADECBADECBADECBA");
+        }
+
+        [Fact]
+        [WorkItem(16038, "https://github.com/dotnet/roslyn/issues/16038")]
+        public void RecursiveGenericLocalFunction8()
+        {
+            var src = @"
+using System;
+class C<T0>
+{
+    T0 t0;
+
+    public C(T0 t0)
+    {
+        this.t0 = t0;
+    }
+
+    public void M<T1>(T1 t1)
+    {
+        (T0, T1, T2) L1<T2>(T2 t2)
+        {
+            (T0, T1, T2, T3) L2<T3>(T3 t3, int count)
+            {
+                if (count > 0)
+                {
+                    Console.Write(t0);
+                    Console.Write(t1);
+                    Console.Write(t2);
+                    Console.Write(t3);
+                    return L2(t3, count - 1);
+                }
+                return (t0, t1, t2, t3);
+            }
+            var (t4, t5, t6, t7) = L2(""A"", 5);
+            return (t4, t5, t6);
+        }
+        L1(""B"");
+    }
+}
+
+class Program
+{
+    public static void Main()
+    {
+        var c = new C<string>(""C"");
+        c.M(""D"");
+    }
+}";
+            CompileAndVerify(src, expectedOutput: "CDBACDBACDBACDBACDBA",
+                additionalRefs: new[] { SystemRuntimeFacadeRef, ValueTupleRef });
+        }
+
+        [Fact]
+        [WorkItem(19119, "https://github.com/dotnet/roslyn/issues/19119")]
+        public void StructFrameInitUnnecesary()
+        {
+            var c = CompileAndVerify(@"
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            int q = 1;
+
+            if (q > 0)
+            {
+                int w = 2;
+                if (w > 0)
+                {
+                    int e = 3;
+                    if (e > 0)
+                    {
+                        void Print() => System.Console.WriteLine(q + w + e);
+
+                        Print();
+                    }
+                }
+            }
+        }
+    }", expectedOutput: "6");
+
+            //NOTE: the following code should not have "initobj" instructions.
+
+            c.VerifyIL("Program.Main", @"
+{
+  // Code size       63 (0x3f)
+  .maxstack  3
+  .locals init (Program.<>c__DisplayClass0_0 V_0, //CS$<>8__locals0
+                Program.<>c__DisplayClass0_1 V_1, //CS$<>8__locals1
+                Program.<>c__DisplayClass0_2 V_2) //CS$<>8__locals2
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  ldc.i4.1
+  IL_0003:  stfld      ""int Program.<>c__DisplayClass0_0.q""
+  IL_0008:  ldloc.0
+  IL_0009:  ldfld      ""int Program.<>c__DisplayClass0_0.q""
+  IL_000e:  ldc.i4.0
+  IL_000f:  ble.s      IL_003e
+  IL_0011:  ldloca.s   V_1
+  IL_0013:  ldc.i4.2
+  IL_0014:  stfld      ""int Program.<>c__DisplayClass0_1.w""
+  IL_0019:  ldloc.1
+  IL_001a:  ldfld      ""int Program.<>c__DisplayClass0_1.w""
+  IL_001f:  ldc.i4.0
+  IL_0020:  ble.s      IL_003e
+  IL_0022:  ldloca.s   V_2
+  IL_0024:  ldc.i4.3
+  IL_0025:  stfld      ""int Program.<>c__DisplayClass0_2.e""
+  IL_002a:  ldloc.2
+  IL_002b:  ldfld      ""int Program.<>c__DisplayClass0_2.e""
+  IL_0030:  ldc.i4.0
+  IL_0031:  ble.s      IL_003e
+  IL_0033:  ldloca.s   V_0
+  IL_0035:  ldloca.s   V_1
+  IL_0037:  ldloca.s   V_2
+  IL_0039:  call       ""void Program.<Main>g__Print0_0(ref Program.<>c__DisplayClass0_0, ref Program.<>c__DisplayClass0_1, ref Program.<>c__DisplayClass0_2)""
+  IL_003e:  ret
+}
+");
+        }
+        
         internal CompilationVerifier VerifyOutput(string source, string output, CSharpCompilationOptions options)
         {
             var comp = CreateCompilationWithMscorlib45AndCSruntime(source, options: options);

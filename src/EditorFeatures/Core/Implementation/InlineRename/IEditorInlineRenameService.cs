@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Editor
                     return InlineRenameReplacementKind.UnresolvedConflict;
                 default:
                 case RelatedLocationType.PossiblyResolvableConflict:
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.UnexpectedValue(location.Type);
             }
         }
     }
@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.Editor
         /// has entered in the inline rename session.  These are the locations are all relative
         /// to the solution when the inline rename session began.
         /// </summary>
-        ImmutableArray<InlineRenameLocation> Locations { get; }
+        IList<InlineRenameLocation> Locations { get; }
 
         /// <summary>
         /// Returns the set of replacements and their possible resolutions if the user enters the

@@ -27,6 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return RewriteWhileStatement(
                 node,
+                node.Locals,
                 rewrittenCondition,
                 rewrittenBody,
                 node.BreakLabel,
@@ -43,26 +44,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasErrors)
         {
             Debug.Assert(loop.Kind == BoundKind.WhileStatement || loop.Kind == BoundKind.ForEachStatement);
-            SyntaxNode syntax = loop.Syntax;
-            var startLabel = new GeneratedLabelSymbol("start");
-            BoundStatement ifConditionGotoStart = new BoundConditionalGoto(rewrittenCondition.Syntax, rewrittenCondition, true, startLabel);
-
-            if (this.Instrument && !loop.WasCompilerGenerated)
-            {
-                switch (loop.Kind)
-                {
-                    case BoundKind.WhileStatement:
-                        ifConditionGotoStart = _instrumenter.InstrumentWhileStatementConditionalGotoStart((BoundWhileStatement)loop, ifConditionGotoStart);
-                        break;
-
-                    case BoundKind.ForEachStatement:
-                        ifConditionGotoStart = _instrumenter.InstrumentForEachStatementConditionalGotoStart((BoundForEachStatement)loop, ifConditionGotoStart);
-                        break;
-
-                    default:
-                        throw ExceptionUtilities.UnexpectedValue(loop.Kind);
-                }
-            }
 
             // while (condition) 
             //   body;
@@ -78,25 +59,31 @@ namespace Microsoft.CodeAnalysis.CSharp
             // }
             // break:
 
+            SyntaxNode syntax = loop.Syntax;
+            var startLabel = new GeneratedLabelSymbol("start");
+            BoundStatement ifConditionGotoStart = new BoundConditionalGoto(rewrittenCondition.Syntax, rewrittenCondition, true, startLabel);
             BoundStatement gotoContinue = new BoundGotoStatement(syntax, continueLabel);
+
             if (this.Instrument && !loop.WasCompilerGenerated)
             {
-                // mark the initial jump as hidden. We do it to tell that this is not a part of previous statement. This
-                // jump may be a target of another jump (for example if loops are nested) and that would give the
-                // impression that the previous statement is being re-executed.
                 switch (loop.Kind)
                 {
                     case BoundKind.WhileStatement:
-                        gotoContinue = _instrumenter.InstrumentWhileStatementGotoContinue((BoundWhileStatement)loop, gotoContinue);
+                        ifConditionGotoStart = _instrumenter.InstrumentWhileStatementConditionalGotoStartOrBreak((BoundWhileStatement)loop, ifConditionGotoStart);
                         break;
 
                     case BoundKind.ForEachStatement:
-                        gotoContinue = _instrumenter.InstrumentForEachStatementGotoContinue((BoundForEachStatement)loop, gotoContinue);
+                        ifConditionGotoStart = _instrumenter.InstrumentForEachStatementConditionalGotoStart((BoundForEachStatement)loop, ifConditionGotoStart);
                         break;
 
                     default:
                         throw ExceptionUtilities.UnexpectedValue(loop.Kind);
                 }
+
+                // mark the initial jump as hidden. We do it to tell that this is not a part of previous statement. This
+                // jump may be a target of another jump (for example if loops are nested) and that would give the
+                // impression that the previous statement is being re-executed.
+                gotoContinue = new BoundSequencePoint(null, gotoContinue);
             }
 
             return BoundStatementList.Synthesized(syntax, hasErrors,
@@ -105,6 +92,57 @@ namespace Microsoft.CodeAnalysis.CSharp
                 rewrittenBody,
                 new BoundLabelStatement(syntax, continueLabel),
                 ifConditionGotoStart,
+                new BoundLabelStatement(syntax, breakLabel));
+        }
+
+        private BoundStatement RewriteWhileStatement(
+            BoundWhileStatement loop,
+            ImmutableArray<LocalSymbol> locals,
+            BoundExpression rewrittenCondition,
+            BoundStatement rewrittenBody,
+            GeneratedLabelSymbol breakLabel,
+            GeneratedLabelSymbol continueLabel,
+            bool hasErrors)
+        {
+            if (locals.IsEmpty)
+            {
+                return RewriteWhileStatement(loop, rewrittenCondition, rewrittenBody, breakLabel, continueLabel, hasErrors);
+            }
+
+            // We need to enter scope-block from the top, that is where an instance of a display class will be created
+            // if any local is captured within a lambda.
+
+            // while (condition) 
+            //   body;
+            //
+            // becomes
+            //
+            // continue:
+            // {
+            //     GotoIfFalse condition break;
+            //     body
+            //     goto continue;
+            // }
+            // break:
+
+            SyntaxNode syntax = loop.Syntax;
+            BoundStatement continueLabelStatement = new BoundLabelStatement(syntax, continueLabel);
+            BoundStatement ifNotConditionGotoBreak = new BoundConditionalGoto(rewrittenCondition.Syntax, rewrittenCondition, false, breakLabel);
+
+            if (this.Instrument && !loop.WasCompilerGenerated)
+            {
+                ifNotConditionGotoBreak = _instrumenter.InstrumentWhileStatementConditionalGotoStartOrBreak(loop, ifNotConditionGotoBreak);
+                continueLabelStatement = new BoundSequencePoint(null, continueLabelStatement);
+            }
+
+            return BoundStatementList.Synthesized(syntax, hasErrors,
+                continueLabelStatement,
+                new BoundBlock(syntax,
+                               locals,
+                               ImmutableArray.Create(
+                                    ifNotConditionGotoBreak,
+                                    rewrittenBody,
+                                    new BoundGotoStatement(syntax, continueLabel))),
                 new BoundLabelStatement(syntax, breakLabel));
         }
     }

@@ -31,15 +31,9 @@ namespace Microsoft.CodeAnalysis.Host.Mef
                     .Where(lz => lz.Metadata.Language == language).ToImmutableArray();
         }
 
-        public override HostWorkspaceServices WorkspaceServices
-        {
-            get { return _workspaceServices; }
-        }
+        public override HostWorkspaceServices WorkspaceServices => _workspaceServices;
 
-        public override string Language
-        {
-            get { return _language; }
-        }
+        public override string Language => _language;
 
         public bool HasServices
         {

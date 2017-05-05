@@ -51,7 +51,7 @@ expectedOutput: "test");
         public void Syntax01()
         {
             // Feature is enabled by default
-            var comp = CreateCompilationWithMscorlib(@"
+            var comp = CreateStandardCompilation(@"
 class C
 {
     public int M() => 1;
@@ -68,7 +68,7 @@ class C
     public int M() {} => 1;
 }");
             comp.VerifyDiagnostics(
-    // (4,5): error CS8056: Methods cannot combine block bodies with expression bodies.
+    // (4,5): error CS8057: Block bodies and expression bodies cannot both be provided.
     //     public int M() {} => 1;
     Diagnostic(ErrorCode.ERR_BlockBodyAndExpressionBody, "public int M() {} => 1;").WithLocation(4, 5),
     // (4,16): error CS0161: 'C.M()': not all code paths return a value

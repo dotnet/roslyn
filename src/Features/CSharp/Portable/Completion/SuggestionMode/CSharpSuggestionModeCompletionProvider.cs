@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.SuggestionMode
         protected override async Task<CompletionItem> GetSuggestionModeItemAsync(
             Document document, int position, TextSpan itemSpan, CompletionTrigger trigger, CancellationToken cancellationToken = default(CancellationToken))
         {
-            if (trigger.Kind == CompletionTriggerKind.Insertion)
+            if (trigger.Kind != CompletionTriggerKind.Snippets)
             {
                 var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
@@ -110,6 +110,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.SuggestionMode
 
         private bool IsLambdaExpression(SemanticModel semanticModel, int position, SyntaxToken token, ITypeInferenceService typeInferrer, CancellationToken cancellationToken)
         {
+            // Not after `new`
+            if (token.IsKind(SyntaxKind.NewKeyword) && token.Parent.IsKind(SyntaxKind.ObjectCreationExpression))
+            {
+                return false;
+            }
+
             // Typing a generic type parameter, the tree might look like a binary expression around the < token.
             // If we infer a delegate type here (because that's what on the other side of the binop), 
             // ignore it.
@@ -152,10 +158,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.SuggestionMode
                 position = token.Parent.SpanStart;
             }
 
+            // In the following situation, the type inferrer will infer Task to support target type preselection
+            // Action a = Task.$$
+            // We need to explicitly exclude invocation/member access from suggestion mode
+            var previousToken = token.GetPreviousTokenIfTouchingWord(position);
+            if (previousToken.IsKind(SyntaxKind.DotToken) &&
+                previousToken.Parent.IsKind(SyntaxKind.SimpleMemberAccessExpression))
+            {
+                return false;
+            }
+
             // If we're an argument to a function with multiple overloads, 
             // open the builder if any overload takes a delegate at our argument position
             var inferredTypeInfo = typeInferrer.GetTypeInferenceInfo(semanticModel, position, cancellationToken: cancellationToken);
-
             return inferredTypeInfo.Any(type => GetDelegateType(type, semanticModel.Compilation).IsDelegateType());
         }
 

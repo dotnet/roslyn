@@ -191,8 +191,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     EmitAsExpression((BoundAsOperator)expression, used);
                     break;
 
-                case BoundKind.DefaultOperator:
-                    EmitDefaultExpression((BoundDefaultOperator)expression, used);
+                case BoundKind.DefaultExpression:
+                    EmitDefaultExpression((BoundDefaultExpression)expression, used);
                     break;
 
                 case BoundKind.TypeOfOperator:
@@ -306,10 +306,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     EmitThrowExpression((BoundThrowExpression)expression, used);
                     break;
 
-                case BoundKind.Void:
-                    Debug.Assert(!used);
-                    break;
-
                 default:
                     // Code gen should not be invoked if there are errors.
                     Debug.Assert(expression.Kind != BoundKind.BadExpression);
@@ -355,12 +351,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         {
             var receiver = expression.Receiver;
 
-            if (receiver.IsDefaultValue())
-            {
-                EmitDefaultValue(expression.Type, used, expression.Syntax);
-                return;
-            }
-
             var receiverType = receiver.Type;
             LocalDefinition receiverTemp = null;
             Debug.Assert(!receiverType.IsValueType ||
@@ -384,15 +374,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             object doneLabel = new object();
             LocalDefinition cloneTemp = null;
 
+            var unconstrainedReceiver = !receiverType.IsReferenceType && !receiverType.IsValueType;
+
             // we need a copy if we deal with nonlocal value (to capture the value)
             // or if we have a ref-constrained T (to do box just once) 
             // or if we deal with stack local (reads are destructive)
+            // or if we have default(T) (to do box just once)
             var nullCheckOnCopy = LocalRewriter.CanChangeValueBetweenReads(receiver, localsMayBeAssignedOrCaptured: false) ||
                                    (receiverType.IsReferenceType && receiverType.TypeKind == TypeKind.TypeParameter) ||
                                    (receiver.Kind == BoundKind.Local && IsStackLocal(((BoundLocal)receiver).LocalSymbol));
-
-            var unconstrainedReceiver = !receiverType.IsReferenceType && !receiverType.IsValueType;
-
 
             // ===== RECEIVER
             if (nullCheckOnCopy)
@@ -501,7 +491,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             {
                 Debug.Assert(receiverTemp == null);
                 receiverTemp = EmitReceiverRef(receiver, isAccessConstrained: unconstrainedReceiver);
-                Debug.Assert(receiverTemp == null);
+                Debug.Assert(receiverTemp == null || receiver.IsDefaultValue());
             }
 
             EmitExpression(expression.WhenNotNull, used);
@@ -643,8 +633,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private void EmitDelegateCreationExpression(BoundDelegateCreationExpression expression, bool used)
         {
-            var mg = expression.Argument as BoundMethodGroup;
-            var receiver = mg != null ? mg.ReceiverOpt : expression.Argument;
+            Debug.Assert(expression.Argument?.Kind != BoundKind.MethodGroup);
+            var receiver = expression.Argument;
             var meth = expression.MethodOpt ?? receiver.Type.DelegateInvokeMethod();
             Debug.Assert((object)meth != null);
             EmitDelegateCreation(expression, receiver, expression.IsExtensionMethod, meth, expression.Type, used);
@@ -1279,7 +1269,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                         case ConversionKind.MethodGroup:
                         case ConversionKind.AnonymousFunction:
-                            return true;
+                            throw ExceptionUtilities.UnexpectedValue(conversion.ConversionKind);
 
                         case ConversionKind.ExplicitReference:
                         case ConversionKind.ImplicitReference:
@@ -2633,7 +2623,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             if (used)
             {
                 // default type parameter values must be emitted as 'initobj' regardless of constraints
-                if (!type.IsTypeParameter())
+                if (!type.IsTypeParameter() && type.SpecialType != SpecialType.System_Decimal)
                 {
                     var constantValue = type.GetDefaultValue();
                     if (constantValue != null)
@@ -2647,7 +2637,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
         }
 
-        private void EmitDefaultExpression(BoundDefaultOperator expression, bool used)
+        private void EmitDefaultExpression(BoundDefaultExpression expression, bool used)
         {
             Debug.Assert(expression.Type.SpecialType == SpecialType.System_Decimal ||
                 expression.Type.GetDefaultValue() == null, "constant should be set on this expression");
@@ -3019,10 +3009,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 case BoundKind.Conversion:
                     var conversion = (BoundConversion)expr;
                     var conversionKind = conversion.ConversionKind;
-                    if (conversionKind.IsImplicitConversion() &&
-                        conversionKind != ConversionKind.MethodGroup &&
-                        conversionKind != ConversionKind.NullLiteral)
+                    Debug.Assert(conversionKind != ConversionKind.DefaultOrNullLiteral);
+
+                    if (conversionKind.IsImplicitConversion())
                     {
+                        Debug.Assert(conversionKind != ConversionKind.MethodGroup);
                         return StackMergeType(conversion.Operand);
                     }
                     break;

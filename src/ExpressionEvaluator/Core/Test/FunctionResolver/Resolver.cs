@@ -8,10 +8,22 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
 {
     internal sealed class Resolver : FunctionResolverBase<Process, Module, Request>
     {
+        internal static readonly Resolver CSharpResolver = CreateFrom(new Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.CSharpFunctionResolver());
+        internal static readonly Resolver VisualBasicResolver = CreateFrom(new Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.VisualBasicFunctionResolver());
+
+        private readonly bool _ignoreCase;
+        private readonly Guid _languageId;
         private readonly Dictionary<Process, List<Request>> _requests;
 
-        internal Resolver()
+        private static Resolver CreateFrom(FunctionResolver resolver)
         {
+            return new Resolver(resolver.IgnoreCase, resolver.LanguageId);
+        }
+
+        private Resolver(bool ignoreCase, Guid languageId)
+        {
+            _ignoreCase = ignoreCase;
+            _languageId = languageId;
             _requests = new Dictionary<Process, List<Request>>();
         }
 
@@ -71,6 +83,15 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
         {
             return request.Signature;
         }
+
+        internal override bool IgnoreCase => _ignoreCase;
+
+        internal override Guid GetLanguageId(Request request)
+        {
+            return request.LanguageId;
+        }
+
+        internal override Guid LanguageId => _languageId;
 
         private static void OnFunctionResolved(Module module, Request request, int token, int version, int ilOffset)
         {

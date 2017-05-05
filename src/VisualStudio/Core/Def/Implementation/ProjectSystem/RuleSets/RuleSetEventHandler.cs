@@ -271,7 +271,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.R
 
                         if (codeAnalysisRuleSetFullPath.Equals(oldRuleSetFilePath, StringComparison.OrdinalIgnoreCase))
                         {
-                            string newRuleSetRelativePath = FilePathUtilities.GetRelativePath(projectDirectoryFullPath, newRuleSetFilePath);
+                            string newRuleSetRelativePath = PathUtilities.GetRelativePath(projectDirectoryFullPath, newRuleSetFilePath);
                             codeAnalysisRuleSetFileProperty.Value = newRuleSetRelativePath;
                         }
                     }

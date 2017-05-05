@@ -11,7 +11,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.CSharp
 #Region "FullName tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestFullName1() As Task
+        Public Sub TestFullName1()
             Dim code =
 <Code>
 class C
@@ -22,11 +22,11 @@ class C
 }
 </Code>
 
-            Await TestFullName(code, "s")
-        End Function
+            TestFullName(code, "s")
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestFullName2() As Task
+        Public Sub TestFullName2()
             Dim code =
 <Code>
 class C
@@ -37,11 +37,11 @@ class C
 }
 </Code>
 
-            Await TestFullName(code, "s")
-        End Function
+            TestFullName(code, "s")
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestFullName3() As Task
+        Public Sub TestFullName3()
             Dim code =
 <Code>
 class C
@@ -52,15 +52,15 @@ class C
 }
 </Code>
 
-            Await TestFullName(code, "s")
-        End Function
+            TestFullName(code, "s")
+        End Sub
 
 #End Region
 
 #Region "Name tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestName1() As Task
+        Public Sub TestName1()
             Dim code =
 <Code>
 class C
@@ -71,11 +71,11 @@ class C
 }
 </Code>
 
-            Await TestName(code, "s")
-        End Function
+            TestName(code, "s")
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestName2() As Task
+        Public Sub TestName2()
             Dim code =
 <Code>
 class C
@@ -86,11 +86,11 @@ class C
 }
 </Code>
 
-            Await TestName(code, "s")
-        End Function
+            TestName(code, "s")
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestName3() As Task
+        Public Sub TestName3()
             Dim code =
 <Code>
 class C
@@ -101,8 +101,8 @@ class C
 }
 </Code>
 
-            Await TestName(code, "s")
-        End Function
+            TestName(code, "s")
+        End Sub
 
 #End Region
 

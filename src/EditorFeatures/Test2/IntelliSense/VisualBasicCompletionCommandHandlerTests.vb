@@ -2615,6 +2615,34 @@ End Class
             End Using
         End Function
 
+                <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestSnippetsNotExclusiveWhenAlwaysShowing() As Task
+            Dim snippetProvider As CompletionProvider =
+                New VisualStudio.LanguageServices.VisualBasic.Snippets.
+                    SnippetCompletionProvider(editorAdaptersFactoryService:=Nothing)
+
+            Using state = TestState.CreateVisualBasicTestState(
+                  <Document><![CDATA[
+Class C
+    Public Sub Foo()
+        Dim x as Integer = 3
+        Dim t = $$
+    End Sub
+End Class
+}]]></Document>,
+                  extraCompletionProviders:={snippetProvider},
+                  extraExportedTypes:={GetType(MockSnippetInfoService)}.ToList())
+
+                state.Workspace.Options = state.Workspace.Options.WithChangedOption(CompletionOptions.SnippetsBehavior,
+                                                                                    LanguageNames.VisualBasic,
+                                                                                    SnippetsRule.AlwaysInclude)
+
+                state.SendInvokeCompletionList()
+                await state.WaitForAsynchronousOperationsAsync()
+                Assert.True(state.CompletionItemsContainsAll({"x", "Shortcut"}))
+            End Using
+        End Function
+
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestBuiltInTypesKeywordInTupleLiteral() As Task
             Using state = TestState.CreateVisualBasicTestState(
@@ -2798,6 +2826,50 @@ End Class]]></Document>)
                 Await state.WaitForAsynchronousOperationsAsync()
                 Assert.Equal("Dim x as Foo(Of", state.GetLineTextFromCaretPosition().Trim())
                 Assert.DoesNotContain(unicodeEllipsis, state.GetLineTextFromCaretPosition())
+            End Using
+        End Function
+
+        <WorkItem(15011, "https://github.com/dotnet/roslyn/issues/15011")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function SymbolAndObjectPreselectionUnification() As Task
+            Using state = TestState.CreateVisualBasicTestState(
+                            <Document><![CDATA[
+Module Module1
+
+    Sub Main()
+        Dim x As ProcessStartInfo = New $$
+    End Sub
+
+End Module
+]]></Document>)
+
+                state.SendInvokeCompletionList()
+                Await state.WaitForAsynchronousOperationsAsync()
+                Dim psi = state.CurrentCompletionPresenterSession.CompletionItems.Where(Function(i) i.DisplayText.Contains("ProcessStartInfo")).ToArray()
+                Assert.Equal(1, psi.Length)
+            End Using
+        End Function
+
+        <WorkItem(394863, "https://devdiv.visualstudio.com/DevDiv/_workitems?_a=edit&id=394863&triage=true")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function ImplementsClause() As Task
+            Using state = TestState.CreateVisualBasicTestState(
+                            <Document><![CDATA[
+Partial Class TestClass
+    Implements IComparable(Of TestClass)
+
+    Public Function CompareTo(other As TestClass) As Integer Implements I$$
+
+
+    End Function
+
+End Class
+]]></Document>)
+
+                state.SendInvokeCompletionList()
+                Await state.WaitForAsynchronousOperationsAsync()
+                state.SendTab()
+                Assert.Contains("IComparable(Of TestClass)", state.GetLineTextFromCaretPosition())
             End Using
         End Function
 

@@ -16,20 +16,11 @@ namespace Microsoft.CodeAnalysis
             _oldProject = oldProject;
         }
 
-        public ProjectId ProjectId
-        {
-            get { return _newProject.Id; }
-        }
+        public ProjectId ProjectId => _newProject.Id;
 
-        public Project OldProject
-        {
-            get { return _oldProject; }
-        }
+        public Project OldProject => _oldProject;
 
-        public Project NewProject
-        {
-            get { return _newProject; }
-        }
+        public Project NewProject => _newProject;
 
         public IEnumerable<ProjectReference> GetAddedProjectReferences()
         {

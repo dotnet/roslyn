@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
             return _classificationIdDescriptor;
         }
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => 
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics =>
             ImmutableArray.Create(s_fixableIdDescriptor, GetClassificationIdDescriptor());
 
         public bool OpenFileOnly(Workspace workspace) => true;
@@ -64,7 +64,12 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
             var tree = context.SemanticModel.SyntaxTree;
             var cancellationToken = context.CancellationToken;
 
-            var workspace = ((WorkspaceAnalyzerOptions)context.Options).Workspace;
+            if (!(context.Options is WorkspaceAnalyzerOptions workspaceOptions))
+            {
+                return;
+            }
+
+            var workspace = workspaceOptions.Workspace;
             var service = workspace.Services.GetLanguageServices(context.SemanticModel.Compilation.Language)
                                             .GetService<IUnnecessaryImportsService>();
 
@@ -128,8 +133,6 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
         }
 
         public DiagnosticAnalyzerCategory GetAnalyzerCategory()
-        {
-            return DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
-        }
+            => DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
     }
 }

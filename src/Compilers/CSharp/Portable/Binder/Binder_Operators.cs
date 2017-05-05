@@ -2180,7 +2180,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             UnaryOperatorKind kind = SyntaxKindToUnaryOperatorKind(node.Kind());
 
-            bool isOperandTypeNull = (object)operand.Type == null;
+            bool isOperandTypeNull = operand.IsLiteralNull();
             if (isOperandTypeNull)
             {
                 // Dev10 does not allow unary prefix operators to be applied to the null literal
@@ -2621,32 +2621,41 @@ namespace Microsoft.CodeAnalysis.CSharp
             var resultType = (TypeSymbol)GetSpecialType(SpecialType.System_Boolean, diagnostics, node);
             var operand = BindValue(node.Left, diagnostics, BindValueKind.RValue);
             var operandHasErrors = IsOperandErrors(node, ref operand, diagnostics);
-
             // try binding as a type, but back off to binding as an expression if that does not work.
             AliasSymbol alias;
             TypeSymbol targetType;
-            var tempBag = DiagnosticBag.GetInstance();
-            targetType = BindType(node.Right, tempBag, out alias);
+            var isTypeDiagnostics = DiagnosticBag.GetInstance();
+            targetType = BindType(node.Right, isTypeDiagnostics, out alias);
 
-            if (targetType?.IsErrorType() == true && tempBag.HasAnyResolvedErrors() &&
+            if (targetType?.IsErrorType() == true && isTypeDiagnostics.HasAnyResolvedErrors() &&
                     ((CSharpParseOptions)node.SyntaxTree.Options).IsFeatureEnabled(MessageID.IDS_FeaturePatternMatching))
             {
                 // it did not bind as a type; try binding as a constant expression pattern
                 bool wasExpression;
-                var tempBag2 = DiagnosticBag.GetInstance();
+                var isPatternDiagnostics = DiagnosticBag.GetInstance();
+                if ((object)operand.Type == null)
+                {
+                    if (!operandHasErrors)
+                    {
+                        isPatternDiagnostics.Add(ErrorCode.ERR_BadIsPatternExpression, node.Left.Location, operand.Display);
+                    }
+
+                    operand = ToBadExpression(operand);
+                }
+
                 var boundConstantPattern = BindConstantPattern(
-                    node.Right, operand, operand.Type, node.Right, node.Right.HasErrors, tempBag2, out wasExpression, wasSwitchCase: false);
+                    node.Right, operand, operand.Type, node.Right, node.Right.HasErrors, isPatternDiagnostics, out wasExpression, wasSwitchCase: false);
                 if (wasExpression)
                 {
-                    tempBag.Free();
-                    diagnostics.AddRangeAndFree(tempBag2);
+                    isTypeDiagnostics.Free();
+                    diagnostics.AddRangeAndFree(isPatternDiagnostics);
                     return new BoundIsPatternExpression(node, operand, boundConstantPattern, resultType, operandHasErrors);
                 }
 
-                tempBag2.Free();
+                isPatternDiagnostics.Free();
             }
 
-            diagnostics.AddRangeAndFree(tempBag);
+            diagnostics.AddRangeAndFree(isTypeDiagnostics);
             var typeExpression = new BoundTypeExpression(node.Right, alias, targetType);
             var targetTypeKind = targetType.TypeKind;
             if (operandHasErrors || IsOperatorErrors(node, operand.Type, typeExpression, diagnostics))
@@ -2965,7 +2974,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.IntegerToPointer:
                 case ConversionKind.NullToPointer:
                 case ConversionKind.AnonymousFunction:
-                case ConversionKind.NullLiteral:
+                case ConversionKind.DefaultOrNullLiteral:
                 case ConversionKind.MethodGroup:
                     // We've either replaced Dynamic with Object, or already bailed out with an error.
                     throw ExceptionUtilities.UnexpectedValue(conversionKind);
@@ -3051,7 +3060,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // We do not want to warn for the case "null as TYPE" where the null
                 // is a literal, because the user might be saying it to cause overload resolution
                 // to pick a particular method
-                return new BoundAsOperator(node, operand, typeExpression, Conversion.NullLiteral, resultType);
+                return new BoundAsOperator(node, operand, typeExpression, Conversion.DefaultOrNullLiteral, resultType);
+            }
+
+            if (operand.IsLiteralDefault())
+            {
+                var defaultLiteral = (BoundDefaultExpression)operand;
+                Debug.Assert((object)defaultLiteral.Type == null);
+                Debug.Assert((object)defaultLiteral.ConstantValueOpt == null);
+
+                operand = new BoundDefaultExpression(defaultLiteral.Syntax, constantValueOpt: ConstantValue.Null,
+                    type: GetSpecialType(SpecialType.System_Object, diagnostics, node));
             }
 
             if (operand.Kind == BoundKind.MethodGroup)

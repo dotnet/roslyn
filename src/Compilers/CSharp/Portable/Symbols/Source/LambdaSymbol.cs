@@ -3,6 +3,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -18,11 +19,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly bool _isSynthesized;
         private readonly bool _isAsync;
 
+        /// <summary>
+        /// This symbol is used as the return type of a LambdaSymbol when we failed to infer its return type.
+        /// </summary>
+        internal static readonly TypeSymbol InferenceFailureReturnType = new UnsupportedMetadataTypeSymbol();
+
         public LambdaSymbol(
             CSharpCompilation compilation,
             Symbol containingSymbol,
             UnboundLambda unboundLambda,
-            ImmutableArray<ParameterSymbol> delegateParameters,
+            ImmutableArray<TypeSymbol> parameterTypes, 
+            ImmutableArray<RefKind> parameterRefKinds,
             RefKind refKind,
             TypeSymbol returnType)
         {
@@ -34,14 +41,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _isSynthesized = unboundLambda.WasCompilerGenerated;
             _isAsync = unboundLambda.IsAsync;
             // No point in making this lazy. We are always going to need these soon after creation of the symbol.
-            _parameters = MakeParameters(compilation, unboundLambda, delegateParameters);
+            _parameters = MakeParameters(compilation, unboundLambda, parameterTypes, parameterRefKinds);
         }
 
         public LambdaSymbol(
             Symbol containingSymbol,
-            ImmutableArray<ParameterSymbol> parameters,
-            RefKind refKind,
-            TypeSymbol returnType,
             MessageID messageID,
             SyntaxNode syntax,
             bool isSynthesized)
@@ -49,10 +53,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _containingSymbol = containingSymbol;
             _messageID = messageID;
             _syntax = syntax;
-            _refKind = refKind;
-            _returnType = returnType;
+            _refKind = RefKind.None;
+            _returnType = ErrorTypeSymbol.UnknownResultType;
             _isSynthesized = isSynthesized;
-            _parameters = parameters.SelectAsArray(CopyParameter, this);
+            _parameters = ImmutableArray<ParameterSymbol>.Empty;
         }
 
         public MessageID MessageID { get { return _messageID; } }
@@ -256,6 +260,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        /// <summary>
+        /// Locations[0] on lambda symbols covers the entire syntax, which is inconvenient but remains for compatibility.
+        /// For better diagnostics quality, use the DiagnosticLocation instead, which points to the "delegate" or the "=>".
+        /// </summary>
+        internal Location DiagnosticLocation
+        {
+            get
+            {
+                switch (_syntax.Kind())
+                {
+                    case SyntaxKind.AnonymousMethodExpression:
+                        return ((AnonymousMethodExpressionSyntax)_syntax).DelegateKeyword.GetLocation();
+                    case SyntaxKind.SimpleLambdaExpression:
+                    case SyntaxKind.ParenthesizedLambdaExpression:
+                        return ((LambdaExpressionSyntax)_syntax).ArrowToken.GetLocation();
+                    default:
+                        return Locations[0];
+                }
+            }
+        }
+
         public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
         {
             get
@@ -287,17 +312,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private ImmutableArray<ParameterSymbol> MakeParameters(
             CSharpCompilation compilation,
             UnboundLambda unboundLambda,
-            ImmutableArray<ParameterSymbol> delegateParameters)
+            ImmutableArray<TypeSymbol> parameterTypes,
+            ImmutableArray<RefKind> parameterRefKinds)
         {
+            Debug.Assert(parameterTypes.Length == parameterRefKinds.Length);
+
             if (!unboundLambda.HasSignature || unboundLambda.ParameterCount == 0)
             {
                 // The parameters may be omitted in source, but they are still present on the symbol.
-                return delegateParameters.SelectAsArray(CopyParameter, this);
+                return parameterTypes.SelectAsArray((type, ordinal, arg) =>
+                                                        SynthesizedParameterSymbol.Create(
+                                                            arg.owner,
+                                                            type,
+                                                            ordinal,
+                                                            arg.refKinds[ordinal],
+                                                            GeneratedNames.LambdaCopyParameterName(ordinal)), // Make sure nothing binds to this.
+                                                     (owner: this, refKinds: parameterRefKinds));
             }
 
             var builder = ArrayBuilder<ParameterSymbol>.GetInstance();
             var hasExplicitlyTypedParameterList = unboundLambda.HasExplicitlyTypedParameterList;
-            var numDelegateParameters = delegateParameters.IsDefault ? 0 : delegateParameters.Length;
+            var numDelegateParameters = parameterTypes.Length;
 
             for (int p = 0; p < unboundLambda.ParameterCount; ++p)
             {
@@ -316,9 +351,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 else if (p < numDelegateParameters)
                 {
-                    ParameterSymbol delegateParameter = delegateParameters[p];
-                    type = delegateParameter.Type;
-                    refKind = delegateParameter.RefKind;
+                    type = parameterTypes[p];
+                    refKind = parameterRefKinds[p];
                 }
                 else
                 {
@@ -337,16 +371,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var result = builder.ToImmutableAndFree();
 
             return result;
-        }
-
-        private static ParameterSymbol CopyParameter(ParameterSymbol parameter, MethodSymbol owner)
-        {
-            return SynthesizedParameterSymbol.Create(
-                owner,
-                parameter.Type,
-                parameter.Ordinal,
-                parameter.RefKind,
-                GeneratedNames.LambdaCopyParameterName(parameter)); // Make sure nothing binds to this.
         }
 
         public sealed override bool Equals(object symbol)

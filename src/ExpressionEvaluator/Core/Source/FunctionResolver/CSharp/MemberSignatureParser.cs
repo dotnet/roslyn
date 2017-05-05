@@ -42,11 +42,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         private Token CurrentToken => _tokens[_tokenIndex];
 
-        private Token PeekToken(int offset)
-        {
-            return _tokens[_tokenIndex + offset];
-        }
-
         private Token EatToken()
         {
             var token = CurrentToken;
@@ -281,11 +276,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             }
         }
 
-        private static bool IsKeyword(string text)
-        {
-            return SyntaxFacts.GetKeywordKind(text) != SyntaxKind.None;
-        }
-
         private static SpecialType GetSpecialType(SyntaxKind kind)
         {
             switch (kind)
@@ -326,7 +316,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     return SpecialType.None;
             }
         }
-
 
         private static Exception InvalidSignature()
         {

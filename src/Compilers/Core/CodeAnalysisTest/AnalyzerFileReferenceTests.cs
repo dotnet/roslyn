@@ -180,8 +180,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void TestAnalyzerLoading()
         {
             var dir = Temp.CreateDirectory();
+            dir.CopyFile(typeof(AppDomainUtils).Assembly.Location);
             var test = dir.CopyFile(typeof(FromFileLoader).Assembly.Location);
-            var analyzerFile = TestHelpers.CreateCSharpAnalyzerAssemblyWithTestAnalyzer(dir, "MyAnalyzer");
+            var analyzerFile = DesktopTestHelpers.CreateCSharpAnalyzerAssemblyWithTestAnalyzer(dir, "MyAnalyzer");
             var loadDomain = AppDomainUtils.Create("AnalyzerTestDomain", basePath: dir.Path);
             try
             {
@@ -216,19 +217,19 @@ public class TestAnalyzer : DiagnosticAnalyzer
 
             var dir = Temp.CreateDirectory();
 
-            var metadata = dir.CopyFile(typeof(System.Reflection.Metadata.MetadataReader).Assembly.Location);
+            dir.CopyFile(typeof(System.Reflection.Metadata.MetadataReader).Assembly.Location);
+            dir.CopyFile(typeof(AppDomainUtils).Assembly.Location);
             var immutable = dir.CopyFile(typeof(ImmutableArray).Assembly.Location);
             var analyzer = dir.CopyFile(typeof(DiagnosticAnalyzer).Assembly.Location);
             var test = dir.CopyFile(typeof(FromFileLoader).Assembly.Location);
-            var filesystem = dir.CreateFile("System.IO.FileSystem.dll").WriteAllBytes(
-                TestResources.NetFX.v4_6_1038_0.Facades.System_IO_FileSystem);
+            dir.CopyFile(Path.Combine(Path.GetDirectoryName(typeof(CSharp.CSharpCompilation).Assembly.Location), "System.IO.FileSystem.dll"));
 
             var analyzerCompilation = CSharp.CSharpCompilation.Create(
                 "MyAnalyzer",
                 new SyntaxTree[] { CSharp.SyntaxFactory.ParseSyntaxTree(analyzerSource) },
                 new MetadataReference[]
                 {
-                    SystemRuntimeNetstandard13FacadeRef.Value,
+                    TestReferences.NetStandard13.SystemRuntime,
                     MetadataReference.CreateFromFile(immutable.Path),
                     MetadataReference.CreateFromFile(analyzer.Path)
                 },

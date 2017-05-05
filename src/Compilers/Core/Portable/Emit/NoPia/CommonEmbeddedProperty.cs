@@ -3,6 +3,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.CodeGen;
 using Cci = Microsoft.Cci;
 
 namespace Microsoft.CodeAnalysis.Emit.NoPia
@@ -101,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 get { return false; }
             }
 
-            Cci.IMetadataConstant Cci.IPropertyDefinition.DefaultValue
+            MetadataConstant Cci.IPropertyDefinition.DefaultValue
             {
                 get { return null; }
             }

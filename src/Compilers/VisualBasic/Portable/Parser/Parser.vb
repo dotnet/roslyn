@@ -3019,6 +3019,15 @@ checkNullable:
                 closeParen = closeParen.AddLeadingSyntax(unexpected)
             End If
 
+            If elementBuilder.Count < 2 Then
+                Debug.Assert(elementBuilder.Count > 0)
+                elementBuilder.AddSeparator(InternalSyntaxFactory.MissingToken(SyntaxKind.CommaToken))
+
+                Dim missing = SyntaxFactory.IdentifierName(InternalSyntaxFactory.MissingIdentifier())
+                missing = ReportSyntaxError(missing, ERRID.ERR_TupleTooFewElements)
+                elementBuilder.Add(_syntaxFactory.TypedTupleElement(missing))
+            End If
+
             Dim tupleElements = elementBuilder.ToList
             _pool.Free(elementBuilder)
 
@@ -6162,7 +6171,8 @@ checkNullable:
             If feature = Feature.InterpolatedStrings Then
                 ' Bug: It is too late in the release cycle to update localized strings.  As a short term measure we will output 
                 ' an unlocalized string and fix this to be localized in the next release.
-                Return ReportSyntaxError(node, ERRID.ERR_LanguageVersion, languageVersion.GetErrorName(), "interpolated strings")
+                Dim requiredVersion = New VisualBasicRequiredLanguageVersion(feature.GetLanguageVersion())
+                Return ReportSyntaxError(node, ERRID.ERR_LanguageVersion, languageVersion.GetErrorName(), "interpolated strings", requiredVersion)
             Else
                 Return ReportFeatureUnavailable(feature, node, languageVersion)
             End If
@@ -6170,7 +6180,8 @@ checkNullable:
 
         Private Shared Function ReportFeatureUnavailable(Of TNode As VisualBasicSyntaxNode)(feature As Feature, node As TNode, languageVersion As LanguageVersion) As TNode
             Dim featureName = ErrorFactory.ErrorInfo(feature.GetResourceId())
-            Return ReportSyntaxError(node, ERRID.ERR_LanguageVersion, languageVersion.GetErrorName(), featureName)
+            Dim requiredVersion = New VisualBasicRequiredLanguageVersion(feature.GetLanguageVersion())
+            Return ReportSyntaxError(node, ERRID.ERR_LanguageVersion, languageVersion.GetErrorName(), featureName, requiredVersion)
         End Function
 
         Friend Function ReportFeatureUnavailable(Of TNode As VisualBasicSyntaxNode)(feature As Feature, node As TNode) As TNode
@@ -6192,7 +6203,8 @@ checkNullable:
         Friend Shared Function CheckFeatureAvailability(diagnostics As DiagnosticBag, location As Location, languageVersion As LanguageVersion, feature As Feature) As Boolean
             If Not CheckFeatureAvailability(languageVersion, feature) Then
                 Dim featureName = ErrorFactory.ErrorInfo(feature.GetResourceId())
-                diagnostics.Add(ERRID.ERR_LanguageVersion, location, languageVersion.GetErrorName(), featureName)
+                Dim requiredVersion = New VisualBasicRequiredLanguageVersion(feature.GetLanguageVersion())
+                diagnostics.Add(ERRID.ERR_LanguageVersion, location, languageVersion.GetErrorName(), featureName, requiredVersion)
                 Return False
             End If
             Return True

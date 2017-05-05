@@ -19,10 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
             _synchronizationContext = synchronizationContext ?? throw new ArgumentNullException(nameof(synchronizationContext));
         }
 
-        public override Int32 MaximumConcurrencyLevel
-        {
-            get { return 1; }
-        }
+        public override Int32 MaximumConcurrencyLevel => 1;
 
         protected override void QueueTask(Task task)
         {

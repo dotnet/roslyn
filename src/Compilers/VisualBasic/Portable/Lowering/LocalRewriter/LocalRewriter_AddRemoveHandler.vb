@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim rewritten = RewriteAddRemoveHandler(node)
 
             If Instrument(node, rewritten) Then
-                rewritten = _instrumenter.InstrumentAddHandlerStatement(node, rewritten)
+                rewritten = _instrumenterOpt.InstrumentAddHandlerStatement(node, rewritten)
             End If
 
             Return rewritten
@@ -23,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim rewritten = RewriteAddRemoveHandler(node)
 
             If Instrument(node, rewritten) Then
-                rewritten = _instrumenter.InstrumentRemoveHandlerStatement(node, rewritten)
+                rewritten = _instrumenterOpt.InstrumentRemoveHandlerStatement(node, rewritten)
             End If
 
             Return rewritten
@@ -143,7 +143,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         syntax,
                         LookupResultKind.Empty,
                         ImmutableArray.Create(Of Symbol)(eventSymbol),
-                        ImmutableArray(Of BoundNode).Empty,
+                        ImmutableArray(Of BoundExpression).Empty,
                         ErrorTypeSymbol.UnknownResultType,
                         hasErrors:=True))
             End If
@@ -293,7 +293,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New BoundBadExpression(node.Syntax,
                                           LookupResultKind.NotCreatable,
                                           ImmutableArray.Create(Of Symbol)([event]),
-                                          ImmutableArray.Create(Of BoundNode)(receiver, handler),
+                                          ImmutableArray.Create(receiver, handler),
                                           ErrorTypeSymbol.UnknownResultType,
                                           hasErrors:=True)
         End Function

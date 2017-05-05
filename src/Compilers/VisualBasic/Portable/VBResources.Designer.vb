@@ -748,6 +748,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Invalid assembly name: {0}.
+        '''</summary>
+        Friend ReadOnly Property ERR_BadAssemblyName() As String
+            Get
+                Return ResourceManager.GetString("ERR_BadAssemblyName", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Async methods cannot have ByRef parameters..
         '''</summary>
         Friend ReadOnly Property ERR_BadAsyncByRefParam() As String
@@ -973,15 +982,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to {0}.
-        '''</summary>
-        Friend ReadOnly Property ERR_BadCompilationOption() As String
-            Get
-                Return ResourceManager.GetString("ERR_BadCompilationOption", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
         '''  Looks up a localized string similar to Leading &apos;?&apos; can only appear inside a &apos;With&apos; statement, but not inside an object member initializer..
         '''</summary>
         Friend ReadOnly Property ERR_BadConditionalWithRef() As String
@@ -1032,6 +1032,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend ReadOnly Property ERR_BadDimFlags1() As String
             Get
                 Return ResourceManager.GetString("ERR_BadDimFlags1", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Provided documentation mode is unsupported or invalid: &apos;{0}&apos;..
+        '''</summary>
+        Friend ReadOnly Property ERR_BadDocumentationMode() As String
+            Get
+                Return ResourceManager.GetString("ERR_BadDocumentationMode", resourceCulture)
             End Get
         End Property
         
@@ -1279,6 +1288,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Provided language version is unsupported or invalid: &apos;{0}&apos;..
+        '''</summary>
+        Friend ReadOnly Property ERR_BadLanguageVersion() As String
+            Get
+                Return ResourceManager.GetString("ERR_BadLanguageVersion", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to &apos;{0}&apos; is not valid on a local constant declaration..
         '''</summary>
         Friend ReadOnly Property ERR_BadLocalConstFlags1() As String
@@ -1329,6 +1347,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend ReadOnly Property ERR_BadModuleFlags1() As String
             Get
                 Return ResourceManager.GetString("ERR_BadModuleFlags1", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Invalid module name: {0}.
+        '''</summary>
+        Friend ReadOnly Property ERR_BadModuleName() As String
+            Get
+                Return ResourceManager.GetString("ERR_BadModuleName", resourceCulture)
             End Get
         End Property
         
@@ -1473,6 +1500,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend ReadOnly Property ERR_BadReturnValueInIterator() As String
             Get
                 Return ResourceManager.GetString("ERR_BadReturnValueInIterator", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Provided source code kind is unsupported or invalid: &apos;{0}&apos;.
+        '''</summary>
+        Friend ReadOnly Property ERR_BadSourceCodeKind() As String
+            Get
+                Return ResourceManager.GetString("ERR_BadSourceCodeKind", resourceCulture)
             End Get
         End Property
         
@@ -2329,6 +2365,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend ReadOnly Property ERR_ComClassReservedDispIdZero1() As String
             Get
                 Return ResourceManager.GetString("ERR_ComClassReservedDispIdZero1", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Conditional compilation constant &apos;{1}&apos; is not valid: {0}.
+        '''</summary>
+        Friend ReadOnly Property ERR_ConditionalCompilationConstantNotValid() As String
+            Get
+                Return ResourceManager.GetString("ERR_ConditionalCompilationConstantNotValid", resourceCulture)
             End Get
         End Property
         
@@ -6261,6 +6306,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Preprocessor constant &apos;{0}&apos; of type &apos;{1}&apos; is not supported, only primitive types are allowed..
+        '''</summary>
+        Friend ReadOnly Property ERR_InvalidPreprocessorConstantType() As String
+            Get
+                Return ResourceManager.GetString("ERR_InvalidPreprocessorConstantType", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Invalid signature public key specified in AssemblySignatureKeyAttribute..
         '''</summary>
         Friend ReadOnly Property ERR_InvalidSignaturePublicKey() As String
@@ -6888,6 +6942,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend ReadOnly Property ERR_MemberConflictWithSynth4() As String
             Get
                 Return ResourceManager.GetString("ERR_MemberConflictWithSynth4", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Merge conflict marker encountered.
+        '''</summary>
+        Friend ReadOnly Property ERR_Merge_conflict_marker_encountered() As String
+            Get
+                Return ResourceManager.GetString("ERR_Merge_conflict_marker_encountered", resourceCulture)
             End Get
         End Property
         
@@ -9235,15 +9298,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Project-level conditional compilation constant &apos;{1}&apos; is not valid: {0}.
-        '''</summary>
-        Friend ReadOnly Property ERR_ProjectCCError1() As String
-            Get
-                Return ResourceManager.GetString("ERR_ProjectCCError1", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
         '''  Looks up a localized string similar to Property access must assign to the property or use its value..
         '''</summary>
         Friend ReadOnly Property ERR_PropertyAccessIgnored() As String
@@ -9321,6 +9375,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend ReadOnly Property ERR_PublicKeyFileFailure() As String
             Get
                 Return ResourceManager.GetString("ERR_PublicKeyFileFailure", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Public signing is not supported for netmodules..
+        '''</summary>
+        Friend ReadOnly Property ERR_PublicSignNetModule() As String
+            Get
+                Return ResourceManager.GetString("ERR_PublicSignNetModule", resourceCulture)
             End Get
         End Property
         
@@ -10515,6 +10578,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Tuple element name &apos;{0}&apos; is inferred. Please use language version {1} or greater to access an element by its inferred name..
+        '''</summary>
+        Friend ReadOnly Property ERR_TupleInferredNamesNotAvailable() As String
+            Get
+                Return ResourceManager.GetString("ERR_TupleInferredNamesNotAvailable", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Type characters cannot be used in tuple literals..
         '''</summary>
         Friend ReadOnly Property ERR_TupleLiteralDisallowsTypeChar() As String
@@ -10664,6 +10736,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend ReadOnly Property ERR_TypeDisallowsElements() As String
             Get
                 Return ResourceManager.GetString("ERR_TypeDisallowsElements", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Module &apos;{0}&apos; in assembly &apos;{1}&apos; is forwarding the type &apos;{2}&apos; to multiple assemblies: &apos;{3}&apos; and &apos;{4}&apos;..
+        '''</summary>
+        Friend ReadOnly Property ERR_TypeForwardedToMultipleAssemblies() As String
+            Get
+                Return ResourceManager.GetString("ERR_TypeForwardedToMultipleAssemblies", resourceCulture)
             End Get
         End Property
         
@@ -12145,15 +12226,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Preprocessor constant &apos;{0}&apos; of type &apos;{1}&apos; is not supported, only primitive types are allowed..
-        '''</summary>
-        Friend ReadOnly Property IDS_InvalidPreprocessorConstantType() As String
-            Get
-                Return ResourceManager.GetString("IDS_InvalidPreprocessorConstantType", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
         '''  Looks up a localized string similar to {0} version {1}.
         '''</summary>
         Friend ReadOnly Property IDS_LogoLine1() As String
@@ -12672,6 +12744,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend ReadOnly Property WRN_AsyncSubCouldBeFunction_Title() As String
             Get
                 Return ResourceManager.GetString("WRN_AsyncSubCouldBeFunction_Title", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Attribute &apos;{0}&apos; is ignored when public signing is specified..
+        '''</summary>
+        Friend ReadOnly Property WRN_AttributeIgnoredWhenPublicSigning() As String
+            Get
+                Return ResourceManager.GetString("WRN_AttributeIgnoredWhenPublicSigning", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Attribute is ignored when public signing is specified..
+        '''</summary>
+        Friend ReadOnly Property WRN_AttributeIgnoredWhenPublicSigning_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_AttributeIgnoredWhenPublicSigning_Title", resourceCulture)
             End Get
         End Property
         
@@ -13302,6 +13392,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend ReadOnly Property WRN_ExpectedInitComponentCall2_Title() As String
             Get
                 Return ResourceManager.GetString("WRN_ExpectedInitComponentCall2_Title", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to &apos;{0}&apos; is for evaluation purposes only and is subject to change or removal in future updates..
+        '''</summary>
+        Friend ReadOnly Property WRN_Experimental() As String
+            Get
+                Return ResourceManager.GetString("WRN_Experimental", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Type is for evaluation purposes only and is subject to change or removal in future updates..
+        '''</summary>
+        Friend ReadOnly Property WRN_Experimental_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_Experimental_Title", resourceCulture)
             End Get
         End Property
         
@@ -14692,7 +14800,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to The tuple element name &apos;{0}&apos; is ignored because a different name is specified by the target type &apos;{1}&apos;..
+        '''  Looks up a localized string similar to The tuple element name &apos;{0}&apos; is ignored because a different name or no name is specified by the target type &apos;{1}&apos;..
         '''</summary>
         Friend ReadOnly Property WRN_TupleLiteralNameMismatch() As String
             Get
@@ -14701,7 +14809,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to The tuple element name is ignored because a different name is specified by the assignment target..
+        '''  Looks up a localized string similar to The tuple element name is ignored because a different name or no name is specified by the assignment target..
         '''</summary>
         Friend ReadOnly Property WRN_TupleLiteralNameMismatch_Title() As String
             Get

@@ -279,6 +279,9 @@
   <data name="FileSizeExceedsMaximumAllowed" xml:space="preserve">
     <value>File size exceeds maximum allowed size of a valid metadata file.</value>
   </data>
+  <data name="NameCannotBeNull" xml:space="preserve">
+    <value>Name cannot be null.</value>
+  </data>
   <data name="NameCannotBeEmpty" xml:space="preserve">
     <value>Name cannot be empty.</value>
   </data>
@@ -587,5 +590,8 @@
   </data>
   <data name="Deserialization_reader_for_0_read_incorrect_number_of_values" xml:space="preserve">
     <value>Deserialization reader for '{0}' read incorrect number of values.</value>
+  </data>
+  <data name="Stream_contains_invalid_data" xml:space="preserve">
+    <value>Stream contains invalid data</value>
   </data>
 </root>

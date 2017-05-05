@@ -1,15 +1,17 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\..\..\..\build\Targets\Settings.props" />
+<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\..\..\..\build\Targets\SettingsSdk.props" />
   <PropertyGroup>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <ProjectGuid>{3973B09A-4FBF-44A5-8359-3D22CEB71F71}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.CSharp</RootNamespace>
     <AssemblyName>Microsoft.CodeAnalysis.CSharp.Features</AssemblyName>
     <TargetExt>.dll</TargetExt>
-    <TargetFrameworkIdentifier>.NETPortable</TargetFrameworkIdentifier>
-    <TargetFrameworkVersion>v5.0</TargetFrameworkVersion>
+    <TargetFramework>netstandard1.3</TargetFramework>
+    <PackageTargetFallback>portable-net45+win8;dotnet</PackageTargetFallback>
     <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
   </PropertyGroup>
   <ItemGroup Label="Project References">
@@ -42,6 +44,7 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.InteractiveEditorFeatures" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Remote.Workspaces" />
     <InternalsVisibleToMonodevelop Include="MonoDevelop.CSharpBinding" />
+    <InternalsVisibleToMonodevelop Include="MonoDevelop.CSharpBinding.Tests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.CSharp.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.CSharp2.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests" />
@@ -58,13 +61,39 @@
       <Link>InternalUtilities\LambdaUtilities.cs</Link>
     </Compile>
     <Compile Include="AddPackage\CSharpAddSpecificPackageCodeFixProvider.cs" />
+    <Compile Include="AddParameter\CSharpAddParameterCodeFixProvider.cs" />
+    <Compile Include="CodeFixes\RemoveUnusedVariable\RemoveUnusedVariableCodeFixProvider.cs" />
+    <Compile Include="Completion\CompletionProviders\DeclarationNameCompletionProvider.NameGenerator.cs" />
+    <Compile Include="Completion\CompletionProviders\DeclarationNameCompletionProvider.DeclarationInfo.cs" />
+    <Compile Include="Completion\CompletionProviders\DeclarationNameCompletionProvider_BuiltInStyles.cs" />
+    <Compile Include="Completion\CompletionProviders\ExplicitInterfaceMemberCompletionProvider.cs" />
+    <Compile Include="Completion\CompletionProviders\ExplicitInterfaceTypeCompletionProvider.cs" />
+    <Compile Include="ConvertIfToSwitch\CSharpConvertIfToSwitchCodeRefactoringProvider.cs" />
+    <Compile Include="ConvertIfToSwitch\CSharpConvertIfToSwitchCodeRefactoringProvider.Pattern.cs" />
+    <Compile Include="ConvertNumericLiteral\CSharpConvertNumericLiteralCodeRefactoringProvider.cs" />
+    <Compile Include="CodeRefactorings\UseNamedArguments\CSharpUseNamedArgumentsCodeRefactoringProvider.cs" />
+    <Compile Include="ConflictMarkerResolution\CSharpResolveConflictMarkerCodeFixProvider.cs" />
+    <Compile Include="Completion\CompletionProviders\TupleNameCompletionProvider.cs" />
+    <Compile Include="CSharpFeaturesResources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>CSharpFeaturesResources.resx</DependentUpon>
+    </Compile>
+    <Compile Include="DesignerAttributes\CSharpDesignerAttributeService.cs" />
+    <Compile Include="Completion\CompletionProviders\DeclarationNameCompletionProvider.cs" />
     <Compile Include="ImplementAbstractClass\CSharpImplementAbstractClassCodeFixProvider.cs" />
     <Compile Include="ImplementInterface\CSharpImplementInterfaceCodeFixProvider.cs" />
+    <Compile Include="InitializeParameter\CSharpAddParameterCheckCodeRefactoringProvider.cs" />
+    <Compile Include="InitializeParameter\CSharpInitializeMemberFromParameterCodeRefactoringProvider.cs" />
+    <Compile Include="InitializeParameter\InitializeParameterHelpers.cs" />
+    <Compile Include="ReplacePropertyWithMethods\ConvertValueToReturnsRewriter.cs" />
     <Compile Include="Structure\Providers\ArrowExpressionClauseStructureProvider.cs" />
     <Compile Include="ConvertToInterpolatedString\CSharpConvertConcatenationToInterpolatedStringRefactoringProvider.cs" />
     <Compile Include="RemoveUnnecessaryImports\CSharpRemoveUnnecessaryImportsService.cs" />
     <Compile Include="RemoveUnnecessaryImports\CSharpUnnecessaryImportsService.cs" />
     <Compile Include="Structure\Providers\InitializerExpressionStructureProvider.cs" />
+    <Compile Include="TodoComments\CSharpTodoCommentIncrementalAnalyzerProvider.cs" />
+    <Compile Include="UpgradeProject\CSharpUpgradeProjectCodeFixProvider.cs" />
     <Compile Include="UseCoalesceExpression\CSharpUseCoalesceExpressionForNullableDiagnosticAnalyzer.cs" />
     <Compile Include="UseCoalesceExpression\CSharpUseCoalesceExpressionDiagnosticAnalyzer.cs" />
     <Compile Include="UseExpressionBody\Accessors\UseExpressionBodyForAccessorsCodeFixProvider.cs" />
@@ -85,6 +114,7 @@
     <Compile Include="UseCollectionInitializer\CSharpUseCollectionInitializerDiagnosticAnalyzer.cs" />
     <Compile Include="UseNullPropagation\CSharpUseNullPropagationCodeFixProvider.cs" />
     <Compile Include="UseNullPropagation\CSharpUseNullPropagationDiagnosticAnalyzer.cs" />
+    <Compile Include="UseObjectInitializer\UseInitializerHelpers.cs" />
     <Compile Include="UsePatternMatching\CSharpIsAndCastCheckCodeFixProvider.cs" />
     <Compile Include="UsePatternMatching\CSharpIsAndCastCheckDiagnosticAnalyzer.cs" />
     <Compile Include="UsePatternMatching\CSharpAsAndNullCheckDiagnosticAnalyzer.cs" />
@@ -97,8 +127,8 @@
     <Compile Include="AddMissingReference\CSharpAddMissingReferenceCodeFixProvider.cs" />
     <Compile Include="CodeFixes\Async\CSharpAddAwaitCodeFixProvider.cs" />
     <Compile Include="CodeFixes\Async\CSharpConvertToAsyncMethodCodeFixProvider.cs" />
-    <Compile Include="CodeFixes\FullyQualify\CSharpFullyQualifyCodeFixProvider.cs" />
-    <Compile Include="CodeFixes\GenerateConstructor\GenerateConstructorCodeFixProvider.cs" />
+    <Compile Include="FullyQualify\CSharpFullyQualifyCodeFixProvider.cs" />
+    <Compile Include="GenerateConstructor\GenerateConstructorCodeFixProvider.cs" />
     <Compile Include="CodeFixes\GenerateEnumMember\GenerateEnumMemberCodeFixProvider.cs" />
     <Compile Include="CodeFixes\GenerateMethod\GenerateConversionCodeFixProvider.cs" />
     <Compile Include="CodeFixes\GenerateMethod\GenerateMethodCodeFixProvider.cs" />
@@ -133,7 +163,6 @@
     <Compile Include="Completion\CompletionProviders\CompletionUtilities.cs" />
     <Compile Include="Completion\CompletionProviders\CrefCompletionProvider.cs" />
     <Compile Include="Completion\CompletionProviders\EnumAndCompletionListTagCompletionProvider.cs" />
-    <Compile Include="Completion\CompletionProviders\ExplicitInterfaceCompletionProvider.cs" />
     <Compile Include="Completion\CompletionProviders\ExternAliasCompletionProvider.cs" />
     <Compile Include="Completion\CompletionProviders\KeywordCompletionProvider.cs" />
     <Compile Include="Completion\CompletionProviders\NamedParameterCompletionProvider.cs" />
@@ -279,11 +308,6 @@
     <Compile Include="Completion\KeywordRecommenders\WhereKeywordRecommender.cs" />
     <Compile Include="Completion\KeywordRecommenders\WhileKeywordRecommender.cs" />
     <Compile Include="Completion\KeywordRecommenders\YieldKeywordRecommender.cs" />
-    <Compile Include="CSharpFeaturesResources.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>CSharpFeaturesResources.resx</DependentUpon>
-    </Compile>
     <Compile Include="Diagnostics\Analyzers\CSharpPreferFrameworkTypeDiagnosticAnalyzer.cs" />
     <Compile Include="Diagnostics\Analyzers\CSharpTypeStyleDiagnosticAnalyzerBase.cs" />
     <Compile Include="Diagnostics\Analyzers\CSharpTypeStyleDiagnosticAnalyzerBase.State.cs" />
@@ -327,11 +351,7 @@
     <Compile Include="ExtractMethod\CSharpSyntaxTriviaService.cs" />
     <Compile Include="ExtractMethod\CSharpSyntaxTriviaServiceFactory.cs" />
     <Compile Include="ExtractMethod\Extensions.cs" />
-    <Compile Include="GenerateFromMembers\AddConstructorParameters\CSharpAddConstructorParametersService.cs" />
-    <Compile Include="GenerateFromMembers\GenerateConstructorFromMembers\CSharpGenerateConstructorFromMembersService.cs" />
-    <Compile Include="GenerateFromMembers\GenerateEqualsAndGetHashCode\CSharpGenerateEqualsAndGetHashCodeService.cs" />
-    <Compile Include="GenerateFromMembers\GenerateFromMembersHelpers.cs" />
-    <Compile Include="GenerateMember\GenerateConstructor\CSharpGenerateConstructorService.cs" />
+    <Compile Include="GenerateConstructor\CSharpGenerateConstructorService.cs" />
     <Compile Include="GenerateMember\GenerateDefaultConstructors\CSharpGenerateDefaultConstructorsService.cs" />
     <Compile Include="GenerateMember\GenerateEnumMember\CSharpGenerateEnumMemberService.cs" />
     <Compile Include="GenerateMember\GenerateParameterizedMember\CSharpCommonGenerationServiceMethods.cs" />
@@ -461,14 +481,15 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <None Include="project.json" />
     <PublicAPI Include="PublicAPI.Shipped.txt" />
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CodeFixes\SpellCheck\CSharpSpellCheckCodeFixProvider.cs" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <PackageReference Include="System.ValueTuple" Version="$(SystemValueTupleVersion)" />
+  </ItemGroup>
   <Import Project="..\..\..\Compilers\CSharp\CSharpAnalyzerDriver\CSharpAnalyzerDriver.projitems" Label="Shared" />
   <Import Project="..\..\..\..\build\Targets\Imports.targets" />
 </Project>

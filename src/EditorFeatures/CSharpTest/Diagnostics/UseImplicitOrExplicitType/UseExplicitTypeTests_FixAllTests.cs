@@ -123,7 +123,7 @@ class Program2
     </Project>
 </Workspace>";
 
-            await TestAsync(input, expected, options: ExplicitTypeEverywhere(), fixAllActionEquivalenceKey: fixAllActionId);
+            await TestInRegularAndScriptAsync(input, expected, options: ExplicitTypeEverywhere(), fixAllActionEquivalenceKey: fixAllActionId);
         }
 
         [Fact]
@@ -238,7 +238,7 @@ class Program2
     </Project>
 </Workspace>";
 
-            await TestAsync(input, expected, options: ExplicitTypeEverywhere(), fixAllActionEquivalenceKey: fixAllActionId);
+            await TestInRegularAndScriptAsync(input, expected, options: ExplicitTypeEverywhere(), fixAllActionEquivalenceKey: fixAllActionId);
         }
 
         [Fact]
@@ -353,7 +353,7 @@ class Program2
     </Project>
 </Workspace>";
 
-            await TestAsync(input, expected, options: ExplicitTypeEverywhere(), fixAllActionEquivalenceKey: fixAllActionId);
+            await TestInRegularAndScriptAsync(input, expected, options: ExplicitTypeEverywhere(), fixAllActionEquivalenceKey: fixAllActionId);
         }
 
         [Fact]
@@ -404,7 +404,7 @@ class Program
     </Project>
 </Workspace>";
 
-            await TestAsync(input, expected, options: ExplicitTypeExceptWhereApparent(), fixAllActionEquivalenceKey: fixAllActionId);
+            await TestInRegularAndScriptAsync(input, expected, options: ExplicitTypeExceptWhereApparent(), fixAllActionEquivalenceKey: fixAllActionId);
         }
 
         #endregion

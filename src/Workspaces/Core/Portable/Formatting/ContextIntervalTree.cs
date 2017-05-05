@@ -27,12 +27,6 @@ namespace Microsoft.CodeAnalysis.Formatting
             _containPredicate = (value, start, end) => Contains(value, start, end, Introspector);
         }
 
-        public void AddIntervalInPlace(T value)
-        {
-            var newNode = new Node(value);
-            this.root = Insert(root, newNode, Introspector);
-        }
-
         public T GetSmallestEdgeExclusivelyContainingInterval(int start, int length)
         {
             return GetSmallestContainingIntervalWorker(start, length, _edgeExclusivePredicate);

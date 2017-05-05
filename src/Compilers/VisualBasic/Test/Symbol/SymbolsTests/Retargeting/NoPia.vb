@@ -716,8 +716,57 @@ BC36923: Type 'ValueTuple(Of T1, T2)' cannot be embedded because it has generic 
             comp2.AssertTheseDiagnostics(expected)
         End Sub
 
-        <ClrOnlyFact(Skip:="https://github.com/dotnet/roslyn/issues/13200")>
-        Public Sub CannotEmbedValueTupleImplicitlyReferenced()
+        <ClrOnlyFact>
+        <WorkItem(13200, "https://github.com/dotnet/roslyn/issues/13200")>
+        Public Sub CannotEmbedValueTupleImplicitlyReferenced_ByMethod()
+            Dim piaSource = "
+Imports System.Runtime.InteropServices
+Imports System.Collections.Generic
+
+<assembly: Guid(""f9c2d51d-4f44-45f0-9eda-c9d599b58257"")>
+<assembly: ImportedFromTypeLib(""Pia1.dll"")>
+
+Namespace System
+    Public Structure ValueTuple(Of T1, T2)
+        Public Sub New(item1 As T1, item2 As T2)
+        End Sub
+    End Structure
+End Namespace
+
+Public Structure S(Of T)
+End Structure
+
+<ComImport>
+<Guid(""f9c2d51d-4f44-45f0-9eda-c9d599b58280"")>
+Public Interface ITest1
+    Function M() As IEnumerable(Of IEnumerable(Of (Integer, Integer)))
+    Function M2() As IEnumerable(Of IEnumerable(Of S(Of Integer)))
+End Interface
+"
+            Dim pia = CreateCompilationWithMscorlib({piaSource}, options:=TestOptions.ReleaseDll, assemblyName:="comp")
+            pia.VerifyDiagnostics()
+            Dim source = "
+Public Interface ITest2
+    Inherits ITest1
+End Interface
+"
+            Dim expected = <errors>
+BC36923: Type 'S(Of T)' cannot be embedded because it has generic argument. Consider disabling the embedding of interop types.
+BC36923: Type 'ValueTuple(Of T1, T2)' cannot be embedded because it has generic argument. Consider disabling the embedding of interop types.
+                           </errors>
+
+            Dim comp1 = CreateCompilationWithMscorlib({source}, options:=TestOptions.ReleaseDll,
+                                                      references:={pia.ToMetadataReference(embedInteropTypes:=True)})
+            comp1.AssertTheseEmitDiagnostics(expected)
+
+            Dim comp2 = CreateCompilationWithMscorlib({source}, options:=TestOptions.ReleaseDll,
+                                                      references:={pia.EmitToImageReference(embedInteropTypes:=True)})
+            comp2.AssertTheseEmitDiagnostics(expected)
+        End Sub
+
+        <ClrOnlyFact>
+        <WorkItem(13200, "https://github.com/dotnet/roslyn/issues/13200")>
+        Public Sub CannotEmbedValueTupleImplicitlyReferenced_ByProperty()
             Dim piaSource = "
 Imports System.Runtime.InteropServices
 
@@ -737,8 +786,8 @@ End Structure
 <ComImport>
 <Guid(""f9c2d51d-4f44-45f0-9eda-c9d599b58280"")>
 Public Interface ITest1
-    Function M() As (Integer, Integer)
-    Function M2() As S(Of Integer)
+    ReadOnly Property P As (Integer, Integer)
+    ReadOnly Property P2 As S(Of Integer)
 End Interface
 "
             Dim pia = CreateCompilationWithMscorlib({piaSource}, options:=TestOptions.ReleaseDll, assemblyName:="comp")
@@ -748,21 +797,104 @@ Public Interface ITest2
     Inherits ITest1
 End Interface
 "
-            ' We should expect errors as generic types cannot be embedded
-            ' Issue https://github.com/dotnet/roslyn/issues/13200 tracks this
             Dim expected = <errors>
+BC36923: Type 'S(Of T)' cannot be embedded because it has generic argument. Consider disabling the embedding of interop types.
+BC36923: Type 'ValueTuple(Of T1, T2)' cannot be embedded because it has generic argument. Consider disabling the embedding of interop types.
                            </errors>
 
             Dim comp1 = CreateCompilationWithMscorlib({source}, options:=TestOptions.ReleaseDll,
                                                       references:={pia.ToMetadataReference(embedInteropTypes:=True)})
-            comp1.AssertTheseDiagnostics(expected)
+            comp1.AssertTheseEmitDiagnostics(expected)
 
             Dim comp2 = CreateCompilationWithMscorlib({source}, options:=TestOptions.ReleaseDll,
                                                       references:={pia.EmitToImageReference(embedInteropTypes:=True)})
-            comp2.AssertTheseDiagnostics(expected)
+            comp2.AssertTheseEmitDiagnostics(expected)
         End Sub
 
-        <ClrOnlyFact(Skip:="https://github.com/dotnet/roslyn/issues/13200")>
+        <ClrOnlyFact>
+        <WorkItem(13200, "https://github.com/dotnet/roslyn/issues/13200")>
+        Public Sub CannotEmbedGenericDelegateReferred_ByEvent()
+            Dim piaSource = "
+Imports System.Runtime.InteropServices
+
+<assembly: Guid(""f9c2d51d-4f44-45f0-9eda-c9d599b58257"")>
+<assembly: ImportedFromTypeLib(""Pia1.dll"")>
+
+Public Delegate Sub S(Of T) (x As T)
+
+<ComImport>
+<Guid(""f9c2d51d-4f44-45f0-9eda-c9d599b58280"")>
+Public Interface ITest1
+     Event E As S(Of Integer)
+End Interface
+"
+            Dim pia = CreateCompilationWithMscorlib({piaSource}, options:=TestOptions.ReleaseDll, assemblyName:="comp")
+            pia.VerifyDiagnostics()
+            Dim source = "
+Public Interface ITest2
+    Inherits ITest1
+End Interface
+"
+            Dim expected = <errors>
+BC36923: Type 'S(Of T)' cannot be embedded because it has generic argument. Consider disabling the embedding of interop types.
+                           </errors>
+
+            Dim comp1 = CreateCompilationWithMscorlib({source}, options:=TestOptions.ReleaseDll,
+                                                      references:={pia.ToMetadataReference(embedInteropTypes:=True)})
+            comp1.AssertTheseEmitDiagnostics(expected)
+
+            Dim comp2 = CreateCompilationWithMscorlib({source}, options:=TestOptions.ReleaseDll,
+                                                      references:={pia.EmitToImageReference(embedInteropTypes:=True)})
+            comp2.AssertTheseEmitDiagnostics(expected)
+        End Sub
+
+        <ClrOnlyFact>
+        <WorkItem(13200, "https://github.com/dotnet/roslyn/issues/13200")>
+        Public Sub CannotEmbedValueTupleImplicitlyReferenced_ByField()
+            Dim piaSource = "
+Imports System.Runtime.InteropServices
+Imports System.Collections.Generic
+
+<assembly: Guid(""f9c2d51d-4f44-45f0-9eda-c9d599b58257"")>
+<assembly: ImportedFromTypeLib(""Pia1.dll"")>
+
+Namespace System
+    Public Structure ValueTuple(Of T1, T2)
+        Public Sub New(item1 As T1, item2 As T2)
+        End Sub
+    End Structure
+End Namespace
+
+Public Structure S(Of T)
+End Structure
+
+Public Structure Test1
+    public F As IEnumerable(Of IEnumerable(Of (Integer, Integer)))
+    public F2 As IEnumerable(Of IEnumerable(Of S(Of Integer)))
+End Structure"
+            Dim pia = CreateCompilationWithMscorlib({piaSource}, options:=TestOptions.ReleaseDll, assemblyName:="comp")
+            pia.VerifyDiagnostics()
+            Dim source = "
+Public Interface ITest2
+    Sub M(x As Test1)
+End Interface
+"
+            Dim expected = <errors>
+BC36923: Type 'S(Of T)' cannot be embedded because it has generic argument. Consider disabling the embedding of interop types.
+BC36923: Type 'ValueTuple(Of T1, T2)' cannot be embedded because it has generic argument. Consider disabling the embedding of interop types.
+                           </errors>
+
+            Dim comp1 = CreateCompilationWithMscorlib({source}, options:=TestOptions.ReleaseDll,
+                                                      references:={pia.ToMetadataReference(embedInteropTypes:=True)})
+            comp1.AssertTheseEmitDiagnostics(expected)
+
+            Dim comp2 = CreateCompilationWithMscorlib({source}, options:=TestOptions.ReleaseDll,
+                                                      references:={pia.EmitToImageReference(embedInteropTypes:=True)})
+            comp2.AssertTheseEmitDiagnostics(expected)
+        End Sub
+
+        <ClrOnlyFact>
+        <WorkItem(13200, "https://github.com/dotnet/roslyn/issues/13200")>
         Public Sub CannotEmbedValueTupleImplicitlyReferredFromMetadata()
             Dim piaSource = "
 Imports System.Runtime.InteropServices
@@ -782,10 +914,10 @@ End Namespace
 "
             Dim libSource = "
 Public Class D
-    Function M() As (Integer, Integer)
+    Shared Function M() As (Integer, Integer)
         Throw New System.Exception()
     End Function
-    Function M2() As S(Of Integer)
+    Shared Function M2() As S(Of Integer)
         Throw New System.Exception()
     End Function
 End Class
@@ -810,18 +942,18 @@ Public Class C
     End Sub
 End Class
 "
-            ' We should expect errors as generic types cannot be embedded
-            ' Issue https://github.com/dotnet/roslyn/issues/13200 tracks this
             Dim expectedDiagnostics = <errors>
+BC36923: Type 'S(Of T)' cannot be embedded because it has generic argument. Consider disabling the embedding of interop types.
+BC36923: Type 'ValueTuple(Of T1, T2)' cannot be embedded because it has generic argument. Consider disabling the embedding of interop types.
                                       </errors>
 
             Dim comp1 = CreateCompilationWithMscorlib({source}, options:=TestOptions.ReleaseDll,
-                                                      references:={pia.ToMetadataReference(embedInteropTypes:=True)})
-            comp1.AssertTheseDiagnostics(expectedDiagnostics)
+                                                      references:={pia.ToMetadataReference(embedInteropTypes:=True), [lib].ToMetadataReference()})
+            comp1.AssertTheseEmitDiagnostics(expectedDiagnostics)
 
             Dim comp2 = CreateCompilationWithMscorlib({source}, options:=TestOptions.ReleaseDll,
-                                                      references:={pia.EmitToImageReference(embedInteropTypes:=True)})
-            comp2.AssertTheseDiagnostics(expectedDiagnostics)
+                                                      references:={pia.EmitToImageReference(embedInteropTypes:=True), [lib].EmitToImageReference()})
+            comp2.AssertTheseEmitDiagnostics(expectedDiagnostics)
         End Sub
 
         <ClrOnlyFact>

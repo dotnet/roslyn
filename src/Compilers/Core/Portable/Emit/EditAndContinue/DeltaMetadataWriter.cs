@@ -50,11 +50,19 @@ namespace Microsoft.CodeAnalysis.Emit
             DefinitionMap definitionMap,
             SymbolChanges changes,
             CancellationToken cancellationToken)
-            : base(MakeTablesBuilder(previousGeneration), null, null, context, messageProvider, false, false, cancellationToken)
+            : base(metadata: MakeTablesBuilder(previousGeneration), 
+                   debugMetadataOpt: (context.Module.EmitOptions.DebugInformationFormat == DebugInformationFormat.PortablePdb) ? new MetadataBuilder() : null, 
+                   dynamicAnalysisDataWriterOpt: null,
+                   context: context,
+                   messageProvider: messageProvider,
+                   allowMissingMethodBodies: false, 
+                   deterministic: false,
+                   cancellationToken: cancellationToken)
         {
             Debug.Assert(previousGeneration != null);
             Debug.Assert(encId != default(Guid));
             Debug.Assert(encId != previousGeneration.EncId);
+            Debug.Assert(context.Module.EmitOptions.DebugInformationFormat != DebugInformationFormat.Embedded);
 
             _previousGeneration = previousGeneration;
             _encId = encId;
@@ -208,9 +216,9 @@ namespace Microsoft.CodeAnalysis.Emit
             foreach (var def in _methodDefs.GetRows())
             {
                 // The debugger tries to remap all modified methods, which requires presence of sequence points.
-                if (!_methodDefs.IsAddedNotChanged(def) && (def.GetBody(this.Context)?.HasAnySequencePoints ?? false))
+                if (!_methodDefs.IsAddedNotChanged(def) && def.GetBody(Context)?.SequencePoints.Length > 0)
                 {
-                    methods.Add(MetadataTokens.MethodDefinitionHandle((int)_methodDefs[def]));
+                    methods.Add(MetadataTokens.MethodDefinitionHandle(_methodDefs[def]));
                 }
             }
         }
@@ -881,6 +889,25 @@ namespace Microsoft.CodeAnalysis.Emit
             }
 
             tokens.Free();
+
+            // Populate Portable PDB EncMap table with MethodDebugInformation mapping,
+            // which corresponds 1:1 to MethodDef mapping.
+            if (_debugMetadataOpt != null)
+            {
+                var debugTokens = ArrayBuilder<EntityHandle>.GetInstance();
+                AddDefinitionTokens(debugTokens, _methodDefs, TableIndex.MethodDebugInformation);
+                debugTokens.Sort(HandleComparer.Default);
+
+                // Should not be any duplicates.
+                Debug.Assert(debugTokens.Distinct().Count() == debugTokens.Count);
+
+                foreach (var token in debugTokens)
+                {
+                    _debugMetadataOpt.AddEncMapEntry(token);
+                }
+
+                debugTokens.Free();
+            }
 
 #if DEBUG
             // The following tables are either represented in the EncMap

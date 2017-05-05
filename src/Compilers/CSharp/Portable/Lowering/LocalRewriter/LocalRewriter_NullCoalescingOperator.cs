@@ -35,7 +35,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (_inExpressionLambda)
             {
                 TypeSymbol strippedLeftType = rewrittenLeft.Type.StrippedType();
-                Conversion rewrittenConversion = MakeConversion(syntax, leftConversion, strippedLeftType, rewrittenResultType);
+                Conversion rewrittenConversion = TryMakeConversion(syntax, leftConversion, strippedLeftType, rewrittenResultType);
+                if (!rewrittenConversion.Exists)
+                {
+                    return BadExpression(syntax, rewrittenResultType, rewrittenLeft, rewrittenRight);
+                }
+
                 return new BoundNullCoalescingOperator(syntax, rewrittenLeft, rewrittenRight, rewrittenConversion, rewrittenResultType);
             }
 
@@ -46,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (rewrittenLeft.IsDefaultValue())
             {
-                return rewrittenRight;
+                return EnsureNotAssignableIfUsedAsMethodReceiver(rewrittenRight);
             }
 
             if (rewrittenLeft.ConstantValue != null)
@@ -116,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // MakeConversion(temp, rewrittenResultType)
             BoundExpression convertedLeft = GetConvertedLeftForNullCoalescingOperator(boundTemp, leftConversion, rewrittenResultType);
-            Debug.Assert(convertedLeft.Type.Equals(rewrittenResultType, TypeCompareKind.IgnoreDynamicAndTupleNames));
+            Debug.Assert(convertedLeft.HasErrors || convertedLeft.Type.Equals(rewrittenResultType, TypeCompareKind.IgnoreDynamicAndTupleNames));
 
             // (temp != null) ? MakeConversion(temp, LeftConversion) : RightOperand
             BoundExpression conditionalExpression = RewriteConditionalOperator(
@@ -156,7 +161,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (rewrittenLeftType != rewrittenResultType && rewrittenLeftType.IsNullableType())
             {
                 TypeSymbol strippedLeftType = rewrittenLeftType.GetNullableUnderlyingType();
-                MethodSymbol getValueOrDefault = GetNullableMethod(rewrittenLeft.Syntax, rewrittenLeftType, SpecialMember.System_Nullable_T_GetValueOrDefault);
+                MethodSymbol getValueOrDefault = UnsafeGetNullableMethod(rewrittenLeft.Syntax, rewrittenLeftType, SpecialMember.System_Nullable_T_GetValueOrDefault);
                 rewrittenLeft = BoundCall.Synthesized(rewrittenLeft.Syntax, rewrittenLeft, getValueOrDefault);
                 if (strippedLeftType == rewrittenResultType)
                 {

@@ -207,9 +207,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 }
 
                 // Don't insert a blank line between properties, indexers or events with no accessors
-                if (previousMember is BasePropertyDeclarationSyntax)
+                if (previousMember is BasePropertyDeclarationSyntax previousProperty)
                 {
-                    var previousProperty = (BasePropertyDeclarationSyntax)previousMember;
                     var nextProperty = (BasePropertyDeclarationSyntax)nextMember;
 
                     if (previousProperty?.AccessorList?.Accessors.All(a => a.Body == null) == true &&
@@ -220,9 +219,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 }
 
                 // Don't insert a blank line between methods with no bodies
-                if (previousMember is BaseMethodDeclarationSyntax)
+                if (previousMember is BaseMethodDeclarationSyntax previousMethod)
                 {
-                    var previousMethod = (BaseMethodDeclarationSyntax)previousMember;
                     var nextMethod = (BaseMethodDeclarationSyntax)nextMember;
 
                     if (previousMethod.Body == null &&
@@ -297,11 +295,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                         || currentToken.Kind() == SyntaxKind.OpenBraceToken) ? 1 : 0;
 
                 case SyntaxKind.CloseBracketToken:
-                    if (previousToken.Parent is AttributeListSyntax)
+                    // Assembly and module-level attributes followed by non-attributes should have
+                    // a blank line after them.
+                    if (previousToken.Parent is AttributeListSyntax parent)
                     {
-                        // Assembly and module-level attributes followed by non-attributes should have
-                        // a blank line after them.
-                        var parent = (AttributeListSyntax)previousToken.Parent;
                         if (parent.Target != null &&
                             (parent.Target.Identifier.IsKindOrHasMatchingText(SyntaxKind.AssemblyKeyword) ||
                              parent.Target.Identifier.IsKindOrHasMatchingText(SyntaxKind.ModuleKeyword)))
@@ -359,11 +356,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     return 1;
 
                 case SyntaxKind.OpenBracketToken:
-                    if (currentToken.Parent is AttributeListSyntax)
+                    // Assembly and module-level attributes preceded by non-attributes should have
+                    // a blank line separating them.
+                    if (currentToken.Parent is AttributeListSyntax parent)
                     {
-                        // Assembly and module-level attributes preceded by non-attributes should have
-                        // a blank line separating them.
-                        var parent = (AttributeListSyntax)currentToken.Parent;
                         if (parent.Target != null)
                         {
                             if (parent.Target.Identifier == SyntaxFactory.Token(SyntaxKind.AssemblyKeyword) ||

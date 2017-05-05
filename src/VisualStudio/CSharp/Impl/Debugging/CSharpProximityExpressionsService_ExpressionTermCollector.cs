@@ -112,46 +112,43 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Debugging
             // +, -, ++, --, !, etc.
             //
             // This is a valid expression if it doesn't have obvious side effects (i.e. ++, --)
-            if (expression is PrefixUnaryExpressionSyntax)
+            if (expression is PrefixUnaryExpressionSyntax prefixUnary)
             {
-                AddPrefixUnaryExpressionTerms((PrefixUnaryExpressionSyntax)expression, terms, ref expressionType);
+                AddPrefixUnaryExpressionTerms(prefixUnary, terms, ref expressionType);
                 return;
             }
 
-            if (expression is AwaitExpressionSyntax)
+            if (expression is AwaitExpressionSyntax awaitExpression)
             {
-                AddAwaitExpressionTerms((AwaitExpressionSyntax)expression, terms, ref expressionType);
+                AddAwaitExpressionTerms(awaitExpression, terms, ref expressionType);
                 return;
             }
 
-            if (expression is PostfixUnaryExpressionSyntax)
+            if (expression is PostfixUnaryExpressionSyntax postfixExpression)
             {
-                AddPostfixUnaryExpressionTerms((PostfixUnaryExpressionSyntax)expression, terms, ref expressionType);
+                AddPostfixUnaryExpressionTerms(postfixExpression, terms, ref expressionType);
                 return;
             }
 
-            if (expression is BinaryExpressionSyntax)
+            if (expression is BinaryExpressionSyntax binaryExpression)
             {
-                var binaryExpression = (BinaryExpressionSyntax)expression;
                 AddBinaryExpressionTerms(expression, binaryExpression.Left, binaryExpression.Right, terms, ref expressionType);
                 return;
             }
 
-            if (expression is AssignmentExpressionSyntax)
+            if (expression is AssignmentExpressionSyntax assignmentExpression)
             {
-                var assignmentExpression = (AssignmentExpressionSyntax)expression;
                 AddBinaryExpressionTerms(expression, assignmentExpression.Left, assignmentExpression.Right, terms, ref expressionType);
                 return;
             }
 
-            if (expression is ConditionalExpressionSyntax)
+            if (expression is ConditionalExpressionSyntax conditional)
             {
-                AddConditionalExpressionTerms((ConditionalExpressionSyntax)expression, terms, ref expressionType);
+                AddConditionalExpressionTerms(conditional, terms, ref expressionType);
                 return;
             }
 
-            var parenthesizedExpression = expression as ParenthesizedExpressionSyntax;
-            if (parenthesizedExpression != null)
+            if (expression is ParenthesizedExpressionSyntax parenthesizedExpression)
             {
                 AddSubExpressionTerms(parenthesizedExpression.Expression, terms, ref expressionType);
             }

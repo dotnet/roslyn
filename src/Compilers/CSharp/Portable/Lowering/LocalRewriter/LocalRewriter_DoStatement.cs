@@ -49,11 +49,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             // }
             // break:
 
+            if (node.Locals.IsEmpty)
+            {
+                return BoundStatementList.Synthesized(syntax, node.HasErrors,
+                    new BoundLabelStatement(syntax, startLabel),
+                    rewrittenBody,
+                    new BoundLabelStatement(syntax, node.ContinueLabel),
+                    ifConditionGotoStart,
+                    new BoundLabelStatement(syntax, node.BreakLabel));
+            }
+
             return BoundStatementList.Synthesized(syntax, node.HasErrors,
                 new BoundLabelStatement(syntax, startLabel),
-                rewrittenBody,
-                new BoundLabelStatement(syntax, node.ContinueLabel),
-                ifConditionGotoStart,
+                new BoundBlock(syntax,
+                               node.Locals,
+                               ImmutableArray.Create<BoundStatement>(rewrittenBody,
+                                                                     new BoundLabelStatement(syntax, node.ContinueLabel),
+                                                                     ifConditionGotoStart)),
                 new BoundLabelStatement(syntax, node.BreakLabel));
         }
     }

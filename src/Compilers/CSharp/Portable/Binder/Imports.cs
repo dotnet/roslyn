@@ -138,6 +138,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (usingDirective.Alias != null)
                     {
+                        if (usingDirective.Alias.Name.Identifier.ContextualKind() == SyntaxKind.GlobalKeyword)
+                        {
+                            diagnostics.Add(ErrorCode.WRN_GlobalAliasDefn, usingDirective.Alias.Name.Location);
+                        }
+
                         if (usingDirective.StaticKeyword != default(SyntaxToken))
                         {
                             diagnostics.Add(ErrorCode.ERR_NoAliasHere, usingDirective.Alias.Name.Location);
@@ -217,6 +222,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 }
                                 else
                                 {
+                                    declarationBinder.ReportDiagnosticsIfObsolete(diagnostics, importedType, usingDirective.Name, hasBaseReceiver: false);
+
                                     uniqueUsings.Add(importedType);
                                     usings.Add(new NamespaceOrTypeAndUsingDirective(importedType, usingDirective));
                                 }

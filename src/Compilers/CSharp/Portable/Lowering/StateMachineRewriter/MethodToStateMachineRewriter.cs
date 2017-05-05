@@ -292,7 +292,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // We need to produce hoisted local scope debug information for user locals as well as 
                 // lambda display classes, since Dev12 EE uses them to determine which variables are displayed 
                 // in Locals window.
-                if (local.SynthesizedKind == SynthesizedLocalKind.UserDefined ||
+                if ((local.SynthesizedKind == SynthesizedLocalKind.UserDefined && 
+                        local.ScopeDesignatorOpt?.Kind() != SyntaxKind.SwitchSection) ||
                     local.SynthesizedKind == SynthesizedLocalKind.LambdaDisplayClass)
                 {
                     hoistedLocalsWithDebugScopes.Add(((CapturedToStateMachineFieldReplacement)proxy).HoistedField);
@@ -548,7 +549,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.ThisReference:
                 case BoundKind.BaseReference:
-                case BoundKind.DefaultOperator:
+                case BoundKind.DefaultExpression:
                     return expr;
 
                 default:
@@ -619,6 +620,66 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitBlock(BoundBlock node)
         {
             return PossibleIteratorScope(node.Locals, () => (BoundStatement)base.VisitBlock(node));
+        }
+
+        public override BoundNode VisitScope(BoundScope node)
+        {
+            Debug.Assert(!node.Locals.IsEmpty);
+            var newLocalsBuilder = ArrayBuilder<LocalSymbol>.GetInstance();
+            var hoistedLocalsWithDebugScopes = ArrayBuilder<StateMachineFieldSymbol>.GetInstance();
+            bool localsRewritten = false;
+            foreach (var local in node.Locals)
+            {
+                Debug.Assert(local.SynthesizedKind == SynthesizedLocalKind.UserDefined &&
+                    local.ScopeDesignatorOpt?.Kind() == SyntaxKind.SwitchSection);
+
+                LocalSymbol localToUse;
+                if (TryRewriteLocal(local, out localToUse))
+                {
+                    newLocalsBuilder.Add(localToUse);
+                    localsRewritten |= ((object)local != localToUse);
+                    continue;
+                }
+
+                hoistedLocalsWithDebugScopes.Add(((CapturedToStateMachineFieldReplacement)proxies[local]).HoistedField);
+            }
+
+            var statements = VisitList(node.Statements);
+
+            // wrap the node in an iterator scope for debugging
+            if (hoistedLocalsWithDebugScopes.Count != 0)
+            {
+                BoundStatement translated;
+
+                if (newLocalsBuilder.Count == 0)
+                {
+                    newLocalsBuilder.Free();
+                    translated = new BoundStatementList(node.Syntax, statements);
+                }
+                else
+                {
+                    translated = node.Update(newLocalsBuilder.ToImmutableAndFree(), statements);
+                }
+
+                return MakeStateMachineScope(hoistedLocalsWithDebugScopes.ToImmutable(), translated);
+            }
+            else
+            {
+                hoistedLocalsWithDebugScopes.Free();
+                ImmutableArray<LocalSymbol> newLocals;
+
+                if (localsRewritten)
+                {
+                    newLocals = newLocalsBuilder.ToImmutableAndFree();
+                }
+                else
+                {
+                    newLocalsBuilder.Free();
+                    newLocals = node.Locals;
+                }
+
+                return node.Update(newLocals, statements);
+            }
         }
 
         public override BoundNode VisitSwitchStatement(BoundSwitchStatement node)

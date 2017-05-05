@@ -241,7 +241,7 @@ End Class"
     End Sub
 End Class"
             Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll)
-            WithRuntimeInstance(comp, references:=Nothing, includeLocalSignatures:=False, validator:=
+            WithRuntimeInstance(comp, references:=Nothing, includeLocalSignatures:=False, includeIntrinsicAssembly:=True, validator:=
                 Sub(runtime)
                     Dim context = CreateMethodContext(runtime, "C.M", atLineNumber:=999)
 
@@ -1261,7 +1261,7 @@ Class C
 End Class
 "
             Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll)
-            WithRuntimeInstancePortableBug(comp,
+            WithRuntimeInstance(comp,
                 Sub(runtime)
                     Dim context = CreateMethodContext(runtime, methodName:="C.VB$StateMachine_2_F.MoveNext", atLineNumber:=999)
                     Dim testData As New CompilationTestData()
@@ -1316,7 +1316,7 @@ Class C
 End Class
 "
             Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll)
-            WithRuntimeInstancePortableBug(comp,
+            WithRuntimeInstance(comp,
                 Sub(runtime)
                     Dim context = CreateMethodContext(runtime, methodName:="C.VB$StateMachine_1_F.MoveNext", atLineNumber:=999)
                     Dim testData As New CompilationTestData()
@@ -1390,7 +1390,7 @@ End Structure
                 {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929},
                 TestOptions.DebugDll)
 
-            WithRuntimeInstancePortableBug(comp,
+            WithRuntimeInstance(comp,
                 Sub(runtime)
                     Dim context = CreateMethodContext(runtime, methodName:="S.VB$StateMachine_2_F.MoveNext")
                     Dim testData As New CompilationTestData()
@@ -1481,7 +1481,7 @@ End Class
                 {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929},
                 TestOptions.DebugDll)
 
-            WithRuntimeInstancePortableBug(comp,
+            WithRuntimeInstance(comp,
                 Sub(runtime)
                     Dim context = CreateMethodContext(runtime, methodName:="C.VB$StateMachine_2_M.MoveNext")
                     Dim testData As New CompilationTestData()
@@ -1618,7 +1618,7 @@ End Class"
                 {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929},
                 TestOptions.DebugDll)
 
-            WithRuntimeInstancePortableBug(comp,
+            WithRuntimeInstance(comp,
                 Sub(runtime)
                     Dim context = CreateMethodContext(runtime, methodName:="C._Closure$__.VB$StateMachine___Lambda$__1-0.MoveNext")
                     Dim testData As New CompilationTestData()
@@ -1665,8 +1665,8 @@ End Structure"
     Shared Sub M(a As A, b As B, c As C)
     End Sub
 End Class"
-            Dim comp0 = CreateCompilationWithMscorlib({source0}, options:=TestOptions.DebugDll)
-            Dim comp1 = CreateCompilationWithMscorlib({source1}, options:=TestOptions.DebugDll, references:={comp0.EmitToImageReference()})
+            Dim comp0 = CreateCompilationWithMscorlib({source0}, options:=TestOptions.DebugDll, assemblyName:="Test")
+            Dim comp1 = CreateCompilationWithMscorlib({source1}, options:=TestOptions.DebugDll, references:={comp0.EmitToImageReference()}, assemblyName:="Test")
 
             ' no reference to compilation0
             WithRuntimeInstance(comp1, {MscorlibRef},
@@ -2485,7 +2485,8 @@ End Class"
                 MakeSources(source),
                 {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929},
                 TestOptions.DebugDll)
-            WithRuntimeInstancePortableBug(comp,
+
+            WithRuntimeInstance(comp,
                 Sub(runtime)
                     Dim context = CreateMethodContext(runtime, methodName:="C.VB$StateMachine_2_M.MoveNext", atLineNumber:=999)
                     Dim testData = New CompilationTestData()
@@ -2544,7 +2545,7 @@ End Class"
                 MakeSources(source),
                 {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929},
                 TestOptions.DebugDll)
-            WithRuntimeInstancePortableBug(comp,
+            WithRuntimeInstance(comp,
                 Sub(runtime)
                     Dim context = CreateMethodContext(runtime, methodName:="C.VB$StateMachine_2_M.MoveNext", atLineNumber:=999)
                     Dim testData = New CompilationTestData()
@@ -2700,7 +2701,7 @@ End Class
                 MakeSources(source),
                 {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929},
                 TestOptions.DebugDll)
-            WithRuntimeInstancePortableBug(comp,
+            WithRuntimeInstance(comp,
                 Sub(runtime)
                     Dim context = CreateMethodContext(runtime, methodName:="C.VB$StateMachine_1_M.MoveNext", atLineNumber:=999)
                     Dim testData As New CompilationTestData()

@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 var currentSolution = fixAllState.Solution;
                 foreach (var task in updatedDocumentTasks)
                 {
-                    // 'await' the tasks so that if any completed in a cancelled manner then we'll
+                    // 'await' the tasks so that if any completed in a canceled manner then we'll
                     // throw the right exception here.  Calling .Result on the tasks might end up
                     // with AggregateExceptions being thrown instead.
                     var updatedDocument = await task.ConfigureAwait(false);
@@ -62,7 +62,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             private Task<Document> FixDocumentAsync(
                 Document document, ImmutableArray<Diagnostic> diagnostics, CancellationToken cancellationToken)
             {
-                var filteredDiagnostics = diagnostics.WhereAsArray(_codeFixProvider.IncludeDiagnosticDuringFixAll);
+                // Ensure that diagnostics for this document are always in document location
+                // order.  This provides a consistent and deterministic order for fixers
+                // that want to update a document.
+                var filteredDiagnostics = diagnostics.WhereAsArray(_codeFixProvider.IncludeDiagnosticDuringFixAll)
+                                                     .Sort((d1, d2) => d1.Location.SourceSpan.Start - d2.Location.SourceSpan.Start);
                 return _codeFixProvider.FixAllAsync(document, filteredDiagnostics, cancellationToken);
             }
         }

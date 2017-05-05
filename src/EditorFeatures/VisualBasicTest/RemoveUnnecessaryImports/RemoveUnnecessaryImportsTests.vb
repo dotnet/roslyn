@@ -10,10 +10,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.RemoveUnnecessaryI
     Partial Public Class RemoveUnnecessaryImportsTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
-        Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As Tuple(Of DiagnosticAnalyzer, CodeFixProvider)
-            Return New Tuple(Of DiagnosticAnalyzer, CodeFixProvider)(
-                New VisualBasicRemoveUnnecessaryImportsDiagnosticAnalyzer(),
-                New VisualBasicRemoveUnnecessaryImportsCodeFixProvider())
+        Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
+            Return (New VisualBasicRemoveUnnecessaryImportsDiagnosticAnalyzer(),
+                    New VisualBasicRemoveUnnecessaryImportsCodeFixProvider())
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
@@ -34,7 +33,7 @@ compilationOptions:=TestOptions.ReleaseExe.WithGlobalImports({GlobalImport.Parse
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
         Public Async Function TestProjectLevelMemberImport2() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "[|Imports System
 Module Program
     Sub Main(args As DateTime())
@@ -44,7 +43,7 @@ End Module|]")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
         Public Async Function TestNoImports() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "[|Imports System
 Imports System.Collections.Generic
 Imports System.Linq
@@ -60,7 +59,7 @@ End Module")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
         Public Async Function TestSimpleTypeName() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "[|Imports System
 Imports System.Collections.Generic
 Imports System.Linq
@@ -79,7 +78,7 @@ End Module")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
         Public Async Function TestGenericTypeName() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "[|Imports System
 Imports System.Collections.Generic
 Imports System.Linq
@@ -98,7 +97,7 @@ End Module")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
         Public Async Function TestNamespaceName() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "[|Imports System
 Imports System.Collections.Generic
 Imports System.Linq
@@ -117,7 +116,7 @@ End Module")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
         Public Async Function TestAliasName() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "[|Imports System
 Imports System.Collections.Generic
 Imports System.Linq
@@ -137,7 +136,7 @@ End Module")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
         Public Async Function TestExtensionMethod() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "[|Imports System
 Imports System.Collections.Generic
 Imports System.Linq
@@ -156,7 +155,7 @@ End Module")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
         Public Async Function TestModuleMember() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "[|Imports System
 Imports System.Collections.Generic
 Imports System.Linq
@@ -188,7 +187,7 @@ End Module")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
         Public Async Function TestInvalidCodeRemovesImports() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "[|Imports System
 Imports System.Collections.Generic
 Module Program
@@ -208,7 +207,7 @@ End Module")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
         Public Async Function TestExcludedCodeIsIgnored() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "[|Imports System
 Module Program
     Sub Main()
@@ -229,7 +228,7 @@ End Module")
         <WorkItem(541744, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541744")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
         Public Async Function TestCommentsAroundImportsStatement() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 <Text>'c1
 [|Imports System.Configuration 'c2
 Imports System, System.Collections.Generic 'c3
@@ -249,13 +248,13 @@ Module Module1
         Dim x As List(Of Integer)
     End Sub
 End Module</Text>.NormalizedValue,
-compareTokens:=False)
+ignoreTrivia:=False)
         End Function
 
         <WorkItem(541747, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541747")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
         Public Async Function TestAttribute() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "[|Imports SomeNamespace
 <SomeAttr>
 Class Foo
@@ -269,7 +268,7 @@ End Namespace|]")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
         Public Async Function TestAttributeArgument() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "[|Imports System
 Imports SomeNamespace
 <SomeAttribute(Foo.C)>
@@ -294,7 +293,7 @@ End Class|]")
         <WorkItem(541757, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541757")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
         Public Async Function TestImportsSurroundedByDirectives() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "#If True Then
 [|Imports System.Collections.Generic
 #End If
@@ -309,7 +308,7 @@ End Module")
         <WorkItem(541758, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541758")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
         Public Async Function TestRemovingUnbindableImports() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "[|Imports gibberish
 Module Program
 End Module|]",
@@ -320,7 +319,7 @@ End Module")
         <WorkItem(541744, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541744")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
         Public Async Function TestPreservePrecedingComments() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 <Text>' c1
 [|Imports System 'c2
 ' C3
@@ -332,13 +331,13 @@ End Module|]</Text>.NormalizedValue,
 
 Module Module1
 End Module</Text>.NormalizedValue,
-compareTokens:=False)
+ignoreTrivia:=False)
         End Function
 
         <WorkItem(541757, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541757")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
         Public Async Function TestDirective1() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 <Text>#If True Then
 [|Imports System.Collections.Generic
 #End If
@@ -350,13 +349,13 @@ End Module|]</Text>.NormalizedValue,
 
 Module Program
 End Module</Text>.NormalizedValue,
-compareTokens:=False)
+ignoreTrivia:=False)
         End Function
 
         <WorkItem(541757, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541757")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
         Public Async Function TestDirective2() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 <Text>#If True Then
 [|Imports System
 Imports System.Collections.Generic
@@ -372,13 +371,13 @@ Imports System.Collections.Generic
 Module Program
     Dim a As List(Of Integer)
 End Module</Text>.NormalizedValue,
-compareTokens:=False)
+ignoreTrivia:=False)
         End Function
 
         <WorkItem(541932, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541932")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
         Public Async Function TestImportsClauseRemoval1() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "[|Imports System, foo, System.Collections.Generic
 Module Program
     Sub Main(args As String())
@@ -406,7 +405,7 @@ End Namespace")
         <WorkItem(541932, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541932")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
         Public Async Function TestImportsClauseRemoval2() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "[|Imports System, System.Collections.Generic, foo
 Module Program
     Sub Main(args As String())
@@ -434,7 +433,7 @@ End Namespace")
         <WorkItem(541932, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541932")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
         Public Async Function TestImportsClauseRemoval3() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "[|Imports foo, System, System.Collections.Generic
 Module Program
     Sub Main(args As String())
@@ -462,7 +461,7 @@ End Namespace")
         <WorkItem(541758, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541758")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
         Public Async Function TestUnbindableNamespace() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "[|Imports gibberish
 Module Program
 End Module|]",
@@ -473,7 +472,7 @@ End Module")
         <WorkItem(541780, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541780")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
         Public Async Function TestRemoveClause() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "[|Imports System, foo, System.Collections.Generic
 Module Program
     Sub Main(args As String())
@@ -501,7 +500,7 @@ End Namespace")
         <WorkItem(528603, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528603")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
         Public Async Function TestRemoveClauseWithExplicitLC1() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "[|Imports A _
  , B
 Module Program
@@ -535,7 +534,7 @@ End Namespace")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
         Public Async Function TestRemoveClauseWithExplicitLC2() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "[|Imports B _
  , A
 Module Program
@@ -570,7 +569,7 @@ End Namespace")
         <WorkItem(528603, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528603")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
         Public Async Function TestRemoveClauseWithExplicitLC3() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 <Text>[|Imports A _
     , B _
     , C
@@ -619,12 +618,12 @@ Namespace C
     Public Class CC
     End Class
 End Namespace</Text>.NormalizedValue,
-compareTokens:=False)
+ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
         Public Async Function TestTypeImports() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 <Text>[|Imports Foo
 
 Module Program
@@ -645,7 +644,7 @@ Public Class Foo
     Shared Sub Bar()
     End Sub
 End Class</Text>.NormalizedValue,
-compareTokens:=False)
+ignoreTrivia:=False)
         End Function
 
         <WorkItem(528603, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528603")>
@@ -664,13 +663,13 @@ Public Class Foo
     Shared Sub Bar()
 
     End Sub
-End Class|]</Text>.NormalizedValue, parseOptions:=Nothing)
+End Class|]</Text>.NormalizedValue)
             ' TODO: Enable testing in script when it comes online
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
         Public Async Function TestAlias() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 <Text>[|Imports F = SomeNS
 
 Module Program
@@ -691,12 +690,12 @@ Namespace SomeNS
     Public Class Foo
     End Class
 End Namespace</Text>.NormalizedValue,
-compareTokens:=False)
+ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
         Public Async Function TestAlias_DoesNotRemove() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 <Text>[|Imports F = SomeNS
 
 Module Program
@@ -715,7 +714,7 @@ End Namespace|]</Text>.NormalizedValue)
         <WorkItem(16488, "DevDiv_Projects/Roslyn")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
         Public Async Function TestImportsOnSameLine1() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 <Text>[|Imports A : Imports B
 
 Module Program
@@ -750,12 +749,12 @@ Namespace B
     Public Class ClassB
     End Class
 End Namespace</Text>.NormalizedValue,
-compareTokens:=False)
+ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
         Public Async Function TestImportsOnSameLine2() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 <Text>[|Imports A : Imports B
 Imports C
 
@@ -804,7 +803,7 @@ Namespace C
     Public Class ClassC
     End Class
 End Namespace</Text>.NormalizedValue,
-compareTokens:=False)
+ignoreTrivia:=False)
         End Function
 
         <WorkItem(541808, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541808")>
@@ -820,8 +819,7 @@ End Module
 Public Class Foo
     Shared Sub Bar()
     End Sub
-End Class|]",
-parseOptions:=Nothing) 'TODO (tomat): modules not yet supported in script
+End Class|]") 'TODO (tomat): modules not yet supported in script
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
@@ -836,13 +834,12 @@ End Module
 Public Class Foo
     Public Shared Bar As Integer
     End Sub
-End Class|]",
-parseOptions:=Nothing) 'TODO (tomat): modules not yet supported in script
+End Class|]") 'TODO (tomat): modules not yet supported in script
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
         Public Async Function TestUnusedTypeImportIsRemoved() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 <Text>[|Imports SomeNS.Foo
 
 Module Program
@@ -863,7 +860,7 @@ Namespace SomeNS
     Module Foo
     End Module
 End Namespace</Text>.NormalizedValue,
-compareTokens:=False)
+ignoreTrivia:=False)
         End Function
 
         <WorkItem(528643, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528643")>
@@ -894,13 +891,13 @@ Namespace SomeNS
             Return Nothing
         End Function
     End Module
-End Namespace|]</Text>.NormalizedValue, parseOptions:=TestOptions.Regular)
+End Namespace|]</Text>.NormalizedValue, New TestParameters(parseOptions:=TestOptions.Regular))
         End Function
 
         <WorkItem(543217, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543217")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
         Public Async Function TestExtensionMethodLinq2() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 <Text>[|Imports System.Collections.Generic
 Imports System.Linq
  
@@ -922,7 +919,7 @@ End Module
         <WorkItem(542135, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542135")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
         Public Async Function TestImportedTypeUsedAsGenericTypeArgument() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 <Text>[|Imports GenericThingie
 
 Public Class GenericType(Of T)
@@ -945,7 +942,7 @@ End Class|]</Text>.NormalizedValue)
         <WorkItem(542132, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542132")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
         Public Async Function TestRemoveSuperfluousNewLines1() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 <Text>[|Imports System
 Imports System.Collections.Generic
 Imports System.Linq
@@ -960,13 +957,13 @@ End Module|]</Text>.NormalizedValue,
 
     End Sub
 End Module</Text>.NormalizedValue,
-compareTokens:=False)
+ignoreTrivia:=False)
         End Function
 
         <WorkItem(542132, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542132")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
         Public Async Function TestRemoveSuperfluousNewLines2() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 <Text><![CDATA[[|Imports System
 Imports System.Collections.Generic
 Imports System.Linq
@@ -988,13 +985,13 @@ Module Program
 
     End Sub
 End Module]]></Text>.NormalizedValue,
-compareTokens:=False)
+ignoreTrivia:=False)
         End Function
 
         <WorkItem(542895, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542895")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
         Public Async Function TestRegressionFor10326() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "[|Imports System.ComponentModel
 <Foo(GetType(Category))>
 Class Category
@@ -1008,10 +1005,6 @@ End Class")
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
         Public Async Function TestRemovalSpan1() As Task
             Await TestSpansAsync(
-<text>    [|Imports System
-
-Namespace N
-End Namespace|]</text>.NormalizedValue,
 <text>    [|Imports System|]
 
 Namespace N
@@ -1025,20 +1018,29 @@ End Namespace</text>.NormalizedValue)
             Await TestSpansAsync(
 <text>
 #Const A = 1
-[|Imports System
-#Const B = 1
-Imports System.Runtime.InteropServices|]</text>.NormalizedValue,
-<text>
-#Const A = 1
 [|Imports System|]
 #Const B = 1
-[|Imports System.Runtime.InteropServices|]</text>.NormalizedValue, diagnosticId:=IDEDiagnosticIds.RemoveUnnecessaryImportsDiagnosticId)
+Imports System.Runtime.InteropServices</text>.NormalizedValue,
+diagnosticId:=IDEDiagnosticIds.RemoveUnnecessaryImportsDiagnosticId)
+        End Function
+
+        <WorkItem(545434, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545434")>
+        <WorkItem(712656, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/712656")>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
+        Public Async Function TestRemovalSpan3() As Task
+            Await TestSpansAsync(
+<text>
+#Const A = 1
+Imports System
+#Const B = 1
+[|Imports System.Runtime.InteropServices|]</text>.NormalizedValue,
+diagnosticId:=IDEDiagnosticIds.RemoveUnnecessaryImportsDiagnosticId)
         End Function
 
         <WorkItem(712656, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/712656")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
-        Public Async Function TestRemovalSpan3() As Task
-            Await TestAsync(
+        Public Async Function TestRemovalSpan4() As Task
+            Await TestInRegularAndScriptAsync(
 <text>
 #Const A = 1
 Imports System
@@ -1055,7 +1057,7 @@ Class C : Dim x As Action : End Class</text>.NormalizedValue)
         <WorkItem(545831, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545831")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
         Public Async Function TestImplicitElementAtOrDefault() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 <Text><![CDATA[[|Option Strict On
 
 Imports System
@@ -1126,7 +1128,7 @@ End Namespace]]></Text>.NormalizedValue)
         <WorkItem(545964, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545964")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
         Public Async Function TestMissingOnSynthesizedEventType() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "[|Class C
     Event E()
 End Class|]")

@@ -73,13 +73,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             return new InlineRenameSessionInfo(ActiveSession);
         }
 
-        IInlineRenameSession IInlineRenameService.ActiveSession
-        {
-            get
-            {
-                return _activeRenameSession;
-            }
-        }
+        IInlineRenameSession IInlineRenameService.ActiveSession => _activeRenameSession;
 
         internal InlineRenameSession ActiveSession
         {

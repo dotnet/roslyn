@@ -189,14 +189,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
                 return previewElement;
             }
 
-            if (previewItem is string)
+            if (previewItem is string s)
             {
-                return GetPreviewForString((string)previewItem);
+                return GetPreviewForString(s);
             }
 
-            if (previewItem is FrameworkElement)
+            if (previewItem is FrameworkElement frameworkElement)
             {
-                return (FrameworkElement)previewItem;
+                return frameworkElement;
             }
 
             // preview item we don't know how to show to users

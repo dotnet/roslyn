@@ -23,21 +23,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             _diagnosticService = diagnosticService;
         }
 
-        public DebuggingSession DebuggingSession
-        {
-            get
-            {
-                return _debuggingSession;
-            }
-        }
+        public DebuggingSession DebuggingSession => _debuggingSession;
 
-        public EditSession EditSession
-        {
-            get
-            {
-                return _editSession;
-            }
-        }
+        public EditSession EditSession => _editSession;
 
         public void OnBeforeDebuggingStateChanged(DebuggingState before, DebuggingState after)
         {

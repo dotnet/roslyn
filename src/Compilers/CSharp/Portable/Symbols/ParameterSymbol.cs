@@ -139,7 +139,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 //
                 // Also when we call f() where signature of f is void([Optional]params int[] args) 
                 // an empty array is created and passed to f.
-                return !IsParams && IsMetadataOptional;
+                //
+                // We also do not consider ref/out parameters as optional, unless in COM interop scenarios 
+                // and only for ref.
+                RefKind refKind;
+                return !IsParams && IsMetadataOptional &&
+                       ((refKind = RefKind) == RefKind.None ||
+                        (refKind == RefKind.Ref && ContainingSymbol.ContainingType.IsComImport));
             }
         }
 

@@ -806,9 +806,9 @@ End Enum
                     </Project>
                 </Workspace>,
                 Item("MyEnum", Glyph.EnumInternal, children:={
-                    Item("A", Glyph.EnumMember),
-                    Item("B", Glyph.EnumMember),
-                    Item("C", Glyph.EnumMember)},
+                    Item("A", Glyph.EnumMemberPublic),
+                    Item("B", Glyph.EnumMemberPublic),
+                    Item("C", Glyph.EnumMemberPublic)},
                     bolded:=True))
         End Function
 

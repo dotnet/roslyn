@@ -24,11 +24,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.IntroduceVariable
 
             var service = document.GetLanguageService<IIntroduceVariableService>();
             var actions = await service.IntroduceVariableAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
-
-            if (!actions.IsDefault)
-            {
-                context.RegisterRefactorings(actions);
-            }
+            context.RegisterRefactorings(actions);
         }
     }
 }

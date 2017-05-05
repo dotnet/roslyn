@@ -54,10 +54,9 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var expressionSymbol = semanticModel.GetSymbolInfo(expression, cancellationToken).GetAnySymbol();
-            if (expressionSymbol is INamedTypeSymbol)
+            // foo?[$$]
+            if (expressionSymbol is INamedTypeSymbol namedType)
             {
-                // foo?[$$]
-                var namedType = (INamedTypeSymbol)expressionSymbol;
                 if (namedType.ConstructedFrom.SpecialType == SpecialType.System_Nullable_T &&
                     expression.IsKind(SyntaxKind.NullableType) &&
                     expression.IsChildNode<ArrayTypeSyntax>(a => a.ElementType))
@@ -206,11 +205,11 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 return false;
             }
 
-            if (expressionType is IErrorTypeSymbol)
+            if (expressionType is IErrorTypeSymbol errorType)
             {
                 // If `expression` is a QualifiedNameSyntax then GetTypeInfo().Type won't have any CandidateSymbols, so
                 // we should then fall back to getting the actual symbol for the expression.
-                expressionType = (expressionType as IErrorTypeSymbol).CandidateSymbols.FirstOrDefault().GetSymbolType()
+                expressionType = errorType.CandidateSymbols.FirstOrDefault().GetSymbolType()
                     ?? semanticModel.GetSymbolInfo(expression).GetAnySymbol().GetSymbolType();
             }
 

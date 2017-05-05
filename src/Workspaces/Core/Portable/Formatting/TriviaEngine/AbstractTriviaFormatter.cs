@@ -222,10 +222,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             get { return this.Context.OptionSet; }
         }
 
-        protected string Language
-        {
-            get { return _language; }
-        }
+        protected string Language => _language;
 
         protected TokenStream TokenStream
         {
@@ -404,7 +401,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                         break;
 
                     default:
-                        throw ExceptionUtilities.Unreachable;
+                        throw ExceptionUtilities.UnexpectedValue(lineOperation.Option);
                 }
             }
 
@@ -556,7 +553,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                         return existingWhitespaceBetween.Spaces;
 
                     default:
-                        throw ExceptionUtilities.Unreachable;
+                        throw ExceptionUtilities.UnexpectedValue(rule.IndentationOperation);
                 }
             }
 
@@ -570,7 +567,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                     return Math.Max(rule.Spaces, 0);
 
                 default:
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.UnexpectedValue(rule.SpaceOperation);
             }
         }
 

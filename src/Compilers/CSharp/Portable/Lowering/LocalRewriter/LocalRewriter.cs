@@ -268,17 +268,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(removed);
         }
 
-        /// <summary>
-        /// Remove all the listed placeholders.
-        /// </summary>
-        private void RemovePlaceholderReplacements(ArrayBuilder<BoundValuePlaceholderBase> placeholders)
-        {
-            foreach (var placeholder in placeholders)
-            {
-                RemovePlaceholderReplacement(placeholder);
-            }
-        }
-
         public override sealed BoundNode VisitOutDeconstructVarPendingInference(OutDeconstructVarPendingInference node)
         {
             // OutDeconstructVarPendingInference nodes are only used within initial binding, but don't survive past that stage
@@ -298,16 +287,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             return node;
         }
 
-        private static BoundStatement BadStatement(BoundNode node)
-        {
-            return (node == null)
-                ? new BoundBadStatement(null, default(ImmutableArray<BoundNode>), true)
-                : new BoundBadStatement(node.Syntax, ImmutableArray.Create<BoundNode>(node), true);
-        }
-
         private static BoundExpression BadExpression(BoundExpression node)
         {
-            return new BoundBadExpression(node.Syntax, LookupResultKind.NotReferencable, ImmutableArray<Symbol>.Empty, ImmutableArray.Create<BoundNode>(node), node.Type);
+            return BadExpression(node.Syntax, node.Type, ImmutableArray.Create(node));
+        }
+
+        private static BoundExpression BadExpression(SyntaxNode syntax, TypeSymbol resultType, BoundExpression child)
+        {
+            return BadExpression(syntax, resultType, ImmutableArray.Create(child));
+        }
+
+        private static BoundExpression BadExpression(SyntaxNode syntax, TypeSymbol resultType, BoundExpression child1, BoundExpression child2)
+        {
+            return BadExpression(syntax, resultType, ImmutableArray.Create(child1, child2));
+        }
+
+        private static BoundExpression BadExpression(SyntaxNode syntax, TypeSymbol resultType, ImmutableArray<BoundExpression> children)
+        {
+            return new BoundBadExpression(syntax, LookupResultKind.NotReferencable, ImmutableArray<Symbol>.Empty, children, resultType);
         }
 
         private bool TryGetWellKnownTypeMember<TSymbol>(SyntaxNode syntax, WellKnownMember member, out TSymbol symbol, bool isOptional = false) where TSymbol : Symbol
@@ -316,10 +313,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             return ((object)symbol != null);
         }
 
-        private MethodSymbol GetSpecialTypeMethod(SyntaxNode syntax, SpecialMember specialMember)
+        /// <summary>
+        /// This function provides a false sense of security, it is likely going to surprise you when the requested member is missing.
+        /// Recommendation: Do not use, use <see cref="TryGetSpecialTypeMethod"/> instead! 
+        /// If used, a unit-test with a missing member is absolutely a must have.
+        /// </summary>
+        private MethodSymbol UnsafeGetSpecialTypeMethod(SyntaxNode syntax, SpecialMember specialMember)
         {
             MethodSymbol method;
-            if (Binder.TryGetSpecialTypeMember(_compilation, specialMember, syntax, _diagnostics, out method))
+            if (TryGetSpecialTypeMethod(syntax, specialMember, out method))
             {
                 return method;
             }
@@ -331,6 +333,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 TypeSymbol returnType = new ExtendedErrorTypeSymbol(compilation: _compilation, name: descriptor.Name, errorInfo: null, arity: descriptor.Arity);
                 return new ErrorMethodSymbol(container, returnType, "Missing");
             }
+        }
+
+        private bool TryGetSpecialTypeMethod(SyntaxNode syntax, SpecialMember specialMember, out MethodSymbol method)
+        {
+            return Binder.TryGetSpecialTypeMember(_compilation, specialMember, syntax, _diagnostics, out method);
         }
 
         public override BoundNode VisitTypeOfOperator(BoundTypeOfOperator node)
@@ -483,6 +490,70 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundExpression rhs = assignment.Right;
             return rhs.IsDefaultValue();
+        }
+
+        /// <summary>
+        /// Receivers of struct methods are required to be at least RValues but can be assignable variables.
+        /// Whether the mutations from the method are propagated back to the 
+        /// receiver instance is conditional on whether the receiver is a variable that can be assigned. 
+        /// If not, then the invocation is performed on a copy.
+        /// 
+        /// An inconvenient situation may arise when the receiver is an RValue expression (like a ternary operator),
+        /// which is trivially reduced during lowering to one of its operands and 
+        /// such operand happens to be an assignable variable (like a local). That operation alone would 
+        /// expose the operand to mutations while it would not be exposed otherwise.
+        /// I.E. the transformation becomes semantically observable.
+        /// 
+        /// To prevent such situations, we will wrap the operand into a node whose only 
+        /// purpose is to never be an assignable expression.
+        /// </summary>
+        private static BoundExpression EnsureNotAssignableIfUsedAsMethodReceiver(BoundExpression expr)
+        {
+            // Leave as-is where receiver mutations cannot happen.
+            if (!WouldBeAssignableIfUsedAsMethodReceiver(expr))
+            {
+                return expr;
+            }
+
+            return new BoundConversion(
+                expr.Syntax,
+                expr,
+                Conversion.IdentityValue,
+                @checked: false,
+                explicitCastInCode: true,
+                constantValueOpt: null,
+                type: expr.Type)
+            { WasCompilerGenerated = true };
+        }
+
+        internal static bool WouldBeAssignableIfUsedAsMethodReceiver(BoundExpression receiver)
+        {
+            // - reference type receivers are byval
+            // - special value types (int32, Nullable<T>, . .) do not have mutating members
+            if (receiver.Type.IsReferenceType ||
+                receiver.Type.OriginalDefinition.SpecialType != SpecialType.None)
+            {
+                return false;
+            }
+
+            switch (receiver.Kind)
+            {
+                case BoundKind.Parameter:
+                case BoundKind.Local:
+                case BoundKind.ArrayAccess:
+                case BoundKind.ThisReference:
+                case BoundKind.BaseReference:
+                case BoundKind.PointerIndirectionOperator:
+                case BoundKind.RefValueOperator:
+                case BoundKind.PseudoVariable:
+                case BoundKind.FieldAccess:
+                    return true;
+
+                case BoundKind.Call:
+                    return ((BoundCall)receiver).Method.RefKind != RefKind.None;
+            }
+
+            return false;
         }
     }
 }

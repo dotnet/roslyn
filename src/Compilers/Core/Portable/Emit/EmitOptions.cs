@@ -12,7 +12,9 @@ namespace Microsoft.CodeAnalysis.Emit
     /// </summary>
     public sealed class EmitOptions : IEquatable<EmitOptions>
     {
-        internal static readonly EmitOptions Default = new EmitOptions();
+        internal static readonly EmitOptions Default = PlatformInformation.IsWindows
+            ? new EmitOptions()
+            : new EmitOptions().WithDebugInformationFormat(DebugInformationFormat.PortablePdb);
 
         /// <summary>
         /// True to emit an assembly excluding executable code such as method bodies.
@@ -236,11 +238,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
             if (OutputNameOverride != null)
             {
-                Exception error = MetadataHelpers.CheckAssemblyOrModuleName(OutputNameOverride, argumentName: null);
-                if (error != null)
-                {
-                    diagnostics.Add(messageProvider.CreateDiagnostic(messageProvider.ERR_InvalidOutputName, Location.None, error.Message));
-                }
+                MetadataHelpers.CheckAssemblyOrModuleName(OutputNameOverride, messageProvider, messageProvider.ERR_InvalidOutputName, diagnostics);
             }
 
             if (FileAlignment != 0 && !IsValidFileAlignment(FileAlignment))

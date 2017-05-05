@@ -1813,7 +1813,7 @@ End Class"
     End Sub
 End Class"
             Dim xmlReferences = GetAllXmlReferences()
-            Dim moduleOptions = New VisualBasicCompilationOptions(OutputKind.NetModule, optimizationLevel:=OptimizationLevel.Debug).WithExtendedCustomDebugInformation(True)
+            Dim moduleOptions = New VisualBasicCompilationOptions(OutputKind.NetModule, optimizationLevel:=OptimizationLevel.Debug)
 
             Dim tree1 = VisualBasicSyntaxTree.ParseText(String.Format(sourceTemplate, 1))
             Dim tree2 = VisualBasicSyntaxTree.ParseText(String.Format(sourceTemplate, 2))
@@ -4008,7 +4008,7 @@ Module Module1
     End Sub
 End Module"
             Dim compilation = CreateCompilationWithMscorlib45AndVBRuntime(MakeSources(source), options:=TestOptions.DebugDll)
-            WithRuntimeInstancePortableBug(compilation,
+            WithRuntimeInstance(compilation,
                 Sub(runtime)
                     Dim context = CreateMethodContext(runtime, "Module1._Closure$__.VB$StateMachine___Lambda$__0-0.MoveNext")
                     Dim errorMessage As String = Nothing
@@ -4649,7 +4649,7 @@ Class C
     End Sub
 End Class"
             Dim compilation0 = CreateCompilationWithMscorlib45AndVBRuntime({Parse(source)}, options:=TestOptions.DebugDll, references:={SystemCoreRef})
-            WithRuntimeInstancePortableBug(compilation0,
+            WithRuntimeInstance(compilation0,
                 Sub(runtime)
                     Dim context = CreateMethodContext(runtime, "C._Closure$__.VB$StateMachine___Lambda$__1-0.MoveNext")
                     Dim errorMessage As String = Nothing

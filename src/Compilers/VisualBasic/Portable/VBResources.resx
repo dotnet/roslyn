@@ -1857,8 +1857,8 @@
   <data name="ERR_EventHandlerSignatureIncompatible2" xml:space="preserve">
     <value>Method '{0}' cannot handle event '{1}' because they do not have a compatible signature.</value>
   </data>
-  <data name="ERR_ProjectCCError1" xml:space="preserve">
-    <value>Project-level conditional compilation constant '{1}' is not valid: {0}</value>
+  <data name="ERR_ConditionalCompilationConstantNotValid" xml:space="preserve">
+    <value>Conditional compilation constant '{1}' is not valid: {0}</value>
   </data>
   <data name="ERR_InterfaceImplementedTwice1" xml:space="preserve">
     <value>Interface '{0}' can be implemented only once by this type.</value>
@@ -4340,6 +4340,15 @@
   <data name="ERR_PublicSignNoKey" xml:space="preserve">
     <value>Public sign was specified and requires a public key, but no public key was specified</value>
   </data>
+  <data name="ERR_PublicSignNetModule" xml:space="preserve">
+    <value>Public signing is not supported for netmodules.</value>
+  </data>
+  <data name="WRN_AttributeIgnoredWhenPublicSigning" xml:space="preserve">
+    <value>Attribute '{0}' is ignored when public signing is specified.</value>
+  </data>
+  <data name="WRN_AttributeIgnoredWhenPublicSigning_Title" xml:space="preserve">
+    <value>Attribute is ignored when public signing is specified.</value>
+  </data>
   <data name="WRN_DelaySignButNoKey" xml:space="preserve">
     <value>Delay signing was specified and requires a public key, but no public key was specified.</value>
   </data>
@@ -4835,8 +4844,8 @@
   <data name="ERR_NetModuleNameMismatch" xml:space="preserve">
     <value>Module name '{0}' stored in '{1}' must match its filename.</value>
   </data>
-  <data name="ERR_BadCompilationOption" xml:space="preserve">
-    <value>{0}</value>
+  <data name="ERR_BadModuleName" xml:space="preserve">
+    <value>Invalid module name: {0}</value>
   </data>
   <data name="WRN_AssemblyAttributeFromModuleIsOverridden" xml:space="preserve">
     <value>Attribute '{0}' from module '{1}' will be ignored in favor of the instance appearing in source.</value>
@@ -5121,7 +5130,7 @@
                                   import_list:namespace,...
 /langversion:&lt;number&gt;             Specify language version: 
                                   9|9.0|10|10.0|11|11.0|12|12.0|14|14.0|15|
-                                  15.0|default|latest
+                                  15.0|15.3|default|latest
 /optionexplicit[+|-]              Require explicit declaration of variables.
 /optioninfer[+|-]                 Allow type inference of variables.
 /rootnamespace:&lt;string&gt;           Specifies the root Namespace for all type 
@@ -5145,7 +5154,6 @@
                                   - ADVANCED -
 /baseaddress:&lt;number&gt;             The base address for a library or module 
                                   (hex).
-/bugreport:&lt;file&gt;                 Create bug report file.
 /checksumalgorithm:&lt;alg&gt;          Specify algorithm for calculating source file 
                                   checksum stored in PDB. Supported values are:
                                   SHA1 (default) or SHA256.
@@ -5254,7 +5262,7 @@
   <data name="ERR_InvalidFormatSpecifier" xml:space="preserve">
     <value>'{0}' is not a valid format specifier</value>
   </data>
-  <data name="IDS_InvalidPreprocessorConstantType" xml:space="preserve">
+  <data name="ERR_InvalidPreprocessorConstantType" xml:space="preserve">
     <value>Preprocessor constant '{0}' of type '{1}' is not supported, only primitive types are allowed.</value>
   </data>
   <data name="ERR_ExpectedWarningKeyword" xml:space="preserve">
@@ -5417,10 +5425,10 @@
     <value>Tuple element names must be unique.</value>
   </data>
   <data name="WRN_TupleLiteralNameMismatch" xml:space="preserve">
-    <value>The tuple element name '{0}' is ignored because a different name is specified by the target type '{1}'.</value>
+    <value>The tuple element name '{0}' is ignored because a different name or no name is specified by the target type '{1}'.</value>
   </data>
   <data name="WRN_TupleLiteralNameMismatch_Title" xml:space="preserve">
-    <value>The tuple element name is ignored because a different name is specified by the assignment target.</value>
+    <value>The tuple element name is ignored because a different name or no name is specified by the assignment target.</value>
   </data>
   <data name="ERR_TupleReservedElementName" xml:space="preserve">
     <value>Tuple element name '{0}' is only allowed at position {1}.</value>
@@ -5448,5 +5456,32 @@
   </data>
   <data name="ERR_DocFileGen" xml:space="preserve">
     <value>Error writing to XML documentation file: {0}</value>
+  </data>
+  <data name="ERR_BadAssemblyName" xml:space="preserve">
+    <value>Invalid assembly name: {0}</value>
+  </data>
+  <data name="ERR_TypeForwardedToMultipleAssemblies" xml:space="preserve">
+    <value>Module '{0}' in assembly '{1}' is forwarding the type '{2}' to multiple assemblies: '{3}' and '{4}'.</value>
+  </data>
+  <data name="ERR_Merge_conflict_marker_encountered" xml:space="preserve">
+    <value>Merge conflict marker encountered</value>
+  </data>
+  <data name="ERR_BadDocumentationMode" xml:space="preserve">
+    <value>Provided documentation mode is unsupported or invalid: '{0}'.</value>
+  </data>
+  <data name="ERR_BadLanguageVersion" xml:space="preserve">
+    <value>Provided language version is unsupported or invalid: '{0}'.</value>
+  </data>
+  <data name="ERR_BadSourceCodeKind" xml:space="preserve">
+    <value>Provided source code kind is unsupported or invalid: '{0}'</value>
+  </data>
+  <data name="ERR_TupleInferredNamesNotAvailable" xml:space="preserve">
+    <value>Tuple element name '{0}' is inferred. Please use language version {1} or greater to access an element by its inferred name.</value>
+  </data>
+  <data name="WRN_Experimental" xml:space="preserve">
+    <value>'{0}' is for evaluation purposes only and is subject to change or removal in future updates.</value>
+  </data>
+  <data name="WRN_Experimental_Title" xml:space="preserve">
+    <value>Type is for evaluation purposes only and is subject to change or removal in future updates.</value>
   </data>
 </root>

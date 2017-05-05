@@ -553,7 +553,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                         return RenameSpanKind.Complexified;
 
                     default:
-                        throw ExceptionUtilities.Unreachable;
+                        throw ExceptionUtilities.UnexpectedValue(kind);
                 }
             }
 

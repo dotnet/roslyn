@@ -848,7 +848,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <remarks>
         /// Forces binding and decoding of attributes.
         /// </remarks>
-        internal CommonMethodWellKnownAttributeData GetDecodedWellKnownAttributeData()
+        protected CommonMethodWellKnownAttributeData GetDecodedWellKnownAttributeData()
         {
             var attributesBag = _lazyCustomAttributesBag;
             if (attributesBag == null || !attributesBag.IsDecodedWellKnownAttributeDataComputed)
@@ -925,15 +925,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if (forReturnType)
             {
-                bagCreatedOnThisThread = LoadAndValidateAttributes(this.GetReturnTypeAttributeDeclarations(), ref lazyCustomAttributesBag, symbolPart: AttributeLocation.Return);
+                bagCreatedOnThisThread = LoadAndValidateAttributes(
+                    this.GetReturnTypeAttributeDeclarations(),
+                    ref lazyCustomAttributesBag,
+                    symbolPart: AttributeLocation.Return);
             }
             else
             {
                 bagCreatedOnThisThread = LoadAndValidateAttributes(this.GetAttributeDeclarations(), ref lazyCustomAttributesBag);
             }
 
-            var part = forReturnType ? CompletionPart.ReturnTypeAttributes : CompletionPart.Attributes;
-            state.NotePartComplete(part);
+            if (bagCreatedOnThisThread)
+            {
+                var part = forReturnType ? CompletionPart.ReturnTypeAttributes : CompletionPart.Attributes;
+                state.NotePartComplete(part);
+            }
+
             return lazyCustomAttributesBag;
         }
 
@@ -1000,7 +1007,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     CSharpAttributeData boundAttribute;
                     ObsoleteAttributeData obsoleteData;
 
-                    if (EarlyDecodeDeprecatedOrObsoleteAttribute(ref arguments, out boundAttribute, out obsoleteData))
+                    if (EarlyDecodeDeprecatedOrExperimentalOrObsoleteAttribute(ref arguments, out boundAttribute, out obsoleteData))
                     {
                         if (obsoleteData != null)
                         {
@@ -1090,6 +1097,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else if (attribute.IsTargetAttribute(this, AttributeDescription.SpecialNameAttribute))
             {
                 arguments.GetOrCreateData<CommonMethodWellKnownAttributeData>().HasSpecialNameAttribute = true;
+            }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.ExcludeFromCodeCoverageAttribute))
+            {
+                arguments.GetOrCreateData<CommonMethodWellKnownAttributeData>().HasExcludeFromCodeCoverageAttribute = true;
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.ConditionalAttribute))
             {
@@ -1438,6 +1449,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return data != null && data.HasSpecialNameAttribute;
             }
         }
+
+        internal sealed override bool IsDirectlyExcludedFromCodeCoverage =>
+            GetDecodedWellKnownAttributeData()?.HasExcludeFromCodeCoverageAttribute == true;
 
         internal sealed override bool RequiresSecurityObject
         {

@@ -24,21 +24,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             testData As CompilationTestData,
             cancellationToken As CancellationToken) As EmitDifferenceResult
 
-            Dim moduleVersionId As Guid
-            Try
-                moduleVersionId = baseline.OriginalMetadata.GetModuleVersionId()
-            Catch ex As BadImageFormatException
-                ' https://github.com/dotnet/roslyn/issues/8910:
-                ' Return MakeEmitResult(success:=False, diagnostics:= ..., baseline:=Nothing)
-                Throw
-            End Try
-
             Dim pdbName = FileNameUtilities.ChangeExtension(compilation.SourceModule.Name, "pdb")
             Dim diagnostics = DiagnosticBag.GetInstance()
 
-            Dim emitOpts = EmitOptions.Default
+            Dim emitOpts = EmitOptions.Default.WithDebugInformationFormat(If(baseline.HasPortablePdb, DebugInformationFormat.PortablePdb, DebugInformationFormat.Pdb))
             Dim runtimeMDVersion = compilation.GetRuntimeMetadataVersion()
-            Dim serializationProperties = compilation.ConstructModuleSerializationProperties(emitOpts, runtimeMDVersion, moduleVersionId)
+            Dim serializationProperties = compilation.ConstructModuleSerializationProperties(emitOpts, runtimeMDVersion, baseline.ModuleVersionId)
             Dim manifestResources = SpecializedCollections.EmptyEnumerable(Of ResourceDescription)()
 
             Dim moduleBeingBuilt As PEDeltaAssemblyBuilder

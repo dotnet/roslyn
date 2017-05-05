@@ -37,8 +37,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
         }
 
         public DiagnosticAnalyzerCategory GetAnalyzerCategory()
-        {
-            return DiagnosticAnalyzerCategory.SyntaxAnalysis;
-        }
+            => DiagnosticAnalyzerCategory.SyntaxAnalysis;
     }
 }

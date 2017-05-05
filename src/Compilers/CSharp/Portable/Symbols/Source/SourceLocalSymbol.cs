@@ -76,6 +76,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _scopeBinder; }
         }
 
+        internal override SyntaxNode ScopeDesignatorOpt
+        {
+            get { return _scopeBinder.ScopeDesignator; }
+        }
+
         /// <summary>
         /// Binder that should be used to bind type syntax for the local.
         /// </summary>
@@ -158,7 +163,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     new[] { SyntaxKind.LocalDeclarationStatement, SyntaxKind.ForStatement, SyntaxKind.UsingStatement, SyntaxKind.FixedStatement }.
                         Contains(nodeToBind.Ancestors().OfType<StatementSyntax>().First().Kind()) ||
                 nodeToBind is ExpressionSyntax);
-            return typeSyntax.IsVar
+            return typeSyntax.IsVar && kind != LocalDeclarationKind.DeclarationExpressionVariable
                 ? new LocalSymbolWithEnclosingContext(containingSymbol, scopeBinder, nodeBinder, typeSyntax, identifierToken, kind, nodeToBind, forbiddenZone)
                 : new SourceLocalSymbol(containingSymbol, scopeBinder, false, typeSyntax, identifierToken, kind);
         }
@@ -406,7 +411,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 switch (_declarationKind)
                 {
                     case LocalDeclarationKind.RegularVariable:
-                        Debug.Assert(node is VariableDeclaratorSyntax || node is SingleVariableDesignationSyntax);
+                        Debug.Assert(node is VariableDeclaratorSyntax);
                         break;
 
                     case LocalDeclarationKind.Constant:
@@ -423,6 +428,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         Debug.Assert(node is CatchDeclarationSyntax);
                         break;
 
+                    case LocalDeclarationKind.OutVariable:
+                    case LocalDeclarationKind.DeclarationExpressionVariable:
+                    case LocalDeclarationKind.DeconstructionVariable:
                     case LocalDeclarationKind.PatternVariable:
                         Debug.Assert(node is SingleVariableDesignationSyntax);
                         break;
@@ -658,7 +666,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     case SyntaxKind.SimpleAssignmentExpression:
                         var assignment = (AssignmentExpressionSyntax)_deconstruction;
-                        _nodeBinder.BindDeconstruction(assignment, assignment.Left, assignment.Right, diagnostics, isDeclaration: true);
+                        Debug.Assert(assignment.IsDeconstruction());
+                        DeclarationExpressionSyntax declaration = null;
+                        ExpressionSyntax expression = null;
+                        _nodeBinder.BindDeconstruction(assignment, assignment.Left, assignment.Right, diagnostics, ref declaration, ref expression);
                         break;
 
                     case SyntaxKind.ForEachVariableStatement:
@@ -670,9 +681,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         throw ExceptionUtilities.UnexpectedValue(_deconstruction.Kind());
                 }
 
-                TypeSymbol result = this._type;
-                Debug.Assert((object)result != null);
-                return result;
+                Debug.Assert((object)this._type != null);
+                return this._type;
             }
 
             internal override SyntaxNode ForbiddenZone
@@ -682,7 +692,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     switch (_deconstruction.Kind())
                     {
                         case SyntaxKind.SimpleAssignmentExpression:
-                            return ((AssignmentExpressionSyntax)_deconstruction).Right;
+                            return _deconstruction;
 
                         case SyntaxKind.ForEachVariableStatement:
                             // There is no forbidden zone for a foreach statement, because the
@@ -752,7 +762,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         break;
                 }
 
-                Debug.Assert((object)this._type != null);
+                if ((object)this._type == null)
+                {
+                    Debug.Assert(this.DeclarationKind == LocalDeclarationKind.DeclarationExpressionVariable);
+                    SetType(_nodeBinder.CreateErrorType("var"));
+                }
+
                 return this._type;
             }
         }

@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -50,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
     {
         private static readonly ForegroundThreadData s_fallbackForegroundThreadData;
         private static ForegroundThreadData s_currentForegroundThreadData;
-        private readonly ForegroundThreadData _foregroundThreadData;
+        private readonly ForegroundThreadData _foregroundThreadDataWhenCreated;
 
         internal static ForegroundThreadData CurrentForegroundThreadData
         {
@@ -66,20 +67,11 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
             }
         }
 
-        internal ForegroundThreadData ForegroundThreadData
-        {
-            get { return _foregroundThreadData; }
-        }
+        internal Thread ForegroundThread => _foregroundThreadDataWhenCreated.Thread;
 
-        internal Thread ForegroundThread
-        {
-            get { return _foregroundThreadData.Thread; }
-        }
+        internal TaskScheduler ForegroundTaskScheduler => _foregroundThreadDataWhenCreated.TaskScheduler;
 
-        internal TaskScheduler ForegroundTaskScheduler
-        {
-            get { return _foregroundThreadData.TaskScheduler; }
-        }
+        internal ForegroundThreadDataKind ForegroundKind => _foregroundThreadDataWhenCreated.Kind;
 
         // HACK: This is a dangerous way of establishing the 'foreground' thread affinity of an 
         // AppDomain.  This method should be deleted in favor of forcing derivations of this type
@@ -90,12 +82,16 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
             s_fallbackForegroundThreadData = ForegroundThreadData.CreateDefault(Unknown);
         }
 
-        public ForegroundThreadAffinitizedObject(ForegroundThreadData foregroundThreadData = null, bool assertIsForeground = false)
+        public ForegroundThreadAffinitizedObject(bool assertIsForeground = false)
         {
-            _foregroundThreadData = foregroundThreadData ?? CurrentForegroundThreadData;
+            _foregroundThreadDataWhenCreated = CurrentForegroundThreadData;
 
-            // For sanity's sake, ensure that our idea of "foreground" is the same as WPF's
-            Contract.ThrowIfFalse(Application.Current == null || Application.Current.Dispatcher.Thread == ForegroundThread);
+            // For sanity's sake, ensure that our idea of "foreground" is the same as WPF's. But we won't assert
+            // anything if we haven't figured it out yet.
+            Contract.ThrowIfFalse(
+                CurrentForegroundThreadData.Kind == ForegroundThreadDataKind.Unknown ||
+                Application.Current == null ||
+                Application.Current.Dispatcher.Thread == ForegroundThread);
 
             // ForegroundThreadAffinitizedObject might not necessarily be created on a foreground thread.
             // AssertIsForeground here only if the object must be created on a foreground thread.
@@ -110,18 +106,22 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
             return Thread.CurrentThread == ForegroundThread;
         }
 
-        /// <summary>
-        /// Ensure this is a supported scheduling context like Wpf or explicit STA scheduler.
-        /// </summary>
-        /// <returns></returns>
-        public bool IsValid()
-        {
-            return _foregroundThreadData.Kind != Unknown;
-        }
-
         public void AssertIsForeground()
         {
-            Contract.ThrowIfFalse(IsForeground());
+            var whenCreatedThread = _foregroundThreadDataWhenCreated.Thread;
+            var currentThread = Thread.CurrentThread;
+
+            // In debug, provide a lot more information so that we can track down unit test flakeyness.
+            // This is too expensive to do in retail as it creates way too many allocations.
+            Debug.Assert(currentThread == whenCreatedThread,
+                "When created kind       : " + _foregroundThreadDataWhenCreated.Kind + "\r\n" +
+                "When created thread id  : " + whenCreatedThread?.ManagedThreadId + "\r\n" +
+                "When created thread name: " + whenCreatedThread?.Name + "\r\n" +
+                "Current thread id       : " + currentThread?.ManagedThreadId + "\r\n" +
+                "Current thread name     : " + currentThread?.Name);
+
+            // But, in retail, do the check as well, so that we can catch problems that happen in the wild.
+            Contract.ThrowIfFalse(currentThread == whenCreatedThread);
         }
 
         public void AssertIsBackground()

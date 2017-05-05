@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
     {
         internal override async Task<IEnumerable<ClassifiedSpan>> GetClassificationSpansAsync(string code, TextSpan textSpan, CSharpParseOptions options)
         {
-            using (var workspace = await TestWorkspace.CreateCSharpAsync(code, parseOptions: options))
+            using (var workspace = TestWorkspace.CreateCSharp(code, parseOptions: options))
             {
                 var snapshot = workspace.Documents.First().TextBuffer.CurrentSnapshot;
                 var document = workspace.CurrentSolution.Projects.First().Documents.First();
@@ -3976,6 +3976,39 @@ void M()
                 Punctuation.Colon,
                 Number("2"),
                 Punctuation.CloseParen);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestConflictMarkers1()
+        {
+            await TestAsync(
+@"class C
+{
+<<<<<<< Start
+    public void Foo();
+=======
+    public void Bar();
+>>>>>>> End
+}",
+                Keyword("class"),
+                Class("C"),
+                Punctuation.OpenCurly,
+                Comment("<<<<<<< Start"),
+                Keyword("public"),
+                Keyword("void"),
+                Identifier("Foo"),
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Punctuation.Semicolon,
+                Comment("======="),
+                Keyword("public"),
+                Keyword("void"),
+                Identifier("Bar"),
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Punctuation.Semicolon,
+                Comment(">>>>>>> End"),
+                Punctuation.CloseCurly);
         }
     }
 }

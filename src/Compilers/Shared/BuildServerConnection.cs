@@ -4,18 +4,18 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.IO.Pipes;
+using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Security.AccessControl;
+using System.Security.Cryptography;
 using System.Security.Principal;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.CommandLine.CompilerServerLogger;
 using static Microsoft.CodeAnalysis.CommandLine.NativeMethods;
-using System.Reflection;
-using System.Security.AccessControl;
-using System.Security.Cryptography;
 
 namespace Microsoft.CodeAnalysis.CommandLine
 {
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// Determines if the compiler server is supported in this environment.
         /// </summary>
         internal static bool IsCompilerServerSupported => 
-            RuntimeInformation.IsOSPlatform(OSPlatform.Windows) &&
+            PlatformInformation.IsWindows &&
             GetRuntimeDirectoryOpt() != null &&
             GetPipeNameForPathOpt("") != null;
 
@@ -228,7 +228,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 Log("Begin reading response");
 
                 var responseTask = BuildResponse.ReadAsync(pipeStream, serverCts.Token);
-                var monitorTask = CreateMonitorDisconnectTask(pipeStream, serverCts.Token);
+                var monitorTask = CreateMonitorDisconnectTask(pipeStream, "client", serverCts.Token);
                 await Task.WhenAny(responseTask, monitorTask).ConfigureAwait(false);
 
                 Log("End reading response");
@@ -263,17 +263,13 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// The IsConnected property on named pipes does not detect when the client has disconnected
         /// if we don't attempt any new I/O after the client disconnects. We start an async I/O here
         /// which serves to check the pipe for disconnection.
-        ///
-        /// This will return true if the pipe was disconnected.
         /// </summary>
-        private static async Task CreateMonitorDisconnectTask(
-            NamedPipeClientStream pipeStream,
-            CancellationToken cancellationToken)
+        internal static async Task CreateMonitorDisconnectTask(
+            PipeStream pipeStream,
+            string identifier = null,
+            CancellationToken cancellationToken = default(CancellationToken))
         {
-            // Ignore this warning because the desktop projects don't target 4.6 yet
-#pragma warning disable CA1825 // Avoid zero-length array allocations.
-            var buffer = new byte[0];
-#pragma warning restore CA1825 // Avoid zero-length array allocations.
+            var buffer = Array.Empty<byte>();
 
             while (!cancellationToken.IsCancellationRequested && pipeStream.IsConnected)
             {
@@ -282,17 +278,18 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
                 try
                 {
-                    Log("Before poking pipe.");
+                    Log($"Before poking pipe {identifier}.");
                     await pipeStream.ReadAsync(buffer, 0, 0, cancellationToken).ConfigureAwait(false);
-                    Log("After poking pipe.");
+                    Log($"After poking pipe {identifier}.");
                 }
-                // Ignore cancellation
-                catch (OperationCanceledException) { }
+                catch (OperationCanceledException)
+                {
+                }
                 catch (Exception e)
                 {
                     // It is okay for this call to fail.  Errors will be reflected in the
                     // IsConnected property which will be read on the next iteration of the
-                    LogException(e, "Error poking pipe");
+                    LogException(e, $"Error poking pipe {identifier}.");
                 }
             }
         }

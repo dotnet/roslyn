@@ -14,7 +14,6 @@ namespace Microsoft.CodeAnalysis.Host
     {
         private Workspace _workspace;
         private readonly IWorkspaceTaskScheduler _compilationScheduler;
-        private readonly IWorkspaceTaskScheduler _notificationQueue;
 
         // Used to keep a strong reference to the built compilations so they are not GC'd
         private Compilation[] _mostRecentCompilations;
@@ -28,10 +27,8 @@ namespace Microsoft.CodeAnalysis.Host
 
             // make a scheduler that runs on the thread pool
             var taskSchedulerFactory = workspace.Services.GetService<IWorkspaceTaskSchedulerFactory>();
-            _compilationScheduler = taskSchedulerFactory.CreateTaskScheduler(TaskScheduler.Default);
+            _compilationScheduler = taskSchedulerFactory.CreateBackgroundTaskScheduler();
 
-            // default uses current (ideally UI/foreground scheduler) if possible
-            _notificationQueue = taskSchedulerFactory.CreateTaskQueue();
             _cancellationSource = new CancellationTokenSource();
             _workspace.WorkspaceChanged += this.OnWorkspaceChanged;
             _workspace.DocumentOpened += OnDocumentOpened;

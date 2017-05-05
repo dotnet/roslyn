@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -168,9 +169,9 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 return true;
             }
 
-            if (destination is TTypeDeclarationSyntax)
+            if (destination is TTypeDeclarationSyntax typeDecl)
             {
-                var insertionIndices = this.GetInsertionIndices((TTypeDeclarationSyntax)destination, cancellationToken);
+                var insertionIndices = this.GetInsertionIndices(typeDecl, cancellationToken);
                 if (insertionIndices != null &&
                     insertionIndices.Count > insertionIndex &&
                     insertionIndices[insertionIndex])
@@ -391,6 +392,51 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                                                        .OfType<IParameterSymbol>()
                                                        .Where(p => p.ContainingSymbol.IsAnonymousFunction());
             return anonymousMethodParameters;
+        }
+
+        protected static async Task<(SemanticDocument newSemanticDocument, ISet<TExpressionSyntax> newMatches)> ComplexifyParentingStatements(
+            SemanticDocument semanticDocument,
+            ISet<TExpressionSyntax> matches,
+            CancellationToken cancellationToken)
+        {
+            // First, track the matches so that we can get back to them later.
+            var newRoot = semanticDocument.Root.TrackNodes(matches);
+            var newDocument = semanticDocument.Document.WithSyntaxRoot(newRoot);
+            var newSemanticDocument = await SemanticDocument.CreateAsync(newDocument, cancellationToken).ConfigureAwait(false);
+            var newMatches = newSemanticDocument.Root.GetCurrentNodes(matches.AsEnumerable()).ToSet();
+
+            // Next, expand the topmost parenting expression of each match, being careful
+            // not to expand the matches themselves.
+            var topMostExpressions = newMatches
+                .Select(m => m.AncestorsAndSelf().OfType<TExpressionSyntax>().Last())
+                .Distinct();
+
+            newRoot = await newSemanticDocument.Root
+                .ReplaceNodesAsync(
+                    topMostExpressions,
+                    computeReplacementAsync: async (oldNode, newNode, ct) =>
+                    {
+                        return await Simplifier
+                            .ExpandAsync(
+                                oldNode,
+                                newSemanticDocument.Document,
+                                expandInsideNode: node =>
+                                {
+                                    var expression = node as TExpressionSyntax;
+                                    return expression == null
+                                        || !newMatches.Contains(expression);
+                                },
+                                cancellationToken: ct)
+                            .ConfigureAwait(false);
+                    },
+                    cancellationToken: cancellationToken)
+                .ConfigureAwait(false);
+
+            newDocument = newSemanticDocument.Document.WithSyntaxRoot(newRoot);
+            newSemanticDocument = await SemanticDocument.CreateAsync(newDocument, cancellationToken).ConfigureAwait(false);
+            newMatches = newSemanticDocument.Root.GetCurrentNodes(matches.AsEnumerable()).ToSet();
+
+            return (newSemanticDocument, newMatches);
         }
     }
 }

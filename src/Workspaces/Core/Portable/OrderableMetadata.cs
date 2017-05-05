@@ -19,21 +19,9 @@ namespace Microsoft.CodeAnalysis
 
         public string Name { get; }
 
-        IEnumerable<string> IOrderableMetadata.After
-        {
-            get
-            {
-                return AfterTyped;
-            }
-        }
+        IEnumerable<string> IOrderableMetadata.After => AfterTyped;
 
-        IEnumerable<string> IOrderableMetadata.Before
-        {
-            get
-            {
-                return BeforeTyped;
-            }
-        }
+        IEnumerable<string> IOrderableMetadata.Before => BeforeTyped;
 
         public OrderableMetadata(IDictionary<string, object> data)
         {

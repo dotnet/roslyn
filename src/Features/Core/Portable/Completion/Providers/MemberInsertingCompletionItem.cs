@@ -11,7 +11,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
     {
         public static CompletionItem Create(
             string displayText,
-            Glyph? glyph,
             DeclarationModifiers modifiers,
             int line,
             ISymbol symbol,
@@ -24,10 +23,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 .Add("Modifiers", modifiers.ToString())
                 .Add("TokenSpanEnd", token.Span.End.ToString());
 
-            return SymbolCompletionItem.Create(
+            return SymbolCompletionItem.CreateWithSymbolId(
                 displayText: displayText,
-                symbol: symbol,
-                glyph: glyph,
+                symbols: ImmutableArray.Create(symbol),
                 contextPosition: descriptionPosition,
                 properties: props,
                 rules: rules);

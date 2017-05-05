@@ -38,12 +38,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
             Return Sub(value) codeElement.Name = value
         End Function
 
-        Protected Async Function TestNamespace(code As XElement, expectedNamespace As String) As Task
-            Await TestElement(code,
+        Protected Sub TestNamespace(code As XElement, expectedNamespace As String)
+            TestElement(code,
                 Sub(codeElement)
                     Assert.Equal(expectedNamespace, codeElement.Namespace)
                 End Sub)
-        End Function
+        End Sub
 
     End Class
 End Namespace

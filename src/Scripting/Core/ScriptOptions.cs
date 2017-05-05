@@ -4,9 +4,12 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using System.Reflection;
 using System.Threading;
+using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Scripting.Hosting;
+using System.Text;
 
 namespace Microsoft.CodeAnalysis.Scripting
 {
@@ -19,10 +22,51 @@ namespace Microsoft.CodeAnalysis.Scripting
     {
         public static ScriptOptions Default { get; } = new ScriptOptions(
             filePath: "",
-            references: ImmutableArray<MetadataReference>.Empty,
+            references: GetDefaultMetadataReferences(),
             namespaces: ImmutableArray<string>.Empty,
             metadataResolver: RuntimeMetadataReferenceResolver.Default,
-            sourceResolver: SourceFileResolver.Default);
+            sourceResolver: SourceFileResolver.Default,
+            emitDebugInformation: false,
+            fileEncoding: null);
+
+        private static ImmutableArray<MetadataReference> GetDefaultMetadataReferences()
+        {
+            if (GacFileResolver.IsAvailable)
+            {
+                return ImmutableArray<MetadataReference>.Empty;
+            }
+
+            // These references are resolved lazily. Keep in sync with list in core csi.rsp.
+            var files = new[]
+            {
+                "System.Collections",
+                "System.Collections.Concurrent",
+                "System.Console",
+                "System.Diagnostics.Debug",
+                "System.Diagnostics.Process",
+                "System.Diagnostics.StackTrace",
+                "System.Globalization",
+                "System.IO",
+                "System.IO.FileSystem",
+                "System.IO.FileSystem.Primitives",
+                "System.Reflection",
+                "System.Reflection.Extensions",
+                "System.Reflection.Primitives",
+                "System.Runtime",
+                "System.Runtime.Extensions",
+                "System.Runtime.InteropServices",
+                "System.Text.Encoding",
+                "System.Text.Encoding.CodePages",
+                "System.Text.Encoding.Extensions",
+                "System.Text.RegularExpressions",
+                "System.Threading",
+                "System.Threading.Tasks",
+                "System.Threading.Tasks.Parallel",
+                "System.Threading.Thread",
+            };
+
+            return ImmutableArray.CreateRange(files.Select(CreateUnresolvedReference));
+        }
 
         /// <summary>
         /// An array of <see cref="MetadataReference"/>s to be added to the script.
@@ -51,6 +95,17 @@ namespace Microsoft.CodeAnalysis.Scripting
         public ImmutableArray<string> Imports { get; private set; }
 
         /// <summary>
+        /// Specifies whether debugging symbols should be emitted.
+        /// </summary>
+        public bool EmitDebugInformation { get; private set; } = false;
+
+        /// <summary>
+        /// Specifies the encoding to be used when debugging scripts loaded from a file, or saved to a file for debugging purposes.
+        /// If it's null, the compiler will attempt to detect the necessary encoding for debugging
+        /// </summary>
+        public Encoding FileEncoding { get; private set; }
+
+        /// <summary>
         /// The path to the script source if it originated from a file, empty otherwise.
         /// </summary>
         public string FilePath { get; private set; }
@@ -60,7 +115,9 @@ namespace Microsoft.CodeAnalysis.Scripting
             ImmutableArray<MetadataReference> references,
             ImmutableArray<string> namespaces,
             MetadataReferenceResolver metadataResolver,
-            SourceReferenceResolver sourceResolver)
+            SourceReferenceResolver sourceResolver,
+            bool emitDebugInformation,
+            Encoding fileEncoding)
         {
             Debug.Assert(filePath != null);
             Debug.Assert(!references.IsDefault);
@@ -73,6 +130,8 @@ namespace Microsoft.CodeAnalysis.Scripting
             Imports = namespaces;
             MetadataResolver = metadataResolver;
             SourceResolver = sourceResolver;
+            EmitDebugInformation = emitDebugInformation;
+            FileEncoding = fileEncoding;
         }
 
         private ScriptOptions(ScriptOptions other)
@@ -80,7 +139,9 @@ namespace Microsoft.CodeAnalysis.Scripting
                    references: other.MetadataReferences,
                    namespaces: other.Imports,
                    metadataResolver: other.MetadataResolver,
-                   sourceResolver: other.SourceResolver)
+                   sourceResolver: other.SourceResolver,
+                   emitDebugInformation: other.EmitDebugInformation,
+                   fileEncoding: other.FileEncoding)
         {
         }
 
@@ -241,5 +302,17 @@ namespace Microsoft.CodeAnalysis.Scripting
         /// <exception cref="ArgumentNullException"><paramref name="imports"/> is null or contains a null reference.</exception>
         public ScriptOptions AddImports(params string[] imports) =>
             AddImports((IEnumerable<string>)imports);
+
+        /// <summary>
+        /// Creates a new <see cref="ScriptOptions"/> with debugging information enabled.
+        /// </summary>
+        public ScriptOptions WithEmitDebugInformation(bool emitDebugInformation) =>
+            emitDebugInformation == EmitDebugInformation ? this : new ScriptOptions(this) { EmitDebugInformation = emitDebugInformation };
+
+        /// <summary>
+        /// Creates a new <see cref="ScriptOptions"/> with specified <see cref="FileEncoding"/>.
+        /// </summary>
+        public ScriptOptions WithFileEncoding(Encoding encoding) => 
+            encoding == FileEncoding ? this : new ScriptOptions(this) { FileEncoding = encoding };
     }
 }

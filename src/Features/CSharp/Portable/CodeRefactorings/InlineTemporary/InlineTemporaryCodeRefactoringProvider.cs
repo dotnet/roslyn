@@ -69,9 +69,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
                 return;
             }
 
-            if (variableDeclarator.Initializer.Kind() == SyntaxKind.RefExpression)
+            if (variableDeclaration.Type.Kind() == SyntaxKind.RefType)
             {
-                // TODO: inlining byref temps is NYI
+                // TODO: inlining ref returns:
+                // https://github.com/dotnet/roslyn/issues/17132
                 return;
             }
 

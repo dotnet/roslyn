@@ -665,7 +665,7 @@ End Class");
         {
             var namespaceSymbol = CodeGenerationSymbolFactory.CreateNamespaceSymbol("Outerspace");
 
-            using (var context = await TestContext.CreateAsync())
+            using (var context = TestContext.Create())
             {
                 await Assert.ThrowsAsync<ArgumentException>(async () =>
                 {
@@ -679,7 +679,7 @@ End Class");
         {
             var metadataSource = "public class C { public bool Is; }";
 
-            using (var context = await TestContext.CreateAsync(LanguageNames.CSharp, SpecializedCollections.SingletonEnumerable(metadataSource)))
+            using (var context = TestContext.Create(LanguageNames.CSharp, SpecializedCollections.SingletonEnumerable(metadataSource)))
             {
                 var a = await context.GenerateSourceAsync("C");
                 var b = await context.GenerateSourceAsync("C.Is");
@@ -690,7 +690,7 @@ End Class");
         [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public async Task TestReuseRepeatGeneration()
         {
-            using (var context = await TestContext.CreateAsync())
+            using (var context = TestContext.Create())
             {
                 var a = await context.GenerateSourceAsync();
                 var b = await context.GenerateSourceAsync();
@@ -701,7 +701,7 @@ End Class");
         [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public async Task TestWorkspaceContextHasReasonableProjectName()
         {
-            using (var context = await TestContext.CreateAsync())
+            using (var context = TestContext.Create())
             {
                 var compilation = await context.DefaultProject.GetCompilationAsync();
                 var result = await context.GenerateSourceAsync(compilation.ObjectType);
@@ -715,7 +715,7 @@ End Class");
         [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public async Task TestReuseGenerateFromDifferentProject()
         {
-            using (var context = await TestContext.CreateAsync())
+            using (var context = TestContext.Create())
             {
                 var projectId = ProjectId.CreateNewId();
                 var project = context.CurrentSolution.AddProject(projectId, "ProjectB", "ProjectB", LanguageNames.CSharp).GetProject(projectId)
@@ -731,7 +731,7 @@ End Class");
         [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public async Task TestNotReusedGeneratingForDifferentLanguage()
         {
-            using (var context = await TestContext.CreateAsync(LanguageNames.CSharp))
+            using (var context = TestContext.Create(LanguageNames.CSharp))
             {
                 var projectId = ProjectId.CreateNewId();
                 var project = context.CurrentSolution.AddProject(projectId, "ProjectB", "ProjectB", LanguageNames.VisualBasic).GetProject(projectId)
@@ -748,7 +748,7 @@ End Class");
         [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public async Task FormatMetadataAsSource()
         {
-            using (var context = await TestContext.CreateAsync(LanguageNames.CSharp))
+            using (var context = TestContext.Create(LanguageNames.CSharp))
             {
                 var file = await context.GenerateSourceAsync("System.Console", project: context.DefaultProject);
                 var document = context.GetDocument(file);
@@ -1006,7 +1006,7 @@ public class [|C|]
 }}
 ";
             var symbolName = "C";
-            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, expectedCS, compareTokens: false);
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, expectedCS, ignoreTrivia: false);
 
             var expectedVB = $@"#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
 ' {CodeAnalysisResources.InMemoryAssembly}
@@ -1037,7 +1037,7 @@ Public Class [|C|]
     Public Shared Operator +(c1 As C, c2 As C) As C
     Public Shared Operator -(c1 As C, c2 As C) As C
 End Class";
-            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.VisualBasic, expectedVB, compareTokens: false);
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.VisualBasic, expectedVB, ignoreTrivia: false);
         }
 
         [WorkItem(728644, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/728644")]
@@ -1079,7 +1079,7 @@ public interface [|IFoo|]
     Uri Method1();
 }}
 ";
-            await GenerateAndVerifySourceAsync(source, symbolName, LanguageNames.CSharp, expectedCS, compareTokens: false, includeXmlDocComments: true);
+            await GenerateAndVerifySourceAsync(source, symbolName, LanguageNames.CSharp, expectedCS, ignoreTrivia: false, includeXmlDocComments: true);
 
             var expectedVB = $@"#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
 ' {CodeAnalysisResources.InMemoryAssembly}
@@ -1102,7 +1102,7 @@ Public Interface [|IFoo|]
     Function Method1() As Uri
 End Interface
 ";
-            await GenerateAndVerifySourceAsync(source, symbolName, LanguageNames.VisualBasic, expectedVB, compareTokens: false, includeXmlDocComments: true);
+            await GenerateAndVerifySourceAsync(source, symbolName, LanguageNames.VisualBasic, expectedVB, ignoreTrivia: false, includeXmlDocComments: true);
         }
 
         [WorkItem(679114, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/679114"), WorkItem(715013, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/715013")]
@@ -1214,7 +1214,7 @@ public static class ObjectExtensions
 }}
 ";
 
-            using (var context = await TestContext.CreateAsync(
+            using (var context = TestContext.Create(
                 LanguageNames.CSharp,
                 SpecializedCollections.SingletonEnumerable(metadata),
                 includeXmlDocComments: false,
@@ -1258,7 +1258,7 @@ Namespace NS
     End Module
 End Namespace";
 
-            using (var context = await TestContext.CreateAsync(
+            using (var context = TestContext.Create(
                 LanguageNames.VisualBasic,
                 SpecializedCollections.SingletonEnumerable(metadata),
                 includeXmlDocComments: false,

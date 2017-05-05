@@ -94,12 +94,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
         private bool ContainsOnlyWhitespace(Analyzer.AnalysisResult result)
         {
-            if (result.HasComments || result.HasPreprocessor || result.HasSkippedTokens || result.HasSkippedOrDisabledText)
-            {
-                return false;
-            }
-
-            return true;
+            return
+                !result.HasComments &&
+                !result.HasPreprocessor &&
+                !result.HasSkippedTokens &&
+                !result.HasSkippedOrDisabledText &&
+                !result.HasConflictMarker;
         }
 
         private TriviaData GetWhitespaceOnlyTriviaInfo(SyntaxToken token1, SyntaxToken token2, Analyzer.AnalysisResult result)

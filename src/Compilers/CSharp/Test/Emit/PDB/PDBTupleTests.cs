@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
         (int A, int B, (int C, int), int, int, int G, int H, int I) t = (1, 2, (3, 4), 5, 6, 7, 8, 9);
     }
 }";
-            var comp = CreateCompilationWithMscorlib(source, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.DebugDll);
+            var comp = CreateStandardCompilation(source, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.DebugDll);
             comp.VerifyPdb(
 @"<symbols>
   <methods>
@@ -63,7 +63,7 @@ class C
         const C<(int A, int B)> c = null;
     }
 }";
-            var comp = CreateCompilationWithMscorlib(source, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.DebugDll);
+            var comp = CreateStandardCompilation(source, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.DebugDll);
             comp.VerifyPdb(
 @"<symbols>
   <methods>
@@ -112,7 +112,7 @@ class C
         }
     }
 }";
-            var comp = CreateCompilationWithMscorlib(source, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.DebugDll);
+            var comp = CreateStandardCompilation(source, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.DebugDll);
             comp.VerifyPdb(
 @"<symbols>
   <methods>
@@ -122,10 +122,10 @@ class C
           <namespace usingCount=""0"" />
         </using>
         <dynamicLocals>
-          <bucket flagCount=""5"" flags=""00100"" slotId=""0"" localName=""x"" />
-          <bucket flagCount=""5"" flags=""00010"" slotId=""0"" localName=""y"" />
-          <bucket flagCount=""4"" flags=""0001"" slotId=""0"" localName=""x"" />
-          <bucket flagCount=""4"" flags=""0001"" slotId=""0"" localName=""y"" />
+          <bucket flags=""00100"" slotId=""0"" localName=""x"" />
+          <bucket flags=""00010"" slotId=""0"" localName=""y"" />
+          <bucket flags=""0001"" slotId=""0"" localName=""x"" />
+          <bucket flags=""0001"" slotId=""0"" localName=""y"" />
         </dynamicLocals>
         <tupleElementNames>
           <local elementNames=""|A|B|"" slotIndex=""0"" localName=""x"" scopeStart=""0x0"" scopeEnd=""0x0"" />
@@ -176,7 +176,7 @@ class C
         (int \u1234, int, int \u005f\u1200\u005f) \u1200 = (1, 2, 3);
     }
 }";
-            var comp = CreateCompilationWithMscorlib(source, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.DebugDll);
+            var comp = CreateStandardCompilation(source, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.DebugDll);
             comp.VerifyPdb(
 string.Format(@"<symbols>
   <methods>
@@ -224,7 +224,7 @@ string.Format(@"<symbols>
         } //10,9
     } //11,5
 }";
-            var comp = CreateCompilationWithMscorlib(source, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.DebugDll);
+            var comp = CreateStandardCompilation(source, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.DebugDll);
             comp.VerifyPdb(
 string.Format(@"<symbols>
   <methods>
@@ -238,7 +238,6 @@ string.Format(@"<symbols>
           <slot kind=""0"" offset=""59"" />
           <slot kind=""0"" offset=""62"" />
           <slot kind=""temp"" />
-          <slot kind=""temp"" />
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
@@ -247,16 +246,16 @@ string.Format(@"<symbols>
         <entry offset=""0x2"" startLine=""8"" startColumn=""13"" endLine=""8"" endColumn=""15"" />
         <entry offset=""0x9"" hidden=""true"" />
         <entry offset=""0xb"" startLine=""6"" startColumn=""13"" endLine=""6"" endColumn=""23"" />
-        <entry offset=""0x24"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""10"" />
-        <entry offset=""0x25"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""10"" />
-        <entry offset=""0x26"" startLine=""7"" startColumn=""13"" endLine=""7"" endColumn=""15"" />
-        <entry offset=""0x30"" hidden=""true"" />
-        <entry offset=""0x3b"" startLine=""11"" startColumn=""5"" endLine=""11"" endColumn=""6"" />
+        <entry offset=""0x20"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""10"" />
+        <entry offset=""0x21"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""10"" />
+        <entry offset=""0x22"" startLine=""7"" startColumn=""13"" endLine=""7"" endColumn=""15"" />
+        <entry offset=""0x2c"" hidden=""true"" />
+        <entry offset=""0x37"" startLine=""11"" startColumn=""5"" endLine=""11"" endColumn=""6"" />
       </sequencePoints>
-      <scope startOffset=""0x0"" endOffset=""0x3c"">
-        <scope startOffset=""0xb"" endOffset=""0x26"">
-          <local name=""a"" il_index=""1"" il_start=""0xb"" il_end=""0x26"" attributes=""0"" />
-          <local name=""b"" il_index=""2"" il_start=""0xb"" il_end=""0x26"" attributes=""0"" />
+      <scope startOffset=""0x0"" endOffset=""0x38"">
+        <scope startOffset=""0xb"" endOffset=""0x22"">
+          <local name=""a"" il_index=""1"" il_start=""0xb"" il_end=""0x22"" attributes=""0"" />
+          <local name=""b"" il_index=""2"" il_start=""0xb"" il_end=""0x22"" attributes=""0"" />
         </scope>
       </scope>
     </method>

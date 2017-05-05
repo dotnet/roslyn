@@ -33,6 +33,21 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.MoveType
             await TestRenameFileToMatchTypeAsync(code, expectedDocumentName);
         }
 
+        [WorkItem(16284, "https://github.com/dotnet/roslyn/issues/16284")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        public async Task MoreThanOneTypeInFile_RenameFile_InnerType()
+        {
+            var code =
+@"class Class1
+{ 
+    [||]class Inner { }
+}";
+
+            var expectedDocumentName = "Class1.Inner.cs";
+
+            await TestRenameFileToMatchTypeAsync(code, expectedDocumentName);
+        }
+
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
         public async Task TestRenameFileWithFolders()
         {

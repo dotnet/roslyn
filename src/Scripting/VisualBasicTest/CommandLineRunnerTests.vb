@@ -32,7 +32,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting.UnitTests
             Dim buildPaths = New BuildPaths(
                 clientDir:=AppContext.BaseDirectory,
                 workingDir:=If(workingDirectory, AppContext.BaseDirectory),
-                sdkDir:=CorLightup.Desktop.TryGetRuntimeDirectory(),
+                sdkDir:=RuntimeMetadataReferenceResolver.GetDesktopFrameworkDirectory(),
                 tempDir:=Path.GetTempPath())
 
             Dim compiler = New VisualBasicInteractiveCompiler(
@@ -80,7 +80,7 @@ Type ""#help"" for more information.
 
         <Fact()>
         Public Sub TestReferenceDirective()
-            Dim file1 = Temp.CreateFile("1.dll").WriteAllBytes(TestCompilationFactory.CreateVisualBasicCompilationWithMscorlib("
+            Dim file1 = Temp.CreateFile("1.dll").WriteAllBytes(TestCompilationFactory.CreateVisualBasicCompilationWithCorlib("
 public Class C1
 Public Function Foo() As String
     Return ""Bar""

@@ -122,7 +122,8 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
             var hasMissingCases = bool.Parse(diagnostic.Properties[PopulateSwitchHelpers.MissingCases]);
             var hasMissingDefaultCase = bool.Parse(diagnostic.Properties[PopulateSwitchHelpers.MissingDefaultCase]);
 
-            var switchNode = diagnostic.Location.FindNode(cancellationToken);
+            var switchLocation = diagnostic.AdditionalLocations[0];
+            var switchNode = switchLocation.FindNode(cancellationToken);
             var internalMethod = typeof(SemanticModel).GetTypeInfo().GetDeclaredMethod("GetOperationInternal");
             var switchStatement = (ISwitchStatement)internalMethod.Invoke(model, new object[] { switchNode, cancellationToken });
             var enumType = switchStatement.Value.Type;

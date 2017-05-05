@@ -28,21 +28,9 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
             _undoPrimitive = new RollbackDetectingUndoPrimitive();
         }
 
-        public bool CanRedo
-        {
-            get
-            {
-                return _innerTransaction.CanRedo;
-            }
-        }
+        public bool CanRedo => _innerTransaction.CanRedo;
 
-        public bool CanUndo
-        {
-            get
-            {
-                return _innerTransaction.CanUndo;
-            }
-        }
+        public bool CanUndo => _innerTransaction.CanUndo;
 
         public string Description
         {
@@ -57,13 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
             }
         }
 
-        public ITextUndoHistory History
-        {
-            get
-            {
-                return _innerTransaction.History;
-            }
-        }
+        public ITextUndoHistory History => _innerTransaction.History;
 
         public IMergeTextUndoTransactionPolicy MergePolicy
         {
@@ -78,29 +60,11 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
             }
         }
 
-        public ITextUndoTransaction Parent
-        {
-            get
-            {
-                return _innerTransaction.Parent;
-            }
-        }
+        public ITextUndoTransaction Parent => _innerTransaction.Parent;
 
-        public UndoTransactionState State
-        {
-            get
-            {
-                return _innerTransaction.State;
-            }
-        }
+        public UndoTransactionState State => _innerTransaction.State;
 
-        public IList<ITextUndoPrimitive> UndoPrimitives
-        {
-            get
-            {
-                return _innerTransaction.UndoPrimitives;
-            }
-        }
+        public IList<ITextUndoPrimitive> UndoPrimitives => _innerTransaction.UndoPrimitives;
 
         public void AddUndo(ITextUndoPrimitive undo)
         {
@@ -161,21 +125,9 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
         {
             internal bool UndoCalled = false;
 
-            public bool CanRedo
-            {
-                get
-                {
-                    return true;
-                }
-            }
+            public bool CanRedo => true;
 
-            public bool CanUndo
-            {
-                get
-                {
-                    return true;
-                }
-            }
+            public bool CanUndo => true;
 
             public ITextUndoTransaction Parent { get; set; }
 

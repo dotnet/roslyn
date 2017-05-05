@@ -167,7 +167,7 @@ namespace Microsoft.VisualStudio.LangaugeServices.Telemetry
 
                         var telemetryEvent = TelemetryHelper.TelemetryService.CreateEvent(TelemetryEventPath);
                         telemetryEvent.SetStringProperty(TelemetryProjectIdName, projectId.Id.ToString());
-                        telemetryEvent.SetStringProperty(TelemetryProjectGuidName, vsProject.Guid.ToString());
+                        telemetryEvent.SetStringProperty(TelemetryProjectGuidName, vsProject?.Guid.ToString() ?? Guid.Empty.ToString());
                         telemetryEvent.SetStringProperty(TelemetryLanguageName, language);
                         telemetryEvent.SetIntProperty(TelemetryAnalyzerReferencesCountName, analyzerReferencesCount);
                         telemetryEvent.SetIntProperty(TelemetryProjectReferencesCountName, projectReferencesCount);

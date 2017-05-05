@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     internal sealed class CSharpAddBracesDiagnosticAnalyzer : 
-        AbstractCodeStyleDiagnosticAnalyzer, IBuiltInAnalyzer
+        AbstractCodeStyleDiagnosticAnalyzer
     {
         public CSharpAddBracesDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.AddBracesDiagnosticId,
@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
         {
         }
 
-        public bool OpenFileOnly(Workspace workspace) => false;
+        public override bool OpenFileOnly(Workspace workspace) => false;
 
         private static readonly ImmutableArray<SyntaxKind> s_syntaxKindsOfInterest =
             ImmutableArray.Create(
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
         protected override void InitializeWorker(AnalysisContext context)
             => context.RegisterSyntaxNodeAction(AnalyzeNode, s_syntaxKindsOfInterest);
 
-        public DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
+        public override DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
         public void AnalyzeNode(SyntaxNodeAnalysisContext context)
         {

@@ -262,11 +262,14 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
 
         private static MetadataReferenceResolver CreateMetadataReferenceResolver(IMetadataService metadataService, ImmutableArray<string> searchPaths, string baseDirectory)
         {
+            // TODO: To support CoreCLR we need to query the remote process for TPA list and pass it to the resolver.
+            // https://github.com/dotnet/roslyn/issues/4788
             return new RuntimeMetadataReferenceResolver(
                 new RelativePathResolver(searchPaths, baseDirectory),
-                null,
-                GacFileResolver.IsAvailable ? new GacFileResolver(preferredCulture: CultureInfo.CurrentCulture) : null,
-                (path, properties) => metadataService.GetReference(path, properties));
+                packageResolver: null,
+                gacFileResolver: GacFileResolver.IsAvailable ? new GacFileResolver(preferredCulture: CultureInfo.CurrentCulture) : null,
+                useCoreResolver: false,
+                fileReferenceProvider: (path, properties) => metadataService.GetReference(path, properties));
         }
 
         private static SourceReferenceResolver CreateSourceReferenceResolver(ImmutableArray<string> searchPaths, string baseDirectory)

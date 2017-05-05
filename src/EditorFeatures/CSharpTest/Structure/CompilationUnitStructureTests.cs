@@ -144,5 +144,15 @@ $${|hint:using|} {|textspan:|}";
             await VerifyBlockSpansAsync(code,
                 Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [WorkItem(16186, "https://github.com/dotnet/roslyn/issues/16186")]
+        public async Task TestInvalidComment()
+        {
+            const string code = @"$${|span:/*/|}";
+
+            await VerifyBlockSpansAsync(code,
+                Region("span", "/* / ...", autoCollapse: true));
+        }
     }
 }

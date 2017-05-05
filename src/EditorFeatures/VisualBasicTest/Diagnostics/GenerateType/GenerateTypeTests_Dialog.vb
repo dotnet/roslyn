@@ -1,6 +1,7 @@
+Option Strict Off
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Option Strict Off
+Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.GenerateType
 
@@ -316,7 +317,6 @@ expected:=<Text>Namespace A.B
     End Interface
 End Namespace
 </Text>.NormalizedValue,
-isLine:=False,
 accessibility:=Accessibility.Public,
 typeKind:=TypeKind.Interface,
 isNewFile:=False,
@@ -348,7 +348,6 @@ expected:=<Text>Namespace outer.inner
     End Interface
 End Namespace
 </Text>.NormalizedValue,
-isLine:=False,
 checkIfUsingsIncluded:=True,
 expectedTextWithUsings:=<Text>
 Imports outer.inner
@@ -392,7 +391,6 @@ expected:=<Text>Namespace A.B
     End Interface
 End Namespace
 </Text>.NormalizedValue,
-isLine:=False,
 checkIfUsingsNotIncluded:=True,
 accessibility:=Accessibility.Public,
 typeKind:=TypeKind.Interface,
@@ -426,11 +424,10 @@ expected:=<Text>Namespace A.B
     End Interface
 End Namespace
 </Text>.NormalizedValue,
-isLine:=False,
 accessibility:=Accessibility.Public,
 typeKind:=TypeKind.Interface,
 isNewFile:=True,
-newFileFolderContainers:=New String(0) {},
+newFileFolderContainers:=ImmutableArray(Of String).Empty,
 newFileName:="Test2.vb")
         End Function
 
@@ -460,12 +457,11 @@ expected:=<Text>Namespace outer.inner
     End Interface
 End Namespace
 </Text>.NormalizedValue,
-isLine:=False,
 checkIfUsingsNotIncluded:=True,
 accessibility:=Accessibility.Public,
 typeKind:=TypeKind.Interface,
 isNewFile:=True,
-newFileFolderContainers:=New String() {"outer", "inner"},
+newFileFolderContainers:=ImmutableArray.Create("outer", "inner"),
 newFileName:="Test2.vb")
         End Function
 
@@ -493,12 +489,11 @@ typeName:="Foo",
 expected:=<Text>Public Interface Foo
 End Interface
 </Text>.NormalizedValue,
-isLine:=False,
 checkIfUsingsNotIncluded:=True,
 accessibility:=Accessibility.Public,
 typeKind:=TypeKind.Interface,
 isNewFile:=True,
-newFileFolderContainers:=New String() {"@@@@@", "#####"},
+newFileFolderContainers:=ImmutableArray.Create("@@@@@", "#####"),
 areFoldersValidIdentifiers:=False,
 newFileName:="Test2.vb")
         End Function
@@ -527,7 +522,6 @@ expected:=<Text>Namespace outer.inner
     End Interface
 End Namespace
 </Text>.NormalizedValue,
-isLine:=False,
 checkIfUsingsIncluded:=True,
 expectedTextWithUsings:=<Text>
 Imports BarBaz.outer.inner
@@ -540,7 +534,7 @@ End Class</Text>.NormalizedValue,
 accessibility:=Accessibility.Public,
 typeKind:=TypeKind.Interface,
 isNewFile:=True,
-newFileFolderContainers:=New String() {"outer", "inner"},
+newFileFolderContainers:=ImmutableArray.Create("outer", "inner"),
 newFileName:="Test2.vb")
         End Function
 
@@ -569,7 +563,6 @@ expected:=<Text>Namespace outer
     End Interface
 End Namespace
 </Text>.NormalizedValue,
-isLine:=False,
 checkIfUsingsIncluded:=True,
 expectedTextWithUsings:=<Text>
 Imports BarBaz.outer
@@ -582,7 +575,7 @@ End Class</Text>.NormalizedValue,
 accessibility:=Accessibility.Public,
 typeKind:=TypeKind.Interface,
 isNewFile:=True,
-newFileFolderContainers:=New String() {"outer"},
+newFileFolderContainers:=ImmutableArray.Create("outer"),
 newFileName:="Test2.vb")
         End Function
 
@@ -611,11 +604,10 @@ expected:=<Text>Namespace A.B
     End Interface
 End Namespace
 </Text>.NormalizedValue,
-isLine:=False,
 accessibility:=Accessibility.Public,
 typeKind:=TypeKind.Interface,
 isNewFile:=True,
-newFileFolderContainers:=New String() {"outer", "inner"},
+newFileFolderContainers:=ImmutableArray.Create("outer", "inner"),
 newFileName:="Test2.vb")
         End Function
 #End Region
@@ -651,7 +643,6 @@ expected:=<Text>Namespace Global.A.B
     End Interface
 End Namespace
 </Text>.NormalizedValue,
-isLine:=False,
 accessibility:=Accessibility.Public,
 typeKind:=TypeKind.Interface,
 isNewFile:=False,
@@ -693,7 +684,6 @@ expected:=<Text>Namespace Global.BarBaz.A
         End Interface
     End Namespace
 End Namespace</Text>.NormalizedValue,
-isLine:=False,
 checkIfUsingsNotIncluded:=True,
 accessibility:=Accessibility.Public,
 typeKind:=TypeKind.Interface,
@@ -740,7 +730,6 @@ Namespace outer.inner
     End Interface
 End Namespace
 </Text>.NormalizedValue,
-isLine:=False,
 checkIfUsingsIncluded:=True,
 expectedTextWithUsings:=<Text>
 Imports Zoozoo.outer.inner
@@ -789,12 +778,11 @@ expected:=<Text>Namespace Global.A.B
     End Interface
 End Namespace
 </Text>.NormalizedValue,
-isLine:=False,
 accessibility:=Accessibility.Public,
 typeKind:=TypeKind.Interface,
 isNewFile:=True,
 newFileName:="Test2.vb",
-newFileFolderContainers:=New String(0) {},
+newFileFolderContainers:=ImmutableArray(Of String).Empty,
 projectName:="Assembly2")
         End Function
 
@@ -824,7 +812,6 @@ expected:=<Text>Namespace outer.inner
     End Interface
 End Namespace
 </Text>.NormalizedValue,
-isLine:=False,
 checkIfUsingsIncluded:=True,
 expectedTextWithUsings:=<Text>
 Imports Zoozoo.outer.inner
@@ -838,7 +825,7 @@ accessibility:=Accessibility.Public,
 typeKind:=TypeKind.Interface,
 isNewFile:=True,
 newFileName:="Test2.vb",
-newFileFolderContainers:=New String() {"outer", "inner"},
+newFileFolderContainers:=ImmutableArray.Create("outer", "inner"),
 projectName:="Assembly2")
         End Function
 
@@ -871,13 +858,12 @@ expected:=<Text>Namespace Global.BarBaz.A.B
     End Interface
 End Namespace
 </Text>.NormalizedValue,
-isLine:=False,
 checkIfUsingsNotIncluded:=True,
 accessibility:=Accessibility.Public,
 typeKind:=TypeKind.Interface,
 isNewFile:=True,
 newFileName:="Test2.vb",
-newFileFolderContainers:=New String(0) {},
+newFileFolderContainers:=ImmutableArray(Of String).Empty,
 projectName:="Assembly2")
         End Function
 
@@ -914,14 +900,13 @@ expected:=<Text>Namespace A.B
     End Interface
 End Namespace
 </Text>.NormalizedValue,
-isLine:=False,
 checkIfUsingsNotIncluded:=False,
 expectedTextWithUsings:=<Text></Text>.NormalizedValue,
 accessibility:=Accessibility.Public,
 typeKind:=TypeKind.Interface,
 isNewFile:=True,
 newFileName:="Test3.vb",
-newFileFolderContainers:=New String(0) {},
+newFileFolderContainers:=ImmutableArray(Of String).Empty,
 projectName:="Assembly2")
         End Function
 #End Region
@@ -954,12 +939,11 @@ expected:=<Text>namespace A.B
     {
     }
 }</Text>.NormalizedValue,
-isLine:=False,
 accessibility:=Accessibility.Public,
 typeKind:=TypeKind.Class,
 isNewFile:=True,
 newFileName:="Test2.cs",
-newFileFolderContainers:=New String(0) {},
+newFileFolderContainers:=ImmutableArray(Of String).Empty,
 projectName:="Assembly2")
         End Function
 
@@ -993,7 +977,6 @@ expected:=<Text>namespace outer.inner
     {
     }
 }</Text>.NormalizedValue,
-isLine:=False,
 checkIfUsingsIncluded:=True,
 expectedTextWithUsings:=<Text>
 Imports outer.inner
@@ -1010,7 +993,7 @@ accessibility:=Accessibility.Public,
 typeKind:=TypeKind.Class,
 isNewFile:=True,
 newFileName:="Test2.cs",
-newFileFolderContainers:=New String() {"outer", "inner"},
+newFileFolderContainers:=ImmutableArray.Create("outer", "inner"),
 projectName:="Assembly2")
         End Function
 
@@ -1042,13 +1025,12 @@ expected:=<Text>namespace A.B
     {
     }
 }</Text>.NormalizedValue,
-isLine:=False,
 checkIfUsingsNotIncluded:=True,
 accessibility:=Accessibility.Public,
 typeKind:=TypeKind.Class,
 isNewFile:=True,
 newFileName:="Test2.cs",
-newFileFolderContainers:=New String() {"outer", "inner"},
+newFileFolderContainers:=ImmutableArray.Create("outer", "inner"),
 projectName:="Assembly2")
         End Function
 
@@ -1081,7 +1063,6 @@ expected:=<Text>namespace ConsoleApplication.outer.inner
     {
     }
 }</Text>.NormalizedValue,
-isLine:=False,
 defaultNamespace:="ConsoleApplication",
 checkIfUsingsIncluded:=True,
 expectedTextWithUsings:=<Text>
@@ -1099,7 +1080,7 @@ accessibility:=Accessibility.Public,
 typeKind:=TypeKind.Class,
 isNewFile:=True,
 newFileName:="Test2.cs",
-newFileFolderContainers:=New String() {"outer", "inner"},
+newFileFolderContainers:=ImmutableArray.Create("outer", "inner"),
 projectName:="Assembly2")
         End Function
 
@@ -1132,14 +1113,13 @@ expected:=<Text>namespace BarBaz.A.B
     {
     }
 }</Text>.NormalizedValue,
-isLine:=False,
 defaultNamespace:="ConsoleApplication",
 checkIfUsingsNotIncluded:=True,
 accessibility:=Accessibility.Public,
 typeKind:=TypeKind.Class,
 isNewFile:=True,
 newFileName:="Test2.cs",
-newFileFolderContainers:=New String() {"outer", "inner"},
+newFileFolderContainers:=ImmutableArray.Create("outer", "inner"),
 projectName:="Assembly2")
         End Function
 
@@ -1172,7 +1152,6 @@ expected:=<Text>namespace A.B
     {
     }
 }</Text>.NormalizedValue,
-isLine:=False,
 checkIfUsingsNotIncluded:=True,
 accessibility:=Accessibility.Public,
 typeKind:=TypeKind.Class,
@@ -1208,7 +1187,6 @@ expected:=<Text>namespace outer.inner
     {
     }
 }</Text>.NormalizedValue,
-isLine:=False,
 checkIfUsingsIncluded:=True,
 expectedTextWithUsings:=<Text>
 Imports outer.inner
@@ -1261,7 +1239,6 @@ namespace A.B
     {
     }
 }</Text>.NormalizedValue,
-isLine:=False,
 accessibility:=Accessibility.Public,
 typeKind:=TypeKind.Class,
 isNewFile:=False,
@@ -1305,7 +1282,6 @@ expected:=<Text>namespace A
         }
     }
 }</Text>.NormalizedValue,
-isLine:=False,
 accessibility:=Accessibility.Public,
 typeKind:=TypeKind.Class,
 isNewFile:=False,
@@ -1341,12 +1317,11 @@ expected:=<Text>namespace A.B
     {
     }
 }</Text>.NormalizedValue,
-isLine:=False,
 accessibility:=Accessibility.Public,
 typeKind:=TypeKind.Class,
 isNewFile:=True,
 newFileName:="Test2.cs",
-newFileFolderContainers:=New String(0) {},
+newFileFolderContainers:=ImmutableArray(Of String).Empty,
 projectName:="Assembly2")
         End Function
 #End Region
@@ -2135,12 +2110,11 @@ languageName:=LanguageNames.VisualBasic,
 typeName:="Bar",
 expected:=<Text>public delegate void Bar(string[] args);
 </Text>.NormalizedValue,
-isLine:=False,
 accessibility:=Accessibility.Public,
 typeKind:=TypeKind.Delegate,
 isNewFile:=True,
 newFileName:="Test2.cs",
-newFileFolderContainers:=New String(0) {},
+newFileFolderContainers:=ImmutableArray(Of String).Empty,
 projectName:="Assembly2")
         End Function
 

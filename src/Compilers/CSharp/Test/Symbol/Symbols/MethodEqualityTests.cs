@@ -26,7 +26,7 @@ class Class2
     void Method1() { }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateStandardCompilation(text);
             var global = comp.GlobalNamespace;
 
             var class1 = global.GetTypeMembers("Class1").Single();
@@ -73,7 +73,7 @@ class Derived2 : Base<int>
 {
 }
 ";
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateStandardCompilation(text);
             var global = comp.GlobalNamespace;
 
             var baseClass = global.GetTypeMembers("Base").Single();
@@ -133,7 +133,7 @@ class Derived2 : Base<int>
 {
 }
 ";
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateStandardCompilation(text);
             var global = comp.GlobalNamespace;
 
             var baseClass = global.GetTypeMembers("Base").Single();
@@ -192,7 +192,7 @@ class Class
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateStandardCompilation(text);
             var global = comp.GlobalNamespace;
 
             var @class = global.GetTypeMembers("Class").Single();

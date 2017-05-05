@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Threading;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Xunit;
 
@@ -53,11 +54,11 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 var document = project.AddDocument(fileName, "");
                 if (assertGenerated)
                 {
-                    Assert.True(document.IsGeneratedCode(), string.Format("Expected file '{0}' to be interpreted as generated code", fileName));
+                    Assert.True(document.IsGeneratedCode(CancellationToken.None), string.Format("Expected file '{0}' to be interpreted as generated code", fileName));
                 }
                 else
                 {
-                    Assert.False(document.IsGeneratedCode(), string.Format("Did not expect file '{0}' to be interpreted as generated code", fileName));
+                    Assert.False(document.IsGeneratedCode(CancellationToken.None), string.Format("Did not expect file '{0}' to be interpreted as generated code", fileName));
                 }
             }
         }

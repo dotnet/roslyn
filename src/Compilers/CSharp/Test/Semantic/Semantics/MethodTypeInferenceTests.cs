@@ -479,7 +479,7 @@ class C
     }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (8,7): error CS0411: The type arguments for method 'C.Apply<T>(C.F<T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //       Apply(delegate { while (true) { } });
                 Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Apply").WithArguments("C.Apply<T>(C.F<T>)").WithLocation(8, 7));
@@ -563,7 +563,7 @@ class Test
     }
 }";
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics();
+            CreateStandardCompilation(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -622,7 +622,7 @@ class Program
     }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (6,17): error CS0305: Using the generic method 'Program.Foo<T, U>(T, U)' requires 2 type arguments
                 //         var s = Foo<>(123, 345);
                 Diagnostic(ErrorCode.ERR_BadArity, "Foo<>").WithArguments("Program.Foo<T, U>(T, U)", "method", "2"));
@@ -648,7 +648,7 @@ class Program
     }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (6,26): error CS1031: Type expected
                 //         var s = Foo<int, >(123, 345);
                 Diagnostic(ErrorCode.ERR_TypeExpected, ">"),
@@ -674,7 +674,7 @@ class Program
     }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (6,11): error CS0103: The name 'E' does not exist in the current context
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "E").WithArguments("E"));
         }
@@ -733,7 +733,7 @@ class Program
 }
 
 ";
-            CreateCompilationWithMscorlib(source, references: new[] { SystemCoreRef }).VerifyDiagnostics();
+            CreateStandardCompilation(source, references: new[] { SystemCoreRef }).VerifyDiagnostics();
         }
 
 
@@ -755,7 +755,7 @@ class Program
 }
 
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics();
+            CreateStandardCompilation(source).VerifyDiagnostics();
         }
 
         [WorkItem(649800, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/649800")]
@@ -776,7 +776,7 @@ public class Test
  
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (8,9): error CS0411: The type arguments for method 'Test.M<T>(T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         M(Main());
                 Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M").WithArguments("Test.M<T>(T)"),
@@ -803,7 +803,7 @@ public class C<T>
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees.Single();
@@ -833,7 +833,7 @@ public class C<T>
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees.Single();
@@ -844,6 +844,132 @@ public class C<T>
             var method = (MethodSymbol)model.GetSymbolInfo(syntax).Symbol;
             Assert.Equal(SpecialType.System_Char, method.TypeArguments.Single().SpecialType);
             Assert.Equal("void C<System.Char>.M<System.Char>(System.Func<System.Char, System.Char> f1, System.Func<System.Int64, System.Char> f2, params System.Int32[] a)", method.ToTestDisplayString());
+        }
+
+        [WorkItem(8712, "https://github.com/dotnet/roslyn/issues/8712")]
+        [Fact]
+        public void EnumerableJoinIntellisenseForParameterTypesShouldPopOutAutoComplete_1()
+        {
+            var source = @"
+using System.Collections.Generic;
+using System.Linq;
+
+public class Book
+{
+    public int AuthorId { get; set; }
+    public string Title { get; set; }
+}
+
+public class Author
+{
+    public int Id { get; set; }
+    public string Name { get; set; }
+}
+
+public class Test
+{
+    public static void NoIntellisenseInEnumerableJoin()
+    {
+        IEnumerable<Book> books = null;
+        IEnumerable<Author> authors = null;
+
+        var test = books.Join(authors, b => b.    // !!Fails here!!
+    }
+}";
+
+            var compilation = CreateCSharpCompilation(source);
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var book = (IdentifierNameSyntax)tree.GetRoot().DescendantTokens().Last(t => t.Text == "b").Parent;
+            var bookType = model.GetTypeInfo(book).Type;
+
+            Assert.Equal("Book", bookType.Name);
+        }
+
+        [WorkItem(8712, "https://github.com/dotnet/roslyn/issues/8712")]
+        [Fact]
+        public void EnumerableJoinIntellisenseForParameterTypesShouldPopOutAutoComplete_2()
+        {
+            var source = @"
+using System.Collections.Generic;
+using System.Linq;
+
+public class Book
+{
+    public int AuthorId { get; set; }
+    public string Title { get; set; }
+}
+
+public class Author
+{
+    public int Id { get; set; }
+    public string Name { get; set; }
+}
+
+public class Test
+{
+    public static void NoIntellisenseInEnumerableJoin()
+    {
+        IEnumerable<Book> books = null;
+        IEnumerable<Author> authors = null;
+
+        var test = books.Join(authors, b => b.AuthorId, a => a.    // !!Fails here!!
+    }
+}";
+
+            var compilation = CreateCSharpCompilation(source);
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var author = (IdentifierNameSyntax)tree.GetRoot().DescendantTokens().Last(t => t.Text == "a").Parent;
+            var authorType = model.GetTypeInfo(author).Type;
+
+            Assert.Equal("Author", authorType.Name);
+        }
+
+        [WorkItem(8712, "https://github.com/dotnet/roslyn/issues/8712")]
+        [Fact]
+        public void EnumerableJoinIntellisenseForParameterTypesShouldPopOutAutoComplete_3()
+        {
+            var source = @"
+using System.Collections.Generic;
+using System.Linq;
+
+public class Book
+{
+    public int AuthorId { get; set; }
+    public string Title { get; set; }
+}
+
+public class Author
+{
+    public int Id { get; set; }
+    public string Name { get; set; }
+}
+
+public class Test
+{
+    public static void NoIntellisenseInEnumerableJoin()
+    {
+        IEnumerable<Book> books = null;
+        IEnumerable<Author> authors = null;
+
+        var test = books.Join(authors, b => b.AuthorId, a => a.Id, (bookResult, authorResult) => new { bookResult, authorResult });
+    }
+}";
+
+            var compilation = CreateCSharpCompilation(source).VerifyDiagnostics();
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var bookResult = (IdentifierNameSyntax)tree.GetRoot().DescendantTokens().Last(t => t.Text == "bookResult").Parent;
+            var bookResultType = model.GetTypeInfo(bookResult).Type;
+            Assert.Equal("Book", bookResultType.Name);
+
+            var authorResult = (IdentifierNameSyntax)tree.GetRoot().DescendantTokens().Last(t => t.Text == "authorResult").Parent;
+            var authorResultType = model.GetTypeInfo(authorResult).Type;
+            Assert.Equal("Author", authorResultType.Name);
         }
     }
 }

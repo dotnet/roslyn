@@ -29,6 +29,6 @@ namespace Microsoft.CodeAnalysis.Editor.Commands
             _direction = direction;
         }
 
-        public NavigateDirection Direction { get { return _direction; } }
+        public NavigateDirection Direction => _direction;
     }
 }

@@ -115,13 +115,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             _hasCompilationErrors = hasSemanticErrors;
         }
 
-        public bool HasChanges
-        {
-            get
-            {
-                return _hasCompilationErrors.HasValue;
-            }
-        }
+        public bool HasChanges => _hasCompilationErrors.HasValue;
 
         public bool HasChangesAndErrors
         {

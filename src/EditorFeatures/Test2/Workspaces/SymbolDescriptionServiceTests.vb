@@ -47,13 +47,13 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         End Function
 
         Private Async Function TestCSharpAsync(workspaceDefinition As XElement, expectedDescription As String) As Tasks.Task
-            Using workspace = Await TestWorkspace.CreateAsync(workspaceDefinition)
+            Using workspace = TestWorkspace.Create(workspaceDefinition)
                 Await TestAsync(GetLanguageServiceProvider(workspace, LanguageNames.CSharp), workspace, expectedDescription)
             End Using
         End Function
 
         Private Async Function TestBasicAsync(workspaceDefinition As XElement, expectedDescription As String) As Tasks.Task
-            Using workspace = Await TestWorkspace.CreateAsync(workspaceDefinition)
+            Using workspace = TestWorkspace.Create(workspaceDefinition)
                 Await TestAsync(GetLanguageServiceProvider(workspace, LanguageNames.VisualBasic), workspace, expectedDescription)
             End Using
         End Function

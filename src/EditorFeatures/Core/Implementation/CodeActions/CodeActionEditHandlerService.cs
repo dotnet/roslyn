@@ -38,10 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
             _associatedViewService = associatedViewService;
         }
 
-        public ITextBufferAssociatedViewService AssociatedViewService
-        {
-            get { return _associatedViewService; }
-        }
+        public ITextBufferAssociatedViewService AssociatedViewService => _associatedViewService;
 
         public SolutionPreviewResult GetPreviews(
             Workspace workspace, ImmutableArray<CodeActionOperation> operations, CancellationToken cancellationToken)
@@ -177,19 +174,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
                     transaction.Commit();
                 }
             }
-
-#if DEBUG
-            foreach (var project in workspace.CurrentSolution.Projects)
-            {
-                foreach (var document in project.Documents)
-                {
-                    if (documentErrorLookup.Contains(document.Id))
-                    {
-                        document.VerifyNoErrorsAsync("CodeAction introduced error in error-free code", cancellationToken).Wait(cancellationToken);
-                    }
-                }
-            }
-#endif
 
             var updatedSolution = operations.OfType<ApplyChangesOperation>().FirstOrDefault()?.ChangedSolution ?? oldSolution;
             TryStartRenameSession(workspace, oldSolution, updatedSolution, cancellationToken);

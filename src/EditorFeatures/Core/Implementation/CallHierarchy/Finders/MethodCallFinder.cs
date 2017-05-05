@@ -26,13 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy.Finders
             }
         }
 
-        public override string SearchCategory
-        {
-            get
-            {
-                return CallHierarchyPredefinedSearchCategoryNames.Callers;
-            }
-        }
+        public override string SearchCategory => CallHierarchyPredefinedSearchCategoryNames.Callers;
 
         protected override async Task<IEnumerable<SymbolCallerInfo>> GetCallers(ISymbol symbol, Project project, IImmutableSet<Document> documents, CancellationToken cancellationToken)
         {

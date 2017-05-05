@@ -1,4 +1,4 @@
-#r "System.Xml.Linq"
+#r "System.Xml.XDocument.dll"
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -17,7 +17,8 @@ if (Args.Count() != 3)
     Environment.Exit(1);
 }
 
-var SolutionRoot = Path.GetFullPath(Path.Combine(ScriptRoot(), "../../"));
+var SolutionRoot = Path.GetFullPath(Path.Combine(ScriptRoot(), "..", ".."));
+var ToolsetPath = Path.Combine(SolutionRoot, "Binaries", "toolset");
 
 string ScriptRoot([CallerFilePath]string path = "") => Path.GetDirectoryName(path);
 
@@ -41,10 +42,11 @@ var ProjectURL = @"http://msdn.com/roslyn";
 var Tags = @"Roslyn CodeAnalysis Compiler CSharp VB VisualBasic Parser Scanner Lexer Emit CodeGeneration Metadata IL Compilation Scripting Syntax Semantics";
 
 // Read preceding variables from MSBuild file
-var doc = XDocument.Load(Path.Combine(SolutionRoot, "build/Targets/Dependencies.props"));
+var packagesDoc = XDocument.Load(Path.Combine(SolutionRoot, "build/Targets/Packages.props"));
+var fixedPackagesDoc = XDocument.Load(Path.Combine(SolutionRoot, "build/Targets/FixedPackages.props"));
 XNamespace ns = @"http://schemas.microsoft.com/developer/msbuild/2003";
 
-var dependencyVersions = from e in doc.Root.Descendants()
+var dependencyVersions = from e in packagesDoc.Root.Descendants().Concat(fixedPackagesDoc.Root.Descendants())
                          where e.Name.LocalName.EndsWith("Version")
                          select new { VariableName = e.Name.LocalName, Value=e.Value };
 
@@ -69,6 +71,8 @@ string GetExistingPackageVersion(string name)
     return null;
 }
 
+var IsCoreBuild = File.Exists(Path.Combine(ToolsetPath, "corerun"));
+
 #endregion
 
 var NuGetAdditionalFilesPath = Path.Combine(SolutionRoot, "build/NuGetAdditionalFiles");
@@ -77,11 +81,12 @@ var NetCompilersPropsPath = Path.Combine(NuGetAdditionalFilesPath, "Microsoft.Ne
 
 string[] RedistPackageNames = {
     "Microsoft.CodeAnalysis",
-    "Microsoft.Codeanalysis.Build.Tasks",
+    "Microsoft.CodeAnalysis.Build.Tasks",
     "Microsoft.CodeAnalysis.Common",
     "Microsoft.CodeAnalysis.Compilers",
     "Microsoft.CodeAnalysis.CSharp.Features",
     "Microsoft.CodeAnalysis.CSharp",
+    "Microsoft.CodeAnalysis.CSharp.CodeStyle",
     "Microsoft.CodeAnalysis.CSharp.Scripting",
     "Microsoft.CodeAnalysis.CSharp.Workspaces",
     "Microsoft.CodeAnalysis.EditorFeatures",
@@ -93,6 +98,7 @@ string[] RedistPackageNames = {
     "Microsoft.CodeAnalysis.Scripting",
     "Microsoft.CodeAnalysis.VisualBasic.Features",
     "Microsoft.CodeAnalysis.VisualBasic",
+    "Microsoft.CodeAnalysis.VisualBasic.CodeStyle",
     "Microsoft.CodeAnalysis.VisualBasic.Scripting",
     "Microsoft.CodeAnalysis.VisualBasic.Workspaces",
     "Microsoft.CodeAnalysis.Workspaces.Common",
@@ -101,10 +107,12 @@ string[] RedistPackageNames = {
 };
 
 string[] NonRedistPackageNames = {
+    "Microsoft.CodeAnalysis.Remote.Razor.ServiceHub",
     "Microsoft.Net.Compilers",
     "Microsoft.Net.Compilers.netcore",
     "Microsoft.Net.CSharp.Interactive.netcore",
-    "Roslyn.VisualStudio.Test.Utilities",
+    "Microsoft.VisualStudio.IntegrationTest.Utilities",
+    "Microsoft.VisualStudio.LanguageServices.Razor.RemoteClient",
 };
 
 string[] TestPackageNames = {
@@ -120,10 +128,34 @@ var PreReleaseOnlyPackages = new HashSet<string>
     "Microsoft.CodeAnalysis.VisualBasic.Scripting",
     "Microsoft.Net.Compilers.netcore",
     "Microsoft.Net.CSharp.Interactive.netcore",
+    "Microsoft.CodeAnalysis.Remote.Razor.ServiceHub",
     "Microsoft.CodeAnalysis.Remote.ServiceHub",
     "Microsoft.CodeAnalysis.Remote.Workspaces",
     "Microsoft.CodeAnalysis.Test.Resources.Proprietary",
+    "Microsoft.VisualStudio.IntegrationTest.Utilities",
     "Microsoft.VisualStudio.LanguageServices.Next",
+    "Microsoft.VisualStudio.LanguageServices.Razor.RemoteClient",
+};
+
+// The assets for these packages are not produced when building on Unix
+// and we don't want to attempt to package them when building packages.
+var PackagesNotBuiltOnCore = new HashSet<string>
+{
+     "Microsoft.CodeAnalysis.CSharp.Features",
+     "Microsoft.CodeAnalysis.EditorFeatures",
+     "Microsoft.CodeAnalysis.EditorFeatures.Text",
+     "Microsoft.CodeAnalysis.Features",
+     "Microsoft.CodeAnalysis.Remote.Razor.ServiceHub",
+     "Microsoft.CodeAnalysis.Remote.ServiceHub",
+     "Microsoft.CodeAnalysis.Remote.Workspaces",
+     "Microsoft.CodeAnalysis.VisualBasic.Features",
+     "Microsoft.CodeAnalysis.Workspaces.Common",
+     "Microsoft.Net.Compilers",
+     "Microsoft.VisualStudio.IntegrationTest.Utilities",
+     "Microsoft.VisualStudio.LanguageServices",
+     "Microsoft.VisualStudio.LanguageServices.Next",
+     "Microsoft.VisualStudio.LanguageServices.Razor.RemoteClient",
+     "Roslyn.VisualStudio.Test.Utilities",
 };
 
 // Create an empty directory to be used in NuGet pack
@@ -143,34 +175,86 @@ void ReportError(string message)
     Console.ForegroundColor = color;
 }
 
+string GetPackageVersion(string packageName)
+{
+    // HACK: since Microsoft.Net.Compilers 2.0.0 was uploaded by accident and later deleted, we must bump the minor.
+    // We will do this to both the regular Microsoft.Net.Compilers package and also the netcore package to keep them
+    // in sync.
+    if (BuildVersion.StartsWith("2.0.") && packageName.StartsWith("Microsoft.Net.Compilers", StringComparison.OrdinalIgnoreCase))
+    {
+        string[] buildVersionParts = BuildVersion.Split('-');
+        string[] buildVersionBaseParts = buildVersionParts[0].Split('.');
+        
+        buildVersionBaseParts[buildVersionBaseParts.Length - 1] =
+            (int.Parse(buildVersionBaseParts[buildVersionBaseParts.Length - 1]) + 1).ToString();
+
+        buildVersionParts[0] = string.Join(".", buildVersionBaseParts);
+        return string.Join("-", buildVersionParts);
+    }
+
+    return BuildVersion;
+}
+
 int PackFiles(string[] nuspecFiles, string licenseUrl)
 {
-    string commonArgs =
-        $"-BasePath \"{BinDir}\" " +
+    var commonProperties = new Dictionary<string, string>()
+    {
+        { "licenseUrl", licenseUrl },
+        { "version", BuildVersion },
+        { "authors", Authors },
+        { "projectURL", ProjectURL },
+        { "tags", Tags },
+        { "thirdPartyNoticesPath", ThirdPartyNoticesPath },
+        { "netCompilersPropsPath", NetCompilersPropsPath },
+        { "emptyDirPath", emptyDir },
+    };
+
+    foreach (var dependencyVersion in dependencyVersions)
+    {
+        commonProperties[dependencyVersion.VariableName] = dependencyVersion.Value;
+    }
+
+    string commonArgs;
+
+    if (!IsCoreBuild)
+    {
+        // The -NoPackageAnalysis argument is to work around the following issue.  The warning output of 
+        // NuGet gets promoted to an error by MSBuild /warnaserror
+        // https://github.com/dotnet/roslyn/issues/18152
+        commonArgs = $"-BasePath \"{BinDir}\" " +
         $"-OutputDirectory \"{OutDir}\" " +
-        $"-prop licenseUrl=\"{licenseUrl}\" " +
-        $"-prop version=\"{BuildVersion}\" " +
-        $"-prop authors={Authors} " +
-        $"-prop projectURL=\"{ProjectURL}\" " +
-        $"-prop tags=\"{Tags}\" " +
-        $"-prop thirdPartyNoticesPath=\"{ThirdPartyNoticesPath}\" " +
-        $"-prop netCompilersPropsPath=\"{NetCompilersPropsPath}\" " +
-        $"-prop emptyDirPath=\"{emptyDir}\" " +
-        string.Join(" ", dependencyVersions.Select(d => $"-prop {d.VariableName}=\"{d.Value}\""));
+        $"-NoPackageAnalysis " +
+        string.Join(" ", commonProperties.Select(p => $"-prop {p.Key}=\"{p.Value}\""));
+    }
+    else
+    {
+        commonArgs = $"--base-path \"{BinDir}\" " +
+        $"--output-directory \"{OutDir}\" " +
+        $"--properties \"{string.Join(";", commonProperties.Select(p => $"{p.Key}={p.Value}"))}\"";
+    }
 
     int exit = 0;
     foreach (var file in nuspecFiles)
     {
-        var nugetArgs = $@"pack {file} {commonArgs}";
-
-        var nugetExePath = Path.GetFullPath(Path.Combine(SolutionRoot, "nuget.exe"));
         var p = new Process();
-        p.StartInfo.FileName = nugetExePath;
-        p.StartInfo.Arguments = nugetArgs;
+
+        if (!IsCoreBuild)
+        {
+            string packageArgs = commonArgs.Replace($"-prop version=\"{BuildVersion}\"", $"-prop version=\"{GetPackageVersion(Path.GetFileNameWithoutExtension(file))}\"");
+
+            p.StartInfo.FileName = Path.GetFullPath(Path.Combine(SolutionRoot, "nuget.exe"));
+            p.StartInfo.Arguments = $@"pack {file} {packageArgs}";
+        }
+        else
+        {
+            p.StartInfo.FileName = Path.Combine(ToolsetPath, "corerun");
+            p.StartInfo.Arguments = $@"{Path.Combine(ToolsetPath, "NuGet.CommandLine.XPlat.dll")} pack {file} {commonArgs}";
+        }
+
         p.StartInfo.UseShellExecute = false;
         p.StartInfo.RedirectStandardError = true;
 
-        Console.WriteLine($"{Environment.NewLine}Running: nuget.exe {nugetArgs}");
+        Console.WriteLine($"{Environment.NewLine}Running: nuget pack {file} {commonArgs}");
 
         p.Start();
         p.WaitForExit();
@@ -182,7 +266,7 @@ int PackFiles(string[] nuspecFiles, string licenseUrl)
             string message;
             if (BuildingReleaseNugets && stdErr.Contains("A stable release of a package should not have a prerelease dependency."))
             {
-                // If we are building release nugets and if any packages have dependencies on prerelease packages  
+                // If we are building release nugets and if any packages have dependencies on prerelease packages
                 // then we want to ignore the error and allow the build to succeed.
                 currentExit = 0;
                 message = $"{file}: {stdErr}";
@@ -210,27 +294,18 @@ XElement MakePackageElement(string packageName, string version)
     return new XElement("package", new XAttribute("id", packageName), new XAttribute("version", version));
 }
 
-string[] GetRoslynPackageNames()
-{
-    var packageNames = RedistPackageNames.Concat(NonRedistPackageNames).Concat(TestPackageNames);
-
-    if (BuildingReleaseNugets)
-    {
-        packageNames = packageNames.Where(pn => !PreReleaseOnlyPackages.Contains(pn));
-    }
-
-    return packageNames.ToArray();
-}
-
 IEnumerable<XElement> MakeRoslynPackageElements(string[] roslynPackageNames)
 {
-    return roslynPackageNames.Select(packageName => MakePackageElement(packageName, BuildVersion));
+    return roslynPackageNames.Select(packageName => MakePackageElement(packageName, GetPackageVersion(packageName)));
 }
 
 void GeneratePublishingConfig(string fileName, IEnumerable<XElement> packages)
 {
     var doc = new XDocument(new XElement("packages", packages.ToArray()));
-    doc.Save(Path.Combine(OutDir, fileName));
+    using (FileStream fs = File.OpenWrite(Path.Combine(OutDir, fileName)))
+    {
+        doc.Save(fs);
+    }
 }
 
 void GeneratePublishingConfig(string[] roslynPackageNames)
@@ -248,6 +323,30 @@ void GeneratePublishingConfig(string[] roslynPackageNames)
     }
 }
 
+string[] GetRoslynPackageNames(string[] packages)
+{
+    IEnumerable<string> packageNames = packages;
+
+    if (BuildingReleaseNugets)
+    {
+        packageNames = packageNames.Where(pn => !PreReleaseOnlyPackages.Contains(pn));
+    }
+
+    if (IsCoreBuild)
+    {
+        packageNames = packageNames.Where(pn => !PackagesNotBuiltOnCore.Contains(pn));
+    }
+
+    return packageNames.ToArray();
+}
+
+int DoWork(string[] packageNames, string licenseUrl)
+{
+    var roslynPackageNames = GetRoslynPackageNames(packageNames);
+    string[] roslynNuspecFiles = roslynPackageNames.Select(f => Path.Combine(NuspecDirPath, f + ".nuspec")).ToArray();
+    return PackFiles(roslynNuspecFiles, licenseUrl);
+}
+
 bool IsReleaseVersion(string version) => !version.Contains('-');
 Directory.CreateDirectory(OutDir);
 var ErrorLogFile = Path.Combine(OutDir, "skipped_packages.txt");
@@ -260,10 +359,13 @@ catch
     // Ignore errors
 }
 
-var roslynPackageNames = GetRoslynPackageNames();
+int exit = DoWork(RedistPackageNames, LicenseUrlRedist);
+exit |= DoWork(NonRedistPackageNames, LicenseUrlNonRedist);
+exit |= DoWork(TestPackageNames, LicenseUrlTest);
+
+var allPackageNames = RedistPackageNames.Concat(NonRedistPackageNames).Concat(TestPackageNames).ToArray();
+var roslynPackageNames = GetRoslynPackageNames(allPackageNames);
 GeneratePublishingConfig(roslynPackageNames);
-string[] roslynNuspecFiles = roslynPackageNames.Select(f => Path.Combine(NuspecDirPath, f + ".nuspec")).ToArray();
-int exit = PackFiles(roslynNuspecFiles, LicenseUrlRedist);
 
 try
 {

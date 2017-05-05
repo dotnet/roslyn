@@ -441,7 +441,7 @@ class Program
 ");
             compilation.VerifyIL("Program.<Int0>d__0.System.IDisposable.Dispose()", @"
 {
-  // Code size      121 (0x79)
+  // Code size       76 (0x4c)
   .maxstack  2
   .locals init (int V_0)
   IL_0000:  ldarg.0
@@ -450,70 +450,63 @@ class Program
   IL_0007:  ldloc.0
   IL_0008:  ldc.i4.s   -5
   IL_000a:  sub
-  IL_000b:  switch    (
-        IL_0041,
-        IL_0041,
-        IL_0041,
-        IL_0078,
-        IL_0078,
-        IL_0078,
-        IL_0078,
-        IL_0041,
-        IL_0041,
-        IL_0041,
-        IL_0041,
-        IL_0041)
-  IL_0040:  ret
-  IL_0041:  nop
+  IL_000b:  ldc.i4.2
+  IL_000c:  ble.un.s   IL_0014
+  IL_000e:  ldloc.0
+  IL_000f:  ldc.i4.2
+  IL_0010:  sub
+  IL_0011:  ldc.i4.4
+  IL_0012:  bgt.un.s   IL_004b
+  IL_0014:  nop
   .try
   {
-    IL_0042:  ldloc.0
-    IL_0043:  ldc.i4.s   -4
-    IL_0045:  bgt.s      IL_0053
-    IL_0047:  ldloc.0
-    IL_0048:  ldc.i4.s   -5
-    IL_004a:  beq.s      IL_0067
-    IL_004c:  ldloc.0
-    IL_004d:  ldc.i4.s   -4
-    IL_004f:  beq.s      IL_005d
-    IL_0051:  leave.s    IL_0078
-    IL_0053:  ldloc.0
-    IL_0054:  ldc.i4.3
-    IL_0055:  beq.s      IL_005d
-    IL_0057:  ldloc.0
-    IL_0058:  ldc.i4.5
-    IL_0059:  beq.s      IL_0067
-    IL_005b:  leave.s    IL_0078
-    IL_005d:  nop
+    IL_0015:  ldloc.0
+    IL_0016:  ldc.i4.s   -4
+    IL_0018:  bgt.s      IL_0026
+    IL_001a:  ldloc.0
+    IL_001b:  ldc.i4.s   -5
+    IL_001d:  beq.s      IL_003a
+    IL_001f:  ldloc.0
+    IL_0020:  ldc.i4.s   -4
+    IL_0022:  beq.s      IL_0030
+    IL_0024:  leave.s    IL_004b
+    IL_0026:  ldloc.0
+    IL_0027:  ldc.i4.3
+    IL_0028:  beq.s      IL_0030
+    IL_002a:  ldloc.0
+    IL_002b:  ldc.i4.5
+    IL_002c:  beq.s      IL_003a
+    IL_002e:  leave.s    IL_004b
+    IL_0030:  nop
     .try
     {
-      IL_005e:  leave.s    IL_0078
+      IL_0031:  leave.s    IL_004b
     }
     finally
     {
-      IL_0060:  ldarg.0
-      IL_0061:  call       ""void Program.<Int0>d__0.<>m__Finally2()""
-      IL_0066:  endfinally
+      IL_0033:  ldarg.0
+      IL_0034:  call       ""void Program.<Int0>d__0.<>m__Finally2()""
+      IL_0039:  endfinally
     }
-    IL_0067:  nop
+    IL_003a:  nop
     .try
     {
-      IL_0068:  leave.s    IL_0078
+      IL_003b:  leave.s    IL_004b
     }
     finally
     {
-      IL_006a:  ldarg.0
-      IL_006b:  call       ""void Program.<Int0>d__0.<>m__Finally3()""
-      IL_0070:  endfinally
+      IL_003d:  ldarg.0
+      IL_003e:  call       ""void Program.<Int0>d__0.<>m__Finally3()""
+      IL_0043:  endfinally
     }
   }
   finally
   {
-    IL_0071:  ldarg.0
-    IL_0072:  call       ""void Program.<Int0>d__0.<>m__Finally1()""
-    IL_0077:  endfinally
+    IL_0044:  ldarg.0
+    IL_0045:  call       ""void Program.<Int0>d__0.<>m__Finally1()""
+    IL_004a:  endfinally
   }
-  IL_0078:  ret
+  IL_004b:  ret
 }
 ");
         }
@@ -1970,7 +1963,7 @@ namespace System
 
 ";
             var parsed = new[] { Parse(source) };
-            var comp = CreateCompilationWithMscorlib(parsed);
+            var comp = CreateStandardCompilation(parsed);
             comp.MakeMemberMissing(WellKnownMember.System_Threading_Thread__ManagedThreadId);
             var verifier = this.CompileAndVerify(comp);
             var il = verifier.VisualizeIL("Program.<Foo>d__0.System.Collections.Generic.IEnumerable<int>.GetEnumerator()");

@@ -25,8 +25,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                     _selectedParameter = selectedParameter;
                 }
 
-                public int? SelectedParameter { get { return _selectedParameter; } }
-                public SignatureHelpItem SelectedItem { get { return _selectedItem; } }
+                public int? SelectedParameter => _selectedParameter;
+                public SignatureHelpItem SelectedItem => _selectedItem;
             }
 
             internal static class DefaultSignatureHelpSelector

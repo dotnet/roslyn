@@ -477,6 +477,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Convert &apos;If&apos; to &apos;Select Case&apos;.
+        '''</summary>
+        Friend ReadOnly Property Convert_If_to_Select_Case() As String
+            Get
+                Return ResourceManager.GetString("Convert_If_to_Select_Case", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Create event {0} in {1}.
         '''</summary>
         Friend ReadOnly Property Create_event_0_in_1() As String
@@ -1965,7 +1974,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Remove &amp;and Sort Imports.
+        '''  Looks up a localized string similar to R&amp;emove and Sort Imports.
         '''</summary>
         Friend ReadOnly Property Remove_and_Sort_Imports() As String
             Get

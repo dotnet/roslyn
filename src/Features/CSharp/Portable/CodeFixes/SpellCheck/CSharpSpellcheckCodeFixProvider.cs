@@ -22,6 +22,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Spellcheck
             GenerateMethodDiagnosticIds.FixableDiagnosticIds).Concat(
                 ImmutableArray.Create(CS0426));
 
+        protected override bool ShouldSpellCheck(SimpleNameSyntax name)
+            => !name.IsVar;
+
         protected override bool DescendIntoChildren(SyntaxNode arg)
         {
             // Don't dive into type argument lists.  We don't want to report spell checking

@@ -57,32 +57,40 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
 
             var localDeclaration = (LocalDeclarationStatementSyntax)localDeclarationLocation.FindNode(cancellationToken);
             var ifStatement = (IfStatementSyntax)ifStatementLocation.FindNode(cancellationToken);
-            var condition = (BinaryExpressionSyntax)conditionLocation.FindNode(cancellationToken);
+            var conditionPart = (BinaryExpressionSyntax)conditionLocation.FindNode(cancellationToken);
             var asExpression = (BinaryExpressionSyntax)asExpressionLocation.FindNode(cancellationToken);
 
-            var updatedCondition = SyntaxFactory.IsPatternExpression(
+            var updatedConditionPart = SyntaxFactory.IsPatternExpression(
                 asExpression.Left, SyntaxFactory.DeclarationPattern(
                     ((TypeSyntax)asExpression.Right).WithoutTrivia(),
                     SyntaxFactory.SingleVariableDesignation(
                         localDeclaration.Declaration.Variables[0].Identifier.WithoutTrivia())));
 
-            var trivia = localDeclaration.GetLeadingTrivia().Concat(localDeclaration.GetTrailingTrivia())
-                                         .Where(t => t.IsSingleOrMultiLineComment())
-                                         .SelectMany(t => ImmutableArray.Create(t, SyntaxFactory.ElasticCarriageReturnLineFeed))
-                                         .ToImmutableArray();
+            var finalCondition = ifStatement.Condition.ReplaceNode(conditionPart, updatedConditionPart);
 
-            var updatedIfStatement = ifStatement.ReplaceNode(condition, updatedCondition)
-                                                .WithPrependedLeadingTrivia(trivia)
-                                                .WithAdditionalAnnotations(Formatter.Annotation);
+            var block = (BlockSyntax)localDeclaration.Parent;
+            var declarationIndex = block.Statements.IndexOf(localDeclaration);
 
-            editor.RemoveNode(localDeclaration);
-            editor.ReplaceNode(ifStatement, updatedIfStatement);
+            // Trivia on the local declaration will move to the next statement.
+            // use the callback form as the next statement may be the place where we're 
+            // inlining the declaration, and thus need to see the effects of that change.
+            editor.ReplaceNode(
+                block.Statements[declarationIndex + 1],
+                (s, g) => s.WithPrependedNonIndentationTriviaFrom(localDeclaration));
+            editor.RemoveNode(localDeclaration, SyntaxRemoveOptions.KeepUnbalancedDirectives);
+
+            editor.ReplaceNode(ifStatement, (i, g) =>
+            {
+                var currentIf = (IfStatementSyntax)i;
+                var updatedIf = currentIf.ReplaceNode(currentIf.Condition, finalCondition);
+                return updatedIf.WithAdditionalAnnotations(Formatter.Annotation);
+            });
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
             public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(CSharpFeaturesResources.Inline_temporary_variable, createChangedDocument)
+                : base(FeaturesResources.Use_pattern_matching, createChangedDocument)
             {
             }
         }

@@ -640,7 +640,6 @@ namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : 
                 );
         }
 
-
         [Fact]
         static void AsyncMethodBuilderAttributeSingleParameterWrong()
         {
@@ -665,5 +664,268 @@ namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : 
                 );
         }
 
+        [Fact]
+        public void AsyncMethodBuilder_IncorrectMethodArity()
+        {
+            var source =
+@"using System;
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
+namespace System.Runtime.CompilerServices
+{
+    class AsyncMethodBuilderAttribute : System.Attribute
+   {
+       public AsyncMethodBuilderAttribute(System.Type t) { }
+    }
+}
+class C
+{
+    static async MyTask F() { await Task.Delay(0); }
+    static async MyTask<T> G<T>(T t) { await Task.Delay(0); return t; }
+    static async MyTask<int> M()
+    {
+        await F();
+        return await G(3);
+    }
+}
+[AsyncMethodBuilder(typeof(MyTaskMethodBuilder))]
+class MyTask
+{
+    internal Awaiter GetAwaiter() => null;
+    internal class Awaiter : INotifyCompletion
+    {
+        public void OnCompleted(Action a) { }
+        internal bool IsCompleted => true;
+        internal void GetResult() { }
+    }
+}
+[AsyncMethodBuilder(typeof(MyTaskMethodBuilder<>))]
+class MyTask<T>
+{
+    internal Awaiter GetAwaiter() => null;
+    internal class Awaiter : INotifyCompletion
+    {
+        public void OnCompleted(Action a) { }
+        internal bool IsCompleted => true;
+        internal T GetResult() => default(T);
+    }
+}
+class MyTaskMethodBuilder
+{
+    public static MyTaskMethodBuilder Create() => null;
+    internal MyTaskMethodBuilder(MyTask task) { }
+    public void SetStateMachine<T>(IAsyncStateMachine stateMachine) { }
+    public void Start<TStateMachine>(ref TStateMachine stateMachine) where TStateMachine : IAsyncStateMachine { }
+    public void SetException(Exception e) { }
+    public void SetResult() { }
+    public void AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : INotifyCompletion where TStateMachine : IAsyncStateMachine { }
+    public void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : ICriticalNotifyCompletion where TStateMachine : IAsyncStateMachine { }
+    public MyTask Task => default(MyTask);
+}
+class MyTaskMethodBuilder<T>
+{
+    public static MyTaskMethodBuilder<T> Create() => null;
+    internal MyTaskMethodBuilder(MyTask<T> task) { }
+    public void SetStateMachine(IAsyncStateMachine stateMachine) { }
+    public void Start<TAwaiter, TStateMachine>(ref TStateMachine stateMachine) where TStateMachine : IAsyncStateMachine { }
+    public void SetException(Exception e) { }
+    public void SetResult(T t) { }
+    public void AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : INotifyCompletion where TStateMachine : IAsyncStateMachine { }
+    public void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : ICriticalNotifyCompletion where TStateMachine : IAsyncStateMachine { }
+    public MyTask<T> Task => default(MyTask<T>);
+}";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll);
+            compilation.VerifyEmitDiagnostics(
+                // (13,29): error CS0656: Missing compiler required member 'MyTaskMethodBuilder.SetStateMachine'
+                //     static async MyTask F() { await Task.Delay(0); }
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "{ await Task.Delay(0); }").WithArguments("MyTaskMethodBuilder", "SetStateMachine").WithLocation(13, 29),
+                // (14,38): error CS0656: Missing compiler required member 'MyTaskMethodBuilder<T>.Start'
+                //     static async MyTask<T> G<T>(T t) { await Task.Delay(0); return t; }
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "{ await Task.Delay(0); return t; }").WithArguments("MyTaskMethodBuilder<T>", "Start").WithLocation(14, 38),
+                // (16,5): error CS0656: Missing compiler required member 'MyTaskMethodBuilder<int>.Start'
+                //     {
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"{
+        await F();
+        return await G(3);
+    }").WithArguments("MyTaskMethodBuilder<int>", "Start").WithLocation(16, 5));
+        }
+
+        [WorkItem(12616, "https://github.com/dotnet/roslyn/issues/12616")]
+        [Fact]
+        public void AsyncMethodBuilder_MissingConstraints()
+        {
+            var source =
+@"using System;
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
+namespace System.Runtime.CompilerServices
+{
+    class AsyncMethodBuilderAttribute : System.Attribute
+   {
+       public AsyncMethodBuilderAttribute(System.Type t) { }
+    }
+}
+class C
+{
+    static async MyTask F() { await Task.Delay(0); }
+    static async MyTask<T> G<T>(T t) { await Task.Delay(0); return t; }
+    static async MyTask<int> M()
+    {
+        await F();
+        return await G(3);
+    }
+}
+[AsyncMethodBuilder(typeof(MyTaskMethodBuilder))]
+class MyTask
+{
+    internal Awaiter GetAwaiter() => null;
+    internal class Awaiter : INotifyCompletion
+    {
+        public void OnCompleted(Action a) { }
+        internal bool IsCompleted => true;
+        internal void GetResult() { }
+    }
+}
+[AsyncMethodBuilder(typeof(MyTaskMethodBuilder<>))]
+class MyTask<T>
+{
+    internal Awaiter GetAwaiter() => null;
+    internal class Awaiter : INotifyCompletion
+    {
+        public void OnCompleted(Action a) { }
+        internal bool IsCompleted => true;
+        internal T GetResult() => default(T);
+    }
+}
+class MyTaskMethodBuilder
+{
+    public static MyTaskMethodBuilder Create() => null;
+    internal MyTaskMethodBuilder(MyTask task) { }
+    public void SetStateMachine(IAsyncStateMachine stateMachine) { }
+    // Missing constraint: where TStateMachine : IAsyncStateMachine
+    public void Start<TStateMachine>(ref TStateMachine stateMachine) { }
+    public void SetException(Exception e) { }
+    public void SetResult() { }
+    public void AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : INotifyCompletion where TStateMachine : IAsyncStateMachine { }
+    public void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : ICriticalNotifyCompletion where TStateMachine : IAsyncStateMachine { }
+    public MyTask Task => default(MyTask);
+}
+class MyTaskMethodBuilder<T>
+{
+    public static MyTaskMethodBuilder<T> Create() => null;
+    internal MyTaskMethodBuilder(MyTask<T> task) { }
+    public void SetStateMachine(IAsyncStateMachine stateMachine) { }
+    public void Start<TStateMachine>(ref TStateMachine stateMachine) where TStateMachine : IAsyncStateMachine { }
+    public void SetException(Exception e) { }
+    public void SetResult(T t) { }
+    // Incorrect constraint: where TAwaiter : IAsyncStateMachine
+    public void AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : IAsyncStateMachine where TStateMachine : IAsyncStateMachine { }
+    public void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : ICriticalNotifyCompletion where TStateMachine : IAsyncStateMachine { }
+    public MyTask<T> Task => default(MyTask<T>);
+}";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll);
+            compilation.VerifyEmitDiagnostics();
+        }
+
+        [WorkItem(12616, "https://github.com/dotnet/roslyn/issues/12616")]
+        [Fact]
+        public void AsyncMethodBuilder_AdditionalConstraints()
+        {
+            var source =
+@"using System;
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
+namespace System.Runtime.CompilerServices
+{
+    class AsyncMethodBuilderAttribute : System.Attribute
+   {
+       public AsyncMethodBuilderAttribute(System.Type t) { }
+    }
+}
+class C
+{
+    static async MyTask F() { await Task.Delay(0); }
+    static async MyTask<T> G<T>(T t) { await Task.Delay(0); return t; }
+    static async MyTask<int> M()
+    {
+        await F();
+        return await G(3);
+    }
+}
+[AsyncMethodBuilder(typeof(MyTaskMethodBuilder))]
+class MyTask
+{
+    internal Awaiter GetAwaiter() => null;
+    internal class Awaiter : INotifyCompletion
+    {
+        public void OnCompleted(Action a) { }
+        internal bool IsCompleted => true;
+        internal void GetResult() { }
+    }
+}
+[AsyncMethodBuilder(typeof(MyTaskMethodBuilder<>))]
+class MyTask<T>
+{
+    internal Awaiter GetAwaiter() => null;
+    internal class Awaiter : INotifyCompletion
+    {
+        public void OnCompleted(Action a) { }
+        internal bool IsCompleted => true;
+        internal T GetResult() => default(T);
+    }
+}
+class MyTaskMethodBuilder
+{
+    public static MyTaskMethodBuilder Create() => null;
+    internal MyTaskMethodBuilder(MyTask task) { }
+    public void SetStateMachine(IAsyncStateMachine stateMachine) { }
+    // Additional constraint: class
+    public void Start<TStateMachine>(ref TStateMachine stateMachine) where TStateMachine : class, IAsyncStateMachine { }
+    public void SetException(Exception e) { }
+    public void SetResult() { }
+    public void AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : INotifyCompletion where TStateMachine : IAsyncStateMachine { }
+    public void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : ICriticalNotifyCompletion where TStateMachine : IAsyncStateMachine { }
+    public MyTask Task => default(MyTask);
+}
+class MyTaskMethodBuilder<T>
+{
+    public static MyTaskMethodBuilder<T> Create() => null;
+    internal MyTaskMethodBuilder(MyTask<T> task) { }
+    public void SetStateMachine(IAsyncStateMachine stateMachine) { }
+    public void Start<TStateMachine>(ref TStateMachine stateMachine) where TStateMachine : IAsyncStateMachine { }
+    public void SetException(Exception e) { }
+    public void SetResult(T t) { }
+    public void AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : INotifyCompletion where TStateMachine : IAsyncStateMachine { }
+    // Additional constraint: ICriticalNotifyCompletion
+    public void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : ICriticalNotifyCompletion where TStateMachine : IAsyncStateMachine, ICriticalNotifyCompletion { }
+    public MyTask<T> Task => default(MyTask<T>);
+}";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll);
+            compilation.VerifyEmitDiagnostics();
+        }
+
+        [WorkItem(15955, "https://github.com/dotnet/roslyn/issues/15955")]
+        [Fact]
+        public void OverloadWithVoidPointer()
+        {
+            var source =
+@"class A
+{
+    unsafe public static void F(void* p) { }
+    unsafe public static void F(int* p) { }
+}
+class B
+{
+    static void Main()
+    {
+        unsafe
+        {
+            A.F(null);
+        }
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.UnsafeDebugExe);
+            compilation.VerifyEmitDiagnostics();
+        }
     }
 }

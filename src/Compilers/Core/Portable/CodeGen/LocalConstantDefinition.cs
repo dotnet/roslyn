@@ -16,9 +16,9 @@ namespace Microsoft.CodeAnalysis.CodeGen
         public LocalConstantDefinition(
             string name,
             Location location,
-            Cci.IMetadataConstant compileTimeValue,
-            ImmutableArray<TypedConstant> dynamicTransformFlags,
-            ImmutableArray<TypedConstant> tupleElementNames)
+            MetadataConstant compileTimeValue,
+            ImmutableArray<bool> dynamicTransformFlags,
+            ImmutableArray<string> tupleElementNames)
         {
             Debug.Assert(!string.IsNullOrEmpty(name));
             Debug.Assert(compileTimeValue != null);
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         public Location Location { get; }
 
-        public Cci.IMetadataConstant CompileTimeValue { get; }
+        public MetadataConstant CompileTimeValue { get; }
 
         public Cci.ITypeReference Type => CompileTimeValue.Type;
 
@@ -53,9 +53,9 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         public LocalVariableAttributes PdbAttributes => LocalVariableAttributes.None;
 
-        public ImmutableArray<TypedConstant> DynamicTransformFlags { get; }
+        public ImmutableArray<bool> DynamicTransformFlags { get; }
 
-        public ImmutableArray<TypedConstant> TupleElementNames { get; }
+        public ImmutableArray<string> TupleElementNames { get; }
 
         public int SlotIndex => -1;
 

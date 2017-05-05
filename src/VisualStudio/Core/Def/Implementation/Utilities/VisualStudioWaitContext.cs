@@ -29,7 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
             IVsThreadedWaitDialogFactory dialogFactory,
             string title,
             string message,
-            bool allowCancel, 
+            bool allowCancel,
             bool showProgress)
         {
             _title = title;

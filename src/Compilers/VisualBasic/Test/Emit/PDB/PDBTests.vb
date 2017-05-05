@@ -8,6 +8,7 @@ Imports System.Text
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
+Imports Microsoft.DiaSymReader.Tools
 Imports Roslyn.Test.PdbUtilities
 Imports Roslyn.Test.Utilities
 
@@ -4366,6 +4367,9 @@ End Class"
     <methods>
         <method containingType="C+VB$StateMachine_1_F" name="MoveNext">
             <customDebugInfo>
+                <hoistedLocalScopes format="portable">
+                    <slot startOffset="0x0" endOffset="0x8b"/>
+                </hoistedLocalScopes>
                 <encLocalSlotMap>
                     <slot kind="27" offset="-1"/>
                     <slot kind="temp"/>
@@ -4413,6 +4417,9 @@ End Class"
     <methods>
         <method containingType="C+_Closure$__+VB$StateMachine___Lambda$__1-0" name="MoveNext">
             <customDebugInfo>
+                <hoistedLocalScopes format="portable">
+                    <slot startOffset="0x0" endOffset="0x8b"/>
+                </hoistedLocalScopes>
                 <encLocalSlotMap>
                     <slot kind="27" offset="38"/>
                     <slot kind="temp"/>

@@ -262,7 +262,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var foundAwait = result.Any(pending => pending.Branch?.Kind == BoundKind.AwaitExpression);
                 if (!foundAwait)
                 {
-                    Diagnostics.Add(ErrorCode.WRN_AsyncLacksAwaits, currentMethodOrLambda.Locations[0]);
+                    // If we're on a LambdaSymbol, then use its 'DiagnosticLocation'.  That will be
+                    // much better than using its 'Location' (which is the entire span of the lambda).
+                    var diagnosticLocation = currentMethodOrLambda is LambdaSymbol lambda
+                        ? lambda.DiagnosticLocation
+                        : currentMethodOrLambda.Locations[0];
+
+                    Diagnostics.Add(ErrorCode.WRN_AsyncLacksAwaits, diagnosticLocation);
                 }
             }
 
@@ -608,7 +614,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         return WriteConsideredUse(null, boundConversion.Operand);
                     }
-                case BoundKind.DefaultOperator:
+                case BoundKind.DefaultExpression:
                     return false;
                 case BoundKind.ObjectCreationExpression:
                     var init = (BoundObjectCreationExpression)value;
@@ -1222,16 +1228,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     AssignImpl(((BoundRangeVariable)node).Value, value, refKind, written, read);
                     break;
 
-                case BoundKind.ForEachStatement:
-                    {
-                        var iterationVariable = ((BoundForEachStatement)node).IterationVariableOpt;
-                        Debug.Assert((object)iterationVariable != null);
-                        int slot = GetOrCreateSlot(iterationVariable);
-                        if (slot > 0) SetSlotState(slot, written);
-                        if (written) NoteWrite(iterationVariable, value, read);
-                        break;
-                    }
-
                 case BoundKind.BadExpression:
                     {
                         // Sometimes a bad node is not so bad that we cannot analyze it at all.
@@ -1242,6 +1238,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         break;
                     }
+
+                case BoundKind.TupleLiteral:
+                    ((BoundTupleExpression)node).VisitAllElements((x, self) => self.Assign(x, value: null, refKind: refKind), this);
+                    break;
 
                 default:
                     // Other kinds of left-hand-sides either represent things not tracked (e.g. array elements)
@@ -1575,26 +1575,34 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitForStatement(BoundForStatement node)
         {
             DeclareVariables(node.OuterLocals);
+            DeclareVariables(node.InnerLocals);
             var result = base.VisitForStatement(node);
+            ReportUnusedVariables(node.InnerLocals);
             ReportUnusedVariables(node.OuterLocals);
-            return result;
-        }
-
-        public override BoundNode VisitDoStatement(BoundDoStatement node)
-        {
-            var result = base.VisitDoStatement(node);
-            return result;
-        }
-
-        public override BoundNode VisitWhileStatement(BoundWhileStatement node)
-        {
-            var result = base.VisitWhileStatement(node);
             return result;
         }
 
         public override BoundNode VisitForEachStatement(BoundForEachStatement node)
         {
+            // NOTE: iteration variables are not declared or assigned
+            //       before the collection expression is evaluated 
             var result = base.VisitForEachStatement(node);
+            return result;
+        }
+
+        public override BoundNode VisitDoStatement(BoundDoStatement node)
+        {
+            DeclareVariables(node.Locals);
+            var result = base.VisitDoStatement(node);
+            ReportUnusedVariables(node.Locals);
+            return result;
+        }
+
+        public override BoundNode VisitWhileStatement(BoundWhileStatement node)
+        {
+            DeclareVariables(node.Locals);
+            var result = base.VisitWhileStatement(node);
+            ReportUnusedVariables(node.Locals);
             return result;
         }
 
@@ -1859,12 +1867,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitDeconstructionAssignmentOperator(BoundDeconstructionAssignmentOperator node)
         {
             base.VisitDeconstructionAssignmentOperator(node);
-
-            foreach (BoundExpression variable in node.LeftVariables)
-            {
-                Assign(variable, value: null, refKind: RefKind.None);
-            }
-
+            Assign(node.Left, node.Right);
             return null;
         }
 
@@ -2184,14 +2187,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        public override void VisitForEachIterationVariable(BoundForEachStatement node)
+        public override void VisitForEachIterationVariables(BoundForEachStatement node)
         {
-            var local = node.IterationVariableOpt;
-            if ((object)local != null)
+            // declare and assign all iteration variables
+            foreach (var iterationVariable in node.IterationVariables)
             {
-                GetOrCreateSlot(local);
-                Assign(node, value: null);
-                // TODO: node needed? NoteRead(local); // Never warn about unused foreach variables.
+                Debug.Assert((object)iterationVariable != null);
+                int slot = GetOrCreateSlot(iterationVariable);
+                if (slot > 0) SetSlotAssigned(slot);
+                // NOTE: do not report unused iteration variables. They are always considered used.
+                NoteWrite(iterationVariable, null, read: true);
             }
         }
 

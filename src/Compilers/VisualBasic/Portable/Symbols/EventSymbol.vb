@@ -59,6 +59,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public MustOverride ReadOnly Property RaiseMethod As MethodSymbol
 
         ''' <summary>
+        ''' True if the event itself Is excluded from code covarage instrumentation.
+        ''' True for source events marked with <see cref="AttributeDescription.ExcludeFromCodeCoverageAttribute"/>.
+        ''' </summary>
+        Friend Overridable ReadOnly Property IsDirectlyExcludedFromCodeCoverage As Boolean
+            Get
+                Return False
+            End Get
+        End Property
+
+        ''' <summary>
         '''  True if this symbol has a special name (metadata flag SpecialName is set).
         ''' </summary>
         Friend MustOverride ReadOnly Property HasSpecialName As Boolean

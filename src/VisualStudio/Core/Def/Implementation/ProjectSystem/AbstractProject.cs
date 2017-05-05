@@ -122,7 +122,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             ContentTypeRegistryService = componentModel.GetService<IContentTypeRegistryService>();
 
             this.RunningDocumentTable = (IVsRunningDocumentTable4)serviceProvider.GetService(typeof(SVsRunningDocumentTable));
-            this.DisplayName = projectSystemName;
+
+            var displayName = hierarchy != null && hierarchy.TryGetName(out var name) ? name : projectSystemName;
+            this.DisplayName = displayName;
+
             this.ProjectTracker = projectTracker;
 
             ProjectSystemName = projectSystemName;
@@ -133,7 +136,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             // Set the default value for last design time build result to be true, until the project system lets us know that it failed.
             LastDesignTimeBuildSucceeded = true;
 
-            UpdateProjectDisplayNameAndFilePath(projectSystemName, projectFilePath);
+            UpdateProjectDisplayNameAndFilePath(displayName, projectFilePath);
 
             if (ProjectFilePath != null)
             {
@@ -557,6 +560,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         protected int AddMetadataReferenceAndTryConvertingToProjectReferenceIfPossible(string filePath, MetadataReferenceProperties properties)
         {
+            AssertIsForeground();
+
             // If this file is coming from a project, then we should convert it to a project reference instead
             if (this.CanConvertToProjectReferences && ProjectTracker.TryGetProjectByBinPath(filePath, out var project))
             {
@@ -618,6 +623,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         protected void RemoveMetadataReference(string filePath)
         {
+            AssertIsForeground();
+
             // Is this a reference we converted to a project reference?
             if (TryGetMetadataFileNameToConvertedProjectReference(filePath, out var projectReference))
             {
@@ -723,6 +730,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private void OnAnalyzerChanged(object sender, EventArgs e)
         {
+            AssertIsForeground();
+
             // Postpone handler's actions to prevent deadlock. This AnalyzeChanged event can
             // be invoked while the FileChangeService lock is held, and VisualStudioAnalyzer's 
             // efforts to listen to file changes can lead to a deadlock situation.
@@ -740,6 +749,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         // Internal for unit testing
         internal void AddProjectReference(ProjectReference projectReference)
         {
+            AssertIsForeground();
+
             // dev11 is sometimes calling us multiple times for the same data
             if (!CanAddProjectReference(projectReference))
             {
@@ -824,6 +835,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         protected void RemoveProjectReference(ProjectReference projectReference)
         {
+            AssertIsForeground();
+
             lock (_gate)
             {
                 Contract.ThrowIfFalse(_projectReferences.Remove(projectReference));
@@ -839,6 +852,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             IVisualStudioHostDocument document = (IVisualStudioHostDocument)sender;
             AbstractProject project = (AbstractProject)document.Project;
+
+            project.AssertIsForeground();
 
             if (project._pushingChangesToWorkspaceHosts)
             {
@@ -856,6 +871,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             AbstractProject project = (AbstractProject)document.Project;
             var projectTracker = project.ProjectTracker;
 
+            project.AssertIsForeground();
+
             if (project._pushingChangesToWorkspaceHosts)
             {
                 projectTracker.NotifyWorkspaceHosts(host => host.OnDocumentClosed(document.Id, document.GetOpenTextBuffer(), document.Loader, updateActiveContext));
@@ -867,6 +884,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             IVisualStudioHostDocument document = (IVisualStudioHostDocument)sender;
             AbstractProject project = (AbstractProject)document.Project;
 
+            project.AssertIsForeground();
+
             if (project._pushingChangesToWorkspaceHosts)
             {
                 project.ProjectTracker.NotifyWorkspaceHosts(host => host.OnDocumentTextUpdatedOnDisk(document.Id));
@@ -877,6 +896,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             IVisualStudioHostDocument document = (IVisualStudioHostDocument)sender;
             AbstractProject project = (AbstractProject)document.Project;
+
+            project.AssertIsForeground();
 
             if (project._pushingChangesToWorkspaceHosts)
             {
@@ -894,6 +915,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             AbstractProject project = (AbstractProject)document.Project;
             var projectTracker = project.ProjectTracker;
 
+            project.AssertIsForeground();
+
             if (project._pushingChangesToWorkspaceHosts)
             {
                 projectTracker.NotifyWorkspaceHosts(host => host.OnAdditionalDocumentClosed(document.Id, document.GetOpenTextBuffer(), document.Loader));
@@ -904,6 +927,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             IVisualStudioHostDocument document = (IVisualStudioHostDocument)sender;
             AbstractProject project = (AbstractProject)document.Project;
+
+            project.AssertIsForeground();
 
             if (project._pushingChangesToWorkspaceHosts)
             {
@@ -917,6 +942,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             Func<IVisualStudioHostDocument, bool> getIsCurrentContext,
             Func<uint, IReadOnlyList<string>> getFolderNames)
         {
+            AssertIsForeground();
+
             // We can currently be on a background thread.
             // So, hookup the handlers when creating the standard text document, as we might receive these handler notifications on the UI thread.
             var document = this.DocumentProvider.TryGetDocumentForFile(
@@ -957,6 +984,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         protected void RemoveFile(string filename)
         {
+            AssertIsForeground();
+
             lock (_gate)
             {
                 // Remove this as an untracked file, if it is
@@ -977,6 +1006,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         internal void AddDocument(IVisualStudioHostDocument document, bool isCurrentContext, bool hookupHandlers)
         {
+            AssertIsForeground();
+
             // We do not want to allow message pumping/reentrancy when processing project system changes.
             using (Dispatcher.CurrentDispatcher.DisableProcessing())
             {
@@ -1014,6 +1045,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         internal void RemoveDocument(IVisualStudioHostDocument document)
         {
+            AssertIsForeground();
+
             // We do not want to allow message pumping/reentrancy when processing project system changes.
             using (Dispatcher.CurrentDispatcher.DisableProcessing())
             {
@@ -1030,6 +1063,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         internal void AddAdditionalDocument(IVisualStudioHostDocument document, bool isCurrentContext)
         {
+            AssertIsForeground();
+
             lock (_gate)
             {
                 _additionalDocuments.Add(document.Id, document);
@@ -1056,6 +1091,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         internal void RemoveAdditionalDocument(IVisualStudioHostDocument document)
         {
+            AssertIsForeground();
+
             lock (_gate)
             {
                 _additionalDocuments.Remove(document.Id);
@@ -1131,6 +1168,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         internal void TryProjectConversionForIntroducedOutputPath(string binPath, AbstractProject projectToReference)
         {
+            AssertIsForeground();
+
             if (this.CanConvertToProjectReferences)
             {
                 // We should not already have references for this, since we're only introducing the path for the first time
@@ -1157,6 +1196,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         internal void UndoProjectReferenceConversionForDisappearingOutputPath(string binPath)
         {
+            AssertIsForeground();
+
             if (TryGetMetadataFileNameToConvertedProjectReference(binPath, out var projectReference))
             {
                 // We converted this, so convert it back to a metadata reference
@@ -1175,6 +1216,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         protected void UpdateMetadataReferenceAliases(string file, ImmutableArray<string> aliases)
         {
+            AssertIsForeground();
+
             file = FileUtilities.NormalizeAbsolutePath(file);
             // Have we converted these to project references?
 
@@ -1198,6 +1241,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         protected void UpdateProjectReferenceAliases(AbstractProject referencedProject, ImmutableArray<string> aliases)
         {
+            AssertIsForeground();
+
             var projectReference = GetCurrentProjectReferences().Single(r => r.ProjectId == referencedProject.Id);
 
             var newProjectReference = new ProjectReference(referencedProject.Id, aliases, projectReference.EmbedInteropTypes);
@@ -1217,6 +1262,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private void UninitializeDocument(IVisualStudioHostDocument document)
         {
+            AssertIsForeground();
+
             if (_pushingChangesToWorkspaceHosts)
             {
                 if (document.IsOpen)
@@ -1236,6 +1283,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private void UninitializeAdditionalDocument(IVisualStudioHostDocument document)
         {
+            AssertIsForeground();
+
             if (_pushingChangesToWorkspaceHosts)
             {
                 if (document.IsOpen)
@@ -1269,6 +1318,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         internal void StartPushingToWorkspaceAndNotifyOfOpenDocuments()
         {
+            AssertIsForeground();
             StartPushingToWorkspaceAndNotifyOfOpenDocuments(this);
         }
 
@@ -1282,6 +1332,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         protected void UpdateRuleSetError(IRuleSetFile ruleSetFile)
         {
+            AssertIsForeground();
+
             if (this.HostDiagnosticUpdateSource == null)
             {
                 return;
@@ -1304,6 +1356,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         protected void SetObjOutputPathAndRelatedData(string objOutputPath)
         {
+            AssertIsForeground();
+
             var currentObjOutputPath = this.ObjOutputPath;
             if (PathUtilities.IsAbsolute(objOutputPath) && !string.Equals(currentObjOutputPath, objOutputPath, StringComparison.OrdinalIgnoreCase))
             {
@@ -1332,6 +1386,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private void UpdateAssemblyName()
         {
+            AssertIsForeground();
+
             // set assembly name if changed
             // we use designTimeOutputPath to get assembly name since it is more reliable way to get the assembly name.
             // otherwise, friend assembly all get messed up.
@@ -1349,6 +1405,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         protected void SetBinOutputPathAndRelatedData(string binOutputPath)
         {
+            AssertIsForeground();
+
             // refresh final output path
             var currentBinOutputPath = this.BinOutputPath;
             if (binOutputPath != null && !string.Equals(currentBinOutputPath, binOutputPath, StringComparison.OrdinalIgnoreCase))
@@ -1375,6 +1433,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         protected void UpdateProjectDisplayNameAndFilePath(string newDisplayName, string newFilePath)
         {
+            AssertIsForeground();
+
             bool updateMade = false;
 
             if (newDisplayName != null && this.DisplayName != newDisplayName)
@@ -1398,6 +1458,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private static void StartPushingToWorkspaceAndNotifyOfOpenDocuments(AbstractProject project)
         {
+            project.AssertIsForeground();
+
             // If a document is opened in a project but we haven't started pushing yet, we want to stop doing lazy
             // loading for this project and get it up to date so the user gets a fast experience there. If the file
             // was presented as open to us right away, then we'll never do this in OnDocumentOpened, so we should do
@@ -1462,6 +1524,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         public IReadOnlyList<string> GetFolderNamesFromHierarchy(uint documentItemID)
         {
+            AssertIsForeground();
+
             if (documentItemID != (uint)VSConstants.VSITEMID.Nil && Hierarchy.GetProperty(documentItemID, (int)VsHierarchyPropID.Parent, out var parentObj) == VSConstants.S_OK)
             {
                 var parentID = UnboxVSItemId(parentObj);
@@ -1476,6 +1540,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private IReadOnlyList<string> GetFolderNamesForFolder(uint folderItemID)
         {
+            AssertIsForeground();
+
             // note: use of tmpFolders is assuming this API is called on UI thread only.
             _tmpFolders.Clear();
             if (!_folderNameMap.TryGetValue(folderItemID, out var names))

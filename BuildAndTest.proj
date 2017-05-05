@@ -1,17 +1,13 @@
-<Project
-  xmlns="http://schemas.microsoft.com/developer/msbuild/2003"
-  DefaultTargets="BuildAndTest"
-  ToolsVersion="12.0">
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<Project ToolsVersion="14.0" DefaultTargets="BuildAndTest" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
-  <Import Project="$(MSBuildThisFileDirectory)build\Targets\Dependencies.props" />
+  <Import Project="$(MSBuildThisFileDirectory)build\Targets\Versions.props" />
 
-  <!-- At the moment Jenkins runs on a machine without any build of Visual Studio 2015.  Hence we must
-       use a 2013 compatible solution. -->
   <PropertyGroup>
     <RoslynSolution Condition="'$(RoslynSolution)' == ''">$(MSBuildThisFileDirectory)Roslyn.sln</RoslynSolution>
     <SamplesSolution>$(MSBuildThisFileDirectory)src\Samples\Samples.sln</SamplesSolution>
-    <Configuration Condition="'$(Configuration)' ==''">Debug</Configuration>
-    <RunTestArgs>-nocache</RunTestArgs>
+    <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
     <RunTestArgs Condition="'$(ManualTest)' == ''">$(RunTestArgs) -xml</RunTestArgs>
     <RunTestArgs Condition="'$(Test64)' == 'true'">$(RunTestArgs) -test64</RunTestArgs>
     <RunTestArgs Condition="'$(TestVsi)' == 'true'">$(RunTestArgs) -testVsi</RunTestArgs>
@@ -19,20 +15,13 @@
     <RunTestArgs Condition="'$(NoTrait)' != ''">$(RunTestArgs) -notrait:$(NoTrait)</RunTestArgs>
     <IncludePattern Condition="'$(IncludePattern)' == '' AND '$(TestVsi)' != 'true'">*.UnitTests.dll</IncludePattern>
     <IncludePattern Condition="'$(IncludePattern)' == '' AND '$(TestVsi)' == 'true'">*.IntegrationTests.dll</IncludePattern>
-    <OutputDirectory>Binaries\$(Configuration)</OutputDirectory>
-    <NuGetPackageRoot>$(UserProfile)\.nuget\packages</NuGetPackageRoot>
+    <OutputDirectory>$(MSBuildThisFileDirectory)Binaries\$(Configuration)\</OutputDirectory>
+    <RunTestArgs>$(RunTestArgs) -log:&quot;$(OutputDirectory)\runtests.log&quot;</RunTestArgs>
     <CoreClrTestDirectory>$(OutputDirectory)\CoreClrTest</CoreClrTestDirectory>
     <MSBuildCommonProperties>
       RestorePackages=false;
       TreatWarningsAsErrors=true;
-    </MSBuildCommonProperties>
-    <MSBuildCommonProperties Condition="'$(TestVsi)' != 'true'">
-      $(MSBuildCommonProperties);
       DeployExtension=false;
-    </MSBuildCommonProperties>
-    <MSBuildCommonProperties Condition="'$(TestVsi)' == 'true'">
-      $(MSBuildCommonProperties);
-      DeployExtension=true;
     </MSBuildCommonProperties>
   </PropertyGroup>
 
@@ -40,43 +29,48 @@
     <MSBuild BuildInParallel="true"
              Projects="$(RoslynSolution)"
              Properties="$(MSBuildCommonProperties)"
-             Targets="Build"/>
+             Targets="Build" />
     <MSBuild BuildInParallel="true"
              Condition="'$(ManualTest)' == ''"
              Projects="$(SamplesSolution)"
              Properties="$(MSBuildCommonProperties)"
-             Targets="Build"/>
+             Targets="Build" />
   </Target>
 
   <Target Name="Clean">
     <MSBuild BuildInParallel="true"
              Projects="$(RoslynSolution)"
              Properties="$(MSBuildCommonProperties)"
-             Targets="Clean"/>
+             Targets="Clean" />
     <MSBuild BuildInParallel="true"
              Condition="'$(ManualTest)' == ''"
              Projects="$(SamplesSolution)"
              Properties="$(MSBuildCommonProperties)"
-             Targets="Clean"/>
+             Targets="Clean" />
   </Target>
 
   <Target Name="Rebuild">
     <MSBuild BuildInParallel="true"
              Projects="$(RoslynSolution)"
              Properties="$(MSBuildCommonProperties)"
-             Targets="Rebuild"/>
+             Targets="Rebuild" />
     <MSBuild BuildInParallel="true"
              Condition="'$(ManualTest)' == ''"
              Projects="$(SamplesSolution)"
              Properties="$(MSBuildCommonProperties)"
-             Targets="Rebuild"/>
+             Targets="Rebuild" />
   </Target>
 
-  <Target Name="Test">
+  <Target
+    Name="Test" 
+    DependsOnTargets="DeployRoslynVsix"
+    Condition="'$(TestDesktop)' == 'true' or '$(TestCoreClr)' == 'true' or '$(TestVsi)' == 'true'">
+
     <ItemGroup>
-      <AssembliesToCopyLocal Include="$(NuGetPackageRoot)\xunit\$(xunitVersion)\*.dll
-        ;$(NuGetPackageRoot)\xunit.assert\$(xunitassertVersion)\lib\portable-net45+netcore45+wp8+wpa81\*.dll" />
+      <AssembliesToCopyLocal Include="$(NuGetPackageRoot)\xunit\$(xunitVersion)\*.dll;
+                                      $(NuGetPackageRoot)\xunit.assert\$(xunitassertVersion)\lib\portable-net45+netcore45+wp8+wpa81\*.dll" />
     </ItemGroup>
+
     <!-- Copy xunit stuff to output directory -->
     <Copy SourceFiles="@(AssembliesToCopyLocal)"
           DestinationFolder="$(OutputDirectory)"
@@ -85,15 +79,21 @@
 
     <MakeDir Directories="$(CoreClrTestDirectory)\xUnitResults" />
 
+    <!-- Publish binaries for CoreClr test -->
+    <MSBuild BuildInParallel="true"
+             Projects="src\Test\DeployCoreClrTestRuntime\DeployCoreClrTestRuntime.csproj"
+             Properties="RuntimeIdentifier=win7-x64;PublishDir=$(CoreClrTestDirectory)"
+             Targets="Publish" />
+
     <ItemGroup>
 
       <!-- MakeConst unit tests tracked by https://github.com/dotnet/roslyn/issues/5918 -->
-      <TestAssemblies Condition="'$(Test64)' != 'true'" 
-                      Include="$(OutputDirectory)\UnitTests*\**\$(IncludePattern);" />
+      <TestAssemblies Condition="'$(Test64)' != 'true'"
+                      Include="$(OutputDirectory)UnitTests*\**\$(IncludePattern);" />
 
-      <TestAssemblies Condition="'$(Test64)' == 'true'" 
-                      Include="$(OutputDirectory)\UnitTests*\**\$(IncludePattern);"
-                      Exclude="$(OutputDirectory)\UnitTests*\**\Roslyn.Interactive*" />
+      <TestAssemblies Condition="'$(Test64)' == 'true'"
+                      Include="$(OutputDirectory)UnitTests*\**\$(IncludePattern);"
+                      Exclude="$(OutputDirectory)UnitTests*\**\Roslyn.Interactive*" />
 
       <CoreTestAssemblies Include="$(CoreClrTestDirectory)\$(IncludePattern)" />
     </ItemGroup>
@@ -103,15 +103,34 @@
       <CoreRunArgs>$(CoreClrTestDirectory)\xunit.console.netcore.exe @(CoreTestAssemblies, ' ') -parallel all -xml $(CoreClrTestDirectory)\xUnitResults\TestResults.xml</CoreRunArgs>
       <RunTestsExe>Binaries\$(Configuration)\Exes\RunTests\RunTests.exe</RunTestsExe>
       <RunTestsArgs>$(NuGetPackageRoot)\xunit.runner.console\$(xunitrunnerconsoleVersion)\tools $(RunTestArgs) @(TestAssemblies, ' ')</RunTestsArgs>
+      <VsixExpInstallerExe>$(NuGetPackageRoot)\roslyntools.microsoft.vsixexpinstaller\$(RoslynToolsMicrosoftVSIXExpInstallerVersion)\tools\VsixExpInstaller.exe</VsixExpInstallerExe>
+      <VsixExpInstallerArgs>-rootSuffix:RoslynDev -vsInstallDir:"$([System.IO.Path]::GetFullPath('$(MSBuildBinPath)\..\..\..'))"</VsixExpInstallerArgs>
     </PropertyGroup>
-    
-    <Exec Condition="'$(TestVsi)' != 'true'" Command="&quot;$(CoreRunExe)&quot; $(CoreRunArgs)" />
 
-    <Exec Command="&quot;$(RunTestsExe)&quot; $(RunTestsArgs)" />
+    <!-- Run CoreClr tests -->
+    <Exec Condition="'$(TestCoreClr)' == 'true'" Command="&quot;$(CoreRunExe)&quot; $(CoreRunArgs)" />
 
+    <!-- Run Desktop tests -->
+    <Exec Condition="'$(TestDesktop)' == 'true' or '$(TestVsi)' == 'true'" Command="&quot;$(RunTestsExe)&quot; $(RunTestsArgs)" />
   </Target>
 
-  <Target Name="BuildAndTest"
-          DependsOnTargets="Build;Test" />
+  <!-- Manually deploy any VSIX required by our integration tests (https://github.com/dotnet/roslyn/issues/17456) -->
+  <Target Name="DeployRoslynVsix" Condition="'$(TestVsi)' == 'true'">
+
+    <PropertyGroup>
+      <VsixExpInstallerExe>$(NuGetPackageRoot)\roslyntools.microsoft.vsixexpinstaller\$(RoslynToolsMicrosoftVSIXExpInstallerVersion)\tools\VsixExpInstaller.exe</VsixExpInstallerExe>
+      <VsixExpInstallerArgs>-rootSuffix:RoslynDev -vsInstallDir:"$([System.IO.Path]::GetFullPath('$(MSBuildBinPath)\..\..\..'))"</VsixExpInstallerArgs>
+    </PropertyGroup>
+
+    <Exec Command="&quot;$(VsixExpInstallerExe)&quot; $(VsixExpInstallerArgs) $(OutputDirectory)\Vsix\CompilerExtension\Roslyn.Compilers.Extension.vsix" />
+    <Exec Command="&quot;$(VsixExpInstallerExe)&quot; $(VsixExpInstallerArgs) $(OutputDirectory)\Vsix\VisualStudioSetup\Roslyn.VisualStudio.Setup.vsix" />
+    <Exec Command="&quot;$(VsixExpInstallerExe)&quot; $(VsixExpInstallerArgs) $(OutputDirectory)\Vsix\VisualStudioSetup.Next\Roslyn.VisualStudio.Setup.Next.vsix" />
+    <Exec Command="&quot;$(VsixExpInstallerExe)&quot; $(VsixExpInstallerArgs) $(OutputDirectory)\Vsix\VisualStudioInteractiveComponents\Roslyn.VisualStudio.InteractiveComponents.vsix" />
+    <Exec Command="&quot;$(VsixExpInstallerExe)&quot; $(VsixExpInstallerArgs) $(OutputDirectory)\Vsix\ExpressionEvaluatorPackage\ExpressionEvaluatorPackage.vsix" />
+    <Exec Command="&quot;$(VsixExpInstallerExe)&quot; $(VsixExpInstallerArgs) $(OutputDirectory)\Vsix\VisualStudioDiagnosticsWindow\Roslyn.VisualStudio.DiagnosticsWindow.vsix" />
+    <Exec Command="&quot;$(VsixExpInstallerExe)&quot; $(VsixExpInstallerArgs) $(OutputDirectory)\Vsix\VisualStudioIntegrationTestSetup\Microsoft.VisualStudio.IntegrationTest.Setup.vsix" />
+  </Target>
+
+  <Target Name="BuildAndTest" DependsOnTargets="Build;Test" />
 
 </Project>

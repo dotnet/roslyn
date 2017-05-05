@@ -1,5 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -17,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             private readonly RenameLocations _renameLocationSet;
             private readonly SymbolInlineRenameInfo _renameInfo;
 
-            public ImmutableArray<InlineRenameLocation> Locations { get; }
+            public IList<InlineRenameLocation> Locations { get; }
 
             public InlineRenameLocationSet(SymbolInlineRenameInfo renameInfo, RenameLocations renameLocationSet)
             {

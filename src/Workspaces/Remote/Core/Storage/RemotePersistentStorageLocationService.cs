@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.Remote.Storage
 {
-    [ExportWorkspaceService(typeof(IPersistentStorageLocationService), layer: SolutionService.WorkspaceKind_RemoteWorkspace), Shared]
+    [ExportWorkspaceService(typeof(IPersistentStorageLocationService), layer: WorkspaceKind.RemoteWorkspace), Shared]
     internal class RemotePersistentStorageLocationService : IPersistentStorageLocationService
     {
         private static readonly object _gate = new object();
@@ -44,8 +44,7 @@ namespace Microsoft.CodeAnalysis.Remote.Storage
                 }
                 else
                 {
-                    // Store the esent database in a different location for the out of proc server.
-                    _idToStorageLocation[id] = Path.Combine(storageLocation, "Server");
+                    _idToStorageLocation[id] = storageLocation;
                 }
             }
         }

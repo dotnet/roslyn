@@ -13,12 +13,17 @@ namespace Microsoft.CodeAnalysis
     /// <summary>
     /// A localizable resource string that may possibly be formatted differently depending on culture.
     /// </summary>
-    public sealed class LocalizableResourceString : LocalizableString, IObjectReadable, IObjectWritable
+    public sealed class LocalizableResourceString : LocalizableString, IObjectWritable
     {
         private readonly string _nameOfLocalizableResource;
         private readonly ResourceManager _resourceManager;
         private readonly Type _resourceSource;
         private readonly string[] _formatArguments;
+
+        static LocalizableResourceString()
+        {
+            ObjectBinder.RegisterTypeReader(typeof(LocalizableResourceString), reader => new LocalizableResourceString(reader));
+        }
 
         /// <summary>
         /// Creates a localizable resource string with no formatting arguments.
@@ -68,7 +73,7 @@ namespace Microsoft.CodeAnalysis
 
         private LocalizableResourceString(ObjectReader reader)
         {
-            _resourceSource = (Type)reader.ReadValue();
+            _resourceSource = reader.ReadType();
             _nameOfLocalizableResource = reader.ReadString();
             _resourceManager = new ResourceManager(_resourceSource);
 
@@ -89,14 +94,9 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        Func<ObjectReader, object> IObjectReadable.GetReader()
-        {
-            return reader => new LocalizableResourceString(reader);
-        }
-
         void IObjectWritable.WriteTo(ObjectWriter writer)
         {
-            writer.WriteValue(_resourceSource);
+            writer.WriteType(_resourceSource);
             writer.WriteString(_nameOfLocalizableResource);
             var length = _formatArguments.Length;
             writer.WriteInt32(length);

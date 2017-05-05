@@ -104,8 +104,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         /// <summary>
         /// Can add some diagnostics into <paramref name="diagnostics"/>. 
+        /// Returns the type that it actually locks onto (it's possible that it had already locked onto ErrorType).
         /// </summary>
-        private void SetType(CSharpCompilation compilation, DiagnosticBag diagnostics, TypeSymbol type)
+        private TypeSymbol SetType(CSharpCompilation compilation, DiagnosticBag diagnostics, TypeSymbol type)
         {
             TypeSymbol originalType = _lazyType;
 
@@ -123,14 +124,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 compilation.DeclarationDiagnostics.AddRange(diagnostics);
                 state.NotePartComplete(CompletionPart.Type);
             }
+            return _lazyType;
         }
 
         /// <summary>
-        /// Can add some diagnostics into <paramref name="diagnostics"/>. 
+        /// Can add some diagnostics into <paramref name="diagnostics"/>.
+        /// Returns the type that it actually locks onto (it's possible that it had already locked onto ErrorType).
         /// </summary>
-        internal void SetType(TypeSymbol type, DiagnosticBag diagnostics)
+        internal TypeSymbol SetType(TypeSymbol type, DiagnosticBag diagnostics)
         {
-            SetType(DeclaringCompilation, diagnostics, type);
+            return SetType(DeclaringCompilation, diagnostics, type);
         }
 
         protected virtual void InferFieldType(ConsList<FieldSymbol> fieldsBeingBound, Binder binder)

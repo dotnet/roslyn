@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -23,7 +24,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
             public bool IsConstant { get; private set; }
             public bool IsIndexer { get; private set; }
             public bool IsContainedInUnsafeType { get; private set; }
-            public IList<IParameterSymbol> Parameters { get; private set; }
+            public ImmutableArray<IParameterSymbol> Parameters { get; private set; }
 
             // Just the name of the method.  i.e. "Foo" in "Foo" or "X.Foo"
             public SyntaxToken IdentifierToken { get; private set; }

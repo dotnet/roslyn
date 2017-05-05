@@ -58,9 +58,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             SetBinOutputPathAndRelatedData(binOutputPath);
         }
 
+
+        private bool _disconnected;
+
         // We might we invoked from a background thread, so schedule the disconnect on foreground task scheduler.
         public sealed override void Disconnect()
         {
+            _disconnected = true;
+
             if (IsForeground())
             {
                 DisconnectCore();

@@ -672,7 +672,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private ImmutableArray<LocalSymbol> MakeTempsForDiscardArguments(ref ImmutableArray<BoundExpression> loweredArguments)
         {
-            int discardCount = loweredArguments.Count(a => a.Kind == BoundKind.DiscardedExpression);
+            int discardCount = loweredArguments.Count(a => a.Kind == BoundKind.DiscardExpression);
 
             if (discardCount == 0)
             {

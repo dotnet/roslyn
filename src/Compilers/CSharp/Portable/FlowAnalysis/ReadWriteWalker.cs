@@ -213,16 +213,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return VisitLambda(node.BindForErrorRecovery());
         }
 
-        public override void VisitForEachIterationVariable(BoundForEachStatement node)
-        {
-            var local = node.IterationVariableOpt;
-            if ((object)local != null)
-            {
-                GetOrCreateSlot(local);
-                Assign(node, value: null);
-            }
-        }
-
         public override BoundNode VisitRangeVariable(BoundRangeVariable node)
         {
             // Compute the "underlying symbol" for a read of the range variable

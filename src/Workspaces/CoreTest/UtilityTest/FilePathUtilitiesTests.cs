@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             string baseDirectory = @"C:\Alpha\Beta\Gamma";
             string fullPath = @"C:\Alpha\Beta\Gamma\Doc.txt";
 
-            string result = FilePathUtilities.GetRelativePath(baseDirectory, fullPath);
+            string result = PathUtilities.GetRelativePath(baseDirectory, fullPath);
 
             Assert.Equal(expected: @"Doc.txt", actual: result);
         }
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             string baseDirectory = @"C:\Alpha\Beta\Gamma";
             string fullPath = @"C:\Alpha\Beta\Gamma\Delta\Doc.txt";
 
-            string result = FilePathUtilities.GetRelativePath(baseDirectory, fullPath);
+            string result = PathUtilities.GetRelativePath(baseDirectory, fullPath);
 
             Assert.Equal(expected: @"Delta\Doc.txt", actual: result);
         }
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             string baseDirectory = @"C:\Alpha\Beta\Gamma";
             string fullPath = @"C:\Alpha\Beta\Gamma\Delta\Epsilon\Doc.txt";
 
-            string result = FilePathUtilities.GetRelativePath(baseDirectory, fullPath);
+            string result = PathUtilities.GetRelativePath(baseDirectory, fullPath);
 
             Assert.Equal(expected: @"Delta\Epsilon\Doc.txt", actual: result);
         }
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             string baseDirectory = @"C:\Alpha\Beta\Gamma";
             string fullPath = @"C:\Alpha\Beta\Doc.txt";
 
-            string result = FilePathUtilities.GetRelativePath(baseDirectory, fullPath);
+            string result = PathUtilities.GetRelativePath(baseDirectory, fullPath);
 
             Assert.Equal(expected: @"..\Doc.txt", actual: result);
         }
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             string baseDirectory = @"C:\Alpha\Beta\Gamma";
             string fullPath = @"C:\Alpha\Doc.txt";
 
-            string result = FilePathUtilities.GetRelativePath(baseDirectory, fullPath);
+            string result = PathUtilities.GetRelativePath(baseDirectory, fullPath);
 
             Assert.Equal(expected: @"..\..\Doc.txt", actual: result);
         }
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             string baseDirectory = @"C:\Alpha\Beta\Gamma";
             string fullPath = @"C:\Alpha\Phi\Omega\Doc.txt";
 
-            string result = FilePathUtilities.GetRelativePath(baseDirectory, fullPath);
+            string result = PathUtilities.GetRelativePath(baseDirectory, fullPath);
 
             Assert.Equal(expected: @"..\..\Phi\Omega\Doc.txt", actual: result);
         }
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             string baseDirectory = @"C:\Alpha\Beta\Gamma";
             string fullPath = @"D:\Alpha\Beta\Gamma\Doc.txt";
 
-            string result = FilePathUtilities.GetRelativePath(baseDirectory, fullPath);
+            string result = PathUtilities.GetRelativePath(baseDirectory, fullPath);
 
             Assert.Equal(expected: @"D:\Alpha\Beta\Gamma\Doc.txt", actual: result);
         }
@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             string baseDirectory = @"C:\Alpha\Beta";
             string fullPath = @"C:\Alpha\Beta2\Gamma";
 
-            string result = FilePathUtilities.GetRelativePath(baseDirectory, fullPath);
+            string result = PathUtilities.GetRelativePath(baseDirectory, fullPath);
 
             Assert.Equal(expected: @"..\Beta2\Gamma", actual: result);
         }

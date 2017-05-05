@@ -146,9 +146,9 @@ namespace Microsoft.CodeAnalysis
 
         public override bool Equals(object obj)
         {
-            if (obj is VersionStamp)
+            if (obj is VersionStamp v)
             {
-                return this.Equals((VersionStamp)obj);
+                return this.Equals(v);
             }
 
             return false;

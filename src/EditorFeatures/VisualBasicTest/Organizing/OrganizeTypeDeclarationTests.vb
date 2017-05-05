@@ -936,11 +936,11 @@ End Namespace</element>
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Organizing)>
         <Trait(Traits.Feature, Traits.Features.Interactive)>
-        Public Async Function TestOrganizingCommandsDisabledInSubmission() As Task
+        Public Sub TestOrganizingCommandsDisabledInSubmission()
             Dim exportProvider = MinimalTestExportProvider.CreateExportProvider(
                 TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(GetType(InteractiveDocumentSupportsFeatureService)))
 
-            Using workspace = Await TestWorkspace.CreateAsync(
+            Using workspace = TestWorkspace.Create(
                 <Workspace>
                     <Submission Language="Visual Basic" CommonReferences="true">  
                         Class C
@@ -973,6 +973,6 @@ End Namespace</element>
                 Assert.True(delegatedToNext)
                 Assert.False(state.IsAvailable)
             End Using
-        End Function
+        End Sub
     End Class
 End Namespace

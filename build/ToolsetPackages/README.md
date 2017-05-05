@@ -8,6 +8,5 @@ For such toolset packages we use the project.json files in this directory to res
 - dev14.project.json: The Dev14 SDK and toolsets
 - dev15rc.project.json: The Dev15 RC SDK and toolsets.  
 - closed.project.json: Contains all of the NuGet packages contained in our closed repo that aren't in Open.  This is done only to give visibility to these packages in our build verification tools. 
-- roslynsdk.project.json: Download the V1 Roslyn SDK.  This is used as assets in our SDK VSIX projects.
 
 In general we try and keep the number of files here low.  New ones are added only when the contents can potentially conflict with packages listed in the existing files.

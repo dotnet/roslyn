@@ -22,13 +22,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 {
                 }
 
-                protected override int WorkItemCount_NoLock
-                {
-                    get
-                    {
-                        return _projectWorkQueue.Count;
-                    }
-                }
+                protected override int WorkItemCount_NoLock => _projectWorkQueue.Count;
 
                 public override Task WaitAsync(CancellationToken cancellationToken)
                 {

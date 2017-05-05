@@ -53,13 +53,13 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
             var declarationContext = node.Parent;
 
             TypeSyntax typeSyntax = null;
-            if (declarationContext is VariableDeclarationSyntax)
+            if (declarationContext is VariableDeclarationSyntax varDecl)
             {
-                typeSyntax = ((VariableDeclarationSyntax)declarationContext).Type;
+                typeSyntax = varDecl.Type;
             }
-            else if (declarationContext is ForEachStatementSyntax)
+            else if (declarationContext is ForEachStatementSyntax forEach)
             {
-                typeSyntax = ((ForEachStatementSyntax)declarationContext).Type;
+                typeSyntax = forEach.Type;
             }
             else
             {

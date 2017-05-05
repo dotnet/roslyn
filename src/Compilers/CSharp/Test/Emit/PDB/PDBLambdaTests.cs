@@ -655,7 +655,7 @@ class C
         <forward declaringType=""C"" methodName=""M"" />
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""10"" startColumn=""17"" endLine=""10"" endColumn=""30"" />
+        <entry offset=""0x0"" startLine=""10"" startColumn=""25"" endLine=""10"" endColumn=""30"" />
       </sequencePoints>
     </method>
     <method containingType=""C+&lt;&gt;c"" name=""&lt;M&gt;b__0_1"" parameterNames=""&lt;&gt;h__TransparentIdentifier0"">

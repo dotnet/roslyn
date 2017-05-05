@@ -30,6 +30,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine.UnitTests
         Private ReadOnly _baseDirectory As String = TempRoot.Root
         Private Shared ReadOnly s_basicCompilerExecutable As String = GetType(Vbc).Assembly.Location
         Private Shared ReadOnly s_defaultSdkDirectory As String = RuntimeEnvironment.GetRuntimeDirectory()
+        Private Shared ReadOnly s_compilerVersion As String = FileVersionInfo.GetVersionInfo(GetType(VisualBasicCompiler).Assembly.Location).FileVersion
+        Private Shared ReadOnly s_compilerShortCommitHash As String =
+            CommonCompiler.ExtractShortCommitHash(GetType(VisualBasicCompiler).GetTypeInfo().Assembly.GetCustomAttribute(Of CommitHashAttribute).Hash)
 
         Private Shared Function DefaultParse(args As IEnumerable(Of String), baseDirectory As String, Optional sdkDirectory As String = Nothing, Optional additionalReferenceDirectories As String = Nothing) As VisualBasicCommandLineArguments
             sdkDirectory = If(sdkDirectory, s_defaultSdkDirectory)
@@ -228,17 +231,35 @@ End Class
             Dim exitCode = cmd.Run(output, Nothing)
 
             Assert.Equal(0, exitCode)
+            Dim patched As String = Regex.Replace(output.ToString().Trim(), "version \d+\.\d+\.\d+(\.\d+)?", "version A.B.C.D")
+            patched = ReplaceCommitHash(patched)
             Assert.Equal(<text>
-Microsoft (R) Visual Basic Compiler version A.B.C.D
+Microsoft (R) Visual Basic Compiler version A.B.C.D (HASH)
 Copyright (C) Microsoft Corporation. All rights reserved.
 </text>.Value.Replace(vbLf, vbCrLf).Trim,
-                Regex.Replace(output.ToString().Trim(), "version \d+\.\d+\.\d+(\.\d+)?", "version A.B.C.D"))
+                patched)
             ' Privately queued builds have 3-part version numbers instead of 4.  Since we're throwing away the version number,
             ' making the last part optional will fix this.
 
-
             CleanupAllGeneratedFiles(src)
         End Sub
+
+        <Theory,
+            InlineData("Microsoft (R) Visual Basic Compiler version A.B.C.D (<developer build>)",
+                       "Microsoft (R) Visual Basic Compiler version A.B.C.D (HASH)"),
+            InlineData("Microsoft (R) Visual Basic Compiler version A.B.C.D (ABCDEF01)",
+                       "Microsoft (R) Visual Basic Compiler version A.B.C.D (HASH)"),
+            InlineData("Microsoft (R) Visual Basic Compiler version A.B.C.D (abcdef90)",
+                       "Microsoft (R) Visual Basic Compiler version A.B.C.D (HASH)"),
+            InlineData("Microsoft (R) Visual Basic Compiler version A.B.C.D (12345678)",
+                       "Microsoft (R) Visual Basic Compiler version A.B.C.D (HASH)")>
+        Public Sub TestReplaceCommitHash(orig As String, expected As String)
+            Assert.Equal(expected, ReplaceCommitHash(orig))
+        End Sub
+
+        Private Shared Function ReplaceCommitHash(s As String) As String
+            Return Regex.Replace(s, "(\((<developer build>|[a-fA-F0-9]{8})\))", "(HASH)")
+        End Function
 
         <Fact>
         Public Sub VbcNologo_2a()
@@ -253,14 +274,15 @@ End Class
             Dim exitCode = cmd.Run(output, Nothing)
 
             Assert.Equal(0, exitCode)
+            Dim patched As String = Regex.Replace(output.ToString().Trim(), "version \d+\.\d+\.\d+(\.\d+)?", "version A.B.C.D")
+            patched = ReplaceCommitHash(patched)
             Assert.Equal(<text>
-Microsoft (R) Visual Basic Compiler version A.B.C.D
+Microsoft (R) Visual Basic Compiler version A.B.C.D (HASH)
 Copyright (C) Microsoft Corporation. All rights reserved.
 </text>.Value.Replace(vbLf, vbCrLf).Trim,
-                Regex.Replace(output.ToString().Trim(), "version \d+\.\d+\.\d+(\.\d+)?", "version A.B.C.D"))
+                patched)
             ' Privately queued builds have 3-part version numbers instead of 4.  Since we're throwing away the version number,
             ' making the last part optional will fix this.
-
 
             CleanupAllGeneratedFiles(src)
         End Sub
@@ -558,6 +580,35 @@ a.vb
 
 
             CleanupAllGeneratedFiles(tmpFileName)
+        End Sub
+
+        <WorkItem(217718, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=217718")>
+        <Fact>
+        Public Sub BadWin32Resource()
+            Dim source = Temp.CreateFile(prefix:="", extension:=".vb").WriteAllText("
+Module Test 
+    Sub Main() 
+    End Sub 
+End Module").Path
+            Dim badres = Temp.CreateFile().WriteAllBytes(New Byte() {0, 0}).Path
+
+            Dim baseDir = Path.GetDirectoryName(source)
+            Dim fileName = Path.GetFileName(source)
+
+            Dim outWriter = New StringWriter(CultureInfo.InvariantCulture)
+            Dim exitCode = New MockVisualBasicCompiler(Nothing, baseDir,
+            {
+                "/nologo",
+                "/preferreduilang:en",
+                "/win32resource:" + badres,
+                source
+            }).Run(outWriter)
+
+            Assert.Equal(1, exitCode)
+            Assert.Equal("vbc : error BC30136: Error creating Win32 resources: Unrecognized resource file format.", outWriter.ToString().Trim())
+
+            CleanupAllGeneratedFiles(source)
+            CleanupAllGeneratedFiles(badres)
         End Sub
 
         <Fact>
@@ -1042,6 +1093,13 @@ a.vb
             parsedArgs.Errors.Verify()
             Assert.Equal(LanguageVersion.VisualBasic15, parsedArgs.ParseOptions.LanguageVersion)
 
+            parsedArgs = DefaultParse({"/langVERSION:15.3", "a.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify()
+            Assert.Equal(LanguageVersion.VisualBasic15_3, parsedArgs.ParseOptions.LanguageVersion)
+
+            ' The canary check is a reminder that this test needs to be updated when a language version is added
+            LanguageVersionAdded_Canary()
+
             parsedArgs = DefaultParse({"/langVERSION:default", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal(LanguageVersion.Default, parsedArgs.ParseOptions.SpecifiedLanguageVersion)
@@ -1050,7 +1108,7 @@ a.vb
             parsedArgs = DefaultParse({"/langVERSION:latest", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal(LanguageVersion.Latest, parsedArgs.ParseOptions.SpecifiedLanguageVersion)
-            Assert.Equal(LanguageVersion.VisualBasic15, parsedArgs.ParseOptions.LanguageVersion)
+            Assert.Equal(LanguageVersion.VisualBasic15_3, parsedArgs.ParseOptions.LanguageVersion)
 
             ' default: "current version"
             parsedArgs = DefaultParse({"a.vb"}, _baseDirectory)
@@ -1554,6 +1612,112 @@ a.vb
         End Sub
 
         Private Const s_VBC_VER As Double = PredefinedPreprocessorSymbols.CurrentVersionNumber
+
+        <Fact>
+        Public Sub LanguageVersionAdded_Canary()
+            ' When a new version is added, this test will break. This list must be checked:
+            ' - update the command-line error for bad /langver flag (<see cref="ERRID.IDS_VBCHelp"/>)
+            ' - update the "UpgradeProject" codefixer
+            ' - update the IDE drop-down for selecting Language Version
+            ' - update legacy project system to pass Language Version from MSBuild to IDE (see CVbcMSBuildHostObject::SetLanguageVersion)
+            ' - update all the tests that call this canary
+            ' - update the command-line documentation (CommandLine.md)
+            AssertEx.SetEqual({"default", "9", "10", "11", "12", "14", "15", "15.3", "latest"},
+                System.Enum.GetValues(GetType(LanguageVersion)).Cast(Of LanguageVersion)().Select(Function(v) v.ToDisplayString()))
+            ' For minor versions, the format should be "x.y", such as "15.3"
+        End Sub
+
+        <Fact>
+        Public Sub LanguageVersion_GetErrorCode()
+            Dim versions = System.Enum.GetValues(GetType(LanguageVersion)).
+                Cast(Of LanguageVersion)().
+                Except({LanguageVersion.Default, LanguageVersion.Latest}).
+                Select(Function(v) v.GetErrorName())
+
+            Dim errorCodes = {
+                "9.0",
+                "10.0",
+                "11.0",
+                "12.0",
+                "14.0",
+                "15.0",
+                "15.3"
+             }
+
+            AssertEx.SetEqual(versions, errorCodes)
+
+            ' The canary check is a reminder that this test needs to be updated when a language version is added
+            LanguageVersionAdded_Canary()
+        End Sub
+
+        <Fact>
+        Public Sub LanguageVersion_MapSpecifiedToEffectiveVersion()
+            Assert.Equal(LanguageVersion.VisualBasic9, LanguageVersion.VisualBasic9.MapSpecifiedToEffectiveVersion())
+            Assert.Equal(LanguageVersion.VisualBasic10, LanguageVersion.VisualBasic10.MapSpecifiedToEffectiveVersion())
+            Assert.Equal(LanguageVersion.VisualBasic11, LanguageVersion.VisualBasic11.MapSpecifiedToEffectiveVersion())
+            Assert.Equal(LanguageVersion.VisualBasic12, LanguageVersion.VisualBasic12.MapSpecifiedToEffectiveVersion())
+            Assert.Equal(LanguageVersion.VisualBasic14, LanguageVersion.VisualBasic14.MapSpecifiedToEffectiveVersion())
+            Assert.Equal(LanguageVersion.VisualBasic15, LanguageVersion.VisualBasic15.MapSpecifiedToEffectiveVersion())
+            Assert.Equal(LanguageVersion.VisualBasic15, LanguageVersion.Default.MapSpecifiedToEffectiveVersion())
+
+            Assert.Equal(LanguageVersion.VisualBasic15_3, LanguageVersion.VisualBasic15_3.MapSpecifiedToEffectiveVersion())
+            Assert.Equal(LanguageVersion.VisualBasic15_3, LanguageVersion.Latest.MapSpecifiedToEffectiveVersion())
+
+            ' The canary check is a reminder that this test needs to be updated when a language version is added
+            LanguageVersionAdded_Canary()
+        End Sub
+
+        <Theory,
+            InlineData("9", True, LanguageVersion.VisualBasic9),
+            InlineData("9.0", True, LanguageVersion.VisualBasic9),
+            InlineData("10", True, LanguageVersion.VisualBasic10),
+            InlineData("10.0", True, LanguageVersion.VisualBasic10),
+            InlineData("11", True, LanguageVersion.VisualBasic11),
+            InlineData("11.0", True, LanguageVersion.VisualBasic11),
+            InlineData("12", True, LanguageVersion.VisualBasic12),
+            InlineData("12.0", True, LanguageVersion.VisualBasic12),
+            InlineData("14", True, LanguageVersion.VisualBasic14),
+            InlineData("14.0", True, LanguageVersion.VisualBasic14),
+            InlineData("15", True, LanguageVersion.VisualBasic15),
+            InlineData("15.0", True, LanguageVersion.VisualBasic15),
+            InlineData("15.3", True, LanguageVersion.VisualBasic15_3),
+            InlineData("DEFAULT", True, LanguageVersion.Default),
+            InlineData("default", True, LanguageVersion.Default),
+            InlineData("LATEST", True, LanguageVersion.Latest),
+            InlineData("latest", True, LanguageVersion.Latest),
+            InlineData(Nothing, False, LanguageVersion.Default),
+            InlineData("bad", False, LanguageVersion.Default)>
+        Public Sub LanguageVersion_TryParseDisplayString(input As String, success As Boolean, expected As LanguageVersion)
+            Dim version As LanguageVersion
+            Assert.Equal(success, input.TryParse(version))
+            Assert.Equal(expected, version)
+
+            ' The canary check is a reminder that this test needs to be updated when a language version is added
+            LanguageVersionAdded_Canary()
+        End Sub
+
+        <Fact>
+        Public Sub LanguageVersion_CommandLineUsage()
+            Dim expected = [Enum].GetValues(GetType(LanguageVersion)).Cast(Of LanguageVersion)().Select(Function(v) v.ToDisplayString())
+            Dim help = VBResources.IDS_VBCHelp
+
+            Dim rangeStart = help.IndexOf("/langversion")
+            Dim rangeEnd = help.IndexOf("/optionexplicit")
+            Assert.True(rangeEnd > rangeStart)
+
+            Dim helpRange = help.Substring(rangeStart, rangeEnd - rangeStart).ToLowerInvariant()
+            Dim acceptableSurroundingChar = {CChar(vbCr), CChar(vbLf), "|"c, " "c}
+
+            For Each v In expected
+                Dim foundIndex = helpRange.IndexOf(v)
+                Assert.True(foundIndex > 0, $"Missing version '{v}'")
+                Assert.True(Array.IndexOf(acceptableSurroundingChar, helpRange(foundIndex - 1)) >= 0)
+                Assert.True(Array.IndexOf(acceptableSurroundingChar, helpRange(foundIndex + v.Length)) >= 0)
+            Next
+
+            ' The canary check is a reminder that this test needs to be updated when a language version is added
+            LanguageVersionAdded_Canary()
+        End Sub
 
         <Fact>
         Public Sub TestDefine()
@@ -2171,6 +2335,7 @@ a.vb
             Dim file = CreateRuleSetFile(source)
             Dim parsedArgs = DefaultParse(New String() {"/ruleset:" + file.Path, "a.cs"}, _baseDirectory)
             parsedArgs.Errors.Verify()
+            Assert.Equal(expected:=file.Path, actual:=parsedArgs.RuleSetPath)
             Assert.True(parsedArgs.CompilationOptions.SpecificDiagnosticOptions.ContainsKey("CA1012"))
             Assert.True(parsedArgs.CompilationOptions.SpecificDiagnosticOptions("CA1012") = ReportDiagnostic.Error)
             Assert.True(parsedArgs.CompilationOptions.SpecificDiagnosticOptions.ContainsKey("CA1013"))
@@ -2195,6 +2360,7 @@ a.vb
             Dim file = CreateRuleSetFile(source)
             Dim parsedArgs = DefaultParse(New String() {"/ruleset:" + """" + file.Path + """", "a.cs"}, _baseDirectory)
             parsedArgs.Errors.Verify()
+            Assert.Equal(expected:=file.Path, actual:=parsedArgs.RuleSetPath)
         End Sub
 
         <Fact>
@@ -2202,23 +2368,28 @@ a.vb
             Dim parsedArgs = DefaultParse(New String() {"/ruleset", "a.cs"}, _baseDirectory)
             parsedArgs.Errors.Verify(
             Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("ruleset", ":<file>"))
+            Assert.Null(parsedArgs.RuleSetPath)
 
             parsedArgs = DefaultParse(New String() {"/ruleset", "a.cs"}, _baseDirectory)
             parsedArgs.Errors.Verify(
             Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("ruleset", ":<file>"))
+            Assert.Null(parsedArgs.RuleSetPath)
 
             parsedArgs = DefaultParse(New String() {"/ruleset:blah", "a.cs"}, _baseDirectory)
             parsedArgs.Errors.Verify(
             Diagnostic(ERRID.ERR_CantReadRulesetFile).WithArguments(Path.Combine(TempRoot.Root, "blah"), "File not found."))
+            Assert.Equal(expected:=Path.Combine(TempRoot.Root, "blah"), actual:=parsedArgs.RuleSetPath)
 
             parsedArgs = DefaultParse(New String() {"/ruleset:blah;blah.ruleset", "a.cs"}, _baseDirectory)
             parsedArgs.Errors.Verify(
             Diagnostic(ERRID.ERR_CantReadRulesetFile).WithArguments(Path.Combine(TempRoot.Root, "blah;blah.ruleset"), "File not found."))
+            Assert.Equal(expected:=Path.Combine(TempRoot.Root, "blah;blah.ruleset"), actual:=parsedArgs.RuleSetPath)
 
             Dim file = CreateRuleSetFile(New XDocument())
             parsedArgs = DefaultParse(New String() {"/ruleset:" + file.Path, "a.cs"}, _baseDirectory)
             'parsedArgs.Errors.Verify(
             '   Diagnostic(ERRID.ERR_CantReadRulesetFile).WithArguments(file.Path, "Root element is missing."))
+            Assert.Equal(expected:=file.Path, actual:=parsedArgs.RuleSetPath)
             Dim err = parsedArgs.Errors.Single()
 
             Assert.Equal(ERRID.ERR_CantReadRulesetFile, err.Code)
@@ -3015,6 +3186,46 @@ print Goodbye, World"
             Assert.Null(parsedArgs.CompilationName)
             Assert.Equal("x.netmodule", parsedArgs.OutputFileName)
             Assert.Equal("x.netmodule", parsedArgs.CompilationOptions.ModuleName)
+        End Sub
+
+        <Fact, WorkItem(11497, "https://github.com/dotnet/roslyn/issues/11497")>
+        Public Sub ConsistentErrorMessageWhenProvidingNoKeyFile()
+            Dim outWriter = New StringWriter(CultureInfo.InvariantCulture)
+            Dim vbc = New MockVisualBasicCompiler(Nothing, _baseDirectory, {"/keyfile:", "/target:library", "/nologo", "/preferreduilang:en", "a.vb"})
+            Dim exitCode = vbc.Run(outWriter)
+
+            Assert.Equal(1, exitCode)
+            Assert.Equal("vbc : error BC2006: option 'keyfile' requires ':<file>'", outWriter.ToString().Trim())
+        End Sub
+
+        <Fact, WorkItem(11497, "https://github.com/dotnet/roslyn/issues/11497")>
+        Public Sub ConsistentErrorMessageWhenProvidingEmptyKeyFile()
+            Dim outWriter = New StringWriter(CultureInfo.InvariantCulture)
+            Dim vbc = New MockVisualBasicCompiler(Nothing, _baseDirectory, {"/keyfile:""""", "/target:library", "/nologo", "/preferreduilang:en", "a.vb"})
+            Dim exitCode = vbc.Run(outWriter)
+
+            Assert.Equal(1, exitCode)
+            Assert.Equal("vbc : error BC2006: option 'keyfile' requires ':<file>'", outWriter.ToString().Trim())
+        End Sub
+
+        <Fact, WorkItem(11497, "https://github.com/dotnet/roslyn/issues/11497")>
+        Public Sub ConsistentErrorMessageWhenProvidingNoKeyFile_PublicSign()
+            Dim outWriter = New StringWriter(CultureInfo.InvariantCulture)
+            Dim vbc = New MockVisualBasicCompiler(Nothing, _baseDirectory, {"/keyfile:", "/publicsign", "/target:library", "/nologo", "/preferreduilang:en", "a.vb"})
+            Dim exitCode = vbc.Run(outWriter)
+
+            Assert.Equal(1, exitCode)
+            Assert.Equal("vbc : error BC2006: option 'keyfile' requires ':<file>'", outWriter.ToString().Trim())
+        End Sub
+
+        <Fact, WorkItem(11497, "https://github.com/dotnet/roslyn/issues/11497")>
+        Public Sub ConsistentErrorMessageWhenProvidingEmptyKeyFile_PublicSign()
+            Dim outWriter = New StringWriter(CultureInfo.InvariantCulture)
+            Dim vbc = New MockVisualBasicCompiler(Nothing, _baseDirectory, {"/keyfile:""""", "/publicsign", "/target:library", "/nologo", "/preferreduilang:en", "a.vb"})
+            Dim exitCode = vbc.Run(outWriter)
+
+            Assert.Equal(1, exitCode)
+            Assert.Equal("vbc : error BC2006: option 'keyfile' requires ':<file>'", outWriter.ToString().Trim())
         End Sub
 
         <Fact, WorkItem(531020, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531020")>
@@ -4802,7 +5013,7 @@ End Module
                 </compilation>
 
             Dim result =
-                    <file name="output">Microsoft (R) Visual Basic Compiler version VERSION
+                    <file name="output">Microsoft (R) Visual Basic Compiler version VERSION (HASH)
 Copyright (C) Microsoft Corporation. All rights reserved.
 
 PATH(5) : warning BC42024: Unused local variable: 'x'.
@@ -4832,11 +5043,9 @@ PATH(11) : warning BC42105: Function 'foo' doesn't return a value on all code pa
             Dim vbc As New MockVisualBasicCompiler(Nothing, dir.Path, {fileName, "/preferreduilang:en"})
             vbc.Run(output, Nothing)
 
-            Dim version As String = FileVersionInfo.GetVersionInfo(GetType(VisualBasicCompiler).Assembly.Location).FileVersion
-            Dim expected = result.Value.Replace("PATH", file.Path).Replace("VERSION", version).Replace(vbLf, vbCrLf).Trim()
+            Dim expected = ReplacePathAndVersionAndHash(result, file).Trim()
             Dim actual = output.ToString().Trim()
             Assert.Equal(expected, actual)
-
 
             CleanupAllGeneratedFiles(file.Path)
         End Sub
@@ -4869,7 +5078,7 @@ End Module
                 </compilation>
 
             Dim result =
-                    <file name="output">Microsoft (R) Visual Basic Compiler version VERSION
+                    <file name="output">Microsoft (R) Visual Basic Compiler version VERSION (HASH)
 Copyright (C) Microsoft Corporation. All rights reserved.
 
 PATH(9) : error BC36640: Instance of restricted type 'ArgIterator' cannot be used in a lambda expression.
@@ -4887,8 +5096,7 @@ PATH(9) : error BC36640: Instance of restricted type 'ArgIterator' cannot be use
             Dim vbc As New MockVisualBasicCompiler(Nothing, dir.Path, {fileName, "/preferreduilang:en", "-imports:System"})
             vbc.Run(output, Nothing)
 
-            Dim version As String = FileVersionInfo.GetVersionInfo(GetType(VisualBasicCompiler).Assembly.Location).FileVersion
-            Assert.Equal(result.Value.Replace("PATH", file.Path).Replace("VERSION", version).Replace(vbLf, vbCrLf), output.ToString())
+            Assert.Equal(ReplacePathAndVersionAndHash(result, file), output.ToString())
 
             CleanupAllGeneratedFiles(file.Path)
         End Sub
@@ -4903,7 +5111,7 @@ PATH(9) : error BC36640: Instance of restricted type 'ArgIterator' cannot be use
                          "  End Sub" + vbCrLf +
                          "End Module" + vbCrLf
 
-            Dim result = <file name="output">Microsoft (R) Visual Basic Compiler version VERSION
+            Dim result = <file name="output">Microsoft (R) Visual Basic Compiler version VERSION (HASH)
 Copyright (C) Microsoft Corporation. All rights reserved.
 
 PATH(3) : error BC30201: Expression expected.
@@ -4925,8 +5133,7 @@ PATH(3) : error BC30004: Character constant must contain exactly one character.
             Dim vbc As New MockVisualBasicCompiler(Nothing, dir.Path, {fileName, "/preferreduilang:en"})
             vbc.Run(output, Nothing)
 
-            Dim version As String = FileVersionInfo.GetVersionInfo(GetType(VisualBasicCompiler).Assembly.Location).FileVersion
-            Dim expected = result.Value.Replace("PATH", file.Path).Replace("VERSION", version).Replace(vbLf, vbCrLf).Trim()
+            Dim expected = ReplacePathAndVersionAndHash(result, file).Trim()
             Dim actual = output.ToString().Trim()
             Assert.Equal(expected, actual)
 
@@ -4954,7 +5161,7 @@ End Module
                 </compilation>
 
             Dim result =
-                    <file name="output">Microsoft (R) Visual Basic Compiler version VERSION
+                    <file name="output">Microsoft (R) Visual Basic Compiler version VERSION (HASH)
 Copyright (C) Microsoft Corporation. All rights reserved.
 
 PATH(5) : error BC36593: Expression of type 'Integer()' is not queryable. Make sure you are not missing an assembly reference and/or namespace import for the LINQ provider.
@@ -4976,8 +5183,7 @@ PATH(5) : error BC36593: Expression of type 'Integer()' is not queryable. Make s
             Dim vbc As New MockVisualBasicCompiler(Nothing, dir.Path, {fileName, "/preferreduilang:en"})
             vbc.Run(output, Nothing)
 
-            Dim version As String = FileVersionInfo.GetVersionInfo(GetType(VisualBasicCompiler).Assembly.Location).FileVersion
-            Assert.Equal(result.Value.Replace("PATH", file.Path).Replace("VERSION", version).Replace(vbLf, vbCrLf), output.ToString())
+            Assert.Equal(ReplacePathAndVersionAndHash(result, file), output.ToString())
 
             CleanupAllGeneratedFiles(file.Path)
         End Sub
@@ -5001,7 +5207,7 @@ Module _
                 </compilation>
 
             Dim result =
-                    <file name="output">Microsoft (R) Visual Basic Compiler version VERSION
+                    <file name="output">Microsoft (R) Visual Basic Compiler version VERSION (HASH)
 Copyright (C) Microsoft Corporation. All rights reserved.
 
 PATH(3) : error BC30625: 'Module' statement must end with a matching 'End Module'.
@@ -5021,8 +5227,7 @@ Module _
             Dim vbc As New MockVisualBasicCompiler(Nothing, dir.Path, {fileName, "/preferreduilang:en"})
             vbc.Run(output, Nothing)
 
-            Dim version As String = FileVersionInfo.GetVersionInfo(GetType(VisualBasicCompiler).Assembly.Location).FileVersion
-            Assert.Equal(result.Value.Replace("PATH", file.Path).Replace("VERSION", version).Replace(vbLf, vbCrLf), output.ToString())
+            Assert.Equal(ReplacePathAndVersionAndHash(result, file), output.ToString())
 
             CleanupAllGeneratedFiles(file.Path)
         End Sub
@@ -5052,7 +5257,7 @@ End Module
                 </compilation>
 
             Dim result =
-                    <file name="output">Microsoft (R) Visual Basic Compiler version VERSION
+                    <file name="output">Microsoft (R) Visual Basic Compiler version VERSION (HASH)
 Copyright (C) Microsoft Corporation. All rights reserved.
 
 PATH(7) : error BC37220: Name 'eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeEventHandler' exceeds the maximum length allowed in metadata.
@@ -5070,8 +5275,7 @@ PATH(7) : error BC37220: Name 'eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
             Dim vbc As New MockVisualBasicCompiler(Nothing, dir.Path, {fileName, "/preferreduilang:en"})
             vbc.Run(output, Nothing)
 
-            Dim version As String = FileVersionInfo.GetVersionInfo(GetType(VisualBasicCompiler).Assembly.Location).FileVersion
-            Assert.Equal(result.Value.Replace("PATH", file.Path).Replace("VERSION", version).Replace(vbLf, vbCrLf), output.ToString())
+            Assert.Equal(ReplacePathAndVersionAndHash(result, file), output.ToString())
 
             CleanupAllGeneratedFiles(file.Path)
         End Sub
@@ -5095,7 +5299,7 @@ End Class]]>
                 </compilation>
 
             Dim result =
-                    <file name="output">Microsoft (R) Visual Basic Compiler version VERSION
+                    <file name="output">Microsoft (R) Visual Basic Compiler version VERSION (HASH)
 Copyright (C) Microsoft Corporation. All rights reserved.
 
 PATH(4) : error BC30625: 'Module' statement must end with a matching 'End Module'.
@@ -5117,8 +5321,7 @@ End Class
             Dim vbc As New MockVisualBasicCompiler(Nothing, dir.Path, {fileName, "/preferreduilang:en"})
             vbc.Run(output, Nothing)
 
-            Dim version As String = FileVersionInfo.GetVersionInfo(GetType(VisualBasicCompiler).Assembly.Location).FileVersion
-            Assert.Equal(result.Value.Replace("PATH", file.Path).Replace("VERSION", version).Replace(vbLf, vbCrLf), output.ToString())
+            Assert.Equal(ReplacePathAndVersionAndHash(result, file), output.ToString())
 
             CleanupAllGeneratedFiles(file.Path)
         End Sub
@@ -5142,7 +5345,7 @@ End Module
                 </compilation>
 
             Dim result =
-    <file name="output">Microsoft (R) Visual Basic Compiler version VERSION
+    <file name="output">Microsoft (R) Visual Basic Compiler version VERSION (HASH)
 Copyright (C) Microsoft Corporation. All rights reserved.
 
 PATH(6) : error BC30203: Identifier expected.
@@ -5160,11 +5363,14 @@ PATH(6) : error BC30203: Identifier expected.
             Dim vbc As New MockVisualBasicCompiler(Nothing, dir.Path, {fileName, "/preferreduilang:en"})
             vbc.Run(output, Nothing)
 
-            Dim version As String = FileVersionInfo.GetVersionInfo(GetType(VisualBasicCompiler).Assembly.Location).FileVersion
-            Assert.Equal(result.Value.Replace("PATH", file.Path).Replace("VERSION", version).Replace(vbLf, vbCrLf), output.ToString())
+            Assert.Equal(ReplacePathAndVersionAndHash(result, file), output.ToString())
 
             CleanupAllGeneratedFiles(file.Path)
         End Sub
+
+        Private Shared Function ReplacePathAndVersionAndHash(result As XElement, file As TempFile) As String
+            Return result.Value.Replace("PATH", file.Path).Replace("VERSION", s_compilerVersion).Replace("HASH", s_compilerShortCommitHash).Replace(vbLf, vbCrLf)
+        End Function
 
         <WorkItem(545247, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545247")>
         <Fact()>
@@ -5979,7 +6185,7 @@ Imports System
             output = New StringWriter()
             exitCode = vbc.Run(output, Nothing)
             Assert.Equal(1, exitCode)
-            Assert.Equal("vbc : error BC31030: Project-level conditional compilation constant '_ ^^ ^^ ' is not valid: Identifier expected.", output.ToString().Trim())
+            Assert.Equal("vbc : error BC31030: Conditional compilation constant '_ ^^ ^^ ' is not valid: Identifier expected.", output.ToString().Trim())
 
             vbc = New MockVisualBasicCompiler(Nothing, _baseDirectory, {"-nologo", "/preferreduilang:en", "/t:libraRY", "/define:_a,", source})
             output = New StringWriter()
@@ -5991,31 +6197,31 @@ Imports System
             output = New StringWriter()
             exitCode = vbc.Run(output, Nothing)
             Assert.Equal(1, exitCode)
-            Assert.Equal("vbc : error BC31030: Project-level conditional compilation constant '_  ^^ ^^ a' is not valid: Identifier expected.", output.ToString().Trim())
+            Assert.Equal("vbc : error BC31030: Conditional compilation constant '_  ^^ ^^ a' is not valid: Identifier expected.", output.ToString().Trim())
 
             vbc = New MockVisualBasicCompiler(Nothing, _baseDirectory, {"-nologo", "/preferreduilang:en", "/t:libraRY", "/define:a,_,b", source})
             output = New StringWriter()
             exitCode = vbc.Run(output, Nothing)
             Assert.Equal(1, exitCode)
-            Assert.Equal("vbc : error BC31030: Project-level conditional compilation constant '_ ^^ ^^ ' is not valid: Identifier expected.", output.ToString().Trim())
+            Assert.Equal("vbc : error BC31030: Conditional compilation constant '_ ^^ ^^ ' is not valid: Identifier expected.", output.ToString().Trim())
 
             vbc = New MockVisualBasicCompiler(Nothing, _baseDirectory, {"-nologo", "/preferreduilang:en", "/t:libraRY", "/define:_", source})
             output = New StringWriter()
             exitCode = vbc.Run(output, Nothing)
             Assert.Equal(1, exitCode)
-            Assert.Equal("vbc : error BC31030: Project-level conditional compilation constant '_ ^^ ^^ ' is not valid: Identifier expected.", output.ToString().Trim())
+            Assert.Equal("vbc : error BC31030: Conditional compilation constant '_ ^^ ^^ ' is not valid: Identifier expected.", output.ToString().Trim())
 
             vbc = New MockVisualBasicCompiler(Nothing, _baseDirectory, {"-nologo", "/preferreduilang:en", "/t:libraRY", "/define:_ ", source})
             output = New StringWriter()
             exitCode = vbc.Run(output, Nothing)
             Assert.Equal(1, exitCode)
-            Assert.Equal("vbc : error BC31030: Project-level conditional compilation constant '_ ^^ ^^ ' is not valid: Identifier expected.", output.ToString().Trim())
+            Assert.Equal("vbc : error BC31030: Conditional compilation constant '_ ^^ ^^ ' is not valid: Identifier expected.", output.ToString().Trim())
 
             vbc = New MockVisualBasicCompiler(Nothing, _baseDirectory, {"-nologo", "/preferreduilang:en", "/t:libraRY", "/define:a,_", source})
             output = New StringWriter()
             exitCode = vbc.Run(output, Nothing)
             Assert.Equal(1, exitCode)
-            Assert.Equal("vbc : error BC31030: Project-level conditional compilation constant '_ ^^ ^^ ' is not valid: Identifier expected.", output.ToString().Trim())
+            Assert.Equal("vbc : error BC31030: Conditional compilation constant '_ ^^ ^^ ' is not valid: Identifier expected.", output.ToString().Trim())
 
             CleanupAllGeneratedFiles(source)
         End Sub
@@ -6150,13 +6356,13 @@ End Module
             Dim output As New StringWriter()
             Dim exitCode = vbc.Run(output, Nothing)
             Assert.Equal(1, exitCode)
-            Assert.Equal("vbc : error BC31030: Project-level conditional compilation constant 'I ^^ ^^ ' is not valid: End of statement expected.", output.ToString().Trim())
+            Assert.Equal("vbc : error BC31030: Conditional compilation constant 'I ^^ ^^ ' is not valid: End of statement expected.", output.ToString().Trim())
 
             vbc = New MockVisualBasicCompiler(Nothing, _baseDirectory, {"/nologo", "/preferreduilang:en", "/define:I*", source})
             output = New StringWriter()
             exitCode = vbc.Run(output, Nothing)
             Assert.Equal(1, exitCode)
-            Assert.Equal("vbc : error BC31030: Project-level conditional compilation constant 'I ^^ ^^ ' is not valid: End of statement expected.", output.ToString().Trim())
+            Assert.Equal("vbc : error BC31030: Conditional compilation constant 'I ^^ ^^ ' is not valid: End of statement expected.", output.ToString().Trim())
         End Sub
 
         <Fact()>
@@ -7930,7 +8136,7 @@ End Class
         <Fact()>
         Public Sub Version()
             Dim folderName = Temp.CreateDirectory().ToString()
-            Dim expected As String = FileVersionInfo.GetVersionInfo(GetType(VisualBasicCompiler).Assembly.Location).FileVersion
+            Dim expected As String = $"{s_compilerVersion} ({s_compilerShortCommitHash})"
 
             Dim argss = {
                 "/version",
@@ -7991,6 +8197,106 @@ End Module
             CleanupAllGeneratedFiles(sourceFile.Path)
         End Sub
 
+        <Fact>
+        Public Sub IOFailure_DisposeOutputFile()
+            Dim srcPath = MakeTrivialExe(Temp.CreateDirectory().Path)
+            Dim exePath = Path.Combine(Path.GetDirectoryName(srcPath), "test.exe")
+            Dim csc = New MockVisualBasicCompiler(_baseDirectory, {"/nologo", "/preferreduilang:en", $"/out:{exePath}", srcPath})
+            csc.FileOpen = Function(filePath, mode, access, share)
+                               If filePath = exePath Then
+                                   Return New TestStream(backingStream:=New MemoryStream(), dispose:=Sub() Throw New IOException("Fake IOException"))
+                               End If
+
+                               Return File.Open(filePath, mode, access, share)
+                           End Function
+
+            Dim outWriter = New StringWriter(CultureInfo.InvariantCulture)
+            Assert.Equal(1, csc.Run(outWriter))
+            Assert.Equal($"vbc : error BC2012: can't open '{exePath}' for writing: Fake IOException{Environment.NewLine}", outWriter.ToString())
+        End Sub
+
+        <Fact>
+        Public Sub IOFailure_DisposePdbFile()
+            Dim srcPath = MakeTrivialExe(Temp.CreateDirectory().Path)
+            Dim exePath = Path.Combine(Path.GetDirectoryName(srcPath), "test.exe")
+            Dim pdbPath = Path.ChangeExtension(exePath, "pdb")
+            Dim csc = New MockVisualBasicCompiler(_baseDirectory, {"/nologo", "/preferreduilang:en", "/debug", $"/out:{exePath}", srcPath})
+            csc.FileOpen = Function(filePath, mode, access, share)
+                               If filePath = pdbPath Then
+                                   Return New TestStream(backingStream:=New MemoryStream(), dispose:=Sub() Throw New IOException("Fake IOException"))
+                               End If
+
+                               Return File.Open(filePath, mode, access, share)
+                           End Function
+
+            Dim outWriter = New StringWriter(CultureInfo.InvariantCulture)
+            Assert.Equal(1, csc.Run(outWriter))
+            Assert.Equal($"vbc : error BC2012: can't open '{pdbPath}' for writing: Fake IOException{Environment.NewLine}", outWriter.ToString())
+        End Sub
+
+        <Fact>
+        Public Sub IOFailure_DisposeXmlFile()
+            Dim srcPath = MakeTrivialExe(Temp.CreateDirectory().Path)
+            Dim xmlPath = Path.Combine(Path.GetDirectoryName(srcPath), "test.xml")
+            Dim csc = New MockVisualBasicCompiler(_baseDirectory, {"/nologo", "/preferreduilang:en", $"/doc:{xmlPath}", srcPath})
+            csc.FileOpen = Function(filePath, mode, access, share)
+                               If filePath = xmlPath Then
+                                   Return New TestStream(backingStream:=New MemoryStream(), dispose:=Sub() Throw New IOException("Fake IOException"))
+                               End If
+
+                               Return File.Open(filePath, mode, access, share)
+                           End Function
+
+            Dim outWriter = New StringWriter(CultureInfo.InvariantCulture)
+            Assert.Equal(1, csc.Run(outWriter))
+            Assert.Equal($"error BC2012: can't open '{xmlPath}' for writing: Fake IOException{Environment.NewLine}", outWriter.ToString())
+        End Sub
+
+        <Fact>
+        Public Sub IOFailure_DisposeSourceLinkFile()
+            Dim srcPath = MakeTrivialExe(Temp.CreateDirectory().Path)
+            Dim sourceLinkPath = Path.Combine(Path.GetDirectoryName(srcPath), "test.json")
+            Dim csc = New MockVisualBasicCompiler(_baseDirectory, {"/nologo", "/preferreduilang:en", "/debug:portable", $"/sourcelink:{sourceLinkPath}", srcPath})
+            csc.FileOpen = Function(filePath, mode, access, share)
+                               If filePath = sourceLinkPath Then
+                                   Return New TestStream(
+                                   backingStream:=New MemoryStream(Encoding.UTF8.GetBytes("
+{
+  ""documents"": {
+     ""f:/build/*"" : ""https://raw.githubusercontent.com/my-org/my-project/1111111111111111111111111111111111111111/*""
+  }
+}
+")),
+                                   dispose:=Sub() Throw New IOException("Fake IOException"))
+                               End If
+
+                               Return File.Open(filePath, mode, access, share)
+                           End Function
+
+            Dim outWriter = New StringWriter(CultureInfo.InvariantCulture)
+            Assert.Equal(1, csc.Run(outWriter))
+            Assert.Equal($"error BC2012: can't open '{sourceLinkPath}' for writing: Fake IOException{Environment.NewLine}", outWriter.ToString())
+        End Sub
+
+        <Fact>
+        Public Sub CompilingCodeWithInvalidPreProcessorSymbolsShouldProvideDiagnostics()
+            Dim parsedArgs = DefaultParse({"/define:1", "a.cs"}, _baseDirectory)
+            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_ConditionalCompilationConstantNotValid).WithArguments("Identifier expected.", "1 ^^ ^^ ").WithLocation(1, 1))
+        End Sub
+
+        <Fact>
+        Public Sub CompilingCodeWithInvalidLanguageVersionShouldProvideDiagnostics()
+            Dim parsedArgs = DefaultParse({"/langversion:1000", "a.cs"}, _baseDirectory)
+            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("langversion", "1000").WithLocation(1, 1))
+        End Sub
+
+        Private Function MakeTrivialExe(Optional directory As String = Nothing) As String
+            Return Temp.CreateFile(directory:=directory, prefix:="", extension:=".vb").WriteAllText("
+Class Program
+    Public Shared Sub Main()
+    End Sub
+End Class").Path
+        End Function
     End Class
 
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>

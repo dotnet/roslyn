@@ -359,7 +359,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             foreach (var analyzer in analyzers)
             {
-                ImmutableInterlocked.GetOrAdd(ref _hostDiagnosticAnalyzerPackageNameMap, analyzer, _ => name);
+                ImmutableInterlocked.GetOrAdd(ref _hostDiagnosticAnalyzerPackageNameMap, analyzer, name);
             }
         }
 
@@ -397,7 +397,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 if (analyzer.IsCompilerAnalyzer())
                 {
                     ImmutableInterlocked.GetOrAdd(ref _compilerDiagnosticAnalyzerDescriptorMap, analyzer, a => new HashSet<string>(GetDiagnosticDescriptors(a).Select(d => d.Id)));
-                    ImmutableInterlocked.GetOrAdd(ref _compilerDiagnosticAnalyzerMap, language, _ => analyzer);
+                    ImmutableInterlocked.GetOrAdd(ref _compilerDiagnosticAnalyzerMap, language, analyzer);
                     return;
                 }
             }
@@ -528,7 +528,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     documentId: null,
                     diagnostics: ImmutableArray.Create<DiagnosticData>(diagnostic));
 
-                _hostUpdateSource.RaiseDiagnosticsUpdated(args);
+                // this can be null in test. but in product code, this should never be null.
+                _hostUpdateSource?.RaiseDiagnosticsUpdated(args);
             }
         }
     }

@@ -90,6 +90,12 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             Dim namingStyle = CreateNamingStyle(wordSeparator:="_t_", capitalizationScheme:=Capitalization.PascalCase)
             TestNameCompliance(namingStyle, "Pascal_t_Case")
         End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)>
+        Public Sub TestPascalCaseAllowsUncasedCharacters()
+            Dim namingStyle = CreateNamingStyle(wordSeparator:="_", capitalizationScheme:=Capitalization.PascalCase)
+            TestNameCompliance(namingStyle, "私の家_2nd")
+        End Sub
 #End Region
 
 #Region "camelCase"
@@ -139,6 +145,12 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
         Public Sub TestCamelCaseIgnoresSeeminglyNoncompliantWordSeparator()
             Dim namingStyle = CreateNamingStyle(wordSeparator:="_t_", capitalizationScheme:=Capitalization.CamelCase)
             TestNameCompliance(namingStyle, "camel_t_Case")
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)>
+        Public Sub TestCamelCaseAllowsUncasedCharacters()
+            Dim namingStyle = CreateNamingStyle(wordSeparator:="_", capitalizationScheme:=Capitalization.CamelCase)
+            TestNameCompliance(namingStyle, "私の家_2nd")
         End Sub
 #End Region
 
@@ -190,6 +202,12 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             Dim namingStyle = CreateNamingStyle(wordSeparator:="_T_", capitalizationScheme:=Capitalization.FirstUpper)
             TestNameCompliance(namingStyle, "First_T_upper")
         End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)>
+        Public Sub TestFirstUpperAllowsUncasedCharacters()
+            Dim namingStyle = CreateNamingStyle(capitalizationScheme:=Capitalization.FirstUpper)
+            TestNameCompliance(namingStyle, "私の家")
+        End Sub
 #End Region
 
 #Region "ALLUPPER"
@@ -234,6 +252,12 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             Dim namingStyle = CreateNamingStyle(wordSeparator:="_t_", capitalizationScheme:=Capitalization.AllUpper)
             TestNameCompliance(namingStyle, "ALL_t_UPPER")
         End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)>
+        Public Sub TestAllUpperAllowsUncasedCharacters()
+            Dim namingStyle = CreateNamingStyle(capitalizationScheme:=Capitalization.AllUpper)
+            TestNameCompliance(namingStyle, "私AB23CのDE家")
+        End Sub
 #End Region
 
 #Region "alllower"
@@ -277,6 +301,12 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
         Public Sub TestAllLowerIgnoresSeeminglyNoncompliantWordSeparator()
             Dim namingStyle = CreateNamingStyle(wordSeparator:="_T_", capitalizationScheme:=Capitalization.AllLower)
             TestNameCompliance(namingStyle, "all_T_lower")
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)>
+        Public Sub TestAllLowerAllowsUncasedCharacters()
+            Dim namingStyle = CreateNamingStyle(capitalizationScheme:=Capitalization.AllLower)
+            TestNameCompliance(namingStyle, "私ab23cのde家")
         End Sub
 #End Region
     End Class

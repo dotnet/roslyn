@@ -84,6 +84,7 @@ namespace RepoUtil
         {
             try
             {
+                var allGood = true;
                 foreach (var line in File.ReadAllLines(path))
                 {
                     if (string.IsNullOrWhiteSpace(line))
@@ -93,10 +94,12 @@ namespace RepoUtil
 
                     if (!TryParsePackage(writer, line, changes))
                     {
-                        return false;
+                        writer.WriteLine($"Error parsing {line}");
+                        allGood = false;
                     }
                 }
-                return true;
+
+                return allGood;
             }
             catch (Exception ex)
             {

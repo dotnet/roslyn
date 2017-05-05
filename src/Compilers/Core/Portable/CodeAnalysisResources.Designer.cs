@@ -929,6 +929,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Name cannot be null..
+        /// </summary>
+        internal static string NameCannotBeNull {
+            get {
+                return ResourceManager.GetString("NameCannotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Name cannot start with whitespace..
         /// </summary>
         internal static string NameCannotStartWithWhitespace {
@@ -1222,6 +1231,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string StartMustNotBeNegative {
             get {
                 return ResourceManager.GetString("StartMustNotBeNegative", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Stream contains invalid data.
+        /// </summary>
+        internal static string Stream_contains_invalid_data {
+            get {
+                return ResourceManager.GetString("Stream_contains_invalid_data", resourceCulture);
             }
         }
         

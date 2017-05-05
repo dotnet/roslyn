@@ -123,7 +123,7 @@ class Program2
     </Project>
 </Workspace>";
 
-            await TestAsync(input, expected, compareTokens: false, options: PreferIntrinsicTypeEverywhere, fixAllActionEquivalenceKey: fixAllActionId);
+            await TestInRegularAndScriptAsync(input, expected, ignoreTrivia: false, options: PreferIntrinsicTypeEverywhere, fixAllActionEquivalenceKey: fixAllActionId);
         }
 
         [Fact]
@@ -233,7 +233,7 @@ class Program2
     </Project>
 </Workspace>";
 
-            await TestAsync(input, expected, compareTokens: false, options: PreferIntrinsicTypeEverywhere, fixAllActionEquivalenceKey: fixAllActionId);
+            await TestInRegularAndScriptAsync(input, expected, ignoreTrivia: false, options: PreferIntrinsicTypeEverywhere, fixAllActionEquivalenceKey: fixAllActionId);
         }
 
         [Fact]
@@ -343,7 +343,7 @@ class Program2
     </Project>
 </Workspace>";
 
-            await TestAsync(input, expected, compareTokens: false, options:PreferIntrinsicTypeEverywhere, fixAllActionEquivalenceKey: fixAllActionId);
+            await TestInRegularAndScriptAsync(input, expected, ignoreTrivia: false, options:PreferIntrinsicTypeEverywhere, fixAllActionEquivalenceKey: fixAllActionId);
         }
 
         [Fact]
@@ -597,7 +597,7 @@ class ProgramB3
     </Project>
 </Workspace>";
 
-            await TestAsync(input, expected, compareTokens: false, fixAllActionEquivalenceKey: fixAllActionId);
+            await TestInRegularAndScriptAsync(input, expected, ignoreTrivia: false, fixAllActionEquivalenceKey: fixAllActionId);
         }
 
         [Fact]
@@ -851,7 +851,7 @@ class ProgramB3
     </Project>
 </Workspace>";
 
-            await TestAsync(input, expected, compareTokens: false, fixAllActionEquivalenceKey: fixAllActionId);
+            await TestInRegularAndScriptAsync(input, expected, ignoreTrivia: false, fixAllActionEquivalenceKey: fixAllActionId);
         }
 
         [Fact]
@@ -935,11 +935,11 @@ class D
                 SingleOption(CodeStyleOptions.QualifyPropertyAccess, false, NotificationOption.Suggestion),
                 SingleOption(CodeStyleOptions.QualifyFieldAccess, true, NotificationOption.Suggestion));
 
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
                 initialMarkup: input,
                 expectedMarkup: expected,
                 options: options,
-                compareTokens: false,
+                ignoreTrivia: false,
                 fixAllActionEquivalenceKey: CSharpFeaturesResources.Remove_this_qualification);
         }
 

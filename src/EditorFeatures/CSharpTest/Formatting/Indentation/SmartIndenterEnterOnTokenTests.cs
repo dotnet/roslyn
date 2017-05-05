@@ -1349,7 +1349,7 @@ class C
             int? expectedIndentation)
         {
             // create tree service
-            using (var workspace = await TestWorkspace.CreateCSharpAsync(code))
+            using (var workspace = TestWorkspace.CreateCSharp(code))
             {
                 var hostdoc = workspace.Documents.First();
 
@@ -1378,7 +1378,7 @@ class C
             int? expectedIndentation)
         {
             // create tree service
-            using (var workspace = await TestWorkspace.CreateCSharpAsync(code))
+            using (var workspace = TestWorkspace.CreateCSharp(code))
             {
                 var hostdoc = workspace.Documents.First();
                 var buffer = hostdoc.GetTextBuffer();

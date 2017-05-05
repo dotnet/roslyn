@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private static string GetMetadataNameWithoutBackticks(MetadataReader reader, StringHandle name)
         {
             var blobReader = reader.GetBlobReader(name);
-            var backtickIndex = IndexOfCharacter(blobReader, '`');
+            var backtickIndex = blobReader.IndexOf((byte)'`');
             if (backtickIndex == -1)
             {
                 return reader.GetString(name);
@@ -32,28 +32,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     blobReader.CurrentPointer, backtickIndex);
             }
         }
-
-        private static int IndexOfCharacter(BlobReader blobReader, char ch)
-        {
-            // This function is only safe for searching for ascii characters.
-            Debug.Assert(ch < 127);
-            unsafe
-            {
-                var ptr = blobReader.CurrentPointer;
-                for (int i = 0, n = blobReader.RemainingBytes; i < n; i++)
-                {
-                    if (*ptr == ch)
-                    {
-                        return i;
-                    }
-
-                    ptr++;
-                }
-
-                return -1;
-            }
-        }
-
+        
         private static MetadataId GetMetadataIdNoThrow(PortableExecutableReference reference)
         {
             try
@@ -208,20 +187,27 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 _rootNode = MetadataNode.Allocate(name: "");
             }
 
-            private static IEnumerable<ModuleMetadata> GetModuleMetadata(Metadata metadata)
+            private static ImmutableArray<ModuleMetadata> GetModuleMetadata(Metadata metadata)
             {
-                if (metadata is AssemblyMetadata)
+                try
                 {
-                    return ((AssemblyMetadata)metadata).GetModules();
+                    if (metadata is AssemblyMetadata assembly)
+                    {
+                        return assembly.GetModules();
+                    }
+                    else if (metadata is ModuleMetadata module)
+                    {
+                        return ImmutableArray.Create(module);
+                    }
                 }
-                else if (metadata is ModuleMetadata)
+                catch (BadImageFormatException)
                 {
-                    return SpecializedCollections.SingletonEnumerable((ModuleMetadata)metadata);
+                    // Trying to get the modules of an assembly can throw.  For example, if 
+                    // there is an invalid public-key defined for the assembly.  See:
+                    // https://devdiv.visualstudio.com/DevDiv/_workitems?id=234447
                 }
-                else
-                {
-                    return SpecializedCollections.EmptyEnumerable<ModuleMetadata>();
-                }
+
+                return ImmutableArray<ModuleMetadata>.Empty;
             }
 
             internal SymbolTreeInfo Create()
@@ -241,7 +227,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     // map accordingly.
                     GenerateMetadataNodes();
 
-                    // Now, once we populated the inital map, go and get all the inheritance 
+                    // Now, once we populated the initial map, go and get all the inheritance 
                     // information for all the types in the metadata.  This may refer to 
                     // types that we haven't seen yet.  We'll add those types to the parentToChildren
                     // map accordingly.
@@ -476,7 +462,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                         // The parent/child map may not know about this base-type yet (for example,
                         // if the base type is a reference to a type outside of this assembly).
-                        // Add the base type to our map so we'll be able ot resolve it later if 
+                        // Add the base type to our map so we'll be able to resolve it later if 
                         // requested. 
                         EnsureParentsAndChildren(baseTypeNameParts);
                     }
@@ -530,7 +516,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                 while (true)
                 {
-                    var dotIndex = IndexOfCharacter(blobReader, '.');
+                    int dotIndex = blobReader.IndexOf((byte)'.');
                     unsafe
                     {
                         // Note: we won't get any string sharing as we're just using the 
@@ -549,7 +535,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                         {
                             simpleNames.Add(MetadataStringDecoder.DefaultUTF8.GetString(
                                 blobReader.CurrentPointer, dotIndex));
-                            blobReader.SkipBytes(dotIndex + 1);
+                            blobReader.Offset += dotIndex + 1;
                         }
                     }
                 }
@@ -584,7 +570,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                         return baseTypeOrInterfaceHandle;
                     case HandleKind.TypeSpecification:
                         return FirstEntityHandleProvider.Instance.GetTypeFromSpecification(
-                            _metadataReader, (TypeSpecificationHandle)baseTypeOrInterfaceHandle, rawTypeKind: 0);
+                            _metadataReader, (TypeSpecificationHandle)baseTypeOrInterfaceHandle);
                     default:
                         return default(EntityHandle);
                 }

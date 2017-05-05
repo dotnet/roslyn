@@ -342,7 +342,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
             Assert.Equal("LongMembers { LongNa...", str);
 
             str = new TestCSharpObjectFormatter(maximumLineLength: 20).FormatObject(obj, SeparateLinesOptions);
-            Assert.Equal("LongMembers {\r\n  LongName0123456789...\r\n  LongValue: \"012345...\r\n}\r\n", str);
+            Assert.Equal($"LongMembers {{{Environment.NewLine}  LongName0123456789...{Environment.NewLine}  LongValue: \"012345...{Environment.NewLine}}}{Environment.NewLine}", str);
         }
 
         [Fact]
@@ -418,7 +418,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
 
             obj = Enumerable.Range(0, 10);
             str = s_formatter.FormatObject(obj, SingleLineOptions);
-            Assert.Equal("RangeIterator { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }", str);
+
+            // the implementation differs between .NET Core and .NET FX
+            if (str.StartsWith("Enumerable"))
+            {
+                Assert.Equal("Enumerable.RangeIterator { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }", str);
+            }
+            else
+            {
+                Assert.Equal("RangeIterator { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }", str);
+            }
         }
 
         [Fact]
@@ -666,7 +675,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
             Assert.Equal("ReadOnlyCollection<int>(3) { 1, 2, 3 }", str);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void DebuggerProxy_FrameworkTypes_Lazy()
         {
             var obj = new Lazy<int[]>(() => new int[] { 1, 2 }, LazyThreadSafetyMode.None);
@@ -825,7 +834,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
             }
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19027")]
+        [WorkItem(15860, "https://github.com/dotnet/roslyn/issues/15860")]
+        [WorkItem(19027, "https://github.com/dotnet/roslyn/issues/19027")]
         public void StackTrace_NonGeneric()
         {
             try
@@ -846,7 +857,9 @@ $@"{new Exception().Message}
             }
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19027")]
+        [WorkItem(15860, "https://github.com/dotnet/roslyn/issues/15860")]
+        [WorkItem(19027, "https://github.com/dotnet/roslyn/issues/19027")]
         public void StackTrace_GenericMethod()
         {
             try
@@ -868,7 +881,9 @@ $@"{new Exception().Message}
             }
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19027")]
+        [WorkItem(15860, "https://github.com/dotnet/roslyn/issues/15860")]
+        [WorkItem(19027, "https://github.com/dotnet/roslyn/issues/19027")]
         public void StackTrace_GenericType()
         {
             try
@@ -890,7 +905,9 @@ $@"{new Exception().Message}
             }
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19027")]
+        [WorkItem(15860, "https://github.com/dotnet/roslyn/issues/15860")]
+        [WorkItem(19027, "https://github.com/dotnet/roslyn/issues/19027")]
         public void StackTrace_GenericMethodInGenericType()
         {
             try
@@ -922,6 +939,7 @@ $@"{new Exception().Message}
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/9221"), WorkItem(9221, "https://github.com/dotnet/roslyn/issues/9221")]
+        [WorkItem(19027, "https://github.com/dotnet/roslyn/issues/19027")]
         public void StackTrace_Dynamic()
         {
             try
@@ -959,7 +977,9 @@ $@"'object' does not contain a definition for 'x'
             }
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19027")]
+        [WorkItem(15860, "https://github.com/dotnet/roslyn/issues/15860")]
+        [WorkItem(19027, "https://github.com/dotnet/roslyn/issues/19027")]
         public void StackTrace_RefOutParameters()
         {
             try
@@ -982,7 +1002,9 @@ $@"{new Exception().Message}
             }
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19027")]
+        [WorkItem(15860, "https://github.com/dotnet/roslyn/issues/15860")]
+        [WorkItem(19027, "https://github.com/dotnet/roslyn/issues/19027")]
         public void StackTrace_GenericRefParameter()
         {
             try

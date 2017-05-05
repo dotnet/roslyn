@@ -5,6 +5,8 @@ using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
 using System.Collections.Immutable;
+using System;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -103,6 +105,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             ConstantValue constantValue = this.FoldConstantConversion(syntax, source, conversion, destination, diagnostics);
+            if (conversion.Kind == ConversionKind.DefaultOrNullLiteral && source.Kind == BoundKind.DefaultExpression)
+            {
+                source = ((BoundDefaultExpression)source).Update(constantValue, destination);
+            }
+
             return new BoundConversion(
                 syntax,
                 source,
@@ -353,12 +360,34 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (targetType.IsTupleType)
             {
                 var destTupleType = (TupleTypeSymbol)targetType;
-                // do not lose the original element names in the literal if different from names in the target
 
                 TupleTypeSymbol.ReportNamesMismatchesIfAny(targetType, sourceTuple, diagnostics);
 
-                // Come back to this, what about locations? (https://github.com/dotnet/roslyn/issues/11013)
-                targetType = destTupleType.WithElementNames(sourceTuple.ArgumentNamesOpt);
+                // do not lose the original element names and locations in the literal if different from names in the target
+                //
+                // the tuple has changed the type of elements due to target-typing, 
+                // but element names has not changed and locations of their declarations 
+                // should not be confused with element locations on the target type.
+                var sourceType = sourceTuple.Type as TupleTypeSymbol;
+
+                if ((object)sourceType != null)
+                {
+                    targetType = sourceType.WithUnderlyingType(destTupleType.UnderlyingNamedType);
+                }
+                else
+                {
+                    var tupleSyntax = (TupleExpressionSyntax)sourceTuple.Syntax;
+                    var locationBuilder = ArrayBuilder<Location>.GetInstance();
+
+                    foreach (var argument in tupleSyntax.Arguments)
+                    {
+                        locationBuilder.Add(argument.NameColon?.Name.Location);
+                    }
+
+                    targetType = destTupleType.WithElementNames(sourceTuple.ArgumentNamesOpt,
+                                                                tupleSyntax.Location,
+                                                                locationBuilder.ToImmutableAndFree());
+                }
             }
 
             var arguments = sourceTuple.Arguments;
@@ -717,10 +746,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            // - Return types "match"
-            var returnsMatch =
-                method.ReturnsVoid && delegateMethod.ReturnsVoid ||
-                Conversions.HasIdentityOrImplicitReferenceConversion(method.ReturnType, delegateMethod.ReturnType, ref useSiteDiagnostics);
+            if (delegateMethod.ReturnsByRef != method.ReturnsByRef)
+            {
+                Error(diagnostics, ErrorCode.ERR_DelegateRefMismatch, errorLocation, method, delegateType);
+                diagnostics.Add(errorLocation, useSiteDiagnostics);
+                return false;
+            }
+
+            bool returnsMatch = delegateMethod.ReturnsByRef?
+                                    // - Return types identity-convertible
+                                    Conversions.HasIdentityConversion(method.ReturnType, delegateMethod.ReturnType):
+                                    // - Return types "match"
+                                    method.ReturnsVoid && delegateMethod.ReturnsVoid ||
+                                        Conversions.HasIdentityOrImplicitReferenceConversion(method.ReturnType, delegateMethod.ReturnType, ref useSiteDiagnostics);
+
             if (!returnsMatch)
             {
                 Error(diagnostics, ErrorCode.ERR_BadRetType, errorLocation, method, method.ReturnType);
@@ -863,7 +902,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var sourceConstantValue = source.ConstantValue;
-            if (sourceConstantValue == null || sourceConstantValue.IsBad)
+            if (sourceConstantValue == null)
+            {
+                if (conversion.Kind == ConversionKind.DefaultOrNullLiteral && source.Kind == BoundKind.DefaultExpression)
+                {
+                    return destination.GetDefaultValue();
+                }
+                else
+                {
+                    return sourceConstantValue;
+                }
+            }
+            else if (sourceConstantValue.IsBad)
             {
                 return sourceConstantValue;
             }
@@ -884,7 +934,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return sourceConstantValue;
                     }
 
-                case ConversionKind.NullLiteral:
+                case ConversionKind.DefaultOrNullLiteral:
+                    // 'default' case is handled above, 'null' is handled here
                     return sourceConstantValue;
 
                 case ConversionKind.ImplicitConstant:

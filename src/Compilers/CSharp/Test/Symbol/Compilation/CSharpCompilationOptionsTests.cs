@@ -124,7 +124,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             TestProperty((old, value) => old.WithConcurrentBuild(value), opt => opt.ConcurrentBuild, false);
             TestProperty((old, value) => old.WithCurrentLocalTime(value), opt => opt.CurrentLocalTime, new DateTime(2005, 1, 1));
-            TestProperty((old, value) => old.WithExtendedCustomDebugInformation(value), opt => opt.ExtendedCustomDebugInformation, false);
             TestProperty((old, value) => old.WithDebugPlusMode(value), opt => opt.DebugPlusMode, true);
 
             TestProperty((old, value) => old.WithXmlReferenceResolver(value), opt => opt.XmlReferenceResolver, new XmlFileResolver(null));
@@ -248,38 +247,33 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             // ModuleName
             Assert.Equal(null, TestOptions.ReleaseDll.WithModuleName(null).ModuleName);
             TestOptions.ReleaseDll.WithModuleName("").VerifyErrors(
-    // error CS7087: Name cannot be empty.
-    // Parameter name: ModuleName
-    Diagnostic(ErrorCode.ERR_BadCompilationOption).WithArguments(new ArgumentException(CodeAnalysisResources.NameCannotBeEmpty, "ModuleName").Message));
+                // error CS7087: Invalid module name: Name cannot be empty.
+                Diagnostic(ErrorCode.ERR_BadModuleName).WithArguments("Name cannot be empty.").WithLocation(1, 1)
+                );
 
             TestOptions.ReleaseDll.WithModuleName("a\0a").VerifyErrors(
-    // error CS7087: Name contains invalid characters.
-    // Parameter name: ModuleName
-    Diagnostic(ErrorCode.ERR_BadCompilationOption).WithArguments(new ArgumentException(CodeAnalysisResources.NameContainsInvalidCharacter, "ModuleName").Message)
+                // error CS7087: Invalid module name: Name contains invalid characters.
+                Diagnostic(ErrorCode.ERR_BadModuleName).WithArguments("Name contains invalid characters.").WithLocation(1, 1)
                 );
 
             TestOptions.ReleaseDll.WithModuleName("a\uD800b").VerifyErrors(
-    // error CS7087: Name contains invalid characters.
-    // Parameter name: ModuleName
-    Diagnostic(ErrorCode.ERR_BadCompilationOption).WithArguments(new ArgumentException(CodeAnalysisResources.NameContainsInvalidCharacter, "ModuleName").Message)
+                // error CS7087: Invalid module name: Name contains invalid characters.
+                Diagnostic(ErrorCode.ERR_BadModuleName).WithArguments("Name contains invalid characters.").WithLocation(1, 1)
                 );
 
             TestOptions.ReleaseDll.WithModuleName("a\\b").VerifyErrors(
-    // error CS7087: Name contains invalid characters.
-    // Parameter name: ModuleName
-    Diagnostic(ErrorCode.ERR_BadCompilationOption).WithArguments(new ArgumentException(CodeAnalysisResources.NameContainsInvalidCharacter, "ModuleName").Message)
+                // error CS7087: Invalid module name: Name contains invalid characters.
+                Diagnostic(ErrorCode.ERR_BadModuleName).WithArguments("Name contains invalid characters.").WithLocation(1, 1)
                 );
 
             TestOptions.ReleaseDll.WithModuleName("a/b").VerifyErrors(
-    // error CS7087: Name contains invalid characters.
-    // Parameter name: ModuleName
-    Diagnostic(ErrorCode.ERR_BadCompilationOption).WithArguments(new ArgumentException(CodeAnalysisResources.NameContainsInvalidCharacter, "ModuleName").Message)
+                // error CS7087: Invalid module name: Name contains invalid characters.
+                Diagnostic(ErrorCode.ERR_BadModuleName).WithArguments("Name contains invalid characters.").WithLocation(1, 1)
                 );
 
             TestOptions.ReleaseDll.WithModuleName("a:b").VerifyErrors(
-    // error CS7087: Name contains invalid characters.
-    // Parameter name: ModuleName
-    Diagnostic(ErrorCode.ERR_BadCompilationOption).WithArguments(new ArgumentException(CodeAnalysisResources.NameContainsInvalidCharacter, "ModuleName").Message)
+                // error CS7087: Invalid module name: Name contains invalid characters.
+                Diagnostic(ErrorCode.ERR_BadModuleName).WithArguments("Name contains invalid characters.").WithLocation(1, 1)
                 );
         }
 
@@ -399,7 +393,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             bool concurrentBuild = false;
             bool deterministic = false;
             DateTime currentLocalTime = default(DateTime);
-            bool extendedCustomDebugInformation = true;
             bool debugPlusMode = false;
             XmlReferenceResolver xmlReferenceResolver = new XmlFileResolver(null);
             SourceReferenceResolver sourceReferenceResolver = new SourceFileResolver(ImmutableArray<string>.Empty, null);
@@ -415,7 +408,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             return new CSharpCompilationOptions(OutputKind.ConsoleApplication, reportSuppressedDiagnostics, moduleName, mainTypeName, scriptClassName, usings,
                 optimizationLevel, checkOverflow, allowUnsafe, cryptoKeyContainer, cryptoKeyFile, cryptoPublicKey, delaySign,
                 platform, generalDiagnosticOption, warningLevel, specificDiagnosticOptions,
-                concurrentBuild, deterministic, currentLocalTime, extendedCustomDebugInformation, debugPlusMode, xmlReferenceResolver, sourceReferenceResolver, metadataReferenceResolver,
+                concurrentBuild, deterministic, currentLocalTime, debugPlusMode, xmlReferenceResolver, sourceReferenceResolver, metadataReferenceResolver,
                 assemblyIdentityComparer, strongNameProvider, metadataImportOptions, referencesSupersedeLowerVersions, publicSign, topLevelBinderFlags);
         }
 

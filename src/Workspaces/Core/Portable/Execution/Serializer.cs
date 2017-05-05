@@ -22,7 +22,11 @@ namespace Microsoft.CodeAnalysis.Serialization
     internal partial class Serializer
     {
         private readonly HostWorkspaceServices _workspaceServices;
+
         private readonly IReferenceSerializationService _hostSerializationService;
+        private readonly ITemporaryStorageService2 _tempService;
+        private readonly ITextFactoryService _textService;
+
         private readonly ConcurrentDictionary<string, IOptionsSerializationService> _lazyLanguageSerializationService;
 
         public Serializer(Solution solution) : this(solution.Workspace)
@@ -36,7 +40,10 @@ namespace Microsoft.CodeAnalysis.Serialization
         public Serializer(HostWorkspaceServices workspaceServices)
         {
             _workspaceServices = workspaceServices;
+
             _hostSerializationService = _workspaceServices.GetService<IReferenceSerializationService>();
+            _tempService = _workspaceServices.GetService<ITemporaryStorageService>() as ITemporaryStorageService2;
+            _textService = _workspaceServices.GetService<ITextFactoryService>();
 
             _lazyLanguageSerializationService = new ConcurrentDictionary<string, IOptionsSerializationService>(concurrencyLevel: 2, capacity: _workspaceServices.SupportedLanguages.Count());
         }
@@ -62,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Serialization
                     case WellKnownSynchronizationKinds.CompilationOptions:
                     case WellKnownSynchronizationKinds.ParseOptions:
                     case WellKnownSynchronizationKinds.ProjectReference:
-                        return Checksum.Create(value, kind, this);
+                        return Checksum.Create(kind, value, this);
 
                     case WellKnownSynchronizationKinds.MetadataReference:
                         return Checksum.Create(kind, _hostSerializationService.CreateChecksum((MetadataReference)value, cancellationToken));
@@ -71,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Serialization
                         return Checksum.Create(kind, _hostSerializationService.CreateChecksum((AnalyzerReference)value, cancellationToken));
 
                     case WellKnownSynchronizationKinds.SourceText:
-                        return Checksum.Create(kind, new Checksum(((SourceText)value).GetChecksum()));
+                        return Checksum.Create(kind, ((SourceText)value).GetChecksum());
 
                     default:
                         // object that is not part of solution is not supported since we don't know what inputs are required to
@@ -124,7 +131,7 @@ namespace Microsoft.CodeAnalysis.Serialization
                         return;
 
                     case WellKnownSynchronizationKinds.AnalyzerReference:
-                        SerializeAnalyzerReference((AnalyzerReference)value, writer, cancellationToken);
+                        SerializeAnalyzerReference((AnalyzerReference)value, writer, usePathFromAssembly: true, cancellationToken: cancellationToken);
                         return;
 
                     case WellKnownSynchronizationKinds.SourceText:

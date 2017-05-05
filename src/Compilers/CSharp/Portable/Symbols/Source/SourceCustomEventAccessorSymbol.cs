@@ -68,8 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else
             {
-                var bodyOpt = syntax.Body;
-                if (bodyOpt != null)
+                if (syntax.Body != null || syntax.ExpressionBody != null)
                 {
                     if (IsExtern && !IsAbstract)
                     {
@@ -85,6 +84,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             _name = GetOverriddenAccessorName(@event, isAdder) ?? _name;
+
+            if (syntax.Modifiers.Count > 0)
+            {
+                diagnostics.Add(ErrorCode.ERR_NoModifiersOnAccessor, syntax.Modifiers[0].GetLocation());
+            }
+
+            CheckForBlockAndExpressionBody(
+                syntax.Body, syntax.ExpressionBody, syntax, diagnostics);
         }
 
         internal AccessorDeclarationSyntax GetSyntax()

@@ -172,9 +172,10 @@ namespace Microsoft.CodeAnalysis.Interactive
             {
                 return new RuntimeMetadataReferenceResolver(
                     new RelativePathResolver(searchPaths, baseDirectory),
-                    null,
-                    GacFileResolver.IsAvailable ? new GacFileResolver(preferredCulture: CultureInfo.CurrentCulture) : null,
-                    (path, properties) => new ShadowCopyReference(_metadataFileProvider, path, properties));
+                    packageResolver: null,
+                    gacFileResolver: GacFileResolver.IsAvailable ? new GacFileResolver(preferredCulture: CultureInfo.CurrentCulture) : null,
+                    useCoreResolver: !GacFileResolver.IsAvailable,
+                    fileReferenceProvider: (path, properties) => new ShadowCopyReference(_metadataFileProvider, path, properties));
             }
 
             private SourceReferenceResolver CreateSourceReferenceResolver(ImmutableArray<string> searchPaths, string baseDirectory)

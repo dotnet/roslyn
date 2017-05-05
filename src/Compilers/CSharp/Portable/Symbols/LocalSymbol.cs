@@ -25,6 +25,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get;
         }
 
+        /// <summary>
+        /// Syntax node that is used as the scope designator. Otherwise, null.
+        /// </summary>
+        internal abstract SyntaxNode ScopeDesignatorOpt { get; }
+
         internal abstract LocalSymbol WithSynthesizedLocalKindAndSyntax(SynthesizedLocalKind kind, SyntaxNode syntax);
 
         internal abstract bool IsImportedFromMetadata
@@ -314,6 +319,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal abstract ConstantValue GetConstantValue(SyntaxNode node, LocalSymbol inProgress, DiagnosticBag diagnostics = null);
 
         internal abstract ImmutableArray<Diagnostic> GetConstantValueDiagnostics(BoundExpression boundInitValue);
+
+        public bool IsRef => RefKind == RefKind.Ref;
 
         internal abstract RefKind RefKind
         {

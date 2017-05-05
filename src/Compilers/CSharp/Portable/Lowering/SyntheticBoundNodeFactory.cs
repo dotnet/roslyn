@@ -255,7 +255,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundBadExpression BadExpression(TypeSymbol type)
         {
-            return new BoundBadExpression(Syntax, LookupResultKind.Empty, ImmutableArray<Symbol>.Empty, ImmutableArray<BoundNode>.Empty, type, hasErrors: true);
+            return new BoundBadExpression(Syntax, LookupResultKind.Empty, ImmutableArray<Symbol>.Empty, ImmutableArray<BoundExpression>.Empty, type, hasErrors: true);
         }
 
         public BoundParameter Parameter(ParameterSymbol p)
@@ -597,7 +597,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if ((object)method == null)
             {
-                return new BoundBadExpression(Syntax, default(LookupResultKind), ImmutableArray<Symbol>.Empty, ((BoundNode[])args).AsImmutableOrNull(), receiver);
+                return new BoundBadExpression(Syntax, default(LookupResultKind), ImmutableArray<Symbol>.Empty, args.AsImmutableOrNull(), receiver);
             }
 
             return Call(null, method, args);
@@ -637,7 +637,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundCall(
                 Syntax, receiver, method, args,
                 ImmutableArray<String>.Empty, ImmutableArray<RefKind>.Empty, false, false, false,
-                default(ImmutableArray<int>), LookupResultKind.Viable, method.ReturnType)
+                default(ImmutableArray<int>), LookupResultKind.Viable, method.ReturnType,
+                hasErrors:method.OriginalDefinition is ErrorMethodSymbol)
             { WasCompilerGenerated = true };
         }
 
@@ -963,12 +964,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundTypeExpression Type(TypeSymbol type)
         {
-            // This is an attempt to get a repro for https://devdiv.visualstudio.com/DevDiv/_workitems?id=278481
-            if ((object)type == null)
-            {
-                throw ExceptionUtilities.Unreachable;
-            }
-
             return new BoundTypeExpression(Syntax, null, type) { WasCompilerGenerated = true };
         }
 
@@ -1181,7 +1176,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal BoundExpression Default(TypeSymbol type)
         {
-            return new BoundDefaultOperator(Syntax, type) { WasCompilerGenerated = true };
+            return new BoundDefaultExpression(Syntax, type) { WasCompilerGenerated = true };
         }
 
         internal BoundStatement Try(
@@ -1285,7 +1280,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundNoOpStatement(Syntax, noOpStatementFlavor);
         }
 
-        internal BoundLocal MakeTempForDiscard(BoundDiscardedExpression node, ArrayBuilder<LocalSymbol> temps)
+        internal BoundLocal MakeTempForDiscard(BoundDiscardExpression node, ArrayBuilder<LocalSymbol> temps)
         {
             LocalSymbol temp;
             BoundLocal result = MakeTempForDiscard(node, out temp);
@@ -1293,7 +1288,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        internal BoundLocal MakeTempForDiscard(BoundDiscardedExpression node, out LocalSymbol temp)
+        internal BoundLocal MakeTempForDiscard(BoundDiscardExpression node, out LocalSymbol temp)
         {
             temp = new SynthesizedLocal(this.CurrentMethod, node.Type, SynthesizedLocalKind.LoweringTemp);
 
@@ -1302,13 +1297,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal ImmutableArray<BoundExpression> MakeTempsForDiscardArguments(ImmutableArray<BoundExpression> arguments, ArrayBuilder<LocalSymbol> builder)
         {
-            var discardsCount = arguments.Count(a => a.Kind == BoundKind.DiscardedExpression);
+            var discardsCount = arguments.Count(a => a.Kind == BoundKind.DiscardExpression);
 
             if (discardsCount != 0)
             {
                 arguments = arguments.SelectAsArray(
-                    (arg, t) => arg.Kind == BoundKind.DiscardedExpression ?  t.Item1.MakeTempForDiscard((BoundDiscardedExpression)arg, t.Item2) : arg,
-                    ValueTuple.Create(this, builder));
+                    (arg, t) => arg.Kind == BoundKind.DiscardExpression ?  t.factory.MakeTempForDiscard((BoundDiscardExpression)arg, t.builder) : arg,
+                    (factory: this, builder: builder));
             }
 
             return arguments;

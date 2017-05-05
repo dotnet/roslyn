@@ -17,7 +17,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Storage
         public string GetStorageLocation(Solution solution)
         {
             var vsWorkspace = solution.Workspace as VisualStudioWorkspaceImpl;
-            return vsWorkspace?.ProjectTracker.GetWorkingFolderPath(solution);
+            return vsWorkspace?.DeferredState?.ProjectTracker.GetWorkingFolderPath(solution);
         }
     }
 }

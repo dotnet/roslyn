@@ -57,8 +57,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         }
 
         public DiagnosticAnalyzerCategory GetAnalyzerCategory()
-        {
-            return DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
-        }
+            => DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
     }
 }

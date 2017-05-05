@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host;
@@ -12,7 +13,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
     internal interface ISyntaxFactsService : ILanguageService
     {
         bool IsCaseSensitive { get; }
+
         bool SupportsIndexingInitializer(ParseOptions options);
+        bool SupportsThrowExpression(ParseOptions options);
 
         bool IsAwaitKeyword(SyntaxToken token);
         bool IsIdentifier(SyntaxToken token);
@@ -30,17 +33,23 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsLiteral(SyntaxToken token);
         bool IsStringLiteralOrInterpolatedStringLiteral(SyntaxToken token);
 
+        bool IsNumericLiteral(SyntaxToken token);
+        bool IsCharacterLiteral(SyntaxToken token);
         bool IsStringLiteral(SyntaxToken token);
-        bool IsStringLiteralExpression(SyntaxNode node);
         bool IsVerbatimStringLiteral(SyntaxToken token);
+        bool IsInterpolatedStringTextToken(SyntaxToken token);
+        bool IsStringLiteralExpression(SyntaxNode node);
 
         bool IsTypeNamedVarInVariableOrFieldDeclaration(SyntaxToken token, SyntaxNode parent);
         bool IsTypeNamedDynamic(SyntaxToken token, SyntaxNode parent);
-        bool IsDocumentationComment(SyntaxNode node);
         bool IsUsingOrExternOrImport(SyntaxNode node);
         bool IsGlobalAttribute(SyntaxNode node);
         bool IsDeclaration(SyntaxNode node);
 
+        bool IsRegularComment(SyntaxTrivia trivia);
+        bool IsDocumentationComment(SyntaxTrivia trivia);
+
+        bool IsDocumentationComment(SyntaxNode node);
         bool IsNumericLiteralExpression(SyntaxNode node);
         bool IsNullLiteralExpression(SyntaxNode node);
 
@@ -56,7 +65,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         bool IsObjectCreationExpressionType(SyntaxNode node);
         bool IsObjectCreationExpression(SyntaxNode node);
-        SyntaxNode GetObjectCreationInitializer(SyntaxNode objectCreationExpression);
+        SyntaxNode GetObjectCreationInitializer(SyntaxNode node);
+        SyntaxNode GetObjectCreationType(SyntaxNode node);
 
         bool IsBinaryExpression(SyntaxNode node);
         void GetPartsOfBinaryExpression(SyntaxNode node, out SyntaxNode left, out SyntaxNode right);
@@ -71,6 +81,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsExpressionOfAwaitExpression(SyntaxNode node);
         SyntaxNode GetExpressionOfAwaitExpression(SyntaxNode node);
 
+        bool IsLogicalAndExpression(SyntaxNode node);
         bool IsLogicalNotExpression(SyntaxNode node);
         SyntaxNode GetOperandOfPrefixUnaryExpression(SyntaxNode node);
 
@@ -115,8 +126,13 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsPointerMemberAccessExpression(SyntaxNode node);
 
         bool IsNamedParameter(SyntaxNode node);
+        SyntaxNode GetDefaultOfParameter(SyntaxNode node);
 
         bool IsSkippedTokensTrivia(SyntaxNode node);
+
+        bool IsWhitespaceTrivia(SyntaxTrivia trivia);
+        bool IsEndOfLineTrivia(SyntaxTrivia trivia);
+        bool IsDocumentationCommentExteriorTrivia(SyntaxTrivia trivia);
 
         SyntaxNode GetExpressionOfConditionalAccessExpression(SyntaxNode node);
 
@@ -141,7 +157,11 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         void GetNameAndArityOfSimpleName(SyntaxNode node, out string name, out int arity);
         SyntaxList<SyntaxNode> GetContentsOfInterpolatedString(SyntaxNode interpolatedString);
-        SeparatedSyntaxList<SyntaxNode> GetArgumentsOfInvocationExpression(SyntaxNode invocationExpression);
+
+        SeparatedSyntaxList<SyntaxNode> GetArgumentsOfInvocationExpression(SyntaxNode node);
+        SeparatedSyntaxList<SyntaxNode> GetArgumentsOfObjectCreationExpression(SyntaxNode node);
+        SeparatedSyntaxList<SyntaxNode> GetArgumentsOfArgumentList(SyntaxNode node);
+
         bool IsUsingDirectiveName(SyntaxNode node);
         bool IsIdentifierName(SyntaxNode node);
         bool IsGenericName(SyntaxNode node);
@@ -158,12 +178,16 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsLockStatement(SyntaxNode node);
         bool IsUsingStatement(SyntaxNode node);
 
+        bool IsReturnStatement(SyntaxNode node);
+        SyntaxNode GetExpressionOfReturnStatement(SyntaxNode node);
+
         bool IsLocalDeclarationStatement(SyntaxNode node);
         bool IsDeclaratorOfLocalDeclarationStatement(SyntaxNode declator, SyntaxNode localDeclarationStatement);
 
         bool IsThisConstructorInitializer(SyntaxToken token);
         bool IsBaseConstructorInitializer(SyntaxToken token);
         bool IsQueryExpression(SyntaxNode node);
+        bool IsThrowExpression(SyntaxNode node);
         bool IsElementAccessExpression(SyntaxNode node);
         bool IsIndexerMemberCRef(SyntaxNode node);
 
@@ -248,6 +272,10 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         /// </summary>
         string GetNameForArgument(SyntaxNode argument);
 
+        ImmutableArray<SyntaxNode> GetSelectedMembers(SyntaxNode root, TextSpan textSpan);
+        bool IsOnTypeHeader(SyntaxNode root, int position);
+        bool IsBetweenTypeMembers(SourceText sourceText, SyntaxNode root, int position);
+
         // Walks the tree, starting from contextNode, looking for the first construct
         // with a missing close brace.  If found, the close brace will be added and the
         // updates root will be returned.  The context node in that new tree will also
@@ -255,6 +283,15 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         void AddFirstMissingCloseBrace(
             SyntaxNode root, SyntaxNode contextNode, 
             out SyntaxNode newRoot, out SyntaxNode newContextNode);
+
+        SyntaxNode GetNextExecutableStatement(SyntaxNode statement);
+
+        ImmutableArray<SyntaxTrivia> GetFileBanner(SyntaxNode root);
+
+        bool ContainsInterleavedDirective(SyntaxNode node, CancellationToken cancellationToken);
+        bool ContainsInterleavedDirective(ImmutableArray<SyntaxNode> nodes, CancellationToken cancellationToken);
+
+        string GetBannerText(SyntaxNode documentationCommentTriviaSyntax, CancellationToken cancellationToken);
     }
 
     [Flags]

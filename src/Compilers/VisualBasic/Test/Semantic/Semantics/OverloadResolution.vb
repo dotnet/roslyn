@@ -5775,5 +5775,103 @@ BC30057: Too many arguments to 'Public Sub M1()'.
 </expected>)
         End Sub
 
+        <Fact>
+        <WorkItem(16478, "https://github.com/dotnet/roslyn/issues/16478")>
+        Public Sub AmbiguousInference_01()
+
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb">
+Imports System
+Imports System.Collections.Generic
+
+Public Class Test
+    Public Shared Sub Assert(Of T)(a As T, b As T)
+        Console.WriteLine("Non collection")
+    End Sub
+
+    Public Shared Sub Assert(Of T)(a As IEnumerable(Of T), b As IEnumerable(Of T))
+        Console.WriteLine("Collection")
+    End Sub
+
+    Public Shared Sub Main()
+        Dim a = {"A"}
+        Dim b = New StringValues()
+
+        Assert(a, b)
+        Assert(b, a)
+    End Sub
+
+    Private Class StringValues
+        Inherits List(Of String)
+        Public Shared Widening Operator CType(values As String()) As StringValues
+            Return New StringValues()
+        End Operator
+
+        Public Shared Widening Operator CType(value As StringValues) As String()
+            Return {}
+        End Operator
+    End Class
+End Class
+    </file>
+</compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+
+            CompileAndVerify(compilationDef, expectedOutput:=
+"Collection
+Collection")
+        End Sub
+
+        <Fact>
+        <WorkItem(16478, "https://github.com/dotnet/roslyn/issues/16478")>
+        Public Sub AmbiguousInference_02()
+
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb">
+Imports System
+Imports System.Collections.Generic
+
+Public Class Test
+    Public Shared Sub Assert(Of T)(a As T, b As T)
+        Console.WriteLine("Non collection")
+    End Sub
+
+    Public Shared Sub Main()
+        Dim a = {"A"}
+        Dim b = New StringValues()
+
+        Assert(a, b)
+        Assert(b, a)
+    End Sub
+
+    Private Class StringValues
+        Inherits List(Of String)
+        Public Shared Widening Operator CType(values As String()) As StringValues
+            Return New StringValues()
+        End Operator
+
+        Public Shared Widening Operator CType(value As StringValues) As String()
+            Return {}
+        End Operator
+    End Class
+End Class
+    </file>
+</compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+
+            CompilationUtils.AssertTheseDiagnostics(compilation,
+<expected>
+BC36651: Data type(s) of the type parameter(s) in method 'Public Shared Sub Assert(Of T)(a As T, b As T)' cannot be inferred from these arguments because more than one type is possible. Specifying the data type(s) explicitly might correct this error.
+        Assert(a, b)
+        ~~~~~~
+BC36651: Data type(s) of the type parameter(s) in method 'Public Shared Sub Assert(Of T)(a As T, b As T)' cannot be inferred from these arguments because more than one type is possible. Specifying the data type(s) explicitly might correct this error.
+        Assert(b, a)
+        ~~~~~~
+</expected>)
+        End Sub
+
     End Class
 End Namespace

@@ -145,7 +145,7 @@ Class Program
 End Class
 ]]></a>.Value
 
-        Private Shared ReadOnly s_preferObjectInitializer As String = "
+        Private Shared ReadOnly s_preferObjectInitializer As String = $"
 Imports System
 
 Class Customer
@@ -153,33 +153,33 @@ Class Customer
 
     Sub New()
 //[
-        ' Prefer:
-        Dim c = New Customer() With {
+        ' {ServicesVSResources.Prefer_colon}
+        Dim c = New Customer() With {{
             .Age = 21
-        }
+        }}
 
-        ' Over:
+        ' {ServicesVSResources.Over_colon}
         Dim c = New Customer()
         c.Age = 21
 //]
     End Sub
 End Class"
 
-        Private Shared ReadOnly s_preferCollectionInitializer As String = "
+        Private Shared ReadOnly s_preferCollectionInitializer As String = $"
 
 Class Customer
     Private Age As Integer
 
     Sub New()
 //[
-        ' Prefer:
-        Dim list = New List(Of Integer) From {
+        ' {ServicesVSResources.Prefer_colon}
+        Dim list = New List(Of Integer) From {{
             1,
             2,
             3
-        }
+        }}
 
-        ' Over:
+        ' {ServicesVSResources.Over_colon}
         Dim list = New List(Of Integer)()
         list.Add(1)
         list.Add(2)
@@ -188,16 +188,16 @@ Class Customer
     End Sub
 End Class"
 
-        Private Shared ReadOnly s_preferExplicitTupleName As String = "
+        Private Shared ReadOnly s_preferExplicitTupleName As String = $"
 Class Customer
     Public Sub New()
 //[
-        ' Prefer:
+        ' {ServicesVSResources.Prefer_colon}
         Dim customer As (name As String, age As Integer)
         Dim name = customer.name
         Dim age = customer.age
 
-        ' Over
+        ' {ServicesVSResources.Over_colon}
         Dim customer As (name As String, age As Integer)
         Dim name = customer.Item1
         Dim age = customer.Item2
@@ -206,7 +206,7 @@ Class Customer
 end class
 "
 
-        Private Shared ReadOnly s_preferCoalesceExpression As String = "
+        Private Shared ReadOnly s_preferCoalesceExpression As String = $"
 Imports System
 
 Class Customer
@@ -214,17 +214,17 @@ Class Customer
 
     Sub New()
 //[
-        ' Prefer:
+        ' {ServicesVSResources.Prefer_colon}
         Dim v = If(x, y)
 
-        ' Over:
-        Dim v = If(x Is Nothing, y, x)    ' or
+        ' {ServicesVSResources.Over_colon}
+        Dim v = If(x Is Nothing, y, x)    ' {ServicesVSResources.or}
         Dim v = If(x IsNot Nothing, x, y)
 //]
     End Sub
 End Class"
 
-        Private Shared ReadOnly s_preferNullPropagation As String = "
+        Private Shared ReadOnly s_preferNullPropagation As String = $"
 Imports System
 
 Class Customer
@@ -232,11 +232,11 @@ Class Customer
 
     Sub New()
 //[
-        ' Prefer:
+        ' {ServicesVSResources.Prefer_colon}
         Dim v = o?.ToString()
 
-        ' Over:
-        Dim v = If(o Is Nothing, Nothing, o.ToString())    ' or
+        ' {ServicesVSResources.Over_colon}
+        Dim v = If(o Is Nothing, Nothing, o.ToString())    ' {ServicesVSResources.or}
         Dim v = If(o IsNot Nothing, o.ToString(), Nothing)
 //]
     End Sub
@@ -268,23 +268,23 @@ End Class"
             Dim nothingPreferencesGroupTitle = BasicVSResources.nothing_checking_colon
 
             ' qualify with Me. group
-            Me.CodeStyleItems.Add(New SimpleCodeStyleOptionViewModel(CodeStyleOptions.QualifyFieldAccess, BasicVSResources.Qualify_field_access_with_Me, s_fieldDeclarationPreviewTrue, s_fieldDeclarationPreviewFalse, Me, optionSet, qualifyGroupTitle, qualifyMemberAccessPreferences))
-            Me.CodeStyleItems.Add(New SimpleCodeStyleOptionViewModel(CodeStyleOptions.QualifyPropertyAccess, BasicVSResources.Qualify_property_access_with_Me, s_propertyDeclarationPreviewTrue, s_propertyDeclarationPreviewFalse, Me, optionSet, qualifyGroupTitle, qualifyMemberAccessPreferences))
-            Me.CodeStyleItems.Add(New SimpleCodeStyleOptionViewModel(CodeStyleOptions.QualifyMethodAccess, BasicVSResources.Qualify_method_access_with_Me, s_methodDeclarationPreviewTrue, s_methodDeclarationPreviewFalse, Me, optionSet, qualifyGroupTitle, qualifyMemberAccessPreferences))
-            Me.CodeStyleItems.Add(New SimpleCodeStyleOptionViewModel(CodeStyleOptions.QualifyEventAccess, BasicVSResources.Qualify_event_access_with_Me, s_eventDeclarationPreviewTrue, s_eventDeclarationPreviewFalse, Me, optionSet, qualifyGroupTitle, qualifyMemberAccessPreferences))
+            Me.CodeStyleItems.Add(New BooleanCodeStyleOptionViewModel(CodeStyleOptions.QualifyFieldAccess, BasicVSResources.Qualify_field_access_with_Me, s_fieldDeclarationPreviewTrue, s_fieldDeclarationPreviewFalse, Me, optionSet, qualifyGroupTitle, qualifyMemberAccessPreferences))
+            Me.CodeStyleItems.Add(New BooleanCodeStyleOptionViewModel(CodeStyleOptions.QualifyPropertyAccess, BasicVSResources.Qualify_property_access_with_Me, s_propertyDeclarationPreviewTrue, s_propertyDeclarationPreviewFalse, Me, optionSet, qualifyGroupTitle, qualifyMemberAccessPreferences))
+            Me.CodeStyleItems.Add(New BooleanCodeStyleOptionViewModel(CodeStyleOptions.QualifyMethodAccess, BasicVSResources.Qualify_method_access_with_Me, s_methodDeclarationPreviewTrue, s_methodDeclarationPreviewFalse, Me, optionSet, qualifyGroupTitle, qualifyMemberAccessPreferences))
+            Me.CodeStyleItems.Add(New BooleanCodeStyleOptionViewModel(CodeStyleOptions.QualifyEventAccess, BasicVSResources.Qualify_event_access_with_Me, s_eventDeclarationPreviewTrue, s_eventDeclarationPreviewFalse, Me, optionSet, qualifyGroupTitle, qualifyMemberAccessPreferences))
 
             ' predefined or framework type group
-            Me.CodeStyleItems.Add(New SimpleCodeStyleOptionViewModel(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, ServicesVSResources.For_locals_parameters_and_members, _intrinsicDeclarationPreviewTrue, _intrinsicDeclarationPreviewFalse, Me, optionSet, predefinedTypesGroupTitle, predefinedTypesPreferences))
-            Me.CodeStyleItems.Add(New SimpleCodeStyleOptionViewModel(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, ServicesVSResources.For_member_access_expressions, _intrinsicMemberAccessPreviewTrue, _intrinsicMemberAccessPreviewFalse, Me, optionSet, predefinedTypesGroupTitle, predefinedTypesPreferences))
+            Me.CodeStyleItems.Add(New BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, ServicesVSResources.For_locals_parameters_and_members, _intrinsicDeclarationPreviewTrue, _intrinsicDeclarationPreviewFalse, Me, optionSet, predefinedTypesGroupTitle, predefinedTypesPreferences))
+            Me.CodeStyleItems.Add(New BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, ServicesVSResources.For_member_access_expressions, _intrinsicMemberAccessPreviewTrue, _intrinsicMemberAccessPreviewFalse, Me, optionSet, predefinedTypesGroupTitle, predefinedTypesPreferences))
 
             ' expression preferences
-            Me.CodeStyleItems.Add(New SimpleCodeStyleOptionViewModel(CodeStyleOptions.PreferObjectInitializer, ServicesVSResources.Prefer_object_initializer, s_preferObjectInitializer, s_preferObjectInitializer, Me, optionSet, expressionPreferencesGroupTitle))
-            Me.CodeStyleItems.Add(New SimpleCodeStyleOptionViewModel(CodeStyleOptions.PreferCollectionInitializer, ServicesVSResources.Prefer_collection_initializer, s_preferCollectionInitializer, s_preferCollectionInitializer, Me, optionSet, expressionPreferencesGroupTitle))
-            Me.CodeStyleItems.Add(New SimpleCodeStyleOptionViewModel(CodeStyleOptions.PreferExplicitTupleNames, ServicesVSResources.Prefer_explicit_tuple_name, s_preferExplicitTupleName, s_preferExplicitTupleName, Me, optionSet, expressionPreferencesGroupTitle))
+            Me.CodeStyleItems.Add(New BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferObjectInitializer, ServicesVSResources.Prefer_object_initializer, s_preferObjectInitializer, s_preferObjectInitializer, Me, optionSet, expressionPreferencesGroupTitle))
+            Me.CodeStyleItems.Add(New BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferCollectionInitializer, ServicesVSResources.Prefer_collection_initializer, s_preferCollectionInitializer, s_preferCollectionInitializer, Me, optionSet, expressionPreferencesGroupTitle))
+            Me.CodeStyleItems.Add(New BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferExplicitTupleNames, ServicesVSResources.Prefer_explicit_tuple_name, s_preferExplicitTupleName, s_preferExplicitTupleName, Me, optionSet, expressionPreferencesGroupTitle))
 
             ' nothing preferences
-            Me.CodeStyleItems.Add(New SimpleCodeStyleOptionViewModel(CodeStyleOptions.PreferCoalesceExpression, ServicesVSResources.Prefer_coalesce_expression, s_preferCoalesceExpression, s_preferCoalesceExpression, Me, optionSet, nothingPreferencesGroupTitle))
-            Me.CodeStyleItems.Add(New SimpleCodeStyleOptionViewModel(CodeStyleOptions.PreferNullPropagation, ServicesVSResources.Prefer_null_propagation, s_preferNullPropagation, s_preferNullPropagation, Me, optionSet, nothingPreferencesGroupTitle))
+            Me.CodeStyleItems.Add(New BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferCoalesceExpression, ServicesVSResources.Prefer_coalesce_expression, s_preferCoalesceExpression, s_preferCoalesceExpression, Me, optionSet, nothingPreferencesGroupTitle))
+            Me.CodeStyleItems.Add(New BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferNullPropagation, ServicesVSResources.Prefer_null_propagation, s_preferNullPropagation, s_preferNullPropagation, Me, optionSet, nothingPreferencesGroupTitle))
         End Sub
     End Class
 End Namespace

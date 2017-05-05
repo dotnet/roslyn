@@ -601,6 +601,15 @@ End Using</x>.Value)
         End Sub
 
         <Fact>
+        Public Sub TestLockStatements()
+            VerifySyntax(Of SyncLockBlockSyntax)(
+                _g.LockStatement(_g.IdentifierName("x"), {_g.IdentifierName("y")}),
+<x>SyncLock x
+    y
+End SyncLock</x>.Value)
+        End Sub
+
+        <Fact>
         Public Sub TestTryCatchStatements()
 
             VerifySyntax(Of TryBlockSyntax)(
@@ -765,8 +774,8 @@ End Sub</x>.Value)
                 <x>Public fld As Integer</x>.Value)
 
             VerifySyntax(Of FieldDeclarationSyntax)(
-                _g.FieldDeclaration("fld", _g.TypeExpression(SpecialType.System_Int32), modifiers:=DeclarationModifiers.Static Or DeclarationModifiers.ReadOnly),
-                <x>Shared ReadOnly fld As Integer</x>.Value)
+                _g.FieldDeclaration("fld", _g.TypeExpression(SpecialType.System_Int32), modifiers:=DeclarationModifiers.Static Or DeclarationModifiers.ReadOnly Or DeclarationModifiers.WithEvents),
+                <x>Shared ReadOnly WithEvents fld As Integer</x>.Value)
         End Sub
 
         <Fact>
@@ -2292,7 +2301,7 @@ End Class
         Public Sub TestGetAccessibility()
             Assert.Equal(Accessibility.Internal, _g.GetAccessibility(_g.ClassDeclaration("c", accessibility:=Accessibility.Internal)))
             Assert.Equal(Accessibility.Internal, _g.GetAccessibility(_g.StructDeclaration("s", accessibility:=Accessibility.Internal)))
-            Assert.Equal(Accessibility.Internal, _g.GetAccessibility(_g.EnumDeclaration("i", accessibility:=Accessibility.Internal)))
+            Assert.Equal(Accessibility.Internal, _g.GetAccessibility(_g.InterfaceDeclaration("i", accessibility:=Accessibility.Internal)))
             Assert.Equal(Accessibility.Internal, _g.GetAccessibility(_g.EnumDeclaration("e", accessibility:=Accessibility.Internal)))
             Assert.Equal(Accessibility.Internal, _g.GetAccessibility(_g.DelegateDeclaration("d", accessibility:=Accessibility.Internal)))
             Assert.Equal(Accessibility.Internal, _g.GetAccessibility(_g.MethodDeclaration("m", accessibility:=Accessibility.Internal)))
@@ -2309,6 +2318,11 @@ End Class
             Assert.Equal(Accessibility.NotApplicable, _g.GetAccessibility(_g.LocalDeclarationStatement(_g.IdentifierName("t"), "loc")))
             Assert.Equal(Accessibility.NotApplicable, _g.GetAccessibility(_g.Attribute("a")))
             Assert.Equal(Accessibility.NotApplicable, _g.GetAccessibility(SyntaxFactory.TypeParameter("tp")))
+
+            Dim m = SyntaxFactory.ModuleBlock(
+                SyntaxFactory.ModuleStatement("module2").
+                              WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword))))
+            Assert.Equal(Accessibility.Public, _g.GetAccessibility(m))
         End Sub
 
         <Fact>
@@ -2332,6 +2346,11 @@ End Class
             Assert.Equal(Accessibility.NotApplicable, _g.GetAccessibility(_g.WithAccessibility(_g.LocalDeclarationStatement(_g.IdentifierName("t"), "loc"), Accessibility.Private)))
             Assert.Equal(Accessibility.NotApplicable, _g.GetAccessibility(_g.WithAccessibility(_g.Attribute("a"), Accessibility.Private)))
             Assert.Equal(Accessibility.NotApplicable, _g.GetAccessibility(_g.WithAccessibility(SyntaxFactory.TypeParameter("tp"), Accessibility.Private)))
+
+            Dim m = SyntaxFactory.ModuleBlock(
+                SyntaxFactory.ModuleStatement("module2").
+                              WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword))))
+            Assert.Equal(Accessibility.Internal, _g.GetAccessibility(_g.WithAccessibility(m, Accessibility.Internal)))
         End Sub
 
         <Fact>

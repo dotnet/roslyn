@@ -20,6 +20,7 @@
     <Rule Id="CA1054" Action="None" />
     <Rule Id="CA1055" Action="None" />
     <Rule Id="CA1056" Action="None" />
+    <Rule Id="CA1061" Action="None" /> <!-- "do not hide base class methods": currently violations in the compiler -->
     <Rule Id="CA1064" Action="None" />
     <Rule Id="CA1065" Action="None" />
     <Rule Id="CA1066" Action="None" />
@@ -35,9 +36,19 @@
     <Rule Id="CA1720" Action="None" />
     <Rule Id="CA1721" Action="None" />
     <Rule Id="CA1724" Action="None" />
+    <Rule Id="CA1801" Action="None" /> <!-- unused parameters: broken due to https://github.com/dotnet/roslyn/issues/8884 -->
+    <Rule Id="CA1802" Action="None" /> <!-- broken due to https://github.com/dotnet/roslyn-analyzers/issues/1175 -->
+    <Rule Id="CA1804" Action="None" /> <!-- broken due to incomplete IOperation support -->
+    <Rule Id="CA1806" Action="None" /> <!-- "do not ignore results": we do this in many places, for example fire-and-forget async or HRESULTs we don't care about -->
+    <Rule Id="CA1812" Action="None" /> <!-- disabled as we create many internal types via reflection-based mechanisms -->
+    <Rule Id="CA1814" Action="None" /> <!-- prefer jagged arrays to multidimensional: a silly piece of advice -->
     <Rule Id="CA1815" Action="None" />
+    <Rule Id="CA1821" Action="None" /> <!-- broken due to https://github.com/dotnet/roslyn-analyzers/issues/1176 -->
+    <Rule Id="CA1823" Action="None" /> <!-- "avoid unused private fields": many issues including https://github.com/dotnet/roslyn-analyzers/issues/933 -->
+    <Rule Id="CA1824" Action="None" /> <!-- mark assemblies with NeutralResourcesLanguageAttribute -->
     <Rule Id="CA2007" Action="Warning" />
     <Rule Id="CA2211" Action="None" />
+    <Rule Id="CA2214" Action="None" /> <!-- do not call overridable methods in constructors: done in various places -->
     <Rule Id="CA2218" Action="None" />
     <Rule Id="CA2222" Action="None" />
     <Rule Id="CA2224" Action="None" />
@@ -45,6 +56,8 @@
     <Rule Id="CA2227" Action="None" />
     <Rule Id="CA2231" Action="None" />
     <Rule Id="CA2234" Action="None" />
+    <Rule Id="CA5350" Action="None" /> <!-- in some cases we must use legacy cryptographic hashes, so disable for now -->
+    <Rule Id="CA5351" Action="None" /> <!-- in some cases we must use legacy cryptographic hashes, so disable for now -->
   </Rules>
   <Rules AnalyzerId="Microsoft.CodeAnalysis.Analyzers" RuleNamespace="Microsoft.CodeAnalysis.Analyzers">
     <Rule Id="RS1001" Action="None" />
@@ -81,7 +94,7 @@
     <Rule Id="RS0027" Action="Error" />
   </Rules>
   <Rules AnalyzerId="System.Collections.Immutable.Analyzers" RuleNamespace="System.Collections.Immutable.Analyzers">
-    <Rule Id="RS0012" Action="Warning" />
+    <Rule Id="RS0012" Action="None" />
   </Rules>
   <Rules AnalyzerId="System.Runtime.Analyzers" RuleNamespace="System.Runtime.Analyzers">
     <Rule Id="CA1305" Action="None" />
@@ -89,7 +102,7 @@
     <Rule Id="CA1308" Action="None" />
     <Rule Id="CA1810" Action="None" />
     <Rule Id="CA1816" Action="None" />
-    <Rule Id="CA1825" Action="Warning" />
+    <Rule Id="CA1825" Action="None" />
     <Rule Id="CA2002" Action="None" />
     <Rule Id="CA2207" Action="None" />
     <Rule Id="CA2208" Action="None" />
@@ -97,7 +110,7 @@
     <Rule Id="CA2219" Action="None" />
     <Rule Id="CA2241" Action="None" />
     <Rule Id="CA2242" Action="None" />
-    <Rule Id="RS0014" Action="Warning" />
+    <Rule Id="RS0014" Action="None" />
   </Rules>
   <Rules AnalyzerId="System.Runtime.InteropServices.Analyzers" RuleNamespace="System.Runtime.InteropServices.Analyzers">
     <Rule Id="CA1401" Action="None" />

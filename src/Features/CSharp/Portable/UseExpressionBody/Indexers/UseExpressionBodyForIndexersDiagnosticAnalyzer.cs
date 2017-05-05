@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     internal class UseExpressionBodyForIndexersDiagnosticAnalyzer :
-        AbstractUseExpressionBodyDiagnosticAnalyzer<IndexerDeclarationSyntax>, IBuiltInAnalyzer
+        AbstractUseExpressionBodyDiagnosticAnalyzer<IndexerDeclarationSyntax>
     {
         public UseExpressionBodyForIndexersDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseExpressionBodyForIndexersDiagnosticId,

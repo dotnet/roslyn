@@ -8,9 +8,37 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Popula
     Partial Public Class PopulateSwitchTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
-        Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As Tuple(Of DiagnosticAnalyzer, CodeFixProvider)
-            Return New Tuple(Of DiagnosticAnalyzer, CodeFixProvider)(
-                New PopulateSwitchDiagnosticAnalyzer(), New PopulateSwitchCodeFixProvider())
+        Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
+            Return (New PopulateSwitchDiagnosticAnalyzer(), New PopulateSwitchCodeFixProvider())
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)>
+        Public Async Function OnlyOnFirstToken() As Task
+            Dim markup =
+<File>
+Enum MyEnum
+    Fizz
+    Buzz
+    FizzBuzz
+End Enum
+Class Foo
+    Sub Bar()
+        Dim e = MyEnum.Fizz
+        Select Case [||]e
+            Case MyEnum.Fizz
+                Exit Select
+            Case MyEnum.Buzz
+                Exit Select
+            Case MyEnum.FizzBuzz
+                Exit Select
+            Case Else
+                Exit Select
+        End Select
+    End Sub
+End Class
+</File>
+
+            Await TestMissingAsync(markup)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)>
@@ -25,7 +53,7 @@ End Enum
 Class Foo
     Sub Bar()
         Dim e = MyEnum.Fizz
-        Select Case [|e|]
+        [||]Select Case e
             Case MyEnum.Fizz
                 Exit Select
             Case MyEnum.Buzz
@@ -54,7 +82,7 @@ End Enum
 Class Foo
     Sub Bar()
         Dim e = MyEnum.Fizz
-        Select Case [|e|]
+        [||]Select Case e
             Case MyEnum.Fizz
                 Exit Select
             Case MyEnum.Buzz
@@ -105,7 +133,7 @@ End Enum
 Class Foo
     Sub Bar()
         Dim e = MyEnum.Fizz
-        Select Case [|e|]
+        [||]Select Case e
             Case MyEnum.Fizz
                 Exit Select
             Case MyEnum.Buzz
@@ -154,7 +182,7 @@ End Enum
 Class Foo
     Sub Bar()
         Dim e = MyEnum.Fizz
-        Select Case [|e|]
+        [||]Select Case e
             Case MyEnum.Fizz
                 Exit Select
             Case MyEnum.Buzz
@@ -190,7 +218,7 @@ Class Foo
 End Class
 </File>
 
-            Await TestAsync(markup, expected, compareTokens:=False)
+            Await TestAsync(markup, expected, ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)>
@@ -205,7 +233,7 @@ End Enum
 Class Foo
     Sub Bar()
         Dim e = MyEnum.Fizz
-        Select Case [|e|]
+        [||]Select Case e
             Case MyEnum.Fizz
                 Exit Select
             Case MyEnum.Buzz
@@ -254,7 +282,7 @@ End Enum
 Class Foo
     Sub Bar()
         Dim e = MyEnum.Fizz
-        Select Case [|e|]
+        [||]Select Case e
             Case MyEnum.Fizz
                 Exit Select
             Case MyEnum.Buzz ' not legal.  VB does not allow fallthrough.
@@ -288,7 +316,7 @@ Class Foo
 End Class
 </File>
 
-            Await TestAsync(markup, expected, compareTokens:=False)
+            Await TestAsync(markup, expected, ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)>
@@ -303,7 +331,7 @@ End Enum
 Class Foo
     Sub Bar()
         Dim e = MyEnum.Fizz
-        Select Case [|e|]
+        [||]Select Case e
         End Select
     End Sub
 End Class
@@ -349,7 +377,7 @@ End Enum
 Class Foo
     Sub Bar()
         Dim e = CreateNew
-        Select Case [|e|]
+        [||]Select Case e
             Case CreateNew
                 Exit Select
             Case Create
@@ -385,7 +413,7 @@ End Enum
 Class Foo
     Sub Bar()
         Dim e = CreateNew
-        Select Case [|e|]
+        [||]Select Case e
             Case Truncate
                 Exit Select
             Case Append
@@ -421,7 +449,7 @@ End Enum
 Class Foo
     Sub Bar()
         Dim e = CreateNew
-        Select Case [|e|]
+        [||]Select Case e
             Case CreateNew
                 Exit Select
             Case Create
@@ -466,7 +494,7 @@ Class Foo
 End Class
 </File>
 
-            Await TestAsync(markup, expected, compareTokens:=False)
+            Await TestAsync(markup, expected, ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)>
@@ -482,7 +510,7 @@ End Enum
 Class Foo
     Sub Bar()
         Dim e = CreateNew
-        Select Case [|e|]
+        [||]Select Case e
             
         End Select
     End Sub
@@ -536,7 +564,7 @@ End Enum
 Class Foo
     Sub Bar()
         Dim e = MyEnum.Fizz
-        Select Case [|e|]
+        [||]Select Case e
             Case MyEnum.Fizz
                 Exit Select
             Case MyEnum.Buzz
@@ -586,7 +614,7 @@ Class Foo
     End Enum
     Sub Bar()
         Dim e = MyEnum.Fizz
-        Select Case [|e|]
+        [||]Select Case e
             Case MyEnum.Fizz
                 Exit Select
             Case MyEnum.Buzz
@@ -630,7 +658,7 @@ End Class
 Class Foo
     Sub Bar()
         Dim e = "Test"
-        Select Case [|e|]
+        [||]Select Case e
             Case "Fizz"
                 Exit Select
             Case "Test"

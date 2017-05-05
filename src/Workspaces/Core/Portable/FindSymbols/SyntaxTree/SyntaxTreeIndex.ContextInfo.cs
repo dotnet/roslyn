@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 writer.WriteInt32((int)_containingNodes);
             }
 
-            public static ContextInfo? ReadFrom(ObjectReader reader)
+            public static ContextInfo? TryReadFrom(ObjectReader reader)
             {
                 try
                 {

@@ -366,7 +366,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
                 If Not nullCheckOnCopy Then
                     receiverTemp = EmitReceiverRef(receiver, isAccessConstrained:=Not receiverType.IsReferenceType, addressKind:=AddressKind.ReadOnly)
-                    Debug.Assert(receiverTemp Is Nothing)
+                    Debug.Assert(receiverTemp Is Nothing OrElse receiver.IsDefaultValue())
                 End If
 
                 EmitExpression(conditional.WhenNotNull, used)

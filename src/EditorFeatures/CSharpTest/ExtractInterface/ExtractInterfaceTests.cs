@@ -1008,7 +1008,7 @@ class Program $$: ISomeInterface<object>
             TypeDiscoveryRule typeDiscoveryRule,
             bool expectedExtractable)
         {
-            using (var testState = await ExtractInterfaceTestState.CreateAsync(markup, LanguageNames.CSharp, compilationOptions: null))
+            using (var testState = ExtractInterfaceTestState.Create(markup, LanguageNames.CSharp, compilationOptions: null))
             {
                 var result = await testState.GetTypeAnalysisResultAsync(typeDiscoveryRule);
                 Assert.Equal(expectedExtractable, result.CanExtractInterface);
@@ -1057,12 +1057,12 @@ class $$Test<T, U>
         [WpfFact]
         [Trait(Traits.Feature, Traits.Features.ExtractInterface)]
         [Trait(Traits.Feature, Traits.Features.Interactive)]
-        public async Task ExtractInterfaceCommandDisabledInSubmission()
+        public void ExtractInterfaceCommandDisabledInSubmission()
         {
             var exportProvider = MinimalTestExportProvider.CreateExportProvider(
                 TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(typeof(InteractiveDocumentSupportsFeatureService)));
 
-            using (var workspace = await TestWorkspace.CreateAsync(XElement.Parse(@"
+            using (var workspace = TestWorkspace.Create(XElement.Parse(@"
                 <Workspace>
                     <Submission Language=""C#"" CommonReferences=""true"">  
                         public class $$C

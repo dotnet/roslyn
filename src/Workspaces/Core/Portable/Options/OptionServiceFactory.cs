@@ -32,14 +32,12 @@ namespace Microsoft.CodeAnalysis.Options
         /// clients.  Also takes the <see cref="IGlobalOptionService.OptionChanged"/> notifications
         /// and forwards them along using the same <see cref="IWorkspaceTaskScheduler"/> used by the
         /// <see cref="Workspace"/> this is connected to.  i.e. instead of synchronously just passing
-        /// along the underlying events, these will be enqueued onto the workspaces eventing queue.
+        /// along the underlying events, these will be enqueued onto the workspace's eventing queue.
         /// </summary>
         // Internal for testing purposes.
         internal class OptionService : IWorkspaceOptionService
         {
             private readonly IGlobalOptionService _globalOptionService;
-
-            // Can be null during testing.
             private readonly IWorkspaceTaskScheduler _taskQueue;
 
             /// <summary>
@@ -59,8 +57,8 @@ namespace Microsoft.CodeAnalysis.Options
             {
                 _globalOptionService = globalOptionService;
 
-                var workspaceTaskSchedulerFactory = workspaceServices?.GetRequiredService<IWorkspaceTaskSchedulerFactory>();
-                _taskQueue = workspaceTaskSchedulerFactory?.CreateTaskQueue();
+                var workspaceTaskSchedulerFactory = workspaceServices.GetRequiredService<IWorkspaceTaskSchedulerFactory>();
+                _taskQueue = workspaceTaskSchedulerFactory.CreateEventingTaskQueue();
 
                 _globalOptionService.OptionChanged += OnGlobalOptionServiceOptionChanged;
             }
@@ -74,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Options
 
             private void OnGlobalOptionServiceOptionChanged(object sender, OptionChangedEventArgs e)
             {
-                _taskQueue?.ScheduleTask(() =>
+                _taskQueue.ScheduleTask(() =>
                 {
                     // Ensure we grab the event handlers inside the scheduled task to prevent a race of people unsubscribing
                     // but getting the event later on the UI thread
@@ -190,7 +188,7 @@ namespace Microsoft.CodeAnalysis.Options
 
                     foreach (var documentOptionSource in _documentOptions)
                     {
-                        if (documentOptionSource.TryGetDocumentOption(_document, optionKey, out value))
+                        if (documentOptionSource.TryGetDocumentOption(_document, optionKey, _underlyingOptions, out value))
                         {
                             // Cache and return
                             lock (_gate)

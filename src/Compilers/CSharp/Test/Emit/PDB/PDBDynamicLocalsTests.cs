@@ -76,8 +76,8 @@ class Test
       <customDebugInfo>
         <forward declaringType=""Helper"" methodName=""foo"" parameterNames=""y"" />
         <dynamicLocals>
-          <bucket flagCount=""1"" flags=""1"" slotId=""0"" localName=""d1"" />
-          <bucket flagCount=""1"" flags=""1"" slotId=""1"" localName=""d2"" />
+          <bucket flags=""1"" slotId=""0"" localName=""d1"" />
+          <bucket flags=""1"" slotId=""1"" localName=""d2"" />
         </dynamicLocals>
         <encLocalSlotMap>
           <slot kind=""0"" offset=""13"" />
@@ -132,8 +132,8 @@ class Test
           <namespace usingCount=""1"" />
         </using>
         <dynamicLocals>
-          <bucket flagCount=""2"" flags=""01"" slotId=""0"" localName=""arrDynamic"" />
-          <bucket flagCount=""1"" flags=""1"" slotId=""3"" localName=""d"" />
+          <bucket flags=""01"" slotId=""0"" localName=""arrDynamic"" />
+          <bucket flags=""1"" slotId=""3"" localName=""d"" />
         </dynamicLocals>
         <encLocalSlotMap>
           <slot kind=""0"" offset=""15"" />
@@ -195,9 +195,9 @@ class Test
           <namespace usingCount=""0"" />
         </using>
         <dynamicLocals>
-          <bucket flagCount=""1"" flags=""1"" slotId=""0"" localName=""d"" />
-          <bucket flagCount=""1"" flags=""1"" slotId=""0"" localName=""c"" />
-          <bucket flagCount=""1"" flags=""1"" slotId=""0"" localName=""d"" />
+          <bucket flags=""1"" slotId=""0"" localName=""d"" />
+          <bucket flags=""1"" slotId=""0"" localName=""c"" />
+          <bucket flags=""1"" slotId=""0"" localName=""d"" />
         </dynamicLocals>
       </customDebugInfo>
       <sequencePoints>
@@ -251,9 +251,9 @@ class Test
           <namespace usingCount=""0"" />
         </using>
         <dynamicLocals>
-          <bucket flagCount=""1"" flags=""1"" slotId=""0"" localName=""a"" />
-          <bucket flagCount=""2"" flags=""01"" slotId=""2"" localName=""a"" />
-          <bucket flagCount=""1"" flags=""1"" slotId=""3"" localName=""b"" />
+          <bucket flags=""1"" slotId=""0"" localName=""a"" />
+          <bucket flags=""01"" slotId=""2"" localName=""a"" />
+          <bucket flags=""1"" slotId=""3"" localName=""b"" />
         </dynamicLocals>
         <encLocalSlotMap>
           <slot kind=""0"" offset=""34"" />
@@ -313,8 +313,8 @@ class Test
           <namespace usingCount=""0"" />
         </using>
         <dynamicLocals>
-          <bucket flagCount=""1"" flags=""1"" slotId=""1"" localName=""d12345678901234567890123456789012345678901234567890123456789012"" />
-          <bucket flagCount=""1"" flags=""1"" slotId=""0"" localName=""b12345678901234567890123456789012345678901234567890123456789012"" />
+          <bucket flags=""1"" slotId=""1"" localName=""d12345678901234567890123456789012345678901234567890123456789012"" />
+          <bucket flags=""1"" slotId=""0"" localName=""b12345678901234567890123456789012345678901234567890123456789012"" />
         </dynamicLocals>
         <encLocalSlotMap>
           <slot kind=""0"" offset=""234"" />
@@ -366,9 +366,9 @@ class Test
           <namespace usingCount=""0"" />
         </using>
         <dynamicLocals>
-          <bucket flagCount=""2"" flags=""01"" slotId=""0"" localName=""arr"" />
-          <bucket flagCount=""2"" flags=""01"" slotId=""1"" localName=""arrdim"" />
-          <bucket flagCount=""2"" flags=""01"" slotId=""2"" localName=""arrobj"" />
+          <bucket flags=""01"" slotId=""0"" localName=""arr"" />
+          <bucket flags=""01"" slotId=""1"" localName=""arrdim"" />
+          <bucket flags=""01"" slotId=""2"" localName=""arrobj"" />
         </dynamicLocals>
         <encLocalSlotMap>
           <slot kind=""0"" offset=""15"" />
@@ -419,11 +419,11 @@ class Test
           <namespace usingCount=""1"" />
         </using>
         <dynamicLocals>
-          <bucket flagCount=""1"" flags=""1"" slotId=""0"" localName=""l1"" />
-          <bucket flagCount=""2"" flags=""01"" slotId=""1"" localName=""l2"" />
-          <bucket flagCount=""1"" flags=""1"" slotId=""2"" localName=""l3"" />
-          <bucket flagCount=""3"" flags=""011"" slotId=""3"" localName=""d1"" />
-          <bucket flagCount=""1"" flags=""1"" slotId=""4"" localName=""d2"" />
+          <bucket flags=""1"" slotId=""0"" localName=""l1"" />
+          <bucket flags=""01"" slotId=""1"" localName=""l2"" />
+          <bucket flags=""1"" slotId=""2"" localName=""l3"" />
+          <bucket flags=""011"" slotId=""3"" localName=""d1"" />
+          <bucket flags=""1"" slotId=""4"" localName=""d2"" />
         </dynamicLocals>
         <encLocalSlotMap>
           <slot kind=""0"" offset=""13"" />
@@ -521,8 +521,8 @@ class Test
       <customDebugInfo>
         <forward declaringType=""Helper"" methodName=""foo"" parameterNames=""y"" />
         <dynamicLocals>
-          <bucket flagCount=""1"" flags=""1"" slotId=""1"" localName=""d1"" />
-          <bucket flagCount=""1"" flags=""1"" slotId=""2"" localName=""d3"" />
+          <bucket flags=""1"" slotId=""1"" localName=""d1"" />
+          <bucket flags=""1"" slotId=""2"" localName=""d3"" />
         </dynamicLocals>
         <encLocalSlotMap>
           <slot kind=""0"" offset=""12"" />
@@ -571,7 +571,7 @@ class Test
           <namespace usingCount=""0"" />
         </using>
         <dynamicLocals>
-          <bucket flagCount=""1"" flags=""1"" slotId=""0"" localName=""d"" />
+          <bucket flags=""1"" slotId=""0"" localName=""d"" />
         </dynamicLocals>
         <encLocalSlotMap>
           <slot kind=""0"" offset=""13"" />
@@ -635,7 +635,7 @@ class Test
           <namespace usingCount=""0"" />
         </using>
         <dynamicLocals>
-          <bucket flagCount=""1"" flags=""1"" slotId=""0"" localName=""d"" />
+          <bucket flags=""1"" slotId=""0"" localName=""d"" />
         </dynamicLocals>
         <encLocalSlotMap>
           <slot kind=""0"" offset=""23"" />
@@ -656,7 +656,7 @@ class Test
       <customDebugInfo>
         <forward declaringType=""Test"" methodName=""get_Field"" />
         <dynamicLocals>
-          <bucket flagCount=""1"" flags=""1"" slotId=""0"" localName=""d"" />
+          <bucket flags=""1"" slotId=""0"" localName=""d"" />
         </dynamicLocals>
         <encLocalSlotMap>
           <slot kind=""0"" offset=""23"" />
@@ -732,7 +732,7 @@ class Test
       <customDebugInfo>
         <forward declaringType=""Complex"" methodName="".ctor"" parameterNames=""real, imaginary"" />
         <dynamicLocals>
-          <bucket flagCount=""1"" flags=""1"" slotId=""0"" localName=""d"" />
+          <bucket flags=""1"" slotId=""0"" localName=""d"" />
         </dynamicLocals>
         <encLocalSlotMap>
           <slot kind=""0"" offset=""19"" />
@@ -797,7 +797,7 @@ class Test
           <namespace usingCount=""0"" />
         </using>
         <dynamicLocals>
-          <bucket flagCount=""1"" flags=""1"" slotId=""0"" localName=""d"" />
+          <bucket flags=""1"" slotId=""0"" localName=""d"" />
         </dynamicLocals>
         <encLocalSlotMap>
           <slot kind=""0"" offset=""23"" />
@@ -818,7 +818,7 @@ class Test
       <customDebugInfo>
         <forward declaringType=""Test"" methodName=""get_Item"" parameterNames=""i"" />
         <dynamicLocals>
-          <bucket flagCount=""1"" flags=""1"" slotId=""0"" localName=""d"" />
+          <bucket flags=""1"" slotId=""0"" localName=""d"" />
         </dynamicLocals>
         <encLocalSlotMap>
           <slot kind=""0"" offset=""23"" />
@@ -894,7 +894,7 @@ class Sample
       <customDebugInfo>
         <forward declaringType=""Sample"" methodName=""Main"" />
         <dynamicLocals>
-          <bucket flagCount=""1"" flags=""1"" slotId=""0"" localName=""d"" />
+          <bucket flags=""1"" slotId=""0"" localName=""d"" />
         </dynamicLocals>
         <encLocalSlotMap>
           <slot kind=""0"" offset=""19"" />
@@ -959,7 +959,7 @@ struct Test
           <namespace usingCount=""1"" />
         </using>
         <dynamicLocals>
-          <bucket flagCount=""1"" flags=""1"" slotId=""0"" localName=""d1"" />
+          <bucket flags=""1"" slotId=""0"" localName=""d1"" />
         </dynamicLocals>
         <encLocalSlotMap>
           <slot kind=""0"" offset=""19"" />
@@ -979,7 +979,7 @@ struct Test
       <customDebugInfo>
         <forward declaringType=""Test"" methodName="".ctor"" parameterNames=""d"" />
         <dynamicLocals>
-          <bucket flagCount=""1"" flags=""1"" slotId=""0"" localName=""d2"" />
+          <bucket flags=""1"" slotId=""0"" localName=""d2"" />
         </dynamicLocals>
         <encLocalSlotMap>
           <slot kind=""0"" offset=""23"" />
@@ -999,7 +999,7 @@ struct Test
       <customDebugInfo>
         <forward declaringType=""Test"" methodName="".ctor"" parameterNames=""d"" />
         <dynamicLocals>
-          <bucket flagCount=""1"" flags=""1"" slotId=""0"" localName=""d3"" />
+          <bucket flags=""1"" slotId=""0"" localName=""d3"" />
         </dynamicLocals>
         <encLocalSlotMap>
           <slot kind=""0"" offset=""23"" />
@@ -1018,7 +1018,7 @@ struct Test
       <customDebugInfo>
         <forward declaringType=""Test"" methodName="".ctor"" parameterNames=""d"" />
         <dynamicLocals>
-          <bucket flagCount=""1"" flags=""1"" slotId=""0"" localName=""d4"" />
+          <bucket flags=""1"" slotId=""0"" localName=""d4"" />
         </dynamicLocals>
         <encLocalSlotMap>
           <slot kind=""0"" offset=""19"" />
@@ -1038,7 +1038,7 @@ struct Test
       <customDebugInfo>
         <forward declaringType=""Test"" methodName="".ctor"" parameterNames=""d"" />
         <dynamicLocals>
-          <bucket flagCount=""1"" flags=""1"" slotId=""0"" localName=""d5"" />
+          <bucket flags=""1"" slotId=""0"" localName=""d5"" />
         </dynamicLocals>
         <encLocalSlotMap>
           <slot kind=""0"" offset=""19"" />
@@ -1119,7 +1119,7 @@ class Test
       <customDebugInfo>
         <forward declaringType=""Test"" methodName=""Main"" parameterNames=""args"" />
         <dynamicLocals>
-          <bucket flagCount=""1"" flags=""1"" slotId=""0"" localName=""d5"" />
+          <bucket flags=""1"" slotId=""0"" localName=""d5"" />
         </dynamicLocals>
         <encLocalSlotMap>
           <slot kind=""0"" offset=""73"" />
@@ -1152,7 +1152,7 @@ class Test
         }
 
         [Fact]
-        public void EmitPDBLangConstructsLocals2()
+        public void EmitPDBLangConstructsLocalVariables()
         {
             string source = @"
 using System;
@@ -1226,20 +1226,20 @@ class Test
           <namespace usingCount=""3"" />
         </using>
         <dynamicLocals>
-          <bucket flagCount=""2"" flags=""01"" slotId=""2"" localName=""scores"" />
-          <bucket flagCount=""2"" flags=""01"" slotId=""3"" localName=""arrDynamic"" />
-          <bucket flagCount=""2"" flags=""01"" slotId=""4"" localName=""scoreQuery1"" />
-          <bucket flagCount=""1"" flags=""1"" slotId=""5"" localName=""scoreQuery2"" />
-          <bucket flagCount=""1"" flags=""1"" slotId=""6"" localName=""dInWhile"" />
-          <bucket flagCount=""1"" flags=""1"" slotId=""8"" localName=""dInDoWhile"" />
-          <bucket flagCount=""1"" flags=""1"" slotId=""13"" localName=""dInForEach"" />
-          <bucket flagCount=""1"" flags=""1"" slotId=""15"" localName=""dInFor"" />
-          <bucket flagCount=""1"" flags=""1"" slotId=""17"" localName=""d"" />
-          <bucket flagCount=""1"" flags=""1"" slotId=""19"" localName=""dInIf"" />
-          <bucket flagCount=""1"" flags=""1"" slotId=""20"" localName=""dInElse"" />
-          <bucket flagCount=""1"" flags=""1"" slotId=""21"" localName=""dInTry"" />
-          <bucket flagCount=""1"" flags=""1"" slotId=""22"" localName=""dInCatch"" />
-          <bucket flagCount=""1"" flags=""1"" slotId=""23"" localName=""dInFinally"" />
+          <bucket flags=""01"" slotId=""2"" localName=""scores"" />
+          <bucket flags=""01"" slotId=""3"" localName=""arrDynamic"" />
+          <bucket flags=""01"" slotId=""4"" localName=""scoreQuery1"" />
+          <bucket flags=""1"" slotId=""5"" localName=""scoreQuery2"" />
+          <bucket flags=""1"" slotId=""6"" localName=""dInWhile"" />
+          <bucket flags=""1"" slotId=""8"" localName=""dInDoWhile"" />
+          <bucket flags=""1"" slotId=""13"" localName=""dInForEach"" />
+          <bucket flags=""1"" slotId=""15"" localName=""dInFor"" />
+          <bucket flags=""1"" slotId=""17"" localName=""d"" />
+          <bucket flags=""1"" slotId=""19"" localName=""dInIf"" />
+          <bucket flags=""1"" slotId=""20"" localName=""dInElse"" />
+          <bucket flags=""1"" slotId=""21"" localName=""dInTry"" />
+          <bucket flags=""1"" slotId=""22"" localName=""dInCatch"" />
+          <bucket flags=""1"" slotId=""23"" localName=""dInFinally"" />
         </dynamicLocals>
         <encLocalSlotMap>
           <slot kind=""0"" offset=""15"" />
@@ -1364,6 +1364,178 @@ class Test
 </symbols>");
         }
 
+        [Fact, WorkItem(17947, "https://github.com/dotnet/roslyn/issues/17947")]
+        public void EmitPDBLangConstructsLocalConstants()
+        {
+            string source = @"
+using System;
+using System.Collections.Generic;
+using System.Linq;
+class Test
+{
+    public static void Main(string[] args)
+    {
+        int d1 = 0;
+        int[] arrInt = new int[] { 1, 2, 3 };
+        const dynamic scores = null;
+        const dynamic arrDynamic = null;
+        while (d1 < 1)
+        {
+            const dynamic dInWhile = null;
+            d1++;
+        }
+        do
+        {
+            const dynamic dInDoWhile = null;
+            d1++;
+        } while (d1 < 1);
+        foreach (int d in arrInt)
+        {
+            const dynamic dInForEach = null;
+        }
+        for (int i = 0; i < 1; i++)
+        {
+            const dynamic dInFor = null;
+        }
+        for (dynamic d = ""1""; ;)
+        {
+            //do nothing
+        }
+        if (d1 == 0)
+        {
+            const dynamic dInIf = null;
+        }
+        else
+        {
+            const dynamic dInElse = null;
+        }
+        try
+        {
+            const dynamic dInTry = null;
+            throw new Exception();
+        }
+        catch
+        {
+            const dynamic dInCatch = null;
+        }
+        finally
+        {
+            const dynamic dInFinally = null;
+        }
+        const IEnumerable<dynamic> scoreQuery1 = null;
+        const dynamic scoreQuery2 = null;
+    }
+}";
+
+            // BUG: note that dInIf, dInElse, dInTry, dInCatch, dInFinally, scoreQuery1, scoreQuery2 are missing from <dynamicLocals>
+
+            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            c.VerifyPdb(@"
+<symbols>
+  <methods>
+    <method containingType=""Test"" name=""Main"" parameterNames=""args"">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount=""3"" />
+        </using>
+        <dynamicLocals>
+          <bucket flags=""1"" slotId=""9"" localName=""d"" />
+          <bucket flags=""1"" slotId=""0"" localName=""scores"" />
+          <bucket flags=""1"" slotId=""0"" localName=""arrDynamic"" />
+          <bucket flags=""01"" slotId=""0"" localName=""scoreQuery1"" />
+          <bucket flags=""1"" slotId=""0"" localName=""scoreQuery2"" />
+          <bucket flags=""1"" slotId=""0"" localName=""dInWhile"" />
+          <bucket flags=""1"" slotId=""0"" localName=""dInDoWhile"" />
+          <bucket flags=""1"" slotId=""0"" localName=""dInForEach"" />
+          <bucket flags=""1"" slotId=""0"" localName=""dInFor"" />
+        </dynamicLocals>
+        <encLocalSlotMap>
+          <slot kind=""0"" offset=""15"" />
+          <slot kind=""0"" offset=""38"" />
+          <slot kind=""1"" offset=""159"" />
+          <slot kind=""1"" offset=""268"" />
+          <slot kind=""6"" offset=""383"" />
+          <slot kind=""8"" offset=""383"" />
+          <slot kind=""0"" offset=""383"" />
+          <slot kind=""0"" offset=""495"" />
+          <slot kind=""1"" offset=""486"" />
+          <slot kind=""0"" offset=""600"" />
+          <slot kind=""1"" offset=""669"" />
+        </encLocalSlotMap>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""8"" startColumn=""5"" endLine=""8"" endColumn=""6"" />
+        <entry offset=""0x1"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""20"" />
+        <entry offset=""0x3"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""46"" />
+        <entry offset=""0x15"" hidden=""true"" />
+        <entry offset=""0x17"" startLine=""14"" startColumn=""9"" endLine=""14"" endColumn=""10"" />
+        <entry offset=""0x18"" startLine=""16"" startColumn=""13"" endLine=""16"" endColumn=""18"" />
+        <entry offset=""0x1c"" startLine=""17"" startColumn=""9"" endLine=""17"" endColumn=""10"" />
+        <entry offset=""0x1d"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""23"" />
+        <entry offset=""0x22"" hidden=""true"" />
+        <entry offset=""0x25"" startLine=""19"" startColumn=""9"" endLine=""19"" endColumn=""10"" />
+        <entry offset=""0x26"" startLine=""21"" startColumn=""13"" endLine=""21"" endColumn=""18"" />
+        <entry offset=""0x2a"" startLine=""22"" startColumn=""9"" endLine=""22"" endColumn=""10"" />
+        <entry offset=""0x2b"" startLine=""22"" startColumn=""11"" endLine=""22"" endColumn=""26"" />
+        <entry offset=""0x30"" hidden=""true"" />
+        <entry offset=""0x33"" startLine=""23"" startColumn=""9"" endLine=""23"" endColumn=""16"" />
+        <entry offset=""0x34"" startLine=""23"" startColumn=""27"" endLine=""23"" endColumn=""33"" />
+        <entry offset=""0x3a"" hidden=""true"" />
+        <entry offset=""0x3c"" startLine=""23"" startColumn=""18"" endLine=""23"" endColumn=""23"" />
+        <entry offset=""0x43"" startLine=""24"" startColumn=""9"" endLine=""24"" endColumn=""10"" />
+        <entry offset=""0x44"" startLine=""26"" startColumn=""9"" endLine=""26"" endColumn=""10"" />
+        <entry offset=""0x45"" hidden=""true"" />
+        <entry offset=""0x4b"" startLine=""23"" startColumn=""24"" endLine=""23"" endColumn=""26"" />
+        <entry offset=""0x53"" startLine=""27"" startColumn=""14"" endLine=""27"" endColumn=""23"" />
+        <entry offset=""0x56"" hidden=""true"" />
+        <entry offset=""0x58"" startLine=""28"" startColumn=""9"" endLine=""28"" endColumn=""10"" />
+        <entry offset=""0x59"" startLine=""30"" startColumn=""9"" endLine=""30"" endColumn=""10"" />
+        <entry offset=""0x5a"" startLine=""27"" startColumn=""32"" endLine=""27"" endColumn=""35"" />
+        <entry offset=""0x60"" startLine=""27"" startColumn=""25"" endLine=""27"" endColumn=""30"" />
+        <entry offset=""0x67"" hidden=""true"" />
+        <entry offset=""0x6b"" startLine=""31"" startColumn=""14"" endLine=""31"" endColumn=""29"" />
+        <entry offset=""0x72"" hidden=""true"" />
+        <entry offset=""0x74"" startLine=""32"" startColumn=""9"" endLine=""32"" endColumn=""10"" />
+        <entry offset=""0x75"" startLine=""34"" startColumn=""9"" endLine=""34"" endColumn=""10"" />
+        <entry offset=""0x76"" hidden=""true"" />
+      </sequencePoints>
+      <scope startOffset=""0x0"" endOffset=""0x78"">
+        <namespace name=""System"" />
+        <namespace name=""System.Collections.Generic"" />
+        <namespace name=""System.Linq"" />
+        <local name=""d1"" il_index=""0"" il_start=""0x0"" il_end=""0x78"" attributes=""0"" />
+        <local name=""arrInt"" il_index=""1"" il_start=""0x0"" il_end=""0x78"" attributes=""0"" />
+        <constant name=""scores"" value=""null"" type=""Object"" />
+        <constant name=""arrDynamic"" value=""null"" type=""Object"" />
+        <constant name=""scoreQuery1"" value=""null"" signature=""System.Collections.Generic.IEnumerable`1{Object}"" />
+        <constant name=""scoreQuery2"" value=""null"" type=""Object"" />
+        <scope startOffset=""0x17"" endOffset=""0x1d"">
+          <constant name=""dInWhile"" value=""null"" type=""Object"" />
+        </scope>
+        <scope startOffset=""0x25"" endOffset=""0x2b"">
+          <constant name=""dInDoWhile"" value=""null"" type=""Object"" />
+        </scope>
+        <scope startOffset=""0x3c"" endOffset=""0x45"">
+          <local name=""d"" il_index=""6"" il_start=""0x3c"" il_end=""0x45"" attributes=""0"" />
+          <scope startOffset=""0x43"" endOffset=""0x45"">
+            <constant name=""dInForEach"" value=""null"" type=""Object"" />
+          </scope>
+        </scope>
+        <scope startOffset=""0x53"" endOffset=""0x6b"">
+          <local name=""i"" il_index=""7"" il_start=""0x53"" il_end=""0x6b"" attributes=""0"" />
+          <scope startOffset=""0x58"" endOffset=""0x5a"">
+            <constant name=""dInFor"" value=""null"" type=""Object"" />
+          </scope>
+        </scope>
+        <scope startOffset=""0x6b"" endOffset=""0x78"">
+          <local name=""d"" il_index=""9"" il_start=""0x6b"" il_end=""0x78"" attributes=""0"" />
+        </scope>
+      </scope>
+    </method>
+  </methods>
+</symbols>");
+        }
+        
         [Fact]
         public void EmitPDBVarVariableLocal()
         {
@@ -1387,8 +1559,8 @@ class Test
           <namespace usingCount=""1"" />
         </using>
         <dynamicLocals>
-          <bucket flagCount=""1"" flags=""1"" slotId=""0"" localName=""d"" />
-          <bucket flagCount=""1"" flags=""1"" slotId=""1"" localName=""v"" />
+          <bucket flags=""1"" slotId=""0"" localName=""d"" />
+          <bucket flags=""1"" slotId=""1"" localName=""v"" />
         </dynamicLocals>
         <encLocalSlotMap>
           <slot kind=""0"" offset=""13"" />
@@ -1438,7 +1610,7 @@ class Test
           <namespace usingCount=""1"" />
         </using>
         <dynamicLocals>
-          <bucket flagCount=""2"" flags=""01"" slotId=""0"" localName=""obj"" />
+          <bucket flags=""01"" slotId=""0"" localName=""obj"" />
         </dynamicLocals>
         <encLocalSlotMap>
           <slot kind=""0"" offset=""22"" />
@@ -1485,8 +1657,8 @@ class Program
           <namespace usingCount=""2"" />
         </using>
         <dynamicLocals>
-          <bucket flagCount=""1"" flags=""1"" slotId=""0"" localName=""yyy"" />
-          <bucket flagCount=""1"" flags=""1"" slotId=""1"" localName=""zzz"" />
+          <bucket flags=""1"" slotId=""0"" localName=""yyy"" />
+          <bucket flags=""1"" slotId=""1"" localName=""zzz"" />
         </dynamicLocals>
         <encLocalSlotMap>
           <slot kind=""0"" offset=""19"" />
@@ -1540,8 +1712,8 @@ class Foo<T>
           <namespace usingCount=""2"" />
         </using>
         <dynamicLocals>
-          <bucket flagCount=""1"" flags=""1"" slotId=""0"" localName=""yyy"" />
-          <bucket flagCount=""2"" flags=""01"" slotId=""1"" localName=""zzz"" />
+          <bucket flags=""1"" slotId=""0"" localName=""yyy"" />
+          <bucket flags=""01"" slotId=""1"" localName=""zzz"" />
         </dynamicLocals>
         <encLocalSlotMap>
           <slot kind=""0"" offset=""19"" />
@@ -1595,8 +1767,8 @@ class Foo<T,V>
           <namespace usingCount=""2"" />
         </using>
         <dynamicLocals>
-          <bucket flagCount=""1"" flags=""1"" slotId=""0"" localName=""yyy"" />
-          <bucket flagCount=""5"" flags=""01011"" slotId=""1"" localName=""zzz"" />
+          <bucket flags=""1"" slotId=""0"" localName=""yyy"" />
+          <bucket flags=""01011"" slotId=""1"" localName=""zzz"" />
         </dynamicLocals>
         <encLocalSlotMap>
           <slot kind=""0"" offset=""19"" />
@@ -1651,8 +1823,8 @@ class Foo<T,V>
           <namespace usingCount=""2"" />
         </using>
         <dynamicLocals>
-          <bucket flagCount=""1"" flags=""1"" slotId=""0"" localName=""yyy"" />
-          <bucket flagCount=""5"" flags=""01011"" slotId=""2"" localName=""zzz"" />
+          <bucket flags=""1"" slotId=""0"" localName=""yyy"" />
+          <bucket flags=""01011"" slotId=""2"" localName=""zzz"" />
         </dynamicLocals>
         <encLocalSlotMap>
           <slot kind=""0"" offset=""19"" />
@@ -1708,7 +1880,7 @@ class F<T,V>
           <namespace usingCount=""2"" />
         </using>
         <dynamicLocals>
-          <bucket flagCount=""63"" flags=""010101010101010101010101010101010101010101010101010101010101011"" slotId=""0"" localName=""zzz"" />
+          <bucket flags=""010101010101010101010101010101010101010101010101010101010101011"" slotId=""0"" localName=""zzz"" />
         </dynamicLocals>
         <encLocalSlotMap>
           <slot kind=""0"" offset=""361"" />
@@ -1872,8 +2044,8 @@ class F<T,V>
           <namespace usingCount=""2"" />
         </using>
         <dynamicLocals>
-          <bucket flagCount=""1"" flags=""1"" slotId=""1"" localName=""www"" />
-          <bucket flagCount=""1"" flags=""1"" slotId=""2"" localName=""length63length63length63length63length63length63length63length6"" />
+          <bucket flags=""1"" slotId=""1"" localName=""www"" />
+          <bucket flags=""1"" slotId=""2"" localName=""length63length63length63length63length63length63length63length6"" />
         </dynamicLocals>
         <encLocalSlotMap>
           <slot kind=""0"" offset=""372"" />
@@ -1931,8 +2103,8 @@ class F<T>
           <namespace usingCount=""2"" />
         </using>
         <dynamicLocals>
-          <bucket flagCount=""64"" flags=""0000000000000000000000000000000000000000000000000000000000000001"" slotId=""0"" localName=""yes"" />
-          <bucket flagCount=""1"" flags=""1"" slotId=""2"" localName=""www"" />
+          <bucket flags=""0000000000000000000000000000000000000000000000000000000000000001"" slotId=""0"" localName=""yes"" />
+          <bucket flags=""1"" slotId=""2"" localName=""www"" />
         </dynamicLocals>
         <encLocalSlotMap>
           <slot kind=""0"" offset=""208"" />
@@ -1987,8 +2159,8 @@ class Program
           <namespace usingCount=""2"" />
         </using>
         <dynamicLocals>
-          <bucket flagCount=""1"" flags=""1"" slotId=""0"" localName=""simple"" />
-          <bucket flagCount=""1"" flags=""1"" slotId=""2"" localName=""inner"" />
+          <bucket flags=""1"" slotId=""0"" localName=""simple"" />
+          <bucket flags=""1"" slotId=""2"" localName=""inner"" />
         </dynamicLocals>
         <encLocalSlotMap>
           <slot kind=""0"" offset=""19"" />
@@ -2024,7 +2196,7 @@ class Program
       <customDebugInfo>
         <forward declaringType=""Program"" methodName=""Main"" parameterNames=""args"" />
         <dynamicLocals>
-          <bucket flagCount=""1"" flags=""1"" slotId=""0"" localName=""localInner"" />
+          <bucket flags=""1"" slotId=""0"" localName=""localInner"" />
         </dynamicLocals>
         <encLocalSlotMap>
           <slot kind=""0"" offset=""19"" />

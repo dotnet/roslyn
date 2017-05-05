@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.Host
 {
     internal partial class WorkspaceTaskSchedulerFactory
     {
-        internal sealed class WorkspaceTaskQueue : IWorkspaceTaskScheduler
+        protected sealed class WorkspaceTaskQueue : IWorkspaceTaskScheduler
         {
             private readonly WorkspaceTaskSchedulerFactory _factory;
             private readonly SimpleTaskQueue _queue;

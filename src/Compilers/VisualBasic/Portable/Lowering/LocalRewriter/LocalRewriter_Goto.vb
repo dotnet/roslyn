@@ -25,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             If Instrument(node, rewritten) Then
-                rewritten = _instrumenter.InstrumentGotoStatement(node, rewritten)
+                rewritten = _instrumenterOpt.InstrumentGotoStatement(node, rewritten)
             End If
 
             Return rewritten

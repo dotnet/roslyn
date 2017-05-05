@@ -466,5 +466,140 @@ namespace ConsoleApplication1
                 result.AssertLabeledSpansAre("stmt2", "this.list = list.ToList();", RelatedLocationType.ResolvedReferenceConflict)
             End Using
         End Sub
+
+        <Fact>
+        <Trait(Traits.Feature, Traits.Features.Rename)>
+        <WorkItem(17177, "https://github.com/dotnet/roslyn/issues/17177")>
+        Public Sub ConflictsBetweenSwitchCaseStatementsWithoutBlocks()
+            Using result = RenameEngineResult.Create(_outputHelper,
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+class Test
+{
+    static void Main()
+    {
+        switch (true)
+        {
+            case true:
+                object {|stmt1:$$i|} = null;
+                break;
+            case false:
+                object {|stmt2:j|} = null;
+                break;
+        }
+    }
+}
+                            </Document>
+                    </Project>
+                </Workspace>, renameTo:="j")
+
+                result.AssertLabeledSpansAre("stmt1", "j", RelatedLocationType.NoConflict)
+                result.AssertLabeledSpansAre("stmt2", "j", RelatedLocationType.UnresolvableConflict)
+            End Using
+        End Sub
+
+        <Fact>
+        <Trait(Traits.Feature, Traits.Features.Rename)>
+        <WorkItem(17177, "https://github.com/dotnet/roslyn/issues/17177")>
+        Public Sub NoConflictsBetweenSwitchCaseStatementsWithBlocks()
+            Using result = RenameEngineResult.Create(_outputHelper,
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+class Test
+{
+    static void Main()
+    {
+        switch (true)
+        {
+            case true:
+                {
+                    object {|stmt1:$$i|} = null;
+                    break;
+                }
+            case false:
+                {
+                    object j = null;
+                    break;
+                }
+        }
+    }
+}
+                        </Document>
+                    </Project>
+                </Workspace>, renameTo:="j")
+
+                result.AssertLabeledSpansAre("stmt1", "j", RelatedLocationType.NoConflict)
+            End Using
+        End Sub
+
+        <Fact>
+        <Trait(Traits.Feature, Traits.Features.Rename)>
+        <WorkItem(17177, "https://github.com/dotnet/roslyn/issues/17177")>
+        Public Sub NoConflictsBetweenSwitchCaseStatementFirstStatementWithBlock()
+            Using result = RenameEngineResult.Create(_outputHelper,
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+class Test
+{
+    static void Main()
+    {
+        switch (true)
+        {
+            case true:
+                {
+                    object {|stmt1:$$i|} = null;
+                    break;
+                }
+            case false:
+                object {|stmt2:j|} = null;
+                break;
+        }
+    }
+}
+                        </Document>
+                    </Project>
+                </Workspace>, renameTo:="j")
+
+                result.AssertLabeledSpansAre("stmt1", "j", RelatedLocationType.NoConflict)
+                result.AssertLabeledSpansAre("stmt2", "j", RelatedLocationType.UnresolvableConflict)
+            End Using
+        End Sub
+
+        <Fact>
+        <Trait(Traits.Feature, Traits.Features.Rename)>
+        <WorkItem(17177, "https://github.com/dotnet/roslyn/issues/17177")>
+        Public Sub NoConflictsBetweenSwitchCaseStatementSecondStatementWithBlock()
+            Using result = RenameEngineResult.Create(_outputHelper,
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+class Test
+{
+    static void Main()
+    {
+        switch (true)
+        {
+            case true:
+                object {|stmt1:$$i|} = null;
+                break;
+            case false:
+                {
+                    object {|stmt2:j|} = null;
+                    break;
+                }
+        }
+    }
+}
+                        </Document>
+                    </Project>
+                </Workspace>, renameTo:="j")
+
+                result.AssertLabeledSpansAre("stmt1", "j", RelatedLocationType.NoConflict)
+                result.AssertLabeledSpansAre("stmt2", "j", RelatedLocationType.UnresolvableConflict)
+            End Using
+        End Sub
     End Class
 End Namespace

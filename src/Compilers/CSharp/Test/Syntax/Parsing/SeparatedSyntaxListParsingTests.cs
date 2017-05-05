@@ -5,11 +5,16 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class SeparatedSyntaxListParsingTests : ParsingTests
     {
+        public SeparatedSyntaxListParsingTests(ITestOutputHelper output) : base(output)
+        {
+        }
+
         protected override SyntaxTree ParseTree(string text, CSharpParseOptions options)
         {
             return SyntaxFactory.ParseSyntaxTree(text, options: options);
@@ -218,14 +223,14 @@ class M<,> { }
                 N(SyntaxKind.ClassDeclaration);
                 {
                     N(SyntaxKind.ClassKeyword);
-                    N(SyntaxKind.IdentifierToken);
+                    N(SyntaxKind.IdentifierToken, "C");
                     N(SyntaxKind.OpenBraceToken);
                     N(SyntaxKind.IncompleteMember);
                     {
                         N(SyntaxKind.NewKeyword);
                         N(SyntaxKind.GenericName);
                         {
-                            N(SyntaxKind.IdentifierToken);
+                            N(SyntaxKind.IdentifierToken, "C");
                             N(SyntaxKind.TypeArgumentList);
                             {
                                 N(SyntaxKind.LessThanToken);
@@ -242,6 +247,21 @@ class M<,> { }
                         N(SyntaxKind.TupleType);
                         {
                             N(SyntaxKind.OpenParenToken);
+                            M(SyntaxKind.TupleElement);
+                            {
+                                M(SyntaxKind.IdentifierName);
+                                {
+                                    M(SyntaxKind.IdentifierToken);
+                                }
+                            }
+                            M(SyntaxKind.CommaToken);
+                            M(SyntaxKind.TupleElement);
+                            {
+                                M(SyntaxKind.IdentifierName);
+                                {
+                                    M(SyntaxKind.IdentifierToken);
+                                }
+                            }
                             N(SyntaxKind.CloseParenToken);
                         }
                     }
@@ -250,7 +270,7 @@ class M<,> { }
                         N(SyntaxKind.NewKeyword);
                         N(SyntaxKind.GenericName);
                         {
-                            N(SyntaxKind.IdentifierToken);
+                            N(SyntaxKind.IdentifierToken, "C");
                             N(SyntaxKind.TypeArgumentList);
                             {
                                 N(SyntaxKind.LessThanToken);
@@ -272,6 +292,21 @@ class M<,> { }
                         N(SyntaxKind.TupleType);
                         {
                             N(SyntaxKind.OpenParenToken);
+                            M(SyntaxKind.TupleElement);
+                            {
+                                M(SyntaxKind.IdentifierName);
+                                {
+                                    M(SyntaxKind.IdentifierToken);
+                                }
+                            }
+                            M(SyntaxKind.CommaToken);
+                            M(SyntaxKind.TupleElement);
+                            {
+                                M(SyntaxKind.IdentifierName);
+                                {
+                                    M(SyntaxKind.IdentifierToken);
+                                }
+                            }
                             N(SyntaxKind.CloseParenToken);
                         }
                     }
@@ -281,13 +316,13 @@ class M<,> { }
                         {
                             N(SyntaxKind.GenericName);
                             {
-                                N(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.IdentifierToken, "C");
                                 N(SyntaxKind.TypeArgumentList);
                                 {
                                     N(SyntaxKind.LessThanToken);
                                     N(SyntaxKind.GenericName);
                                     {
-                                        N(SyntaxKind.IdentifierToken);
+                                        N(SyntaxKind.IdentifierToken, "C");
                                         N(SyntaxKind.TypeArgumentList);
                                         {
                                             N(SyntaxKind.LessThanToken);
@@ -303,7 +338,7 @@ class M<,> { }
                             }
                             N(SyntaxKind.VariableDeclarator);
                             {
-                                N(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.IdentifierToken, "a1");
                             }
                         }
                         N(SyntaxKind.SemicolonToken);
@@ -314,13 +349,13 @@ class M<,> { }
                         {
                             N(SyntaxKind.GenericName);
                             {
-                                N(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.IdentifierToken, "C");
                                 N(SyntaxKind.TypeArgumentList);
                                 {
                                     N(SyntaxKind.LessThanToken);
                                     N(SyntaxKind.GenericName);
                                     {
-                                        N(SyntaxKind.IdentifierToken);
+                                        N(SyntaxKind.IdentifierToken, "A");
                                         N(SyntaxKind.TypeArgumentList);
                                         {
                                             N(SyntaxKind.LessThanToken);
@@ -336,7 +371,7 @@ class M<,> { }
                             }
                             N(SyntaxKind.VariableDeclarator);
                             {
-                                N(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.IdentifierToken, "a1");
                             }
                         }
                         N(SyntaxKind.SemicolonToken);
@@ -351,49 +386,47 @@ class M<,> { }
                             }
                             N(SyntaxKind.VariableDeclarator);
                             {
-                                N(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.IdentifierToken, "a1");
                                 N(SyntaxKind.EqualsValueClause);
                                 {
                                     N(SyntaxKind.EqualsToken);
                                     N(SyntaxKind.TypeOfExpression);
                                     {
                                         N(SyntaxKind.TypeOfKeyword);
+                                        N(SyntaxKind.OpenParenToken);
+                                        N(SyntaxKind.GenericName);
                                         {
-                                            N(SyntaxKind.OpenParenToken);
-                                            N(SyntaxKind.GenericName);
+                                            N(SyntaxKind.IdentifierToken, "C");
+                                            N(SyntaxKind.TypeArgumentList);
                                             {
-                                                N(SyntaxKind.IdentifierToken);
-                                                N(SyntaxKind.TypeArgumentList);
+                                                N(SyntaxKind.LessThanToken);
+                                                N(SyntaxKind.GenericName);
                                                 {
-                                                    N(SyntaxKind.LessThanToken);
-                                                    N(SyntaxKind.GenericName);
+                                                    N(SyntaxKind.IdentifierToken, "C");
+                                                    N(SyntaxKind.TypeArgumentList);
                                                     {
-                                                        N(SyntaxKind.IdentifierToken);
-                                                        N(SyntaxKind.TypeArgumentList);
+                                                        N(SyntaxKind.LessThanToken);
+                                                        N(SyntaxKind.OmittedTypeArgument);
                                                         {
-                                                            N(SyntaxKind.LessThanToken);
-                                                            N(SyntaxKind.OmittedTypeArgument);
-                                                            {
-                                                                N(SyntaxKind.OmittedTypeArgumentToken);
-                                                            }
-                                                            N(SyntaxKind.CommaToken);
-                                                            N(SyntaxKind.OmittedTypeArgument);
-                                                            {
-                                                                N(SyntaxKind.OmittedTypeArgumentToken);
-                                                            }
-                                                            N(SyntaxKind.GreaterThanToken);
+                                                            N(SyntaxKind.OmittedTypeArgumentToken);
                                                         }
+                                                        N(SyntaxKind.CommaToken);
+                                                        N(SyntaxKind.OmittedTypeArgument);
+                                                        {
+                                                            N(SyntaxKind.OmittedTypeArgumentToken);
+                                                        }
+                                                        N(SyntaxKind.GreaterThanToken);
                                                     }
-                                                    N(SyntaxKind.CommaToken);
-                                                    N(SyntaxKind.PredefinedType);
-                                                    {
-                                                        N(SyntaxKind.IntKeyword);
-                                                    }
-                                                    N(SyntaxKind.GreaterThanToken);
                                                 }
+                                                N(SyntaxKind.CommaToken);
+                                                N(SyntaxKind.PredefinedType);
+                                                {
+                                                    N(SyntaxKind.IntKeyword);
+                                                }
+                                                N(SyntaxKind.GreaterThanToken);
                                             }
-                                            N(SyntaxKind.CloseParenToken);
                                         }
+                                        N(SyntaxKind.CloseParenToken);
                                     }
                                 }
                             }
@@ -410,7 +443,7 @@ class M<,> { }
                             }
                             N(SyntaxKind.VariableDeclarator);
                             {
-                                N(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.IdentifierToken, "a2");
                                 N(SyntaxKind.EqualsValueClause);
                                 {
                                     N(SyntaxKind.EqualsToken);
@@ -418,7 +451,7 @@ class M<,> { }
                                     {
                                         N(SyntaxKind.GenericName);
                                         {
-                                            N(SyntaxKind.IdentifierToken);
+                                            N(SyntaxKind.IdentifierToken, "Swap");
                                             N(SyntaxKind.TypeArgumentList);
                                             {
                                                 N(SyntaxKind.LessThanToken);
@@ -436,7 +469,7 @@ class M<,> { }
                                             {
                                                 N(SyntaxKind.NumericLiteralExpression);
                                                 {
-                                                    N(SyntaxKind.NumericLiteralToken);
+                                                    N(SyntaxKind.NumericLiteralToken, "1");
                                                 }
                                             }
                                             N(SyntaxKind.CommaToken);
@@ -444,7 +477,7 @@ class M<,> { }
                                             {
                                                 N(SyntaxKind.NumericLiteralExpression);
                                                 {
-                                                    N(SyntaxKind.NumericLiteralToken);
+                                                    N(SyntaxKind.NumericLiteralToken, "1");
                                                 }
                                             }
                                             N(SyntaxKind.CloseParenToken);
@@ -460,18 +493,18 @@ class M<,> { }
                 N(SyntaxKind.ClassDeclaration);
                 {
                     N(SyntaxKind.ClassKeyword);
-                    N(SyntaxKind.IdentifierToken);
+                    N(SyntaxKind.IdentifierToken, "M");
                     N(SyntaxKind.TypeParameterList);
                     {
                         N(SyntaxKind.LessThanToken);
-                        N(SyntaxKind.TypeParameter);
+                        M(SyntaxKind.TypeParameter);
                         {
-                            N(SyntaxKind.IdentifierToken);
+                            M(SyntaxKind.IdentifierToken);
                         }
                         N(SyntaxKind.CommaToken);
-                        N(SyntaxKind.TypeParameter);
+                        M(SyntaxKind.TypeParameter);
                         {
-                            N(SyntaxKind.IdentifierToken);
+                            M(SyntaxKind.IdentifierToken);
                         }
                         N(SyntaxKind.GreaterThanToken);
                     }
@@ -480,6 +513,7 @@ class M<,> { }
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
         }
 
         [Fact]

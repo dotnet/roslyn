@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ImmutableArray<PEModule> netModules)
         {
             Debug.Assert(compilation != null);
-            Debug.Assert(!String.IsNullOrWhiteSpace(assemblySimpleName));
+            Debug.Assert(assemblySimpleName != null);
             Debug.Assert(!String.IsNullOrWhiteSpace(moduleName));
             Debug.Assert(!netModules.IsDefault);
 
@@ -573,9 +573,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.WRN_DelaySignButNoKey, NoLocation.Singleton);
             }
 
-            if (DeclaringCompilation.Options.PublicSign && !Identity.HasPublicKey)
+            if (DeclaringCompilation.Options.PublicSign)
             {
-                diagnostics.Add(ErrorCode.ERR_PublicSignButNoKey, NoLocation.Singleton);
+                if (_compilation.Options.OutputKind.IsNetModule())
+                {
+                    diagnostics.Add(ErrorCode.ERR_PublicSignNetModule, NoLocation.Singleton);
+                }
+                else if (!Identity.HasPublicKey)
+                {
+                    diagnostics.Add(ErrorCode.ERR_PublicSignButNoKey, NoLocation.Singleton);
+                }
             }
 
             // If the options and attributes applied on the compilation imply real signing,
@@ -790,7 +797,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            if (_compilation.Options.PublicSign && (object)this.AssemblyKeyContainerAttributeSetting != (object)CommonAssemblyWellKnownAttributeData.StringMissingValue)
+            if (_compilation.Options.PublicSign && 
+                !_compilation.Options.OutputKind.IsNetModule() &&
+                (object)this.AssemblyKeyContainerAttributeSetting != (object)CommonAssemblyWellKnownAttributeData.StringMissingValue)
             {
                 diagnostics.Add(ErrorCode.WRN_AttributeIgnoredWhenPublicSigning, NoLocation.Singleton, AttributeDescription.AssemblyKeyNameAttribute.FullName);
             }
@@ -825,7 +834,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            if (_compilation.Options.PublicSign && (object)this.AssemblyKeyFileAttributeSetting != (object)CommonAssemblyWellKnownAttributeData.StringMissingValue)
+            if (_compilation.Options.PublicSign &&
+                !_compilation.Options.OutputKind.IsNetModule() &&
+                (object)this.AssemblyKeyFileAttributeSetting != (object)CommonAssemblyWellKnownAttributeData.StringMissingValue)
             {
                 diagnostics.Add(ErrorCode.WRN_AttributeIgnoredWhenPublicSigning, NoLocation.Singleton, AttributeDescription.AssemblyKeyFileAttribute.FullName);
             }
@@ -2572,18 +2583,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     var peModuleSymbol = (Metadata.PE.PEModuleSymbol)_modules[i];
 
-                    var forwardedToAssembly = peModuleSymbol.GetAssemblyForForwardedType(ref emittedName);
-                    if ((object)forwardedToAssembly != null)
+                    (AssemblySymbol firstSymbol, AssemblySymbol secondSymbol) = peModuleSymbol.GetAssembliesForForwardedType(ref emittedName);
+
+                    if ((object)firstSymbol != null)
                     {
+                        if ((object)secondSymbol != null)
+                        {
+                            return CreateMultipleForwardingErrorTypeSymbol(ref emittedName, peModuleSymbol, firstSymbol, secondSymbol);
+                        }
+
                         // Don't bother to check the forwarded-to assembly if we've already seen it.
-                        if (visitedAssemblies != null && visitedAssemblies.Contains(forwardedToAssembly))
+                        if (visitedAssemblies != null && visitedAssemblies.Contains(firstSymbol))
                         {
                             return CreateCycleInTypeForwarderErrorTypeSymbol(ref emittedName);
                         }
                         else
                         {
                             visitedAssemblies = new ConsList<AssemblySymbol>(this, visitedAssemblies ?? ConsList<AssemblySymbol>.Empty);
-                            return forwardedToAssembly.LookupTopLevelMetadataTypeWithCycleDetection(ref emittedName, visitedAssemblies, digThroughForwardedTypes: true);
+                            return firstSymbol.LookupTopLevelMetadataTypeWithCycleDetection(ref emittedName, visitedAssemblies, digThroughForwardedTypes: true);
                         }
                     }
                 }

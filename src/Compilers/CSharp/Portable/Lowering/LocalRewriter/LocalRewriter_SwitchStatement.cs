@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (rewrittenExpression.Type.SpecialType == SpecialType.System_String)
             {
                 EnsureStringHashFunction(rewrittenSections, syntax);
-                stringEquality = GetSpecialTypeMethod(syntax, SpecialMember.System_String__op_Equality);
+                stringEquality = UnsafeGetSpecialTypeMethod(syntax, SpecialMember.System_String__op_Equality);
             }
 
             return oldNode.Update(
@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Rewrite the switch statement using nullable expression's underlying value as the switch expression.
 
             // rewrittenExpression.GetValueOrDefault()
-            MethodSymbol getValueOrDefault = GetNullableMethod(syntax, exprNullableType, SpecialMember.System_Nullable_T_GetValueOrDefault);
+            MethodSymbol getValueOrDefault = UnsafeGetNullableMethod(syntax, exprNullableType, SpecialMember.System_Nullable_T_GetValueOrDefault);
             BoundCall callGetValueOrDefault = BoundCall.Synthesized(exprSyntax, rewrittenExpression, getValueOrDefault);
             rewrittenExpression = callGetValueOrDefault;
 

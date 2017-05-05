@@ -31,15 +31,16 @@ Friend Module M
 End Module");
             }
 
+            // This test depends on the version of mscorlib used by the TestWorkspace and may 
+            // change in the future
             [WorkItem(530526, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530526")]
             [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
             public async Task BracketedIdentifierSimplificationTest()
             {
                 var expected = $@"#Region ""{FeaturesResources.Assembly} mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089""
-' mscorlib.v4_0_30319_17626.dll
+' mscorlib.v4_6_1038_0.dll
 #End Region
 
-Imports System.Runtime
 Imports System.Runtime.InteropServices
 
 Namespace System
@@ -51,7 +52,7 @@ Namespace System
         Public Sub New()
         <__DynamicallyInvokableAttribute>
         Public Sub New(message As String)
-        <__DynamicallyInvokableAttribute> <TargetedPatchingOptOut(""Performance critical to inline this type of method across NGen image boundaries"")>
+        <__DynamicallyInvokableAttribute>
         Public Sub New(message As String, [error] As Boolean)
 
         <__DynamicallyInvokableAttribute>
@@ -61,7 +62,7 @@ Namespace System
     End Class
 End Namespace";
 
-                using (var context = await TestContext.CreateAsync(LanguageNames.VisualBasic))
+                using (var context = TestContext.Create(LanguageNames.VisualBasic))
                 {
                     await context.GenerateAndVerifySourceAsync("System.ObsoleteAttribute", expected);
                 }

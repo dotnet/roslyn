@@ -139,11 +139,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                     CompletionItemRules.Default)
         End Function
 
-        Protected Overrides Function GetCompletionItemRules(symbols As IReadOnlyList(Of ISymbol), context As SyntaxContext) As CompletionItemRules
-            ' Unused
-            Throw New NotImplementedException
-        End Function
-
         Protected Overrides Function IsInstrinsic(s As ISymbol) As Boolean
             Return If(TryCast(s, ITypeSymbol)?.IsIntrinsicType(), False)
         End Function

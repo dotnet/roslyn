@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
     {
         internal override async Task<IEnumerable<ClassifiedSpan>> GetClassificationSpansAsync(string code, TextSpan textSpan, CSharpParseOptions options)
         {
-            using (var workspace = await TestWorkspace.CreateCSharpAsync(code, options))
+            using (var workspace = TestWorkspace.CreateCSharp(code, options))
             {
                 var document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id);
 
@@ -59,6 +59,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 methodName: "M",
                 code: @"new Class<int>();",
                 expected: Class("Class"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task RefVar()
+        {
+            await TestInMethodAsync(
+                className: "Class",
+                methodName: "M",
+                code: @"int i = 0; ref var x = ref i;",
+                expected: Keyword("var"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
@@ -269,7 +279,7 @@ class C
 class C
 {
     A d;
-}");
+}", Class("A"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
@@ -2117,7 +2127,7 @@ struct Type<T>
         public async Task TestCreateWithBufferNotInWorkspace()
         {
             // don't crash
-            using (var workspace = await TestWorkspace.CreateCSharpAsync(""))
+            using (var workspace = TestWorkspace.CreateCSharp(""))
             {
                 var document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id);
 
@@ -2155,7 +2165,7 @@ struct Type<T>
         public async Task TestGetTagsOnBufferTagger()
         {
             // don't crash
-            using (var workspace = await TestWorkspace.CreateCSharpAsync("class C { C c; }"))
+            using (var workspace = TestWorkspace.CreateCSharp("class C { C c; }"))
             {
                 var document = workspace.Documents.First();
 
@@ -2279,6 +2289,41 @@ namespace ConsoleApplication1
         }
     }
 }", Class("Debug"));
+        }
+
+        [WorkItem(18956, "https://github.com/dotnet/roslyn/issues/18956")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestVarInPattern1()
+        {
+            await TestAsync(
+@"
+class Program
+{
+    void Main(string s)
+    {
+        if (s is var v)
+        {
+        }
+    }
+}", Keyword("var"));
+        }
+
+        [WorkItem(18956, "https://github.com/dotnet/roslyn/issues/18956")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestVarInPattern2()
+        {
+            await TestAsync(
+@"
+class Program
+{
+    void Main(string s)
+    {
+        switch (s)
+        {
+            case var v:
+        }
+    }
+}", Keyword("var"));
         }
     }
 }

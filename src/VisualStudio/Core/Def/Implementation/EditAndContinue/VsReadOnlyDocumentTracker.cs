@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
         {
             // Only set documents read-only if they're part of a project that supports Enc.
             var workspace = document.Project.Solution.Workspace as VisualStudioWorkspaceImpl;
-            var project = workspace?.ProjectTracker?.GetProject(document.Project.Id);
+            var project = workspace?.DeferredState?.ProjectTracker?.GetProject(document.Project.Id);
 
             if (project?.EditAndContinueImplOpt != null)
             {
@@ -148,7 +148,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
             if (doc == null)
             {
                 // TODO (https://github.com/dotnet/roslyn/issues/1204): this check should be unnecessary.
-                log.Write($"GetTextBuffer: document not found for '{documentId?.GetDebuggerDisplay()}'");
+                if (documentId != null)
+                {
+                    log.Write("GetTextBuffer: document not found for '#{0} - {1}'", documentId.Id.ToString(), documentId.DebugName);
+                }
+                else
+                {
+                    log.Write("GetTextBuffer: document not found");
+                }
+
                 return null;
             }
 

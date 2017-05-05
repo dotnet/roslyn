@@ -23,6 +23,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.VisualBasic;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 using CS = Microsoft.CodeAnalysis.CSharp;
 
@@ -1415,6 +1416,53 @@ public class C : A {
             // check flag for normal project that indirectly reference only normal project
             // normal project -> normal project -> normal project
             Assert.True(transitivelyDependsOnNormalProjects.HasSuccessfullyLoadedAsync().Result);
+        }
+
+        [Fact]
+        public async Task TestMassiveFileSize()
+        {
+            // set max file length to 1 bytes
+            var maxLength = 1;
+            var workspace = new AdhocWorkspace(TestHost.Services, ServiceLayer.Host);
+            workspace.Options = workspace.Options.WithChangedOption(FileTextLoaderOptions.FileLengthThreshold, maxLength);
+
+            using (var root = new TempRoot())
+            {
+                var file = root.CreateFile(prefix: "massiveFile", extension: ".cs").WriteAllText("hello");
+
+                var loader = new FileTextLoader(file.Path, Encoding.UTF8);
+                var textLength = FileUtilities.GetFileLength(file.Path);
+
+                var expected = string.Format(WorkspacesResources.File_0_size_of_1_exceeds_maximum_allowed_size_of_2, file.Path, textLength, maxLength);
+                var exceptionThrown = false;
+
+                try
+                {
+                    // test async one
+                    var unused = await loader.LoadTextAndVersionAsync(workspace, DocumentId.CreateNewId(ProjectId.CreateNewId()), CancellationToken.None);
+                }
+                catch (InvalidDataException ex)
+                {
+                    exceptionThrown = true;
+                    Assert.Equal(expected, ex.Message);
+                }
+
+                Assert.True(exceptionThrown);
+
+                exceptionThrown = false;
+                try
+                {
+                    // test sync one
+                    var unused = loader.LoadTextAndVersionSynchronously(workspace, DocumentId.CreateNewId(ProjectId.CreateNewId()), CancellationToken.None);
+                }
+                catch (InvalidDataException ex)
+                {
+                    exceptionThrown = true;
+                    Assert.Equal(expected, ex.Message);
+                }
+
+                Assert.True(exceptionThrown);
+            }
         }
 
         private static void GetMultipleProjects(

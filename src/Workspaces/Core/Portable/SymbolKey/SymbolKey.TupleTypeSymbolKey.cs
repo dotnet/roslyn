@@ -1,8 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -13,10 +15,28 @@ namespace Microsoft.CodeAnalysis
             public static void Create(INamedTypeSymbol symbol, SymbolKeyWriter visitor)
             {
                 Debug.Assert(symbol.IsTupleType);
-                visitor.WriteSymbolKey(symbol.TupleUnderlyingType);
 
-                var friendlyNames = ArrayBuilder<String>.GetInstance();
+                var friendlyNames = ArrayBuilder<string>.GetInstance();
                 var locations = ArrayBuilder<Location>.GetInstance();
+
+                var isError = symbol.TupleUnderlyingType.TypeKind == TypeKind.Error;
+                visitor.WriteBoolean(isError);
+
+                if (isError)
+                {
+                    var elementTypes = ArrayBuilder<ISymbol>.GetInstance();
+
+                    foreach (var element in symbol.TupleElements)
+                    {
+                        elementTypes.Add(element.Type);
+                    }
+
+                    visitor.WriteSymbolKeyArray(elementTypes.ToImmutableAndFree());
+                }
+                else
+                {
+                    visitor.WriteSymbolKey(symbol.TupleUnderlyingType);
+                }
 
                 foreach (var element in symbol.TupleElements)
                 {
@@ -30,20 +50,57 @@ namespace Microsoft.CodeAnalysis
 
             public static SymbolKeyResolution Resolve(SymbolKeyReader reader)
             {
-                var underlyingTypeResolution = reader.ReadSymbolKey();
-                var elementNames = reader.ReadStringArray();
-                var elementLocations = reader.ReadLocationArray();
+                var isError = reader.ReadBoolean();
+                if (isError)
+                {
+                    var elementTypes = reader.ReadSymbolKeyArray().SelectAsArray(r => r.GetAnySymbol() as ITypeSymbol);
+                    var elementNames = reader.ReadStringArray();
+                    var elementLocations = ReadElementLocations(reader);
 
-                try
-                {
-                    var result = GetAllSymbols<INamedTypeSymbol>(underlyingTypeResolution).Select(
-                        t => reader.Compilation.CreateTupleTypeSymbol(t, elementNames, elementLocations));
-                    return CreateSymbolInfo(result);
+                    if (!elementTypes.Any(t => t == null))
+                    {
+                        try
+                        {
+                            var result = reader.Compilation.CreateTupleTypeSymbol(
+                                elementTypes, elementNames, elementLocations);
+                            return new SymbolKeyResolution(result);
+                        }
+                        catch (ArgumentException)
+                        {
+                        }
+                    }
                 }
-                catch (ArgumentException)
+                else
                 {
-                    return new SymbolKeyResolution(reader.Compilation.ObjectType);
+                    var underlyingTypeResolution = reader.ReadSymbolKey();
+                    var elementNames = reader.ReadStringArray();
+                    var elementLocations = ReadElementLocations(reader);
+
+                    try
+                    {
+                        var result = GetAllSymbols<INamedTypeSymbol>(underlyingTypeResolution).Select(
+                            t => reader.Compilation.CreateTupleTypeSymbol(t, elementNames, elementLocations));
+                        return CreateSymbolInfo(result);
+                    }
+                    catch (ArgumentException)
+                    {
+                    }
                 }
+
+                return new SymbolKeyResolution(reader.Compilation.ObjectType);
+            }
+
+            private static ImmutableArray<Location> ReadElementLocations(SymbolKeyReader reader)
+            {
+                // Compiler API requires that all the locations are non-null, or that there is a default
+                // immutable array passed in.
+                var elementLocations = reader.ReadLocationArray();
+                if (elementLocations.All(loc => loc == null))
+                {
+                    elementLocations = default(ImmutableArray<Location>);
+                }
+
+                return elementLocations;
             }
         }
     }

@@ -1408,11 +1408,13 @@ HandleAsAGeneralExpression:
 
 
                 Dim parameterElementTypes As ImmutableArray(Of TypeSymbol) = Nothing
-                If parameterType.TryGetElementTypesIfTupleOrCompatible(parameterElementTypes) Then
+                Dim argumentElementTypes As ImmutableArray(Of TypeSymbol) = Nothing
 
-                    Dim argumentElementTypes As ImmutableArray(Of TypeSymbol) = Nothing
-                    If Not argumentType.TryGetElementTypesIfTupleOrCompatible(argumentElementTypes) OrElse
-                            parameterElementTypes.Length <> argumentElementTypes.Length Then
+                If parameterType.GetNullableUnderlyingTypeOrSelf().TryGetElementTypesIfTupleOrCompatible(parameterElementTypes) AndAlso
+                   If(parameterType.IsNullableType(), argumentType.GetNullableUnderlyingTypeOrSelf(), argumentType).
+                       TryGetElementTypesIfTupleOrCompatible(argumentElementTypes) Then
+
+                    If parameterElementTypes.Length <> argumentElementTypes.Length Then
                         Return False
                     End If
 
@@ -2151,7 +2153,7 @@ HandleAsAGeneralExpression:
                             Dim unboundLambda = DirectCast(argument, UnboundLambda)
 
                             If unboundLambda.IsFunctionLambda Then
-                                Dim inferenceSignature As New UnboundLambda.TargetSignature(delegateParams, unboundLambda.Binder.Compilation.GetSpecialType(SpecialType.System_Void))
+                                Dim inferenceSignature As New UnboundLambda.TargetSignature(delegateParams, unboundLambda.Binder.Compilation.GetSpecialType(SpecialType.System_Void), returnsByRef:=False)
                                 Dim returnTypeInfo As KeyValuePair(Of TypeSymbol, ImmutableArray(Of Diagnostic)) = unboundLambda.InferReturnType(inferenceSignature)
 
                                 If Not returnTypeInfo.Value.IsDefault AndAlso returnTypeInfo.Value.HasAnyErrors() Then
@@ -2169,8 +2171,9 @@ HandleAsAGeneralExpression:
 
                                 Else
                                     Dim boundLambda As BoundLambda = unboundLambda.Bind(New UnboundLambda.TargetSignature(inferenceSignature.ParameterTypes,
-                                                                                                                          inferenceSignature.IsByRef,
-                                                                                                                          returnTypeInfo.Key))
+                                                                                                                          inferenceSignature.ParameterIsByRef,
+                                                                                                                          returnTypeInfo.Key,
+                                                                                                                          returnsByRef:=False))
 
                                     Debug.Assert(boundLambda.LambdaSymbol.ReturnType Is returnTypeInfo.Key)
                                     If Not boundLambda.HasErrors AndAlso Not boundLambda.Diagnostics.HasAnyErrors Then
@@ -2236,7 +2239,8 @@ HandleAsAGeneralExpression:
 
                                 If Not invokeMethod.IsSub AndAlso (unboundLambda.Flags And SourceMemberFlags.Async) <> 0 Then
                                     Dim boundLambda As BoundLambda = unboundLambda.Bind(New UnboundLambda.TargetSignature(delegateParams,
-                                                                            unboundLambda.Binder.Compilation.GetSpecialType(SpecialType.System_Void)))
+                                                                            unboundLambda.Binder.Compilation.GetSpecialType(SpecialType.System_Void),
+                                                                            returnsByRef:=False))
 
                                     If Not boundLambda.HasErrors AndAlso Not boundLambda.Diagnostics.HasAnyErrors() Then
                                         If _asyncLambdaSubToFunctionMismatch Is Nothing Then

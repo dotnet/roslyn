@@ -9,6 +9,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
         internal class SyntaxTokenWithValueAndTrivia<T> : SyntaxTokenWithValue<T>
         {
+            static SyntaxTokenWithValueAndTrivia()
+            {
+                ObjectBinder.RegisterTypeReader(typeof(SyntaxTokenWithValueAndTrivia<T>), r => new SyntaxTokenWithValueAndTrivia<T>(r));
+            }
+
             private readonly GreenNode _leading;
             private readonly GreenNode _trailing;
 
@@ -64,11 +69,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     this.AdjustFlagsAndWidth(trailing);
                     _trailing = trailing;
                 }
-            }
-
-            internal override Func<ObjectReader, object> GetReader()
-            {
-                return r => new SyntaxTokenWithValueAndTrivia<T>(r);
             }
 
             internal override void WriteTo(ObjectWriter writer)

@@ -643,6 +643,60 @@ namespace System
 
         End Sub
 
+        <WorkItem(10567, "https://github.com/dotnet/roslyn/issues/14600")>
+        <WpfFact>
+        <Trait(Traits.Feature, Traits.Features.Rename)>
+        <Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)>
+        Public Sub RenameTupleFiledInLiteralRegress14600()
+            Using workspace = CreateWorkspaceWithWaiter(
+                   <Workspace>
+                       <Project Language="C#" CommonReferences="true" PreprocessorSymbols="__DEMO__">
+                           <Document>
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        var x = (Program: 1, Bob: 2);
+
+        var Alice = x.$$Program;                
+    }
+
+}
+
+
+
+namespace System
+{
+    // struct with two values
+    public struct ValueTuple&lt;T1, T2&gt;
+    {
+        public T1 Item1;
+        public T2 Item2;
+
+        public ValueTuple(T1 item1, T2 item2)
+        {
+            this.Item1 = item1;
+            this.Item2 = item2;
+        }
+
+        public override string ToString()
+        {
+            return '{' + Item1?.ToString() + ", " + Item2?.ToString() + '}';
+        }
+    }
+}
+                            </Document>
+                       </Project>
+                   </Workspace>)
+
+                ' NOTE: this is currently intentionally blocked
+                '       see https://github.com/dotnet/roslyn/issues/10898
+                AssertTokenNotRenamable(workspace)
+            End Using
+        End Sub
+
 #End Region
 
     End Class

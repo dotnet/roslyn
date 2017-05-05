@@ -40,11 +40,11 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeMethodAsynchronous
 
         protected override SyntaxNode AddAsyncTokenAndFixReturnType(
             bool keepVoid, IMethodSymbol methodSymbolOpt, SyntaxNode node,
-            INamedTypeSymbol taskType, INamedTypeSymbol taskOfTType)
+            INamedTypeSymbol taskType, INamedTypeSymbol taskOfTType, INamedTypeSymbol valueTaskOfTType)
         {
             switch (node)
             {
-                case MethodDeclarationSyntax method: return FixMethod(keepVoid, methodSymbolOpt, method, taskType, taskOfTType);
+                case MethodDeclarationSyntax method: return FixMethod(keepVoid, methodSymbolOpt, method, taskType, taskOfTType, valueTaskOfTType);
                 case AnonymousMethodExpressionSyntax method: return FixAnonymousMethod(method);
                 case ParenthesizedLambdaExpressionSyntax lambda: return FixParenthesizedLambda(lambda);
                 case SimpleLambdaExpressionSyntax lambda: return FixSimpleLambda(lambda);
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeMethodAsynchronous
 
         private SyntaxNode FixMethod(
             bool keepVoid, IMethodSymbol methodSymbol, MethodDeclarationSyntax method,
-            ITypeSymbol taskType, INamedTypeSymbol taskOfTType)
+            INamedTypeSymbol taskType, INamedTypeSymbol taskOfTType, INamedTypeSymbol valueTaskOfTType)
         {
             var newReturnType = method.ReturnType;
 
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeMethodAsynchronous
             }
             else
             {
-                if (!IsTaskLike(methodSymbol.ReturnType, taskType, taskOfTType))
+                if (!IsTaskLike(methodSymbol.ReturnType, taskType, taskOfTType, valueTaskOfTType))
                 {
                     // If it's not already Task-like, then wrap the existing return type
                     // in Task<>.

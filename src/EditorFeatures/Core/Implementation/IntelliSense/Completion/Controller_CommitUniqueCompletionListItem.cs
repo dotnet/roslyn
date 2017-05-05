@@ -3,8 +3,10 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 {
@@ -31,7 +33,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                     return;
                 }
 
-                if (!StartNewModelComputation(completionService, filterItems: true, dismissIfEmptyAllowed: true))
+                var trigger = new CompletionTrigger(CompletionTriggerKind.InvokeAndCommitIfUnique);
+                if (!StartNewModelComputation(completionService, trigger))
                 {
                     return;
                 }
@@ -79,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                     // Nothing happened between when we were invoked and now.
                     CommitIfUnique(t.Result);
                 }
-            }, CancellationToken.None, TaskContinuationOptions.OnlyOnRanToCompletion, this.ForegroundTaskScheduler);
+            }, CancellationToken.None, TaskContinuationOptions.OnlyOnRanToCompletion, ForegroundTaskScheduler);
 
             task.CompletesAsyncOperation(token);
         }

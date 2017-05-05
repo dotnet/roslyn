@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Notification;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 
@@ -25,38 +26,43 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
             _waitIndicator = waitIndicator;
         }
 
+        private (Document, IGoToDefinitionService) GetDocumentAndService(ITextSnapshot snapshot)
+        {
+            var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
+            return (document, document?.GetLanguageService<IGoToDefinitionService>());
+        }
+
         public CommandState GetCommandState(GoToDefinitionCommandArgs args, Func<CommandState> nextHandler)
         {
-            return CommandState.Available;
+            var (document, service) = GetDocumentAndService(args.SubjectBuffer.CurrentSnapshot);
+            return service != null
+                ? CommandState.Available
+                : CommandState.Unavailable;
         }
 
         public void ExecuteCommand(GoToDefinitionCommandArgs args, Action nextHandler)
         {
-            var caretPos = args.TextView.GetCaretPoint(args.SubjectBuffer);
-            if (caretPos.HasValue && TryExecuteCommand(args.SubjectBuffer.CurrentSnapshot, caretPos.Value))
+            var subjectBuffer = args.SubjectBuffer;
+            var (document, service) = GetDocumentAndService(subjectBuffer.CurrentSnapshot);
+            if (service != null)
             {
-                return;
+                var caretPos = args.TextView.GetCaretPoint(subjectBuffer);
+                if (caretPos.HasValue && TryExecuteCommand(document, caretPos.Value, service))
+                {
+                    return;
+                }
             }
 
             nextHandler();
         }
 
-        internal bool TryExecuteCommand(ITextSnapshot snapshot, int caretPosition)
-        {
-            var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
-            if (document != null)
-            {
-                var goToDefinitionService = document.Project.LanguageServices.GetService<IGoToDefinitionService>();
-                return TryExecuteCommand(document, caretPosition, goToDefinitionService);
-            }
-            else
-            {
-                // We didn't even have a workspace, so we can let somebody else try to handle this if they can
-                return false;
-            }
-        }
-
         // Internal for testing purposes only.
+        internal bool TryExecuteCommand(ITextSnapshot snapshot, int caretPosition)
+            => TryExecuteCommand(snapshot.GetOpenDocumentInCurrentContextWithChanges(), caretPosition);
+
+        internal bool TryExecuteCommand(Document document, int caretPosition)
+            => TryExecuteCommand(document, caretPosition, document.GetLanguageService<IGoToDefinitionService>());
+
         internal bool TryExecuteCommand(Document document, int caretPosition, IGoToDefinitionService goToDefinitionService)
         {
             string errorMessage = null;

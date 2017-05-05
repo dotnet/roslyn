@@ -380,16 +380,25 @@ ToString]]>.Value)
 
     <Fact>
     Public Sub ParseTuple4()
-        Dim expr = ParseExpression("(A:=1)", expectsErrors:=False)
+        Dim expr = ParseExpression("(A:=1)", expectsErrors:=True)
         Assert.Equal(SyntaxKind.TupleExpression, expr.Kind)
+        Assert.Equal(SyntaxKind.SimpleArgument, expr.ChildNodesAndTokens()(1).Kind())
+        Assert.Equal(SyntaxKind.NameColonEquals, expr.ChildNodesAndTokens()(1).ChildNodesAndTokens()(0).Kind())
+        Dim missingComma = expr.ChildNodesAndTokens()(2)
+        Assert.Equal(SyntaxKind.CommaToken, missingComma.Kind())
+        Assert.Equal(True, missingComma.IsMissing)
+        Dim missingArg = expr.ChildNodesAndTokens()(3)
+        Assert.Equal(SyntaxKind.SimpleArgument, missingArg.Kind())
+        Assert.Equal(True, missingArg.IsMissing)
+
         expr = ParseExpression("(A:=, C).C", expectsErrors:=True)
         Assert.Equal(SyntaxKind.TupleExpression, expr.ChildNodesAndTokens()(0).Kind())
         Assert.Equal(SyntaxKind.SimpleArgument, expr.ChildNodesAndTokens()(0).ChildNodesAndTokens()(1).Kind())
         Assert.Equal(SyntaxKind.NameColonEquals, expr.ChildNodesAndTokens()(0).ChildNodesAndTokens()(1).ChildNodesAndTokens()(0).Kind())
 
-        Dim missingArg = expr.ChildNodesAndTokens()(0).ChildNodesAndTokens()(1).ChildNodesAndTokens()(1)
-        Assert.Equal(SyntaxKind.IdentifierName, missingArg.Kind)
-        Assert.Equal(True, missingArg.IsMissing)
+        Dim missingArg2 = expr.ChildNodesAndTokens()(0).ChildNodesAndTokens()(1).ChildNodesAndTokens()(1)
+        Assert.Equal(SyntaxKind.IdentifierName, missingArg2.Kind)
+        Assert.Equal(True, missingArg2.IsMissing)
     End Sub
 
     <Fact>

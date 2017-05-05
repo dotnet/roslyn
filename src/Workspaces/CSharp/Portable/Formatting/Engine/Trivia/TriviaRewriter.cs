@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         {
             _cancellationToken.ThrowIfCancellationRequested();
 
-            if (node == null || !_spans.IntersectsWith(node.FullSpan))
+            if (node == null || !_spans.HasIntervalThatIntersectsWith(node.FullSpan))
             {
                 return node;
             }
@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         {
             _cancellationToken.ThrowIfCancellationRequested();
 
-            if (!_spans.IntersectsWith(token.FullSpan))
+            if (!_spans.HasIntervalThatIntersectsWith(token.FullSpan))
             {
                 return token;
             }

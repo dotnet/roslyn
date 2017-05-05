@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -42,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
         protected static ITypeSymbol CreateClass(string name)
         {
             return CodeGenerationSymbolFactory.CreateNamedTypeSymbol(
-                null, default(Accessibility), default(DeclarationModifiers), TypeKind.Class, name);
+                default(ImmutableArray<AttributeData>), default(Accessibility), default(DeclarationModifiers), TypeKind.Class, name);
         }
     }
 }

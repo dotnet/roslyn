@@ -189,8 +189,8 @@
   <data name="Place_open_brace_on_new_line_for_lambda_expression" xml:space="preserve">
     <value>Place open brace on new line for lambda expression</value>
   </data>
-  <data name="Place_open_brace_on_new_line_for_methods" xml:space="preserve">
-    <value>Place open brace on new line for methods</value>
+  <data name="Place_open_brace_on_new_line_for_methods_local_functions" xml:space="preserve">
+    <value>Place open brace on new line for methods and local functions</value>
   </data>
   <data name="Place_open_brace_on_new_line_for_object_collection_and_array_initializers" xml:space="preserve">
     <value>Place open brace on new line for object, collection and array initializers</value>
@@ -506,5 +506,14 @@
   </data>
   <data name="Automatically_format_when_typing" xml:space="preserve">
     <value>Automatically format when typing</value>
+  </data>
+  <data name="Never" xml:space="preserve">
+    <value>Never</value>
+  </data>
+  <data name="When_on_single_line" xml:space="preserve">
+    <value>When on single line</value>
+  </data>
+  <data name="When_possible" xml:space="preserve">
+    <value>When possible</value>
   </data>
 </root>

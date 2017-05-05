@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis
                     return UpdateDocumentInCompilationAsync(oldCompilation, _oldState, _newState, cancellationToken);
                 }
 
-                public DocumentId DocumentId { get { return _newState.Info.Id; } }
+                public DocumentId DocumentId => _newState.Info.Id;
             }
 
             private class RemoveAllDocumentsAction : CompilationTranslationAction

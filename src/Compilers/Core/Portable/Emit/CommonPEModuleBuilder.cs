@@ -882,7 +882,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
         #endregion
 
-        public override Cci.ITypeReference GetPlatformType(Cci.PlatformType platformType, EmitContext context)
+        public sealed override Cci.ITypeReference GetPlatformType(Cci.PlatformType platformType, EmitContext context)
         {
             Debug.Assert((object)this == context.Module);
 

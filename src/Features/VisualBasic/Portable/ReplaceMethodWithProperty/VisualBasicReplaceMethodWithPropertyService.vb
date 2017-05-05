@@ -7,6 +7,7 @@ Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.ReplaceMethodWithProperty
+Imports Microsoft.CodeAnalysis.Options
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithProperty
     <ExportLanguageService(GetType(IReplaceMethodWithPropertyService), LanguageNames.VisualBasic), [Shared]>
@@ -38,8 +39,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithP
                 Return Nothing
             End If
 
-            If position > containingMethod.ParameterList.Span.End Then
-                Return Nothing
+            ' Parameter lists in VB are optional and may not be provided.
+            If containingMethod.ParameterList Is Nothing Then
+                If position > containingMethod.Span.End Then
+                    Return Nothing
+                End If
+            Else
+                If position > containingMethod.ParameterList.Span.End Then
+                    Return Nothing
+                End If
             End If
 
             Return containingMethod
@@ -56,6 +64,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithP
         End Sub
 
         Public Sub ReplaceGetMethodWithProperty(
+            documentOptions As DocumentOptionSet,
+            parseOptions As ParseOptions,
             editor As SyntaxEditor,
             semanticModel As SemanticModel,
             getAndSetMethods As GetAndSetMethods,

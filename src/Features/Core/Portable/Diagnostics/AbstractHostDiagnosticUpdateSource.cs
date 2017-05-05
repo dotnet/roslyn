@@ -20,13 +20,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public abstract Workspace Workspace { get; }
 
-        public bool SupportGetDiagnostics
-        {
-            get
-            {
-                return false;
-            }
-        }
+        public bool SupportGetDiagnostics => false;
 
         public ImmutableArray<DiagnosticData> GetDiagnostics(Workspace workspace, ProjectId projectId, DocumentId documentId, object id, bool includeSuppressedDiagnostics, CancellationToken cancellationToken)
         {

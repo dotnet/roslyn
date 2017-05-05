@@ -4,6 +4,7 @@ Imports System.Threading
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Scripting
 Imports Microsoft.CodeAnalysis.Scripting.Hosting
+Imports Microsoft.CodeAnalysis.Text
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting
 
@@ -21,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting
                                             Optional options As ScriptOptions = Nothing,
                                             Optional globalsType As Type = Nothing,
                                             Optional assemblyLoader As InteractiveAssemblyLoader = Nothing) As Script(Of T)
-            Return Script.CreateInitialScript(Of T)(VisualBasicScriptCompiler.Instance, code, options, globalsType, assemblyLoader)
+            Return Script.CreateInitialScript(Of T)(VisualBasicScriptCompiler.Instance, SourceText.From(If(code, String.Empty)), options, globalsType, assemblyLoader)
         End Function
 
         ''' <summary>

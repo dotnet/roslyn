@@ -6,13 +6,13 @@ Imports Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.MethodXML
     Partial Public Class MethodXMLTests
 
-        Private Async Function TestAsync(definition As XElement, expected As XElement) As Task
-            Using state = Await CreateCodeModelTestStateAsync(definition)
+        Private Sub Test(definition As XElement, expected As XElement)
+            Using state = CreateCodeModelTestState(definition)
                 Dim func = state.GetCodeElementAtCursor(Of EnvDTE.CodeFunction)()
                 Dim actual = func.GetMethodXML()
 
                 Assert.Equal(expected.ToString(), actual.ToString())
             End Using
-        End Function
+        End Sub
     End Class
 End Namespace

@@ -1143,6 +1143,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         #endregion
 
         /// <summary>
+        /// True if the type itself is excluded from code covarage instrumentation.
+        /// True for source types marked with <see cref="AttributeDescription.ExcludeFromCodeCoverageAttribute"/>.
+        /// </summary>
+        internal virtual bool IsDirectlyExcludedFromCodeCoverage { get => false; }
+
+        /// <summary>
         /// True if this symbol has a special name (metadata flag SpecialName is set).
         /// </summary>
         internal abstract bool HasSpecialName { get; }

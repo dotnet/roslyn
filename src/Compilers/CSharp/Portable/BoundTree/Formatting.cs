@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    internal partial class BoundDiscardedExpression
+    internal partial class BoundDiscardExpression
     {
         public override object Display
         {
@@ -133,6 +133,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override object Display
         {
             get { throw ExceptionUtilities.Unreachable; }
+        }
+    }
+
+    internal partial class BoundDefaultExpression
+    {
+        public override object Display
+        {
+            get { return (object)this.Type ?? "default"; }
         }
     }
 }
