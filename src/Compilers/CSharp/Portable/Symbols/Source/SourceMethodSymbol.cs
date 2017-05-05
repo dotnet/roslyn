@@ -169,19 +169,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _cachedDiagnostics;
         }
 
-        protected SourceMethodSymbol(Symbol containingSymbol, SyntaxReference syntaxReferenceOpt, SyntaxReference bodySyntaxReferenceOpt, Location location)
-            : this(containingSymbol, syntaxReferenceOpt, bodySyntaxReferenceOpt, ImmutableArray.Create(location))
+        protected SourceMethodSymbol(
+            Symbol containingSymbol,
+            SyntaxReference syntaxReferenceOpt,
+            SyntaxReference blockBodySyntaxOpt,
+            SyntaxReference expressionBodySyntaxOpt,
+            Location location)
+            : this(containingSymbol,
+                   syntaxReferenceOpt,
+                   blockBodySyntaxOpt,
+                   expressionBodySyntaxOpt,
+                   ImmutableArray.Create(location))
         {
         }
 
-        protected SourceMethodSymbol(Symbol containingSymbol, SyntaxReference syntaxReferenceOpt, SyntaxReference bodySyntaxReferenceOpt, ImmutableArray<Location> locations)
+        protected SourceMethodSymbol(Symbol containingSymbol,
+            SyntaxReference syntaxReferenceOpt,
+            SyntaxReference blockBodySyntaxOpt,
+            SyntaxReference expressionBodySyntaxOpt,
+            ImmutableArray<Location> locations)
         {
             Debug.Assert((object)containingSymbol != null);
             Debug.Assert(!locations.IsEmpty);
 
             _containingSymbol = containingSymbol;
             this.syntaxReferenceOpt = syntaxReferenceOpt;
-            this.bodySyntaxReferenceOpt = bodySyntaxReferenceOpt;
+            // Prefer block body to expression body
+            this.bodySyntaxReferenceOpt = blockBodySyntaxOpt ?? expressionBodySyntaxOpt;
             this.locations = locations;
         }
 
@@ -1366,7 +1380,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// If the method has both block body and an expression body
         /// present, this is not treated as expression-bodied.
         /// </remarks>
-        internal abstract bool IsExpressionBodied { get; }
+        internal bool IsExpressionBodied => bodySyntaxReferenceOpt?.GetSyntax().Kind() == SyntaxKind.ArrowExpressionClause;
 
         internal override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree)
         {

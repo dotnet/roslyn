@@ -35,7 +35,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Binder binder,
             Symbol containingSymbol,
             LocalFunctionStatementSyntax syntax)
-            : base(containingSymbol, syntax.GetReference(), syntax.ExpressionBody?.GetReference() ?? syntax.Body?.GetReference(), syntax.Location)
+            : base(containingSymbol,
+                   syntax.GetReference(),
+                   syntax.ExpressionBody?.GetReference(),
+                   syntax.Body?.GetReference(),
+                   syntax.Location)
         {
             _syntax = syntax;
             _containingSymbol = containingSymbol;
@@ -279,8 +283,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override ObsoleteAttributeData ObsoleteAttributeData => null;
 
         public override Symbol AssociatedSymbol => null;
-
-        internal override bool IsExpressionBodied => _syntax.Body == null && _syntax.ExpressionBody != null;
 
         internal override bool IsMetadataNewSlot(bool ignoreInterfaceImplementationChanges = false) => false;
 

@@ -2,12 +2,9 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using System.Collections.Generic;
-using System;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -28,7 +25,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             SyntaxTokenList modifiersSyntax,
             DiagnosticBag diagnostics,
             bool isExpressionBodied) :
-            base(containingType, syntaxReference, bodySyntaxReference, location)
+            base(containingType,
+                 syntaxReference,
+                 bodySyntaxReference,
+                 expressionBodySyntaxOpt: null,
+                 location: location)
         {
             _name = name;
             _isExpressionBodied = isExpressionBodied;
@@ -623,11 +624,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 LazyMethodChecks();
                 return _lazyReturnType;
             }
-        }
-
-        internal override bool IsExpressionBodied
-        {
-            get { return _isExpressionBodied; }
         }
 
         internal sealed override OneOrMany<SyntaxList<AttributeListSyntax>> GetAttributeDeclarations()

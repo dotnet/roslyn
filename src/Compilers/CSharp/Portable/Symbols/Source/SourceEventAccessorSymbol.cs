@@ -24,7 +24,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             SyntaxReference syntaxReference,
             SyntaxReference blockSyntaxReference,
             ImmutableArray<Location> locations)
-            : base(@event.containingType, syntaxReference, blockSyntaxReference, locations)
+            : base(@event.containingType,
+                   syntaxReference,
+                   blockSyntaxReference,
+                   expressionBodySyntaxOpt: null,
+                   locations: locations)
         {
             _event = @event;
         }
@@ -195,12 +199,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return null;
-        }
-
-        internal override bool IsExpressionBodied
-        {
-            // Events cannot be expression-bodied
-            get { return false; }
         }
     }
 }

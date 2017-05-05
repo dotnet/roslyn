@@ -15,8 +15,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal SourceDestructorSymbol(
             SourceMemberContainerTypeSymbol containingType,
             DestructorDeclarationSyntax syntax,
-            DiagnosticBag diagnostics) :
-            base(containingType, syntax.GetReference(), syntax.Body?.GetReference() ?? syntax.ExpressionBody?.GetReference() , syntax.Identifier.GetLocation())
+            DiagnosticBag diagnostics)
+            : base(containingType,
+                   syntax.GetReference(),
+                   syntax.Body?.GetReference(),
+                   syntax.ExpressionBody?.GetReference(),
+                   syntax.Identifier.GetLocation())
         {
             const MethodKind methodKind = MethodKind.Destructor;
             Location location = this.Locations[0];
@@ -124,14 +128,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override string Name
         {
             get { return WellKnownMemberNames.DestructorName; }
-        }
-
-        internal override bool IsExpressionBodied
-        {
-            get
-            {
-                return _isExpressionBodied;
-            }
         }
 
         internal override OneOrMany<SyntaxList<AttributeListSyntax>> GetAttributeDeclarations()

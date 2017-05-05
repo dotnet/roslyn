@@ -69,8 +69,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             DiagnosticBag diagnostics) :
             base(containingType,
                  syntax.GetReference(),
-                 // Prefer a block body if both exist
-                 syntax.Body?.GetReference() ?? syntax.ExpressionBody?.GetReference(),
+                 syntax.Body?.GetReference(), 
+                 syntax.ExpressionBody?.GetReference(),
                  location)
         {
             _name = name;
