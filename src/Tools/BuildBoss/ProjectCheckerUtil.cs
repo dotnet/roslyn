@@ -233,16 +233,25 @@ namespace BuildBoss
                     allGood = false;
                 }
 
-                if (!_packageVersionMap.TryGetValue(SharedUtil.PackageNameToVersionKey(packageRef.Name), out var storedVersion))
+                var versions = new List<string>();
+                foreach (var key in SharedUtil.PackageNameToAllKeys(packageRef.Name))
                 {
-                    textWriter.WriteLine($"Could not locate a package named {packageRef.Name} in Packages.props");
+                    if (_packageVersionMap.TryGetValue(key, out var value))
+                    {
+                        versions.Add(value);
+                    }
+                }
+
+                if (versions.Count == 0)
+                {
+                    textWriter.WriteLine($"Could not locate a package named {packageRef.Name} in Packages.props or FixedPackages.props");
                     allGood = false;
                 }
-                else if (!StringComparer.OrdinalIgnoreCase.Equals(storedVersion, packageRef.Version))
+                else if (!versions.Contains(packageRef.Version, StringComparer.OrdinalIgnoreCase))
                 {
                     textWriter.WriteLine($"PackageReference {packageRef.Name} has an invalid version");
-                    textWriter.WriteLine($"\tPackages.props {storedVersion}");
-                    textWriter.WriteLine($"\tListed version {packageRef.Version}");
+                    textWriter.WriteLine($"\tAllowed versions {string.Join(", ", versions.ToArray())}");
+                    textWriter.WriteLine($"\tListed versions {packageRef.Version}");
                     allGood = false;
                 }
             }

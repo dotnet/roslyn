@@ -22,5 +22,6 @@ namespace BuildBoss
 
         internal static string PackageNameToVersionKey(string packageName) => $"{packageName.Replace(".", "")}Version";
         internal static string PackageNameToFixedVersionKey(string packageName) => $"{packageName.Replace(".", "")}FixedVersion";
+        internal static string[] PackageNameToAllKeys(string packageName) => new[] { PackageNameToVersionKey(packageName), PackageNameToFixedVersionKey(packageName) };
     }
 }

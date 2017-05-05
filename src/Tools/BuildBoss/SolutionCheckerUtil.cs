@@ -85,17 +85,24 @@ namespace BuildBoss
                 return false;
             }
 
-            var doc = XDocument.Load(getPackagesPropPath());
+            packageVersionMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            PopulatePackageVersionMap(getPackagesPropPath(), packageVersionMap);
+
+            var fixedPropsPath = Path.Combine(Path.GetDirectoryName(getPackagesPropPath()), "FixedPackages.props");
+            PopulatePackageVersionMap(fixedPropsPath, packageVersionMap);
+            return true;
+        }
+
+        private static void PopulatePackageVersionMap(string path, Dictionary<string, string> packageVersionMap)
+        {
+            var doc = XDocument.Load(path);
             var manager = new XmlNamespaceManager(new NameTable());
             manager.AddNamespace("mb", SharedUtil.MSBuildNamespaceUriRaw);
             var prop = doc.XPathSelectElements("//mb:PropertyGroup", manager).Single();
-            packageVersionMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
             foreach (var element in prop.Elements())
             {
                 packageVersionMap.Add(element.Name.LocalName, element.Value.Trim());
             }
-
-            return true;
         }
     }
 }
