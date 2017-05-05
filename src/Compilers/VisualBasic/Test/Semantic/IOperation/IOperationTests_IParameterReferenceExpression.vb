@@ -273,6 +273,85 @@ IObjectCreationExpression (Constructor: Sub [Class]..ctor()) (OperationKind.Obje
         End Sub
 
         <Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")>
+        Public Sub ParameterReference_DelegateCreationExpressionWithLambdaArgument()
+            Dim source = <![CDATA[
+Option Strict Off
+Imports System
+
+Class Class1
+    Delegate Sub DelegateType()
+    Public Sub M(x As Object, y As EventArgs)
+        Dim eventHandler As New EventHandler(Function() x)'BIND:"New EventHandler(Function() x)"
+    End Sub
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.EventHandler) (Syntax: 'New EventHa ... nction() x)')
+  ILambdaExpression (Signature: Function () As System.Object) (OperationKind.LambdaExpression, Type: null) (Syntax: 'Function() x')
+    IBlockStatement (3 statements, 1 locals) (OperationKind.BlockStatement) (Syntax: 'Function() x')
+      Locals: Local_1: <anonymous local> As System.Object
+      IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'x')
+        IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'x')
+      ILabelStatement (Label: exit) (OperationKind.LabelStatement) (Syntax: 'Function() x')
+      IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'Function() x')
+        ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'Function() x')
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of ObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")>
+        Public Sub ParameterReference_DelegateCreationExpressionWithMethodArgument()
+            Dim source = <![CDATA[
+Imports System
+
+Class Class1
+    Public Sub M(x As Object, y As EventArgs)
+        Dim eventHandler As New EventHandler(AddressOf Me.M)'BIND:"New EventHandler(AddressOf Me.M)"
+    End Sub
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IConversionExpression (ConversionKind.Basic, Explicit) (OperationKind.ConversionExpression, Type: System.EventHandler) (Syntax: 'New EventHa ... essOf Me.M)')
+  IOperation:  (OperationKind.None) (Syntax: 'AddressOf Me.M')
+    Children(1): IInstanceReferenceExpression (InstanceReferenceKind.Explicit) (OperationKind.InstanceReferenceExpression, Type: Class1) (Syntax: 'Me')
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of ObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")>
+        Public Sub ParameterReference_DelegateCreationExpressionWithInvalidArgument()
+            Dim source = <![CDATA[
+Option Strict Off
+Imports System
+
+Class Class1
+    Delegate Sub DelegateType()
+    Public Sub M(x As Object, y As EventArgs)
+        Dim eventHandler As New EventHandler(x)'BIND:"New EventHandler(x)"
+    End Sub
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IInvalidExpression (OperationKind.InvalidExpression, Type: System.EventHandler, IsInvalid) (Syntax: 'New EventHandler(x)')
+  Children(1): IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'x')
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC32008: Delegate 'EventHandler' requires an 'AddressOf' expression or lambda expression as the only argument to its constructor.
+        Dim eventHandler As New EventHandler(x)'BIND:"New EventHandler(x)"
+                                            ~~~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of ObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")>
         Public Sub ParameterReference_NameOfExpression()
             Dim source = <![CDATA[
 Class Class1
