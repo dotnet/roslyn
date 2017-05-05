@@ -40,6 +40,14 @@ namespace Microsoft.CodeAnalysis.Semantics
             }
         }
 
+        internal override void VisitNoneOperation(IOperation operation)
+        {
+            if (operation is IOperationWithChildren operationWithChildren)
+            {
+                VisitArray(operationWithChildren.Children);
+            }
+        }
+
         public override void VisitBlockStatement(IBlockStatement operation)
         {
             VisitArray(operation.Statements);

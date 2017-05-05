@@ -3926,6 +3926,62 @@ Class Program
 End Class")
         End Function
 
+        <WorkItem(18969, "https://github.com/dotnet/roslyn/issues/18969")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        Public Async Function TupleElement1() As Task
+            Await TestInRegularAndScriptAsync(
+"
+Imports System
+
+Public Class Q
+    Sub Main()
+        Dim x As (Integer, String) = ([|Foo|](), """")
+    End Sub
+End Class
+",
+"
+Imports System
+
+Public Class Q
+    Sub Main()
+        Dim x As (Integer, String) = (Foo(), """")
+    End Sub
+
+    Private Function Foo() As Integer
+        Throw New NotImplementedException()
+    End Function
+End Class
+")
+        End Function
+
+        <WorkItem(18969, "https://github.com/dotnet/roslyn/issues/18969")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        Public Async Function TupleElement2() As Task
+            Await TestInRegularAndScriptAsync(
+"
+Imports System
+
+Public Class Q
+    Sub Main()
+        Dim x As (Integer, String) = (0, [|Foo|]())
+    End Sub
+End Class
+",
+"
+Imports System
+
+Public Class Q
+    Sub Main()
+        Dim x As (Integer, String) = (0, Foo())
+    End Sub
+
+    Private Function Foo() As String
+        Throw New NotImplementedException()
+    End Function
+End Class
+")
+        End Function
+
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function MethodWithTupleWithNames() As Task
             Await TestInRegularAndScriptAsync(
