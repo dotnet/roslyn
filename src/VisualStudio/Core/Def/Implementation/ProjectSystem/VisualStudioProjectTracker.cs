@@ -41,6 +41,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private readonly HostWorkspaceServices _workspaceServices;
 
         /// <summary>
+        /// Set to true while we're batching project loads. That is, between
+        /// <see cref="IVsSolutionLoadEvents.OnBeforeLoadProjectBatch" /> and
+        /// <see cref="IVsSolutionLoadEvents.OnAfterLoadProjectBatch"/>.
+        /// </summary>
+        private bool _batchingProjectLoads = false;
+
+        /// <summary>
         /// The list of projects loaded in this batch between <see cref="IVsSolutionLoadEvents.OnBeforeLoadProjectBatch" /> and
         /// <see cref="IVsSolutionLoadEvents.OnAfterLoadProjectBatch(bool)"/>.
         /// </summary>
@@ -282,7 +289,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 StartPushingToWorkspaceAndNotifyOfOpenDocuments(SpecializedCollections.SingletonEnumerable(project));
             }
-            else
+            else if (_batchingProjectLoads)
             {
                 _projectsLoadedThisBatch.Add(project);
             }
@@ -916,6 +923,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             AssertIsForeground();
 
+            _batchingProjectLoads = true;
             _projectsLoadedThisBatch.Clear();
         }
 
@@ -930,6 +938,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 StartPushingToWorkspaceAndNotifyOfOpenDocuments(_projectsLoadedThisBatch);
             }
 
+            _batchingProjectLoads = false;
             _projectsLoadedThisBatch.Clear();
         }
 
