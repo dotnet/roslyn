@@ -56,6 +56,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
                 Dim compilerOptionsHost = DirectCast(project, Implementation.ProjectSystem.Interop.ICompilerOptionsHostObject)
                 Dim supported As Boolean
                 compilerOptionsHost.SetCompilerOptions("/langversion:14", supported)
+                Assert.True(supported)
 
                 Dim workspaceProject = environment.Workspace.CurrentSolution.Projects.Single()
                 Dim options = DirectCast(workspaceProject.ParseOptions, VisualBasicParseOptions)
@@ -77,6 +78,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
                 Dim compilerOptionsHost = DirectCast(project, Implementation.ProjectSystem.Interop.ICompilerOptionsHostObject)
                 Dim supported As Boolean
                 compilerOptionsHost.SetCompilerOptions("/langversion:15", supported)
+                Assert.True(supported)
 
                 Dim workspaceProject = environment.Workspace.CurrentSolution.Projects.Single()
                 Dim options = DirectCast(workspaceProject.ParseOptions, VisualBasicParseOptions)
@@ -97,6 +99,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
                 Dim compilerOptionsHost = DirectCast(project, Implementation.ProjectSystem.Interop.ICompilerOptionsHostObject)
                 Dim supported As Boolean
                 compilerOptionsHost.SetCompilerOptions("/langversion:Default", supported)
+                Assert.True(supported)
 
                 Dim workspaceProject = environment.Workspace.CurrentSolution.Projects.Single()
                 Dim options = DirectCast(workspaceProject.ParseOptions, VisualBasicParseOptions)
@@ -117,6 +120,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
                 Dim compilerOptionsHost = DirectCast(project, Implementation.ProjectSystem.Interop.ICompilerOptionsHostObject)
                 Dim supported As Boolean
                 compilerOptionsHost.SetCompilerOptions("/langversion:15.3", supported)
+                Assert.True(supported)
 
                 Dim workspaceProject = environment.Workspace.CurrentSolution.Projects.Single()
                 Dim options = DirectCast(workspaceProject.ParseOptions, VisualBasicParseOptions)
@@ -137,6 +141,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
                 Dim compilerOptionsHost = DirectCast(project, Implementation.ProjectSystem.Interop.ICompilerOptionsHostObject)
                 Dim supported As Boolean
                 compilerOptionsHost.SetCompilerOptions("/langversion:latest", supported)
+                Assert.True(supported)
 
                 Dim workspaceProject = environment.Workspace.CurrentSolution.Projects.Single()
                 Dim options = DirectCast(workspaceProject.ParseOptions, VisualBasicParseOptions)

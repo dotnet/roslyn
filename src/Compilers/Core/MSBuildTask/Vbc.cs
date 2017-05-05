@@ -969,7 +969,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 return false;
             }
 
-            // CVbcMSBuildHostObject::SetLanguageVersion can handle version below 15
+            // CVbcMSBuildHostObject::SetLanguageVersion can handle versions up to 15
             var supportedList = new[]
             {
                 "9", "9.0",
@@ -980,12 +980,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 "15", "15.0"
             };
 
-            if (Array.IndexOf(supportedList, langVersion) >= 0)
-            {
-                return false;
-            }
-
-            return true;
+            return Array.IndexOf(supportedList, langVersion) < 0;
         }
 
         /// <summary>
