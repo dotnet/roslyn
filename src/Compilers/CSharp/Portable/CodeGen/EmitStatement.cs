@@ -878,6 +878,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         /// </remarks>
         private void EmitCatchBlock(BoundCatchBlock catchBlock)
         {
+            if (IsFilterConstantFalse(catchBlock))
+                return;
+
             object typeCheckFailedLabel = null;
 
 
@@ -1050,8 +1053,25 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
 
             EmitBlock(catchBlock.Body);
-
             _builder.CloseLocalScope();
+        }
+
+        private static bool IsFilterConstantFalse(BoundCatchBlock catchBlock)
+        {
+            // Depending on compilation options, BoundLiteral can be wrapped by BoundSequence or BoundSequencePointExpression
+            if(catchBlock.ExceptionFilterOpt != null)
+            {
+                if(catchBlock.ExceptionFilterOpt is BoundSequence sequence)
+                {
+                    return sequence.Value is BoundSequencePointExpression expression
+                            && expression.Expression?.ConstantValue?.BooleanValue == false;
+                } else if(catchBlock.ExceptionFilterOpt is BoundSequencePointExpression expression)
+                {
+                    return expression.Expression?.ConstantValue?.BooleanValue == false;
+                }
+            }
+
+            return false;
         }
 
         private void EmitSwitchStatement(BoundSwitchStatement switchStatement)

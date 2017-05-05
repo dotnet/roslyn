@@ -880,7 +880,7 @@ class C
                 //             System.Console.Write("catch");
                 Diagnostic(ErrorCode.WRN_UnreachableCode, "System").WithLocation(12, 13)
                 );
-            //CompileAndVerify(comp); // PEVerify failed with Branch out of the method. Follow-up issue: https://github.com/dotnet/roslyn/issues/18678
+            CompileAndVerify(comp);
         }
 
         [Fact]

@@ -415,12 +415,13 @@ namespace Microsoft.CodeAnalysis.CodeGen
         {
             // Since the try block is reachable, associated
             // catch and finally blocks are also reachable.
+            
+            // It can be null if no catch blocks are reachable. 
             var handlerBlock = ((ExceptionHandlerLeaderBlock)block).NextExceptionHandler;
-            Debug.Assert(handlerBlock != null);
-
+            
             // Subsequent handlers are either one or more catch
             // blocks or a single finally block, but not both.
-            if (handlerBlock.Type == BlockType.Finally)
+            if (handlerBlock != null && handlerBlock.Type == BlockType.Finally)
             {
                 Debug.Assert(handlerBlock.NextExceptionHandler == null);
 

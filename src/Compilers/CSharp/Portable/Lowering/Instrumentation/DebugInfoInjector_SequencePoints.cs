@@ -191,9 +191,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Add hidden sequence point unless the condition is a constant expression.
             // Constant expression must stay a const to not invalidate results of control flow analysis.
-            var valueExpression = (condition.ConstantValue == null) ?
-                new BoundSequencePointExpression(syntax: null, expression: factory.Local(local), type: condition.Type) :
-                condition;
+            var valueExpression = IsConstantExpression(condition) ?
+                condition :
+                new BoundSequencePointExpression(syntax: null, expression: factory.Local(local), type: condition.Type);
 
             return new BoundSequence(
                 condition.Syntax,
@@ -201,6 +201,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ImmutableArray.Create<BoundExpression>(factory.AssignmentExpression(factory.Local(local), condition)),
                 valueExpression,
                 condition.Type);
+        }
+
+        private static bool IsConstantExpression(BoundExpression condition)
+        {
+            return condition.ConstantValue != null 
+                || (condition is BoundSequencePointExpression sequencePoint && sequencePoint.Expression.ConstantValue != null);
         }
     }
 }
