@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -809,12 +810,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     return false;
                 }
 
-                // Get a syntax node that's not part of the tree to make sure we speculate on just the name.
-                var speculativeTree = memberAccess.Name.WithoutTrivia();
-                var symbolInfo = semanticModel.GetSpeculativeSymbolInfo(memberAccess.SpanStart, speculativeTree, SpeculativeBindingOption.BindAsExpression);
-                if (!IsReplacementCandidate(actualSymbol, symbolInfo))
+                var symbols = semanticModel.LookupSymbols(memberAccess.SpanStart, name: memberAccess.Name.Identifier.ValueText);
+                if (!IsReplacementCandidate(actualSymbol, symbols, ImmutableArray<ISymbol>.Empty))
                 {
-                    return false;
+                    if (symbols.IsEmpty)
+                    {
+                        // No need to lookup namespaces and types separately, because without a symbol of the sames name
+                        // in a local scope they would have already been found by LookupSymbols.
+                        return false;
+                    }
+
+                    // If we found symbols, but not the *right* symbols, also look up namespaces and types explicitly to
+                    // find candidates.
+                    var typeSymbols = semanticModel.LookupNamespacesAndTypes(memberAccess.SpanStart, name: memberAccess.Name.Identifier.ValueText);
+                    if (!IsReplacementCandidate(actualSymbol, symbols, typeSymbols))
+                    {
+                        return false;
+                    }
                 }
             }
 
@@ -832,29 +844,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         }
 
         /// <summary>
-        /// Determines if <paramref name="speculativeSymbol"/> contains a superset of the symbols in
-        /// <paramref name="actualSymbol"/>.
+        /// Determines if <paramref name="speculativeSymbols"/> and <paramref name="speculativeNamespacesAndTypes"/>
+        /// together contain a superset of the symbols in <paramref name="actualSymbol"/>.
         /// </summary>
-        private static bool IsReplacementCandidate(SymbolInfo actualSymbol, SymbolInfo speculativeSymbol)
+        private static bool IsReplacementCandidate(SymbolInfo actualSymbol, ImmutableArray<ISymbol> speculativeSymbols, ImmutableArray<ISymbol> speculativeNamespacesAndTypes)
         {
-            if (!(speculativeSymbol.Symbol is null))
-            {
-                return Equals(actualSymbol.Symbol, speculativeSymbol.Symbol);
-            }
-
-            if (speculativeSymbol.CandidateSymbols.IsDefault)
+            if (speculativeSymbols.IsEmpty && speculativeNamespacesAndTypes.IsEmpty)
             {
                 return false;
             }
 
             if (!(actualSymbol.Symbol is null))
             {
-                return speculativeSymbol.CandidateSymbols.Contains(actualSymbol.Symbol);
+                return speculativeSymbols.Contains(actualSymbol.Symbol)
+                    || speculativeNamespacesAndTypes.Contains(actualSymbol.Symbol);
             }
 
             foreach (var symbol in actualSymbol.CandidateSymbols)
             {
-                if (!speculativeSymbol.CandidateSymbols.Contains(symbol))
+                if (!speculativeSymbols.Contains(symbol) && !speculativeNamespacesAndTypes.Contains(symbol))
                 {
                     return false;
                 }
