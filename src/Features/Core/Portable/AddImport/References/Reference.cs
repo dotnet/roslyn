@@ -92,23 +92,25 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 return Hash.CombineValues(this.SearchResult.NameParts);
             }
 
-            protected void ReplaceNameNode(
-                ref SyntaxNode contextNode, ref Document document, CancellationToken cancellationToken)
+            protected async Task<(SyntaxNode, Document)> ReplaceNameNodeAsync(
+                SyntaxNode contextNode, Document document, CancellationToken cancellationToken)
             {
-                if (!this.SearchResult.DesiredNameDiffersFromSourceName())
+                if (this.SearchResult.DesiredNameDiffersFromSourceName())
                 {
-                    return;
+                    var identifier = SearchResult.NameNode.GetFirstToken();
+                    var generator = SyntaxGenerator.GetGenerator(document);
+                    var newIdentifier = generator.IdentifierName(SearchResult.DesiredName).GetFirstToken().WithTriviaFrom(identifier);
+                    var annotation = new SyntaxAnnotation();
+
+                    var root = contextNode.SyntaxTree.GetRoot(cancellationToken);
+                    root = root.ReplaceToken(identifier, newIdentifier.WithAdditionalAnnotations(annotation));
+                    document = document.WithSyntaxRoot(root);
+
+                    var currentRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                    contextNode = currentRoot.GetAnnotatedTokens(annotation).First().Parent;
                 }
 
-                var identifier = SearchResult.NameNode.GetFirstToken();
-                var generator = SyntaxGenerator.GetGenerator(document);
-                var newIdentifier = generator.IdentifierName(SearchResult.DesiredName).GetFirstToken().WithTriviaFrom(identifier);
-                var annotation = new SyntaxAnnotation();
-
-                var root = contextNode.SyntaxTree.GetRoot(cancellationToken);
-                root = root.ReplaceToken(identifier, newIdentifier.WithAdditionalAnnotations(annotation));
-                document = document.WithSyntaxRoot(root);
-                contextNode = root.GetAnnotatedTokens(annotation).First().Parent;
+                return (contextNode, document);
             }
 
             public abstract Task<CodeAction> CreateCodeActionAsync(Document document, SyntaxNode node, bool placeSystemNamespaceFirst, CancellationToken cancellationToken);
