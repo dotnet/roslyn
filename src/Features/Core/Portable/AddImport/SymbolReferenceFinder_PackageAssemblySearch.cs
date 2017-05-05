@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 if (symbolSearchService != null &&
                     installerService != null &&
                     searchNugetPackages && 
-                    installerService.IsEnabled)
+                    installerService.IsEnabled(_document.Project.Id))
                 {
                     foreach (var packageSource in installerService.PackageSources)
                     {

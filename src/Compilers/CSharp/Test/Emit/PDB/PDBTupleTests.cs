@@ -2,6 +2,7 @@
 
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
@@ -261,6 +262,84 @@ string.Format(@"<symbols>
     </method>
   </methods>
 </symbols>"));
+        }
+
+        [Fact, WorkItem(17947, "https://github.com/dotnet/roslyn/issues/17947")]
+        public void VariablesAndConstantsInUnreachableCode()
+        {
+            string source = @"
+class C
+{
+    void F()
+    {
+        (int a, int b)[] v1 = null;
+        const (int a, int b)[] c1 = null;
+
+        throw null;
+
+        (int a, int b)[] v2 = null; 
+        const (int a, int b)[] c2 = null;
+
+        { 
+            (int a, int b)[] v3 = null; 
+            const (int a, int b)[] c3 = null;
+        }
+    }
+}
+";
+            var c = CreateStandardCompilation(source, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.DebugDll);
+            var v = CompileAndVerify(c);
+            v.VerifyIL("C.F", @"
+{
+  // Code size        5 (0x5)
+  .maxstack  1
+  .locals init ((int a, int b)[] V_0, //v1
+                (int a, int b)[] V_1, //v2
+                (int a, int b)[] V_2) //v3
+  IL_0000:  nop
+  IL_0001:  ldnull
+  IL_0002:  stloc.0
+  IL_0003:  ldnull
+  IL_0004:  throw
+}
+");
+
+            c.VerifyPdb(@"
+<symbols>
+  <methods>
+    <method containingType=""C"" name=""F"">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount=""0"" />
+        </using>
+        <tupleElementNames>
+          <local elementNames=""|a|b"" slotIndex=""0"" localName=""v1"" scopeStart=""0x0"" scopeEnd=""0x0"" />
+          <local elementNames=""|a|b"" slotIndex=""1"" localName=""v2"" scopeStart=""0x0"" scopeEnd=""0x0"" />
+          <local elementNames=""|a|b"" slotIndex=""-1"" localName=""c1"" scopeStart=""0x0"" scopeEnd=""0x5"" />
+          <local elementNames=""|a|b"" slotIndex=""-1"" localName=""c2"" scopeStart=""0x0"" scopeEnd=""0x5"" />
+        </tupleElementNames>
+        <encLocalSlotMap>
+          <slot kind=""0"" offset=""28"" />
+          <slot kind=""0"" offset=""133"" />
+          <slot kind=""0"" offset=""232"" />
+        </encLocalSlotMap>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""5"" startColumn=""5"" endLine=""5"" endColumn=""6"" />
+        <entry offset=""0x1"" startLine=""6"" startColumn=""9"" endLine=""6"" endColumn=""36"" />
+        <entry offset=""0x3"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""20"" />
+      </sequencePoints>
+      <scope startOffset=""0x0"" endOffset=""0x5"">
+        <local name=""v1"" il_index=""0"" il_start=""0x0"" il_end=""0x5"" attributes=""0"" />
+        <local name=""v2"" il_index=""1"" il_start=""0x0"" il_end=""0x5"" attributes=""0"" />
+        <constant name=""c1"" value=""null"" signature=""System.ValueTuple`2{Int32, Int32}[]"" />
+        <constant name=""c2"" value=""null"" signature=""System.ValueTuple`2{Int32, Int32}[]"" />
+      </scope>
+    </method>
+  </methods>
+</symbols>
+
+");
         }
     }
 }

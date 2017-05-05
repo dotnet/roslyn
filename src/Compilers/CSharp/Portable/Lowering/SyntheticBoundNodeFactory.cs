@@ -1104,6 +1104,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
             Conversion c = Compilation.Conversions.ClassifyConversionFromExpression(arg, type, ref useSiteDiagnostics);
+            Debug.Assert(c.Exists);
             Debug.Assert(useSiteDiagnostics.IsNullOrEmpty());
 
             // If this happens, we should probably check if the method has ObsoleteAttribute.

@@ -122,6 +122,8 @@
     <Compile Include="Completion\Providers\AbstractCrefCompletionProvider.cs" />
     <Compile Include="ConvertToInterpolatedString\AbstractConvertConcatenationToInterpolatedStringRefactoringProvider.cs" />
     <Compile Include="DesignerAttributes\AbstractDesignerAttributeService.cs" />
+    <Compile Include="DesignerAttributes\DesignerAttributeProjectData.cs" />
+    <Compile Include="DesignerAttributes\DesignerAttributeDocumentData.cs" />
     <Compile Include="DesignerAttributes\IDesignerAttributeService.cs" />
     <Compile Include="DesignerAttributes\IRemoteDesignerAttributeService.cs" />
     <Compile Include="Diagnostics\Analyzers\NamingStyleDiagnosticAnalyzerBase.cs" />
