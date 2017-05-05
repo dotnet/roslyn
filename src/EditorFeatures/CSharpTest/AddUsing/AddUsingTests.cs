@@ -4554,5 +4554,54 @@ class C
     }
 }");
         }
+
+        [WorkItem(19218, "https://github.com/dotnet/roslyn/issues/19218")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        public async Task TestChangeCaseWithUsingsInNestedNamespace()
+        {
+            await TestInRegularAndScriptAsync(
+@"namespace VS
+{
+    interface IVsStatusbar
+    {
+    }
+}
+
+namespace Outer
+{
+    using System;
+
+    class C
+    {
+        void M()
+        {
+            // Note: IVsStatusBar is cased incorrectly.
+            [|IVsStatusBar|] b;
+        }
+    }
+}
+",
+@"namespace VS
+{
+    interface IVsStatusbar
+    {
+    }
+}
+
+namespace Outer
+{
+    using System;
+    using VS;
+
+    class C
+    {
+        void M()
+        {
+            IVsStatusbar b;
+        }
+    }
+}
+");
+        }
     }
 }
