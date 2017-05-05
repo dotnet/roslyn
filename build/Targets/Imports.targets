@@ -483,7 +483,7 @@
           Returns="@(ReferenceCopyLocalPaths)" />
 
   <!-- Returns the current build version. Used in .vsixmanifests to substitute our build version into them -->
-  <Target Name="GetBuildVersion" Outputs="$(VsixVersion)" />
+  <Target Name="GetBuildVersion" Returns="$(VsixVersion)" />
 
   <!-- 
     In order to leverage LUT testing we need to have both of the follownig packages in 
