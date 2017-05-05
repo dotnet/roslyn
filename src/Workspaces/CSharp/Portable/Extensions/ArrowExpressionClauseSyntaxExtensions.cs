@@ -14,6 +14,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             bool createReturnStatementForExpression,
             out BlockSyntax block)
         {
+            // It's tricky to convert an arrow expression with directives over to a block.
+            // We'd need to find and remove the directives *after* the arrow expression and
+            // move them accordingly.  So, for now, we just disallow this.
             if (arrowExpression.Expression.GetLeadingTrivia().Any(t => t.IsDirective))
             {
                 block = null;
