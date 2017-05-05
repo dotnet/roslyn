@@ -805,28 +805,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             if (!memberAccess.Expression.IsKind(SyntaxKind.ThisExpression, SyntaxKind.BaseExpression))
             {
                 var actualSymbol = semanticModel.GetSymbolInfo(memberAccess.Name, cancellationToken);
-                if (actualSymbol.GetAnySymbol() is null)
+                if (!TryGetReplacementCandidates(
+                    semanticModel,
+                    memberAccess,
+                    actualSymbol,
+                    out var speculativeSymbols,
+                    out var speculativeNamespacesAndTypes))
                 {
                     return false;
                 }
 
-                var symbols = semanticModel.LookupSymbols(memberAccess.SpanStart, name: memberAccess.Name.Identifier.ValueText);
-                if (!IsReplacementCandidate(actualSymbol, symbols, ImmutableArray<ISymbol>.Empty))
+                if (!IsReplacementCandidate(actualSymbol, speculativeSymbols, speculativeNamespacesAndTypes))
                 {
-                    if (symbols.IsEmpty)
-                    {
-                        // No need to lookup namespaces and types separately, because without a symbol of the sames name
-                        // in a local scope they would have already been found by LookupSymbols.
-                        return false;
-                    }
-
-                    // If we found symbols, but not the *right* symbols, also look up namespaces and types explicitly to
-                    // find candidates.
-                    var typeSymbols = semanticModel.LookupNamespacesAndTypes(memberAccess.SpanStart, name: memberAccess.Name.Identifier.ValueText);
-                    if (!IsReplacementCandidate(actualSymbol, symbols, typeSymbols))
-                    {
-                        return false;
-                    }
+                    return false;
                 }
             }
 
@@ -841,6 +832,41 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
 
             return memberAccess.CanReplaceWithReducedName(replacementNode, semanticModel, cancellationToken);
+        }
+
+        private static bool TryGetReplacementCandidates(
+            SemanticModel semanticModel,
+            MemberAccessExpressionSyntax memberAccess,
+            SymbolInfo actualSymbol,
+            out ImmutableArray<ISymbol> speculativeSymbols,
+            out ImmutableArray<ISymbol> speculativeNamespacesAndTypes)
+        {
+            bool containsNamespaceOrTypeSymbol;
+            bool containsOtherSymbol;
+            if (!(actualSymbol.Symbol is null))
+            {
+                containsNamespaceOrTypeSymbol = actualSymbol.Symbol is INamespaceOrTypeSymbol;
+                containsOtherSymbol = !containsNamespaceOrTypeSymbol;
+            }
+            else if (!actualSymbol.CandidateSymbols.IsDefaultOrEmpty)
+            {
+                containsNamespaceOrTypeSymbol = actualSymbol.CandidateSymbols.Any(symbol => symbol is INamespaceOrTypeSymbol);
+                containsOtherSymbol = actualSymbol.CandidateSymbols.Any(symbol => !(symbol is INamespaceOrTypeSymbol));
+            }
+            else
+            {
+                speculativeSymbols = ImmutableArray<ISymbol>.Empty;
+                speculativeNamespacesAndTypes = ImmutableArray<ISymbol>.Empty;
+                return false;
+            }
+
+            speculativeSymbols = containsOtherSymbol
+                ? semanticModel.LookupSymbols(memberAccess.SpanStart, name: memberAccess.Name.Identifier.ValueText)
+                : ImmutableArray<ISymbol>.Empty;
+            speculativeNamespacesAndTypes = containsNamespaceOrTypeSymbol
+                ? semanticModel.LookupNamespacesAndTypes(memberAccess.SpanStart, name: memberAccess.Name.Identifier.ValueText)
+                : ImmutableArray<ISymbol>.Empty;
+            return true;
         }
 
         /// <summary>
