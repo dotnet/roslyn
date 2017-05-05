@@ -203,12 +203,6 @@ namespace BuildBoss
             var allGood = true;
             foreach (var packageRef in packageRefList)
             {
-                if (!packageRef.IsVersionAttribute)
-                {
-                    textWriter.WriteLine($"PackageReference {packageRef.Name} should have Version as an attribute");
-                    allGood = false;
-                }
-
                 var name = packageRef.Name.Replace(".", "");
                 var floatingName = $"$({SharedUtil.PackageNameToVersionKey(name)})";
                 var fixedName = $"$({SharedUtil.PackageNameToFixedVersionKey(name)})";
