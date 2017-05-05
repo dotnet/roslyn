@@ -970,7 +970,7 @@ class A
         await Task.Factory.StartNew(() => { });
     }
 }";
-            CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7)).VerifyDiagnostics(
+            CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe).VerifyDiagnostics(
                 // (6,23): warning CS0028: 'A.Main(bool)' has the wrong signature to be an entry point
                 //     async static void Main(bool truth)
                 Diagnostic(ErrorCode.WRN_InvalidMainSig, "Main").WithArguments("A.Main(bool)").WithLocation(6, 23),
@@ -991,7 +991,7 @@ class A
         await Task.Factory.StartNew(() => { });
     }
 }";
-            CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7)).VerifyDiagnostics(
+            CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe).VerifyDiagnostics(
                 // (6,23): warning CS0028: 'A.Main<T>(bool)' has the wrong signature to be an entry point
                 //     async static void Main<T>(bool truth)
                 Diagnostic(ErrorCode.WRN_InvalidMainSig, "Main").WithArguments("A.Main<T>(bool)").WithLocation(6, 23),
@@ -1117,7 +1117,7 @@ class A
         System.Console.WriteLine(""Task Main"");
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithMainTypeName("A"), parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7)).VerifyDiagnostics();
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithMainTypeName("A")).VerifyDiagnostics();
             CompileAndVerify(compilation, expectedOutput: "Non Task Main", expectedReturnCode: 0);
         }
 
@@ -1141,17 +1141,25 @@ class A
         return 0.0F;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1)).VerifyDiagnostics(
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7)).VerifyDiagnostics(
                 // (6,28): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
                 //     async static Task<int> Main()
                 Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "Main").WithLocation(6, 28),
                 // (12,30): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
                 //     async static Task<float> Main(string[] args)
                 Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "Main").WithLocation(12, 30),
+                // (6,5): error CS8107: Feature 'async main' is not available in C# 7. Please use language version 7.1 or greater.
+                //     async static Task<int> Main()
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, @"async static Task<int> Main()
+    {
+        System.Console.WriteLine(""Task<int>"");
+        return 0;
+    }").WithArguments("async main", "7.1").WithLocation(6, 5),
                 // (12,30): warning CS0028: 'A.Main(string[])' has the wrong signature to be an entry point
                 //     async static Task<float> Main(string[] args)
-                Diagnostic(ErrorCode.WRN_InvalidMainSig, "Main").WithArguments("A.Main(string[])").WithLocation(12, 30));
-            CompileAndVerify(compilation, expectedOutput: "Task<int>", expectedReturnCode: 0);
+                Diagnostic(ErrorCode.WRN_InvalidMainSig, "Main").WithArguments("A.Main(string[])").WithLocation(12, 30),
+                // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
+                Diagnostic(ErrorCode.ERR_NoEntryPoint).WithLocation(1, 1));
         }
 
 
@@ -1175,7 +1183,7 @@ class A
         return 0.0f;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7)).VerifyDiagnostics(
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe).VerifyDiagnostics(
                 // (10,30): warning CS0028: 'A.Main(string[])' has the wrong signature to be an entry point
                 //     async static Task<float> Main(string[] args)
                 Diagnostic(ErrorCode.WRN_InvalidMainSig, "Main").WithArguments("A.Main(string[])").WithLocation(11, 30));
@@ -1202,7 +1210,7 @@ class A
         return 0.0f;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithMainTypeName("A"), parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7)).VerifyDiagnostics();
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithMainTypeName("A")).VerifyDiagnostics();
             CompileAndVerify(compilation, expectedOutput: "Non Task Main", expectedReturnCode: 0);
         }
     }
