@@ -882,19 +882,47 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             if (!(actualSymbol.Symbol is null))
             {
-                return speculativeSymbols.Contains(actualSymbol.Symbol)
-                    || speculativeNamespacesAndTypes.Contains(actualSymbol.Symbol);
+                return speculativeSymbols.Contains(actualSymbol.Symbol, CandidateSymbolEqualityComparer.Instance)
+                    || speculativeNamespacesAndTypes.Contains(actualSymbol.Symbol, CandidateSymbolEqualityComparer.Instance);
             }
 
             foreach (var symbol in actualSymbol.CandidateSymbols)
             {
-                if (!speculativeSymbols.Contains(symbol) && !speculativeNamespacesAndTypes.Contains(symbol))
+                if (!speculativeSymbols.Contains(symbol, CandidateSymbolEqualityComparer.Instance)
+                    && !speculativeNamespacesAndTypes.Contains(symbol, CandidateSymbolEqualityComparer.Instance))
                 {
                     return false;
                 }
             }
 
             return true;
+        }
+
+        /// <summary>
+        /// Compares symbols by their original definition.
+        /// </summary>
+        private sealed class CandidateSymbolEqualityComparer : IEqualityComparer<ISymbol>
+        {
+            public static CandidateSymbolEqualityComparer Instance { get; } = new CandidateSymbolEqualityComparer();
+
+            private CandidateSymbolEqualityComparer()
+            {
+            }
+
+            public bool Equals(ISymbol x, ISymbol y)
+            {
+                if (x is null || y is null)
+                {
+                    return x == y;
+                }
+
+                return x.OriginalDefinition.Equals(y.OriginalDefinition);
+            }
+
+            public int GetHashCode(ISymbol obj)
+            {
+                return obj?.OriginalDefinition.GetHashCode() ?? 0;
+            }
         }
 
         private static SyntaxTriviaList GetLeadingTriviaForSimplifiedMemberAccess(this MemberAccessExpressionSyntax memberAccess)
