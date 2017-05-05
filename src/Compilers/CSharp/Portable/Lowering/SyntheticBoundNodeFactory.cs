@@ -6,12 +6,9 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Text;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -174,12 +171,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert((object)TopLevelMethod == null || TopLevelMethod.ContainingType == CurrentType);
 
-                // In EE scenarios, lambdas are considered to be contained by the user-defined methods,
-                // rather than the EE-defined methods for which we are generating bound nodes.  This is
-                // because the containing symbols are used to determine the type of the "this" parameter,
-                // which we need to the user-defined types.
+                // In EE scenarios, lambdas and local functions are considered to be contained by the
+                // user-defined methods, rather than the EE-defined methods for which we are generating
+                // bound nodes. This is because the containing symbols are used to determine the type
+                // of the "this" parameter, which we need to be the user-defined types.
                 Debug.Assert((object)CurrentMethod == null ||
                     CurrentMethod.MethodKind == MethodKind.AnonymousFunction ||
+                    CurrentMethod.MethodKind == MethodKind.LocalFunction ||
                     CurrentMethod.ContainingType == CurrentType);
             }
         }
