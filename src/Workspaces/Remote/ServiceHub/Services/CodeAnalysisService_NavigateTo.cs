@@ -25,8 +25,6 @@ namespace Microsoft.CodeAnalysis.Remote
         public async Task<SerializableNavigateToSearchResult[]> SearchProjectAsync(
             ProjectId projectId, string searchPattern)
         {
-            AbstractNavigateToSearchService.Log("Searching Project OOP side: " + projectId.DebugName + " " + DateTime.Now);
-
             var start = DateTime.Now;
             var solution = await GetSolutionAsync().ConfigureAwait(false);
             var getSolutionEnd = DateTime.Now;
@@ -39,8 +37,10 @@ namespace Microsoft.CodeAnalysis.Remote
 
             var converted = Convert(result);
 
-            var text = "Solution: " + (getSolutionEnd - start) + 
-                "\r\nSearch: " + (resultEnd - getSolutionEnd);
+            var text = "Searching: " + projectId.DebugName + 
+                "\r\nGet-Solution: " + (getSolutionEnd - start) + 
+                "\r\nSearch: " + (resultEnd - getSolutionEnd) + 
+                "\r\n";
             AbstractNavigateToSearchService.Log(text);
 
             return converted;

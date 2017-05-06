@@ -89,7 +89,6 @@ namespace Microsoft.CodeAnalysis.Remote
                     return default(T);
                 }
 
-                logFunction?.Invoke("About to RPC: " + DateTime.Now);
                 return await session.InvokeAsync<T>(targetName, arguments).ConfigureAwait(false);
             }
         }

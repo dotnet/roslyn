@@ -93,7 +93,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
 
             private async Task SearchAsyncWorker(Project project)
             {
-                AbstractNavigateToSearchService.Log("Starting VS search: " + project.Name + " " + DateTime.Now);
                 if (_searchCurrentDocument && _currentDocument?.Project != project)
                 {
                     return;

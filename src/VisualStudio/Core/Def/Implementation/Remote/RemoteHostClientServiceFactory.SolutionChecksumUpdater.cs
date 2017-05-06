@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Internal.Log;
+using System.Diagnostics;
 
 namespace Microsoft.VisualStudio.LanguageServices.Remote
 {

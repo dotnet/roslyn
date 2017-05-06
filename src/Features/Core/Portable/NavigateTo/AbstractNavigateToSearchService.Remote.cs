@@ -30,7 +30,6 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             var solution = project.Solution;
 
             var start = DateTime.Now;
-            Log("About to call to remote: " + project.Name + " " + start);
             var serializableResults = await client.RunCodeAnalysisServiceOnRemoteHostAsync<SerializableNavigateToSearchResult[]>(
                 solution, nameof(IRemoteNavigateToSearchService.SearchProjectAsync),
                 new object[] { project.Id, searchPattern }, cancellationToken,
