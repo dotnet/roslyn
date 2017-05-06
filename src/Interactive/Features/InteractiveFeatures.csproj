@@ -81,7 +81,6 @@
     <Compile Include="Interactive\Core\InteractiveHost.LazyRemoteService.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="project.json" />
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
     <PublicAPI Include="PublicAPI.Shipped.txt" />
   </ItemGroup>

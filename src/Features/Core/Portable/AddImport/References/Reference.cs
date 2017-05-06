@@ -92,12 +92,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 return Hash.CombineValues(this.SearchResult.NameParts);
             }
 
-            protected void ReplaceNameNode(
-                ref SyntaxNode contextNode, ref Document document, CancellationToken cancellationToken)
+            protected async Task<(SyntaxNode, Document)> ReplaceNameNodeAsync(
+                SyntaxNode contextNode, Document document, CancellationToken cancellationToken)
             {
                 if (!this.SearchResult.DesiredNameDiffersFromSourceName())
                 {
-                    return;
+                    return (contextNode, document);
                 }
 
                 var identifier = SearchResult.NameNode.GetFirstToken();
@@ -107,8 +107,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 
                 var root = contextNode.SyntaxTree.GetRoot(cancellationToken);
                 root = root.ReplaceToken(identifier, newIdentifier.WithAdditionalAnnotations(annotation));
-                document = document.WithSyntaxRoot(root);
-                contextNode = root.GetAnnotatedTokens(annotation).First().Parent;
+
+                var newDocument = document.WithSyntaxRoot(root);
+                var newRoot = await newDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                var newContextNode = newRoot.GetAnnotatedTokens(annotation).First().Parent;
+
+                return (newContextNode, newDocument);
             }
 
             public abstract Task<CodeAction> CreateCodeActionAsync(Document document, SyntaxNode node, bool placeSystemNamespaceFirst, CancellationToken cancellationToken);

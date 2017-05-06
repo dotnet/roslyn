@@ -72,6 +72,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
                 typeof(CodeAnalysis.VisualBasic.CodeGeneration.VisualBasicSyntaxGenerator),
                 typeof(CSharp.LanguageServices.CSharpContentTypeLanguageService),
                 typeof(VisualBasic.LanguageServices.VisualBasicContentTypeLanguageService),
+                typeof(CodeAnalysis.CSharp.Execution.CSharpOptionsSerializationService),
+                typeof(CodeAnalysis.VisualBasic.Execution.VisualBasicOptionsSerializationService),
                 typeof(TestExportProvider)
             };
 

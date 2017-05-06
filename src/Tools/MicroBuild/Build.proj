@@ -32,13 +32,13 @@
 
     <MSBuild Projects="$(RepoRoot)src\Setup\SetupStep1.proj" Properties="DeployExtension=false" />
 
-    <Exec Command="powershell -noprofile -executionPolicy ByPass -file $(MSBuildThisFileDirectory)run-gitlink.ps1 &quot;$(Configuration)&quot;" />
+    <Exec Command="powershell -noprofile -executionPolicy ByPass -file $(MSBuildThisFileDirectory)run-gitlink.ps1 &quot;$(Configuration)&quot;" Condition="'$(SkipGitLink)' != 'true'" />
     <Exec Command="$(NuGetPackageRoot)\RoslynTools.Microsoft.SignTool\$(RoslynToolsMicrosoftSignToolVersion)\tools\SignTool.exe $(SignRoslynArgs) &quot;$(BinariesPath)&quot;" WorkingDirectory="$(RepoRoot)" />
 
     <MSBuild Projects="$(RepoRoot)src\NuGet\NuGet.proj" />
     <MSBuild Projects="$(RepoRoot)src\Setup\SetupStep2.proj" Properties="$(SetupStep2Properties);DeployExtension=false" />
 
-    <MSBuild Projects="$(RepoRoot)BuildAndTest.proj" Targets="Test" Condition="'$(SkipTest)' != 'true'" />
+    <MSBuild Projects="$(RepoRoot)BuildAndTest.proj" Targets="Test" Condition="'$(SkipTest)' != 'true'" Properties="Test32=true" />
 
     <Exec Command="powershell -noprofile -executionPolicy ByPass -file $(MSBuildThisFileDirectory)..\..\..\build\scripts\check-toolset-insertion.ps1 &quot;$(MSBuildThisFileDirectory)..\..\..&quot; &quot;$(BinariesPath)&quot;" />
     

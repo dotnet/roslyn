@@ -1696,7 +1696,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         protected void ReportUnmatchedStatements<TSyntaxNode>(
             List<RudeEditDiagnostic> diagnostics,
             Match<SyntaxNode> match,
-            int syntaxKind,
+            int[] syntaxKinds,
             SyntaxNode oldActiveStatement,
             SyntaxNode newActiveStatement,
             Func<TSyntaxNode, TSyntaxNode, bool> areEquivalent,
@@ -1704,8 +1704,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             where TSyntaxNode : SyntaxNode
         {
             List<SyntaxNode> oldNodes = null, newNodes = null;
-            GetAncestors(GetEncompassingAncestor(match.OldRoot), oldActiveStatement, syntaxKind, ref oldNodes);
-            GetAncestors(GetEncompassingAncestor(match.NewRoot), newActiveStatement, syntaxKind, ref newNodes);
+            GetAncestors(GetEncompassingAncestor(match.OldRoot), oldActiveStatement, syntaxKinds, ref oldNodes);
+            GetAncestors(GetEncompassingAncestor(match.NewRoot), newActiveStatement, syntaxKinds, ref newNodes);
 
             if (newNodes != null)
             {
@@ -1836,11 +1836,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             return -1;
         }
 
-        private static void GetAncestors(SyntaxNode root, SyntaxNode node, int syntaxKind, ref List<SyntaxNode> list)
+        private static void GetAncestors(SyntaxNode root, SyntaxNode node, int[] syntaxKinds, ref List<SyntaxNode> list)
         {
             while (node != root)
             {
-                if (node.RawKind == syntaxKind)
+                if (syntaxKinds.Contains(node.RawKind))
                 {
                     if (list == null)
                     {
