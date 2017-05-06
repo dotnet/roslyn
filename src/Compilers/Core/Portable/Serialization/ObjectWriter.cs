@@ -710,15 +710,10 @@ namespace Roslyn.Utilities
             }
             else
             {
-                IObjectWritable writable;
-                if (instanceAsWritableOpt != null)
+                if (instanceAsWritableOpt == null)
                 {
-                    writable = instanceAsWritableOpt;
-                }
-                else
-                {
-                    writable = instance as IObjectWritable;
-                    if (writable == null)
+                    instanceAsWritableOpt = instance as IObjectWritable;
+                    if (instanceAsWritableOpt == null)
                     {
                         throw NoSerializationWriterException($"{instance.GetType()} must implement {nameof(IObjectWritable)}");
                     }
@@ -733,7 +728,7 @@ namespace Roslyn.Utilities
                     // don't blow the stack.  'LongRunning' ensures that we get a dedicated thread
                     // to do this work.  That way we don't end up blocking the threadpool.
                     var task = Task.Factory.StartNew(
-                        () => WriteObjectWorker(instance, writable),
+                        () => WriteObjectWorker(instance, instanceAsWritableOpt),
                         _cancellationToken,
                         TaskCreationOptions.LongRunning,
                         TaskScheduler.Default);
@@ -741,7 +736,7 @@ namespace Roslyn.Utilities
                 }
                 else
                 {
-                    WriteObjectWorker(instance, writable);
+                    WriteObjectWorker(instance, instanceAsWritableOpt);
                 }
 
                 _recursionDepth--;
