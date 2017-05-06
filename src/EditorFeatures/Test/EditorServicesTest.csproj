@@ -224,6 +224,9 @@
     <Compile Include="Commands\CommandArgsTests.cs" />
     <Compile Include="Commands\TypeCharCommandArgsTests.cs" />
     <Compile Include="CommentSelection\CommentUncommentSelectionCommandHandlerTests.cs" />
+    <Compile Include="Completion\FileSystemCompletionHelperTests.cs" />
+    <Compile Include="Completion\GlobalAssemblyCacheCompletionHelperTests.cs" />
+    <Compile Include="Completion\TestFileSystemCompletionHelper.cs" />
     <Compile Include="Diagnostics\DiagnosticAnalyzerServiceTests.cs" />
     <Compile Include="Diagnostics\DiagnosticDataSerializerTests.cs" />
     <Compile Include="Diagnostics\DiagnosticDataTests.cs" />

@@ -141,21 +141,21 @@ namespace Microsoft.Cci
         {
             ArrayBuilder<T> builder = null;
 
-            foreach (var local in methodBody.LocalVariables)
-            {
-                Debug.Assert(local.SlotIndex >= 0);
-                if (filter(local))
-                {
-                    if (builder == null)
-                    {
-                        builder = ArrayBuilder<T>.GetInstance();
-                    }
-                    builder.Add(getInfo(default(LocalScope), local));
-                }
-            }
-
             foreach (var currentScope in methodBody.LocalScopes)
             {
+                foreach (var local in currentScope.Variables)
+                {
+                    Debug.Assert(local.SlotIndex >= 0);
+                    if (filter(local))
+                    {
+                        if (builder == null)
+                        {
+                            builder = ArrayBuilder<T>.GetInstance();
+                        }
+                        builder.Add(getInfo(default(LocalScope), local));
+                    }
+                }
+
                 foreach (var localConstant in currentScope.Constants)
                 {
                     Debug.Assert(localConstant.SlotIndex < 0);

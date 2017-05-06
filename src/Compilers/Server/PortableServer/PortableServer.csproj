@@ -5,6 +5,7 @@
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">x64</Platform>
     <PlatformTarget>AnyCPU</PlatformTarget>
+    <Platforms>AnyCPU;x64</Platforms>
     <RuntimeIdentifier>x64</RuntimeIdentifier>
     <ProjectGuid>{06B26DCB-7A12-48EF-AE50-708593ABD05F}</ProjectGuid>
     <OutputType>Exe</OutputType>
