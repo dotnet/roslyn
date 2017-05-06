@@ -245,9 +245,11 @@
     <Compile Include="BoundTree\BoundWithStatement.vb" />
     <Compile Include="BoundTree\BoundXmlAttribute.vb" />
     <Compile Include="BoundTree\BoundYieldStatement.vb" />
+    <Compile Include="BoundTree\Expression.vb" />
     <Compile Include="BoundTree\GroupTypeInferenceLambda.vb" />
     <Compile Include="BoundTree\NoOpStatementFlavor.vb" />
     <Compile Include="BoundTree\PseudoVariableExpressions.vb" />
+    <Compile Include="BoundTree\Statement.vb" />
     <Compile Include="BoundTree\UnboundLambda.vb" />
     <Compile Include="CodeGen\CodeGenerator.vb" />
     <Compile Include="CodeGen\EmitAddress.vb" />
@@ -495,6 +497,7 @@
     <Compile Include="Lowering\SyntheticBoundNodeFactory.vb" />
     <Compile Include="Lowering\UseTwiceRewriter.vb" />
     <Compile Include="Lowering\WithExpressionRewriter.vb" />
+    <Compile Include="Operations\IBoundNodeWithIOperationChildren.vb" />
     <Compile Include="Operations\VisualBasicOperationFactory_Methods.vb" />
     <Compile Include="OptionStrict.vb" />
     <Compile Include="OptionsValidator.vb" />

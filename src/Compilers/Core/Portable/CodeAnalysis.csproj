@@ -94,6 +94,7 @@
     <Compile Include="Operations\INullCoalescingExpression.cs" />
     <Compile Include="Operations\IObjectCreationExpression.cs" />
     <Compile Include="Operations\IOmittedArgumentExpression.cs" />
+    <Compile Include="Operations\IOperationWithChildren.cs" />
     <Compile Include="Operations\Operation.cs" />
     <Compile Include="Operations\IOperationKind.cs" />
     <Compile Include="Operations\IParameterInitializer.cs" />

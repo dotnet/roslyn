@@ -164,8 +164,24 @@ Namespace Microsoft.CodeAnalysis.Semantics
                 Case BoundKind.RemoveHandlerStatement
                     Return CreateBoundRemoveHandlerStatementOperation(DirectCast(boundNode, BoundRemoveHandlerStatement))
                 Case Else
-                    Return Operation.CreateOperationNone(boundNode.HasErrors, boundNode.Syntax)
+                    Dim constantValue = ConvertToOptional(TryCast(boundNode, BoundExpression)?.ConstantValueOpt)
+                    Return Operation.CreateOperationNone(boundNode.HasErrors, boundNode.Syntax, constantValue, Function() GetIOperationChildren(boundNode))
             End Select
+        End Function
+
+        Private Shared Function GetIOperationChildren(boundNode As BoundNode) As ImmutableArray(Of IOperation)
+            Dim boundNodeWithChildren = DirectCast(boundNode, IBoundNodeWithIOperationChildren)
+            If boundNodeWithChildren.Children.IsDefaultOrEmpty Then
+                Return ImmutableArray(Of IOperation).Empty
+            End If
+
+            Dim builder = ArrayBuilder(Of IOperation).GetInstance(boundNodeWithChildren.Children.Length)
+            For Each childNode In boundNodeWithChildren.Children
+                Dim operation = Create(childNode)
+                builder.Add(operation)
+            Next
+
+            Return builder.ToImmutableAndFree()
         End Function
 
         Private Shared Function CreateBoundAssignmentOperatorOperation(boundAssignmentOperator As BoundAssignmentOperator) As IOperation

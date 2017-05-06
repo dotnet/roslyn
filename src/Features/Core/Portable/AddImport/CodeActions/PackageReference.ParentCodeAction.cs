@@ -107,7 +107,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                     CancellationToken cancellationToken)
                 {
                     var oldDocument = document;
-                    reference.ReplaceNameNode(ref node, ref document, cancellationToken);
+                    (node, document) = await reference.ReplaceNameNodeAsync(
+                        node, document, cancellationToken).ConfigureAwait(false);
 
                     var newDocument = await reference.provider.AddImportAsync(
                         node, reference.SearchResult.NameParts, document, placeSystemNamespaceFirst, cancellationToken).ConfigureAwait(false);

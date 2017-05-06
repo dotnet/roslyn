@@ -3,9 +3,6 @@
 using System;
 using System.IO;
 using System.Linq;
-using System.Reflection;
-using System.Text;
-using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.CommandLine;
 
 namespace Microsoft.CodeAnalysis.CSharp.CommandLine

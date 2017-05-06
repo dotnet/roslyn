@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.CSharp;
@@ -167,8 +168,27 @@ namespace Microsoft.CodeAnalysis.Semantics
                 case BoundKind.ExpressionStatement:
                     return CreateBoundExpressionStatementOperation((BoundExpressionStatement)boundNode);
                 default:
-                    return Operation.CreateOperationNone(boundNode.HasErrors, boundNode.Syntax);
+                    var constantValue = ConvertToOptional((boundNode as BoundExpression)?.ConstantValue);
+                    return Operation.CreateOperationNone(boundNode.HasErrors, boundNode.Syntax, constantValue, getChildren: () => GetIOperationChildren(boundNode));
             }
+        }
+
+        private static ImmutableArray<IOperation> GetIOperationChildren(BoundNode boundNode)
+        {
+            var boundNodeWithChildren = (IBoundNodeWithIOperationChildren)boundNode;
+            if (boundNodeWithChildren.Children.IsDefaultOrEmpty)
+            {
+                return ImmutableArray<IOperation>.Empty;
+            }
+
+            var builder = ArrayBuilder<IOperation>.GetInstance(boundNodeWithChildren.Children.Length);
+            foreach (var childNode in boundNodeWithChildren.Children)
+            {
+                var operation = Create(childNode);
+                builder.Add(operation);
+            }
+
+            return builder.ToImmutableAndFree();
         }
 
         private static IPlaceholderExpression CreateBoundDeconstructValuePlaceholderOperation(BoundDeconstructValuePlaceholder boundDeconstructValuePlaceholder)

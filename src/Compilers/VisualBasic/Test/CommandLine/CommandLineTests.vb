@@ -8290,6 +8290,29 @@ End Module
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("langversion", "1000").WithLocation(1, 1))
         End Sub
 
+        <WorkItem(406649, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=406649")>
+        <ConditionalFact(GetType(IsEnglishLocal))>
+        Public Sub MissingCompilerAssembly()
+            Dim dir = Temp.CreateDirectory()
+            Dim vbcPath = dir.CopyFile(GetType(Vbc).Assembly.Location).Path
+
+            ' Missing Microsoft.CodeAnalysis.VisualBasic.dll.
+            Dim result = ProcessUtilities.Run(vbcPath, arguments:="/nologo /t:library unknown.vb", workingDirectory:=dir.Path)
+            Assert.Equal(1, result.ExitCode)
+            Assert.Equal(
+                $"Could not load file or assembly '{GetType(VisualBasicCompilation).Assembly.FullName}' or one of its dependencies. The system cannot find the file specified.",
+                result.Output.Trim())
+
+            ' Missing System.Collections.Immutable.dll.
+            dir.CopyFile(GetType(Compilation).Assembly.Location)
+            dir.CopyFile(GetType(VisualBasicCompilation).Assembly.Location)
+            result = ProcessUtilities.Run(vbcPath, arguments:="/nologo /t:library unknown.vb", workingDirectory:=dir.Path)
+            Assert.Equal(1, result.ExitCode)
+            Assert.Equal(
+                $"Could not load file or assembly '{GetType(ImmutableArray).Assembly.FullName}' or one of its dependencies. The system cannot find the file specified.",
+                result.Output.Trim())
+        End Sub
+
         Private Function MakeTrivialExe(Optional directory As String = Nothing) As String
             Return Temp.CreateFile(directory:=directory, prefix:="", extension:=".vb").WriteAllText("
 Class Program

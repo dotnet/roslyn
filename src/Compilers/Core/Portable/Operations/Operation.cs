@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Semantics;
 
 namespace Microsoft.CodeAnalysis
@@ -48,17 +49,21 @@ namespace Microsoft.CodeAnalysis
 
         public abstract TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument);
 
-        public static IOperation CreateOperationNone(bool isInvalid, SyntaxNode node)
+        public static IOperation CreateOperationNone(bool isInvalid, SyntaxNode node, Optional<object> constantValue, Func<ImmutableArray<IOperation>> getChildren)
         {
-            return new NoneOperation(isInvalid, node);
+            return new NoneOperation(isInvalid, node, constantValue, getChildren);
         }
 
-        private class NoneOperation : IOperation
+        private class NoneOperation : IOperation, IOperationWithChildren
         {
-            public NoneOperation(bool isInvalid, SyntaxNode node)
+            private readonly Func<ImmutableArray<IOperation>> _getChildren;
+
+            public NoneOperation(bool isInvalid, SyntaxNode node, Optional<object> constantValue, Func<ImmutableArray<IOperation>> getChildren)
             {
                 IsInvalid = isInvalid;
                 Syntax = node;
+                ConstantValue = constantValue;
+                _getChildren = getChildren;
             }
 
             public OperationKind Kind => OperationKind.None;
@@ -69,7 +74,7 @@ namespace Microsoft.CodeAnalysis
 
             public ITypeSymbol Type => null;
 
-            public Optional<object> ConstantValue => default(Optional<object>);
+            public Optional<object> ConstantValue { get; }
 
             public void Accept(OperationVisitor visitor)
             {
@@ -80,6 +85,9 @@ namespace Microsoft.CodeAnalysis
             {
                 return visitor.VisitNoneOperation(this, argument);
             }
+
+            public ImmutableArray<IOperation> Children => _getChildren();
+
         }
     }
 }
