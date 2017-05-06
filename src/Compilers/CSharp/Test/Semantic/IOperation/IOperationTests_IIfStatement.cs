@@ -436,7 +436,7 @@ class P
 ";
             string expectedOperationTree = @"
 IIfStatement (OperationKind.IfStatement) (Syntax: 'if (true) ... }')
-  Condition: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Boolean, Constant: True) (Syntax: 'true')
+  Condition: ILiteralExpression (Text: True) (OperationKind.LiteralExpression, Type: System.Boolean, Constant: True) (Syntax: 'true')
   IfTrue: IBlockStatement (1 statements, 1 locals) (OperationKind.BlockStatement) (Syntax: '{ ... }')
       Locals: Local_1: System.Int32 i
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'A(int.TryPa ... ut var i));')

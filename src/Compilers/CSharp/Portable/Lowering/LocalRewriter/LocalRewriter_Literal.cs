@@ -18,6 +18,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression MakeLiteral(SyntaxNode syntax, ConstantValue constantValue, TypeSymbol type, BoundLiteral oldNodeOpt = null)
         {
+            return MakeLiteral(syntax, constantValue, type, _compilation, _factory.CurrentMethod, _inExpressionLambda, oldNodeOpt);
+        }
+
+        private static BoundExpression MakeLiteral(SyntaxNode syntax, ConstantValue constantValue, TypeSymbol type, CSharpCompilation compilation, MethodSymbol currentMethod, bool inExpressionLambda)
+        {
+            return MakeLiteral(syntax, constantValue, type, compilation, currentMethod, inExpressionLambda, null);
+        }
+
+        private static BoundExpression MakeLiteral(SyntaxNode syntax, ConstantValue constantValue, TypeSymbol type, CSharpCompilation compilation, MethodSymbol currentMethod, bool inExpressionLambda, BoundLiteral oldNodeOpt)
+        {
             Debug.Assert(constantValue != null);
 
             if (constantValue.IsDecimal)
@@ -26,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert((object)type != null);
                 Debug.Assert(type.SpecialType == SpecialType.System_Decimal);
 
-                return MakeDecimalLiteral(syntax, constantValue);
+                return MakeDecimalLiteral(syntax, constantValue, compilation, currentMethod, inExpressionLambda);
             }
             else if (constantValue.IsDateTime)
             {
@@ -35,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // for its default value.
                 Debug.Assert((object)type != null);
                 Debug.Assert(type.SpecialType == SpecialType.System_DateTime);
-                return MakeDateTimeLiteral(syntax, constantValue);
+                return MakeDateTimeLiteral(syntax, constantValue, compilation);
             }
             else if (oldNodeOpt != null)
             {
@@ -47,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private BoundExpression MakeDecimalLiteral(SyntaxNode syntax, ConstantValue constantValue)
+        private static BoundExpression MakeDecimalLiteral(SyntaxNode syntax, ConstantValue constantValue, CSharpCompilation compilation, MethodSymbol currentMethod, bool inExpressionLambda)
         {
             Debug.Assert(constantValue != null);
             Debug.Assert(constantValue.IsDecimal);
@@ -62,28 +72,27 @@ namespace Microsoft.CodeAnalysis.CSharp
             SpecialMember member;
 
             // check if we can call a simpler constructor, or use a predefined constant
-            if (scale == 0 && int.MinValue <= value && value <= int.MaxValue)
+            if (scale == 0 && int.MinValue <= value && value <= int.MaxValue && currentMethod != null)
             {
                 // If we are building static constructor of System.Decimal, accessing static fields 
                 // would be bad.
-                var curMethod = _factory.CurrentMethod;
-                if ((curMethod.MethodKind != MethodKind.SharedConstructor ||
-                   curMethod.ContainingType.SpecialType != SpecialType.System_Decimal) &&
-                   !_inExpressionLambda)
+                if ((currentMethod.MethodKind != MethodKind.SharedConstructor ||
+                   currentMethod.ContainingType.SpecialType != SpecialType.System_Decimal) &&
+                   !inExpressionLambda)
                 {
                     Symbol useField = null;
 
                     if (value == decimal.Zero)
                     {
-                        useField = _compilation.GetSpecialTypeMember(SpecialMember.System_Decimal__Zero);
+                        useField = compilation.GetSpecialTypeMember(SpecialMember.System_Decimal__Zero);
                     }
                     else if (value == decimal.One)
                     {
-                        useField = _compilation.GetSpecialTypeMember(SpecialMember.System_Decimal__One);
+                        useField = compilation.GetSpecialTypeMember(SpecialMember.System_Decimal__One);
                     }
                     else if (value == decimal.MinusOne)
                     {
-                        useField = _compilation.GetSpecialTypeMember(SpecialMember.System_Decimal__MinusOne);
+                        useField = compilation.GetSpecialTypeMember(SpecialMember.System_Decimal__MinusOne);
                     }
 
                     if ((object)useField != null &&
@@ -97,38 +106,38 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 //new decimal(int);
                 member = SpecialMember.System_Decimal__CtorInt32;
-                arguments.Add(new BoundLiteral(syntax, ConstantValue.Create((int)value), _compilation.GetSpecialType(SpecialType.System_Int32)));
+                arguments.Add(new BoundLiteral(syntax, ConstantValue.Create((int)value), compilation.GetSpecialType(SpecialType.System_Int32)));
             }
             else if (scale == 0 && uint.MinValue <= value && value <= uint.MaxValue)
             {
                 //new decimal(uint);
                 member = SpecialMember.System_Decimal__CtorUInt32;
-                arguments.Add(new BoundLiteral(syntax, ConstantValue.Create((uint)value), _compilation.GetSpecialType(SpecialType.System_UInt32)));
+                arguments.Add(new BoundLiteral(syntax, ConstantValue.Create((uint)value), compilation.GetSpecialType(SpecialType.System_UInt32)));
             }
             else if (scale == 0 && long.MinValue <= value && value <= long.MaxValue)
             {
                 //new decimal(long);
                 member = SpecialMember.System_Decimal__CtorInt64;
-                arguments.Add(new BoundLiteral(syntax, ConstantValue.Create((long)value), _compilation.GetSpecialType(SpecialType.System_Int64)));
+                arguments.Add(new BoundLiteral(syntax, ConstantValue.Create((long)value), compilation.GetSpecialType(SpecialType.System_Int64)));
             }
             else if (scale == 0 && ulong.MinValue <= value && value <= ulong.MaxValue)
             {
                 //new decimal(ulong);
                 member = SpecialMember.System_Decimal__CtorUInt64;
-                arguments.Add(new BoundLiteral(syntax, ConstantValue.Create((ulong)value), _compilation.GetSpecialType(SpecialType.System_UInt64)));
+                arguments.Add(new BoundLiteral(syntax, ConstantValue.Create((ulong)value), compilation.GetSpecialType(SpecialType.System_UInt64)));
             }
             else
             {
                 //new decimal(int low, int mid, int high, bool isNegative, byte scale);
                 member = SpecialMember.System_Decimal__CtorInt32Int32Int32BooleanByte;
-                arguments.Add(new BoundLiteral(syntax, ConstantValue.Create(low), _compilation.GetSpecialType(SpecialType.System_Int32)));
-                arguments.Add(new BoundLiteral(syntax, ConstantValue.Create(mid), _compilation.GetSpecialType(SpecialType.System_Int32)));
-                arguments.Add(new BoundLiteral(syntax, ConstantValue.Create(high), _compilation.GetSpecialType(SpecialType.System_Int32)));
-                arguments.Add(new BoundLiteral(syntax, ConstantValue.Create(isNegative), _compilation.GetSpecialType(SpecialType.System_Boolean)));
-                arguments.Add(new BoundLiteral(syntax, ConstantValue.Create(scale), _compilation.GetSpecialType(SpecialType.System_Byte)));
+                arguments.Add(new BoundLiteral(syntax, ConstantValue.Create(low), compilation.GetSpecialType(SpecialType.System_Int32)));
+                arguments.Add(new BoundLiteral(syntax, ConstantValue.Create(mid), compilation.GetSpecialType(SpecialType.System_Int32)));
+                arguments.Add(new BoundLiteral(syntax, ConstantValue.Create(high), compilation.GetSpecialType(SpecialType.System_Int32)));
+                arguments.Add(new BoundLiteral(syntax, ConstantValue.Create(isNegative), compilation.GetSpecialType(SpecialType.System_Boolean)));
+                arguments.Add(new BoundLiteral(syntax, ConstantValue.Create(scale), compilation.GetSpecialType(SpecialType.System_Byte)));
             }
 
-            var ctor = (MethodSymbol)_compilation.Assembly.GetSpecialTypeMember(member);
+            var ctor = (MethodSymbol)compilation.Assembly.GetSpecialTypeMember(member);
             Debug.Assert((object)ctor != null);
             Debug.Assert(ctor.ContainingType.SpecialType == SpecialType.System_Decimal);
 
@@ -138,15 +147,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 constantValue, null, null, ctor.ContainingType);
         }
 
-        private BoundExpression MakeDateTimeLiteral(SyntaxNode syntax, ConstantValue constantValue)
+        private static BoundExpression MakeDateTimeLiteral(SyntaxNode syntax, ConstantValue constantValue, CSharpCompilation compilation)
         {
             Debug.Assert(constantValue != null);
             Debug.Assert(constantValue.IsDateTime);
 
             var arguments = new ArrayBuilder<BoundExpression>();
-            arguments.Add(new BoundLiteral(syntax, ConstantValue.Create(constantValue.DateTimeValue.Ticks), _compilation.GetSpecialType(SpecialType.System_Int64)));
+            arguments.Add(new BoundLiteral(syntax, ConstantValue.Create(constantValue.DateTimeValue.Ticks), compilation.GetSpecialType(SpecialType.System_Int64)));
 
-            var ctor = (MethodSymbol)_compilation.Assembly.GetSpecialTypeMember(SpecialMember.System_DateTime__CtorInt64);
+            var ctor = (MethodSymbol)compilation.Assembly.GetSpecialTypeMember(SpecialMember.System_DateTime__CtorInt64);
             Debug.Assert((object)ctor != null);
             Debug.Assert(ctor.ContainingType.SpecialType == SpecialType.System_DateTime);
 

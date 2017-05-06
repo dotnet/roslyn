@@ -1722,9 +1722,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private MethodSymbol UnsafeGetNullableMethod(SyntaxNode syntax, TypeSymbol nullableType, SpecialMember member)
         {
+            return UnsafeGetNullableMethod(syntax, nullableType, member, _compilation, _diagnostics);
+        }
+
+        private static MethodSymbol UnsafeGetNullableMethod(SyntaxNode syntax, TypeSymbol nullableType, SpecialMember member, CSharpCompilation compilation, DiagnosticBag diagnostics)
+        {
             var nullableType2 = nullableType as NamedTypeSymbol;
             Debug.Assert((object)nullableType2 != null);
-            return UnsafeGetSpecialTypeMethod(syntax, member).AsMember(nullableType2);
+            return UnsafeGetSpecialTypeMethod(syntax, member, compilation, diagnostics).AsMember(nullableType2);
         }
 
         private bool TryGetNullableMethod(SyntaxNode syntax, TypeSymbol nullableType, SpecialMember member, out MethodSymbol result)

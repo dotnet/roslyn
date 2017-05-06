@@ -165,12 +165,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.CurrentType = currentClassOpt;
             this.Syntax = node;
             this.Diagnostics = diagnostics;
-        }                                                                                
-
-        public SyntheticBoundNodeFactory(SyntaxNode node, DiagnosticBag diagnostics)
-        {                                          
-            this.Syntax = node;
-            this.Diagnostics = diagnostics;
         }
 
         [Conditional("DEBUG")]
@@ -962,9 +956,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundExpression Null(TypeSymbol type)
         {
-            BoundExpression nullLiteral = new BoundLiteral(Syntax, ConstantValue.Null, type) { WasCompilerGenerated = true };
+            return Null(type, Syntax);
+        }
+
+        public static BoundExpression Null(TypeSymbol type, SyntaxNode syntax)
+        {
+            BoundExpression nullLiteral = new BoundLiteral(syntax, ConstantValue.Null, type) { WasCompilerGenerated = true };
             return type.IsPointerType()
-                ? BoundConversion.SynthesizedNonUserDefined(Syntax, nullLiteral, Conversion.NullToPointer, type)
+                ? BoundConversion.SynthesizedNonUserDefined(syntax, nullLiteral, Conversion.NullToPointer, type)
                 : nullLiteral;
         }
 
@@ -1188,7 +1187,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal BoundExpression Default(TypeSymbol type)
         {
-            return new BoundDefaultExpression(Syntax, type) { WasCompilerGenerated = true };
+            return Default(type, Syntax);
+        }
+
+        internal static BoundExpression Default(TypeSymbol type, SyntaxNode syntax)
+        {
+            return new BoundDefaultExpression(syntax, type) { WasCompilerGenerated = true };
         }
 
         internal BoundStatement Try(
@@ -1227,7 +1231,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal BoundExpression NullOrDefault(TypeSymbol typeSymbol)
         {
-            return typeSymbol.IsValueType ? Default(typeSymbol) : Null(typeSymbol);
+            return NullOrDefault(typeSymbol, this.Syntax);
+        }
+
+        internal static BoundExpression NullOrDefault(TypeSymbol typeSymbol, SyntaxNode syntax)
+        {
+            return typeSymbol.IsValueType ? Default(typeSymbol, syntax) : Null(typeSymbol, syntax);
         }
 
         internal BoundExpression Not(

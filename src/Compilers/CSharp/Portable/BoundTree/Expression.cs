@@ -116,27 +116,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
 
                         return argumentsWithErrors.ToImmutableAndFree();
-                    }
-
-                    var diagnosticBag = new DiagnosticBag();
-                    var factory = new SyntheticBoundNodeFactory(invocationSyntax, diagnosticBag);
-                    var localRewriter = new LocalRewriter(
-                                            compilation: null,
-                                            containingMethod: null,
-                                            containingMethodOrdinal: 0,
-                                            rootStatement: null,
-                                            containingType: null,
-                                            factory: factory,
-                                            previousSubmissionFields: null,
-                                            allowOmissionOfConditionalCalls: false,
-                                            diagnostics: diagnosticBag,
-                                            instrumenter: null,
-                                            inOperationContext: true);
+                    } 
 
                     var argumentKindBuilder = ArrayBuilder<ArgumentKind>.GetInstance(parameters.Length);
                     var parameterSymbolBuilder = ArrayBuilder<ParameterSymbol>.GetInstance(parameters.Length);
 
-                    var derivedArguments = localRewriter.MakeArguments(
+                    var derivedArguments = LocalRewriter.MakeArgumentsInEvaluationOrder(
                         binder: binder,
                         syntax: invocationSyntax,
                         arguments: boundArguments,

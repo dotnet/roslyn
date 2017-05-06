@@ -29,8 +29,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly Instrumenter _instrumenter;
         private readonly BoundStatement _rootStatement;
 
-        private bool _inOperationContext;
-
         private Dictionary<BoundValuePlaceholderBase, BoundExpression> _placeholderReplacementMapDoNotUseDirectly;
 
         internal LocalRewriter(
@@ -43,8 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SynthesizedSubmissionFields previousSubmissionFields,
             bool allowOmissionOfConditionalCalls,
             DiagnosticBag diagnostics,
-            Instrumenter instrumenter,
-            bool inOperationContext = false)
+            Instrumenter instrumenter)
         {
             _compilation = compilation;
             _factory = factory;
@@ -55,11 +52,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             _allowOmissionOfConditionalCalls = allowOmissionOfConditionalCalls;
             _diagnostics = diagnostics;
 
-            Debug.Assert(instrumenter != null || inOperationContext);
+            Debug.Assert(instrumenter != null);
             _instrumenter = instrumenter;
             _rootStatement = rootStatement;
-
-            _inOperationContext = inOperationContext;
         }
 
         /// <summary>
@@ -324,8 +319,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private MethodSymbol UnsafeGetSpecialTypeMethod(SyntaxNode syntax, SpecialMember specialMember)
         {
+            return UnsafeGetSpecialTypeMethod(syntax, specialMember, _compilation, _diagnostics);
+        }
+
+        private static MethodSymbol UnsafeGetSpecialTypeMethod(SyntaxNode syntax, SpecialMember specialMember, CSharpCompilation compilation, DiagnosticBag diagnostics)
+        {
             MethodSymbol method;
-            if (TryGetSpecialTypeMethod(syntax, specialMember, out method))
+            if (TryGetSpecialTypeMethod(syntax, specialMember, compilation, diagnostics, out method))
             {
                 return method;
             }
@@ -333,15 +333,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 MemberDescriptor descriptor = SpecialMembers.GetDescriptor(specialMember);
                 SpecialType type = (SpecialType)descriptor.DeclaringTypeId;
-                TypeSymbol container = _compilation.Assembly.GetSpecialType(type);
-                TypeSymbol returnType = new ExtendedErrorTypeSymbol(compilation: _compilation, name: descriptor.Name, errorInfo: null, arity: descriptor.Arity);
+                TypeSymbol container = compilation.Assembly.GetSpecialType(type);
+                TypeSymbol returnType = new ExtendedErrorTypeSymbol(compilation: compilation, name: descriptor.Name, errorInfo: null, arity: descriptor.Arity);
                 return new ErrorMethodSymbol(container, returnType, "Missing");
             }
         }
 
         private bool TryGetSpecialTypeMethod(SyntaxNode syntax, SpecialMember specialMember, out MethodSymbol method)
         {
-            return Binder.TryGetSpecialTypeMember(_compilation, specialMember, syntax, _diagnostics, out method);
+            return TryGetSpecialTypeMethod(syntax, specialMember, _compilation, _diagnostics, out method);
+        }
+
+        private static bool TryGetSpecialTypeMethod(SyntaxNode syntax, SpecialMember specialMember, CSharpCompilation compilation, DiagnosticBag diagnostics, out MethodSymbol method)
+        {
+            return Binder.TryGetSpecialTypeMember(compilation, specialMember, syntax, diagnostics, out method);
         }
 
         public override BoundNode VisitTypeOfOperator(BoundTypeOfOperator node)

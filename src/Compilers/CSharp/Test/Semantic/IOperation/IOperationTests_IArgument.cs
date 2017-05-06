@@ -757,7 +757,7 @@ IInvocationExpression ( void P.M2([System.Int32 x = 0], params System.Double[] a
         }
 
         [Fact]
-        public void CallerInfoAttributes()
+        public void CallerInfoAttributesInvokedInMethod()
         {
             string source = @"
 using System.Runtime.CompilerServices;
@@ -780,12 +780,79 @@ class P
 IInvocationExpression ( void P.M2([System.String memberName = null], [System.String sourceFilePath = null], [System.Int32 sourceLineNumber = 0])) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'M2()')
   Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: P) (Syntax: 'M2')
   Arguments(3): IArgument (ArgumentKind.DefaultValue, Matching Parameter: memberName) (OperationKind.Argument) (Syntax: 'M2()')
-      ILiteralExpression (Text: ) (OperationKind.LiteralExpression, Type: System.String, Constant: """") (Syntax: 'M2()')
-    IArgument (ArgumentKind.DefaultValue, Matching Parameter: sourceFilePath) (OperationKind.Argument) (Syntax: 'M2()')
-      ILiteralExpression (Text: ) (OperationKind.LiteralExpression, Type: System.String, Constant: """") (Syntax: 'M2()')
-    IArgument (ArgumentKind.DefaultValue, Matching Parameter: sourceLineNumber) (OperationKind.Argument) (Syntax: 'M2()')
-      ILiteralExpression (Text: 8) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 8) (Syntax: 'M2()')
+      ILiteralExpression (Text: M1) (OperationKind.LiteralExpression, Type: System.String, Constant: ""M1"") (Syntax: 'M2()')
+    IArgument(ArgumentKind.DefaultValue, Matching Parameter: sourceFilePath)(OperationKind.Argument)(Syntax: 'M2()')
+      ILiteralExpression(Text: )(OperationKind.LiteralExpression, Type: System.String, Constant: """")(Syntax: 'M2()')
+    IArgument(ArgumentKind.DefaultValue, Matching Parameter: sourceLineNumber)(OperationKind.Argument)(Syntax: 'M2()')
+      ILiteralExpression(Text: 8)(OperationKind.LiteralExpression, Type: System.Int32, Constant: 8)(Syntax: 'M2()')
 ";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact]
+        public void CallerInfoAttributesInvokedInProperty()
+        {
+            string source = @"
+using System.Runtime.CompilerServices;
+
+class P
+{
+    bool M1 => /*<bind>*/M2()/*</bind>*/;
+
+    bool M2(
+        [CallerMemberName] string memberName = null,
+        [CallerFilePath] string sourceFilePath = null,
+        [CallerLineNumber] int sourceLineNumber = 0)
+    { 
+        return true;
+    }
+}
+";
+            string expectedOperationTree = @"
+IInvocationExpression ( System.Boolean P.M2([System.String memberName = null], [System.String sourceFilePath = null], [System.Int32 sourceLineNumber = 0])) (OperationKind.InvocationExpression, Type: System.Boolean) (Syntax: 'M2()')
+  Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: P) (Syntax: 'M2')
+  Arguments(3): IArgument (ArgumentKind.DefaultValue, Matching Parameter: memberName) (OperationKind.Argument) (Syntax: 'M2()')
+      ILiteralExpression (Text: get_M1) (OperationKind.LiteralExpression, Type: System.String, Constant: ""get_M1"") (Syntax: 'M2()')
+    IArgument(ArgumentKind.DefaultValue, Matching Parameter: sourceFilePath)(OperationKind.Argument)(Syntax: 'M2()')
+      ILiteralExpression(Text: )(OperationKind.LiteralExpression, Type: System.String, Constant: """")(Syntax: 'M2()')
+    IArgument(ArgumentKind.DefaultValue, Matching Parameter: sourceLineNumber)(OperationKind.Argument)(Syntax: 'M2()')
+      ILiteralExpression(Text: 6)(OperationKind.LiteralExpression, Type: System.Int32, Constant: 6)(Syntax: 'M2()')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact]
+        public void CallerInfoAttributesInvokedInFieldInitilizer()
+        {
+            string source = @"
+using System.Runtime.CompilerServices;
+
+class P
+{
+    bool field = /*<bind>*/M2()/*</bind>*/;
+
+    static bool M2(
+        [CallerMemberName] string memberName = null,
+        [CallerFilePath] string sourceFilePath = null,
+        [CallerLineNumber] int sourceLineNumber = 0)
+    {
+        return true;
+    }
+}
+";
+            string expectedOperationTree = @"
+IInvocationExpression (static System.Boolean P.M2([System.String memberName = null], [System.String sourceFilePath = null], [System.Int32 sourceLineNumber = 0])) (OperationKind.InvocationExpression, Type: System.Boolean) (Syntax: 'M2()')
+  Arguments(3): IArgument (ArgumentKind.DefaultValue, Matching Parameter: memberName) (OperationKind.Argument) (Syntax: 'M2()')
+      ILiteralExpression (Text: field) (OperationKind.LiteralExpression, Type: System.String, Constant: ""field"") (Syntax: 'M2()')
+    IArgument(ArgumentKind.DefaultValue, Matching Parameter: sourceFilePath)(OperationKind.Argument)(Syntax: 'M2()')
+      ILiteralExpression(Text: )(OperationKind.LiteralExpression, Type: System.String, Constant: """")(Syntax: 'M2()')
+    IArgument(ArgumentKind.DefaultValue, Matching Parameter: sourceLineNumber)(OperationKind.Argument)(Syntax: 'M2()')
+      ILiteralExpression(Text: 6)(OperationKind.LiteralExpression, Type: System.Int32, Constant: 6)(Syntax: 'M2()')"
+;
             var expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);

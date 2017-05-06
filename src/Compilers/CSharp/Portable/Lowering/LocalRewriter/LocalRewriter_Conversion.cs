@@ -457,9 +457,25 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </remarks>
         private BoundExpression MakeConversionNode(BoundExpression rewrittenOperand, TypeSymbol rewrittenType, bool @checked, bool acceptFailingConversion = false)
         {
+            Conversion conversion = MakeConversion(rewrittenOperand, rewrittenType, _compilation, _diagnostics, acceptFailingConversion);
+            if (!conversion.IsValid)
+            {
+                return _factory.NullOrDefault(rewrittenType);
+            }
+
+            return MakeConversionNode(rewrittenOperand.Syntax, rewrittenOperand, conversion, rewrittenType, @checked);
+        }
+
+        private static Conversion MakeConversion(
+            BoundExpression rewrittenOperand,
+            TypeSymbol rewrittenType,
+            CSharpCompilation compilation,
+            DiagnosticBag diagnostics,
+            bool acceptFailingConversion)
+        {
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            Conversion conversion = _compilation.Conversions.ClassifyConversionFromType(rewrittenOperand.Type, rewrittenType, ref useSiteDiagnostics);
-            _diagnostics.Add(rewrittenOperand.Syntax, useSiteDiagnostics);
+            Conversion conversion = compilation.Conversions.ClassifyConversionFromType(rewrittenOperand.Type, rewrittenType, ref useSiteDiagnostics);
+            diagnostics.Add(rewrittenOperand.Syntax, useSiteDiagnostics);
 
             if (!conversion.IsValid)
             {
@@ -468,17 +484,45 @@ namespace Microsoft.CodeAnalysis.CSharp
                      rewrittenOperand.Type.SpecialType != SpecialType.System_DateTime)
                 {
                     // error CS0029: Cannot implicitly convert type '{0}' to '{1}'
-                    _diagnostics.Add(
+                    diagnostics.Add(
                         ErrorCode.ERR_NoImplicitConv,
                         rewrittenOperand.Syntax.Location,
                         rewrittenOperand.Type,
                         rewrittenType);
                 }
-
-                return _factory.NullOrDefault(rewrittenType);
             }
 
-            return MakeConversionNode(rewrittenOperand.Syntax, rewrittenOperand, conversion, rewrittenType, @checked);
+            return conversion;
+        } 
+
+        private static BoundExpression MakeConversionNodeIfNecessaryWithoutLowering(
+            BoundExpression operand, 
+            TypeSymbol type, 
+            SyntaxNode syntax, 
+            CSharpCompilation compilation, 
+            DiagnosticBag diagnostics, 
+            bool @checked, 
+            bool acceptFailingConversion = false)
+        {
+            if (operand.Type.Equals(type))
+            {
+                return operand;
+            }
+            Conversion conversion = MakeConversion(operand, type, compilation, diagnostics, acceptFailingConversion); 
+
+            if (!conversion.IsValid)
+            {
+                return SyntheticBoundNodeFactory.NullOrDefault(type, syntax);
+            }
+
+            return new BoundConversion(
+                            syntax,
+                            operand,
+                            conversion,             
+                            @checked: @checked,
+                            explicitCastInCode: false,
+                            constantValueOpt: default(ConstantValue),
+                            type: type);
         }
 
         /// <summary>
