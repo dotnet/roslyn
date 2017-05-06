@@ -449,8 +449,7 @@ namespace Roslyn.Utilities
 
             var elementType = array.GetType().GetElementType();
 
-            EncodingKind elementKind;
-            if (s_typeMap.TryGetValue(elementType, out elementKind))
+            if (s_typeMap.TryGetValue(elementType, out var elementKind))
             {
                 this.WritePrimitiveType(elementType, elementKind);
                 this.WritePrimitiveTypeArrayElements(elementType, elementKind, array);
@@ -470,7 +469,7 @@ namespace Roslyn.Utilities
                     // don't blow the stack.  'LongRunning' ensures that we get a dedicated thread
                     // to do this work.  That way we don't end up blocking the threadpool.
                     var task = Task.Factory.StartNew(
-                        () => WriteArrayValues(array), 
+                        () => WriteArrayValues(array),
                         _cancellationToken,
                         TaskCreationOptions.LongRunning,
                         TaskScheduler.Default);
