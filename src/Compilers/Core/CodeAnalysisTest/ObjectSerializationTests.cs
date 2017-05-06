@@ -919,7 +919,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
             writer.WriteValue("\uD800\uDC00"); // valid surrogate pair
             writer.WriteValue("\uDC00\uD800"); // invalid surrogate pair
             writer.WriteValue("\uD800"); // incomplete surrogate pair
-            writer.WriteValue(null);
+            writer.WriteValue((object)null);
+            writer.WriteValue((IObjectWritable)null);
             unchecked
             {
                 writer.WriteInt64((long)ConsoleColor.Cyan);

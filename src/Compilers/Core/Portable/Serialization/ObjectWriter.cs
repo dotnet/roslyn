@@ -215,8 +215,19 @@ namespace Roslyn.Utilities
             }
             else
             {
-                WriteObject(value);
+                WriteObject(instance: value, instanceAsWritableOpt: null);
             }
+        }
+
+        public void WriteValue(IObjectWritable value)
+        {
+            if (value == null)
+            {
+                _writer.Write((byte)EncodingKind.Null);
+                return;
+            }
+
+            WriteObject(instance: value, instanceAsWritableOpt: value);
         }
 
         private void WriteEncodedInt32(int v)
@@ -670,13 +681,15 @@ namespace Roslyn.Utilities
             this.WriteInt32(_binderSnapshot.GetTypeId(type));
         }
 
-        private void WriteObject(object instance)
+        private void WriteObject(object instance, IObjectWritable instanceAsWritableOpt)
         {
+            Debug.Assert(instance != null);
+            Debug.Assert(instanceAsWritableOpt == null || instance == instanceAsWritableOpt);
+
             _cancellationToken.ThrowIfCancellationRequested();
 
             // write object ref if we already know this instance
-            int id;
-            if (_objectReferenceMap.TryGetReferenceId(instance, out id))
+            if (_objectReferenceMap.TryGetReferenceId(instance, out var id))
             {
                 Debug.Assert(id >= 0);
                 if (id <= byte.MaxValue)
@@ -697,10 +710,18 @@ namespace Roslyn.Utilities
             }
             else
             {
-                var writable = instance as IObjectWritable;
-                if (writable == null)
+                IObjectWritable writable;
+                if (instanceAsWritableOpt != null)
                 {
-                    throw NoSerializationWriterException($"{instance.GetType()} must implement {nameof(IObjectWritable)}");
+                    writable = instanceAsWritableOpt;
+                }
+                else
+                {
+                    writable = instance as IObjectWritable;
+                    if (writable == null)
+                    {
+                        throw NoSerializationWriterException($"{instance.GetType()} must implement {nameof(IObjectWritable)}");
+                    }
                 }
 
                 var oldDepth = _recursionDepth;
@@ -712,7 +733,7 @@ namespace Roslyn.Utilities
                     // don't blow the stack.  'LongRunning' ensures that we get a dedicated thread
                     // to do this work.  That way we don't end up blocking the threadpool.
                     var task = Task.Factory.StartNew(
-                        () => WriteObjectWorker(instance, writable), 
+                        () => WriteObjectWorker(instance, writable),
                         _cancellationToken,
                         TaskCreationOptions.LongRunning,
                         TaskScheduler.Default);
