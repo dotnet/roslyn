@@ -42,11 +42,6 @@ namespace Microsoft.CodeAnalysis.Remote
             var currentSolution = GetAvailableSolution(solutionChecksum);
             if (currentSolution != null)
             {
-                if (!(currentSolution.Workspace is RemoteWorkspace))
-                {
-                    Debug.WriteLine("**** Cache Hit outside of lock false");
-                }
-
                 return currentSolution;
             }
 
@@ -56,11 +51,6 @@ namespace Microsoft.CodeAnalysis.Remote
                 currentSolution = GetAvailableSolution(solutionChecksum);
                 if (currentSolution != null)
                 {
-                    if (!(currentSolution.Workspace is RemoteWorkspace))
-                    {
-                        Debug.WriteLine("**** Cache Hit outside of lock false");
-                    }
-
                     return currentSolution;
                 }
 
@@ -81,8 +71,6 @@ namespace Microsoft.CodeAnalysis.Remote
             var primarySolutionChecksum = await currentSolution.State.GetChecksumAsync(cancellationToken).ConfigureAwait(false);
             if (primarySolutionChecksum == solutionChecksum)
             {
-                // nothing changed
-                Debug.WriteLine("**** Primary workspace up to date");
                 return;
             }
 
@@ -103,12 +91,10 @@ namespace Microsoft.CodeAnalysis.Remote
                 // solution has updated
                 if (primary)
                 {
-                    Debug.WriteLine("**** Primary worksace incremental update!");
                     s_primaryWorkspace.UpdateSolution(await updater.CreateSolutionAsync(solutionChecksum).ConfigureAwait(false));
                     return s_primaryWorkspace.CurrentSolution;
                 }
 
-                Debug.WriteLine("**** Incremental solution update!");
                 return await updater.CreateSolutionAsync(solutionChecksum).ConfigureAwait(false);
             }
 
@@ -117,14 +103,12 @@ namespace Microsoft.CodeAnalysis.Remote
 
             if (primary)
             {
-                Debug.WriteLine("**** New Primary workspace!");
                 s_primaryWorkspace.ClearSolution();
                 s_primaryWorkspace.AddSolution(await updater.CreateSolutionInfoAsync(solutionChecksum).ConfigureAwait(false));
 
                 return s_primaryWorkspace.CurrentSolution;
             }
 
-            Debug.WriteLine("**** Not same as primary workspace! new temporary workspace created!");
             var workspace = new TemporaryWorkspace(await updater.CreateSolutionInfoAsync(solutionChecksum).ConfigureAwait(false));
             return workspace.CurrentSolution;
         }
