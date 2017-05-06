@@ -1178,6 +1178,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 AddDiagnostic(diagnostics, diagnosticOptions, ErrorCode.ERR_NoRefOutWhenRefOnly);
             }
 
+            if (metadataReferences.Any(r => r.Properties.EmbedInteropTypes) && (refOnly || outputRefFilePath != null))
+            {
+                AddDiagnostic(diagnostics, diagnosticOptions, ErrorCode.ERR_NoEmbeddedTypeWhenRefOutOrRefOnly);
+            }
+
             if (outputKind == OutputKind.NetModule && (refOnly || outputRefFilePath != null))
             {
                 AddDiagnostic(diagnostics, diagnosticOptions, ErrorCode.ERR_NoNetModuleOutputWhenRefOutOrRefOnly);

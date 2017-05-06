@@ -6731,6 +6731,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Cannot embed types when using /refout or /refonly..
+        /// </summary>
+        internal static string ERR_NoEmbeddedTypeWhenRefOutOrRefOnly {
+            get {
+                return ResourceManager.GetString("ERR_NoEmbeddedTypeWhenRefOutOrRefOnly", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Program does not contain a static &apos;Main&apos; method suitable for an entry point.
         /// </summary>
         internal static string ERR_NoEntryPoint {

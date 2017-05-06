@@ -37,11 +37,10 @@ The `/refout` parameter specifies a file path where the ref assembly should be o
 The `/refonly` parameter is a flag that indicates that a ref assembly should be output instead of an implementation assembly. 
 The `/refonly` parameter is not allowed together with the `/refout` parameter, as it doesn't make sense to have both the primary and secondary outputs be ref assemblies. Also, the `/refonly` parameter silently disables outputting PDBs, as ref assemblies cannot be executed. 
 The `/refonly` parameter translates to `EmitMetadataOnly` being `true`, and `IncludePrivateMembers` being `false` in the `Emit` API (see details below).
-Neither `/refonly` nor `/refout` are permitted with `/target:module` or `/addmodule` options.
-
-When the compiler produces documentation, the contents produced will match the APIs that go into the primary output. In other words, the documentation will be filtered down when using the `/refonly` parameter.
+Neither `/refonly` nor `/refout` are permitted with `/target:module`, `/addmodule`, or `/link:...` options.
 
 The compilation from the command-line will either produce both assemblies (implementation and ref) or neither. There is no "partial success" scenario.
+When the compiler produces documentation, it is un-affected by either the `/refonly` or `/refout` parameters.
 
 ### CscTask/CoreCompile
 The `CoreCompile` target will support a new output, called `IntermediateRefAssembly`, which parallels the existing `IntermediateAssembly`.
@@ -65,8 +64,10 @@ Going back to the 4 driving scenarios:
 
 ## Future
 As mentioned above, there may be further refinements after C# 7.1:
-- controlling internals (producing public ref assemblies)
-- produce ref assemblies even when there are errors outside method bodies (emitting error types when `EmitOptions.TolerateErrors` is set)
+- Controlling internals (producing public ref assemblies)
+- Produce ref assemblies even when there are errors outside method bodies (emitting error types when `EmitOptions.TolerateErrors` is set)
+- When the compiler produces documentation, the contents produced could be filtered down to match the APIs that go into the primary output. In other words, the documentation could be filtered down when using the `/refonly` parameter.
+
 
 ## Open questions
 - should explicit method implementations be included in ref assemblies?

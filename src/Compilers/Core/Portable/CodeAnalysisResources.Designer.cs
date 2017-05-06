@@ -478,6 +478,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Embedded interop type references should not be given when emitting a ref assembly..
+        /// </summary>
+        internal static string EmbedInteropTypesUnexpectedWhenEmittingRefAssembly {
+            get {
+                return ResourceManager.GetString("EmbedInteropTypesUnexpectedWhenEmittingRefAssembly", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to A key in the pathMap is empty..
         /// </summary>
         internal static string EmptyKeyInPathMap {

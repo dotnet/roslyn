@@ -2923,6 +2923,14 @@ print Goodbye, World"
             parsedArgs.Errors.Verify(
                 Diagnostic(ERRID.ERR_NoNetModuleOutputWhenRefOutOrRefOnly).WithLocation(1, 1))
 
+            parsedArgs = DefaultParse({"/refout:ref.dll", "/link:b", "a.vb"}, baseDirectory)
+            parsedArgs.Errors.Verify(
+                Diagnostic(ERRID.ERR_NoEmbeddedTypeWhenRefOutOrRefOnly).WithLocation(1, 1))
+
+            parsedArgs = DefaultParse({"/refonly", "/link:b", "a.vb"}, baseDirectory)
+            parsedArgs.Errors.Verify(
+                Diagnostic(ERRID.ERR_NoEmbeddedTypeWhenRefOutOrRefOnly).WithLocation(1, 1))
+
             parsedArgs = DefaultParse({"/refonly", "/target:module", "a.vb"}, baseDirectory)
             parsedArgs.Errors.Verify(
                 Diagnostic(ERRID.ERR_NoNetModuleOutputWhenRefOutOrRefOnly).WithLocation(1, 1))
@@ -8188,6 +8196,10 @@ Public Class C
     Public Shared Sub Main()
         System.Console.Write(""Hello"")
     End Sub
+    ''' <summary>Private method</summary>
+    Private Shared Sub PrivateMethod()
+        System.Console.Write(""Private"")
+    End Sub
 End Class")
 
             Dim outWriter = New StringWriter(CultureInfo.InvariantCulture)
@@ -8202,7 +8214,7 @@ End Class")
 
             MetadataReaderUtils.VerifyPEMetadata(exe,
                 {"TypeDefinition:<Module>", "TypeDefinition:C"},
-                {"MethodDefinition:Void Main()", "MethodDefinition:Void .ctor()"},
+                {"MethodDefinition:Void Main()", "MethodDefinition:Void .ctor()", "MethodDefinition:Void PrivateMethod()"},
                 {"CompilationRelaxationsAttribute", "RuntimeCompatibilityAttribute", "DebuggableAttribute", "STAThreadAttribute"}
                 )
 
@@ -8221,6 +8233,9 @@ a
 <members>
 <member name=""M:C.Main"">
  <summary>Main method</summary>
+</member>
+<member name=""M:C.PrivateMethod"">
+ <summary>Private method</summary>
 </member>
 </members>
 </doc>"
@@ -8295,6 +8310,14 @@ outWriter.ToString().Trim())
     Public Shared Sub Main()
         Bad()
     End Sub
+    ''' <summary>Field</summary>
+    Private Dim field As Integer
+
+    ''' <summary>Field</summary>
+    Private Structure S
+        ''' <summary>Struct Field</summary>
+        Private Dim field As Integer
+    End Structure
 End Class")
 
             Dim outWriter = New StringWriter(CultureInfo.InvariantCulture)
@@ -8310,7 +8333,7 @@ End Class")
             ' The types and members that are included needs further refinement.
             ' See issue https://github.com/dotnet/roslyn/issues/17612
             MetadataReaderUtils.VerifyPEMetadata(refDll,
-                {"TypeDefinition:<Module>", "TypeDefinition:C"},
+                {"TypeDefinition:<Module>", "TypeDefinition:C", "TypeDefinition:S"},
                 {"MethodDefinition:Void Main()", "MethodDefinition:Void .ctor()"},
                 {"CompilationRelaxationsAttribute", "RuntimeCompatibilityAttribute", "DebuggableAttribute", "STAThreadAttribute", "ReferenceAssemblyAttribute"}
                 )
@@ -8333,6 +8356,15 @@ a
 <members>
 <member name=""M:C.Main"">
  <summary>Main method</summary>
+</member>
+<member name=""F:C.field"">
+ <summary>Field</summary>
+</member>
+<member name=""T:C.S"">
+ <summary>Field</summary>
+</member>
+<member name=""F:C.S.field"">
+ <summary>Struct Field</summary>
 </member>
 </members>
 </doc>"

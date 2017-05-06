@@ -1057,7 +1057,7 @@ public class PublicClass
         }
 
         [Fact]
-        public void EmitMetadata_AllowEmbedding()
+        public void RefAssembly_AllowEmbeddingPdb()
         {
             CSharpCompilation comp = CreateCompilation("", references: new[] { MscorlibRef },
                 options: TestOptions.DebugDll);
@@ -1083,7 +1083,7 @@ public class PublicClass
         }
 
         [Fact]
-        public void EmitMetadataOnly_DisallowEmbedding()
+        public void EmitMetadataOnly_DisallowEmbeddingPdb()
         {
             CSharpCompilation comp = CreateCompilation("", references: new[] { MscorlibRef },
                 options: TestOptions.DebugDll);
@@ -1094,6 +1094,32 @@ public class PublicClass
                     options: EmitOptions.Default.WithEmitMetadataOnly(true)
                         .WithDebugInformationFormat(DebugInformationFormat.Embedded)));
             }
+        }
+
+        [Fact]
+        public void RefAssembly_DisallowEmbeddingTypes()
+        {
+            CSharpCompilation comp = CreateCompilation("", options: TestOptions.DebugDll,
+                references: new MetadataReference[]
+                {
+                    TestReferences.SymbolsTests.NoPia.GeneralPia.WithEmbedInteropTypes(true)
+                });
+
+            using (var output = new MemoryStream())
+            {
+                Assert.Throws<ArgumentException>(() => comp.Emit(output,
+                    options: EmitOptions.Default.WithEmitMetadataOnly(true).WithIncludePrivateMembers(false)));
+
+            }
+
+            using (var output = new MemoryStream())
+            using (var metadataOutput = new MemoryStream())
+            {
+                Assert.Throws<ArgumentException>(() => comp.Emit(output,
+                    metadataPEStream: metadataOutput,
+                    options: EmitOptions.Default.WithIncludePrivateMembers(false)));
+
+           }
         }
 
         [Fact]
