@@ -187,9 +187,6 @@ namespace RepoUtil
             var name = args[index];
             switch (name)
             {
-                case "verify":
-                    func = (c, s, g) => new VerifyCommand(c, s,g );
-                    break;
                 case "view":
                     func = (c, s, g) => new ViewCommand(c, s);
                     break;

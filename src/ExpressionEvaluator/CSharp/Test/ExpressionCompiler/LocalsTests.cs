@@ -1452,6 +1452,28 @@ class P
             });
         }
 
+        [Fact(Skip = "18273"), WorkItem(18273, "https://github.com/dotnet/roslyn/issues/18273")]
+        public void CapturedLocalInNestedLambda()
+        {
+            var source = @"
+using System;
+
+class C
+{
+    void M() { }
+}";
+            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M");
+
+                var testData = new CompilationTestData();
+                context.CompileExpression("new Action(() => { int x; new Func<int>(() => x).Invoke(); }).Invoke()", out var error, testData);
+                Assert.Null(error);
+                testData.GetMethodData("<>x.<>m0").VerifyIL("");
+            });
+        }
+
         [Fact]
         public void NestedLambdas()
         {
