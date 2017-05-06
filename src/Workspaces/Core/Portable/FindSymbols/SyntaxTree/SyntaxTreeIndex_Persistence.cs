@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var parseOptionsChecksum = ChecksumCache.GetOrCreate(
                 parseOptions, _ => serializer.CreateChecksum(parseOptions, cancellationToken));
 
-            return Checksum.Create(nameof(SyntaxTreeIndex), new[] { textChecksum, parseOptionsChecksum });
+            return Checksum.Create(WellKnownSynchronizationKinds.SyntaxTreeIndex, new[] { textChecksum, parseOptionsChecksum });
         }
 
         private async Task<bool> SaveAsync(

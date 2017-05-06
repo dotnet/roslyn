@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Serialization
         {
         }
 
-        public SolutionStateChecksums(params object[] children) : base(nameof(SolutionStateChecksums), children)
+        public SolutionStateChecksums(params object[] children) : base(WellKnownSynchronizationKinds.SolutionStateChecksums, children)
         {
         }
 
@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.Serialization
         {
         }
 
-        public ProjectStateChecksums(params object[] children) : base(nameof(ProjectStateChecksums), children)
+        public ProjectStateChecksums(params object[] children) : base(WellKnownSynchronizationKinds.ProjectStateChecksums, children)
         {
         }
 
@@ -228,7 +228,7 @@ namespace Microsoft.CodeAnalysis.Serialization
         {
         }
 
-        public DocumentStateChecksums(params object[] children) : base(nameof(DocumentStateChecksums), children)
+        public DocumentStateChecksums(params object[] children) : base(WellKnownSynchronizationKinds.DocumentStateChecksums, children)
         {
         }
 

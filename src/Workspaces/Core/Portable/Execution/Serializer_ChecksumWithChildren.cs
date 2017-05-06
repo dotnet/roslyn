@@ -17,14 +17,14 @@ namespace Microsoft.CodeAnalysis.Serialization
         private const byte ChecksumKind = 0;
         private const byte ChecksumWithChildrenKind = 1;
 
-        private static readonly ImmutableDictionary<string, Func<object[], ChecksumWithChildren>> s_creatorMap = CreateCreatorMap();
+        private static readonly ImmutableDictionary<WellKnownSynchronizationKinds, Func<object[], ChecksumWithChildren>> s_creatorMap = CreateCreatorMap();
 
         public void SerializeChecksumWithChildren(ChecksumWithChildren checksums, ObjectWriter writer, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
             var kind = checksums.GetWellKnownSynchronizationKind();
-            writer.WriteString(kind);
+            writer.WriteInt32((int)kind);
             checksums.Checksum.WriteTo(writer);
 
             writer.WriteInt32(checksums.Children.Count);
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Serialization
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var kind = reader.ReadString();
+            var kind = (WellKnownSynchronizationKinds)reader.ReadInt32();
             var checksum = Checksum.ReadFrom(reader);
 
             var childrenCount = reader.ReadInt32();
@@ -84,9 +84,9 @@ namespace Microsoft.CodeAnalysis.Serialization
             return checksums;
         }
 
-        private static ImmutableDictionary<string, Func<object[], ChecksumWithChildren>> CreateCreatorMap()
+        private static ImmutableDictionary<WellKnownSynchronizationKinds, Func<object[], ChecksumWithChildren>> CreateCreatorMap()
         {
-            return ImmutableDictionary<string, Func<object[], ChecksumWithChildren>>.Empty
+            return ImmutableDictionary<WellKnownSynchronizationKinds, Func<object[], ChecksumWithChildren>>.Empty
                 .Add(WellKnownSynchronizationKinds.SolutionState, children => new SolutionStateChecksums(children))
                 .Add(WellKnownSynchronizationKinds.ProjectState, children => new ProjectStateChecksums(children))
                 .Add(WellKnownSynchronizationKinds.DocumentState, children => new DocumentStateChecksums(children))
