@@ -14,14 +14,29 @@ namespace Microsoft.CodeAnalysis
     // all these are just helper methods
     internal partial class Checksum
     {
+        private static readonly Stack<SHA1> s_sha1Stack = new Stack<SHA1>();
+        private static readonly object s_gate = new object();
+
         public static Checksum Create(Stream stream)
         {
-            // REVIEW: should we cache SHA1CryptoServiceProvider
-            using (var algorithm = SHA1.Create())
+            SHA1 sha1;
+            lock (s_gate)
             {
-                stream.Seek(0, SeekOrigin.Begin);
-                return new Checksum(algorithm.ComputeHash(stream));
+                sha1 = s_sha1Stack.Count > 0
+                    ? s_sha1Stack.Pop()
+                    : SHA1.Create();
             }
+
+            stream.Seek(0, SeekOrigin.Begin);
+
+            var checksum = new Checksum(sha1.ComputeHash(stream));
+
+            lock (s_gate)
+            {
+                s_sha1Stack.Push(sha1);
+            }
+
+            return checksum;
         }
 
         public static Checksum Create(string kind, IObjectWritable @object)
