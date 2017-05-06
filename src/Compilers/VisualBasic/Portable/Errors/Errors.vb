@@ -1725,7 +1725,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ERR_BadAssemblyName = 37283
 
         ERR_Merge_conflict_marker_encountered = 37284
-
         ERR_BadSourceCodeKind = 37285
         ERR_BadDocumentationMode = 37286
         ERR_BadLanguageVersion = 37287
@@ -2006,5 +2005,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         FEATURE_BinaryLiterals
         FEATURE_Tuples
         FEATURE_IOperation
+        FEATURE_InterpolatedStrings
     End Enum
 End Namespace
