@@ -467,12 +467,12 @@ namespace Microsoft.CodeAnalysis
             return GetOptionsAsync(Project.Solution.Options, cancellationToken);
         }
 
-        internal Task<DocumentOptionSet> GetOptionsAsync(OptionSet globalOptionSet, CancellationToken cancellationToken = default(CancellationToken))
+        internal Task<DocumentOptionSet> GetOptionsAsync(OptionSet globalOptionSet, CancellationToken cancellationToken)
         {
             // TODO: we have this workaround since Solution.Options is not actually snapshot but just return Workspace.Options which violate snapshot model.
             //       this doesn't validate whether same optionset is given to invalidate the cache or not. this is not new since existing implementation
             //       also didn't check whether Workspace.Option is same as before or not. all wierd-ness come from the root cause of Solution.Options violating
-            //       snapshot model. once that is fixed, we can remove this workaround
+            //       snapshot model. once that is fixed, we can remove this workaround - https://github.com/dotnet/roslyn/issues/19284
             if (_cachedOptions == null)
             {
                 var newAsyncLazy = new AsyncLazy<DocumentOptionSet>(async c =>

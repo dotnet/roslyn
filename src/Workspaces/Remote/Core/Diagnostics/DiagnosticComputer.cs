@@ -68,10 +68,14 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             // faster
             compilation = compilation.WithOptions(compilation.Options.WithConcurrentBuild(useConcurrent));
 
+            // We need this to fork soluton, otherwise, option is cached at document.
+            // all this can go away once we do this - https://github.com/dotnet/roslyn/issues/19284
+            var temporaryWorksapce = new TemporaryWorkspace(_project.Solution);
+
             // TODO: can we support analyzerExceptionFilter in remote host? 
             //       right now, host doesn't support watson, we might try to use new NonFatal watson API?
             var analyzerOptions = new CompilationWithAnalyzersOptions(
-                    options: new WorkspaceAnalyzerOptions(_project.AnalyzerOptions, MergeOptions(_project.Solution.Options, options), _project.Solution.Workspace),
+                    options: new WorkspaceAnalyzerOptions(_project.AnalyzerOptions, MergeOptions(_project.Solution.Options, options), temporaryWorksapce),
                     onAnalyzerException: OnAnalyzerException,
                     analyzerExceptionFilter: null,
                     concurrentAnalysis: useConcurrent,
