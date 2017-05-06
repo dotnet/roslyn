@@ -29,9 +29,12 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         {
             var solution = project.Solution;
 
+            var start = DateTime.Now;
+            Log("About to call to remote: " + project.Name + " " + start);
             var serializableResults = await client.RunCodeAnalysisServiceOnRemoteHostAsync<SerializableNavigateToSearchResult[]>(
                 solution, nameof(IRemoteNavigateToSearchService.SearchProjectAsync),
-                new object[] { project.Id, searchPattern }, cancellationToken).ConfigureAwait(false);
+                new object[] { project.Id, searchPattern }, cancellationToken,
+                Log).ConfigureAwait(false);
 
             serializableResults = serializableResults ?? Array.Empty<SerializableNavigateToSearchResult>();
             return serializableResults.Select(r => r.Rehydrate(solution)).ToImmutableArray();

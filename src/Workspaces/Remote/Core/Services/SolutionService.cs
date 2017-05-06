@@ -1,9 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote
@@ -46,9 +49,12 @@ namespace Microsoft.CodeAnalysis.Remote
                     return currentSolution;
                 }
 
+                var beforeCreate = DateTime.Now;
                 var solution = await CreateSolution_NoLockAsync(solutionChecksum, s_primaryWorkspace.CurrentSolution, cancellationToken).ConfigureAwait(false);
+                var afterCreate = DateTime.Now;
+    
                 s_lastSolution = Tuple.Create(solutionChecksum, solution);
-
+                AbstractNavigateToSearchService.Log("Solution create time: " + (afterCreate - beforeCreate));
                 return solution;
             }
         }

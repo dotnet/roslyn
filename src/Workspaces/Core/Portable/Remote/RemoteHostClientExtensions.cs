@@ -76,16 +76,20 @@ namespace Microsoft.CodeAnalysis.Remote
         /// Run given service on remote host. if it fails to run on remote host, it will return default(T)
         /// </summary>
         public static async Task<T> RunOnRemoteHostAsync<T>(
-            this RemoteHostClient client, string serviceName, Solution solution, string targetName, object[] arguments, CancellationToken cancellationToken)
+            this RemoteHostClient client, string serviceName, Solution solution, string targetName, object[] arguments, CancellationToken cancellationToken,
+            Action<string> logFunction = null)
         {
+            var start = DateTime.Now;
             using (var session = await client.TryCreateServiceSessionAsync(serviceName, solution, cancellationToken).ConfigureAwait(false))
             {
+                logFunction?.Invoke("Time to get service session: " + (DateTime.Now - start));
                 if (session == null)
                 {
                     // can't create Session. RemoteHost seems not responding for some reasons such as OOP gone.
                     return default(T);
                 }
 
+                logFunction?.Invoke("About to RPC: " + DateTime.Now);
                 return await session.InvokeAsync<T>(targetName, arguments).ConfigureAwait(false);
             }
         }
@@ -106,18 +110,22 @@ namespace Microsoft.CodeAnalysis.Remote
         /// Run given service on remote host. if it fails to run on remote host, it will return default(T)
         /// </summary>
         public static Task<T> RunCodeAnalysisServiceOnRemoteHostAsync<T>(
-            this RemoteHostClient client, Solution solution, string targetName, object argument, CancellationToken cancellationToken)
+            this RemoteHostClient client, Solution solution, string targetName, object argument, CancellationToken cancellationToken,
+            Action<string> logFunction = null)
         {
-            return RunCodeAnalysisServiceOnRemoteHostAsync<T>(client, solution, targetName, new object[] { argument }, cancellationToken);
+            return RunCodeAnalysisServiceOnRemoteHostAsync<T>(
+                client, solution, targetName, new object[] { argument }, cancellationToken, logFunction);
         }
 
         /// <summary>
         /// Run given service on remote host. if it fails to run on remote host, it will return default(T)
         /// </summary>
         public static Task<T> RunCodeAnalysisServiceOnRemoteHostAsync<T>(
-            this RemoteHostClient client, Solution solution, string targetName, object[] arguments, CancellationToken cancellationToken)
+            this RemoteHostClient client, Solution solution, string targetName, object[] arguments, CancellationToken cancellationToken,
+            Action<string> logFunction = null)
         {
-            return RunOnRemoteHostAsync<T>(client, WellKnownServiceHubServices.CodeAnalysisService, solution, targetName, arguments, cancellationToken);
+            return RunOnRemoteHostAsync<T>(
+                client, WellKnownServiceHubServices.CodeAnalysisService, solution, targetName, arguments, cancellationToken, logFunction);
         }
     }
 }

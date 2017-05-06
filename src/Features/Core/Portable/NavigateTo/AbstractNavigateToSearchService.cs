@@ -1,8 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.NavigateTo
 {
@@ -28,6 +31,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             Project project, string searchPattern, CancellationToken cancellationToken)
         {
             var client = await GetRemoteHostClientAsync(project, cancellationToken).ConfigureAwait(false);
+
             if (client == null)
             {
                 return await SearchProjectInCurrentProcessAsync(
@@ -37,6 +41,19 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             {
                 return await SearchProjectInRemoteProcessAsync(
                     client, project, searchPattern, cancellationToken).ConfigureAwait(false);
+            }
+        }
+
+        private static readonly object _logGate = new object();
+
+        public static void Log(string text)
+        {
+            lock (_logGate)
+            {
+                IOUtilities.PerformIO(() =>
+                {
+                    File.AppendAllText(@"c:\temp\navtolog.txt", text + "\r\n");
+                });
             }
         }
     }
