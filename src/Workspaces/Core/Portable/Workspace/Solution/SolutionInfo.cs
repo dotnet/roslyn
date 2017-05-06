@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -138,7 +139,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     if (_lazyChecksum == null)
                     {
-                        _lazyChecksum = Checksum.Create(nameof(SolutionAttributes), this);
+                        _lazyChecksum = Checksum.Create(WellKnownSynchronizationKinds.SolutionAttributes, this);
                     }
 
                     return _lazyChecksum;

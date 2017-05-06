@@ -21,14 +21,14 @@ namespace Microsoft.CodeAnalysis.Execution
         /// this will be used in tranportation framework and deserialization service
         /// to hand shake how to send over data and deserialize serialized data
         /// </summary>
-        public readonly string Kind;
+        public readonly WellKnownSynchronizationKinds Kind;
 
         /// <summary>
         /// Checksum of this object
         /// </summary>
         public readonly Checksum Checksum;
 
-        public RemotableData(Checksum checksum, string kind)
+        public RemotableData(Checksum checksum, WellKnownSynchronizationKinds kind)
         {
             Checksum = checksum;
             Kind = kind;
