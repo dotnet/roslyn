@@ -4,7 +4,6 @@ using System;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Options;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote
@@ -30,12 +29,24 @@ namespace Microsoft.CodeAnalysis.Remote
             _assetService = assetService;
         }
 
-        public async Task<Solution> GetSolutionAsync(Checksum solutionChecksum, CancellationToken cancellationToken)
+        public Task<Solution> GetSolutionAsync(Checksum solutionChecksum, CancellationToken cancellationToken)
+        {
+            return GetSolutionAsync(solutionChecksum, primary: false, cancellationToken: cancellationToken);
+        }
+
+        /// <summary>
+        /// This should be only consumed by engine, not by user.
+        /// </summary>
+        public async Task<Solution> GetSolutionAsync(Checksum solutionChecksum, bool primary, CancellationToken cancellationToken)
         {
             var currentSolution = GetAvailableSolution(solutionChecksum);
             if (currentSolution != null)
-            { 
-                Debug.WriteLine("**** Cache Hit outside of lock " + (currentSolution.Workspace is RemoteWorkspace).ToString());
+            {
+                if (!(currentSolution.Workspace is RemoteWorkspace))
+                {
+                    Debug.WriteLine("**** Cache Hit outside of lock false");
+                }
+
                 return currentSolution;
             }
 
@@ -45,17 +56,24 @@ namespace Microsoft.CodeAnalysis.Remote
                 currentSolution = GetAvailableSolution(solutionChecksum);
                 if (currentSolution != null)
                 {
-                    Debug.WriteLine("**** Cache Hit inside of lock " + (currentSolution.Workspace is RemoteWorkspace).ToString());
+                    if (!(currentSolution.Workspace is RemoteWorkspace))
+                    {
+                        Debug.WriteLine("**** Cache Hit outside of lock false");
+                    }
+
                     return currentSolution;
                 }
 
-                var solution = await CreateSolution_NoLockAsync(solutionChecksum, s_primaryWorkspace.CurrentSolution, cancellationToken).ConfigureAwait(false);
+                var solution = await CreateSolution_NoLockAsync(solutionChecksum, primary, s_primaryWorkspace.CurrentSolution, cancellationToken).ConfigureAwait(false);
                 s_lastSolution = Tuple.Create(solutionChecksum, solution);
 
                 return solution;
             }
         }
 
+        /// <summary>
+        /// This should be only consumed by engine, not by user.
+        /// </summary>
         public async Task UpdatePrimaryWorkspaceAsync(Checksum solutionChecksum, CancellationToken cancellationToken)
         {
             var currentSolution = s_primaryWorkspace.CurrentSolution;
@@ -70,18 +88,26 @@ namespace Microsoft.CodeAnalysis.Remote
 
             using (await s_gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
-                var solution = await UpdatePrimaryWorkspace_NoLockAsync(solutionChecksum, currentSolution, cancellationToken).ConfigureAwait(false);
+                var primary = true;
+                var solution = await CreateSolution_NoLockAsync(solutionChecksum, primary, currentSolution, cancellationToken).ConfigureAwait(false);
                 s_primarySolution = Tuple.Create(solutionChecksum, solution);
             }
         }
 
-        private async Task<Solution> CreateSolution_NoLockAsync(Checksum solutionChecksum, Solution baseSolution, CancellationToken cancellationToken)
+        private async Task<Solution> CreateSolution_NoLockAsync(Checksum solutionChecksum, bool primary, Solution baseSolution, CancellationToken cancellationToken)
         {
             var updater = new SolutionCreator(_assetService, baseSolution, cancellationToken);
 
             if (await updater.IsIncrementalUpdateAsync(solutionChecksum).ConfigureAwait(false))
             {
                 // solution has updated
+                if (primary)
+                {
+                    Debug.WriteLine("**** Primary worksace incremental update!");
+                    s_primaryWorkspace.UpdateSolution(await updater.CreateSolutionAsync(solutionChecksum).ConfigureAwait(false));
+                    return s_primaryWorkspace.CurrentSolution;
+                }
+
                 Debug.WriteLine("**** Incremental solution update!");
                 return await updater.CreateSolutionAsync(solutionChecksum).ConfigureAwait(false);
             }
@@ -89,32 +115,18 @@ namespace Microsoft.CodeAnalysis.Remote
             // new solution. bulk sync all asset for the solution
             await _assetService.SynchronizeSolutionAssetsAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
 
-            Debug.WriteLine("**** Not same as primary workspace! new temporary workspace created!");
-            var workspace = new TemporaryWorkspace(await updater.CreateSolutionInfoAsync(solutionChecksum).ConfigureAwait(false));
-            return workspace.CurrentSolution;
-        }
-
-        private async Task<Solution> UpdatePrimaryWorkspace_NoLockAsync(Checksum solutionChecksum, Solution baseSolution, CancellationToken cancellationToken)
-        {
-            var updater = new SolutionCreator(_assetService, baseSolution, cancellationToken);
-
-            if (await updater.IsIncrementalUpdateAsync(solutionChecksum).ConfigureAwait(false))
+            if (primary)
             {
-                // solution has updated
-                Debug.WriteLine("**** Primary worksace incremental update!");
-                s_primaryWorkspace.UpdateSolution(await updater.CreateSolutionAsync(solutionChecksum).ConfigureAwait(false));
+                Debug.WriteLine("**** New Primary workspace!");
+                s_primaryWorkspace.ClearSolution();
+                s_primaryWorkspace.AddSolution(await updater.CreateSolutionInfoAsync(solutionChecksum).ConfigureAwait(false));
 
                 return s_primaryWorkspace.CurrentSolution;
             }
 
-            // new solution. bulk sync all asset for the solution
-            await _assetService.SynchronizeSolutionAssetsAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
-
-            Debug.WriteLine("**** New Primary workspace!");
-            s_primaryWorkspace.ClearSolution();
-            s_primaryWorkspace.AddSolution(await updater.CreateSolutionInfoAsync(solutionChecksum).ConfigureAwait(false));
-
-            return s_primaryWorkspace.CurrentSolution;
+            Debug.WriteLine("**** Not same as primary workspace! new temporary workspace created!");
+            var workspace = new TemporaryWorkspace(await updater.CreateSolutionInfoAsync(solutionChecksum).ConfigureAwait(false));
+            return workspace.CurrentSolution;
         }
 
         private static Solution GetAvailableSolution(Checksum solutionChecksum)

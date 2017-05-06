@@ -33,6 +33,8 @@ namespace Microsoft.CodeAnalysis.Execution
             _storages.RegisterSnapshot(this, storage);
         }
 
+        public bool Primary => _storage.SolutionState.BranchId == Workspace.PrimaryBranchId;
+
         public Workspace Workspace => _storage.SolutionState.Workspace;
 
         /// <summary>

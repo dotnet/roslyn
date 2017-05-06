@@ -89,10 +89,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             // all roslyn remote service must based on ServiceHubServiceBase which implements Initialize method
             if (_snapshotClientOpt != null)
             {
-                await _snapshotClientOpt.InvokeAsync(WellKnownServiceHubServices.ServiceHubServiceBase_Initialize, _currentSessionId, PinnedScopeOpt.SolutionChecksum).ConfigureAwait(false);
+                await _snapshotClientOpt.InvokeAsync(WellKnownServiceHubServices.ServiceHubServiceBase_Initialize, _currentSessionId, PinnedScopeOpt.Primary, PinnedScopeOpt.SolutionChecksum).ConfigureAwait(false);
             }
 
-            await _serviceClient.InvokeAsync(WellKnownServiceHubServices.ServiceHubServiceBase_Initialize, _currentSessionId, PinnedScopeOpt?.SolutionChecksum).ConfigureAwait(false);
+            await _serviceClient.InvokeAsync(WellKnownServiceHubServices.ServiceHubServiceBase_Initialize, _currentSessionId, PinnedScopeOpt?.Primary, PinnedScopeOpt?.SolutionChecksum).ConfigureAwait(false);
         }
 
         public override Task InvokeAsync(string targetName, params object[] arguments)

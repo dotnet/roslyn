@@ -28,6 +28,7 @@ namespace Microsoft.CodeAnalysis.Remote
         protected readonly CancellationToken CancellationToken;
 
         private int _sessionId;
+        private bool _primary;
         private Checksum _solutionChecksumOpt;
         private RoslynServices _lazyRoslynServices;
 
@@ -90,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Remote
         protected Task<Solution> GetSolutionAsync()
         {
             Contract.ThrowIfNull(_solutionChecksumOpt);
-            return RoslynServices.SolutionService.GetSolutionAsync(_solutionChecksumOpt, CancellationToken);
+            return RoslynServices.SolutionService.GetSolutionAsync(_solutionChecksumOpt, _primary, CancellationToken);
         }
 
         protected virtual void Dispose(bool disposing)
@@ -103,14 +104,15 @@ namespace Microsoft.CodeAnalysis.Remote
             Log(TraceEventType.Error, message);
         }
 
-        public virtual void Initialize(int sessionId, byte[] solutionChecksum)
+        public virtual void Initialize(int sessionId, bool primary, Checksum solutionChecksum)
         {
             // set session related information
             _sessionId = sessionId;
+            _primary = primary;
 
             if (solutionChecksum != null)
             {
-                _solutionChecksumOpt = new Checksum(solutionChecksum);
+                _solutionChecksumOpt = solutionChecksum;
             }
         }
 
