@@ -22,13 +22,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public SourceEventAccessorSymbol(
             SourceEventSymbol @event,
             SyntaxReference syntaxReference,
-            SyntaxReference blockSyntaxReference,
+            SyntaxReference blockBodySyntaxOpt,
+            SyntaxReference expressionBodySyntaxOpt,
             ImmutableArray<Location> locations)
             : base(@event.containingType,
                    syntaxReference,
-                   blockSyntaxReference,
-                   expressionBodySyntaxOpt: null,
-                   locations: locations)
+                   blockBodySyntaxOpt,
+                   expressionBodySyntaxOpt,
+                   locations)
         {
             _event = @event;
         }

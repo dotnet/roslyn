@@ -29,7 +29,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             DiagnosticBag diagnostics)
             : base(@event,
                    syntax.GetReference(),
-                   ((SyntaxNode)syntax.Body ?? syntax.ExpressionBody)?.GetReference(),
+                   syntax.Body?.GetReference(),
+                   syntax.ExpressionBody?.GetReference(),
                    ImmutableArray.Create(syntax.Keyword.GetLocation()))
         {
             Debug.Assert(syntax != null);
@@ -128,17 +129,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override bool GenerateDebugInfo
         {
             get { return true; }
-        }
-
-        internal override bool IsExpressionBodied
-        {
-            get
-            {
-                var syntax = GetSyntax();
-                var hasBody = syntax.Body != null;
-                var hasExpressionBody = syntax.ExpressionBody != null;
-                return !hasBody && hasExpressionBody;
-            }
         }
     }
 }

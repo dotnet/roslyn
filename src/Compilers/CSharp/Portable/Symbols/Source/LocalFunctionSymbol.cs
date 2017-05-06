@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 declarationModifiers: DeclarationModifiers.Private |
                                       DeclarationModifiers.Static |
                                       syntax.Modifiers.ToDeclarationModifiers(),
-                returnsVoid: false, /* arbitrary, flags.ReturnsVoid is unused in local functions */
+                returnsVoid: false, /* placeholder, the real value will be set lazily */
                 isExtensionMethod: false);
 
             ScopeBinder = binder;
@@ -206,8 +206,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             RefKind refKind;
             TypeSyntax returnTypeSyntax = _syntax.ReturnType.SkipRef(out refKind);
             TypeSymbol returnType = _binder.BindType(returnTypeSyntax, diagnostics);
+            bool returnsVoid = returnType.SpecialType == SpecialType.System_Void;
             if (IsAsync &&
-                returnType.SpecialType != SpecialType.System_Void &&
+                !returnsVoid &&
                 !returnType.IsNonGenericTaskType(_binder.Compilation) &&
                 !returnType.IsGenericTaskType(_binder.Compilation))
             {
@@ -216,7 +217,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             Debug.Assert(refKind == RefKind.None
-                || returnType.SpecialType != SpecialType.System_Void
+                || !returnsVoid
                 || returnTypeSyntax.HasErrors);
 
             lock (_declarationDiagnostics)
@@ -228,11 +229,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 _declarationDiagnostics.AddRangeAndFree(diagnostics);
+                SetReturnsVoid(returnsVoid);
                 _lazyReturnType = returnType;
             }
         }
 
-        public override bool ReturnsVoid => ReturnType?.SpecialType == SpecialType.System_Void;
+        public override bool ReturnsVoid
+        {
+            get
+            {
+                ComputeReturnType();
+                return flags.ReturnsVoid;
+            }
+        }
 
         public override ImmutableArray<TypeParameterSymbol> TypeParameters 
             => _typeParameters.Cast<SourceMethodTypeParameterSymbol, TypeParameterSymbol>();
