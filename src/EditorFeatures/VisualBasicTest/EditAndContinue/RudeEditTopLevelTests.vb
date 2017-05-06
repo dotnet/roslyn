@@ -3181,6 +3181,39 @@ End Class
             '     {SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember<NamedTypeSymbol>("C").Constructors.Single(), syntaxMap(0))})
 
         End Sub
+
+        <Fact>
+        Public Sub Constructor_SemanticError_Partial()
+            Dim src1 = "
+Partial Class C
+    Partial Sub New(x As Integer)
+    End Sub
+End Class
+
+Class C
+    Partial Sub New(x As Integer)
+        System.Console.WriteLine(1)
+    End Sub
+End Class
+
+"
+            Dim src2 = "
+Partial Class C
+    Partial Sub New(x As Integer)
+    End Sub
+End Class
+
+Class C
+    Partial Sub New(x As Integer)
+        System.Console.WriteLine(2)
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(ERRID.ERR_ConstructorCannotBeDeclaredPartial, "Partial").WithArguments("Partial").WithLocation(3, 5))
+        End Sub
+
 #End Region
 
 #Region "Declare"
@@ -5860,6 +5893,51 @@ End Class"
                 {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").Constructors(0), syntaxMap(0)),
                  SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").Constructors(1), syntaxMap(0))})
         End Sub
+
+        <Fact>
+        Public Sub PropertyWithInitializer_SemanticError_Partial()
+            Dim src1 = "
+Partial Class C
+    Partial Public ReadOnly Property NewProperty() As String
+        Get
+            Return 1
+        End Get
+    End Property
+End Class
+
+Partial Class C
+    Partial Public ReadOnly Property NewProperty() As String
+        Get
+            Return 1
+        End Get
+    End Property
+End Class
+"
+            Dim src2 = "
+Partial Class C
+    Partial Public ReadOnly Property NewProperty() As String
+        Get
+            Return 1
+        End Get
+    End Property
+End Class
+
+Partial Class C
+    Partial Public ReadOnly Property NewProperty() As String
+        Get
+            Return 1
+        End Get
+    End Property
+
+    Sub New()
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(ERRID.ERR_BadPropertyFlags1, "Partial").WithArguments("Partial").WithLocation(3, 5))
+        End Sub
+
 #End Region
 
 #Region "Events"

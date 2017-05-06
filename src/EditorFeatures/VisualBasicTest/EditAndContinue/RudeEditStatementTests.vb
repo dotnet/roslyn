@@ -4497,6 +4497,40 @@ End Class
             edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.RenamingCapturedVariable, "y", "x", "y"))
         End Sub
+
+        <Fact>
+        Public Sub Lambdas_Signature_SemanticErrors()
+            Dim src1 = "
+Imports System
+
+Class C
+
+    Sub G(f As Func(Of Unknown, Unknown))
+    End Sub
+
+    Sub F()
+        G(Function(a) 1)
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+
+Class C
+
+    Sub G(f As Func(Of Unknown, Unknown))
+    End Sub
+
+    Sub F()
+        G(Function(a) 2)
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(ERRID.ERR_UndefinedType1, "Unknown").WithArguments("Unknown").WithLocation(6, 24))
+        End Sub
+
 #End Region
 
 #Region "Queries"
@@ -5976,12 +6010,13 @@ End Class
 "
             Dim edits = GetTopEdits(src1, src2)
             VisualBasicEditAndContinueTestHelpers.Instance40.VerifySemantics(
-                edits,
-                ActiveStatementsDescription.Empty,
-                Nothing,
-                Nothing,
-                Nothing,
-                {Diagnostic(RudeEditKind.UpdatingStateMachineMethodMissingAttribute, "Shared Iterator Function F()", "System.Runtime.CompilerServices.IteratorStateMachineAttribute")})
+                editScript:=edits,
+                activeStatements:=ActiveStatementsDescription.Empty,
+                additionalOldSources:=Nothing,
+                additionalNewSources:=Nothing,
+                expectedSemanticEdits:=Nothing,
+                expectedDiagnostics:={Diagnostic(RudeEditKind.UpdatingStateMachineMethodMissingAttribute, "Shared Iterator Function F()", "System.Runtime.CompilerServices.IteratorStateMachineAttribute")},
+                expectedDeclarationError:=Nothing)
         End Sub
 
         <Fact>
@@ -6006,12 +6041,13 @@ End Class
 "
             Dim edits = GetTopEdits(src1, src2)
             VisualBasicEditAndContinueTestHelpers.Instance40.VerifySemantics(
-                edits,
-                ActiveStatementsDescription.Empty,
-                Nothing,
-                Nothing,
-                Nothing,
-                Nothing)
+                editScript:=edits,
+                activeStatements:=ActiveStatementsDescription.Empty,
+                additionalOldSources:=Nothing,
+                additionalNewSources:=Nothing,
+                expectedSemanticEdits:=Nothing,
+                expectedDiagnostics:=Nothing,
+                expectedDeclarationError:=Nothing)
         End Sub
 
 #End Region
@@ -6092,12 +6128,13 @@ End Class
 "
             Dim edits = GetTopEdits(src1, src2)
             VisualBasicEditAndContinueTestHelpers.InstanceMinAsync.VerifySemantics(
-                edits,
-                ActiveStatementsDescription.Empty,
-                Nothing,
-                Nothing,
-                Nothing,
-                {Diagnostic(RudeEditKind.UpdatingStateMachineMethodMissingAttribute, "Shared Async Function F()", "System.Runtime.CompilerServices.AsyncStateMachineAttribute")})
+                editScript:=edits,
+                activeStatements:=ActiveStatementsDescription.Empty,
+                additionalOldSources:=Nothing,
+                additionalNewSources:=Nothing,
+                expectedSemanticEdits:=Nothing,
+                expectedDiagnostics:={Diagnostic(RudeEditKind.UpdatingStateMachineMethodMissingAttribute, "Shared Async Function F()", "System.Runtime.CompilerServices.AsyncStateMachineAttribute")},
+                expectedDeclarationError:=Nothing)
         End Sub
 
         <Fact>
