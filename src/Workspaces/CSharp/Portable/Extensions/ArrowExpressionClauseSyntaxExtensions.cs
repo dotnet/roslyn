@@ -23,15 +23,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return false;
             }
 
-            var openBrace = SyntaxFactory.Token(SyntaxKind.OpenBraceToken)
-                             .WithTrailingTrivia(arrowExpression.ArrowToken.TrailingTrivia);
-
             var statement = ConvertToStatement(arrowExpression.Expression, semicolonToken, createReturnStatementForExpression);
+            if (arrowExpression.ArrowToken.TrailingTrivia.Any(t => t.IsSingleOrMultiLineComment()))
+            {
+                statement = statement.WithPrependedLeadingTrivia(arrowExpression.ArrowToken.TrailingTrivia);
+            }
 
-            block = SyntaxFactory.Block(
-                openBrace,
-                SyntaxFactory.SingletonList(statement), 
-                SyntaxFactory.Token(SyntaxKind.CloseBraceToken));
+            block = SyntaxFactory.Block(statement);
             return true;
         }
 
