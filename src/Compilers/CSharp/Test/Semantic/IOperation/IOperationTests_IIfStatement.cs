@@ -331,28 +331,40 @@ class P
     {
         var s = """";
         /*<bind>*/if (int.TryParse(s, out var i))
-            System.Console.WriteLine($""i ={ i}, s ={ s}"");
+            System.Console.WriteLine($""i ={i}, s ={s}"");
         else
-            System.Console.WriteLine($""i ={ i}, s ={ s}"");/*</bind>*/
+            System.Console.WriteLine($""i ={ i}, s ={s}"");/*</bind>*/
 
     }
 }
 ";
             string expectedOperationTree = @"
-IIfStatement (OperationKind.IfStatement) (Syntax: 'if (int.Try ...  s ={ s}"");')
+IIfStatement (OperationKind.IfStatement) (Syntax: 'if (int.Try ... , s ={s}"");')
   Condition: IInvocationExpression (static System.Boolean System.Int32.TryParse(System.String s, out System.Int32 result)) (OperationKind.InvocationExpression, Type: System.Boolean) (Syntax: 'int.TryPars ...  out var i)')
       Arguments(2): IArgument (ArgumentKind.Explicit, Matching Parameter: s) (OperationKind.Argument) (Syntax: 's')
           ILocalReferenceExpression: s (OperationKind.LocalReferenceExpression, Type: System.String) (Syntax: 's')
         IArgument (ArgumentKind.Explicit, Matching Parameter: result) (OperationKind.Argument) (Syntax: 'var i')
           ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'var i')
-  IfTrue: IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'System.Cons ...  s ={ s}"");')
-      IInvocationExpression (static void System.Console.WriteLine(System.String value)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'System.Cons ... , s ={ s}"")')
-        Arguments(1): IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: '$""i ={ i}, s ={ s}""')
-            IOperation:  (OperationKind.None) (Syntax: '$""i ={ i}, s ={ s}""')
-  IfFalse: IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'System.Cons ...  s ={ s}"");')
-      IInvocationExpression (static void System.Console.WriteLine(System.String value)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'System.Cons ... , s ={ s}"")')
-        Arguments(1): IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: '$""i ={ i}, s ={ s}""')
-            IOperation:  (OperationKind.None) (Syntax: '$""i ={ i}, s ={ s}""')
+  IfTrue: IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'System.Cons ... , s ={s}"");')
+      IInvocationExpression (static void System.Console.WriteLine(System.String value)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'System.Cons ... }, s ={s}"")')
+        Arguments(1): IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: '$""i ={i}, s ={s}""')
+            IOperation:  (OperationKind.None) (Syntax: '$""i ={i}, s ={s}""')
+              Children(4): ILiteralExpression (Text: i =) (OperationKind.LiteralExpression, Type: System.String, Constant: ""i ="") (Syntax: 'i =')
+                IOperation:  (OperationKind.None) (Syntax: '{i}')
+                  Children(1): ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
+                ILiteralExpression (Text: , s =) (OperationKind.LiteralExpression, Type: System.String, Constant: "", s ="") (Syntax: ', s =')
+                IOperation:  (OperationKind.None) (Syntax: '{s}')
+                  Children(1): ILocalReferenceExpression: s (OperationKind.LocalReferenceExpression, Type: System.String) (Syntax: 's')
+  IfFalse: IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'System.Cons ... , s ={s}"");')
+      IInvocationExpression (static void System.Console.WriteLine(System.String value)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'System.Cons ... }, s ={s}"")')
+        Arguments(1): IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: '$""i ={ i}, s ={s}""')
+            IOperation:  (OperationKind.None) (Syntax: '$""i ={ i}, s ={s}""')
+              Children(4): ILiteralExpression (Text: i =) (OperationKind.LiteralExpression, Type: System.String, Constant: ""i ="") (Syntax: 'i =')
+                IOperation:  (OperationKind.None) (Syntax: '{ i}')
+                  Children(1): ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
+                ILiteralExpression (Text: , s =) (OperationKind.LiteralExpression, Type: System.String, Constant: "", s ="") (Syntax: ', s =')
+                IOperation:  (OperationKind.None) (Syntax: '{s}')
+                  Children(1): ILocalReferenceExpression: s (OperationKind.LocalReferenceExpression, Type: System.String) (Syntax: 's')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -796,6 +808,8 @@ IIfStatement (OperationKind.IfStatement) (Syntax: 'if (d.GetTy ... }')
       IBinaryOperatorExpression (BinaryOperationKind.DynamicAnd) (OperationKind.BinaryOperatorExpression, Type: dynamic) (Syntax: 'd.GetType() ... ).Equals(x)')
         Left: IBinaryOperatorExpression (BinaryOperationKind.Invalid) (OperationKind.BinaryOperatorExpression, Type: dynamic) (Syntax: 'd.GetType() == t')
             Left: IOperation:  (OperationKind.None) (Syntax: 'd.GetType()')
+                Children(1): IOperation:  (OperationKind.None) (Syntax: 'd.GetType')
+                    Children(1): IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: dynamic) (Syntax: 'd')
             Right: IParameterReferenceExpression: t (OperationKind.ParameterReferenceExpression, Type: System.Type) (Syntax: 't')
         Right: IInvocationExpression (virtual System.Boolean System.ValueType.Equals(System.Object obj)) (OperationKind.InvocationExpression, Type: System.Boolean) (Syntax: '((T)d).Equals(x)')
             Instance Receiver: IConversionExpression (ConversionKind.CSharp, Explicit) (OperationKind.ConversionExpression, Type: T) (Syntax: '(T)d')

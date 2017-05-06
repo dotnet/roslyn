@@ -508,7 +508,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        internal int RunCore(TextWriter consoleOutput, ErrorLogger errorLogger, CancellationToken cancellationToken)
+        private int RunCore(TextWriter consoleOutput, ErrorLogger errorLogger, CancellationToken cancellationToken)
         {
             Debug.Assert(!Arguments.IsScriptRunner);
 
