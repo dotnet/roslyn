@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 }
                 catch (Exception)
                 {
-                    Log.LogMessage(MessageImportance.High, "CopyRefAssembly_BadDestination1", DestinationPath);
+                    Log.LogMessageFromResources(MessageImportance.High, "CopyRefAssembly_BadDestination1", DestinationPath);
                 }
             }
 
