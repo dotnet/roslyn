@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.SQLite
 
         /// <summary>
         /// Amount of time to wait between flushing writes to disk.  500ms means we can flush
-        /// writes to disk twp times a second.
+        /// writes to disk two times a second.
         /// </summary>
         private const int FlushAllDelayMS = 500;
 
