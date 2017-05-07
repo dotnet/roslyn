@@ -91,6 +91,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxNode invocationSyntax,
             bool invokedAsExtensionMethod = false)
         {
+            // We can simply return empty array only if both parameters and boundArguments are empty, because:
+            // - if only parameters is empty, there's error in code but we still need to return provided expression.
+            // - if boundArguments is empty, then either there's error or we need to provide values for optional/param-array parameters. 
+            if (parameters.IsDefaultOrEmpty && boundArguments.IsDefaultOrEmpty)
+            {
+                return ImmutableArray<IArgument>.Empty;
+            }
+
             return (ImmutableArray<IArgument>) s_callToArgumentsMappings.GetValue(
                 boundNode, 
                 (n) =>

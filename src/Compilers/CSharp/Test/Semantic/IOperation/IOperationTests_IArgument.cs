@@ -9,6 +9,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public partial class IOperationTests : SemanticModelTestBase
     {
         [Fact]
+        public void NoArgument()
+        {
+            string source = @"
+class P
+{
+    static void M1()
+    {
+        /*<bind>*/M2()/*</bind>*/;
+    }
+
+    static void M2() { }
+}
+";
+            string expectedOperationTree = @"
+IInvocationExpression (static void P.M2()) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'M2()')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact]
         public void PositionalArgument()
         {
             string source = @"
