@@ -8,7 +8,6 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Options;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -4253,6 +4252,82 @@ class Program
 }";
 
             await TestInRegularAndScriptAsync(code, expected, index: 1, ignoreTrivia: false);
+        }
+
+        [WorkItem(2423, "https://github.com/dotnet/roslyn/issues/2423")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestPickNameBasedOnArgument1()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    public C(string a, string b)
+    {
+        new TextSpan([|int.Parse(a)|], int.Parse(b));
+    }
+}
+
+struct TextSpan
+{
+    public TextSpan(int start, int length)
+    {
+
+    }
+}",
+@"class C
+{
+    public C(string a, string b)
+    {
+        int start = int.Parse(a);
+        new TextSpan(start, int.Parse(b));
+    }
+}
+
+struct TextSpan
+{
+    public TextSpan(int start, int length)
+    {
+
+    }
+}");
+        }
+
+        [WorkItem(2423, "https://github.com/dotnet/roslyn/issues/2423")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestPickNameBasedOnArgument2()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    public C(string a, string b)
+    {
+        new TextSpan(int.Parse(a), [|int.Parse(b)|]);
+    }
+}
+
+struct TextSpan
+{
+    public TextSpan(int start, int length)
+    {
+
+    }
+}",
+@"class C
+{
+    public C(string a, string b)
+    {
+        int length = int.Parse(b);
+        new TextSpan(int.Parse(a), length);
+    }
+}
+
+struct TextSpan
+{
+    public TextSpan(int start, int length)
+    {
+
+    }
+}");
         }
     }
 }

@@ -128,24 +128,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
             ' there was nothing in the expression to signify a name.  If we're in an argument
             ' location, then try to choose a name based on the argument name.
-            Dim topExpression = expression.WalkUpParentheses()
-            If TypeOf topExpression.Parent Is ArgumentSyntax Then
-                Dim argument = DirectCast(topExpression.Parent, ArgumentSyntax)
-                Dim simpleArgument = TryCast(argument, SimpleArgumentSyntax)
-
-                If simpleArgument?.NameColonEquals IsNot Nothing Then
-                    Return simpleArgument.NameColonEquals.Name.Identifier.ValueText.ToCamelCase()
-                End If
-
-                Dim argumentList = TryCast(argument.Parent, ArgumentListSyntax)
-                    If argumentList IsNot Nothing Then
-                        Dim index = argumentList.Arguments.IndexOf(argument)
-                        Dim member = TryCast(semanticModel.GetSymbolInfo(argumentList.Parent, cancellationToken).GetAnySymbol(), IMethodSymbol)
-                        If member IsNot Nothing AndAlso index < member.Parameters.Length Then
-                            Return member.Parameters(index).Name.ToCamelCase()
-                        End If
-                    End If
-                End If
+            Dim argumentName = TryGenerateNameForArgumentExpression(
+                semanticModel, expression, cancellationToken)
+            If argumentName IsNot Nothing Then
+                Return If(capitalize, argumentName.ToPascalCase(), argumentName.ToCamelCase())
+            End If
 
             ' Otherwise, figure out the type of the expression and generate a name from that
             ' instead.
@@ -154,6 +141,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             ' If we can't determine the type, then fallback to some placeholders.
             Dim [type] = info.Type
             Return [type].CreateParameterName(capitalize)
+        End Function
+
+        Private Function TryGenerateNameForArgumentExpression(semanticModel As SemanticModel, expression As ExpressionSyntax, cancellationToken As CancellationToken) As String
+            Dim topExpression = expression.WalkUpParentheses()
+            If TypeOf topExpression.Parent Is ArgumentSyntax Then
+                Dim argument = DirectCast(topExpression.Parent, ArgumentSyntax)
+                Dim simpleArgument = TryCast(argument, SimpleArgumentSyntax)
+
+                If simpleArgument?.NameColonEquals IsNot Nothing Then
+                    Return simpleArgument.NameColonEquals.Name.Identifier.ValueText
+                End If
+
+                Dim argumentList = TryCast(argument.Parent, ArgumentListSyntax)
+                If argumentList IsNot Nothing Then
+                    Dim index = argumentList.Arguments.IndexOf(argument)
+                    Dim member = TryCast(semanticModel.GetSymbolInfo(argumentList.Parent, cancellationToken).GetAnySymbol(), IMethodSymbol)
+                    If member IsNot Nothing AndAlso index < member.Parameters.Length Then
+                        Return member.Parameters(index).Name
+                    End If
+                End If
+
+                Return Nothing
+            End If
         End Function
 
         <Extension()>

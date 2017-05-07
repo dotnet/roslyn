@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -249,25 +250,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             // there was nothing in the expression to signify a name.  If we're in an argument
             // location, then try to choose a name based on the argument name.
-            var topExpression = expression.WalkUpParentheses();
-            if (topExpression.IsParentKind(SyntaxKind.Argument))
+            var argumentName = TryGenerateNameForArgumentExpression(
+                semanticModel, expression, cancellationToken);
+            if (argumentName != null)
             {
-                var argument = (ArgumentSyntax)topExpression.Parent;
-                if (argument.NameColon != null)
-                {
-                    return argument.NameColon.Name.Identifier.ValueText.ToCamelCase();
-                }
-
-                var argumentList = argument.Parent as BaseArgumentListSyntax;
-                if (argumentList != null)
-                {
-                    var index = argumentList.Arguments.IndexOf(argument);
-                    var member = semanticModel.GetSymbolInfo(argumentList.Parent, cancellationToken).GetAnySymbol() as IMethodSymbol;
-                    if (member != null && index < member.Parameters.Length)
-                    {
-                        return member.Parameters[index].Name.ToCamelCase();
-                    }
-                }
+                return capitalize ? argumentName.ToPascalCase() : argumentName.ToCamelCase();
             }
 
             // Otherwise, figure out the type of the expression and generate a name from that
@@ -277,6 +264,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             // If we can't determine the type, then fallback to some placeholders.
             var type = info.Type;
             return type.CreateParameterName(capitalize);
+        }
+
+        private static string TryGenerateNameForArgumentExpression(
+            SemanticModel semanticModel, ExpressionSyntax expression, CancellationToken cancellationToken)
+        {
+            var topExpression = expression.WalkUpParentheses();
+            if (topExpression.IsParentKind(SyntaxKind.Argument))
+            {
+                var argument = (ArgumentSyntax)topExpression.Parent;
+                if (argument.NameColon != null)
+                {
+                    return argument.NameColon.Name.Identifier.ValueText;
+                }
+
+                var argumentList = argument.Parent as BaseArgumentListSyntax;
+                if (argumentList != null)
+                {
+                    var index = argumentList.Arguments.IndexOf(argument);
+                    var member = semanticModel.GetSymbolInfo(argumentList.Parent, cancellationToken).GetAnySymbol() as IMethodSymbol;
+                    if (member != null && index < member.Parameters.Length)
+                    {
+                        return member.Parameters[index].Name;
+                    }
+                }
+            }
+
+            return null;
         }
 
         public static ImmutableArray<ParameterName> GenerateParameterNames(
