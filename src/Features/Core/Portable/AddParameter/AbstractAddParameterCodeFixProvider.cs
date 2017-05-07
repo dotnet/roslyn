@@ -185,7 +185,8 @@ namespace Microsoft.CodeAnalysis.AddParameter
 
             var newMethodDeclaration = GetNewMethodDeclaration(
                 method, argument, argumentList, generator, methodDeclaration, 
-                semanticFacts, argumentName, expression, semanticModel, parameterType);
+                semanticFacts, argumentName, expression, semanticModel, 
+                parameterType, cancellationToken);
 
             var root = methodDeclaration.SyntaxTree.GetRoot(cancellationToken);
             var newRoot = root.ReplaceNode(methodDeclaration, newMethodDeclaration);
@@ -206,7 +207,8 @@ namespace Microsoft.CodeAnalysis.AddParameter
             string argumentName,
             SyntaxNode expression,
             SemanticModel semanticModel,
-            ITypeSymbol parameterType)
+            ITypeSymbol parameterType,
+            CancellationToken cancellationToken)
         {
             if (!string.IsNullOrWhiteSpace(argumentName))
             {
@@ -222,7 +224,8 @@ namespace Microsoft.CodeAnalysis.AddParameter
             }
             else
             {
-                var name = semanticFacts.GenerateNameForExpression(semanticModel, expression);
+                var name = semanticFacts.GenerateNameForExpression(
+                    semanticModel, expression, capitalize: false, cancellationToken: cancellationToken);
                 var uniqueName = NameGenerator.EnsureUniqueness(name, method.Parameters.Select(p => p.Name));
 
                 var newParameterSymbol = CodeGenerationSymbolFactory.CreateParameterSymbol(
