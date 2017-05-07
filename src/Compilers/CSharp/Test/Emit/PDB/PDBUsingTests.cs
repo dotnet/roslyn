@@ -1725,7 +1725,7 @@ public class Test : IDisposable
   {
    -IL_0007:  nop
    -IL_0008:  nop
-    IL_0009:  leave.s    IL_0016
+   ~IL_0009:  leave.s    IL_0016
   }
   finally
   {

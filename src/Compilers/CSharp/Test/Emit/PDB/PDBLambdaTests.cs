@@ -1313,6 +1313,7 @@ class C
         <entry offset=""0x3d"" startLine=""17"" startColumn=""13"" endLine=""17"" endColumn=""25"" />
         <entry offset=""0x4f"" startLine=""18"" startColumn=""13"" endLine=""18"" endColumn=""25"" />
         <entry offset=""0x61"" startLine=""19"" startColumn=""9"" endLine=""19"" endColumn=""10"" />
+        <entry offset=""0x62"" hidden=""true"" />
         <entry offset=""0x64"" hidden=""true"" />
         <entry offset=""0x79"" hidden=""true"" />
         <entry offset=""0x7b"" hidden=""true"" />

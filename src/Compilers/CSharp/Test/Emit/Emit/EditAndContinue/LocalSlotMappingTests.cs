@@ -352,6 +352,7 @@ public class C
         <entry offset=""0x21"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""20"" />
         <entry offset=""0x27"" startLine=""10"" startColumn=""21"" endLine=""10"" endColumn=""22"" />
         <entry offset=""0x28"" startLine=""10"" startColumn=""23"" endLine=""10"" endColumn=""24"" />
+        <entry offset=""0x29"" hidden=""true"" />
         <entry offset=""0x2b"" hidden=""true"" />
         <entry offset=""0x36"" startLine=""11"" startColumn=""5"" endLine=""11"" endColumn=""6"" />
       </sequencePoints>
@@ -371,7 +372,7 @@ public class C
         <entry offset=""0x10"" startLine=""9"" startColumn=""22"" endLine=""9"" endColumn=""23"" />
         <entry offset=""0x12"" hidden=""true"" />
         <entry offset=""0x1c"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""20"" />
-        <entry offset=""0x22"" startLine=""10"" startColumn=""23"" endLine=""10"" endColumn=""24"" />
+        <entry offset=""0x22"" hidden=""true"" />
         <entry offset=""0x24"" hidden=""true"" />
         <entry offset=""0x2e"" startLine=""11"" startColumn=""5"" endLine=""11"" endColumn=""6"" />
       </sequencePoints>
@@ -1778,7 +1779,7 @@ class C
   {
    -IL_0008:  nop
    -IL_0009:  nop
-    IL_000a:  leave.s    IL_0019
+   ~IL_000a:  leave.s    IL_0019
   }
   finally
   {

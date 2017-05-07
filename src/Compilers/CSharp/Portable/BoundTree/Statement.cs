@@ -86,6 +86,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return visitor.VisitBlockStatement(this, argument);
         }
+
+        internal BoundBlock WithStatements(ImmutableArray<BoundStatement> newStatements)
+        {
+            return this.Update(this.Locals, this.LocalFunctions, newStatements);
+        }
     }
 
     internal partial class BoundContinueStatement : IBranchStatement
