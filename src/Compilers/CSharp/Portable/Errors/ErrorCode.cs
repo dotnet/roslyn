@@ -1476,12 +1476,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_Experimental = 8305,
         ERR_TupleInferredNamesNotAvailable = 8306,
 
-        ERR_NoRefOutWhenRefOnly = 8355,
-        ERR_NoNetModuleOutputWhenRefOutOrRefOnly = 8356,
-        ERR_NoEmbeddedTypeWhenRefOutOrRefOnly = 8357,
+        ERR_NoRefOutWhenRefOnly = 8307,
+        ERR_NoNetModuleOutputWhenRefOutOrRefOnly = 8308,
+        ERR_NoEmbeddedTypeWhenRefOutOrRefOnly = 8309,
 
-        ERR_BadDynamicMethodArgDefaultLiteral = 9000,
-        ERR_DefaultLiteralNotValid = 9001,
-        WRN_DefaultInSwitch = 9002,
+        ERR_BadDynamicMethodArgDefaultLiteral = 8310,
+        ERR_DefaultLiteralNotValid = 8311,
+        WRN_DefaultInSwitch = 8312,
     }
 }
