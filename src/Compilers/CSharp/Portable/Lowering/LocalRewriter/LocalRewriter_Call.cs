@@ -388,7 +388,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //
             // If none of those are the case then we can just take an early out.
 
-            if (TryReturnEarly(ref rewrittenArguments, methodOrIndexer, expanded, argsToParamsOpt, invokedAsExtensionMethod, _factory, out var isComReceiver, out var temporariesBuilder))
+            if (IsRewritingRequired(ref rewrittenArguments, methodOrIndexer, expanded, argsToParamsOpt, invokedAsExtensionMethod, _factory, out var isComReceiver, out var temporariesBuilder))
             {
                 temps = temporariesBuilder?.ToImmutableAndFree() ?? default(ImmutableArray<LocalSymbol>);
                 return rewrittenArguments;
@@ -522,7 +522,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             ImmutableArray<ParameterSymbol> parameters = methodOrIndexer.GetParameters();
 
-            if (TryReturnEarly(ref arguments, methodOrIndexer, expanded, argsToParamsOpt, invokedAsExtensionMethod, null, out var isComReceiver, out var temporariesBuilder))
+            if (IsRewritingRequired(ref arguments, methodOrIndexer, expanded, argsToParamsOpt, invokedAsExtensionMethod, null, out var isComReceiver, out var temporariesBuilder))
             {
                 // In this case, the invocation is not in expanded form and there's no named argument provided.
                 // So we just return list of arguments as is.
@@ -547,7 +547,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         // temporariesBuilder will be null when factory is null.
-        private static bool TryReturnEarly(
+        private static bool IsRewritingRequired(
             ref ImmutableArray<BoundExpression> rewrittenArguments,
             Symbol methodOrIndexer,
             bool expanded,
@@ -731,25 +731,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var paramArrayType = parameters[p].Type;
                     var arrayArgs = paramArray.ToImmutableAndFree();
 
-                    argument = CreateParamArrayArgument(syntax, methodOrIndexer, paramArrayType, arrayArgs, compilation, null, false);
+                    argument = CreateParamArrayArgument(syntax, methodOrIndexer.ContainingAssembly, paramArrayType, arrayArgs, compilation, null, false);
                 }
 
                 argumentsBuilder.Add(argument);
                 argumentKindsBuilder.Add(isParamArray ? ArgumentKind.ParamArray : ArgumentKind.Explicit);
                 parametersBuilder.Add(parameter);
-            }
-
-            // Create an empty array for omitted param array argument.
-            ParameterSymbol lastParameter;
-            if (expanded && (lastParameter = parameters.Last()).IsParams && !processedPeremeters.Contains(parameters.Length - 1))
-            {
-                var argument = CreateParamArrayArgument(syntax, methodOrIndexer, lastParameter.Type, ImmutableArray<BoundExpression>.Empty, compilation, null, false);
-
-                argumentsBuilder.Add(argument);
-                argumentKindsBuilder.Add(ArgumentKind.ParamArray);
-                parametersBuilder.Add(lastParameter);
-
-                processedPeremeters.Add(parameters.Length - 1);
             }
 
             // Fill in parameters with missing arguments.
@@ -829,13 +816,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            return CreateParamArrayArgument(syntax, methodOrIndexer, paramArrayType, arrayArgs, _compilation, _factory.CurrentMethod, _inExpressionLambda);
+            return CreateParamArrayArgument(syntax, methodOrIndexer.ContainingAssembly, paramArrayType, arrayArgs, _compilation, _factory.CurrentMethod, _inExpressionLambda);
         }
 
-        private static BoundExpression CreateParamArrayArgument(SyntaxNode syntax, Symbol methodOrIndexer, TypeSymbol paramArrayType, ImmutableArray<BoundExpression> arrayArgs, CSharpCompilation compilation, MethodSymbol currentMethod, bool inExpressionLambda)
+        private static BoundExpression CreateParamArrayArgument(SyntaxNode syntax, AssemblySymbol containingAssembly, TypeSymbol paramArrayType, ImmutableArray<BoundExpression> arrayArgs, CSharpCompilation compilation, MethodSymbol currentMethod, bool inExpressionLambda)
         {
 
-            var int32Type = methodOrIndexer.ContainingAssembly.GetSpecialType(SpecialType.System_Int32);
+            var int32Type = containingAssembly.GetSpecialType(SpecialType.System_Int32);
 
             return new BoundArrayCreation(
                 syntax,
@@ -1001,12 +988,22 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             foreach (var parameter in missingParameters)
             {
-                Debug.Assert(parameter.IsOptional);
+                if (parameter.IsParams)
+                {
+                    // Create an empty array for omitted param array argument.
+                    var paramArray = CreateParamArrayArgument(syntax, parameter.ContainingAssembly, parameter.Type, ImmutableArray<BoundExpression>.Empty, binder.Compilation, null, false);
 
-                var defaultArgument = GetDefaultParameterValue(syntax, parameter, enableCallerInfo, null, binder.Compilation, binder.ContainingMember(), new DiagnosticBag());
+                    argumentsBuilder.Add(paramArray);
+                    argumentKindsBuilder.Add(ArgumentKind.ParamArray);
+                }
+                else
+                {
+                    Debug.Assert(parameter.IsOptional);
+                    var defaultArgument = GetDefaultParameterValue(syntax, parameter, enableCallerInfo, null, binder.Compilation, binder.ContainingMember(), new DiagnosticBag());
 
-                argumentsBuilder.Add(defaultArgument);
-                argumentKindsBuilder.Add(ArgumentKind.DefaultValue);
+                    argumentsBuilder.Add(defaultArgument);
+                    argumentKindsBuilder.Add(ArgumentKind.DefaultValue);  
+                }
                 parametersBuilder.Add(parameter);
             }
         }
