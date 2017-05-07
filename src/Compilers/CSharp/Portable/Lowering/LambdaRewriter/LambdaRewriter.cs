@@ -642,7 +642,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 prologue.Add(new BoundAssignmentOperator(syntax,
                     new BoundLocal(syntax, framePointer, null, frameType),
-                    new BoundObjectCreationExpression(syntax: syntax, constructor: constructor),
+                    new BoundObjectCreationExpression(syntax: syntax, constructor: constructor, binderOpt: null),
                     frameType));
             }
 
