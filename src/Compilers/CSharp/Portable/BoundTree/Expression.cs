@@ -353,16 +353,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal partial class BoundLiteral : ILiteralExpression
     {
-        string ILiteralExpression.Text
-        {
-            get
-            {
-                object value;
-                return ((ILiteralExpression)this).ConstantValue.HasValue 
-                    ? ((value = this.ConstantValue.Value) == null ? "null" : value.ToString()) 
-                    : this.Syntax.ToString();
-            }
-        }
+        string ILiteralExpression.Text => this.Syntax.ToString();
 
         protected override OperationKind ExpressionKind => OperationKind.LiteralExpression;
 

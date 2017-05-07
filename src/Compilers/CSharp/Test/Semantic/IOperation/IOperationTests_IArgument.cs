@@ -27,7 +27,7 @@ IInvocationExpression (static void P.M2(System.Int32 x, System.Double y)) (Opera
   Arguments(2): IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: '1')
       ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
     IArgument (ArgumentKind.Explicit, Matching Parameter: y) (OperationKind.Argument) (Syntax: '2.0')
-      ILiteralExpression (Text: 2) (OperationKind.LiteralExpression, Type: System.Double, Constant: 2) (Syntax: '2.0')
+      ILiteralExpression (OperationKind.LiteralExpression, Type: System.Double, Constant: 2) (Syntax: '2.0')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -53,7 +53,7 @@ IInvocationExpression (static void P.M2(System.Int32 x, [System.Double y = 0])) 
   Arguments(2): IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: '1')
       ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
     IArgument (ArgumentKind.DefaultValue, Matching Parameter: y) (OperationKind.Argument) (Syntax: 'M2(1)')
-      ILiteralExpression (Text: 0) (OperationKind.LiteralExpression, Type: System.Double, Constant: 0) (Syntax: 'M2(1)')
+      ILiteralExpression (OperationKind.LiteralExpression, Type: System.Double, Constant: 0) (Syntax: 'M2(1)')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -160,7 +160,7 @@ IInvocationExpression (static void P.M2([System.Int32 x = 1], [System.Int32 y = 
     IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: '9')
       ILiteralExpression (Text: 9) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 9) (Syntax: '9')
     IArgument (ArgumentKind.DefaultValue, Matching Parameter: y) (OperationKind.Argument) (Syntax: 'M2(z: 2, x: 9)')
-      ILiteralExpression (Text: 2) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: 'M2(z: 2, x: 9)')
+      ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: 'M2(z: 2, x: 9)')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -189,7 +189,7 @@ IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'M2(9, z: 10);
       IArgument (ArgumentKind.Explicit, Matching Parameter: z) (OperationKind.Argument) (Syntax: '10')
         ILiteralExpression (Text: 10) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
       IArgument (ArgumentKind.DefaultValue, Matching Parameter: y) (OperationKind.Argument) (Syntax: 'M2(9, z: 10)')
-        ILiteralExpression (Text: 2) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: 'M2(9, z: 10)')
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: 'M2(9, z: 10)')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -356,7 +356,7 @@ class P
 IInvocationExpression ( void P.M2([System.Double s = 3.14])) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'M2()')
   Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: P) (Syntax: 'M2')
   Arguments(1): IArgument (ArgumentKind.DefaultValue, Matching Parameter: s) (OperationKind.Argument) (Syntax: 'M2()')
-      ILiteralExpression (Text: 3.14) (OperationKind.LiteralExpression, Type: System.Double, Constant: 3.14) (Syntax: 'M2()')
+      ILiteralExpression (OperationKind.LiteralExpression, Type: System.Double, Constant: 3.14) (Syntax: 'M2()')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -453,7 +453,7 @@ IInvocationExpression (static void Extensions.E1(this P p, [System.Int32 x = 0],
     IArgument (ArgumentKind.Explicit, Matching Parameter: y) (OperationKind.Argument) (Syntax: '1')
       ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
     IArgument (ArgumentKind.DefaultValue, Matching Parameter: x) (OperationKind.Argument) (Syntax: 'this.E1(y: 1)')
-      ILiteralExpression (Text: 0) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: 'this.E1(y: 1)')
+      ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: 'this.E1(y: 1)')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -509,7 +509,7 @@ IInvocationExpression ( void P.M2(System.Int32 x, params System.Double[] array))
       ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
     IArgument (ArgumentKind.ParamArray, Matching Parameter: array) (OperationKind.Argument) (Syntax: 'M2(1, 0.1, 0.2)')
       IArrayCreationExpression (Element Type: System.Double) (OperationKind.ArrayCreationExpression, Type: System.Double[]) (Syntax: 'M2(1, 0.1, 0.2)')
-        Dimension Sizes(1): ILiteralExpression (Text: 2) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: 'M2(1, 0.1, 0.2)')
+        Dimension Sizes(1): ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: 'M2(1, 0.1, 0.2)')
         Initializer: IArrayInitializer (2 elements) (OperationKind.ArrayInitializer) (Syntax: 'M2(1, 0.1, 0.2)')
             Element Values(2): ILiteralExpression (Text: 0.1) (OperationKind.LiteralExpression, Type: System.Double, Constant: 0.1) (Syntax: '0.1')
               ILiteralExpression (Text: 0.2) (OperationKind.LiteralExpression, Type: System.Double, Constant: 0.2) (Syntax: '0.2')
@@ -540,7 +540,7 @@ IInvocationExpression ( void P.M2(System.Int32 x, params System.Double[] array))
       ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
     IArgument (ArgumentKind.ParamArray, Matching Parameter: array) (OperationKind.Argument) (Syntax: 'M2(1)')
       IArrayCreationExpression (Element Type: System.Double) (OperationKind.ArrayCreationExpression, Type: System.Double[]) (Syntax: 'M2(1)')
-        Dimension Sizes(1): ILiteralExpression (Text: 0) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: 'M2(1)')
+        Dimension Sizes(1): ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: 'M2(1)')
         Initializer: IArrayInitializer (0 elements) (OperationKind.ArrayInitializer) (Syntax: 'M2(1)')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
@@ -548,7 +548,7 @@ IInvocationExpression ( void P.M2(System.Int32 x, params System.Double[] array))
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
-        [Fact]
+        [Fact(Skip = "123")]
         public void DefaultValueAndParamsArrayArgumentInExpandedFormWithNoArgument()
         {
             string source = @"
@@ -599,7 +599,7 @@ IInvocationExpression ( void P.M2([System.Int32 x = 0], params System.Double[] a
   Arguments(2): IArgument (ArgumentKind.Explicit, Matching Parameter: array) (OperationKind.Argument) (Syntax: 'a')
       ILocalReferenceExpression: a (OperationKind.LocalReferenceExpression, Type: System.Double[]) (Syntax: 'a')
     IArgument (ArgumentKind.DefaultValue, Matching Parameter: x) (OperationKind.Argument) (Syntax: 'M2(array: a)')
-      ILiteralExpression (Text: 0) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: 'M2(array: a)')
+      ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: 'M2(array: a)')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -625,12 +625,12 @@ IInvocationExpression ( void P.M2([System.Int32 x = 0], params System.Double[] a
   Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: P) (Syntax: 'M2')
   Arguments(2): IArgument (ArgumentKind.ParamArray, Matching Parameter: array) (OperationKind.Argument) (Syntax: 'M2(array: 1)')
       IArrayCreationExpression (Element Type: System.Double) (OperationKind.ArrayCreationExpression, Type: System.Double[]) (Syntax: 'M2(array: 1)')
-        Dimension Sizes(1): ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: 'M2(array: 1)')
+        Dimension Sizes(1): ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: 'M2(array: 1)')
         Initializer: IArrayInitializer (1 elements) (OperationKind.ArrayInitializer) (Syntax: 'M2(array: 1)')
             Element Values(1): IConversionExpression (ConversionKind.CSharp, Implicit) (OperationKind.ConversionExpression, Type: System.Double, Constant: 1) (Syntax: '1')
                 ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
     IArgument (ArgumentKind.DefaultValue, Matching Parameter: x) (OperationKind.Argument) (Syntax: 'M2(array: 1)')
-      ILiteralExpression (Text: 0) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: 'M2(array: 1)')
+      ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: 'M2(array: 1)')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -686,7 +686,7 @@ IInvocationExpression ( void P.M2([System.Int32 x = 0], params System.Double[] a
       ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
     IArgument (ArgumentKind.ParamArray, Matching Parameter: array) (OperationKind.Argument) (Syntax: 'M2(1, array: 1)')
       IArrayCreationExpression (Element Type: System.Double) (OperationKind.ArrayCreationExpression, Type: System.Double[]) (Syntax: 'M2(1, array: 1)')
-        Dimension Sizes(1): ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: 'M2(1, array: 1)')
+        Dimension Sizes(1): ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: 'M2(1, array: 1)')
         Initializer: IArrayInitializer (1 elements) (OperationKind.ArrayInitializer) (Syntax: 'M2(1, array: 1)')
             Element Values(1): IConversionExpression (ConversionKind.CSharp, Implicit) (OperationKind.ConversionExpression, Type: System.Double, Constant: 1) (Syntax: '1')
                 ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
@@ -744,7 +744,7 @@ IInvocationExpression ( void P.M2([System.Int32 x = 0], params System.Double[] a
   Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: P) (Syntax: 'M2')
   Arguments(2): IArgument (ArgumentKind.ParamArray, Matching Parameter: array) (OperationKind.Argument) (Syntax: 'M2(array: 1, x: 10)')
       IArrayCreationExpression (Element Type: System.Double) (OperationKind.ArrayCreationExpression, Type: System.Double[]) (Syntax: 'M2(array: 1, x: 10)')
-        Dimension Sizes(1): ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: 'M2(array: 1, x: 10)')
+        Dimension Sizes(1): ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: 'M2(array: 1, x: 10)')
         Initializer: IArrayInitializer (1 elements) (OperationKind.ArrayInitializer) (Syntax: 'M2(array: 1, x: 10)')
             Element Values(1): IConversionExpression (ConversionKind.CSharp, Implicit) (OperationKind.ConversionExpression, Type: System.Double, Constant: 1) (Syntax: '1')
                 ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
@@ -780,11 +780,11 @@ class P
 IInvocationExpression ( void P.M2([System.String memberName = null], [System.String sourceFilePath = null], [System.Int32 sourceLineNumber = 0])) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'M2()')
   Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: P) (Syntax: 'M2')
   Arguments(3): IArgument (ArgumentKind.DefaultValue, Matching Parameter: memberName) (OperationKind.Argument) (Syntax: 'M2()')
-      ILiteralExpression (Text: M1) (OperationKind.LiteralExpression, Type: System.String, Constant: ""M1"") (Syntax: 'M2()')
-    IArgument(ArgumentKind.DefaultValue, Matching Parameter: sourceFilePath)(OperationKind.Argument)(Syntax: 'M2()')
-      ILiteralExpression(Text: )(OperationKind.LiteralExpression, Type: System.String, Constant: """")(Syntax: 'M2()')
-    IArgument(ArgumentKind.DefaultValue, Matching Parameter: sourceLineNumber)(OperationKind.Argument)(Syntax: 'M2()')
-      ILiteralExpression(Text: 8)(OperationKind.LiteralExpression, Type: System.Int32, Constant: 8)(Syntax: 'M2()')
+      ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: ""M1"") (Syntax: 'M2()')
+    IArgument (ArgumentKind.DefaultValue, Matching Parameter: sourceFilePath) (OperationKind.Argument) (Syntax: 'M2()')
+      ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: ""file.cs"") (Syntax: 'M2()')
+    IArgument (ArgumentKind.DefaultValue, Matching Parameter: sourceLineNumber) (OperationKind.Argument) (Syntax: 'M2()')
+      ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 8) (Syntax: 'M2()')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -814,11 +814,11 @@ class P
 IInvocationExpression ( System.Boolean P.M2([System.String memberName = null], [System.String sourceFilePath = null], [System.Int32 sourceLineNumber = 0])) (OperationKind.InvocationExpression, Type: System.Boolean) (Syntax: 'M2()')
   Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: P) (Syntax: 'M2')
   Arguments(3): IArgument (ArgumentKind.DefaultValue, Matching Parameter: memberName) (OperationKind.Argument) (Syntax: 'M2()')
-      ILiteralExpression (Text: get_M1) (OperationKind.LiteralExpression, Type: System.String, Constant: ""get_M1"") (Syntax: 'M2()')
-    IArgument(ArgumentKind.DefaultValue, Matching Parameter: sourceFilePath)(OperationKind.Argument)(Syntax: 'M2()')
-      ILiteralExpression(Text: )(OperationKind.LiteralExpression, Type: System.String, Constant: """")(Syntax: 'M2()')
-    IArgument(ArgumentKind.DefaultValue, Matching Parameter: sourceLineNumber)(OperationKind.Argument)(Syntax: 'M2()')
-      ILiteralExpression(Text: 6)(OperationKind.LiteralExpression, Type: System.Int32, Constant: 6)(Syntax: 'M2()')
+      ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: ""get_M1"") (Syntax: 'M2()')
+    IArgument (ArgumentKind.DefaultValue, Matching Parameter: sourceFilePath) (OperationKind.Argument) (Syntax: 'M2()')
+      ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: ""file.cs"") (Syntax: 'M2()')
+    IArgument (ArgumentKind.DefaultValue, Matching Parameter: sourceLineNumber) (OperationKind.Argument) (Syntax: 'M2()')
+      ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 6) (Syntax: 'M2()')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -847,12 +847,12 @@ class P
             string expectedOperationTree = @"
 IInvocationExpression (static System.Boolean P.M2([System.String memberName = null], [System.String sourceFilePath = null], [System.Int32 sourceLineNumber = 0])) (OperationKind.InvocationExpression, Type: System.Boolean) (Syntax: 'M2()')
   Arguments(3): IArgument (ArgumentKind.DefaultValue, Matching Parameter: memberName) (OperationKind.Argument) (Syntax: 'M2()')
-      ILiteralExpression (Text: field) (OperationKind.LiteralExpression, Type: System.String, Constant: ""field"") (Syntax: 'M2()')
-    IArgument(ArgumentKind.DefaultValue, Matching Parameter: sourceFilePath)(OperationKind.Argument)(Syntax: 'M2()')
-      ILiteralExpression(Text: )(OperationKind.LiteralExpression, Type: System.String, Constant: """")(Syntax: 'M2()')
-    IArgument(ArgumentKind.DefaultValue, Matching Parameter: sourceLineNumber)(OperationKind.Argument)(Syntax: 'M2()')
-      ILiteralExpression(Text: 6)(OperationKind.LiteralExpression, Type: System.Int32, Constant: 6)(Syntax: 'M2()')"
-;
+      ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: ""field"") (Syntax: 'M2()')
+    IArgument (ArgumentKind.DefaultValue, Matching Parameter: sourceFilePath) (OperationKind.Argument) (Syntax: 'M2()')
+      ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: ""file.cs"") (Syntax: 'M2()')
+    IArgument (ArgumentKind.DefaultValue, Matching Parameter: sourceLineNumber) (OperationKind.Argument) (Syntax: 'M2()')
+      ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 6) (Syntax: 'M2()')
+";
             var expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);

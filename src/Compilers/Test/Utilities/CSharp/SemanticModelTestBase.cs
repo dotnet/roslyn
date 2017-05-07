@@ -268,7 +268,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         protected void VerifyOperationTreeAndDiagnosticsForTest<TSyntaxNode>(string testSrc, string expectedOperationTree, DiagnosticDescription[] expectedDiagnostics, CSharpCompilationOptions compilationOptions = null, CSharpParseOptions parseOptions = null)
             where TSyntaxNode : SyntaxNode
         {
-            var compilation = CreateCompilationWithMscorlib45(testSrc, options: compilationOptions ?? TestOptions.ReleaseDll, parseOptions: parseOptions);
+            var compilation = CreateCompilationWithMscorlib46(testSrc, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, sourceFileName: "file.cs", options: compilationOptions ?? TestOptions.ReleaseDll, parseOptions: parseOptions);
             VerifyOperationTreeAndDiagnosticsForTest<TSyntaxNode>(compilation, expectedOperationTree, expectedDiagnostics);
         }
     }
