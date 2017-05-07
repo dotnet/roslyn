@@ -261,11 +261,11 @@ public class C
                 emitResult.Diagnostics.Verify();
 
                 VerifyEntryPoint(output, expectZero: false);
-                VerifyMethods(output, new[] { "void C.Main()", "C..ctor()" });
+                VerifyMethods(output, "C", new[] { "void C.Main()", "C..ctor()" });
                 VerifyMvid(output, hasMvidSection: false);
 
                 VerifyEntryPoint(metadataOutput, expectZero: true);
-                VerifyMethods(metadataOutput, new[] { "C..ctor()" });
+                VerifyMethods(metadataOutput, "C", new[] { "C..ctor()" });
                 VerifyMvid(metadataOutput, hasMvidSection: true);
             }
 
@@ -399,9 +399,9 @@ public class C
                 Assert.True(emitResult.Success);
                 emitResult.Diagnostics.Verify();
 
-                VerifyMethods(output, new[] { "System.Int32 C.<PrivateSetter>k__BackingField", "System.Int32 C.PrivateSetter.get", "void C.PrivateSetter.set",
+                VerifyMethods(output, "C", new[] { "System.Int32 C.<PrivateSetter>k__BackingField", "System.Int32 C.PrivateSetter.get", "void C.PrivateSetter.set",
                     "C..ctor()", "System.Int32 C.PrivateSetter { get; private set; }" });
-                VerifyMethods(metadataOutput, new[] { "System.Int32 C.PrivateSetter.get", "C..ctor()", "System.Int32 C.PrivateSetter { get; }" });
+                VerifyMethods(metadataOutput, "C", new[] { "System.Int32 C.PrivateSetter.get", "C..ctor()", "System.Int32 C.PrivateSetter { get; }" });
                 VerifyMvid(output, hasMvidSection: false);
                 VerifyMvid(metadataOutput, hasMvidSection: true);
             }
@@ -425,9 +425,9 @@ public class C
                 Assert.True(emitResult.Success);
                 emitResult.Diagnostics.Verify();
 
-                VerifyMethods(output, new[] { "System.Int32 C.<PrivateGetter>k__BackingField", "System.Int32 C.PrivateGetter.get", "void C.PrivateGetter.set",
+                VerifyMethods(output, "C", new[] { "System.Int32 C.<PrivateGetter>k__BackingField", "System.Int32 C.PrivateGetter.get", "void C.PrivateGetter.set",
                     "C..ctor()", "System.Int32 C.PrivateGetter { private get; set; }" });
-                VerifyMethods(metadataOutput, new[] { "void C.PrivateGetter.set", "C..ctor()", "System.Int32 C.PrivateGetter { set; }" });
+                VerifyMethods(metadataOutput, "C", new[] { "void C.PrivateGetter.set", "C..ctor()", "System.Int32 C.PrivateGetter { set; }" });
             }
         }
 
@@ -449,9 +449,9 @@ public class C
                 Assert.True(emitResult.Success);
                 emitResult.Diagnostics.Verify();
 
-                VerifyMethods(output, new[] { "System.Int32 C.this[System.Int32 i].get", "void C.this[System.Int32 i].set",
+                VerifyMethods(output, "C", new[] { "System.Int32 C.this[System.Int32 i].get", "void C.this[System.Int32 i].set",
                     "C..ctor()", "System.Int32 C.this[System.Int32 i] { private get; set; }" });
-                VerifyMethods(metadataOutput, new[] { "void C.this[System.Int32 i].set", "C..ctor()",
+                VerifyMethods(metadataOutput, "C", new[] { "void C.this[System.Int32 i].set", "C..ctor()",
                     "System.Int32 C.this[System.Int32 i] { set; }" });
             }
         }
@@ -478,9 +478,9 @@ public class C : Base
                 emitResult.Diagnostics.Verify();
                 Assert.True(emitResult.Success);
 
-                VerifyMethods(output, new[] { "void C.Property.set", "C..ctor()", "System.Int32 C.Property.get", "System.Int32 C.Property { internal get; set; }" });
+                VerifyMethods(output, "C", new[] { "void C.Property.set", "C..ctor()", "System.Int32 C.Property.get", "System.Int32 C.Property { internal get; set; }" });
                 // A getter is synthesized on C.Property so that it can be marked as sealed. It is emitted despite being internal because it is virtual.
-                VerifyMethods(metadataOutput, new[] {  "void C.Property.set", "C..ctor()", "System.Int32 C.Property.get", "System.Int32 C.Property { internal get; set; }" });
+                VerifyMethods(metadataOutput, "C", new[] {  "void C.Property.set", "C..ctor()", "System.Int32 C.Property.get", "System.Int32 C.Property { internal get; set; }" });
             }
         }
 
@@ -504,7 +504,7 @@ public class C
                 );
         }
 
-        private static void VerifyMethods(MemoryStream stream, string[] expectedMethods)
+        private static void VerifyMethods(MemoryStream stream, string containingType, string[] expectedMethods)
         {
             stream.Position = 0;
             var metadataRef = AssemblyMetadata.CreateFromImage(stream.ToArray()).GetReference();
@@ -514,7 +514,7 @@ public class C
 
             AssertEx.Equal(
                 expectedMethods,
-                compWithMetadata.GetMember<NamedTypeSymbol>("C").GetMembers().Select(m => m.ToTestDisplayString()));
+                compWithMetadata.GetMember<NamedTypeSymbol>(containingType).GetMembers().Select(m => m.ToTestDisplayString()));
         }
 
         [Fact]
