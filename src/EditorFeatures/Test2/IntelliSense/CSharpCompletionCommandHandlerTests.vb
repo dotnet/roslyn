@@ -578,6 +578,88 @@ class C
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         <WorkItem(13527, "https://github.com/dotnet/roslyn/issues/13527")>
+        Public Async Function ColonInTupleNameInTupleLiteral() As Task
+            Using state = TestState.CreateCSharpTestState(
+                  <Document><![CDATA[
+class C
+{
+    public void M()
+    {
+        (int first, int second) t = ($$
+    }
+}]]></Document>)
+
+                state.SendTypeChars("fi")
+                Await state.AssertSelectedCompletionItem(displayText:="first", isHardSelected:=True)
+                state.SendTypeChars(":")
+                Assert.Contains("(fi:", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(13527, "https://github.com/dotnet/roslyn/issues/13527")>
+        Public Async Function ColonInTupleNameInTupleLiteralAfterComma() As Task
+            Using state = TestState.CreateCSharpTestState(
+                  <Document><![CDATA[
+class C
+{
+    public void M()
+    {
+        (int first, int second) t = (0, $$
+    }
+}]]></Document>)
+
+                state.SendTypeChars("se")
+                Await state.AssertSelectedCompletionItem(displayText:="second", isHardSelected:=True)
+                state.SendTypeChars(":")
+                Assert.Contains("(0, se:", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(13527, "https://github.com/dotnet/roslyn/issues/13527")>
+        Public Async Function TabInTupleNameInTupleLiteral() As Task
+            Using state = TestState.CreateCSharpTestState(
+                  <Document><![CDATA[
+class C
+{
+    public void M()
+    {
+        (int first, int second) t = ($$
+    }
+}]]></Document>)
+
+                state.SendTypeChars("fi")
+                Await state.AssertSelectedCompletionItem(displayText:="first", isHardSelected:=True)
+                state.SendTab()
+                state.SendTypeChars(":")
+                Assert.Contains("(first:", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(13527, "https://github.com/dotnet/roslyn/issues/13527")>
+        Public Async Function TabInTupleNameInTupleLiteralAfterComma() As Task
+            Using state = TestState.CreateCSharpTestState(
+                  <Document><![CDATA[
+class C
+{
+    public void M()
+    {
+        (int first, int second) t = (0, $$
+    }
+}]]></Document>)
+
+                state.SendTypeChars("se")
+                Await state.AssertSelectedCompletionItem(displayText:="second", isHardSelected:=True)
+                state.SendTab()
+                state.SendTypeChars(":")
+                Assert.Contains("(0, second:", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(13527, "https://github.com/dotnet/roslyn/issues/13527")>
         Public Async Function TestKeywordInTupleLiteral() As Task
             Using state = TestState.CreateCSharpTestState(
                   <Document><![CDATA[

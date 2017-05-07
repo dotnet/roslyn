@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
                 var field = type.TupleElements[index];
                 var item = CommonCompletionItem.Create(
-                    field.Name + ":", _cachedRules, Glyph.FieldPublic);
+                    field.Name, _cachedRules, Glyph.FieldPublic);
                 context.AddItem(item);
             }
         }
