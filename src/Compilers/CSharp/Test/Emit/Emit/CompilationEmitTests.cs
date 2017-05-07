@@ -824,6 +824,10 @@ comp => comp.VerifyDiagnostics(
                 ));
         }
 
+        /// <summary>
+        /// The client compilation should not be affected (except for some diagnostic differences)
+        /// by the library assembly only having metadata, or not including private members.
+        /// </summary>
         private void VerifyRefAssemblyClient(string lib_cs, string client_cs, Action<CSharpCompilation> validator, int debugFlag = -1)
         {
             // Whether the library is compiled in full, as metadata-only, or as a ref assembly should be transparent
@@ -857,6 +861,55 @@ comp => comp.VerifyDiagnostics(
 
             var comp = CreateStandardCompilation(source, references: new[] { libImage }, options: TestOptions.DebugDll.WithAllowUnsafe(true));
             validator(comp);
+        }
+
+        [Theory]
+        [InlineData("")]
+        [InlineData(@"[assembly: System.Reflection.AssemblyVersion(""1"")]")]
+        [InlineData(@"[assembly: System.Reflection.AssemblyVersion(""1.0.*"")]")]
+        public void RefAssembly_EmitAsDeterministic(string source)
+        {
+            var comp = CreateStandardCompilation(source, options: TestOptions.DebugDll.WithDeterministic(false));
+
+            var (image1, refImage1) = emitRefOut();
+
+            // The resolution of the PE header time date stamp is seconds, and we want to make sure that has an opportunity to change
+            // between calls to Emit.
+            Thread.Sleep(TimeSpan.FromSeconds(1));
+            var (image2, refImage2) = emitRefOut();
+            var refImage3 = emitRefOnly();
+
+            AssertEx.Equal(refImage1, refImage2);
+            AssertEx.Equal(refImage1, refImage3);
+
+            var comp2 = CreateStandardCompilation(source, options: TestOptions.DebugDll.WithDeterministic(false));
+            var refImage4 = emitRefOnly();
+            AssertEx.Equal(refImage1, refImage4);
+
+            (ImmutableArray<byte> image, ImmutableArray<byte> refImage) emitRefOut()
+            {
+                using (var output = new MemoryStream())
+                using (var metadataOutput = new MemoryStream())
+                {
+                    var options = EmitOptions.Default.WithIncludePrivateMembers(false);
+                    comp.VerifyEmitDiagnostics();
+                    var result = comp.Emit(output, metadataPEStream: metadataOutput,
+                        options: options);
+                    return (output.ToImmutable(), metadataOutput.ToImmutable());
+                }
+            }
+
+            ImmutableArray<byte> emitRefOnly()
+            {
+                using (var output = new MemoryStream())
+                {
+                    var options = EmitOptions.Default.WithEmitMetadataOnly(true).WithIncludePrivateMembers(false);
+                    comp.VerifyEmitDiagnostics();
+                    var result = comp.Emit(output,
+                        options: options);
+                    return output.ToImmutable();
+                }
+            }
         }
 
         [Theory]
@@ -1069,7 +1122,7 @@ public class PublicClass
                     options: EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.Embedded).WithIncludePrivateMembers(false));
 
                 VerifyEmbeddedDebugInfo(output, new[] { DebugDirectoryEntryType.CodeView, DebugDirectoryEntryType.EmbeddedPortablePdb });
-                VerifyEmbeddedDebugInfo(metadataOutput, new DebugDirectoryEntryType[] { });
+                VerifyEmbeddedDebugInfo(metadataOutput, new DebugDirectoryEntryType[] { DebugDirectoryEntryType.Reproducible });
             }
 
             void VerifyEmbeddedDebugInfo(MemoryStream stream, DebugDirectoryEntryType[] expected)
@@ -1109,7 +1162,6 @@ public class PublicClass
             {
                 Assert.Throws<ArgumentException>(() => comp.Emit(output,
                     options: EmitOptions.Default.WithEmitMetadataOnly(true).WithIncludePrivateMembers(false)));
-
             }
 
             using (var output = new MemoryStream())
@@ -1118,8 +1170,7 @@ public class PublicClass
                 Assert.Throws<ArgumentException>(() => comp.Emit(output,
                     metadataPEStream: metadataOutput,
                     options: EmitOptions.Default.WithIncludePrivateMembers(false)));
-
-           }
+            }
         }
 
         [Fact]

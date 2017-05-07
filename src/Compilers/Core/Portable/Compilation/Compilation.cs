@@ -2643,6 +2643,7 @@ namespace Microsoft.CodeAnalysis
             bool emitSecondaryAssembly = getMetadataPeStreamOpt != null;
 
             bool includePrivateMembersOnPrimaryOutput = metadataOnly ? includePrivateMembers : true;
+            bool deterministicPrimaryOutput = (metadataOnly && !includePrivateMembers) ? true : isDeterministic;
             if (!Cci.PeWriter.WritePeToStream(
                 new EmitContext(moduleBeingBuilt, null, metadataDiagnostics, metadataOnly, includePrivateMembersOnPrimaryOutput),
                 messageProvider,
@@ -2651,7 +2652,7 @@ namespace Microsoft.CodeAnalysis
                 nativePdbWriterOpt,
                 pdbPathOpt,
                 metadataOnly,
-                isDeterministic,
+                deterministicPrimaryOutput,
                 emitTestCoverageData,
                 cancellationToken))
             {
@@ -2672,7 +2673,7 @@ namespace Microsoft.CodeAnalysis
                     nativePdbWriterOpt: null,
                     pdbPathOpt: null,
                     metadataOnly: true,
-                    isDeterministic: isDeterministic,
+                    isDeterministic: true,
                     emitTestCoverageData: false,
                     cancellationToken: cancellationToken))
                 {
