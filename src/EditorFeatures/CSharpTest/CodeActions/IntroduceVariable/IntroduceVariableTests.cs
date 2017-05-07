@@ -555,7 +555,7 @@ class Program
     {
     }
 
-    public static void Add(object t)
+    public static void Add(object @class)
     {
     }
 }
@@ -573,7 +573,7 @@ class Program
     {
     }
 
-    public static void Add(object t)
+    public static void Add(object @class)
     {
     }
 }
@@ -599,7 +599,7 @@ options: ImplicitTypingEverywhere());
     {
     }
 
-    public static void Add(object t)
+    public static void Add(object @class)
     {
     }
 }
@@ -617,7 +617,7 @@ class Program
     {
     }
 
-    public static void Add(object t)
+    public static void Add(object @class)
     {
     }
 }
@@ -642,7 +642,7 @@ class Program
     {
     }
 
-    public static void Add(object t)
+    public static void Add(object @class)
     {
     }
 
@@ -657,7 +657,7 @@ class Program
     {
     }
 
-    public static void Add(object t)
+    public static void Add(object @class)
     {
     }
 
@@ -680,7 +680,7 @@ options: ImplicitTypingEverywhere());
     {
     }
 
-    public static void Add(object t)
+    public static void Add(object @class)
     {
     }
 
@@ -695,7 +695,7 @@ options: ImplicitTypingEverywhere());
     {
     }
 
-    public static void Add(object t)
+    public static void Add(object @class)
     {
     }
 
@@ -2179,8 +2179,8 @@ ignoreTrivia: false);
         switch (1)
         {
             case 0:
-                const int {|Rename:V|} = 1 + 1;
-                var f = Main(V);
+                const int {|Rename:I|} = 1 + 1;
+                var f = Main(I);
                 Console.WriteLine(f);
         }
     }
@@ -2431,8 +2431,8 @@ class C
     static void Main(string[] args)
     {
         var set = new HashSet<string>();
-        var {|Rename:v|} = set.ToString();
-        set.Add(v);
+        var {|Rename:item|} = set.ToString();
+        set.Add(item);
     }
 }",
 options: ImplicitTypingEverywhere());
@@ -2529,8 +2529,8 @@ class Program
     static void Main(string[] args)
     {
         var d = new Dictionary<string, Exception>();
-        var {|Rename:exception|} = new Exception();
-        d.Add(""a"", exception);
+        var {|Rename:value|} = new Exception();
+        d.Add(""a"", value);
     }
 }",
 ignoreTrivia: false, options: ImplicitTypingEverywhere());
@@ -3090,8 +3090,8 @@ class Complex
     int real; int imaginary;
     public static Complex operator +(Complex a, Complex b)
     {
-        var {|Rename:v|} = b.real + 1;
-        return a.Add(v);
+        var {|Rename:b1|} = b.real + 1;
+        return a.Add(b1);
     }
 
     private Complex Add(int b)
@@ -3160,7 +3160,7 @@ public struct DBBool
     @"using System;
 public struct DBBool
 {
-    private const int {|Rename:V|} = 1;
+    private const int {|Rename:Value|} = 1;
     public static readonly DBBool dbFalse = new DBBool(-1);
     int value;
 
@@ -3169,7 +3169,7 @@ public struct DBBool
         this.value = value;
     }
 
-    public static implicit operator DBBool(bool x) => x ? new DBBool(V) : dbFalse;
+    public static implicit operator DBBool(bool x) => x ? new DBBool(Value) : dbFalse;
 }";
 
             await TestInRegularAndScriptAsync(code, expected, ignoreTrivia: false);
@@ -3573,8 +3573,8 @@ class TestClass
 {
     static void Test(string[] args)
     {
-        var {|Rename:v|} = $""{DateTime.Now.ToString()}Text{args[0]}"";
-        Console.WriteLine(v);
+        var {|Rename:value|} = $""{DateTime.Now.ToString()}Text{args[0]}"";
+        Console.WriteLine(value);
     }
 }";
 
@@ -3602,9 +3602,9 @@ class TestClass
 {
     static void Test(string[] args)
     {
-        var {|Rename:v|} = $""Text{{s}}"";
-        Console.WriteLine(v);
-        Console.WriteLine(v);
+        var {|Rename:value|} = $""Text{{s}}"";
+        Console.WriteLine(value);
+        Console.WriteLine(value);
     }
 }";
 
@@ -3772,8 +3772,8 @@ namespace N
     {
         public async Task M()
         {
-            FormattableString {|Rename:v|} = $"""";
-            var f = FormattableString.Invariant(v);
+            FormattableString {|Rename:formattable|} = $"""";
+            var f = FormattableString.Invariant(formattable);
         }
     }
 }";
@@ -4278,7 +4278,7 @@ struct TextSpan
 {
     public C(string a, string b)
     {
-        int start = int.Parse(a);
+        int {|Rename:start|} = int.Parse(a);
         new TextSpan(start, int.Parse(b));
     }
 }
@@ -4316,7 +4316,7 @@ struct TextSpan
 {
     public C(string a, string b)
     {
-        int length = int.Parse(b);
+        int {|Rename:length|} = int.Parse(b);
         new TextSpan(int.Parse(a), length);
     }
 }
