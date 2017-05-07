@@ -265,10 +265,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             VerifyOperationTreeForTest<TSyntaxNode>(compilation, expectedOperationTree);
         }
 
-        protected void VerifyOperationTreeAndDiagnosticsForTest<TSyntaxNode>(string testSrc, string expectedOperationTree, DiagnosticDescription[] expectedDiagnostics, CSharpCompilationOptions compilationOptions = null, CSharpParseOptions parseOptions = null)
+        private static readonly MetadataReference[] s_defaultOperationReferences = new[] { SystemRef, SystemCoreRef, ValueTupleRef, SystemRuntimeFacadeRef };
+
+        protected void VerifyOperationTreeAndDiagnosticsForTest<TSyntaxNode>(string testSrc, string expectedOperationTree, DiagnosticDescription[] expectedDiagnostics, CSharpCompilationOptions compilationOptions = null, CSharpParseOptions parseOptions = null, MetadataReference[] additionalReferences = null)
             where TSyntaxNode : SyntaxNode
         {
-            var compilation = CreateCompilationWithMscorlib46(testSrc, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, sourceFileName: "file.cs", options: compilationOptions ?? TestOptions.ReleaseDll, parseOptions: parseOptions);
+            var references = additionalReferences == null ? s_defaultOperationReferences : additionalReferences.Concat(s_defaultOperationReferences);
+            var compilation = CreateStandardCompilation(testSrc, references, sourceFileName: "file.cs", options: compilationOptions ?? TestOptions.ReleaseDll, parseOptions: parseOptions);
             VerifyOperationTreeAndDiagnosticsForTest<TSyntaxNode>(compilation, expectedOperationTree, expectedDiagnostics);
         }
     }
