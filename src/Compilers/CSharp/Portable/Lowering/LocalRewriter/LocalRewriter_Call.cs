@@ -978,6 +978,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        private static readonly DiagnosticBag s_notUsedDiagnosticBagForDerivingArgumentsForIOperation = new DiagnosticBag();
+
         private static void AppendMissingOptionalArguments(SyntaxNode syntax,
             ImmutableArray<ParameterSymbol> missingParameters,
             Binder binder,
@@ -999,13 +1001,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else
                 {
                     Debug.Assert(parameter.IsOptional);
-                    var defaultArgument = GetDefaultParameterValue(syntax, parameter, enableCallerInfo, null, binder.Compilation, binder.ContainingMember(), new DiagnosticBag());
+                    var defaultArgument = GetDefaultParameterValue(syntax, parameter, enableCallerInfo, null, binder, s_notUsedDiagnosticBagForDerivingArgumentsForIOperation);
 
                     argumentsBuilder.Add(defaultArgument);
                     argumentKindsBuilder.Add(ArgumentKind.DefaultValue);  
                 }
                 parametersBuilder.Add(parameter);
             }
+            s_notUsedDiagnosticBagForDerivingArgumentsForIOperation.Clear();
         }
 
         private static SourceLocation GetCallerLocation(SyntaxNode syntax, ThreeState enableCallerInfo)
@@ -1069,23 +1072,29 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </remarks>  
         private BoundExpression GetDefaultParameterValue(SyntaxNode syntax, ParameterSymbol parameter, ThreeState enableCallerInfo)
         {
-            return GetDefaultParameterValue(syntax, parameter, enableCallerInfo, this, null, null, null);
+            return GetDefaultParameterValue(syntax, parameter, enableCallerInfo, this, null, null);
         }
 
+        /// <summary>
+        /// This helper is used by both LocalRewriter and IOperation. 
+        ///   - For lowering, 'localRewriter' must be passed in as an argument, and set 'binder' and 'diagnostics' to null.
+        ///   - For deriving argument expression for IArgument operation, 'localRewriter' must be null, and 'compilation', 'diagnostics' 
+        ///     must be passed in, where 'callerMemberName' must not be null if 'parameter.IsCallerMemberName' is 'true'.
+        /// </summary>
         private static BoundExpression GetDefaultParameterValue(
             SyntaxNode syntax, 
             ParameterSymbol parameter,
             ThreeState enableCallerInfo,
             LocalRewriter localRewriter,
-            CSharpCompilation compilation,
-            Symbol containingMemberSymbol, 
+            Binder binder,
             DiagnosticBag diagnostics)
         {
-            Debug.Assert(localRewriter == null ^ (compilation == null && containingMemberSymbol == null && diagnostics == null));
+            Debug.Assert(localRewriter == null ^ (binder == null && diagnostics == null));
 
-            bool isLowering = false;
+            bool isLowering;
             bool inExpressionLambda = false;
             MethodSymbol currentMethod = null;
+            CSharpCompilation compilation; 
 
             if (localRewriter != null)
             {
@@ -1094,6 +1103,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 inExpressionLambda = localRewriter._inExpressionLambda;
                 currentMethod = localRewriter._factory.CurrentMethod;
                 diagnostics = localRewriter._diagnostics;
+            }
+            else
+            {
+                isLowering = false; 
+                compilation = binder.Compilation; 
             }
 
             // TODO: Ideally, the enableCallerInfo parameter would be of just bool type with only 'true' and 'false' values, and all callers
@@ -1208,8 +1222,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
                 else
-                {
-                    memberName = containingMemberSymbol.Name;
+                { 
+                    // If the parameter has 'CallerMemberNameAttribute' applied to it, and the containg member is
+                    // property getter/setter or event add/remove, we need to retrieve the actual property and event name instead.
+                    var containingMember = binder.ContainingMember();
+                    if (containingMember.Kind == SymbolKind.Method)
+                    {
+                        var containingMethod = (MethodSymbol)containingMember;
+                        switch (containingMethod.MethodKind)
+                        {
+                            case MethodKind.PropertyGet:
+                            case MethodKind.PropertySet:
+                            case MethodKind.EventAdd:
+                            case MethodKind.EventRemove:
+                                containingMember = containingMethod.AssociatedSymbol;
+                                break;
+                        }
+                    }
+                    memberName = containingMember.Name; 
                 }
 
                 BoundExpression memberNameLiteral = MakeLiteral(syntax, ConstantValue.Create(memberName), compilation.GetSpecialType(SpecialType.System_String), compilation, currentMethod, inExpressionLambda);  

@@ -21,6 +21,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return MakeLiteral(syntax, constantValue, type, _compilation, _factory.CurrentMethod, _inExpressionLambda, oldNodeOpt);
         }
 
+        /// <summary>
+        /// Pass in 'currentMethod' and 'inExpressionLambda' if this is called during lowering, otherwise set 'currentMethod' to null (i.e. for IOperation purposes) 
+        /// </summary>
         private static BoundExpression MakeLiteral(SyntaxNode syntax, ConstantValue constantValue, TypeSymbol type, CSharpCompilation compilation, MethodSymbol currentMethod, bool inExpressionLambda)
         {
             return MakeLiteral(syntax, constantValue, type, compilation, currentMethod, inExpressionLambda, null);
@@ -57,6 +60,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        /// <summary>
+        /// If 'currentMethod' is null, we will skip optimization of calling a simpler constructor, or using a predefined constant
+        /// </summary>
         private static BoundExpression MakeDecimalLiteral(SyntaxNode syntax, ConstantValue constantValue, CSharpCompilation compilation, MethodSymbol currentMethod, bool inExpressionLambda)
         {
             Debug.Assert(constantValue != null);
