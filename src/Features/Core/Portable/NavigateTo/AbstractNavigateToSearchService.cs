@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Immutable;
 using System.IO;
 using System.Threading;
@@ -44,11 +43,17 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             }
         }
 
-        private static readonly object _logGate = new object();
+        private static readonly bool s_log = false;
+        private static readonly object s_logGate = new object();
 
         public static void Log(string text)
         {
-            lock (_logGate)
+            if (!s_log)
+            {
+                return;
+            }
+
+            lock (s_logGate)
             {
                 IOUtilities.PerformIO(() =>
                 {
