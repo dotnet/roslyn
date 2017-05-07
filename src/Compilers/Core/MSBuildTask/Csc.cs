@@ -82,12 +82,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             get { return _store.GetOrDefault(nameof(GenerateFullPaths), false); }
         }
 
-        public string LangVersion
-        {
-            set { _store[nameof(LangVersion)] = value; }
-            get { return (string)_store[nameof(LangVersion)]; }
-        }
-
         public string ModuleAssemblyName
         {
             set { _store[nameof(ModuleAssemblyName)] = value; }
