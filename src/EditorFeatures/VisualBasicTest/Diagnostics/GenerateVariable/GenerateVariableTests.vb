@@ -2596,12 +2596,64 @@ end class")
     end sub
 end class",
 "class C
-    private readonly _foo as integer
     Private ReadOnly _bar As Integer
+    private readonly _foo as integer
 
     public sub new()
         _bar = 1
         _foo = 0
+    end sub
+end class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        Public Async Function TestPlaceFieldBasedOnSurroundingStatements() As Task
+            await TestInRegularAndScriptAsync(
+"class Class
+    private _foo as integer
+    private _quux as integer
+
+    public sub new()
+        _foo = 0
+        [|_bar|] = 1
+        _quux = 2
+    end sub
+end class",
+"class Class
+    private _foo as integer
+    Private _bar As Integer
+    private _quux as integer
+
+    public sub new()
+        _foo = 0
+        _bar = 1
+        _quux = 2
+    end sub
+end class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        Public Async Function TestPlacePropertyBasedOnSurroundingStatements() As Task
+            Await TestInRegularAndScriptAsync(
+"class Class
+    public readonly property Foo as integer
+    public readonly property Quux as integer
+
+    public sub new()
+        Foo = 0
+        [|Bar|] = 1
+        Quux = 2
+    end sub
+end class",
+"class Class
+    public readonly property Foo as integer
+    Public ReadOnly Property Bar As Integer
+    public readonly property Quux as integer
+
+    public sub new()
+        Foo = 0
+        Bar = 1
+        Quux = 2
     end sub
 end class")
         End Function
