@@ -7245,8 +7245,8 @@ class C
 }",
 @"class Class
 {
-    private readonly int _foo;
     private readonly int _bar;
+    private readonly int _foo;
 
     public Class()
     {
@@ -7276,6 +7276,68 @@ class C
     }
 
     public int Bar { get; }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestPlaceFieldBasedOnSurroundingStatements()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Class
+{
+    private int _foo;
+    private int _quux;
+
+    public Class()
+    {
+        _foo = 0;
+        [|_bar|] = 1;
+        _quux = 2;
+    }
+}",
+@"class Class
+{
+    private int _foo;
+    private int _bar;
+    private int _quux;
+
+    public Class()
+    {
+        _foo = 0;
+        _bar = 1;
+        _quux = 2;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestPlacePropertyBasedOnSurroundingStatements()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Class
+{
+    public int Foo { get; }
+    public int Quuz { get; }
+
+    public Class()
+    {
+        Foo = 0;
+        [|Bar|] = 1;
+        Quux = 2;
+    }
+}",
+@"class Class
+{
+    public int Foo { get; }
+    public int Bar { get; }
+    public int Quuz { get; }
+
+    public Class()
+    {
+        Foo = 0;
+        Bar = 1;
+        Quux = 2;
+    }
 }");
         }
     }

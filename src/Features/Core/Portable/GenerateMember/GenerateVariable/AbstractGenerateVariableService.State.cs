@@ -50,6 +50,9 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
             public bool IsInExecutableBlock { get; private set; }
             public bool IsInConditionalAccessExpression { get; private set; }
 
+            public Location AfterThisLocation { get; private set; }
+            public Location BeforeThisLocation { get; private set; }
+
             public static async Task<State> GenerateAsync(
                 TService service,
                 SemanticDocument document,
@@ -256,14 +259,23 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 this.IsInMemberContext = this.SimpleNameOpt != this.SimpleNameOrMemberAccessExpressionOpt ||
                                          syntaxFacts.IsObjectInitializerNamedAssignmentIdentifier(this.SimpleNameOrMemberAccessExpressionOpt);
 
-                this.OfferReadOnlyFieldFirst = DetermineReadOnlyFirst(document, SymbolKind.Field, cancellationToken);
+                CheckSurroundingContext(document, SymbolKind.Field, cancellationToken);
+                CheckSurroundingContext(document, SymbolKind.Property, cancellationToken);
 
                 return true;
             }
 
-            private bool DetermineReadOnlyFirst(
+            private void CheckSurroundingContext(
                 SemanticDocument document, SymbolKind symbolKind, CancellationToken cancellationToken)
             {
+                // See if we're being assigned to.  If so, look at the before/after statements
+                // to see if either is an assignment.  If so, we can use that to try to determine
+                // user patterns that can be used when generating the member.  For example,
+                // if the sibling assignment is to a readonly field, then we want to offer to 
+                // generate a readonly field vs a writable field.
+                //
+                // Also, because users often like to keep members/assignments in the same order
+                // we can pick a good place for the new member based on the surrounding assignments.
                 var syntaxFacts = document.Document.GetLanguageService<ISyntaxFactsService>();
                 var simpleName = this.SimpleNameOpt;
 
@@ -280,22 +292,30 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                             var children = block.ChildNodesAndTokens();
 
                             var statementindex = GetStatementindex(children, assignmentStatement);
-                            return IsReadOnlyMemberAssignment(document, symbolKind, children, statementindex - 1, cancellationToken) ||
-                                   IsReadOnlyMemberAssignment(document, symbolKind, children, statementindex + 1, cancellationToken);
+
+                            var previousAssignedSymbol = TryGetAssignedSymbol(document, symbolKind, children, statementindex - 1, cancellationToken);
+                            var nextAssignedSymbol = TryGetAssignedSymbol(document, symbolKind, children, statementindex + 1, cancellationToken);
+
+                            if (symbolKind == SymbolKind.Field)
+                            {
+                                this.OfferReadOnlyFieldFirst = IsReadOnly(previousAssignedSymbol) ||
+                                                               IsReadOnly(nextAssignedSymbol);
+                            }
+
+                            this.AfterThisLocation = this.AfterThisLocation ?? previousAssignedSymbol?.Locations.FirstOrDefault();
+                            this.BeforeThisLocation = this.BeforeThisLocation ?? nextAssignedSymbol?.Locations.FirstOrDefault();
                         }
                     }
                 }
-
-                return false;
             }
 
-            private bool IsReadOnlyMemberAssignment(
-                SemanticDocument document, SymbolKind symbolKind, 
+            private ISymbol TryGetAssignedSymbol(
+                SemanticDocument document, SymbolKind symbolKind,
                 ChildSyntaxList children, int index,
                 CancellationToken cancellationToken)
             {
                 var syntaxFacts = document.Document.GetLanguageService<ISyntaxFactsService>();
-                if (index >=  0 && index < children.Count)
+                if (index >= 0 && index < children.Count)
                 {
                     var sibling = children[index];
                     if (sibling.IsNode)
@@ -310,17 +330,22 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                             if (symbol?.Kind == symbolKind &&
                                 symbol.ContainingType.Equals(this.ContainingType))
                             {
-                                return IsReadOnly(symbol);
+                                return symbol;
                             }
                         }
                     }
                 }
 
-                return false;
+                return null;
             }
 
             private bool IsReadOnly(ISymbol symbol)
             {
+                if (symbol == null)
+                {
+                    return false;
+                }
+
                 switch (symbol)
                 {
                     case IFieldSymbol field: return field.IsReadOnly;
