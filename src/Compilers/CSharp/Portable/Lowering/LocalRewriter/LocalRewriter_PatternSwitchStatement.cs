@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                if (defaultLabel != null)
+                if (defaultLabel != null && !loweredDecisionTree.MatchIsComplete)
                 {
                     Add(loweredDecisionTree, (e, t) => new DecisionTree.Guarded(loweredExpression, loweredExpression.Type, default(ImmutableArray<KeyValuePair<BoundExpression, BoundExpression>>), defaultSection, null, defaultLabel));
                 }
@@ -219,7 +219,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Store the input expression into a temp
                     if (decisionTree.Expression != expression)
                     {
-                        _loweredDecisionTree.Add(_factory.Assignment(decisionTree.Expression, expression));
+                        var convertedExpression = _factory.Convert(decisionTree.Expression.Type, expression);
+                        _loweredDecisionTree.Add(_factory.Assignment(decisionTree.Expression, convertedExpression));
                     }
 
                     if (_declaredTempSet.Add(decisionTree.Temp))
@@ -402,6 +403,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var loweredRight = kv.Key;
                         var loweredLeft = kv.Value;
+                        loweredRight = _factory.Convert(loweredLeft.Type, loweredRight);
                         addBindings.Add(_factory.ExpressionStatement(
                             _localRewriter.MakeStaticAssignmentOperator(
                                 _factory.Syntax, loweredLeft, loweredRight, RefKind.None, loweredLeft.Type, false)));

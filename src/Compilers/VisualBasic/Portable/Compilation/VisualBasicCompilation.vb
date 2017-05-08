@@ -245,7 +245,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Debug.Assert(tree IsNot VisualBasicSyntaxTree.Dummy)
                             Debug.Assert(tree.IsMyTemplate)
 
-                            Interlocked.CompareExchange(_lazyMyTemplate, tree, VisualBasicSyntaxTree.Dummy)
+                            Interlocked.CompareExchange(Of SyntaxTree)(_lazyMyTemplate, tree, VisualBasicSyntaxTree.Dummy)
                         Else
                             ' we need to make one.
                             Dim text As String = EmbeddedResources.VbMyTemplateText
@@ -260,7 +260,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 Throw ExceptionUtilities.Unreachable
                             End If
 
-                            If Interlocked.CompareExchange(_lazyMyTemplate, tree, VisualBasicSyntaxTree.Dummy) Is VisualBasicSyntaxTree.Dummy Then
+                            If Interlocked.CompareExchange(Of SyntaxTree)(_lazyMyTemplate, tree, VisualBasicSyntaxTree.Dummy) Is VisualBasicSyntaxTree.Dummy Then
                                 ' set global cache
                                 s_myTemplateCache(parseOptions) = tree
                             End If
@@ -2606,7 +2606,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                           elementTypes:=typesBuilder.ToImmutableAndFree(),
                                           elementLocations:=elementLocations,
                                           elementNames:=elementNames, compilation:=Me,
-                                          shouldCheckConstraints:=False)
+                                          shouldCheckConstraints:=False, errorPositions:=Nothing)
         End Function
 
         Protected Overrides Function CommonCreateTupleTypeSymbol(
@@ -2627,7 +2627,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 locationOpt:=Nothing,
                 tupleCompatibleType:=underlyingType.EnsureVbSymbolOrNothing(Of NamedTypeSymbol)(NameOf(underlyingType)),
                 elementLocations:=elementLocations,
-                elementNames:=elementNames)
+                elementNames:=elementNames,
+                errorPositions:=Nothing)
         End Function
 
         Protected Overrides Function CommonCreatePointerTypeSymbol(elementType As ITypeSymbol) As IPointerTypeSymbol

@@ -2165,6 +2165,9 @@ If such a class is used as a base class and if the deriving class defines a dest
   <data name="ERR_LambdaInIsAs" xml:space="preserve">
     <value>The first operand of an 'is' or 'as' operator may not be a lambda expression, anonymous method, or method group.</value>
   </data>
+  <data name="ERR_TypelessTupleInAs" xml:space="preserve">
+    <value>The first operand of an 'as' operator may not be a tuple literal without a natural type.</value>
+  </data>
   <data name="ERR_ExpressionTreeContainsMultiDimensionalArrayInitializer" xml:space="preserve">
     <value>An expression tree may not contain a multidimensional array initializer</value>
   </data>
@@ -4467,7 +4470,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
  /define:&lt;symbol list&gt;         Define conditional compilation symbol(s) (Short 
                                form: /d)
  /langversion:&lt;string&gt;         Specify language version mode: ISO-1, ISO-2, 3, 
-                               4, 5, 6, Default, or Latest
+                               4, 5, 6, 7, 7.1, Default, or Latest
 
                         - SECURITY -
  /delaysign[+|-]               Delay-sign the assembly using only the public 
@@ -4488,7 +4491,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
 
                         - ADVANCED -
  /baseaddress:&lt;address&gt;        Base address for the library to be built
- /bugreport:&lt;file&gt;             Create a 'Bug Report' file
  /checksumalgorithm:&lt;alg&gt;      Specify algorithm for calculating source file 
                                checksum stored in PDB. Supported values are:
                                SHA1 (default) or SHA256.
@@ -4892,7 +4894,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>The switch case has already been handled by a previous case.</value>
   </data>
   <data name="ERR_PatternWrongType" xml:space="preserve">
-    <value>An expression of type {0} cannot be handled by a pattern of type {1}.</value>
+    <value>An expression of type '{0}' cannot be handled by a pattern of type '{1}'.</value>
   </data>
   <data name="WRN_AttributeIgnoredWhenPublicSigning" xml:space="preserve">
     <value>Attribute '{0}' is ignored when public signing is specified.</value>
@@ -5059,6 +5061,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_CompilerAndLanguageVersion" xml:space="preserve">
     <value>Compiler version: '{0}'. Language version: {1}.</value>
   </data>
+  <data name="ERR_TupleInferredNamesNotAvailable" xml:space="preserve">
+    <value>Tuple element name '{0}' is inferred. Please use language version {1} or greater to access an element by its inferred name.</value>
+  </data>
   <data name="WRN_DefaultInSwitch" xml:space="preserve">
     <value>Did you mean to use the default switch label (`default:`) rather than `case default:`? If you really mean to use the default literal, consider `case (default):` or another literal (`case 0:` or `case null:`) as appropriate.</value>
   </data>
@@ -5067,5 +5072,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_VoidInTuple" xml:space="preserve">
     <value>A tuple may not contain a value of type 'void'.</value>
+  </data>
+  <data name="ERR_PatternWrongGenericTypeInVersion" xml:space="preserve">
+    <value>An expression of type '{0}' cannot be handled by a pattern of type '{1}' in C# {2}. Please use language version {3} or greater.</value>
   </data>
 </root>

@@ -1,14 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
-using System.IO.MemoryMappedFiles;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
@@ -20,7 +18,6 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -1306,15 +1303,8 @@ d.cs
             // - update the command-line error for bad /langver flag (<see cref="ErrorCode.ERR_BadCompatMode"/>)
             // - update the "UpgradeProject" codefixer
             // - update the IDE drop-down for selecting Language Version
-            // - don't fix the canary test until you update all the tests that include it
+            // - update all the tests that call this canary
             // - update the command-line documentation (CommandLine.md)
-            Assert.Equal(LanguageVersion.CSharp7_1, LanguageVersion.Latest.MapSpecifiedToEffectiveVersion());
-            Assert.Equal(LanguageVersion.CSharp7, LanguageVersion.Default.MapSpecifiedToEffectiveVersion());
-        }
-
-        [Fact]
-        public void LanguageVersion_DisplayString()
-        {
             AssertEx.SetEqual(new[] { "default", "1", "2", "3", "4", "5", "6", "7", "7.1", "latest" },
                 Enum.GetValues(typeof(LanguageVersion)).Cast<LanguageVersion>().Select(v => v.ToDisplayString()));
             // For minor versions, the format should be "x.y", such as "7.1"
@@ -1340,6 +1330,9 @@ d.cs
             };
 
             AssertEx.SetEqual(versions, errorCodes);
+
+            // The canary check is a reminder that this test needs to be updated when a language version is added
+            LanguageVersionAdded_Canary();
         }
 
         [Fact]
@@ -1391,6 +1384,32 @@ d.cs
         {
             Assert.Equal(success, input.TryParse(out var version));
             Assert.Equal(expected, version);
+
+            // The canary check is a reminder that this test needs to be updated when a language version is added
+            LanguageVersionAdded_Canary();
+        }
+
+        [Fact]
+        public void LanguageVersion_CommandLineUsage()
+        {
+            var expected = Enum.GetValues(typeof(LanguageVersion)).Cast<LanguageVersion>()
+                .Where(v => v != LanguageVersion.CSharp1 && v != LanguageVersion.CSharp2)
+                .Select(v => v.ToDisplayString());
+            string help = CSharpResources.IDS_CSCHelp;
+
+            var rangeStart = help.IndexOf("/langversion");
+            var rangeEnd = help.IndexOf("/delaysign");
+            Assert.True(rangeEnd > rangeStart);
+
+            string helpRange = help.Substring(rangeStart, rangeEnd - rangeStart).ToLowerInvariant();
+            var acceptableSurroundingChar = new[] { '\r', '\n', ',' , ' '};
+            foreach (var version in expected)
+            {
+                var foundIndex = helpRange.IndexOf(version);
+                Assert.True(foundIndex > 0, $"Missing version '{version}'");
+                Assert.True(Array.IndexOf(acceptableSurroundingChar, helpRange[foundIndex - 1]) >= 0);
+                Assert.True(Array.IndexOf(acceptableSurroundingChar, helpRange[foundIndex + version.Length]) >= 0);
+            }
 
             // The canary check is a reminder that this test needs to be updated when a language version is added
             LanguageVersionAdded_Canary();
@@ -9035,7 +9054,31 @@ class C {
                 // warning CS2029: Invalid value for '/define'; '5' is not a valid identifier
                 Diagnostic(ErrorCode.WRN_DefineIdentifierRequired).WithArguments("5"));
         }
-        
+
+        [WorkItem(406649, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=406649")]
+        [ConditionalFact(typeof(IsEnglishLocal))]
+        public void MissingCompilerAssembly()
+        {
+            var dir = Temp.CreateDirectory();
+            var cscPath = dir.CopyFile(typeof(Csc).Assembly.Location).Path;
+
+            // Missing Microsoft.CodeAnalysis.CSharp.dll.
+            var result = ProcessUtilities.Run(cscPath, arguments: "/nologo /t:library unknown.cs", workingDirectory: dir.Path);
+            Assert.Equal(1, result.ExitCode);
+            Assert.Equal(
+                $"Could not load file or assembly '{typeof(CSharpCompilation).Assembly.FullName}' or one of its dependencies. The system cannot find the file specified.",
+                result.Output.Trim());
+
+            // Missing System.Collections.Immutable.dll.
+            dir.CopyFile(typeof(Compilation).Assembly.Location);
+            dir.CopyFile(typeof(CSharpCompilation).Assembly.Location);
+            result = ProcessUtilities.Run(cscPath, arguments: "/nologo /t:library unknown.cs", workingDirectory: dir.Path);
+            Assert.Equal(1, result.ExitCode);
+            Assert.Equal(
+                $"Could not load file or assembly '{typeof(ImmutableArray).Assembly.FullName}' or one of its dependencies. The system cannot find the file specified.",
+                result.Output.Trim());
+        }
+
         public class QuotedArgumentTests
         {
             private void VerifyQuotedValid<T>(string name, string value, T expected, Func<CSharpCommandLineArguments, T> getValue)

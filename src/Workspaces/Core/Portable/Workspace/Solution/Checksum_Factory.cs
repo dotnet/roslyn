@@ -16,11 +16,33 @@ namespace Microsoft.CodeAnalysis
     {
         public static Checksum Create(Stream stream)
         {
-            // REVIEW: should we cache SHA1CryptoServiceProvider
-            using (var algorithm = SHA1.Create())
+            using (var hash = IncrementalHash.CreateHash(HashAlgorithmName.SHA1))
+            {
+                return ComputeChecksum(stream, hash);
+            }
+        }
+
+        private static Checksum ComputeChecksum(Stream stream, IncrementalHash hash)
+        {
+            using (var pooledBuffer = SharedPools.ByteArray.GetPooledObject())
             {
                 stream.Seek(0, SeekOrigin.Begin);
-                return new Checksum(algorithm.ComputeHash(stream));
+
+                var buffer = pooledBuffer.Object;
+                var bufferLength = buffer.Length;
+                int bytesRead;
+                do
+                {
+                    bytesRead = stream.Read(buffer, 0, bufferLength);
+                    if (bytesRead > 0)
+                    {
+                        hash.AppendData(buffer, 0, bytesRead);
+                    }
+                }
+                while (bytesRead > 0);
+
+                var bytes = hash.GetHashAndReset();
+                return new Checksum(bytes);
             }
         }
 

@@ -711,11 +711,10 @@ class C
             CreateStandardCompilation(source).VerifyDiagnostics(
                 // (4,17): error CS1988: Async methods cannot have ref or out parameters
                 //     D d = async delegate { };
-                Diagnostic(ErrorCode.ERR_BadAsyncArgType, "delegate").WithLocation(4, 17),
-                // (4,11): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                Diagnostic(ErrorCode.ERR_BadAsyncArgType, "delegate"),
+                // (4,17): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
                 //     D d = async delegate { };
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "async delegate { }").WithLocation(4, 11)
-                );
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "delegate").WithLocation(4, 17));
         }
 
         [Fact]

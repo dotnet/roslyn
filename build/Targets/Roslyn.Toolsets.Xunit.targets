@@ -23,7 +23,8 @@
   <Target Name="AddDefaultTestAppConfig">
     <PropertyGroup>
       <_AlreadyHasAppConfig Condition="'%(None.Filename)%(None.Extension)' == 'app.config'">true</_AlreadyHasAppConfig>
-      <_DefaultAppConfigFile Condition="'$(RoslynProjectType)' == 'UnitTest'">$(MSBuildThisFileDirectory)..\Defaults\Desktop\app.config</_DefaultAppConfigFile>
+      <_DefaultAppConfigFile Condition="'$(RoslynProjectType)' == 'UnitTest'">$(MSBuildThisFileDirectory)..\Defaults\Net460\app.config</_DefaultAppConfigFile>
+      <_DefaultAppConfigFile Condition="'$(RoslynProjectType)' == 'UnitTest' AND '$(TargetFrameworkVersion)' == 'v4.6.2'">$(MSBuildThisFileDirectory)..\Defaults\Net462\app.config</_DefaultAppConfigFile>
       <_DefaultAppConfigFile Condition="'$(RoslynProjectType)' != 'UnitTest'">$(MSBuildThisFileDirectory)..\Defaults\Portable\app.config</_DefaultAppConfigFile>
     </PropertyGroup>
 

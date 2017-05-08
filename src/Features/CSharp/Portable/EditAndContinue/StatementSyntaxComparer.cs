@@ -1006,7 +1006,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             }
         }
 
-        private static void GetLocalNames(CommonForEachStatementSyntax commonForEach, ref List<SyntaxToken> result)
+        internal static void GetLocalNames(CommonForEachStatementSyntax commonForEach, ref List<SyntaxToken> result)
         {
             switch (commonForEach.Kind())
             {

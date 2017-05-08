@@ -98,14 +98,15 @@ Public Class BuildDevDivInsertionFiles
     ' the src/NuGet/Microsoft.Net.Compilers.nuspec file, the
     ' src/Setup/DevDivVsix/CompilersPackage/Microsoft.CodeAnalysis.Compilers.swr file,
     ' and src/Compilers/Extension/CompilerExtension.csproj file.
+    '
+    ' Note: Microsoft.DiaSymReader.Native.amd64.dll and Microsoft.DiaSymReader.Native.x86.dll
+    ' are installed by msbuild setup, not Roslyn.
     Private ReadOnly CompilerFiles As String() = {
         "Microsoft.CodeAnalysis.dll",
         "Microsoft.CodeAnalysis.CSharp.dll",
         "Microsoft.CodeAnalysis.Scripting.dll",
         "Microsoft.CodeAnalysis.CSharp.Scripting.dll",
         "Microsoft.CodeAnalysis.VisualBasic.dll",
-        "Microsoft.DiaSymReader.Native.amd64.dll",
-        "Microsoft.DiaSymReader.Native.x86.dll",
         "System.AppContext.dll",
         "System.Console.dll",
         "System.Diagnostics.FileVersionInfo.dll",
@@ -405,7 +406,6 @@ Public Class BuildDevDivInsertionFiles
         ' And now copy over all our core compiler binaries and related files
         ' Build tools setup authoring depends on these files being inserted.
         For Each fileName In CompilerFiles
-
             Dim dependency As DependencyInfo = Nothing
             If Not dependencies.TryGetValue(fileName, dependency) Then
                 AddXmlDocumentationFile(filesToInsert, fileName)
@@ -413,12 +413,14 @@ Public Class BuildDevDivInsertionFiles
             End If
         Next
 
-        ' Add just the compiler files to a separate compiler nuspec
-        ' (with the Immutable collections and System.Reflection.Metadata, which
-        '  are normally inserted separately)
-        Dim allCompilerFiles = CompilerFiles.Concat({
-            "System.Collections.Immutable.dll", "System.Reflection.Metadata.dll"})
-        GenerateRoslynCompilerNuSpec(allCompilerFiles)
+        ' VS.Tools.Roslyn CoreXT package needs to contain all dependencies.
+        Dim vsToolsetFiles = CompilerFiles.Concat({
+            "System.Collections.Immutable.dll",
+            "System.Reflection.Metadata.dll",
+            "Microsoft.DiaSymReader.Native.amd64.dll",
+            "Microsoft.DiaSymReader.Native.x86.dll"})
+
+        GenerateVSToolsRoslynCoreXTNuspec(vsToolsetFiles)
 
         ' Copy over the files in the NetFX20 subdirectory (identical, except for references and Authenticode signing).
         ' These are for msvsmon, whose setup authoring is done by the debugger.
@@ -546,14 +548,18 @@ Public Class BuildDevDivInsertionFiles
 
     Private Function BuildDependencyMap(inputDirectory As String) As Dictionary(Of String, DependencyInfo)
         Dim result = New Dictionary(Of String, DependencyInfo)
+        Dim objDir = Path.Combine(Path.GetDirectoryName(_binDirectory.TrimEnd(Path.DirectorySeparatorChar)), "Obj")
+        Dim files = New List(Of String)
+        files.Add(Path.Combine(objDir, "DevDivPackagesRoslyn\project.assets.json"))
+        files.Add(Path.Combine(objDir, "DevDivPackagesDebugger\project.assets.json"))
 
-        For Each projectLockJson In Directory.EnumerateFiles(Path.Combine(_setupDirectory, DevDivPackagesDirName), "*.lock.json", SearchOption.AllDirectories)
+        For Each projectLockJson In files
             Dim items = JsonConvert.DeserializeObject(File.ReadAllText(projectLockJson))
             Const targetFx = ".NETFramework,Version=v4.6/win"
 
             Dim targetObj = DirectCast(DirectCast(DirectCast(items, JObject).Property("targets")?.Value, JObject).Property(targetFx)?.Value, JObject)
             If targetObj Is Nothing Then
-                Throw New InvalidDataException($"Expected platform not found in '{projectLockJson}': '{targetFx}'")
+                Throw New InvalidDataException($"Expected platform Not found in '{projectLockJson}': '{targetFx}'")
             End If
 
             For Each targetProperty In targetObj.Properties
@@ -719,7 +725,7 @@ Public Class BuildDevDivInsertionFiles
     Private Sub ParseSwrFile(path As String, <Out> ByRef version As Version, <Out> ByRef files As IEnumerable(Of String))
         Dim lines = File.ReadAllLines(path)
 
-        version = version.Parse(lines.Single(Function(line) line.TrimStart().StartsWith("version=")).Split("="c)(1))
+        version = Version.Parse(lines.Single(Function(line) line.TrimStart().StartsWith("version=")).Split("="c)(1))
         files = (From line In lines Where line.TrimStart().StartsWith("file")).ToArray()
     End Sub
 
@@ -1034,7 +1040,7 @@ Public Class BuildDevDivInsertionFiles
     End Sub
 
 
-    Private Sub GenerateRoslynCompilerNuSpec(filesToInsert As IEnumerable(Of String))
+    Private Sub GenerateVSToolsRoslynCoreXTNuspec(filesToInsert As IEnumerable(Of String))
         Const PackageName As String = "VS.Tools.Roslyn"
 
         ' No duplicates are allowed

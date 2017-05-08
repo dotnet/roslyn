@@ -246,12 +246,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
             }
             else if (methodDeclaration?.ExpressionBody != null && expressionBodyPreference == ExpressionBodyPreference.Never)
             {
-                var block = methodDeclaration?.ExpressionBody.ConvertToBlock(
-                    methodDeclaration.SemicolonToken, createReturnStatementForExpression);
-                return methodDeclaration.WithExpressionBody(null)
-                                        .WithSemicolonToken(default(SyntaxToken))
-                                        .WithBody(block)
-                                        .WithAdditionalAnnotations(Formatter.Annotation);
+                if (methodDeclaration.ExpressionBody.TryConvertToBlock(
+                        methodDeclaration.SemicolonToken, createReturnStatementForExpression, out var block))
+                {
+                    return methodDeclaration.WithExpressionBody(null)
+                                            .WithSemicolonToken(default(SyntaxToken))
+                                            .WithBody(block)
+                                            .WithAdditionalAnnotations(Formatter.Annotation);
+                }
             }
 
             return methodDeclaration;

@@ -70,8 +70,5 @@
     <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.CSharp.UnitTests" />
   </ItemGroup>
-  <ItemGroup>
-    <None Include="project.json" />
-  </ItemGroup>
   <Import Project="..\..\..\..\..\build\Targets\Imports.targets" />
 </Project>

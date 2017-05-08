@@ -17,5 +17,6 @@ namespace Microsoft.CodeAnalysis
 
         internal const string AnyCodeRoslynWorkspace = nameof(AnyCodeRoslynWorkspace);
         internal const string RemoteWorkspace = nameof(RemoteWorkspace);
+        internal const string RemoteTemporaryWorkspace = nameof(RemoteTemporaryWorkspace);
     }
 }

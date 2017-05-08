@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Storage
     /// A service that enables storing and retrieving of information associated with solutions,
     /// projects or documents across runtime sessions.
     /// </summary>
-    internal abstract partial class AbstractPersistentStorageService : IPersistentStorageService
+    internal abstract partial class AbstractPersistentStorageService : IPersistentStorageService2
     {
         protected readonly IOptionService OptionService;
         private readonly SolutionSizeTracker _solutionSizeTracker;
@@ -58,8 +58,11 @@ namespace Microsoft.CodeAnalysis.Storage
         protected abstract bool ShouldDeleteDatabase(Exception exception);
 
         public IPersistentStorage GetStorage(Solution solution)
+            => GetStorage(solution, checkBranchId: true);
+
+        public IPersistentStorage GetStorage(Solution solution, bool checkBranchId)
         {
-            if (!ShouldUseDatabase(solution))
+            if (!ShouldUseDatabase(solution, checkBranchId))
             {
                 return NoOpPersistentStorage.Instance;
             }
@@ -136,16 +139,21 @@ namespace Microsoft.CodeAnalysis.Storage
             }
         }
 
-        private bool ShouldUseDatabase(Solution solution)
+        private bool ShouldUseDatabase(Solution solution, bool checkBranchId)
         {
             if (_testing)
             {
                 return true;
             }
 
-            // we only use database for primary solution. (Ex, forked solution will not use database)
-            if (solution.BranchId != solution.Workspace.PrimaryBranchId || solution.FilePath == null)
+            if (solution.FilePath == null)
             {
+                return false;
+            }
+
+            if (checkBranchId && solution.BranchId != solution.Workspace.PrimaryBranchId)
+            {
+                // we only use database for primary solution. (Ex, forked solution will not use database)
                 return false;
             }
 
@@ -156,6 +164,14 @@ namespace Microsoft.CodeAnalysis.Storage
         {
             if (_testing)
             {
+                return true;
+            }
+
+            var workspace = solution.Workspace;
+            if (workspace.Kind == WorkspaceKind.RemoteWorkspace ||
+                workspace.Kind == WorkspaceKind.RemoteTemporaryWorkspace)
+            {
+                // Storage is always available in the remote server.
                 return true;
             }
 

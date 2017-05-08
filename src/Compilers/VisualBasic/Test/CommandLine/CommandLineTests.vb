@@ -1093,6 +1093,13 @@ End Module").Path
             parsedArgs.Errors.Verify()
             Assert.Equal(LanguageVersion.VisualBasic15, parsedArgs.ParseOptions.LanguageVersion)
 
+            parsedArgs = DefaultParse({"/langVERSION:15.3", "a.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify()
+            Assert.Equal(LanguageVersion.VisualBasic15_3, parsedArgs.ParseOptions.LanguageVersion)
+
+            ' The canary check is a reminder that this test needs to be updated when a language version is added
+            LanguageVersionAdded_Canary()
+
             parsedArgs = DefaultParse({"/langVERSION:default", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal(LanguageVersion.Default, parsedArgs.ParseOptions.SpecifiedLanguageVersion)
@@ -1101,7 +1108,7 @@ End Module").Path
             parsedArgs = DefaultParse({"/langVERSION:latest", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal(LanguageVersion.Latest, parsedArgs.ParseOptions.SpecifiedLanguageVersion)
-            Assert.Equal(LanguageVersion.VisualBasic15, parsedArgs.ParseOptions.LanguageVersion)
+            Assert.Equal(LanguageVersion.VisualBasic15_3, parsedArgs.ParseOptions.LanguageVersion)
 
             ' default: "current version"
             parsedArgs = DefaultParse({"a.vb"}, _baseDirectory)
@@ -1609,18 +1616,38 @@ End Module").Path
         <Fact>
         Public Sub LanguageVersionAdded_Canary()
             ' When a new version is added, this test will break. This list must be checked:
+            ' - update the command-line error for bad /langver flag (<see cref="ERRID.IDS_VBCHelp"/>)
             ' - update the "UpgradeProject" codefixer
             ' - update the IDE drop-down for selecting Language Version
-            ' - don't fix the canary test until you update all the tests that include it
-            Assert.Equal(LanguageVersion.VisualBasic15, LanguageVersion.Latest.MapSpecifiedToEffectiveVersion())
-            Assert.Equal(LanguageVersion.VisualBasic15, LanguageVersion.Default.MapSpecifiedToEffectiveVersion())
+            ' - update legacy project system to pass Language Version from MSBuild to IDE (see CVbcMSBuildHostObject::SetLanguageVersion)
+            ' - update all the tests that call this canary
+            ' - update the command-line documentation (CommandLine.md)
+            AssertEx.SetEqual({"default", "9", "10", "11", "12", "14", "15", "15.3", "latest"},
+                System.Enum.GetValues(GetType(LanguageVersion)).Cast(Of LanguageVersion)().Select(Function(v) v.ToDisplayString()))
+            ' For minor versions, the format should be "x.y", such as "15.3"
         End Sub
 
         <Fact>
-        Public Sub LanguageVersion_DisplayString()
-            AssertEx.SetEqual({"default", "9", "10", "11", "12", "14", "15", "latest"},
-                System.Enum.GetValues(GetType(LanguageVersion)).Cast(Of LanguageVersion)().Select(Function(v) v.ToDisplayString()))
-            ' For minor versions, the format should be "x.y", such as "15.1"
+        Public Sub LanguageVersion_GetErrorCode()
+            Dim versions = System.Enum.GetValues(GetType(LanguageVersion)).
+                Cast(Of LanguageVersion)().
+                Except({LanguageVersion.Default, LanguageVersion.Latest}).
+                Select(Function(v) v.GetErrorName())
+
+            Dim errorCodes = {
+                "9.0",
+                "10.0",
+                "11.0",
+                "12.0",
+                "14.0",
+                "15.0",
+                "15.3"
+             }
+
+            AssertEx.SetEqual(versions, errorCodes)
+
+            ' The canary check is a reminder that this test needs to be updated when a language version is added
+            LanguageVersionAdded_Canary()
         End Sub
 
         <Fact>
@@ -1632,9 +1659,11 @@ End Module").Path
             Assert.Equal(LanguageVersion.VisualBasic14, LanguageVersion.VisualBasic14.MapSpecifiedToEffectiveVersion())
             Assert.Equal(LanguageVersion.VisualBasic15, LanguageVersion.VisualBasic15.MapSpecifiedToEffectiveVersion())
             Assert.Equal(LanguageVersion.VisualBasic15, LanguageVersion.Default.MapSpecifiedToEffectiveVersion())
-            Assert.Equal(LanguageVersion.VisualBasic15, LanguageVersion.Latest.MapSpecifiedToEffectiveVersion())
 
-            ' The canary check Is a reminder that this test needs to be updated when a language version Is added
+            Assert.Equal(LanguageVersion.VisualBasic15_3, LanguageVersion.VisualBasic15_3.MapSpecifiedToEffectiveVersion())
+            Assert.Equal(LanguageVersion.VisualBasic15_3, LanguageVersion.Latest.MapSpecifiedToEffectiveVersion())
+
+            ' The canary check is a reminder that this test needs to be updated when a language version is added
             LanguageVersionAdded_Canary()
         End Sub
 
@@ -1651,6 +1680,7 @@ End Module").Path
             InlineData("14.0", True, LanguageVersion.VisualBasic14),
             InlineData("15", True, LanguageVersion.VisualBasic15),
             InlineData("15.0", True, LanguageVersion.VisualBasic15),
+            InlineData("15.3", True, LanguageVersion.VisualBasic15_3),
             InlineData("DEFAULT", True, LanguageVersion.Default),
             InlineData("default", True, LanguageVersion.Default),
             InlineData("LATEST", True, LanguageVersion.Latest),
@@ -1661,6 +1691,29 @@ End Module").Path
             Dim version As LanguageVersion
             Assert.Equal(success, input.TryParse(version))
             Assert.Equal(expected, version)
+
+            ' The canary check is a reminder that this test needs to be updated when a language version is added
+            LanguageVersionAdded_Canary()
+        End Sub
+
+        <Fact>
+        Public Sub LanguageVersion_CommandLineUsage()
+            Dim expected = [Enum].GetValues(GetType(LanguageVersion)).Cast(Of LanguageVersion)().Select(Function(v) v.ToDisplayString())
+            Dim help = VBResources.IDS_VBCHelp
+
+            Dim rangeStart = help.IndexOf("/langversion")
+            Dim rangeEnd = help.IndexOf("/optionexplicit")
+            Assert.True(rangeEnd > rangeStart)
+
+            Dim helpRange = help.Substring(rangeStart, rangeEnd - rangeStart).ToLowerInvariant()
+            Dim acceptableSurroundingChar = {CChar(vbCr), CChar(vbLf), "|"c, " "c}
+
+            For Each v In expected
+                Dim foundIndex = helpRange.IndexOf(v)
+                Assert.True(foundIndex > 0, $"Missing version '{v}'")
+                Assert.True(Array.IndexOf(acceptableSurroundingChar, helpRange(foundIndex - 1)) >= 0)
+                Assert.True(Array.IndexOf(acceptableSurroundingChar, helpRange(foundIndex + v.Length)) >= 0)
+            Next
 
             ' The canary check is a reminder that this test needs to be updated when a language version is added
             LanguageVersionAdded_Canary()
@@ -8235,6 +8288,29 @@ End Module
         Public Sub CompilingCodeWithInvalidLanguageVersionShouldProvideDiagnostics()
             Dim parsedArgs = DefaultParse({"/langversion:1000", "a.cs"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("langversion", "1000").WithLocation(1, 1))
+        End Sub
+
+        <WorkItem(406649, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=406649")>
+        <ConditionalFact(GetType(IsEnglishLocal))>
+        Public Sub MissingCompilerAssembly()
+            Dim dir = Temp.CreateDirectory()
+            Dim vbcPath = dir.CopyFile(GetType(Vbc).Assembly.Location).Path
+
+            ' Missing Microsoft.CodeAnalysis.VisualBasic.dll.
+            Dim result = ProcessUtilities.Run(vbcPath, arguments:="/nologo /t:library unknown.vb", workingDirectory:=dir.Path)
+            Assert.Equal(1, result.ExitCode)
+            Assert.Equal(
+                $"Could not load file or assembly '{GetType(VisualBasicCompilation).Assembly.FullName}' or one of its dependencies. The system cannot find the file specified.",
+                result.Output.Trim())
+
+            ' Missing System.Collections.Immutable.dll.
+            dir.CopyFile(GetType(Compilation).Assembly.Location)
+            dir.CopyFile(GetType(VisualBasicCompilation).Assembly.Location)
+            result = ProcessUtilities.Run(vbcPath, arguments:="/nologo /t:library unknown.vb", workingDirectory:=dir.Path)
+            Assert.Equal(1, result.ExitCode)
+            Assert.Equal(
+                $"Could not load file or assembly '{GetType(ImmutableArray).Assembly.FullName}' or one of its dependencies. The system cannot find the file specified.",
+                result.Output.Trim())
         End Sub
 
         Private Function MakeTrivialExe(Optional directory As String = Nothing) As String
