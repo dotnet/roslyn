@@ -593,7 +593,7 @@ class C
                 Await state.AssertSelectedCompletionItem(displayText:="first:", isHardSelected:=True)
                 Assert.Equal("first", state.CurrentCompletionPresenterSession.SelectedItem.FilterText)
                 state.SendTypeChars(":")
-                Assert.Contains("(fi:", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+                Assert.Contains("(first:", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
         End Function
 
@@ -635,7 +635,7 @@ class C
                 Await state.AssertSelectedCompletionItem(displayText:="second:", isHardSelected:=True)
                 Assert.Equal("second", state.CurrentCompletionPresenterSession.SelectedItem.FilterText)
                 state.SendTypeChars(":")
-                Assert.Contains("(0, se:", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+                Assert.Contains("(0, second:", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
         End Function
 
