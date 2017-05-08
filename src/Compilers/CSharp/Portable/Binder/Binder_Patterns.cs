@@ -197,8 +197,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                     //case ConversionKind.ImplicitConstant:
                     //case ConversionKind.ImplicitNumeric:
                     default:
-                        Error(diagnostics, ErrorCode.ERR_PatternWrongType, typeSyntax, operandType, patternType);
-                        return true;
+                        if (operandType.ContainsTypeParameter() || patternType.ContainsTypeParameter())
+                        {
+                            LanguageVersion requiredVersion = MessageID.IDS_FeatureGenericPatternMatching.RequiredVersion();
+                            if (requiredVersion > Compilation.LanguageVersion)
+                            {
+                                Error(diagnostics, ErrorCode.ERR_PatternWrongGenericTypeInVersion, typeSyntax,
+                                    operandType, patternType,
+                                    Compilation.LanguageVersion.ToDisplayString(),
+                                    new CSharpRequiredLanguageVersion(requiredVersion));
+                                return true;
+                            }
+
+                            // permit pattern-matching when one of the types is an open type in C# 7.1.
+                            break;
+                        }
+                        else
+                        {
+                            Error(diagnostics, ErrorCode.ERR_PatternWrongType, typeSyntax, operandType, patternType);
+                            return true;
+                        }
                 }
             }
 

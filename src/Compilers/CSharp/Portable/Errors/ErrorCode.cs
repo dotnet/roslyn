@@ -1476,8 +1476,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_Experimental = 8305,
         ERR_TupleInferredNamesNotAvailable = 8306,
 
+        #region diagnostics for C# 7.1
+
         ERR_BadDynamicMethodArgDefaultLiteral = 9000,
         ERR_DefaultLiteralNotValid = 9001,
         WRN_DefaultInSwitch = 9002,
+        ERR_PatternWrongGenericTypeInVersion = 9003,
+
+        #endregion diagnostics for C# 7.1
     }
 }
