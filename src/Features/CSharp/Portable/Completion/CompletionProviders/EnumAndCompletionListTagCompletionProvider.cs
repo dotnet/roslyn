@@ -144,35 +144,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             // as an 'int' type, not the enum type.
 
             // See if we're after a common enum-combining operator.
-            if (token.Kind() != SyntaxKind.BarToken &&
-                token.Kind() != SyntaxKind.AmpersandToken &&
-                token.Kind() != SyntaxKind.CaretToken)
+            if (token.Kind() == SyntaxKind.BarToken ||
+                token.Kind() == SyntaxKind.AmpersandToken ||
+                token.Kind() == SyntaxKind.CaretToken)
             {
-                return null;
+                // See if the type we're looking at is the underlying type for the enum we're contained in.
+                var containingType = semanticModel.GetEnclosingNamedType(token.SpanStart, cancellationToken);
+                if (containingType?.TypeKind == TypeKind.Enum &&
+                    type.Equals(containingType.EnumUnderlyingType))
+                {
+                    // If so, walk back to the token before the operator token and see if it binds to a member
+                    // of this enum.
+                    var previousToken = token.GetPreviousToken();
+                    var symbol = semanticModel.GetSymbolInfo(previousToken.Parent, cancellationToken).Symbol;
+
+                    if (symbol?.Kind == SymbolKind.Field &&
+                        containingType.Equals(symbol.ContainingType))
+                    {
+                        // If so, then offer this as a place for enum completion for the enum we're currently 
+                        // inside of.
+                        return containingType;
+                    }
+                }
             }
 
-            // See if the type we're looking at is the underlying type for the enum we're contained in.
-            var containingType = semanticModel.GetEnclosingNamedType(token.SpanStart, cancellationToken);
-            if (containingType?.TypeKind != TypeKind.Enum ||
-                !type.Equals(containingType.EnumUnderlyingType))
-            {
-                return null;
-            }
-
-            // If so, walk back to the token before the operator token and see if it binds to a member
-            // of this enum.
-            var previousToken = token.GetPreviousToken();
-            var symbol = semanticModel.GetSymbolInfo(previousToken.Parent, cancellationToken).Symbol;
-
-            if (symbol?.Kind != SymbolKind.Field ||
-                !containingType.Equals(symbol.ContainingType))
-            {
-                return null;
-            }
-
-            // If so, then offer this as a place for enum completion for the enum we're currently 
-            // inside of.
-            return containingType;
+            return null;
         }
 
         protected override Task<CompletionDescription> GetDescriptionWorkerAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
