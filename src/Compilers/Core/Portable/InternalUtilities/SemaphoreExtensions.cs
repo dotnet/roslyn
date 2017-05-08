@@ -29,7 +29,11 @@ namespace Roslyn.Utilities
 
         public static Task<SemaphoreDisposer> DisposableWaitAsync(this Semaphore semaphore, CancellationToken cancellationToken)
         {
-            return Task.Run(() => DisposableWait(semaphore, cancellationToken));
+            return Task.Factory.StartNew(
+                () => DisposableWait(semaphore, cancellationToken),
+                cancellationToken,
+                TaskCreationOptions.LongRunning,
+                TaskScheduler.Default);
         }
 
         internal struct SemaphoreDisposer : IDisposable
