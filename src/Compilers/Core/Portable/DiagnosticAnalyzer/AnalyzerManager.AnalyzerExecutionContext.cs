@@ -151,14 +151,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 var supportedDiagnostics = ImmutableArray<DiagnosticDescriptor>.Empty;
 
                 // Catch Exception from analyzer.SupportedDiagnostics
-                analyzerExecutor.ExecuteAndCatchIfThrows(analyzer, () =>
-                {
-                    var supportedDiagnosticsLocal = analyzer.SupportedDiagnostics;
-                    if (!supportedDiagnosticsLocal.IsDefaultOrEmpty)
+                analyzerExecutor.ExecuteAndCatchIfThrows(
+                    analyzer,
+                    _ =>
                     {
-                        supportedDiagnostics = supportedDiagnosticsLocal;
-                    }
-                });
+                        var supportedDiagnosticsLocal = analyzer.SupportedDiagnostics;
+                        if (!supportedDiagnosticsLocal.IsDefaultOrEmpty)
+                        {
+                            supportedDiagnostics = supportedDiagnosticsLocal;
+                        }
+                    },
+                    argument: default(object));
 
                 // Force evaluate and report exception diagnostics from LocalizableString.ToString().
                 Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = analyzerExecutor.OnAnalyzerException;
