@@ -91,11 +91,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
                 if (type.TypeKind != TypeKind.Enum)
                 {
-                    type = GetCompletionListType(type, semanticModel.GetEnclosingNamedType(position, cancellationToken), semanticModel.Compilation);
+                    var enumType = TryGetEnumTypeInEnumInitializer(semanticModel, token, type, cancellationToken);
+                    if (enumType != null)
+                    {
+                        type = enumType;
+                    }
+
                     if (type == null)
                     {
-                        return;
+                        type = GetCompletionListType(type, semanticModel.GetEnclosingNamedType(position, cancellationToken), semanticModel.Compilation);
                     }
+                }
+
+                if (type == null)
+                {
+                    return;
                 }
 
                 if (!type.IsEditorBrowsable(options.GetOption(CompletionOptions.HideAdvancedMembers, semanticModel.Language), semanticModel.Compilation))
@@ -104,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 }
 
                 // Does type have any aliases?
-                ISymbol alias = await type.FindApplicableAlias(position, semanticModel, cancellationToken).ConfigureAwait(false);
+                var alias = await type.FindApplicableAlias(position, semanticModel, cancellationToken).ConfigureAwait(false);
 
                 var displayService = document.GetLanguageService<ISymbolDisplayService>();
                 var displayText = alias != null
@@ -126,6 +136,49 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             {
                 throw ExceptionUtilities.Unreachable;
             }
+        }
+
+        private ITypeSymbol TryGetEnumTypeInEnumInitializer(
+            SemanticModel semanticModel, SyntaxToken token,
+            ITypeSymbol type, CancellationToken cancellationToken)
+        {
+            // https://github.com/dotnet/roslyn/issues/5419
+            //
+            // 14.3: "Within an enum member initializer, values of other enum members are always 
+            // treated as having the type of their underlying type"
+
+            if (token.Kind() != SyntaxKind.BarToken &&
+                token.Kind() != SyntaxKind.AmpersandToken &&
+                token.Kind() != SyntaxKind.CaretToken)
+            {
+                return null;
+            }
+
+            var containingType = semanticModel.GetEnclosingNamedType(token.SpanStart, cancellationToken);
+            if (containingType?.TypeKind != TypeKind.Enum)
+            {
+                return null;
+            }
+
+            if (!type.Equals(containingType.EnumUnderlyingType))
+            {
+                return null;
+            }
+
+            var previousToken = token.GetPreviousToken();
+            var symbol = semanticModel.GetSymbolInfo(previousToken.Parent, cancellationToken).Symbol;
+
+            if (symbol?.Kind != SymbolKind.Field)
+            {
+                return null;
+            }
+
+            if (!containingType.Equals(symbol.ContainingType))
+            {
+                return null;
+            }
+
+            return containingType;
         }
 
         protected override Task<CompletionDescription> GetDescriptionWorkerAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
