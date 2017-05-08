@@ -590,7 +590,7 @@ class C
 }]]></Document>)
 
                 state.SendTypeChars("fi")
-                Await state.AssertSelectedCompletionItem(displayText:="first", isHardSelected:=True)
+                Await state.AssertSelectedCompletionItem(displayText:="first:", isHardSelected:=True)
                 state.SendTypeChars(":")
                 Assert.Contains("(fi:", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
@@ -610,7 +610,7 @@ class C
 }]]></Document>)
 
                 state.SendTypeChars("se")
-                Await state.AssertSelectedCompletionItem(displayText:="second", isHardSelected:=True)
+                Await state.AssertSelectedCompletionItem(displayText:="second:", isHardSelected:=True)
                 state.SendTypeChars(":")
                 Assert.Contains("(0, se:", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
@@ -630,10 +630,11 @@ class C
 }]]></Document>)
 
                 state.SendTypeChars("fi")
-                Await state.AssertSelectedCompletionItem(displayText:="first", isHardSelected:=True)
+                Await state.AssertSelectedCompletionItem(displayText:="first:", isHardSelected:=True)
                 state.SendTab()
                 state.SendTypeChars(":")
-                Assert.Contains("(first:", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+                state.SendTypeChars("0")
+                Assert.Contains("(first:0", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
         End Function
 
@@ -651,10 +652,11 @@ class C
 }]]></Document>)
 
                 state.SendTypeChars("se")
-                Await state.AssertSelectedCompletionItem(displayText:="second", isHardSelected:=True)
+                Await state.AssertSelectedCompletionItem(displayText:="second:", isHardSelected:=True)
                 state.SendTab()
                 state.SendTypeChars(":")
-                Assert.Contains("(0, second:", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+                state.SendTypeChars("1")
+                Assert.Contains("(0, second:1", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
         End Function
 

@@ -2,6 +2,7 @@
 
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -9,11 +10,14 @@ using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
     internal class TupleNameCompletionProvider : CommonCompletionProvider
     {
+        private const string ColonString = ":";
+
         private static readonly CompletionItemRules _cachedRules = CompletionItemRules.Default
             .WithCommitCharacterRule(CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, ':'));
 
@@ -75,10 +79,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 }
 
                 var field = type.TupleElements[index];
-                var item = CommonCompletionItem.Create(
-                    field.Name, _cachedRules, Glyph.FieldPublic);
+                var item = CommonCompletionItem.Create(field.Name + ColonString, _cachedRules, Glyph.FieldPublic);
                 context.AddItem(item);
             }
+        }
+
+        protected override Task<TextChange?> GetTextChangeAsync(CompletionItem selectedItem, char? ch, CancellationToken cancellationToken)
+        {
+            return Task.FromResult<TextChange?>(new TextChange(
+                selectedItem.Span,
+                selectedItem.DisplayText.Substring(0, selectedItem.DisplayText.Length - ColonString.Length)));
         }
     }
 }
