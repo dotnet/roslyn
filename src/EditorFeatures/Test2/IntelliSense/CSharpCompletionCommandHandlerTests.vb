@@ -591,6 +591,7 @@ class C
 
                 state.SendTypeChars("fi")
                 Await state.AssertSelectedCompletionItem(displayText:="first:", isHardSelected:=True)
+                Assert.Equal("first", state.CurrentCompletionPresenterSession.SelectedItem.FilterText)
                 state.SendTypeChars(":")
                 Assert.Contains("(fi:", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
@@ -611,6 +612,7 @@ class C
 
                 state.SendTypeChars("first")
                 Await state.AssertSelectedCompletionItem(displayText:="first:", isHardSelected:=True)
+                Assert.Equal("first", state.CurrentCompletionPresenterSession.SelectedItem.FilterText)
                 state.SendTypeChars(":")
                 Assert.Contains("(first:", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
@@ -631,6 +633,7 @@ class C
 
                 state.SendTypeChars("se")
                 Await state.AssertSelectedCompletionItem(displayText:="second:", isHardSelected:=True)
+                Assert.Equal("second", state.CurrentCompletionPresenterSession.SelectedItem.FilterText)
                 state.SendTypeChars(":")
                 Assert.Contains("(0, se:", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
@@ -651,6 +654,7 @@ class C
 
                 state.SendTypeChars("fi")
                 Await state.AssertSelectedCompletionItem(displayText:="first:", isHardSelected:=True)
+                Assert.Equal("first", state.CurrentCompletionPresenterSession.SelectedItem.FilterText)
                 state.SendTab()
                 state.SendTypeChars(":")
                 state.SendTypeChars("0")
@@ -673,6 +677,7 @@ class C
 
                 state.SendTypeChars("first")
                 Await state.AssertSelectedCompletionItem(displayText:="first:", isHardSelected:=True)
+                Assert.Equal("first", state.CurrentCompletionPresenterSession.SelectedItem.FilterText)
                 state.SendTab()
                 state.SendTypeChars(":")
                 state.SendTypeChars("0")
@@ -695,6 +700,7 @@ class C
 
                 state.SendTypeChars("se")
                 Await state.AssertSelectedCompletionItem(displayText:="second:", isHardSelected:=True)
+                Assert.Equal("second", state.CurrentCompletionPresenterSession.SelectedItem.FilterText)
                 state.SendTab()
                 state.SendTypeChars(":")
                 state.SendTypeChars("1")
