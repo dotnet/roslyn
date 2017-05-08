@@ -91,16 +91,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
                 if (type.TypeKind != TypeKind.Enum)
                 {
-                    var enumType = TryGetEnumTypeInEnumInitializer(semanticModel, token, type, cancellationToken);
-                    if (enumType != null)
-                    {
-                        type = enumType;
-                    }
-
-                    if (type == null)
-                    {
-                        type = GetCompletionListType(type, semanticModel.GetEnclosingNamedType(position, cancellationToken), semanticModel.Compilation);
-                    }
+                    type = TryGetEnumTypeInEnumInitializer(semanticModel, token, type, cancellationToken) ??
+                           GetCompletionListType(type, semanticModel.GetEnclosingNamedType(position, cancellationToken), semanticModel.Compilation);
                 }
 
                 if (type == null)
