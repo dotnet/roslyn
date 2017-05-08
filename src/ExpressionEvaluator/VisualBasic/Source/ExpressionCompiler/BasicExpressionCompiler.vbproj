@@ -9,6 +9,7 @@
     <OutputType>Library</OutputType>
     <AssemblyName>Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.ExpressionCompiler</AssemblyName>
     <TargetFramework>netstandard1.3</TargetFramework>
+    <NoWarn>$(NoWarn);40057</NoWarn>
     <PackageTargetFallback>portable-net46</PackageTargetFallback>
     <!-- Don't transitively copy output files, since everything builds to the same folder. -->
   </PropertyGroup>
