@@ -2987,5 +2987,120 @@ class Program
                 Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case (string)null:").WithArguments("null").WithLocation(37, 13)
                 );
         }
+
+        [Fact]
+        public void SubsumedCasesAreUnreachable_01()
+        {
+            var source =
+@"
+class Program
+{
+    static void Main(string[] args)
+    {
+        switch (args.Length)
+        {
+            case 1:
+                break;
+            case System.IComparable c:
+                break;
+            case 2: // error: subsumed
+                break; // unreachable
+            case int n: // error: subsumed
+                break; // unreachable
+            case var i: // error: subsumed
+                break; // unreachable
+            default:
+                break; // ok; default case is always considered reachable
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics(
+                // (12,13): error CS8120: The switch case has already been handled by a previous case.
+                //             case 2: // error: subsumed
+                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "case 2:").WithLocation(12, 13),
+                // (14,18): error CS8120: The switch case has already been handled by a previous case.
+                //             case int n: // error: subsumed
+                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "int n").WithLocation(14, 18),
+                // (16,18): error CS8120: The switch case has already been handled by a previous case.
+                //             case var i: // error: subsumed
+                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "var i").WithLocation(16, 18),
+                // (13,17): warning CS0162: Unreachable code detected
+                //                 break; // unreachable
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(13, 17),
+                // (15,17): warning CS0162: Unreachable code detected
+                //                 break; // unreachable
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(15, 17),
+                // (17,17): warning CS0162: Unreachable code detected
+                //                 break; // unreachable
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(17, 17)
+                );
+        }
+
+        [Fact]
+        public void SwitchTuple()
+        {
+            var source =
+@"
+class Program
+{
+    static void Main(string[] args)
+    {
+        switch ((x: 1, y: 2))
+        {
+            case System.IComparable c:
+                break;
+            case System.ValueTuple<int, int> x: // error: subsumed
+                break; // unreachable
+            default:
+                break; // ok; default case is always considered reachable
+        }
+    }
+}
+";
+            var compilation = CreateStandardCompilation(
+                source, options: TestOptions.ReleaseExe, references: new[] { SystemRuntimeFacadeRef, ValueTupleRef });
+            compilation.VerifyDiagnostics(
+                // (10,18): error CS8120: The switch case has already been handled by a previous case.
+                //             case System.ValueTuple<int, int> x: // error: subsumed
+                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "System.ValueTuple<int, int> x").WithLocation(10, 18),
+                // (11,17): warning CS0162: Unreachable code detected
+                //                 break; // unreachable
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(11, 17)
+                );
+        }
+
+        [Fact]
+        public void ByValueThenByTypeTwice()
+        {
+            var source =
+@"
+class Program
+{
+    static bool b = false;
+    static int i = 2;
+    static void Main(string[] args)
+    {
+        switch (i)
+        {
+            case 1:
+                break;
+            case System.IComparable c when b:
+                break;
+            case System.IFormattable f when b:
+                break;
+            default:
+                System.Console.WriteLine(nameof(Main));
+                break;
+        }
+    }
+}
+";
+            var compilation = CreateStandardCompilation(
+                source, options: TestOptions.ReleaseExe, references: new[] { SystemRuntimeFacadeRef, ValueTupleRef });
+            compilation.VerifyDiagnostics();
+            var comp = CompileAndVerify(compilation, expectedOutput: "Main");
+        }
     }
 }
