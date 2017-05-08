@@ -1528,8 +1528,7 @@ class C
         }
 
         [WorkItem(17624, "https://github.com/dotnet/roslyn/issues/17624")]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/17635"),
-         Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
         public async Task TestInLoops3()
         {
             await TestInRegularAndScript1Async(
@@ -1967,6 +1966,44 @@ class C
         {
             Console.WriteLine(_);
         }
+    }
+}");
+        }
+
+        [WorkItem(18668, "https://github.com/dotnet/roslyn/issues/18668")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        public async Task TestDefiniteAssignmentIssueWithVar()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+using System;
+
+class C
+{
+    static void M(bool condition)
+    {
+        [|var|] x = 1;
+        var result = condition && int.TryParse(""2"", out x);
+        Console.WriteLine(x);
+    }
+}");
+        }
+
+        [WorkItem(18668, "https://github.com/dotnet/roslyn/issues/18668")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        public async Task TestDefiniteAssignmentIssueWithNonVar()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+using System;
+
+class C
+{
+    static void M(bool condition)
+    {
+        [|int|] x = 1;
+        var result = condition && int.TryParse(""2"", out x);
+        Console.WriteLine(x);
     }
 }");
         }

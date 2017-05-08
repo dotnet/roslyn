@@ -12,10 +12,11 @@ namespace Microsoft.CodeAnalysis.Execution
     /// <summary>
     /// checksum scope that one can use to pin assets in memory while working on remote host
     /// </summary>
-    internal class PinnedRemotableDataScope : IDisposable
+    internal sealed class PinnedRemotableDataScope : IDisposable
     {
         private readonly AssetStorages _storages;
         private readonly AssetStorages.Storage _storage;
+        private bool _disposed;
 
         public readonly Checksum SolutionChecksum;
 
@@ -63,7 +64,12 @@ namespace Microsoft.CodeAnalysis.Execution
 
         public void Dispose()
         {
-            _storages.UnregisterSnapshot(this);
+            if (!_disposed)
+            {
+                _disposed = true;
+                _storages.UnregisterSnapshot(this);
+            }
+
             GC.SuppressFinalize(this);
         }
 

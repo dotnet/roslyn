@@ -157,6 +157,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim interactiveMode As Boolean = False
             Dim instrumentationKinds As ArrayBuilder(Of InstrumentationKind) = ArrayBuilder(Of InstrumentationKind).GetInstance()
             Dim sourceLink As String = Nothing
+            Dim ruleSetPath As String = Nothing
 
             ' Process ruleset files first so that diagnostic severity settings specified on the command line via
             ' /nowarn and /warnaserror can override diagnostic severity settings specified in the ruleset file.
@@ -171,7 +172,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Continue For
                         End If
 
-                        generalDiagnosticOption = GetDiagnosticOptionsFromRulesetFile(specificDiagnosticOptionsFromRuleSet, diagnostics, unquoted, baseDirectory)
+                        ruleSetPath = ParseGenericPathToFile(unquoted, diagnostics, baseDirectory)
+                        generalDiagnosticOption = GetDiagnosticOptionsFromRulesetFile(ruleSetPath, specificDiagnosticOptionsFromRuleSet, diagnostics)
                     End If
                 Next
             End If
@@ -1386,6 +1388,7 @@ lVbRuntimePlus:
                 .OutputLevel = outputLevel,
                 .EmitPdb = emitPdb,
                 .SourceLink = sourceLink,
+                .RuleSetPath = ruleSetPath,
                 .DefaultCoreLibraryReference = defaultCoreLibraryReference,
                 .PreferredUILang = preferredUILang,
                 .ReportAnalyzer = reportAnalyzer,
@@ -1913,20 +1916,14 @@ lVbRuntimePlus:
                             End If
 
                             ' Expression evaluated successfully --> add to 'defines'
-                            If defines.ContainsKey(symbolName) Then
-                                defines = defines.Remove(symbolName)
-                            End If
-                            defines = defines.Add(symbolName, value)
+                            defines = defines.SetItem(symbolName, value)
 
                         ElseIf tokens.Current.Kind = SyntaxKind.CommaToken OrElse
                             tokens.Current.Kind = SyntaxKind.ColonToken OrElse
                             tokens.Current.Kind = SyntaxKind.EndOfFileToken Then
                             ' We have no value being assigned, so we'll just assign it to true
 
-                            If defines.ContainsKey(symbolName) Then
-                                defines = defines.Remove(symbolName)
-                            End If
-                            defines = defines.Add(symbolName, InternalSyntax.CConst.Create(True))
+                            defines = defines.SetItem(symbolName, InternalSyntax.CConst.Create(True))
 
                         ElseIf tokens.Current.Kind = SyntaxKind.BadToken Then
                             GetErrorStringForRemainderOfConditionalCompilation(tokens, parsedTokensAsString)

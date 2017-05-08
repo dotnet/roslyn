@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private DecisionTree AddByValue(DecisionTree.ByValue byValue, BoundConstantPattern value, DecisionMaker makeDecision)
         {
-            Debug.Assert(value.Value.Type == byValue.Type);
+            Debug.Assert(value.Value.Type.Equals(byValue.Type, TypeCompareKind.IgnoreDynamicAndTupleNames));
             if (byValue.Default != null)
             {
                 return AddByValue(byValue.Default, value, makeDecision);
@@ -221,7 +221,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var kvp = byType.TypeAndDecision[i];
                 var matchedType = kvp.Key;
                 var decision = kvp.Value;
-                if (matchedType.TupleUnderlyingTypeOrSelf() == value.Value.Type.TupleUnderlyingTypeOrSelf())
+                if (matchedType.Equals(value.Value.Type, TypeCompareKind.IgnoreDynamicAndTupleNames))
                 {
                     forType = decision;
                     break;
@@ -237,7 +237,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (forType == null)
             {
                 var type = value.Value.Type;
-                var localSymbol = new SynthesizedLocal(_enclosingSymbol as MethodSymbol, type, SynthesizedLocalKind.PatternMatchingTemp, Syntax, false, RefKind.None);
+                var localSymbol = new SynthesizedLocal(_enclosingSymbol as MethodSymbol, type, SynthesizedLocalKind.PatternMatching, Syntax, false, RefKind.None);
                 var narrowedExpression = new BoundLocal(Syntax, localSymbol, null, type);
                 forType = new DecisionTree.ByValue(narrowedExpression, value.Value.Type.TupleUnderlyingTypeOrSelf(), localSymbol);
                 byType.TypeAndDecision.Add(new KeyValuePair<TypeSymbol, DecisionTree>(value.Value.Type, forType));
@@ -260,21 +260,30 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case DecisionTree.DecisionKind.ByValue:
                     {
                         var byValue = (DecisionTree.ByValue)decision;
+                        DecisionTree result;
                         if (byValue.Default == null)
                         {
-                            byValue.Default = makeDecision(byValue.Expression, byValue.Type);
-                            if (byValue.Default.MatchIsComplete)
+                            if (byValue.Type.Equals(type, TypeCompareKind.IgnoreDynamicAndTupleNames))
                             {
-                                byValue.MatchIsComplete = true;
+                                result = byValue.Default = makeDecision(byValue.Expression, byValue.Type);
                             }
-
-                            return byValue.Default;
+                            else
+                            {
+                                byValue.Default = new DecisionTree.ByType(byValue.Expression, byValue.Type, null);
+                                result = AddByType(byValue.Default, type, makeDecision);
+                            }
                         }
                         else
                         {
-                            Debug.Assert(byValue.Default.Type == type);
-                            return Add(byValue.Default, makeDecision);
+                            result = AddByType(byValue.Default, type, makeDecision);
                         }
+
+                        if (byValue.Default.MatchIsComplete)
+                        {
+                            byValue.MatchIsComplete = true;
+                        }
+
+                        return result;
                     }
                 case DecisionTree.DecisionKind.Guarded:
                     return AddByType((DecisionTree.Guarded)decision, type, makeDecision);
@@ -321,7 +330,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (byType.TypeAndDecision.Count != 0)
             {
                 var lastTypeAndDecision = byType.TypeAndDecision.Last();
-                if (lastTypeAndDecision.Key.TupleUnderlyingTypeOrSelf() == type.TupleUnderlyingTypeOrSelf())
+                if (lastTypeAndDecision.Key.Equals(type, TypeCompareKind.IgnoreDynamicAndTupleNames))
                 {
                     result = Add(lastTypeAndDecision.Value, makeDecision);
                 }
@@ -329,7 +338,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (result == null)
             {
-                var localSymbol = new SynthesizedLocal(_enclosingSymbol as MethodSymbol, type, SynthesizedLocalKind.PatternMatchingTemp, Syntax, false, RefKind.None);
+                var localSymbol = new SynthesizedLocal(_enclosingSymbol as MethodSymbol, type, SynthesizedLocalKind.PatternMatching, Syntax, false, RefKind.None);
                 var expression = new BoundLocal(Syntax, localSymbol, null, type);
                 result = makeDecision(expression, type);
                 Debug.Assert(result.Temp == null);
@@ -533,7 +542,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol patternType,
             ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
-            if (expressionType == patternType)
+            if ((object)expressionType == (object)patternType)
             {
                 return true;
             }

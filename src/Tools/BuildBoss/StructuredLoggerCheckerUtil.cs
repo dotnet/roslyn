@@ -57,7 +57,6 @@ namespace BuildBoss
                     foreach (var item in list)
                     {
                         textWriter.WriteLine($"\t{item}");
-
                     }
                     textWriter.WriteLine("");
 

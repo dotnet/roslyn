@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ExplicitTupleLiteral,
         ExplicitTuple,
         ImplicitNullable,
-        NullLiteral,
+        DefaultOrNullLiteral,
         ImplicitReference,
         Boxing,
         PointerToVoid,

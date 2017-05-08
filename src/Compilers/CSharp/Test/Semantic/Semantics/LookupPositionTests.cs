@@ -1459,7 +1459,7 @@ label1:
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib(source, references: new[] { LinqAssemblyRef });
+            var compilation = CreateStandardCompilation(source, references: new[] { LinqAssemblyRef });
 
             var tree = compilation.SyntaxTrees.Single();
             var model = (Microsoft.CodeAnalysis.SemanticModel)(compilation.GetSemanticModel(tree));
@@ -1624,7 +1624,7 @@ class Derived : Base<int>
             var text = textBuilder.ToString();
 
             var parseOptions = TestOptions.RegularWithDocumentationComments;
-            var compilation = CreateCompilationWithMscorlib(text, parseOptions: parseOptions);
+            var compilation = CreateStandardCompilation(text, parseOptions: parseOptions);
             var tree = compilation.SyntaxTrees[0];
             return compilation.GetSemanticModel(tree);
         }

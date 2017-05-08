@@ -298,8 +298,15 @@ namespace Microsoft.Cci
         {
             Debug.Assert(_metadataWriter != null);
 
-            bool isIterator = methodBody.StateMachineTypeName != null;
-            bool emitDebugInfo = isIterator || methodBody.HasAnySequencePoints;
+            // A state machine kickoff method doesn't have sequence points as it only contains generated code.
+            // We could avoid emitting debug info for it if the corresponding MoveNext method had no sequence points,
+            // but there is no real need for such optimization.
+            // 
+            // Special case a hidden entry point (#line hidden applied) that would otherwise have no debug info.
+            // This is to accomodate for a requirement of Windows PDB writer that the entry point method must have some debug information.
+            bool isKickoffMethod = methodBody.StateMachineTypeName != null;
+            bool emitDebugInfo = isKickoffMethod || !methodBody.SequencePoints.IsEmpty ||
+                methodBody.MethodDefinition == (Context.Module.DebugEntryPoint ?? Context.Module.PEEntryPoint);
 
             if (!emitDebugInfo)
             {
@@ -319,10 +326,7 @@ namespace Microsoft.Cci
                 this.DefineScopeLocals(localScopes[0], localSignatureHandleOpt);
             }
 
-            // NOTE: This is an attempt to match Dev10's apparent behavior.  For iterator methods (i.e. the method
-            // that appears in source, not the synthesized ones), Dev10 only emits the ForwardIterator and IteratorLocal
-            // custom debug info (e.g. there will be no information about the usings that were in scope).
-            if (!isIterator && methodBody.ImportScope != null)
+            if (!isKickoffMethod && methodBody.ImportScope != null)
             {
                 IMethodDefinition forwardToMethod;
                 if (customDebugInfoWriter.ShouldForwardNamespaceScopes(Context, methodBody, methodHandle, out forwardToMethod))
@@ -340,20 +344,16 @@ namespace Microsoft.Cci
             }
 
             DefineLocalScopes(localScopes, localSignatureHandleOpt);
-            ArrayBuilder<SequencePoint> sequencePoints = ArrayBuilder<SequencePoint>.GetInstance();
-            methodBody.GetSequencePoints(sequencePoints);
-            EmitSequencePoints(sequencePoints);
-            sequencePoints.Free();
+            EmitSequencePoints(methodBody.SequencePoints);
 
-            AsyncMethodBodyDebugInfo asyncDebugInfo = methodBody.AsyncDebugInfo;
-            if (asyncDebugInfo != null)
+            if (methodBody.MoveNextBodyInfo is AsyncMoveNextBodyDebugInfo asyncMoveNextInfo)
             {
                 SetAsyncInfo(
                     methodToken,
-                    MetadataTokens.GetToken(_metadataWriter.GetMethodHandle(asyncDebugInfo.KickoffMethod)),
-                    asyncDebugInfo.CatchHandlerOffset,
-                    asyncDebugInfo.YieldOffsets,
-                    asyncDebugInfo.ResumeOffsets);
+                    MetadataTokens.GetToken(_metadataWriter.GetMethodHandle(asyncMoveNextInfo.KickoffMethod)),
+                    asyncMoveNextInfo.CatchHandlerOffset,
+                    asyncMoveNextInfo.YieldOffsets,
+                    asyncMoveNextInfo.ResumeOffsets);
             }
 
             var compilationOptions = Context.Module.CommonCompilation.Options;
@@ -1102,7 +1102,7 @@ namespace Microsoft.Cci
             Array.Resize(ref _sequencePointEndColumns, newCapacity);
         }
 
-        private void EmitSequencePoints(ArrayBuilder<Cci.SequencePoint> sequencePoints)
+        private void EmitSequencePoints(ImmutableArray<SequencePoint> sequencePoints)
         {
             DebugSourceDocument document = null;
             ISymUnmanagedDocumentWriter symDocumentWriter = null;

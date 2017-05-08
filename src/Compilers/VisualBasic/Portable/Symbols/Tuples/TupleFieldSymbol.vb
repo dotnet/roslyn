@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     Friend Class TupleFieldSymbol
         Inherits WrappedFieldSymbol
 
-        Protected _containingTuple As TupleTypeSymbol
+        Protected ReadOnly _containingTuple As TupleTypeSymbol
 
         ''' <summary>
         ''' If this field represents a tuple element with index X, the field contains
@@ -21,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         '''  2X + 1  if this field represents a Friendly-named element
         ''' Otherwise, (-1 - [index in members array]);
         ''' </summary>
-        Private _tupleElementIndex As Integer
+        Private ReadOnly _tupleElementIndex As Integer
 
         Public Overrides ReadOnly Property IsTupleField As Boolean
             Get
@@ -123,7 +123,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     Friend Class TupleElementFieldSymbol
         Inherits TupleFieldSymbol
 
-        Private _locations As ImmutableArray(Of Location)
+        Private ReadOnly _locations As ImmutableArray(Of Location)
 
         ' default tuple elements like Item1 Or Item20 could be provided by the user or
         ' otherwise implicitly declared by compiler
@@ -209,11 +209,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     Friend NotInheritable Class TupleVirtualElementFieldSymbol
         Inherits TupleElementFieldSymbol
 
-        Private _name As String
+        Private ReadOnly _name As String
+        Private ReadOnly _cannotUse As Boolean ' With LanguageVersion 15, we will produce named elements that should not be used
 
         Public Sub New(container As TupleTypeSymbol,
                        underlyingField As FieldSymbol,
                        name As String,
+                       cannotUse As Boolean,
                        tupleElementOrdinal As Integer,
                        location As Location,
                        isImplicitlyDeclared As Boolean,
@@ -226,7 +228,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                 "fields that map directly to underlying should not be represented by " + NameOf(TupleVirtualElementFieldSymbol))
 
             Me._name = name
+            Me._cannotUse = cannotUse
         End Sub
+
+        Friend Overrides Function GetUseSiteErrorInfo() As DiagnosticInfo
+            If _cannotUse Then
+                Return ErrorFactory.ErrorInfo(ERRID.ERR_TupleInferredNamesNotAvailable, _name,
+                                              New VisualBasicRequiredLanguageVersion(LanguageVersion.VisualBasic15_3))
+            End If
+
+            Return MyBase.GetUseSiteErrorInfo()
+        End Function
 
         Public Overrides ReadOnly Property Name As String
             Get

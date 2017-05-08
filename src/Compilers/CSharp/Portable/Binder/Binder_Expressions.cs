@@ -527,6 +527,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.NullLiteralExpression:
                     return BindLiteralConstant((LiteralExpressionSyntax)node, diagnostics);
 
+                case SyntaxKind.DefaultLiteralExpression:
+                    return BindDefaultLiteral(node);
+
                 case SyntaxKind.ParenthesizedExpression:
                     // Parenthesis tokens are ignored, and operand is bound in the context of parent
                     // expression.
@@ -636,6 +639,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        private static BoundExpression BindDefaultLiteral(ExpressionSyntax node)
+        {
+            return new BoundDefaultExpression(node, constantValueOpt: null, type: null);
+        }
+
         private BoundExpression BindRefExpression(ExpressionSyntax node, DiagnosticBag diagnostics)
         {
             var firstToken = node.GetFirstToken();
@@ -734,12 +742,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.ParenthesizedVariableDesignation:
                     {
                         var tuple = (ParenthesizedVariableDesignationSyntax)node;
-                        var builder = ArrayBuilder<BoundExpression>.GetInstance(tuple.Variables.Count);
+                        int count = tuple.Variables.Count;
+                        var builder = ArrayBuilder<BoundExpression>.GetInstance(count);
+                        var namesBuilder = ArrayBuilder<string>.GetInstance(count);
+
                         foreach (var n in tuple.Variables)
                         {
                             builder.Add(BindDeclarationVariables(declType, n, n, diagnostics));
+                            namesBuilder.Add(InferTupleElementName(n));
                         }
                         var subExpressions = builder.ToImmutableAndFree();
+
+                        var uniqueFieldNames = PooledHashSet<string>.GetInstance();
+                        RemoveDuplicateInferredTupleNames(namesBuilder, uniqueFieldNames);
+                        uniqueFieldNames.Free();
+
+                        var tupleNames = namesBuilder.ToImmutableAndFree();
+                        var inferredPositions = tupleNames.SelectAsArray(n => n != null);
+                        bool disallowInferredNames = this.Compilation.LanguageVersion.DisallowInferredTupleElementNames();
 
                         // We will not check constraints at this point as this code path
                         // is failure-only and the caller is expected to produce a diagnostic.
@@ -747,10 +767,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                             null,
                             subExpressions.SelectAsArray(e => e.Type),
                             default(ImmutableArray<Location>),
-                            default(ImmutableArray<string>),
+                            tupleNames,
                             Compilation,
-                            shouldCheckConstraints: false);
-                        return new BoundTupleLiteral(syntax, default(ImmutableArray<string>), subExpressions, tupleType);
+                            shouldCheckConstraints: false,
+                            errorPositions: disallowInferredNames ? inferredPositions : default(ImmutableArray<bool>));
+
+                        return new BoundTupleLiteral(syntax, default(ImmutableArray<string>), inferredPositions, subExpressions, tupleType);
                     }
                 default:
                     throw ExceptionUtilities.UnexpectedValue(node.Kind());
@@ -772,42 +794,39 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return BadExpression(node, args);
             }
 
-            bool hasErrors = false;
             bool hasNaturalType = true;
-
-            // set of names already used
-            var uniqueFieldNames = PooledHashSet<string>.GetInstance();
 
             var boundArguments = ArrayBuilder<BoundExpression>.GetInstance(arguments.Count);
             var elementTypes = ArrayBuilder<TypeSymbol>.GetInstance(arguments.Count);
             var elementLocations = ArrayBuilder<Location>.GetInstance(arguments.Count);
-            ArrayBuilder<string> elementNames = null;
 
-            // prepare and check element names and types
+            // prepare names
+            var (elementNames, inferredPositions, hasErrors) = ExtractTupleElementNames(arguments, diagnostics);
+
+            // prepare types and locations
             for (int i = 0; i < numElements; i++)
             {
                 ArgumentSyntax argumentSyntax = arguments[i];
-                string name = null;
                 IdentifierNameSyntax nameSyntax = argumentSyntax.NameColon?.Name;
 
                 if (nameSyntax != null)
                 {
-                    name = nameSyntax.Identifier.ValueText;
                     elementLocations.Add(nameSyntax.Location);
-
-                    if (!CheckTupleMemberName(name, i, argumentSyntax.NameColon.Name, diagnostics, uniqueFieldNames))
-                    {
-                        hasErrors = true;
-                    }
                 }
                 else
                 {
                     elementLocations.Add(argumentSyntax.Location);
                 }
 
-                CollectTupleFieldMemberNames(name, i + 1, numElements, ref elementNames);
-
                 BoundExpression boundArgument = BindValue(argumentSyntax.Expression, diagnostics, BindValueKind.RValue);
+                if (boundArgument.Type?.SpecialType == SpecialType.System_Void)
+                {
+                    diagnostics.Add(ErrorCode.ERR_VoidInTuple, argumentSyntax.Location);
+                    boundArgument = new BoundBadExpression(
+                        argumentSyntax, LookupResultKind.Empty, ImmutableArray<Symbol>.Empty,
+                        ImmutableArray.Create<BoundExpression>(boundArgument), CreateErrorType("void"));
+                }
+
                 boundArguments.Add(boundArgument);
 
                 var elementType = boundArgument.Type;
@@ -819,26 +838,151 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            uniqueFieldNames.Free();
-
-            var elementNamesArray = elementNames == null ?
-                                default(ImmutableArray<string>) :
-                                elementNames.ToImmutableAndFree();
-
             NamedTypeSymbol tupleTypeOpt = null;
             var elements = elementTypes.ToImmutableAndFree();
             var locations = elementLocations.ToImmutableAndFree();
 
             if (hasNaturalType)
             {
-                tupleTypeOpt = TupleTypeSymbol.Create(node.Location, elements, locations, elementNamesArray, this.Compilation, syntax: node, diagnostics: diagnostics, shouldCheckConstraints: true);
+                bool disallowInferredNames = this.Compilation.LanguageVersion.DisallowInferredTupleElementNames();
+
+                tupleTypeOpt = TupleTypeSymbol.Create(node.Location, elements, locations, elementNames,
+                    this.Compilation, syntax: node, diagnostics: diagnostics, shouldCheckConstraints: true,
+                    errorPositions: disallowInferredNames ? inferredPositions : default(ImmutableArray<bool>));
             }
             else
             {
                 TupleTypeSymbol.VerifyTupleTypePresent(elements.Length, node, this.Compilation, diagnostics);
             }
 
-            return new BoundTupleLiteral(node, elementNamesArray, boundArguments.ToImmutableAndFree(), tupleTypeOpt, hasErrors);
+            // Always track the inferred positions in the bound node, so that conversions don't produce a warning
+            // for "dropped names" on tuple literal when the name was inferred.
+            return new BoundTupleLiteral(node, elementNames, inferredPositions, boundArguments.ToImmutableAndFree(), tupleTypeOpt, hasErrors);
+        }
+
+        private static (ImmutableArray<string> elementNamesArray, ImmutableArray<bool> inferredArray, bool hasErrors) ExtractTupleElementNames(
+            SeparatedSyntaxList<ArgumentSyntax> arguments, DiagnosticBag diagnostics)
+        {
+            bool hasErrors = false;
+            int numElements = arguments.Count;
+            var uniqueFieldNames = PooledHashSet<string>.GetInstance();
+            ArrayBuilder<string> elementNames = null;
+            ArrayBuilder<string> inferredElementNames = null;
+
+            for (int i = 0; i < numElements; i++)
+            {
+                ArgumentSyntax argumentSyntax = arguments[i];
+                IdentifierNameSyntax nameSyntax = argumentSyntax.NameColon?.Name;
+
+                string name = null;
+                string inferredName = null;
+
+                if (nameSyntax != null)
+                {
+                    name = nameSyntax.Identifier.ValueText;
+
+                    if (diagnostics != null && !CheckTupleMemberName(name, i, argumentSyntax.NameColon.Name, diagnostics, uniqueFieldNames))
+                    {
+                        hasErrors = true;
+                    }
+                }
+                else
+                {
+                    inferredName = InferTupleElementName(argumentSyntax.Expression);
+                }
+
+                CollectTupleFieldMemberName(name, i, numElements, ref elementNames);
+                CollectTupleFieldMemberName(inferredName, i, numElements, ref inferredElementNames);
+            }
+
+            RemoveDuplicateInferredTupleNames(inferredElementNames, uniqueFieldNames);
+            uniqueFieldNames.Free();
+
+            var result = MergeTupleElementNames(elementNames, inferredElementNames);
+            elementNames?.Free();
+            inferredElementNames?.Free();
+            return (result.names, result.inferred, hasErrors);
+        }
+
+        private static (ImmutableArray<string> names, ImmutableArray<bool> inferred) MergeTupleElementNames(
+            ArrayBuilder<string> elementNames, ArrayBuilder<string> inferredElementNames)
+        {
+            if (elementNames == null)
+            {
+                if (inferredElementNames == null)
+                {
+                    return (default(ImmutableArray<string>), default(ImmutableArray<bool>));
+                }
+                else
+                {
+                    var finalNames = inferredElementNames.ToImmutable();
+                    return (finalNames, finalNames.SelectAsArray(n => n != null));
+                }
+            }
+
+            if (inferredElementNames == null)
+            {
+                return (elementNames.ToImmutable(), default(ImmutableArray<bool>));
+            }
+
+            Debug.Assert(elementNames.Count == inferredElementNames.Count);
+            var builder = ArrayBuilder<bool>.GetInstance(elementNames.Count);
+            for (int i = 0; i < elementNames.Count; i++)
+            {
+                string inferredName = inferredElementNames[i];
+                if (elementNames[i] == null && inferredName != null)
+                {
+                    elementNames[i] = inferredName;
+                    builder.Add(true);
+                }
+                else
+                {
+                    builder.Add(false);
+                }
+            }
+
+            return (elementNames.ToImmutable(), builder.ToImmutableAndFree());
+        }
+
+        private static void RemoveDuplicateInferredTupleNames(ArrayBuilder<string> inferredElementNames, HashSet<string> uniqueFieldNames)
+        {
+            if (inferredElementNames == null)
+            {
+                return;
+            }
+
+            // Inferred names that duplicate an explicit name or a previous inferred name are tagged for removal
+            var toRemove = PooledHashSet<string>.GetInstance();
+            foreach (var name in inferredElementNames)
+            {
+                if (name != null && !uniqueFieldNames.Add(name))
+                {
+                    toRemove.Add(name);
+                }
+            }
+
+            for (int i = 0; i < inferredElementNames.Count; i++)
+            {
+                var inferredName = inferredElementNames[i];
+                if (inferredName != null && toRemove.Contains(inferredName))
+                {
+                    inferredElementNames[i] = null;
+                }
+            }
+            toRemove.Free();
+        }
+
+        private static string InferTupleElementName(SyntaxNode syntax)
+        {
+            string name = syntax.TryGetInferredMemberName();
+
+            // Reserved names are never candidates to be inferred names, at any position
+            if (name == null || TupleTypeSymbol.IsElementNameReserved(name) != -1)
+            {
+                return null;
+            }
+
+            return name;
         }
 
         private BoundExpression BindRefValue(RefValueExpressionSyntax node, DiagnosticBag diagnostics)
@@ -1041,7 +1185,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression BindDefaultExpression(DefaultExpressionSyntax node, DiagnosticBag diagnostics)
         {
             TypeSymbol type = this.BindType(node.Type, diagnostics);
-            return new BoundDefaultOperator(node, type);
+            return new BoundDefaultExpression(node, type);
         }
 
         /// <summary>
@@ -3549,7 +3693,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else if (node.Type.Kind() == SyntaxKind.TupleType)
                 {
-                    Debug.Assert(node.HasErrors, "new <tuple type> should be a syntax error");
+                    diagnostics.Add(ErrorCode.ERR_NewWithTupleTypeSyntax, node.Type.GetLocation());
                     return MakeBadExpressionForObjectCreation(node, type, boundInitializerOpt, analyzedArguments);
                 }
 
@@ -5055,7 +5199,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             // No member accesses on void
             if ((object)leftType != null && leftType.SpecialType == SpecialType.System_Void)
             {
-                DiagnosticInfo diagnosticInfo = new CSDiagnosticInfo(ErrorCode.ERR_BadUnaryOp, SyntaxFacts.GetText(operatorToken.Kind()), leftType);
+                diagnostics.Add(ErrorCode.ERR_BadUnaryOp, operatorToken.GetLocation(), SyntaxFacts.GetText(operatorToken.Kind()), leftType);
+                return BadExpression(node, boundLeft);
+            }
+
+            // No member accesses on default
+            if (boundLeft.IsLiteralDefault())
+            {
+                DiagnosticInfo diagnosticInfo = new CSDiagnosticInfo(ErrorCode.ERR_BadUnaryOp, SyntaxFacts.GetText(operatorToken.Kind()), "default");
                 diagnostics.Add(new CSDiagnostic(diagnosticInfo, operatorToken.GetLocation()));
                 return BadExpression(node, boundLeft);
             }
@@ -5065,8 +5216,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert((object)leftType == null);
 
                 var msgId = ((UnboundLambda)boundLeft).MessageID;
-                DiagnosticInfo diagnosticInfo = new CSDiagnosticInfo(ErrorCode.ERR_BadUnaryOp, SyntaxFacts.GetText(operatorToken.Kind()), msgId.Localize());
-                diagnostics.Add(new CSDiagnostic(diagnosticInfo, node.Location));
+                diagnostics.Add(ErrorCode.ERR_BadUnaryOp, node.Location, SyntaxFacts.GetText(operatorToken.Kind()), msgId.Localize());
                 return BadExpression(node, boundLeft);
             }
 
@@ -5229,7 +5379,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static void WarnOnAccessOfOffDefault(SyntaxNode node, BoundExpression boundLeft, DiagnosticBag diagnostics)
         {
-            if (boundLeft != null && boundLeft.Kind == BoundKind.DefaultOperator && boundLeft.ConstantValue == ConstantValue.Null)
+            if (boundLeft != null && boundLeft.Kind == BoundKind.DefaultExpression && boundLeft.ConstantValue == ConstantValue.Null)
             {
                 Error(diagnostics, ErrorCode.WRN_DotOnDefault, node, boundLeft.Type);
             }

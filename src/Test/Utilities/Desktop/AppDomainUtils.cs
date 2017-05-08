@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public static AppDomain Create(string name = null, string basePath = null)
         {
-            name = name ?? "Custtom AppDomain";
+            name = name ?? "Custom AppDomain";
             basePath = basePath ?? Path.GetDirectoryName(typeof(AppDomainUtils).Assembly.Location);
 
             lock (s_lock)

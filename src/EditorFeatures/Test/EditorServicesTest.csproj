@@ -11,6 +11,7 @@
     <RootNamespace>Microsoft.CodeAnalysis.Editor.UnitTests</RootNamespace>
     <AssemblyName>Roslyn.Services.Editor.UnitTests</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <RuntimeIdentifiers>win7</RuntimeIdentifiers>
     <TargetFrameworkProfile />
     <RoslynProjectType>UnitTest</RoslynProjectType>
   </PropertyGroup>
@@ -158,6 +159,42 @@
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="WindowsBase" />
+    <PackageReference Include="BasicUndo">
+      <Version>$(BasicUndoVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Composition">
+      <Version>$(MicrosoftVisualStudioCompositionVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Platform.VSEditor">
+      <Version>$(MicrosoftVisualStudioPlatformVSEditorVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Platform.VSEditor.Interop">
+      <Version>$(MicrosoftVisualStudioPlatformVSEditorInteropVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.InteractiveWindow">
+      <Version>$(MicrosoftVisualStudioInteractiveWindowVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Language.Intellisense">
+      <Version>$(MicrosoftVisualStudioLanguageIntellisenseVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Text.Internal">
+      <Version>$(MicrosoftVisualStudioTextInternalVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Language.CallHierarchy">
+      <Version>$(MicrosoftVisualStudioLanguageCallHierarchyVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Language.NavigateTo.Interfaces">
+      <Version>$(MicrosoftVisualStudioLanguageNavigateToInterfacesVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Language.StandardClassification">
+      <Version>$(MicrosoftVisualStudioLanguageStandardClassificationVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Text.UI">
+      <Version>$(MicrosoftVisualStudioTextUIVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Text.UI.Wpf">
+      <Version>$(MicrosoftVisualStudioTextUIWpfVersion)</Version>
+    </PackageReference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Attributes\AttributeTests.cs" />
@@ -187,6 +224,9 @@
     <Compile Include="Commands\CommandArgsTests.cs" />
     <Compile Include="Commands\TypeCharCommandArgsTests.cs" />
     <Compile Include="CommentSelection\CommentUncommentSelectionCommandHandlerTests.cs" />
+    <Compile Include="Completion\FileSystemCompletionHelperTests.cs" />
+    <Compile Include="Completion\GlobalAssemblyCacheCompletionHelperTests.cs" />
+    <Compile Include="Completion\TestFileSystemCompletionHelper.cs" />
     <Compile Include="Diagnostics\DiagnosticAnalyzerServiceTests.cs" />
     <Compile Include="Diagnostics\DiagnosticDataSerializerTests.cs" />
     <Compile Include="Diagnostics\DiagnosticDataTests.cs" />
@@ -213,8 +253,6 @@
     <Compile Include="Extensions\ITextSnapshotExtensionsTests.cs" />
     <Compile Include="Extensions\ITextSnapshotLineExtensionsTests.cs" />
     <Compile Include="Extensions\SetExtensionTests.cs" />
-    <Compile Include="FindReferences\FindReferencesCommandHandlerTests.cs" />
-    <Compile Include="FindReferences\MockDefinitionsAndReferencesPresenter.cs" />
     <Compile Include="LineSeparators\AdornmentManagerTests.cs" />
     <Compile Include="LinkedFiles\LinkedFileDiffMergingEditorTests.cs" />
     <Compile Include="MetadataAsSource\AbstractMetadataAsSourceTests.cs" />
@@ -247,7 +285,6 @@
     <Compile Include="Workspaces\WorkspaceTests.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="project.json" />
     <None Include="PerfTests\ResetRoslynOptions.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <SubType>Designer</SubType>
@@ -256,6 +293,5 @@
   <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
   </ItemGroup>
-  <ItemGroup />
   <Import Project="..\..\..\build\Targets\Imports.targets" />
 </Project>

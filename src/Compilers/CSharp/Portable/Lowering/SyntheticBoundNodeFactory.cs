@@ -1102,8 +1102,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundExpression Convert(TypeSymbol type, BoundExpression arg)
         {
+            if (type == arg.Type)
+            {
+                return arg;
+            }
+
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
             Conversion c = Compilation.Conversions.ClassifyConversionFromExpression(arg, type, ref useSiteDiagnostics);
+            Debug.Assert(c.Exists);
             Debug.Assert(useSiteDiagnostics.IsNullOrEmpty());
 
             // If this happens, we should probably check if the method has ObsoleteAttribute.
@@ -1176,7 +1182,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal BoundExpression Default(TypeSymbol type)
         {
-            return new BoundDefaultOperator(Syntax, type) { WasCompilerGenerated = true };
+            return new BoundDefaultExpression(Syntax, type) { WasCompilerGenerated = true };
         }
 
         internal BoundStatement Try(

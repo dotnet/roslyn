@@ -651,11 +651,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(resultKind As LookupResultKind, symbols As ImmutableArray(Of Symbol), childBoundNodes As ImmutableArray(Of BoundExpression), type As TypeSymbol) As BoundBadExpression
             If resultKind <> Me.ResultKind OrElse symbols <> Me.Symbols OrElse childBoundNodes <> Me.ChildBoundNodes OrElse type IsNot Me.Type Then
                 Dim result = New BoundBadExpression(Me.Syntax, resultKind, symbols, childBoundNodes, type, Me.HasErrors)
-
+                
                 If Me.WasCompilerGenerated Then
                     result.SetWasCompilerGenerated()
                 End If
-
+                
                 Return result
             End If
             Return Me
@@ -3527,13 +3527,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend NotInheritable Partial Class BoundTupleLiteral
         Inherits BoundTupleExpression
 
-        Public Sub New(syntax As SyntaxNode, inferredType As TupleTypeSymbol, argumentNamesOpt As ImmutableArray(Of String), arguments As ImmutableArray(Of BoundExpression), type As TypeSymbol, Optional hasErrors As Boolean = False)
+        Public Sub New(syntax As SyntaxNode, inferredType As TupleTypeSymbol, argumentNamesOpt As ImmutableArray(Of String), inferredNamesOpt As ImmutableArray(Of Boolean), arguments As ImmutableArray(Of BoundExpression), type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.TupleLiteral, syntax, arguments, type, hasErrors OrElse arguments.NonNullAndHasErrors())
 
             Debug.Assert(Not (arguments.IsDefault), "Field 'arguments' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._InferredType = inferredType
             Me._ArgumentNamesOpt = argumentNamesOpt
+            Me._InferredNamesOpt = inferredNamesOpt
         End Sub
 
 
@@ -3551,13 +3552,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
+        Private ReadOnly _InferredNamesOpt As ImmutableArray(Of Boolean)
+        Public ReadOnly Property InferredNamesOpt As ImmutableArray(Of Boolean)
+            Get
+                Return _InferredNamesOpt
+            End Get
+        End Property
+
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitTupleLiteral(Me)
         End Function
 
-        Public Function Update(inferredType As TupleTypeSymbol, argumentNamesOpt As ImmutableArray(Of String), arguments As ImmutableArray(Of BoundExpression), type As TypeSymbol) As BoundTupleLiteral
-            If inferredType IsNot Me.InferredType OrElse argumentNamesOpt <> Me.ArgumentNamesOpt OrElse arguments <> Me.Arguments OrElse type IsNot Me.Type Then
-                Dim result = New BoundTupleLiteral(Me.Syntax, inferredType, argumentNamesOpt, arguments, type, Me.HasErrors)
+        Public Function Update(inferredType As TupleTypeSymbol, argumentNamesOpt As ImmutableArray(Of String), inferredNamesOpt As ImmutableArray(Of Boolean), arguments As ImmutableArray(Of BoundExpression), type As TypeSymbol) As BoundTupleLiteral
+            If inferredType IsNot Me.InferredType OrElse argumentNamesOpt <> Me.ArgumentNamesOpt OrElse inferredNamesOpt <> Me.InferredNamesOpt OrElse arguments <> Me.Arguments OrElse type IsNot Me.Type Then
+                Dim result = New BoundTupleLiteral(Me.Syntax, inferredType, argumentNamesOpt, inferredNamesOpt, arguments, type, Me.HasErrors)
                 
                 If Me.WasCompilerGenerated Then
                     result.SetWasCompilerGenerated()
@@ -12798,7 +12806,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides Function VisitTupleLiteral(node As BoundTupleLiteral) As BoundNode
             Dim arguments As ImmutableArray(Of BoundExpression) = Me.VisitList(node.Arguments)
             Dim type as TypeSymbol = Me.VisitType(node.Type)
-            Return node.Update(node.InferredType, node.ArgumentNamesOpt, arguments, type)
+            Return node.Update(node.InferredType, node.ArgumentNamesOpt, node.InferredNamesOpt, arguments, type)
         End Function
 
         Public Overrides Function VisitConvertedTupleLiteral(node As BoundConvertedTupleLiteral) As BoundNode
@@ -14022,6 +14030,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New TreeDumperNode("tupleLiteral", Nothing, New TreeDumperNode() {
                 New TreeDumperNode("inferredType", node.InferredType, Nothing),
                 New TreeDumperNode("argumentNamesOpt", node.ArgumentNamesOpt, Nothing),
+                New TreeDumperNode("inferredNamesOpt", node.InferredNamesOpt, Nothing),
                 New TreeDumperNode("arguments", Nothing, From x In node.Arguments Select Visit(x, Nothing)),
                 New TreeDumperNode("type", node.Type, Nothing)
             })

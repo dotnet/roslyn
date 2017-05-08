@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
+
 namespace Microsoft.CodeAnalysis
 {
     /// <summary>
@@ -33,7 +35,14 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Gets the value of the current object.
         /// </summary>
-        /// <returns></returns>
+        /// <remarks>
+        /// <para>Unlike <see cref="Nullable{T}.Value"/>, this property does not throw an exception when
+        /// <see cref="HasValue"/> is <see langword="false"/>.</para>
+        /// </remarks>
+        /// <returns>
+        /// <para>The value if <see cref="HasValue"/> is <see langword="true"/>; otherwise, the default value for type
+        /// <typeparamref name="T"/>.</para>
+        /// </returns>
         public T Value
         {
             get { return _value; }

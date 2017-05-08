@@ -33,17 +33,21 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <PackageReference Include="StreamJsonRpc">
+      <Version>$(StreamJsonRpcVersion)</Version>
+    </PackageReference>
   </ItemGroup>
   <ItemGroup>
-    <None Include="project.json" />
     <PublicAPI Include="PublicAPI.Shipped.txt" />
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleToRazor Include="Microsoft.CodeAnalysis.Remote.Razor" />
   </ItemGroup>
-  <ItemGroup />
   <ItemGroup>
+    <Compile Include="..\..\..\VisualStudio\Core\Next\Remote\JsonRpcMessageHandler.cs">
+      <Link>Shared\JsonRpcMessageHandler.cs</Link>
+    </Compile>
     <Compile Include="..\ServiceHub\Shared\RoslynJsonConverter.cs">
       <Link>Shared\RoslynJsonConverter.cs</Link>
     </Compile>

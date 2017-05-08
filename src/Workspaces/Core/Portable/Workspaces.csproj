@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\..\..\..\build\Targets\Settings.props" />
+  <Import Project="..\..\..\..\build\Targets\SettingsSdk.props" />
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -10,8 +10,8 @@
     <RootNamespace>Microsoft.CodeAnalysis</RootNamespace>
     <AssemblyName>Microsoft.CodeAnalysis.Workspaces</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <TargetFrameworkIdentifier>.NETPortable</TargetFrameworkIdentifier>
-    <TargetFrameworkVersion>v5.0</TargetFrameworkVersion>
+    <TargetFramework>netstandard1.3</TargetFramework>
+    <PackageTargetFallback>portable-net45+win8;dotnet</PackageTargetFallback>
     <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <ServiceablePackage>true</ServiceablePackage>
     <!-- Temporary workaround for CLR bug, VSO #290723. Please remove the below line once this bug is fixed. -->
@@ -88,7 +88,7 @@
       <Link>InternalUtilities\FatalError.cs</Link>
     </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\FileNameUtilities.cs">
-      <Link>InternalUtilities\PathUtilities.cs</Link>
+      <Link>InternalUtilities\FileNameUtilities.cs</Link>
     </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\GeneratedCodeUtilities.cs">
       <Link>InternalUtilities\GeneratedCodeUtilities.cs</Link>
@@ -195,6 +195,15 @@
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\ReflectionUtilities.cs">
       <Link>InternalUtilities\ReflectionUtilities.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\Compilers\Core\Portable\Serialization\ObjectBinderSnapshot.cs">
+      <Link>Serialization\ObjectBinderSnapshot.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Compilers\Core\Portable\Serialization\ObjectReader.cs">
+      <Link>Serialization\ObjectReader.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Compilers\Core\Portable\Serialization\ObjectWriter.cs">
+      <Link>Serialization\ObjectWriter.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\Syntax\SyntaxTreeExtensions.cs">
       <Link>InternalUtilities\SyntaxTreeExtensions.cs</Link>
     </Compile>
@@ -281,12 +290,6 @@
     </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\Serialization\ObjectBinder.cs">
       <Link>Serialization\ObjectBinder.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\Serialization\StreamObjectReader.cs">
-      <Link>Serialization\StreamObjectReader.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\Serialization\StreamObjectWriter.cs">
-      <Link>Serialization\StreamObjectWriter.cs</Link>
     </Compile>
     <Compile Include="AddImports\AbstractAddImportsService.cs" />
     <Compile Include="AddImports\IAddImportsService.cs" />
@@ -404,13 +407,16 @@
     <Compile Include="Options\EditorConfig\EditorConfigStorageLocation.cs" />
     <Compile Include="Options\EditorConfig\IEditorConfigStorageLocation.cs" />
     <Compile Include="Options\EditorConfig\NamingStylePreferenceEditorConfigStorageLocation.cs" />
+    <Compile Include="PatternMatching\CamelCaseResult.cs" />
+    <Compile Include="PatternMatching\ContainerPatternMatcher.cs" />
     <Compile Include="PatternMatching\PatternMatch.cs" />
-    <Compile Include="PatternMatching\PatternMatcher.AllLowerCamelCaseMatcher.cs" />
+    <Compile Include="PatternMatching\AllLowerCamelCaseMatcher.cs" />
     <Compile Include="PatternMatching\PatternMatcher.cs" />
     <Compile Include="PatternMatching\PatternMatcher.PatternSegment.cs" />
     <Compile Include="PatternMatching\PatternMatcher.TextChunk.cs" />
-    <Compile Include="PatternMatching\PatternMatches.cs" />
+    <Compile Include="PatternMatching\PatternMatcherExtensions.cs" />
     <Compile Include="PatternMatching\PatternMatchKind.cs" />
+    <Compile Include="PatternMatching\SimplePatternMatcher.cs" />
     <Compile Include="Remote\IRemoteHostService.cs" />
     <Compile Include="Remote\RemoteSupportedLanguages.cs" />
     <Compile Include="NamingStyles\Capitalization.cs" />
@@ -421,6 +427,7 @@
     <Compile Include="NamingStyles\Serialization\NamingStylePreferences.cs" />
     <Compile Include="NamingStyles\Serialization\SymbolSpecification.cs" />
     <Compile Include="Shared\Extensions\SolutionExtensions.cs" />
+    <Compile Include="Shared\Utilities\StringBreaks.EncodedSpans.cs" />
     <Compile Include="Shared\Utilities\TextReaderWithLength.cs" />
     <Compile Include="Simplification\DoNotAddImportsAnnotation.cs" />
     <Compile Include="SymbolKey\SymbolKey.AnonymousFunctionOrDelegateSymbolKey.cs" />
@@ -600,8 +607,6 @@
     <Compile Include="Log\LogMessage.cs" />
     <Compile Include="Log\WorkspaceErrorLogger.cs" />
     <Compile Include="Rename\TokenRenameInfo.cs" />
-    <Compile Include="Serialization\AssemblySerializationInfoService.cs" />
-    <Compile Include="Serialization\IAssemblySerializationInfoService.cs" />
     <Compile Include="Shared\Extensions\AccessibilityUtilities.cs" />
     <Compile Include="Shared\Extensions\FileLinePositionSpanExtensions.cs" />
     <Compile Include="Shared\Extensions\LocationExtensions.cs" />
@@ -1133,14 +1138,19 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <None Include="project.json">
-      <SubType>
-      </SubType>
-    </None>
     <Compile Include="Utilities\BKTree.Builder.cs" />
     <Compile Include="SymbolKey\SymbolKey.SymbolKeyReader.cs" />
     <PublicAPI Include="PublicAPI.Shipped.txt" />
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Composition" Version="$(MicrosoftCompositionVersion)" />
+    <PackageReference Include="System.Diagnostics.Contracts" Version="$(SystemDiagnosticsContractsVersion)" />
+    <PackageReference Include="System.Linq.Parallel" Version="$(SystemLinqParallelVersion)" />
+    <PackageReference Include="System.ObjectModel" Version="$(SystemObjectModelVersion)" />
+    <PackageReference Include="System.Text.RegularExpressions" Version="$(SystemTextRegularExpressionsVersion)" />
+    <PackageReference Include="System.Threading.Tasks.Parallel" Version="$(SystemThreadingTasksParallelVersion)" />
+    <PackageReference Include="System.Threading.Thread" Version="$(SystemThreadingThreadVersion)" />
   </ItemGroup>
   <Import Project="..\..\..\Dependencies\PooledObjects\Microsoft.CodeAnalysis.PooledObjects.projitems" Label="Shared" />
   <Import Project="..\..\..\..\build\Targets\Imports.targets" />

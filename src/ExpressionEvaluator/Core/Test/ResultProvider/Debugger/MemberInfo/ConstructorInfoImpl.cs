@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         {
             get
             {
-                throw new NotImplementedException();
+                return Constructor.Name;
             }
         }
 

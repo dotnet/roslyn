@@ -89,11 +89,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // Unless it is a constant, the decision tree acts on a copy of the input expression.
                 // We create a temp to represent that copy. Lowering will assign into this temp.
-                temp = new SynthesizedLocal(enclosingSymbol as MethodSymbol, type, SynthesizedLocalKind.PatternMatchingTemp, expression.Syntax, false, RefKind.None);
+                temp = new SynthesizedLocal(enclosingSymbol as MethodSymbol, type, SynthesizedLocalKind.PatternMatching, expression.Syntax, false, RefKind.None);
                 expression = new BoundLocal(expression.Syntax, temp, null, type);
             }
 
-            if (expression.Type.CanContainNull())
+            if (type.CanContainNull() || type.SpecialType == SpecialType.None)
             {
                 // We need the ByType decision tree to separate null from non-null values.
                 // Note that, for the purpose of the decision tree (and subsumption), we
@@ -104,8 +104,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 // If it is a (e.g. builtin) value type, we can switch on its (constant) values.
-                // If it isn't a builtin, in practice we will only use the Default part of the
-                // ByValue.
                 return new ByValue(expression, type, temp);
             }
         }

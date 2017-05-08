@@ -8366,7 +8366,7 @@ unsafe struct S
 }
 
 ";
-            var comp = CreateCompilationWithMscorlib(text, options: TestOptions.UnsafeReleaseDll);
+            var comp = CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll);
             comp.VerifyDiagnostics(
                 // (24,44): error CS1510: A ref or out argument must be an assignable variable
                 //             retval = Test.printAddress(out s.i);
@@ -8738,7 +8738,7 @@ unsafe class A
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(text, options: TestOptions.UnsafeReleaseDll);
+            var comp = CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll);
             comp.VerifyDiagnostics();
         }
 

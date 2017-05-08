@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis
             else if (hr != S_OK)
             {
                 Exception e = Marshal.GetExceptionForHR(hr);
-                if (e is FileNotFoundException)
+                if (e is FileNotFoundException || e is DirectoryNotFoundException)
                 {
                     // invalid assembly name:
                     yield break;
