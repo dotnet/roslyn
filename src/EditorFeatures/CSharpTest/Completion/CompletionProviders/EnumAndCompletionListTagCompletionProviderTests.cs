@@ -572,7 +572,7 @@ internal enum ProjectTreeWriterOptions
     FilePath,
     Capabilities,
     Visibility,
-    AllProperties = FilePath ^ $$
+    AllProperties = FilePath | $$ | Visibility
 }";
             await VerifyItemExistsAsync(markup, "ProjectTreeWriterOptions");
         }
@@ -580,6 +580,26 @@ internal enum ProjectTreeWriterOptions
         [WorkItem(5419, "https://github.com/dotnet/roslyn/issues/5419")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TestInEnumInitializer4()
+        {
+            var markup =
+@"using System;
+
+[Flags]
+internal enum ProjectTreeWriterOptions
+{
+    None,
+    Tags,
+    FilePath,
+    Capabilities,
+    Visibility,
+    AllProperties = FilePath ^ $$
+}";
+            await VerifyItemExistsAsync(markup, "ProjectTreeWriterOptions");
+        }
+
+        [WorkItem(5419, "https://github.com/dotnet/roslyn/issues/5419")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestInEnumInitializer5()
         {
             var markup =
 @"using System;
