@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        public static Checksum Create(WellKnownSynchronizationKinds kind, IObjectWritable @object)
+        public static Checksum Create(WellKnownSynchronizationKind kind, IObjectWritable @object)
         {
             using (var stream = SerializableBytes.CreateWritableStream())
             using (var objectWriter = new ObjectWriter(stream))
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        public static Checksum Create(WellKnownSynchronizationKinds kind, IEnumerable<Checksum> checksums)
+        public static Checksum Create(WellKnownSynchronizationKind kind, IEnumerable<Checksum> checksums)
         {
             using (var stream = SerializableBytes.CreateWritableStream())
             using (var writer = new ObjectWriter(stream))
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        public static Checksum Create(WellKnownSynchronizationKinds kind, ImmutableArray<byte> bytes)
+        public static Checksum Create(WellKnownSynchronizationKind kind, ImmutableArray<byte> bytes)
         {
             using (var stream = SerializableBytes.CreateWritableStream())
             using (var writer = new ObjectWriter(stream))
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        public static Checksum Create<T>(WellKnownSynchronizationKinds kind, T value, Serializer serializer)
+        public static Checksum Create<T>(WellKnownSynchronizationKind kind, T value, Serializer serializer)
         {
             using (var stream = SerializableBytes.CreateWritableStream())
             using (var objectWriter = new ObjectWriter(stream))

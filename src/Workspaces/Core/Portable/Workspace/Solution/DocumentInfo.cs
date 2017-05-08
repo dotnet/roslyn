@@ -235,7 +235,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     if (_lazyChecksum == null)
                     {
-                        _lazyChecksum = Checksum.Create(WellKnownSynchronizationKinds.DocumentAttributes, this);
+                        _lazyChecksum = Checksum.Create(WellKnownSynchronizationKind.DocumentAttributes, this);
                     }
 
                     return _lazyChecksum;

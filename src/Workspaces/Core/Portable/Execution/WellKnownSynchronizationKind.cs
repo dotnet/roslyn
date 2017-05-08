@@ -3,7 +3,7 @@
 namespace Microsoft.CodeAnalysis.Serialization
 {
     // TODO: Kind might not actually needed. see whether we can get rid of this
-    internal enum WellKnownSynchronizationKinds
+    internal enum WellKnownSynchronizationKind
     {
         Null,
 

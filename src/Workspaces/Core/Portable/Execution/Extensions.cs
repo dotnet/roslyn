@@ -15,30 +15,30 @@ namespace Microsoft.CodeAnalysis.Execution
             return (T[])reader.ReadValue();
         }
 
-        public static WellKnownSynchronizationKinds GetWellKnownSynchronizationKind(this object value)
+        public static WellKnownSynchronizationKind GetWellKnownSynchronizationKind(this object value)
         {
             switch (value)
             {
-                case SolutionStateChecksums _: return WellKnownSynchronizationKinds.SolutionState;
-                case ProjectStateChecksums _: return WellKnownSynchronizationKinds.ProjectState;
-                case DocumentStateChecksums _: return WellKnownSynchronizationKinds.DocumentState;
-                case ProjectChecksumCollection _: return WellKnownSynchronizationKinds.Projects;
-                case DocumentChecksumCollection _: return WellKnownSynchronizationKinds.Documents;
-                case TextDocumentChecksumCollection _: return WellKnownSynchronizationKinds.TextDocuments;
-                case ProjectReferenceChecksumCollection _: return WellKnownSynchronizationKinds.ProjectReferences;
-                case MetadataReferenceChecksumCollection _: return WellKnownSynchronizationKinds.MetadataReferences;
-                case AnalyzerReferenceChecksumCollection _: return WellKnownSynchronizationKinds.AnalyzerReferences;
-                case SolutionInfo.SolutionAttributes _: return WellKnownSynchronizationKinds.SolutionAttributes;
-                case ProjectInfo.ProjectAttributes _: return WellKnownSynchronizationKinds.ProjectAttributes;
-                case DocumentInfo.DocumentAttributes _: return WellKnownSynchronizationKinds.DocumentAttributes;
-                case CompilationOptions _: return WellKnownSynchronizationKinds.CompilationOptions;
-                case ParseOptions _: return WellKnownSynchronizationKinds.ParseOptions;
-                case ProjectReference _: return WellKnownSynchronizationKinds.ProjectReference;
-                case MetadataReference _: return WellKnownSynchronizationKinds.MetadataReference;
-                case AnalyzerReference _: return WellKnownSynchronizationKinds.AnalyzerReference;
-                case TextDocumentState _: return WellKnownSynchronizationKinds.RecoverableSourceText;
-                case SourceText _: return WellKnownSynchronizationKinds.SourceText;
-                case OptionSet _: return WellKnownSynchronizationKinds.OptionSet;
+                case SolutionStateChecksums _: return WellKnownSynchronizationKind.SolutionState;
+                case ProjectStateChecksums _: return WellKnownSynchronizationKind.ProjectState;
+                case DocumentStateChecksums _: return WellKnownSynchronizationKind.DocumentState;
+                case ProjectChecksumCollection _: return WellKnownSynchronizationKind.Projects;
+                case DocumentChecksumCollection _: return WellKnownSynchronizationKind.Documents;
+                case TextDocumentChecksumCollection _: return WellKnownSynchronizationKind.TextDocuments;
+                case ProjectReferenceChecksumCollection _: return WellKnownSynchronizationKind.ProjectReferences;
+                case MetadataReferenceChecksumCollection _: return WellKnownSynchronizationKind.MetadataReferences;
+                case AnalyzerReferenceChecksumCollection _: return WellKnownSynchronizationKind.AnalyzerReferences;
+                case SolutionInfo.SolutionAttributes _: return WellKnownSynchronizationKind.SolutionAttributes;
+                case ProjectInfo.ProjectAttributes _: return WellKnownSynchronizationKind.ProjectAttributes;
+                case DocumentInfo.DocumentAttributes _: return WellKnownSynchronizationKind.DocumentAttributes;
+                case CompilationOptions _: return WellKnownSynchronizationKind.CompilationOptions;
+                case ParseOptions _: return WellKnownSynchronizationKind.ParseOptions;
+                case ProjectReference _: return WellKnownSynchronizationKind.ProjectReference;
+                case MetadataReference _: return WellKnownSynchronizationKind.MetadataReference;
+                case AnalyzerReference _: return WellKnownSynchronizationKind.AnalyzerReference;
+                case TextDocumentState _: return WellKnownSynchronizationKind.RecoverableSourceText;
+                case SourceText _: return WellKnownSynchronizationKind.SourceText;
+                case OptionSet _: return WellKnownSynchronizationKind.OptionSet;
             }
 
             throw ExceptionUtilities.UnexpectedValue(value);

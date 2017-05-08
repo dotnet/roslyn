@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Execution
     /// </summary>
     internal abstract class SolutionAsset : RemotableData
     {
-        protected SolutionAsset(Checksum checksum, WellKnownSynchronizationKinds kind) 
+        protected SolutionAsset(Checksum checksum, WellKnownSynchronizationKind kind) 
             : base(checksum, kind)
         {
         }
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Execution
             private readonly Serializer _serializer;
 
             public SourceTextAsset(Checksum checksum, TextDocumentState state, Serializer serializer) :
-                base(checksum, WellKnownSynchronizationKinds.SourceText)
+                base(checksum, WellKnownSynchronizationKind.SourceText)
             {
                 _state = state;
                 _serializer = serializer;
