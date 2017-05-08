@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Serialization
         {
             var kind = value.GetWellKnownSynchronizationKind();
 
-            using (Logger.LogBlock(FunctionId.Serializer_CreateChecksum, kind.ToString(), cancellationToken))
+            using (Logger.LogBlock(FunctionId.Serializer_CreateChecksum, kind.ToStringFast(), cancellationToken))
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
