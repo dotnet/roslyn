@@ -315,6 +315,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Return Nothing
         End Function
 
+        Friend Overrides Function GetDelegateCacheContainers() As ImmutableArray(Of Cci.INamespaceTypeDefinition)
+            Return ImmutableArray(Of Cci.INamespaceTypeDefinition).Empty
+        End Function
+
         Friend Overridable Function GetPreviousAnonymousTypes() As ImmutableArray(Of AnonymousTypeKey)
             Return ImmutableArray(Of AnonymousTypeKey).Empty
         End Function

@@ -535,6 +535,14 @@
     <Compile Include="Symbols\ConstructedNamedTypeSymbol.cs" />
     <Compile Include="Symbols\ConversionSignatureComparer.cs" />
     <Compile Include="Symbols\CustomModifier.cs" />
+    <Compile Include="Symbols\DelegateCaches\DelegateCacheContainer.cs" />
+    <Compile Include="Symbols\DelegateCaches\DelegateCacheContainerKind.cs" />
+    <Compile Include="Symbols\DelegateCaches\FullyConcreteChecker.cs" />
+    <Compile Include="Symbols\DelegateCaches\ModuleScopedDelegateCacheContainer.cs" />
+    <Compile Include="Symbols\DelegateCaches\ModuleScopedDelegateCacheContainerField.cs" />
+    <Compile Include="Symbols\DelegateCaches\ModuleScopedDelegateCacheManager.cs" />
+    <Compile Include="Symbols\DelegateCaches\TypeOrMethodScopedDelegateCacheContainer.cs" />
+    <Compile Include="Symbols\DelegateCaches\TypeParameterUsageChecker.cs" />
     <Compile Include="Symbols\DynamicTypeEraser.cs" />
     <Compile Include="Symbols\DynamicTypeSymbol.cs" />
     <Compile Include="Symbols\EnumConversions.cs" />
@@ -693,6 +701,7 @@
     <Compile Include="Symbols\Synthesized\SynthesizedAccessorValueParameterSymbol.cs" />
     <Compile Include="Symbols\Synthesized\SynthesizedBackingFieldSymbol.cs" />
     <Compile Include="Symbols\Synthesized\SynthesizedContainer.cs" />
+    <Compile Include="Symbols\Synthesized\SynthesizedContainerBase.cs" />
     <Compile Include="Symbols\Synthesized\SynthesizedDelegateSymbol.cs" />
     <Compile Include="Symbols\Synthesized\SynthesizedEntryPointSymbol.cs" />
     <Compile Include="Symbols\Synthesized\SynthesizedEnumValueFieldSymbol.cs" />
