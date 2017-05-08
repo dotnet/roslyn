@@ -14,27 +14,12 @@ namespace Microsoft.CodeAnalysis
     // all these are just helper methods
     internal partial class Checksum
     {
-        private static readonly Stack<IncrementalHash> s_hashStack = new Stack<IncrementalHash>();
-        private static readonly object s_gate = new object();
-
         public static Checksum Create(Stream stream)
         {
-            IncrementalHash hash;
-            lock (s_gate)
+            using (var hash = IncrementalHash.CreateHash(HashAlgorithmName.SHA1))
             {
-                hash = s_hashStack.Count > 0
-                    ? s_hashStack.Pop()
-                    : IncrementalHash.CreateHash(HashAlgorithmName.SHA1);
+                return ComputeChecksum(stream, hash);
             }
-
-            var checksum = ComputeChecksum(stream, hash);
-
-            lock (s_gate)
-            {
-                s_hashStack.Push(hash);
-            }
-
-            return checksum;
         }
 
         private static Checksum ComputeChecksum(Stream stream, IncrementalHash hash)
