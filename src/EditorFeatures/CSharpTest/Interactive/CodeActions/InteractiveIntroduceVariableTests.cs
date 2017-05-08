@@ -168,8 +168,8 @@ class C
     {
         for (int i = 0; i < 10; i++)
         {
-            int {|Rename:v|} = i + 1;
-            Console.WriteLine(v);
+            int {|Rename:value|} = i + 1;
+            Console.WriteLine(value);
         }
     }
 }

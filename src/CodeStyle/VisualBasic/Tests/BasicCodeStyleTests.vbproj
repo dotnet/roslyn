@@ -12,6 +12,7 @@
     <TargetFramework>netstandard1.3</TargetFramework>
     <PackageTargetFallback>portable-net45+win8;dotnet</PackageTargetFallback>
     <RoslynProjectType>UnitTestPortable</RoslynProjectType>
+    <NoWarn>$(NoWarn);40057</NoWarn>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\CodeAnalysis.csproj">

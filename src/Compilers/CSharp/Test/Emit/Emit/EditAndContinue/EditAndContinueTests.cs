@@ -93,6 +93,131 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         }
 
         [Fact]
+        public void SemanticErrors_MethodBody()
+        {
+            var source0 = MarkedSource(@"
+class C
+{
+    static void E() 
+    {
+        int x = 1;
+        System.Console.WriteLine(x);
+    }
+
+    static void G() 
+    {
+        System.Console.WriteLine(1);
+    }
+}");
+            var source1 = MarkedSource(@"
+class C
+{
+    static void E() 
+    {
+        int x = Unknown(2);
+        System.Console.WriteLine(x);
+    }
+
+    static void G() 
+    {
+        System.Console.WriteLine(2);
+    }
+}");
+
+            var compilation0 = CreateStandardCompilation(source0.Tree, options: ComSafeDebugDll);
+            var compilation1 = compilation0.WithSource(source1.Tree);
+
+            var e0 = compilation0.GetMember<MethodSymbol>("C.E");
+            var e1 = compilation1.GetMember<MethodSymbol>("C.E");
+            var g0 = compilation0.GetMember<MethodSymbol>("C.G");
+            var g1 = compilation1.GetMember<MethodSymbol>("C.G");
+
+            var v0 = CompileAndVerify(compilation0);
+            var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+
+            // Semantic errors are reported only for the bodies of members being emitted.
+
+            var diffError = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(
+                    new SemanticEdit(SemanticEditKind.Update, e0, e1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+
+            diffError.EmitResult.Diagnostics.Verify(
+                // (6,17): error CS0103: The name 'Unknown' does not exist in the current context
+                //         int x = Unknown(2);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "Unknown").WithArguments("Unknown").WithLocation(6, 17));
+
+            var diffGood = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(
+                    new SemanticEdit(SemanticEditKind.Update, g0, g1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+
+            diffGood.EmitResult.Diagnostics.Verify();
+
+            diffGood.VerifyIL(@"C.G", @"
+{
+  // Code size        9 (0x9)
+  .maxstack  1
+  IL_0000:  nop
+  IL_0001:  ldc.i4.2
+  IL_0002:  call       ""void System.Console.WriteLine(int)""
+  IL_0007:  nop
+  IL_0008:  ret
+}
+");
+        }
+
+        [Fact]
+        public void SemanticErrors_Declaration()
+        {
+            var source0 = MarkedSource(@"
+class C
+{
+    static void G() 
+    {
+        System.Console.WriteLine(1);
+    }
+}
+");
+            var source1 = MarkedSource(@"
+class C
+{
+    static void G() 
+    {
+        System.Console.WriteLine(2);
+    }
+}
+
+class Bad : Bad
+{
+}
+");
+
+            var compilation0 = CreateStandardCompilation(source0.Tree, options: ComSafeDebugDll);
+            var compilation1 = compilation0.WithSource(source1.Tree);
+
+            var g0 = compilation0.GetMember<MethodSymbol>("C.G");
+            var g1 = compilation1.GetMember<MethodSymbol>("C.G");
+
+            var v0 = CompileAndVerify(compilation0);
+            var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+
+            var diff = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(
+                    new SemanticEdit(SemanticEditKind.Update, g0, g1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+
+            // All declaration errors are reported regardless of what member do we emit.
+
+            diff.EmitResult.Diagnostics.Verify(
+                // (10,7): error CS0146: Circular base class dependency involving 'Bad' and 'Bad'
+                // class Bad : Bad
+                Diagnostic(ErrorCode.ERR_CircularBase, "Bad").WithArguments("Bad", "Bad").WithLocation(10, 7));
+        }
+
+        [Fact]
         public void ModifyMethod()
         {
             var source0 =

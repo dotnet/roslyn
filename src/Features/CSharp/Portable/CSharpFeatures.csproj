@@ -86,7 +86,6 @@
     <Compile Include="InitializeParameter\CSharpAddParameterCheckCodeRefactoringProvider.cs" />
     <Compile Include="InitializeParameter\CSharpInitializeMemberFromParameterCodeRefactoringProvider.cs" />
     <Compile Include="InitializeParameter\InitializeParameterHelpers.cs" />
-    <Compile Include="ReplacePropertyWithMethods\ConvertValueToReturnsRewriter.cs" />
     <Compile Include="Structure\Providers\ArrowExpressionClauseStructureProvider.cs" />
     <Compile Include="ConvertToInterpolatedString\CSharpConvertConcatenationToInterpolatedStringRefactoringProvider.cs" />
     <Compile Include="RemoveUnnecessaryImports\CSharpRemoveUnnecessaryImportsService.cs" />
@@ -450,6 +449,8 @@
     <Compile Include="RemoveUnnecessaryImports\AbstractCSharpRemoveUnnecessaryImportsService.cs" />
     <Compile Include="RemoveUnnecessaryImports\AbstractCSharpRemoveUnnecessaryImportsService.Rewriter.cs" />
     <Compile Include="ReplaceMethodWithProperty\CSharpReplaceMethodWithPropertyService.cs" />
+    <Compile Include="ReplacePropertyWithMethods\CSharpReplacePropertyWithMethodsService.ConvertValueToParamRewriter.cs" />
+    <Compile Include="ReplacePropertyWithMethods\CSharpReplacePropertyWithMethodsService.ConvertValueToReturnsRewriter.cs" />
     <Compile Include="ReplacePropertyWithMethods\CSharpReplacePropertyWithMethodsService.cs" />
     <Compile Include="SignatureHelp\AbstractCSharpSignatureHelpProvider.cs" />
     <Compile Include="SignatureHelp\AttributeSignatureHelpProvider.cs" />
