@@ -2438,7 +2438,7 @@ Module Module1
             whichOne = "Y"
         End Sub
 
-        Friend Sub Foo(v As Integer, y1 As Integer)
+        Friend Sub Foo(y11 As Integer, y1 As Integer)
             Throw New NotImplementedException()
         End Sub
     End Class

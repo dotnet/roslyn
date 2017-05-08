@@ -282,7 +282,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 if (argumentList != null)
                 {
                     var index = argumentList.Arguments.IndexOf(argument);
-                    var member = semanticModel.GetSymbolInfo(argumentList.Parent, cancellationToken).GetAnySymbol() as IMethodSymbol;
+                    var member = semanticModel.GetSymbolInfo(argumentList.Parent, cancellationToken).Symbol as IMethodSymbol;
                     if (member != null && index < member.Parameters.Length)
                     {
                         var parameter = member.Parameters[index];
