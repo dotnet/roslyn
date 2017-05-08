@@ -129,6 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_ThrowExpression = MessageBase + 12717,
         IDS_FeatureDefaultLiteral = MessageBase + 12718,
         IDS_FeatureInferredTupleNames = MessageBase + 12719,
+        IDS_FeatureGenericPatternMatching = MessageBase + 12720,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -188,6 +189,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // C# 7.1 features.
                 case MessageID.IDS_FeatureDefaultLiteral:
                 case MessageID.IDS_FeatureInferredTupleNames:
+                case MessageID.IDS_FeatureGenericPatternMatching:
                     return LanguageVersion.CSharp7_1;
 
                 // C# 7 features.

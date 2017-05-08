@@ -10,6 +10,8 @@ using System.Reflection.Metadata;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.Serialization;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Utilities;
 using Roslyn.Utilities;
 
@@ -57,6 +59,16 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
         }
 
+        public static Task<SymbolTreeInfo> TryGetInfoForMetadataReferenceAsync(
+            Solution solution, PortableExecutableReference reference,
+            bool loadOnly, CancellationToken cancellationToken)
+        {
+            var checksum = GetMetadataChecksum(solution, reference, cancellationToken);
+            return TryGetInfoForMetadataReferenceAsync(
+                solution, reference, checksum,
+                loadOnly, cancellationToken);
+        }
+
         /// <summary>
         /// Produces a <see cref="SymbolTreeInfo"/> for a given <see cref="PortableExecutableReference"/>.
         /// Note: can return <code>null</code> if we weren't able to actually load the metadata for some
@@ -65,6 +77,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public static Task<SymbolTreeInfo> TryGetInfoForMetadataReferenceAsync(
             Solution solution,
             PortableExecutableReference reference,
+            Checksum checksum,
             bool loadOnly,
             CancellationToken cancellationToken)
         {
@@ -90,11 +103,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
 
             return TryGetInfoForMetadataReferenceSlowAsync(
-                solution, reference, loadOnly, metadata, cancellationToken);
+                solution, reference, checksum, loadOnly, metadata, cancellationToken);
         }
 
         private static async Task<SymbolTreeInfo> TryGetInfoForMetadataReferenceSlowAsync(
-            Solution solution, PortableExecutableReference reference,
+            Solution solution, PortableExecutableReference reference, Checksum checksum,
             bool loadOnly, Metadata metadata, CancellationToken cancellationToken)
         {
             // Find the lock associated with this piece of metadata.  This way only one thread is
@@ -109,7 +122,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 }
 
                 var info = await LoadOrCreateMetadataSymbolTreeInfoAsync(
-                    solution, reference, loadOnly, cancellationToken: cancellationToken).ConfigureAwait(false);
+                    solution, reference, checksum, loadOnly, cancellationToken).ConfigureAwait(false);
                 if (info == null && loadOnly)
                 {
                     return null;
@@ -124,32 +137,44 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
         }
 
+        public static Checksum GetMetadataChecksum(
+            Solution solution, PortableExecutableReference reference, CancellationToken cancellationToken)
+        {
+            // We can reuse the index for any given reference as long as it hasn't changed.
+            // So our checksum is just the checksum for the PEReference itself.
+            var serializer = new Serializer(solution.Workspace);
+            var checksum = serializer.CreateChecksum(reference, cancellationToken);
+            return checksum;
+        }
+
         private static Task<SymbolTreeInfo> LoadOrCreateMetadataSymbolTreeInfoAsync(
             Solution solution,
             PortableExecutableReference reference,
+            Checksum checksum,
             bool loadOnly,
             CancellationToken cancellationToken)
         {
             var filePath = reference.FilePath;
+
             return LoadOrCreateAsync(
                 solution,
+                checksum,
                 filePath,
                 loadOnly,
-                create: version => CreateMetadataSymbolTreeInfo(solution, version, reference, cancellationToken),
-                keySuffix: "",
-                getVersion: info => info._version,
-                readObject: reader => ReadSymbolTreeInfo(reader, (version, names, nodes) => GetSpellCheckerTask(solution, version, filePath, names, nodes)),
-                writeObject: (w, i) => i.WriteTo(w),
+                createAsync: () => CreateMetadataSymbolTreeInfoAsync(solution, checksum, reference, cancellationToken),
+                keySuffix: "_Metadata",
+                getPersistedChecksum: info => info.Checksum,
+                readObject: reader => ReadSymbolTreeInfo(reader, (names, nodes) => GetSpellCheckerTask(solution, checksum, filePath, names, nodes)),
                 cancellationToken: cancellationToken);
         }
 
-        private static SymbolTreeInfo CreateMetadataSymbolTreeInfo(
-            Solution solution, VersionStamp version,
+        private static Task<SymbolTreeInfo> CreateMetadataSymbolTreeInfoAsync(
+            Solution solution, Checksum checksum,
             PortableExecutableReference reference,
             CancellationToken cancellationToken)
         {
-            var creator = new MetadataInfoCreator(solution, version, reference, cancellationToken);
-            return creator.Create();
+            var creator = new MetadataInfoCreator(solution, checksum, reference, cancellationToken);
+            return Task.FromResult(creator.Create());
         }
 
         private struct MetadataInfoCreator : IDisposable
@@ -158,7 +183,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             private static ObjectPool<List<string>> s_stringListPool = new ObjectPool<List<string>>(() => new List<string>());
 
             private readonly Solution _solution;
-            private readonly VersionStamp _version;
+            private readonly Checksum _checksum;
             private readonly PortableExecutableReference _reference;
             private readonly CancellationToken _cancellationToken;
 
@@ -173,10 +198,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             private readonly List<MetadataDefinition> _allTypeDefinitions;
             
             public MetadataInfoCreator(
-                Solution solution, VersionStamp version, PortableExecutableReference reference, CancellationToken cancellationToken)
+                Solution solution, Checksum checksum, PortableExecutableReference reference, CancellationToken cancellationToken)
             {
                 _solution = solution;
-                _version = version;
+                _checksum = checksum;
                 _reference = reference;
                 _cancellationToken = cancellationToken;
                 _metadataReader = null;
@@ -239,7 +264,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                 var unsortedNodes = GenerateUnsortedNodes();
                 return SymbolTreeInfo.CreateSymbolTreeInfo(
-                    _solution, _version, _reference.FilePath, unsortedNodes, _inheritanceMap);
+                    _solution, _checksum, _reference.FilePath, unsortedNodes, _inheritanceMap);
             }
 
             public void Dispose()

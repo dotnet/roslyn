@@ -2380,7 +2380,7 @@ class C
 }
 ";
             var verifier = CompileAndVerify(source + InstrumentationHelperSource, options: TestOptions.ReleaseDll);
-            
+
             AssertNotInstrumented(verifier, "C.P1.get");
             AssertNotInstrumented(verifier, "C.P1.set");
             AssertNotInstrumented(verifier, "C.<get_P1>g__L11_0");
@@ -2526,7 +2526,7 @@ class C
 }
 ";
             var verifier = CompileAndVerify(source + InstrumentationHelperSource, options: TestOptions.ReleaseDll);
-            
+
             AssertNotInstrumented(verifier, "C.P1.get");
             AssertNotInstrumented(verifier, "C.P1.set");
             AssertNotInstrumented(verifier, "C.E1.add");
@@ -2610,6 +2610,178 @@ class D
 
             AssertInstrumented(verifier, "C.M");
             AssertInstrumented(verifier, "D.M");
+        }
+
+        [Fact]
+        public void TestPartialMethodsWithImplementation()
+        {
+            var source = @"
+using System;
+
+public partial class Class1<T>
+{
+    partial void Method1<U>(int x);
+    public void Method2(int x) 
+    {
+        Console.WriteLine($""Method2: x = {x}"");
+        Method1<T>(x);
+    }
+}
+
+public partial class Class1<T>
+{
+    partial void Method1<U>(int x)
+    {
+        Console.WriteLine($""Method1: x = {x}"");
+        if (x > 0)
+        {
+             Console.WriteLine(""Method1: x > 0"");
+             Method1<U>(0);
+        }
+        else if (x < 0)
+        {
+            Console.WriteLine(""Method1: x < 0"");
+        }
+    }
+}
+
+public class Program
+{
+    public static void Main(string[] args)
+    {
+        Test();
+        Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload();
+    }
+
+    static void Test()
+    {
+        Console.WriteLine(""Test"");
+        var c = new Class1<int>();
+        c.Method2(1);
+    }
+}
+" + InstrumentationHelperSource;
+
+            var checker = new CSharpInstrumentationChecker();
+            checker.Method(1, 1, "partial void Method1<U>(int x)")
+                .True(@"Console.WriteLine($""Method1: x = {x}"");")
+                .True(@"Console.WriteLine(""Method1: x > 0"");")
+                .True("Method1<U>(0);")
+                .False(@"Console.WriteLine(""Method1: x < 0"");")
+                .True("x < 0)")
+                .True("x > 0)");
+            checker.Method(2, 1, "public void Method2(int x)")
+                .True(@"Console.WriteLine($""Method2: x = {x}"");")
+                .True("Method1<T>(x);");
+            checker.Method(3, 1, ".ctor()", expectBodySpan: false);
+            checker.Method(4, 1, "public static void Main(string[] args)")
+                .True("Test();")
+                .True("Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload();");
+            checker.Method(5, 1, "static void Test()")
+                .True(@"Console.WriteLine(""Test"");")
+                .True("var c = new Class1<int>();")
+                .True("c.Method2(1);");
+            checker.Method(8, 1)
+                .True()
+                .False()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True();
+
+            var expectedOutput = @"Test
+Method2: x = 1
+Method1: x = 1
+Method1: x > 0
+Method1: x = 0
+" + checker.ExpectedOutput;
+
+            var verifier = CompileAndVerify(source, expectedOutput, options: TestOptions.ReleaseExe);
+            checker.CompleteCheck(verifier.Compilation, source);
+            verifier.VerifyDiagnostics();
+
+            verifier = CompileAndVerify(source, expectedOutput, options: TestOptions.DebugExe);
+            checker.CompleteCheck(verifier.Compilation, source);
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TestPartialMethodsWithoutImplementation()
+        {
+            var source = @"
+using System;
+
+public partial class Class1<T>
+{
+    partial void Method1<U>(int x);
+    public void Method2(int x) 
+    {
+        Console.WriteLine($""Method2: x = {x}"");
+        Method1<T>(x);
+    }
+}
+
+public class Program
+{
+    public static void Main(string[] args)
+    {
+        Test();
+        Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload();
+    }
+
+    static void Test()
+    {
+        Console.WriteLine(""Test"");
+        var c = new Class1<int>();
+        c.Method2(1);
+    }
+}
+" + InstrumentationHelperSource;
+
+            var checker = new CSharpInstrumentationChecker();
+            checker.Method(1, 1, "public void Method2(int x)")
+                .True(@"Console.WriteLine($""Method2: x = {x}"");");
+            checker.Method(2, 1, ".ctor()", expectBodySpan: false);
+            checker.Method(3, 1, "public static void Main(string[] args)")
+                .True("Test();")
+                .True("Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload();");
+            checker.Method(4, 1, "static void Test()")
+                .True(@"Console.WriteLine(""Test"");")
+                .True("var c = new Class1<int>();")
+                .True("c.Method2(1);");
+            checker.Method(7, 1)
+                .True()
+                .False()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True();
+
+            var expectedOutput = @"Test
+Method2: x = 1
+" + checker.ExpectedOutput;
+
+            var verifier = CompileAndVerify(source, expectedOutput, options: TestOptions.ReleaseExe);
+            checker.CompleteCheck(verifier.Compilation, source);
+            verifier.VerifyDiagnostics();
+
+            verifier = CompileAndVerify(source, expectedOutput, options: TestOptions.DebugExe);
+            checker.CompleteCheck(verifier.Compilation, source);
+            verifier.VerifyDiagnostics();
         }
 
         private static void AssertNotInstrumented(CompilationVerifier verifier, string qualifiedMethodName)

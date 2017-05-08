@@ -6,12 +6,12 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Partial Friend Class BoundStatement
-        Implements IOperation
+    Partial Friend Class BoundNode
+        Implements IOperation, IOperationWithChildren
 
         Private ReadOnly Property IOperation_Kind As OperationKind Implements IOperation.Kind
             Get
-                Return Me.StatementKind()
+                Return Me.OperationKind
             End Get
         End Property
 
@@ -29,21 +29,74 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private ReadOnly Property IOperation_Type As ITypeSymbol Implements IOperation.Type
             Get
-                Return Nothing
+                Return Me.OperationType
             End Get
         End Property
 
         Private ReadOnly Property IOperation_ConstantValue As [Optional](Of Object) Implements IOperation.ConstantValue
             Get
+                Return Me.OperationConstantValue
+            End Get
+        End Property
+
+        Public ReadOnly Property IOperationWithChildren_Children As ImmutableArray(Of IOperation) Implements IOperationWithChildren.Children
+            Get
+                Return Me.Children
+            End Get
+        End Property
+
+        Protected Overridable ReadOnly Property OperationKind As OperationKind
+            Get
+                Return OperationKind.None
+            End Get
+        End Property
+
+        Protected Overridable ReadOnly Property OperationType As ITypeSymbol
+            Get
+                Return Nothing
+            End Get
+        End Property
+
+        Protected Overridable ReadOnly Property OperationConstantValue As [Optional](Of Object)
+            Get
                 Return New [Optional](Of Object)()
+            End Get
+        End Property
+
+        ''' <summary>
+        ''' Override this property to return the child operations if the IOperation API corresponding to this bound node is not yet designed or implemented.
+        ''' </summary>
+        ''' <remarks>
+        ''' Note that any of the child operation nodes may be null.
+        ''' </remarks>
+        Protected Overridable ReadOnly Property Children As ImmutableArray(Of IOperation)
+            Get
+                Return ImmutableArray(Of IOperation).Empty
+            End Get
+        End Property
+
+        Public Overridable Overloads Sub Accept(visitor As OperationVisitor) Implements IOperation.Accept
+            visitor.VisitNoneOperation(Me)
+        End Sub
+
+        Public Overridable Overloads Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult Implements IOperation.Accept
+            visitor.VisitNoneOperation(Me, argument)
+        End Function
+    End Class
+
+    Partial Friend Class BoundStatement
+
+        Protected Overrides ReadOnly Property OperationKind As OperationKind
+            Get
+                Return Me.StatementKind
             End Get
         End Property
 
         Protected MustOverride Function StatementKind() As OperationKind
 
-        Public MustOverride Overloads Sub Accept(visitor As OperationVisitor) Implements IOperation.Accept
+        Public MustOverride Overloads Overrides Sub Accept(visitor As OperationVisitor)
 
-        Public MustOverride Overloads Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult Implements IOperation.Accept
+        Public MustOverride Overloads Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
     End Class
 
     Partial Friend Class BoundIfStatement
@@ -260,6 +313,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Protected Overrides Function StatementKind() As OperationKind
             Return OperationKind.None
         End Function
+
+        Protected Overrides ReadOnly Property Children As ImmutableArray(Of IOperation)
+            Get
+                Return ImmutableArray.Create(Of IOperation)(Me.CaseStatement, Me.Body)
+            End Get
+        End Property
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
             visitor.VisitNoneOperation(Me)
@@ -485,6 +544,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Protected Overrides Function StatementKind() As OperationKind
             Return OperationKind.None
         End Function
+
+        Protected Overrides ReadOnly Property Children As ImmutableArray(Of IOperation)
+            Get
+                Return Me.CaseClauses.As(Of IOperation).Add(Me.ConditionOpt)
+            End Get
+        End Property
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
             visitor.VisitNoneOperation(Me)
@@ -943,7 +1008,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Friend Class BoundBadStatement
         Implements IInvalidStatement
 
-        Public ReadOnly Property Children As ImmutableArray(Of IOperation) Implements IInvalidStatement.Children
+        Protected Overrides ReadOnly Property Children As ImmutableArray(Of IOperation) Implements IInvalidStatement.Children
             Get
                 Dim builder As ArrayBuilder(Of IOperation) = ArrayBuilder(Of IOperation).GetInstance(Me.ChildBoundNodes.Length)
                 For Each childNode In Me.ChildBoundNodes
@@ -1630,6 +1695,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return OperationKind.None
         End Function
 
+        Protected Overrides ReadOnly Property Children As ImmutableArray(Of IOperation)
+            Get
+                Return Me.Clauses.As(Of IOperation)
+            End Get
+        End Property
+
         Public Overrides Sub Accept(visitor As OperationVisitor)
             visitor.VisitNoneOperation(Me)
         End Sub
@@ -1644,6 +1715,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return OperationKind.None
         End Function
 
+        Protected Overrides ReadOnly Property Children As ImmutableArray(Of IOperation)
+            Get
+                Return Me.Indices.As(Of IOperation).Insert(0, Me.Operand)
+            End Get
+        End Property
+
         Public Overrides Sub Accept(visitor As OperationVisitor)
             visitor.VisitNoneOperation(Me)
         End Sub
@@ -1657,6 +1734,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Protected Overrides Function StatementKind() As OperationKind
             Return OperationKind.None
         End Function
+
+        Protected Overrides ReadOnly Property Children As ImmutableArray(Of IOperation)
+            Get
+                Return Me.Clauses.As(Of IOperation)
+            End Get
+        End Property
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
             visitor.VisitNoneOperation(Me)
@@ -1764,6 +1847,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return OperationKind.None
         End Function
 
+        Protected Overrides ReadOnly Property Children As ImmutableArray(Of IOperation)
+            Get
+                Return ImmutableArray.Create(Of IOperation)(Me.LabelExpressionOpt)
+            End Get
+        End Property
+
         Public Overrides Sub Accept(visitor As OperationVisitor)
             visitor.VisitNoneOperation(Me)
         End Sub
@@ -1778,6 +1867,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return OperationKind.None
         End Function
 
+        Protected Overrides ReadOnly Property Children As ImmutableArray(Of IOperation)
+            Get
+                Return ImmutableArray.Create(Of IOperation)(Me.LabelExpressionOpt)
+            End Get
+        End Property
+
         Public Overrides Sub Accept(visitor As OperationVisitor)
             visitor.VisitNoneOperation(Me)
         End Sub
@@ -1791,6 +1886,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Protected Overrides Function StatementKind() As OperationKind
             Return OperationKind.None
         End Function
+
+        Protected Overrides ReadOnly Property Children As ImmutableArray(Of IOperation)
+            Get
+                Return ImmutableArray.Create(Of IOperation)(Me.Body)
+            End Get
+        End Property
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
             visitor.VisitNoneOperation(Me)

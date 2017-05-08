@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return false;
         }
 
-        private static bool MatchesPreference(
+        public static bool MatchesPreference(
             ExpressionSyntax expression, ExpressionBodyPreference preference)
         {
             if (preference == ExpressionBodyPreference.WhenPossible)
