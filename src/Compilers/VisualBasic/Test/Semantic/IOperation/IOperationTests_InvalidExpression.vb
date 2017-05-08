@@ -227,7 +227,7 @@ IBinaryOperatorExpression (BinaryOperationKind.Invalid) (OperationKind.BinaryOpe
   Right: IParenthesizedExpression (OperationKind.ParenthesizedExpression, Type: ?, IsInvalid) (Syntax: '(y * args.Length)')
       IBinaryOperatorExpression (BinaryOperationKind.Invalid) (OperationKind.BinaryOperatorExpression, Type: ?, IsInvalid) (Syntax: 'y * args.Length')
         Left: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'y')
-        Right: IIndexedPropertyReferenceExpression: ReadOnly Property System.Array.Length As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'args.Length')
+        Right: IPropertyReferenceExpression: ReadOnly Property System.Array.Length As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'args.Length')
             Instance Receiver: IParameterReferenceExpression: args (OperationKind.ParameterReferenceExpression, Type: System.String()) (Syntax: 'args')
 ]]>.Value
 
@@ -375,7 +375,7 @@ BC30566: Array initializer has too many dimensions.
             VerifyOperationTreeAndDiagnosticsForTest(Of ArrayCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
-        <Fact, WorkItem(17598, "https://github.com/dotnet/roslyn/issues/17598")>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/19344"), WorkItem(17598, "https://github.com/dotnet/roslyn/issues/17598")>
         Public Sub InvalidParameterDefaultValueInitializer()
             Dim source = <![CDATA[
 Class Program

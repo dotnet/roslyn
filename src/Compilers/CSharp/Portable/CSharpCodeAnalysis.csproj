@@ -182,6 +182,8 @@
     <Compile Include="BoundTree\DecisionTree.cs" />
     <Compile Include="BoundTree\DecisionTreeBuilder.cs" />
     <Compile Include="BoundTree\BoundDiscardExpression.cs" />
+    <Compile Include="BoundTree\Expression.cs" />
+    <Compile Include="BoundTree\Statement.cs" />
     <Compile Include="BoundTree\VariablePendingInference.cs" />
     <Compile Include="BoundTree\OutDeconstructVarPendingInference.cs" />
     <Compile Include="BoundTree\PseudoVariableExpressions.cs" />
@@ -459,6 +461,7 @@
     <Compile Include="Lowering\UnmatchedGotoFinder.cs" />
     <Compile Include="Operations\CSharpOperationFactory.cs" />
     <Compile Include="Operations\CSharpOperationFactory_Methods.cs" />
+    <Compile Include="Operations\IBoundNodeWithIOperationChildren.cs" />
     <Compile Include="Parser\AbstractLexer.cs" />
     <Compile Include="Parser\BlendedNode.cs" />
     <Compile Include="Parser\Blender.cs" />
