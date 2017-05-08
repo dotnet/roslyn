@@ -3418,7 +3418,7 @@ End Class
             Dim src1 = "
 Imports System
 Class C
-    Property Item(a1 As Integer, a2 As Integer) As Func(Of Integer, Integer)
+    Readonly Property Item(a1 As Integer, a2 As Integer) As Func(Of Integer, Integer)
         Get
             Return New Func(Of Integer, Integer)(Function(a3) a1 + a2)
         End Get
@@ -3428,7 +3428,7 @@ End Class
             Dim src2 = "
 Imports System
 Class C
-    Property Item(a1 As Integer, a2 As Integer) As Func(Of Integer, Integer)
+    Readonly Property Item(a1 As Integer, a2 As Integer) As Func(Of Integer, Integer)
         Get
             Return New Func(Of Integer, Integer)(Function(a3) a2)
         End Get
@@ -3714,7 +3714,7 @@ End Class
             Dim src1 = "
 Imports System
 Class C
-    Property Item(a1 As Integer, a2 As Integer) As Func(Of Integer, Integer)
+    Readonly Property Item(a1 As Integer, a2 As Integer) As Func(Of Integer, Integer)
         Get
             Return New Func(Of Integer, Integer)(Function(a3) a2)
         End Get
@@ -3724,7 +3724,7 @@ End Class
             Dim src2 = "
 Imports System
 Class C
-    Property Item(a1 As Integer, a2 As Integer) As Func(Of Integer, Integer)
+    Readonly Property Item(a1 As Integer, a2 As Integer) As Func(Of Integer, Integer)
         Get
             Return New Func(Of Integer, Integer)(Function(a3) a1 + a2)
         End Get
@@ -4041,12 +4041,12 @@ Imports System
 
 Partial Class C
     Dim x As Integer = 1
-    Partial Sub F() ' def
+    Private Partial Sub F() ' def
     End Sub
 End Class
 
 Partial Class C
-    Partial Sub F() ' impl
+    Private Sub F() ' impl
         Dim f = New Func(Of Integer, Integer)(Function(a) a)
     End Sub
 End Class
@@ -4056,19 +4056,19 @@ Imports System
 
 Partial Class C
     Dim x As Integer = 1
-    Partial Sub F() ' def
+    Private Partial Sub F() ' def
     End Sub
 End Class
 
 Partial Class C
-    Partial Sub F() ' impl
+    Private Sub F() ' impl
         Dim f = New Func(Of Integer, Integer)(Function(a) a + x)
     End Sub
 End Class
 "
             Dim edits = GetTopEdits(src1, src2)
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.CapturingVariable, "F", "Me").WithFirstLine("Partial Sub F() ' impl"))
+                Diagnostic(RudeEditKind.CapturingVariable, "F", "Me").WithFirstLine("Private Sub F() ' impl"))
         End Sub
 
         <Fact>
