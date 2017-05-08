@@ -2165,6 +2165,9 @@ If such a class is used as a base class and if the deriving class defines a dest
   <data name="ERR_LambdaInIsAs" xml:space="preserve">
     <value>The first operand of an 'is' or 'as' operator may not be a lambda expression, anonymous method, or method group.</value>
   </data>
+  <data name="ERR_TypelessTupleInAs" xml:space="preserve">
+    <value>The first operand of an 'as' operator may not be a tuple literal without a natural type.</value>
+  </data>
   <data name="ERR_ExpressionTreeContainsMultiDimensionalArrayInitializer" xml:space="preserve">
     <value>An expression tree may not contain a multidimensional array initializer</value>
   </data>

@@ -9152,6 +9152,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The first operand of an &apos;as&apos; operator may not be a tuple literal without a natural type..
+        /// </summary>
+        internal static string ERR_TypelessTupleInAs {
+            get {
+                return ResourceManager.GetString("ERR_TypelessTupleInAs", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Type parameter declaration must be an identifier not a type.
         /// </summary>
         internal static string ERR_TypeParamMustBeIdentifier {
