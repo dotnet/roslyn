@@ -164,9 +164,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                         End If
                     End If
                 End If
-
-                Return Nothing
             End If
+
+            Return Nothing
         End Function
 
         <Extension()>
