@@ -1308,7 +1308,7 @@ End Class
         <Fact>
         Public Sub NestedClass_InsertMemberWithInitializer1()
             Dim src1 = "Public Class C : End Class"
-            Dim src2 = "Public Class C : Private Class D : Public Property P As New List(Of String) : End Class : End Class"
+            Dim src2 = "Public Class C : Private Class D : Public Property P As New Object : End Class : End Class"
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifySemantics(ActiveStatementsDescription.Empty,
@@ -1318,7 +1318,7 @@ End Class
         <Fact>
         Public Sub NestedClass_InsertMemberWithInitializer2()
             Dim src1 = "Public Module C : End Module"
-            Dim src2 = "Public Module C : Private Class D : Property P As New List(Of String) : End Class : End Module"
+            Dim src2 = "Public Module C : Private Class D : Property P As New Object : End Class : End Module"
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifySemantics(ActiveStatementsDescription.Empty,
@@ -1767,14 +1767,14 @@ End Class
         <Fact>
         Public Sub MethodInsert_PrivateWithAttribute()
             Dim src1 = "Class C : End Class"
-            Dim src2 = "Class C : " & vbLf & "<A>Private Sub F : End Sub : End Class"
+            Dim src2 = "Class C : " & vbLf & "<System.Obsolete>Private Sub F : End Sub : End Class"
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Insert [<A>Private Sub F : End Sub]@11",
-                "Insert [<A>Private Sub F]@11",
-                "Insert [<A>]@11",
-                "Insert [A]@12")
+                "Insert [<System.Obsolete>Private Sub F : End Sub]@11",
+                "Insert [<System.Obsolete>Private Sub F]@11",
+                "Insert [<System.Obsolete>]@11",
+                "Insert [System.Obsolete]@12")
 
             edits.VerifySemantics(ActiveStatementsDescription.Empty,
                                   {SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember(Of NamedTypeSymbol)("C").GetMember("F"))})
@@ -2926,7 +2926,8 @@ Partial Class C
         Return 0
     End Function
 
-    Dim A1(F(<N:0.0>Function(a1) a1 + 1</N:0.0>)), A2 As Integer = F(<N:0.1>Function(a2) a2 + 1</N:0.1>)
+    Dim A1(F(<N:0.0>Function(a1) a1 + 1</N:0.0>))
+    Dim A2 As Integer = F(<N:0.1>Function(a2) a2 + 1</N:0.1>)
     Dim A3, A4 As New Func(Of Integer, Integer)(<N:0.2>Function(a34) a34 + 1</N:0.2>)
     Dim A5(F(<N:0.3>Function(a51) a51 + 1</N:0.3>), F(<N:0.4>Function(a52) a52 + 1</N:0.4>)) As Integer
 End Class
@@ -2947,7 +2948,8 @@ Partial Class C
         Return 0
     End Function
 
-    Dim A1(F(<N:0.0>Function(a1) a1 + 1</N:0.0>)), A2 As Integer = F(<N:0.1>Function(a2) a2 + 1</N:0.1>)
+    Dim A1(F(<N:0.0>Function(a1) a1 + 1</N:0.0>))
+    Dim A2 As Integer = F(<N:0.1>Function(a2) a2 + 1</N:0.1>)
     Dim A3, A4 As New Func(Of Integer, Integer)(<N:0.2>Function(a34) a34 + 1</N:0.2>)
     Dim A5(F(<N:0.3>Function(a51) a51 + 1</N:0.3>), F(<N:0.4>Function(a52) a52 + 1</N:0.4>)) As Integer
 End Class
@@ -3181,6 +3183,39 @@ End Class
             '     {SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember<NamedTypeSymbol>("C").Constructors.Single(), syntaxMap(0))})
 
         End Sub
+
+        <Fact>
+        Public Sub Constructor_SemanticError_Partial()
+            Dim src1 = "
+Partial Class C
+    Partial Sub New(x As Integer)
+    End Sub
+End Class
+
+Class C
+    Partial Sub New(x As Integer)
+        System.Console.WriteLine(1)
+    End Sub
+End Class
+
+"
+            Dim src2 = "
+Partial Class C
+    Partial Sub New(x As Integer)
+    End Sub
+End Class
+
+Class C
+    Partial Sub New(x As Integer)
+        System.Console.WriteLine(2)
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(ERRID.ERR_ConstructorCannotBeDeclaredPartial, "Partial").WithArguments("Partial").WithLocation(3, 5))
+        End Sub
+
 #End Region
 
 #Region "Declare"
@@ -4205,19 +4240,6 @@ End Class
                                   {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), preserveLocalVariables:=True)})
         End Sub
 
-        <Fact(), WorkItem(2543, "https://github.com/dotnet/roslyn/issues/2543")>
-        Public Sub Field_InitializerUpdate2()
-            Dim src1 = "Class C : Dim a, b As Integer = 0 : End Class"
-            Dim src2 = "Class C : Dim a, b As Integer = 1 : End Class"
-            Dim edits = GetTopEdits(src1, src2)
-
-            edits.VerifyEdits(
-                "Update [a, b As Integer = 0]@14 -> [a, b As Integer = 1]@14")
-
-            edits.VerifySemantics(ActiveStatementsDescription.Empty,
-                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), preserveLocalVariables:=True)})
-        End Sub
-
         <Fact>
         Public Sub Property_Instance_InitializerUpdate()
             Dim src1 = "Class C : Property a As Integer = 0 : End Class"
@@ -4259,12 +4281,12 @@ End Class
 
         <Fact>
         Public Sub Field_InitializerUpdate_AsNew1()
-            Dim src1 = "Class C : Dim a As New D(1) : End Class"
-            Dim src2 = "Class C : Dim a As New D(2) : End Class"
+            Dim src1 = "Class C : Dim a As New Decimal(1) : End Class"
+            Dim src2 = "Class C : Dim a As New Decimal(2) : End Class"
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Update [a As New D(1)]@14 -> [a As New D(2)]@14")
+                "Update [a As New Decimal(1)]@14 -> [a As New Decimal(2)]@14")
 
             edits.VerifySemantics(ActiveStatementsDescription.Empty,
                                   {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), preserveLocalVariables:=True)})
@@ -4272,12 +4294,12 @@ End Class
 
         <Fact(), WorkItem(2543, "https://github.com/dotnet/roslyn/issues/2543")>
         Public Sub Field_InitializerUpdate_AsNew2()
-            Dim src1 = "Class C : Dim a, b As New C(1) : End Class"
-            Dim src2 = "Class C : Dim a, b As New C(2) : End Class"
+            Dim src1 = "Class C : Dim a, b As New Decimal(1) : End Class"
+            Dim src2 = "Class C : Dim a, b As New Decimal(2) : End Class"
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Update [a, b As New C(1)]@14 -> [a, b As New C(2)]@14")
+                "Update [a, b As New Decimal(1)]@14 -> [a, b As New Decimal(2)]@14")
 
             edits.VerifySemantics(ActiveStatementsDescription.Empty,
                                   {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), preserveLocalVariables:=True)})
@@ -4285,12 +4307,12 @@ End Class
 
         <Fact>
         Public Sub Property_InitializerUpdate_AsNew()
-            Dim src1 = "Class C : Property a As New D(1) : End Class"
-            Dim src2 = "Class C : Property a As New D(2) : End Class"
+            Dim src1 = "Class C : Property a As New Decimal(1) : End Class"
+            Dim src2 = "Class C : Property a As New Decimal(2) : End Class"
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Update [Property a As New D(1)]@10 -> [Property a As New D(2)]@10")
+                "Update [Property a As New Decimal(1)]@10 -> [Property a As New Decimal(2)]@10")
 
             edits.VerifySemantics(ActiveStatementsDescription.Empty,
                                   {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), preserveLocalVariables:=True)})
@@ -4343,19 +4365,6 @@ End Class
 
             edits.VerifyEdits(
                 "Update [Property a As Integer = 0]@10 -> [Property a As Integer]@10")
-
-            edits.VerifySemantics(ActiveStatementsDescription.Empty,
-                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), preserveLocalVariables:=True)})
-        End Sub
-
-        <Fact>
-        Public Sub Property_StructInitializerUpdate_Delete()
-            Dim src1 = "Structure C : Property a As Integer = 0 : End Structure"
-            Dim src2 = "Structure C : Property a As Integer : End Structure"
-            Dim edits = GetTopEdits(src1, src2)
-
-            edits.VerifyEdits(
-                "Update [Property a As Integer = 0]@14 -> [Property a As Integer]@14")
 
             edits.VerifySemantics(ActiveStatementsDescription.Empty,
                                   {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), preserveLocalVariables:=True)})
@@ -4436,15 +4445,15 @@ End Class
 
         <Fact>
         Public Sub FieldUpdate_ModuleCtorUpdate1()
-            Dim src1 = "Module C : Dim a As Integer : " & vbLf & "Shared Sub New() : End Sub : End Module"
+            Dim src1 = "Module C : Dim a As Integer : " & vbLf & "Sub New() : End Sub : End Module"
             Dim src2 = "Module C : Dim a As Integer = 0 : End Module"
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyEdits(
                 "Update [a As Integer]@15 -> [a As Integer = 0]@15",
-                "Delete [Shared Sub New() : End Sub]@31",
-                "Delete [Shared Sub New()]@31",
-                "Delete [()]@45")
+                "Delete [Sub New() : End Sub]@31",
+                "Delete [Sub New()]@31",
+                "Delete [()]@38")
 
             edits.VerifySemantics(ActiveStatementsDescription.Empty,
                                   {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").SharedConstructors.Single())})
@@ -4560,8 +4569,8 @@ End Class
 
         <Fact>
         Public Sub PropertyUpdate_ModuleCtorUpdate2()
-            Dim src1 = "Module C : Property a As Integer : " & vbLf & "Shared Sub New() : End Sub : End Module"
-            Dim src2 = "Module C : Property a As Integer = 0 : " & vbLf & "Shared Sub New() : End Sub : End Module"
+            Dim src1 = "Module C : Property a As Integer : " & vbLf & "Sub New() : End Sub : End Module"
+            Dim src2 = "Module C : Property a As Integer = 0 : " & vbLf & "Sub New() : End Sub : End Module"
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifySemantics(ActiveStatementsDescription.Empty,
@@ -4966,11 +4975,11 @@ End Class
         <Fact(), WorkItem(2543, "https://github.com/dotnet/roslyn/issues/2543")>
         Public Sub PrivateFieldInsert2()
             Dim src1 = "Class C : Private a As Integer = 1 : End Class"
-            Dim src2 = "Class C : Private a, b As Integer = 1 : End Class"
+            Dim src2 = "Class C : Private a, b As Integer : End Class"
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Update [a As Integer = 1]@18 -> [a, b As Integer = 1]@18",
+                "Update [a As Integer = 1]@18 -> [a, b As Integer]@18",
                 "Insert [b]@21")
 
             edits.VerifySemantics(ActiveStatementsDescription.Empty,
@@ -5860,6 +5869,51 @@ End Class"
                 {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").Constructors(0), syntaxMap(0)),
                  SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").Constructors(1), syntaxMap(0))})
         End Sub
+
+        <Fact>
+        Public Sub PropertyWithInitializer_SemanticError_Partial()
+            Dim src1 = "
+Partial Class C
+    Partial Public ReadOnly Property NewProperty() As String
+        Get
+            Return 1
+        End Get
+    End Property
+End Class
+
+Partial Class C
+    Partial Public ReadOnly Property NewProperty() As String
+        Get
+            Return 1
+        End Get
+    End Property
+End Class
+"
+            Dim src2 = "
+Partial Class C
+    Partial Public ReadOnly Property NewProperty() As String
+        Get
+            Return 1
+        End Get
+    End Property
+End Class
+
+Partial Class C
+    Partial Public ReadOnly Property NewProperty() As String
+        Get
+            Return 1
+        End Get
+    End Property
+
+    Sub New()
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(ERRID.ERR_BadPropertyFlags1, "Partial").WithArguments("Partial").WithLocation(3, 5))
+        End Sub
+
 #End Region
 
 #Region "Events"
@@ -5950,29 +6004,32 @@ End Class"
 
         <Fact>
         Public Sub EventInsert_IntoLayoutClass_Sequential()
-            Dim src1 = <![CDATA[
+            Dim src1 = "
 Imports System
 Imports System.Runtime.InteropServices
 
 <StructLayoutAttribute(LayoutKind.Sequential)>
 Class C
 End Class
-]]>.Value
-            Dim src2 = <![CDATA[
+"
+            Dim src2 = "
 Imports System
 Imports System.Runtime.InteropServices
 
 <StructLayoutAttribute(LayoutKind.Sequential)>
 Class C
     Private Custom Event c As Action
-        AddHandler
+        AddHandler(value As Action)
         End AddHandler
 
-        RemoveHandler
+        RemoveHandler(value As Action)
         End RemoveHandler
+
+        RaiseEvent()
+        End RaiseEvent
     End Event
 End Class
-]]>.Value
+"
             Dim edits = GetTopEdits(src1, src2)
             edits.VerifySemanticDiagnostics()
         End Sub
