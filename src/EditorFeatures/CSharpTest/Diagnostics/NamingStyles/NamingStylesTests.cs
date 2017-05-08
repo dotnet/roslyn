@@ -310,6 +310,18 @@ class D : C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        [WorkItem(19106, "https://github.com/dotnet/roslyn/issues/19106")]
+        public async Task TestMissingOnSymbolsWithNoName()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+namespace Microsoft.CodeAnalysis.Host
+{
+    internal interface 
+[|}|]
+", new TestParameters(options: InterfaceNamesStartWithI));
+        }
+        
         [WorkItem(16562, "https://github.com/dotnet/roslyn/issues/16562")]
         public async Task TestRefactorNotify()
         {

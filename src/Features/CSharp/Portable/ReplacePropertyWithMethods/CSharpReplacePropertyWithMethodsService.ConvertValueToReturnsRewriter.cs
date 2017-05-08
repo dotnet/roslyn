@@ -17,10 +17,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
             private XmlNameSyntax ConvertToReturns(XmlNameSyntax name)
                 => name.ReplaceToken(name.LocalName, SyntaxFactory.Identifier("returns"));
 
-            private static bool IsValueName(XmlNameSyntax name)
-                => name.Prefix == null &&
-                   name.LocalName.ValueText == "value";
-
             public override SyntaxNode VisitXmlElementStartTag(XmlElementStartTagSyntax node)
                 => IsValueName(node.Name)
                     ? node.ReplaceNode(node.Name, ConvertToReturns(node.Name))

@@ -46,24 +46,24 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        public static Checksum Create(string kind, IObjectWritable @object)
+        public static Checksum Create(WellKnownSynchronizationKind kind, IObjectWritable @object)
         {
             using (var stream = SerializableBytes.CreateWritableStream())
             using (var objectWriter = new ObjectWriter(stream))
             {
-                objectWriter.WriteString(kind);
+                objectWriter.WriteInt32((int)kind);
                 @object.WriteTo(objectWriter);
 
                 return Create(stream);
             }
         }
 
-        public static Checksum Create(string kind, IEnumerable<Checksum> checksums)
+        public static Checksum Create(WellKnownSynchronizationKind kind, IEnumerable<Checksum> checksums)
         {
             using (var stream = SerializableBytes.CreateWritableStream())
             using (var writer = new ObjectWriter(stream))
             {
-                writer.WriteString(kind);
+                writer.WriteInt32((int)kind);
 
                 foreach (var checksum in checksums)
                 {
@@ -74,12 +74,12 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        public static Checksum Create(string kind, ImmutableArray<byte> bytes)
+        public static Checksum Create(WellKnownSynchronizationKind kind, ImmutableArray<byte> bytes)
         {
             using (var stream = SerializableBytes.CreateWritableStream())
             using (var writer = new ObjectWriter(stream))
             {
-                writer.WriteString(kind);
+                writer.WriteInt32((int)kind);
 
                 for (var i = 0; i < bytes.Length; i++)
                 {
@@ -90,12 +90,12 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        public static Checksum Create<T>(string kind, T value, Serializer serializer)
+        public static Checksum Create<T>(WellKnownSynchronizationKind kind, T value, Serializer serializer)
         {
             using (var stream = SerializableBytes.CreateWritableStream())
             using (var objectWriter = new ObjectWriter(stream))
             {
-                objectWriter.WriteString(kind);
+                objectWriter.WriteInt32((int)kind);
                 serializer.Serialize(value, objectWriter, CancellationToken.None);
                 return Create(stream);
             }
