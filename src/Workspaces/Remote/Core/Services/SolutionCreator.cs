@@ -540,7 +540,6 @@ namespace Microsoft.CodeAnalysis.Remote
                     VersionStamp.Create(),
                     documentInfo.FilePath));
 
-            // TODO: do we need version?
             return DocumentInfo.Create(
                 documentInfo.Id,
                 documentInfo.Name,
@@ -548,7 +547,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 documentInfo.SourceCodeKind,
                 textLoader,
                 documentInfo.FilePath,
-                documentInfo.IsGenerated);
+                documentInfo.IsGenerated).WithProjectFilePath(documentInfo.ProjectFilePath);
         }
 
         private Project AddDocument(Project project, DocumentInfo documentInfo, bool additionalText)

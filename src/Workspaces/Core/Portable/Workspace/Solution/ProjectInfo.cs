@@ -434,15 +434,15 @@ namespace Microsoft.CodeAnalysis
 
             public void WriteTo(ObjectWriter writer)
             {
+                // these information is volatile. it can be different
+                // per session or not content based value. basically not
+                // persistable. these information will not be included in checksum
                 Id.WriteTo(writer);
 
-                // TODO: figure out a way to send version info over as well
-                // info.Version.WriteTo(writer);
-
+                writer.WriteString(FilePath);
                 writer.WriteString(Name);
                 writer.WriteString(AssemblyName);
                 writer.WriteString(Language);
-                writer.WriteString(FilePath);
                 writer.WriteString(OutputFilePath);
                 writer.WriteBoolean(IsSubmission);
                 writer.WriteBoolean(HasAllInformation);
@@ -455,15 +455,15 @@ namespace Microsoft.CodeAnalysis
             {
                 var projectId = ProjectId.ReadFrom(reader);
 
-                // var version = VersionStamp.ReadFrom(reader);
+                var filePath = reader.ReadString();
                 var name = reader.ReadString();
                 var assemblyName = reader.ReadString();
                 var language = reader.ReadString();
-                var filePath = reader.ReadString();
                 var outputFilePath = reader.ReadString();
                 var isSubmission = reader.ReadBoolean();
                 var hasAllInformation = reader.ReadBoolean();
 
+                // version won't be synced to remote host. service running in remote host should use checksum for persisting data rather than version.
                 return new ProjectAttributes(projectId, VersionStamp.Create(), name, assemblyName, language, filePath, outputFilePath, isSubmission, hasAllInformation);
             }
 
@@ -474,7 +474,31 @@ namespace Microsoft.CodeAnalysis
                 {
                     if (_lazyChecksum == null)
                     {
-                        _lazyChecksum = Checksum.Create(nameof(ProjectAttributes), this);
+                        using (var stream = SerializableBytes.CreateWritableStream())
+                        using (var writer = new ObjectWriter(stream))
+                        {
+                            writer.WriteString(nameof(ProjectAttributes));
+
+                            if (FilePath == null)
+                            {
+                                // this checksum is not persistable because
+                                // this info doesn't have non volatile info
+                                Id.WriteTo(writer);
+                            }
+
+                            // these information is not volatile. it won't be different
+                            // per session, basically persistable content based values. 
+                            // only these information will be included in checksum
+                            writer.WriteString(FilePath);
+                            writer.WriteString(Name);
+                            writer.WriteString(AssemblyName);
+                            writer.WriteString(Language);
+                            writer.WriteString(OutputFilePath);
+                            writer.WriteBoolean(IsSubmission);
+                            writer.WriteBoolean(HasAllInformation);
+
+                            _lazyChecksum = Checksum.Create(stream);
+                        }
                     }
 
                     return _lazyChecksum;

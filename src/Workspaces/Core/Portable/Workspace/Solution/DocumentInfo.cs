@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis
             string filePath = null,
             bool isGenerated = false)
         {
-            return new DocumentInfo(new DocumentAttributes(id, name, folders, sourceCodeKind, filePath, isGenerated), loader);
+            return new DocumentInfo(new DocumentAttributes(id, name, folders, sourceCodeKind, filePath, projectFilePath: null, isGenerated: isGenerated), loader);
         }
 
         private DocumentInfo With(
@@ -118,6 +118,11 @@ namespace Microsoft.CodeAnalysis
             return this.With(attributes: Attributes.With(filePath: filePath));
         }
 
+        internal DocumentInfo WithProjectFilePath(string projectFilePath)
+        {
+            return this.With(attributes: Attributes.With(projectFilePath: projectFilePath));
+        }
+
         private string GetDebuggerDisplay()
         {
             return (FilePath == null) ? (nameof(Name) + " = " + Name) : (nameof(FilePath) + " = " + FilePath);
@@ -155,6 +160,11 @@ namespace Microsoft.CodeAnalysis
             public string FilePath { get; }
 
             /// <summary>
+            /// The file path of the project
+            /// </summary>
+            public string ProjectFilePath { get; }
+
+            /// <summary>
             /// True if the document is a side effect of the build.
             /// </summary>
             public bool IsGenerated { get; }
@@ -165,6 +175,7 @@ namespace Microsoft.CodeAnalysis
                 IEnumerable<string> folders,
                 SourceCodeKind sourceCodeKind,
                 string filePath,
+                string projectFilePath,
                 bool isGenerated)
             {
                 Id = id ?? throw new ArgumentNullException(nameof(id));
@@ -172,6 +183,7 @@ namespace Microsoft.CodeAnalysis
                 Folders = folders.ToImmutableReadOnlyListOrEmpty();
                 SourceCodeKind = sourceCodeKind;
                 FilePath = filePath;
+                ProjectFilePath = projectFilePath;
                 IsGenerated = isGenerated;
             }
 
@@ -181,6 +193,7 @@ namespace Microsoft.CodeAnalysis
                 IEnumerable<string> folders = null,
                 Optional<SourceCodeKind> sourceCodeKind = default(Optional<SourceCodeKind>),
                 Optional<string> filePath = default(Optional<string>),
+                Optional<string> projectFilePath = default(Optional<string>),
                 Optional<bool> isGenerated = default(Optional<bool>))
             {
                 var newId = id ?? Id;
@@ -188,6 +201,7 @@ namespace Microsoft.CodeAnalysis
                 var newFolders = folders ?? Folders;
                 var newSourceCodeKind = sourceCodeKind.HasValue ? sourceCodeKind.Value : SourceCodeKind;
                 var newFilePath = filePath.HasValue ? filePath.Value : FilePath;
+                var newProjectFilePath = projectFilePath.HasValue ? projectFilePath.Value : ProjectFilePath;
                 var newIsGenerated = isGenerated.HasValue ? isGenerated.Value : IsGenerated;
 
                 if (newId == Id &&
@@ -195,22 +209,28 @@ namespace Microsoft.CodeAnalysis
                     newFolders == Folders &&
                     newSourceCodeKind == SourceCodeKind &&
                     newFilePath == FilePath &&
+                    newProjectFilePath == ProjectFilePath &&
                     newIsGenerated == IsGenerated)
                 {
                     return this;
                 }
 
-                return new DocumentAttributes(newId, newName, newFolders, newSourceCodeKind, newFilePath, newIsGenerated);
+                return new DocumentAttributes(newId, newName, newFolders, newSourceCodeKind, newFilePath, newProjectFilePath, newIsGenerated);
             }
 
             public void WriteTo(ObjectWriter writer)
             {
+                // these information is volatile. it can be different
+                // per session or not content based value. basically not
+                // persistable. these information will not be included in checksum
                 Id.WriteTo(writer);
+
+                writer.WriteString(FilePath);
+                writer.WriteString(ProjectFilePath);
 
                 writer.WriteString(Name);
                 writer.WriteValue(Folders.ToArray());
                 writer.WriteInt32((int)SourceCodeKind);
-                writer.WriteString(FilePath);
                 writer.WriteBoolean(IsGenerated);
             }
 
@@ -218,13 +238,15 @@ namespace Microsoft.CodeAnalysis
             {
                 var documentId = DocumentId.ReadFrom(reader);
 
+                var filePath = reader.ReadString();
+                var projectFilePath = reader.ReadString();
+
                 var name = reader.ReadString();
                 var folders = (string[])reader.ReadValue();
                 var sourceCodeKind = reader.ReadInt32();
-                var filePath = reader.ReadString();
                 var isGenerated = reader.ReadBoolean();
 
-                return new DocumentAttributes(documentId, name, folders, (SourceCodeKind)sourceCodeKind, filePath, isGenerated);
+                return new DocumentAttributes(documentId, name, folders, (SourceCodeKind)sourceCodeKind, filePath, projectFilePath, isGenerated);
             }
 
             private Checksum _lazyChecksum;
@@ -234,7 +256,33 @@ namespace Microsoft.CodeAnalysis
                 {
                     if (_lazyChecksum == null)
                     {
-                        _lazyChecksum = Checksum.Create(nameof(DocumentAttributes), this);
+                        using (var stream = SerializableBytes.CreateWritableStream())
+                        using (var writer = new ObjectWriter(stream))
+                        {
+                            writer.WriteString(nameof(DocumentAttributes));
+
+                            if (FilePath == null || ProjectFilePath == null)
+                            {
+                                // this checksum is not persistable because
+                                // this info doesn't have non volatile info
+                                Id.WriteTo(writer);
+                            }
+
+                            // these information is not volatile. it won't be different
+                            // per session, basically persistable content based values. 
+                            // only these information will be included in checksum
+                            writer.WriteString(FilePath);
+
+                            // we need project file path due to linked file
+                            writer.WriteString(ProjectFilePath);
+
+                            writer.WriteString(Name);
+                            writer.WriteValue(Folders.ToArray());
+                            writer.WriteInt32((int)SourceCodeKind);
+                            writer.WriteBoolean(IsGenerated);
+
+                            _lazyChecksum = Checksum.Create(stream);
+                        }
                     }
 
                     return _lazyChecksum;

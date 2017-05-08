@@ -594,7 +594,7 @@ namespace Microsoft.CodeAnalysis
                 sourceCodeKind: GetSourceCodeKind(project),
                 loader: loader,
                 filePath: filePath,
-                isGenerated: isGenerated);
+                isGenerated: isGenerated).WithProjectFilePath(project.FilePath);
 
             return this.AddDocument(info);
         }
@@ -636,7 +636,7 @@ namespace Microsoft.CodeAnalysis
                 name: name,
                 folders: folders,
                 sourceCodeKind: GetSourceCodeKind(project),
-                loader: loader);
+                loader: loader).WithProjectFilePath(project.FilePath);
 
             return this.AddDocument(info);
         }
@@ -697,7 +697,7 @@ namespace Microsoft.CodeAnalysis
                 folders: folders,
                 sourceCodeKind: GetSourceCodeKind(project),
                 loader: loader,
-                filePath: filePath);
+                filePath: filePath).WithProjectFilePath(project.FilePath);
 
             return this.AddAdditionalDocument(info);
         }

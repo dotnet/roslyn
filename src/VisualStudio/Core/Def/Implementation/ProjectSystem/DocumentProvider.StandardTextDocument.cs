@@ -147,13 +147,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             public DocumentInfo GetInitialState()
             {
-                return DocumentInfo.Create(
+                var info = DocumentInfo.Create(
                     id: this.Id,
                     name: this.Name,
                     folders: this.Folders,
                     sourceCodeKind: this.SourceCodeKind,
                     loader: this.Loader,
                     filePath: this.FilePath);
+
+                var abstractProject = this.Project as AbstractProject;
+                if (abstractProject != null)
+                {
+                    // set project file path if possible. this will let us have persistable checksum
+                    // for the document
+                    info = info.WithProjectFilePath(abstractProject.ProjectFilePath);
+                }
+
+                return info;
             }
 
             internal void ProcessOpen(ITextBuffer openedBuffer, bool isCurrentContext)
