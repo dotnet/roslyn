@@ -13,9 +13,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.RemoveUnuse
     public partial class RemoveUnusedVariableTest : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
-        {
-            return(null, new RemoveUnusedVariableCodeFixProvider());
-        }
+            => (null, new CSharpRemoveUnusedVariableCodeFixProvider());
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
         public async Task RemoveUnusedVariable()

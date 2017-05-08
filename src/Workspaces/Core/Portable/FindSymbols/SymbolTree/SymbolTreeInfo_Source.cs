@@ -28,14 +28,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             s_symbolMapPool.Free(symbolMap);
         }
 
-        public static async Task<SymbolTreeInfo> GetInfoForSourceAssemblyAsync(
+        public static Task<SymbolTreeInfo> GetInfoForSourceAssemblyAsync(
             Project project, Checksum checksum, CancellationToken cancellationToken)
         {
-            var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-
-            return await LoadOrCreateSourceSymbolTreeInfoAsync(
-                project.Solution, compilation.Assembly, checksum, project.FilePath,
-                loadOnly: false, cancellationToken: cancellationToken).ConfigureAwait(false);
+            return LoadOrCreateSourceSymbolTreeInfoAsync(
+                project, checksum, loadOnly: false, cancellationToken: cancellationToken);
         }
 
         public static async Task<Checksum> GetSourceSymbolsChecksumAsync(Project project, CancellationToken cancellationToken)
@@ -49,7 +46,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var serializer = new Serializer(project.Solution.Workspace);
             var projectStateChecksums = await project.State.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
 
-            var textChecksumsTasks = project.Documents.Select(async d =>
+            // Order the documents by FilePath.  Default ordering in the RemoteWorkspace is
+            // to be ordered by Guid (which is not consistent across VS sessions).
+            var textChecksumsTasks = project.Documents.OrderBy(d => d.FilePath).Select(async d =>
             {
                 var documentStateChecksum = await d.State.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
                 return documentStateChecksum.Text;
@@ -75,10 +74,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
         }
 
-        internal static SymbolTreeInfo CreateSourceSymbolTreeInfo(
-            Solution solution, Checksum checksum, IAssemblySymbol assembly,
-            string filePath, CancellationToken cancellationToken)
+        internal static async Task<SymbolTreeInfo> CreateSourceSymbolTreeInfoAsync(
+            Project project, Checksum checksum, CancellationToken cancellationToken)
         {
+            var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+            var assembly = compilation.Assembly;
             if (assembly == null)
             {
                 return null;
@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             GenerateSourceNodes(assembly.GlobalNamespace, unsortedNodes, s_getMembersNoPrivate);
 
             return CreateSymbolTreeInfo(
-                solution, checksum, filePath, unsortedNodes.ToImmutableAndFree(), 
+                project.Solution, checksum, project.FilePath, unsortedNodes.ToImmutableAndFree(), 
                 inheritanceMap: new OrderPreservingMultiDictionary<string, string>());
         }
 
