@@ -1138,7 +1138,7 @@ End Class
                Diagnostic(ExplicitVsImplicitInstanceAnalyzer.ImplicitInstanceDescriptor.Id, "M2").WithLocation(15, 9))
         End Sub
 
-        <Fact>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/18839")>
         Public Sub EventAndMethodReferencesVisualBasic()
             Dim source = <compilation>
                              <file name="c.vb">
@@ -1411,7 +1411,7 @@ End Class
         End Sub
 
         <WorkItem(8385, "https://github.com/dotnet/roslyn/issues/8385")>
-        <Fact>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/18839")>
         Public Sub StaticMemberReferenceVisualBasic()
             Dim source = <compilation>
                              <file name="c.vb">
