@@ -133,6 +133,8 @@
     <DisableImplicitFrameworkReferences Condition="'$(DisableImplicitFrameworkReferences)' == ''" >true</DisableImplicitFrameworkReferences>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+
+    <IbcMergePath>$(NuGetPackageRoot)\Microsoft.DotNet.IBCMerge\$(MicrosoftDotNetIBCMerge)\lib\net45\ibcmerge.exe</IbcMergePath>
   </PropertyGroup>
 
   <!-- If the project hasn't configured a ruleset, set a default ruleset. -->
@@ -423,16 +425,24 @@
     </PropertyGroup>
   </Target>
 
-  <!-- The path to IBCMerge.exe must be specified at build time via $(IbcMergePath).  Typically this is passed as a
-       build definition variable -->
+  <!-- The IBCMerge tool is internal only and hence only available during official Microbuild runs.  This target is 
+       specifically not gated on the existance of this file.  During an official build it shoudl always be present and 
+       if it's not then an error needs to be raised.
+
+       A local build emulating an official build can pass /p:SkipApplyOptimizations=true to avoid this error.
+       -->
   <Target Name="ApplyOptimizations"
-          Condition="'$(OfficialBuild)' == 'true' AND '$(NonShipping)' != 'true' AND '$(SkipApplyOptimizations)' != 'true' AND Exists('$(OptimizationDataFile)') AND '$(IbcMergePath)' != ''"
+          Condition="'$(OfficialBuild)' == 'true' AND '$(NonShipping)' != 'true' AND '$(SkipApplyOptimizations)' != 'true' AND Exists('$(OptimizationDataFile)')"
           Inputs="@(IntermediateAssembly)"
           Outputs="@(IntermediateAssembly);$(PostCompileBinaryModificationSentinelFile)">
       <Message Text="Adding optimization data to @(IntermediateAssembly)" />
 
+      <Error Text="IBCMerge not found at $(IbcMergePath). Local developer builds should pass /p:SkipApplyOptimizations=true to avoid this"
+             Condition="!Exists('$(IbcMergePath)')" />
+
       <Exec Command="&quot;$(IbcMergePath)&quot; -q -f -partialNGEN -minify -mo &quot;@(IntermediateAssembly)&quot; -incremental &quot;$(OptimizationDataFile)&quot;"
-            ConsoleToMSBuild="true">
+            ConsoleToMSBuild="true"
+            Condition="Exists('$(IbcMergePath)')">
         <Output TaskParameter="ConsoleOutput" PropertyName="IbcMergeOutput" />
       </Exec>
 
@@ -440,22 +450,18 @@
   </Target>
 
   <!-- This is part of our developer convenience work to allow easy testing of our portable
-       unit test projects.  It's a similar mechanism to CopyNuGetImplementations but is
-       both unsupported and somewhat special cased to our build setup.
+       unit test projects.  It is special cased to our build setup.
 
        This bug tracks getting an official solution out of MSBuild.
 
        https://github.com/Microsoft/msbuild/issues/1499 -->
   <Target Name="DeployPortableOnDeveloperBuild"
-          Condition="'$(_IsAnyPortableUnitTest)' == 'true' AND '$(DeveloperBuild)' == 'true' AND '$(OS)' == 'Windows_NT' AND '$(RoslynSdkProject)' != 'true'">
-    <ResolveNuGetPackageAssets IncludeFrameworkReferences="true"
-                               NuGetPackagesDirectory="$(NuGetPackageRoot)"
-                               RuntimeIdentifier="win7"
-                               ProjectLanguage="$(ProjectLanguage)"
-                               ProjectLockFile="$(MSBuildThisFileDirectory)..\..\src\Test\DeployDesktopTestRuntime\project.lock.json"
-                               TargetMonikers=".NETFramework,Version=v4.6">
-      <Output TaskParameter="ResolvedCopyLocalItems" ItemName="ReferenceCopyLocalPaths" />
-    </ResolveNuGetPackageAssets>
+          Condition="'$(_IsAnyPortableUnitTest)' == 'true' AND '$(DeveloperBuild)' == 'true' AND '$(OS)' == 'Windows_NT'">
+    <MSBuild Projects="$(MSBuildThisFileDirectory)..\..\src\Test\DeployDesktopTestRuntime\DeployDesktopTestRuntime.csproj"
+             Properties="ExcludeProjectReferences=true"
+             Targets="GetReferenceCopyLocalPaths">
+      <Output TaskParameter="TargetOutputs" ItemName="ReferenceCopyLocalPaths" />
+    </MSBuild>
 
     <!-- Desktop tests need to load the Desktop version of the TestUtilities via reflection at runtime without
          referencing the assembly at compile time. However, it looks like adding a project-to-project reference 
@@ -471,8 +477,23 @@
     </MSBuild>
   </Target>
 
+  <!-- When getting the dependencies to copy local for developer builds to portable project outputs,
+       (see above), we need to filter out the project references as they create cycles back to the
+       calling test projects and we are only interested in getting the nuget copy local items raised
+       from the deployment project's project.assets.json. -->
+  <Target Name="RemoveExcludedProjectReferences"
+          Condition="'$(ExcludeProjectReferences)' == 'true'">
+    <ItemGroup>
+      <ProjectReference Remove="@(ProjectReference)" />
+    </ItemGroup>
+  </Target>
+
+  <Target Name="GetReferenceCopyLocalPaths" 
+          DependsOnTargets="RemoveExcludedProjectReferences;ResolveAssemblyReferences"
+          Returns="@(ReferenceCopyLocalPaths)" />
+
   <!-- Returns the current build version. Used in .vsixmanifests to substitute our build version into them -->
-  <Target Name="GetBuildVersion" Outputs="$(VsixVersion)" />
+  <Target Name="GetBuildVersion" Returns="$(VsixVersion)" />
 
   <!-- 
     In order to leverage LUT testing we need to have both of the follownig packages in 

@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public void ClearAnalyzerDiagnostics(ProjectId projectId)
         {
-            foreach (var analyzer in _analyzerHostDiagnosticsMap.Keys)
+            foreach (var (analyzer, _) in _analyzerHostDiagnosticsMap)
             {
                 ClearAnalyzerDiagnostics(analyzer, projectId);
             }

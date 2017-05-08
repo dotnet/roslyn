@@ -174,7 +174,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var builder = ImmutableDictionary.CreateBuilder<DiagnosticAnalyzer, DiagnosticAnalysisResultBuilder>();
 
             ImmutableArray<Diagnostic> diagnostics;
-            ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>> diagnosticsByAnalyzerMap;
 
             foreach (var analyzer in analyzers)
             {
@@ -182,20 +181,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 var result = new DiagnosticAnalysisResultBuilder(project, version);
 
-                foreach (var tree in analysisResult.SyntaxDiagnostics.Keys)
+                foreach (var (tree, diagnosticsByAnalyzerMap) in analysisResult.SyntaxDiagnostics)
                 {
-                    if (analysisResult.SyntaxDiagnostics.TryGetValue(tree, out diagnosticsByAnalyzerMap) &&
-                        diagnosticsByAnalyzerMap.TryGetValue(analyzer, out diagnostics))
+                    if (diagnosticsByAnalyzerMap.TryGetValue(analyzer, out diagnostics))
                     {
                         Contract.Requires(diagnostics.Length == CompilationWithAnalyzers.GetEffectiveDiagnostics(diagnostics, compilation).Count());
                         result.AddSyntaxDiagnostics(tree, diagnostics);
                     }
                 }
 
-                foreach (var tree in analysisResult.SemanticDiagnostics.Keys)
+                foreach (var (tree, diagnosticsByAnalyzerMap) in analysisResult.SemanticDiagnostics)
                 {
-                    if (analysisResult.SemanticDiagnostics.TryGetValue(tree, out diagnosticsByAnalyzerMap) &&
-                        diagnosticsByAnalyzerMap.TryGetValue(analyzer, out diagnostics))
+                    if (diagnosticsByAnalyzerMap.TryGetValue(analyzer, out diagnostics))
                     {
                         Contract.Requires(diagnostics.Length == CompilationWithAnalyzers.GetEffectiveDiagnostics(diagnostics, compilation).Count());
                         result.AddSemanticDiagnostics(tree, diagnostics);

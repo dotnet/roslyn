@@ -6,13 +6,14 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.CSharp.Completion.FileSystem;
-using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntelliSense.CompletionSetSources
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders
 {
+    [Trait(Traits.Feature, Traits.Features.Completion)]
     public class ReferenceDirectiveCompletionProviderTests : AbstractCSharpCompletionProviderTests
     {
         public ReferenceDirectiveCompletionProviderTests(CSharpTestWorkspaceFixture workspaceFixture) : base(workspaceFixture)
@@ -40,50 +41,33 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntelliSense.Completion
                 glyph, matchPriority, hasSuggestionItem);
         }
 
-        private async Task VerifyItemsExistInScriptAndInteractiveAsync(string code, params string[] expected)
-        {
-            foreach (var ex in expected)
-            {
-                await VerifyItemExistsAsync(code, ex, expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
-            }
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task IsCommitCharacterTest()
         {
-            var commitCharacters = new[] { '"', '\\', ',' };
+            var commitCharacters = PathUtilities.IsUnixLikePlatform ? new[] { '"', '/' } : new[] { '"', '\\', '/', ',' };
             await VerifyCommitCharactersAsync("#r \"$$", textTypedSoFar: "", validChars: commitCharacters);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public void IsTextualTriggerCharacterTest()
         {
             var validMarkupList = new[]
             {
+                "#r \"$$/",
                 "#r \"$$\\",
                 "#r \"$$,",
-                "#r \"$$A"
+                "#r \"$$A",
+                "#r \"$$!",
+                "#r \"$$(",
             };
 
             foreach (var markup in validMarkupList)
             {
                 VerifyTextualTriggerCharacter(markup, shouldTriggerWithTriggerOnLettersEnabled: true, shouldTriggerWithTriggerOnLettersDisabled: true);
             }
-
-            var invalidMarkupList = new[]
-            {
-                "#r \"$$/",
-                "#r \"$$!",
-                "#r \"$$(",
-            };
-
-            foreach (var markup in invalidMarkupList)
-            {
-                VerifyTextualTriggerCharacter(markup, shouldTriggerWithTriggerOnLettersEnabled: false, shouldTriggerWithTriggerOnLettersDisabled: false);
-            }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [ConditionalFact(typeof(WindowsOnly))]
         public async Task SendEnterThroughToEditorTest()
         {
             await VerifySendEnterThroughToEnterAsync("#r \"System$$", "System", sendThroughEnterOption: EnterKeyRule.Never, expected: false);
@@ -91,57 +75,34 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntelliSense.Completion
             await VerifySendEnterThroughToEnterAsync("#r \"System$$", "System", sendThroughEnterOption: EnterKeyRule.Always, expected: false); // note: GAC completion helper uses its own EnterKeyRule
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task RootDrives()
+        [ConditionalFact(typeof(WindowsOnly))]
+        public async Task GacReference()
         {
-            // ensure drives are listed without the trailing backslash
-            var drive = Environment.GetLogicalDrives().First().TrimEnd('\\');
-            await VerifyItemsExistInScriptAndInteractiveAsync(
-                "#r \"$$",
-                drive);
+            await VerifyItemExistsAsync("#r \"$$", "System.Windows.Forms", expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task RelativeDirectories()
+        [ConditionalFact(typeof(WindowsOnly))]
+        public async Task GacReferenceFullyQualified()
         {
-            await VerifyItemsExistInScriptAndInteractiveAsync(
-                "#r \"$$",
-                ".",
-                "..");
+            await VerifyItemExistsAsync(
+                "#r \"System.Windows.Forms,$$", 
+                "System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task GACReference()
-        {
-            await VerifyItemsExistInScriptAndInteractiveAsync(
-                "#r \"$$",
-                "System.Windows.Forms");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task GACReferenceFullyQualified()
-        {
-            await VerifyItemsExistInScriptAndInteractiveAsync(
-                "#r \"System.Windows.Forms,$$",
-                "System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [ConditionalFact(typeof(WindowsOnly))]
         public async Task FileSystemReference()
         {
-            string systemDir = Path.GetFullPath(Environment.SystemDirectory);
-            DirectoryInfo windowsDir = System.IO.Directory.GetParent(systemDir);
-            string windowsDirPath = windowsDir.FullName;
-            string windowsRoot = System.IO.Directory.GetDirectoryRoot(systemDir);
+            var systemDir = Path.GetFullPath(Environment.SystemDirectory);
+            var windowsDir = Directory.GetParent(systemDir);
+            var windowsDirPath = windowsDir.FullName;
+            var windowsRoot = Directory.GetDirectoryRoot(systemDir);
 
             // we need to get the exact casing from the file system:
             var normalizedWindowsPath = Directory.GetDirectories(windowsRoot, windowsDir.Name).Single();
             var windowsFolderName = Path.GetFileName(normalizedWindowsPath);
 
             var code = "#r \"" + windowsRoot + "$$";
-            await VerifyItemsExistInScriptAndInteractiveAsync(
-                code,
-                windowsFolderName);
+            await VerifyItemExistsAsync(code, windowsFolderName, expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
         }
     }
 }
