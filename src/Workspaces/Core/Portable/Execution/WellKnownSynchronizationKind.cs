@@ -59,16 +59,7 @@ namespace Microsoft.CodeAnalysis.Serialization
         {
             var fields = typeof(WellKnownSynchronizationKind).GetTypeInfo().DeclaredFields.Where(f => f.IsStatic);
 
-            var maxValue = 0;
-            foreach (var field in fields)
-            {
-                var value = (int)field.GetValue(null);
-                if (value > maxValue)
-                {
-                    maxValue = value;
-                }
-            }
-
+            var maxValue = fields.Max(f => (int)f.GetValue(null));
             s_strings = new string[maxValue + 1];
 
             foreach (var field in fields)
