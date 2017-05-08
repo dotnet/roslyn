@@ -93,11 +93,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 {
                     type = TryGetEnumTypeInEnumInitializer(semanticModel, token, type, cancellationToken) ??
                            GetCompletionListType(type, semanticModel.GetEnclosingNamedType(position, cancellationToken), semanticModel.Compilation);
-                }
 
-                if (type == null)
-                {
-                    return;
+                    if (type == null)
+                    {
+                        return;
+                    }
                 }
 
                 if (!type.IsEditorBrowsable(options.GetOption(CompletionOptions.HideAdvancedMembers, semanticModel.Language), semanticModel.Compilation))
