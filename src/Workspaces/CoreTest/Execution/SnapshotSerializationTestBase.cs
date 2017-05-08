@@ -111,8 +111,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
         internal static async Task<T> VerifyAssetSerializationAsync<T>(
             ISolutionSynchronizationService service,
             Checksum checksum,
-            string kind,
-            Func<T, string, Serializer, RemotableData> assetGetter)
+            WellKnownSynchronizationKinds kind,
+            Func<T, WellKnownSynchronizationKinds, Serializer, RemotableData> assetGetter)
         {
             // re-create asset from object
             var syncService = (SolutionSynchronizationServiceFactory.Service)service;
@@ -219,7 +219,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             VerifyCollectionInService(snapshotService, projectObject.AdditionalDocuments.ToDocumentObjects(snapshotService), expectedAdditionalDocumentCount);
         }
 
-        internal static void VerifyCollectionInService(ISolutionSynchronizationService snapshotService, ChecksumCollection checksums, int expectedCount, string expectedItemKind)
+        internal static void VerifyCollectionInService(ISolutionSynchronizationService snapshotService, ChecksumCollection checksums, int expectedCount, WellKnownSynchronizationKinds expectedItemKind)
         {
             VerifyChecksumInService(snapshotService, checksums.Checksum, checksums.GetWellKnownSynchronizationKind());
             Assert.Equal(checksums.Count, expectedCount);
@@ -253,7 +253,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             VerifyChecksumInService(snapshotService, syncObject.Checksum, syncObject.Kind);
         }
 
-        internal static void VerifyChecksumInService(ISolutionSynchronizationService snapshotService, Checksum checksum, string kind)
+        internal static void VerifyChecksumInService(ISolutionSynchronizationService snapshotService, Checksum checksum, WellKnownSynchronizationKinds kind)
         {
             Assert.NotNull(checksum);
             var otherObject = snapshotService.GetRemotableData(checksum, CancellationToken.None);
@@ -266,7 +266,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             ChecksumEqual(checksumObject1.Checksum, checksumObject1.Kind, checksumObject2.Checksum, checksumObject2.Kind);
         }
 
-        internal static void ChecksumEqual(Checksum checksum1, string kind1, Checksum checksum2, string kind2)
+        internal static void ChecksumEqual(Checksum checksum1, WellKnownSynchronizationKinds kind1, Checksum checksum2, WellKnownSynchronizationKinds kind2)
         {
             Assert.Equal(checksum1, checksum2);
             Assert.Equal(kind1, kind2);

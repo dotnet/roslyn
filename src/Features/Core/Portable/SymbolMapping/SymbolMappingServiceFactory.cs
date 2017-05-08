@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 
-namespace Microsoft.CodeAnalysis.Editor.SymbolMapping
+namespace Microsoft.CodeAnalysis.SymbolMapping
 {
     [ExportWorkspaceServiceFactory(typeof(ISymbolMappingService), ServiceLayer.Default), Shared]
     internal class SymbolMappingServiceFactory : IWorkspaceServiceFactory

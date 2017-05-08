@@ -89,10 +89,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             // all roslyn remote service must based on ServiceHubServiceBase which implements Initialize method
             if (_snapshotClientOpt != null)
             {
-                await _snapshotClientOpt.InvokeAsync(WellKnownServiceHubServices.ServiceHubServiceBase_Initialize, _currentSessionId, PinnedScopeOpt.SolutionChecksum).ConfigureAwait(false);
+                await _snapshotClientOpt.InvokeAsync(WellKnownServiceHubServices.ServiceHubServiceBase_Initialize, _currentSessionId, PinnedScopeOpt.Primary, PinnedScopeOpt.SolutionChecksum).ConfigureAwait(false);
             }
 
-            await _serviceClient.InvokeAsync(WellKnownServiceHubServices.ServiceHubServiceBase_Initialize, _currentSessionId, PinnedScopeOpt?.SolutionChecksum).ConfigureAwait(false);
+            await _serviceClient.InvokeAsync(WellKnownServiceHubServices.ServiceHubServiceBase_Initialize, _currentSessionId, PinnedScopeOpt?.Primary, PinnedScopeOpt?.SolutionChecksum).ConfigureAwait(false);
         }
 
         public override Task InvokeAsync(string targetName, params object[] arguments)
@@ -236,7 +236,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 writer.WriteInt32(1);
 
                 checksum.WriteTo(writer);
-                writer.WriteString(remotableData.Kind);
+                writer.WriteInt32((int)remotableData.Kind);
 
                 await remotableData.WriteObjectToAsync(writer, _source.Token).ConfigureAwait(false);
             }
@@ -252,7 +252,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     var remotableData = kv.Value;
 
                     checksum.WriteTo(writer);
-                    writer.WriteString(remotableData.Kind);
+                    writer.WriteInt32((int)remotableData.Kind);
 
                     await remotableData.WriteObjectToAsync(writer, _source.Token).ConfigureAwait(false);
                 }

@@ -66,6 +66,7 @@
       <Link>InternalUtilities\LambdaUtilities.vb</Link>
     </Compile>
     <Compile Include="AddPackage\VisualBasicAddSpecificPackageCodeFixProvider.vb" />
+    <Compile Include="DocumentHighlighting\VisualBasicDocumentHighlightsService.vb" />
     <Compile Include="InitializeParameter\InitializeParameterHelpers.vb" />
     <Compile Include="InitializeParameter\VisualBasicAddParameterCheckCodeRefactoringProvider.vb" />
     <Compile Include="ChangeSignature\ChangeSignatureFormattingRule.vb" />

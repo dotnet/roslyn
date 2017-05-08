@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Serialization
         {
             var kind = value.GetWellKnownSynchronizationKind();
 
-            using (Logger.LogBlock(FunctionId.Serializer_CreateChecksum, kind, cancellationToken))
+            using (Logger.LogBlock(FunctionId.Serializer_CreateChecksum, kind.ToString(), cancellationToken))
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Serialization
         {
             var kind = value.GetWellKnownSynchronizationKind();
 
-            using (Logger.LogBlock(FunctionId.Serializer_Serialize, kind, cancellationToken))
+            using (Logger.LogBlock(FunctionId.Serializer_Serialize, kind.ToString(), cancellationToken))
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
@@ -146,9 +146,9 @@ namespace Microsoft.CodeAnalysis.Serialization
             }
         }
 
-        public T Deserialize<T>(string kind, ObjectReader reader, CancellationToken cancellationToken)
+        public T Deserialize<T>(WellKnownSynchronizationKinds kind, ObjectReader reader, CancellationToken cancellationToken)
         {
-            using (Logger.LogBlock(FunctionId.Serializer_Deserialize, kind, cancellationToken))
+            using (Logger.LogBlock(FunctionId.Serializer_Deserialize, kind.ToString(), cancellationToken))
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
