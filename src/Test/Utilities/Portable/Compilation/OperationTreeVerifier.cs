@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Semantics;
 using Microsoft.CodeAnalysis.Test.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
@@ -255,6 +256,15 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             LogString("IOperation: ");
             LogCommonPropertiesAndNewLine(operation);
+
+            if (operation is IOperationWithChildren operationWithChildren)
+            {
+                var children = operationWithChildren.Children.WhereNotNull().ToImmutableArray();
+                if (children.Length > 0)
+                {
+                    VisitArray(children, "Children", logElementCount: true);
+                }
+            }
         }
 
         public override void VisitBlockStatement(IBlockStatement operation)

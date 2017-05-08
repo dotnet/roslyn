@@ -93,6 +93,131 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         }
 
         [Fact]
+        public void SemanticErrors_MethodBody()
+        {
+            var source0 = MarkedSource(@"
+class C
+{
+    static void E() 
+    {
+        int x = 1;
+        System.Console.WriteLine(x);
+    }
+
+    static void G() 
+    {
+        System.Console.WriteLine(1);
+    }
+}");
+            var source1 = MarkedSource(@"
+class C
+{
+    static void E() 
+    {
+        int x = Unknown(2);
+        System.Console.WriteLine(x);
+    }
+
+    static void G() 
+    {
+        System.Console.WriteLine(2);
+    }
+}");
+
+            var compilation0 = CreateStandardCompilation(source0.Tree, options: ComSafeDebugDll);
+            var compilation1 = compilation0.WithSource(source1.Tree);
+
+            var e0 = compilation0.GetMember<MethodSymbol>("C.E");
+            var e1 = compilation1.GetMember<MethodSymbol>("C.E");
+            var g0 = compilation0.GetMember<MethodSymbol>("C.G");
+            var g1 = compilation1.GetMember<MethodSymbol>("C.G");
+
+            var v0 = CompileAndVerify(compilation0);
+            var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+
+            // Semantic errors are reported only for the bodies of members being emitted.
+
+            var diffError = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(
+                    new SemanticEdit(SemanticEditKind.Update, e0, e1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+
+            diffError.EmitResult.Diagnostics.Verify(
+                // (6,17): error CS0103: The name 'Unknown' does not exist in the current context
+                //         int x = Unknown(2);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "Unknown").WithArguments("Unknown").WithLocation(6, 17));
+
+            var diffGood = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(
+                    new SemanticEdit(SemanticEditKind.Update, g0, g1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+
+            diffGood.EmitResult.Diagnostics.Verify();
+
+            diffGood.VerifyIL(@"C.G", @"
+{
+  // Code size        9 (0x9)
+  .maxstack  1
+  IL_0000:  nop
+  IL_0001:  ldc.i4.2
+  IL_0002:  call       ""void System.Console.WriteLine(int)""
+  IL_0007:  nop
+  IL_0008:  ret
+}
+");
+        }
+
+        [Fact]
+        public void SemanticErrors_Declaration()
+        {
+            var source0 = MarkedSource(@"
+class C
+{
+    static void G() 
+    {
+        System.Console.WriteLine(1);
+    }
+}
+");
+            var source1 = MarkedSource(@"
+class C
+{
+    static void G() 
+    {
+        System.Console.WriteLine(2);
+    }
+}
+
+class Bad : Bad
+{
+}
+");
+
+            var compilation0 = CreateStandardCompilation(source0.Tree, options: ComSafeDebugDll);
+            var compilation1 = compilation0.WithSource(source1.Tree);
+
+            var g0 = compilation0.GetMember<MethodSymbol>("C.G");
+            var g1 = compilation1.GetMember<MethodSymbol>("C.G");
+
+            var v0 = CompileAndVerify(compilation0);
+            var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+
+            var diff = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(
+                    new SemanticEdit(SemanticEditKind.Update, g0, g1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+
+            // All declaration errors are reported regardless of what member do we emit.
+
+            diff.EmitResult.Diagnostics.Verify(
+                // (10,7): error CS0146: Circular base class dependency involving 'Bad' and 'Bad'
+                // class Bad : Bad
+                Diagnostic(ErrorCode.ERR_CircularBase, "Bad").WithArguments("Bad", "Bad").WithLocation(10, 7));
+        }
+
+        [Fact]
         public void ModifyMethod()
         {
             var source0 =
@@ -7850,6 +7975,230 @@ class C
   IL_0010:  br.s       IL_0012
   IL_0012:  ldloc.s    V_6
   IL_0014:  ret
+}
+");
+        }
+
+        [Fact]
+        public void ForeachStatement()
+        {
+            var source0 = MarkedSource(@"
+class C
+{
+    public static (int, (bool, double))[] F() => new[] { (1, (true, 2.0)) };
+
+    public static void G()
+    {        
+        foreach (var (<N:0>x</N:0>, (<N:1>y</N:1>, <N:2>z</N:2>)) in F())
+        {
+            System.Console.WriteLine(x);
+        }
+    }
+}");
+            var source1 = MarkedSource(@"
+class C
+{
+    public static (int, (bool, double))[] F() => new[] { (1, (true, 2.0)) };
+
+    public static void G()
+    {        
+        foreach (var (<N:0>x1</N:0>, (<N:1>y</N:1>, <N:2>z</N:2>)) in F())
+        {
+            System.Console.WriteLine(x1);
+        }
+    }
+}");
+
+            var source2 = MarkedSource(@"
+class C
+{
+    public static (int, (bool, double))[] F() => new[] { (1, (true, 2.0)) };
+
+    public static void G()
+    {        
+        foreach (var (<N:0>x1</N:0>, <N:1>yz</N:1>) in F())
+        {
+            System.Console.WriteLine(x1);
+        }
+    }
+}");
+
+            var compilation0 = CreateStandardCompilation(source0.Tree, options: ComSafeDebugDll, references: s_valueTupleRefs);
+            var compilation1 = compilation0.WithSource(source1.Tree);
+            var compilation2 = compilation1.WithSource(source2.Tree);
+
+            var f0 = compilation0.GetMember<MethodSymbol>("C.G");
+            var f1 = compilation1.GetMember<MethodSymbol>("C.G");
+            var f2 = compilation2.GetMember<MethodSymbol>("C.G");
+
+            var v0 = CompileAndVerify(compilation0);
+            v0.VerifyIL("C.G", @"
+{
+  // Code size       72 (0x48)
+  .maxstack  2
+  .locals init ((int, (bool, double))[] V_0,
+                int V_1,
+                int V_2, //x
+                bool V_3, //y
+                double V_4, //z
+                System.ValueTuple<bool, double> V_5)
+  IL_0000:  nop
+  IL_0001:  nop
+  IL_0002:  call       ""(int, (bool, double))[] C.F()""
+  IL_0007:  stloc.0
+  IL_0008:  ldc.i4.0
+  IL_0009:  stloc.1
+  IL_000a:  br.s       IL_0041
+  IL_000c:  ldloc.0
+  IL_000d:  ldloc.1
+  IL_000e:  ldelem     ""System.ValueTuple<int, (bool, double)>""
+  IL_0013:  dup
+  IL_0014:  ldfld      ""(bool, double) System.ValueTuple<int, (bool, double)>.Item2""
+  IL_0019:  stloc.s    V_5
+  IL_001b:  dup
+  IL_001c:  ldfld      ""int System.ValueTuple<int, (bool, double)>.Item1""
+  IL_0021:  stloc.2
+  IL_0022:  ldloc.s    V_5
+  IL_0024:  ldfld      ""bool System.ValueTuple<bool, double>.Item1""
+  IL_0029:  stloc.3
+  IL_002a:  ldloc.s    V_5
+  IL_002c:  ldfld      ""double System.ValueTuple<bool, double>.Item2""
+  IL_0031:  stloc.s    V_4
+  IL_0033:  pop
+  IL_0034:  nop
+  IL_0035:  ldloc.2
+  IL_0036:  call       ""void System.Console.WriteLine(int)""
+  IL_003b:  nop
+  IL_003c:  nop
+  IL_003d:  ldloc.1
+  IL_003e:  ldc.i4.1
+  IL_003f:  add
+  IL_0040:  stloc.1
+  IL_0041:  ldloc.1
+  IL_0042:  ldloc.0
+  IL_0043:  ldlen
+  IL_0044:  conv.i4
+  IL_0045:  blt.s      IL_000c
+  IL_0047:  ret
+}
+");
+
+            var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
+
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(
+                    new SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+
+            diff1.VerifyIL("C.G", @"
+{
+  // Code size       80 (0x50)
+  .maxstack  2
+  .locals init ([unchanged] V_0,
+                [int] V_1,
+                int V_2, //x1
+                bool V_3, //y
+                double V_4, //z
+                [unchanged] V_5,
+                (int, (bool, double))[] V_6,
+                int V_7,
+                System.ValueTuple<bool, double> V_8)
+  IL_0000:  nop
+  IL_0001:  nop
+  IL_0002:  call       ""(int, (bool, double))[] C.F()""
+  IL_0007:  stloc.s    V_6
+  IL_0009:  ldc.i4.0
+  IL_000a:  stloc.s    V_7
+  IL_000c:  br.s       IL_0047
+  IL_000e:  ldloc.s    V_6
+  IL_0010:  ldloc.s    V_7
+  IL_0012:  ldelem     ""System.ValueTuple<int, (bool, double)>""
+  IL_0017:  dup
+  IL_0018:  ldfld      ""(bool, double) System.ValueTuple<int, (bool, double)>.Item2""
+  IL_001d:  stloc.s    V_8
+  IL_001f:  dup
+  IL_0020:  ldfld      ""int System.ValueTuple<int, (bool, double)>.Item1""
+  IL_0025:  stloc.2
+  IL_0026:  ldloc.s    V_8
+  IL_0028:  ldfld      ""bool System.ValueTuple<bool, double>.Item1""
+  IL_002d:  stloc.3
+  IL_002e:  ldloc.s    V_8
+  IL_0030:  ldfld      ""double System.ValueTuple<bool, double>.Item2""
+  IL_0035:  stloc.s    V_4
+  IL_0037:  pop
+  IL_0038:  nop
+  IL_0039:  ldloc.2
+  IL_003a:  call       ""void System.Console.WriteLine(int)""
+  IL_003f:  nop
+  IL_0040:  nop
+  IL_0041:  ldloc.s    V_7
+  IL_0043:  ldc.i4.1
+  IL_0044:  add
+  IL_0045:  stloc.s    V_7
+  IL_0047:  ldloc.s    V_7
+  IL_0049:  ldloc.s    V_6
+  IL_004b:  ldlen
+  IL_004c:  conv.i4
+  IL_004d:  blt.s      IL_000e
+  IL_004f:  ret
+}
+");
+
+            var diff2 = compilation2.EmitDifference(
+                diff1.NextGeneration,
+                ImmutableArray.Create(
+                    new SemanticEdit(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2), preserveLocalVariables: true)));
+
+            diff2.VerifyIL("C.G", @"
+{
+  // Code size       66 (0x42)
+  .maxstack  2
+  .locals init ([unchanged] V_0,
+                [int] V_1,
+                int V_2, //x1
+                [bool] V_3,
+                [unchanged] V_4,
+                [unchanged] V_5,
+                [unchanged] V_6,
+                [int] V_7,
+                [unchanged] V_8,
+                (int, (bool, double))[] V_9,
+                int V_10,
+                System.ValueTuple<bool, double> V_11, //yz
+                System.ValueTuple<int, (bool, double)> V_12)
+  IL_0000:  nop
+  IL_0001:  nop
+  IL_0002:  call       ""(int, (bool, double))[] C.F()""
+  IL_0007:  stloc.s    V_9
+  IL_0009:  ldc.i4.0
+  IL_000a:  stloc.s    V_10
+  IL_000c:  br.s       IL_0039
+  IL_000e:  ldloc.s    V_9
+  IL_0010:  ldloc.s    V_10
+  IL_0012:  ldelem     ""System.ValueTuple<int, (bool, double)>""
+  IL_0017:  stloc.s    V_12
+  IL_0019:  ldloc.s    V_12
+  IL_001b:  ldfld      ""int System.ValueTuple<int, (bool, double)>.Item1""
+  IL_0020:  stloc.2
+  IL_0021:  ldloc.s    V_12
+  IL_0023:  ldfld      ""(bool, double) System.ValueTuple<int, (bool, double)>.Item2""
+  IL_0028:  stloc.s    V_11
+  IL_002a:  nop
+  IL_002b:  ldloc.2
+  IL_002c:  call       ""void System.Console.WriteLine(int)""
+  IL_0031:  nop
+  IL_0032:  nop
+  IL_0033:  ldloc.s    V_10
+  IL_0035:  ldc.i4.1
+  IL_0036:  add
+  IL_0037:  stloc.s    V_10
+  IL_0039:  ldloc.s    V_10
+  IL_003b:  ldloc.s    V_9
+  IL_003d:  ldlen
+  IL_003e:  conv.i4
+  IL_003f:  blt.s      IL_000e
+  IL_0041:  ret
 }
 ");
         }

@@ -13,6 +13,7 @@
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <RuntimeIdentifiers>win7</RuntimeIdentifiers>
     <TargetFrameworkProfile />
+    <ProjectTypeGuids>{3AC096D0-A1C2-E12C-1390-A8335801FDAB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <RoslynProjectType>UnitTest</RoslynProjectType>
   </PropertyGroup>
   <ItemGroup Label="Project References">
@@ -224,6 +225,9 @@
     <Compile Include="Commands\CommandArgsTests.cs" />
     <Compile Include="Commands\TypeCharCommandArgsTests.cs" />
     <Compile Include="CommentSelection\CommentUncommentSelectionCommandHandlerTests.cs" />
+    <Compile Include="Completion\FileSystemCompletionHelperTests.cs" />
+    <Compile Include="Completion\GlobalAssemblyCacheCompletionHelperTests.cs" />
+    <Compile Include="Completion\TestFileSystemCompletionHelper.cs" />
     <Compile Include="Diagnostics\DiagnosticAnalyzerServiceTests.cs" />
     <Compile Include="Diagnostics\DiagnosticDataSerializerTests.cs" />
     <Compile Include="Diagnostics\DiagnosticDataTests.cs" />

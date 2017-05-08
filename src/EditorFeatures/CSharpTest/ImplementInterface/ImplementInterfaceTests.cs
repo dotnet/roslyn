@@ -2349,6 +2349,56 @@ class C : I, I2
 index: 1);
         }
 
+        [WorkItem(18556, "https://github.com/dotnet/roslyn/issues/18556")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestImplementInterfaceThroughExplicitProperty()
+        {
+            await TestActionCountAsync(
+@"interface IA
+{
+    IB B { get; }
+}
+interface IB
+{
+    int M();
+}
+class AB : IA, [|IB|]
+{
+    IB IA.B => null;
+}",
+count: 3);
+            await TestWithAllCodeStyleOptionsOffAsync(
+@"interface IA
+{
+    IB B { get; }
+}
+interface IB
+{
+    int M();
+}
+class AB : IA, [|IB|]
+{
+    IB IA.B => null;
+}",
+@"interface IA
+{
+    IB B { get; }
+}
+interface IB
+{
+    int M();
+}
+class AB : IA, [|IB|]
+{
+    IB IA.B => null;
+
+    public int M()
+    {
+        return ((IA)this).B.M();
+    }
+}", index: 1);
+        }
+
         [WorkItem(768799, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/768799")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestNoImplementThroughIndexer()
