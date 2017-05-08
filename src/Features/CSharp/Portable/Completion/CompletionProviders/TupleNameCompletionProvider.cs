@@ -78,8 +78,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     return;
                 }
 
+                // Note: the filter text does not include the ':'.  We want to ensure that if
+                // the user types the name exactly (up to the colon) that it is selected as an
+                // exact match.
+
                 var field = type.TupleElements[index];
-                var item = CommonCompletionItem.Create(field.Name + ColonString, _cachedRules, Glyph.FieldPublic);
+                var item = CommonCompletionItem.Create(field.Name + ColonString, _cachedRules, Glyph.FieldPublic, filterText: field.Name);
                 context.AddItem(item);
             }
         }
