@@ -2889,5 +2889,58 @@ End Class
             Await TestInRegularAndScriptAsync(code, expected, ignoreTrivia:=False)
         End Function
 
+        <WorkItem(2423, "https://github.com/dotnet/roslyn/issues/2423")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        Public Async Function TestPickNameBasedOnArgument1() As Task
+            Await TestInRegularAndScriptAsync(
+"class C
+    public sub new(a as string, b as string)
+        dim c = new TextSpan([|integer.Parse(a)|], integer.Parse(b))
+    end sub
+end class
+
+structure TextSpan
+    public sub new(start as integer, length as integer)
+    end sub
+end structure",
+"class C
+    public sub new(a as string, b as string)
+        Dim {|Rename:start|} As Integer = integer.Parse(a)
+        dim c = new TextSpan(start, integer.Parse(b))
+    end sub
+end class
+
+structure TextSpan
+    public sub new(start as integer, length as integer)
+    end sub
+end structure")
+        End Function
+
+        <WorkItem(2423, "https://github.com/dotnet/roslyn/issues/2423")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        Public Async Function TestPickNameBasedOnArgument2() As Task
+            Await TestInRegularAndScriptAsync(
+"class C
+    public sub new(a as string, b as string)
+        dim c = new TextSpan(integer.Parse(a), [|integer.Parse(b)|])
+    end sub
+end class
+
+structure TextSpan
+    public sub new(start as integer, length as integer)
+    end sub
+end structure",
+"class C
+    public sub new(a as string, b as string)
+        Dim {|Rename:length|} As Integer = integer.Parse(b)
+        dim c = new TextSpan(integer.Parse(a), length)
+    end sub
+end class
+
+structure TextSpan
+    public sub new(start as integer, length as integer)
+    end sub
+end structure")
+        End Function
     End Class
 End Namespace

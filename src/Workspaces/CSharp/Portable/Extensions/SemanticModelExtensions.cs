@@ -285,7 +285,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     var member = semanticModel.GetSymbolInfo(argumentList.Parent, cancellationToken).GetAnySymbol() as IMethodSymbol;
                     if (member != null && index < member.Parameters.Length)
                     {
-                        return member.Parameters[index].Name;
+                        var parameter = member.Parameters[index];
+                        if (parameter.Type.OriginalDefinition.TypeKind != TypeKind.TypeParameter)
+                        {
+                            return parameter.Name;
+                        }
                     }
                 }
             }

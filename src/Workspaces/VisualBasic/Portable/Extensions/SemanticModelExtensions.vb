@@ -158,7 +158,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                     Dim index = argumentList.Arguments.IndexOf(argument)
                     Dim member = TryCast(semanticModel.GetSymbolInfo(argumentList.Parent, cancellationToken).GetAnySymbol(), IMethodSymbol)
                     If member IsNot Nothing AndAlso index < member.Parameters.Length Then
-                        Return member.Parameters(index).Name
+                        Dim parameter = member.Parameters(index)
+                        If parameter.Type.TypeKind <> TypeKind.TypeParameter Then
+                            Return parameter.Name
+                        End If
                     End If
                 End If
 
