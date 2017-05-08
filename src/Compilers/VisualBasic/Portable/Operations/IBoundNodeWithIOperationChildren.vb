@@ -6,10 +6,10 @@ Imports Microsoft.CodeAnalysis.VisualBasic
 
 Namespace Microsoft.CodeAnalysis.Semantics
 	Friend Interface IBoundNodeWithIOperationChildren
-		''' <summary>
-		''' An array of child bound nodes.
-		''' </summary>
-		''' <remarks>Note that any of the child nodes may be null.</remarks>
-		ReadOnly Property Children() As ImmutableArray(Of BoundNode)
-	End Interface
+        ''' <summary>
+        ''' An array of child bound nodes.
+        ''' </summary>
+        ''' <remarks>Note that any of the child nodes may be null.</remarks>
+        ReadOnly Property Children As ImmutableArray(Of BoundNode)
+    End Interface
 End Namespace

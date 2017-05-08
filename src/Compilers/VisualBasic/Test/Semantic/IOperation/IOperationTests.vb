@@ -136,7 +136,7 @@ IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: 'x 
 ")
         End Sub
 
-        <Fact>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/19344")>
         Public Sub SimpleCompoundAssignment()
             Dim source = <compilation>
                              <file name="c.vb">

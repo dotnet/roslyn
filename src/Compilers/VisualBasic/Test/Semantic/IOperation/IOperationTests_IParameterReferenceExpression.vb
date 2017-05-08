@@ -91,7 +91,7 @@ IOperation:  (OperationKind.None) (Syntax: 'From cust I ... t cust.Name')
               IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.Func(Of Customer, System.String)) (Syntax: 'cust.Name')
                 IOperation:  (OperationKind.None) (Syntax: 'cust.Name')
                   Children(1): IOperation:  (OperationKind.None) (Syntax: 'cust.Name')
-                      Children(1): IIndexedPropertyReferenceExpression: Property Customer.Name As System.String (OperationKind.PropertyReferenceExpression, Type: System.String) (Syntax: 'cust.Name')
+                      Children(1): IPropertyReferenceExpression: Property Customer.Name As System.String (OperationKind.PropertyReferenceExpression, Type: System.String) (Syntax: 'cust.Name')
                           Instance Receiver: IOperation:  (OperationKind.None) (Syntax: 'cust')
 ]]>.Value
 
@@ -167,7 +167,7 @@ IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.Conversion
                 Arguments(1): IArgument (ArgumentKind.DefaultValue, Matching Parameter: keySelector) (OperationKind.Argument) (Syntax: 'y.Length')
                     IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.Func(Of System.String, System.Int32)) (Syntax: 'y.Length')
                       IOperation:  (OperationKind.None) (Syntax: 'y.Length')
-                        Children(1): IIndexedPropertyReferenceExpression: ReadOnly Property System.String.Length As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'y.Length')
+                        Children(1): IPropertyReferenceExpression: ReadOnly Property System.String.Length As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'y.Length')
                             Instance Receiver: IOperation:  (OperationKind.None) (Syntax: 'y')
 ]]>.Value
 

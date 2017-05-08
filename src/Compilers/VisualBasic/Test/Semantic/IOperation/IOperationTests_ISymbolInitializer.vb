@@ -87,7 +87,7 @@ IPropertyInitializer (Property: Property C.P1 As System.Int32) (OperationKind.Pr
             VerifyOperationTreeAndDiagnosticsForTest(Of EqualsValueSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
-        <Fact, WorkItem(17595, "https://github.com/dotnet/roslyn/issues/17595")>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/19344"), WorkItem(17595, "https://github.com/dotnet/roslyn/issues/17595")>
         Public Sub ConstantInitializers_DefaultValueParameter()
             Dim source = <![CDATA[
 Class C
@@ -112,7 +112,7 @@ BC30046: Method cannot have both a ParamArray and Optional parameters.
             VerifyOperationTreeAndDiagnosticsForTest(Of EqualsValueSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
-        <Fact, WorkItem(17595, "https://github.com/dotnet/roslyn/issues/17595")>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/19344"), WorkItem(17595, "https://github.com/dotnet/roslyn/issues/17595")>
         Public Sub ConstantInitializers_DefaultValueParamsArray()
             Dim source = <![CDATA[
 Class C

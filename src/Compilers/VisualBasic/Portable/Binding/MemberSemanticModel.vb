@@ -800,7 +800,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     result = summary.LowestBoundNode
             End Select
 
-            Return TryCast(result, IOperation)
+            Return VisualBasicOperationFactory.Create(result)
         End Function
 
         Friend Overrides Function GetExpressionTypeInfo(node As ExpressionSyntax, Optional cancellationToken As CancellationToken = Nothing) As VisualBasicTypeInfo
