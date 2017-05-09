@@ -34,6 +34,21 @@ namespace Roslyn.Utilities
         /// and reuse.
         /// 
         /// These are not readonly because they're structs and we mutate them.
+        /// 
+        /// When we write out objects/strings we give each successive, unique, item a monotonically 
+        /// increasing integral ID starting at 0.  I.e. the first object gets ID-0, the next gets 
+        /// ID-1 and so on and so forth.  We do *not* include these IDs with the object when it is
+        /// written out.  We only include the ID if we hit the object *again* while writing.
+        /// 
+        /// During reading, the reader knows to give each object it reads the same monotonically 
+        /// increasing integral value.  i.e. the first object it reads is put into an array at position
+        /// 0, the next at position 1, and so on.  Then, when the reader reads in an object-reference
+        /// it can just retrieved it directly from that array.
+        /// 
+        /// In other words, writing and reading take advantage of the fact that they know they will
+        /// write and read objects in the exact same order.  So they only need the IDs for references
+        /// and not the objects themselves because the ID is inferred from the order the object is
+        /// written or read in.
         /// </summary>
         private WriterReferenceMap _objectReferenceMap;
         private WriterReferenceMap _stringReferenceMap;
