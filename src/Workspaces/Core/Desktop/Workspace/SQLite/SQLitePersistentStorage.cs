@@ -211,6 +211,20 @@ namespace Microsoft.CodeAnalysis.SQLite
             {
                 var connection = pooledConnection.Connection;
 
+                // For performance, we turn on WriteAheadLogging (WAL) 
+                // And "Normal" synchronization.
+
+                // https://www.sqlite.org/pragma.html#pragma_synchronous
+                //
+                // "If durability is not a concern, then synchronous=NORMAL is normally all one 
+                // needs in WAL mode."
+
+                // For Roslyn, we use the persistence service as a cache.  Do we don't need durability.
+                // i.e. even if we've written something to the DB, if the system crashes, we're ok with
+                // what we've written not actually making it to do the DB once the system comes up again.
+                connection.ExecuteCommand("PRAGMA journal_mode=WAL;");
+                connection.ExecuteCommand("PRAGMA synchronous=NORMAL;");
+
                 // First, create all our tables
                 connection.ExecuteCommand(
 $@"create table if not exists ""{StringInfoTableName}"" (
