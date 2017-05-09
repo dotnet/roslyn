@@ -184,7 +184,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         /// <summary>
         /// Test that a program projects IReference to INullable.
         /// </summary>
-        [Fact]
+        [ConditionalFact(typeof(OSVersionWin8))]
         public void WinMdIReferenceINullableTest()
         {
             var source =
