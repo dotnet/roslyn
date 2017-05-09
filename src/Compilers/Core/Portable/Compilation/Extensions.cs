@@ -145,37 +145,5 @@ namespace Microsoft.CodeAnalysis
         {
             return semanticModel.GetMemberGroup(node, cancellationToken);
         }
-
-        /// <summary>
-        /// Analyze control-flow within a part of a method body. 
-        /// </summary>
-        public static ControlFlowAnalysis AnalyzeControlFlow(this SemanticModel semanticModel, SyntaxNode firstStatement, SyntaxNode lastStatement)
-        {
-            return semanticModel.AnalyzeControlFlow(firstStatement, lastStatement);
-        }
-
-        /// <summary>
-        /// Analyze control-flow within a part of a method body. 
-        /// </summary>
-        public static ControlFlowAnalysis AnalyzeControlFlow(this SemanticModel semanticModel, SyntaxNode statement)
-        {
-            return semanticModel.AnalyzeControlFlow(statement);
-        }
-
-        /// <summary>
-        /// Analyze data-flow within a part of a method body. 
-        /// </summary>
-        public static DataFlowAnalysis AnalyzeDataFlow(this SemanticModel semanticModel, SyntaxNode firstStatement, SyntaxNode lastStatement)
-        {
-            return semanticModel.AnalyzeDataFlow(firstStatement, lastStatement);
-        }
-
-        /// <summary>
-        /// Analyze data-flow within a part of a method body. 
-        /// </summary>
-        public static DataFlowAnalysis AnalyzeDataFlow(this SemanticModel semanticModel, SyntaxNode statementOrExpression)
-        {
-            return semanticModel.AnalyzeDataFlow(statementOrExpression);
-        }
     }
 }

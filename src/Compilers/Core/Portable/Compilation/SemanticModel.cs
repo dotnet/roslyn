@@ -629,7 +629,7 @@ namespace Microsoft.CodeAnalysis
         /// <remarks>
         /// The first and last nodes must be fully inside the same method body.
         /// </remarks>
-        internal ControlFlowAnalysis AnalyzeControlFlow(SyntaxNode firstStatement, SyntaxNode lastStatement)
+        public ControlFlowAnalysis AnalyzeControlFlow(SyntaxNode firstStatement, SyntaxNode lastStatement)
         {
             return AnalyzeControlFlowCore(firstStatement, lastStatement);
         }
@@ -657,7 +657,7 @@ namespace Microsoft.CodeAnalysis
         /// <remarks>
         /// The statement must be fully inside the same method body.
         /// </remarks>
-        internal ControlFlowAnalysis AnalyzeControlFlow(SyntaxNode statement)
+        public ControlFlowAnalysis AnalyzeControlFlow(SyntaxNode statement)
         {
             return AnalyzeControlFlowCore(statement);
         }
@@ -685,7 +685,7 @@ namespace Microsoft.CodeAnalysis
         /// <remarks>
         /// The first and last nodes must be fully inside the same method body.
         /// </remarks>
-        internal DataFlowAnalysis AnalyzeDataFlow(SyntaxNode firstStatement, SyntaxNode lastStatement)
+        public DataFlowAnalysis AnalyzeDataFlow(SyntaxNode firstStatement, SyntaxNode lastStatement)
         {
             return AnalyzeDataFlowCore(firstStatement, lastStatement);
         }
@@ -713,7 +713,7 @@ namespace Microsoft.CodeAnalysis
         /// <remarks>
         /// The statement or expression must be fully inside a method body.
         /// </remarks>
-        internal DataFlowAnalysis AnalyzeDataFlow(SyntaxNode statementOrExpression)
+        public DataFlowAnalysis AnalyzeDataFlow(SyntaxNode statementOrExpression)
         {
             return AnalyzeDataFlowCore(statementOrExpression);
         }
