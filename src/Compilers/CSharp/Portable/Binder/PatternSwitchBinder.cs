@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundPatternSwitchLabel defaultLabel;
             bool isComplete;
             ImmutableArray<BoundPatternSwitchSection> switchSections =
-                BindPatternSwitchSections(boundSwitchExpression, node.Sections, originalBinder, out defaultLabel, out isComplete, diagnostics);
+                BindPatternSwitchSections(node, boundSwitchExpression, node.Sections, originalBinder, out defaultLabel, out isComplete, diagnostics);
             var locals = GetDeclaredLocalsForScope(node);
             var functions = GetDeclaredLocalFunctionsForScope(node);
             return new BoundPatternSwitchStatement(
@@ -101,6 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// the decision tree.
         /// </summary>
         private ImmutableArray<BoundPatternSwitchSection> BindPatternSwitchSections(
+            SyntaxNode syntax,
             BoundExpression boundSwitchExpression,
             SyntaxList<SwitchSectionSyntax> sections,
             Binder originalBinder,
@@ -115,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Bind match sections
             var boundPatternSwitchSectionsBuilder = ArrayBuilder<BoundPatternSwitchSection>.GetInstance();
-            SubsumptionDiagnosticBuilder subsumption = new SubsumptionDiagnosticBuilder(ContainingMemberOrLambda, this.Conversions, boundSwitchExpression);
+            SubsumptionDiagnosticBuilder subsumption = new SubsumptionDiagnosticBuilder(ContainingMemberOrLambda, syntax, this.Conversions, boundSwitchExpression);
             foreach (var sectionSyntax in sections)
             {
                 boundPatternSwitchSectionsBuilder.Add(BindPatternSwitchSection(
