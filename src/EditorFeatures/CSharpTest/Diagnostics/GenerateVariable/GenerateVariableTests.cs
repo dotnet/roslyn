@@ -7311,6 +7311,37 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestPlaceFieldBasedOnSurroundingStatements2()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Class
+{
+    private int foo;
+    private int quux;
+
+    public Class()
+    {
+        this.foo = 0;
+        this.[|bar|] = 1;
+        this.quux = 2;
+    }
+}",
+@"class Class
+{
+    private int foo;
+    private int bar;
+    private int quux;
+
+    public Class()
+    {
+        this.foo = 0;
+        this.bar = 1;
+        this.quux = 2;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestPlacePropertyBasedOnSurroundingStatements()
         {
             await TestInRegularAndScriptAsync(

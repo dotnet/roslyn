@@ -277,14 +277,15 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 // Also, because users often like to keep members/assignments in the same order
                 // we can pick a good place for the new member based on the surrounding assignments.
                 var syntaxFacts = document.Document.GetLanguageService<ISyntaxFactsService>();
-                var simpleName = this.SimpleNameOpt;
+                var simpleName = this.SimpleNameOrMemberAccessExpressionOpt;
 
                 if (syntaxFacts.IsLeftSideOfAssignment(simpleName))
                 {
                     var assignmentStatement = simpleName.Ancestors().FirstOrDefault(syntaxFacts.IsSimpleAssignmentStatement);
                     if (assignmentStatement != null)
                     {
-                        syntaxFacts.GetPartsOfAssignmentStatement(assignmentStatement, out var left, out var right);
+                        syntaxFacts.GetPartsOfAssignmentStatement(
+                            assignmentStatement, out var left, out var right);
 
                         if (left == simpleName)
                         {
