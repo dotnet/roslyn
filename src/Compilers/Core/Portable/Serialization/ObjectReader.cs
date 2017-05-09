@@ -32,7 +32,7 @@ namespace Roslyn.Utilities
         /// this version, just change VersionByte2.
         /// </summary>
         internal const byte VersionByte1 = 0b10101010;
-        internal const byte VersionByte2 = 0b00000111;
+        internal const byte VersionByte2 = 0b00001000;
 
         private readonly BinaryReader _reader;
         private readonly CancellationToken _cancellationToken;
@@ -580,7 +580,6 @@ namespace Roslyn.Utilities
         {
             var id = _objectReferenceMap.GetNextReferenceId();
 
-            _reader.ReadByte();
             var typeReader = _binderSnapshot.GetTypeReaderFromId(this.ReadInt32());
 
             // recursive: read and construct instance immediately from member elements encoding next in the stream

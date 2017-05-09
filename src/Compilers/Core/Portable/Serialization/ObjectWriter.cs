@@ -751,7 +751,10 @@ namespace Roslyn.Utilities
             _objectReferenceMap.Add(writable);
 
             _writer.Write((byte)EncodingKind.Object);
-            this.WriteKnownType(writable.GetType());
+
+            // Directly write out the type-id for this object.  i.e. no need to write out the 'Type'
+            // tag since we just wrote out the 'Object' tag
+            this.WriteInt32(_binderSnapshot.GetTypeId(writable.GetType()));
             writable.WriteTo(this);
         }
 
