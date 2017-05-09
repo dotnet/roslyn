@@ -906,7 +906,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return syntaxOffset;
             }
 
-            if (declaration.Declarations.Length >= 1 && position == declaration.Declarations[0].Location.SourceSpan.Start)
+            if (this.declaration.Declarations.Length >= 1 && position == this.declaration.Declarations[0].Location.SourceSpan.Start)
             {
                 // With dynamic analysis instrumentation, the introducing declaration of a type can provide
                 // the syntax associated with both the analysis payload local of a synthesized constructor
