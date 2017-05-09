@@ -55,7 +55,7 @@
     </Compile>
     <Compile Include="AssemblyResolution.cs" />
     <Compile Include="CanonicalError.cs" />
-    <Compile Include="LocateEditorConfigFiles.cs" />
+    <Compile Include="DiscoverEditorConfigFiles.cs" />
     <Compile Include="ValidateBootstrap.cs" />
     <Compile Include="CommandLineBuilderExtension.cs" />
     <Compile Include="Csc.cs" />

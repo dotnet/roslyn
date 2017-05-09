@@ -143,6 +143,12 @@ namespace Microsoft.CodeAnalysis
         public ImmutableArray<CommandLineSourceFile> AdditionalFiles { get; internal set; }
 
         /// <summary>
+        /// An ordered list of .editorconfig files that are consumed by analyzers. The order is significant, and if more than one .editorconfig
+        /// file applies to a source file, the properties found in the first file win.
+        /// </summary>
+        public ImmutableArray<CommandLineSourceFile> EditorConfigFiles { get; internal set; }
+
+        /// <summary>
         /// A set of files to embed in the PDB.
         /// </summary>
         public ImmutableArray<CommandLineSourceFile> EmbeddedFiles { get; internal set; }

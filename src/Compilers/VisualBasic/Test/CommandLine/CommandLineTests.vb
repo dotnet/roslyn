@@ -6760,6 +6760,54 @@ C:\*.vb(100) : error BC30451: 'Foo' is not declared. It may be inaccessible due 
             Assert.Equal(0, args.AdditionalFiles.Length)
         End Sub
 
+        <Fact>
+        Public Sub ParseEditorConfig()
+            Dim args = DefaultParse({"/editorconfig:.editorconfig", "a.vb"}, _baseDirectory)
+            args.Errors.Verify()
+            Assert.Equal(Path.Combine(_baseDirectory, ".editorconfig"), args.EditorConfigFiles.Single().Path)
+
+            args = DefaultParse({"/editorconfig:.editorconfig", "a.vb", "/editorconfig:subdir\.editorconfig"}, _baseDirectory)
+            args.Errors.Verify()
+            Assert.Equal(2, args.EditorConfigFiles.Length)
+            Assert.Equal(Path.Combine(_baseDirectory, ".editorconfig"), args.EditorConfigFiles(0).Path)
+            Assert.Equal(Path.Combine(_baseDirectory, "subdir\.editorconfig"), args.EditorConfigFiles(1).Path)
+
+            args = DefaultParse({"/editorconfig:.editorconfig", "a.vb", "/editorconfig:.editorconfig"}, _baseDirectory)
+            args.Errors.Verify()
+            Assert.Equal(2, args.EditorConfigFiles.Length)
+            Assert.Equal(Path.Combine(_baseDirectory, ".editorconfig"), args.EditorConfigFiles(0).Path)
+            Assert.Equal(Path.Combine(_baseDirectory, ".editorconfig"), args.EditorConfigFiles(1).Path)
+
+            args = DefaultParse({"/editorconfig:..\.editorconfig", "a.vb"}, _baseDirectory)
+            args.Errors.Verify()
+            Assert.Equal(Path.Combine(_baseDirectory, "..\.editorconfig"), args.EditorConfigFiles.Single().Path)
+
+            args = DefaultParse({"/editorconfig:.editorconfig;subdir\.editorconfig", "a.vb"}, _baseDirectory)
+            args.Errors.Verify()
+            Assert.Equal(2, args.EditorConfigFiles.Length)
+            Assert.Equal(Path.Combine(_baseDirectory, ".editorconfig"), args.EditorConfigFiles(0).Path)
+            Assert.Equal(Path.Combine(_baseDirectory, "subdir\.editorconfig"), args.EditorConfigFiles(1).Path)
+
+            args = DefaultParse({"/editorconfig:.editorconfig,subdir\.editorconfig", "a.vb"}, _baseDirectory)
+            args.Errors.Verify()
+            Assert.Equal(2, args.EditorConfigFiles.Length)
+            Assert.Equal(Path.Combine(_baseDirectory, ".editorconfig"), args.EditorConfigFiles(0).Path)
+            Assert.Equal(Path.Combine(_baseDirectory, "subdir\.editorconfig"), args.EditorConfigFiles(1).Path)
+
+            args = DefaultParse({"/editorconfig:.editorconfig:.editorconfig", "a.vb"}, _baseDirectory)
+            args.Errors.Verify()
+            Assert.Equal(1, args.EditorConfigFiles.Length)
+            Assert.Equal(Path.Combine(_baseDirectory, ".editorconfig:.editorconfig"), args.EditorConfigFiles(0).Path)
+
+            args = DefaultParse({"/editorconfig", "a.vb"}, _baseDirectory)
+            args.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("editorconfig", ":<file_list>"))
+            Assert.Equal(0, args.EditorConfigFiles.Length)
+
+            args = DefaultParse({"/editorconfig:", "a.vb"}, _baseDirectory)
+            args.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("editorconfig", ":<file_list>"))
+            Assert.Equal(0, args.EditorConfigFiles.Length)
+        End Sub
+
         Private Shared Sub Verify(actual As IEnumerable(Of Diagnostic), ParamArray expected As DiagnosticDescription())
             actual.Verify(expected)
         End Sub

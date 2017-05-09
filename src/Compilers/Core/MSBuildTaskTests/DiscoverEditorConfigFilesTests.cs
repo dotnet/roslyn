@@ -10,12 +10,12 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 {
-    public class LocateEditorConfigFilesTests : IDisposable
+    public class DiscoverEditorConfigFilesTests : IDisposable
     {
         private readonly TempRoot _tempRoot;
         private readonly TempDirectory _tempDirectory;
 
-        public LocateEditorConfigFilesTests()
+        public DiscoverEditorConfigFilesTests()
         {
             _tempRoot = new TempRoot();
             _tempDirectory = _tempRoot.CreateDirectory();
@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
         [Fact]
         public void NoInputsGivesNoOutputs()
         {
-            var task = new LocateEditorConfigFiles();
+            var task = new DiscoverEditorConfigFiles();
             task.InputFiles = Array.Empty<ITaskItem>();
             Assert.True(task.Execute());
             Assert.Empty(task.EditorConfigFiles);
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             var sourceFile = _tempDirectory.CreateFile("Cat.cs");
             var editorConfigFile = _tempDirectory.CreateFile(".editorconfig").WriteAllText("root = true");
 
-            var task = new LocateEditorConfigFiles();
+            var task = new DiscoverEditorConfigFiles();
             task.InputFiles = MSBuildUtil.CreateTaskItems(sourceFile.Path);
             Assert.True(task.Execute());
             Assert.Equal(editorConfigFile.Path, Assert.Single(task.EditorConfigFiles).ItemSpec);
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             var sourceFile = _tempDirectory.CreateDirectory("Subdirectory").CreateFile("Cat.cs");
             var editorConfigFile = _tempDirectory.CreateFile(".editorconfig").WriteAllText("root = true");
 
-            var task = new LocateEditorConfigFiles();
+            var task = new DiscoverEditorConfigFiles();
             task.InputFiles = MSBuildUtil.CreateTaskItems(sourceFile.Path);
             Assert.True(task.Execute());
             Assert.Equal(editorConfigFile.Path, Assert.Single(task.EditorConfigFiles).ItemSpec);
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             var sourceFile2 = _tempDirectory.CreateFile("Dog.cs");
             var editorConfigFile = _tempDirectory.CreateFile(".editorconfig").WriteAllText("root = true");
 
-            var task = new LocateEditorConfigFiles();
+            var task = new DiscoverEditorConfigFiles();
             task.InputFiles = MSBuildUtil.CreateTaskItems(sourceFile1.Path, sourceFile2.Path);
             Assert.True(task.Execute());
             Assert.Equal(editorConfigFile.Path, Assert.Single(task.EditorConfigFiles).ItemSpec);
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             var editorConfigFileChild = subdirectory.CreateFile(".editorconfig").WriteAllText("root = true");
             var editorConfigFileParent = _tempDirectory.CreateFile(".editorconfig").WriteAllText("root = true");
 
-            var task = new LocateEditorConfigFiles();
+            var task = new DiscoverEditorConfigFiles();
             task.InputFiles = MSBuildUtil.CreateTaskItems(sourceFile.Path);
             Assert.True(task.Execute());
             Assert.Equal(editorConfigFileChild.Path, Assert.Single(task.EditorConfigFiles).ItemSpec);
@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             Assert.NotEqual(editorConfigFile1, editorConfigFile2);
             Assert.NotEqual(sourceFile1, sourceFile2);
 
-            var task = new LocateEditorConfigFiles();
+            var task = new DiscoverEditorConfigFiles();
             task.InputFiles = MSBuildUtil.CreateTaskItems(sourceFile1, sourceFile2);
             Assert.True(task.Execute());
 
@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 
             var sourceFile = Path.Combine(subdirectory.Path, "Cat.cs");
 
-            var task = new LocateEditorConfigFiles();
+            var task = new DiscoverEditorConfigFiles();
             task.InputFiles = MSBuildUtil.CreateTaskItems(sourceFile);
             Assert.True(task.Execute());
 
@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 
             using (var stream = new FileStream(editorConfigFile.Path, FileMode.Open, FileAccess.Read, FileShare.None))
             {
-                var task = new LocateEditorConfigFiles();
+                var task = new DiscoverEditorConfigFiles();
                 var buildEngine = new MockBuildEngine();
                 task.BuildEngine = buildEngine;
 
@@ -154,28 +154,28 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
         public void EmptyEditorConfigFileIsRoot()
         {
             var tempFile = _tempDirectory.CreateFile(".editorconfig").WriteAllText("");
-            Assert.False(LocateEditorConfigFiles.FileIsRootEditorConfig(tempFile.Path));
+            Assert.False(DiscoverEditorConfigFiles.FileIsRootEditorConfig(tempFile.Path));
         }
 
         [Fact]
         public void RootEditorConfigFileIsRoot()
         {
             var tempFile = _tempDirectory.CreateFile(".editorconfig").WriteAllText("root = true");
-            Assert.True(LocateEditorConfigFiles.FileIsRootEditorConfig(tempFile.Path));
+            Assert.True(DiscoverEditorConfigFiles.FileIsRootEditorConfig(tempFile.Path));
         }
 
         [Fact]
         public void NonRootEditorConfigFileIsNotRoot()
         {
             var tempFile = _tempDirectory.CreateFile(".editorconfig").WriteAllText("root = false");
-            Assert.False(LocateEditorConfigFiles.FileIsRootEditorConfig(tempFile.Path));
+            Assert.False(DiscoverEditorConfigFiles.FileIsRootEditorConfig(tempFile.Path));
         }
 
         [Fact]
         public void RootPropertyInSectionIsNotActualRoot()
         {
             var tempFile = _tempDirectory.CreateFile(".editorconfig").WriteAllText("[*]\r\nroot = true");
-            Assert.False(LocateEditorConfigFiles.FileIsRootEditorConfig(tempFile.Path));
+            Assert.False(DiscoverEditorConfigFiles.FileIsRootEditorConfig(tempFile.Path));
         }
     }
 }

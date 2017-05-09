@@ -8009,6 +8009,45 @@ using System.Diagnostics; // Unused.
             Assert.Equal(0, args.AdditionalFiles.Length);
         }
 
+
+        [Fact]
+        public void ParseEditorConfig()
+        {
+            var args = DefaultParse(new[] { "/editorconfig:.editorconfig", "a.cs" }, _baseDirectory);
+            args.Errors.Verify();
+            Assert.Equal(Path.Combine(_baseDirectory, ".editorconfig"), args.EditorConfigFiles.Single().Path);
+
+            args = DefaultParse(new[] { "/editorconfig:.editorconfig", "a.cs", "/editorconfig:subdir\\.editorconfig" }, _baseDirectory);
+            args.Errors.Verify();
+            Assert.Equal(2, args.EditorConfigFiles.Length);
+            Assert.Equal(Path.Combine(_baseDirectory, ".editorconfig"), args.EditorConfigFiles[0].Path);
+            Assert.Equal(Path.Combine(_baseDirectory, "subdir\\.editorconfig"), args.EditorConfigFiles[1].Path);
+
+            args = DefaultParse(new[] { "/editorconfig:.editorconfig", "a.cs", "/editorconfig:.editorconfig" }, _baseDirectory);
+            args.Errors.Verify();
+            Assert.Equal(2, args.EditorConfigFiles.Length);
+            Assert.Equal(Path.Combine(_baseDirectory, ".editorconfig"), args.EditorConfigFiles[0].Path);
+            Assert.Equal(Path.Combine(_baseDirectory, ".editorconfig"), args.EditorConfigFiles[1].Path);
+
+            args = DefaultParse(new[] { "/editorconfig:..\\.editorconfig", "a.cs" }, _baseDirectory);
+            args.Errors.Verify();
+            Assert.Equal(Path.Combine(_baseDirectory, "..\\.editorconfig"), args.EditorConfigFiles.Single().Path);
+
+            args = DefaultParse(new[] { "/editorconfig:.editorconfig;subdir\\.editorconfig", "a.cs" }, _baseDirectory);
+            args.Errors.Verify();
+            Assert.Equal(2, args.EditorConfigFiles.Length);
+            Assert.Equal(Path.Combine(_baseDirectory, ".editorconfig"), args.EditorConfigFiles[0].Path);
+            Assert.Equal(Path.Combine(_baseDirectory, "subdir\\.editorconfig"), args.EditorConfigFiles[1].Path);
+
+            args = DefaultParse(new[] { "/editorconfig", "a.cs" }, _baseDirectory);
+            args.Errors.Verify(Diagnostic(ErrorCode.ERR_SwitchNeedsString).WithArguments("<file list>", "editorconfig"));
+            Assert.Equal(0, args.EditorConfigFiles.Length);
+
+            args = DefaultParse(new[] { "/editorconfig:", "a.cs" }, _baseDirectory);
+            args.Errors.Verify(Diagnostic(ErrorCode.ERR_SwitchNeedsString).WithArguments("<file list>", "editorconfig"));
+            Assert.Equal(0, args.EditorConfigFiles.Length);
+        }
+
         private static int OccurrenceCount(string source, string word)
         {
             var n = 0;

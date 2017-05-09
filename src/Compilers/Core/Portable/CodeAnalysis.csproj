@@ -307,8 +307,8 @@
     <Compile Include="CommandLine\CommandLineAnalyzerReference.cs" />
     <Compile Include="CommandLine\CommandLineReference.cs" />
     <Compile Include="CommandLine\CommandLineSourceFile.cs" />
-    <Compile Include="CommandLine\CommonCommandLineArguments.cs" />
-    <Compile Include="CommandLine\CommonCommandLineParser.cs" />
+    <Compile Include="CommandLine\CommandLineArguments.cs" />
+    <Compile Include="CommandLine\CommandLineParser.cs" />
     <Compile Include="CommandLine\CommonCompiler.CompilerEmitStreamProvider.cs" />
     <Compile Include="CommandLine\CommonCompiler.cs" />
     <Compile Include="CommandLine\CommonCompiler.ExistingReferencesResolver.cs" />
