@@ -906,10 +906,16 @@ Additional information: {1}</value>
   <data name="prefer_throwing_properties" xml:space="preserve">
     <value>prefer throwing properties</value>
   </data>
-    <data name="When_generating_properties" xml:space="preserve">
+  <data name="When_generating_properties" xml:space="preserve">
     <value>When generating properties:</value>
-    </data>
+  </data>
   <data name="Options" xml:space="preserve">
     <value>Options</value>
+  </data>
+  <data name="Analyzer_vsix_hyperlink" xml:space="preserve">
+    <value>Install</value>
+  </data>
+  <data name="Analyzer_vsix_try_description" xml:space="preserve">
+    <value>Try the new analyzer extension!</value>
   </data>
 </root>

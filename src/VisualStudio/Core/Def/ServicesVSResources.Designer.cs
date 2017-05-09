@@ -19,7 +19,7 @@ namespace Microsoft.VisualStudio.LanguageServices {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class ServicesVSResources {
@@ -223,6 +223,24 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Analyzer_reference_to_0_in_project_1 {
             get {
                 return ResourceManager.GetString("Analyzer_reference_to_0_in_project_1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Install.
+        /// </summary>
+        internal static string Analyzer_vsix_hyperlink {
+            get {
+                return ResourceManager.GetString("Analyzer_vsix_hyperlink", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Try the new analyzer extension!.
+        /// </summary>
+        internal static string Analyzer_vsix_try_description {
+            get {
+                return ResourceManager.GetString("Analyzer_vsix_try_description", resourceCulture);
             }
         }
         
