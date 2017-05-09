@@ -31,6 +31,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         private Binder _enclosing;
         private readonly SyntaxNode _root;
 
+        public override void Visit(SyntaxNode node)
+        {
+            if (!(node is ExpressionSyntax)) {
+                base.Visit(node);
+            }
+        }
+
         private void Visit(CSharpSyntaxNode syntax, Binder enclosing)
         {
             if (_enclosing == enclosing)
@@ -709,7 +716,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             // We should only get here for statements that don't introduce new scopes.
             // Given pattern variables, they must have no subexpressions either.
             // It is fine to get here for non-statements.
-            base.DefaultVisit(node);
+            if (!(node is ExpressionSyntax))
+            {
+                base.DefaultVisit(node);
+            }
         }
 
         private void AddToMap(SyntaxNode node, Binder binder)
