@@ -29,7 +29,11 @@
 | `/linkresource`:*resinfo* | Link the specified resource to this assembly (Short form: `/linkres`) Where the *resinfo* format  is *file*{`,`*string name*{`,``public``|``private`}}
 | **CODE GENERATION**
 | `/debug`{`+`&#124;`-`} | Emit (or do not Emit) debugging information
-| `/debug`:{`full`&#124;`pdbonly`&#124;`portable`} | Specify debugging type (`full` is default, and  enables attaching a debugger to a running program. `portable` is a cross-platform format)
+| `/debug`:`full` | Emit debugging information to .pdb file using default format for the current platform: _Windows PDB_ on Windows, _Portable PDB_ on other systems
+| `/debug`:`pdbonly` | Same as `/debug:full`. For backward compatibility. 
+| `/debug`:`portable` | Emit debugging information to to .pdb file using cross-platform [Portable PDB format](https://github.com/dotnet/core/blob/master/Documentation/diagnostics/portable_pdb.md)
+| `/debug`:`embedded` | Emit debugging information into the .dll/.exe itself (.pdb file is not produced) using [Portable PDB format](https://github.com/dotnet/core/blob/master/Documentation/diagnostics/portable_pdb.md).
+| `/sourcelink`:*file* | [Source link](https://github.com/dotnet/core/blob/master/Documentation/diagnostics/source_link.md) info to embed into PDB.
 | `/optimize`{`+`&#124;`-`} | Enable optimizations (Short form: `/o`)
 | `/deterministic` | Produce a deterministic assembly (including module version GUID and timestamp)
 | **ERRORS AND WARNINGS**

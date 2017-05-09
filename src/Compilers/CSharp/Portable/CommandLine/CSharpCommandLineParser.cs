@@ -1193,12 +1193,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 keyFileSetting = ParseGenericPathToFile(keyFileSetting, diagnostics, baseDirectory);
             }
 
-            if (sourceLink != null)
+            if (sourceLink != null && !emitPdb)
             {
-                if (!emitPdb || !debugInformationFormat.IsPortable())
-                {
-                    AddDiagnostic(diagnostics, ErrorCode.ERR_SourceLinkRequiresPortablePdb);
-                }
+                AddDiagnostic(diagnostics, ErrorCode.ERR_SourceLinkRequiresPdb);
             }
             
             if (embedAllSourceFiles)

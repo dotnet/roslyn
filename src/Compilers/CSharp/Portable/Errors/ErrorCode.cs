@@ -1060,7 +1060,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_InvalidOutputName = 2041,
         ERR_InvalidDebugInformationFormat = 2042,
         ERR_LegacyObjectIdSyntax = 2043,
-        ERR_SourceLinkRequiresPortablePdb = 2044,
+        ERR_SourceLinkRequiresPdb = 2044,
         ERR_CannotEmbedWithoutPdb = 2045,
         // unused 2046-2999
         WRN_CLS_NoVarArgs = 3000,
