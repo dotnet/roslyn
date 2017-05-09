@@ -34,15 +34,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
-<<<<<<< HEAD
-            var testData = new CompilationTestData();
-            var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
-            string typeName;
-            var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
-            Assert.NotNull(assembly);
-            Assert.Equal(assembly.Count, 0);
-            Assert.Equal(locals.Count, 0);
-=======
                 var testData = new CompilationTestData();
                 var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
                 string typeName;
@@ -51,7 +42,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 Assert.Equal(assembly.Count, 0);
                 Assert.Equal(locals.Count, 0);
                 locals.Free();
->>>>>>> upstream/master
             });
         }
 

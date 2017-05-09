@@ -3459,17 +3459,10 @@ class C
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
-<<<<<<< HEAD
-            string error;
-            var testData = new CompilationTestData();
-            context.CompileExpression("F(() => null ?? new object())", out error, testData);
-            Assert.Equal(error, "error CS0845: An expression tree lambda may not contain a coalescing operator with a null literal left-hand side");
-=======
                 string error;
                 var testData = new CompilationTestData();
                 context.CompileExpression("F(() => null ?? new object())", out error, testData);
                 Assert.Equal(error, "error CS0845: An expression tree lambda may not contain a coalescing operator with a null or default literal left-hand side");
->>>>>>> upstream/master
             });
         }
 

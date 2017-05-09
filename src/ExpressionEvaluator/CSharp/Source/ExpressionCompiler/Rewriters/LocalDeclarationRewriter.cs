@@ -102,14 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             var typeType = compilation.GetWellKnownType(WellKnownType.System_Type);
             var stringType = compilation.GetSpecialType(SpecialType.System_String);
             var guidConstructor = (MethodSymbol)compilation.GetWellKnownTypeMember(WellKnownMember.System_Guid__ctor);
-<<<<<<< HEAD
-
-            // CreateVariable(Type type, string name)
-            var method = PlaceholderLocalSymbol.GetIntrinsicMethod(compilation, ExpressionCompilerConstants.CreateVariableMethodName);
             var type = new BoundTypeOfOperator(syntax, new BoundTypeExpression(syntax, aliasOpt: null, type: local.Type.TypeSymbol), null, typeType);
-=======
-            var type = new BoundTypeOfOperator(syntax, new BoundTypeExpression(syntax, aliasOpt: null, type: local.Type), null, typeType);
->>>>>>> upstream/master
             var name = new BoundLiteral(syntax, ConstantValue.Create(local.Name), stringType);
             bool hasCustomTypeInfoPayload;
             var customTypeInfoPayload = GetCustomTypeInfoPayload(local, syntax, compilation, out hasCustomTypeInfoPayload);
