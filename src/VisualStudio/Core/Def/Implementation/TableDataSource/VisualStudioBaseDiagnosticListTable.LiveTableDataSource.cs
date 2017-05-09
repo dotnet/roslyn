@@ -25,15 +25,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         {
             private readonly string _identifier;
             private readonly IDiagnosticService _diagnosticService;
-            private readonly IServiceProvider _serviceProvider;
             private readonly Workspace _workspace;
             private readonly OpenDocumentTracker<DiagnosticData> _tracker;
 
-            public LiveTableDataSource(IServiceProvider serviceProvider, Workspace workspace, IDiagnosticService diagnosticService, string identifier) :
+            public LiveTableDataSource(Workspace workspace, IDiagnosticService diagnosticService, string identifier) :
                 base(workspace)
             {
                 _workspace = workspace;
-                _serviceProvider = serviceProvider;
                 _identifier = identifier;
 
                 _tracker = new OpenDocumentTracker<DiagnosticData>(_workspace);

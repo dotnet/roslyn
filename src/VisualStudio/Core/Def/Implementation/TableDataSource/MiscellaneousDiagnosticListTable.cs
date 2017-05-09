@@ -33,9 +33,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
         private MiscellaneousDiagnosticListTable(
             SVsServiceProvider serviceProvider, Workspace workspace, IDiagnosticService diagnosticService, ITableManagerProvider provider) :
-            base(serviceProvider, workspace, diagnosticService, provider)
+            base(workspace, diagnosticService, provider)
         {
-            _source = new LiveTableDataSource(serviceProvider, workspace, diagnosticService, IdentifierString);
+            _source = new LiveTableDataSource(workspace, diagnosticService, IdentifierString);
             AddInitialTableSource(workspace.CurrentSolution, _source);
         }
 
