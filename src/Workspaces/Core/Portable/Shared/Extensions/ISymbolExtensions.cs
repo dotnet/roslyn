@@ -253,6 +253,17 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return (symbol as IMethodSymbol)?.MethodKind == MethodKind.Ordinary;
         }
 
+        public static bool IsOrdinaryMethodOrLocalFunction(this ISymbol symbol)
+        {
+            if (!(symbol is IMethodSymbol method))
+            {
+                return false;
+            }
+
+            return method.MethodKind == MethodKind.Ordinary
+                || method.MethodKind == MethodKind.LocalFunction;
+        }
+
         public static bool IsDelegateType(this ISymbol symbol)
         {
             return symbol is ITypeSymbol && ((ITypeSymbol)symbol).TypeKind == TypeKind.Delegate;

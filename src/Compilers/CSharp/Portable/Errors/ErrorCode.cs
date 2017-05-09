@@ -1475,13 +1475,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_CompilerAndLanguageVersion = 8304,
         WRN_Experimental = 8305,
         ERR_TupleInferredNamesNotAvailable = 8306,
+        ERR_TypelessTupleInAs = 8307,
 
-        ERR_NoRefOutWhenRefOnly = 8307,
-        ERR_NoNetModuleOutputWhenRefOutOrRefOnly = 8308,
-        ERR_NoEmbeddedTypeWhenRefOutOrRefOnly = 8309,
+        #region diagnostics for C# 7.1
 
-        ERR_BadDynamicMethodArgDefaultLiteral = 8310,
-        ERR_DefaultLiteralNotValid = 8311,
-        WRN_DefaultInSwitch = 8312,
+        ERR_NoRefOutWhenRefOnly = 8308,
+        ERR_NoNetModuleOutputWhenRefOutOrRefOnly = 8309,
+        ERR_NoEmbeddedTypeWhenRefOutOrRefOnly = 8310,
+        ERR_BadDynamicMethodArgDefaultLiteral = 8311,
+        ERR_DefaultLiteralNotValid = 8312,
+        WRN_DefaultInSwitch = 8313,
+        ERR_PatternWrongGenericTypeInVersion = 8314,
+
+        #endregion diagnostics for C# 7.1
     }
 }

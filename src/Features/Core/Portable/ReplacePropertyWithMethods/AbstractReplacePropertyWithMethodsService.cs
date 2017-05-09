@@ -12,15 +12,19 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
 {
-    internal abstract class AbstractReplacePropertyWithMethodsService<TIdentifierNameSyntax, TExpressionSyntax, TStatementSyntax>
+    internal abstract class AbstractReplacePropertyWithMethodsService<TIdentifierNameSyntax, TExpressionSyntax, TCrefSyntax, TStatementSyntax>
         : IReplacePropertyWithMethodsService
         where TIdentifierNameSyntax : TExpressionSyntax
         where TExpressionSyntax : SyntaxNode
+        where TCrefSyntax : SyntaxNode
         where TStatementSyntax : SyntaxNode
     {
         public abstract SyntaxNode GetPropertyDeclaration(SyntaxToken token);
         public abstract SyntaxNode GetPropertyNodeToReplace(SyntaxNode propertyDeclaration);
         public abstract Task<IList<SyntaxNode>> GetReplacementMembersAsync(Document document, IPropertySymbol property, SyntaxNode propertyDeclaration, IFieldSymbol propertyBackingField, string desiredGetMethodName, string desiredSetMethodName, CancellationToken cancellationToken);
+
+        protected abstract TCrefSyntax TryGetCrefSyntax(TIdentifierNameSyntax identifierName);
+        protected abstract TCrefSyntax CreateCrefSyntax(TCrefSyntax originalCref, SyntaxToken identifierToken, SyntaxNode parameterType);
 
         protected abstract TExpressionSyntax UnwrapCompoundAssignment(SyntaxNode compoundAssignment, TExpressionSyntax readExpression);
 
@@ -62,7 +66,7 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
 
         private struct ReferenceReplacer
         {
-            private readonly AbstractReplacePropertyWithMethodsService<TIdentifierNameSyntax, TExpressionSyntax, TStatementSyntax> _service;
+            private readonly AbstractReplacePropertyWithMethodsService<TIdentifierNameSyntax, TExpressionSyntax, TCrefSyntax, TStatementSyntax> _service;
             private readonly SemanticModel _semanticModel;
             private readonly ISyntaxFactsService _syntaxFacts;
             private readonly ISemanticFactsService _semanticFacts;
@@ -75,10 +79,11 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
 
             private readonly TIdentifierNameSyntax _identifierName;
             private readonly TExpressionSyntax _expression;
+            private readonly TCrefSyntax _cref;
             private readonly CancellationToken _cancellationToken;
 
             public ReferenceReplacer(
-                AbstractReplacePropertyWithMethodsService<TIdentifierNameSyntax, TExpressionSyntax, TStatementSyntax> service,
+                AbstractReplacePropertyWithMethodsService<TIdentifierNameSyntax, TExpressionSyntax, TCrefSyntax, TStatementSyntax> service,
                 SemanticModel semanticModel,
                 ISyntaxFactsService syntaxFacts,
                 ISemanticFactsService semanticFacts,
@@ -102,6 +107,7 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
 
                 _identifierName = (TIdentifierNameSyntax)nameToken.Parent;
                 _expression = _identifierName;
+                _cref = _service.TryGetCrefSyntax(_identifierName);
                 if (_syntaxFacts.IsNameOfMemberAccessExpression(_expression))
                 {
                     _expression = _expression.Parent as TExpressionSyntax;
@@ -187,7 +193,13 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
 
             public void Do()
             {
-                if (_semanticFacts.IsInOutContext(_semanticModel, _expression, _cancellationToken) ||
+                if (_cref != null)
+                {
+                    // We're in a documentation comment. Replace with a reference to the getter if one exists,
+                    // otherwise to the setter.
+                    _editor.ReplaceNode(_cref, GetCrefReference(_cref));
+                }
+                else if (_semanticFacts.IsInOutContext(_semanticModel, _expression, _cancellationToken) ||
                     _semanticFacts.IsInRefContext(_semanticModel, _expression, _cancellationToken))
                 {
                     // Code wasn't legal (you can't reference a property in an out/ref position in C#).
@@ -265,6 +277,24 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
                     _expression.Parent, 
                     replaceParentCallback,
                     new ReplaceParentArgs(this, getWriteValue, keepTrivia, conflictMessage));
+            }
+
+            private TCrefSyntax GetCrefReference(TCrefSyntax originalCref)
+            {
+                SyntaxToken newIdentifierToken;
+                SyntaxNode parameterType;
+                if (_property.GetMethod != null)
+                {
+                    newIdentifierToken = Generator.Identifier(_desiredGetMethodName);
+                    parameterType = null;
+                }
+                else
+                {
+                    newIdentifierToken = Generator.Identifier(_desiredSetMethodName);
+                    parameterType = Generator.TypeExpression(_property.Type);
+                }
+
+                return _service.CreateCrefSyntax(originalCref, newIdentifierToken, parameterType);
             }
 
             private TExpressionSyntax GetReadExpression(
