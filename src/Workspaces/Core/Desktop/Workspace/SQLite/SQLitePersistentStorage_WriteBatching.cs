@@ -77,29 +77,41 @@ namespace Microsoft.CodeAnalysis.SQLite
             // thread for this queue+key, and a TaskCompletionSource we can use to let
             // other threads know about our own progress writing any new writes in this queue.
             var (previousWritesTask, taskCompletionSource) = await GetWriteTaskAsync().ConfigureAwait(false);
-
-            // Wait for all previous writes to be flushed.
-            await previousWritesTask.ConfigureAwait(false);
-
-            if (writesToProcess.Count == 0)
+            try
             {
-                // No additional writes for us to flush.  We can immediately bail out.
-                Debug.Assert(taskCompletionSource == null);
-                return;
+                // Wait for all previous writes to be flushed.
+                await previousWritesTask.ConfigureAwait(false);
+
+                if (writesToProcess.Count == 0)
+                {
+                    // No additional writes for us to flush.  We can immediately bail out.
+                    Debug.Assert(taskCompletionSource == null);
+                    return;
+                }
+
+                // Now, if we have writes of our own, do them on this thread.
+                // 
+                // Note: this flushing is not cancellable.  We've already removed the
+                // writes from the write queue.  If we were not to write them out we
+                // would be losing data.
+                Debug.Assert(taskCompletionSource != null);
+
+                ProcessWriteQueue(connection, writesToProcess);
             }
-
-            // Now, if we have writes of our own, do them on this thread.
-            // 
-            // Note: this flushing is not cancellable.  We've already removed the
-            // writes from the write queue.  If we were not to write them out we
-            // would be losing data.
-            Debug.Assert(taskCompletionSource != null);
-
-            ProcessWriteQueue(connection, writesToProcess);
-
-            // Mark our TCS as completed.  Any other threads waiting on us will now be able
-            // to proceed.
-            taskCompletionSource.TrySetResult(0);
+            catch (OperationCanceledException ex)
+            {
+                taskCompletionSource?.TrySetCanceled(ex.CancellationToken);
+            }
+            catch (Exception ex)
+            {
+                taskCompletionSource?.TrySetException(ex);
+            }
+            finally
+            {
+                // Mark our TCS as completed.  Any other threads waiting on us will now be able
+                // to proceed.
+                taskCompletionSource?.TrySetResult(0);
+            }
 
             return;
 

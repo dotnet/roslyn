@@ -5674,5 +5674,226 @@ public class X
             var compilation = CreateCompilationWithMscorlib45(source, references: new MetadataReference[] { CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseExe);
             var comp = CompileAndVerify(compilation, expectedOutput: "roslyn");
         }
+
+        [Fact, WorkItem(16195, "https://github.com/dotnet/roslyn/issues/16195")]
+        public void OpenTypeMatch_01()
+        {
+            var source =
+@"using System;
+public class Base { }
+public class Derived : Base { }
+public class Program
+{
+    public static void Main(string[] args)
+    {
+        M(new Derived());
+        M(new Base());
+    }
+    public static void M<T>(T x) where T: Base
+    {
+        Console.Write(x is Derived b0);
+        switch (x)
+        {
+            case Derived b1:
+                Console.Write(1);
+                break;
+            default:
+                Console.Write(0);
+                break;
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, references: new MetadataReference[] { CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7);
+            compilation.VerifyDiagnostics(
+                // (13,28): error CS9003: An expression of type 'T' cannot be handled by a pattern of type 'Derived' in C# 7. Please use language version 7.1 or greater.
+                //         Console.Write(x is Derived b0);
+                Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "Derived").WithArguments("T", "Derived", "7", "7.1").WithLocation(13, 28),
+                // (16,18): error CS9003: An expression of type 'T' cannot be handled by a pattern of type 'Derived' in C# 7. Please use language version 7.1 or greater.
+                //             case Derived b1:
+                Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "Derived").WithArguments("T", "Derived", "7", "7.1").WithLocation(16, 18)
+                );
+            compilation = CreateCompilationWithMscorlib45(source, references: new MetadataReference[] { CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7_1);
+            compilation.VerifyDiagnostics();
+            CompileAndVerify(compilation, expectedOutput: "True1False0");
+        }
+
+        [Fact, WorkItem(16195, "https://github.com/dotnet/roslyn/issues/16195")]
+        public void OpenTypeMatch_02()
+        {
+            var source =
+@"using System;
+public class Base { }
+public class Derived : Base { }
+public class Program
+{
+    public static void Main(string[] args)
+    {
+        M<Derived>(new Derived());
+        M<Derived>(new Base());
+    }
+    public static void M<T>(Base x)
+    {
+        Console.Write(x is T b0);
+        switch (x)
+        {
+            case T b1:
+                Console.Write(1);
+                break;
+            default:
+                Console.Write(0);
+                break;
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, references: new MetadataReference[] { CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7);
+            compilation.VerifyDiagnostics(
+                // (13,28): error CS9003: An expression of type 'Base' cannot be handled by a pattern of type 'T' in C# 7. Please use language version 7.1 or greater.
+                //         Console.Write(x is T b0);
+                Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "T").WithArguments("Base", "T", "7", "7.1").WithLocation(13, 28),
+                // (16,18): error CS9003: An expression of type 'Base' cannot be handled by a pattern of type 'T' in C# 7. Please use language version 7.1 or greater.
+                //             case T b1:
+                Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "T").WithArguments("Base", "T", "7", "7.1")
+                );
+            compilation = CreateCompilationWithMscorlib45(source, references: new MetadataReference[] { CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7_1);
+            compilation.VerifyDiagnostics();
+            CompileAndVerify(compilation, expectedOutput: "True1False0");
+        }
+
+        [Fact, WorkItem(16195, "https://github.com/dotnet/roslyn/issues/16195")]
+        public void OpenTypeMatch_03()
+        {
+            var source =
+@"using System;
+public class Base { }
+public class Derived<T> : Base { }
+public class Program
+{
+    public static void Main(string[] args)
+    {
+        M<Base>(new Derived<Base>());
+        M<Base>(new Base());
+    }
+    public static void M<T>(T x) where T: Base
+    {
+        Console.Write(x is Derived<T> b0);
+        switch (x)
+        {
+            case Derived<T> b1:
+                Console.Write(1);
+                break;
+            default:
+                Console.Write(0);
+                break;
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, references: new MetadataReference[] { CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7);
+            compilation.VerifyDiagnostics(
+                // (13,28): error CS9003: An expression of type 'T' cannot be handled by a pattern of type 'Derived<T>' in C# 7. Please use language version 7.1 or greater.
+                //         Console.Write(x is Derived<T> b0);
+                Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "Derived<T>").WithArguments("T", "Derived<T>", "7", "7.1").WithLocation(13, 28),
+                // (16,18): error CS9003: An expression of type 'T' cannot be handled by a pattern of type 'Derived<T>' in C# 7. Please use language version 7.1 or greater.
+                //             case Derived<T> b1:
+                Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "Derived<T>").WithArguments("T", "Derived<T>", "7", "7.1").WithLocation(16, 18)
+                );
+            compilation = CreateCompilationWithMscorlib45(source, references: new MetadataReference[] { CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7_1);
+            compilation.VerifyDiagnostics();
+            CompileAndVerify(compilation, expectedOutput: "True1False0");
+        }
+
+        [Fact, WorkItem(16195, "https://github.com/dotnet/roslyn/issues/16195")]
+        public void OpenTypeMatch_04()
+        {
+            var source =
+@"using System;
+public class Base { }
+class Container<T>
+{
+    public class Derived : Base { }
+}
+public class Program
+{
+    public static void Main(string[] args)
+    {
+        M<Base>(new Container<Base>.Derived());
+        M<Base>(new Base());
+    }
+    public static void M<T>(T x) where T: Base
+    {
+        Console.Write(x is Container<T>.Derived b0);
+        switch (x)
+        {
+            case Container<T>.Derived b1:
+                Console.Write(1);
+                break;
+            default:
+                Console.Write(0);
+                break;
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, references: new MetadataReference[] { CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7);
+            compilation.VerifyDiagnostics(
+                // (16,28): error CS9003: An expression of type 'T' cannot be handled by a pattern of type 'Container<T>.Derived' in C# 7. Please use language version 7.1 or greater.
+                //         Console.Write(x is Container<T>.Derived b0);
+                Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "Container<T>.Derived").WithArguments("T", "Container<T>.Derived", "7", "7.1").WithLocation(16, 28),
+                // (19,18): error CS9003: An expression of type 'T' cannot be handled by a pattern of type 'Container<T>.Derived' in C# 7. Please use language version 7.1 or greater.
+                //             case Container<T>.Derived b1:
+                Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "Container<T>.Derived").WithArguments("T", "Container<T>.Derived", "7", "7.1").WithLocation(19, 18)
+                );
+            compilation = CreateCompilationWithMscorlib45(source, references: new MetadataReference[] { CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7_1);
+            compilation.VerifyDiagnostics();
+            CompileAndVerify(compilation, expectedOutput: "True1False0");
+        }
+
+        [Fact, WorkItem(16195, "https://github.com/dotnet/roslyn/issues/16195")]
+        public void OpenTypeMatch_05()
+        {
+            var source =
+@"using System;
+public class Base { }
+class Container<T>
+{
+    public class Derived : Base { }
+}
+public class Program
+{
+    public static void Main(string[] args)
+    {
+        M<Base>(new Container<Base>.Derived[1]);
+        M<Base>(new Base[1]);
+    }
+    public static void M<T>(T[] x) where T: Base
+    {
+        Console.Write(x is Container<T>.Derived[] b0);
+        switch (x)
+        {
+            case Container<T>.Derived[] b1:
+                Console.Write(1);
+                break;
+            default:
+                Console.Write(0);
+                break;
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, references: new MetadataReference[] { CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7);
+            compilation.VerifyDiagnostics(
+                // (16,28): error CS9003: An expression of type 'T[]' cannot be handled by a pattern of type 'Container<T>.Derived[]' in C# 7. Please use language version 7.1 or greater.
+                //         Console.Write(x is Container<T>.Derived[] b0);
+                Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "Container<T>.Derived[]").WithArguments("T[]", "Container<T>.Derived[]", "7", "7.1").WithLocation(16, 28),
+                // (19,18): error CS9003: An expression of type 'T[]' cannot be handled by a pattern of type 'Container<T>.Derived[]' in C# 7. Please use language version 7.1 or greater.
+                //             case Container<T>.Derived[] b1:
+                Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "Container<T>.Derived[]").WithArguments("T[]", "Container<T>.Derived[]", "7", "7.1").WithLocation(19, 18)
+                );
+            compilation = CreateCompilationWithMscorlib45(source, references: new MetadataReference[] { CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7_1);
+            compilation.VerifyDiagnostics();
+            CompileAndVerify(compilation, expectedOutput: "True1False0");
+        }
     }
 }

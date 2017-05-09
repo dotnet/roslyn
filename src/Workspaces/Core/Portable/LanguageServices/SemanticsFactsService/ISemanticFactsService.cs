@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         bool CanReplaceWithRValue(SemanticModel semanticModel, SyntaxNode expression, CancellationToken cancellationToken);
 
-        string GenerateNameForExpression(SemanticModel semanticModel, SyntaxNode expression, bool capitalize = false);
+        string GenerateNameForExpression(SemanticModel semanticModel, SyntaxNode expression, bool capitalize, CancellationToken cancellationToken);
 
         ISymbol GetDeclaredSymbol(SemanticModel semanticModel, SyntaxToken token, CancellationToken cancellationToken);
 
