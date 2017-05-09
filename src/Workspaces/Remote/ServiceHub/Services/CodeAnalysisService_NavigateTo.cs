@@ -13,37 +13,43 @@ namespace Microsoft.CodeAnalysis.Remote
         public async Task<SerializableNavigateToSearchResult[]> SearchDocumentAsync(
             DocumentId documentId, string searchPattern)
         {
-            var solution = await GetSolutionAsync().ConfigureAwait(false);
+            using (UserOperationBooster.Boost())
+            {
+                var solution = await GetSolutionAsync().ConfigureAwait(false);
 
-            var project = solution.GetDocument(documentId);
-            var result = await AbstractNavigateToSearchService.SearchDocumentInCurrentProcessAsync(
-                project, searchPattern, CancellationToken).ConfigureAwait(false);
+                var project = solution.GetDocument(documentId);
+                var result = await AbstractNavigateToSearchService.SearchDocumentInCurrentProcessAsync(
+                    project, searchPattern, CancellationToken).ConfigureAwait(false);
 
-            return Convert(result);
+                return Convert(result);
+            }
         }
 
         public async Task<SerializableNavigateToSearchResult[]> SearchProjectAsync(
             ProjectId projectId, string searchPattern)
         {
-            var start = DateTime.Now;
-            var solution = await GetSolutionAsync().ConfigureAwait(false);
-            var getSolutionEnd = DateTime.Now;
+            using (UserOperationBooster.Boost())
+            {
+                var start = DateTime.Now;
+                var solution = await GetSolutionAsync().ConfigureAwait(false);
+                var getSolutionEnd = DateTime.Now;
 
-            var project = solution.GetProject(projectId);
-            var result = await AbstractNavigateToSearchService.SearchProjectInCurrentProcessAsync(
-                project, searchPattern, CancellationToken).ConfigureAwait(false);
+                var project = solution.GetProject(projectId);
+                var result = await AbstractNavigateToSearchService.SearchProjectInCurrentProcessAsync(
+                    project, searchPattern, CancellationToken).ConfigureAwait(false);
 
-            var resultEnd = DateTime.Now;
+                var resultEnd = DateTime.Now;
 
-            var converted = Convert(result);
+                var converted = Convert(result);
 
-            var text = "Searching: " + projectId.DebugName + 
-                "\r\nGet-Solution: " + (getSolutionEnd - start) + 
-                "\r\nSearch: " + (resultEnd - getSolutionEnd) + 
-                "\r\n";
-            AbstractNavigateToSearchService.Log(text);
+                var text = "Searching: " + projectId.DebugName +
+                    "\r\nGet-Solution: " + (getSolutionEnd - start) +
+                    "\r\nSearch: " + (resultEnd - getSolutionEnd) +
+                    "\r\n";
+                AbstractNavigateToSearchService.Log(text);
 
-            return converted;
+                return converted;
+            }
         }
 
         private SerializableNavigateToSearchResult[] Convert(

@@ -13,45 +13,54 @@ namespace Microsoft.CodeAnalysis.Remote
     {
         public async Task FindImplementationsAsync(SerializableSymbolAndProjectId symbolAndProjectIdArg)
         {
-            var solution = await GetSolutionAsync().ConfigureAwait(false);
-            var symbolAndProjectId = await symbolAndProjectIdArg.TryRehydrateAsync(
-                solution, CancellationToken).ConfigureAwait(false);
-
-            if (symbolAndProjectId == null)
+            using (UserOperationBooster.Boost())
             {
-                return;
-            }
+                var solution = await GetSolutionAsync().ConfigureAwait(false);
+                var symbolAndProjectId = await symbolAndProjectIdArg.TryRehydrateAsync(
+                    solution, CancellationToken).ConfigureAwait(false);
 
-            var context = new FindUsagesContext(this);
-            await AbstractFindUsagesService.FindImplementationsInCurrentProcessAsync(
-                context, symbolAndProjectId.Value.Symbol,
-                solution.GetProject(symbolAndProjectId.Value.ProjectId)).ConfigureAwait(false);
+                if (symbolAndProjectId == null)
+                {
+                    return;
+                }
+
+                var context = new FindUsagesContext(this);
+                await AbstractFindUsagesService.FindImplementationsInCurrentProcessAsync(
+                    context, symbolAndProjectId.Value.Symbol,
+                    solution.GetProject(symbolAndProjectId.Value.ProjectId)).ConfigureAwait(false);
+            }
         }
 
         public async Task FindSymbolUsagesAsync(SerializableSymbolAndProjectId symbolAndProjectIdArg)
         {
-            var solution = await GetSolutionAsync().ConfigureAwait(false);
-            var symbolAndProjectId = await symbolAndProjectIdArg.TryRehydrateAsync(
-                solution, CancellationToken).ConfigureAwait(false);
-
-            if (symbolAndProjectId == null)
+            using (UserOperationBooster.Boost())
             {
-                return;
-            }
+                var solution = await GetSolutionAsync().ConfigureAwait(false);
+                var symbolAndProjectId = await symbolAndProjectIdArg.TryRehydrateAsync(
+                    solution, CancellationToken).ConfigureAwait(false);
 
-            var context = new FindUsagesContext(this);
-            await AbstractFindUsagesService.FindSymbolReferencesInCurrentProcessAsync(
-                context, symbolAndProjectId.Value.Symbol,
-                solution.GetProject(symbolAndProjectId.Value.ProjectId)).ConfigureAwait(false);
+                if (symbolAndProjectId == null)
+                {
+                    return;
+                }
+
+                var context = new FindUsagesContext(this);
+                await AbstractFindUsagesService.FindSymbolReferencesInCurrentProcessAsync(
+                    context, symbolAndProjectId.Value.Symbol,
+                    solution.GetProject(symbolAndProjectId.Value.ProjectId)).ConfigureAwait(false);
+            }
         }
 
         public async Task FindLiteralUsagesAsync(string title, object value)
         {
-            var solution = await GetSolutionAsync().ConfigureAwait(false);
-            var context = new FindUsagesContext(this);
+            using (UserOperationBooster.Boost())
+            {
+                var solution = await GetSolutionAsync().ConfigureAwait(false);
+                var context = new FindUsagesContext(this);
 
-            await AbstractFindUsagesService.FindLiteralReferencesInCurrentProcessAsync(
-                solution, title, context, value).ConfigureAwait(false);
+                await AbstractFindUsagesService.FindLiteralReferencesInCurrentProcessAsync(
+                    solution, title, context, value).ConfigureAwait(false);
+            }
         }
 
         /// <summary>
