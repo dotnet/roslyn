@@ -18,8 +18,6 @@ namespace Microsoft.CodeAnalysis.Extensions
         /// <summary>
         /// Show global info bar
         /// </summary>
-        /// <param name="message"></param>
-        /// <param name="items"></param>
         void ShowInfoBarInGlobalView(string message, params InfoBarUI[] items);
     }
 
