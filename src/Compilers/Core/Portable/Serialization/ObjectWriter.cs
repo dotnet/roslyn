@@ -748,16 +748,11 @@ namespace Roslyn.Utilities
         private void WriteObjectWorker(IObjectWritable writable)
         {
             // emit object header up front
-            this.WriteObjectHeader(writable);
-            writable.WriteTo(this);
-        }
-
-        private void WriteObjectHeader(IObjectWritable instance)
-        {
-            _objectReferenceMap.Add(instance);
+            _objectReferenceMap.Add(writable);
 
             _writer.Write((byte)EncodingKind.Object);
-            this.WriteKnownType(instance.GetType());
+            this.WriteKnownType(writable.GetType());
+            writable.WriteTo(this);
         }
 
         private static Exception NoSerializationTypeException(string typeName)
