@@ -246,8 +246,19 @@ namespace Roslyn.Utilities
                 s_objectListPool.Free(_values);
             }
 
+
+            public int GetNextObjectId()
+            {
+                var id = _values.Count;
+                _values.Add(null);
+                return id;
+            }
+
             public void AddValue(T value)
                 => _values.Add(value);
+
+            public void AddValue(int index, T value)
+                => _values[index] = value;
 
             public T GetValue(int referenceId)
                 => _values[referenceId];
@@ -568,11 +579,16 @@ namespace Roslyn.Utilities
 
         private object ReadObject()
         {
+            var objectId = _objectReferenceMap.GetNextObjectId();
+
+            // reading an object may recurse.  So we need to grab our ID up front as we'll
+            // end up making our sub-objects before we make this object.
+
             var typeReader = _binderSnapshot.GetTypeReaderFromId(this.ReadInt32());
 
             // recursive: read and construct instance immediately from member elements encoding next in the stream
             var instance = typeReader(this);
-            _objectReferenceMap.AddValue(instance);
+            _objectReferenceMap.AddValue(objectId, instance);
             return instance;
         }
 
