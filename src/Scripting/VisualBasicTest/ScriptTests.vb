@@ -22,14 +22,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting.UnitTests
 
         <Fact>
         Public Sub TestEvalScript()
-            Dim value = VisualBasicScript.EvaluateAsync("? 1 + 2", s_defaultOptions)
-            Assert.Equal(3, value.Result)
+            Dim value = CType(VisualBasicScript.EvaluateAsync("? 1 + 2", s_defaultOptions).Result, Integer)
+            Assert.Equal(3, value)
         End Sub
 
         <Fact>
         Public Async Function TestRunScript() As Task
             Dim state = Await VisualBasicScript.RunAsync("? 1 + 2", s_defaultOptions)
-            Assert.Equal(3, state.ReturnValue)
+            Assert.Equal(3, CType(state.ReturnValue, Integer))
         End Function
 
         <Fact>
@@ -37,13 +37,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting.UnitTests
             Dim script = VisualBasicScript.Create("? 1 + 2", s_defaultOptions)
             Dim state = Await script.RunAsync()
             Assert.Same(script, state.Script)
-            Assert.Equal(3, state.ReturnValue)
+            Assert.Equal(3, CType(state.ReturnValue, Integer))
         End Function
 
         <Fact>
         Public Async Function TestRunScriptWithSpecifiedReturnType() As Task
             Dim state = Await VisualBasicScript.RunAsync("? 1 + 2", s_defaultOptions)
-            Assert.Equal(3, state.ReturnValue)
+            Assert.Equal(3, CType(state.ReturnValue, Integer))
         End Function
 
         <Fact>

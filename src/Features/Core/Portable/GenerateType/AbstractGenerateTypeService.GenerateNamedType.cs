@@ -206,7 +206,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
 
                 var availableTypeParameters = _service.GetAvailableTypeParameters(_state, _document.SemanticModel, _intoNamespace, _cancellationToken);
                 var parameterTypes = GetArgumentTypes(argumentList);
-                var parameterNames = _service.GenerateParameterNames(_document.SemanticModel, argumentList);
+                var parameterNames = _service.GenerateParameterNames(_document.SemanticModel, argumentList, _cancellationToken);
                 var parameters = ArrayBuilder<IParameterSymbol>.GetInstance();
 
                 var parameterToExistingFieldMap = new Dictionary<string, ISymbol>();

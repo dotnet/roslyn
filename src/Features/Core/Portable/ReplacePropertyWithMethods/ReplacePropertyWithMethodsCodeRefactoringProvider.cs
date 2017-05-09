@@ -245,7 +245,7 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
                     var property = tuple.property;
                     var referenceLocation = tuple.location;
                     var location = referenceLocation.Location;
-                    var nameToken = root.FindToken(location.SourceSpan.Start);
+                    var nameToken = root.FindToken(location.SourceSpan.Start, findInsideTrivia: true);
 
                     if (referenceLocation.IsImplicit)
                     {

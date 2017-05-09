@@ -236,7 +236,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 writer.WriteInt32(1);
 
                 checksum.WriteTo(writer);
-                writer.WriteString(remotableData.Kind);
+                writer.WriteInt32((int)remotableData.Kind);
 
                 await remotableData.WriteObjectToAsync(writer, _source.Token).ConfigureAwait(false);
             }
@@ -252,7 +252,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     var remotableData = kv.Value;
 
                     checksum.WriteTo(writer);
-                    writer.WriteString(remotableData.Kind);
+                    writer.WriteInt32((int)remotableData.Kind);
 
                     await remotableData.WriteObjectToAsync(writer, _source.Token).ConfigureAwait(false);
                 }

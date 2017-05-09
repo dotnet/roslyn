@@ -166,24 +166,18 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateConstructor
         }
 
         protected override ImmutableArray<ParameterName> GenerateParameterNames(
-            SemanticModel semanticModel, IEnumerable<ArgumentSyntax> arguments, IList<string> reservedNames)
-            => semanticModel.GenerateParameterNames(arguments, reservedNames);
+            SemanticModel semanticModel, IEnumerable<ArgumentSyntax> arguments, IList<string> reservedNames, CancellationToken cancellationToken)
+            => semanticModel.GenerateParameterNames(arguments, reservedNames, cancellationToken);
 
         protected override ImmutableArray<ParameterName> GenerateParameterNames(
-            SemanticModel semanticModel, IEnumerable<AttributeArgumentSyntax> arguments, IList<string> reservedNames)
-            => semanticModel.GenerateParameterNames(arguments, reservedNames).ToImmutableArray();
+            SemanticModel semanticModel, IEnumerable<AttributeArgumentSyntax> arguments, IList<string> reservedNames, CancellationToken cancellationToken)
+            => semanticModel.GenerateParameterNames(arguments, reservedNames, cancellationToken).ToImmutableArray();
 
-        protected override string GenerateNameForArgument(
-            SemanticModel semanticModel, ArgumentSyntax argument)
-        {
-            return semanticModel.GenerateNameForArgument(argument);
-        }
+        protected override string GenerateNameForArgument(SemanticModel semanticModel, ArgumentSyntax argument, CancellationToken cancellationToken)
+            => semanticModel.GenerateNameForArgument(argument, cancellationToken);
 
-        protected override string GenerateNameForArgument(
-            SemanticModel semanticModel, AttributeArgumentSyntax argument)
-        {
-            return semanticModel.GenerateNameForArgument(argument);
-        }
+        protected override string GenerateNameForArgument(SemanticModel semanticModel, AttributeArgumentSyntax argument, CancellationToken cancellationToken)
+            => semanticModel.GenerateNameForArgument(argument, cancellationToken);
 
         protected override RefKind GetRefKind(ArgumentSyntax argument)
         {

@@ -24,22 +24,17 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// info can't be loaded, it will be created (and persisted if possible).
         /// </summary>
         private static Task<SymbolTreeInfo> LoadOrCreateSourceSymbolTreeInfoAsync(
-            Solution solution,
-            IAssemblySymbol assembly,
-            Checksum checksum,
-            string filePath,
-            bool loadOnly,
-            CancellationToken cancellationToken)
+            Project project, Checksum checksum, bool loadOnly, CancellationToken cancellationToken)
         {
             return LoadOrCreateAsync(
-                solution,
+                project.Solution,
                 checksum,
-                filePath,
+                project.FilePath,
                 loadOnly,
-                create: () => CreateSourceSymbolTreeInfo(solution, checksum, assembly, filePath, cancellationToken),
+                createAsync: () => CreateSourceSymbolTreeInfoAsync(project, checksum, cancellationToken),
                 keySuffix: "_Source",
                 getPersistedChecksum: info => info.Checksum,
-                readObject: reader => ReadSymbolTreeInfo(reader, (names, nodes) => GetSpellCheckerTask(solution, checksum, filePath, names, nodes)),
+                readObject: reader => ReadSymbolTreeInfo(reader, (names, nodes) => GetSpellCheckerTask(project.Solution, checksum, project.FilePath, names, nodes)),
                 cancellationToken: cancellationToken);
         }
 
@@ -51,14 +46,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             Solution solution,
             Checksum checksum,
             string filePath,
-            Func<SpellChecker> create)
+            Func<Task<SpellChecker>> createAsync)
         {
             return LoadOrCreateAsync(
                 solution,
                 checksum,
                 filePath,
                 loadOnly: false,
-                create: create,
+                createAsync: createAsync,
                 keySuffix: "_SpellChecker",
                 getPersistedChecksum: s => s.Checksum,
                 readObject: SpellChecker.ReadFrom,
@@ -74,7 +69,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             Checksum checksum,
             string filePath,
             bool loadOnly,
-            Func<T> create,
+            Func<Task<T>> createAsync,
             string keySuffix,
             Func<T, Checksum> getPersistedChecksum,
             Func<ObjectReader, T> readObject,
@@ -82,7 +77,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             if (checksum == null) 
             {
-                return loadOnly ? null : create();
+                return loadOnly ? null : await createAsync().ConfigureAwait(false);
             }
 
             // Ok, we can use persistence.  First try to load from the persistence service.
@@ -120,7 +115,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 }
 
                 // Now, try to create a new instance and write it to the persistence service.
-                result = create();
+                result = await createAsync().ConfigureAwait(false);
                 if (result != null)
                 {
                     using (var stream = SerializableBytes.CreateWritableStream())
