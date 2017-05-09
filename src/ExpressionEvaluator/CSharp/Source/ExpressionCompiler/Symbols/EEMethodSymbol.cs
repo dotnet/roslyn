@@ -54,12 +54,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         /// exactly once, otherwise it may be skipped.)
         /// </summary>
         private readonly GenerateMethodBody _generateMethodBody;
-<<<<<<< HEAD
         private TypeSymbolWithAnnotations _lazyReturnType;
-=======
-        private TypeSymbol _lazyReturnType;
         private ResultProperties _lazyResultProperties;
->>>>>>> upstream/master
 
         // NOTE: This is only used for asserts, so it could be conditional on DEBUG.
         private readonly ImmutableArray<TypeParameterSymbol> _allTypeParameters;
@@ -710,8 +706,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
             if (this.ReturnType.ContainsNullableReferenceTypes())
             {
-                var compilation = this.DeclaringCompilation;
-
                 if (SourceAssemblySymbol.GetUseSiteDiagnosticForNullableAttribute(compilation)?.Severity != DiagnosticSeverity.Error)
                 {
                     AddSynthesizedAttribute(ref attributes, compilation.SynthesizeNullableAttribute(this.ReturnType));

@@ -330,14 +330,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                                     alias);
                                 var methodName = GetNextMethodName(methodBuilder);
                                 var syntax = SyntaxFactory.IdentifierName(SyntaxFactory.MissingToken(SyntaxKind.IdentifierToken));
-<<<<<<< HEAD
-                                var aliasMethod = this.CreateMethod(container, methodName, syntax, (EEMethodSymbol method, DiagnosticBag diags, out ImmutableArray<LocalSymbol> declaredLocals) =>
-                                {
-                                    declaredLocals = ImmutableArray<LocalSymbol>.Empty;
-                                    var expression = new BoundLocal(syntax, local, constantValueOpt: null, type: local.Type.TypeSymbol);
-                                    return new BoundReturnStatement(syntax, RefKind.None, expression) { WasCompilerGenerated = true };
-                                });
-=======
                                 var aliasMethod = this.CreateMethod(
                                     container,
                                     methodName,
@@ -345,11 +337,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                                     (EEMethodSymbol method, DiagnosticBag diags, out ImmutableArray<LocalSymbol> declaredLocals, out ResultProperties properties) =>
                                     {
                                         declaredLocals = ImmutableArray<LocalSymbol>.Empty;
-                                        var expression = new BoundLocal(syntax, local, constantValueOpt: null, type: local.Type);
+                                        var expression = new BoundLocal(syntax, local, constantValueOpt: null, type: local.Type.TypeSymbol);
                                         properties = default(ResultProperties);
                                         return new BoundReturnStatement(syntax, RefKind.None, expression) { WasCompilerGenerated = true };
                                     });
->>>>>>> upstream/master
                                 var flags = local.IsWritable ? DkmClrCompilationResultFlags.None : DkmClrCompilationResultFlags.ReadOnlyResult;
                                 localBuilder.Add(MakeLocalAndMethod(local, aliasMethod, flags));
                                 methodBuilder.Add(aliasMethod);
@@ -537,12 +528,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             {
                 declaredLocals = ImmutableArray<LocalSymbol>.Empty;
                 var local = method.LocalsForBinding[localIndex];
-<<<<<<< HEAD
                 var expression = new BoundLocal(syntax, local, constantValueOpt: local.GetConstantValue(null, null, diagnostics), type: local.Type.TypeSymbol);
-=======
-                var expression = new BoundLocal(syntax, local, constantValueOpt: local.GetConstantValue(null, null, diagnostics), type: local.Type);
                 properties = default(ResultProperties);
->>>>>>> upstream/master
                 return new BoundReturnStatement(syntax, RefKind.None, expression) { WasCompilerGenerated = true };
             });
         }
@@ -1360,20 +1347,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 }
 
                 var field = (FieldSymbol)member;
-<<<<<<< HEAD
                 var fieldType = field.Type.TypeSymbol;
-                var fieldKind = GeneratedNames.GetKind(field.Name);
-                if (fieldKind == GeneratedNameKind.DisplayClassLocalOrField ||
-                    fieldKind == GeneratedNameKind.TransparentIdentifier ||
-                    IsTransparentIdentifierFieldInAnonymousType(field) ||
-                    (fieldKind == GeneratedNameKind.ThisProxyField && GeneratedNames.GetKind(fieldType.Name) == GeneratedNameKind.LambdaDisplayClass)) // Async lambda case.
-=======
-                var fieldType = field.Type;
                 var fieldName = field.Name;
                 TryParseGeneratedName(fieldName, out var fieldKind, out var part);
 
                 switch (fieldKind)
->>>>>>> upstream/master
                 {
                     case GeneratedNameKind.DisplayClassLocalOrField:
                     case GeneratedNameKind.TransparentIdentifier:
@@ -1398,7 +1376,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 Debug.Assert(!field.IsStatic);
 
                 // A hoisted local that is itself a display class instance.
-                if (displayClassTypes.Add((NamedTypeSymbol)field.Type))
+                if (displayClassTypes.Add((NamedTypeSymbol)fieldType))
                 {
                     var other = instance.FromField(field);
                     displayClassInstances.Add(other);
@@ -1415,7 +1393,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         /// </summary>
         private static bool IsDisplayClassParameter(ParameterSymbol parameter)
         {
-            var type = parameter.Type;
+            var type = parameter.Type.TypeSymbol;
             var result = type.Kind == SymbolKind.NamedType && IsDisplayClassType((NamedTypeSymbol)type);
             Debug.Assert(!result || parameter.MetadataName == "");
             return result;

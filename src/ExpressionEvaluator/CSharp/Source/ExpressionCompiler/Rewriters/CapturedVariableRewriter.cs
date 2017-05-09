@@ -117,25 +117,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             {
                 return rewrittenThis;
             }
-<<<<<<< HEAD
-
-            var result = variable.ToBoundExpression(syntax);
-            Debug.Assert(node.Kind == BoundKind.BaseReference
-<<<<<<< HEAD
-                ? result.Type.BaseType.Equals(node.Type, TypeSymbolEqualityOptions.IgnoreDynamic)
-                : result.Type.Equals(node.Type, TypeSymbolEqualityOptions.IgnoreDynamic));
-=======
-                ? result.Type.BaseType.Equals(node.Type, TypeCompareKind.IgnoreDynamicAndTupleNames)
-                : result.Type.Equals(node.Type, TypeCompareKind.IgnoreDynamicAndTupleNames));
->>>>>>> UpdateAnnotatedTypes
-            return result;
-        }
-
-        private void ReportMissingThis(BoundKind boundKind, SyntaxNode syntax)
-        {
-=======
             var boundKind = node.Kind;
->>>>>>> upstream/master
             Debug.Assert(boundKind == BoundKind.ThisReference || boundKind == BoundKind.BaseReference);
             var errorCode = boundKind == BoundKind.BaseReference
                 ? ErrorCode.ERR_BaseInBadContext
