@@ -49,6 +49,7 @@ End Module
                 True().
                 True().
                 True().
+                True().
                 True()
 
             Dim verifier As CompilationVerifier = CompileAndVerify(source, checker.ExpectedOutput)
@@ -56,8 +57,7 @@ End Module
 
             verifier.VerifyIL(
                 "Program.TestMain",
-            <![CDATA[
-{
+            <![CDATA[{
   // Code size       57 (0x39)
   .maxstack  5
   .locals init (Boolean() V_0)
@@ -83,6 +83,7 @@ End Module
   IL_0038:  ret
 }
                 ]]>.Value)
+
             verifier.VerifyIL(
                 ".cctor",
             <![CDATA[
@@ -136,6 +137,7 @@ File 1
 True
 True
 False
+True
 True
 True
 True
@@ -233,6 +235,7 @@ True
 True
 True
 True
+True
 ]]>
 
             Dim verifier As CompilationVerifier = CompileAndVerify(source, expectedOutput)
@@ -309,6 +312,7 @@ File 1
 True
 True
 False
+True
 True
 True
 True
@@ -448,6 +452,7 @@ True
 True
 True
 True
+True
 ]]>
 
             Dim verifier As CompilationVerifier = CompileAndVerify(source, expectedOutput)
@@ -518,6 +523,7 @@ File 1
 True
 True
 False
+True
 True
 True
 True
@@ -701,6 +707,7 @@ File 1
 True
 True
 False
+True
 True
 True
 True
@@ -1022,6 +1029,7 @@ True
 True
 True
 True
+True
 ]]>
 
             Dim verifier As CompilationVerifier = CompileAndVerify(source, expectedOutput)
@@ -1092,6 +1100,7 @@ File 1
 True
 True
 False
+True
 True
 True
 True
@@ -1188,6 +1197,7 @@ True
 True
 True
 True
+True
 ]]>
 
             Dim verifier As CompilationVerifier = CompileAndVerify(source, expectedOutput)
@@ -1244,6 +1254,7 @@ File 1
 True
 True
 False
+True
 True
 True
 True
@@ -1330,22 +1341,23 @@ True
 True
 True
 True
-Method 9
+True
+Method 10
 File 1
 True
-True
-Method 14
-File 1
 True
 Method 15
 File 1
 True
-True
-True
-True
-True
-True
 Method 16
+File 1
+True
+True
+True
+True
+True
+True
+Method 17
 File 1
 True
 True
@@ -1411,6 +1423,7 @@ File 1
 True
 True
 False
+True
 True
 True
 True
@@ -1503,6 +1516,7 @@ File 1
 True
 True
 False
+True
 True
 True
 True
@@ -1623,6 +1637,7 @@ True
 True
 True
 True
+True
 ]]>
 
             Dim verifier As CompilationVerifier = CompileAndVerify(source, expectedOutput)
@@ -1703,6 +1718,7 @@ File 1
 True
 True
 False
+True
 True
 True
 True
@@ -1835,6 +1851,7 @@ File 1
 True
 True
 False
+True
 True
 True
 True
@@ -2443,6 +2460,7 @@ End Module
                 True().
                 True().
                 True().
+                True().
                 True()
 
             Dim expectedOutput = "Test
@@ -2510,6 +2528,7 @@ End Module
             checker.Method(7, 1).
                 True().
                 False().
+                True().
                 True().
                 True().
                 True().
