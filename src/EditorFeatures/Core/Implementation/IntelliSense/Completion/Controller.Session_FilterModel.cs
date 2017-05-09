@@ -255,7 +255,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                     document, matchingCompletionItems, filterText);
 
                 // Of the items the service returned, pick the one most recently committed
-                var bestCompletionItem = GetBestCompletionItemBasedOnMRU(chosenItems, recentItems);
+                var bestCompletionItem = GetBestCompletionItemBasedOnMRU(chosenItems, matchingCompletionItems, recentItems);
 
                 // If we don't have a best completion item yet, then pick the first item from the list.
                 var bestOrFirstCompletionItem = bestCompletionItem ?? filterResults.First().CompletionItem;
@@ -288,7 +288,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             /// best MRU index.
             /// </summary>
             private CompletionItem GetBestCompletionItemBasedOnMRU(
-                ImmutableArray<CompletionItem> chosenItems, ImmutableArray<string> recentItems)
+                ImmutableArray<CompletionItem> chosenItems,
+                ImmutableArray<CompletionItem> matchingCompletionItems,
+                ImmutableArray<string> recentItems)
             {
                 if (chosenItems.Length == 0)
                 {
@@ -301,6 +303,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 for (int i = 0, n = chosenItems.Length; i < n; i++)
                 {
                     var chosenItem = chosenItems[i];
+                    var mruIndex1 = GetRecentItemIndex(recentItems, bestItem);
+                    var mruIndex2 = GetRecentItemIndex(recentItems, chosenItem);
+
+                    if (mruIndex2 < mruIndex1)
+                    {
+                        bestItem = chosenItem;
+                    }
+                }
+
+                for (int i = 0, n = matchingCompletionItems.Length; i < n; i++)
+                {
+                    var chosenItem = matchingCompletionItems[i];
                     var mruIndex1 = GetRecentItemIndex(recentItems, bestItem);
                     var mruIndex2 = GetRecentItemIndex(recentItems, chosenItem);
 
