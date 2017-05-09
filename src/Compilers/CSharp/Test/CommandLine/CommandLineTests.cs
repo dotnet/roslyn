@@ -25,9 +25,8 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
-
-using static Roslyn.Test.Utilities.SharedResourceHelpers;
 using static Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers;
+using static Roslyn.Test.Utilities.SharedResourceHelpers;
 
 namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
 {
@@ -1725,19 +1724,19 @@ d.cs
             Assert.Equal(Path.Combine(_baseDirectory, "s l.json"), parsedArgs.SourceLink);
 
             parsedArgs = DefaultParse(new[] { "/sourcelink:sl.json", "/debug:full", "a.cs" }, _baseDirectory);
-            parsedArgs.Errors.Verify(Diagnostic(ErrorCode.ERR_SourceLinkRequiresPortablePdb));
+            parsedArgs.Errors.Verify();
 
             parsedArgs = DefaultParse(new[] { "/sourcelink:sl.json", "/debug:pdbonly", "a.cs" }, _baseDirectory);
-            parsedArgs.Errors.Verify(Diagnostic(ErrorCode.ERR_SourceLinkRequiresPortablePdb));
+            parsedArgs.Errors.Verify();
 
             parsedArgs = DefaultParse(new[] { "/sourcelink:sl.json", "/debug-", "a.cs" }, _baseDirectory);
-            parsedArgs.Errors.Verify(Diagnostic(ErrorCode.ERR_SourceLinkRequiresPortablePdb));
+            parsedArgs.Errors.Verify(Diagnostic(ErrorCode.ERR_SourceLinkRequiresPdb));
 
             parsedArgs = DefaultParse(new[] { "/sourcelink:sl.json", "/debug+", "a.cs" }, _baseDirectory);
-            parsedArgs.Errors.Verify(Diagnostic(ErrorCode.ERR_SourceLinkRequiresPortablePdb));
+            parsedArgs.Errors.Verify();
 
             parsedArgs = DefaultParse(new[] { "/sourcelink:sl.json", "a.cs" }, _baseDirectory);
-            parsedArgs.Errors.Verify(Diagnostic(ErrorCode.ERR_SourceLinkRequiresPortablePdb));
+            parsedArgs.Errors.Verify(Diagnostic(ErrorCode.ERR_SourceLinkRequiresPdb));
         }
 
         [Fact]
@@ -1795,6 +1794,31 @@ d.cs
                 var blob = mdProvider.GetMetadataReader().GetSourceLinkBlob();
                 AssertEx.Equal(File.ReadAllBytes(sl.Path), blob);
             }
+
+            // Clean up temp files
+            CleanupAllGeneratedFiles(src.Path);
+        }
+
+        [Fact]
+        public void SourceLink_EndToEnd_Windows()
+        {
+            var dir = Temp.CreateDirectory();
+
+            var src = dir.CreateFile("a.cs");
+            src.WriteAllText(@"class C { public static void Main() {} }");
+
+            var sl = dir.CreateFile("sl.json");
+            byte[] slContent = Encoding.UTF8.GetBytes(@"{ ""documents"" : {} }");
+            sl.WriteAllBytes(slContent);
+
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            var csc = new MockCSharpCompiler(null, dir.Path, new[] { "/nologo", "/debug:full", "/sourcelink:sl.json", "a.cs" });
+            int exitCode = csc.Run(outWriter);
+            Assert.Equal(0, exitCode);
+
+            var pdbStream = File.OpenRead(Path.Combine(dir.Path, "a.pdb"));
+            var actualData = PdbValidation.GetSourceLinkData(pdbStream);
+            AssertEx.Equal(slContent, actualData);
 
             // Clean up temp files
             CleanupAllGeneratedFiles(src.Path);
@@ -7275,12 +7299,14 @@ Copyright (C) Microsoft Corporation. All rights reserved.", output);
             Assert.Equal($"error CS0016: Could not write to output file '{xmlPath}' -- 'Fake IOException'{Environment.NewLine}", outWriter.ToString());
         }
 
-        [Fact]
-        public void IOFailure_DisposeSourceLinkFile()
+        [Theory]
+        [InlineData("portable")]
+        [InlineData("full")]
+        public void IOFailure_DisposeSourceLinkFile(string format)
         {
             var srcPath = MakeTrivialExe(Temp.CreateDirectory().Path);
             var sourceLinkPath = Path.Combine(Path.GetDirectoryName(srcPath), "test.json");
-            var csc = new MockCSharpCompiler(null, _baseDirectory, new[] { "/nologo", "/preferreduilang:en", "/debug:portable", $"/sourcelink:{sourceLinkPath}", srcPath });
+            var csc = new MockCSharpCompiler(null, _baseDirectory, new[] { "/nologo", "/preferreduilang:en", "/debug:" + format, $"/sourcelink:{sourceLinkPath}", srcPath });
             csc.FileOpen = (file, mode, access, share) =>
             {
                 if (file == sourceLinkPath)

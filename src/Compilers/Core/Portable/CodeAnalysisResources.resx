@@ -470,6 +470,9 @@
   <data name="SymWriterOlderVersionThanRequired" xml:space="preserve">
     <value>The version of Windows PDB writer is older than required: '{0}'</value>
   </data>
+  <data name="SymWriterDoesNotSupportSourceLink" xml:space="preserve">
+    <value>Windows PDB writer doesn't support SourceLink feature: '{0}'</value>
+  </data>
   <data name="RuleSetBadAttributeValue" xml:space="preserve">
     <value>The attribute {0} has an invalid value of {1}.</value>
   </data>
@@ -560,9 +563,6 @@
   </data>
   <data name="IOperationFeatureDisabled" xml:space="preserve">
     <value>Feature 'IOperation' is disabled.</value>
-  </data>
-  <data name="SourceLinkRequiresPortablePdb" xml:space="preserve">
-    <value>Source Link embedding is only supported when emitting Portable PDB.</value>
   </data>
   <data name="UnrecognizedResourceFileFormat" xml:space="preserve">
     <value>Unrecognized resource file format.</value>

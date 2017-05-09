@@ -4450,7 +4450,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
                                (including module version GUID and timestamp)
  /instrument:TestCoverage      Produce an assembly instrumented to collect
                                coverage information
- /sourcelink:&lt;file&gt;            Source link info to embed into Portable PDB.
+ /sourcelink:&lt;file&gt;            Source link info to embed into PDB.
 
                         - ERRORS AND WARNINGS -
  /warnaserror[+|-]             Report all warnings as errors
@@ -4971,8 +4971,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_ExpressionTreeContainsTupleConversion" xml:space="preserve">
     <value>An expression tree may not contain a tuple conversion.</value>
   </data>
-  <data name="ERR_SourceLinkRequiresPortablePdb" xml:space="preserve">
-    <value>/sourcelink switch is only supported when emitting Portable PDB (/debug:portable or /debug:embedded must be specified).</value>
+  <data name="ERR_SourceLinkRequiresPdb" xml:space="preserve">
+    <value>/sourcelink switch is only supported when emitting PDB.</value>
   </data>
   <data name="ERR_CannotEmbedWithoutPdb" xml:space="preserve">
     <value>/embed switch is only supported when emitting Portable PDB (/debug:portable or /debug:embedded).</value>

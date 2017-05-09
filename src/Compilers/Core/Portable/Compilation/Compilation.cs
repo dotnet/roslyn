@@ -1991,7 +1991,6 @@ namespace Microsoft.CodeAnalysis
         /// </param>
         /// <param name="sourceLinkStream">
         /// Stream containing information linking the compilation to a source control.
-        /// Only supported when emitting Portable PDBs.
         /// </param>
         /// <param name="embeddedTexts">
         /// Texts to embed in the PDB.
@@ -2041,20 +2040,11 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            if (sourceLinkStream != null)
+            if (sourceLinkStream != null && !sourceLinkStream.CanRead)
             {
-                if (options == null || 
-                    options.DebugInformationFormat == DebugInformationFormat.Pdb ||
-                    options.DebugInformationFormat == DebugInformationFormat.PortablePdb && pdbStream == null)
-                {
-                    throw new ArgumentException(CodeAnalysisResources.SourceLinkRequiresPortablePdb, nameof(sourceLinkStream));
-                }
-
-                if (!sourceLinkStream.CanRead)
-                {
-                    throw new ArgumentException(CodeAnalysisResources.StreamMustSupportRead, nameof(sourceLinkStream));
-                }
+                throw new ArgumentException(CodeAnalysisResources.StreamMustSupportRead, nameof(sourceLinkStream));
             }
+
             if (embeddedTexts != null && !embeddedTexts.IsEmpty())
             {
                 if (options == null || 
