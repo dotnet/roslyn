@@ -9,10 +9,10 @@ Imports Microsoft.CodeAnalysis.CodeFixes.GenerateMember
 Imports Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
-Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateVariable
+Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateVariable
     <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.GenerateVariable), [Shared]>
     <ExtensionOrder(After:=PredefinedCodeFixProviderNames.GenerateMethod)>
-    Friend Class GenerateVariableCodeFixProvider
+    Friend Class VisualBasicGenerateVariableCodeFixProvider
         Inherits AbstractGenerateMemberCodeFixProvider
 
         Friend Const BC30456 As String = "BC30456" ' error BC30456: 'Foo' is not a member of 'P'.

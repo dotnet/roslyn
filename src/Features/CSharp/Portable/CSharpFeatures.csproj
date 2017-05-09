@@ -131,7 +131,7 @@
     <Compile Include="CodeFixes\GenerateMethod\GenerateConversionCodeFixProvider.cs" />
     <Compile Include="CodeFixes\GenerateMethod\GenerateMethodCodeFixProvider.cs" />
     <Compile Include="CodeFixes\GenerateType\GenerateTypeCodeFixProvider.cs" />
-    <Compile Include="CodeFixes\GenerateVariable\GenerateVariableCodeFixProvider.cs" />
+    <Compile Include="GenerateVariable\CSharpGenerateVariableCodeFixProvider.cs" />
     <Compile Include="CodeFixes\HideBase\HideBaseCodeFixProvider.AddNewKeywordAction.cs" />
     <Compile Include="CodeFixes\HideBase\HideBaseCodeFixProvider.cs" />
     <Compile Include="CodeFixes\Iterator\CSharpAddYieldCodeFixProvider.cs" />
