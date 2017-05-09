@@ -23,6 +23,7 @@ namespace Microsoft.VisualStudio.LanguageServices
 {
     [Export(typeof(VisualStudioWorkspace))]
     [Export(typeof(VisualStudioWorkspaceImpl))]
+    [Export("Microsoft.VisualStudio.LanguageServices.VisualStudioWorkspace", typeof(Workspace))]
     internal class RoslynVisualStudioWorkspace : VisualStudioWorkspaceImpl
     {
         private readonly IEnumerable<Lazy<IStreamingFindUsagesPresenter>> _streamingPresenters;
