@@ -129,6 +129,7 @@
     <Compile Include="Highlighting\KeywordHighlighters\XmlEmbeddedExpressionHighlighter.vb" />
     <Compile Include="Highlighting\KeywordHighlighters\XmlProcessingInstructionHighlighter.vb" />
     <Compile Include="Highlighting\KeywordHighlightingHelpers.vb" />
+    <Compile Include="HighlightReferences\VisualBasicDocumentHighlightsService.vb" />
     <Compile Include="ImplementAbstractClass\ImplementAbstractClassCommandHandler.vb" />
     <Compile Include="ImplementInterface\ImplementInterfaceCommandHandler.vb" />
     <Compile Include="InlineRename\VisualBasicEditorInlineRenameService.vb" />
@@ -154,6 +155,7 @@
     <Compile Include="NavigationBar\GenerateMethodItem.vb" />
     <Compile Include="NavigationBar\VisualBasicNavigationBarItemService.vb" />
     <Compile Include="QuickInfo\SemanticQuickInfoProvider.vb" />
+    <Compile Include="ReferenceHighlighting\ReferenceHighlightingAdditionalReferenceProvider.vb" />
     <Compile Include="RenameTracking\BasicRenameTrackingLanguageHeuristicsService.vb" />
     <Compile Include="RenameTracking\RenameTrackingCodeFixProvider.vb" />
     <Compile Include="TextStructureNavigation\TextStructureNavigatorProvider.vb" />

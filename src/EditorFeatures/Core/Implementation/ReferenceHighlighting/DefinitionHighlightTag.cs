@@ -2,7 +2,7 @@
 
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 
-namespace Microsoft.CodeAnalysis.Editor.ReferenceHighlighting
+namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
 {
     internal class DefinitionHighlightTag : NavigableHighlightTag
     {
