@@ -32,9 +32,11 @@ namespace Roslyn.Utilities
         /// Map of serialized object's reference ids.  The object-reference-map uses reference equality
         /// for performance.  While the string-reference-map uses value-equality for greater cache hits 
         /// and reuse.
+        /// 
+        /// These are not readonly because they're structs and we mutate htemthem.
         /// </summary>
-        private readonly WriterReferenceMap _objectReferenceMap;
-        private readonly WriterReferenceMap _stringReferenceMap;
+        private WriterReferenceMap _objectReferenceMap;
+        private WriterReferenceMap _stringReferenceMap;
 
         /// <summary>
         /// Copy of the global binder data that maps from Types to the appropriate reading-function

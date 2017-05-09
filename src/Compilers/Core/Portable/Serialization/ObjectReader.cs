@@ -2,10 +2,8 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
-using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -39,9 +37,11 @@ namespace Roslyn.Utilities
 
         /// <summary>
         /// Map of reference id's to deserialized objects.
+        ///
+        /// These are not readonly because they're structs and we mutate htemthem.
         /// </summary>
-        private readonly ReaderReferenceMap<object> _objectReferenceMap;
-        private readonly ReaderReferenceMap<string> _stringReferenceMap;
+        private ReaderReferenceMap<object> _objectReferenceMap;
+        private ReaderReferenceMap<string> _stringReferenceMap;
 
         /// <summary>
         /// Copy of the global binder data that maps from Types to the appropriate reading-function
@@ -67,8 +67,8 @@ namespace Roslyn.Utilities
             Debug.Assert(BitConverter.IsLittleEndian);
 
             _reader = new BinaryReader(stream, Encoding.UTF8);
-            _objectReferenceMap = new ReaderReferenceMap<object>();
-            _stringReferenceMap = new ReaderReferenceMap<string>();
+            _objectReferenceMap = ReaderReferenceMap<object>.Create();
+            _stringReferenceMap = ReaderReferenceMap<string>.Create();
 
             // Capture a copy of the current static binder state.  That way we don't have to 
             // access any locks while we're doing our processing.
@@ -227,17 +227,18 @@ namespace Roslyn.Utilities
         /// <summary>
         /// An reference-id to object map, that can share base data efficiently.
         /// </summary>
-        private class ReaderReferenceMap<T> where T : class
+        private struct ReaderReferenceMap<T> where T : class
         {
             private readonly List<T> _values;
 
             internal static readonly ObjectPool<List<T>> s_objectListPool
                 = new ObjectPool<List<T>>(() => new List<T>(20));
 
-            public ReaderReferenceMap()
-            {
-                _values = s_objectListPool.Allocate();
-            }
+            private ReaderReferenceMap(List<T> values)
+                => _values = values;
+
+            public static ReaderReferenceMap<T> Create()
+                => new ReaderReferenceMap<T>(s_objectListPool.Allocate());
 
             public void Dispose()
             {
@@ -245,21 +246,11 @@ namespace Roslyn.Utilities
                 s_objectListPool.Free(_values);
             }
 
-            public int GetNextReferenceId()
-            {
-                _values.Add(null);
-                return _values.Count - 1;
-            }
-
-            public void SetValue(int referenceId, T value)
-            {
-                _values[referenceId] = value;
-            }
+            public void AddValue(T value)
+                => _values.Add(value);
 
             public T GetValue(int referenceId)
-            {
-                return _values[referenceId];
-            }
+                => _values[referenceId];
         }
 
         internal uint ReadCompressedUInt()
@@ -321,7 +312,6 @@ namespace Roslyn.Utilities
 
         private unsafe string ReadStringLiteral(EncodingKind kind)
         {
-            int id = _stringReferenceMap.GetNextReferenceId();
             string value;
             if (kind == EncodingKind.StringUtf8)
             {
@@ -338,7 +328,7 @@ namespace Roslyn.Utilities
                 }
             }
 
-            _stringReferenceMap.SetValue(id, value);
+            _stringReferenceMap.AddValue(value);
             return value;
         }
 
@@ -578,13 +568,11 @@ namespace Roslyn.Utilities
 
         private object ReadObject()
         {
-            var id = _objectReferenceMap.GetNextReferenceId();
-
             var typeReader = _binderSnapshot.GetTypeReaderFromId(this.ReadInt32());
 
             // recursive: read and construct instance immediately from member elements encoding next in the stream
             var instance = typeReader(this);
-            _objectReferenceMap.SetValue(id, instance);
+            _objectReferenceMap.AddValue(instance);
             return instance;
         }
 
