@@ -323,7 +323,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // for non-fuzzy searches, and soon afterwards it will be able to perform
             // fuzzy searches as well.
             return Task.Run(() => LoadOrCreateSpellCheckerAsync(solution, checksum, filePath,
-                () => new SpellChecker(checksum, sortedNodes.Select(n => new StringSlice(concatenatedNames, n.NameSpan)))));
+                () => CreateSpellCheckerAsync(checksum, concatenatedNames, sortedNodes)));
+        }
+
+        private static Task<SpellChecker> CreateSpellCheckerAsync(Checksum checksum, string concatenatedNames, Node[] sortedNodes)
+        {
+            return Task.FromResult(new SpellChecker(
+                checksum, sortedNodes.Select(n => new StringSlice(concatenatedNames, n.NameSpan))));
         }
 
         private static void SortNodes(

@@ -78,6 +78,7 @@
     <Compile Include="Services\TemporaryWorkspace.cs" />
     <Compile Include="Services\TemporaryWorkspaceOptionsServiceFactory.cs" />
     <Compile Include="Storage\RemotePersistentStorageLocationService.cs" />
+    <Compile Include="TestUtils.cs" />
   </ItemGroup>
   <Import Project="..\..\..\..\build\Targets\Imports.targets" />
 </Project>

@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.AddImport
     Public Class AddImportCrossLanguageTests
         Inherits AbstractCrossLanguageUserDiagnosticTest
 
-        Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace, language As String) As Tuple(Of DiagnosticAnalyzer, CodeFixProvider)
+        Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace, language As String) As (DiagnosticAnalyzer, CodeFixProvider)
             Dim fixer As CodeFixProvider
             If language = LanguageNames.CSharp Then
                 fixer = New CSharpAddImportCodeFixProvider()
@@ -25,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.AddImport
                 fixer = New VisualBasicAddImportCodeFixProvider()
             End If
 
-            Return Tuple.Create(Of DiagnosticAnalyzer, CodeFixProvider)(Nothing, fixer)
+            Return (Nothing, fixer)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>

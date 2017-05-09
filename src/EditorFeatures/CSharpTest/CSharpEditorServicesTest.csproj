@@ -146,6 +146,7 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.Editor.CSharp.UnitTests</RootNamespace>
     <AssemblyName>Roslyn.Services.Editor.CSharp.UnitTests</AssemblyName>
+    <ProjectTypeGuids>{3AC096D0-A1C2-E12C-1390-A8335801FDAB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <RoslynProjectType>UnitTest</RoslynProjectType>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
@@ -294,7 +295,6 @@
     <Compile Include="Completion\CompletionProviders\CrefCompletionProviderTests.cs" />
     <Compile Include="Completion\CompletionProviders\EnumAndCompletionListTagCompletionProviderTests.cs" />
     <Compile Include="Completion\CompletionProviders\ExternAliasCompletionProviderTests.cs" />
-    <Compile Include="Completion\CompletionProviders\GlobalAssemblyCacheCompletionHelperTests.cs" />
     <Compile Include="Completion\CompletionProviders\KeywordCompletionProviderTests.cs" />
     <Compile Include="Completion\CompletionProviders\NamedParameterCompletionProviderTests.cs" />
     <Compile Include="Completion\CompletionProviders\ObjectCreationCompletionProviderTests.cs" />
@@ -307,8 +307,8 @@
     <Compile Include="Completion\CompletionProviders\SymbolCompletionProviderTests.cs" />
     <Compile Include="Completion\CompletionProviders\SymbolCompletionProviderTests_NoInteractive.cs" />
     <Compile Include="Completion\CompletionProviders\XmlDocumentationCommentCompletionProviderTests.cs" />
-    <Compile Include="Completion\LoadDirectiveCompletionProviderTests.cs" />
-    <Compile Include="Completion\ReferenceDirectiveCompletionProviderTests.cs" />
+    <Compile Include="Completion\CompletionProviders\LoadDirectiveCompletionProviderTests.cs" />
+    <Compile Include="Completion\CompletionProviders\ReferenceDirectiveCompletionProviderTests.cs" />
     <Compile Include="Diagnostics\NamingStyles\NamingStylesTests.cs" />
     <Compile Include="Diagnostics\UseImplicitOrExplicitType\UseExplicitTypeTests.cs" />
     <Compile Include="Diagnostics\UseImplicitOrExplicitType\UseExplicitTypeTests_FixAllTests.cs" />

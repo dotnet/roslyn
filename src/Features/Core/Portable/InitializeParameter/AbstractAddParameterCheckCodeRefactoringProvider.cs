@@ -117,7 +117,10 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         {
             if (statement is IIfStatement ifStatement)
             {
-                if (ifStatement.Condition is IBinaryOperatorExpression binaryOperator)
+                var condition = ifStatement.Condition;
+                condition = UnwrapImplicitConversion(condition);
+
+                if (condition is IBinaryOperatorExpression binaryOperator)
                 {
                     // Look for code of the form "if (p == null)" or "if (null == p)"
                     if (IsNullCheck(binaryOperator.LeftOperand, binaryOperator.RightOperand, parameter) ||
@@ -127,7 +130,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                     }
                 }
                 else if (parameter.Type.SpecialType == SpecialType.System_String &&
-                         IsStringCheck(ifStatement.Condition, parameter))
+                         IsStringCheck(condition, parameter))
                 {
                     return true;
                 }
@@ -238,11 +241,13 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             Compilation compilation, SyntaxGenerator generator,
             IParameterSymbol parameter, string methodName)
         {
+            var stringType = compilation.GetSpecialType(SpecialType.System_String);
+
             // generates: if (string.IsXXX(s)) throw new ArgumentException("message", nameof(s))
             return (TStatementSyntax)generator.IfStatement(
                 generator.InvocationExpression(
                     generator.MemberAccessExpression(
-                        generator.TypeExpression(SpecialType.System_String),
+                        generator.TypeExpression(stringType),
                         generator.IdentifierName(methodName)),
                     generator.Argument(generator.IdentifierName(parameter.Name))),
                 SpecializedCollections.SingletonEnumerable(
@@ -369,11 +374,25 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             return null;
         }
 
+        private static SyntaxNode GetTypeNode(
+            Compilation compilation, SyntaxGenerator generator, Type type)
+        {
+            var typeSymbol = compilation.GetTypeByMetadataName(type.FullName);
+            if (typeSymbol == null)
+            {
+                return generator.QualifiedName(
+                    generator.IdentifierName(nameof(System)),
+                    generator.IdentifierName(type.Name));
+            }
+
+            return generator.TypeExpression(typeSymbol);
+        }
+
         private static SyntaxNode CreateArgumentNullException(
             Compilation compilation, SyntaxGenerator generator, IParameterSymbol parameter)
         {
             return generator.ObjectCreationExpression(
-                compilation.GetTypeByMetadataName("System.ArgumentNullException"),
+                GetTypeNode(compilation, generator, typeof(ArgumentNullException)),
                 generator.NameOfExpression(generator.IdentifierName(parameter.Name)));
         }
 
@@ -383,7 +402,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             // Note "message" is not localized.  It is the name of the first parameter of 
             // "ArgumentException"
             return generator.ObjectCreationExpression(
-                compilation.GetTypeByMetadataName("System.ArgumentException"),
+                GetTypeNode(compilation, generator, typeof(ArgumentException)),
                 generator.LiteralExpression("message"),
                 generator.NameOfExpression(generator.IdentifierName(parameter.Name)));
         }

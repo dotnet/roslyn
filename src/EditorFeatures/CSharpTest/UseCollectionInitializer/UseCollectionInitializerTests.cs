@@ -981,5 +981,40 @@ public class Foo
     }
 }");
         }
+
+        [WorkItem(19253, "https://github.com/dotnet/roslyn/issues/19253")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
+        public async Task TestKeepBlankLinesAfter()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System.Collections.Generic;
+
+class MyClass
+{
+    public void Main()
+    {
+        var list = [||]new List<int>();
+        list.Add(1);
+
+        int horse = 1;
+    }
+}",
+@"
+using System.Collections.Generic;
+
+class MyClass
+{
+    public void Main()
+    {
+        var list = new List<int>
+        {
+            1
+        };
+
+        int horse = 1;
+    }
+}", ignoreTrivia: false);
+        }
     }
 }

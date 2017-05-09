@@ -3009,6 +3009,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     return new BoundAsOperator(node, operand, typeExpression, Conversion.NoConversion, resultType, hasErrors: true);
+
+                case BoundKind.TupleLiteral:
+                    if ((object)operand.Type == null)
+                    {
+                        Error(diagnostics, ErrorCode.ERR_TypelessTupleInAs, node);
+                        return new BoundAsOperator(node, operand, typeExpression, Conversion.NoConversion, resultType, hasErrors: true);
+                    }
+                    break;
             }
 
             if (operand.HasAnyErrors || targetTypeKind == TypeKind.Error)
@@ -3071,12 +3079,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 operand = new BoundDefaultExpression(defaultLiteral.Syntax, constantValueOpt: ConstantValue.Null,
                     type: GetSpecialType(SpecialType.System_Object, diagnostics, node));
-            }
-
-            if (operand.Kind == BoundKind.MethodGroup)
-            {
-                Error(diagnostics, ErrorCode.ERR_NoExplicitBuiltinConv, node, MessageID.IDS_MethodGroup.Localize(), targetType);
-                return new BoundAsOperator(node, operand, typeExpression, Conversion.NoConversion, resultType, hasErrors: true);
             }
 
             var operandType = operand.Type;

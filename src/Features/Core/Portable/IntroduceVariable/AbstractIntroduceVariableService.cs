@@ -199,11 +199,12 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             bool isConstant,
             CancellationToken cancellationToken)
         {
-            var syntaxFacts = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
-            var semanticFacts = document.Project.LanguageServices.GetService<ISemanticFactsService>();
+            var syntaxFacts = document.Document.GetLanguageService<ISyntaxFactsService>();
+            var semanticFacts = document.Document.GetLanguageService<ISemanticFactsService>();
 
             var semanticModel = document.SemanticModel;
-            var baseName = semanticFacts.GenerateNameForExpression(semanticModel, expression, isConstant);
+            var baseName = semanticFacts.GenerateNameForExpression(
+                semanticModel, expression, isConstant, cancellationToken);
 
             // A field can't conflict with any existing member names.
             var declaringType = semanticModel.GetEnclosingNamedType(expression.SpanStart, cancellationToken);
@@ -226,7 +227,8 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             var semanticModel = document.SemanticModel;
             var existingSymbols = GetExistingSymbols(semanticModel, container, cancellationToken);
 
-            var baseName = semanticFacts.GenerateNameForExpression(semanticModel, expression, capitalize: isConstant);
+            var baseName = semanticFacts.GenerateNameForExpression(
+                semanticModel, expression, capitalize: isConstant, cancellationToken: cancellationToken);
             var reservedNames = semanticModel.LookupSymbols(expression.SpanStart)
                                              .Select(s => s.Name)
                                              .Concat(existingSymbols.Select(s => s.Name));
