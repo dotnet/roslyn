@@ -930,6 +930,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
+            if (true);
+
             currentFieldsForElements.Free();
 
             // At the end, add unmatched fields as error symbols
