@@ -5,7 +5,9 @@ using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
 using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Extensions;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Shell;
@@ -14,8 +16,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation
 {
-    [Export(typeof(IInfoBarService))]
-    internal class VisualStudioInfoBarService : IInfoBarService
+    [ExportWorkspaceService(typeof(IInfoBarService))]
+    internal class VisualStudioInfoBarService : ForegroundThreadAffinitizedObject, IInfoBarService
     {
         private readonly IServiceProvider _serviceProvider;
         private readonly IForegroundNotificationService _foregroundNotificationService;
@@ -33,11 +35,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
         public void ShowInfoBarInActiveView(string message, params InfoBarUI[] items)
         {
+            ThisCanBeCalledOnAnyThread();
             ShowInfoBar(activeView: true, message: message, items: items);
         }
 
         public void ShowInfoBarInGlobalView(string message, params InfoBarUI[] items)
         {
+            ThisCanBeCalledOnAnyThread();
             ShowInfoBar(activeView: false, message: message, items: items);
         }
 
@@ -55,6 +59,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
         private bool TryGetInfoBarData(bool activeView, out IVsInfoBarHost infoBarHost)
         {
+            AssertIsForeground();
+
             infoBarHost = null;
 
             if (activeView)

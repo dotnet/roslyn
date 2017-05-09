@@ -10,16 +10,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
     [ExportWorkspaceServiceFactory(typeof(IErrorReportingService), ServiceLayer.Host), Shared]
     internal sealed class VisualStudioErrorReportingServiceFactory : IWorkspaceServiceFactory
     {
-        private readonly IErrorReportingService _singleton;
+        private IErrorReportingService _singleton;
 
         [ImportingConstructor]
-        public VisualStudioErrorReportingServiceFactory(IInfoBarService infoBarService)
+        public VisualStudioErrorReportingServiceFactory()
         {
-            _singleton = new VisualStudioErrorReportingService(infoBarService);
         }
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
+            if (_singleton == null)
+            {
+                _singleton = new VisualStudioErrorReportingService(workspaceServices.GetRequiredService<IInfoBarService>());
+            }
             return _singleton;
         }
     }
