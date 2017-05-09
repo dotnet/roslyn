@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
         private void OnBeforeDebuggingStateChanged(object sender, DebuggingStateChangedEventArgs args)
         {
-            if (args.After == DebuggingState.Run)
+            if (!_dismissed && args.After == DebuggingState.Run)
             {
                 // It's too late for us to change anything, which means we can neither commit nor
                 // rollback changes to cancel. End the rename session but keep all open buffers in
