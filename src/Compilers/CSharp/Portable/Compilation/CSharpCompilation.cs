@@ -1512,9 +1512,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     foreach (var (IsValid, Candidate, SpecificDiagnostics) in taskEntryPoints)
                     {
-                        // PROTOTYPE(async-main): Get the diagnostic to point to a smaller syntax piece.
                         if (CheckValid(Candidate, IsValid, SpecificDiagnostics) &&
-                            CheckFeatureAvailability(Candidate.GetNonNullSyntaxNode(), MessageID.IDS_FeatureAsyncMain, diagnostics))
+                            CheckFeatureAvailability(Candidate.ExtractReturnTypeSyntax(), MessageID.IDS_FeatureAsyncMain, diagnostics))
                         {
                             diagnostics.AddRange(SpecificDiagnostics);
                             viableEntryPoints.Add(Candidate);
@@ -1611,7 +1610,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var syntax = method.ExtractReturnTypeSyntax();
             var dumbInstance = new BoundLiteral(syntax, ConstantValue.Null, method.ReturnType);
-            // PROTOTYPE(async-main): We might need to adjust the containing member of the binder to be the Main method
             var binder = GetBinder(syntax);
             BoundExpression result;
             var success = binder.GetAwaitableExpressionInfo(dumbInstance, out _, out _, out _, out result, syntax, diagnostics);

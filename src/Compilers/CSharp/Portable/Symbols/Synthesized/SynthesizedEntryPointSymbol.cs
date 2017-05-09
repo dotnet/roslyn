@@ -19,7 +19,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal const string FactoryName = "<Factory>";
 
         private readonly NamedTypeSymbol _containingType;
-        // PROTOTYPE(async-main): remove this and move it out into inheriting classes?
         private TypeSymbol _returnType;
 
         internal static SynthesizedEntryPointSymbol Create(SynthesizedInteractiveInitializerMethod initializerMethod, DiagnosticBag diagnostics)
@@ -349,7 +348,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Debug.Assert(userMain.ParameterCount == 0 || userMain.ParameterCount == 1);
 
                 _userMainReturnTypeSyntax = userMain.ExtractReturnTypeSyntax();
-                // PROTOTYPE(async-main): we might need to adjust the containing member of the binder to be the Main method.
                 var binder = compilation.GetBinder(_userMainReturnTypeSyntax);
                 _parameters = SynthesizedParameterSymbol.DeriveParameters(userMain, this);
 
@@ -371,8 +369,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         type: userMain.ReturnType)
                 { WasCompilerGenerated = true };
 
-                // PROTOTYPE(async-main): lower the tree.
                 var success = binder.GetAwaitableExpressionInfo(userMainInvocation, out _, out _, out _, out _getAwaiterGetResultCall, _userMainReturnTypeSyntax, diagnosticBag);
+
                 _returnType = _getAwaiterGetResultCall.Type;
 
                 Debug.Assert(
