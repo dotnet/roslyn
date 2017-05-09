@@ -38,7 +38,6 @@
     <Compile Include="InProcess\Editor_InProc_NavigationBar.cs" />
     <Compile Include="InProcess\ErrorList_InProc.cs" />
     <Compile Include="Common\ClassifiedToken.cs" />
-    <Compile Include="InProcess\ImmediateWindow_InProc.cs" />
     <Compile Include="InProcess\LocalsWindow_InProc.cs" />
     <Compile Include="InProcess\TextViewWindow_InProc.cs" />
     <Compile Include="InProcess\CSharpInteractiveWindow_InProc.cs" />
@@ -57,10 +56,9 @@
     <Compile Include="InProcess\Editor_InProc.cs" />
     <Compile Include="Interop\NativeMethods.cs" />
     <Compile Include="LightBulbHelper.cs" />
+    <Compile Include="OutOfProcess\EditAndContinueDialog_OutOfProc.cs" />
     <Compile Include="OutOfProcess\Debugger_OutOfProc.cs" />
     <Compile Include="OutOfProcess\Debugger_OutOfProc.Verifier.cs" />
-    <Compile Include="OutOfProcess\ImmediateWindow_OutOfProc.cs" />
-    <Compile Include="OutOfProcess\ImmediateWindow_OutOfProc.Verifier.cs" />
     <Compile Include="OutOfProcess\InlineRenameDialog_OutOfProc.cs" />
     <Compile Include="OutOfProcess\ChangeSignatureDialog_OutOfProc.cs" />
     <Compile Include="OutOfProcess\Editor_OutOfProc.Verifier.cs" />
@@ -81,8 +79,6 @@
     <Compile Include="OutOfProcess\SolutionExplorer_OutOfProc.cs" />
     <Compile Include="InProcess\VisualStudioWorkspace_InProc.cs" />
     <Compile Include="OutOfProcess\TextViewWindow_OutOfProc.cs" />
-    <Compile Include="OutOfProcess\WatchWindow_OutOfProc.cs" />
-    <Compile Include="OutOfProcess\WatchWindow_OutOfProc.Verifier.cs" />
     <Compile Include="ScreenshotService.cs" />
     <Compile Include="TemporaryTextFile.cs" />
     <Compile Include="TestUtilities.cs" />

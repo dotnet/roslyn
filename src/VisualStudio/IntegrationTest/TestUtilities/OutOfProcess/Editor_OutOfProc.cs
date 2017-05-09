@@ -332,5 +332,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
         public void GoToImplementation()
             => _editorInProc.GoToImplementation();
+
+        public void SendExplicitFocus()
+            => _editorInProc.SendExplicitFocus();
     }
 }

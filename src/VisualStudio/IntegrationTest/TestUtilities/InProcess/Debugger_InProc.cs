@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 
+using System;
 using EnvDTE;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
@@ -24,7 +25,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             _debugger.Breakpoints.Add(File: fileName, Line: lineNumber + 1, Column: columnIndex);
         }
 
-        public void StartDebugging(bool waitForBreakMode) => _debugger.Go(waitForBreakMode);
+        public void Go(bool waitForBreakMode) => _debugger.Go(waitForBreakMode);
 
         public void StepOver(bool waitForBreakOrEnd) => _debugger.StepOver(waitForBreakOrEnd);
 
@@ -32,17 +33,20 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         public void SetNextStatement() => _debugger.SetNextStatement();
 
-        public string EvaluateExpression(string expression)
-        {
-            // TODO any wait patterns?
-            return _debugger.GetExpression(expression).Value;
-          //  _debugger.CurrentMode
-        }
+        public void ExecuteStatement(string statement) => _debugger.ExecuteStatement(statement);
 
-        public void SetOptions()
+        public void CheckExpression(string expression, string expectedType, string expectedValue)
         {
-            //      < Debug ExpectModalDialog="false" FixRudeEdit="false">
-            // _debugger.
+            var entry = _debugger.GetExpression(expression);
+            if (entry.Type != expectedType)
+            {
+                throw new Exception($"The local named {expression} did not match the type expected. Expected: {expectedType}. Actual: {entry.Type}");
+            }
+
+            if (entry.Value != expectedValue)
+            {
+                throw new Exception($"The local named {expression} did not match the value expected. Expected: {expectedValue}. Actual: {entry.Value}");
+            }
         }
     }
 }

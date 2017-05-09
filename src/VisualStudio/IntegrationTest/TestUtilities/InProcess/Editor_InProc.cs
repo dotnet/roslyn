@@ -78,6 +78,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         public void Activate()
             => GetDTE().ActiveDocument.Activate();
 
+        public bool IsProjectItemDirty()
+            => GetDTE().ActiveDocument.ProjectItem.IsDirty;
+
         public string GetText()
             => ExecuteOnActiveView(view => view.TextSnapshot.GetText());
 
@@ -698,6 +701,13 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 var matchingTags = tagAggregator.GetTags(new SnapshotSpan(view.TextSnapshot, 0, view.TextSnapshot.Length)).Where(t => t.Tag.Type == tagId);
 
                 return matchingTags.Select(t => t.Span.GetSpans(view.TextBuffer).Single().Span.ToTextSpan()).SelectMany(t => new List<int> { t.Start, t.Length }).ToArray();
+            });
+
+        public void SendExplicitFocus()
+            => InvokeOnUIThread(() =>
+            {
+                var view = GetActiveVsTextView();
+                view.SendExplicitFocus();
             });
     }
 }

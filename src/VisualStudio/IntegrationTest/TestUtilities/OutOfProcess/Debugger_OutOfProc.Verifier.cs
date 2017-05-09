@@ -18,10 +18,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
                 _debugger = debuigger;
             }
 
-            public void EvaluateExpression(string expression, string expectedResult)
+            public void EvaluateExpression(string expression, string expectedType, string expectedValue)
             {
-                string actualResult = _debugger.EvaluateExpression(expression);
-                Assert.Equal(expectedResult, actualResult);
+                _debugger.CheckExpression(expression, expectedType, expectedValue);
             }
         }
     }

@@ -27,6 +27,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
         public Debugger_OutOfProc Debugger { get; }
 
+        public EditAndContinueDialog_OutOfProc EditAndContinueDialog { get; }
+
         public Editor_OutOfProc Editor { get; }
 
         public EncapsulateField_OutOfProc EncapsulateField { get; }
@@ -39,8 +41,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
         public GenerateTypeDialog_OutOfProc GenerateTypeDialog { get; }
 
-        public ImmediateWindow_OutOfProc ImmediateWindow { get; set; }
-
         public InlineRenameDialog_OutOfProc InlineRenameDialog { get; set; }
 
         public LocalsWindow_OutOfProc LocalsWindow { get; set; }
@@ -52,8 +52,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         public Shell_OutOfProc Shell { get; }
 
         public SolutionExplorer_OutOfProc SolutionExplorer { get; }
-
-        public WatchWindow_OutOfProc WatchWindow { get; }
 
         public VisualStudioWorkspace_OutOfProc Workspace { get; }
 
@@ -100,19 +98,18 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             ChangeSignatureDialog = new ChangeSignatureDialog_OutOfProc(this);
             InteractiveWindow = new CSharpInteractiveWindow_OutOfProc(this);
             Debugger = new Debugger_OutOfProc(this);
+            EditAndContinueDialog = new EditAndContinueDialog_OutOfProc(this);
             Editor = new Editor_OutOfProc(this);
             EncapsulateField = new EncapsulateField_OutOfProc(this);
             ErrorList = new ErrorList_OutOfProc(this);
             ExtractInterfaceDialog = new ExtractInterfaceDialog_OutOfProc(this);
             FindReferencesWindow = new FindReferencesWindow_OutOfProc(this);
             GenerateTypeDialog = new GenerateTypeDialog_OutOfProc(this);
-            ImmediateWindow = new ImmediateWindow_OutOfProc(this);
             InlineRenameDialog = new InlineRenameDialog_OutOfProc(this);
             LocalsWindow = new LocalsWindow_OutOfProc(this);
             PreviewChangesDialog = new PreviewChangesDialog_OutOfProc(this);
             Shell = new Shell_OutOfProc(this);
             SolutionExplorer = new SolutionExplorer_OutOfProc(this);
-            WatchWindow = new WatchWindow_OutOfProc(this);
             Workspace = new VisualStudioWorkspace_OutOfProc(this);
 
             SendKeys = new SendKeys(this);
