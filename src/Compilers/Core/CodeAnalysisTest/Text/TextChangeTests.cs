@@ -154,6 +154,34 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal("HellWorld", newText.ToString());
         }
 
+        [WorkItem(12216, "https://github.com/dotnet/roslyn/issues/12216")]
+        [Fact]
+        public void TestChangedTextWithoutChange()
+        {
+            var text = SourceText.From("Hello World").WithChanges(new TextChange(new TextSpan(5, 6), string.Empty));
+
+            // precondition: issue was triggered for no-op changes on ChangedText instances
+            Assert.IsType<ChangedText>(text);
+
+            // passing no changes should be a no-op
+            var newText = text.WithChanges();
+            Assert.Equal("Hello", newText.ToString());
+        }
+
+        [WorkItem(12216, "https://github.com/dotnet/roslyn/issues/12216")]
+        [Fact]
+        public void TestChangedTextWithEmptyChange()
+        {
+            var text = SourceText.From("Hello World").WithChanges(new TextChange(new TextSpan(5, 6), string.Empty));
+
+            // precondition: issue was triggered for empty changes on ChangedText instances
+            Assert.IsType<ChangedText>(text);
+
+            // replacing an empty span by an empty string should be a no-op
+            var newText = text.WithChanges(new TextChange(new TextSpan(5, 0), string.Empty));
+            Assert.Equal("Hello", newText.ToString());
+        }
+
         [Fact]
         public void TestSubTextAfterMultipleChanges()
         {
