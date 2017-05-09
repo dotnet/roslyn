@@ -728,7 +728,8 @@ namespace Roslyn.Utilities
                     // don't blow the stack.  'LongRunning' ensures that we get a dedicated thread
                     // to do this work.  That way we don't end up blocking the threadpool.
                     var task = Task.Factory.StartNew(
-                        () => WriteObjectWorker(instance, writable),
+                        obj => WriteObjectWorker((IObjectWritable)obj),
+                        writable,
                         _cancellationToken,
                         TaskCreationOptions.LongRunning,
                         TaskScheduler.Default);
@@ -736,7 +737,7 @@ namespace Roslyn.Utilities
                 }
                 else
                 {
-                    WriteObjectWorker(instance, writable);
+                    WriteObjectWorker(writable);
                 }
 
                 _recursionDepth--;
@@ -744,14 +745,14 @@ namespace Roslyn.Utilities
             }
         }
 
-        private void WriteObjectWorker(object instance, IObjectWritable writable)
+        private void WriteObjectWorker(IObjectWritable writable)
         {
             // emit object header up front
-            this.WriteObjectHeader(instance, 0);
+            this.WriteObjectHeader(writable);
             writable.WriteTo(this);
         }
 
-        private void WriteObjectHeader(object instance, uint memberCount)
+        private void WriteObjectHeader(IObjectWritable instance)
         {
             _objectReferenceMap.Add(instance);
 
