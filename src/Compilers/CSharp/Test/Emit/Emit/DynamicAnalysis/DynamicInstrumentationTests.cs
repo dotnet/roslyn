@@ -2872,6 +2872,330 @@ Method2: x = 1
             verifier.VerifyDiagnostics();
         }
 
+        [Fact]
+        public void TestSynthesizedConstructorWithSpansInMultipleFilesCoverage()
+        {
+            var source1 = @"
+using System;
+
+public partial class Class1<T>
+{
+    private int x = 1;
+}
+
+public class Program
+{
+    public static void Main(string[] args)
+    {
+        Test();
+        Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload();
+    }
+
+    static void Test()
+    {
+        Console.WriteLine(""Test"");
+        var c = new Class1<int>();
+        c.Method1(1);
+    }
+}
+" + InstrumentationHelperSource;
+
+            var source2 = @"
+public partial class Class1<T>
+{
+    private int y = 2;
+}
+
+public partial class Class1<T>
+{
+    private int z = 3;
+}";
+
+            var source3 = @"
+using System;
+
+public partial class Class1<T>
+{
+    private Action<int> a = i =>
+        {
+            Console.WriteLine(i);
+        };
+
+    public void Method1(int i)
+    {
+        a(i);
+        Console.WriteLine(x);
+        Console.WriteLine(y);
+        Console.WriteLine(z);
+    }
+}";
+
+            var sources = new[] {
+                (Name: "b.cs", Content: source1),
+                (Name: "c.cs", Content: source2),
+                (Name: "a.cs", Content: source3)
+            };
+
+            var expectedOutput = @"Test
+1
+1
+2
+3
+Flushing
+Method 1
+File 1
+True
+True
+True
+True
+True
+Method 2
+File 1
+File 2
+File 3
+True
+True
+True
+True
+True
+Method 3
+File 2
+True
+True
+True
+Method 4
+File 2
+True
+True
+True
+True
+Method 7
+File 2
+True
+True
+False
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+";
+
+            var verifier = CompileAndVerify(sources, expectedOutput, options: TestOptions.ReleaseExe);
+            verifier.VerifyDiagnostics();
+
+            verifier = CompileAndVerify(sources, expectedOutput, options: TestOptions.DebugExe);
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TestSynthesizedStaticConstructorWithSpansInMultipleFilesCoverage()
+        {
+            var source1 = @"
+using System;
+
+public partial class Class1<T>
+{
+    private static int x = 1;
+}
+
+public class Program
+{
+    public static void Main(string[] args)
+    {
+        Test();
+        Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload();
+    }
+
+    static void Test()
+    {
+        Console.WriteLine(""Test"");
+        var c = new Class1<int>();
+        Class1<int>.Method1(1);
+    }
+}
+" + InstrumentationHelperSource;
+
+            var source2 = @"
+public partial class Class1<T>
+{
+    private static int y = 2;
+}
+
+public partial class Class1<T>
+{
+    private static int z = 3;
+}";
+
+            var source3 = @"
+using System;
+
+public partial class Class1<T>
+{
+    private static Action<int> a = i =>
+        {
+            Console.WriteLine(i);
+        };
+
+    public static void Method1(int i)
+    {
+        a(i);
+        Console.WriteLine(x);
+        Console.WriteLine(y);
+        Console.WriteLine(z);
+    }
+}";
+
+            var sources = new[] {
+                (Name: "b.cs", Content: source1),
+                (Name: "c.cs", Content: source2),
+                (Name: "a.cs", Content: source3)
+            };
+
+            var expectedOutput = @"Test
+1
+1
+2
+3
+Flushing
+Method 1
+File 1
+True
+True
+True
+True
+True
+Method 2
+File 2
+Method 3
+File 1
+File 2
+File 3
+True
+True
+True
+True
+True
+Method 4
+File 2
+True
+True
+True
+Method 5
+File 2
+True
+True
+True
+True
+Method 8
+File 2
+True
+True
+False
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+";
+
+            var verifier = CompileAndVerify(sources, expectedOutput, options: TestOptions.ReleaseExe);
+            verifier.VerifyDiagnostics();
+
+            verifier = CompileAndVerify(sources, expectedOutput, options: TestOptions.DebugExe);
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TestLineDirectiveCoverage()
+        {
+            var source = @"
+using System;
+
+public class Program
+{
+    public static void Main(string[] args)
+    {
+        Test();
+        Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload();
+    }
+
+    static void Test()
+    {
+#line 300 ""File2.cs""
+        Console.WriteLine(""Start"");
+#line hidden
+        Console.WriteLine(""Hidden"");
+#line default
+        Console.WriteLine(""Visible"");
+#line 400 ""File3.cs""
+        Console.WriteLine(""End"");
+    }
+}
+" + InstrumentationHelperSource;
+
+            var expectedOutput = @"Start
+Hidden
+Visible
+End
+Flushing
+Method 1
+File 1
+True
+True
+True
+Method 2
+File 1
+File 2
+File 3
+True
+True
+True
+True
+True
+Method 5
+File 3
+True
+True
+False
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+";
+
+            var verifier = CompileAndVerify(source, expectedOutput, options: TestOptions.ReleaseExe);
+            verifier.VerifyDiagnostics();
+
+            verifier = CompileAndVerify(source, expectedOutput, options: TestOptions.DebugExe);
+            verifier.VerifyDiagnostics();
+        }
+
         private static void AssertNotInstrumented(CompilationVerifier verifier, string qualifiedMethodName)
             => AssertInstrumented(verifier, qualifiedMethodName, expected: false);
 
@@ -2889,6 +3213,20 @@ Method2: x = 1
         private CompilationVerifier CompileAndVerify(string source, string expectedOutput = null, CompilationOptions options = null)
         {
             return base.CompileAndVerify(source, expectedOutput: expectedOutput, additionalRefs: s_refs, options: (options ?? TestOptions.ReleaseExe).WithDeterministic(true), emitOptions: EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)));
+        }
+
+        private CompilationVerifier CompileAndVerify((string Path, string Content)[] sources, string expectedOutput = null, CSharpCompilationOptions options = null)
+        {
+            var trees = ArrayBuilder<SyntaxTree>.GetInstance();
+            foreach (var source in sources)
+            {
+                // The trees must be assigned unique file names in order for instrumentation to work correctly.
+                trees.Add(Parse(source.Content, filename: source.Path));
+            }
+
+            var compilation = CreateStandardCompilation(trees, s_refs, (options ?? TestOptions.ReleaseExe).WithDeterministic(true));
+            trees.Free();
+            return base.CompileAndVerify(compilation, expectedOutput: expectedOutput, emitOptions: EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)));
         }
 
         private static readonly MetadataReference[] s_refs = new[] { MscorlibRef_v4_0_30316_17626, SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929, ValueTupleRef, SystemRuntimeFacadeRef };
