@@ -296,12 +296,12 @@ namespace Roslyn.Utilities
             public WriterReferenceMap(bool valueEquality)
             {
                 _valueEquality = valueEquality;
-                _valueToIdMap = GetDictionaryPool().Allocate();
+                _valueToIdMap = GetDictionaryPool(valueEquality).Allocate();
                 _nextId = 0;
             }
 
-            private ObjectPool<Dictionary<object, int>> GetDictionaryPool()
-                => _valueEquality ? s_valueDictionaryPool : s_referenceDictionaryPool;
+            private static ObjectPool<Dictionary<object, int>> GetDictionaryPool(bool valueEquality)
+                => valueEquality ? s_valueDictionaryPool : s_referenceDictionaryPool;
 
             public void Dispose()
             {
