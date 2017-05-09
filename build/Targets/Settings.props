@@ -208,6 +208,9 @@
   <UsingTask TaskName="Microsoft.CodeAnalysis.BuildTasks.Vbc"
              AssemblyFile="$(BootstrapBuildPath)\Microsoft.Build.Tasks.CodeAnalysis.dll"
              Condition="'$(BootstrapBuildPath)' != ''" />
+  <UsingTask TaskName="Microsoft.CodeAnalysis.BuildTasks.DiscoverEditorConfigFiles"
+             AssemblyFile="$(BootstrapBuildPath)\Microsoft.Build.Tasks.CodeAnalysis.dll"
+             Condition="'$(BootstrapBuildPath)' != ''" />
   <UsingTask TaskName="Microsoft.CodeAnalysis.BuildTasks.ValidateBootstrap"
              AssemblyFile="$(BootstrapBuildPath)\Microsoft.Build.Tasks.CodeAnalysis.dll"
              Condition="'$(BootstrapBuildPath)' != ''" />
