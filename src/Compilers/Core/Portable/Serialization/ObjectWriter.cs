@@ -305,7 +305,7 @@ namespace Roslyn.Utilities
 
             public void Dispose()
             {
-                var pool = GetDictionaryPool();
+                var pool = GetDictionaryPool(_valueEquality);
 
                 // If the map grew too big, don't return it to the pool.
                 // When testing with the Roslyn solution, this dropped only 2.5% of requests.
