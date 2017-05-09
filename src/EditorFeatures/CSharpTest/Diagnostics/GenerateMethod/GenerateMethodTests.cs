@@ -7262,7 +7262,7 @@ class C
 parseOptions: TestOptions.Regular);
         }
 
-        [Fact/*(Skip = "https://github.com/dotnet/roslyn/issues/15508")*/, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         [WorkItem(14136, "https://github.com/dotnet/roslyn/issues/14136")]
         public async Task TestDeconstruction4()
         {
@@ -7378,6 +7378,68 @@ class C
         throw new NotImplementedException();
     }
 }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [WorkItem(18969, "https://github.com/dotnet/roslyn/issues/18969")]
+        public async Task TestTupleElement1()
+        {
+            await TestAsync(
+@"using System;
+
+class C
+{
+    public void M1()
+    {
+        (int x, string y) t = ([|Method|](), null);
+    }
+}",
+@"using System;
+
+class C
+{
+    public void M1()
+    {
+        (int x, string y) t = (Method(), null);
+    }
+
+    private int Method()
+    {
+        throw new NotImplementedException();
+    }
+}",
+parseOptions: TestOptions.Regular);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [WorkItem(18969, "https://github.com/dotnet/roslyn/issues/18969")]
+        public async Task TestTupleElement2()
+        {
+            await TestAsync(
+@"using System;
+
+class C
+{
+    public void M1()
+    {
+        (int x, string y) t = (0, [|Method|]());
+    }
+}",
+@"using System;
+
+class C
+{
+    public void M1()
+    {
+        (int x, string y) t = (0, Method());
+    }
+
+    private string Method()
+    {
+        throw new NotImplementedException();
+    }
+}",
+parseOptions: TestOptions.Regular);
         }
     }
 }

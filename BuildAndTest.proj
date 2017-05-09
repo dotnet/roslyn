@@ -7,57 +7,51 @@
   <PropertyGroup>
     <RoslynSolution Condition="'$(RoslynSolution)' == ''">$(MSBuildThisFileDirectory)Roslyn.sln</RoslynSolution>
     <SamplesSolution>$(MSBuildThisFileDirectory)src\Samples\Samples.sln</SamplesSolution>
+    <TestVsi Condition="'$(testVsiNetCore)' == 'true'">true</TestVsi>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
     <RunTestArgs Condition="'$(ManualTest)' == ''">$(RunTestArgs) -xml</RunTestArgs>
     <RunTestArgs Condition="'$(Test64)' == 'true'">$(RunTestArgs) -test64</RunTestArgs>
     <RunTestArgs Condition="'$(TestVsi)' == 'true'">$(RunTestArgs) -testVsi</RunTestArgs>
+    <RunTestArgs Condition="'$(TestVsiNetCore)' == 'true'">$(RunTestArgs) -trait:Feature=NetCore</RunTestArgs>
     <RunTestArgs Condition="'$(Trait)' != ''">$(RunTestArgs) -trait:$(Trait)</RunTestArgs>
     <RunTestArgs Condition="'$(NoTrait)' != ''">$(RunTestArgs) -notrait:$(NoTrait)</RunTestArgs>
+    <DeployExtensionViaBuild Condition="'$(DeployExtensionViaBuild)' == ''">false</DeployExtensionViaBuild>
     <IncludePattern Condition="'$(IncludePattern)' == '' AND '$(TestVsi)' != 'true'">*.UnitTests.dll</IncludePattern>
     <IncludePattern Condition="'$(IncludePattern)' == '' AND '$(TestVsi)' == 'true'">*.IntegrationTests.dll</IncludePattern>
     <OutputDirectory>$(MSBuildThisFileDirectory)Binaries\$(Configuration)\</OutputDirectory>
     <RunTestArgs>$(RunTestArgs) -log:&quot;$(OutputDirectory)\runtests.log&quot;</RunTestArgs>
     <CoreClrTestDirectory>$(OutputDirectory)\CoreClrTest</CoreClrTestDirectory>
-    <MSBuildCommonProperties>
-      RestorePackages=false;
-      TreatWarningsAsErrors=true;
-      DeployExtension=false;
-    </MSBuildCommonProperties>
   </PropertyGroup>
 
   <Target Name="Build">
     <MSBuild BuildInParallel="true"
              Projects="$(RoslynSolution)"
-             Properties="$(MSBuildCommonProperties)"
+             Properties="DeployExtension=$(DeployExtensionViaBuild)"
              Targets="Build" />
     <MSBuild BuildInParallel="true"
              Condition="'$(ManualTest)' == ''"
              Projects="$(SamplesSolution)"
-             Properties="$(MSBuildCommonProperties)"
+             Properties="DeployExtension=false"
              Targets="Build" />
   </Target>
 
   <Target Name="Clean">
     <MSBuild BuildInParallel="true"
              Projects="$(RoslynSolution)"
-             Properties="$(MSBuildCommonProperties)"
              Targets="Clean" />
     <MSBuild BuildInParallel="true"
              Condition="'$(ManualTest)' == ''"
              Projects="$(SamplesSolution)"
-             Properties="$(MSBuildCommonProperties)"
              Targets="Clean" />
   </Target>
 
   <Target Name="Rebuild">
     <MSBuild BuildInParallel="true"
              Projects="$(RoslynSolution)"
-             Properties="$(MSBuildCommonProperties)"
              Targets="Rebuild" />
     <MSBuild BuildInParallel="true"
              Condition="'$(ManualTest)' == ''"
              Projects="$(SamplesSolution)"
-             Properties="$(MSBuildCommonProperties)"
              Targets="Rebuild" />
   </Target>
 
@@ -81,6 +75,7 @@
 
     <!-- Publish binaries for CoreClr test -->
     <MSBuild BuildInParallel="true"
+             Condition="'$(TestCoreClr)' == 'true'"
              Projects="src\Test\DeployCoreClrTestRuntime\DeployCoreClrTestRuntime.csproj"
              Properties="RuntimeIdentifier=win7-x64;PublishDir=$(CoreClrTestDirectory)"
              Targets="Publish" />
@@ -115,7 +110,7 @@
   </Target>
 
   <!-- Manually deploy any VSIX required by our integration tests (https://github.com/dotnet/roslyn/issues/17456) -->
-  <Target Name="DeployRoslynVsix" Condition="'$(TestVsi)' == 'true'">
+  <Target Name="DeployRoslynVsix" Condition="'$(TestVsi)' == 'true' AND '$(DeployExtensionViaBuild)' != 'true'">
 
     <PropertyGroup>
       <VsixExpInstallerExe>$(NuGetPackageRoot)\roslyntools.microsoft.vsixexpinstaller\$(RoslynToolsMicrosoftVSIXExpInstallerVersion)\tools\VsixExpInstaller.exe</VsixExpInstallerExe>

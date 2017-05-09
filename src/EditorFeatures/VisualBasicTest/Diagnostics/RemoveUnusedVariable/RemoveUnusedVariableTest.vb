@@ -9,8 +9,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Remove
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
-            Return (Nothing,
-                    New RemoveUnusedVariableCodeFixProvider())
+            Return (Nothing, New VisualBasicRemoveUnusedVariableCodeFixProvider())
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)>

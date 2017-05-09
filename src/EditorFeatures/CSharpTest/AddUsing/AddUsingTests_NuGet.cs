@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddUsing
                 // Make a loose mock for the installer service.  We don't care what this test
                 // calls on it.
                 var installerServiceMock = new Mock<IPackageInstallerService>(MockBehavior.Loose);
-                installerServiceMock.SetupGet(i => i.IsEnabled).Returns(true);
+                installerServiceMock.Setup(i => i.IsEnabled(It.IsAny<ProjectId>())).Returns(true);
                 installerServiceMock.SetupGet(i => i.PackageSources).Returns(NugetPackageSources);
                 installerServiceMock.Setup(s => s.TryInstallPackage(It.IsAny<Workspace>(), It.IsAny<DocumentId>(), It.IsAny<string>(), "NuGetPackage", It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
                                     .Returns(true);
@@ -83,7 +83,7 @@ class C
                 // Make a loose mock for the installer service.  We don't care what this test
                 // calls on it.
                 var installerServiceMock = new Mock<IPackageInstallerService>(MockBehavior.Loose);
-                installerServiceMock.SetupGet(i => i.IsEnabled).Returns(true);
+                installerServiceMock.Setup(i => i.IsEnabled(It.IsAny<ProjectId>())).Returns(true);
                 installerServiceMock.SetupGet(i => i.PackageSources).Returns(NugetPackageSources);
                 installerServiceMock.Setup(s => s.TryInstallPackage(It.IsAny<Workspace>(), It.IsAny<DocumentId>(), It.IsAny<string>(), "NuGetPackage", It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
                                     .Returns(true);
@@ -112,7 +112,7 @@ class C
                 // Make a loose mock for the installer service.  We don't care what this test
                 // calls on it.
                 var installerServiceMock = new Mock<IPackageInstallerService>(MockBehavior.Loose);
-                installerServiceMock.SetupGet(i => i.IsEnabled).Returns(true);
+                installerServiceMock.Setup(i => i.IsEnabled(It.IsAny<ProjectId>())).Returns(true);
                 installerServiceMock.SetupGet(i => i.PackageSources).Returns(NugetPackageSources);
                 installerServiceMock.Setup(s => s.IsInstalled(It.IsAny<Workspace>(), It.IsAny<ProjectId>(), "NuGetPackage"))
                     .Returns(true);
@@ -135,7 +135,7 @@ class C
                 // Make a loose mock for the installer service.  We don't care what this test
                 // calls on it.
                 var installerServiceMock = new Mock<IPackageInstallerService>(MockBehavior.Loose);
-                installerServiceMock.SetupGet(i => i.IsEnabled).Returns(true);
+                installerServiceMock.Setup(i => i.IsEnabled(It.IsAny<ProjectId>())).Returns(true);
                 installerServiceMock.SetupGet(i => i.PackageSources).Returns(NugetPackageSources);
                 installerServiceMock.Setup(s => s.GetInstalledVersions("NuGetPackage"))
                     .Returns(ImmutableArray.Create("1.0", "2.0"));
@@ -177,7 +177,7 @@ parameters: new TestParameters(fixProviderData: data));
             public async Task TestInstallGetsCalledNoVersion()
             {
                 var installerServiceMock = new Mock<IPackageInstallerService>(MockBehavior.Loose);
-                installerServiceMock.SetupGet(i => i.IsEnabled).Returns(true);
+                installerServiceMock.Setup(i => i.IsEnabled(It.IsAny<ProjectId>())).Returns(true);
                 installerServiceMock.SetupGet(i => i.PackageSources).Returns(NugetPackageSources);
                 installerServiceMock.Setup(s => s.TryInstallPackage(It.IsAny<Workspace>(), It.IsAny<DocumentId>(), It.IsAny<string>(), "NuGetPackage", /*versionOpt*/ null, It.IsAny<bool>(), It.IsAny<CancellationToken>()))
                                     .Returns(true);
@@ -205,7 +205,7 @@ class C
             public async Task TestInstallGetsCalledWithVersion()
             {
                 var installerServiceMock = new Mock<IPackageInstallerService>(MockBehavior.Loose);
-                installerServiceMock.SetupGet(i => i.IsEnabled).Returns(true);
+                installerServiceMock.Setup(i => i.IsEnabled(It.IsAny<ProjectId>())).Returns(true);
                 installerServiceMock.SetupGet(i => i.PackageSources).Returns(NugetPackageSources);
                 installerServiceMock.Setup(s => s.GetInstalledVersions("NuGetPackage"))
                     .Returns(ImmutableArray.Create("1.0"));
@@ -235,7 +235,7 @@ class C
             public async Task TestFailedInstallRollsBackFile()
             {
                 var installerServiceMock = new Mock<IPackageInstallerService>(MockBehavior.Loose);
-                installerServiceMock.SetupGet(i => i.IsEnabled).Returns(true);
+                installerServiceMock.Setup(i => i.IsEnabled(It.IsAny<ProjectId>())).Returns(true);
                 installerServiceMock.SetupGet(i => i.PackageSources).Returns(NugetPackageSources);
                 installerServiceMock.Setup(s => s.GetInstalledVersions("NuGetPackage"))
                     .Returns(ImmutableArray.Create("1.0"));

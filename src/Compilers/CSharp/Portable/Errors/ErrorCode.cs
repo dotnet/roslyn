@@ -1475,6 +1475,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_CompilerAndLanguageVersion = 8304,
         WRN_Experimental = 8305,
         ERR_TupleInferredNamesNotAvailable = 8306,
+        ERR_TypelessTupleInAs = 8307,
+
+        #region diagnostics for C# 7.1
 
         ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation = 8501,
         ERR_RuntimeDoesNotSupportDefaultInterfaceImplementationForMember = 8502,
@@ -1486,5 +1489,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_BadDynamicMethodArgDefaultLiteral = 9000,
         ERR_DefaultLiteralNotValid = 9001,
         WRN_DefaultInSwitch = 9002,
+        ERR_PatternWrongGenericTypeInVersion = 9003,
+
+        #endregion diagnostics for C# 7.1
     }
 }

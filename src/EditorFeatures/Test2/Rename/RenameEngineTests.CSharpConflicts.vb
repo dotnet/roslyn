@@ -3585,6 +3585,31 @@ partial class {|current:$$C|} { }
                 result.AssertLabeledSpansAre("current", type:=RelatedLocationType.NoConflict)
             End Using
         End Sub
+
+        <Fact>
+        <Trait(Traits.Feature, Traits.Features.Rename)>
+        <WorkItem(16567, "https://github.com/dotnet/roslyn/issues/16567")>
+        Public Sub RenameMethodToFinalizeWithDestructorPresent()
+            Using result = RenameEngineResult.Create(_outputHelper,
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true">
+                            <Document>
+class C
+{
+    ~{|Conflict:C|}() { }
+    void $$[|M|]() 
+    { 
+        int x = 7;
+        int y = ~x;
+    }
+}
+                            </Document>
+                        </Project>
+                    </Workspace>, renameTo:="Finalize")
+
+                result.AssertLabeledSpansAre("Conflict", type:=RelatedLocationType.UnresolvedConflict)
+            End Using
+        End Sub
     End Class
 End Namespace
 

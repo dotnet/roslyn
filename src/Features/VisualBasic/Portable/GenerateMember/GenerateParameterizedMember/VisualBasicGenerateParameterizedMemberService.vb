@@ -28,7 +28,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateMember.GenerateMethod
             Protected Overrides Function DetermineParameterNames(cancellationToken As CancellationToken) As ImmutableArray(Of ParameterName)
                 Dim typeParametersNames = Me.DetermineTypeParameters(cancellationToken).SelectAsArray(Function(t) t.Name)
                 Return Me.Document.SemanticModel.GenerateParameterNames(
-                    Me.InvocationExpression.ArgumentList, reservedNames:=typeParametersNames)
+                    Me.InvocationExpression.ArgumentList, reservedNames:=typeParametersNames, cancellationToken:=cancellationToken)
             End Function
 
             Protected Overrides Function DetermineReturnsByRef(cancellationToken As CancellationToken) As Boolean

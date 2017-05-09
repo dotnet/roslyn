@@ -112,6 +112,8 @@
     <Compile Include="AddPackage\InstallPackageParentCodeAction.cs" />
     <Compile Include="AddParameter\AbstractAddParameterCodeFixProvider.cs" />
     <Compile Include="CodeFixes\RemoveUnusedVariable\AbstractRemoveUnusedVariableCodeFixProvider.cs" />
+    <Compile Include="CodeRefactorings\WorkspaceServices\ISymbolRenamedCodeActionOperationFactoryWorkspaceService.cs" />
+    <Compile Include="Completion\FileSystemCompletionHelper.cs" />
     <Compile Include="ConvertIfToSwitch\AbstractConvertIfToSwitchCodeRefactoringProvider.cs" />
     <Compile Include="ConvertNumericLiteral\AbstractConvertNumericLiteralCodeRefactoringProvider.cs" />
     <Compile Include="CodeRefactorings\UseNamedArguments\AbstractUseNamedArgumentsCodeRefactoringProvider.cs" />
@@ -122,6 +124,8 @@
     <Compile Include="Completion\Providers\AbstractCrefCompletionProvider.cs" />
     <Compile Include="ConvertToInterpolatedString\AbstractConvertConcatenationToInterpolatedStringRefactoringProvider.cs" />
     <Compile Include="DesignerAttributes\AbstractDesignerAttributeService.cs" />
+    <Compile Include="DesignerAttributes\DesignerAttributeProjectData.cs" />
+    <Compile Include="DesignerAttributes\DesignerAttributeDocumentData.cs" />
     <Compile Include="DesignerAttributes\IDesignerAttributeService.cs" />
     <Compile Include="DesignerAttributes\IRemoteDesignerAttributeService.cs" />
     <Compile Include="Diagnostics\Analyzers\NamingStyleDiagnosticAnalyzerBase.cs" />

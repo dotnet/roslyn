@@ -14,15 +14,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateConstructor
     Partial Friend Class VisualBasicGenerateConstructorService
         Inherits AbstractGenerateConstructorService(Of VisualBasicGenerateConstructorService, ArgumentSyntax, AttributeSyntax)
 
-        Protected Overrides Function GenerateNameForArgument(semanticModel As SemanticModel, argument As ArgumentSyntax) As String
-            Return semanticModel.GenerateNameForArgument(argument)
+        Protected Overrides Function GenerateNameForArgument(semanticModel As SemanticModel, argument As ArgumentSyntax, cancellationToken As CancellationToken) As String
+            Return semanticModel.GenerateNameForArgument(argument, cancellationToken)
         End Function
 
         Protected Overrides Function GenerateParameterNames(
                 semanticModel As SemanticModel,
                 arguments As IEnumerable(Of ArgumentSyntax),
-                Optional reservedNames As IList(Of String) = Nothing) As ImmutableArray(Of ParameterName)
-            Return semanticModel.GenerateParameterNames(arguments?.ToList(), reservedNames)
+                reservedNames As IList(Of String),
+                cancellationToken As CancellationToken) As ImmutableArray(Of ParameterName)
+            Return semanticModel.GenerateParameterNames(arguments?.ToList(), reservedNames, cancellationToken)
         End Function
 
         Protected Overrides Function GetArgumentType(

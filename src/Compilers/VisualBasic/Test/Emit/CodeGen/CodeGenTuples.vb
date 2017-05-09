@@ -7864,6 +7864,336 @@ BC30512: Option Strict On disallows implicit conversions from 'Double' to 'Strin
         End Sub
 
         <Fact>
+        Public Sub TupleCTypeNullableConversionWithTypelessTuple()
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Option Strict On
+Imports System
+Class C
+    Shared Sub Main()
+        Dim x As (Integer, String)? = CType((1, Nothing), (Integer, String)?)
+        Console.Write(x)
+    End Sub
+End Class
+]]></file>
+</compilation>, additionalRefs:=s_valueTupleRefs, options:=TestOptions.DebugExe)
+
+            comp.AssertNoDiagnostics()
+            CompileAndVerify(comp, expectedOutput:="(1, )")
+
+            Dim tree = comp.SyntaxTrees.Single()
+            Dim model = comp.GetSemanticModel(tree)
+            Dim node = tree.GetRoot().DescendantNodes().OfType(Of TupleExpressionSyntax)().Single()
+            Assert.Equal("(1, Nothing)", node.ToString())
+            Assert.Null(model.GetTypeInfo(node).Type)
+            Assert.Equal("System.Nullable(Of (System.Int32, System.String))", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString())
+            Assert.Equal(ConversionKind.WideningNullableTuple, model.GetConversion(node).Kind)
+
+            Assert.Equal("System.Nullable(Of (System.Int32, System.String))", model.GetTypeInfo(node.Parent).Type.ToTestDisplayString())
+            Assert.Equal("System.Nullable(Of (System.Int32, System.String))", model.GetTypeInfo(node.Parent).ConvertedType.ToTestDisplayString())
+
+        End Sub
+
+        <Fact>
+        Public Sub TupleDirectCastNullableConversionWithTypelessTuple()
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Option Strict On
+Imports System
+Class C
+    Shared Sub Main()
+        Dim x As (Integer, String)? = DirectCast((1, Nothing), (Integer, String)?)
+        Console.Write(x)
+    End Sub
+End Class
+]]></file>
+</compilation>, additionalRefs:=s_valueTupleRefs, options:=TestOptions.DebugExe)
+
+            comp.AssertNoDiagnostics()
+            CompileAndVerify(comp, expectedOutput:="(1, )")
+
+            Dim tree = comp.SyntaxTrees.Single()
+            Dim model = comp.GetSemanticModel(tree)
+            Dim node = tree.GetRoot().DescendantNodes().OfType(Of TupleExpressionSyntax)().Single()
+            Assert.Equal("(1, Nothing)", node.ToString())
+            Assert.Null(model.GetTypeInfo(node).Type)
+            Assert.Equal("System.Nullable(Of (System.Int32, System.String))", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString())
+            Assert.Equal(ConversionKind.WideningNullableTuple, model.GetConversion(node).Kind)
+
+            Assert.Equal("System.Nullable(Of (System.Int32, System.String))", model.GetTypeInfo(node.Parent).Type.ToTestDisplayString())
+            Assert.Equal("System.Nullable(Of (System.Int32, System.String))", model.GetTypeInfo(node.Parent).ConvertedType.ToTestDisplayString())
+
+        End Sub
+
+        <Fact>
+        Public Sub TupleTryCastNullableConversionWithTypelessTuple()
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Option Strict On
+Imports System
+Class C
+    Shared Sub Main()
+        Dim x As (Integer, String)? = TryCast((1, Nothing), (Integer, String)?)
+        Console.Write(x)
+    End Sub
+End Class
+]]></file>
+</compilation>, additionalRefs:=s_valueTupleRefs, options:=TestOptions.DebugExe)
+
+            comp.AssertTheseDiagnostics(<errors>
+BC30792: 'TryCast' operand must be reference type, but '(Integer, String)?' is a value type.
+        Dim x As (Integer, String)? = TryCast((1, Nothing), (Integer, String)?)
+                                                            ~~~~~~~~~~~~~~~~~~
+                                        </errors>)
+
+            Dim tree = comp.SyntaxTrees.Single()
+            Dim model = comp.GetSemanticModel(tree)
+            Dim node = tree.GetRoot().DescendantNodes().OfType(Of TupleExpressionSyntax)().Single()
+            Assert.Equal("(1, Nothing)", node.ToString())
+            Assert.Null(model.GetTypeInfo(node).Type)
+            Assert.Equal("(System.Int32, System.Object)", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString())
+            Assert.Equal(ConversionKind.WideningTuple, model.GetConversion(node).Kind)
+
+            Assert.Equal("System.Nullable(Of (System.Int32, System.String))", model.GetTypeInfo(node.Parent).Type.ToTestDisplayString())
+            Assert.Equal("System.Nullable(Of (System.Int32, System.String))", model.GetTypeInfo(node.Parent).ConvertedType.ToTestDisplayString())
+
+        End Sub
+
+        <Fact>
+        Public Sub TupleTryCastNullableConversionWithTypelessTuple2()
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Option Strict On
+Imports System
+Class C
+    Shared Sub M(Of T)()
+        Dim x = TryCast((0, Nothing), C(Of Integer, T))
+        Console.Write(x)
+    End Sub
+End Class
+Class C(Of T, U)
+End Class
+]]></file>
+</compilation>, additionalRefs:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics(<errors>
+BC30311: Value of type '(Integer, Object)' cannot be converted to 'C(Of Integer, T)'.
+        Dim x = TryCast((0, Nothing), C(Of Integer, T))
+                        ~~~~~~~~~~~~
+                                        </errors>)
+
+            Dim tree = comp.SyntaxTrees.Single()
+            Dim model = comp.GetSemanticModel(tree)
+            Dim node = tree.GetRoot().DescendantNodes().OfType(Of TupleExpressionSyntax)().Single()
+            Assert.Equal("(0, Nothing)", node.ToString())
+            Assert.Null(model.GetTypeInfo(node).Type)
+            Assert.Equal("(System.Int32, System.Object)", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString())
+            Assert.Equal(ConversionKind.WideningTuple, model.GetConversion(node).Kind)
+
+            Assert.Equal("C(Of System.Int32, T)", model.GetTypeInfo(node.Parent).Type.ToTestDisplayString())
+            Assert.Equal("C(Of System.Int32, T)", model.GetTypeInfo(node.Parent).ConvertedType.ToTestDisplayString())
+
+        End Sub
+
+        <Fact>
+        Public Sub TupleImplicitNullableConversionWithTypelessTuple()
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Option Strict On
+Class C
+    Shared Sub Main()
+        Dim x As (Integer, String)? = (1, Nothing)
+        System.Console.Write(x)
+    End Sub
+End Class
+]]></file>
+</compilation>, additionalRefs:=s_valueTupleRefs, options:=TestOptions.DebugExe)
+
+            comp.AssertNoDiagnostics()
+            CompileAndVerify(comp, expectedOutput:="(1, )")
+
+            Dim tree = comp.SyntaxTrees.Single()
+            Dim model = comp.GetSemanticModel(tree)
+            Dim node = tree.GetRoot().DescendantNodes().OfType(Of TupleExpressionSyntax)().Single()
+            Assert.Equal("(1, Nothing)", node.ToString())
+            Assert.Null(model.GetTypeInfo(node).Type)
+            Assert.Equal("System.Nullable(Of (System.Int32, System.String))", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString())
+            Assert.Equal(ConversionKind.WideningNullableTuple, model.GetConversion(node).Kind)
+
+        End Sub
+
+        <Fact>
+        Public Sub ImplicitConversionOnTypelessTupleWithUserConversion()
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Option Strict Off
+Structure C
+    Shared Sub Main()
+        Dim x As C = (1, Nothing)
+        Dim y As C? = (2, Nothing)
+    End Sub
+    Public Shared Widening Operator CType(ByVal d As (Integer, String)) As C
+          Return New C()
+    End Operator
+End Structure
+]]></file>
+</compilation>, additionalRefs:=s_valueTupleRefs, options:=TestOptions.DebugExe)
+
+            comp.AssertTheseDiagnostics(<errors>
+BC30311: Value of type '(Integer, Object)' cannot be converted to 'C?'.
+        Dim y As C? = (2, Nothing)
+                      ~~~~~~~~~~~~
+                                        </errors>)
+
+            Dim tree = comp.SyntaxTrees.Single()
+            Dim model = comp.GetSemanticModel(tree)
+            Dim firstTuple = tree.GetRoot().DescendantNodes().OfType(Of TupleExpressionSyntax)().ElementAt(0)
+            Assert.Equal("(1, Nothing)", firstTuple.ToString())
+            Assert.Null(model.GetTypeInfo(firstTuple).Type)
+            Assert.Equal("C", model.GetTypeInfo(firstTuple).ConvertedType.ToTestDisplayString())
+            Assert.Equal(ConversionKind.Narrowing Or ConversionKind.UserDefined, model.GetConversion(firstTuple).Kind)
+
+            Dim secondTuple = tree.GetRoot().DescendantNodes().OfType(Of TupleExpressionSyntax)().ElementAt(1)
+            Assert.Equal("(2, Nothing)", secondTuple.ToString())
+            Assert.Null(model.GetTypeInfo(secondTuple).Type)
+            Assert.Equal("System.Nullable(Of C)", model.GetTypeInfo(secondTuple).ConvertedType.ToTestDisplayString())
+            Assert.Equal(ConversionKind.DelegateRelaxationLevelNone, model.GetConversion(secondTuple).Kind)
+
+        End Sub
+
+        <Fact>
+        Public Sub DirectCastOnTypelessTupleWithUserConversion()
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Option Strict Off
+Structure C
+    Shared Sub Main()
+        Dim x = DirectCast((1, Nothing), C)
+        Dim y = DirectCast((2, Nothing), C?)
+    End Sub
+    Public Shared Widening Operator CType(ByVal d As (Integer, String)) As C
+          Return New C()
+    End Operator
+End Structure
+]]></file>
+</compilation>, additionalRefs:=s_valueTupleRefs, options:=TestOptions.DebugExe)
+
+            comp.AssertTheseDiagnostics(<errors>
+BC30311: Value of type '(Integer, Object)' cannot be converted to 'C'.
+        Dim x = DirectCast((1, Nothing), C)
+                           ~~~~~~~~~~~~
+BC30311: Value of type '(Integer, Object)' cannot be converted to 'C?'.
+        Dim y = DirectCast((2, Nothing), C?)
+                           ~~~~~~~~~~~~
+                                        </errors>)
+
+            Dim tree = comp.SyntaxTrees.Single()
+            Dim model = comp.GetSemanticModel(tree)
+            Dim firstTuple = tree.GetRoot().DescendantNodes().OfType(Of TupleExpressionSyntax)().ElementAt(0)
+            Assert.Equal("(1, Nothing)", firstTuple.ToString())
+            Assert.Null(model.GetTypeInfo(firstTuple).Type)
+            Assert.Equal("(System.Int32, System.Object)", model.GetTypeInfo(firstTuple).ConvertedType.ToTestDisplayString())
+            Assert.Equal(ConversionKind.WideningTuple, model.GetConversion(firstTuple).Kind)
+
+            Dim secondTuple = tree.GetRoot().DescendantNodes().OfType(Of TupleExpressionSyntax)().ElementAt(1)
+            Assert.Equal("(2, Nothing)", secondTuple.ToString())
+            Assert.Null(model.GetTypeInfo(secondTuple).Type)
+            Assert.Equal("(System.Int32, System.Object)", model.GetTypeInfo(secondTuple).ConvertedType.ToTestDisplayString())
+            Assert.Equal(ConversionKind.WideningTuple, model.GetConversion(secondTuple).Kind)
+
+        End Sub
+
+        <Fact>
+        Public Sub TryCastOnTypelessTupleWithUserConversion()
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Option Strict Off
+Structure C
+    Shared Sub Main()
+        Dim x = TryCast((1, Nothing), C)
+        Dim y = TryCast((2, Nothing), C?)
+    End Sub
+    Public Shared Widening Operator CType(ByVal d As (Integer, String)) As C
+          Return New C()
+    End Operator
+End Structure
+]]></file>
+</compilation>, additionalRefs:=s_valueTupleRefs, options:=TestOptions.DebugExe)
+
+            comp.AssertTheseDiagnostics(<errors>
+BC30792: 'TryCast' operand must be reference type, but 'C' is a value type.
+        Dim x = TryCast((1, Nothing), C)
+                                      ~
+BC30792: 'TryCast' operand must be reference type, but 'C?' is a value type.
+        Dim y = TryCast((2, Nothing), C?)
+                                      ~~
+                                        </errors>)
+
+            Dim tree = comp.SyntaxTrees.Single()
+            Dim model = comp.GetSemanticModel(tree)
+            Dim firstTuple = tree.GetRoot().DescendantNodes().OfType(Of TupleExpressionSyntax)().ElementAt(0)
+            Assert.Equal("(1, Nothing)", firstTuple.ToString())
+            Assert.Null(model.GetTypeInfo(firstTuple).Type)
+            Assert.Equal("(System.Int32, System.Object)", model.GetTypeInfo(firstTuple).ConvertedType.ToTestDisplayString())
+            Assert.Equal(ConversionKind.WideningTuple, model.GetConversion(firstTuple).Kind)
+
+            Dim secondTuple = tree.GetRoot().DescendantNodes().OfType(Of TupleExpressionSyntax)().ElementAt(1)
+            Assert.Equal("(2, Nothing)", secondTuple.ToString())
+            Assert.Null(model.GetTypeInfo(secondTuple).Type)
+            Assert.Equal("(System.Int32, System.Object)", model.GetTypeInfo(secondTuple).ConvertedType.ToTestDisplayString())
+            Assert.Equal(ConversionKind.WideningTuple, model.GetConversion(secondTuple).Kind)
+
+        End Sub
+
+        <Fact>
+        Public Sub CTypeOnTypelessTupleWithUserConversion()
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Option Strict Off
+Structure C
+    Shared Sub Main()
+        Dim x = CType((1, Nothing), C)
+        Dim y = CType((2, Nothing), C?)
+    End Sub
+    Public Shared Widening Operator CType(ByVal d As (Integer, String)) As C
+          Return New C()
+    End Operator
+End Structure
+]]></file>
+</compilation>, additionalRefs:=s_valueTupleRefs, options:=TestOptions.DebugExe)
+
+            comp.AssertTheseDiagnostics(<errors>
+BC30311: Value of type '(Integer, Object)' cannot be converted to 'C?'.
+        Dim y = CType((2, Nothing), C?)
+                      ~~~~~~~~~~~~
+                                        </errors>)
+
+            Dim tree = comp.SyntaxTrees.Single()
+            Dim model = comp.GetSemanticModel(tree)
+            Dim firstTuple = tree.GetRoot().DescendantNodes().OfType(Of TupleExpressionSyntax)().ElementAt(0)
+            Assert.Equal("(1, Nothing)", firstTuple.ToString())
+            Assert.Null(model.GetTypeInfo(firstTuple).Type)
+            Assert.Equal("(System.Int32, System.Object)", model.GetTypeInfo(firstTuple).ConvertedType.ToTestDisplayString())
+            Assert.Equal(ConversionKind.WideningTuple, model.GetConversion(firstTuple).Kind)
+
+            Dim secondTuple = tree.GetRoot().DescendantNodes().OfType(Of TupleExpressionSyntax)().ElementAt(1)
+            Assert.Equal("(2, Nothing)", secondTuple.ToString())
+            Assert.Null(model.GetTypeInfo(secondTuple).Type)
+            Assert.Equal("(System.Int32, System.Object)", model.GetTypeInfo(secondTuple).ConvertedType.ToTestDisplayString())
+            Assert.Equal(ConversionKind.WideningTuple, model.GetConversion(secondTuple).Kind)
+
+        End Sub
+
+        <Fact>
         Public Sub TupleTargetTypeLambda()
 
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
@@ -8259,6 +8589,35 @@ End Module
             Assert.NotNull(model.GetSymbolInfo(type).Symbol)
             Assert.Equal("System.Int32", model.GetSymbolInfo(type).Symbol.ToTestDisplayString())
 
+        End Sub
+
+
+        <Fact(Skip:="See bug 16697")>
+        <WorkItem(16697, "https://github.com/dotnet/roslyn/issues/16697")>
+        Public Sub GetSymbolInfo_01()
+            Dim source = "
+ Class C
+    Shared Sub Main()
+         Dim x1 = (Alice:=1, ""hello"")
+
+         Dim Alice = x1.Alice
+    End Sub
+End Class
+ "
+
+            Dim tree = Parse(source, options:=TestOptions.Regular)
+            Dim comp = CreateCompilationWithMscorlib(tree)
+
+            Dim model = comp.GetSemanticModel(tree, ignoreAccessibility:=False)
+            Dim nodes = tree.GetCompilationUnitRoot().DescendantNodes()
+
+            Dim nc = nodes.OfType(Of NameColonEqualsSyntax)().ElementAt(0)
+
+            Dim sym = model.GetSymbolInfo(nc.Name)
+
+            Assert.Equal("Alice", sym.Symbol.Name)
+            Assert.Equal(SymbolKind.Field, sym.Symbol.Kind) ' Incorrectly returns Local
+            Assert.Equal(nc.Name.GetLocation(), sym.Symbol.Locations(0)) ' Incorrect location
         End Sub
 
         <Fact>
