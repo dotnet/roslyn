@@ -1475,6 +1475,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_CompilerAndLanguageVersion = 8304,
         WRN_Experimental = 8305,
         ERR_TupleInferredNamesNotAvailable = 8306,
+        ERR_TypelessTupleInAs = 8307,
 
         #region diagnostics for C# 7.1
 

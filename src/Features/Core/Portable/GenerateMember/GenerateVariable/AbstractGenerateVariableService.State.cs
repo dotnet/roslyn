@@ -1,5 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -36,6 +37,8 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
             public ITypeSymbol TypeMemberType { get; private set; }
             public ITypeSymbol LocalType { get; private set; }
 
+            public bool OfferReadOnlyFieldFirst { get; private set; }
+
             public bool IsWrittenTo { get; private set; }
             public bool IsOnlyWrittenTo { get; private set; }
 
@@ -46,6 +49,9 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
 
             public bool IsInExecutableBlock { get; private set; }
             public bool IsInConditionalAccessExpression { get; private set; }
+
+            public Location AfterThisLocation { get; private set; }
+            public Location BeforeThisLocation { get; private set; }
 
             public static async Task<State> GenerateAsync(
                 TService service,
@@ -252,7 +258,105 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 this.IsInConstructor = DetermineIsInConstructor(document);
                 this.IsInMemberContext = this.SimpleNameOpt != this.SimpleNameOrMemberAccessExpressionOpt ||
                                          syntaxFacts.IsObjectInitializerNamedAssignmentIdentifier(this.SimpleNameOrMemberAccessExpressionOpt);
+
+                CheckSurroundingContext(document, SymbolKind.Field, cancellationToken);
+                CheckSurroundingContext(document, SymbolKind.Property, cancellationToken);
+
                 return true;
+            }
+
+            private void CheckSurroundingContext(
+                SemanticDocument document, SymbolKind symbolKind, CancellationToken cancellationToken)
+            {
+                // See if we're being assigned to.  If so, look at the before/after statements
+                // to see if either is an assignment.  If so, we can use that to try to determine
+                // user patterns that can be used when generating the member.  For example,
+                // if the sibling assignment is to a readonly field, then we want to offer to 
+                // generate a readonly field vs a writable field.
+                //
+                // Also, because users often like to keep members/assignments in the same order
+                // we can pick a good place for the new member based on the surrounding assignments.
+                var syntaxFacts = document.Document.GetLanguageService<ISyntaxFactsService>();
+                var simpleName = this.SimpleNameOrMemberAccessExpressionOpt;
+
+                if (syntaxFacts.IsLeftSideOfAssignment(simpleName))
+                {
+                    var assignmentStatement = simpleName.Ancestors().FirstOrDefault(syntaxFacts.IsSimpleAssignmentStatement);
+                    if (assignmentStatement != null)
+                    {
+                        syntaxFacts.GetPartsOfAssignmentStatement(
+                            assignmentStatement, out var left, out var right);
+
+                        if (left == simpleName)
+                        {
+                            var block = assignmentStatement.Parent;
+                            var children = block.ChildNodesAndTokens();
+
+                            var statementindex = GetStatementIndex(children, assignmentStatement);
+
+                            var previousAssignedSymbol = TryGetAssignedSymbol(document, symbolKind, children, statementindex - 1, cancellationToken);
+                            var nextAssignedSymbol = TryGetAssignedSymbol(document, symbolKind, children, statementindex + 1, cancellationToken);
+
+                            if (symbolKind == SymbolKind.Field)
+                            {
+                                this.OfferReadOnlyFieldFirst = FieldIsReadOnly(previousAssignedSymbol) ||
+                                                               FieldIsReadOnly(nextAssignedSymbol);
+                            }
+
+                            this.AfterThisLocation = this.AfterThisLocation ?? previousAssignedSymbol?.Locations.FirstOrDefault();
+                            this.BeforeThisLocation = this.BeforeThisLocation ?? nextAssignedSymbol?.Locations.FirstOrDefault();
+                        }
+                    }
+                }
+            }
+
+            private ISymbol TryGetAssignedSymbol(
+                SemanticDocument document, SymbolKind symbolKind,
+                ChildSyntaxList children, int index,
+                CancellationToken cancellationToken)
+            {
+                var syntaxFacts = document.Document.GetLanguageService<ISyntaxFactsService>();
+                if (index >= 0 && index < children.Count)
+                {
+                    var sibling = children[index];
+                    if (sibling.IsNode)
+                    {
+                        var siblingNode = sibling.AsNode();
+                        if (syntaxFacts.IsSimpleAssignmentStatement(siblingNode))
+                        {
+                            syntaxFacts.GetPartsOfAssignmentStatement(
+                                siblingNode, out var left, out var right);
+
+                            var symbol = document.SemanticModel.GetSymbolInfo(left, cancellationToken).Symbol;
+                            if (symbol?.Kind == symbolKind &&
+                                symbol.ContainingType.Equals(this.ContainingType))
+                            {
+                                return symbol;
+                            }
+                        }
+                    }
+                }
+
+                return null;
+            }
+
+            private bool FieldIsReadOnly(ISymbol symbol)
+                => symbol is IFieldSymbol field && field.IsReadOnly;
+
+            private int GetStatementIndex(ChildSyntaxList children, SyntaxNode statement)
+            {
+                var index = 0;
+                foreach (var child in children)
+                {
+                    if (child == statement)
+                    {
+                        return index;
+                    }
+
+                    index++;
+                }
+
+                throw ExceptionUtilities.Unreachable;
             }
 
             private void DetermineFieldType(

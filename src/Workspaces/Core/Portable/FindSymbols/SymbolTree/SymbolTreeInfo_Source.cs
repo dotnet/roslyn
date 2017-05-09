@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 allChecksums.Add(compilationOptionsChecksum);
                 allChecksums.Add(parseOptionsChecksum);
 
-                var checksum = Checksum.Create(nameof(SymbolTreeInfo), allChecksums);
+                var checksum = Checksum.Create(WellKnownSynchronizationKind.SymbolTreeInfo, allChecksums);
                 return checksum;
             }
             finally
