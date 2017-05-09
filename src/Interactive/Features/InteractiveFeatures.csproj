@@ -65,6 +65,9 @@
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Services.UnitTests" />
     <InternalsVisibleToTest Include="RoslynETAHost" />
     <InternalsVisibleToTest Include="RoslynTaoActions" />
+    <!-- TypeScript for the support of the Node Interactive window in NodeTools -->
+    <InternalsVisibleToTypeScript Include="Microsoft.CodeAnalysis.TypeScript.EditorFeatures" />
+    <InternalsVisibleToTypeScript Include="Microsoft.VisualStudio.LanguageServices.TypeScript" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Interactive\Core\InteractiveHostOptions.cs" />

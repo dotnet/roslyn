@@ -87,6 +87,9 @@
     <InternalsVisibleTo Include="Microsoft.VisualStudio.CSharp.Repl" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.VisualBasic.Repl" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.InteractiveServices" />
+    <!-- TypeScript for the support of the Node Interactive window in NodeTools -->
+    <InternalsVisibleToTypeScript Include="Microsoft.CodeAnalysis.TypeScript.EditorFeatures" />
+    <InternalsVisibleToTypeScript Include="Microsoft.VisualStudio.LanguageServices.TypeScript" />
     <!-- The rest are for test purposes only. -->
     <InternalsVisibleTo Include="Roslyn.Hosting.Diagnostics" />
     <InternalsVisibleToTest Include="Roslyn.InteractiveHost.UnitTests" />
