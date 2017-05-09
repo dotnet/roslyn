@@ -222,7 +222,13 @@ namespace Microsoft.CodeAnalysis.SQLite
                 // For Roslyn, we use the persistence service as a cache.  Do we don't need durability.
                 // i.e. even if we've written something to the DB, if the system crashes, we're ok with
                 // what we've written not actually making it to do the DB once the system comes up again.
-                connection.ExecuteCommand("PRAGMA journal_mode=WAL;");
+                using (var resettableStatement = connection.GetResettableStatement("PRAGMA journal_mode=WAL;"))
+                {
+                    // journal_mode is a steppable statement.  So we can't call .ExecuteCommand (since
+                    // that throws if it does not get 'Done' back).
+                    resettableStatement.Statement.Step();
+                }
+
                 connection.ExecuteCommand("PRAGMA synchronous=NORMAL;");
 
                 // First, create all our tables
