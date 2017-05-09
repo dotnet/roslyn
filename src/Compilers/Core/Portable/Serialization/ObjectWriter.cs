@@ -319,15 +319,12 @@ namespace Roslyn.Utilities
             }
 
             public bool TryGetReferenceId(object value, out int referenceId)
-            {
-                return _valueToIdMap.TryGetValue(value, out referenceId);
-            }
+                => _valueToIdMap.TryGetValue(value, out referenceId);
 
-            public int Add(object value)
+            public void Add(object value)
             {
                 var id = _nextId++;
                 _valueToIdMap.Add(value, id);
-                return id;
             }
         }
 
