@@ -92,7 +92,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 await _snapshotClientOpt.InvokeAsync(WellKnownServiceHubServices.ServiceHubServiceBase_Initialize, _currentSessionId, PinnedScopeOpt.Primary, PinnedScopeOpt.SolutionChecksum).ConfigureAwait(false);
             }
 
-            await _serviceClient.InvokeAsync(WellKnownServiceHubServices.ServiceHubServiceBase_Initialize, _currentSessionId, PinnedScopeOpt?.Primary, PinnedScopeOpt?.SolutionChecksum).ConfigureAwait(false);
+            await _serviceClient.InvokeAsync(WellKnownServiceHubServices.ServiceHubServiceBase_Initialize, _currentSessionId, PinnedScopeOpt?.Primary ?? false, PinnedScopeOpt?.SolutionChecksum).ConfigureAwait(false);
         }
 
         public override Task InvokeAsync(string targetName, params object[] arguments)

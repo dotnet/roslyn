@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.Remote.DebugUtil;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
@@ -39,22 +40,30 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
         public async Task TestGetSolutionWithPrimaryFlag()
         {
-            var code = @"class Test { void Method() { } }";
+            var code1 = @"class Test1 { void Method() { } }";
 
-            using (var workspace = TestWorkspace.CreateCSharp(code))
+            using (var workspace = TestWorkspace.CreateCSharp(code1))
             {
                 var solution = workspace.CurrentSolution;
                 var solutionChecksum = await solution.State.GetChecksumAsync(CancellationToken.None);
 
-                var service1 = await GetSolutionServiceAsync(solution);
-                var synched1 = await service1.GetSolutionAsync(solutionChecksum, CancellationToken.None);
-                Assert.Equal(solutionChecksum, await synched1.State.GetChecksumAsync(CancellationToken.None));
-                Assert.True(synched1.Workspace is TemporaryWorkspace);
+                var service = await GetSolutionServiceAsync(solution);
+                var synched = await service.GetSolutionAsync(solutionChecksum, CancellationToken.None);
+                Assert.Equal(solutionChecksum, await synched.State.GetChecksumAsync(CancellationToken.None));
+                Assert.True(synched.Workspace is TemporaryWorkspace);
+            }
 
-                var service2 = await GetSolutionServiceAsync(solution);
-                var synched2 = await service2.GetSolutionAsync(solutionChecksum, primary: true, cancellationToken: CancellationToken.None);
-                Assert.Equal(solutionChecksum, await synched2.State.GetChecksumAsync(CancellationToken.None));
-                Assert.True(synched2.Workspace is RemoteWorkspace);
+            var code2 = @"class Test2 { void Method() { } }";
+
+            using (var workspace = TestWorkspace.CreateCSharp(code2))
+            {
+                var solution = workspace.CurrentSolution;
+                var solutionChecksum = await solution.State.GetChecksumAsync(CancellationToken.None);
+
+                var service = await GetSolutionServiceAsync(solution);
+                var synched = await service.GetSolutionAsync(solutionChecksum, primary: true, cancellationToken: CancellationToken.None);
+                Assert.Equal(solutionChecksum, await synched.State.GetChecksumAsync(CancellationToken.None));
+                Assert.True(synched.Workspace is RemoteWorkspace);
             }
         }
 
