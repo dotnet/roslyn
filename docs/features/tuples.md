@@ -157,7 +157,7 @@ var t = (sum: 0, count: 1);
 System.ValueTuple<int, int> vt = t;  // identity conversion 
 (int moo, int boo) t2 = vt;  		 // identity conversion
 
-t2.moo = 1;
+t2.boo = 1;
 ```
 That said, if you have an element name at *one* position on one side of a conversion, and the same name at *another* position on the other side. That would be indication that the code almost certainly contains a bug:
 
