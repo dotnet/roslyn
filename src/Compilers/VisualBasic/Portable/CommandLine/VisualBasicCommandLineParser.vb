@@ -1203,7 +1203,7 @@ lVbRuntimePlus:
                 AddDiagnostic(diagnostics, ERRID.ERR_NoRefOutWhenRefOnly)
             End If
 
-            If metadataReferences.Any(Function(r) r.Properties.EmbedInteropTypes) AndAlso (refOnly OrElse outputRefFileName IsNot Nothing) Then
+            If (refOnly OrElse outputRefFileName IsNot Nothing) AndAlso metadataReferences.Any(Function(r) r.Properties.EmbedInteropTypes) Then
                 AddDiagnostic(diagnostics, ERRID.ERR_NoEmbeddedTypeWhenRefOutOrRefOnly)
             End If
 

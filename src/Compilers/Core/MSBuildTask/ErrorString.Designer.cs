@@ -99,6 +99,15 @@ namespace Microsoft.CodeAnalysis.BuildTasks {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Could not extract the MVID from &quot;{0}&quot;. Are you sure it is a reference assembly?.
+        /// </summary>
+        internal static string CopyRefAssembly_SourceNotRef1 {
+            get {
+                return ResourceManager.GetString("CopyRefAssembly_SourceNotRef1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to MSB3053: The assembly alias &quot;{1}&quot; on reference &quot;{0}&quot; contains illegal characters..
         /// </summary>
         internal static string Csc_AssemblyAliasContainsIllegalCharacters {

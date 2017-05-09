@@ -1178,7 +1178,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 AddDiagnostic(diagnostics, diagnosticOptions, ErrorCode.ERR_NoRefOutWhenRefOnly);
             }
 
-            if (metadataReferences.Any(r => r.Properties.EmbedInteropTypes) && (refOnly || outputRefFilePath != null))
+            if ((refOnly || outputRefFilePath != null) && metadataReferences.Any(r => r.Properties.EmbedInteropTypes))
             {
                 AddDiagnostic(diagnostics, diagnosticOptions, ErrorCode.ERR_NoEmbeddedTypeWhenRefOutOrRefOnly);
             }
