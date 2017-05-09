@@ -292,15 +292,15 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                             var block = assignmentStatement.Parent;
                             var children = block.ChildNodesAndTokens();
 
-                            var statementindex = GetStatementindex(children, assignmentStatement);
+                            var statementindex = GetStatementIndex(children, assignmentStatement);
 
                             var previousAssignedSymbol = TryGetAssignedSymbol(document, symbolKind, children, statementindex - 1, cancellationToken);
                             var nextAssignedSymbol = TryGetAssignedSymbol(document, symbolKind, children, statementindex + 1, cancellationToken);
 
                             if (symbolKind == SymbolKind.Field)
                             {
-                                this.OfferReadOnlyFieldFirst = IsReadOnly(previousAssignedSymbol) ||
-                                                               IsReadOnly(nextAssignedSymbol);
+                                this.OfferReadOnlyFieldFirst = FieldIsReadOnly(previousAssignedSymbol) ||
+                                                               FieldIsReadOnly(nextAssignedSymbol);
                             }
 
                             this.AfterThisLocation = this.AfterThisLocation ?? previousAssignedSymbol?.Locations.FirstOrDefault();
@@ -340,35 +340,10 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 return null;
             }
 
-            private bool IsReadOnly(ISymbol symbol)
-            {
-                if (symbol == null)
-                {
-                    return false;
-                }
+            private bool FieldIsReadOnly(ISymbol symbol)
+                => symbol is IFieldSymbol field && field.IsReadOnly;
 
-                switch (symbol)
-                {
-                    case IFieldSymbol field: return field.IsReadOnly;
-                    case IPropertySymbol property:
-                        if (property.SetMethod == null)
-                        {
-                            return true;
-                        }
-
-                        if (property.ContainingType.GetMembers().OfType<IFieldSymbol>().Any(
-                                f => property.SetMethod.Equals(f.AssociatedSymbol)))
-                        {
-                            return true;
-                        }
-
-                        return false;
-                }
-
-                throw ExceptionUtilities.Unreachable;
-            }
-
-            private int GetStatementindex(ChildSyntaxList children, SyntaxNode statement)
+            private int GetStatementIndex(ChildSyntaxList children, SyntaxNode statement)
             {
                 var index = 0;
                 foreach (var child in children)
