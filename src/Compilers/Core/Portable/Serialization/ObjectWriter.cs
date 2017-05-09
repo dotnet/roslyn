@@ -281,7 +281,7 @@ namespace Roslyn.Utilities
         /// <summary>
         /// An object reference to reference-id map, that can share base data efficiently.
         /// </summary>
-        private class WriterReferenceMap
+        private struct WriterReferenceMap
         {
             private readonly Dictionary<object, int> _valueToIdMap;
             private readonly bool _valueEquality;
