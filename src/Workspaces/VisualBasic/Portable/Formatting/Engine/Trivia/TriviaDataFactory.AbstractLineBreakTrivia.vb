@@ -26,7 +26,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                            lineBreaks As Integer,
                            indentation As Integer,
                            elastic As Boolean)
-                MyBase.New(optionSet, lineBreaks, indentation, elastic, LanguageNames.VisualBasic)
+                MyBase.New(optionSet, lineBreaks, indentation, elastic, forceSecondTokenFirstOnLine:=False, language:=LanguageNames.VisualBasic)
 
                 Me._original = original
                 Me._newString = CreateStringFromState()
