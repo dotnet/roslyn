@@ -951,7 +951,83 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static int FixedBufferElementSizeInBytes(this TypeSymbol type)
         {
-            return type.SpecialType.FixedBufferElementSizeInBytes();
+            // Fixed size buffer must be of type bool, byte, char, short, int, long, sbyte, ushort, uint, ulong, float,
+            // double, or an explicitly sized struct containing only fields that are one of the supported types (including
+            // fixed size buffers of the supported types).
+
+            var specialType = type.SpecialType;
+
+            if ((specialType != SpecialType.None) || (type.TypeKind != TypeKind.Struct))
+            {
+                // We are either a special type (bool, byte, char, short, int, long, sbyte, ushort, uint, ulong, float,
+                // or double) and we will return the correct element size or we are not a special type and we are also
+                // not a struct, in which case we will return 0.
+                return specialType.FixedBufferElementSizeInBytes();
+            }
+
+            // We are a struct, so we need to validate that we have the 'StructLayoutAttribute' with the named argument
+            // 'Size' set. This allows us to have the correct element size without having to compute the actual layout
+            // of the struct (which is not something we should do, since that is up to the runtime to decide).
+            var attributes = type.GetAttributes();
+
+            foreach (var attribute in attributes)
+            {
+                if (!attribute.IsTargetAttribute(type, AttributeDescription.StructLayoutAttribute))
+                {
+                    continue;
+                }
+
+                // We are an instance of 'StructLayoutAttribute', so we need to confirm we have required the named argument,'Size', set.
+                var namedArguments = attribute.NamedArguments;
+
+                foreach (var namedArgument in namedArguments)
+                {
+                    if (namedArgument.Key != "Size")
+                    {
+                        continue;
+                    }
+
+                    // PROTOTYPE: A user can specify a struct layout size of 0. We should handle this case appropriately
+                    var sizeInBytes = namedArgument.Value.DecodeValue<int>(SpecialType.System_Int32);
+
+                    // We had the appropriate named argument set, so the final step of validation is to
+                    // ensure that we only contain the supported types listed above.
+                    var members = type.GetMembers();
+
+                    foreach (var member in members)
+                    {
+                        if (member.Kind != SymbolKind.Field)
+                        {
+                            continue;
+                        }
+
+                        var fieldSymbol = (FieldSymbol)(member);
+                        var fieldSymbolType = fieldSymbol.Type;
+
+                        if (fieldSymbol.IsFixed)
+                        {
+                            // We are a fixed buffer, adjust the 'fieldSymbolType' variable to be the
+                            // pointed at type, so we can get an appropriate element size.
+                            fieldSymbolType = ((PointerTypeSymbol)fieldSymbolType).PointedAtType;
+                        }
+
+                        // PROTOTYPE: This call can be indirectly recursive. It needs to be updated to handle recursive
+                        // fixed buffers such as: struct S1 { fixed S2 buffer[2]; } struct S2 { fixed S1 buffer[2]; }
+                        int elementSize = fieldSymbolType.FixedBufferElementSizeInBytes();
+
+                        if (elementSize == 0)
+                        {
+                            // TODO: Add Diagnostic - One of the members was not a supported type.
+                            return 0;
+                        }
+                    }
+
+                    return sizeInBytes;
+                }
+            }
+
+            // TODO: Add Diagnostic - We were a struct, but did not have an explicitly specified size.
+            return 0;
         }
 
         // check that its type is allowed for Volatile
