@@ -53,26 +53,6 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        public async Task<Solution> GetSolutionAsync(Checksum solutionChecksum, OptionSet optionSet, CancellationToken cancellationToken)
-        {
-            // get solution
-            var baseSolution = await GetSolutionAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
-            if (optionSet == null)
-            {
-                return baseSolution;
-            }
-
-            // since options belong to workspace, we can't share solution
-            // create temporary workspace
-            var tempWorkspace = new TemporaryWorkspace(baseSolution);
-
-            // set merged options
-            tempWorkspace.Options = MergeOptions(tempWorkspace.Options, optionSet);
-
-            // return new solution
-            return tempWorkspace.CurrentSolution;
-        }
-
         public async Task UpdatePrimaryWorkspaceAsync(Checksum solutionChecksum, CancellationToken cancellationToken)
         {
             var currentSolution = s_primaryWorkspace.CurrentSolution;
@@ -89,17 +69,6 @@ namespace Microsoft.CodeAnalysis.Remote
                 var solution = await UpdatePrimaryWorkspace_NoLockAsync(solutionChecksum, currentSolution, cancellationToken).ConfigureAwait(false);
                 s_primarySolution = Tuple.Create(solutionChecksum, solution);
             }
-        }
-
-        private OptionSet MergeOptions(OptionSet workspaceOptions, OptionSet userOptions)
-        {
-            var newOptions = workspaceOptions;
-            foreach (var key in userOptions.GetChangedOptions(workspaceOptions))
-            {
-                newOptions = newOptions.WithChangedOption(key, userOptions.GetOption(key));
-            }
-
-            return newOptions;
         }
 
         private async Task<Solution> CreateSolution_NoLockAsync(Checksum solutionChecksum, Solution baseSolution, CancellationToken cancellationToken)
