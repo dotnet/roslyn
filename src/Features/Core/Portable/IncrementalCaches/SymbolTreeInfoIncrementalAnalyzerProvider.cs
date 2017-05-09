@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.FindSymbols.SymbolTree;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.NavigateTo;
+using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Roslyn.Utilities;
 
@@ -131,10 +132,16 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
             public async Task<SymbolTreeInfo> TryGetSourceSymbolTreeInfoAsync(
                 Project project, CancellationToken cancellationToken)
             {
-                if (_projectToInfo.TryGetValue(project.Id, out var projectInfo) &&
-                    projectInfo.Checksum == await SymbolTreeInfo.GetSourceSymbolsChecksumAsync(project, cancellationToken).ConfigureAwait(false))
+                if (_projectToInfo.TryGetValue(project.Id, out var projectInfo))
                 {
-                    return projectInfo;
+                    var projectStateChecksum = await project.State.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
+                    var currentChecksum = await SymbolTreeInfo.GetSourceSymbolsChecksumAsync(
+                        project, projectStateChecksum, cancellationToken).ConfigureAwait(false);
+
+                    if (projectInfo.Checksum == currentChecksum)
+                    {
+                        return projectInfo;
+                    }
                 }
 
                 return null;
@@ -198,16 +205,19 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                     return;
                 }
 
+                var projectStateChecksums = await project.State.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
+
                 // Produce the indices for the source and metadata symbols in parallel.
-                var projectTask = UpdateSourceSymbolTreeInfoAsync(project, cancellationToken);
-                var referencesTask = UpdateReferencesAync(project, cancellationToken);
+                var projectTask = UpdateSourceSymbolTreeInfoAsync(project, projectStateChecksums, cancellationToken);
+                var referencesTask = UpdateReferencesAync(project, projectStateChecksums, cancellationToken);
 
                 await Task.WhenAll(projectTask, referencesTask).ConfigureAwait(false);
             }
 
-            private async Task UpdateSourceSymbolTreeInfoAsync(Project project, CancellationToken cancellationToken)
+            private async Task UpdateSourceSymbolTreeInfoAsync(
+                Project project, ProjectStateChecksums checksums, CancellationToken cancellationToken)
             {
-                var checksum = await SymbolTreeInfo.GetSourceSymbolsChecksumAsync(project, cancellationToken).ConfigureAwait(false);
+                var checksum = await SymbolTreeInfo.GetSourceSymbolsChecksumAsync(project, checksums, cancellationToken).ConfigureAwait(false);
                 if (!_projectToInfo.TryGetValue(project.Id, out var projectInfo) ||
                     projectInfo.Checksum != checksum)
                 {
@@ -220,18 +230,27 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                 }
             }
 
-            private Task UpdateReferencesAync(Project project, CancellationToken cancellationToken)
+            private Task UpdateReferencesAync(
+                Project project, ProjectStateChecksums projectStateChecksums, CancellationToken cancellationToken)
             {
-                // Process all metadata references in parallel.
-                var tasks = project.MetadataReferences.OfType<PortableExecutableReference>()
-                                   .Select(r => UpdateReferenceAsync(project, r, cancellationToken))
-                                   .ToArray();
+                var tasks = new List<Task>();
+
+                for (int i = 0, n = project.MetadataReferences.Count; i < n; i++)
+                {
+                    var reference = project.MetadataReferences[i] as PortableExecutableReference;
+                    if (reference != null)
+                    {
+                        var checksum = projectStateChecksums.MetadataReferences[i];
+                        tasks.Add(UpdateReferenceAsync(project, reference, checksum, cancellationToken));
+                    }
+                }
 
                 return Task.WhenAll(tasks);
             }
 
             private async Task UpdateReferenceAsync(
-                Project project, PortableExecutableReference reference, CancellationToken cancellationToken)
+                Project project, PortableExecutableReference reference,
+                Checksum checksum, CancellationToken cancellationToken)
             {
                 var key = GetReferenceKey(reference);
                 if (key == null)
@@ -239,7 +258,6 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                     return;
                 }
 
-                var checksum = SymbolTreeInfo.GetMetadataChecksum(project.Solution, reference, cancellationToken);
                 if (!_metadataPathToInfo.TryGetValue(key, out var metadataInfo) ||
                     metadataInfo.SymbolTreeInfo.Checksum != checksum)
                 {

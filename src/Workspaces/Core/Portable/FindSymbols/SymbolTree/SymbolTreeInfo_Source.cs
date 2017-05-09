@@ -35,7 +35,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 project, checksum, loadOnly: false, cancellationToken: cancellationToken);
         }
 
-        public static async Task<Checksum> GetSourceSymbolsChecksumAsync(Project project, CancellationToken cancellationToken)
+        public static async Task<Checksum> GetSourceSymbolsChecksumAsync(
+            Project project, ProjectStateChecksums projectStateChecksums, CancellationToken cancellationToken)
         {
             // The SymbolTree for source is built from the source-symbols from the project's compilation's
             // assembly.  Specifically, we only get the name, kind and parent/child relationship of all the
@@ -44,7 +45,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // the text of any document changes, or if options for the project change.  So we build our
             // checksum out of that data.
             var serializer = new Serializer(project.Solution.Workspace);
-            var projectStateChecksums = await project.State.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
 
             // Order the documents by FilePath.  Default ordering in the RemoteWorkspace is
             // to be ordered by Guid (which is not consistent across VS sessions).
