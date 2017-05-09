@@ -33,7 +33,7 @@ namespace Roslyn.Utilities
         /// for performance.  While the string-reference-map uses value-equality for greater cache hits 
         /// and reuse.
         /// 
-        /// These are not readonly because they're structs and we mutate htemthem.
+        /// These are not readonly because they're structs and we mutate them.
         /// </summary>
         private WriterReferenceMap _objectReferenceMap;
         private WriterReferenceMap _stringReferenceMap;

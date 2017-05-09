@@ -38,7 +38,7 @@ namespace Roslyn.Utilities
         /// <summary>
         /// Map of reference id's to deserialized objects.
         ///
-        /// These are not readonly because they're structs and we mutate htemthem.
+        /// These are not readonly because they're structs and we mutate them.
         /// </summary>
         private ReaderReferenceMap<object> _objectReferenceMap;
         private ReaderReferenceMap<string> _stringReferenceMap;
