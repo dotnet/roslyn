@@ -28,7 +28,7 @@ class Program
 }
 ";
 
-            var comp = CompileAndVerify(text, verify: false, parseOptions: TestOptions.Regular);
+            var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular);
 
             comp.VerifyIL("Program.M()", @"
 {

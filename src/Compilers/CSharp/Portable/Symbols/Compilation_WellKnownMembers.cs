@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// Returns a value indicating whether this compilation has a member that needs IsReadOnlyAttribute to be generated during emit phase.
-        /// The value is set during during binding the symbols that need that attribute, and is frozen on first trial to get it.
+        /// The value is set during binding the symbols that need that attribute, and is frozen on first trial to get it.
         /// Freezing is needed to make sure that nothing tries to modify the value after the value is read.
         /// </summary>
         internal bool NeedsGeneratedIsReadOnlyAttribute
@@ -45,11 +45,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 _needsGeneratedIsReadOnlyAttribute_IsFrozen = true;
                 return _needsGeneratedIsReadOnlyAttribute_Value;
-            }
-            private set
-            {
-                Debug.Assert(!_needsGeneratedIsReadOnlyAttribute_IsFrozen);
-                _needsGeneratedIsReadOnlyAttribute_Value = value;
             }
         }
 
@@ -438,17 +433,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             return TrySynthesizeAttribute(WellKnownMember.System_Diagnostics_DebuggerStepThroughAttribute__ctor);
         }
 
-        internal void EnsureIsReadOnlyAttributeExists(DiagnosticBag diagnostics, Location location, bool modifyCompilation)
+        internal void EnsureIsReadOnlyAttributeExists(DiagnosticBag diagnostics, Location location, bool modifyCompilationForRefReadOnly)
         {
-            var isNeeded = CheckIfIsReadOnlyAttributeNeeded(diagnostics, location);
+            var isNeeded = CheckIfIsReadOnlyAttributeShouldBeEmbedded(diagnostics, location);
 
-            if (isNeeded && modifyCompilation)
+            if (isNeeded && modifyCompilationForRefReadOnly)
             {
-                NeedsGeneratedIsReadOnlyAttribute = true;
+                Debug.Assert(!_needsGeneratedIsReadOnlyAttribute_IsFrozen);
+                _needsGeneratedIsReadOnlyAttribute_Value = true;
             }
         }
 
-        internal bool CheckIfIsReadOnlyAttributeNeeded(DiagnosticBag diagnosticsOpt, Location locationOpt)
+        internal bool CheckIfIsReadOnlyAttributeShouldBeEmbedded(DiagnosticBag diagnosticsOpt, Location locationOpt)
         {
             var userDefinedAttribute = GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_IsReadOnlyAttribute);
 
@@ -467,11 +463,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return true;
                 }
             }
-            else if (diagnosticsOpt != null && !userDefinedAttribute.InstanceConstructors.Any(constructor => constructor.ParameterCount == 0))
+            else if (diagnosticsOpt != null)
             {
-                var attributeName = WellKnownTypes.GetMetadataName(WellKnownType.System_Runtime_CompilerServices_IsReadOnlyAttribute);
-                var constructorName = WellKnownMembers.GetDescriptor(WellKnownMember.System_Runtime_CompilerServices_IsReadOnlyAttribute__ctor);
-                diagnosticsOpt.Add(ErrorCode.ERR_MissingPredefinedMember, locationOpt, attributeName, constructorName.Name);
+                Binder.GetWellKnownTypeMember(this, WellKnownMember.System_Runtime_CompilerServices_IsReadOnlyAttribute__ctor, out DiagnosticInfo diagnostic);
+                if (diagnostic != null)
+                {
+                    diagnosticsOpt.Add(diagnostic, locationOpt);
+                }
             }
 
             return false;

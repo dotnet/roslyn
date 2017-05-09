@@ -4463,7 +4463,33 @@ End Class
     </file>
 </compilation>)
 
-            CompileAndVerify(compilation, verify:=False, expectedOutput:="3")
+            CompileAndVerify(compilation, expectedOutput:="3")
+        End Sub
+
+        <Fact>
+        Public Sub EmbeddedTypesInAnAssemblyAreNotExposedExternally()
+
+            Dim reference = CreateCompilationWithMscorlib(options:=TestOptions.ReleaseDll, sources:=
+<compilation>
+    <file name="a.vb"><![CDATA[
+Namespace Microsoft.CodeAnalysis
+    Friend Class EmbeddedAttribute
+        Inherits System.Attribute
+    End Class
+End Namespace
+<Microsoft.CodeAnalysis.Embedded>
+Public Class TestReference1
+End Class
+Public Class TestReference2
+End Class
+]]>
+    </file>
+</compilation>).EmitToImageReference()
+
+            Dim compilation = CreateCompilationWithMscorlib("", references:={reference})
+
+            Assert.Null(compilation.GetTypeByMetadataName("TestReference1"))
+            Assert.NotNull(compilation.GetTypeByMetadataName("TestReference2"))
         End Sub
 
     End Class

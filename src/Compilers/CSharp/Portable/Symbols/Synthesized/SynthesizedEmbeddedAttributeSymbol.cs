@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// Represents a compiler generated and embedded attribute type.
     /// This type has the following properties:
     /// 1) It is non-generic, sealed, internal, non-static class.
-    /// 2) It implements System.Attribute
+    /// 2) It derives from System.Attribute
     /// 3) It has Microsoft.CodeAnalysis.EmbdeddedAttribute
     /// 4) It has System.Runtime.CompilerServices.CompilerGeneratedAttribute
     /// 5) It has a parameter-less constructor
@@ -34,10 +34,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _name = description.Name;
             _baseType = compilation.GetWellKnownType(WellKnownType.System_Attribute);
 
-            if (_baseType is MissingMetadataTypeSymbol)
-            {
-                Binder.ReportUseSiteDiagnostics(_baseType, diagnostics, Location.None);
-            }
+            // Report errors in case base type was missing (MissingMetadataTypeSymbol)
+            Binder.ReportUseSiteDiagnostics(_baseType, diagnostics, Location.None);
 
             Constructor = new SynthesizedEmbeddedAttributeConstructorSymbol(this);
             _members = ImmutableArray.Create<Symbol>(Constructor);
@@ -178,10 +176,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var factory = new SyntheticBoundNodeFactory(this, this.GetNonNullSyntaxNode(), compilationState, diagnostics);
                 factory.CurrentMethod = this;
 
-                var baseConstructorCall = MethodCompiler.GenerateBaseConstructorInitializer(this, diagnostics);
+                var baseConstructorCall = MethodCompiler.GenerateBaseParameterlessConstructorInitializer(this, diagnostics);
                 if (baseConstructorCall == null)
                 {
-                    // This may happen if Attribute..ctor is not found or is unaccessible
+                    // This may happen if Attribute..ctor is not found or is inaccessible
                     return;
                 }
 

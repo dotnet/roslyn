@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (_refKind == RefKind.RefReadOnly)
             {
-                compilation.EnsureIsReadOnlyAttributeExists(diagnostics, _syntax.Location, modifyCompilation: false);
+                compilation.EnsureIsReadOnlyAttributeExists(diagnostics, DiagnosticLocation, modifyCompilationForRefReadOnly: false);
             }
         }
 
@@ -376,7 +376,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (refKind == RefKind.RefReadOnly)
                 {
-                    compilation.EnsureIsReadOnlyAttributeExists(diagnostics, location, modifyCompilation: false);
+                    compilation.EnsureIsReadOnlyAttributeExists(diagnostics, location, modifyCompilationForRefReadOnly: false);
                 }
             }
 

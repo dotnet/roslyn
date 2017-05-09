@@ -1638,7 +1638,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (baseType.SpecialType == SpecialType.System_Object)
                 {
-                    return GenerateBaseConstructorInitializer(constructor, diagnostics);
+                    return GenerateBaseParameterlessConstructorInitializer(constructor, diagnostics);
                 }
                 else if (baseType.IsErrorType() || baseType.IsStatic)
                 {
@@ -1739,7 +1739,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal static BoundCall GenerateBaseConstructorInitializer(MethodSymbol constructor, DiagnosticBag diagnostics)
+        internal static BoundCall GenerateBaseParameterlessConstructorInitializer(MethodSymbol constructor, DiagnosticBag diagnostics)
         {
             NamedTypeSymbol baseType = constructor.ContainingType.BaseTypeNoUseSiteDiagnostics;
             MethodSymbol baseConstructor = null;

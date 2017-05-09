@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 allowRefOrOut: true,
                 allowThis: false,
                 diagnostics: diagnostics,
-                modifyCompilation: true);
+                modifyCompilationForRefReadOnly: true);
 
             if (arglistToken.Kind() == SyntaxKind.ArgListKeyword)
             {

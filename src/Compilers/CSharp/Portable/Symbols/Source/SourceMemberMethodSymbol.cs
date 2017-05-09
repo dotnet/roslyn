@@ -110,11 +110,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _isExpressionBodied = !hasBlockBody && syntax.ExpressionBody != null;
             _refKind = syntax.ReturnType.GetRefKind();
 
-            if (_refKind == RefKind.RefReadOnly)
-            {
-                this.DeclaringCompilation.EnsureIsReadOnlyAttributeExists(diagnostics, syntax.ReturnType.Location, modifyCompilation: true);
-            }
-
             if (hasBlockBody || _isExpressionBodied)
             {
                 CheckModifiersForBody(location, diagnostics);
@@ -173,7 +168,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 allowRefOrOut: true,
                 allowThis: true,
                 diagnostics: diagnostics,
-                modifyCompilation: true);
+                modifyCompilationForRefReadOnly: true);
 
             _lazyIsVararg = (arglistToken.Kind() == SyntaxKind.ArgListKeyword);
             RefKind refKind;
@@ -354,6 +349,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             CheckModifiers(location, diagnostics);
+
+            if (_refKind == RefKind.RefReadOnly)
+            {
+                this.DeclaringCompilation.EnsureIsReadOnlyAttributeExists(diagnostics, syntax.ReturnType.Location, modifyCompilationForRefReadOnly: true);
+            }
         }
 
         // This is also used for async lambdas.  Probably not the best place to locate this method, but where else could it go?

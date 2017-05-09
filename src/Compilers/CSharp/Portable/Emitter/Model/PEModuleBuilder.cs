@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         /// <summary>
         /// Returns a value indicating whether this builder has a symbol that needs IsReadOnlyAttribute to be generated during emit phase.
-        /// The value is set during during lowering the symbols that need that attribute, and is frozen on first trial to get it.
+        /// The value is set during lowering the symbols that need that attribute, and is frozen on first trial to get it.
         /// Freezing is needed to make sure that nothing tries to modify the value after the value is read.
         /// </summary>
         internal bool NeedsGeneratedIsReadOnlyAttribute
@@ -54,11 +54,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             {
                 _needsGeneratedIsReadOnlyAttribute_IsFrozen = true;
                 return Compilation.NeedsGeneratedIsReadOnlyAttribute || _needsGeneratedIsReadOnlyAttribute_Value;
-            }
-            private set
-            {
-                Debug.Assert(!_needsGeneratedIsReadOnlyAttribute_IsFrozen);
-                _needsGeneratedIsReadOnlyAttribute_Value = value;
             }
         }
 
@@ -1418,7 +1413,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         {
             if ((object)Compilation.SourceModule != symbol.ContainingModule)
             {
-                // For symbols that are not defined in the same compilation (like NoPia), dont synthesize this attribute.
+                // For symbols that are not defined in the same compilation (like NoPia), don't synthesize this attribute.
                 return null;
             }
 
@@ -1428,10 +1423,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         internal void EnsureIsReadOnlyAttributeExists()
         {
-            // Don't report any errors. They should be reported during binding.
-            if (Compilation.CheckIfIsReadOnlyAttributeNeeded(diagnosticsOpt: null, locationOpt: null))
+            if (_needsGeneratedIsReadOnlyAttribute_Value || Compilation.NeedsGeneratedIsReadOnlyAttribute)
             {
-                NeedsGeneratedIsReadOnlyAttribute = true;
+                return;
+            }
+
+            // Don't report any errors. They should be reported during binding.
+            if (Compilation.CheckIfIsReadOnlyAttributeShouldBeEmbedded(diagnosticsOpt: null, locationOpt: null))
+            {
+                Debug.Assert(!_needsGeneratedIsReadOnlyAttribute_IsFrozen);
+                _needsGeneratedIsReadOnlyAttribute_Value = true;
             }
         }
     }

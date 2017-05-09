@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     !lazyContainsExtensionMethods.HasValue() &&
                     lazyDefaultMemberName == null &&
                     (object)lazyComImportCoClassType == (object)ErrorTypeSymbol.UnknownResultType &&
-                    lazyHasEmbeddedAttribute == ThreeState.Unknown;
+                    !lazyHasEmbeddedAttribute.HasValue();
             }
         }
 

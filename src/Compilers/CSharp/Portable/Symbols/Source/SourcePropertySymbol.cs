@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (_refKind == RefKind.RefReadOnly)
             {
-                bodyBinder.Compilation.EnsureIsReadOnlyAttributeExists(diagnostics, syntax.Type.Location, modifyCompilation: true);
+                bodyBinder.Compilation.EnsureIsReadOnlyAttributeExists(diagnostics, syntax.Type.Location, modifyCompilationForRefReadOnly: true);
             }
 
             SyntaxTokenList modifiers = syntax.Modifiers;
@@ -785,7 +785,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 allowRefOrOut: false,
                 allowThis: false,
                 diagnostics: diagnostics,
-                modifyCompilation: true);
+                modifyCompilationForRefReadOnly: true);
 
             if (arglistToken.Kind() != SyntaxKind.None)
             {

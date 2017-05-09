@@ -68,11 +68,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             builder.AddRange(_additionalTypes);
 
             CreateEmbeddedAttributesIfNeeded(diagnostics);
-            if (_lazyEmbeddedAttribute != null)
+            if ((object)_lazyEmbeddedAttribute != null)
             {
                 builder.Add(_lazyEmbeddedAttribute);
             }
-            if (_lazyIsReadOnlyAttribute != null)
+            if ((object)_lazyIsReadOnlyAttribute != null)
             {
                 builder.Add(_lazyIsReadOnlyAttribute);
             }
@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         internal override SynthesizedAttributeData SynthesizeEmbeddedAttribute()
         {
-            if (_lazyEmbeddedAttribute != null)
+            if ((object)_lazyEmbeddedAttribute != null)
             {
                 return new SynthesizedAttributeData(
                     _lazyEmbeddedAttribute.Constructor,
@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         internal override SynthesizedAttributeData SynthesizeIsReadOnlyAttribute(Symbol symbol)
         {
-            if (_lazyIsReadOnlyAttribute != null)
+            if ((object)_lazyIsReadOnlyAttribute != null)
             {
                 return new SynthesizedAttributeData(
                     _lazyIsReadOnlyAttribute.Constructor,
@@ -195,7 +195,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         private void CreateEmbeddedAttributeIfNeeded(ref SynthesizedEmbeddedAttributeSymbol symbol, DiagnosticBag diagnostics, AttributeDescription description)
         {
-            if (symbol == null)
+            if ((object)symbol == null)
             {
                 var attributeMetadataName = MetadataTypeName.FromFullName(description.FullName);
                 var userDefinedAttribute = _sourceAssembly.SourceModule.LookupTopLevelMetadataType(ref attributeMetadataName);
