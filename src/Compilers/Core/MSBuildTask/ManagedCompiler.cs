@@ -395,6 +395,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             }
         }
 
+        public string LangVersion
+        {
+            set { _store[nameof(LangVersion)] = value; }
+            get { return (string)_store[nameof(LangVersion)]; }
+        }
+
         #endregion
 
         /// <summary>
@@ -753,6 +759,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             commandLine.AppendSwitchIfNotNull("/checksumalgorithm:", ChecksumAlgorithm);
             commandLine.AppendSwitchWithSplitting("/instrument:", Instrument, ",", ';', ',');
             commandLine.AppendSwitchIfNotNull("/sourcelink:", SourceLink);
+            commandLine.AppendSwitchIfNotNull("/langversion:", LangVersion);
 
             AddFeatures(commandLine, Features);
             AddEmbeddedFilesToCommandLine(commandLine);

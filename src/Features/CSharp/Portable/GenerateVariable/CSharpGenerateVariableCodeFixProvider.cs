@@ -12,11 +12,11 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.GenerateMember.GenerateVariable;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
-namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateVariable
+namespace Microsoft.CodeAnalysis.CSharp.GenerateVariable
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.GenerateVariable), Shared]
     [ExtensionOrder(After = PredefinedCodeFixProviderNames.GenerateMethod)]
-    internal class GenerateVariableCodeFixProvider : AbstractGenerateMemberCodeFixProvider
+    internal class CSharpGenerateVariableCodeFixProvider : AbstractGenerateMemberCodeFixProvider
     {
         private const string CS1061 = nameof(CS1061); // error CS1061: 'C' does not contain a definition for 'Foo' and no extension method 'Foo' accepting a first argument of type 'C' could be found
         private const string CS0103 = nameof(CS0103); // error CS0103: The name 'Foo' does not exist in the current context

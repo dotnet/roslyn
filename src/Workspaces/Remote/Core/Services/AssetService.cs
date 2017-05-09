@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Remote
             _assetStorage = assetStorage;
         }
 
-        public T Deserialize<T>(string kind, ObjectReader reader, CancellationToken cancellationToken)
+        public T Deserialize<T>(WellKnownSynchronizationKind kind, ObjectReader reader, CancellationToken cancellationToken)
         {
             return s_serializer.Deserialize<T>(kind, reader, cancellationToken);
         }

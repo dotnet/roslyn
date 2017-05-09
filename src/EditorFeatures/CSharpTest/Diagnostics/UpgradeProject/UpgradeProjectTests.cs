@@ -180,6 +180,25 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUpgradeProject)]
+        public async Task UpgradeProjectFromCSharp7ToCSharp7_1_B()
+        {
+            await TestLanguageVersionUpgradedAsync(
+@"public class Base { }
+public class Derived : Base { }
+public class Program
+{
+    public static void M<T>(T x) where T: Base
+    {
+        System.Console.Write(x is [|Derived|] b0);
+    }
+}
+",
+                LanguageVersion.CSharp7_1,
+                new CSharpParseOptions(LanguageVersion.CSharp7),
+                index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUpgradeProject)]
         public async Task UpgradeAllProjectsToDefault()
         {
             await TestLanguageVersionUpgradedAsync(

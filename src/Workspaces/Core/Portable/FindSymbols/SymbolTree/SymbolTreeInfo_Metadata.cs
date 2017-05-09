@@ -161,20 +161,20 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 checksum,
                 filePath,
                 loadOnly,
-                create: () => CreateMetadataSymbolTreeInfo(solution, checksum, reference, cancellationToken),
+                createAsync: () => CreateMetadataSymbolTreeInfoAsync(solution, checksum, reference, cancellationToken),
                 keySuffix: "_Metadata",
                 getPersistedChecksum: info => info.Checksum,
                 readObject: reader => ReadSymbolTreeInfo(reader, (names, nodes) => GetSpellCheckerTask(solution, checksum, filePath, names, nodes)),
                 cancellationToken: cancellationToken);
         }
 
-        private static SymbolTreeInfo CreateMetadataSymbolTreeInfo(
+        private static Task<SymbolTreeInfo> CreateMetadataSymbolTreeInfoAsync(
             Solution solution, Checksum checksum,
             PortableExecutableReference reference,
             CancellationToken cancellationToken)
         {
             var creator = new MetadataInfoCreator(solution, checksum, reference, cancellationToken);
-            return creator.Create();
+            return Task.FromResult(creator.Create());
         }
 
         private struct MetadataInfoCreator : IDisposable

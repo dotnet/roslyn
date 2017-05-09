@@ -4,7 +4,6 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Composition;
-using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,7 +12,6 @@ using Microsoft.CodeAnalysis.FindSymbols.SymbolTree;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.NavigateTo;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Roslyn.Utilities;
 
@@ -181,6 +179,12 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
 
             private async Task UpdateSymbolTreeInfoAsync(Project project, CancellationToken cancellationToken)
             {
+                if (!project.SupportsCompilation)
+                {                    
+                    // Not a language we can produce indices for (i.e. TypeScript).  Bail immediately.
+                    return;
+                }
+
                 if (project.Solution.Workspace.Kind != "Test" &&
                     project.Solution.Workspace.Kind != WorkspaceKind.RemoteWorkspace &&
                     project.Solution.Workspace.Options.GetOption(NavigateToOptions.OutOfProcessAllowed))

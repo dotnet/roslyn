@@ -6606,6 +6606,176 @@ class C
         }
 
         [Fact]
+        public void TupleExplicitNullableConversionWithTypelessTuple()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        var x = ((int, string)?) (1, null);
+        System.Console.Write(x);
+    }
+}
+";
+
+            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.DebugExe);
+            comp.VerifyEmitDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "(1, )");
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var declaration = tree.GetRoot().DescendantNodes().OfType<LocalDeclarationStatementSyntax>().First();
+            var value = declaration.Declaration.Variables.First().Initializer.Value;
+            Assert.Equal("((int, string)?) (1, null)", value.ToString());
+            var castConversion = model.GetConversion(value);
+            Assert.Equal(ConversionKind.Identity, castConversion.Kind);
+            var tuple = ((CastExpressionSyntax)value).Expression;
+            Assert.Equal("(1, null)", tuple.ToString());
+            var tupleConversion = model.GetConversion(tuple);
+            Assert.Equal(ConversionKind.ExplicitNullable, tupleConversion.Kind);
+            Assert.Equal(1, tupleConversion.UnderlyingConversions.Length);
+            Assert.Equal(ConversionKind.ExplicitTupleLiteral, tupleConversion.UnderlyingConversions[0].Kind);
+        }
+
+        [Fact]
+        public void TupleImplicitNullableConversionWithTypelessTuple()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        (int, string)? x = (1, null);
+        System.Console.Write(x);
+    }
+}
+";
+
+            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.DebugExe);
+            comp.VerifyEmitDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "(1, )");
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var declaration = tree.GetRoot().DescendantNodes().OfType<LocalDeclarationStatementSyntax>().First();
+            var value = declaration.Declaration.Variables.First().Initializer.Value;
+            Assert.Equal("(1, null)", value.ToString());
+            var tupleConversion = model.GetConversion(value);
+            Assert.Equal(ConversionKind.ImplicitNullable, tupleConversion.Kind);
+            Assert.Equal(1, tupleConversion.UnderlyingConversions.Length);
+            Assert.Equal(ConversionKind.ImplicitTupleLiteral, tupleConversion.UnderlyingConversions[0].Kind);
+        }
+
+        [Fact]
+        public void TupleImplicitNullableAndCustomConversionsWithTypelessTuple()
+        {
+            var source = @"
+struct C
+{
+    static void Main()
+    {
+        C? x = (1, null);
+        System.Console.Write(x);
+        var x2 = (C)(2, null);
+        System.Console.Write(x2);
+        var x3 = (C?)(3, null);
+        System.Console.Write(x3);
+    }
+    public static implicit operator C((int, string) x)
+    {
+        return new C();
+    }
+}
+";
+
+            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.DebugExe);
+            comp.VerifyEmitDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "CCC");
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+
+            var tuples = tree.GetRoot().DescendantNodes().OfType<TupleExpressionSyntax>();
+
+            var tuple1 = tuples.ElementAt(0);
+            Assert.Equal("(1, null)", tuple1.ToString());
+            Assert.Null(model.GetTypeInfo(tuple1).Type);
+            Assert.Equal("C?", model.GetTypeInfo(tuple1).ConvertedType.ToTestDisplayString());
+
+            var conversion1 = model.GetConversion(tuple1);
+            Assert.Equal(ConversionKind.ImplicitUserDefined, conversion1.Kind);
+            Assert.True(conversion1.UnderlyingConversions.IsDefault);
+
+            var tuple2 = tuples.ElementAt(1);
+            Assert.Equal("(2, null)", tuple2.ToString());
+            Assert.Null(model.GetTypeInfo(tuple2).Type);
+            Assert.Equal("(System.Int32, System.String)", model.GetTypeInfo(tuple2).ConvertedType.ToTestDisplayString());
+
+            var conversion2 = model.GetConversion(tuple2);
+            Assert.Equal(ConversionKind.ImplicitTupleLiteral, conversion2.Kind);
+            Assert.False(conversion2.UnderlyingConversions.IsDefault);
+
+            var tuple3 = tuples.ElementAt(2);
+            Assert.Equal("(3, null)", tuple3.ToString());
+            Assert.Null(model.GetTypeInfo(tuple3).Type);
+            Assert.Equal("(System.Int32, System.String)", model.GetTypeInfo(tuple3).ConvertedType.ToTestDisplayString());
+
+            var conversion3 = model.GetConversion(tuple3);
+            Assert.Equal(ConversionKind.ImplicitTupleLiteral, conversion3.Kind);
+            Assert.False(conversion3.UnderlyingConversions.IsDefault);
+        }
+
+        [Fact]
+        public void TupleImplicitNullableAndCustomConversionsWithTypelessTupleInAsOperator()
+        {
+            var source = @"
+struct C
+{
+    static void Main()
+    {
+        var x4 = (1, null) as C;
+        System.Console.Write(x4);
+        var x5 = (2, null) as C?;
+        System.Console.Write(x5);
+    }
+    public static implicit operator C((int, string) x)
+    {
+        return new C();
+    }
+}
+";
+
+            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.DebugExe);
+            comp.VerifyEmitDiagnostics(
+                // (6,18): error CS8305: The first operand of an 'as' operator may not be a tuple literal without a natural type.
+                //         var x4 = (1, null) as C;
+                Diagnostic(ErrorCode.ERR_TypelessTupleInAs, "(1, null) as C").WithLocation(6, 18),
+                // (8,18): error CS8305: The first operand of an 'as' operator may not be a tuple literal without a natural type.
+                //         var x5 = (2, null) as C?;
+                Diagnostic(ErrorCode.ERR_TypelessTupleInAs, "(2, null) as C?").WithLocation(8, 18)
+                );
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+
+            var tuples = tree.GetRoot().DescendantNodes().OfType<TupleExpressionSyntax>();
+            verifyTuple("(1, null)", tuples.ElementAt(0));
+            verifyTuple("(2, null)", tuples.ElementAt(1));
+
+            void verifyTuple(string expected, TupleExpressionSyntax tuple)
+            {
+                Assert.Equal(expected, tuple.ToString());
+                Assert.Null(model.GetTypeInfo(tuple).Type);
+                Assert.Null(model.GetTypeInfo(tuple).ConvertedType);
+
+                var conversion = model.GetConversion(tuple);
+                Assert.Equal(ConversionKind.Identity, conversion.Kind);
+                Assert.True(conversion.UnderlyingConversions.IsDefault);
+            }
+        }
+
+        [Fact]
         public void TupleTargetTypeLambda()
         {
             var source = @"
@@ -7069,8 +7239,8 @@ class C
 
             Assert.Equal(@"(e: 1, f: ""hello"")", node.ToString());
             Assert.Equal("(System.Int32 e, System.String f)", model.GetTypeInfo(node).Type.ToTestDisplayString());
-            Assert.Equal("(System.Int32 e, System.String f)", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString());
-            Assert.Equal(Conversion.Identity, model.GetConversion(node));
+            Assert.Equal("(System.Int16 c, System.String d)?", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString());
+            Assert.Equal(ConversionKind.ExplicitNullable, model.GetConversion(node).Kind);
 
             // semantic model returns topmost conversion from the sequence of conversions for
             // ((short c, string d)?)(e: 1, f: ""hello"")
@@ -7295,8 +7465,8 @@ class C
 
             Assert.Equal(@"(e: 1, f: ""hello"")", node.ToString());
             Assert.Equal("(System.Int32 e, System.String f)", model.GetTypeInfo(node).Type.ToTestDisplayString());
-            Assert.Equal("(System.Int32 e, System.String f)", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString());
-            Assert.Equal(Conversion.Identity, model.GetConversion(node));
+            Assert.Equal("(System.Int32 c, System.String d)?", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString());
+            Assert.Equal(ConversionKind.ExplicitNullable, model.GetConversion(node).Kind);
 
             // semantic model returns topmost conversion from the sequence of conversions for
             // ((int c, string d)?)(e: 1, f: ""hello"")
@@ -22679,6 +22849,28 @@ namespace System
             var tuple3 = comp3.GetWellKnownType(WellKnownType.System_ValueTuple_T2);
             Assert.False(tuple3.IsErrorType());
             Assert.Equal(libWithVTRef.Display, tuple3.ContainingAssembly.MetadataName.ToString());
+        }
+
+        [Fact]
+        [WorkItem(17962, "https://github.com/dotnet/roslyn/issues/17962")]
+        public void TupleWithAsOperator()
+        {
+            var source = @"
+class C
+{
+    void M<T>()
+    {
+        var x = (0, null) as (int, T)?;
+        System.Console.WriteLine(x == null);
+    }
+}";
+
+            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics(
+                // (6,17): error CS8304: The first operand of an 'as' operator may not be a tuple literal without a natural type.
+                //         var x = (0, null) as (int, T)?;
+                Diagnostic(ErrorCode.ERR_TypelessTupleInAs, "(0, null) as (int, T)?").WithLocation(6, 17)
+                );
         }
     }
 }
