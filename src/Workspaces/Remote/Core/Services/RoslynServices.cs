@@ -19,6 +19,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 .Add(typeof(Host.TemporaryStorageServiceFactory.TemporaryStorageService).Assembly)
                 // This adds the exported MEF services from the RemoteWorkspaces assembly.
                 .Add(typeof(RoslynServices).Assembly)
+                // This adds the exported MEF services from the language specific Features assemblies.
                 .Add(typeof(CSharp.CodeLens.CSharpCodeLensDisplayInfoService).Assembly)
                 .Add(typeof(VisualBasic.CodeLens.VisualBasicDisplayInfoService).Assembly));
 
