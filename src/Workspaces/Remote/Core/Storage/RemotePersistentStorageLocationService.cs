@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Remote.Storage
                 }
                 else
                 {
-                    _idToStorageLocation[id] = storageLocation;
+                    _idToStorageLocation[id] = Path.Combine(storageLocation, "remote");
                 }
             }
         }
