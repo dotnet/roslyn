@@ -132,7 +132,6 @@
     <Compile Include="Diagnostics\DiagnosticArguments.cs" />
     <Compile Include="Diagnostics\DiagnosticResultSerializer.cs" />
     <Compile Include="Diagnostics\SymbolAnalysisContextExtensions.cs" />
-    <Compile Include="DocumentHighlighting\DocumentHighlightingOptions.cs" />
     <Compile Include="EncapsulateField\EncapsulateFieldRefactoringProvider.cs" />
     <Compile Include="ExtractInterface\ExtractInterfaceCodeRefactoringProvider.cs" />
     <Compile Include="CodeFixes\FixAllOccurrences\FixSomeCodeAction.cs" />
@@ -158,10 +157,6 @@
     <Compile Include="GenerateFromMembers\SelectedMemberInfo.cs" />
     <Compile Include="ImplementType\ImplementTypeOptions.cs" />
     <Compile Include="ImplementType\ImplementTypeOptionsProvider.cs" />
-    <Compile Include="DocumentHighlighting\AbstractDocumentHighlightsService.cs" />
-    <Compile Include="DocumentHighlighting\AbstractDocumentHighlightsService_Remote.cs" />
-    <Compile Include="DocumentHighlighting\IDocumentHighlightsService.cs" />
-    <Compile Include="DocumentHighlighting\IRemoteDocumentHighlights.cs" />
     <Compile Include="RemoveUnnecessaryImports\AbstractRemoveUnnecessaryImportsCodeFixProvider.cs" />
     <Compile Include="RemoveUnnecessaryImports\IUnnecessaryImportsService.cs" />
     <Compile Include="NavigateTo\AbstractNavigateToSearchService.SearchResult.cs" />
