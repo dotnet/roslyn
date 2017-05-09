@@ -261,11 +261,11 @@ public class C
                 emitResult.Diagnostics.Verify();
 
                 VerifyEntryPoint(output, expectZero: false);
-                VerifyMethods(output, new[] { "void C.Main()", "C..ctor()" });
+                VerifyMethods(output, "C", new[] { "void C.Main()", "C..ctor()" });
                 VerifyMvid(output, hasMvidSection: false);
 
                 VerifyEntryPoint(metadataOutput, expectZero: true);
-                VerifyMethods(metadataOutput, new[] { "C..ctor()" });
+                VerifyMethods(metadataOutput, "C", new[] { "C..ctor()" });
                 VerifyMvid(metadataOutput, hasMvidSection: true);
             }
 
@@ -399,9 +399,9 @@ public class C
                 Assert.True(emitResult.Success);
                 emitResult.Diagnostics.Verify();
 
-                VerifyMethods(output, new[] { "System.Int32 C.<PrivateSetter>k__BackingField", "System.Int32 C.PrivateSetter.get", "void C.PrivateSetter.set",
+                VerifyMethods(output, "C", new[] { "System.Int32 C.<PrivateSetter>k__BackingField", "System.Int32 C.PrivateSetter.get", "void C.PrivateSetter.set",
                     "C..ctor()", "System.Int32 C.PrivateSetter { get; private set; }" });
-                VerifyMethods(metadataOutput, new[] { "System.Int32 C.PrivateSetter.get", "C..ctor()", "System.Int32 C.PrivateSetter { get; }" });
+                VerifyMethods(metadataOutput, "C", new[] { "System.Int32 C.PrivateSetter.get", "C..ctor()", "System.Int32 C.PrivateSetter { get; }" });
                 VerifyMvid(output, hasMvidSection: false);
                 VerifyMvid(metadataOutput, hasMvidSection: true);
             }
@@ -425,9 +425,9 @@ public class C
                 Assert.True(emitResult.Success);
                 emitResult.Diagnostics.Verify();
 
-                VerifyMethods(output, new[] { "System.Int32 C.<PrivateGetter>k__BackingField", "System.Int32 C.PrivateGetter.get", "void C.PrivateGetter.set",
+                VerifyMethods(output, "C", new[] { "System.Int32 C.<PrivateGetter>k__BackingField", "System.Int32 C.PrivateGetter.get", "void C.PrivateGetter.set",
                     "C..ctor()", "System.Int32 C.PrivateGetter { private get; set; }" });
-                VerifyMethods(metadataOutput, new[] { "void C.PrivateGetter.set", "C..ctor()", "System.Int32 C.PrivateGetter { set; }" });
+                VerifyMethods(metadataOutput, "C", new[] { "void C.PrivateGetter.set", "C..ctor()", "System.Int32 C.PrivateGetter { set; }" });
             }
         }
 
@@ -449,9 +449,9 @@ public class C
                 Assert.True(emitResult.Success);
                 emitResult.Diagnostics.Verify();
 
-                VerifyMethods(output, new[] { "System.Int32 C.this[System.Int32 i].get", "void C.this[System.Int32 i].set",
+                VerifyMethods(output, "C", new[] { "System.Int32 C.this[System.Int32 i].get", "void C.this[System.Int32 i].set",
                     "C..ctor()", "System.Int32 C.this[System.Int32 i] { private get; set; }" });
-                VerifyMethods(metadataOutput, new[] { "void C.this[System.Int32 i].set", "C..ctor()",
+                VerifyMethods(metadataOutput, "C", new[] { "void C.this[System.Int32 i].set", "C..ctor()",
                     "System.Int32 C.this[System.Int32 i] { set; }" });
             }
         }
@@ -478,9 +478,9 @@ public class C : Base
                 emitResult.Diagnostics.Verify();
                 Assert.True(emitResult.Success);
 
-                VerifyMethods(output, new[] { "void C.Property.set", "C..ctor()", "System.Int32 C.Property.get", "System.Int32 C.Property { internal get; set; }" });
+                VerifyMethods(output, "C", new[] { "void C.Property.set", "C..ctor()", "System.Int32 C.Property.get", "System.Int32 C.Property { internal get; set; }" });
                 // A getter is synthesized on C.Property so that it can be marked as sealed. It is emitted despite being internal because it is virtual.
-                VerifyMethods(metadataOutput, new[] {  "void C.Property.set", "C..ctor()", "System.Int32 C.Property.get", "System.Int32 C.Property { internal get; set; }" });
+                VerifyMethods(metadataOutput, "C", new[] {  "void C.Property.set", "C..ctor()", "System.Int32 C.Property.get", "System.Int32 C.Property { internal get; set; }" });
             }
         }
 
@@ -504,7 +504,7 @@ public class C
                 );
         }
 
-        private static void VerifyMethods(MemoryStream stream, string[] expectedMethods)
+        private static void VerifyMethods(MemoryStream stream, string containingType, string[] expectedMethods)
         {
             stream.Position = 0;
             var metadataRef = AssemblyMetadata.CreateFromImage(stream.ToArray()).GetReference();
@@ -514,7 +514,7 @@ public class C
 
             AssertEx.Equal(
                 expectedMethods,
-                compWithMetadata.GetMember<NamedTypeSymbol>("C").GetMembers().Select(m => m.ToTestDisplayString()));
+                compWithMetadata.GetMember<NamedTypeSymbol>(containingType).GetMembers().Select(m => m.ToTestDisplayString()));
         }
 
         [Fact]
@@ -824,6 +824,10 @@ comp => comp.VerifyDiagnostics(
                 ));
         }
 
+        /// <summary>
+        /// The client compilation should not be affected (except for some diagnostic differences)
+        /// by the library assembly only having metadata, or not including private members.
+        /// </summary>
         private void VerifyRefAssemblyClient(string lib_cs, string client_cs, Action<CSharpCompilation> validator, int debugFlag = -1)
         {
             // Whether the library is compiled in full, as metadata-only, or as a ref assembly should be transparent
@@ -857,6 +861,55 @@ comp => comp.VerifyDiagnostics(
 
             var comp = CreateStandardCompilation(source, references: new[] { libImage }, options: TestOptions.DebugDll.WithAllowUnsafe(true));
             validator(comp);
+        }
+
+        [Theory]
+        [InlineData("")]
+        [InlineData(@"[assembly: System.Reflection.AssemblyVersion(""1"")]")]
+        [InlineData(@"[assembly: System.Reflection.AssemblyVersion(""1.0.*"")]")]
+        public void RefAssembly_EmitAsDeterministic(string source)
+        {
+            var comp = CreateStandardCompilation(source, options: TestOptions.DebugDll.WithDeterministic(false));
+
+            var (image1, refImage1) = emitRefOut();
+
+            // The resolution of the PE header time date stamp is seconds, and we want to make sure that has an opportunity to change
+            // between calls to Emit.
+            Thread.Sleep(TimeSpan.FromSeconds(1));
+            var (image2, refImage2) = emitRefOut();
+            var refImage3 = emitRefOnly();
+
+            AssertEx.Equal(refImage1, refImage2);
+            AssertEx.Equal(refImage1, refImage3);
+
+            var comp2 = CreateStandardCompilation(source, options: TestOptions.DebugDll.WithDeterministic(false));
+            var refImage4 = emitRefOnly();
+            AssertEx.Equal(refImage1, refImage4);
+
+            (ImmutableArray<byte> image, ImmutableArray<byte> refImage) emitRefOut()
+            {
+                using (var output = new MemoryStream())
+                using (var metadataOutput = new MemoryStream())
+                {
+                    var options = EmitOptions.Default.WithIncludePrivateMembers(false);
+                    comp.VerifyEmitDiagnostics();
+                    var result = comp.Emit(output, metadataPEStream: metadataOutput,
+                        options: options);
+                    return (output.ToImmutable(), metadataOutput.ToImmutable());
+                }
+            }
+
+            ImmutableArray<byte> emitRefOnly()
+            {
+                using (var output = new MemoryStream())
+                {
+                    var options = EmitOptions.Default.WithEmitMetadataOnly(true).WithIncludePrivateMembers(false);
+                    comp.VerifyEmitDiagnostics();
+                    var result = comp.Emit(output,
+                        options: options);
+                    return output.ToImmutable();
+                }
+            }
         }
 
         [Theory]
@@ -1057,7 +1110,7 @@ public class PublicClass
         }
 
         [Fact]
-        public void EmitMetadata_AllowEmbedding()
+        public void RefAssembly_AllowEmbeddingPdb()
         {
             CSharpCompilation comp = CreateCompilation("", references: new[] { MscorlibRef },
                 options: TestOptions.DebugDll);
@@ -1069,7 +1122,7 @@ public class PublicClass
                     options: EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.Embedded).WithIncludePrivateMembers(false));
 
                 VerifyEmbeddedDebugInfo(output, new[] { DebugDirectoryEntryType.CodeView, DebugDirectoryEntryType.EmbeddedPortablePdb });
-                VerifyEmbeddedDebugInfo(metadataOutput, new DebugDirectoryEntryType[] { });
+                VerifyEmbeddedDebugInfo(metadataOutput, new DebugDirectoryEntryType[] { DebugDirectoryEntryType.Reproducible });
             }
 
             void VerifyEmbeddedDebugInfo(MemoryStream stream, DebugDirectoryEntryType[] expected)
@@ -1083,7 +1136,7 @@ public class PublicClass
         }
 
         [Fact]
-        public void EmitMetadataOnly_DisallowEmbedding()
+        public void EmitMetadataOnly_DisallowEmbeddingPdb()
         {
             CSharpCompilation comp = CreateCompilation("", references: new[] { MscorlibRef },
                 options: TestOptions.DebugDll);
@@ -1093,6 +1146,30 @@ public class PublicClass
                 Assert.Throws<ArgumentException>(() => comp.Emit(output,
                     options: EmitOptions.Default.WithEmitMetadataOnly(true)
                         .WithDebugInformationFormat(DebugInformationFormat.Embedded)));
+            }
+        }
+
+        [Fact]
+        public void RefAssembly_DisallowEmbeddingTypes()
+        {
+            CSharpCompilation comp = CreateCompilation("", options: TestOptions.DebugDll,
+                references: new MetadataReference[]
+                {
+                    TestReferences.SymbolsTests.NoPia.GeneralPia.WithEmbedInteropTypes(true)
+                });
+
+            using (var output = new MemoryStream())
+            {
+                Assert.Throws<ArgumentException>(() => comp.Emit(output,
+                    options: EmitOptions.Default.WithEmitMetadataOnly(true).WithIncludePrivateMembers(false)));
+            }
+
+            using (var output = new MemoryStream())
+            using (var metadataOutput = new MemoryStream())
+            {
+                Assert.Throws<ArgumentException>(() => comp.Emit(output,
+                    metadataPEStream: metadataOutput,
+                    options: EmitOptions.Default.WithIncludePrivateMembers(false)));
             }
         }
 

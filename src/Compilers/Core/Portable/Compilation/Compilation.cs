@@ -2087,6 +2087,13 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentException(CodeAnalysisResources.IncludingPrivateMembersUnexpectedWhenEmittingToMetadataPeStream, nameof(metadataPEStream));
             }
 
+            if ((metadataPEStream != null || options?.EmitMetadataOnly == true) &&
+                options?.IncludePrivateMembers == false &&
+                References.Any(r => r.Properties.EmbedInteropTypes))
+            {
+                throw new ArgumentException(CodeAnalysisResources.EmbedInteropTypesUnexpectedWhenEmittingRefAssembly, nameof(metadataPEStream));
+            }
+
             if (options?.DebugInformationFormat == DebugInformationFormat.Embedded &&
                 options?.EmitMetadataOnly == true)
             {
@@ -2636,6 +2643,7 @@ namespace Microsoft.CodeAnalysis
             bool emitSecondaryAssembly = getMetadataPeStreamOpt != null;
 
             bool includePrivateMembersOnPrimaryOutput = metadataOnly ? includePrivateMembers : true;
+            bool deterministicPrimaryOutput = (metadataOnly && !includePrivateMembers) || isDeterministic;
             if (!Cci.PeWriter.WritePeToStream(
                 new EmitContext(moduleBeingBuilt, null, metadataDiagnostics, metadataOnly, includePrivateMembersOnPrimaryOutput),
                 messageProvider,
@@ -2644,7 +2652,7 @@ namespace Microsoft.CodeAnalysis
                 nativePdbWriterOpt,
                 pdbPathOpt,
                 metadataOnly,
-                isDeterministic,
+                deterministicPrimaryOutput,
                 emitTestCoverageData,
                 cancellationToken))
             {
@@ -2665,7 +2673,7 @@ namespace Microsoft.CodeAnalysis
                     nativePdbWriterOpt: null,
                     pdbPathOpt: null,
                     metadataOnly: true,
-                    isDeterministic: isDeterministic,
+                    isDeterministic: true,
                     emitTestCoverageData: false,
                     cancellationToken: cancellationToken))
                 {

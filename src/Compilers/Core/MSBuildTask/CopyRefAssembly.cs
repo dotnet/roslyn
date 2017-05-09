@@ -20,6 +20,11 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         [Required]
         public string DestinationPath { get; set; }
 
+        static CopyRefAssembly()
+        {
+            AssemblyResolution.Install();
+        }
+
         public CopyRefAssembly()
         {
             TaskResources = ErrorString.ResourceManager;
@@ -45,19 +50,26 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     Log.LogMessageFromResources(MessageImportance.High, "CopyRefAssembly_BadSource3", SourcePath, e.Message, e.StackTrace);
                 }
 
-                try
+                if (source.Equals(Guid.Empty))
                 {
-                    Guid destination = ExtractMvid(DestinationPath);
-
-                    if (source.Equals(destination))
-                    {
-                        Log.LogMessageFromResources(MessageImportance.Low, "CopyRefAssembly_SkippingCopy1", DestinationPath);
-                        return true;
-                    }
+                    Log.LogMessageFromResources(MessageImportance.High, "CopyRefAssembly_SourceNotRef1", SourcePath);
                 }
-                catch (Exception)
+                else
                 {
-                    Log.LogMessage(MessageImportance.High, "CopyRefAssembly_BadDestination1", DestinationPath);
+                    try
+                    {
+                        Guid destination = ExtractMvid(DestinationPath);
+
+                        if (!source.Equals(Guid.Empty) && source.Equals(destination))
+                        {
+                            Log.LogMessageFromResources(MessageImportance.Low, "CopyRefAssembly_SkippingCopy1", DestinationPath);
+                            return true;
+                        }
+                    }
+                    catch (Exception)
+                    {
+                        Log.LogMessageFromResources(MessageImportance.High, "CopyRefAssembly_BadDestination1", DestinationPath);
+                    }
                 }
             }
 

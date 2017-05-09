@@ -8071,6 +8071,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Cannot embed types when using /refout or /refonly..
+        '''</summary>
+        Friend ReadOnly Property ERR_NoEmbeddedTypeWhenRefOutOrRefOnly() As String
+            Get
+                Return ResourceManager.GetString("ERR_NoEmbeddedTypeWhenRefOutOrRefOnly", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Array bounds cannot appear in type specifiers..
         '''</summary>
         Friend ReadOnly Property ERR_NoExplicitArraySizes() As String

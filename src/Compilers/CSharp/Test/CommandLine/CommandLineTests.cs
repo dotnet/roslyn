@@ -2886,6 +2886,18 @@ C:\*.cs(100,7): error CS0103: The name 'Foo' does not exist in the current conte
                 // error CS8301: Do not use refout when using refonly.
                 Diagnostic(ErrorCode.ERR_NoRefOutWhenRefOnly).WithLocation(1, 1));
 
+            parsedArgs = DefaultParse(new[] { @"/refout:ref.dll", "/link:b", "a.cs" }, baseDirectory);
+            parsedArgs.Errors.Verify(
+                // error CS8357: Cannot embed types when using /refout or /refonly.
+                Diagnostic(ErrorCode.ERR_NoEmbeddedTypeWhenRefOutOrRefOnly).WithLocation(1, 1)
+                );
+
+            parsedArgs = DefaultParse(new[] { "/refonly", "/link:b", "a.cs" }, baseDirectory);
+            parsedArgs.Errors.Verify(
+                // error CS8357: Cannot embed types when using /refout or /refonly.
+                Diagnostic(ErrorCode.ERR_NoEmbeddedTypeWhenRefOutOrRefOnly).WithLocation(1, 1)
+                );
+
             parsedArgs = DefaultParse(new[] { "/refonly:incorrect", "a.cs" }, baseDirectory);
             parsedArgs.Errors.Verify(
                 // error CS2007: Unrecognized option: '/refonly:incorrect'
@@ -9067,6 +9079,11 @@ public class C
     {
         System.Console.Write(""Hello"");
     }
+    /// <summary>Private method</summary>
+    private static void PrivateMethod()
+    {
+        System.Console.Write(""Private"");
+    }
 }");
 
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
@@ -9081,7 +9098,7 @@ public class C
 
             MetadataReaderUtils.VerifyPEMetadata(exe,
                 new[] { "TypeDefinition:<Module>", "TypeDefinition:C" },
-                new[] { "MethodDefinition:Void Main()", "MethodDefinition:Void .ctor()" },
+                new[] { "MethodDefinition:Void Main()", "MethodDefinition:Void PrivateMethod()", "MethodDefinition:Void .ctor()" },
                 new[] { "CompilationRelaxationsAttribute", "RuntimeCompatibilityAttribute", "DebuggableAttribute" }
                 );
 
@@ -9098,6 +9115,9 @@ public class C
     <members>
         <member name=""M:C.Main"">
             <summary>Main method</summary>
+        </member>
+        <member name=""M:C.PrivateMethod"">
+            <summary>Private method</summary>
         </member>
     </members>
 </doc>";
@@ -9170,6 +9190,16 @@ class C
         remove { }
     }
     private event Action E2;
+
+    /// <summary>Private Class Field</summary>
+    private int field;
+    
+    /// <summary>Private Struct</summary>
+    private struct S
+    {
+        /// <summary>Private Struct Field</summary>
+        private int field;
+    }
 }");
 
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
@@ -9185,7 +9215,7 @@ class C
             // The types and members that are included needs further refinement.
             // See issue https://github.com/dotnet/roslyn/issues/17612
             MetadataReaderUtils.VerifyPEMetadata(refDll,
-                new[] { "TypeDefinition:<Module>", "TypeDefinition:C" },
+                new[] { "TypeDefinition:<Module>", "TypeDefinition:C", "TypeDefinition:S" },
                 new[] { "MethodDefinition:Void Main()", "MethodDefinition:Void .ctor()" },
                 new[] { "CompilationRelaxationsAttribute", "RuntimeCompatibilityAttribute", "DebuggableAttribute", "ReferenceAssemblyAttribute" }
                 );
@@ -9207,9 +9237,19 @@ class C
         <member name=""M:C.Main"">
             <summary>Main method</summary>
         </member>
+        <member name=""F:C.field"">
+            <summary>Private Class Field</summary>
+        </member>
+        <member name=""T:C.S"">
+            <summary>Private Struct</summary>
+        </member>
+        <member name=""F:C.S.field"">
+            <summary>Private Struct Field</summary>
+        </member>
     </members>
 </doc>";
             Assert.Equal(expectedDoc, content.Trim());
+
 
             // Clean up temp files
             CleanupAllGeneratedFiles(dir.Path);

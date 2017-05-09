@@ -325,7 +325,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             foreach (var member in this.GetMembers())
             {
-                // PROTOTYPE(refout) Do something here?
                 if (member.Kind == SymbolKind.Method)
                 {
                     var method = (MethodSymbol)member;
