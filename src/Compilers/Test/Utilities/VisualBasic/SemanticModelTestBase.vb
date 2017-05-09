@@ -1,5 +1,4 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-
 Imports System.Collections.Immutable
 Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -63,13 +62,7 @@ Public MustInherit Class SemanticModelTestBase : Inherits BasicTestBase
     Private Function FindBindingTextPosition(compilation As Compilation, fileName As String, ByRef bindText As String, Optional which As Integer = 0) As Integer
         Dim tree = (From t In compilation.SyntaxTrees Where t.FilePath = fileName).Single()
 
-        Dim bindMarker As String
-        If which > 0 Then
-            bindMarker = "'BIND" & which.ToString() & ":"""
-        Else
-            bindMarker = "'BIND:"""
-        End If
-
+        Dim bindMarker As String = bindMarkerHelper(which)
         Dim text As String = tree.GetRoot().ToFullString()
         Dim bindCommentIndex As Integer = text.IndexOf(bindMarker, StringComparison.Ordinal) + bindMarker.Length
         bindText = text.Substring(bindCommentIndex, text.IndexOf(""""c, bindCommentIndex) - bindCommentIndex)
@@ -102,9 +95,7 @@ Public MustInherit Class SemanticModelTestBase : Inherits BasicTestBase
     End Function
 
     Protected Function GetStartSpanErrorMessage(syntax As SyntaxNode, tpSymbol As ISymbol) As String
-        Return "    Syntax.SpanStart : " & syntax.SpanStart &
-               "    Location1.SourceSpan.Start : " & tpSymbol.Locations.Item(0).SourceSpan.Start &
-               "    Location2.SourceSpan.Start : " & tpSymbol.Locations.Item(0).SourceSpan.Start
+        Return $"    Syntax.SpanStart : {syntax.SpanStart}    Location1.SourceSpan.Start : {tpSymbol.Locations.Item(0).SourceSpan.Start}    Location2.SourceSpan.Start : {tpSymbol.Locations.Item(0).SourceSpan.Start}"
     End Function
 
     Friend Function GetAliasInfoForTest(compilation As Compilation, fileName As String, Optional which As Integer = 0) As AliasSymbol
@@ -139,7 +130,15 @@ Public MustInherit Class SemanticModelTestBase : Inherits BasicTestBase
         Return binding.LookupNames(FindBindingTextPosition(compilation, "a.vb"), container).ToList()
     End Function
 
-    Friend Function GetLookupSymbols(compilation As Compilation, filename As String, Optional container As NamespaceOrTypeSymbol = Nothing, Optional name As String = Nothing, Optional arity As Integer? = Nothing, Optional includeReducedExtensionMethods As Boolean = False, Optional mustBeStatic As Boolean = False) As List(Of ISymbol)
+    Friend Function GetLookupSymbols(
+                                      compilation As Compilation,
+                                      filename As String,
+                             Optional container As NamespaceOrTypeSymbol = Nothing,
+                             Optional name As String = Nothing,
+                             Optional arity As Integer? = Nothing,
+                             Optional includeReducedExtensionMethods As Boolean = False,
+                             Optional mustBeStatic As Boolean = False
+                                    ) As List(Of ISymbol)
         Debug.Assert(Not includeReducedExtensionMethods OrElse Not mustBeStatic)
 
         Dim tree = (From t In compilation.SyntaxTrees Where t.FilePath = filename).Single()
@@ -147,11 +146,10 @@ Public MustInherit Class SemanticModelTestBase : Inherits BasicTestBase
 
         Dim anyArity = Not arity.HasValue
         Dim position = FindBindingTextPosition(compilation, "a.vb")
-        Return If(
-            mustBeStatic,
-            binding.LookupStaticMembers(position, container, name),
-            binding.LookupSymbols(position, container, name, includeReducedExtensionMethods)
-            ).Where(Function(s) anyArity OrElse DirectCast(s, Symbol).GetArity() = arity.Value).ToList()
+        Return If( mustBeStatic,
+                   binding.LookupStaticMembers(position, container, name),
+                   binding.LookupSymbols(position, container, name, includeReducedExtensionMethods)
+                 ).Where(Function(s) anyArity OrElse DirectCast(s, Symbol).GetArity() = arity.Value).ToList()
     End Function
 
     Friend Function GetOperationTreeForTest(Of TSyntaxNode As SyntaxNode)(compilation As VisualBasicCompilation, fileName As String, Optional which As Integer = 0) As String
@@ -200,7 +198,7 @@ Public MustInherit Class SemanticModelTestBase : Inherits BasicTestBase
         VerifyOperationTreeAndDiagnosticsForTest(Of TSyntaxNode)(compilation, fileName, expectedOperationTree, expectedDiagnostics, which)
     End Sub
 
-    Public Shared Function GetAssertTheseDiagnosticsString(allDiagnostics As ImmutableArray(Of Diagnostic), suppressInfos As Boolean) As String
+    Public Shared Function GetAssertTheseDiagnosticsString(allDiagnostics As Immutable.ImmutableArray(Of Diagnostic), suppressInfos As Boolean) As String
         Return DumpAllDiagnostics(allDiagnostics, suppressInfos)
     End Function
 End Class

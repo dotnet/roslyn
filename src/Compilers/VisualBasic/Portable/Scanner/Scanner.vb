@@ -609,17 +609,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             Dim ch = Peek()
 
-            ' optimization for a common case
-            ' the ASCII range between ': and ~ , with exception of except "'", "_" and R cannot start trivia
-            If ch > ":"c AndAlso
-               ch <= "~"c AndAlso
-               ch <> "'"c AndAlso
-               ch <> "_"c AndAlso
-               ch <> "R"c AndAlso
-               ch <> "r"c AndAlso
-               ch <> "<"c AndAlso
-               ch <> "="c AndAlso
-               ch <> ">"c Then
+            ' Optimization for a common case the ASCII range between ":"c (Exclusive) and "~"c (Inclusive)
+            ' Except for "'"c, "_"c, "R"c or "r"c, which cannot start trivia.
+            If (":"c < ch AndAlso ch <= "~"c) AndAlso (ch <> "'"c AndAlso ch <> "_"c AndAlso ch <> "R"c AndAlso ch <> "r"c) Then
                 Return Nothing
             End If
 
@@ -653,7 +645,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     If IsConflictMarkerTrivia() Then
                         ScanConflictMarker(tList)
                         Return True
-                    End If
+                End If
                 End If
 
                 Dim ch = Peek()
@@ -1767,7 +1759,7 @@ FullWidthRepeat:
                 End While
                 If Here <> IntegerLiteralStart Then
                     UnderscoreInWrongPlace = UnderscoreInWrongPlace Or (Peek(Here - 1) = "_"c)
-                End If
+            End If
             End If
 
             ' we may have a dot, and then it is a float, but if this is an integral, then we have seen it all.
@@ -2044,7 +2036,7 @@ FullWidthRepeat2:
                 For i = 0 To literalWithoutTypeChar - 1
                     Dim curCh = Peek(i)
                     If curCh <> "_"c Then
-                        scratch.Append(If(IsFullWidth(curCh), MakeHalfWidth(curCh), curCh))
+                    scratch.Append(If(IsFullWidth(curCh), MakeHalfWidth(curCh), curCh))
                     End If
                 Next
                 Dim LiteralSpelling = GetScratchTextInterned(scratch)
