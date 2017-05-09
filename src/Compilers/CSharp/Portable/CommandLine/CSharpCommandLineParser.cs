@@ -1208,9 +1208,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (embeddedFiles.Count > 0)
             {
-                // Restricted to portable PDBs for now, but the IsPortable condition should be removed
-                // and the error message adjusted accordingly when native PDB support is added.
-                if (!emitPdb || !debugInformationFormat.IsPortable())
+                if (!emitPdb)
                 {
                     AddDiagnostic(diagnostics, ErrorCode.ERR_CannotEmbedWithoutPdb);
                 }

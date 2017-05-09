@@ -224,8 +224,14 @@ namespace A.B {
 
             Assert.Throws<ArgumentException>("embeddedTexts", () => comp.Emit(
                 peStream: new MemoryStream(),
-                pdbStream: new MemoryStream(),
-                options: EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.Pdb),
+                pdbStream: null,
+                options: null,
+                embeddedTexts: new[] { EmbeddedText.FromStream("_", new MemoryStream()) }));
+
+            Assert.Throws<ArgumentException>("embeddedTexts", () => comp.Emit(
+                peStream: new MemoryStream(),
+                pdbStream: null,
+                options: null,
                 embeddedTexts: new[] { EmbeddedText.FromStream("_", new MemoryStream()) }));
 
             Assert.Throws<ArgumentException>("embeddedTexts", () => comp.Emit(

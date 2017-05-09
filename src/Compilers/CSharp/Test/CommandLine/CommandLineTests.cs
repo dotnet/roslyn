@@ -1843,19 +1843,6 @@ d.cs
 
             parsedArgs = DefaultParse(new[] { "/embed:a.txt", "/debug-", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify(Diagnostic(ErrorCode.ERR_CannotEmbedWithoutPdb));
-
-            // These should fail when native PDB support is added.
-            parsedArgs = DefaultParse(new[] { "/embed", "/debug:full", "a.cs" }, _baseDirectory);
-            parsedArgs.Errors.Verify(Diagnostic(ErrorCode.ERR_CannotEmbedWithoutPdb));
-
-            parsedArgs = DefaultParse(new[] { "/embed", "/debug:full", "a.cs" }, _baseDirectory);
-            parsedArgs.Errors.Verify(Diagnostic(ErrorCode.ERR_CannotEmbedWithoutPdb));
-
-            parsedArgs = DefaultParse(new[] { "/embed", "/debug:pdbonly", "a.cs" }, _baseDirectory);
-            parsedArgs.Errors.Verify(Diagnostic(ErrorCode.ERR_CannotEmbedWithoutPdb));
-
-            parsedArgs = DefaultParse(new[] { "/embed", "/debug+", "a.cs" }, _baseDirectory);
-            parsedArgs.Errors.Verify(Diagnostic(ErrorCode.ERR_CannotEmbedWithoutPdb));
         }
 
         [Theory]

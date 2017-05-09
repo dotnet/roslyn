@@ -2055,13 +2055,12 @@ namespace Microsoft.CodeAnalysis
                     throw new ArgumentException(CodeAnalysisResources.StreamMustSupportRead, nameof(sourceLinkStream));
                 }
             }
+
             if (embeddedTexts != null && !embeddedTexts.IsEmpty())
             {
-                if (options == null || 
-                    options.DebugInformationFormat == DebugInformationFormat.Pdb ||
-                    options.DebugInformationFormat == DebugInformationFormat.PortablePdb && pdbStream == null)
+                if (pdbStream == null && options?.DebugInformationFormat != DebugInformationFormat.Embedded)
                 {
-                    throw new ArgumentException(CodeAnalysisResources.EmbeddedTextsRequirePortablePdb, nameof(embeddedTexts));
+                    throw new ArgumentException(CodeAnalysisResources.EmbeddedTextsRequirePdb, nameof(embeddedTexts));
                 }
             }
 
