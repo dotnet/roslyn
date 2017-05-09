@@ -1155,8 +1155,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend Partial Class BoundObjectCreationExpression
         Implements IObjectCreationExpression
 
-        Private Shared ReadOnly s_memberInitializersMappings As New System.Runtime.CompilerServices.ConditionalWeakTable(Of BoundObjectCreationExpression, Object)
-
         Private ReadOnly Property IObjectCreationExpression_Constructor As IMethodSymbol Implements IObjectCreationExpression.Constructor
             Get
                 Return Me.ConstructorOpt
@@ -1170,31 +1168,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private ReadOnly Property IObjectCreationExpression_MemberInitializers As ImmutableArray(Of ISymbolInitializer) Implements IObjectCreationExpression.MemberInitializers
+        Private ReadOnly Property IObjectCreationExpression_Initializers As ImmutableArray(Of IOperation) Implements IObjectCreationExpression.Initializers
             Get
-                Dim initializer = s_memberInitializersMappings.GetValue(Me, Function(objectCreationStatement)
-                                                                                Dim objectInitializerExpression As BoundObjectInitializerExpressionBase = Me.InitializerOpt
-                                                                                If objectInitializerExpression IsNot Nothing Then
-                                                                                    Dim builder = ArrayBuilder(Of ISymbolInitializer).GetInstance(objectInitializerExpression.Initializers.Length)
-                                                                                    For Each memberAssignment In objectInitializerExpression.Initializers
-                                                                                        Dim assignment = TryCast(memberAssignment, BoundAssignmentOperator)
-                                                                                        Dim left = assignment?.Left
-                                                                                        If left IsNot Nothing Then
-                                                                                            Select Case left.Kind
-                                                                                                Case BoundKind.FieldAccess
-                                                                                                    builder.Add(New FieldInitializer(assignment.Syntax, DirectCast(left, BoundFieldAccess).FieldSymbol, assignment.Right))
-                                                                                                Case BoundKind.PropertyAccess
-                                                                                                    builder.Add(New PropertyInitializer(assignment.Syntax, DirectCast(left, BoundPropertyAccess).PropertySymbol, assignment.Right))
-                                                                                            End Select
-                                                                                        End If
-                                                                                    Next
-                                                                                    Return builder.ToImmutableAndFree()
-                                                                                End If
-
-                                                                                Return ImmutableArray(Of ISymbolInitializer).Empty
-                                                                            End Function)
-
-                Return DirectCast(initializer, ImmutableArray(Of ISymbolInitializer))
+                Return If(Me.InitializerOpt IsNot Nothing, Me.InitializerOpt.Initializers.As(Of IOperation), ImmutableArray(Of IOperation).Empty)
             End Get
         End Property
 

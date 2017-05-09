@@ -835,7 +835,7 @@ class C
                 );
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19300")]
         public void MemberInitializerCSharp()
         {
             const string source = @"

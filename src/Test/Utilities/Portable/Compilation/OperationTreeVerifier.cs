@@ -879,7 +879,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogCommonPropertiesAndNewLine(operation);
 
             VisitArguments(operation);
-            VisitArray(operation.MemberInitializers, "Member Initializers", logElementCount: true);
+            VisitArray(operation.Initializers, "Initializers", logElementCount: true);
         }
 
         public override void VisitFieldInitializer(IFieldInitializer operation)
