@@ -262,7 +262,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             // we are comparing its parent node (used for lambda bodies).
             // 
             // Expressions are ignored but they may contain nodes that should be matched by tree comparer.
-            // (e.g. lambdas, declaration expressions). Descending to these nodes is handled in EnumerateChildren.
+            // (e.g. lambdas, out var and pattern-matching). Descending to these nodes is handled in EnumerateChildren.
 
             isLeaf = false;
 
@@ -603,6 +603,14 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                         return true;
                     }
 
+                case SyntaxKind.ForEachComponentStatement:
+                    {
+                        var leftForEach = (ForEachComponentStatementSyntax)leftNode;
+                        var rightForEach = (ForEachComponentStatementSyntax)rightNode;
+                        distance = ComputeWeightedDistance(leftForEach, rightForEach);
+                        return true;
+                    }
+
                 case SyntaxKind.UsingStatement:
                     var leftUsing = (UsingStatementSyntax)leftNode;
                     var rightUsing = (UsingStatementSyntax)rightNode;
@@ -872,6 +880,16 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             return AdjustForLocalsInBlock(distance, leftCommonForEach.Statement, rightCommonForEach.Statement, localsWeight: 0.6);
         }
 
+        private static double ComputeWeightedDistance(ForEachComponentStatementSyntax left, ForEachComponentStatementSyntax right)
+        {
+            double statementDistance = ComputeDistance(left.Statement, right.Statement);
+            double expressionDistance = ComputeDistance(left.Expression, right.Expression);
+            double identifierDistance = ComputeDistance(left.VariableComponent, right.VariableComponent);
+
+            double distance = identifierDistance * 0.7 + expressionDistance * 0.2 + statementDistance * 0.1;
+            return AdjustForLocalsInBlock(distance, left.Statement, right.Statement, localsWeight: 0.6);
+        }
+
         private static double ComputeWeightedDistance(ForStatementSyntax left, ForStatementSyntax right)
         {
             double statementDistance = ComputeDistance(left.Statement, right.Statement);
@@ -885,6 +903,11 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             {
                 distance = distance * 0.4 + localsDistance * 0.6;
             }
+            if (TryComputeLocalsDistance(left.Deconstruction, right.Deconstruction, out localsDistance))
+            {
+                distance = distance * 0.4 + localsDistance * 0.6;
+            }
+            // TODO: what about left.Initializers, right.Initializers ???
 
             return distance;
         }
@@ -942,6 +965,32 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             return distance;
         }
 
+        private static bool TryComputeLocalsDistance(
+            VariableComponentAssignmentSyntax leftDeconstructionOpt, VariableComponentAssignmentSyntax rightDeconstructionOpt, out double distance)
+        {
+            List<SyntaxToken> leftLocals = null;
+            List<SyntaxToken> rightLocals = null;
+
+            if (leftDeconstructionOpt != null)
+            {
+                GetLocalNames(leftDeconstructionOpt, ref leftLocals);
+            }
+
+            if (rightDeconstructionOpt != null)
+            {
+                GetLocalNames(rightDeconstructionOpt, ref rightLocals);
+            }
+
+            if (leftLocals == null || rightLocals == null)
+            {
+                distance = 0;
+                return false;
+            }
+
+            distance = ComputeDistance(leftLocals, rightLocals);
+            return true;
+        }
+
         private static bool TryComputeLocalsDistance(VariableDeclarationSyntax leftOpt, VariableDeclarationSyntax rightOpt, out double distance)
         {
             List<SyntaxToken> leftLocals = null;
@@ -985,7 +1034,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             return true;
         }
 
-        // doesn't include variables declared in declaration expressions
+        // doesn't include variables declared in out var and pattern-matching
         private static void GetLocalNames(BlockSyntax block, ref List<SyntaxToken> result)
         {
             foreach (var child in block.ChildNodes())
@@ -994,10 +1043,61 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 {
                     GetLocalNames(((LocalDeclarationStatementSyntax)child).Declaration, ref result);
                 }
+                else if (child.IsKind(SyntaxKind.DeconstructionDeclarationStatement))
+                {
+                    GetLocalNames(((DeconstructionDeclarationStatementSyntax)child).Assignment.VariableComponent, ref result);
+                }
+                // TODO: in C# 7, many other statements introduce locals due to out var and pattern-matching.
             }
         }
 
-        // doesn't include variables declared in declaration expressions
+        private static void GetLocalNames(VariableComponentAssignmentSyntax assignment, ref List<SyntaxToken> result)
+        {
+            GetLocalNames(assignment.VariableComponent, ref result);
+        }
+
+        private static void GetLocalNames(VariableComponentSyntax variableComponent, ref List<SyntaxToken> result)
+        {
+            switch (variableComponent.Kind())
+            {
+                case SyntaxKind.ParenthesizedVariableComponent:
+                    foreach (var c in ((ParenthesizedVariableComponentSyntax)variableComponent).Variables)
+                    {
+                        GetLocalNames(c, ref result);
+                    }
+                    return;
+                case SyntaxKind.TypedVariableComponent:
+                    GetLocalNames(((TypedVariableComponentSyntax)variableComponent).Designation, ref result);
+                    return;
+                default:
+                    return;
+            }
+        }
+
+        private static void GetLocalNames(VariableDesignationSyntax variableDesignation, ref List<SyntaxToken> result)
+        {
+            switch (variableDesignation.Kind())
+            {
+                case SyntaxKind.ParenthesizedVariableDesignation:
+                    foreach (var c in ((ParenthesizedVariableDesignationSyntax)variableDesignation).Variables)
+                    {
+                        GetLocalNames(c, ref result);
+                    }
+                    return;
+                case SyntaxKind.SingleVariableDesignation:
+                    if (result == null)
+                    {
+                        result = new List<SyntaxToken>();
+                    }
+
+                    result.Add(((SingleVariableDesignationSyntax)variableDesignation).Identifier);
+                    return;
+                default:
+                    return;
+            }
+        }
+
+        // doesn't include variables declared in out var and pattern-matching
         private static void GetLocalNames(VariableDeclarationSyntax localDeclaration, ref List<SyntaxToken> result)
         {
             foreach (var local in localDeclaration.Variables)
