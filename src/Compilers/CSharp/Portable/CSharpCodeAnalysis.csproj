@@ -20,6 +20,10 @@
          contains a reference to C# + VB CodeAnalysis. This ensures that the project
          reference is a higher version than the NuGet reference. -->
     <Version>$(NuGetPerBuildPreReleaseVersion)</Version>
+    <PreBuildEvent>dotnet "$(SolutionDir)Binaries\Debug\Exes\CSharpSyntaxGenerator\CSharpSyntaxGenerator.dll" "$(SolutionDir)src\Compilers\CSharp\Portable\Syntax\Syntax.xml" "$(SolutionDir)src\Compilers\CSharp\Portable\Generated\"
+dotnet "$(SolutionDir)Binaries\Debug\Exes\CSharpErrorFactsGenerator\CSharpErrorFactsGenerator.dll" "$(SolutionDir)src\Compilers\CSharp\Portable\Errors\ErrorCode.cs" "$(SolutionDir)src\Compilers\CSharp\Portable\Generated\ErrorFacts.Generated.cs"
+dotnet "$(SolutionDir)Binaries\Debug\Exes\CompilersBoundTreeGenerator\BoundTreeGenerator.dll" CSharp "$(SolutionDir)src\Compilers\CSharp\Portable\BoundTree\BoundNodes.xml" "$(SolutionDir)src\Compilers\CSharp\Portable\Generated\BoundNodes.xml.Generated.cs"
+</PreBuildEvent>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
