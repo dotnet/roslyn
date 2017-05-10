@@ -28,6 +28,7 @@
     <Compile Include="CaptureTestNameAttribute.cs" />
     <Compile Include="Common\Comparison.cs" />
     <Compile Include="Common\ErrorListItem.cs" />
+    <Compile Include="Common\Expression.cs" />
     <Compile Include="Common\Parameter.cs" />
     <Compile Include="Common\ProjectUtilities.cs" />
     <Compile Include="Common\Reference.cs" />

@@ -9,21 +9,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
     {
         public static LocalsWindow_InProc Create() => new LocalsWindow_InProc();
 
-        public void CheckEntry(string entryName, string expectedType, string expectedValue)
-        {
-            var entry = GetEntry(entryName);
-            if (entry.Type != expectedType)
-            {
-                throw new Exception($"The local named {entryName} did not match the type expected. Expected: {expectedType}. Actual: {entry.Type}");
-            }
-
-            if ( entry.Value != expectedValue)
-            {
-                throw new Exception($"The local named {entryName} did not match the value expected. Expected: {expectedValue}. Actual: {entry.Value}");
-            }
-        }
-
-        private EnvDTE.Expression GetEntry(string entryName)
+        public Common.Expression GetEntry(string entryName)
         {
             var dte = ((DTE2)GetDTE());
             if (dte.Debugger.CurrentStackFrame != null) // Ensure that debugger is running
@@ -33,7 +19,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 {
                     if (local.Name == entryName)
                     {
-                        return local;
+                        return new Common.Expression(local);
                     }
                 }
             }

@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess;
+using Xunit;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 {
@@ -40,7 +41,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
         public void ExecuteStatement(string statement) => _debuggerInProc.ExecuteStatement(statement);
 
-        public void CheckExpression(string expression, string expectedType, string expectedValue) => 
-            _debuggerInProc.CheckExpression(expression, expectedType, expectedValue);
+        public void CheckExpression(string expressionText, string expectedType, string expectedValue)
+        {
+            var entry = _debuggerInProc.GetExpression(expressionText);
+            Assert.Equal(expectedType, entry.Type);
+            Assert.Equal(expectedValue, entry.Value);
+        }
     }
 }

@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using EnvDTE;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
@@ -33,18 +32,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         public void ExecuteStatement(string statement) => _debugger.ExecuteStatement(statement);
 
-        public void CheckExpression(string expression, string expectedType, string expectedValue)
-        {
-            var entry = _debugger.GetExpression(expression);
-            if (entry.Type != expectedType)
-            {
-                throw new Exception($"The expression {expression} did not match the type expected. Expected: {expectedType}. Actual: {entry.Type}");
-            }
-
-            if (entry.Value != expectedValue)
-            {
-                throw new Exception($"The expression {expression} did not match the value expected. Expected: {expectedValue}. Actual: {entry.Value}");
-            }
-        }
+        public Common.Expression GetExpression(string expressionText) => new Common.Expression(_debugger.GetExpression(expressionText));
     }
 }
