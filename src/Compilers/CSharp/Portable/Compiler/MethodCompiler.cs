@@ -236,7 +236,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     body,
                     null,
                     new TypeCompilationState(synthesizedEntryPoint.ContainingType, compilation, moduleBeingBuilt),
-                    false ,
+                    false,
                     null,
                     ref dynamicAnalysisSpans,
                     diagnostics,
