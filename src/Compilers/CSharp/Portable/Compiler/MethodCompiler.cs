@@ -224,7 +224,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundStatement body = synthesizedEntryPoint.CreateBody();
 
                 var dynamicAnalysisSpans = ImmutableArray<SourceSpan>.Empty;
-                var diagsForCurrentMethod = DiagnosticBag.GetInstance();
                 VariableSlotAllocator lazyVariableSlotAllocator = null;
                 var lambdaDebugInfoBuilder = ArrayBuilder<LambdaDebugInfo>.GetInstance();
                 var closureDebugInfoBuilder = ArrayBuilder<ClosureDebugInfo>.GetInstance();
@@ -240,7 +239,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     false ,
                     null,
                     ref dynamicAnalysisSpans,
-                    diagsForCurrentMethod,
+                    diagnostics,
                     ref lazyVariableSlotAllocator,
                     lambdaDebugInfoBuilder,
                     closureDebugInfoBuilder,
@@ -251,6 +250,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(dynamicAnalysisSpans.IsEmpty);
                 Debug.Assert(lambdaDebugInfoBuilder.IsEmpty());
                 Debug.Assert(closureDebugInfoBuilder.IsEmpty());
+
+                lambdaDebugInfoBuilder.Free();
+                closureDebugInfoBuilder.Free();
 
                 var emittedBody = GenerateMethodBody(
                     moduleBeingBuilt,
