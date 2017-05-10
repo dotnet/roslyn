@@ -2,7 +2,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.Composition;
+using System.Composition;
 using System.Linq;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -16,15 +16,15 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation
 {
-    [ExportWorkspaceService(typeof(IInfoBarService))]
+    [ExportWorkspaceService(typeof(IInfoBarService), layer: ServiceLayer.Host), Shared]
     internal class VisualStudioInfoBarService : ForegroundThreadAffinitizedObject, IInfoBarService
     {
-        private readonly IServiceProvider _serviceProvider;
+        private readonly SVsServiceProvider _serviceProvider;
         private readonly IForegroundNotificationService _foregroundNotificationService;
         private readonly IAsynchronousOperationListener _listener;
 
         [ImportingConstructor]
-        public VisualStudioInfoBarService([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
+        public VisualStudioInfoBarService(SVsServiceProvider serviceProvider,
             IForegroundNotificationService foregroundNotificationService,
             [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners)
         {
@@ -54,7 +54,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 {
                     CreateInfoBar(infoBarHost, message, items);
                 }
-            }, _listener.BeginAsyncOperation("Show InfoBar"));
+            }, _listener.BeginAsyncOperation(nameof(ShowInfoBar)));
         }
 
         private bool TryGetInfoBarData(bool activeView, out IVsInfoBarHost infoBarHost)

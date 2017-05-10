@@ -23,6 +23,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             {
                 _singleton = new VisualStudioErrorReportingService(workspaceServices.GetRequiredService<IInfoBarService>());
             }
+
             return _singleton;
         }
     }
