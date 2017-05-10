@@ -1063,62 +1063,99 @@ comp => comp.VerifyDiagnostics(
         }
 
         [Theory]
-        [InlineData("")]
-        [InlineData(@"[assembly: System.Reflection.AssemblyVersion(""1"")]")]
-        [InlineData(@"[assembly: System.Reflection.AssemblyVersion(""1.0.0.*"")]")]
-        public void RefAssembly_EmitAsDeterministic(string source)
+        [InlineData("", false)]
+        [InlineData(@"[assembly: System.Reflection.AssemblyVersion(""1"")]", false)]
+        [InlineData(@"[assembly: System.Reflection.AssemblyVersion(""1.0.0.*"")]", true)]
+        public void RefAssembly_EmitAsDeterministic(string source, bool hasWildcard)
         {
-            var comp = CreateStandardCompilation(source, options: TestOptions.DebugDll.WithDeterministic(false));
+            var name = GetUniqueName();
+            var options = TestOptions.DebugDll.WithDeterministic(false);
+            var comp1 = CreateStandardCompilation(source, options: options, assemblyName: name);
 
-            var (image1, refImage1) = emitRefOut();
-            verifyIdentitiesMatch(image1, refImage1);
+            var (out1, refOut1) = EmitRefOut(comp1);
+            var refOnly1 = EmitRefOnly(comp1);
+            VerifyIdentitiesMatch(out1, refOut1);
+            VerifyIdentitiesMatch(out1, refOnly1);
+            AssertEx.Equal(refOut1, refOut1);
 
-            // The resolution of the PE header time date stamp is seconds, and we want to make sure that has an opportunity to change
+            // The resolution of the PE header time date stamp is seconds (divided by two), and we want to make sure that has an opportunity to change
             // between calls to Emit.
-            Thread.Sleep(TimeSpan.FromSeconds(1));
-            var (image2, refImage2) = emitRefOut();
-            verifyIdentitiesMatch(image2, refImage2);
+            Thread.Sleep(TimeSpan.FromSeconds(3));
 
-            var refImage3 = emitRefOnly();
+            // Re-using the same compilation results in the same time stamp
+            var (out15, refOut15) = EmitRefOut(comp1);
+            VerifyIdentitiesMatch(out1, out15);
+            VerifyIdentitiesMatch(refOut1, refOut15);
+            AssertEx.Equal(refOut1, refOut15);
 
-            AssertEx.Equal(refImage1, refImage2);
-            AssertEx.Equal(refImage1, refImage3);
+            // Using a new compilation results in new time stamp
+            var comp2 = CreateStandardCompilation(source, options: options, assemblyName: name);
+            var (out2, refOut2) = EmitRefOut(comp2);
+            var refOnly2 = EmitRefOnly(comp2);
+            VerifyIdentitiesMatch(out2, refOut2);
+            VerifyIdentitiesMatch(out2, refOnly2);
 
-            var comp2 = CreateStandardCompilation(source, options: TestOptions.DebugDll.WithDeterministic(false));
-            var refImage4 = emitRefOnly();
-            AssertEx.Equal(refImage1, refImage4);
+            VerifyIdentitiesMatch(out1, out2, expectMatch: !hasWildcard);
+            VerifyIdentitiesMatch(refOut1, refOut2, expectMatch: !hasWildcard);
 
-            void verifyIdentitiesMatch(ImmutableArray<byte> firstImage, ImmutableArray<byte> secondImage)
+            if (hasWildcard)
             {
-                var id1 = ModuleMetadata.CreateFromImage(firstImage).GetMetadataReader().ReadAssemblyIdentityOrThrow();
-                var id2 = ModuleMetadata.CreateFromImage(secondImage).GetMetadataReader().ReadAssemblyIdentityOrThrow();
-                Assert.Equal(id1, id2);
+                AssertEx.NotEqual(refOut1, refOut2);
+                AssertEx.NotEqual(refOut1, refOnly2);
             }
-
-            (ImmutableArray<byte> image, ImmutableArray<byte> refImage) emitRefOut()
+            else
             {
-                using (var output = new MemoryStream())
-                using (var metadataOutput = new MemoryStream())
-                {
-                    var options = EmitOptions.Default.WithIncludePrivateMembers(false);
-                    comp.VerifyEmitDiagnostics();
-                    var result = comp.Emit(output, metadataPEStream: metadataOutput,
-                        options: options);
-                    return (output.ToImmutable(), metadataOutput.ToImmutable());
-                }
+                // If no wildcards, the binaries are emitted deterministically
+                AssertEx.Equal(refOut1, refOut2);
+                AssertEx.Equal(refOut1, refOnly2);
             }
+        }
 
-            ImmutableArray<byte> emitRefOnly()
+        private void VerifyIdentitiesMatch(ImmutableArray<byte> firstImage, ImmutableArray<byte> secondImage, bool expectMatch = true)
+        {
+            var id1 = ModuleMetadata.CreateFromImage(firstImage).GetMetadataReader().ReadAssemblyIdentityOrThrow();
+            var id2 = ModuleMetadata.CreateFromImage(secondImage).GetMetadataReader().ReadAssemblyIdentityOrThrow();
+            Assert.Equal(expectMatch, id1 == id2);
+        }
+
+        private (ImmutableArray<byte> image, ImmutableArray<byte> refImage) EmitRefOut(CSharpCompilation comp)
+        {
+            using (var output = new MemoryStream())
+            using (var metadataOutput = new MemoryStream())
             {
-                using (var output = new MemoryStream())
-                {
-                    var options = EmitOptions.Default.WithEmitMetadataOnly(true).WithIncludePrivateMembers(false);
-                    comp.VerifyEmitDiagnostics();
-                    var result = comp.Emit(output,
-                        options: options);
-                    return output.ToImmutable();
-                }
+                var options = EmitOptions.Default.WithIncludePrivateMembers(false);
+                comp.VerifyEmitDiagnostics();
+                var result = comp.Emit(output, metadataPEStream: metadataOutput,
+                    options: options);
+                return (output.ToImmutable(), metadataOutput.ToImmutable());
             }
+        }
+
+        ImmutableArray<byte> EmitRefOnly(CSharpCompilation comp)
+        {
+            using (var output = new MemoryStream())
+            {
+                var options = EmitOptions.Default.WithEmitMetadataOnly(true).WithIncludePrivateMembers(false);
+                comp.VerifyEmitDiagnostics();
+                var result = comp.Emit(output,
+                    options: options);
+                return output.ToImmutable();
+            }
+        }
+
+        [Fact]
+        public void RefAssembly_PublicSigning()
+        {
+            var snk = Temp.CreateFile().WriteAllBytes(TestResources.General.snKey);
+
+            var comp = CreateStandardCompilation("public class C{}",
+                options: TestOptions.ReleaseDll.WithCryptoKeyFile(snk.Path).WithPublicSign(true));
+
+            comp.VerifyDiagnostics();
+            var (image, refImage) = EmitRefOut(comp);
+            var refOnlyImage = EmitRefOnly(comp);
+            VerifyIdentitiesMatch(image, refImage);
+            VerifyIdentitiesMatch(image, refOnlyImage);
         }
 
         [Theory]
