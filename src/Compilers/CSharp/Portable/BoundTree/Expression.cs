@@ -414,44 +414,20 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    internal partial class BoundDelegateCreationExpression : IMethodBindingExpression
+    internal partial class BoundDelegateCreationExpression
     {
-        IOperation IMemberReferenceExpression.Instance
-        {
-            get
-            {
-                BoundMethodGroup methodGroup = this.Argument as BoundMethodGroup;
-                if (methodGroup != null)
-                {
-                    return methodGroup.InstanceOpt;
-                }
+        protected override OperationKind ExpressionKind => OperationKind.None;
 
-                return null;
-            }
-        }
-
-        bool IMethodBindingExpression.IsVirtual =>
-            (object)this.MethodOpt != null &&
-            (this.MethodOpt.IsVirtual || this.MethodOpt.IsAbstract || this.MethodOpt.IsOverride) &&
-            !this.SuppressVirtualCalls;
-
-        ISymbol IMemberReferenceExpression.Member => this.MethodOpt;
-
-        IMethodSymbol IMethodBindingExpression.Method => this.MethodOpt;
-
-        protected override OperationKind ExpressionKind => OperationKind.MethodBindingExpression;
-
-        // SyntaxNode for MethodBindingExpression is the argument of DelegateCreationExpression 
-        SyntaxNode IOperation.Syntax => this.Argument.Syntax;
+        protected override ImmutableArray<IOperation> Children => ImmutableArray.Create<IOperation>(this.Argument); 
 
         public override void Accept(OperationVisitor visitor)
         {
-            visitor.VisitMethodBindingExpression(this);
+            visitor.VisitNoneOperation(this);
         }
 
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
-            return visitor.VisitMethodBindingExpression(this, argument);
+            return visitor.VisitNoneOperation(this, argument);
         }
     }
 
