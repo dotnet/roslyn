@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         public static SymbolTreeInfo CreateEmpty(Checksum checksum)
         {
-            var unsortedNodes = ImmutableArray.Create(new BuilderNode(name: "", parentIndex: RootNodeParentIndex));
+            var unsortedNodes = ImmutableArray.Create(BuilderNode.RootNode);
             SortNodes(unsortedNodes, out var concatenatedNames, out var sortedNodes);
 
             return new SymbolTreeInfo(checksum, concatenatedNames, sortedNodes,

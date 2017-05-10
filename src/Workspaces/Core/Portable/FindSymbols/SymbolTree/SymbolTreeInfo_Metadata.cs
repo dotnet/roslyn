@@ -634,7 +634,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             private ImmutableArray<BuilderNode> GenerateUnsortedNodes()
             {
                 var unsortedNodes = ArrayBuilder<BuilderNode>.GetInstance();
-                unsortedNodes.Add(new BuilderNode(name: "", parentIndex: RootNodeParentIndex));
+                unsortedNodes.Add(BuilderNode.RootNode);
 
                 AddUnsortedNodes(unsortedNodes, parentNode: _rootNode, parentIndex: 0);
 
