@@ -36,6 +36,7 @@ namespace System
 
     public ref struct SpanLike<T>
     {
+        public Span<T> field;
     }
 }
 
@@ -204,7 +205,7 @@ class Program
     {
         var x = new Span<int>[1];
 
-        var y = new Span<int>[1,2];
+        var y = new SpanLike<int>[1,2];
     }
 }
 ";
@@ -215,10 +216,10 @@ class Program
             comp.VerifyDiagnostics(
                 // (8,21): error CS0611: Array elements cannot be of type 'Span<int>'
                 //         var x = new Span<int>[1];
-                Diagnostic(ErrorCode.ERR_ArrayElementCantBeRefAny, "Span<int>").WithArguments("System.Span<int>").WithLocation(8, 21),
-                // (10,21): error CS0611: Array elements cannot be of type 'Span<int>'
-                //         var y = new Span<int>[1,2];
-                Diagnostic(ErrorCode.ERR_ArrayElementCantBeRefAny, "Span<int>").WithArguments("System.Span<int>").WithLocation(10, 21)
+                Diagnostic(ErrorCode.ERR_ArrayElementCantBeRefAny, "Span<int>").WithArguments("System.Span<int>"),
+                // (10,21): error CS0611: Array elements cannot be of type 'SpanLike<int>'
+                //         var y = new SpanLike<int>[1,2];
+                Diagnostic(ErrorCode.ERR_ArrayElementCantBeRefAny, "SpanLike<int>").WithArguments("System.SpanLike<int>").WithLocation(10, 21)
             );
         }
 
@@ -234,11 +235,13 @@ class Program
     {
     }
 
+    // OK
     static void M1(ref Span<string> ss)
     {
     }
 
-    static void M2(out Span<string> ss)
+    // OK
+    static void M2(out SpanLike<string> ss)
     {
     }
 
@@ -247,23 +250,32 @@ class Program
     {
     }
 
-    // technically ok, but what would you return?
-    static ref Span<string> M4() => throw null;
+    // OK
+    static void M3l(in SpanLike<string> ss)
+    {
+    }
 
-    //OK
-    static ref readonly Span<string> M5() => throw null;
+    // OK
+    static ref Span<string> M4(ref Span<string> ss) { return ref ss; }
+
+    // OK
+    static ref readonly Span<string> M5(ref Span<string> ss) => ref ss;
+
+    // Not OK
+    // TypedReference baseline
+    static ref TypedReference M1(ref TypedReference ss) => ref ss;
 }
 ";
 
             CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text);
 
             comp.VerifyDiagnostics(
-                // (10,20): error CS1601: Cannot make reference to variable of type 'Span<string>'
-                //     static void M1(ref Span<string> ss)
-                Diagnostic(ErrorCode.ERR_MethodArgCantBeRefAny, "ref Span<string> ss").WithArguments("System.Span<string>").WithLocation(10, 20),
-                // (14,20): error CS1601: Cannot make reference to variable of type 'Span<string>'
-                //     static void M2(out Span<string> ss)
-                Diagnostic(ErrorCode.ERR_MethodArgCantBeRefAny, "out Span<string> ss").WithArguments("System.Span<string>").WithLocation(14, 20)
+                // (38,34): error CS1601: Cannot make reference to variable of type 'TypedReference'
+                //     static ref TypedReference M1(ref TypedReference ss) => ref ss;
+                Diagnostic(ErrorCode.ERR_MethodArgCantBeRefAny, "ref TypedReference ss").WithArguments("System.TypedReference").WithLocation(38, 34),
+                // (38,12): error CS1599: Method or delegate cannot return type 'TypedReference'
+                //     static ref TypedReference M1(ref TypedReference ss) => ref ss;
+                Diagnostic(ErrorCode.ERR_MethodReturnCantBeRefAny, "ref TypedReference").WithArguments("System.TypedReference").WithLocation(38, 12)
             );
         }
 
@@ -717,7 +729,7 @@ public class Program
         // none of the following is ok, since we would need to capture the receiver.
         Func<int> d1 = default(Span<int>).GetHashCode;
 
-        Func<Type> d2 = default(Span<int>).GetType;
+        Func<Type> d2 = default(SpanLike<int>).GetType;
 
         Func<string> d3 = default(Span<int>).ToString;
     }
@@ -729,13 +741,13 @@ public class Program
             comp.VerifyEmitDiagnostics(
                 // (12,43): error CS0123: No overload for 'GetHashCode' matches delegate 'Func<int>'
                 //         Func<int> d1 = default(Span<int>).GetHashCode;
-                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "GetHashCode").WithArguments("GetHashCode", "System.Func<int>").WithLocation(12, 43),
-                // (14,44): error CS0123: No overload for 'GetType' matches delegate 'Func<Type>'
-                //         Func<Type> d2 = default(Span<int>).GetType;
-                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "GetType").WithArguments("GetType", "System.Func<System.Type>").WithLocation(14, 44),
+                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "GetHashCode").WithArguments("GetHashCode", "System.Func<int>"),
+                // (14,48): error CS0123: No overload for 'GetType' matches delegate 'Func<Type>'
+                //         Func<Type> d2 = default(SpanLike<int>).GetType;
+                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "GetType").WithArguments("GetType", "System.Func<System.Type>").WithLocation(14, 48),
                 // (16,46): error CS0123: No overload for 'ToString' matches delegate 'Func<string>'
                 //         Func<string> d3 = default(Span<int>).ToString;
-                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "ToString").WithArguments("ToString", "System.Func<string>").WithLocation(16, 46)
+                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "ToString").WithArguments("ToString", "System.Func<string>")
             );
         }
     }
