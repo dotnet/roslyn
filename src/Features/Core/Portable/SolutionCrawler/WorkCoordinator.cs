@@ -296,7 +296,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 switch (e.Kind)
                 {
                     case WorkspaceChangeKind.ProjectAdded:
-                        OnProjectAdded(e.NewSolution.GetProject(e.ProjectId));
                         EnqueueEvent(e.NewSolution, e.ProjectId, InvocationReasons.DocumentAdded, asyncToken);
                         break;
                     case WorkspaceChangeKind.ProjectRemoved:
@@ -316,7 +315,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 switch (e.Kind)
                 {
                     case WorkspaceChangeKind.SolutionAdded:
-                        OnSolutionAdded(e.NewSolution);
                         EnqueueEvent(e.NewSolution, InvocationReasons.DocumentAdded, asyncToken);
                         break;
                     case WorkspaceChangeKind.SolutionRemoved:
@@ -332,32 +330,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     default:
                         throw ExceptionUtilities.UnexpectedValue(e.Kind);
                 }
-            }
-
-            private void OnSolutionAdded(Solution solution)
-            {
-                var asyncToken = _listener.BeginAsyncOperation("OnSolutionAdded");
-                _eventProcessingQueue.ScheduleTask(() =>
-                {
-                    var semanticVersionTrackingService = solution.Workspace.Services.GetService<ISemanticVersionTrackingService>();
-                    if (semanticVersionTrackingService != null)
-                    {
-                        semanticVersionTrackingService.LoadInitialSemanticVersions(solution);
-                    }
-                }, _shutdownToken).CompletesAsyncOperation(asyncToken);
-            }
-
-            private void OnProjectAdded(Project project)
-            {
-                var asyncToken = _listener.BeginAsyncOperation("OnProjectAdded");
-                _eventProcessingQueue.ScheduleTask(() =>
-                {
-                    var semanticVersionTrackingService = project.Solution.Workspace.Services.GetService<ISemanticVersionTrackingService>();
-                    if (semanticVersionTrackingService != null)
-                    {
-                        semanticVersionTrackingService.LoadInitialSemanticVersions(project);
-                    }
-                }, _shutdownToken).CompletesAsyncOperation(asyncToken);
             }
 
             private void EnqueueEvent(Solution oldSolution, Solution newSolution, IAsyncToken asyncToken)
