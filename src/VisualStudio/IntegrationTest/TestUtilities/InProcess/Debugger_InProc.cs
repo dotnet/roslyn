@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-
 using System;
 using EnvDTE;
 
@@ -10,7 +9,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
     {
         private readonly Debugger _debugger;
 
-        // TODO how to reset or dispose the debugger?
         private Debugger_InProc()
         {
             _debugger = GetDTE().Debugger;

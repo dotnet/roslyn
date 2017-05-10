@@ -58,7 +58,6 @@
     <Compile Include="LightBulbHelper.cs" />
     <Compile Include="OutOfProcess\Dialog_OutOfProc.cs" />
     <Compile Include="OutOfProcess\Debugger_OutOfProc.cs" />
-    <Compile Include="OutOfProcess\Debugger_OutOfProc.Verifier.cs" />
     <Compile Include="OutOfProcess\InlineRenameDialog_OutOfProc.cs" />
     <Compile Include="OutOfProcess\ChangeSignatureDialog_OutOfProc.cs" />
     <Compile Include="OutOfProcess\Editor_OutOfProc.Verifier.cs" />

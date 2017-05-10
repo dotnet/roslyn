@@ -7,6 +7,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
     public partial class LocalsWindow_OutOfProc : OutOfProcComponent
     {
         public Verifier Verify { get; }
+
         private readonly LocalsWindow_InProc _localsWindowInProc;
 
         public LocalsWindow_OutOfProc(VisualStudioInstance visualStudioInstance) : base(visualStudioInstance)

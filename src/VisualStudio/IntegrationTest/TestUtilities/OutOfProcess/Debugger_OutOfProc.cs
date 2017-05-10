@@ -9,8 +9,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
     /// </summary>
     public partial class Debugger_OutOfProc : OutOfProcComponent
     {
-        public Verifier Verify { get; }
-
         private readonly Debugger_InProc _debuggerInProc;
         private readonly VisualStudioInstance _instance;
 
@@ -18,7 +16,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         {
             _instance = visualStudioInstance;
             _debuggerInProc = CreateInProcComponent<Debugger_InProc>(visualStudioInstance);
-            Verify = new Verifier(this);
         }
 
         public void SetBreakPoint(string fileName, int lineNumber, int columnIndex)  => 
@@ -45,7 +42,5 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
         public void CheckExpression(string expression, string expectedType, string expectedValue) => 
             _debuggerInProc.CheckExpression(expression, expectedType, expectedValue);
-
-
     }
 }
