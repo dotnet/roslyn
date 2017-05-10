@@ -681,7 +681,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Dim parameter As IParameterSymbol = boundParameterEqualsValue.Parameter
             Dim value As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundParameterEqualsValue.Value))
             Dim kind As OperationKind = OperationKind.ParameterInitializerAtDeclaration
-            Dim isInvalid As Boolean = DirectCast(boundParameterEqualsValue.Value, IOperation).IsInvalid
+            Dim isInvalid As Boolean = value.Value.IsInvalid
             Dim syntax As SyntaxNode = boundParameterEqualsValue.Syntax
             Dim type As ITypeSymbol = Nothing
             Dim constantValue As [Optional](Of Object) = New [Optional](Of Object)()

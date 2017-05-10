@@ -23,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
                         ' It is not permissible to access the Left property of a BoundUserDefinedBinaryOperator unconditionally,
                         ' because that property can throw an exception if the operator expression is semantically invalid.
                         ' Fetching the left operand through IBinaryOperatorExpression is safe.
-                        If rightOperatorBinary.LeftOperand Is value.LeftOnTheRightOpt Then
+                        If rightOperatorBinary.LeftOperand Is Create(value.LeftOnTheRightOpt) Then
                             Return OperationKind.CompoundAssignmentExpression
                         End If
                 End Select

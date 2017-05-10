@@ -375,7 +375,7 @@ BC30566: Array initializer has too many dimensions.
             VerifyOperationTreeAndDiagnosticsForTest(Of ArrayCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/19344"), WorkItem(17598, "https://github.com/dotnet/roslyn/issues/17598")>
+        <Fact, WorkItem(17598, "https://github.com/dotnet/roslyn/issues/17598")>
         Public Sub InvalidParameterDefaultValueInitializer()
             Dim source = <![CDATA[
 Class Program

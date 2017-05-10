@@ -697,7 +697,7 @@ End Interface
                                             Diagnostic(SymbolCouldHaveMoreSpecificTypeAnalyzer.FieldCouldHaveMoreSpecificTypeDescriptor.Id, "fim").WithArguments("Private fim As IBase2", "IDerived").WithLocation(83, 13))
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/19344")>
+        <Fact>
         Public Sub ValueContextsVisualBasic()
             Dim source = <compilation>
                              <file name="c.vb">
@@ -1254,7 +1254,8 @@ End Class
             comp.VerifyAnalyzerDiagnostics({New EqualsValueTestAnalyzer}, Nothing, Nothing, False,
                                            Diagnostic(EqualsValueTestAnalyzer.EqualsValueDescriptor.Id, "= 44").WithLocation(2, 26),
                                            Diagnostic(EqualsValueTestAnalyzer.EqualsValueDescriptor.Id, "= ""Hello""").WithLocation(3, 25),
-                                           Diagnostic(EqualsValueTestAnalyzer.EqualsValueDescriptor.Id, "= Foo()").WithLocation(4, 26))
+                                           Diagnostic(EqualsValueTestAnalyzer.EqualsValueDescriptor.Id, "= Foo()").WithLocation(4, 26),
+                                           Diagnostic(EqualsValueTestAnalyzer.EqualsValueDescriptor.Id, "= 20").WithLocation(10, 84))
         End Sub
 
         <Fact>
