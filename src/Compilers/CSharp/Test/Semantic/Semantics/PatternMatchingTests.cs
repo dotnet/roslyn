@@ -3218,7 +3218,11 @@ public class X
 }
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
-            compilation.VerifyDiagnostics();
+            compilation.VerifyDiagnostics(
+                // (11,27): warning CS0183: The given expression is always of the provided ('string') type
+                //         Console.WriteLine("foo" is System.String); // true
+                Diagnostic(ErrorCode.WRN_IsAlwaysTrue, @"""foo"" is System.String").WithArguments("string").WithLocation(11, 27)
+                );
             CompileAndVerify(compilation, expectedOutput:
 @"True
 False
@@ -3265,7 +3269,13 @@ public class X
                 Diagnostic(ErrorCode.ERR_ConstantExpected, "typeof(string)").WithLocation(9, 18),
                 // (12,18): error CS0150: A constant value is expected
                 //             case typeof(string[]):
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "typeof(string[])").WithLocation(12, 18)
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "typeof(string[])").WithLocation(12, 18),
+                // (10,17): warning CS0162: Unreachable code detected
+                //                 Console.WriteLine("string");
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "Console").WithLocation(10, 17),
+                // (13,17): warning CS0162: Unreachable code detected
+                //                 Console.WriteLine("string[]");
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "Console").WithLocation(13, 17)
                 );
             // If we support switching on System.Type as proposed, the expectation would be
             // something like CompileAndVerify(compilation, expectedOutput: @"string[]");
@@ -4491,6 +4501,7 @@ unsafe public class Typ
 ";
             var compilation = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.UnsafeDebugDll);
             compilation.VerifyDiagnostics(
+                // (8,22): error CS1525: Invalid expression term 'int'
                 //             if (a is int* b) {}
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(8, 22),
                 // (13,31): error CS1525: Invalid expression term 'int'
@@ -4531,7 +4542,16 @@ unsafe public class Typ
                 Diagnostic(ErrorCode.ERR_BadSKunknown, "Typ").WithArguments("Typ", "type").WithLocation(15, 31),
                 // (15,36): error CS0103: The name 'f' does not exist in the current context
                 //             switch (e) { case Typ* f: break; }
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "f").WithArguments("f").WithLocation(15, 36)
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "f").WithArguments("f").WithLocation(15, 36),
+                // (13,39): warning CS0162: Unreachable code detected
+                //             switch (a) { case int* b: break; }
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(13, 39),
+                // (14,39): warning CS0162: Unreachable code detected
+                //             switch (c) { case var* d: break; }
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(14, 39),
+                // (15,39): warning CS0162: Unreachable code detected
+                //             switch (e) { case Typ* f: break; }
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(15, 39)
                 );
         }
 
@@ -4780,10 +4800,13 @@ public class Program1717
             CreateCompilationWithMscorlib45(program).VerifyDiagnostics(
                 // (10,18): error CS0266: Cannot implicitly convert type 'double' to 'int?'. An explicit conversion exists (are you missing a cast?)
                 //             case double.NaN:
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "double.NaN").WithArguments("double", "int?").WithLocation(10, 18),
-                // (13,18): error CS8121: An expression of type int? cannot be handled by a pattern of type string.
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "double.NaN").WithArguments("double", "int?"),
+                // (13,18): error CS8121: An expression of type 'int?' cannot be handled by a pattern of type 'string'.
                 //             case string _:
-                Diagnostic(ErrorCode.ERR_PatternWrongType, "string").WithArguments("int?", "string").WithLocation(13, 18)
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "string").WithArguments("int?", "string"),
+                // (11,17): warning CS0162: Unreachable code detected
+                //                 break;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(11, 17)
                 );
         }
 
@@ -5593,33 +5616,6 @@ namespace System
                 );
         }
 
-        [Fact, WorkItem(17266, "https://github.com/dotnet/roslyn/issues/17266")]
-        public void DoubleEvaluation01()
-        {
-            var source =
-@"using System;
-public class C
-{
-    public static void Main()
-    {
-        if (TryGet() is int index)
-        {
-            Console.WriteLine(index);
-        }
-    }
-
-    public static int? TryGet()
-    {
-        Console.WriteLine(""eval"");
-        return null;
-    }
-}";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
-            compilation.VerifyDiagnostics();
-            var expectedOutput = @"eval";
-            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
-        }
-
         [Fact]
         [WorkItem(17089, "https://github.com/dotnet/roslyn/issues/17089")]
         public void Dynamic_01()
@@ -5894,6 +5890,41 @@ public class Program
             compilation = CreateCompilationWithMscorlib45(source, references: new MetadataReference[] { CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7_1);
             compilation.VerifyDiagnostics();
             CompileAndVerify(compilation, expectedOutput: "True1False0");
+        }
+
+        [Fact, WorkItem(19151, "https://github.com/dotnet/roslyn/issues/19151")]
+        public void RefutablePatterns()
+        {
+            var source =
+@"public class Program
+{
+    public static void Main(string[] args)
+    {
+        if (null as string is string s1) { }
+        const string s = null;
+        if (s is string s2) { }
+        if (""foo"" is string s3) { }
+    }
+    void M1(int? i)
+    {
+        if (i is long) { }
+        if (i is long l) { }
+        switch (b) { case long m: break; }
+    }
+}
+";
+            var compilation = CreateStandardCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (12,13): warning CS0184: The given expression is never of the provided ('long') type
+                //         if (i is long) { }
+                Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "i is long").WithArguments("long").WithLocation(12, 13),
+                // (13,18): error CS8121: An expression of type 'int?' cannot be handled by a pattern of type 'long'.
+                //         if (i is long l) { }
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "long").WithArguments("int?", "long").WithLocation(13, 18),
+                // (14,17): error CS0103: The name 'b' does not exist in the current context
+                //         switch (b) { case long m: break; }
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "b").WithArguments("b").WithLocation(14, 17)
+                );
         }
     }
 }

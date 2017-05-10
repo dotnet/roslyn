@@ -6476,13 +6476,13 @@ partial class C
             var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
             CompileAndVerify(c).VerifyIL("Program.M",
 @"{
-  // Code size      202 (0xca)
+  // Code size      200 (0xc8)
   .maxstack  2
   .locals init (object V_0,
                 int V_1,
                 object V_2,
                 object V_3,
-                int? V_4,
+                object V_4,
                 object V_5,
                 int V_6,
                 object V_7,
@@ -6497,92 +6497,100 @@ partial class C
   IL_0006:  stloc.0
   IL_0007:  ldloc.0
   IL_0008:  brtrue.s   IL_000c
-  IL_000a:  br.s       IL_005a
+  IL_000a:  br.s       IL_0059
   IL_000c:  ldloc.0
-  IL_000d:  isinst     ""int?""
-  IL_0012:  unbox.any  ""int?""
-  IL_0017:  stloc.s    V_4
-  IL_0019:  ldloca.s   V_4
-  IL_001b:  call       ""int int?.GetValueOrDefault()""
-  IL_0020:  stloc.1
-  IL_0021:  ldloca.s   V_4
-  IL_0023:  call       ""bool int?.HasValue.get""
-  IL_0028:  brfalse.s  IL_005a
-  IL_002a:  ldloc.1
-  IL_002b:  ldc.i4.1
-  IL_002c:  sub
-  IL_002d:  switch    (
-        IL_0048,
-        IL_0050,
-        IL_0056,
-        IL_004e,
-        IL_0054)
-  IL_0046:  br.s       IL_005a
-  IL_0048:  br.s       IL_005c
-  IL_004a:  br.s       IL_0068
-  IL_004c:  br.s       IL_0076
-  IL_004e:  br.s       IL_0066
-  IL_0050:  br.s       IL_0061
-  IL_0052:  br.s       IL_005a
-  IL_0054:  br.s       IL_0072
-  IL_0056:  br.s       IL_006d
-  IL_0058:  br.s       IL_005a
-  IL_005a:  br.s       IL_0074
-  IL_005c:  ldarg.0
-  IL_005d:  brfalse.s  IL_0066
-  IL_005f:  br.s       IL_004a
-  IL_0061:  ldarg.0
-  IL_0062:  brfalse.s  IL_0066
-  IL_0064:  br.s       IL_0052
-  IL_0066:  br.s       IL_0078
-  IL_0068:  ldarg.0
-  IL_0069:  brtrue.s   IL_0072
-  IL_006b:  br.s       IL_004c
-  IL_006d:  ldarg.0
-  IL_006e:  brtrue.s   IL_0072
-  IL_0070:  br.s       IL_0058
-  IL_0072:  br.s       IL_0078
-  IL_0074:  br.s       IL_0078
-  IL_0076:  br.s       IL_0078
-  IL_0078:  ldarg.0
-  IL_0079:  stloc.2
-  IL_007a:  ldloc.2
-  IL_007b:  stloc.s    V_7
-  IL_007d:  ldloc.s    V_7
-  IL_007f:  stloc.s    V_5
-  IL_0081:  ldloc.s    V_5
-  IL_0083:  brtrue.s   IL_0087
-  IL_0085:  br.s       IL_00b0
-  IL_0087:  ldloc.s    V_5
-  IL_0089:  isinst     ""int?""
-  IL_008e:  unbox.any  ""int?""
-  IL_0093:  stloc.s    V_4
-  IL_0095:  ldloca.s   V_4
-  IL_0097:  call       ""int int?.GetValueOrDefault()""
-  IL_009c:  stloc.s    V_6
-  IL_009e:  ldloca.s   V_4
-  IL_00a0:  call       ""bool int?.HasValue.get""
-  IL_00a5:  brfalse.s  IL_00b0
-  IL_00a7:  ldloc.s    V_6
-  IL_00a9:  ldc.i4.1
-  IL_00aa:  beq.s      IL_00ae
+  IL_000d:  stloc.s    V_4
+  IL_000f:  ldloc.s    V_4
+  IL_0011:  isinst     ""int""
+  IL_0016:  ldnull
+  IL_0017:  cgt.un
+  IL_0019:  dup
+  IL_001a:  brtrue.s   IL_001f
+  IL_001c:  ldc.i4.0
+  IL_001d:  br.s       IL_0026
+  IL_001f:  ldloc.s    V_4
+  IL_0021:  unbox.any  ""int""
+  IL_0026:  stloc.1
+  IL_0027:  brfalse.s  IL_0059
+  IL_0029:  ldloc.1
+  IL_002a:  ldc.i4.1
+  IL_002b:  sub
+  IL_002c:  switch    (
+        IL_0047,
+        IL_004f,
+        IL_0055,
+        IL_004d,
+        IL_0053)
+  IL_0045:  br.s       IL_0059
+  IL_0047:  br.s       IL_005b
+  IL_0049:  br.s       IL_0067
+  IL_004b:  br.s       IL_0075
+  IL_004d:  br.s       IL_0065
+  IL_004f:  br.s       IL_0060
+  IL_0051:  br.s       IL_0059
+  IL_0053:  br.s       IL_0071
+  IL_0055:  br.s       IL_006c
+  IL_0057:  br.s       IL_0059
+  IL_0059:  br.s       IL_0073
+  IL_005b:  ldarg.0
+  IL_005c:  brfalse.s  IL_0065
+  IL_005e:  br.s       IL_0049
+  IL_0060:  ldarg.0
+  IL_0061:  brfalse.s  IL_0065
+  IL_0063:  br.s       IL_0051
+  IL_0065:  br.s       IL_0077
+  IL_0067:  ldarg.0
+  IL_0068:  brtrue.s   IL_0071
+  IL_006a:  br.s       IL_004b
+  IL_006c:  ldarg.0
+  IL_006d:  brtrue.s   IL_0071
+  IL_006f:  br.s       IL_0057
+  IL_0071:  br.s       IL_0077
+  IL_0073:  br.s       IL_0077
+  IL_0075:  br.s       IL_0077
+  IL_0077:  ldarg.0
+  IL_0078:  stloc.2
+  IL_0079:  ldloc.2
+  IL_007a:  stloc.s    V_7
+  IL_007c:  ldloc.s    V_7
+  IL_007e:  stloc.s    V_5
+  IL_0080:  ldloc.s    V_5
+  IL_0082:  brtrue.s   IL_0086
+  IL_0084:  br.s       IL_00ae
+  IL_0086:  ldloc.s    V_5
+  IL_0088:  stloc.s    V_4
+  IL_008a:  ldloc.s    V_4
+  IL_008c:  isinst     ""int""
+  IL_0091:  ldnull
+  IL_0092:  cgt.un
+  IL_0094:  dup
+  IL_0095:  brtrue.s   IL_009a
+  IL_0097:  ldc.i4.0
+  IL_0098:  br.s       IL_00a1
+  IL_009a:  ldloc.s    V_4
+  IL_009c:  unbox.any  ""int""
+  IL_00a1:  stloc.s    V_6
+  IL_00a3:  brfalse.s  IL_00ae
+  IL_00a5:  ldloc.s    V_6
+  IL_00a7:  ldc.i4.1
+  IL_00a8:  beq.s      IL_00ac
+  IL_00aa:  br.s       IL_00ae
   IL_00ac:  br.s       IL_00b0
   IL_00ae:  br.s       IL_00b2
   IL_00b0:  br.s       IL_00b4
-  IL_00b2:  br.s       IL_00b6
-  IL_00b4:  br.s       IL_00b6
-  IL_00b6:  ldarg.0
-  IL_00b7:  stloc.2
-  IL_00b8:  ldloc.2
-  IL_00b9:  stloc.s    V_9
-  IL_00bb:  ldloc.s    V_9
-  IL_00bd:  stloc.s    V_8
-  IL_00bf:  ldloc.s    V_8
-  IL_00c1:  brtrue.s   IL_00c5
+  IL_00b2:  br.s       IL_00b4
+  IL_00b4:  ldarg.0
+  IL_00b5:  stloc.2
+  IL_00b6:  ldloc.2
+  IL_00b7:  stloc.s    V_9
+  IL_00b9:  ldloc.s    V_9
+  IL_00bb:  stloc.s    V_8
+  IL_00bd:  ldloc.s    V_8
+  IL_00bf:  brtrue.s   IL_00c3
+  IL_00c1:  br.s       IL_00c3
   IL_00c3:  br.s       IL_00c5
   IL_00c5:  br.s       IL_00c7
-  IL_00c7:  br.s       IL_00c9
-  IL_00c9:  ret
+  IL_00c7:  ret
 }");
             c.VerifyPdb(
 @"<symbols>
@@ -6609,22 +6617,22 @@ partial class C
         <entry offset=""0x0"" startLine=""4"" startColumn=""5"" endLine=""4"" endColumn=""6"" />
         <entry offset=""0x1"" startLine=""5"" startColumn=""9"" endLine=""5"" endColumn=""19"" />
         <entry offset=""0x5"" hidden=""true"" />
-        <entry offset=""0x5c"" startLine=""7"" startColumn=""20"" endLine=""7"" endColumn=""34"" />
-        <entry offset=""0x61"" startLine=""9"" startColumn=""20"" endLine=""9"" endColumn=""34"" />
-        <entry offset=""0x66"" startLine=""10"" startColumn=""17"" endLine=""10"" endColumn=""23"" />
-        <entry offset=""0x68"" startLine=""11"" startColumn=""20"" endLine=""11"" endColumn=""34"" />
-        <entry offset=""0x6d"" startLine=""13"" startColumn=""20"" endLine=""13"" endColumn=""34"" />
-        <entry offset=""0x72"" startLine=""14"" startColumn=""17"" endLine=""14"" endColumn=""23"" />
-        <entry offset=""0x74"" startLine=""16"" startColumn=""17"" endLine=""16"" endColumn=""23"" />
-        <entry offset=""0x76"" startLine=""18"" startColumn=""17"" endLine=""18"" endColumn=""23"" />
-        <entry offset=""0x78"" startLine=""20"" startColumn=""9"" endLine=""20"" endColumn=""19"" />
-        <entry offset=""0x7d"" hidden=""true"" />
-        <entry offset=""0xb2"" startLine=""23"" startColumn=""17"" endLine=""23"" endColumn=""23"" />
-        <entry offset=""0xb4"" startLine=""25"" startColumn=""17"" endLine=""25"" endColumn=""23"" />
-        <entry offset=""0xb6"" startLine=""27"" startColumn=""9"" endLine=""27"" endColumn=""19"" />
-        <entry offset=""0xbb"" hidden=""true"" />
-        <entry offset=""0xc7"" startLine=""30"" startColumn=""17"" endLine=""30"" endColumn=""23"" />
-        <entry offset=""0xc9"" startLine=""32"" startColumn=""5"" endLine=""32"" endColumn=""6"" />
+        <entry offset=""0x5b"" startLine=""7"" startColumn=""20"" endLine=""7"" endColumn=""34"" />
+        <entry offset=""0x60"" startLine=""9"" startColumn=""20"" endLine=""9"" endColumn=""34"" />
+        <entry offset=""0x65"" startLine=""10"" startColumn=""17"" endLine=""10"" endColumn=""23"" />
+        <entry offset=""0x67"" startLine=""11"" startColumn=""20"" endLine=""11"" endColumn=""34"" />
+        <entry offset=""0x6c"" startLine=""13"" startColumn=""20"" endLine=""13"" endColumn=""34"" />
+        <entry offset=""0x71"" startLine=""14"" startColumn=""17"" endLine=""14"" endColumn=""23"" />
+        <entry offset=""0x73"" startLine=""16"" startColumn=""17"" endLine=""16"" endColumn=""23"" />
+        <entry offset=""0x75"" startLine=""18"" startColumn=""17"" endLine=""18"" endColumn=""23"" />
+        <entry offset=""0x77"" startLine=""20"" startColumn=""9"" endLine=""20"" endColumn=""19"" />
+        <entry offset=""0x7c"" hidden=""true"" />
+        <entry offset=""0xb0"" startLine=""23"" startColumn=""17"" endLine=""23"" endColumn=""23"" />
+        <entry offset=""0xb2"" startLine=""25"" startColumn=""17"" endLine=""25"" endColumn=""23"" />
+        <entry offset=""0xb4"" startLine=""27"" startColumn=""9"" endLine=""27"" endColumn=""19"" />
+        <entry offset=""0xb9"" hidden=""true"" />
+        <entry offset=""0xc5"" startLine=""30"" startColumn=""17"" endLine=""30"" endColumn=""23"" />
+        <entry offset=""0xc7"" startLine=""32"" startColumn=""5"" endLine=""32"" endColumn=""6"" />
       </sequencePoints>
     </method>
   </methods>

@@ -31,16 +31,7 @@ static class C {
             compilation.GetDiagnostics().Verify();
             compilation.GetEmitDiagnostics().Verify(
                 // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
-                Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1),
-                // (9,48): error CS0518: Predefined type 'System.Nullable`1' is not defined or imported
-                //     public static bool M() => ((object)123) is int i;
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "int i").WithArguments("System.Nullable`1").WithLocation(9, 48),
-                // (9,48): error CS0656: Missing compiler required member 'System.Nullable`1.GetValueOrDefault'
-                //     public static bool M() => ((object)123) is int i;
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "int i").WithArguments("System.Nullable`1", "GetValueOrDefault").WithLocation(9, 48),
-                // (9,48): error CS0656: Missing compiler required member 'System.Nullable`1.get_HasValue'
-                //     public static bool M() => ((object)123) is int i;
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "int i").WithArguments("System.Nullable`1", "get_HasValue").WithLocation(9, 48)
+                Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1)
                 );
         }
 
@@ -59,18 +50,64 @@ static class C {
     public static bool M() => ((object)123) is int i;
 }
 ";
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            var compilation = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll);
             compilation.GetDiagnostics().Verify();
             compilation.GetEmitDiagnostics().Verify(
                 // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
-                Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion),
-                // (10,48): error CS0656: Missing compiler required member 'System.Nullable`1.GetValueOrDefault'
-                //     public static bool M() => ((object)123) is int i;
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "int i").WithArguments("System.Nullable`1", "GetValueOrDefault").WithLocation(10, 48),
-                // (10,48): error CS0656: Missing compiler required member 'System.Nullable`1.get_HasValue'
-                //     public static bool M() => ((object)123) is int i;
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "int i").WithArguments("System.Nullable`1", "get_HasValue").WithLocation(10, 48)
+                Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion)
                 );
+        }
+
+        [Fact, WorkItem(17266, "https://github.com/dotnet/roslyn/issues/17266")]
+        public void DoubleEvaluation01()
+        {
+            var source =
+@"using System;
+public class C
+{
+    public static void Main()
+    {
+        if (TryGet() is int index)
+        {
+            Console.WriteLine(index);
+        }
+    }
+
+    public static int? TryGet()
+    {
+        Console.WriteLine(""eval"");
+        return null;
+    }
+}";
+            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics();
+            var expectedOutput = @"eval";
+            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            compVerifier.VerifyIL("C.Main",
+@"{
+  // Code size       36 (0x24)
+  .maxstack  1
+  .locals init (int V_0, //index
+                bool V_1,
+                int? V_2)
+  IL_0000:  nop
+  IL_0001:  call       ""int? C.TryGet()""
+  IL_0006:  stloc.2
+  IL_0007:  ldloca.s   V_2
+  IL_0009:  call       ""int int?.GetValueOrDefault()""
+  IL_000e:  stloc.0
+  IL_000f:  ldloca.s   V_2
+  IL_0011:  call       ""bool int?.HasValue.get""
+  IL_0016:  stloc.1
+  IL_0017:  ldloc.1
+  IL_0018:  brfalse.s  IL_0023
+  IL_001a:  nop
+  IL_001b:  ldloc.0
+  IL_001c:  call       ""void System.Console.WriteLine(int)""
+  IL_0021:  nop
+  IL_0022:  nop
+  IL_0023:  ret
+}");
         }
     }
 }

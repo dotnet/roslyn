@@ -54,9 +54,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Syntax = label.Syntax;
                 var inputCouldBeNull = _subsumptionTree.Type.CanContainNull();
                 var subsumedErrorCode = CheckSubsumed(label.Pattern, _subsumptionTree, inputCouldBeNull: inputCouldBeNull);
-                if (subsumedErrorCode != 0 && subsumedErrorCode != ErrorCode.ERR_NoImplicitConvCast)
+                if (subsumedErrorCode != 0)
                 {
-                    if (!label.HasErrors)
+                    if (!label.HasErrors && subsumedErrorCode != ErrorCode.ERR_NoImplicitConvCast)
                     {
                         diagnostics.Add(subsumedErrorCode, label.Pattern.Syntax.Location);
                     }

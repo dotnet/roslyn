@@ -14678,6 +14678,9 @@ class C
                 // (7,18): error CS0150: A constant value is expected
                 //             case (int, int) tuple: return;
                 Diagnostic(ErrorCode.ERR_ConstantExpected, "(int, int)").WithLocation(7, 18),
+                // (7,29): warning CS0162: Unreachable code detected
+                //             case (int, int) tuple: return;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "tuple").WithLocation(7, 29),
                 // (7,29): warning CS0164: This label has not been referenced
                 //             case (int, int) tuple: return;
                 Diagnostic(ErrorCode.WRN_UnreferencedLabel, "tuple").WithLocation(7, 29)
@@ -14703,7 +14706,10 @@ class C
             comp.VerifyDiagnostics(
                 // (7,18): error CS0150: A constant value is expected
                 //             case (1, 1): return;
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "(1, 1)").WithLocation(7, 18)
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "(1, 1)").WithLocation(7, 18),
+                // (7,26): warning CS0162: Unreachable code detected
+                //             case (1, 1): return;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "return").WithLocation(7, 26)
                );
         }
 
@@ -14730,6 +14736,9 @@ class C
                 // (7,18): error CS0150: A constant value is expected
                 //             case (1, 1) t: return;
                 Diagnostic(ErrorCode.ERR_ConstantExpected, "(1, 1)").WithLocation(7, 18),
+                // (7,25): warning CS0162: Unreachable code detected
+                //             case (1, 1) t: return;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "t").WithLocation(7, 25),
                 // (7,25): warning CS0164: This label has not been referenced
                 //             case (1, 1) t: return;
                 Diagnostic(ErrorCode.WRN_UnreferencedLabel, "t").WithLocation(7, 25)
