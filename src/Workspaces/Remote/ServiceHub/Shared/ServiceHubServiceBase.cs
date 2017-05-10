@@ -93,12 +93,6 @@ namespace Microsoft.CodeAnalysis.Remote
             return RoslynServices.SolutionService.GetSolutionAsync(_solutionChecksumOpt, CancellationToken);
         }
 
-        protected Task<Solution> GetSolutionWithSpecificOptionsAsync(OptionSet options)
-        {
-            Contract.ThrowIfNull(_solutionChecksumOpt);
-            return RoslynServices.SolutionService.GetSolutionAsync(_solutionChecksumOpt, options, CancellationToken);
-        }
-
         protected virtual void Dispose(bool disposing)
         {
             // do nothing here

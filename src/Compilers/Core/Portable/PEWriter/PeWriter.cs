@@ -75,6 +75,11 @@ namespace Microsoft.Cci
 
             if (nativePdbWriterOpt != null)
             {
+                if (context.Module.SourceLinkStreamOpt != null)
+                {
+                    nativePdbWriterOpt.EmbedSourceLink(context.Module.SourceLinkStreamOpt);
+                }
+
                 if (mdWriter.Module.OutputKind == OutputKind.WindowsRuntimeMetadata)
                 {
                     // Dev12: If compiling to winmdobj, we need to add to PDB source spans of

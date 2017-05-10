@@ -1239,10 +1239,8 @@ lVbRuntimePlus:
 
             ValidateWin32Settings(noWin32Manifest, win32ResourceFile, win32IconFile, win32ManifestFile, outputKind, diagnostics)
 
-            If sourceLink IsNot Nothing Then
-                If Not emitPdb OrElse debugInformationFormat <> DebugInformationFormat.PortablePdb AndAlso debugInformationFormat <> DebugInformationFormat.Embedded Then
-                    AddDiagnostic(diagnostics, ERRID.ERR_SourceLinkRequiresPortablePdb)
-                End If
+            If sourceLink IsNot Nothing And Not emitPdb Then
+                AddDiagnostic(diagnostics, ERRID.ERR_SourceLinkRequiresPdb)
             End If
 
             If embedAllSourceFiles Then

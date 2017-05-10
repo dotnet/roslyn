@@ -1190,15 +1190,6 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Source Link embedding is only supported when emitting Portable PDB..
-        /// </summary>
-        internal static string SourceLinkRequiresPortablePdb {
-            get {
-                return ResourceManager.GetString("SourceLinkRequiresPortablePdb", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to SourceText cannot be embedded. Provide encoding or canBeEmbedded=true at construction..
         /// </summary>
         internal static string SourceTextCannotBeEmbedded {
@@ -1290,6 +1281,15 @@ namespace Microsoft.CodeAnalysis {
         
         /// <summary>
         ///   Looks up a localized string similar to Windows PDB writer doesn&apos;t support deterministic compilation: &apos;{0}&apos;.
+        /// </summary>
+        internal static string SymWriterDoesNotSupportSourceLink {
+            get {
+                return ResourceManager.GetString("SymWriterDoesNotSupportSourceLink", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Windows PDB writer is not available -- could not find Microsoft.DiaSymReader.Native.{0}.dll.
         /// </summary>
         internal static string SymWriterNotDeterministic {
             get {
