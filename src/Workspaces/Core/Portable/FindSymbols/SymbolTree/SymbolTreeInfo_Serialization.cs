@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                         // If we're able to, and the version of the persisted data matches
                         // our version, then we can reuse this instance.
                         result = tryReadObject(reader);
-                        if (result?.Checksum == result.Checksum)
+                        if (result?.Checksum == checksum)
                         {
                             return result;
                         }
