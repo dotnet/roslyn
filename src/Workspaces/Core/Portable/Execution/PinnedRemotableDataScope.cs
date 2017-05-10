@@ -33,7 +33,10 @@ namespace Microsoft.CodeAnalysis.Execution
             _storages.RegisterSnapshot(this, storage);
         }
 
-        public bool Primary => _storage.SolutionState.BranchId == Workspace.PrimaryBranchId;
+        /// <summary>
+        /// This indicates whether this scope is for primary branch or not (not forked solution)
+        /// </summary>
+        public bool ForPrimaryBranch => _storage.SolutionState.BranchId == Workspace.PrimaryBranchId;
 
         public Workspace Workspace => _storage.SolutionState.Workspace;
 
