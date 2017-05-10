@@ -105,13 +105,22 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private SymbolTreeInfo(
             Checksum checksum,
             string concatenatedNames,
-            Node[] sortedNodes, 
+            Node[] sortedNodes,
             Task<SpellChecker> spellCheckerTask)
         {
             Checksum = checksum;
             _concatenatedNames = concatenatedNames;
             _nodes = ImmutableArray.Create(sortedNodes);
             _spellCheckerTask = spellCheckerTask;
+        }
+
+        public static SymbolTreeInfo CreateEmpty(Checksum checksum)
+        {
+            var unsortedNodes = ImmutableArray.Create(new BuilderNode(name: "", parentIndex: RootNodeParentIndex));
+            SortNodes(unsortedNodes, out var concatenatedNames, out var sortedNodes);
+
+            return new SymbolTreeInfo(checksum, concatenatedNames, sortedNodes,
+                CreateSpellCheckerAsync(checksum, concatenatedNames, sortedNodes));
         }
 
         public Task<ImmutableArray<SymbolAndProjectId>> FindAsync(
@@ -209,7 +218,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 Bind(node, assemblySymbol.GlobalNamespace, results, cancellationToken);
             }
 
-            return results.ToImmutableAndFree(); ;
+            return results.ToImmutableAndFree();
         }
 
         private static StringSliceComparer GetComparer(bool ignoreCase)

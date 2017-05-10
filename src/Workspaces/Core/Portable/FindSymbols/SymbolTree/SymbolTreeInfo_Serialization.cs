@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private static Task<SymbolTreeInfo> LoadOrCreateSourceSymbolTreeInfoAsync(
             Project project, Checksum checksum, bool loadOnly, CancellationToken cancellationToken)
         {
-            return LoadOrCreateAsync(
+            return TryLoadOrCreateAsync(
                 project.Solution,
                 checksum,
                 project.FilePath,
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             string filePath,
             Func<Task<SpellChecker>> createAsync)
         {
-            return LoadOrCreateAsync(
+            return TryLoadOrCreateAsync(
                 solution,
                 checksum,
                 filePath,
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// Generalized function for loading/creating/persisting data.  Used as the common core
         /// code for serialization of SymbolTreeInfos and SpellCheckers.
         /// </summary>
-        private static async Task<T> LoadOrCreateAsync<T>(
+        private static async Task<T> TryLoadOrCreateAsync<T>(
             Solution solution,
             Checksum checksum,
             string filePath,
@@ -116,16 +116,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                 // Now, try to create a new instance and write it to the persistence service.
                 result = await createAsync().ConfigureAwait(false);
-                if (result != null)
-                {
-                    using (var stream = SerializableBytes.CreateWritableStream())
-                    using (var writer = new ObjectWriter(stream, cancellationToken: cancellationToken))
-                    {
-                        result.WriteTo(writer);
-                        stream.Position = 0;
+                Contract.ThrowIfNull(result);
 
-                        await storage.WriteStreamAsync(key, stream, cancellationToken).ConfigureAwait(false);
-                    }
+                using (var stream = SerializableBytes.CreateWritableStream())
+                using (var writer = new ObjectWriter(stream, cancellationToken: cancellationToken))
+                {
+                    result.WriteTo(writer);
+                    stream.Position = 0;
+
+                    await storage.WriteStreamAsync(key, stream, cancellationToken).ConfigureAwait(false);
                 }
             }
 

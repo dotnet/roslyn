@@ -18,9 +18,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             new SimplePool<MultiDictionary<string, ISymbol>>(() => new MultiDictionary<string, ISymbol>());
 
         private static MultiDictionary<string, ISymbol> AllocateSymbolMap()
-        {
-            return s_symbolMapPool.Allocate();
-        }
+            => s_symbolMapPool.Allocate();
 
         private static void FreeSymbolMap(MultiDictionary<string, ISymbol> symbolMap)
         {
@@ -31,8 +29,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public static Task<SymbolTreeInfo> GetInfoForSourceAssemblyAsync(
             Project project, Checksum checksum, CancellationToken cancellationToken)
         {
-            return LoadOrCreateSourceSymbolTreeInfoAsync(
+            var result = LoadOrCreateSourceSymbolTreeInfoAsync(
                 project, checksum, loadOnly: false, cancellationToken: cancellationToken);
+            Contract.ThrowIfNull(result);
+            return result;
         }
 
         public static async Task<Checksum> GetSourceSymbolsChecksumAsync(Project project, CancellationToken cancellationToken)
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var assembly = compilation.Assembly;
             if (assembly == null)
             {
-                return null;
+                return CreateEmpty(checksum);
             }
 
             var unsortedNodes = ArrayBuilder<BuilderNode>.GetInstance();
