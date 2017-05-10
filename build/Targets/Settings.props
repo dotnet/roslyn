@@ -14,7 +14,7 @@
     <ToolsetPackagesDir>$(RepoRoot)build\ToolsetPackages\</ToolsetPackagesDir>
     <VSIXExpInstallerPackageName>RoslynTools.Microsoft.VSIXExpInstaller</VSIXExpInstallerPackageName>
     <VSIXExpInstallerPackageVersion>0.2.1-beta</VSIXExpInstallerPackageVersion>
-    <RoslynDiagnosticsNugetPackageVersion>2.0.0-beta1-61628-06</RoslynDiagnosticsNugetPackageVersion>
+    <RoslynDiagnosticsNugetPackageVersion>$(MicrosoftNetRoslynDiagnosticsVersion)</RoslynDiagnosticsNugetPackageVersion>
     <RoslynDiagnosticsPropsFilePath>$(NuGetPackageRoot)\Microsoft.Net.RoslynDiagnostics\$(RoslynDiagnosticsNugetPackageVersion)\build\Microsoft.Net.RoslynDiagnostics.props</RoslynDiagnosticsPropsFilePath>
     <RoslynBuildUtilFilePath>$(NuGetPackageRoot)\Roslyn.Build.Util\0.9.4-portable\lib\dotnet\Roslyn.MSBuild.Util.dll</RoslynBuildUtilFilePath>
     <RoslynRuntimeIdentifier Condition="'$(RoslynRuntimeIdentifier)' == '' AND '$(OS)' == 'Windows_NT'">win7-x64</RoslynRuntimeIdentifier>
