@@ -4416,7 +4416,7 @@ class C
         }
 
         // Add corresponding test to VB
-        [WpfFact(Skip = "TODO")]
+        [Fact(Skip = "TODO")]
         public void Lambdas_Update_Signature_CustomModifiers1()
         {
             var delegateSource = @"
@@ -4500,6 +4500,43 @@ class C
 
             // TODO
             edits.VerifySemanticDiagnostics();
+        }
+
+        [Fact]
+        public void Lambdas_Signature_SemanticErrors()
+        {
+            var src1 = @"
+using System;
+
+class C
+{
+    void G(Func<Unknown, Unknown> f) {}
+
+    void F()
+    {
+        G(a => 1);
+    }
+}
+";
+            var src2 = @"
+using System;
+
+class C
+{
+    void G(Func<Unknown, Unknown> f) {}
+
+    void F()
+    {
+        G(a => 2);
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                // (6,17): error CS0246: The type or namespace name 'Unknown' could not be found (are you missing a using directive or an assembly reference?)
+                //     void G(Func<Unknown, Unknown> f) {}
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Unknown").WithArguments("Unknown").WithLocation(6, 17));
         }
 
         [Fact]
@@ -7530,6 +7567,7 @@ class C
                 null,
                 null,
                 null,
+                null,
                 new[]
                 {
                     Diagnostic(RudeEditKind.UpdatingStateMachineMethodMissingAttribute, "static IEnumerable<int> F()", "System.Runtime.CompilerServices.IteratorStateMachineAttribute")
@@ -8111,12 +8149,13 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             CSharpEditAndContinueTestHelpers.InstanceMinAsync.VerifySemantics(
-                edits,
-                ActiveStatementsDescription.Empty,
-                null,
-                null,
-                null,
-                new[]
+                editScript: edits,
+                activeStatements: ActiveStatementsDescription.Empty,
+                additionalNewSources: null,
+                additionalOldSources: null,
+                expectedSemanticEdits: null,
+                expectedDeclarationError: null,
+                expectedDiagnostics: new[]
                 {
                     Diagnostic(RudeEditKind.UpdatingStateMachineMethodMissingAttribute, "static async Task<int> F()", "System.Runtime.CompilerServices.AsyncStateMachineAttribute")
                 });
@@ -8157,6 +8196,43 @@ class C
                 null,
                 null,
                 null);
+        }
+
+        [Fact]
+        public void SemanticError_AwaitInPropertyAccessor()
+        {
+            string src1 = @"
+using System.Threading.Tasks;
+
+class C
+{
+   public Task<int> P
+   {
+       get 
+       { 
+           await Task.Delay(1);
+           return 1;
+       }
+   }
+}
+";
+            string src2 = @"
+using System.Threading.Tasks;
+
+class C
+{
+   public Task<int> P
+   {
+       get 
+       { 
+           await Task.Delay(2);
+           return 1;
+       }
+   }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+            edits.VerifySemanticDiagnostics();
         }
 
         #endregion

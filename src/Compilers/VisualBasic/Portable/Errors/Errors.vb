@@ -1696,7 +1696,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ERR_RefReturningCallInExpressionTree = 37263
 
-        ERR_SourceLinkRequiresPortablePdb = 37264
+        ERR_SourceLinkRequiresPdb = 37264
         ERR_CannotEmbedWithoutPdb = 37265
 
         ERR_InvalidInstrumentationKind = 37266

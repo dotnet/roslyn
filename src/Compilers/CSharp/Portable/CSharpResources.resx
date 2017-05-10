@@ -2165,6 +2165,9 @@ If such a class is used as a base class and if the deriving class defines a dest
   <data name="ERR_LambdaInIsAs" xml:space="preserve">
     <value>The first operand of an 'is' or 'as' operator may not be a lambda expression, anonymous method, or method group.</value>
   </data>
+  <data name="ERR_TypelessTupleInAs" xml:space="preserve">
+    <value>The first operand of an 'as' operator may not be a tuple literal without a natural type.</value>
+  </data>
   <data name="ERR_ExpressionTreeContainsMultiDimensionalArrayInitializer" xml:space="preserve">
     <value>An expression tree may not contain a multidimensional array initializer</value>
   </data>
@@ -4444,7 +4447,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
                                (including module version GUID and timestamp)
  /instrument:TestCoverage      Produce an assembly instrumented to collect
                                coverage information
- /sourcelink:&lt;file&gt;            Source link info to embed into Portable PDB.
+ /sourcelink:&lt;file&gt;            Source link info to embed into PDB.
 
                         - ERRORS AND WARNINGS -
  /warnaserror[+|-]             Report all warnings as errors
@@ -4888,7 +4891,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>The switch case has already been handled by a previous case.</value>
   </data>
   <data name="ERR_PatternWrongType" xml:space="preserve">
-    <value>An expression of type {0} cannot be handled by a pattern of type {1}.</value>
+    <value>An expression of type '{0}' cannot be handled by a pattern of type '{1}'.</value>
   </data>
   <data name="WRN_AttributeIgnoredWhenPublicSigning" xml:space="preserve">
     <value>Attribute '{0}' is ignored when public signing is specified.</value>
@@ -4965,8 +4968,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_ExpressionTreeContainsTupleConversion" xml:space="preserve">
     <value>An expression tree may not contain a tuple conversion.</value>
   </data>
-  <data name="ERR_SourceLinkRequiresPortablePdb" xml:space="preserve">
-    <value>/sourcelink switch is only supported when emitting Portable PDB (/debug:portable or /debug:embedded must be specified).</value>
+  <data name="ERR_SourceLinkRequiresPdb" xml:space="preserve">
+    <value>/sourcelink switch is only supported when emitting PDB.</value>
   </data>
   <data name="ERR_CannotEmbedWithoutPdb" xml:space="preserve">
     <value>/embed switch is only supported when emitting Portable PDB (/debug:portable or /debug:embedded).</value>
@@ -5072,5 +5075,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_NonTaskMainCantBeAsync" xml:space="preserve">
     <value>A void or int returning entry point cannot be async</value>
+  </data>
+  <data name="ERR_PatternWrongGenericTypeInVersion" xml:space="preserve">
+    <value>An expression of type '{0}' cannot be handled by a pattern of type '{1}' in C# {2}. Please use language version {3} or greater.</value>
   </data>
 </root>

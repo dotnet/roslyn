@@ -1060,7 +1060,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_InvalidOutputName = 2041,
         ERR_InvalidDebugInformationFormat = 2042,
         ERR_LegacyObjectIdSyntax = 2043,
-        ERR_SourceLinkRequiresPortablePdb = 2044,
+        ERR_SourceLinkRequiresPdb = 2044,
         ERR_CannotEmbedWithoutPdb = 2045,
         // unused 2046-2999
         WRN_CLS_NoVarArgs = 3000,
@@ -1475,9 +1475,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_CompilerAndLanguageVersion = 8304,
         WRN_Experimental = 8305,
         ERR_TupleInferredNamesNotAvailable = 8306,
+        ERR_TypelessTupleInAs = 8307,
+
+        #region diagnostics for C# 7.1
 
         ERR_BadDynamicMethodArgDefaultLiteral = 9000,
         ERR_DefaultLiteralNotValid = 9001,
         WRN_DefaultInSwitch = 9002,
+        ERR_PatternWrongGenericTypeInVersion = 9003,
+
+        #endregion diagnostics for C# 7.1
     }
 }

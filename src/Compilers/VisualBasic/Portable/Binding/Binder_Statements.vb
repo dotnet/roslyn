@@ -617,7 +617,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Next
 
                 If staticLocals IsNot Nothing Then
-                    For Each array In staticLocals.Values
+                    For Each nameToArray In staticLocals
+                        Dim array = nameToArray.Value
                         If array.Count > 1 Then
                             Dim lexicallyFirst As LocalSymbol = array(0)
 

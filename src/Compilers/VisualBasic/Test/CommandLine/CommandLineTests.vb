@@ -2657,19 +2657,19 @@ End Module").Path
             Assert.Equal(Path.Combine(_baseDirectory, "s l.json"), parsedArgs.SourceLink)
 
             parsedArgs = DefaultParse({"/sourcelink:sl.json", "/debug:full", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_SourceLinkRequiresPortablePdb))
+            parsedArgs.Errors.Verify()
 
             parsedArgs = DefaultParse({"/sourcelink:sl.json", "/debug:pdbonly", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_SourceLinkRequiresPortablePdb))
+            parsedArgs.Errors.Verify()
 
             parsedArgs = DefaultParse({"/sourcelink:sl.json", "/debug-", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_SourceLinkRequiresPortablePdb))
+            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_SourceLinkRequiresPdb))
 
             parsedArgs = DefaultParse({"/sourcelink:sl.json", "/debug+", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_SourceLinkRequiresPortablePdb))
+            parsedArgs.Errors.Verify()
 
             parsedArgs = DefaultParse({"/sourcelink:sl.json", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_SourceLinkRequiresPortablePdb))
+            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_SourceLinkRequiresPdb))
         End Sub
 
         <Fact>
@@ -8252,11 +8252,13 @@ End Module
             Assert.Equal($"error BC2012: can't open '{xmlPath}' for writing: Fake IOException{Environment.NewLine}", outWriter.ToString())
         End Sub
 
-        <Fact>
-        Public Sub IOFailure_DisposeSourceLinkFile()
+        <Theory>
+        <InlineData("portable")>
+        <InlineData("full")>
+        Public Sub IOFailure_DisposeSourceLinkFile(format As String)
             Dim srcPath = MakeTrivialExe(Temp.CreateDirectory().Path)
             Dim sourceLinkPath = Path.Combine(Path.GetDirectoryName(srcPath), "test.json")
-            Dim csc = New MockVisualBasicCompiler(_baseDirectory, {"/nologo", "/preferreduilang:en", "/debug:portable", $"/sourcelink:{sourceLinkPath}", srcPath})
+            Dim csc = New MockVisualBasicCompiler(_baseDirectory, {"/nologo", "/preferreduilang:en", "/debug:" & format, $"/sourcelink:{sourceLinkPath}", srcPath})
             csc.FileOpen = Function(filePath, mode, access, share)
                                If filePath = sourceLinkPath Then
                                    Return New TestStream(

@@ -105,9 +105,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                     var reference = service.GetReference(resolvedPath, MetadataReferenceProperties.Assembly);
 
                     // First add the "using/import" directive in the code.
-                    var node = _node;
-                    var document = _document;
-                    _reference.ReplaceNameNode(ref node, ref document, cancellationToken);
+                    (SyntaxNode node, Document document) = await _reference.ReplaceNameNodeAsync(
+                        _node, _document, cancellationToken).ConfigureAwait(false);
 
                     var newDocument = await _reference.provider.AddImportAsync(
                         node, _reference.SearchResult.NameParts, document, _placeSystemNamespaceFirst, cancellationToken).ConfigureAwait(false);

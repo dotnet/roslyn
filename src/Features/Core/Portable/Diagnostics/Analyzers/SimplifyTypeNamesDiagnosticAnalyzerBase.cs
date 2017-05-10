@@ -88,6 +88,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.SimplifyTypeNames
         public sealed override void Initialize(AnalysisContext context)
         {
             context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
+            context.EnableConcurrentExecution();
+
             context.RegisterSyntaxNodeAction(AnalyzeNode, _kindsOfInterest);
         }
 

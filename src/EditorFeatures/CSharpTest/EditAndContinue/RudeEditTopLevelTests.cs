@@ -3853,13 +3853,14 @@ class B
             var edits = GetTopEdits(srcA1, srcA2);
 
             edits.VerifySemantics(
-                ActiveStatementsDescription.Empty,
-                new[] { srcB1 },
-                new[] { srcB2 },
-                new[]
+                activeStatements: ActiveStatementsDescription.Empty,
+                additionalOldSources: new[] { srcB1 },
+                additionalNewSources: new[] { srcB2 },
+                expectedSemanticEdits: new[]
                 {
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember<NamedTypeSymbol>("C").StaticConstructors.Single())
-                });
+                },
+                expectedDeclarationError: null);
         }
 
         [Fact]
@@ -3874,13 +3875,14 @@ class B
             var edits = GetTopEdits(srcA1, srcA2);
 
             edits.VerifySemantics(
-                ActiveStatementsDescription.Empty,
-                new[] { srcB1 },
-                new[] { srcB2 },
-                new[]
+                activeStatements: ActiveStatementsDescription.Empty,
+                additionalOldSources: new[] { srcB1 },
+                additionalNewSources: new[] { srcB2 },
+                expectedSemanticEdits: new[]
                 {
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember<NamedTypeSymbol>("C").InstanceConstructors.Single())
-                });
+                },
+                expectedDeclarationError: null);
         }
 
         [Fact]
@@ -3895,13 +3897,14 @@ class B
             var edits = GetTopEdits(srcA1, srcA2);
 
             edits.VerifySemantics(
-                ActiveStatementsDescription.Empty,
-                new[] { srcB1 },
-                new[] { srcB2 },
-                new[]
+                activeStatements: ActiveStatementsDescription.Empty,
+                additionalOldSources: new[] { srcB1 },
+                additionalNewSources: new[] { srcB2 },
+                expectedSemanticEdits: new[]
                 {
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember<NamedTypeSymbol>("C").InstanceConstructors.Single())
-                });
+                },
+                expectedDeclarationError: null);
         }
 
         [Fact]
@@ -3916,11 +3919,12 @@ class B
             var edits = GetTopEdits(srcA1, srcA2);
 
             edits.VerifySemantics(
-                ActiveStatementsDescription.Empty,
-                new[] { srcB1 },
-                new[] { srcB2 },
-                null,
-                Diagnostic(RudeEditKind.Delete, "partial class C", FeaturesResources.constructor));
+                activeStatements: ActiveStatementsDescription.Empty,
+                additionalOldSources: new[] { srcB1 },
+                additionalNewSources: new[] { srcB2 },
+                expectedSemanticEdits: null,
+                expectedDiagnostics: new[] { Diagnostic(RudeEditKind.Delete, "partial class C", FeaturesResources.constructor) },
+                expectedDeclarationError: null);
         }
 
         [Fact]
@@ -3935,13 +3939,14 @@ class B
             var edits = GetTopEdits(srcA1, srcA2);
 
             edits.VerifySemantics(
-                ActiveStatementsDescription.Empty,
-                new[] { srcB1 },
-                new[] { srcB2 },
-                new[]
+                activeStatements: ActiveStatementsDescription.Empty,
+                additionalOldSources: new[] { srcB1 },
+                additionalNewSources: new[] { srcB2 },
+                expectedSemanticEdits: new[]
                 {
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember<NamedTypeSymbol>("C").StaticConstructors.Single(), preserveLocalVariables: true)
-                });
+                },
+                expectedDeclarationError: null);
         }
 
         [Fact]
@@ -3956,13 +3961,14 @@ class B
             var edits = GetTopEdits(srcA1, srcA2);
 
             edits.VerifySemantics(
-                ActiveStatementsDescription.Empty,
-                new[] { srcB1 },
-                new[] { srcB2 },
-                new[]
+                activeStatements: ActiveStatementsDescription.Empty,
+                additionalOldSources: new[] { srcB1 },
+                additionalNewSources: new[] { srcB2 },
+                expectedSemanticEdits: new[]
                 {
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember<NamedTypeSymbol>("C").InstanceConstructors.Single(), preserveLocalVariables: true)
-                });
+                },
+                expectedDeclarationError: null);
         }
 
         [Fact]
@@ -3977,13 +3983,14 @@ class B
             var edits = GetTopEdits(srcA1, srcA2);
 
             edits.VerifySemantics(
-                ActiveStatementsDescription.Empty,
-                new[] { srcB1 },
-                new[] { srcB2 },
-                new[]
+                activeStatements: ActiveStatementsDescription.Empty,
+                additionalOldSources: new[] { srcB1 },
+                additionalNewSources: new[] { srcB2 },
+                expectedSemanticEdits: new[]
                 {
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember<NamedTypeSymbol>("C").InstanceConstructors.Single(), preserveLocalVariables: true)
-                });
+                },
+                expectedDeclarationError: null);
         }
 
         [Fact]
@@ -3998,13 +4005,14 @@ class B
             var edits = GetTopEdits(srcA1, srcA2);
 
             edits.VerifySemantics(
-                ActiveStatementsDescription.Empty,
-                new[] { srcB1 },
-                new[] { srcB2 },
-                new[]
+                activeStatements: ActiveStatementsDescription.Empty,
+                additionalOldSources: new[] { srcB1 },
+                additionalNewSources: new[] { srcB2 },
+                expectedSemanticEdits: new[]
                 {
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember<NamedTypeSymbol>("C").InstanceConstructors.Single(), preserveLocalVariables: true)
-                });
+                },
+                expectedDeclarationError: null);
         }
 
         [Fact]
@@ -4019,11 +4027,12 @@ class B
             var edits = GetTopEdits(srcA1, srcA2);
 
             edits.VerifySemantics(
-                ActiveStatementsDescription.Empty,
-                new[] { srcB1 },
-                new[] { srcB2 },
-                null,
-                Diagnostic(RudeEditKind.ChangingConstructorVisibility, "public C()"));
+                activeStatements: ActiveStatementsDescription.Empty,
+                additionalOldSources: new[] { srcB1 },
+                additionalNewSources: new[] { srcB2 },
+                expectedSemanticEdits: null,
+                expectedDiagnostics: new[] { Diagnostic(RudeEditKind.ChangingConstructorVisibility, "public C()") },
+                expectedDeclarationError: null);
         }
 
         [Fact]
@@ -4038,11 +4047,12 @@ class B
             var edits = GetTopEdits(srcA1, srcA2);
 
             edits.VerifySemantics(
-                ActiveStatementsDescription.Empty,
-                new[] { srcB1 },
-                new[] { srcB2 },
-                null,
-                Diagnostic(RudeEditKind.ChangingConstructorVisibility, "internal C()"));
+                activeStatements: ActiveStatementsDescription.Empty,
+                additionalOldSources: new[] { srcB1 },
+                additionalNewSources: new[] { srcB2 },
+                expectedSemanticEdits:null,
+                expectedDiagnostics: new[] { Diagnostic(RudeEditKind.ChangingConstructorVisibility, "internal C()") },
+                expectedDeclarationError: null);
         }
 
         [Fact]
@@ -4311,6 +4321,76 @@ partial class C
 
             edits.VerifyRudeDiagnostics(
                 Diagnostic(RudeEditKind.InsertExtern, "public extern C()", FeaturesResources.constructor));
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/pull/18940")]
+        public void ParameterlessConstructor_SemanticError_Delete1()
+        {
+            string src1 = @"
+class C
+{
+    D() {}
+}
+";
+            string src2 = @"
+class C
+{
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyRudeDiagnostics();
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/pull/18940")]
+        public void ParameterlessConstructor_SemanticError_Delete_OutsideOfClass1()
+        {
+            string src1 = @"
+C() {}
+";
+            string src2 = @"
+";
+            var edits = GetTopEdits(src1, src2);
+            edits.VerifyRudeDiagnostics();
+        }
+
+        [Fact]
+        public void Constructor_SemanticError_Partial()
+        {
+            string src1 = @"
+partial class C
+{
+    partial void C(int x);
+}
+
+partial class C
+{
+    partial void C(int x)
+    {
+        System.Console.WriteLine(1);
+    }
+}
+";
+            string src2 = @"
+partial class C
+{
+    partial void C(int x);
+}
+
+partial class C
+{
+    partial void C(int x)
+    {
+        System.Console.WriteLine(2);
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                // (4,18): error CS0542: 'C': member names cannot be the same as their enclosing type
+                //     partial void C(int x);
+                Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "C").WithArguments("C").WithLocation(4, 18));
         }
 
         #endregion
@@ -5620,6 +5700,40 @@ class C
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember<NamedTypeSymbol>("C").Constructors[0], syntaxMap[0]),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember<NamedTypeSymbol>("C").Constructors[1], syntaxMap[0]),
                 });
+        }
+
+        [Fact]
+        public void PropertyWithInitializer_SemanticError_Partial()
+        {
+            string src1 = @"
+partial class C
+{
+    partial int P => 1;
+}
+
+partial class C
+{
+    partial int P => 1;
+}
+";
+            string src2 = @"
+partial class C
+{
+    partial int P => 1;
+}
+
+partial class C
+{
+    partial int P => 1;
+
+    public C() { }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+            edits.VerifySemanticDiagnostics(
+                // (4,17): error CS0753: Only methods, classes, structs, or interfaces may be partial
+                //     partial int P => 1;
+                Diagnostic(ErrorCode.ERR_PartialMethodOnlyMethods, "P").WithLocation(4, 17));
         }
 
         #endregion

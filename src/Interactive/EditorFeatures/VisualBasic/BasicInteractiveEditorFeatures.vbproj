@@ -67,6 +67,8 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup>
+    <Compile Include="Interactive\FileSystem\DirectiveCompletionProviderUtilities.vb" />
+    <Compile Include="Interactive\FileSystem\LoadDirectiveCompletionProvider.vb" />
     <Compile Include="Interactive\FileSystem\ReferenceDirectiveCompletionProvider.vb" />
     <Compile Include="Interactive\CompletionProviders\VisualBasicReplCommandCompletionProvider.vb" />
     <Compile Include="Interactive\VisualBasicInteractiveEvaluator.vb" />
