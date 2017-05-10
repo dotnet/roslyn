@@ -240,6 +240,6 @@
 
     <!-- The NoWarn property is still being unconditionally set.  https://github.com/dotnet/sdk/issues/752 -->
     <OptionStrict>On</OptionStrict>
-    <NoWarn>$(NoWarn);1591;41999;42016</NoWarn>
+    <NoWarn>$(NoWarn);1591</NoWarn>
   </PropertyGroup>
 </Project>
