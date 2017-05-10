@@ -116,12 +116,6 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
                 return;
             }
 
-            if (!IsOnlyStatementOfIf(ifOperation, throwOperation))
-            {
-                // The if-statement can only have a single throw-statement in it.
-                return;
-            }
-
             var containingBlock = GetOperation(
                 semanticModel, ifOperation.Syntax.Parent, cancellationToken) as IBlockStatement;
             if (containingBlock == null)
@@ -193,18 +187,6 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
                             ifOperation.Syntax.Span.End)),
                         additionalLocations: allLocations));
             }
-        }
-
-        private bool IsOnlyStatementOfIf(IIfStatement ifOperation, IThrowStatement throwStatement)
-        {
-            if (ifOperation.IfTrueStatement.Syntax == throwStatement.Syntax)
-            {
-                return true;
-            }
-
-            return ifOperation.IfTrueStatement is IBlockStatement block &&
-                   block.Statements.Length == 1 &&
-                   block.Statements[0].Syntax == throwStatement.Syntax;
         }
 
         protected abstract ISyntaxFactsService GetSyntaxFactsService();
@@ -318,8 +300,15 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
             var containingOperation = GetOperation(
                 semanticModel, throwStatement.Parent, cancellationToken);
 
-            if (containingOperation?.Kind == OperationKind.BlockStatement)
+            if (containingOperation is IBlockStatement block)
             {
+                if (block.Statements.Length != 1)
+                {
+                    // If we are in a block, then the block must only contain
+                    // the throw statement.
+                    return null;
+                }
+
                 // C# may have an intermediary block between the throw-statement
                 // and the if-statement.  Walk up one operation higher in that case.
                 containingOperation = GetOperation(
