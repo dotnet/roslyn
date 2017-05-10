@@ -24,7 +24,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
                 NoErrors();
             }
 
-
             public void NoErrors()
             {
                 Assert.Equal(0, _errorList.GetErrorListErrorCount());

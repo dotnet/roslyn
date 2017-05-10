@@ -131,7 +131,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
         public int GetColumn() => _editorInProc.GetColumn();
 
-
         public void DeleteText(string text)
         {
             SelectTextInCurrentDocument(text);
