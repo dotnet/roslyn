@@ -159,6 +159,7 @@
     <Compile Include="PDB\CSharpPDBTestBase.cs" />
     <Compile Include="PDB\PDBIteratorTests.cs" />
     <Compile Include="PDB\PDBLambdaTests.cs" />
+    <Compile Include="PDB\PDBSourceLinkTests.cs" />
     <Compile Include="PDB\PDBTests.cs" />
     <Compile Include="PDB\PDBTupleTests.cs" />
     <Compile Include="PDB\PDBUsingTests.cs" />
