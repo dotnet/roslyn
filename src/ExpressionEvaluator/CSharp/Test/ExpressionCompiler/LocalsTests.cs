@@ -167,12 +167,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
   .locals init (object V_0,
                 string V_1,
                 int V_2,
-                object V_3,
-                string V_4, //a
-                string V_5, //s
-                int V_6,
-                object V_7,
-                int? V_8)
+                string V_3, //a
+                string V_4, //s
+                int V_5,
+                object V_6,
+                int? V_7)
   IL_0000:  ldarg.0
   IL_0001:  ret
 }");
@@ -183,32 +182,29 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
   .locals init (object V_0,
                 string V_1,
                 int V_2,
-                object V_3,
-                string V_4, //a
-                string V_5, //s
-                int V_6,
-                object V_7,
-                int? V_8)
+                string V_3, //a
+                string V_4, //s
+                int V_5,
+                object V_6,
+                int? V_7)
   IL_0000:  ldarg.1
   IL_0001:  ret
 }");
                 VerifyLocal(testData, typeName, locals[2], "<>m2", "a", expectedILOpt:
 @"{
-  // Code size        3 (0x3)
+  // Code size        2 (0x2)
   .maxstack  1
   .locals init (object V_0,
                 string V_1,
                 int V_2,
-                object V_3,
-                string V_4, //a
-                string V_5, //s
-                int V_6,
-                object V_7,
-                int? V_8)
-  IL_0000:  ldloc.s    V_4
-  IL_0002:  ret
-}
-");
+                string V_3, //a
+                string V_4, //s
+                int V_5,
+                object V_6,
+                int? V_7)
+  IL_0000:  ldloc.3
+  IL_0001:  ret
+}");
                 VerifyLocal(testData, typeName, locals[3], "<>m3", "s", expectedILOpt:
 @"{
   // Code size        3 (0x3)
@@ -216,13 +212,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
   .locals init (object V_0,
                 string V_1,
                 int V_2,
-                object V_3,
-                string V_4, //a
-                string V_5, //s
-                int V_6,
-                object V_7,
-                int? V_8)
-  IL_0000:  ldloc.s    V_5
+                string V_3, //a
+                string V_4, //s
+                int V_5,
+                object V_6,
+                int? V_7)
+  IL_0000:  ldloc.s    V_4
   IL_0002:  ret
 }");
                 locals.Free();
@@ -243,12 +238,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
   .locals init (object V_0,
                 string V_1,
                 int V_2,
-                object V_3,
-                string V_4, //a
-                string V_5,
-                int V_6, //s
-                object V_7,
-                int? V_8)
+                string V_3, //a
+                string V_4,
+                int V_5, //s
+                object V_6,
+                int? V_7)
   IL_0000:  ldarg.0
   IL_0001:  ret
 }");
@@ -259,32 +253,29 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
   .locals init (object V_0,
                 string V_1,
                 int V_2,
-                object V_3,
-                string V_4, //a
-                string V_5,
-                int V_6, //s
-                object V_7,
-                int? V_8)
+                string V_3, //a
+                string V_4,
+                int V_5, //s
+                object V_6,
+                int? V_7)
   IL_0000:  ldarg.1
   IL_0001:  ret
 }");
                 VerifyLocal(testData, typeName, locals[2], "<>m2", "a", expectedILOpt:
 @"{
-  // Code size        3 (0x3)
+  // Code size        2 (0x2)
   .maxstack  1
   .locals init (object V_0,
                 string V_1,
                 int V_2,
-                object V_3,
-                string V_4, //a
-                string V_5,
-                int V_6, //s
-                object V_7,
-                int? V_8)
-  IL_0000:  ldloc.s    V_4
-  IL_0002:  ret
-}
-");
+                string V_3, //a
+                string V_4,
+                int V_5, //s
+                object V_6,
+                int? V_7)
+  IL_0000:  ldloc.3
+  IL_0001:  ret
+}");
                 VerifyLocal(testData, typeName, locals[3], "<>m3", "s", expectedILOpt:
 @"{
   // Code size        3 (0x3)
@@ -292,13 +283,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
   .locals init (object V_0,
                 string V_1,
                 int V_2,
-                object V_3,
-                string V_4, //a
-                string V_5,
-                int V_6, //s
-                object V_7,
-                int? V_8)
-  IL_0000:  ldloc.s    V_6
+                string V_3, //a
+                string V_4,
+                int V_5, //s
+                object V_6,
+                int? V_7)
+  IL_0000:  ldloc.s    V_5
   IL_0002:  ret
 }");
                 locals.Free();
