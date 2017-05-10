@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 loadOnly: false,
                 createAsync: () => CreateSpellCheckerAsync(checksum, concatenatedNames, sortedNodes),
                 keySuffix: "_SpellChecker_" + filePath,
-                readObject: SpellChecker.ReadFrom,
+                tryReadObject: SpellChecker.TryReadFrom,
                 cancellationToken: CancellationToken.None);
             Contract.ThrowIfNull(result, "Result should never be null as we passed 'loadOnly: false'.");
             return result;
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             bool loadOnly,
             Func<Task<T>> createAsync,
             string keySuffix,
-            Func<ObjectReader, T> readObject,
+            Func<ObjectReader, T> tryReadObject,
             CancellationToken cancellationToken) where T : class, IObjectWritable, IChecksummedObject
         {
             if (checksum == null) 
@@ -76,8 +76,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                         // We have some previously persisted data.  Attempt to read it back.  
                         // If we're able to, and the version of the persisted data matches
                         // our version, then we can reuse this instance.
-                        result = readObject(reader);
-                        if (result != null && checksum == result.Checksum)
+                        result = tryReadObject(reader);
+                        if (result?.Checksum == result.Checksum)
                         {
                             return result;
                         }
@@ -142,12 +142,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         internal static SymbolTreeInfo ReadSymbolTreeInfo_ForTestingPurposesOnly(
             ObjectReader reader, Checksum checksum)
         {
-            return ReadSymbolTreeInfo(reader, 
+            return TryReadSymbolTreeInfo(reader, 
                 (names, nodes) => Task.FromResult(
                     new SpellChecker(checksum, nodes.Select(n => new StringSlice(names, n.NameSpan)))));
         }
 
-        private static SymbolTreeInfo ReadSymbolTreeInfo(
+        private static SymbolTreeInfo TryReadSymbolTreeInfo(
             ObjectReader reader,
             Func<string, Node[], Task<SpellChecker>> createSpellCheckerTask)
         {
