@@ -16,9 +16,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
-    internal partial class SymbolTreeInfo
+    internal partial class SymbolTreeInfo : IChecksummedObject
     {
-        public readonly Checksum Checksum;
+        public Checksum Checksum { get; }
 
         /// <summary>
         /// To prevent lots of allocations, we concatenate all the names in all our

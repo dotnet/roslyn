@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.Utilities;
 
 namespace Roslyn.Utilities
 {
-    internal class SpellChecker : IObjectWritable
+    internal class SpellChecker : IObjectWritable, IChecksummedObject
     {
         private const string SerializationFormat = "3";
 

@@ -32,11 +32,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var result = TryLoadOrCreateAsync(
                 solution,
                 checksum,
-                filePath,
                 loadOnly: false,
                 createAsync: createAsync,
-                keySuffix: "_SpellChecker",
-                getPersistedChecksum: s => s.Checksum,
+                keySuffix: "_SpellChecker_" + filePath,
                 readObject: SpellChecker.ReadFrom,
                 cancellationToken: CancellationToken.None);
             Contract.ThrowIfNull(result, "Result should never be null as we passed 'loadOnly: false'.");
@@ -50,13 +48,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private static async Task<T> TryLoadOrCreateAsync<T>(
             Solution solution,
             Checksum checksum,
-            string filePath,
             bool loadOnly,
             Func<Task<T>> createAsync,
             string keySuffix,
-            Func<T, Checksum> getPersistedChecksum,
             Func<ObjectReader, T> readObject,
-            CancellationToken cancellationToken) where T : class, IObjectWritable
+            CancellationToken cancellationToken) where T : class, IObjectWritable, IChecksummedObject
         {
             if (checksum == null) 
             {
@@ -70,7 +66,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             using (var storage = persistentStorageService.GetStorage(solution, checkBranchId: false))
             {
                 // Get the unique key to identify our data.
-                var key = PrefixMetadataSymbolTreeInfo + keySuffix + "_" + filePath;
+                var key = PrefixMetadataSymbolTreeInfo + keySuffix;
                 using (var stream = await storage.ReadStreamAsync(key, cancellationToken).ConfigureAwait(false))
                 using (var reader = ObjectReader.TryGetReader(stream))
                 {
@@ -80,7 +76,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                         // If we're able to, and the version of the persisted data matches
                         // our version, then we can reuse this instance.
                         result = readObject(reader);
-                        if (result != null && checksum == getPersistedChecksum(result))
+                        if (result != null && checksum == result.Checksum)
                         {
                             return result;
                         }
