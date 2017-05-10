@@ -774,7 +774,7 @@ End Class"
         End Sub
 
         <Fact>
-        Public Sub VerifyRefAssembly()
+        Public Sub RefAssembly_VerifyTypesAndMembers()
             Dim source = "
 Public MustInherit Class PublicClass
     Public Sub PublicMethod()
@@ -871,6 +871,35 @@ End Class"
                 refAssembly.GetAttributes().Select(Function(a) a.AttributeClass.ToTestDisplayString()))
 
             MetadataReaderUtils.AssertEmptyOrThrowNull(comp.EmitToArray(emitRefOnly))
+        End Sub
+
+        <Fact>
+        Public Sub RefAssembly_VerifyTypesAndMembersOnStruct()
+            Dim source = "
+Friend Structure InternalStruct
+    Friend Property P As Integer
+End Structure"
+            Dim comp As Compilation = CreateCompilation(source, references:={MscorlibRef},
+                            options:=TestOptions.DebugDll.WithDeterministic(True))
+
+            Dim verifier = CompileAndVerify(comp, emitOptions:=EmitOptions.Default.WithEmitMetadataOnly(True), verify:=True)
+
+            ' verify metadata (types, members, attributes) of the ref assembly
+            Dim emitRefOnly = EmitOptions.Default.WithEmitMetadataOnly(True).WithIncludePrivateMembers(False)
+            CompileAndVerify(comp, emitOptions:=emitRefOnly, verify:=True)
+
+            Dim refImage = comp.EmitToImageReference(emitRefOnly)
+            Dim compWithRef = CreateCompilation("", references:={MscorlibRef, refImage},
+                            options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim refAssembly As AssemblySymbol = compWithRef.SourceModule.GetReferencedAssemblySymbols().Last()
+            AssertEx.SetEqual(
+                {"<Module>", "InternalStruct"},
+                refAssembly.GlobalNamespace.GetMembers().Select(Function(m) m.ToDisplayString()))
+
+            AssertEx.SetEqual(
+                {"Sub InternalStruct..ctor()", "InternalStruct._P As System.Int32"},
+                compWithRef.GetMember(Of NamedTypeSymbol)("InternalStruct").GetMembers().
+                    Select(Function(m) m.ToTestDisplayString()))
         End Sub
 
         <Fact>

@@ -1151,7 +1151,7 @@ public partial class C
         }
 
         [Fact]
-        public void VerifyRefAssembly()
+        public void RefAssembly_VerifyTypesAndMembers()
         {
             string source = @"
 public class PublicClass
@@ -1213,7 +1213,7 @@ public class PublicClass
 
             MetadataReaderUtils.AssertEmptyOrThrowNull(comp.EmitToArray(emitMetadataOnly));
 
-            // verify metadata (types, members, attributes) of the metadata-only assembly
+            // verify metadata (types, members, attributes) of the ref assembly
             var emitRefOnly = EmitOptions.Default.WithEmitMetadataOnly(true).WithIncludePrivateMembers(false);
             CompileAndVerify(comp, emitOptions: emitRefOnly, verify: true);
 
@@ -1237,6 +1237,34 @@ public class PublicClass
                 compWithRef.SourceModule.GetReferencedAssemblySymbols().Last().GetAttributes().Select(a => a.AttributeClass.ToTestDisplayString()));
 
             MetadataReaderUtils.AssertEmptyOrThrowNull(comp.EmitToArray(emitRefOnly));
+        }
+
+        [Fact]
+        public void RefAssembly_VerifyTypesAndMembersOnStruct()
+        {
+            string source = @"
+internal struct InternalStruct
+{
+    internal int P { get; set; }
+}
+";
+            CSharpCompilation comp = CreateCompilation(source, references: new[] { MscorlibRef },
+                options: TestOptions.DebugDll.WithDeterministic(true));
+
+            // verify metadata (types, members, attributes) of the ref assembly
+            var emitRefOnly = EmitOptions.Default.WithEmitMetadataOnly(true).WithIncludePrivateMembers(false);
+            CompileAndVerify(comp, emitOptions: emitRefOnly, verify: true);
+
+            var refImage = comp.EmitToImageReference(emitRefOnly);
+            var compWithRef = CreateCompilation("", references: new[] { MscorlibRef, refImage },
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            AssertEx.Equal(
+                new[] { "<Module>", "InternalStruct" },
+                compWithRef.SourceModule.GetReferencedAssemblySymbols().Last().GlobalNamespace.GetMembers().Select(m => m.ToDisplayString()));
+
+            AssertEx.Equal(
+                new[] { "System.Int32 InternalStruct.<P>k__BackingField", "InternalStruct..ctor()" },
+                compWithRef.GetMember<NamedTypeSymbol>("InternalStruct").GetMembers().Select(m => m.ToTestDisplayString()));
         }
 
         [Fact]
