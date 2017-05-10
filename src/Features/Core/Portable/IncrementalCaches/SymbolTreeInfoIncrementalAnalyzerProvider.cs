@@ -40,6 +40,15 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
         private struct MetadataInfo
         {
             /// <summary>
+            /// The metadata checksum that we calcuated when we computed this MetadataInfo.
+            /// Note: this should be the same as <see cref="SymbolTreeInfoOpt"/>.<see cref="SymbolTreeInfo.Checksum"/>
+            /// *when* <see cref="SymbolTreeInfoOpt"/> is not null.  We have to store this
+            /// in ourself so that we don't keep trying to recompute the index for a piece
+            /// of metadata that we failed to produce a <see cref="SymbolTreeInfo"/> for.
+            /// </summary>
+            public readonly Checksum Checksum;
+
+            /// <summary>
             /// Note: can be <code>null</code> if were unable to create a SymbolTreeInfo
             /// (for example, if the metadata was bogus and we couldn't read it in).
             /// </summary>
@@ -52,8 +61,13 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
             /// </summary>
             public readonly HashSet<ProjectId> ReferencingProjects;
 
-            public MetadataInfo(SymbolTreeInfo info, HashSet<ProjectId> referencingProjects)
+            public MetadataInfo(Checksum checksum, SymbolTreeInfo info, HashSet<ProjectId> referencingProjects)
             {
+                Contract.ThrowIfNull(checksum);
+                Contract.ThrowIfTrue(info != null && info.Checksum != checksum,
+                    "If we computed a SymbolTreeInfo, then it's checksum much match our checksum.");
+
+                Checksum = checksum;
                 SymbolTreeInfoOpt = info;
                 ReferencingProjects = referencingProjects;
             }
@@ -115,7 +129,7 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                 if (key != null)
                 {
                     if (_metadataPathToInfo.TryGetValue(key, out var metadataInfo) &&
-                        metadataInfo.SymbolTreeInfoOpt?.Checksum == checksum)
+                        metadataInfo.Checksum == checksum)
                     {
                         return metadataInfo.SymbolTreeInfoOpt;
                     }
@@ -211,7 +225,8 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                     projectInfo = await SymbolTreeInfo.GetInfoForSourceAssemblyAsync(
                         project, checksum, cancellationToken).ConfigureAwait(false);
 
-                    Debug.Assert(projectInfo != null);
+                    Contract.ThrowIfNull(projectInfo);
+                    Contract.ThrowIfTrue(projectInfo.Checksum != checksum, "If we computed a SymbolTreeInfo, then it's checksum much match our checksum.");
 
                     // Mark that we're up to date with this project.  Future calls with the same 
                     // semantic version can bail out immediately.
@@ -240,7 +255,7 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
 
                 var checksum = SymbolTreeInfo.GetMetadataChecksum(project.Solution, reference, cancellationToken);
                 if (!_metadataPathToInfo.TryGetValue(key, out var metadataInfo) ||
-                    metadataInfo.SymbolTreeInfoOpt?.Checksum != checksum)
+                    metadataInfo.Checksum != checksum)
                 {
                     var info = await SymbolTreeInfo.TryGetInfoForMetadataReferenceAsync(
                         project.Solution, reference, checksum, loadOnly: false, cancellationToken: cancellationToken).ConfigureAwait(false);
@@ -248,7 +263,7 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                     // Note, getting the info may fail (for example, bogus metadata).  That's ok.  
                     // We still want to cache that result so that don't try to continuously produce
                     // this info over and over again.
-                    metadataInfo = new MetadataInfo(info, metadataInfo.ReferencingProjects ?? new HashSet<ProjectId>());
+                    metadataInfo = new MetadataInfo(checksum, info, metadataInfo.ReferencingProjects ?? new HashSet<ProjectId>());
                     _metadataPathToInfo.AddOrUpdate(key, metadataInfo, (_1, _2) => metadataInfo);
                 }
 
