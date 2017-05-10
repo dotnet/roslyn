@@ -4,6 +4,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Composition;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -42,7 +43,7 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
             /// Note: can be <code>null</code> if were unable to create a SymbolTreeInfo
             /// (for example, if the metadata was bogus and we couldn't read it in).
             /// </summary>
-            public readonly SymbolTreeInfo SymbolTreeInfo;
+            public readonly SymbolTreeInfo SymbolTreeInfoOpt;
 
             /// <summary>
             /// Note: the Incremental-Analyzer infrastructure guarantees that it will call all the methods
@@ -53,7 +54,7 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
 
             public MetadataInfo(SymbolTreeInfo info, HashSet<ProjectId> referencingProjects)
             {
-                SymbolTreeInfo = info;
+                SymbolTreeInfoOpt = info;
                 ReferencingProjects = referencingProjects;
             }
         }
@@ -114,9 +115,9 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                 if (key != null)
                 {
                     if (_metadataPathToInfo.TryGetValue(key, out var metadataInfo) &&
-                        metadataInfo.SymbolTreeInfo.Checksum == checksum)
+                        metadataInfo.SymbolTreeInfoOpt?.Checksum == checksum)
                     {
-                        return metadataInfo.SymbolTreeInfo;
+                        return metadataInfo.SymbolTreeInfoOpt;
                     }
                 }
 
@@ -194,11 +195,6 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                     return;
                 }
 
-                if (!project.SupportsCompilation)
-                {
-                    return;
-                }
-
                 // Produce the indices for the source and metadata symbols in parallel.
                 var projectTask = UpdateSourceSymbolTreeInfoAsync(project, cancellationToken);
                 var referencesTask = UpdateReferencesAync(project, cancellationToken);
@@ -214,6 +210,8 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                 {
                     projectInfo = await SymbolTreeInfo.GetInfoForSourceAssemblyAsync(
                         project, checksum, cancellationToken).ConfigureAwait(false);
+
+                    Debug.Assert(projectInfo != null);
 
                     // Mark that we're up to date with this project.  Future calls with the same 
                     // semantic version can bail out immediately.
@@ -242,7 +240,7 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
 
                 var checksum = SymbolTreeInfo.GetMetadataChecksum(project.Solution, reference, cancellationToken);
                 if (!_metadataPathToInfo.TryGetValue(key, out var metadataInfo) ||
-                    metadataInfo.SymbolTreeInfo.Checksum != checksum)
+                    metadataInfo.SymbolTreeInfoOpt?.Checksum != checksum)
                 {
                     var info = await SymbolTreeInfo.TryGetInfoForMetadataReferenceAsync(
                         project.Solution, reference, checksum, loadOnly: false, cancellationToken: cancellationToken).ConfigureAwait(false);
