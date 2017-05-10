@@ -3596,9 +3596,6 @@ Give the compiler some way to differentiate the methods. For example, you can gi
   <data name="ERR_SecurityCriticalOrSecuritySafeCriticalOnAsyncInClassOrStruct" xml:space="preserve">
     <value>Async methods are not allowed in an Interface, Class, or Structure which has the 'SecurityCritical' or 'SecuritySafeCritical' attribute.</value>
   </data>
-  <data name="ERR_MainCantBeAsync" xml:space="preserve">
-    <value>'{0}': an entry point cannot be marked with the 'async' modifier</value>
-  </data>
   <data name="ERR_BadAwaitInQuery" xml:space="preserve">
     <value>The 'await' operator may only be used in a query expression within the first collection expression of the initial 'from' clause or within the collection expression of a 'join' clause</value>
   </data>
@@ -5072,5 +5069,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_VoidInTuple" xml:space="preserve">
     <value>A tuple may not contain a value of type 'void'.</value>
+  </data>
+  <data name="ERR_NonTaskMainCantBeAsync" xml:space="preserve">
+    <value>A void or int returning entry point cannot be async</value>
   </data>
 </root>

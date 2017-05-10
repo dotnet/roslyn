@@ -1453,42 +1453,101 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                DiagnosticBag warnings = DiagnosticBag.GetInstance();
-                var viableEntryPoints = ArrayBuilder<MethodSymbol>.GetInstance();
-                foreach (var candidate in entryPointCandidates)
+                // Validity and diagnostics are also tracked because they must be conditionally handled
+                // if there are not any "traditional" entrypoints found.
+                var taskEntryPoints = ArrayBuilder<(bool IsValid, MethodSymbol Candidate, DiagnosticBag SpecificDiagnostics)>.GetInstance();
+
+                // These diagnostics (warning only) are added to the compilation only if
+                // there were not any main methods found.
+                DiagnosticBag noMainFoundDiagnostics = DiagnosticBag.GetInstance();
+
+                bool CheckValid(MethodSymbol candidate, bool isCandidate, DiagnosticBag specificDiagnostics)
                 {
-                    if (!HasEntryPointSignature(candidate, warnings))
+                    if (!isCandidate)
                     {
-                        // a single error for partial methods
-                        warnings.Add(ErrorCode.WRN_InvalidMainSig, candidate.Locations.First(), candidate);
-                        continue;
+                        noMainFoundDiagnostics.Add(ErrorCode.WRN_InvalidMainSig, candidate.Locations.First(), candidate);
+                        noMainFoundDiagnostics.AddRange(specificDiagnostics);
+                        return false;
                     }
 
                     if (candidate.IsGenericMethod || candidate.ContainingType.IsGenericType)
                     {
                         // a single error for partial methods:
-                        warnings.Add(ErrorCode.WRN_MainCantBeGeneric, candidate.Locations.First(), candidate);
-                        continue;
+                        noMainFoundDiagnostics.Add(ErrorCode.WRN_MainCantBeGeneric, candidate.Locations.First(), candidate);
+                        return false;
                     }
+                    return true;
+                }
 
-                    // PROTOTYPE(async-main): CheckFeatureAvailability should be called on non-async methods 
-                    // that return Task or Task<T>
-                    if (candidate.IsAsync)
+                var viableEntryPoints = ArrayBuilder<MethodSymbol>.GetInstance();
+
+                foreach (var candidate in entryPointCandidates)
+                {
+                    var perCandidateBag = DiagnosticBag.GetInstance();
+                    var (IsCandidate, IsTaskLike) = HasEntryPointSignature(candidate, perCandidateBag);
+
+                    if (IsTaskLike)
+                    {
+                        taskEntryPoints.Add((IsCandidate, candidate, perCandidateBag));
+                    }
+                    else
+                    {
+                        if (CheckValid(candidate, IsCandidate, perCandidateBag))
+                        {
+                            if (candidate.IsAsync)
+                            {
+                                diagnostics.Add(ErrorCode.ERR_NonTaskMainCantBeAsync, candidate.Locations.First(), candidate);
+                            }
+                            else
+                            {
+                                diagnostics.AddRange(perCandidateBag);
+                                viableEntryPoints.Add(candidate);
+                            }
+                        }
+                        perCandidateBag.Free();
+                    }
+                }
+
+                if (viableEntryPoints.Count == 0)
+                {
+                    foreach (var (IsValid, Candidate, SpecificDiagnostics) in taskEntryPoints)
                     {
                         // PROTOTYPE(async-main): Get the diagnostic to point to a smaller syntax piece.
-                        // PROTOTYPE(async-main): Switch diagnostics around if the type is not Task or Task<T>
-                        CheckFeatureAvailability(candidate.GetNonNullSyntaxNode(), MessageID.IDS_FeatureAsyncMain, diagnostics);
+                        if (CheckValid(Candidate, IsValid, SpecificDiagnostics) &&
+                            CheckFeatureAvailability(Candidate.GetNonNullSyntaxNode(), MessageID.IDS_FeatureAsyncMain, diagnostics))
+                        {
+                            diagnostics.AddRange(SpecificDiagnostics);
+                            viableEntryPoints.Add(Candidate);
+                        }
                     }
-
-                    viableEntryPoints.Add(candidate);
                 }
 
-                if ((object)mainType == null || viableEntryPoints.Count == 0)
+                foreach (var (_, _, SpecificDiagnostics) in taskEntryPoints)
                 {
-                    diagnostics.AddRange(warnings);
+                    SpecificDiagnostics.Free();
                 }
 
-                warnings.Free();
+                if (viableEntryPoints.Count == 0)
+                {
+                    diagnostics.AddRange(noMainFoundDiagnostics);
+                }
+                else if ((object)mainType == null)
+                {
+                    // Filters out diagnostics so that only InvalidMainSig and MainCant'BeGeneric are left.
+                    // The reason that Error diagnostics can end up in `noMainFoundDiagnostics` is when
+                    // HasEntryPointSignature yields some Error Diagnostics when people implement Task or Task<T> incorrectly.
+                    //
+                    // We can't add those Errors to the general diagnostics bag because it would break previously-working programs.
+                    // The fact that these warnings are not added when csc is invoked with /main is possibly a bug, and is tracked at
+                    // https://github.com/dotnet/roslyn/issues/18964
+                    foreach (var diagnostic in noMainFoundDiagnostics.AsEnumerable())
+                    {
+                        if (diagnostic.Code == (int)ErrorCode.WRN_InvalidMainSig || diagnostic.Code == (int)ErrorCode.WRN_MainCantBeGeneric)
+                        {
+                            diagnostics.Add(diagnostic);
+                        }
+                    }
+                }
 
                 MethodSymbol entryPoint = null;
                 if (viableEntryPoints.Count == 0)
@@ -1518,7 +1577,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     entryPoint = viableEntryPoints[0];
                 }
 
+                taskEntryPoints.Free();
                 viableEntryPoints.Free();
+                noMainFoundDiagnostics.Free();
                 return entryPoint;
             }
             finally
@@ -1561,15 +1622,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// Checks if the method has an entry point compatible signature, i.e.
-        /// - the return type is either void, int, <see cref="System.Threading.Tasks.Task" />,
-        /// or <see cref="System.Threading.Tasks.Task{T}" /> where T is an int.
+        /// - the return type is either void, int, or returns a <see cref="System.Threading.Tasks.Task" />,
+        /// or <see cref="System.Threading.Tasks.Task{T}" /> where the return type of GetAwaiter().GetResult()
+        /// is either void or int.
         /// - has either no parameter or a single parameter of type string[]
         /// </summary>
-        private bool HasEntryPointSignature(MethodSymbol method, DiagnosticBag bag)
+        private (bool IsCandidate, bool IsTaskLike) HasEntryPointSignature(MethodSymbol method, DiagnosticBag bag)
         {
             if (method.IsVararg)
             {
-                return false;
+                return (false, false);
             }
 
             TypeSymbol returnType = method.ReturnType;
@@ -1580,45 +1642,38 @@ namespace Microsoft.CodeAnalysis.CSharp
                 returnsTaskOrTaskOfInt = ReturnsAwaitableToVoidOrInt(method, bag);
                 if (!returnsTaskOrTaskOfInt)
                 {
-                    return false;
+                    return (false, false);
                 }
-            }
-
-            // Prior to 7.1, async methods were considered to "have the entrypoint signature".
-            // In order to keep back-compat, we need to let these through if compiling using a previous language version.
-            if (!returnsTaskOrTaskOfInt && method.IsAsync && this.LanguageVersion >= LanguageVersion.CSharp7_1)
-            {
-                return false;
             }
 
             if (method.RefKind != RefKind.None)
             {
-                return false;
+                return (false, returnsTaskOrTaskOfInt);
             }
 
             if (method.Parameters.Length == 0)
             {
-                return true;
+                return (true, returnsTaskOrTaskOfInt);
             }
 
             if (method.Parameters.Length > 1)
             {
-                return false;
+                return (false, returnsTaskOrTaskOfInt);
             }
 
             if (!method.ParameterRefKinds.IsDefault)
             {
-                return false;
+                return (false, returnsTaskOrTaskOfInt);
             }
 
             var firstType = method.Parameters[0].Type;
             if (firstType.TypeKind != TypeKind.Array)
             {
-                return false;
+                return (false, returnsTaskOrTaskOfInt);
             }
 
             var array = (ArrayTypeSymbol)firstType;
-            return array.IsSZArray && array.ElementType.SpecialType == SpecialType.System_String;
+            return (array.IsSZArray && array.ElementType.SpecialType == SpecialType.System_String, returnsTaskOrTaskOfInt);
         }
 
         internal override bool IsUnreferencedAssemblyIdentityDiagnosticCode(int code)

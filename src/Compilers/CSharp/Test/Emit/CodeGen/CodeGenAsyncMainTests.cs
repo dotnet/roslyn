@@ -3,14 +3,15 @@
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Xunit;
 using System.Threading;
+using Microsoft.CodeAnalysis.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
+    [CompilerTrait(CompilerFeature.AsyncMain)]
     public class CodeGenAsyncMainTests : EmitMetadataTestBase
     {
-
         [Fact]
-        public void MultipleMainsOneOfWhichHasBadTaskType_WithMainType()
+        public void MultipleMainsOneOfWhichHasBadTaskType_CSharp71_WithMainType()
         {
             var source = @"
 using System.Threading.Tasks;
@@ -35,7 +36,60 @@ static class Program {
         }
 
         [Fact]
-        public void MultipleMainsOneOfWhichHasBadTaskType()
+        public void MultipleMainsOneOfWhichHasBadTaskType_CSharp7()
+        {
+            var source = @"
+using System.Threading.Tasks;
+
+namespace System.Threading.Tasks {
+    public class Task<T> {
+        public void GetAwaiter() {}
+    }
+}
+
+static class Program {
+    static Task<int> Main() {
+        return null;
+    }
+    static void Main(string[] args) { }
+}";
+            var sourceCompilation = CreateStandardCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
+            sourceCompilation.VerifyEmitDiagnostics(
+                // (11,12): warning CS0436: The type 'Task<T>' in '' conflicts with the imported type 'Task<TResult>' in 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'. Using the type defined in ''.
+                //     static Task<int> Main() {
+                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Task<int>").WithArguments("", "System.Threading.Tasks.Task<T>", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "System.Threading.Tasks.Task<TResult>").WithLocation(11, 12),
+                // (11,22): warning CS0028: 'Program.Main()' has the wrong signature to be an entry point
+                //     static Task<int> Main() {
+                Diagnostic(ErrorCode.WRN_InvalidMainSig, "Main").WithArguments("Program.Main()").WithLocation(11, 22));
+        }
+
+        [Fact]
+        public void MultipleMainsOneOfWhichHasBadTaskType_CSharp7_WithExplicitMain()
+        {
+            var source = @"
+using System.Threading.Tasks;
+
+namespace System.Threading.Tasks {
+    public class Task<T> {
+        public void GetAwaiter() {}
+    }
+}
+
+static class Program {
+    static Task<int> Main() {
+        return null;
+    }
+    static void Main(string[] args) { }
+}";
+            var sourceCompilation = CreateStandardCompilation(source, options: TestOptions.DebugExe.WithMainTypeName("Program"), parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
+            sourceCompilation.VerifyEmitDiagnostics(
+                // (11,12): warning CS0436: The type 'Task<T>' in '' conflicts with the imported type 'Task<TResult>' in 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'. Using the type defined in ''.
+                //     static Task<int> Main() {
+                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Task<int>").WithArguments("", "System.Threading.Tasks.Task<T>", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "System.Threading.Tasks.Task<TResult>").WithLocation(11, 12));
+        }
+
+        [Fact]
+        public void MultipleMainsOneOfWhichHasBadTaskType_CSharp71()
         {
             var source = @"
 using System.Threading.Tasks;
@@ -57,16 +111,56 @@ static class Program {
                 // (11,12): warning CS0436: The type 'Task<T>' in '' conflicts with the imported type 'Task<TResult>' in 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'. Using the type defined in ''.
                 //     static Task<int> Main() {
                 Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Task<int>").WithArguments("", "System.Threading.Tasks.Task<T>", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "System.Threading.Tasks.Task<TResult>").WithLocation(11, 12),
-                // (11,12): error CS1986: 'await' requires that the type Task<int> have a suitable GetAwaiter method
-                //     static Task<int> Main() {
-                Diagnostic(ErrorCode.ERR_BadAwaitArg, "Task<int>").WithArguments("System.Threading.Tasks.Task<int>").WithLocation(11, 12),
                 // (11,22): warning CS0028: 'Program.Main()' has the wrong signature to be an entry point
                 //     static Task<int> Main() {
                 Diagnostic(ErrorCode.WRN_InvalidMainSig, "Main").WithArguments("Program.Main()").WithLocation(11, 22));
         }
 
         [Fact]
-        public void GetResultReturnsSomethingElse()
+        public void GetResultReturnsSomethingElse_CSharp7()
+        {
+            var source = @"
+using System.Threading.Tasks;
+using System;
+
+namespace System.Runtime.CompilerServices {
+    public interface INotifyCompletion {
+        void OnCompleted(Action action);
+    }
+}
+
+namespace System.Threading.Tasks {
+    public class Awaiter: System.Runtime.CompilerServices.INotifyCompletion {
+        public double GetResult() { return 0.0; }
+        public bool IsCompleted  => true;
+        public void OnCompleted(Action action) {}
+    }
+    public class Task<T> {
+        public Awaiter GetAwaiter() {
+            return new Awaiter();
+        }
+    }
+}
+
+static class Program {
+    static Task<int> Main() {
+        return null;
+    }
+}";
+            var sourceCompilation = CreateStandardCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
+            sourceCompilation.VerifyEmitDiagnostics(
+                // (25,12): warning CS0436: The type 'Task<T>' in '' conflicts with the imported type 'Task<TResult>' in 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'. Using the type defined in ''.
+                //     static Task<int> Main() {
+                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Task<int>").WithArguments("", "System.Threading.Tasks.Task<T>", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "System.Threading.Tasks.Task<TResult>").WithLocation(25, 12),
+                // (25,22): warning CS0028: 'Program.Main()' has the wrong signature to be an entry point
+                //     static Task<int> Main() {
+                Diagnostic(ErrorCode.WRN_InvalidMainSig, "Main").WithArguments("Program.Main()").WithLocation(25, 22),
+                // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
+                Diagnostic(ErrorCode.ERR_NoEntryPoint).WithLocation(1, 1));
+        }
+
+        [Fact]
+        public void GetResultReturnsSomethingElse_CSharp71()
         {
             var source = @"
 using System.Threading.Tasks;
@@ -105,12 +199,48 @@ static class Program {
                 //     static Task<int> Main() {
                 Diagnostic(ErrorCode.WRN_InvalidMainSig, "Main").WithArguments("Program.Main()").WithLocation(25, 22),
                 // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
-                Diagnostic(ErrorCode.ERR_NoEntryPoint).WithLocation(1, 1)
-);
+                Diagnostic(ErrorCode.ERR_NoEntryPoint).WithLocation(1, 1));
         }
 
         [Fact]
-        public void TaskOfTGetAwaiterReturnsVoid()
+        public void TaskOfTGetAwaiterReturnsVoid_CSharp7()
+        {
+            var source = @"
+using System;
+using System.Threading.Tasks;
+
+namespace System.Threading.Tasks {
+    public class Task<T> {
+        public void GetAwaiter() {}
+    }
+}
+
+static class Program {
+    static Task<int> Main() {
+        return null;
+    }
+}";
+
+            var sourceCompilation = CreateStandardCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
+            sourceCompilation.VerifyDiagnostics(
+                // (12,12): warning CS0436: The type 'Task<T>' in '' conflicts with the imported type 'Task<TResult>' in 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'. Using the type defined in ''.
+                //     static Task<int> Main() {
+                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Task<int>").WithArguments("", "System.Threading.Tasks.Task<T>", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "System.Threading.Tasks.Task<TResult>").WithLocation(12, 12),
+                // (12,12): error CS1986: 'await' requires that the type Task<int> have a suitable GetAwaiter method
+                //     static Task<int> Main() {
+                Diagnostic(ErrorCode.ERR_BadAwaitArg, "Task<int>").WithArguments("System.Threading.Tasks.Task<int>").WithLocation(12, 12),
+                // (12,22): warning CS0028: 'Program.Main()' has the wrong signature to be an entry point
+                //     static Task<int> Main() {
+                Diagnostic(ErrorCode.WRN_InvalidMainSig, "Main").WithArguments("Program.Main()").WithLocation(12, 22),
+                // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
+                Diagnostic(ErrorCode.ERR_NoEntryPoint).WithLocation(1, 1),
+                // (2,1): hidden CS8019: Unnecessary using directive.
+                // using System;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System;").WithLocation(2, 1));
+        }
+
+        [Fact]
+        public void TaskOfTGetAwaiterReturnsVoid_CSharp71()
         {
             var source = @"
 using System;
@@ -145,6 +275,7 @@ static class Program {
                 // using System;
                 Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System;").WithLocation(2, 1));
         }
+
         [Fact]
         public void TaskGetAwaiterReturnsVoid()
         {
@@ -215,6 +346,8 @@ static class Program {
             var corAssembly = @"
 namespace System {
     public class Object {}
+    public abstract class ValueType{}
+    public struct Int32{}
 }";
             var corCompilation = CreateCompilation(corAssembly, options: TestOptions.DebugDll);
             corCompilation.VerifyDiagnostics();
@@ -240,9 +373,6 @@ static class Program {
                 // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
                 Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1),
                 // (6,17): error CS0518: Predefined type 'System.Int32' is not defined or imported
-                //     static Task<int> Main() {
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "int").WithArguments("System.Int32").WithLocation(6, 17),
-                // (6,12): error CS1061: 'Task<int>' does not contain a definition for 'GetAwaiter' and no extension method 'GetAwaiter' accepting a first argument of type 'Task<int>' could be found (are you missing a using directive or an assembly reference?)
                 //     static Task<int> Main() {
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Task<int>").WithArguments("System.Threading.Tasks.Task<int>", "GetAwaiter").WithLocation(6, 12),
                 // (6,22): warning CS0028: 'Program.Main()' has the wrong signature to be an entry point
@@ -290,26 +420,6 @@ static class Program {
                 Diagnostic(ErrorCode.WRN_InvalidMainSig, "Main").WithArguments("Program.Main()").WithLocation(6, 17),
                 // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
                 Diagnostic(ErrorCode.ERR_NoEntryPoint).WithLocation(1, 1));
-        }
-
-        [Fact]
-        public void AsyncEmitMainOfIntTest()
-        {
-            var source = @"
-using System;
-using System.Threading.Tasks;
-
-class Program {
-    static async Task<int> Main() {
-        Console.Write(""hello "");
-        await Task.Factory.StartNew(() => 5);
-        Console.Write(""async main"");
-        return 10;
-    }
-}";
-            var c = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
-            var verifier = CompileAndVerify(c, expectedOutput: "hello async main", expectedReturnCode: 10);
-
         }
 
         [Fact]
@@ -548,6 +658,8 @@ class A
 }";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
             compilation.VerifyDiagnostics(
+                // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
+                Diagnostic(ErrorCode.ERR_NoEntryPoint).WithLocation(1, 1),
                 // (6,5): error CS8107: Feature 'async main' is not available in C# 7. Please use language version 7.1 or greater.
                 //     async static Task Main(string[] args)
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, @"async static Task Main(string[] args)
@@ -596,30 +708,6 @@ class A
         }
 
         [Fact]
-        public void MainCantBeAsyncVoid()
-        {
-            var source = @"
-using System.Threading.Tasks;
-
-class A
-{
-    async static void Main()
-    {
-        await Task.Factory.StartNew(() => { });
-    }
-}";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
-            compilation.VerifyDiagnostics(
-                // (6,23): warning CS0028: 'A.Main()' has the wrong signature to be an entry point
-                //     async static void Main()
-                Diagnostic(ErrorCode.WRN_InvalidMainSig, "Main").WithArguments("A.Main()").WithLocation(6, 23),
-                // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
-                Diagnostic(ErrorCode.ERR_NoEntryPoint).WithLocation(1, 1));
-            var entry = compilation.GetEntryPoint(CancellationToken.None);
-            Assert.Null(entry);
-        }
-
-        [Fact]
         public void MainCantBeAsyncVoid_CSharp7()
         {
             var source = @"
@@ -634,12 +722,11 @@ class A
 }";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
             compilation.VerifyDiagnostics(
-            // (6,5): error CS8107: Feature 'async main' is not available in C# 7. Please use language version 7.1 or greater.
-            //     async static void Main()
-            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, @"async static void Main()
-    {
-        await Task.Factory.StartNew(() => { });
-    }").WithArguments("async main", "7.1").WithLocation(6, 5));
+                // (6,23): error CS9003: Async Main methods must return Task or Task<int>
+                //     async static void Main()
+                Diagnostic(ErrorCode.ERR_NonTaskMainCantBeAsync, "Main").WithArguments("A.Main()").WithLocation(6, 23),
+                // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
+                Diagnostic(ErrorCode.ERR_NoEntryPoint).WithLocation(1, 1));
         }
 
         [Fact]
@@ -660,9 +747,9 @@ class A
                 // (6,22): error CS1983: The return type of an async method must be void, Task or Task<T>
                 //     async static int Main()
                 Diagnostic(ErrorCode.ERR_BadAsyncReturn, "Main").WithLocation(6, 22),
-                // (6,23): warning CS0028: 'A.Main()' has the wrong signature to be an entry point
-                //     async static void Main()
-                Diagnostic(ErrorCode.WRN_InvalidMainSig, "Main").WithArguments("A.Main()").WithLocation(6, 22),
+                // (6,22): error CS4009: A void or int returning entry point cannot be async
+                //     async static int Main()
+                Diagnostic(ErrorCode.ERR_NonTaskMainCantBeAsync, "Main").WithArguments("A.Main()").WithLocation(6, 22),
                 // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
                 Diagnostic(ErrorCode.ERR_NoEntryPoint).WithLocation(1, 1));
             var entry = compilation.GetEntryPoint(CancellationToken.None);
@@ -686,14 +773,12 @@ class A
             compilation.VerifyDiagnostics(
                 // (6,22): error CS1983: The return type of an async method must be void, Task or Task<T>
                 //     async static int Main()
-                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "Main"),
-                // (6,5): error CS8107: Feature 'async main' is not available in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "Main").WithLocation(6, 22),
+                // (6,22): error CS9003: Async Main methods must return Task or Task<int>
                 //     async static int Main()
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, @"async static int Main()
-    {
-        return await Task.Factory.StartNew(() => 5);
-    }").WithArguments("async main", "7.1").WithLocation(6, 5)
-);
+                Diagnostic(ErrorCode.ERR_NonTaskMainCantBeAsync, "Main").WithArguments("A.Main()").WithLocation(6, 22),
+                // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
+                Diagnostic(ErrorCode.ERR_NoEntryPoint).WithLocation(1, 1));
         }
 
         [Fact]
@@ -751,13 +836,14 @@ class A
 }";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
             compilation.VerifyDiagnostics(
+            // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
+            Diagnostic(ErrorCode.ERR_NoEntryPoint).WithLocation(1, 1),
             // (6,5): error CS8107: Feature 'async main' is not available in C# 7. Please use language version 7.1 or greater.
             //     async static Task<int> Main(string[] args)
             Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, @"async static Task<int> Main(string[] args)
     {
         return await Task.Factory.StartNew(() => 5);
-    }").WithArguments("async main", "7.1").WithLocation(6, 5)
-);
+    }").WithArguments("async main", "7.1").WithLocation(6, 5));
         }
 
         [Fact]
@@ -779,6 +865,7 @@ class A
             Assert.NotNull(entry);
             Assert.Equal("System.Threading.Tasks.Task<System.Int32> A.Main()", entry.ToTestDisplayString());
         }
+
         [Fact]
         public void MainCanReturnTaskAndGenericOnInt_NoAsync()
         {
@@ -819,8 +906,9 @@ class A
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, @"async static Task<int> Main()
     {
         return await Task.Factory.StartNew(() => 5);
-    }").WithArguments("async main", "7.1").WithLocation(6, 5)
-                );
+    }").WithArguments("async main", "7.1").WithLocation(6, 5),
+                // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
+                Diagnostic(ErrorCode.ERR_NoEntryPoint).WithLocation(1, 1));
         }
 
         [Fact]
@@ -860,9 +948,9 @@ class A
     }
 }";
             CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1)).VerifyDiagnostics(
-                // (6,23): warning CS0028: 'A.Main<T>()' has the wrong signature to be an entry point
+                // (6,23): warning CS0402: 'A.Main<T>()': an entry point cannot be generic or in a generic type
                 //     async static void Main<T>()
-                Diagnostic(ErrorCode.WRN_InvalidMainSig, "Main").WithArguments("A.Main<T>()").WithLocation(6, 23),
+                Diagnostic(ErrorCode.WRN_MainCantBeGeneric, "Main").WithArguments("A.Main<T>()").WithLocation(6, 23),
                 // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
                 Diagnostic(ErrorCode.ERR_NoEntryPoint).WithLocation(1, 1));
         }
@@ -907,6 +995,221 @@ class A
                 Diagnostic(ErrorCode.WRN_InvalidMainSig, "Main").WithArguments("A.Main<T>(bool)").WithLocation(6, 23),
                 // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
                 Diagnostic(ErrorCode.ERR_NoEntryPoint).WithLocation(1, 1));
+        }
+
+        [Fact]
+        public void TaskMainAndNonTaskMain()
+        {
+            var source = @"
+using System.Threading.Tasks;
+
+class A
+{
+    static void Main()
+    {
+        System.Console.WriteLine(""Non Task Main"");
+    }
+    async static Task Main(string[] args)
+    {
+        await Task.Factory.StartNew(() => { });
+        System.Console.WriteLine(""Task Main"");
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7)).VerifyDiagnostics();
+            CompileAndVerify(compilation, expectedOutput: "Non Task Main", expectedReturnCode: 0);
+        }
+
+        [Fact]
+        public void TaskMainAndNonTaskMain_CSharp71()
+        {
+            var source = @"
+using System.Threading.Tasks;
+
+class A
+{
+    static void Main()
+    {
+        System.Console.WriteLine(""Non Task Main"");
+    }
+    async static Task Main(string[] args)
+    {
+        await Task.Factory.StartNew(() => { });
+        System.Console.WriteLine(""Task Main"");
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1)).VerifyDiagnostics();
+            CompileAndVerify(compilation, expectedOutput: "Non Task Main", expectedReturnCode: 0);
+        }
+
+        [Fact]
+        public void AsyncVoidMain_CSharp7()
+        {
+            var source = @"
+using System.Threading.Tasks;
+
+class A
+{
+    async static void Main(string[] args)
+    {
+        await Task.Factory.StartNew(() => { });
+        System.Console.WriteLine(""Async Void Main"");
+    }
+    async static int Main()
+    {
+        await Task.Factory.StartNew(() => { });
+        System.Console.WriteLine(""Async Void Main"");
+        return 1;
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe).VerifyDiagnostics(
+                // (11,22): error CS1983: The return type of an async method must be void, Task or Task<T>
+                //     async static int Main()
+                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "Main").WithLocation(11, 22),
+                // (11,22): error CS4009: A void or int returning entry point cannot be async
+                //     async static int Main()
+                Diagnostic(ErrorCode.ERR_NonTaskMainCantBeAsync, "Main").WithArguments("A.Main()").WithLocation(11, 22),
+                // (6,23): error CS4009: A void or int returning entry point cannot be async
+                //     async static void Main(string[] args)
+                Diagnostic(ErrorCode.ERR_NonTaskMainCantBeAsync, "Main").WithArguments("A.Main(string[])").WithLocation(6, 23),
+                // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
+                Diagnostic(ErrorCode.ERR_NoEntryPoint).WithLocation(1, 1));
+        }
+
+        [Fact]
+        public void AsyncVoidMain_CSharp71()
+        {
+            var source = @"
+using System.Threading.Tasks;
+
+class A
+{
+    static async void Main(string[] args)
+    {
+        await Task.Factory.StartNew(() => { });
+        System.Console.WriteLine(""Async Void Main"");
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1)).VerifyDiagnostics(
+                // (6,23): error CS4009: A void or int returning entry point cannot be async
+                //     static async void Main(string[] args)
+                Diagnostic(ErrorCode.ERR_NonTaskMainCantBeAsync, "Main").WithArguments("A.Main(string[])").WithLocation(6, 23),
+                // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
+                Diagnostic(ErrorCode.ERR_NoEntryPoint).WithLocation(1, 1));
+        }
+
+        [Fact]
+        public void TaskMainAndNonTaskMain_WithExplicitMain()
+        {
+            var source = @"
+using System.Threading.Tasks;
+
+class A
+{
+    static void Main()
+    {
+        System.Console.WriteLine(""Non Task Main"");
+    }
+    async static Task Main(string[] args)
+    {
+        await Task.Factory.StartNew(() => { });
+        System.Console.WriteLine(""Task Main"");
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithMainTypeName("A")).VerifyDiagnostics();
+            CompileAndVerify(compilation, expectedOutput: "Non Task Main", expectedReturnCode: 0);
+        }
+
+        [Fact]
+        public void TaskIntAndTaskFloat_CSharp7()
+        {
+            var source = @"
+using System.Threading.Tasks;
+
+class A
+{
+    async static Task<int> Main()
+    {
+        System.Console.WriteLine(""Task<int>"");
+        return 0;
+    }
+
+    async static Task<float> Main(string[] args)
+    {
+        System.Console.WriteLine(""Task<float>"");
+        return 0.0F;
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7)).VerifyDiagnostics(
+                // (6,28): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //     async static Task<int> Main()
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "Main").WithLocation(6, 28),
+                // (12,30): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //     async static Task<float> Main(string[] args)
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "Main").WithLocation(12, 30),
+                // (6,5): error CS8107: Feature 'async main' is not available in C# 7. Please use language version 7.1 or greater.
+                //     async static Task<int> Main()
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, @"async static Task<int> Main()
+    {
+        System.Console.WriteLine(""Task<int>"");
+        return 0;
+    }").WithArguments("async main", "7.1").WithLocation(6, 5),
+                // (12,30): warning CS0028: 'A.Main(string[])' has the wrong signature to be an entry point
+                //     async static Task<float> Main(string[] args)
+                Diagnostic(ErrorCode.WRN_InvalidMainSig, "Main").WithArguments("A.Main(string[])").WithLocation(12, 30),
+                // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
+                Diagnostic(ErrorCode.ERR_NoEntryPoint).WithLocation(1, 1));
+        }
+
+
+        [Fact]
+        public void TaskOfFloatMainAndNonTaskMain()
+        {
+            var source = @"
+using System.Threading.Tasks;
+
+class A
+{
+    static void Main()
+    {
+        System.Console.WriteLine(""Non Task Main"");
+    }
+
+    async static Task<float> Main(string[] args)
+    {
+        await Task.Factory.StartNew(() => { });
+        System.Console.WriteLine(""Task Main"");
+        return 0.0f;
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe).VerifyDiagnostics(
+                // (10,30): warning CS0028: 'A.Main(string[])' has the wrong signature to be an entry point
+                //     async static Task<float> Main(string[] args)
+                Diagnostic(ErrorCode.WRN_InvalidMainSig, "Main").WithArguments("A.Main(string[])").WithLocation(11, 30));
+                CompileAndVerify(compilation, expectedOutput: "Non Task Main", expectedReturnCode: 0);
+        }
+
+        [Fact]
+        public void TaskOfFloatMainAndNonTaskMain_WithExplicitMain()
+        {
+            var source = @"
+using System.Threading.Tasks;
+
+class A
+{
+    static void Main()
+    {
+        System.Console.WriteLine(""Non Task Main"");
+    }
+
+    async static Task<float> Main(string[] args)
+    {
+        await Task.Factory.StartNew(() => { });
+        System.Console.WriteLine(""Task Main"");
+        return 0.0f;
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithMainTypeName("A")).VerifyDiagnostics();
+            CompileAndVerify(compilation, expectedOutput: "Non Task Main", expectedReturnCode: 0);
         }
     }
 }

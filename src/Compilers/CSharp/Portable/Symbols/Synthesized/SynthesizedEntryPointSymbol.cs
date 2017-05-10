@@ -388,7 +388,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 var syntax = _userMainReturnTypeSyntax;
 
-
                 if (ReturnsVoid)
                 {
                     return new BoundBlock(
