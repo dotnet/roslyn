@@ -109,7 +109,7 @@ End Class",
             &B1, &H2
         }
     End Sub
-End Class", index := Refactoring.ChangeBase2, ignoreTrivia := False)
+End Class", index:=Refactoring.ChangeBase2, ignoreTrivia:=False)
         End Function
     End Class
 End Namespace
