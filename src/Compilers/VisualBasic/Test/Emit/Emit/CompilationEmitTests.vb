@@ -790,6 +790,8 @@ Public MustInherit Class PublicClass
         System.Console.Write(""Hello"")
     End Sub
     Public MustOverride Sub AbstractMethod()
+    Public Event PublicEvent As System.Action
+    Friend Event InternalEvent As System.Action
 End Class"
             Dim comp As Compilation = CreateCompilation(source, references:={MscorlibRef},
                             options:=TestOptions.DebugDll.WithDeterministic(True))
@@ -805,10 +807,14 @@ End Class"
                 {"<Module>", "PublicClass"},
                 realAssembly.GlobalNamespace.GetMembers().Select(Function(m) m.ToDisplayString()))
 
-            AssertEx.SetEqual(
-                {"Sub PublicClass.PublicMethod()", "Sub PublicClass.PrivateMethod()",
-                    "Sub PublicClass.InternalMethod()", "Sub PublicClass.ProtectedMethod()",
-                    "Sub PublicClass.AbstractMethod()", "Sub PublicClass..ctor()"},
+            AssertEx.Equal(
+                {"PublicClass.PublicEventEvent As System.Action", "PublicClass.InternalEventEvent As System.Action",
+                    "Sub PublicClass..ctor()", "Sub PublicClass.PublicMethod()",
+                    "Sub PublicClass.PrivateMethod()", "Sub PublicClass.ProtectedMethod()",
+                    "Sub PublicClass.InternalMethod()", "Sub PublicClass.AbstractMethod()",
+                    "Sub PublicClass.add_PublicEvent(obj As System.Action)", "Sub PublicClass.remove_PublicEvent(obj As System.Action)",
+                    "Sub PublicClass.add_InternalEvent(obj As System.Action)", "Sub PublicClass.remove_InternalEvent(obj As System.Action)",
+                    "Event PublicClass.PublicEvent As System.Action", "Event PublicClass.InternalEvent As System.Action"},
                 compWithReal.GetMember(Of NamedTypeSymbol)("PublicClass").GetMembers().
                     Select(Function(m) m.ToTestDisplayString()))
 
@@ -830,10 +836,14 @@ End Class"
                 {"<Module>", "PublicClass"},
                 metadataAssembly.GlobalNamespace.GetMembers().Select(Function(m) m.ToDisplayString()))
 
-            AssertEx.SetEqual(
-                {"Sub PublicClass.PublicMethod()", "Sub PublicClass.PrivateMethod()",
-                    "Sub PublicClass.InternalMethod()", "Sub PublicClass.ProtectedMethod()",
-                    "Sub PublicClass.AbstractMethod()", "Sub PublicClass..ctor()"},
+            AssertEx.Equal(
+                {"PublicClass.PublicEventEvent As System.Action", "PublicClass.InternalEventEvent As System.Action",
+                    "Sub PublicClass..ctor()", "Sub PublicClass.PublicMethod()",
+                    "Sub PublicClass.PrivateMethod()", "Sub PublicClass.ProtectedMethod()",
+                    "Sub PublicClass.InternalMethod()", "Sub PublicClass.AbstractMethod()",
+                    "Sub PublicClass.add_PublicEvent(obj As System.Action)", "Sub PublicClass.remove_PublicEvent(obj As System.Action)",
+                    "Sub PublicClass.add_InternalEvent(obj As System.Action)", "Sub PublicClass.remove_InternalEvent(obj As System.Action)",
+                    "Event PublicClass.PublicEvent As System.Action", "Event PublicClass.InternalEvent As System.Action"},
                 compWithMetadata.GetMember(Of NamedTypeSymbol)("PublicClass").GetMembers().
                     Select(Function(m) m.ToTestDisplayString()))
 
@@ -845,7 +855,7 @@ End Class"
 
             MetadataReaderUtils.AssertEmptyOrThrowNull(comp.EmitToArray(emitMetadataOnly))
 
-            ' verify metadata (types, members, attributes) of the metadata-only assembly
+            ' verify metadata (types, members, attributes) of the ref assembly
             Dim emitRefOnly = EmitOptions.Default.WithEmitMetadataOnly(True).WithIncludePrivateMembers(False)
             CompileAndVerify(comp, emitOptions:=emitRefOnly, verify:=True)
 
@@ -859,7 +869,9 @@ End Class"
 
             AssertEx.SetEqual(
                 {"Sub PublicClass..ctor()", "Sub PublicClass.PublicMethod()",
-                    "Sub PublicClass.ProtectedMethod()", "Sub PublicClass.AbstractMethod()"},
+                    "Sub PublicClass.ProtectedMethod()", "Sub PublicClass.AbstractMethod()",
+                    "Sub PublicClass.add_PublicEvent(obj As System.Action)", "Sub PublicClass.remove_PublicEvent(obj As System.Action)",
+                    "Event PublicClass.PublicEvent As System.Action"},
                 compWithRef.GetMember(Of NamedTypeSymbol)("PublicClass").GetMembers().
                     Select(Function(m) m.ToTestDisplayString()))
 
