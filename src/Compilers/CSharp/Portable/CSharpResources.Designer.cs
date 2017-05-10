@@ -13104,7 +13104,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Filter expression is a constant &apos;{0}&apos;, consider removing the catch clause.
+        ///   Looks up a localized string similar to Filter expression is a constant &apos;false&apos;, consider removing the catch clause.
         /// </summary>
         internal static string WRN_FilterIsConstantFalse {
             get {
@@ -13122,25 +13122,25 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Filter expression is a constant &apos;{0}&apos;, consider removing the try-catch block.
+        ///   Looks up a localized string similar to Filter expression is a constant &apos;false&apos;, consider removing the try-catch block.
         /// </summary>
-        internal static string WRN_FilterIsConstantRedundantTryCatch {
+        internal static string WRN_FilterIsConstantFalseRedundantTryCatch {
             get {
-                return ResourceManager.GetString("WRN_FilterIsConstantRedundantTryCatch", resourceCulture);
+                return ResourceManager.GetString("WRN_FilterIsConstantFalseRedundantTryCatch", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Filter expression is a constant &apos;false&apos;. .
         /// </summary>
-        internal static string WRN_FilterIsConstantRedundantTryCatch_Title {
+        internal static string WRN_FilterIsConstantFalseRedundantTryCatch_Title {
             get {
-                return ResourceManager.GetString("WRN_FilterIsConstantRedundantTryCatch_Title", resourceCulture);
+                return ResourceManager.GetString("WRN_FilterIsConstantFalseRedundantTryCatch_Title", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Filter expression is a constant &apos;{0}&apos;, consider removing the filter.
+        ///   Looks up a localized string similar to Filter expression is a constant &apos;true&apos;, consider removing the filter.
         /// </summary>
         internal static string WRN_FilterIsConstantTrue {
             get {

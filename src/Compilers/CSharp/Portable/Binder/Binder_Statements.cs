@@ -2516,7 +2516,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var catchBlocks = ArrayBuilder<BoundCatchBlock>.GetInstance(n);
             var hasCatchAll = false;
-            var hasSingleCatch = n == 1;
 
             foreach (var catchSyntax in catchClauses)
             {
@@ -2526,7 +2525,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 var catchBinder = this.GetBinder(catchSyntax);
-                var catchBlock = catchBinder.BindCatchBlock(catchSyntax, catchBlocks, hasSingleCatch, diagnostics);
+                var catchBlock = catchBinder.BindCatchBlock(catchSyntax, catchBlocks, diagnostics);
                 catchBlocks.Add(catchBlock);
 
                 hasCatchAll |= catchSyntax.Declaration == null && catchSyntax.Filter == null;
@@ -2534,7 +2533,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return catchBlocks.ToImmutableAndFree();
         }
 
-        private BoundCatchBlock BindCatchBlock(CatchClauseSyntax node, ArrayBuilder<BoundCatchBlock> previousBlocks, bool hasSingleCatch, DiagnosticBag diagnostics)
+        private BoundCatchBlock BindCatchBlock(CatchClauseSyntax node, ArrayBuilder<BoundCatchBlock> previousBlocks, DiagnosticBag diagnostics)
         {
             bool hasError = false;
             TypeSymbol type = null;
@@ -2571,7 +2570,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (filter != null)
             {
                 var filterBinder = this.GetBinder(filter);
-                boundFilter = filterBinder.BindCatchFilter(filter, hasSingleCatch, diagnostics);
+                boundFilter = filterBinder.BindCatchFilter(filter, diagnostics);
                 hasError |= boundFilter.HasAnyErrors;
             }
 
@@ -2642,7 +2641,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundCatchBlock(node, locals, exceptionSource, type, boundFilter, block, hasError);
         }
 
-        private BoundExpression BindCatchFilter(CatchFilterClauseSyntax filter, bool hasSingleCatch, DiagnosticBag diagnostics)
+        private BoundExpression BindCatchFilter(CatchFilterClauseSyntax filter, DiagnosticBag diagnostics)
         {
             BoundExpression boundFilter = this.BindBooleanExpression(filter.FilterExpression, diagnostics);
             if (boundFilter.ConstantValue != ConstantValue.NotAvailable)
@@ -2651,12 +2650,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // we suggest different actions
                 var errorCode = boundFilter.ConstantValue.BooleanValue
                     ? ErrorCode.WRN_FilterIsConstantTrue
-                    : hasSingleCatch
-                        ? ErrorCode.WRN_FilterIsConstantRedundantTryCatch
+                    : (filter.Parent.Parent as TryStatementSyntax).Catches.Count == 1
+                        ? ErrorCode.WRN_FilterIsConstantFalseRedundantTryCatch
                         : ErrorCode.WRN_FilterIsConstantFalse;
 
                 // Since the expression is a constant, the name can be retrieved from the first token
-                Error(diagnostics, errorCode, filter.FilterExpression, boundFilter.Syntax.GetFirstToken().Text);                
+                Error(diagnostics, errorCode, filter.FilterExpression);                
             }
 
             return boundFilter;

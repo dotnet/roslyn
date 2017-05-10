@@ -760,7 +760,7 @@
     <value>A previous catch clause already catches all exceptions of this or of a super type ('{0}')</value>
   </data>
   <data name="WRN_FilterIsConstantTrue" xml:space="preserve">
-    <value>Filter expression is a constant '{0}', consider removing the filter</value>
+    <value>Filter expression is a constant 'true', consider removing the filter</value>
   </data>
   <data name="WRN_FilterIsConstantTrue_Title" xml:space="preserve">
     <value>Filter expression is a constant 'true'</value>
@@ -5224,15 +5224,15 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>{0} is not a valid C# compound assignment operation</value>
   </data>
   <data name="WRN_FilterIsConstantFalse" xml:space="preserve">
-    <value>Filter expression is a constant '{0}', consider removing the catch clause</value>
+    <value>Filter expression is a constant 'false', consider removing the catch clause</value>
   </data>
   <data name="WRN_FilterIsConstantFalse_Title" xml:space="preserve">
     <value>Filter expression is a constant 'false'</value>
   </data>
-  <data name="WRN_FilterIsConstantRedundantTryCatch" xml:space="preserve">
-    <value>Filter expression is a constant '{0}', consider removing the try-catch block</value>
+  <data name="WRN_FilterIsConstantFalseRedundantTryCatch" xml:space="preserve">
+    <value>Filter expression is a constant 'false', consider removing the try-catch block</value>
   </data>
-  <data name="WRN_FilterIsConstantRedundantTryCatch_Title" xml:space="preserve">
+  <data name="WRN_FilterIsConstantFalseRedundantTryCatch_Title" xml:space="preserve">
     <value>Filter expression is a constant 'false'. </value>
   </data>
 </root>
