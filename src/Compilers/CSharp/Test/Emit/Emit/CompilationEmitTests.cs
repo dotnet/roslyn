@@ -1065,17 +1065,20 @@ comp => comp.VerifyDiagnostics(
         [Theory]
         [InlineData("")]
         [InlineData(@"[assembly: System.Reflection.AssemblyVersion(""1"")]")]
-        [InlineData(@"[assembly: System.Reflection.AssemblyVersion(""1.0.*"")]")]
+        [InlineData(@"[assembly: System.Reflection.AssemblyVersion(""1.0.0.*"")]")]
         public void RefAssembly_EmitAsDeterministic(string source)
         {
             var comp = CreateStandardCompilation(source, options: TestOptions.DebugDll.WithDeterministic(false));
 
             var (image1, refImage1) = emitRefOut();
+            verifyIdentitiesMatch(image1, refImage1);
 
             // The resolution of the PE header time date stamp is seconds, and we want to make sure that has an opportunity to change
             // between calls to Emit.
             Thread.Sleep(TimeSpan.FromSeconds(1));
             var (image2, refImage2) = emitRefOut();
+            verifyIdentitiesMatch(image2, refImage2);
+
             var refImage3 = emitRefOnly();
 
             AssertEx.Equal(refImage1, refImage2);
@@ -1084,6 +1087,13 @@ comp => comp.VerifyDiagnostics(
             var comp2 = CreateStandardCompilation(source, options: TestOptions.DebugDll.WithDeterministic(false));
             var refImage4 = emitRefOnly();
             AssertEx.Equal(refImage1, refImage4);
+
+            void verifyIdentitiesMatch(ImmutableArray<byte> firstImage, ImmutableArray<byte> secondImage)
+            {
+                var id1 = ModuleMetadata.CreateFromImage(firstImage).GetMetadataReader().ReadAssemblyIdentityOrThrow();
+                var id2 = ModuleMetadata.CreateFromImage(secondImage).GetMetadataReader().ReadAssemblyIdentityOrThrow();
+                Assert.Equal(id1, id2);
+            }
 
             (ImmutableArray<byte> image, ImmutableArray<byte> refImage) emitRefOut()
             {
