@@ -331,8 +331,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // SymbolTreeInfo.  This way the SymbolTreeInfo will be ready immediately
             // for non-fuzzy searches, and soon afterwards it will be able to perform
             // fuzzy searches as well.
-            return Task.Run(() => LoadOrCreateSpellCheckerAsync(solution, checksum, filePath,
-                () => CreateSpellCheckerAsync(checksum, concatenatedNames, sortedNodes)));
+            return Task.Run(() => LoadOrCreateSpellCheckerAsync(
+                solution, checksum, filePath, concatenatedNames, sortedNodes));
         }
 
         private static Task<SpellChecker> CreateSpellCheckerAsync(Checksum checksum, string concatenatedNames, Node[] sortedNodes)

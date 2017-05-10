@@ -27,13 +27,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             Solution solution,
             Checksum checksum,
             string filePath,
-            Func<Task<SpellChecker>> createAsync)
+            string concatenatedNames,
+            Node[] sortedNodes)
         {
             var result = TryLoadOrCreateAsync(
                 solution,
                 checksum,
                 loadOnly: false,
-                createAsync: createAsync,
+                createAsync: () => CreateSpellCheckerAsync(checksum, concatenatedNames, sortedNodes),
                 keySuffix: "_SpellChecker_" + filePath,
                 readObject: SpellChecker.ReadFrom,
                 cancellationToken: CancellationToken.None);
