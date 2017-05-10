@@ -43,6 +43,7 @@ Module Module1
     End Sub
 End Module
 ");
+
             VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
             VisualStudio.Debugger.SetBreakPoint(module1FileName, "names(0)");
             VisualStudio.Debugger.Go(waitForBreakMode: true);
@@ -75,7 +76,6 @@ End Module");
                 @"Try
 Console.WriteLine(1)
 Catch ex As Exception
-
 End Try");
             VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
             VisualStudio.Debugger.StepOver(waitForBreakOrEnd: true);
@@ -254,9 +254,7 @@ End Module
             VisualStudio.Debugger.SetBreakPoint(module1FileName, "End Sub");
             VisualStudio.Debugger.Go(waitForBreakMode: true);
             VisualStudio.Editor.ReplaceText("Dim foo As String = \"abc\"", "Dim foo As Single = 10");
-            //        < SetNextStatement code= "Sub Main()" />
             VisualStudio.Editor.SelectTextInCurrentDocument("Sub Main()");
-            // placeCursor.Execute(engine);
             VisualStudio.Debugger.SetNextStatement();
             VisualStudio.Debugger.Go(waitForBreakMode: true);
 
@@ -299,7 +297,6 @@ End Module
         [Fact]
         public void WatchWindowUpdatesCorrectlyDuringEnC()
         {
-
             VisualStudio.Editor.SetText(@"
 Imports System
 
