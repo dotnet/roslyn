@@ -5327,7 +5327,7 @@ class Program
             CreateStandardCompilation(text).VerifyDiagnostics(
                 // (11,25): warning CS7103: Filter expression is a constant 'false', consider removing the catch clause
                 //         catch (A) when (false) { }
-                Diagnostic(ErrorCode.WRN_FilterIsConstantFalse, "false").WithLocation(11, 25),
+                Diagnostic(ErrorCode.WRN_FilterIsConstantFalse, "(1+1)!=2").WithLocation(11, 25),
                 // (12,25): warning CS7103: Filter expression is a constant 'false', consider removing the catch clause
                 //         catch (B) when (false) { }
                 Diagnostic(ErrorCode.WRN_FilterIsConstantFalse, "false").WithLocation(12, 25));
@@ -5374,7 +5374,7 @@ class Program
             CreateStandardCompilation(text).VerifyDiagnostics(
                 // (11,25): warning CS7104: Filter expression is a constant 'false', consider removing the try-catch block
                 //         catch (A) when (false) { }
-                Diagnostic(ErrorCode.WRN_FilterIsConstantFalseRedundantTryCatch, "false").WithLocation(10, 25));
+                Diagnostic(ErrorCode.WRN_FilterIsConstantFalseRedundantTryCatch, "(1+1)!=2").WithLocation(10, 25));
         }
 
         [Fact]
@@ -5447,7 +5447,7 @@ class Program
             CreateStandardCompilation(text).VerifyDiagnostics(
                 // (10,19): warning CS7095: Filter expression is a constant 'true', consider removing the filter
                 //         catch when (true) { }
-                Diagnostic(ErrorCode.WRN_FilterIsConstantTrue, "true").WithLocation(10, 21));
+                Diagnostic(ErrorCode.WRN_FilterIsConstantTrue, "(1+1)==2").WithLocation(10, 21));
         }
 
         [Fact]
