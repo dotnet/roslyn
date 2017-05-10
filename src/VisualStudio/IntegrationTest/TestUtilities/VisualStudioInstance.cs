@@ -27,7 +27,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
         public Debugger_OutOfProc Debugger { get; }
 
-        public EditAndContinueDialog_OutOfProc EditAndContinueDialog { get; }
+        public Dialog_OutOfProc Dialog { get; }
 
         public Editor_OutOfProc Editor { get; }
 
@@ -98,7 +98,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             ChangeSignatureDialog = new ChangeSignatureDialog_OutOfProc(this);
             InteractiveWindow = new CSharpInteractiveWindow_OutOfProc(this);
             Debugger = new Debugger_OutOfProc(this);
-            EditAndContinueDialog = new EditAndContinueDialog_OutOfProc(this);
+            Dialog = new Dialog_OutOfProc(this);
             Editor = new Editor_OutOfProc(this);
             EncapsulateField = new EncapsulateField_OutOfProc(this);
             ErrorList = new ErrorList_OutOfProc(this);
@@ -134,8 +134,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             return (T)Activator.GetObject(typeof(T), $"{_integrationService.BaseUri}/{objectUri}");
         }
 
-        public void ActivateMainWindow()
-            => _inProc.ActivateMainWindow();
+        public void ActivateMainWindow(bool skipAttachingThreads = false)
+            => _inProc.ActivateMainWindow(skipAttachingThreads);
 
         public void WaitForApplicationIdle()
             => _inProc.WaitForApplicationIdle();

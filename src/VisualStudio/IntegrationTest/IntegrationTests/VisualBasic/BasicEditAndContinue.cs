@@ -207,32 +207,34 @@ End Module
 ");
             VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
             VisualStudio.Debugger.Go(waitForBreakMode: false);
+            VisualStudio.ActivateMainWindow(skipAttachingThreads: true);
             VisualStudio.SolutionExplorer.OpenFile(project, module1FileName);
 
-            VisualStudio.Editor.SendExplicitFocus();
-            VisualStudio.WaitForApplicationIdle();
-            VisualStudio.Editor.SendKeys(VirtualKey.T);
-            VisualStudio.EditAndContinueDialog.VerifyOpen();
-            VisualStudio.EditAndContinueDialog.ClickOK();
-            VisualStudio.EditAndContinueDialog.VerifyClosed();
+            VisualStudio.SendKeys.Send(VirtualKey.T);
+            string editAndContinueDialogName = "Edit and Continue";
+            VisualStudio.Dialog.VerifyOpen(editAndContinueDialogName);
+            VisualStudio.Dialog.Click(editAndContinueDialogName, "OK");
+            VisualStudio.Dialog.VerifyClosed(editAndContinueDialogName);
             VisualStudio.Editor.Verify.IsProjectItemDirty(expectedValue: false);
 
             // This module is referred by the loaded module, but not used. So this will not be loaded
             VisualStudio.SolutionExplorer.OpenFile(basicLibrary, "Class1.vb");
             VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
             VisualStudio.SendKeys.Send(VirtualKey.T);
-            VisualStudio.EditAndContinueDialog.VerifyOpen();
-            VisualStudio.EditAndContinueDialog.ClickOK();
-            VisualStudio.EditAndContinueDialog.VerifyClosed();
+            VisualStudio.Dialog.VerifyOpen(editAndContinueDialogName);
+            VisualStudio.Dialog.Click(editAndContinueDialogName, "OK");
+            VisualStudio.Dialog.VerifyClosed(editAndContinueDialogName);
             VisualStudio.Editor.Verify.IsProjectItemDirty(expectedValue: false);
 
             //  This module is not referred by the loaded module. this will not be loaded
             VisualStudio.SolutionExplorer.OpenFile(cSharpLibrary, "File1.cs");
             VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
             VisualStudio.SendKeys.Send(VirtualKey.T);
-            VisualStudio.EditAndContinueDialog.VerifyOpen();
-            VisualStudio.EditAndContinueDialog.ClickOK();
-            VisualStudio.EditAndContinueDialog.VerifyClosed();
+
+            string microsoftVisualStudionDialogName = "Microsoft Visual Studio";
+            VisualStudio.Dialog.VerifyOpen(microsoftVisualStudionDialogName);
+            VisualStudio.Dialog.Click(microsoftVisualStudionDialogName, "OK");
+            VisualStudio.Dialog.VerifyClosed(microsoftVisualStudionDialogName);
             VisualStudio.Editor.Verify.IsProjectItemDirty(expectedValue: false);
         }
 
