@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Remote
         /// this is designed to be not distruptive to existing callers and to support scenarioes where
         /// features required to reload user extension dlls without re-launching VS.
         /// 
-        /// if someone requests new remote host, all new callers for <see cref="GetRemoteHostClientAsync(CancellationToken)"/> will
+        /// if someone requests new remote host, all new callers for <see cref="TryGetRemoteHostClientAsync(CancellationToken)"/> will
         /// receive a new remote host client that connects to a new remote host.
         /// 
         /// existing remoteHostClient will still remain connected to old host and that old host will eventually go away once all existing clients
@@ -28,9 +28,6 @@ namespace Microsoft.CodeAnalysis.Remote
         /// caller is designed to hold onto a service for a while to react to remote host change.
         /// </summary>
         Task RequestNewRemoteHostAsync(CancellationToken cancellationToken);
-
-        [Obsolete("use TryGetRemoteHostClientAsync instead")]
-        Task<RemoteHostClient> GetRemoteHostClientAsync(CancellationToken cancellationToken);
 
         /// <summary>
         /// Get <see cref="RemoteHostClient"/> to current RemoteHost

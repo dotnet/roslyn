@@ -111,7 +111,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
             private async Task SynchronizePrimaryWorkspaceAsync(CancellationToken cancellationToken)
             {
-                var remoteHostClient = await _service.GetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
+                var remoteHostClient = await _service.TryGetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
                 if (remoteHostClient == null)
                 {
                     return;

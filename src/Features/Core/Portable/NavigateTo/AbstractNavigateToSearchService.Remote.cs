@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             return serializableResults.Select(r => r.Rehydrate(solution)).ToImmutableArray();
         }
 
-        private static async Task<RemoteHostClient> GetRemoteHostClientAsync(Project project, CancellationToken cancellationToken)
+        private static async Task<RemoteHostClient> TryGetRemoteHostClientAsync(Project project, CancellationToken cancellationToken)
         {
             var outOfProcessAllowed = project.Solution.Workspace.Options.GetOption(NavigateToOptions.OutOfProcessAllowed);
             if (!outOfProcessAllowed)
