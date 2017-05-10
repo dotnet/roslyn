@@ -348,9 +348,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 string V_2,
                 int V_3,
                 object V_4,
-                object V_5,
-                int? V_6,
-                System.Action V_7)
+                int? V_5,
+                System.Action V_6)
   IL_0000:  ldarg.0
   IL_0001:  ret
 }");
@@ -363,9 +362,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 string V_2,
                 int V_3,
                 object V_4,
-                object V_5,
-                int? V_6,
-                System.Action V_7)
+                int? V_5,
+                System.Action V_6)
   IL_0000:  ldarg.1
   IL_0001:  ret
 }");
@@ -378,14 +376,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 string V_2,
                 int V_3,
                 object V_4,
-                object V_5,
-                int? V_6,
-                System.Action V_7)
+                int? V_5,
+                System.Action V_6)
   IL_0000:  ldloc.0
   IL_0001:  ldfld      ""string C.<>c__DisplayClass0_0.a""
   IL_0006:  ret
-}
-");
+}");
                 // We should be able to evaluate "s" within this context, https://github.com/dotnet/roslyn/issues/16594.
 //                VerifyLocal(testData, typeName, locals[3], "<>m3", "s", expectedILOpt:
 //@"{
@@ -425,9 +421,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 string V_2,
                 int V_3,
                 object V_4,
-                object V_5,
-                int? V_6,
-                System.Action V_7)
+                int? V_5,
+                System.Action V_6)
   IL_0000:  ldarg.0
   IL_0001:  ret
 }");
@@ -440,9 +435,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 string V_2,
                 int V_3,
                 object V_4,
-                object V_5,
-                int? V_6,
-                System.Action V_7)
+                int? V_5,
+                System.Action V_6)
   IL_0000:  ldarg.1
   IL_0001:  ret
 }");
@@ -455,14 +449,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 string V_2,
                 int V_3,
                 object V_4,
-                object V_5,
-                int? V_6,
-                System.Action V_7)
+                int? V_5,
+                System.Action V_6)
   IL_0000:  ldloc.0
   IL_0001:  ldfld      ""string C.<>c__DisplayClass0_0.a""
   IL_0006:  ret
-}
-");
+}");
                 // We should be able to evaluate "s" within this context, https://github.com/dotnet/roslyn/issues/16594.
 //                VerifyLocal(testData, typeName, locals[3], "<>m3", "s", expectedILOpt:
 //@"{
@@ -597,13 +589,12 @@ class C
   .locals init (int V_0,
                 object V_1,
                 object V_2,
-                object V_3,
-                string V_4,
-                int? V_5,
-                System.Runtime.CompilerServices.TaskAwaiter<object> V_6,
-                C.<M>d__1 V_7,
-                System.Runtime.CompilerServices.TaskAwaiter<object> V_8,
-                System.Exception V_9)
+                string V_3,
+                int? V_4,
+                System.Runtime.CompilerServices.TaskAwaiter<object> V_5,
+                C.<M>d__1 V_6,
+                System.Runtime.CompilerServices.TaskAwaiter<object> V_7,
+                System.Exception V_8)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""C C.<M>d__1.<>4__this""
   IL_0006:  ret
@@ -615,13 +606,12 @@ class C
   .locals init (int V_0,
                 object V_1,
                 object V_2,
-                object V_3,
-                string V_4,
-                int? V_5,
-                System.Runtime.CompilerServices.TaskAwaiter<object> V_6,
-                C.<M>d__1 V_7,
-                System.Runtime.CompilerServices.TaskAwaiter<object> V_8,
-                System.Exception V_9)
+                string V_3,
+                int? V_4,
+                System.Runtime.CompilerServices.TaskAwaiter<object> V_5,
+                C.<M>d__1 V_6,
+                System.Runtime.CompilerServices.TaskAwaiter<object> V_7,
+                System.Exception V_8)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""object C.<M>d__1.o""
   IL_0006:  ret
@@ -633,13 +623,12 @@ class C
   .locals init (int V_0,
                 object V_1,
                 object V_2,
-                object V_3,
-                string V_4,
-                int? V_5,
-                System.Runtime.CompilerServices.TaskAwaiter<object> V_6,
-                C.<M>d__1 V_7,
-                System.Runtime.CompilerServices.TaskAwaiter<object> V_8,
-                System.Exception V_9)
+                string V_3,
+                int? V_4,
+                System.Runtime.CompilerServices.TaskAwaiter<object> V_5,
+                C.<M>d__1 V_6,
+                System.Runtime.CompilerServices.TaskAwaiter<object> V_7,
+                System.Exception V_8)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""string C.<M>d__1.<a>5__4""
   IL_0006:  ret
@@ -651,13 +640,12 @@ class C
   .locals init (int V_0,
                 object V_1,
                 object V_2,
-                object V_3,
-                string V_4,
-                int? V_5,
-                System.Runtime.CompilerServices.TaskAwaiter<object> V_6,
-                C.<M>d__1 V_7,
-                System.Runtime.CompilerServices.TaskAwaiter<object> V_8,
-                System.Exception V_9)
+                string V_3,
+                int? V_4,
+                System.Runtime.CompilerServices.TaskAwaiter<object> V_5,
+                C.<M>d__1 V_6,
+                System.Runtime.CompilerServices.TaskAwaiter<object> V_7,
+                System.Exception V_8)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""string C.<M>d__1.<s>5__5""
   IL_0006:  ret
@@ -680,13 +668,12 @@ class C
   .locals init (int V_0,
                 object V_1,
                 object V_2,
-                object V_3,
-                string V_4,
-                int? V_5,
-                System.Runtime.CompilerServices.TaskAwaiter<object> V_6,
-                C.<M>d__1 V_7,
-                System.Runtime.CompilerServices.TaskAwaiter<object> V_8,
-                System.Exception V_9)
+                string V_3,
+                int? V_4,
+                System.Runtime.CompilerServices.TaskAwaiter<object> V_5,
+                C.<M>d__1 V_6,
+                System.Runtime.CompilerServices.TaskAwaiter<object> V_7,
+                System.Exception V_8)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""C C.<M>d__1.<>4__this""
   IL_0006:  ret
@@ -698,13 +685,12 @@ class C
   .locals init (int V_0,
                 object V_1,
                 object V_2,
-                object V_3,
-                string V_4,
-                int? V_5,
-                System.Runtime.CompilerServices.TaskAwaiter<object> V_6,
-                C.<M>d__1 V_7,
-                System.Runtime.CompilerServices.TaskAwaiter<object> V_8,
-                System.Exception V_9)
+                string V_3,
+                int? V_4,
+                System.Runtime.CompilerServices.TaskAwaiter<object> V_5,
+                C.<M>d__1 V_6,
+                System.Runtime.CompilerServices.TaskAwaiter<object> V_7,
+                System.Exception V_8)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""object C.<M>d__1.o""
   IL_0006:  ret
@@ -716,13 +702,12 @@ class C
   .locals init (int V_0,
                 object V_1,
                 object V_2,
-                object V_3,
-                string V_4,
-                int? V_5,
-                System.Runtime.CompilerServices.TaskAwaiter<object> V_6,
-                C.<M>d__1 V_7,
-                System.Runtime.CompilerServices.TaskAwaiter<object> V_8,
-                System.Exception V_9)
+                string V_3,
+                int? V_4,
+                System.Runtime.CompilerServices.TaskAwaiter<object> V_5,
+                C.<M>d__1 V_6,
+                System.Runtime.CompilerServices.TaskAwaiter<object> V_7,
+                System.Exception V_8)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""string C.<M>d__1.<a>5__4""
   IL_0006:  ret
@@ -734,13 +719,12 @@ class C
   .locals init (int V_0,
                 object V_1,
                 object V_2,
-                object V_3,
-                string V_4,
-                int? V_5,
-                System.Runtime.CompilerServices.TaskAwaiter<object> V_6,
-                C.<M>d__1 V_7,
-                System.Runtime.CompilerServices.TaskAwaiter<object> V_8,
-                System.Exception V_9)
+                string V_3,
+                int? V_4,
+                System.Runtime.CompilerServices.TaskAwaiter<object> V_5,
+                C.<M>d__1 V_6,
+                System.Runtime.CompilerServices.TaskAwaiter<object> V_7,
+                System.Exception V_8)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""int C.<M>d__1.<s>5__6""
   IL_0006:  ret
