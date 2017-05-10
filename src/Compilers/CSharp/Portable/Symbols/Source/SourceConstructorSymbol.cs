@@ -83,8 +83,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 bodyBinder, this, parameterList, out arglistToken,
                 allowRefOrOut: true,
                 allowThis: false,
-                diagnostics: diagnostics,
-                modifyCompilationForRefReadOnly: true);
+                diagnostics: diagnostics);
+
+            ParameterHelpers.EnsureIsReadOnlyAttributeExists(_lazyParameters, diagnostics, modifyCompilationForRefReadOnly: true);
 
             _lazyIsVararg = (arglistToken.Kind() == SyntaxKind.ArgListKeyword);
             _lazyReturnType = bodyBinder.GetSpecialType(SpecialType.System_Void, diagnostics, syntax);

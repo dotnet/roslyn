@@ -69,11 +69,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _syntaxRef = syntax.GetReference();
             _refKind = syntax.Type.GetRefKind();
 
-            if (_refKind == RefKind.RefReadOnly)
-            {
-                bodyBinder.Compilation.EnsureIsReadOnlyAttributeExists(diagnostics, syntax.Type.Location, modifyCompilationForRefReadOnly: true);
-            }
-
             SyntaxTokenList modifiers = syntax.Modifiers;
             bodyBinder = bodyBinder.WithUnsafeRegionIfNecessary(modifiers);
             bodyBinder = bodyBinder.WithAdditionalFlagsAndContainingMemberOrLambda(BinderFlags.SuppressConstraintChecks, this);
@@ -784,8 +779,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 binder, owner, parameterSyntaxOpt, out arglistToken,
                 allowRefOrOut: false,
                 allowThis: false,
-                diagnostics: diagnostics,
-                modifyCompilationForRefReadOnly: true);
+                diagnostics: diagnostics);
 
             if (arglistToken.Kind() != SyntaxKind.None)
             {
@@ -1371,6 +1365,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(errorCode, _location, this);
             }
 
+            if (_refKind == RefKind.RefReadOnly)
+            {
+                binder.Compilation.EnsureIsReadOnlyAttributeExists(diagnostics, syntax.Type.Location, modifyCompilationForRefReadOnly: true);
+            }
+
             return type;
         }
 
@@ -1391,6 +1390,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     diagnostics.Add(ErrorCode.ERR_DuplicateGeneratedName, param.Locations.FirstOrDefault() ?? _location, param.Name);
                 }
             }
+
+            ParameterHelpers.EnsureIsReadOnlyAttributeExists(parameters, diagnostics, modifyCompilationForRefReadOnly: true);
 
             diagnostics.Add(_location, useSiteDiagnostics);
             return parameters;

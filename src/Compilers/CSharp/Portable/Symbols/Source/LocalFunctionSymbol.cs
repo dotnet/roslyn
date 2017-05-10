@@ -143,8 +143,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 arglistToken: out arglistToken,
                 allowRefOrOut: true,
                 allowThis: true,
-                diagnostics: diagnostics,
-                modifyCompilationForRefReadOnly: false);
+                diagnostics: diagnostics);
+
+            ParameterHelpers.EnsureIsReadOnlyAttributeExists(parameters, diagnostics, modifyCompilationForRefReadOnly: false);
 
             var isVararg = arglistToken.Kind() == SyntaxKind.ArgListKeyword;
             if (isVararg)

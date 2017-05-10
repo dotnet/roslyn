@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return base.SynthesizeEmbeddedAttribute();
         }
 
-        internal override SynthesizedAttributeData SynthesizeIsReadOnlyAttribute(Symbol symbol)
+        protected override SynthesizedAttributeData TrySynthesizeIsReadOnlyAttribute(Symbol symbol)
         {
             if ((object)_lazyIsReadOnlyAttribute != null)
             {
@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     ImmutableArray<KeyValuePair<string, TypedConstant>>.Empty);
             }
 
-            return base.SynthesizeIsReadOnlyAttribute(symbol);
+            return base.TrySynthesizeIsReadOnlyAttribute(symbol);
         }
 
         private void CreateEmbeddedAttributesIfNeeded(DiagnosticBag diagnostics)

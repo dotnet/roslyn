@@ -20,7 +20,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             out SyntaxToken arglistToken,
             DiagnosticBag diagnostics,
             bool allowRefOrOut,
-            bool modifyCompilationForRefReadOnly,
             bool allowThis)
         {
             arglistToken = default(SyntaxToken);
@@ -36,12 +35,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 CheckParameterModifiers(parameterSyntax, diagnostics);
 
                 var refKind = GetModifiers(parameterSyntax.Modifiers, out SyntaxToken refnessKeyword, out SyntaxToken paramsKeyword, out SyntaxToken thisKeyword);
-
-                if (refKind == RefKind.RefReadOnly)
-                {
-                    owner.DeclaringCompilation.EnsureIsReadOnlyAttributeExists(diagnostics, refnessKeyword.GetLocation(), modifyCompilationForRefReadOnly);
-                }
-
                 if (thisKeyword.Kind() != SyntaxKind.None && !allowThis)
                 {
                     diagnostics.Add(ErrorCode.ERR_ThisInBadContext, thisKeyword.GetLocation());
@@ -105,6 +98,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             binder.ValidateParameterNameConflicts(typeParameters, parameters, diagnostics);
             return parameters;
+        }
+
+        internal static void EnsureIsReadOnlyAttributeExists(IEnumerable<ParameterSymbol> parameters, DiagnosticBag diagnostics, bool modifyCompilationForRefReadOnly)
+        {
+            foreach (var parameter in parameters)
+            {
+                if (parameter.RefKind == RefKind.RefReadOnly)
+                {
+                    parameter.DeclaringCompilation.EnsureIsReadOnlyAttributeExists(diagnostics, parameter.GetNonNullSyntaxNode().Location, modifyCompilationForRefReadOnly);
+                }
+            }
         }
 
         private static void CheckParameterModifiers(

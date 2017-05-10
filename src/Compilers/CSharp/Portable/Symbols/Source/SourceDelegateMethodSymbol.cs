@@ -46,11 +46,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             TypeSyntax returnTypeSyntax = syntax.ReturnType.SkipRef(out refKind);
             TypeSymbol returnType = binder.BindType(returnTypeSyntax, diagnostics);
 
-            if (refKind == RefKind.RefReadOnly)
-            {
-                delegateType.DeclaringCompilation.EnsureIsReadOnlyAttributeExists(diagnostics, syntax.ReturnType.Location, modifyCompilationForRefReadOnly: true);
-            }
-
             // reuse types to avoid reporting duplicate errors if missing:
             var voidType = binder.GetSpecialType(SpecialType.System_Void, diagnostics, syntax);
             var objectType = binder.GetSpecialType(SpecialType.System_Object, diagnostics, syntax);
@@ -237,6 +232,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private sealed class InvokeMethod : SourceDelegateMethodSymbol
         {
             private readonly RefKind refKind;
+            private readonly DelegateDeclarationSyntax syntax;
 
             internal InvokeMethod(
                 SourceMemberContainerTypeSymbol delegateType,
@@ -248,14 +244,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 : base(delegateType, returnType, syntax, MethodKind.DelegateInvoke, DeclarationModifiers.Virtual | DeclarationModifiers.Public)
             {
                 this.refKind = refKind;
+                this.syntax = syntax;
 
                 SyntaxToken arglistToken;
                 var parameters = ParameterHelpers.MakeParameters(
                     binder, this, syntax.ParameterList, out arglistToken,
                     allowRefOrOut: true,
                     allowThis: false,
-                    diagnostics: diagnostics,
-                    modifyCompilationForRefReadOnly: true);
+                    diagnostics: diagnostics);
 
                 if (arglistToken.Kind() == SyntaxKind.ArgListKeyword)
                 {
@@ -287,6 +283,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // there are no real reasons for emitting the members in one order or another, 
                 // so we will keep them the same.
                 return new LexicalSortKey(this.syntaxReferenceOpt.GetLocation(), this.DeclaringCompilation);
+            }
+
+            protected override void MethodChecks(DiagnosticBag diagnostics)
+            {
+                base.MethodChecks(diagnostics);
+
+                if (refKind == RefKind.RefReadOnly)
+                {
+                    DeclaringCompilation.EnsureIsReadOnlyAttributeExists(diagnostics, this.syntax.ReturnType.Location, modifyCompilationForRefReadOnly: true);
+                }
+
+                ParameterHelpers.EnsureIsReadOnlyAttributeExists(_parameters, diagnostics, modifyCompilationForRefReadOnly: true);
             }
         }
 

@@ -453,6 +453,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 returnType,
                 diagnostics);
             lambdaBodyBinder = new ExecutableCodeBinder(_unboundLambda.Syntax, lambdaSymbol, ParameterBinder(lambdaSymbol, binder));
+
+            if (lambdaSymbol.RefKind == CodeAnalysis.RefKind.RefReadOnly)
+            {
+                binder.Compilation.EnsureIsReadOnlyAttributeExists(diagnostics, lambdaSymbol.DiagnosticLocation, modifyCompilationForRefReadOnly: false);
+            }
+
+            ParameterHelpers.EnsureIsReadOnlyAttributeExists(lambdaSymbol.Parameters, diagnostics, modifyCompilationForRefReadOnly: false);
+
             block = BindLambdaBody(lambdaSymbol, lambdaBodyBinder, diagnostics);
 
             ((ExecutableCodeBinder)lambdaBodyBinder).ValidateIteratorMethods(diagnostics);

@@ -1409,7 +1409,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             throw ExceptionUtilities.Unreachable;
         }
 
-        internal virtual SynthesizedAttributeData SynthesizeIsReadOnlyAttribute(Symbol symbol)
+        internal SynthesizedAttributeData SynthesizeIsReadOnlyAttribute(Symbol symbol)
+        {
+            if ((object)Compilation.SourceModule != symbol.ContainingModule)
+            {
+                // For symbols that are not defined in the same compilation (like NoPia), don't synthesize this attribute.
+                return null;
+            }
+
+            return TrySynthesizeIsReadOnlyAttribute(symbol);
+        }
+
+        protected virtual SynthesizedAttributeData TrySynthesizeIsReadOnlyAttribute(Symbol symbol)
         {
             if ((object)Compilation.SourceModule != symbol.ContainingModule)
             {

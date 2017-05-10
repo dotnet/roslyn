@@ -43,11 +43,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _isAsync = unboundLambda.IsAsync;
             // No point in making this lazy. We are always going to need these soon after creation of the symbol.
             _parameters = MakeParameters(compilation, unboundLambda, parameterTypes, parameterRefKinds, diagnostics);
-
-            if (_refKind == RefKind.RefReadOnly)
-            {
-                compilation.EnsureIsReadOnlyAttributeExists(diagnostics, DiagnosticLocation, modifyCompilationForRefReadOnly: false);
-            }
         }
 
         public LambdaSymbol(
@@ -373,11 +368,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var parameter = new SourceSimpleParameterSymbol(this, type, p, refKind, name, locations);
 
                 builder.Add(parameter);
-
-                if (refKind == RefKind.RefReadOnly)
-                {
-                    compilation.EnsureIsReadOnlyAttributeExists(diagnostics, location, modifyCompilationForRefReadOnly: false);
-                }
             }
 
             var result = builder.ToImmutableAndFree();

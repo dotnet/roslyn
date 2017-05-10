@@ -167,8 +167,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 signatureBinder, this, syntax.ParameterList, out arglistToken,
                 allowRefOrOut: true,
                 allowThis: true,
-                diagnostics: diagnostics,
-                modifyCompilationForRefReadOnly: true);
+                diagnostics: diagnostics);
 
             _lazyIsVararg = (arglistToken.Kind() == SyntaxKind.ArgListKeyword);
             RefKind refKind;
@@ -354,6 +353,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 this.DeclaringCompilation.EnsureIsReadOnlyAttributeExists(diagnostics, syntax.ReturnType.Location, modifyCompilationForRefReadOnly: true);
             }
+
+            ParameterHelpers.EnsureIsReadOnlyAttributeExists(_lazyParameters, diagnostics, modifyCompilationForRefReadOnly: true);
         }
 
         // This is also used for async lambdas.  Probably not the best place to locate this method, but where else could it go?
