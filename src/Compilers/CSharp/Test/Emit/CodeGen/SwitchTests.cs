@@ -9495,6 +9495,104 @@ public class Program
 </symbols>");
         }
 
+        [Fact, WorkItem(19280, "https://github.com/dotnet/roslyn/issues/19280")]
+        public void TestIgnoreDynamicVsObjectAndTupleElementNames_03()
+        {
+            var source =
+@"using System;
+public class Generic<T,U>
+{
+}
+class Program
+{
+    public static void Main(string[] args)
+    {
+        var g = new Generic<object, (int, int)>();
+        M2(g, true, false, false);
+        M2(g, false, true, false);
+        M2(g, false, false, true);
+    }
+    public static void M2(object o, bool b1, bool b2, bool b3)
+    {
+        switch (o)
+        {
+            case Generic<object, (int a, int b)> g when b1: Console.Write(""a""); break;
+            case var _ when b2: Console.Write(""b""); break;
+            case Generic<dynamic, (int x, int y)> g when b3: Console.Write(""c""); break;
+        }
+    }
+}
+";
+            var compilation = CreateStandardCompilation(source,
+                    options: TestOptions.DebugDll.WithOutputKind(OutputKind.ConsoleApplication),
+                    references: new[] { ValueTupleRef, SystemRuntimeFacadeRef })
+                .VerifyDiagnostics();
+            var compVerifier = CompileAndVerify(compilation, expectedOutput: "abc");
+            compVerifier.VerifyIL("Program.M2",
+@"{
+  // Code size      105 (0x69)
+  .maxstack  2
+  .locals init (object V_0,
+                Generic<object, (int a, int b)> V_1,
+                Generic<dynamic, (int x, int y)> V_2,
+                Generic<object, (int a, int b)> V_3, //g
+                Generic<dynamic, (int x, int y)> V_4, //g
+                object V_5)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.s    V_5
+  IL_0004:  ldloc.s    V_5
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  brtrue.s   IL_000c
+  IL_000a:  br.s       IL_0018
+  IL_000c:  ldloc.0
+  IL_000d:  isinst     ""Generic<object, (int a, int b)>""
+  IL_0012:  dup
+  IL_0013:  stloc.1
+  IL_0014:  brfalse.s  IL_0018
+  IL_0016:  br.s       IL_002d
+  IL_0018:  br.s       IL_0041
+  IL_001a:  ldloc.0
+  IL_001b:  brtrue.s   IL_001f
+  IL_001d:  br.s       IL_002b
+  IL_001f:  ldloc.0
+  IL_0020:  isinst     ""Generic<dynamic, (int x, int y)>""
+  IL_0025:  dup
+  IL_0026:  stloc.2
+  IL_0027:  brfalse.s  IL_002b
+  IL_0029:  br.s       IL_0053
+  IL_002b:  br.s       IL_0068
+  IL_002d:  ldloc.1
+  IL_002e:  stloc.3
+  IL_002f:  ldarg.1
+  IL_0030:  brtrue.s   IL_0034
+  IL_0032:  br.s       IL_0018
+  IL_0034:  ldstr      ""a""
+  IL_0039:  call       ""void System.Console.Write(string)""
+  IL_003e:  nop
+  IL_003f:  br.s       IL_0068
+  IL_0041:  ldarg.2
+  IL_0042:  brtrue.s   IL_0046
+  IL_0044:  br.s       IL_001a
+  IL_0046:  ldstr      ""b""
+  IL_004b:  call       ""void System.Console.Write(string)""
+  IL_0050:  nop
+  IL_0051:  br.s       IL_0068
+  IL_0053:  ldloc.2
+  IL_0054:  stloc.s    V_4
+  IL_0056:  ldarg.3
+  IL_0057:  brtrue.s   IL_005b
+  IL_0059:  br.s       IL_002b
+  IL_005b:  ldstr      ""c""
+  IL_0060:  call       ""void System.Console.Write(string)""
+  IL_0065:  nop
+  IL_0066:  br.s       IL_0068
+  IL_0068:  ret
+}"
+            );
+        }
+
         #endregion "regression tests"
     }
 }
