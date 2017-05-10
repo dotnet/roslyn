@@ -213,7 +213,7 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                         project, checksum, cancellationToken).ConfigureAwait(false);
 
                     Contract.ThrowIfNull(projectInfo);
-                    Contract.ThrowIfTrue(projectInfo.Checksum != checksum, "If we computed a SymbolTreeInfo, then it's checksum much match our checksum.");
+                    Contract.ThrowIfTrue(projectInfo.Checksum != checksum, "If we computed a SymbolTreeInfo, then its checksum much match our checksum.");
 
                     // Mark that we're up to date with this project.  Future calls with the same 
                     // semantic version can bail out immediately.
@@ -248,7 +248,7 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                         project.Solution, reference, checksum, loadOnly: false, cancellationToken: cancellationToken).ConfigureAwait(false);
 
                     Contract.ThrowIfNull(info);
-                    Contract.ThrowIfTrue(info.Checksum != checksum, "If we computed a SymbolTreeInfo, then it's checksum much match our checksum.");
+                    Contract.ThrowIfTrue(info.Checksum != checksum, "If we computed a SymbolTreeInfo, then its checksum much match our checksum.");
 
                     // Note, getting the info may fail (for example, bogus metadata).  That's ok.  
                     // We still want to cache that result so that don't try to continuously produce
