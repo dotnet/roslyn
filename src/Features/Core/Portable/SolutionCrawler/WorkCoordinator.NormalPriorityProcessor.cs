@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Notification;
+using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Versions;
@@ -461,21 +462,27 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         {
                             var currentSolution = this.Processor.CurrentSolution;
 
-                            if (currentSolution != _processingSolution)
+                            if (currentSolution == _processingSolution)
                             {
-                                ResetLogAggregatorIfNeeded(currentSolution);
-
-                                _processingSolution = currentSolution;
-
-                                await RunAnalyzersAsync(this.Analyzers, currentSolution, (a, s, c) => a.NewSolutionSnapshotAsync(s, c), this.CancellationToken).ConfigureAwait(false);
-
-                                foreach (var id in this.Processor.GetOpenDocumentIds())
-                                {
-                                    AddHigherPriorityDocument(id);
-                                }
-
-                                SolutionCrawlerLogger.LogResetStates(this.Processor._logAggregator);
+                                return;
                             }
+
+                            // solution has changed
+                            ResetLogAggregatorIfNeeded(currentSolution);
+
+                            _processingSolution = currentSolution;
+
+                            // synchronize new solution to OOP
+                            await currentSolution.Workspace.SynchronizePrimaryWorkspaceAsync(currentSolution, this.CancellationToken).ConfigureAwait(false);
+
+                            await RunAnalyzersAsync(this.Analyzers, currentSolution, (a, s, c) => a.NewSolutionSnapshotAsync(s, c), this.CancellationToken).ConfigureAwait(false);
+
+                            foreach (var id in this.Processor.GetOpenDocumentIds())
+                            {
+                                AddHigherPriorityDocument(id);
+                            }
+
+                            SolutionCrawlerLogger.LogResetStates(this.Processor._logAggregator);
                         }
                         catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
                         {

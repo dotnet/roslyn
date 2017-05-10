@@ -3,6 +3,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Internal.Log;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
@@ -118,6 +119,32 @@ namespace Microsoft.CodeAnalysis.Remote
             this RemoteHostClient client, Solution solution, string targetName, object[] arguments, CancellationToken cancellationToken)
         {
             return RunOnRemoteHostAsync<T>(client, WellKnownServiceHubServices.CodeAnalysisService, solution, targetName, arguments, cancellationToken);
+        }
+
+        /// <summary>
+        /// Synchronize given solution as primary workspace solution in remote host
+        /// </summary>
+        public static async Task SynchronizePrimaryWorkspaceAsync(this Workspace workspace, Solution solution, CancellationToken cancellationToken)
+        {
+            if (solution.BranchId != solution.Workspace.PrimaryBranchId)
+            {
+                return;
+            }
+
+            var remoteHostClient = await workspace.TryGetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
+            if (remoteHostClient == null)
+            {
+                return;
+            }
+
+            using (Logger.LogBlock(FunctionId.SolutionChecksumUpdater_SynchronizePrimaryWorkspace, cancellationToken))
+            {
+                var checksum = await solution.State.GetChecksumAsync(cancellationToken).ConfigureAwait(false);
+
+                await remoteHostClient.RunOnRemoteHostAsync(
+                    WellKnownRemoteHostServices.RemoteHostService, solution,
+                    nameof(IRemoteHostService.SynchronizePrimaryWorkspaceAsync), checksum, cancellationToken).ConfigureAwait(false);
+            }
         }
     }
 }
