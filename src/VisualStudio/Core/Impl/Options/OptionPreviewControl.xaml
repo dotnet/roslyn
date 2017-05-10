@@ -20,8 +20,8 @@
                                         Width="Auto"
                                         Focusable="False"
                                         Margin="20, 0, 0, 0">
-                    <TextBlock Text="{Binding Description}" Foreground="{Binding Path=Foreground, RelativeSource={RelativeSource AncestorType={x:Type ListViewItem}}}"/>
                 </CheckBox>
+                <TextBlock Text="{Binding Description}" Foreground="{Binding Path=Foreground, RelativeSource={RelativeSource AncestorType={x:Type ListViewItem}}}"/>
             </StackPanel>
         </DataTemplate>
 
