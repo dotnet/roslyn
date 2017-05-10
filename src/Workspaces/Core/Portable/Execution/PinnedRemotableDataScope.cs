@@ -35,6 +35,9 @@ namespace Microsoft.CodeAnalysis.Execution
 
         /// <summary>
         /// This indicates whether this scope is for primary branch or not (not forked solution)
+        /// 
+        /// Features like OOP will use this flag to see whether caching information related to this solution
+        /// can benefit other requests or not
         /// </summary>
         public bool ForPrimaryBranch => _storage.SolutionState.BranchId == Workspace.PrimaryBranchId;
 

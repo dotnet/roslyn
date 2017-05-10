@@ -34,6 +34,9 @@ namespace Microsoft.CodeAnalysis.Remote
 
         /// <summary>
         /// Mark whether the solution checksum it got is for primary branch or not
+        /// 
+        /// this flag will be passed down to solution controller to help
+        /// solution service's cache policy. for more detail, see <see cref="SolutionService"/>
         /// </summary>
         private bool _fromPrimaryBranch;
 
