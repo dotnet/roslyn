@@ -666,6 +666,28 @@ class A
         }
 
         [Fact]
+        public void MainCantBeAsyncWithArgs_CSharp7_NoAwait()
+        {
+            var source = @"
+using System.Threading.Tasks;
+
+class A
+{
+    static Task Main(string[] args)
+    {
+        return Task.Factory.StartNew(() => { });
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
+            compilation.VerifyDiagnostics(
+                // (6,18): error CS8107: Feature 'async main' is not available in C# 7. Please use language version 7.1 or greater.
+                //     async static Task Main(string[] args)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "Task").WithArguments("async main", "7.1").WithLocation(6, 12),
+                // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
+                Diagnostic(ErrorCode.ERR_NoEntryPoint).WithLocation(1, 1));
+        }
+
+        [Fact]
         public void MainCanReturnTask()
         {
             var source = @"
@@ -841,6 +863,28 @@ class A
         }
 
         [Fact]
+        public void MainCantBeAsyncAndGenericOnInt_WithArgs_Csharp7_NoAsync()
+        {
+            var source = @"
+using System.Threading.Tasks;
+
+class A
+{
+    static Task<int> Main(string[] args)
+    {
+        return Task.Factory.StartNew(() => 5);
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
+            compilation.VerifyDiagnostics(
+                // (6,18): error CS8107: Feature 'async main' is not available in C# 7. Please use language version 7.1 or greater.
+                //     async static Task<int> Main(string[] args)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "Task<int>").WithArguments("async main", "7.1").WithLocation(6, 12),
+                // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
+                Diagnostic(ErrorCode.ERR_NoEntryPoint).WithLocation(1, 1));
+        }
+
+        [Fact]
         public void MainCanReturnTaskAndGenericOnInt()
         {
             var source = @"
@@ -898,6 +942,28 @@ class A
                 // (6,18): error CS8107: Feature 'async main' is not available in C# 7. Please use language version 7.1 or greater.
                 //     async static Task<int> Main()
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "Task<int>").WithArguments("async main", "7.1").WithLocation(6, 18),
+                // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
+                Diagnostic(ErrorCode.ERR_NoEntryPoint).WithLocation(1, 1));
+        }
+
+        [Fact]
+        public void MainCantBeAsyncAndGenericOnInt_CSharp7_NoAsync()
+        {
+            var source = @"
+using System.Threading.Tasks;
+
+class A
+{
+    static Task<int> Main()
+    {
+        return Task.Factory.StartNew(() => 5);
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
+            compilation.VerifyDiagnostics(
+                // (6,18): error CS8107: Feature 'async main' is not available in C# 7. Please use language version 7.1 or greater.
+                //     async static Task<int> Main()
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "Task<int>").WithArguments("async main", "7.1").WithLocation(6, 12),
                 // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
                 Diagnostic(ErrorCode.ERR_NoEntryPoint).WithLocation(1, 1));
         }
@@ -1147,6 +1213,36 @@ class A
                 Diagnostic(ErrorCode.ERR_NoEntryPoint).WithLocation(1, 1));
         }
 
+        [Fact]
+        public void TaskIntAndTaskFloat_CSharp7_NoAsync()
+        {
+            var source = @"
+using System.Threading.Tasks;
+
+class A
+{
+    static Task<int> Main()
+    {
+        System.Console.WriteLine(""Task<int>"");
+        return Task.FromResult(0);
+    }
+
+    static Task<float> Main(string[] args)
+    {
+        System.Console.WriteLine(""Task<float>"");
+        return Task.FromResult(0.0F);
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7)).VerifyDiagnostics(
+                // (6,12): error CS8107: Feature 'async main' is not available in C# 7. Please use language version 7.1 or greater.
+                //     static Task<int> Main()
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "Task<int>").WithArguments("async main", "7.1").WithLocation(6, 12),
+                // (12,24): warning CS0028: 'A.Main(string[])' has the wrong signature to be an entry point
+                //     static Task<float> Main(string[] args)
+                Diagnostic(ErrorCode.WRN_InvalidMainSig, "Main").WithArguments("A.Main(string[])").WithLocation(12, 24),
+                // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
+                Diagnostic(ErrorCode.ERR_NoEntryPoint).WithLocation(1, 1));
+        }
 
         [Fact]
         public void TaskOfFloatMainAndNonTaskMain()
@@ -1232,17 +1328,21 @@ public static class MyExtensions {
 
 static class Program {
     static Task Main() {
-        return null;
+        return new Task();
     }
 }";
             var sourceCompilation = CreateStandardCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
-            sourceCompilation.VerifyEmitDiagnostics(
+            var verifier = sourceCompilation.VerifyEmitDiagnostics(
                 // (30,12): warning CS0436: The type 'Task' in '' conflicts with the imported type 'Task' in 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'. Using the type defined in ''.
                 //     static Task Main() {
-                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Task").WithArguments("", "System.Threading.Tasks.Task", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "System.Threading.Tasks.Task").WithLocation(30, 12),
+                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Task").WithArguments("", "System.Threading.Tasks.Task", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "System.Threading.Tasks.Task"),
                 // (24,43): warning CS0436: The type 'Task' in '' conflicts with the imported type 'Task' in 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'. Using the type defined in ''.
                 //     public static Awaiter GetAwaiter(this Task task) {
-                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Task").WithArguments("", "System.Threading.Tasks.Task", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "System.Threading.Tasks.Task").WithLocation(24, 43));
+                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Task").WithArguments("", "System.Threading.Tasks.Task", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "System.Threading.Tasks.Task"),
+                // (31,20): warning CS0436: The type 'Task' in '' conflicts with the imported type 'Task' in 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'. Using the type defined in ''.
+                //         return new Task();
+                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Task").WithArguments("", "System.Threading.Tasks.Task", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "System.Threading.Tasks.Task").WithLocation(31, 20));
+            CompileAndVerify(sourceCompilation);
         }
     }
 }
