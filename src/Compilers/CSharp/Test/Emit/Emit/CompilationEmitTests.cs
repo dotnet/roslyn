@@ -12,6 +12,7 @@ using System.Reflection.PortableExecutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -614,6 +615,204 @@ public class C
             CompareAssemblies(sourceTemplate, left, right, expectedMatch, includePrivateMembers: false);
         }
 
+        [ConditionalFact(typeof(ClrOnly), typeof(DesktopOnly))]
+        public void RefAssembly_NoPia()
+        {
+            string piaSource = @"
+using System;
+using System.Runtime.InteropServices;
+
+[assembly: Guid(""f9c2d51d-4f44-45f0-9eda-c9d599b58257"")]
+[assembly: ImportedFromTypeLib(""Pia1.dll"")]
+
+public struct S { public int field; }
+
+[ComImport()]
+[Guid(""f9c2d51d-4f44-45f0-9eda-c9d599b58280"")]
+public interface ITest1
+{
+    S M();
+}";
+
+            var pia = CreateStandardCompilation(piaSource, options: TestOptions.ReleaseDll, assemblyName: "pia");
+            pia.VerifyEmitDiagnostics();
+
+            string source = @"
+public class D : ITest1
+{
+    public S M()
+    {
+        throw null;
+    }
+}
+";
+            verifyRefOnly(pia.EmitToImageReference(embedInteropTypes: true));
+            verifyRefOut(pia.EmitToImageReference(embedInteropTypes: true));
+
+            verifyRefOnly(pia.ToMetadataReference(embedInteropTypes: true));
+            verifyRefOut(pia.ToMetadataReference(embedInteropTypes: true));
+
+            void verifyRefOnly(MetadataReference reference)
+            {
+                var comp = CreateStandardCompilation(source, options: TestOptions.ReleaseDll,
+                                references: new MetadataReference[] { reference });
+                using (var output = new MemoryStream())
+                {
+                    EmitResult emitResult = comp.Emit(output,
+                        options: new EmitOptions(includePrivateMembers: false).WithEmitMetadataOnly(true));
+                    Assert.True(emitResult.Success);
+                    emitResult.Diagnostics.Verify();
+
+                    var refImage = output.ToImmutable();
+                    verifyNoPia(refImage);
+                }
+            }
+
+            void verifyRefOut(MetadataReference reference)
+            {
+                var comp = CreateStandardCompilation(source, options: TestOptions.DebugDll,
+                                references: new MetadataReference[] { reference });
+                using (var output = new MemoryStream())
+                using (var metadataOutput = new MemoryStream())
+                {
+                    EmitResult emitResult = comp.Emit(output, metadataPEStream: metadataOutput,
+                        options: new EmitOptions(includePrivateMembers: false));
+                    Assert.True(emitResult.Success);
+                    emitResult.Diagnostics.Verify();
+
+                    var image = output.ToImmutable();
+                    var refImage = metadataOutput.ToImmutable();
+
+                    verifyNoPia(image);
+                    verifyNoPia(refImage);
+                }
+            }
+
+            void verifyNoPia(ImmutableArray<byte> image)
+            {
+                var reference = CompilationVerifier.LoadTestEmittedExecutableForSymbolValidation(image, OutputKind.DynamicallyLinkedLibrary);
+                var comp = CreateStandardCompilation("", references: new[] { reference });
+                var referencedAssembly = comp.GetReferencedAssemblySymbol(reference);
+                var module = (PEModuleSymbol)referencedAssembly.Modules[0];
+
+                var itest1 = module.GlobalNamespace.GetMember<NamedTypeSymbol>("ITest1");
+                Assert.NotNull(itest1.GetAttribute("System.Runtime.InteropServices", "TypeIdentifierAttribute").ToString());
+
+                var method = (PEMethodSymbol)itest1.GetMember("M");
+                Assert.Equal("S ITest1.M()", method.ToTestDisplayString());
+
+                var s = (NamedTypeSymbol)method.ReturnType;
+                Assert.Equal("S", s.ToTestDisplayString());
+
+                var field = s.GetMember("field");
+                Assert.Equal("System.Int32 S.field", field.ToTestDisplayString());
+            }
+        }
+
+        [ConditionalFact(typeof(ClrOnly), typeof(DesktopOnly))]
+        public void RefAssembly_NoPia_ReferenceFromMethodBody()
+        {
+            string piaSource = @"
+using System;
+using System.Runtime.InteropServices;
+
+[assembly: Guid(""f9c2d51d-4f44-45f0-9eda-c9d599b58257"")]
+[assembly: ImportedFromTypeLib(""Pia1.dll"")]
+
+public struct S { public int field; }
+
+[ComImport()]
+[Guid(""f9c2d51d-4f44-45f0-9eda-c9d599b58280"")]
+public interface ITest1
+{
+    S M();
+}";
+
+            var pia = CreateStandardCompilation(piaSource, options: TestOptions.ReleaseDll, assemblyName: "pia");
+            pia.VerifyEmitDiagnostics();
+
+            string source = @"
+public class D
+{
+    public void M2()
+    {
+        ITest1 x = null;
+        S s = x.M();
+    }
+}
+";
+            verifyRefOnly(pia.EmitToImageReference(embedInteropTypes: true));
+            verifyRefOut(pia.EmitToImageReference(embedInteropTypes: true));
+
+            verifyRefOnly(pia.ToMetadataReference(embedInteropTypes: true));
+            verifyRefOut(pia.ToMetadataReference(embedInteropTypes: true));
+
+            void verifyRefOnly(MetadataReference reference)
+            {
+                var comp = CreateStandardCompilation(source, options: TestOptions.ReleaseDll,
+                                references: new MetadataReference[] { reference });
+                using (var output = new MemoryStream())
+                {
+                    EmitResult emitResult = comp.Emit(output,
+                        options: new EmitOptions(includePrivateMembers: false).WithEmitMetadataOnly(true));
+                    Assert.True(emitResult.Success);
+                    emitResult.Diagnostics.Verify();
+
+                    var refImage = output.ToImmutable();
+                    verifyNoPia(refImage, expectMissing: true);
+                }
+            }
+
+            void verifyRefOut(MetadataReference reference)
+            {
+                var comp = CreateStandardCompilation(source, options: TestOptions.ReleaseDll,
+                                references: new MetadataReference[] { reference });
+                using (var output = new MemoryStream())
+                using (var metadataOutput = new MemoryStream())
+                {
+                    EmitResult emitResult = comp.Emit(output, metadataPEStream: metadataOutput,
+                        options: new EmitOptions(includePrivateMembers: false));
+                    Assert.True(emitResult.Success);
+                    emitResult.Diagnostics.Verify();
+
+                    var image = output.ToImmutable();
+                    var refImage = metadataOutput.ToImmutable();
+
+                    verifyNoPia(image, expectMissing: false);
+                    verifyNoPia(refImage, expectMissing: false);
+                }
+            }
+
+            // The ref assembly produced by refout has more types than that produced by refonly,
+            // because refout will bind the method bodies (and therefore populate more referenced types).
+            // This will be refined in the future. Follow-up issue: https://github.com/dotnet/roslyn/issues/19403
+            void verifyNoPia(ImmutableArray<byte> image, bool expectMissing)
+            {
+                var reference = CompilationVerifier.LoadTestEmittedExecutableForSymbolValidation(image, OutputKind.DynamicallyLinkedLibrary);
+                var comp = CreateStandardCompilation("", references: new[] { reference });
+                var referencedAssembly = comp.GetReferencedAssemblySymbol(reference);
+                var module = (PEModuleSymbol)referencedAssembly.Modules[0];
+
+                var itest1 = module.GlobalNamespace.GetMember<NamedTypeSymbol>("ITest1");
+                if (expectMissing)
+                {
+                    Assert.Null(itest1);
+                    return;
+                }
+
+                Assert.NotNull(itest1.GetAttribute("System.Runtime.InteropServices", "TypeIdentifierAttribute").ToString());
+
+                var method = (PEMethodSymbol)itest1.GetMember("M");
+                Assert.Equal("S ITest1.M()", method.ToTestDisplayString());
+
+                var s = (NamedTypeSymbol)method.ReturnType;
+                Assert.Equal("S", s.ToTestDisplayString());
+
+                var field = s.GetMember("field");
+                Assert.Equal("System.Int32 S.field", field.ToTestDisplayString());
+            }
+        }
+
         [Theory]
         [InlineData("internal void M() { }", "", Match.Different)]
         public void RefAssembly_InvariantToSomeChangesWithInternalsVisibleTo(string left, string right, Match expectedMatch)
@@ -1146,30 +1345,6 @@ public class PublicClass
                 Assert.Throws<ArgumentException>(() => comp.Emit(output,
                     options: EmitOptions.Default.WithEmitMetadataOnly(true)
                         .WithDebugInformationFormat(DebugInformationFormat.Embedded)));
-            }
-        }
-
-        [Fact]
-        public void RefAssembly_DisallowEmbeddingTypes()
-        {
-            CSharpCompilation comp = CreateCompilation("", options: TestOptions.DebugDll,
-                references: new MetadataReference[]
-                {
-                    TestReferences.SymbolsTests.NoPia.GeneralPia.WithEmbedInteropTypes(true)
-                });
-
-            using (var output = new MemoryStream())
-            {
-                Assert.Throws<ArgumentException>(() => comp.Emit(output,
-                    options: EmitOptions.Default.WithEmitMetadataOnly(true).WithIncludePrivateMembers(false)));
-            }
-
-            using (var output = new MemoryStream())
-            using (var metadataOutput = new MemoryStream())
-            {
-                Assert.Throws<ArgumentException>(() => comp.Emit(output,
-                    metadataPEStream: metadataOutput,
-                    options: EmitOptions.Default.WithIncludePrivateMembers(false)));
             }
         }
 

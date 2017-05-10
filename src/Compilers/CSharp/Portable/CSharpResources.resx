@@ -2303,9 +2303,6 @@ If such a class is used as a base class and if the deriving class defines a dest
   <data name="ERR_NoNetModuleOutputWhenRefOutOrRefOnly" xml:space="preserve">
     <value>Cannot compile net modules when using /refout or /refonly.</value>
   </data>
-  <data name="ERR_NoEmbeddedTypeWhenRefOutOrRefOnly" xml:space="preserve">
-    <value>Cannot embed types when using /refout or /refonly.</value>
-  </data>
   <data name="ERR_OvlOperatorExpected" xml:space="preserve">
     <value>Overloadable operator expected</value>
   </data>

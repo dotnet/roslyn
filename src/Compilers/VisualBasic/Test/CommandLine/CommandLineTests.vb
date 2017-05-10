@@ -2923,14 +2923,6 @@ print Goodbye, World"
             parsedArgs.Errors.Verify(
                 Diagnostic(ERRID.ERR_NoNetModuleOutputWhenRefOutOrRefOnly).WithLocation(1, 1))
 
-            parsedArgs = DefaultParse({"/refout:ref.dll", "/link:b", "a.vb"}, baseDirectory)
-            parsedArgs.Errors.Verify(
-                Diagnostic(ERRID.ERR_NoEmbeddedTypeWhenRefOutOrRefOnly).WithLocation(1, 1))
-
-            parsedArgs = DefaultParse({"/refonly", "/link:b", "a.vb"}, baseDirectory)
-            parsedArgs.Errors.Verify(
-                Diagnostic(ERRID.ERR_NoEmbeddedTypeWhenRefOutOrRefOnly).WithLocation(1, 1))
-
             parsedArgs = DefaultParse({"/refonly", "/target:module", "a.vb"}, baseDirectory)
             parsedArgs.Errors.Verify(
                 Diagnostic(ERRID.ERR_NoNetModuleOutputWhenRefOutOrRefOnly).WithLocation(1, 1))

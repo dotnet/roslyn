@@ -2886,18 +2886,6 @@ C:\*.cs(100,7): error CS0103: The name 'Foo' does not exist in the current conte
                 // error CS8301: Do not use refout when using refonly.
                 Diagnostic(ErrorCode.ERR_NoRefOutWhenRefOnly).WithLocation(1, 1));
 
-            parsedArgs = DefaultParse(new[] { @"/refout:ref.dll", "/link:b", "a.cs" }, baseDirectory);
-            parsedArgs.Errors.Verify(
-                // error CS8357: Cannot embed types when using /refout or /refonly.
-                Diagnostic(ErrorCode.ERR_NoEmbeddedTypeWhenRefOutOrRefOnly).WithLocation(1, 1)
-                );
-
-            parsedArgs = DefaultParse(new[] { "/refonly", "/link:b", "a.cs" }, baseDirectory);
-            parsedArgs.Errors.Verify(
-                // error CS8357: Cannot embed types when using /refout or /refonly.
-                Diagnostic(ErrorCode.ERR_NoEmbeddedTypeWhenRefOutOrRefOnly).WithLocation(1, 1)
-                );
-
             parsedArgs = DefaultParse(new[] { "/refonly:incorrect", "a.cs" }, baseDirectory);
             parsedArgs.Errors.Verify(
                 // error CS2007: Unrecognized option: '/refonly:incorrect'

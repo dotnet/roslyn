@@ -887,24 +887,6 @@ End Class"
         End Sub
 
         <Fact>
-        Public Sub RefAssembly_DisallowEmbeddingTypes()
-            Dim comp = CreateCompilation("", references:={MscorlibRef.WithEmbedInteropTypes(True)},
-                            options:=TestOptions.DebugDll)
-
-            Using output As New MemoryStream()
-                Assert.Throws(Of ArgumentException)(Function() comp.Emit(output,
-                                    options:=EmitOptions.Default.WithEmitMetadataOnly(True).WithIncludePrivateMembers(False)))
-            End Using
-
-            Using output As New MemoryStream()
-                Using metadataOutput = New MemoryStream()
-                    Assert.Throws(Of ArgumentException)(Function() comp.Emit(output, metadataPEStream:=metadataOutput,
-                                        options:=EmitOptions.Default.WithIncludePrivateMembers(False)))
-                End Using
-            End Using
-        End Sub
-
-        <Fact>
         Public Sub EmitMetadataOnly_DisallowMetadataPeStream()
             Dim comp = CreateCompilation("", references:={MscorlibRef},
                             options:=TestOptions.DebugDll.WithDeterministic(True))
