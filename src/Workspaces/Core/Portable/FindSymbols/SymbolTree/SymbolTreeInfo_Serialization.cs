@@ -20,25 +20,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private const string SerializationFormat = "17";
 
         /// <summary>
-        /// Loads the SymbolTreeInfo for a given assembly symbol (metadata or project).  If the
-        /// info can't be loaded, it will be created (and persisted if possible).
-        /// </summary>
-        private static Task<SymbolTreeInfo> LoadOrCreateSourceSymbolTreeInfoAsync(
-            Project project, Checksum checksum, bool loadOnly, CancellationToken cancellationToken)
-        {
-            return TryLoadOrCreateAsync(
-                project.Solution,
-                checksum,
-                project.FilePath,
-                loadOnly,
-                createAsync: () => CreateSourceSymbolTreeInfoAsync(project, checksum, cancellationToken),
-                keySuffix: "_Source",
-                getPersistedChecksum: info => info.Checksum,
-                readObject: reader => ReadSymbolTreeInfo(reader, (names, nodes) => GetSpellCheckerTask(project.Solution, checksum, project.FilePath, names, nodes)),
-                cancellationToken: cancellationToken);
-        }
-
-        /// <summary>
         /// Loads the SpellChecker for a given assembly symbol (metadata or project).  If the
         /// info can't be loaded, it will be created (and persisted if possible).
         /// </summary>
@@ -48,7 +29,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             string filePath,
             Func<Task<SpellChecker>> createAsync)
         {
-            return TryLoadOrCreateAsync(
+            var result = TryLoadOrCreateAsync(
                 solution,
                 checksum,
                 filePath,
@@ -58,6 +39,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 getPersistedChecksum: s => s.Checksum,
                 readObject: SpellChecker.ReadFrom,
                 cancellationToken: CancellationToken.None);
+            Contract.ThrowIfNull(result, "Result should never be null as we passed 'loadOnly: false'.");
+            return result;
         }
 
         /// <summary>

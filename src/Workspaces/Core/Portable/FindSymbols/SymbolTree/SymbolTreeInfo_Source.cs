@@ -29,9 +29,17 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public static Task<SymbolTreeInfo> GetInfoForSourceAssemblyAsync(
             Project project, Checksum checksum, CancellationToken cancellationToken)
         {
-            var result = LoadOrCreateSourceSymbolTreeInfoAsync(
-                project, checksum, loadOnly: false, cancellationToken: cancellationToken);
-            Contract.ThrowIfNull(result);
+            var result = TryLoadOrCreateAsync(
+                project.Solution,
+                checksum,
+                project.FilePath,
+                loadOnly: false,
+                createAsync: () => CreateSourceSymbolTreeInfoAsync(project, checksum, cancellationToken),
+                keySuffix: "_Source",
+                getPersistedChecksum: info => info.Checksum,
+                readObject: reader => ReadSymbolTreeInfo(reader, (names, nodes) => GetSpellCheckerTask(project.Solution, checksum, project.FilePath, names, nodes)),
+                cancellationToken: cancellationToken);
+            Contract.ThrowIfNull(result, "Result should never be null as we passed 'loadOnly: false'.");
             return result;
         }
 

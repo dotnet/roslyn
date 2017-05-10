@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             var filePath = reference.FilePath;
 
-            return TryLoadOrCreateAsync(
+            var result = TryLoadOrCreateAsync(
                 solution,
                 checksum,
                 filePath,
@@ -165,6 +165,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 getPersistedChecksum: info => info.Checksum,
                 readObject: reader => ReadSymbolTreeInfo(reader, (names, nodes) => GetSpellCheckerTask(solution, checksum, filePath, names, nodes)),
                 cancellationToken: cancellationToken);
+            Contract.ThrowIfFalse(result != null || loadOnly == true, "Result can only be null if 'loadOnly: true' was passed.");
+            return result;
         }
 
         private static Task<SymbolTreeInfo> CreateMetadataSymbolTreeInfoAsync(
