@@ -239,6 +239,7 @@
     <DefineConstants Condition="'$(InitialDefineConstants)' != ''">$(InitialDefineConstants)</DefineConstants>
 
     <!-- The NoWarn property is still being unconditionally set.  https://github.com/dotnet/sdk/issues/752 -->
-    <NoWarn>$(NoWarn);1591</NoWarn>
+    <OptionStrict>Off</OptionStrict>
+    <NoWarn>$(NoWarn);1591;41999;42016</NoWarn>
   </PropertyGroup>
 </Project>
