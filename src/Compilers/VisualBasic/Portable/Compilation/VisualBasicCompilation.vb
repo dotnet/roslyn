@@ -245,7 +245,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Debug.Assert(tree IsNot VisualBasicSyntaxTree.Dummy)
                             Debug.Assert(tree.IsMyTemplate)
 
-                            Interlocked.CompareExchange(Of SyntaxTree)(_lazyMyTemplate, tree, VisualBasicSyntaxTree.Dummy)
+                            Interlocked.CompareExchange(_lazyMyTemplate, tree, VisualBasicSyntaxTree.Dummy)
                         Else
                             ' we need to make one.
                             Dim text As String = EmbeddedResources.VbMyTemplateText
@@ -260,7 +260,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 Throw ExceptionUtilities.Unreachable
                             End If
 
-                            If Interlocked.CompareExchange(Of SyntaxTree)(_lazyMyTemplate, tree, VisualBasicSyntaxTree.Dummy) Is VisualBasicSyntaxTree.Dummy Then
+                            If Interlocked.CompareExchange(_lazyMyTemplate, tree, VisualBasicSyntaxTree.Dummy) Is VisualBasicSyntaxTree.Dummy Then
                                 ' set global cache
                                 s_myTemplateCache(parseOptions) = tree
                             End If
