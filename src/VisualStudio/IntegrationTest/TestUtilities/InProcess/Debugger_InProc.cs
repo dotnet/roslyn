@@ -38,12 +38,12 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             var entry = _debugger.GetExpression(expression);
             if (entry.Type != expectedType)
             {
-                throw new Exception($"The local named {expression} did not match the type expected. Expected: {expectedType}. Actual: {entry.Type}");
+                throw new Exception($"The expression {expression} did not match the type expected. Expected: {expectedType}. Actual: {entry.Type}");
             }
 
             if (entry.Value != expectedValue)
             {
-                throw new Exception($"The local named {expression} did not match the value expected. Expected: {expectedValue}. Actual: {entry.Value}");
+                throw new Exception($"The expression {expression} did not match the value expected. Expected: {expectedValue}. Actual: {entry.Value}");
             }
         }
     }
