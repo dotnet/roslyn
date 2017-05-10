@@ -2853,17 +2853,17 @@ End Class
             Dim editorOperations = New Mock(Of IEditorOperations)
             editorOperationsFactory.Setup(Function(x) x.GetEditorOperations(textView)).Returns(editorOperations.Object)
 
-            Dim commandHandler = New SmartTokenFormatterCommandHandler(textUndoHistory.Object, editorOperationsFactory.Object)
-            commandHandler.ExecuteCommandWorker(New ReturnKeyCommandArgs(textView, subjectDocument.TextBuffer), CancellationToken.None)
-            Dim newSnapshot = subjectDocument.TextBuffer.CurrentSnapshot
+            'Dim commandHandler = New SmartTokenFormatterCommandHandler(textUndoHistory.Object, editorOperationsFactory.Object)
+            'commandHandler.ExecuteCommandWorker(New ReturnKeyCommandArgs(textView, subjectDocument.TextBuffer), CancellationToken.None)
+            'Dim newSnapshot = subjectDocument.TextBuffer.CurrentSnapshot
 
-            Dim actualIndentation As Integer?
-            If newSnapshot.Version.VersionNumber > snapshot.Version.VersionNumber Then
-                actualIndentation = newSnapshot.GetLineFromLineNumber(lineNumber).GetFirstNonWhitespaceOffset()
-            Else
-                Dim provider = New SmartIndent(textView)
-                actualIndentation = provider.GetDesiredIndentation(indentationLineFromBuffer)
-            End If
+            'Dim actualIndentation As Integer?
+            'If newSnapshot.Version.VersionNumber > snapshot.Version.VersionNumber Then
+            '    actualIndentation = newSnapshot.GetLineFromLineNumber(lineNumber).GetFirstNonWhitespaceOffset()
+            'Else
+            Dim provider = New SmartIndent(textView)
+            Dim actualIndentation = provider.GetDesiredIndentation(indentationLineFromBuffer)
+            'End If
 
             If actualIndentation Is Nothing Then
                 Dim x = 0

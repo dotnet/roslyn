@@ -128,20 +128,20 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
             var snapshot = subjectDocument.TextBuffer.CurrentSnapshot;
             var indentationLineFromBuffer = snapshot.GetLineFromPosition(point);
 
-            var commandHandler = new SmartTokenFormatterCommandHandler(textUndoHistory.Object, editorOperationsFactory.Object);
-            commandHandler.ExecuteCommand(new ReturnKeyCommandArgs(textView, subjectDocument.TextBuffer), () => { });
-            var newSnapshot = subjectDocument.TextBuffer.CurrentSnapshot;
+            //var commandHandler = new SmartTokenFormatterCommandHandler(textUndoHistory.Object, editorOperationsFactory.Object);
+            //commandHandler.ExecuteCommand(new ReturnKeyCommandArgs(textView, subjectDocument.TextBuffer), () => { });
+            //var newSnapshot = subjectDocument.TextBuffer.CurrentSnapshot;
 
-            int? actualIndentation;
-            if (newSnapshot.Version.VersionNumber > snapshot.Version.VersionNumber)
-            {
-                actualIndentation = newSnapshot.GetLineFromLineNumber(indentationLineFromBuffer.LineNumber).GetFirstNonWhitespaceOffset();
-            }
-            else
-            {
+            //int? actualIndentation;
+            //if (newSnapshot.Version.VersionNumber > snapshot.Version.VersionNumber)
+            //{
+            //    actualIndentation = newSnapshot.GetLineFromLineNumber(indentationLineFromBuffer.LineNumber).GetFirstNonWhitespaceOffset();
+            //}
+            //else
+            //{
                 var provider = new SmartIndent(textView);
-                actualIndentation = provider.GetDesiredIndentation(indentationLineFromBuffer);
-            }
+                var actualIndentation = provider.GetDesiredIndentation(indentationLineFromBuffer);
+            //}
 
             Assert.Equal(expectedIndentation, actualIndentation.Value);
         }
