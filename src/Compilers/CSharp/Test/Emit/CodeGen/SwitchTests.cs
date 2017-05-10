@@ -9496,7 +9496,7 @@ public class Program
         }
 
         [Fact, WorkItem(19280, "https://github.com/dotnet/roslyn/issues/19280")]
-        public void TestIgnoreDynamicVsObjectAndTupleElementNames_03()
+        public void TestSignificanceOfDynamicVersusObjectAndTupleNamesInUniquenessOfPatternMatchingTemps()
         {
             var source =
 @"using System;

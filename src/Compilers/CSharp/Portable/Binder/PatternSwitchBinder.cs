@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Bind match sections
             var boundPatternSwitchSectionsBuilder = ArrayBuilder<BoundPatternSwitchSection>.GetInstance();
-            SubsumptionDiagnosticBuilder subsumption = new SubsumptionDiagnosticBuilder(base.ContainingMemberOrLambda, SwitchSyntax, this.Conversions, SwitchGoverningExpression);
+            SubsumptionDiagnosticBuilder subsumption = new SubsumptionDiagnosticBuilder(ContainingMemberOrLambda, SwitchSyntax, this.Conversions, SwitchGoverningExpression);
             foreach (var sectionSyntax in SwitchSyntax.Sections)
             {
                 boundPatternSwitchSectionsBuilder.Add(BindPatternSwitchSection(
