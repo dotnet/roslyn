@@ -26,6 +26,18 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
+        public void TestChecksum_Null()
+        {
+            VerifyJsonSerialization<Checksum>(null);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
+        public void TestChecksumNull()
+        {
+            VerifyJsonSerialization(Checksum.Null);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
         public void TestSolutionId()
         {
             VerifyJsonSerialization(SolutionId.CreateNewId("solution"));
