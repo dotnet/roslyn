@@ -25,6 +25,8 @@ namespace Microsoft.CodeAnalysis.Execution
             AssetStorages.Storage storage,
             Checksum solutionChecksum)
         {
+            Contract.ThrowIfNull(solutionChecksum);
+
             _storages = storages;
             _storage = storage;
 
