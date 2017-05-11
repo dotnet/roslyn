@@ -9037,7 +9037,6 @@ struct B : I1
                 .VerifyDiagnostics();
             var compVerifier = CompileAndVerify(compilation,
                 expectedOutput: "FalseFalseTrueTrue");
-            compVerifier.VerifyDiagnostics();
         }
 
         [Fact, WorkItem(16195, "https://github.com/dotnet/roslyn/issues/16195")]
@@ -9136,7 +9135,6 @@ Generic<long>.Color.Red
 Generic<dynamic>.Color.Blue
 None
 Generic<object>.Color.Red");
-            compVerifier.VerifyDiagnostics();
             compVerifier.VerifyIL("Program.M2",
 @"{
   // Code size      152 (0x98)
@@ -9221,6 +9219,53 @@ Generic<object>.Color.Red");
   IL_0093:  br.s       IL_0095
   IL_0095:  ldloc.s    V_8
   IL_0097:  ret
+}"
+            );
+        }
+
+        [Fact, WorkItem(16129, "https://github.com/dotnet/roslyn/issues/16129")]
+        public void ExactPatternMatch()
+        {
+            var source =
+@"using System;
+
+class C
+{
+    static void Main()
+    {
+        if (TrySomething() is ValueTuple<string, bool> v && v.Item2)
+        {
+            System.Console.Write(v.Item1 == null);
+        }
+    }
+
+    static (string Value, bool Success) TrySomething()
+    {
+        return (null, true);
+    }
+}";
+            var compilation = CreateStandardCompilation(source,
+                    options: TestOptions.ReleaseDll.WithOutputKind(OutputKind.ConsoleApplication),
+                    references: new[] { ValueTupleRef, SystemRuntimeFacadeRef })
+                .VerifyDiagnostics();
+            var compVerifier = CompileAndVerify(compilation,
+                expectedOutput: @"True");
+            compVerifier.VerifyIL("C.Main",
+@"{
+  // Code size       29 (0x1d)
+  .maxstack  2
+  .locals init (System.ValueTuple<string, bool> V_0) //v
+  IL_0000:  call       ""(string Value, bool Success) C.TrySomething()""
+  IL_0005:  stloc.0
+  IL_0006:  ldloc.0
+  IL_0007:  ldfld      ""bool System.ValueTuple<string, bool>.Item2""
+  IL_000c:  brfalse.s  IL_001c
+  IL_000e:  ldloc.0
+  IL_000f:  ldfld      ""string System.ValueTuple<string, bool>.Item1""
+  IL_0014:  ldnull
+  IL_0015:  ceq
+  IL_0017:  call       ""void System.Console.Write(bool)""
+  IL_001c:  ret
 }"
             );
         }
