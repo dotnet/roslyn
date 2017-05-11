@@ -59,6 +59,28 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
+        /// <summary>
+        /// SolutionService is designed to be stateless. if someone asks a solution (through solution checksum), 
+        /// it will create one and return the solution. the engine takes care of synching required data and creating a solution
+        /// correspoing to the given checksum.
+        /// 
+        /// but doing that from scratch all the time wil be expansive in terms of synching data, compilation being cached, file being parsed
+        /// and etc. so even if the service itself is stateless, internally it has several caches to improve perf of various parts.
+        /// 
+        /// first, it holds onto last solution got built. this will take care of common cases where multiple services running off same solution.
+        /// second, it uses assets cache to hold onto data just synched (within 3 min) so that if it requires to build new solution, 
+        ///         it can save some time to re-sync data which might just used by other solution.
+        /// third, it holds onto solution from primary branch from Host. and it will try to see whether it can build new solution off the
+        ///        primary solution it is holding onto. this will make many solution level cache to be re-used.
+        ///
+        /// the primary solution can be updated in 2 ways.
+        /// first, host will keep track of primary solution changes in host, and call OOP to synch to latest time to time.
+        /// second, engine keeps track of whether a certain request is for primary solution or not, and if it is, 
+        ///         it let that request to update primary solution cache to latest.
+        /// 
+        /// these 2 are complimentary to each other. #1 makes OOP's primary solution to be ready for next call (push), #2 makes OOP's primary
+        /// solution be not stale as much as possible. (pull)
+        /// </summary>
         private async Task<Solution> CreateSolution_NoLockAsync(Checksum solutionChecksum, bool fromPrimaryBranch, Solution baseSolution, CancellationToken cancellationToken)
         {
             var updater = new SolutionCreator(_assetService, baseSolution, cancellationToken);
