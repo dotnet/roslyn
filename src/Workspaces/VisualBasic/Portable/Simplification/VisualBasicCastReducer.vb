@@ -29,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
             Return resultNode
         End Function
 
-        Private Shared ReadOnly s_simplifyCast As Func(Of CastExpressionSyntax, SemanticModel, OptionSet, CancellationToken, SyntaxNode) = s_simplifyCast
+        Private Shared ReadOnly s_simplifyCast As Func(Of CastExpressionSyntax, SemanticModel, OptionSet, CancellationToken, SyntaxNode) = AddressOf SimplifyCast
 
         Private Overloads Shared Function SimplifyCast(
             node As CastExpressionSyntax,
