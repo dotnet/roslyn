@@ -1476,46 +1476,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     End Class
 
     Friend Partial Class BoundDelegateCreationExpression
-        Implements IMethodBindingExpression
-
-        Private ReadOnly Property IMemberReferenceExpression_Instance As IOperation Implements IMemberReferenceExpression.Instance
-            Get
-                If Me.Method.IsShared Then
-                    Return Nothing
-                Else
-                    Return Me.ReceiverOpt
-                End If
-            End Get
-        End Property
-
-        Private ReadOnly Property IMethodBindingExpression_IsVirtual As Boolean Implements IMethodBindingExpression.IsVirtual
-            Get
-                Return Me.Method IsNot Nothing AndAlso (Me.Method.IsOverridable OrElse Me.Method.IsOverrides OrElse Me.Method.IsMustOverride) AndAlso Not Me.SuppressVirtualCalls
-            End Get
-        End Property
-
-        Private ReadOnly Property IMemberReferenceExpression_Member As ISymbol Implements IMemberReferenceExpression.Member
-            Get
-                Return Me.Method
-            End Get
-        End Property
-
-        Private ReadOnly Property IMethodBindingExpression_Method As IMethodSymbol Implements IMethodBindingExpression.Method
-            Get
-                Return Me.Method
-            End Get
-        End Property
 
         Protected Overrides Function ExpressionKind() As OperationKind
-            Return OperationKind.MethodBindingExpression
+            Return OperationKind.None
         End Function
 
+        Protected Overrides ReadOnly Property Children As ImmutableArray(Of IOperation)
+            Get
+                Return ImmutableArray.Create(Of IOperation)(Me.ReceiverOpt)
+            End Get
+        End Property
+
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            visitor.VisitMethodBindingExpression(Me)
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Return visitor.VisitMethodBindingExpression(Me, argument)
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 

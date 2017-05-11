@@ -452,7 +452,7 @@ Microsoft.CodeAnalysis.Semantics.INullCoalescingExpression.PrimaryOperand.get ->
 Microsoft.CodeAnalysis.Semantics.INullCoalescingExpression.SecondaryOperand.get -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.Semantics.IObjectCreationExpression
 Microsoft.CodeAnalysis.Semantics.IObjectCreationExpression.Constructor.get -> Microsoft.CodeAnalysis.IMethodSymbol
-Microsoft.CodeAnalysis.Semantics.IObjectCreationExpression.MemberInitializers.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Semantics.ISymbolInitializer>
+Microsoft.CodeAnalysis.Semantics.IObjectCreationExpression.Initializers.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.IOperation>
 Microsoft.CodeAnalysis.Semantics.IOmittedArgumentExpression
 Microsoft.CodeAnalysis.Semantics.IParameterInitializer
 Microsoft.CodeAnalysis.Semantics.IParameterInitializer.Parameter.get -> Microsoft.CodeAnalysis.IParameterSymbol
