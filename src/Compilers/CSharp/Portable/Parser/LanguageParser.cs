@@ -1574,7 +1574,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             if (this.CurrentToken.Kind == SyntaxKind.RefKeyword)
             {
-                modifiers.Add(this.EatToken());
+                var refKeyword = this.EatToken();
+                refKeyword = CheckFeatureAvailability(refKeyword, MessageID.IDS_FeatureRefStructs);
+                modifiers.Add(refKeyword);
             }
 
             var classOrStructOrInterface = this.EatToken();

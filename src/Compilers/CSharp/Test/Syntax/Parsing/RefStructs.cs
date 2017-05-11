@@ -31,8 +31,31 @@ class Program
 }
 ";
 
+            var comp = CreateCompilationWithMscorlib45(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest), options: TestOptions.DebugDll);
+            comp.VerifyDiagnostics(
+            );
+        }
+
+        [Fact]
+        public void RefStructSimpleLangVer()
+        {
+            var text = @"
+class Program
+{
+    ref struct S1{}
+
+    public ref struct S2{}
+}
+";
+
             var comp = CreateCompilationWithMscorlib45(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7), options: TestOptions.DebugDll);
             comp.VerifyDiagnostics(
+                // (4,5): error CS8107: Feature 'ref structs' is not available in C# 7. Please use language version 7.1 or greater.
+                //     ref struct S1{}
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "ref").WithArguments("ref structs", "7.1").WithLocation(4, 5),
+                // (6,12): error CS8107: Feature 'ref structs' is not available in C# 7. Please use language version 7.1 or greater.
+                //     public ref struct S2{}
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "ref").WithArguments("ref structs", "7.1").WithLocation(6, 12)
             );
         }
 
@@ -48,7 +71,7 @@ class Program
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib45(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7), options: TestOptions.DebugDll);
+            var comp = CreateCompilationWithMscorlib45(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest), options: TestOptions.DebugDll);
             comp.VerifyDiagnostics(
                 // (4,9): error CS1031: Type expected
                 //     ref class S1{}
@@ -74,7 +97,7 @@ class Program
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib45(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7), options: TestOptions.DebugDll);
+            var comp = CreateCompilationWithMscorlib45(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1), options: TestOptions.DebugDll);
             comp.VerifyDiagnostics(
             );
         }
