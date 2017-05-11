@@ -99,7 +99,7 @@
     <Compile Include="Assert\EqualityUtil`1.cs" />
     <Compile Include="Assert\TestExceptionUtilities.cs" />
     <Compile Include="Assert\WorkItemAttribute.cs" />
-    <Compile Include="CommonTestBase.CompilationVerifier.cs" />
+    <Compile Include="CompilationVerifier.cs" />
     <Compile Include="CommonTestBase.cs" />
     <Compile Include="Compilation\CompilationDifference.cs" />
     <Compile Include="Compilation\CompilationExtensions.cs" />
