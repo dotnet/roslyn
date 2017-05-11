@@ -35,9 +35,9 @@ Namespace Microsoft.CodeAnalysis.Semantics
         End Function
 
         Private Shared Function GetUserDefinedBinaryOperatorChild([operator] As BoundUserDefinedBinaryOperator, index As Integer) As IOperation
-            Dim child = GetUserDefinedBinaryOperatorChildBoundNode([operator], index)
+            Dim child = Create(GetUserDefinedBinaryOperatorChildBoundNode([operator], index))
             If child IsNot Nothing Then
-                Return Create(child)
+                Return child
             End If
 
             Return OperationFactory.CreateInvalidExpression([operator].UnderlyingExpression.Syntax, ImmutableArray(Of IOperation).Empty)
@@ -144,9 +144,9 @@ Namespace Microsoft.CodeAnalysis.Semantics
         End Function
 
         Private Shared Function GetChildOfBadExpression(parent As BoundNode, index As Integer) As IOperation
-            Dim child = GetChildOfBadExpressionBoundNode(parent, index)
+            Dim child = Create(GetChildOfBadExpressionBoundNode(parent, index))
             If child IsNot Nothing Then
-                Return Create(child)
+                Return child
             End If
 
             Return OperationFactory.CreateInvalidExpression(parent.Syntax, ImmutableArray(Of IOperation).Empty)
