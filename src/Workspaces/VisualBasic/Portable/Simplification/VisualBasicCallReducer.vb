@@ -13,6 +13,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
             Return New Rewriter(optionSet, cancellationToken)
         End Function
 
+        Private Shared ReadOnly s_simplifyCallStatement As Func(Of CallStatementSyntax, SemanticModel, OptionSet, CancellationToken, SyntaxNode) = AddressOf SimplifyCallStatement
+
         Private Shared Function SimplifyCallStatement(
             callStatement As CallStatementSyntax,
             semanticModel As SemanticModel,

@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                     node,
                     newNode: base.VisitParameter(node),
                     parentNode: node.Parent,
-                    simplifier: SimplifyParameter);
+                    simplifier: s_simplifyParameter);
             }
 
             public override SyntaxNode VisitParenthesizedLambdaExpression(ParenthesizedLambdaExpressionSyntax node)
@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                     node,
                     newNode: base.VisitParenthesizedLambdaExpression(node),
                     parentNode: node.Parent,
-                    simplifier: SimplifyParenthesizedLambdaExpression);
+                    simplifier: s_simplifyParenthesizedLambdaExpression);
             }
         }
     }

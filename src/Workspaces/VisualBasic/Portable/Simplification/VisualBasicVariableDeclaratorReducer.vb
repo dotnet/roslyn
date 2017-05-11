@@ -15,6 +15,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
             Return New Rewriter(optionSet, cancellationToken)
         End Function
 
+        Private Shared ReadOnly s_simplifyVariableDeclarator As Func(Of VariableDeclaratorSyntax, SemanticModel, OptionSet, CancellationToken, SyntaxNode) = AddressOf SimplifyVariableDeclarator
+
         Private Overloads Shared Function SimplifyVariableDeclarator(
             node As VariableDeclaratorSyntax,
             semanticModel As SemanticModel,

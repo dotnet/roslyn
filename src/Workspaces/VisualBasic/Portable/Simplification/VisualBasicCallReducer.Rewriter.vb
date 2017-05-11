@@ -17,16 +17,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                 Return SimplifyStatement(
                     node,
                     newNode:=MyBase.VisitCallStatement(node),
-                    simplifier:=AddressOf SimplifyCallStatement)
+                    simplifier:=s_simplifyCallStatement)
             End Function
 
             Public Overrides Function VisitParenthesizedExpression(node As ParenthesizedExpressionSyntax) As SyntaxNode
                 Return SimplifyExpression(
                     node,
                     newNode:=MyBase.VisitParenthesizedExpression(node),
-                    simplifier:=AddressOf ReduceParentheses)
+                    simplifier:=s_reduceParentheses)
             End Function
-
         End Class
     End Class
 End Namespace

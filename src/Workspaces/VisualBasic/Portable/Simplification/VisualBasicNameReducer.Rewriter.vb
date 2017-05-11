@@ -23,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                 Dim result = SimplifyExpression(
                     node,
                     newNode:=MyBase.VisitGenericName(node),
-                    simplifier:=AddressOf SimplifyName)
+                    simplifier:=s_simplifyName)
 
                 Me._alwaysSimplify = oldAlwaysSimplify
 
@@ -39,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                 Dim result = SimplifyExpression(
                     node,
                     newNode:=MyBase.VisitIdentifierName(node),
-                    simplifier:=AddressOf SimplifyName)
+                    simplifier:=s_simplifyName)
 
                 Me._alwaysSimplify = oldAlwaysSimplify
 
@@ -55,7 +55,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                 Dim result = SimplifyExpression(
                     node,
                     newNode:=MyBase.VisitQualifiedName(node),
-                    simplifier:=AddressOf SimplifyName)
+                    simplifier:=s_simplifyName)
 
                 Me._alwaysSimplify = oldAlwaysSimplify
 
@@ -71,7 +71,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                 Dim result = SimplifyExpression(
                     node,
                     newNode:=MyBase.VisitMemberAccessExpression(node),
-                    simplifier:=AddressOf SimplifyName)
+                    simplifier:=s_simplifyName)
 
                 Me._alwaysSimplify = oldAlwaysSimplify
 
@@ -87,7 +87,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                 Dim result = SimplifyExpression(
                     node,
                     newNode:=MyBase.VisitNullableType(node),
-                    simplifier:=AddressOf SimplifyName)
+                    simplifier:=s_simplifyName)
 
                 Me._alwaysSimplify = oldAlwaysSimplify
 
@@ -103,7 +103,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                 Dim result = SimplifyExpression(
                     node,
                     newNode:=MyBase.VisitArrayType(node),
-                    simplifier:=AddressOf SimplifyName)
+                    simplifier:=s_simplifyName)
 
                 Me._alwaysSimplify = oldAlwaysSimplify
 

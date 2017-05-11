@@ -128,15 +128,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 return SimplifyNode(expression, newNode, parentNode, simplifier);
             }
 
-            protected SyntaxNode SimplifyStatement<TStatement>(
-                TStatement statement,
-                SyntaxNode newNode,
-                Func<TStatement, SemanticModel, OptionSet, CancellationToken, SyntaxNode> simplifier)
-                where TStatement : ExpressionSyntax
-            {
-                return SimplifyNode(statement, newNode, GetParentNode(statement), simplifier);
-            }
-
             protected SyntaxToken SimplifyToken(SyntaxToken token, Func<SyntaxToken, SemanticModel, OptionSet, CancellationToken, SyntaxToken> simplifier)
             {
                 _cancellationToken.ThrowIfCancellationRequested();

@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 return SimplifyExpression(
                     node,
                     newNode: base.VisitCastExpression(node),
-                    simplifier: SimplifyCast);
+                    simplifier: s_simplifyCast);
             }
 
             public override SyntaxNode VisitBinaryExpression(BinaryExpressionSyntax node)

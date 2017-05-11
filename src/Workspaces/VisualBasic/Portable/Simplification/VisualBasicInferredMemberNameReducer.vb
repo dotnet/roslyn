@@ -18,6 +18,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
             Return New VisualBasicInferredMemberNameReducer.Rewriter(optionSet, cancellationToken)
         End Function
 
+        Private Shared ReadOnly s_simplifyTupleName As Func(Of SimpleArgumentSyntax, SemanticModel, OptionSet, CancellationToken, SimpleArgumentSyntax) = AddressOf SimplifyTupleName
+
         Private Shared Function SimplifyTupleName(
             node As SimpleArgumentSyntax,
             semanticModel As SemanticModel,
@@ -40,6 +42,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
 
             Return node.WithNameColonEquals(Nothing).WithTriviaFrom(node)
         End Function
+
+        Private Shared ReadOnly s_simplifyNamedFieldInitializer As Func(Of NamedFieldInitializerSyntax, SemanticModel, OptionSet, CancellationToken, SyntaxNode) = AddressOf SimplifyNamedFieldInitializer
 
         Private Shared Function SimplifyNamedFieldInitializer(node As NamedFieldInitializerSyntax, arg2 As SemanticModel, arg3 As OptionSet, arg4 As CancellationToken) As SyntaxNode
             Dim inferredName = node.Expression.TryGetInferredMemberName()

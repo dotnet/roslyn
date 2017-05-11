@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -17,7 +18,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
             return new Rewriter(this, optionSet, cancellationToken);
         }
 
-        private SyntaxToken SimplifyIdentifierToken(
+        private static Func<SyntaxToken, SemanticModel, OptionSet, CancellationToken, SyntaxToken> s_simplifyIdentifierToken = SimplifyIdentifierToken;
+
+        private static SyntaxToken SimplifyIdentifierToken(
             SyntaxToken token,
             SemanticModel semanticModel,
             OptionSet optionSet,
@@ -114,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
             return result;
         }
 
-        private SyntaxToken CreateNewIdentifierTokenFromToken(SyntaxToken originalToken, bool escape)
+        private static SyntaxToken CreateNewIdentifierTokenFromToken(SyntaxToken originalToken, bool escape)
         {
             var isVerbatimIdentifier = originalToken.IsVerbatimIdentifier();
             if (isVerbatimIdentifier == escape)

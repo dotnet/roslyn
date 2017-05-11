@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                 Return SimplifyExpression(
                     node,
                     newNode:=MyBase.VisitParenthesizedExpression(node),
-                    simplifier:=AddressOf ReduceParentheses)
+                    simplifier:=s_reduceParentheses)
             End Function
         End Class
     End Class

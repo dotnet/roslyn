@@ -9,6 +9,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
     Partial Friend MustInherit Class AbstractVisualBasicReducer
         Inherits AbstractReducer
 
+        Protected Shared ReadOnly s_reduceParentheses As Func(Of ParenthesizedExpressionSyntax, SemanticModel, OptionSet, CancellationToken, SyntaxNode) = AddressOf ReduceParentheses
+
         Protected Shared Function ReduceParentheses(
             node As ParenthesizedExpressionSyntax,
             semanticModel As SemanticModel,
@@ -45,6 +47,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
             ' We don't know how to simplify this.
             Return node
         End Function
-
     End Class
 End Namespace

@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 var result = SimplifyExpression(
                     node,
                     newNode: base.VisitPredefinedType(node),
-                    simplifier: SimplifyName);
+                    simplifier: s_simplifyName);
 
                 this.alwaysSimplify = oldAlwaysSimplify;
 
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 var result = SimplifyExpression(
                     node,
                     newNode: base.VisitAliasQualifiedName(node),
-                    simplifier: SimplifyName);
+                    simplifier: s_simplifyName);
 
                 this.alwaysSimplify = oldAlwaysSimplify;
 
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 var result = SimplifyExpression(
                     node,
                     newNode: base.VisitQualifiedName(node),
-                    simplifier: SimplifyName);
+                    simplifier: s_simplifyName);
 
                 this.alwaysSimplify = oldAlwaysSimplify;
 
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 var result = SimplifyExpression(
                     node,
                     newNode: base.VisitMemberAccessExpression(node),
-                    simplifier: SimplifyName);
+                    simplifier: s_simplifyName);
 
                 this.alwaysSimplify = oldAlwaysSimplify;
 
@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 var result = SimplifyExpression(
                     node,
                     newNode: base.VisitIdentifierName(node),
-                    simplifier: SimplifyName);
+                    simplifier: s_simplifyName);
 
                 this.alwaysSimplify = oldAlwaysSimplify;
 
@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 var result = SimplifyExpression(
                     node,
                     newNode: base.VisitGenericName(node),
-                    simplifier: SimplifyName);
+                    simplifier: s_simplifyName);
 
                 this.alwaysSimplify = oldAlwaysSimplify;
 
@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 var result = SimplifyExpression(
                     node,
                     newNode: base.VisitQualifiedCref(node),
-                    simplifier: SimplifyName);
+                    simplifier: s_simplifyName);
 
                 this.alwaysSimplify = oldAlwaysSimplify;
 

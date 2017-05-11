@@ -24,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                         node,
                         parentNode:=node.Parent,
                         newNode:=newNode,
-                        simplifyFunc:=AddressOf SimplifyTupleName)
+                        simplifyFunc:=s_simplifyTupleName)
                 End If
 
                 Return newNode
@@ -37,7 +37,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                     node,
                     parentNode:=node.Parent,
                     newNode:=newNode,
-                    simplifyFunc:=AddressOf SimplifyNamedFieldInitializer)
+                    simplifyFunc:=s_simplifyNamedFieldInitializer)
             End Function
         End Class
     End Class

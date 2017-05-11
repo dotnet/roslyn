@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
             public override SyntaxToken VisitToken(SyntaxToken token)
             {
                 var newToken = base.VisitToken(token);
-                return SimplifyToken(newToken, _escapingSimplifierService.SimplifyIdentifierToken);
+                return SimplifyToken(newToken, s_simplifyIdentifierToken);
             }
         }
     }

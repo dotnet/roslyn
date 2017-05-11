@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                 Return SimplifyExpression(
                     node,
                     newNode:=MyBase.VisitInvocationExpression(node),
-                    simplifier:=AddressOf SimplifyInvocationExpression)
+                    simplifier:=s_simplifyInvocationExpression)
             End Function
         End Class
     End Class

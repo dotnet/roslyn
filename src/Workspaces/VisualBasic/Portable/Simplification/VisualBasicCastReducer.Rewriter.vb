@@ -17,30 +17,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                 Return SimplifyExpression(
                     node,
                     newNode:=MyBase.VisitCTypeExpression(node),
-                    simplifier:=AddressOf SimplifyCast)
+                    simplifier:=s_simplifyCast)
             End Function
 
             Public Overrides Function VisitDirectCastExpression(node As DirectCastExpressionSyntax) As SyntaxNode
                 Return SimplifyExpression(
                     node,
                     newNode:=MyBase.VisitDirectCastExpression(node),
-                    simplifier:=AddressOf SimplifyCast)
+                    simplifier:=s_simplifyCast)
             End Function
 
             Public Overrides Function VisitTryCastExpression(node As TryCastExpressionSyntax) As SyntaxNode
                 Return SimplifyExpression(
                     node,
                     newNode:=MyBase.VisitTryCastExpression(node),
-                    simplifier:=AddressOf SimplifyCast)
+                    simplifier:=s_simplifyCast)
             End Function
 
             Public Overrides Function VisitPredefinedCastExpression(node As PredefinedCastExpressionSyntax) As SyntaxNode
                 Return SimplifyExpression(
                     node,
                     newNode:=MyBase.VisitPredefinedCastExpression(node),
-                    simplifier:=AddressOf SimplifyCast)
+                    simplifier:=s_simplifyPredefinedCast)
             End Function
-
         End Class
     End Class
 End Namespace

@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -50,6 +51,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
             return false;
         }
 
+        private static Func<SyntaxNode, SemanticModel, OptionSet, CancellationToken, SyntaxNode> s_simplifyParameter = SimplifyParameter;
+
         private static SyntaxNode SimplifyParameter(
             SyntaxNode node,
             SemanticModel semanticModel,
@@ -65,6 +68,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
 
             return node;
         }
+
+        private static readonly Func<SyntaxNode, SemanticModel, OptionSet, CancellationToken, SyntaxNode> s_simplifyParenthesizedLambdaExpression = SimplifyParenthesizedLambdaExpression;
 
         private static SyntaxNode SimplifyParenthesizedLambdaExpression(
             SyntaxNode node,

@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                 Return SimplifyExpression(
                     node,
                     newNode:=MyBase.VisitInvocationExpression(node),
-                    simplifier:=AddressOf SimplifyInvocationExpression)
+                    simplifier:=s_simplifyInvocationExpression)
             End Function
 
             Public Overrides Function VisitObjectCreationExpression(node As ObjectCreationExpressionSyntax) As SyntaxNode
@@ -28,7 +28,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                 Return SimplifyExpression(
                     node,
                     newNode:=MyBase.VisitObjectCreationExpression(node),
-                    simplifier:=AddressOf SimplifyObjectCreationExpression)
+                    simplifier:=s_simplifyObjectCreationExpression)
             End Function
 
             Public Overrides Function VisitParameter(node As ParameterSyntax) As SyntaxNode
@@ -38,9 +38,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                     node,
                     newNode:=MyBase.VisitParameter(node),
                     parentNode:=node.Parent,
-                    simplifyFunc:=AddressOf SimplifyParameter)
+                    simplifyFunc:=s_simplifyParameter)
             End Function
-
         End Class
     End Class
 End Namespace

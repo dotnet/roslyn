@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                     node,
                     newNode:=MyBase.VisitVariableDeclarator(node),
                     parentNode:=node,
-                    simplifyFunc:=AddressOf SimplifyVariableDeclarator)
+                    simplifyFunc:=s_simplifyVariableDeclarator)
             End Function
         End Class
     End Class

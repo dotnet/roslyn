@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 return SimplifyExpression(
                     node,
                     newNode: base.VisitInvocationExpression(node),
-                    simplifier: SimplifyExtensionMethod);
+                    simplifier: s_simplifyExtensionMethod);
             }
         }
     }

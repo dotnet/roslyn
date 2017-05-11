@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 return SimplifyExpression(
                     node,
                     newNode: base.VisitParenthesizedExpression(node),
-                    simplifier: SimplifyParentheses);
+                    simplifier: s_simplifyParentheses);
             }
         }
     }

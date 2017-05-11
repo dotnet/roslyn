@@ -12,6 +12,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
             Return New Rewriter(optionSet, cancellationToken)
         End Function
 
+        Private Shared ReadOnly s_simplifyInvocationExpression As Func(Of InvocationExpressionSyntax, SemanticModel, OptionSet, CancellationToken, SyntaxNode) = AddressOf SimplifyInvocationExpression
+
         Private Shared Function SimplifyInvocationExpression(
             invocationExpression As InvocationExpressionSyntax,
             semanticModel As SemanticModel,

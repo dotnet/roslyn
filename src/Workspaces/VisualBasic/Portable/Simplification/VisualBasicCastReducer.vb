@@ -29,6 +29,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
             Return resultNode
         End Function
 
+        Private Shared ReadOnly s_simplifyCast As Func(Of CastExpressionSyntax, SemanticModel, OptionSet, CancellationToken, SyntaxNode) = s_simplifyCast
+
         Private Overloads Shared Function SimplifyCast(
             node As CastExpressionSyntax,
             semanticModel As SemanticModel,
@@ -43,7 +45,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
             Return SimplifyCast(node, node.Expression, optionSet, cancellationToken)
         End Function
 
-        Private Overloads Shared Function SimplifyCast(
+        Private Shared ReadOnly s_simplifyPredefinedCast As Func(Of PredefinedCastExpressionSyntax, SemanticModel, OptionSet, CancellationToken, SyntaxNode) = AddressOf SimplifyPredefinedCast
+
+        Private Overloads Shared Function SimplifyPredefinedCast(
             node As PredefinedCastExpressionSyntax,
             semanticModel As SemanticModel,
             optionSet As OptionSet,

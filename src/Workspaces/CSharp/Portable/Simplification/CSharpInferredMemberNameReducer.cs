@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -19,6 +20,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
             return new Rewriter(optionSet, cancellationToken);
         }
 
+        private static readonly Func<ArgumentSyntax, SemanticModel, OptionSet, CancellationToken, ArgumentSyntax> s_simplifyTupleName = SimplifyTupleName;
+
         private static ArgumentSyntax SimplifyTupleName(ArgumentSyntax node, SemanticModel semanticModel, OptionSet optionSet, CancellationToken cancellationToken)
         {
             // Tuple elements are arguments in a tuple expression
@@ -37,6 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
             return node.WithNameColon(null).WithTriviaFrom(node);
         }
 
+        private static readonly Func<AnonymousObjectMemberDeclaratorSyntax, SemanticModel, OptionSet, CancellationToken, SyntaxNode> s_simplifyAnonymousTypeMemberName = SimplifyAnonymousTypeMemberName;
 
         private static SyntaxNode SimplifyAnonymousTypeMemberName(AnonymousObjectMemberDeclaratorSyntax node, SemanticModel semanticModel, OptionSet optionSet, CancellationToken canellationToken)
         {

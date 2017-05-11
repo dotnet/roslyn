@@ -13,6 +13,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
             Return New Rewriter(optionSet, cancellationToken)
         End Function
 
+        Private Shared ReadOnly s_simplifyParameter As Func(Of ParameterSyntax, SemanticModel, OptionSet, CancellationToken, ParameterSyntax) = AddressOf SimplifyParameter
+
         Private Shared Function SimplifyParameter(
             parameter As ParameterSyntax,
             semanticModel As SemanticModel,
@@ -27,6 +29,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
 
             Return parameter
         End Function
+
+        Private Shared ReadOnly s_simplifyInvocationExpression As Func(Of InvocationExpressionSyntax, SemanticModel, OptionSet, CancellationToken, SyntaxNode) = AddressOf SimplifyInvocationExpression
 
         Private Shared Function SimplifyInvocationExpression(
             invocationExpression As InvocationExpressionSyntax,
@@ -48,6 +52,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
             ' We don't know how to simplify this.
             Return invocationExpression
         End Function
+
+        Private Shared ReadOnly s_simplifyObjectCreationExpression As Func(Of ObjectCreationExpressionSyntax, SemanticModel, OptionSet, CancellationToken, SyntaxNode) = AddressOf SimplifyObjectCreationExpression
 
         Private Shared Function SimplifyObjectCreationExpression(
             objectCreationExpression As ObjectCreationExpressionSyntax,

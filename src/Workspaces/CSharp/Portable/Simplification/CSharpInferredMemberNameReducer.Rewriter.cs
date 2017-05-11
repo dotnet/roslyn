@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                         node,
                         parentNode: node.Parent,
                         newNode: newNode,
-                        simplifier: SimplifyTupleName);
+                        simplifier: s_simplifyTupleName);
                 }
 
                 return newNode;
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                     node,
                     parentNode: node.Parent,
                     newNode: base.VisitAnonymousObjectMemberDeclarator(node),
-                    simplifier: SimplifyAnonymousTypeMemberName);
+                    simplifier: s_simplifyAnonymousTypeMemberName);
             }
         }
     }

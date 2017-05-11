@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -16,6 +17,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
         {
             return new Rewriter(optionSet, cancellationToken);
         }
+
+        private static readonly Func<SyntaxNode, SemanticModel, OptionSet, CancellationToken, SyntaxNode> s_simplifyName = SimplifyName;
 
         private static SyntaxNode SimplifyName(
             SyntaxNode node,
