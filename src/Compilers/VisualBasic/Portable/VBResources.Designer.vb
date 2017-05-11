@@ -8071,6 +8071,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Cannot embed types when using /refout or /refonly..
+        '''</summary>
+        Friend ReadOnly Property ERR_NoEmbeddedTypeWhenRefOutOrRefOnly() As String
+            Get
+                Return ResourceManager.GetString("ERR_NoEmbeddedTypeWhenRefOutOrRefOnly", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Array bounds cannot appear in type specifiers..
         '''</summary>
         Friend ReadOnly Property ERR_NoExplicitArraySizes() As String
@@ -8112,6 +8121,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend ReadOnly Property ERR_NoMostSpecificOverload2() As String
             Get
                 Return ResourceManager.GetString("ERR_NoMostSpecificOverload2", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Cannot compile net modules when using /refout or /refonly..
+        '''</summary>
+        Friend ReadOnly Property ERR_NoNetModuleOutputWhenRefOutOrRefOnly() As String
+            Get
+                Return ResourceManager.GetString("ERR_NoNetModuleOutputWhenRefOutOrRefOnly", resourceCulture)
             End Get
         End Property
         
@@ -8184,6 +8202,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend ReadOnly Property ERR_NoPIAAttributeMissing2() As String
             Get
                 Return ResourceManager.GetString("ERR_NoPIAAttributeMissing2", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Do not use refout when using refonly..
+        '''</summary>
+        Friend ReadOnly Property ERR_NoRefOutWhenRefOnly() As String
+            Get
+                Return ResourceManager.GetString("ERR_NoRefOutWhenRefOnly", resourceCulture)
             End Get
         End Property
         

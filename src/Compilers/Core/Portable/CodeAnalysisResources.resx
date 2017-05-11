@@ -330,6 +330,24 @@
   <data name="PdbStreamUnexpectedWhenEmbedding" xml:space="preserve">
     <value>PDB stream should not be given when embedding PDB into the PE stream.</value>
   </data>
+  <data name="PdbStreamUnexpectedWhenEmittingMetadataOnly" xml:space="preserve">
+    <value>PDB stream should not be given when emitting metadata only.</value>
+  </data>
+  <data name="EmbedInteropTypesUnexpectedWhenEmittingRefAssembly" xml:space="preserve">
+    <value>Embedded interop type references should not be given when emitting a ref assembly.</value>
+  </data>
+  <data name="MetadataPeStreamUnexpectedWhenEmittingMetadataOnly" xml:space="preserve">
+    <value>Metadata PE stream should not be given when emitting metadata only.</value>
+  </data>
+  <data name="IncludingPrivateMembersUnexpectedWhenEmittingToMetadataPeStream" xml:space="preserve">
+    <value>Including private members should not be used when emitting to the secondary assembly output.</value>
+  </data>
+  <data name="EmbeddingPdbUnexpectedWhenEmittingMetadata" xml:space="preserve">
+    <value>Embedding PDB is not allowed when emitting metadata.</value>
+  </data>
+  <data name="CannotTargetNetModuleWhenEmittingRefAssembly" xml:space="preserve">
+    <value>Cannot target net module when emitting ref assembly.</value>
+  </data>
   <data name="InvalidHash" xml:space="preserve">
     <value>Invalid hash.</value>
   </data>

@@ -2546,7 +2546,7 @@ internal static class C
 
                 var extensionAttrCtor = (MethodSymbol)emitModule.Compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_ExtensionAttribute__ctor);
                 Assert.NotNull(extensionAttrCtor);
-                var context = new EmitContext(emitModule, null, new DiagnosticBag());
+                var context = new EmitContext(emitModule, null, new DiagnosticBag(), metadataOnly: false, includePrivateMembers: true);
                 Assert.Equal(extensionAttrCtor, attr.Constructor(context));
                 Assert.NotNull(extensionAttrCtor.ContainingType);
                 Assert.Equal(extensionAttrCtor.ContainingType, attr.GetType(context));

@@ -1479,10 +1479,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #region diagnostics for C# 7.1
 
-        ERR_BadDynamicMethodArgDefaultLiteral = 9000,
-        ERR_DefaultLiteralNotValid = 9001,
-        WRN_DefaultInSwitch = 9002,
-        ERR_PatternWrongGenericTypeInVersion = 9003,
+        ERR_NoRefOutWhenRefOnly = 8308,
+        ERR_NoNetModuleOutputWhenRefOutOrRefOnly = 8309,
+        ERR_NoEmbeddedTypeWhenRefOutOrRefOnly = 8310,
+        ERR_BadDynamicMethodArgDefaultLiteral = 8311,
+        ERR_DefaultLiteralNotValid = 8312,
+        WRN_DefaultInSwitch = 8313,
+        ERR_PatternWrongGenericTypeInVersion = 8314,
 
         #endregion diagnostics for C# 7.1
     }

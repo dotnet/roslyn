@@ -2900,6 +2900,46 @@ C:\*.cs(100,7): error CS0103: The name 'Foo' does not exist in the current conte
                 // error CS2005: Missing file specification for '/out:' option
                 Diagnostic(ErrorCode.ERR_NoFileSpec).WithArguments("/out:"));
 
+            parsedArgs = DefaultParse(new[] { @"/refout:", "a.cs" }, baseDirectory);
+            parsedArgs.Errors.Verify(
+                // error CS2005: Missing file specification for '/refout:' option
+                Diagnostic(ErrorCode.ERR_NoFileSpec).WithArguments("/refout:"));
+
+            parsedArgs = DefaultParse(new[] { @"/refout:ref.dll", "/refonly", "a.cs" }, baseDirectory);
+            parsedArgs.Errors.Verify(
+                // error CS8301: Do not use refout when using refonly.
+                Diagnostic(ErrorCode.ERR_NoRefOutWhenRefOnly).WithLocation(1, 1));
+
+            parsedArgs = DefaultParse(new[] { @"/refout:ref.dll", "/link:b", "a.cs" }, baseDirectory);
+            parsedArgs.Errors.Verify(
+                // error CS8357: Cannot embed types when using /refout or /refonly.
+                Diagnostic(ErrorCode.ERR_NoEmbeddedTypeWhenRefOutOrRefOnly).WithLocation(1, 1)
+                );
+
+            parsedArgs = DefaultParse(new[] { "/refonly", "/link:b", "a.cs" }, baseDirectory);
+            parsedArgs.Errors.Verify(
+                // error CS8357: Cannot embed types when using /refout or /refonly.
+                Diagnostic(ErrorCode.ERR_NoEmbeddedTypeWhenRefOutOrRefOnly).WithLocation(1, 1)
+                );
+
+            parsedArgs = DefaultParse(new[] { "/refonly:incorrect", "a.cs" }, baseDirectory);
+            parsedArgs.Errors.Verify(
+                // error CS2007: Unrecognized option: '/refonly:incorrect'
+                Diagnostic(ErrorCode.ERR_BadSwitch).WithArguments("/refonly:incorrect").WithLocation(1, 1)
+                );
+
+            parsedArgs = DefaultParse(new[] { @"/refout:ref.dll", "/target:module", "a.cs" }, baseDirectory);
+            parsedArgs.Errors.Verify(
+                // error CS8302: Cannot compile net modules when using /refout or /refonly.
+                Diagnostic(ErrorCode.ERR_NoNetModuleOutputWhenRefOutOrRefOnly).WithLocation(1, 1)
+                );
+
+            parsedArgs = DefaultParse(new[] { @"/refonly", "/target:module", "a.cs" }, baseDirectory);
+            parsedArgs.Errors.Verify(
+                // error CS8302: Cannot compile net modules when using /refout or /refonly.
+                Diagnostic(ErrorCode.ERR_NoNetModuleOutputWhenRefOutOrRefOnly).WithLocation(1, 1)
+                );
+
             // Dev11 reports CS2007: Unrecognized option: '/out'
             parsedArgs = DefaultParse(new[] { @"/out", "a.cs" }, baseDirectory);
             parsedArgs.Errors.Verify(
@@ -9048,6 +9088,197 @@ class C {
                 var output = ProcessUtilities.RunAndGetOutput(s_CSharpCompilerExecutable, args, startFolder: folderName);
                 Assert.Equal(expected, output.Trim());
             }
+        }
+
+        [Fact]
+        public void RefOut()
+        {
+            var dir = Temp.CreateDirectory();
+            var refDir = dir.CreateDirectory("ref");
+
+            var src = dir.CreateFile("a.cs");
+            src.WriteAllText(@"
+public class C
+{
+    /// <summary>Main method</summary>
+    public static void Main()
+    {
+        System.Console.Write(""Hello"");
+    }
+    /// <summary>Private method</summary>
+    private static void PrivateMethod()
+    {
+        System.Console.Write(""Private"");
+    }
+}");
+
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            var csc = new MockCSharpCompiler(null, dir.Path,
+                new[] { "/nologo", "/out:a.exe", "/refout:ref/a.dll", "/doc:doc.xml", "/deterministic", "a.cs" });
+
+            int exitCode = csc.Run(outWriter);
+            Assert.Equal(0, exitCode);
+
+            var exe = Path.Combine(dir.Path, "a.exe");
+            Assert.True(File.Exists(exe));
+
+            MetadataReaderUtils.VerifyPEMetadata(exe,
+                new[] { "TypeDefinition:<Module>", "TypeDefinition:C" },
+                new[] { "MethodDefinition:Void Main()", "MethodDefinition:Void PrivateMethod()", "MethodDefinition:Void .ctor()" },
+                new[] { "CompilationRelaxationsAttribute", "RuntimeCompatibilityAttribute", "DebuggableAttribute" }
+                );
+
+            var doc = Path.Combine(dir.Path, "doc.xml");
+            Assert.True(File.Exists(doc));
+
+            var content = File.ReadAllText(doc);
+            var expectedDoc =
+@"<?xml version=""1.0""?>
+<doc>
+    <assembly>
+        <name>a</name>
+    </assembly>
+    <members>
+        <member name=""M:C.Main"">
+            <summary>Main method</summary>
+        </member>
+        <member name=""M:C.PrivateMethod"">
+            <summary>Private method</summary>
+        </member>
+    </members>
+</doc>";
+            Assert.Equal(expectedDoc, content.Trim());
+
+            var output = ProcessUtilities.RunAndGetOutput(exe, startFolder: dir.Path);
+            Assert.Equal("Hello", output.Trim());
+
+            var refDll = Path.Combine(refDir.Path, "a.dll");
+            Assert.True(File.Exists(refDll));
+
+            // The types and members that are included needs further refinement.
+            // See issue https://github.com/dotnet/roslyn/issues/17612
+            MetadataReaderUtils.VerifyPEMetadata(refDll,
+                new[] { "TypeDefinition:<Module>", "TypeDefinition:C" },
+                new[] { "MethodDefinition:Void Main()", "MethodDefinition:Void .ctor()" },
+                new[] { "CompilationRelaxationsAttribute", "RuntimeCompatibilityAttribute", "DebuggableAttribute", "ReferenceAssemblyAttribute" }
+                );
+
+            // Clean up temp files
+            CleanupAllGeneratedFiles(dir.Path);
+            CleanupAllGeneratedFiles(refDir.Path);
+        }
+
+        [Fact]
+        public void RefOutWithError()
+        {
+            var dir = Temp.CreateDirectory();
+            dir.CreateDirectory("ref");
+
+            var src = dir.CreateFile("a.cs");
+            src.WriteAllText(@"class C { public static void Main() { error(); } }");
+
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            var csc = new MockCSharpCompiler(null, dir.Path,
+                new[] { "/nologo", "/out:a.dll", "/refout:ref/a.dll", "/deterministic", "a.cs" });
+            int exitCode = csc.Run(outWriter);
+            Assert.Equal(1, exitCode);
+
+            var dll = Path.Combine(dir.Path, "a.dll");
+            Assert.False(File.Exists(dll));
+
+            var refDll = Path.Combine(dir.Path, Path.Combine("ref", "a.dll"));
+            Assert.False(File.Exists(refDll));
+
+            Assert.Equal("a.cs(1,39): error CS0103: The name 'error' does not exist in the current context", outWriter.ToString().Trim());
+
+            // Clean up temp files
+            CleanupAllGeneratedFiles(dir.Path);
+        }
+
+        [Fact]
+        public void RefOnly()
+        {
+            var dir = Temp.CreateDirectory();
+
+            var src = dir.CreateFile("a.cs");
+            src.WriteAllText(@"
+using System;
+class C
+{
+    /// <summary>Main method</summary>
+    public static void Main()
+    {
+        error(); // semantic error in method body
+    }
+    private event Action E1
+    {
+        add { }
+        remove { }
+    }
+    private event Action E2;
+
+    /// <summary>Private Class Field</summary>
+    private int field;
+    
+    /// <summary>Private Struct</summary>
+    private struct S
+    {
+        /// <summary>Private Struct Field</summary>
+        private int field;
+    }
+}");
+
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            var csc = new MockCSharpCompiler(null, dir.Path,
+                new[] { "/nologo", "/out:a.dll", "/refonly", "/debug", "/deterministic", "/doc:doc.xml", "a.cs" });
+            int exitCode = csc.Run(outWriter);
+            Assert.Equal("", outWriter.ToString());
+            Assert.Equal(0, exitCode);
+
+            var refDll = Path.Combine(dir.Path, "a.dll");
+            Assert.True(File.Exists(refDll));
+
+            // The types and members that are included needs further refinement.
+            // See issue https://github.com/dotnet/roslyn/issues/17612
+            MetadataReaderUtils.VerifyPEMetadata(refDll,
+                new[] { "TypeDefinition:<Module>", "TypeDefinition:C", "TypeDefinition:S" },
+                new[] { "MethodDefinition:Void Main()", "MethodDefinition:Void .ctor()" },
+                new[] { "CompilationRelaxationsAttribute", "RuntimeCompatibilityAttribute", "DebuggableAttribute", "ReferenceAssemblyAttribute" }
+                );
+
+            var pdb = Path.Combine(dir.Path, "a.pdb");
+            Assert.False(File.Exists(pdb));
+
+            var doc = Path.Combine(dir.Path, "doc.xml");
+            Assert.True(File.Exists(doc));
+
+            var content = File.ReadAllText(doc);
+            var expectedDoc =
+@"<?xml version=""1.0""?>
+<doc>
+    <assembly>
+        <name>a</name>
+    </assembly>
+    <members>
+        <member name=""M:C.Main"">
+            <summary>Main method</summary>
+        </member>
+        <member name=""F:C.field"">
+            <summary>Private Class Field</summary>
+        </member>
+        <member name=""T:C.S"">
+            <summary>Private Struct</summary>
+        </member>
+        <member name=""F:C.S.field"">
+            <summary>Private Struct Field</summary>
+        </member>
+    </members>
+</doc>";
+            Assert.Equal(expectedDoc, content.Trim());
+
+
+            // Clean up temp files
+            CleanupAllGeneratedFiles(dir.Path);
         }
 
         [Fact]

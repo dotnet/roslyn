@@ -67,6 +67,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             string outputDirectory = baseDirectory;
             ImmutableArray<KeyValuePair<string, string>> pathMap = ImmutableArray<KeyValuePair<string, string>>.Empty;
             string outputFileName = null;
+            string outputRefFilePath = null;
+            bool refOnly = false;
             string documentationPath = null;
             string errorLogPath = null;
             bool parseDocumentationComments = false; //Don't just null check documentationFileName because we want to do this even if the file name is invalid.
@@ -381,6 +383,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
 
                             continue;
+
                         case "out":
                             if (string.IsNullOrWhiteSpace(value))
                             {
@@ -391,6 +394,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 ParseOutputFile(value, diagnostics, baseDirectory, out outputFileName, out outputDirectory);
                             }
 
+                            continue;
+
+                        case "refout":
+                            value = RemoveQuotesAndSlashes(value);
+                            if (string.IsNullOrEmpty(value))
+                            {
+                                AddDiagnostic(diagnostics, ErrorCode.ERR_NoFileSpec, arg);
+                            }
+                            else
+                            {
+                                outputRefFilePath = ParseGenericPathToFile(value, diagnostics, baseDirectory);
+                            }
+
+                            continue;
+
+                        case "refonly":
+                            if (value != null)
+                                break;
+
+                            refOnly = true;
                             continue;
 
                         case "t":
@@ -1150,6 +1173,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnosticOptions[o.Key] = o.Value;
             }
 
+            if (refOnly && outputRefFilePath != null)
+            {
+                AddDiagnostic(diagnostics, diagnosticOptions, ErrorCode.ERR_NoRefOutWhenRefOnly);
+            }
+
+            if ((refOnly || outputRefFilePath != null) && metadataReferences.Any(r => r.Properties.EmbedInteropTypes))
+            {
+                AddDiagnostic(diagnostics, diagnosticOptions, ErrorCode.ERR_NoEmbeddedTypeWhenRefOutOrRefOnly);
+            }
+
+            if (outputKind == OutputKind.NetModule && (refOnly || outputRefFilePath != null))
+            {
+                AddDiagnostic(diagnostics, diagnosticOptions, ErrorCode.ERR_NoNetModuleOutputWhenRefOutOrRefOnly);
+            }
+
             if (!IsScriptRunner && !sourceFilesSpecified && (outputKind.IsNetModule() || !resourcesOrModulesSpecified))
             {
                 AddDiagnostic(diagnostics, diagnosticOptions, ErrorCode.WRN_NoSources);
@@ -1261,7 +1299,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var emitOptions = new EmitOptions
             (
-                metadataOnly: false,
+                metadataOnly: refOnly,
+                includePrivateMembers: !refOnly && outputRefFilePath == null,
                 debugInformationFormat: debugInformationFormat,
                 pdbFilePath: null, // to be determined later
                 outputNameOverride: null, // to be determined later
@@ -1287,8 +1326,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Utf8Output = utf8output,
                 CompilationName = compilationName,
                 OutputFileName = outputFileName,
+                OutputRefFilePath = outputRefFilePath,
                 PdbPath = pdbPath,
-                EmitPdb = emitPdb,
+                EmitPdb = emitPdb && !refOnly, // silently ignore emitPdb when refOnly is set
                 SourceLink = sourceLink,
                 RuleSetPath = ruleSetPath,
                 OutputDirectory = outputDirectory,
