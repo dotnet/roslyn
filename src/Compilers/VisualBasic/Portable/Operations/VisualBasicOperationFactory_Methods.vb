@@ -491,8 +491,11 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Return s_variablesDeclMappings.GetValue(
                     boundUsingStatement,
                     Function(boundUsing)
+                        Dim declaration = If(boundUsing.ResourceList.IsDefaultOrEmpty,
+                            ImmutableArray(Of IVariableDeclaration).Empty,
+                            boundUsing.ResourceList.Select(Function(n) Create(n)).OfType(Of IVariableDeclaration).ToImmutableArray())
                         Return New VariableDeclarationStatement(
-                            boundUsing.ResourceList.SelectAsArray(Function(n) DirectCast(Create(n), IVariableDeclaration)),
+                            declaration,
                             isInvalid:=False,
                             syntax:=Nothing,
                             type:=Nothing,
