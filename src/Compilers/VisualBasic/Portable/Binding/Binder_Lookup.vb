@@ -154,7 +154,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' Check for external symbols marked with 'Microsoft.VisualBasic.Embedded' or 'Microsoft.CodeAnalysis.Embedded' attributes
             If unwrappedSym.ContainingModule IsNot Me.ContainingModule Then
-                If unwrappedSym.IsHiddenByVisualBasicEmbeddedAttribute() Or unwrappedSym.IsHiddenByCodeAnalysisEmbeddedAttribute() Then
+                If unwrappedSym.IsHiddenByVisualBasicEmbeddedAttribute() OrElse unwrappedSym.IsHiddenByCodeAnalysisEmbeddedAttribute() Then
                     Return SingleLookupResult.Empty
                 End If
             End If

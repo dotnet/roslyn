@@ -19,12 +19,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly Symbol _containingSymbol;
         private readonly DeclarationModifiers _declarationModifiers;
         private readonly ImmutableArray<LocalFunctionTypeParameterSymbol> _typeParameters;
+        private readonly RefKind _refKind;
 
         private ImmutableArray<ParameterSymbol> _lazyParameters;
         private bool _lazyIsVarArg;
         private ImmutableArray<TypeParameterConstraintClause> _lazyTypeParameterConstraints;
         private TypeSymbol _lazyReturnType;
-        private RefKind _lazyRefKind;
         private TypeSymbol _iteratorElementType;
 
         // Lock for initializing lazy fields and registering their diagnostics
@@ -70,6 +70,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             foreach (var param in syntax.ParameterList.Parameters)
             {
                 ReportAttributesDisallowed(param.AttributeLists, _declarationDiagnostics);
+            }
+
+            if (syntax.ReturnType.Kind() == SyntaxKind.RefType)
+            {
+                var returnType = (RefTypeSyntax)syntax.ReturnType;
+                if (returnType.ReadOnlyKeyword.Kind() == SyntaxKind.ReadOnlyKeyword)
+                {
+                    _refKind = RefKind.RefReadOnly;
+                }
+                else
+                {
+                    _refKind = RefKind.Ref;
+                }
+            }
+            else
+            {
+                _refKind = RefKind.None;
             }
 
             _binder = binder;
@@ -181,14 +198,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override RefKind RefKind
-        {
-            get
-            {
-                ComputeReturnType();
-                return _lazyRefKind;
-            }
-        }
+        internal override RefKind RefKind => _refKind;
         
         internal void ComputeReturnType()
         {
@@ -198,7 +208,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             var diagnostics = DiagnosticBag.GetInstance();
-            TypeSyntax returnTypeSyntax = _syntax.ReturnType.SkipRef(out _lazyRefKind);
+            TypeSyntax returnTypeSyntax = _syntax.ReturnType.SkipRef();
             TypeSymbol returnType = _binder.BindType(returnTypeSyntax, diagnostics);
             if (IsAsync &&
                 returnType.SpecialType != SpecialType.System_Void &&
@@ -209,12 +219,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.ERR_BadAsyncReturn, this.Locations[0]);
             }
 
-            if (_lazyRefKind == RefKind.RefReadOnly)
+            if (_refKind == RefKind.RefReadOnly)
             {
-                DeclaringCompilation.EnsureIsReadOnlyAttributeExists(_declarationDiagnostics, _syntax.ReturnType.Location, modifyCompilationForRefReadOnly: false);
+                DeclaringCompilation.EnsureIsReadOnlyAttributeExists(diagnostics, _syntax.ReturnType.Location, modifyCompilationForRefReadOnly: false);
             }
 
-            Debug.Assert(_lazyRefKind == RefKind.None
+            Debug.Assert(_refKind == RefKind.None
                 || returnType.SpecialType != SpecialType.System_Void
                 || returnTypeSyntax.HasErrors);
 

@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return parameters;
         }
 
-        internal static void EnsureIsReadOnlyAttributeExists(IEnumerable<ParameterSymbol> parameters, DiagnosticBag diagnostics, bool modifyCompilationForRefReadOnly)
+        internal static void EnsureIsReadOnlyAttributeExists(ImmutableArray<ParameterSymbol> parameters, DiagnosticBag diagnostics, bool modifyCompilationForRefReadOnly)
         {
             foreach (var parameter in parameters)
             {
@@ -548,30 +548,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 switch (modifier.Kind())
                 {
                     case SyntaxKind.OutKeyword:
-                        refnessKeyword = modifier;
                         if (refKind == RefKind.None)
                         {
+                            refnessKeyword = modifier;
                             refKind = RefKind.Out;
                         }
                         break;
                     case SyntaxKind.RefKeyword:
-                        refnessKeyword = modifier;
                         if (refKind == RefKind.None)
                         {
+                            refnessKeyword = modifier;
                             refKind = RefKind.Ref;
                         }
                         break;
                     case SyntaxKind.InKeyword:
-                        refnessKeyword = modifier;
                         if (refKind == RefKind.None)
                         {
+                            refnessKeyword = modifier;
                             refKind = RefKind.RefReadOnly;
                         }
                         break;
                     case SyntaxKind.ReadOnlyKeyword:
-                        refnessKeyword = modifier;
                         if (refKind == RefKind.Ref)
                         {
+                            refnessKeyword = modifier;
                             refKind = RefKind.RefReadOnly;
                         }
                         break;

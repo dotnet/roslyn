@@ -4435,6 +4435,80 @@ BC30002: Type 'TestReference.TestType2' is not defined.
         End Sub
 
         <Fact>
+        Public Sub ReferencingEmbeddedAttributesFromADifferentAssemblyFails_Module()
+
+            Dim moduleCode = CreateCompilationWithMscorlib(options:=TestOptions.ReleaseModule, source:="
+Namespace Microsoft.CodeAnalysis
+    Friend Class EmbeddedAttribute
+        Inherits System.Attribute
+    End Class
+End Namespace
+Namespace TestReference
+    <Microsoft.CodeAnalysis.Embedded>
+    Public Class TestType1
+    End Class
+    <Microsoft.CodeAnalysis.EmbeddedAttribute>
+    Public Class TestType2
+    End Class
+    Public Class TestType3
+    End Class
+End Namespace")
+
+            Dim reference = ModuleMetadata.CreateFromImage(moduleCode.EmitToArray()).GetReference()
+
+            Dim code = "
+Public Class Program
+    Public Shared Sub Main()
+        Dim obj1 = New TestReference.TestType1()
+        Dim obj2 = New TestReference.TestType2()
+        Dim obj3 = New TestReference.TestType3() ' This should be fine
+    End Sub
+End Class"
+
+            Dim compilation = CreateCompilationWithMscorlib(code, references:={reference})
+
+            AssertTheseDiagnostics(compilation, <![CDATA[
+BC30002: Type 'TestReference.TestType1' is not defined.
+        Dim obj1 = New TestReference.TestType1()
+                       ~~~~~~~~~~~~~~~~~~~~~~~
+BC30002: Type 'TestReference.TestType2' is not defined.
+        Dim obj2 = New TestReference.TestType2()
+                       ~~~~~~~~~~~~~~~~~~~~~~~
+]]>)
+        End Sub
+
+        <Fact>
+        Public Sub ReferencingEmbeddedAttributesFromTheSameAssemblySucceeds()
+
+            Dim compilation = CreateCompilationWithMscorlib(source:="
+Namespace Microsoft.CodeAnalysis
+    Friend Class EmbeddedAttribute
+        Inherits System.Attribute
+    End Class
+End Namespace
+Namespace TestReference
+    <Microsoft.CodeAnalysis.Embedded>
+    Public Class TestType1
+    End Class
+    <Microsoft.CodeAnalysis.EmbeddedAttribute>
+    Public Class TestType2
+    End Class
+    Public Class TestType3
+    End Class
+End Namespace
+Public Class Program
+    Public Shared Sub Main()
+        Dim obj1 = New TestReference.TestType1()
+        Dim obj2 = New TestReference.TestType2()
+        Dim obj3 = New TestReference.TestType3()
+    End Sub
+End Class")
+
+            AssertTheseEmitDiagnostics(compilation)
+
+        End Sub
+
+        <Fact>
         Public Sub EmbeddedAttributeInSourceIsAllowedIfCompilerDoesNotNeedToGenerateOne()
 
             Dim compilation = CreateCompilationWithMscorlib(options:=TestOptions.ReleaseExe, sources:=
@@ -4469,7 +4543,7 @@ End Class
         <Fact>
         Public Sub EmbeddedTypesInAnAssemblyAreNotExposedExternally()
 
-            Dim reference = CreateCompilationWithMscorlib(options:=TestOptions.ReleaseDll, sources:=
+            Dim compilation1 = CreateCompilationWithMscorlib(options:=TestOptions.ReleaseDll, sources:=
 <compilation>
     <file name="a.vb"><![CDATA[
 Namespace Microsoft.CodeAnalysis
@@ -4484,12 +4558,15 @@ Public Class TestReference2
 End Class
 ]]>
     </file>
-</compilation>).EmitToImageReference()
+</compilation>)
 
-            Dim compilation = CreateCompilationWithMscorlib("", references:={reference})
+            Assert.NotNull(compilation1.GetTypeByMetadataName("TestReference1"))
+            Assert.NotNull(compilation1.GetTypeByMetadataName("TestReference2"))
 
-            Assert.Null(compilation.GetTypeByMetadataName("TestReference1"))
-            Assert.NotNull(compilation.GetTypeByMetadataName("TestReference2"))
+            Dim compilation2 = CreateCompilationWithMscorlib("", references:={compilation1.EmitToImageReference()})
+
+            Assert.Null(compilation2.GetTypeByMetadataName("TestReference1"))
+            Assert.NotNull(compilation2.GetTypeByMetadataName("TestReference2"))
         End Sub
 
     End Class

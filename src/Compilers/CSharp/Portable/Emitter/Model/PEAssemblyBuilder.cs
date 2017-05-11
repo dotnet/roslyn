@@ -22,6 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         private SynthesizedEmbeddedAttributeSymbol _lazyEmbeddedAttribute;
         private SynthesizedEmbeddedAttributeSymbol _lazyIsReadOnlyAttribute;
+        private ImmutableArray<Diagnostic> _lazyEmbeddedAttributesDiagnostics;
 
         /// <summary>
         /// The behavior of the C# command-line compiler is as follows:
@@ -67,7 +68,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             var builder = ArrayBuilder<NamedTypeSymbol>.GetInstance();
             builder.AddRange(_additionalTypes);
 
-            CreateEmbeddedAttributesIfNeeded(diagnostics);
+            CreateEmbeddedAttributesIfNeeded();
+            diagnostics.AddRange(_lazyEmbeddedAttributesDiagnostics);
+
             if ((object)_lazyEmbeddedAttribute != null)
             {
                 builder.Add(_lazyEmbeddedAttribute);
@@ -164,7 +167,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return base.SynthesizeEmbeddedAttribute();
         }
 
-        protected override SynthesizedAttributeData TrySynthesizeIsReadOnlyAttribute(Symbol symbol)
+        protected override SynthesizedAttributeData TrySynthesizeIsReadOnlyAttribute()
         {
             if ((object)_lazyIsReadOnlyAttribute != null)
             {
@@ -174,22 +177,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     ImmutableArray<KeyValuePair<string, TypedConstant>>.Empty);
             }
 
-            return base.TrySynthesizeIsReadOnlyAttribute(symbol);
+            return base.TrySynthesizeIsReadOnlyAttribute();
         }
 
-        private void CreateEmbeddedAttributesIfNeeded(DiagnosticBag diagnostics)
+        private void CreateEmbeddedAttributesIfNeeded()
         {
-            if (this.NeedsGeneratedIsReadOnlyAttribute)
+            if (_lazyEmbeddedAttributesDiagnostics.IsDefault)
             {
-                CreateEmbeddedAttributeIfNeeded(
-                    ref _lazyEmbeddedAttribute,
-                    diagnostics,
-                    AttributeDescription.CodeAnalysisEmbeddedAttribute);
+                var diagnostics = DiagnosticBag.GetInstance();
 
-                CreateEmbeddedAttributeIfNeeded(
-                    ref _lazyIsReadOnlyAttribute,
-                    diagnostics,
-                    AttributeDescription.IsReadOnlyAttribute);
+                if (this.NeedsGeneratedIsReadOnlyAttribute)
+                {
+                    CreateEmbeddedAttributeIfNeeded(
+                        ref _lazyEmbeddedAttribute,
+                        diagnostics,
+                        AttributeDescription.CodeAnalysisEmbeddedAttribute);
+
+                    CreateEmbeddedAttributeIfNeeded(
+                        ref _lazyIsReadOnlyAttribute,
+                        diagnostics,
+                        AttributeDescription.IsReadOnlyAttribute);
+                }
+
+                _lazyEmbeddedAttributesDiagnostics = diagnostics.ToReadOnlyAndFree();
             }
         }
 
@@ -203,7 +213,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
                 if (!(userDefinedAttribute is MissingMetadataTypeSymbol))
                 {
-                    diagnostics.Add(ErrorCode.ERR_TypeReserved, userDefinedAttribute.Locations[0], userDefinedAttribute);
+                    diagnostics.Add(ErrorCode.ERR_TypeReserved, userDefinedAttribute.Locations[0], description.FullName);
                 }
 
                 symbol = new SynthesizedEmbeddedAttributeSymbol(description, _sourceAssembly.DeclaringCompilation, diagnostics);

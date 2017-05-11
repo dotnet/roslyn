@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _name = description.Name;
             _baseType = compilation.GetWellKnownType(WellKnownType.System_Attribute);
 
-            // Report errors in case base type was missing (MissingMetadataTypeSymbol)
+            // Report errors in case base type was missing or bad
             Binder.ReportUseSiteDiagnostics(_baseType, diagnostics, Location.None);
 
             Constructor = new SynthesizedEmbeddedAttributeConstructorSymbol(this);
@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (ContainingType.BaseType is MissingMetadataTypeSymbol)
                 {
-                    // System_Attribute is missing. Dont't generate anything
+                    // System_Attribute is missing. Don't generate anything
                     return;
                 }
 
@@ -183,14 +183,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return;
                 }
 
-                var statements = new BoundStatement[]
-                {
+                var block = factory.Block(
                     factory.ExpressionStatement(baseConstructorCall),
-                    factory.Return(),
-                };
+                    factory.Return());
 
-                // Create a bound block 
-                factory.CloseMethod(factory.Block(statements));
+                factory.CloseMethod(block);
             }
         }
     }

@@ -1055,6 +1055,27 @@ Class Test
         End Sub
 
         <Fact>
+        Public Sub SynthesizingDefaultConstructorsWithMsCorLibMissing_NoSystemVoid()
+            Dim comp = CompilationUtils.CreateCompilation("
+Namespace System
+    Public Class [Object]
+    End Class
+End Namespace
+Class Test
+End Class
+", options:=TestOptions.ReleaseDll.WithModuleName("testModule"))
+
+            CompilationUtils.AssertTheseDiagnostics(comp, <expected>
+BC30002: Type 'System.Void' is not defined.
+    Public Class [Object]
+    ~~~~~~~~~~~~~~~~~~~~~~
+BC30002: Type 'System.Void' is not defined.
+Class Test
+~~~~~~~~~~~
+                                                          </expected>)
+        End Sub
+
+        <Fact>
         Public Sub SynthesizingDefaultConstructorsWithMsCorLibMissing_NoSystemObject()
             Dim comp = CompilationUtils.CreateCompilation("
 Namespace System
@@ -1073,6 +1094,31 @@ BC31091: Import of type 'Object' from assembly or module 'testModule' failed.
 Class Test
       ~~~~
 </expected>)
+        End Sub
+
+        <Fact>
+        Public Sub SynthesizingDefaultConstructorsWithMsCorLibMissing_NoSystemObjectDefaultConstructor()
+            Dim comp = CompilationUtils.CreateCompilation("
+Namespace System
+    Public Class [Object]
+        Public Sub New(other as Object)
+        End Sub
+    End Class
+    Public Class Void
+        Public Sub New()
+            MyBase.New(Nothing)
+        End Sub
+    End Class
+End Namespace
+Class Test
+End Class
+", options:=TestOptions.ReleaseDll.WithModuleName("testModule"))
+
+            CompilationUtils.AssertTheseDiagnostics(comp, <expected>
+BC30387: Class 'Test' must declare a 'Sub New' because its base class 'Object' does not have an accessible 'Sub New' that can be called with no arguments.
+Class Test
+      ~~~~
+                                                          </expected>)
         End Sub
 
     End Class

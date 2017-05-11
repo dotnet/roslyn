@@ -782,6 +782,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     continue;
                 }
 
+                if (candidate.IsHiddenByCodeAnalysisEmbeddedAttribute())
+                {
+                    continue;
+                }
+
                 Debug.Assert(candidate != result);
 
                 if ((object)result != null)

@@ -1557,17 +1557,26 @@ public class Test
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "ref readonly int x").WithArguments("System.Runtime.CompilerServices.IsReadOnlyAttribute").WithLocation(7, 20));
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19395")]
+        [Fact]
         public void RefReadOnlyDefinitionsInsideUserDefinedIsReadOnlyAttribute_Class_NoParent()
         {
-            // PROTOTYPE(readonlyRefs) verify bug is fixed and enable the test
+            // PROTOTYPE(readonlyRefs) when the following bug is fixed that test should fail:
+            // https://github.com/dotnet/roslyn/issues/19395
 
             var code = @"
 namespace System.Runtime.CompilerServices
 {
     public class IsReadOnlyAttribute
     {
-        public ref readonly int Method(ref readonly int x) => ref x;
+        private int value;
+
+        public ref readonly int Method(ref readonly int x) => ref value;
+
+        public static int operator +(ref readonly IsReadOnlyAttribute x, ref readonly IsReadOnlyAttribute y) => 0;
+
+        public ref readonly int Property => ref value;
+
+        public ref readonly int this[ref readonly int x] => ref value;
     }
 }";
 
@@ -1576,15 +1585,21 @@ namespace System.Runtime.CompilerServices
                 var isReadOnlyAttributeName = WellKnownTypes.GetMetadataName(WellKnownType.System_Runtime_CompilerServices_IsReadOnlyAttribute);
                 var type = module.ContainingAssembly.GetTypeByMetadataName(isReadOnlyAttributeName);
 
-                var method = type.GetMember<MethodSymbol>("Method");
-                Assert.Equal(type, method.GetReturnTypeAttributes().Single().AttributeClass);
+                var method = type.GetMethod("Method");
+                AssertReferencedIsReadOnlyAttribute(Accessibility.Public, method.GetReturnTypeAttributes(), module.ContainingAssembly.Name);
+                AssertReferencedIsReadOnlyAttribute(Accessibility.Public, method.Parameters.Single().GetAttributes(), module.ContainingAssembly.Name);
 
-                var parameter = method.Parameters.Single();
-                Assert.Equal(type, parameter.GetAttributes().Single().AttributeClass);
+                var @operator = type.GetMethod("op_Addition");
+                AssertReferencedIsReadOnlyAttribute(Accessibility.Public, @operator.Parameters[0].GetAttributes(), module.ContainingAssembly.Name);
+                AssertReferencedIsReadOnlyAttribute(Accessibility.Public, @operator.Parameters[1].GetAttributes(), module.ContainingAssembly.Name);
+
+                var property = type.GetProperty("Property");
+                AssertReferencedIsReadOnlyAttribute(Accessibility.Public, property.GetAttributes(), module.ContainingAssembly.Name);
+
+                var indexer = type.GetProperty("this[]");
+                AssertReferencedIsReadOnlyAttribute(Accessibility.Public, indexer.GetAttributes(), module.ContainingAssembly.Name);
+                AssertReferencedIsReadOnlyAttribute(Accessibility.Public, indexer.Parameters.Single().GetAttributes(), module.ContainingAssembly.Name);
             });
-
-            CreateCompilationWithMscorlib(code).VerifyEmitDiagnostics(/* there should be an error */);
-            Assert.False(true, "It must produce an error about not being able to find the correct signature");
         }
 
         [Fact]
@@ -1595,7 +1610,15 @@ namespace System.Runtime.CompilerServices
 {
     public class IsReadOnlyAttribute : System.Attribute
     {
-        public ref readonly int Method(ref readonly int x) => ref x;
+        private int value;
+
+        public ref readonly int Method(ref readonly int x) => ref value;
+
+        public static int operator +(ref readonly IsReadOnlyAttribute x, ref readonly IsReadOnlyAttribute y) => 0;
+
+        public ref readonly int Property => ref value;
+
+        public ref readonly int this[ref readonly int x] => ref value;
     }
 }";
 
@@ -1604,18 +1627,117 @@ namespace System.Runtime.CompilerServices
                 var isReadOnlyAttributeName = WellKnownTypes.GetMetadataName(WellKnownType.System_Runtime_CompilerServices_IsReadOnlyAttribute);
                 var type = module.ContainingAssembly.GetTypeByMetadataName(isReadOnlyAttributeName);
 
-                var method = type.GetMember<MethodSymbol>("Method");
-                Assert.Equal(type, method.GetReturnTypeAttributes().Single().AttributeClass);
+                var method = type.GetMethod("Method");
+                AssertReferencedIsReadOnlyAttribute(Accessibility.Public, method.GetReturnTypeAttributes(), module.ContainingAssembly.Name);
+                AssertReferencedIsReadOnlyAttribute(Accessibility.Public, method.Parameters.Single().GetAttributes(), module.ContainingAssembly.Name);
 
-                var parameter = method.Parameters.Single();
-                Assert.Equal(type, parameter.GetAttributes().Single().AttributeClass);
+                var @operator = type.GetMethod("op_Addition");
+                AssertReferencedIsReadOnlyAttribute(Accessibility.Public, @operator.Parameters[0].GetAttributes(), module.ContainingAssembly.Name);
+                AssertReferencedIsReadOnlyAttribute(Accessibility.Public, @operator.Parameters[1].GetAttributes(), module.ContainingAssembly.Name);
+
+                var property = type.GetProperty("Property");
+                AssertReferencedIsReadOnlyAttribute(Accessibility.Public, property.GetAttributes(), module.ContainingAssembly.Name);
+
+                var indexer = type.GetProperty("this[]");
+                AssertReferencedIsReadOnlyAttribute(Accessibility.Public, indexer.GetAttributes(), module.ContainingAssembly.Name);
+                AssertReferencedIsReadOnlyAttribute(Accessibility.Public, indexer.Parameters.Single().GetAttributes(), module.ContainingAssembly.Name);
             });
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19395")]
+        [Fact]
+        public void RefReadOnlyDefinitionsInsideUserDefinedIsReadOnlyAttribute_ClassInherit()
+        {
+            var code = @"
+namespace System.Runtime.CompilerServices
+{
+    public class IsReadOnlyAttribute : System.Attribute
+    {
+    }
+}
+public class Child : System.Runtime.CompilerServices.IsReadOnlyAttribute
+{
+    private int value;
+
+    public ref readonly int Method(ref readonly int x) => ref value;
+
+    public static int operator +(ref readonly Child x, ref readonly Child y) => 0;
+
+    public ref readonly int Property => ref value;
+
+    public ref readonly int this[ref readonly int x] => ref value;
+}";
+
+            CompileAndVerify(code, verify: false, symbolValidator: module =>
+            {
+                var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
+
+                var method = type.GetMethod("Method");
+                AssertReferencedIsReadOnlyAttribute(Accessibility.Public, method.GetReturnTypeAttributes(), module.ContainingAssembly.Name);
+                AssertReferencedIsReadOnlyAttribute(Accessibility.Public, method.Parameters.Single().GetAttributes(), module.ContainingAssembly.Name);
+
+                var @operator = type.GetMethod("op_Addition");
+                AssertReferencedIsReadOnlyAttribute(Accessibility.Public, @operator.Parameters[0].GetAttributes(), module.ContainingAssembly.Name);
+                AssertReferencedIsReadOnlyAttribute(Accessibility.Public, @operator.Parameters[1].GetAttributes(), module.ContainingAssembly.Name);
+
+                var property = type.GetProperty("Property");
+                AssertReferencedIsReadOnlyAttribute(Accessibility.Public, property.GetAttributes(), module.ContainingAssembly.Name);
+
+                var indexer = type.GetProperty("this[]");
+                AssertReferencedIsReadOnlyAttribute(Accessibility.Public, indexer.GetAttributes(), module.ContainingAssembly.Name);
+                AssertReferencedIsReadOnlyAttribute(Accessibility.Public, indexer.Parameters.Single().GetAttributes(), module.ContainingAssembly.Name);
+            });
+        }
+
+        [Fact]
+        public void RefReadOnlyDefinitionsInsideUserDefinedIsReadOnlyAttribute_ClassOverride()
+        {
+            var code = @"
+namespace System.Runtime.CompilerServices
+{
+    public abstract class IsReadOnlyAttribute : System.Attribute
+    {
+        public IsReadOnlyAttribute() { }
+
+        public abstract ref readonly int Method(ref readonly int x);
+
+        public abstract ref readonly int Property { get; }
+
+        public abstract ref readonly int this[ref readonly int x] { get; }
+    }
+}
+public class Child : System.Runtime.CompilerServices.IsReadOnlyAttribute
+{
+    private int value;
+
+    public override ref readonly int Method(ref readonly int x) => ref value;
+
+    public override ref readonly int Property => ref value;
+
+    public override ref readonly int this[ref readonly int x] => ref value;
+}";
+
+            CompileAndVerify(code, verify: false, symbolValidator: module =>
+            {
+                var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
+
+                var method = type.GetMethod("Method");
+                AssertReferencedIsReadOnlyAttribute(Accessibility.Public, method.GetReturnTypeAttributes(), module.ContainingAssembly.Name);
+                AssertReferencedIsReadOnlyAttribute(Accessibility.Public, method.Parameters.Single().GetAttributes(), module.ContainingAssembly.Name);
+
+                var property = type.GetProperty("Property");
+                AssertReferencedIsReadOnlyAttribute(Accessibility.Public, property.GetAttributes(), module.ContainingAssembly.Name);
+
+                var indexer = type.GetProperty("this[]");
+                AssertReferencedIsReadOnlyAttribute(Accessibility.Public, indexer.GetAttributes(), module.ContainingAssembly.Name);
+                AssertReferencedIsReadOnlyAttribute(Accessibility.Public, indexer.Parameters.Single().GetAttributes(), module.ContainingAssembly.Name);
+            });
+        }
+
+        [Fact]
         public void RefReadOnlyDefinitionsInsideUserDefinedIsReadOnlyAttribute_Class_WrongParent()
         {
-            // PROTOTYPE(readonlyRefs) verify bug is fixed and enable the test
+            // PROTOTYPE(readonlyRefs) when the following bug is fixed that test should fail:
+            // https://github.com/dotnet/roslyn/issues/19395
 
             var code = @"
 namespace System.Runtime.CompilerServices
@@ -1624,18 +1746,45 @@ namespace System.Runtime.CompilerServices
 
     public class IsReadOnlyAttribute : TestParent
     {
-        public ref readonly int Method(ref readonly int x) => ref x;
+        private int value;
+
+        public ref readonly int Method(ref readonly int x) => ref value;
+
+        public static int operator +(ref readonly IsReadOnlyAttribute x, ref readonly IsReadOnlyAttribute y) => 0;
+
+        public ref readonly int Property => ref value;
+
+        public ref readonly int this[ref readonly int x] => ref value;
     }
 }";
 
-            CreateCompilationWithMscorlib(code).VerifyEmitDiagnostics(/* there should be an error */);
-            Assert.False(true, "It must produce an error about not being able to find the correct signature");
+            CompileAndVerify(code, verify: false, symbolValidator: module =>
+            {
+                var isReadOnlyAttributeName = WellKnownTypes.GetMetadataName(WellKnownType.System_Runtime_CompilerServices_IsReadOnlyAttribute);
+                var type = module.ContainingAssembly.GetTypeByMetadataName(isReadOnlyAttributeName);
+
+                var method = type.GetMethod("Method");
+                AssertReferencedIsReadOnlyAttribute(Accessibility.Public, method.GetReturnTypeAttributes(), module.ContainingAssembly.Name);
+                AssertReferencedIsReadOnlyAttribute(Accessibility.Public, method.Parameters.Single().GetAttributes(), module.ContainingAssembly.Name);
+
+                var @operator = type.GetMethod("op_Addition");
+                AssertReferencedIsReadOnlyAttribute(Accessibility.Public, @operator.Parameters[0].GetAttributes(), module.ContainingAssembly.Name);
+                AssertReferencedIsReadOnlyAttribute(Accessibility.Public, @operator.Parameters[1].GetAttributes(), module.ContainingAssembly.Name);
+
+                var property = type.GetProperty("Property");
+                AssertReferencedIsReadOnlyAttribute(Accessibility.Public, property.GetAttributes(), module.ContainingAssembly.Name);
+
+                var indexer = type.GetProperty("this[]");
+                AssertReferencedIsReadOnlyAttribute(Accessibility.Public, indexer.GetAttributes(), module.ContainingAssembly.Name);
+                AssertReferencedIsReadOnlyAttribute(Accessibility.Public, indexer.Parameters.Single().GetAttributes(), module.ContainingAssembly.Name);
+            });
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19394")]
         public void RefReadOnlyDefinitionsInsideUserDefinedIsReadOnlyAttribute_Struct()
         {
             // PROTOTYPE(readonlyRefs) verify bug is fixed and enable the test
+            // https://github.com/dotnet/roslyn/issues/19394
 
             var code = @"
 namespace System.Runtime.CompilerServices

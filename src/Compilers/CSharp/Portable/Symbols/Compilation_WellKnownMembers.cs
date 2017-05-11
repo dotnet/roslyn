@@ -435,11 +435,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal void EnsureIsReadOnlyAttributeExists(DiagnosticBag diagnostics, Location location, bool modifyCompilationForRefReadOnly)
         {
+            Debug.Assert(!modifyCompilationForRefReadOnly || !_needsGeneratedIsReadOnlyAttribute_IsFrozen);
+            
             var isNeeded = CheckIfIsReadOnlyAttributeShouldBeEmbedded(diagnostics, location);
 
             if (isNeeded && modifyCompilationForRefReadOnly)
             {
-                Debug.Assert(!_needsGeneratedIsReadOnlyAttribute_IsFrozen);
                 _needsGeneratedIsReadOnlyAttribute_Value = true;
             }
         }
@@ -465,11 +466,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (diagnosticsOpt != null)
             {
-                Binder.GetWellKnownTypeMember(this, WellKnownMember.System_Runtime_CompilerServices_IsReadOnlyAttribute__ctor, out DiagnosticInfo diagnostic);
-                if (diagnostic != null)
-                {
-                    diagnosticsOpt.Add(diagnostic, locationOpt);
-                }
+                // This should produce diagnostics if the member is missing or bad
+                Binder.GetWellKnownTypeMember(this, WellKnownMember.System_Runtime_CompilerServices_IsReadOnlyAttribute__ctor, diagnosticsOpt, locationOpt);
             }
 
             return false;

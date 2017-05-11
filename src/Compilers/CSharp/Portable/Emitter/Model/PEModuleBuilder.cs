@@ -1417,17 +1417,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 return null;
             }
 
-            return TrySynthesizeIsReadOnlyAttribute(symbol);
+            return TrySynthesizeIsReadOnlyAttribute();
         }
 
-        protected virtual SynthesizedAttributeData TrySynthesizeIsReadOnlyAttribute(Symbol symbol)
+        protected virtual SynthesizedAttributeData TrySynthesizeIsReadOnlyAttribute()
         {
-            if ((object)Compilation.SourceModule != symbol.ContainingModule)
-            {
-                // For symbols that are not defined in the same compilation (like NoPia), don't synthesize this attribute.
-                return null;
-            }
-
             // For modules, this attribute should be present. Only assemblies generate and embed this type.
             return Compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_IsReadOnlyAttribute__ctor);
         }

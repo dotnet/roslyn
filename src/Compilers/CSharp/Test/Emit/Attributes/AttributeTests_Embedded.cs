@@ -10,6 +10,37 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public class AttributeTests_Embedded : CSharpTestBase
     {
         [Fact]
+        public void ReferencingEmbeddedAttributesFromTheSameAssemblySucceeds()
+        {
+            var code = @"
+namespace Microsoft.CodeAnalysis
+{
+    internal class EmbeddedAttribute : System.Attribute { }
+}
+namespace TestReference
+{
+    [Microsoft.CodeAnalysis.Embedded]
+    internal class TestType1 { }
+
+    [Microsoft.CodeAnalysis.EmbeddedAttribute]
+    internal class TestType2 { }
+
+    internal class TestType3 { }
+}
+class Program
+{
+    public static void Main()
+    {
+        var obj1 = new TestReference.TestType1();
+        var obj2 = new TestReference.TestType2();
+        var obj3 = new TestReference.TestType3();
+    }
+}";
+
+            CreateCompilationWithMscorlib(code).VerifyEmitDiagnostics();
+        }
+
+        [Fact]
         public void ReferencingEmbeddedAttributesFromADifferentAssemblyFails_Internal()
         {
             var reference = CreateCompilationWithMscorlib(@"
@@ -41,6 +72,47 @@ class Program
 }";
 
             CreateCompilationWithMscorlib(code, references: new[] { reference.ToMetadataReference() }, assemblyName: "Source").VerifyDiagnostics(
+                // (6,38): error CS0234: The type or namespace name 'TestType1' does not exist in the namespace 'TestReference' (are you missing an assembly reference?)
+                //         var obj1 = new TestReference.TestType1();
+                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "TestType1").WithArguments("TestType1", "TestReference").WithLocation(6, 38),
+                // (7,38): error CS0234: The type or namespace name 'TestType2' does not exist in the namespace 'TestReference' (are you missing an assembly reference?)
+                //         var obj2 = new TestReference.TestType2();
+                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "TestType2").WithArguments("TestType2", "TestReference").WithLocation(7, 38));
+        }
+
+        [Fact]
+        public void ReferencingEmbeddedAttributesFromADifferentAssemblyFails_Module()
+        {
+            var module = CreateCompilationWithMscorlib(@"
+namespace Microsoft.CodeAnalysis
+{
+    internal class EmbeddedAttribute : System.Attribute { }
+}
+namespace TestReference
+{
+    [Microsoft.CodeAnalysis.Embedded]
+    internal class TestType1 { }
+
+    [Microsoft.CodeAnalysis.EmbeddedAttribute]
+    internal class TestType2 { }
+
+    internal class TestType3 { }
+}", options: TestOptions.ReleaseModule);
+
+            var reference = ModuleMetadata.CreateFromImage(module.EmitToArray()).GetReference();
+
+            var code = @"
+class Program
+{
+    public static void Main()
+    {
+        var obj1 = new TestReference.TestType1();
+        var obj2 = new TestReference.TestType2();
+        var obj3 = new TestReference.TestType3(); // This should be fine
+    }
+}";
+
+            CreateCompilationWithMscorlib(code, references: new[] { reference }, assemblyName: "Source").VerifyDiagnostics(
                 // (6,38): error CS0234: The type or namespace name 'TestType1' does not exist in the namespace 'TestReference' (are you missing an assembly reference?)
                 //         var obj1 = new TestReference.TestType1();
                 Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "TestType1").WithArguments("TestType1", "TestReference").WithLocation(6, 38),
@@ -133,7 +205,7 @@ class Test
 }";
 
             CreateCompilationWithMscorlib(code, assemblyName: "testModule").VerifyEmitDiagnostics(
-                // (4,18): error CS8413: The type name 'EmbeddedAttribute' is reserved to be used by the compiler.
+                // (4,18): error CS8413: The type name 'Microsoft.CodeAnalysis.EmbeddedAttribute' is reserved to be used by the compiler.
                 //     public class EmbeddedAttribute : System.Attribute { }
                 Diagnostic(ErrorCode.ERR_TypeReserved, "EmbeddedAttribute").WithArguments("Microsoft.CodeAnalysis.EmbeddedAttribute").WithLocation(4, 18));
         }
@@ -336,6 +408,28 @@ public class Test
                 Diagnostic(ErrorCode.ERR_BadCtorArgCount).WithArguments("System.Attribute", "0").WithLocation(1, 1),
                 // error CS1729: 'Attribute' does not contain a constructor that takes 0 arguments
                 Diagnostic(ErrorCode.ERR_BadCtorArgCount).WithArguments("System.Attribute", "0").WithLocation(1, 1));
+        }
+
+        [Fact]
+        public void EmbeddedTypesInAnAssemblyAreNotExposedExternally()
+        {
+            var compilation1 = CreateCompilationWithMscorlib(@"
+namespace Microsoft.CodeAnalysis
+{
+    public class EmbeddedAttribute : System.Attribute { }
+}
+[Microsoft.CodeAnalysis.Embedded]
+public class TestReference1 { }
+public class TestReference2 { }
+");
+
+            Assert.NotNull(compilation1.GetTypeByMetadataName("TestReference1"));
+            Assert.NotNull(compilation1.GetTypeByMetadataName("TestReference2"));
+
+            var compilation2 = CreateCompilationWithMscorlib("", references: new[] { compilation1.EmitToImageReference() });
+
+            Assert.Null(compilation2.GetTypeByMetadataName("TestReference1"));
+            Assert.NotNull(compilation2.GetTypeByMetadataName("TestReference2"));
         }
     }
 }

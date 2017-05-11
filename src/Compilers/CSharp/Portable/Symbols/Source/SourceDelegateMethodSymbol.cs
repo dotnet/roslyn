@@ -232,7 +232,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private sealed class InvokeMethod : SourceDelegateMethodSymbol
         {
             private readonly RefKind refKind;
-            private readonly DelegateDeclarationSyntax syntax;
 
             internal InvokeMethod(
                 SourceMemberContainerTypeSymbol delegateType,
@@ -244,7 +243,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 : base(delegateType, returnType, syntax, MethodKind.DelegateInvoke, DeclarationModifiers.Virtual | DeclarationModifiers.Public)
             {
                 this.refKind = refKind;
-                this.syntax = syntax;
 
                 SyntaxToken arglistToken;
                 var parameters = ParameterHelpers.MakeParameters(
@@ -291,7 +289,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (refKind == RefKind.RefReadOnly)
                 {
-                    DeclaringCompilation.EnsureIsReadOnlyAttributeExists(diagnostics, this.syntax.ReturnType.Location, modifyCompilationForRefReadOnly: true);
+                    var syntax = (DelegateDeclarationSyntax)SyntaxRef.GetSyntax();
+                    DeclaringCompilation.EnsureIsReadOnlyAttributeExists(diagnostics, syntax.ReturnType.GetLocation(), modifyCompilationForRefReadOnly: true);
                 }
 
                 ParameterHelpers.EnsureIsReadOnlyAttributeExists(_parameters, diagnostics, modifyCompilationForRefReadOnly: true);
