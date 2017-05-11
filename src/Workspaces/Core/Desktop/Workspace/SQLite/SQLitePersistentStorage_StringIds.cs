@@ -34,6 +34,11 @@ namespace Microsoft.CodeAnalysis.SQLite
 
         private int? TryGetStringId(SqlConnection connection, string value)
         {
+            if (value == null)
+            {
+                return null;
+            }
+
             // First see if we've cached the ID for this value locally.  If so, just return
             // what we already have.
             if (_stringToIdMap.TryGetValue(value, out int existingId))

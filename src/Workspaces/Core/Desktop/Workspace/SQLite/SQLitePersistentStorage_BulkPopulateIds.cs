@@ -202,6 +202,11 @@ namespace Microsoft.CodeAnalysis.SQLite
 
             void AddIfUnknownId(string value, HashSet<string> stringsToAdd)
             {
+                if (value == null)
+                {
+                    return;
+                }
+
                 if (!_stringToIdMap.TryGetValue(value, out var id))
                 {
                     stringsToAdd.Add(value);
