@@ -95,49 +95,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             }
 
             var canonicalName = _item.CanonicalName;
-            var analyzerFilePath = ExtractAnalyzerFilePath(canonicalName);
+            var analyzerFilePath = CpsUtilities.ExtractAnalyzerFilePath(_projectDirectoryPath, canonicalName);
 
-            return project.AnalyzerReferences.FirstOrDefault(r => r.FullPath.Equals(analyzerFilePath, StringComparison.OrdinalIgnoreCase));
-        }
-
-        /// <summary>
-        /// Given the canonical name of a node representing an analyzer assembly in the
-        /// CPS-based project system extracts out the full path to the assembly.
-        /// </summary>
-        /// <remarks>
-        /// The canonical name takes the following form:
-        /// 
-        ///   [{path to project directory}\]{target framework}\analyzerdependency\{path to assembly}
-        ///   
-        /// e.g.:
-        /// 
-        ///   C:\projects\solutions\MyProj\netstandard2.0\analyzerdependency\C:\users\me\.packages\somePackage\lib\someAnalyzer.dll
-        ///   
-        /// This method exists solely to extract out the "path to assembly" part, i.e.
-        /// "C:\users\me\.packages\somePackage\lib\someAnalyzer.dll". We don't need the
-        /// other parts.
-        /// 
-        /// Note that the path to the project directory is optional. It's not clear if
-        /// this is intentional or a bug in the project system, but either way it
-        /// doesn't really matter.
-        /// </remarks>
-        private string ExtractAnalyzerFilePath(string canonicalName)
-        {
-            // The canonical name may or may not start with the path to the project's directory.
-            if (canonicalName.StartsWith(_projectDirectoryPath, StringComparison.OrdinalIgnoreCase))
+            if (string.IsNullOrEmpty(analyzerFilePath))
             {
-                // Extract the rest of the string, taking into account the "\" separating the directory
-                // path from the rest of the canonical name
-                canonicalName = canonicalName.Substring(_projectDirectoryPath.Length + 1);
+                return null;
             }
 
-            // Find the slash after the target framework
-            var backslashIndex = canonicalName.IndexOf('\\');
-            // Find the slash after "analyzerdependency"
-            backslashIndex = canonicalName.IndexOf('\\', backslashIndex + 1);
-
-            // The rest of the string is the path.
-            return canonicalName.Substring(backslashIndex + 1);
+            return project.AnalyzerReferences.FirstOrDefault(r => r.FullPath.Equals(analyzerFilePath, StringComparison.OrdinalIgnoreCase));
         }
     }
 }
