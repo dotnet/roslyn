@@ -184,6 +184,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        // Returns the MethodSymbol for the assembly entrypoint.  If the user has a Task returning main,
+        // this function returns the synthesized Main MethodSymbol.
         private static MethodSymbol GetEntryPoint(CSharpCompilation compilation, PEModuleBuilder moduleBeingBuilt, bool hasDeclarationErrors, DiagnosticBag diagnostics, CancellationToken cancellationToken)
         {
             var entryPointAndDiagnostics = compilation.GetEntryPointAndDiagnostics(cancellationToken);
@@ -194,21 +196,69 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(!entryPointAndDiagnostics.Diagnostics.IsDefault);
             diagnostics.AddRange(entryPointAndDiagnostics.Diagnostics);
-
             var entryPoint = entryPointAndDiagnostics.MethodSymbol;
-            var synthesizedEntryPoint = entryPoint as SynthesizedEntryPointSymbol;
+
+            if ((object)entryPoint == null)
+            {
+                Debug.Assert(entryPointAndDiagnostics.Diagnostics.HasAnyErrors() || !compilation.Options.Errors.IsDefaultOrEmpty);
+                return null;
+            }
+
+            // entryPoint can be a SynthesizedEntryPointSymbol if a script is being compiled.
+            SynthesizedEntryPointSymbol synthesizedEntryPoint = entryPoint as SynthesizedEntryPointSymbol;
+            if ((object)synthesizedEntryPoint == null && (entryPoint.ReturnType.IsGenericTaskType(compilation) || entryPoint.ReturnType.IsNonGenericTaskType(compilation)))
+            {
+                synthesizedEntryPoint = new SynthesizedEntryPointSymbol.AsyncForwardEntryPoint(compilation, entryPoint.ContainingType, entryPoint);
+                entryPoint = synthesizedEntryPoint;
+                if ((object)moduleBeingBuilt != null)
+                {
+                    moduleBeingBuilt.AddSynthesizedDefinition(entryPoint.ContainingType, synthesizedEntryPoint);
+                }
+            }
+
             if (((object)synthesizedEntryPoint != null) &&
                 (moduleBeingBuilt != null) &&
                 !hasDeclarationErrors &&
                 !diagnostics.HasAnyErrors())
             {
-                var body = synthesizedEntryPoint.CreateBody();
+                BoundStatement body = synthesizedEntryPoint.CreateBody();
+
+                var dynamicAnalysisSpans = ImmutableArray<SourceSpan>.Empty;
+                VariableSlotAllocator lazyVariableSlotAllocator = null;
+                var lambdaDebugInfoBuilder = ArrayBuilder<LambdaDebugInfo>.GetInstance();
+                var closureDebugInfoBuilder = ArrayBuilder<ClosureDebugInfo>.GetInstance();
+                StateMachineTypeSymbol stateMachineTypeOpt = null;
                 const int methodOrdinal = -1;
+
+                var loweredBody = LowerBodyOrInitializer(
+                    synthesizedEntryPoint,
+                    methodOrdinal,
+                    body,
+                    null,
+                    new TypeCompilationState(synthesizedEntryPoint.ContainingType, compilation, moduleBeingBuilt),
+                    false,
+                    null,
+                    ref dynamicAnalysisSpans,
+                    diagnostics,
+                    ref lazyVariableSlotAllocator,
+                    lambdaDebugInfoBuilder,
+                    closureDebugInfoBuilder,
+                    out stateMachineTypeOpt);
+
+                Debug.Assert((object)lazyVariableSlotAllocator == null);
+                Debug.Assert((object)stateMachineTypeOpt == null);
+                Debug.Assert(dynamicAnalysisSpans.IsEmpty);
+                Debug.Assert(lambdaDebugInfoBuilder.IsEmpty());
+                Debug.Assert(closureDebugInfoBuilder.IsEmpty());
+
+                lambdaDebugInfoBuilder.Free();
+                closureDebugInfoBuilder.Free();
+
                 var emittedBody = GenerateMethodBody(
                     moduleBeingBuilt,
                     synthesizedEntryPoint,
                     methodOrdinal,
-                    body,
+                    loweredBody,
                     ImmutableArray<LambdaDebugInfo>.Empty,
                     ImmutableArray<ClosureDebugInfo>.Empty,
                     stateMachineTypeOpt: null,
@@ -221,7 +271,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 moduleBeingBuilt.SetMethodBody(synthesizedEntryPoint, emittedBody);
             }
 
-            Debug.Assert((object)entryPoint != null || entryPointAndDiagnostics.Diagnostics.HasAnyErrors() || !compilation.Options.Errors.IsDefaultOrEmpty);
             return entryPoint;
         }
 
