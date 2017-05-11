@@ -333,7 +333,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             private readonly ImmutableArray<ParameterSymbol> _parameters;
 
-            internal AsyncForwardEntryPoint(CSharpCompilation compilation, DiagnosticBag diagnosticBag, NamedTypeSymbol containingType, MethodSymbol userMain) :
+            internal AsyncForwardEntryPoint(CSharpCompilation compilation, NamedTypeSymbol containingType, MethodSymbol userMain) :
                 base(containingType)
             {
                 // There should be no way for a userMain to be passed in unless it already passed the 

@@ -1268,7 +1268,7 @@ class A
                 // (10,30): warning CS0028: 'A.Main(string[])' has the wrong signature to be an entry point
                 //     async static Task<float> Main(string[] args)
                 Diagnostic(ErrorCode.WRN_InvalidMainSig, "Main").WithArguments("A.Main(string[])").WithLocation(11, 30));
-                CompileAndVerify(compilation, expectedOutput: "Non Task Main", expectedReturnCode: 0);
+            CompileAndVerify(compilation, expectedOutput: "Non Task Main", expectedReturnCode: 0);
         }
 
         [Fact]
@@ -1315,14 +1315,17 @@ namespace System.Threading.Tasks {
     public class Awaiter: System.Runtime.CompilerServices.INotifyCompletion {
         public bool IsCompleted  => true;
         public void OnCompleted(Action action) {}
-        public void GetResult() {}
+        public void GetResult() {
+            System.Console.Write(""GetResult called"");
+        }
     }
     public class Task {}
 }
 
 public static class MyExtensions {
     public static Awaiter GetAwaiter(this Task task) {
-        return null;
+        System.Console.Write(""GetAwaiter called | "");
+        return new Awaiter();
     }
 }
 
@@ -1333,16 +1336,16 @@ static class Program {
 }";
             var sourceCompilation = CreateStandardCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
             var verifier = sourceCompilation.VerifyEmitDiagnostics(
-                // (30,12): warning CS0436: The type 'Task' in '' conflicts with the imported type 'Task' in 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'. Using the type defined in ''.
-                //     static Task Main() {
-                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Task").WithArguments("", "System.Threading.Tasks.Task", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "System.Threading.Tasks.Task"),
-                // (24,43): warning CS0436: The type 'Task' in '' conflicts with the imported type 'Task' in 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'. Using the type defined in ''.
+                // (26,43): warning CS0436: The type 'Task' in '' conflicts with the imported type 'Task' in 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'. Using the type defined in ''.
                 //     public static Awaiter GetAwaiter(this Task task) {
-                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Task").WithArguments("", "System.Threading.Tasks.Task", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "System.Threading.Tasks.Task"),
-                // (31,20): warning CS0436: The type 'Task' in '' conflicts with the imported type 'Task' in 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'. Using the type defined in ''.
+                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Task").WithArguments("", "System.Threading.Tasks.Task", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "System.Threading.Tasks.Task").WithLocation(26, 43),
+                // (33,12): warning CS0436: The type 'Task' in '' conflicts with the imported type 'Task' in 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'. Using the type defined in ''.
+                //     static Task Main() {
+                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Task").WithArguments("", "System.Threading.Tasks.Task", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "System.Threading.Tasks.Task").WithLocation(33, 12),
+                // (34,20): warning CS0436: The type 'Task' in '' conflicts with the imported type 'Task' in 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'. Using the type defined in ''.
                 //         return new Task();
-                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Task").WithArguments("", "System.Threading.Tasks.Task", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "System.Threading.Tasks.Task").WithLocation(31, 20));
-            CompileAndVerify(sourceCompilation);
+                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Task").WithArguments("", "System.Threading.Tasks.Task", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "System.Threading.Tasks.Task").WithLocation(34, 20));
+            CompileAndVerify(sourceCompilation, expectedOutput: "GetAwaiter called | GetResult called");
         }
 
         [Fact]
@@ -1365,7 +1368,9 @@ namespace System.Threading.Tasks {
     public class Awaiter: System.Runtime.CompilerServices.INotifyCompletion {
         public bool IsCompleted  => true;
         public void OnCompleted(Action action) {}
-        public void GetResult() {}
+        public void GetResult() {
+            System.Console.Write(""GetResult called"");
+        }
     }
     public class Task {}
 }
@@ -1373,7 +1378,8 @@ namespace System.Threading.Tasks {
 public static class MyExtensions {
     [System.Obsolete(""test"")]
     public static Awaiter GetAwaiter(this Task task) {
-        return null;
+        System.Console.Write(""GetAwaiter called | "");
+        return new Awaiter();
     }
 }
 
@@ -1384,19 +1390,20 @@ static class Program {
 }";
             var sourceCompilation = CreateStandardCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
             var verifier = sourceCompilation.VerifyEmitDiagnostics(
-                // (25,43): warning CS0436: The type 'Task' in '' conflicts with the imported type 'Task' in 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'. Using the type defined in ''.
+                // (34,12): warning CS0436: The type 'Task' in '' conflicts with the imported type 'Task' in 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'. Using the type defined in ''.
+                //     static Task Main() {
+                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Task").WithArguments("", "System.Threading.Tasks.Task", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "System.Threading.Tasks.Task").WithLocation(34, 12),
+                // (27,43): warning CS0436: The type 'Task' in '' conflicts with the imported type 'Task' in 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'. Using the type defined in ''.
                 //     public static Awaiter GetAwaiter(this Task task) {
-                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Task").WithArguments("", "System.Threading.Tasks.Task", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "System.Threading.Tasks.Task").WithLocation(25, 43),
-                // (31,12): warning CS0436: The type 'Task' in '' conflicts with the imported type 'Task' in 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'. Using the type defined in ''.
-                //     static Task Main() {
-                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Task").WithArguments("", "System.Threading.Tasks.Task", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "System.Threading.Tasks.Task").WithLocation(31, 12),
-                // (32,20): warning CS0436: The type 'Task' in '' conflicts with the imported type 'Task' in 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'. Using the type defined in ''.
+                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Task").WithArguments("", "System.Threading.Tasks.Task", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "System.Threading.Tasks.Task").WithLocation(27, 43),
+                // (35,20): warning CS0436: The type 'Task' in '' conflicts with the imported type 'Task' in 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'. Using the type defined in ''.
                 //         return new Task();
-                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Task").WithArguments("", "System.Threading.Tasks.Task", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "System.Threading.Tasks.Task").WithLocation(32, 20),
-                // (31,12): warning CS0618: 'MyExtensions.GetAwaiter(Task)' is obsolete: 'test'
+                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Task").WithArguments("", "System.Threading.Tasks.Task", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "System.Threading.Tasks.Task").WithLocation(35, 20),
+                // (34,12): warning CS0618: 'MyExtensions.GetAwaiter(Task)' is obsolete: 'test'
                 //     static Task Main() {
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "Task").WithArguments("MyExtensions.GetAwaiter(System.Threading.Tasks.Task)", "test").WithLocation(31, 12));
-            CompileAndVerify(sourceCompilation);
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "Task").WithArguments("MyExtensions.GetAwaiter(System.Threading.Tasks.Task)", "test").WithLocation(34, 12));
+
+            CompileAndVerify(sourceCompilation, expectedOutput: "GetAwaiter called | GetResult called");
         }
 
         [Fact]

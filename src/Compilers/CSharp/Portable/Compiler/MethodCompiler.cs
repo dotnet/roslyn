@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SynthesizedEntryPointSymbol synthesizedEntryPoint = entryPoint as SynthesizedEntryPointSymbol;
             if ((object)synthesizedEntryPoint == null && (entryPoint.ReturnType.IsGenericTaskType(compilation) || entryPoint.ReturnType.IsNonGenericTaskType(compilation)))
             {
-                synthesizedEntryPoint = new SynthesizedEntryPointSymbol.AsyncForwardEntryPoint(compilation, diagnostics, entryPoint.ContainingType, entryPoint);
+                synthesizedEntryPoint = new SynthesizedEntryPointSymbol.AsyncForwardEntryPoint(compilation, entryPoint.ContainingType, entryPoint);
                 entryPoint = synthesizedEntryPoint;
                 if ((object)moduleBeingBuilt != null)
                 {
