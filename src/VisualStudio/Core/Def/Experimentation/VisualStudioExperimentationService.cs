@@ -2,6 +2,7 @@
 
 using System.Composition;
 using System.Reflection;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.Internal.VisualStudio.Shell.Interop;
@@ -10,7 +11,7 @@ using Microsoft.VisualStudio.Shell;
 namespace Microsoft.VisualStudio.LanguageServices.Experimentation
 {
     [ExportWorkspaceService(typeof(IExperimentationService), ServiceLayer.Host), Shared]
-    internal class VisualStudioExperimentationService : IExperimentationService
+    internal class VisualStudioExperimentationService : ForegroundThreadAffinitizedObject, IExperimentationService
     {
         private readonly object _experimentationServiceOpt;
         private readonly MethodInfo _isCachedFlightEnabledInfo;
@@ -35,6 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Experimentation
 
         public bool IsExperimentEnabled(string experimentName)
         {
+            ThisCanBeCalledOnAnyThread();
             if (_isCachedFlightEnabledInfo != null)
             {
                 try
