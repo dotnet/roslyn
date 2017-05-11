@@ -300,8 +300,15 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
             var containingOperation = GetOperation(
                 semanticModel, throwStatement.Parent, cancellationToken);
 
-            if (containingOperation?.Kind == OperationKind.BlockStatement)
+            if (containingOperation is IBlockStatement block)
             {
+                if (block.Statements.Length != 1)
+                {
+                    // If we are in a block, then the block must only contain
+                    // the throw statement.
+                    return null;
+                }
+
                 // C# may have an intermediary block between the throw-statement
                 // and the if-statement.  Walk up one operation higher in that case.
                 containingOperation = GetOperation(
