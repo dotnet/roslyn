@@ -165,28 +165,122 @@ internal class Class
 ";
             string expectedOperationTree = @"
 IObjectCreationExpression (Constructor: Class..ctor()) (OperationKind.ObjectCreationExpression, Type: Class) (Syntax: 'new Class() ... { X = z } }')
-  Member Initializers(4): IPropertyInitializer (Property: System.Int32 Class.X { get; set; }) (OperationKind.PropertyInitializerInCreation) (Syntax: 'X = x')
-      IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
-    IPropertyInitializer (Property: System.Collections.Generic.List<System.Int32> Class.Y { get; set; }) (OperationKind.PropertyInitializerInCreation) (Syntax: 'Y = { x, y, 3 }')
-      IOperation:  (OperationKind.None) (Syntax: '{ x, y, 3 }')
-        Children(3): IOperation:  (OperationKind.None) (Syntax: 'x')
-            Children(1): IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
-          IOperation:  (OperationKind.None) (Syntax: 'y')
-            Children(1): IParameterReferenceExpression: y (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'y')
-          IOperation:  (OperationKind.None) (Syntax: '3')
-            Children(1): ILiteralExpression (Text: 3) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 3) (Syntax: '3')
-    IPropertyInitializer (Property: System.Collections.Generic.Dictionary<System.Int32, System.Int32> Class.Z { get; set; }) (OperationKind.PropertyInitializerInCreation) (Syntax: 'Z = { { x, y } }')
-      IOperation:  (OperationKind.None) (Syntax: '{ { x, y } }')
-        Children(1): IOperation:  (OperationKind.None) (Syntax: '{ x, y }')
-            Children(2): IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
-              IParameterReferenceExpression: y (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'y')
-    IPropertyInitializer (Property: Class Class.C { get; set; }) (OperationKind.PropertyInitializerInCreation) (Syntax: 'C = { X = z }')
-      IOperation:  (OperationKind.None) (Syntax: '{ X = z }')
-        Children(1): IAssignmentExpression (OperationKind.AssignmentExpression, Type: System.Int32) (Syntax: 'X = z')
-            Left: IOperation:  (OperationKind.None) (Syntax: 'X')
-            Right: IParameterReferenceExpression: z (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'z')
+  Initializers(4): IAssignmentExpression (OperationKind.AssignmentExpression, Type: System.Int32) (Syntax: 'X = x')
+      Left: IOperation:  (OperationKind.None) (Syntax: 'X')
+      Right: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
+    IAssignmentExpression (OperationKind.AssignmentExpression, Type: System.Collections.Generic.List<System.Int32>) (Syntax: 'Y = { x, y, 3 }')
+      Left: IOperation:  (OperationKind.None) (Syntax: 'Y')
+      Right: IOperation:  (OperationKind.None) (Syntax: '{ x, y, 3 }')
+          Children(3): IOperation:  (OperationKind.None) (Syntax: 'x')
+              Children(1): IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
+            IOperation:  (OperationKind.None) (Syntax: 'y')
+              Children(1): IParameterReferenceExpression: y (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'y')
+            IOperation:  (OperationKind.None) (Syntax: '3')
+              Children(1): ILiteralExpression (Text: 3) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 3) (Syntax: '3')
+    IAssignmentExpression (OperationKind.AssignmentExpression, Type: System.Collections.Generic.Dictionary<System.Int32, System.Int32>) (Syntax: 'Z = { { x, y } }')
+      Left: IOperation:  (OperationKind.None) (Syntax: 'Z')
+      Right: IOperation:  (OperationKind.None) (Syntax: '{ { x, y } }')
+          Children(1): IOperation:  (OperationKind.None) (Syntax: '{ x, y }')
+              Children(2): IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
+                IParameterReferenceExpression: y (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'y')
+    IAssignmentExpression (OperationKind.AssignmentExpression, Type: Class) (Syntax: 'C = { X = z }')
+      Left: IOperation:  (OperationKind.None) (Syntax: 'C')
+      Right: IOperation:  (OperationKind.None) (Syntax: '{ X = z }')
+          Children(1): IAssignmentExpression (OperationKind.AssignmentExpression, Type: System.Int32) (Syntax: 'X = z')
+              Left: IOperation:  (OperationKind.None) (Syntax: 'X')
+              Right: IParameterReferenceExpression: z (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'z')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")]
+        public void ParameterReference_DelegateCreationExpressionWithLambdaArgument()
+        {
+            string source = @"
+using System;
+
+class Class
+{
+    // Used parameter methods
+    public void UsedParameterMethod1(Action a)
+    {
+        Action a2 = /*<bind>*/new Action(() =>
+        {
+            a();
+        })/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+IOperation:  (OperationKind.None) (Syntax: 'new Action( ... })')
+  Children(1): ILambdaExpression (Signature: lambda expression) (OperationKind.LambdaExpression, Type: System.Action) (Syntax: '() => ... }')
+      IBlockStatement (2 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
+        IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'a();')
+          IInvocationExpression (virtual void System.Action.Invoke()) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'a()')
+            Instance Receiver: IParameterReferenceExpression: a (OperationKind.ParameterReferenceExpression, Type: System.Action) (Syntax: 'a')
+        IReturnStatement (OperationKind.ReturnStatement) (Syntax: '{ ... }')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")]
+        public void ParameterReference_DelegateCreationExpressionWithMethodArgument()
+        {
+            string source = @"
+using System;
+
+class Class
+{
+    public delegate void Delegate(int x, int y);
+
+    public void Method(Delegate d)
+    {
+        var a = /*<bind>*/new Delegate(Method2)/*</bind>*/;
+    }
+
+    public void Method2(int x, int y)
+    {
+    }
+}
+";
+            string expectedOperationTree = @"
+IOperation:  (OperationKind.None) (Syntax: 'new Delegate(Method2)')
+  Children(1): IOperation:  (OperationKind.None) (Syntax: 'Method2')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")]
+        public void ParameterReference_DelegateCreationExpressionWithInvalidArgument()
+        {
+            string source = @"
+using System;
+
+class Class
+{
+    public delegate void Delegate(int x, int y);
+
+    public void Method(int x)
+    {
+        var a = /*<bind>*/new Delegate(x)/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+IInvalidExpression (OperationKind.InvalidExpression, Type: Class.Delegate, IsInvalid) (Syntax: 'new Delegate(x)')
+  Children(1): IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0149: Method name expected
+                //         var a = /*<bind>*/new Delegate(x)/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_MethodNameExpected, "x").WithLocation(10, 40)
+            };
 
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }

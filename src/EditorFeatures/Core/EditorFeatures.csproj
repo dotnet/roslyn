@@ -180,6 +180,7 @@
     <Compile Include="ReferenceHighlighting\Tags\ReferenceHighlightTag.cs" />
     <Compile Include="ReferenceHighlighting\Tags\WrittenReferenceHighlightTag.cs" />
     <Compile Include="ReferenceHighlighting\Tags\WrittenReferenceHighlightTagDefinition.cs" />
+    <Compile Include="Implementation\InfoBar\EditorInfoBarService.cs" />
     <Compile Include="SymbolSearch\IAddReferenceDatabaseWrapper.cs" />
     <Compile Include="SymbolSearch\IDatabaseFactoryService.cs" />
     <Compile Include="SymbolSearch\IDelayService.cs" />

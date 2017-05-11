@@ -1104,7 +1104,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_VarargsAsync = 4006,
         ERR_ByRefTypeAndAwait = 4007,
         ERR_BadAwaitArgVoidCall = 4008,
-        ERR_MainCantBeAsync = 4009,
+        ERR_NonTaskMainCantBeAsync = 4009,
         ERR_CantConvAsyncAnonFuncReturns = 4010,
         ERR_BadAwaiterPattern = 4011,
         ERR_BadSpecialByRefLocal = 4012,
