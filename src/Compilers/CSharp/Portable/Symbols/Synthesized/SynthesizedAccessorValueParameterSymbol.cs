@@ -20,6 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public SynthesizedAccessorValueParameterSymbol(SourceMethodSymbol accessor, TypeSymbol paramType, int ordinal, ImmutableArray<CustomModifier> customModifiers)
             : base(accessor, ordinal, paramType, RefKind.None, ParameterSymbol.ValueParameterName, accessor.Locations,
                    syntaxRef: null,
+                   defaultExpression: null,
                    defaultSyntaxValue: ConstantValue.Unset, // the default value can be set via [param: DefaultParameterValue] applied on the accessor
                    isParams: false,
                    isExtensionMethodThis: false)

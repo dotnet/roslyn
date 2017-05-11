@@ -65,6 +65,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool IsMetadataOptional { get { throw ExceptionUtilities.Unreachable; } }
 
+        internal override BoundExpression ExplicitDefaultExpression  { get { throw ExceptionUtilities.Unreachable; } }
+
         internal override ConstantValue ExplicitDefaultConstantValue { get { throw ExceptionUtilities.Unreachable; } }
 
         internal override bool IsIDispatchConstant { get { throw ExceptionUtilities.Unreachable; } }

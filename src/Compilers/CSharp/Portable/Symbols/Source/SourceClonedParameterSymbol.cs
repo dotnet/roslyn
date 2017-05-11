@@ -56,6 +56,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal override BoundExpression ExplicitDefaultExpression => _originalParam.ExplicitDefaultExpression;
+
         internal override ConstantValue ExplicitDefaultConstantValue
         {
             get

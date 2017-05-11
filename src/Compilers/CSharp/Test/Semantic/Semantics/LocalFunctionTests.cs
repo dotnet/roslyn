@@ -2845,12 +2845,7 @@ class C
             CompileAndVerify(source, expectedOutput: "23", sourceSymbolValidator: m =>
             {
                 var compilation = m.DeclaringCompilation;
-                // See https://github.com/dotnet/roslyn/issues/16454; this should actually produce no errors
-                compilation.VerifyDiagnostics(
-                    // (6,19): warning CS0219: The variable 'N' is assigned but its value is never used
-                    //         const int N = 2;
-                    Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "N").WithArguments("N").WithLocation(6, 19)
-                    );
+                compilation.VerifyDiagnostics();
                 var tree = compilation.SyntaxTrees[0];
                 var model = compilation.GetSemanticModel(tree);
                 var descendents = tree.GetRoot().DescendantNodes();
@@ -3089,6 +3084,37 @@ class Test : System.Attribute
             var b1Symbol = model.GetSymbolInfo(b1).Symbol;
             Assert.Equal("System.Boolean b1", b1Symbol.ToTestDisplayString());
             Assert.Equal(SymbolKind.Local, b1Symbol.Kind);
+        }
+
+        [Fact]
+        [WorkItem(16821, "https://github.com/dotnet/roslyn/issues/16821")]
+        public void LocalFunctionReportedUsedForNameofDefaultParamter()
+        {
+            var source = @"
+class Program
+{
+    static void Main()
+    {
+        int LocalVariable;
+        void LocalVariableFunc(string s = nameof(LocalVariable)) => System.Console.WriteLine(s);
+        LocalVariableFunc();
+
+        void LocalFunction() {}
+        void LocalFunctionFunc(string s = nameof(LocalFunction)) => System.Console.WriteLine(s);
+        LocalFunctionFunc();
+
+        const int Constant = 2;
+        void ConstantFunc(int x = Constant) => System.Console.WriteLine(x);
+        ConstantFunc();
+    }
+}";
+
+            var comp = CreateCompilationWithMscorlib46(source, parseOptions: DefaultParseOptions, options: TestOptions.DebugExe);
+            CompileAndVerify(comp.VerifyDiagnostics(), expectedOutput: @"
+LocalVariable
+LocalFunction
+2
+");
         }
     }
 }

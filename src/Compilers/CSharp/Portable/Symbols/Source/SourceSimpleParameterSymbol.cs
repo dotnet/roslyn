@@ -22,6 +22,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
         }
 
+        internal override BoundExpression ExplicitDefaultExpression => null;
+
         internal override ConstantValue ExplicitDefaultConstantValue
         {
             get { return null; }
