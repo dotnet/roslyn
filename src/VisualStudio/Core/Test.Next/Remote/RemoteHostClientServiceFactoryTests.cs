@@ -135,7 +135,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             var mock = new MockLogService();
             var client = await service.TryGetRemoteHostClientAsync(CancellationToken.None);
-            using (var session = await client.TryCreateServiceSessionAsync(WellKnownServiceHubServices.RemoteSymbolSearchUpdateEngine, mock, CancellationToken.None))
+            using (var session = await client.TryCreateSessionAsync(WellKnownServiceHubServices.RemoteSymbolSearchUpdateEngine, mock, CancellationToken.None))
             {
                 await session.InvokeAsync(nameof(IRemoteSymbolSearchUpdateEngine.UpdateContinuouslyAsync), "emptySource", Path.GetTempPath());
             }

@@ -115,17 +115,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             _rpc.StartListening();
         }
 
-        protected override async Task<Session> TryCreateServiceSessionAsync(string serviceName, Optional<Func<CancellationToken, Task<PinnedRemotableDataScope>>> getSnapshotAsync, object callbackTarget, CancellationToken cancellationToken)
+        public override async Task<Session> TryCreateSessionAsync(string serviceName, object callbackTarget, CancellationToken cancellationToken)
         {
             // get stream from service hub to communicate snapshot/asset related information
             // this is the back channel the system uses to move data between VS and remote host for solution related information
-            var snapshotStream = getSnapshotAsync.Value == null ? null : await RequestServiceAsync(_hubClient, WellKnownServiceHubServices.SnapshotService, _hostGroup, _timeout, cancellationToken).ConfigureAwait(false);
+            var snapshotStream = await RequestServiceAsync(_hubClient, WellKnownServiceHubServices.SnapshotService, _hostGroup, _timeout, cancellationToken).ConfigureAwait(false);
 
             // get stream from service hub to communicate service specific information
             // this is what consumer actually use to communicate information
             var serviceStream = await RequestServiceAsync(_hubClient, serviceName, _hostGroup, _timeout, cancellationToken).ConfigureAwait(false);
 
-            return await JsonRpcSession.CreateAsync(getSnapshotAsync, callbackTarget, serviceStream, snapshotStream, cancellationToken).ConfigureAwait(false);
+            return new JsonRpcSession(callbackTarget, serviceStream, snapshotStream, cancellationToken);
         }
 
         protected override void OnConnected()

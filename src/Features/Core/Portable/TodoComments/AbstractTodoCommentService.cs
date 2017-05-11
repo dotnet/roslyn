@@ -3,16 +3,26 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.TodoComments
 {
     internal abstract class AbstractTodoCommentService : ITodoCommentService
     {
+        private readonly Workspace _workspace;
+        private KeepAliveSession _session;
+
+        protected AbstractTodoCommentService(Workspace workspace)
+        {
+            _workspace = workspace;
+        }
+
         protected abstract bool PreprocessorHasComment(SyntaxTrivia trivia);
         protected abstract bool IsSingleLineComment(SyntaxTrivia trivia);
         protected abstract bool IsMultilineComment(SyntaxTrivia trivia);
@@ -24,6 +34,9 @@ namespace Microsoft.CodeAnalysis.TodoComments
 
         public async Task<IList<TodoComment>> GetTodoCommentsAsync(Document document, ImmutableArray<TodoCommentDescriptor> commentDescriptors, CancellationToken cancellationToken)
         {
+            // make sure given input is right one
+            Contract.ThrowIfFalse(_workspace == document.Project.Solution.Workspace);
+
             // same service run in both inproc and remote host, but remote host will not have RemoteHostClient service, 
             // so inproc one will always run
             var client = await document.Project.Solution.Workspace.TryGetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
@@ -42,9 +55,32 @@ namespace Microsoft.CodeAnalysis.TodoComments
         private async Task<IList<TodoComment>> GetTodoCommentsInRemoteHostAsync(
             RemoteHostClient client, Document document, ImmutableArray<TodoCommentDescriptor> commentDescriptors, CancellationToken cancellationToken)
         {
-            return await client.RunCodeAnalysisServiceOnRemoteHostAsync<IList<TodoComment>>(
-                document.Project.Solution, nameof(IRemoteTodoCommentService.GetTodoCommentsAsync),
-                new object[] { document.Id, commentDescriptors }, cancellationToken).ConfigureAwait(false);
+            var keepAliveSession = await GetKeepAliveSessionAsync(client).ConfigureAwait(false);
+
+            var (success, result) = await keepAliveSession.TryInvokeAsync<IList<TodoComment>>(
+                nameof(IRemoteTodoCommentService.GetTodoCommentsAsync),
+                document.Project.Solution,
+                new object[] { document.Id, commentDescriptors }).ConfigureAwait(false);
+
+            return success ? result : SpecializedCollections.EmptyList<TodoComment>();
+        }
+
+        private async Task<KeepAliveSession> GetKeepAliveSessionAsync(RemoteHostClient client)
+        {
+            if (_session != null)
+            {
+                return _session;
+            }
+
+            var session = await client.TryCreateServiceKeepAliveSessionAsync(WellKnownServiceHubServices.CodeAnalysisService, CancellationToken.None).ConfigureAwait(false);
+            var oldSession = Interlocked.CompareExchange(ref _session, session, null);
+            if (oldSession != null)
+            {
+                // there was race, kill the lost session
+                session.Shutdown();
+            }
+
+            return _session;
         }
 
         private async Task<IList<TodoComment>> GetTodoCommentsInCurrentProcessAsync(

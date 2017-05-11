@@ -13,13 +13,13 @@ namespace Microsoft.CodeAnalysis.Remote
     /// <summary>
     /// This lets users create a session to communicate with remote host (i.e. ServiceHub)
     /// </summary>
-    internal abstract class RemoteHostClient
+    internal abstract partial class RemoteHostClient
     {
-        private readonly Workspace _workspace;
+        public readonly Workspace Workspace;
 
         protected RemoteHostClient(Workspace workspace)
         {
-            _workspace = workspace;
+            Workspace = workspace;
         }
 
         public event EventHandler<bool> ConnectionChanged;
@@ -31,53 +31,11 @@ namespace Microsoft.CodeAnalysis.Remote
         /// Creating session could fail if remote host is not available. one of example will be user killing
         /// remote host.
         /// </summary>
-        public Task<Session> TryCreateServiceSessionAsync(string serviceName, CancellationToken cancellationToken)
-        {
-            return TryCreateServiceSessionAsync(serviceName, callbackTarget: null, cancellationToken: cancellationToken);
-        }
-
-        /// <summary>
-        /// Create <see cref="RemoteHostClient.Session"/> for the <paramref name="serviceName"/> if possible.
-        /// otherwise, return null.
-        /// 
-        /// Creating session could fail if remote host is not available. one of example will be user killing
-        /// remote host.
-        /// </summary>
-        public Task<Session> TryCreateServiceSessionAsync(string serviceName, object callbackTarget, CancellationToken cancellationToken)
-        {
-            return TryCreateServiceSessionAsync(serviceName, getSnapshotAsync: null, callbackTarget: callbackTarget, cancellationToken: cancellationToken);
-        }
-
-        /// <summary>
-        /// Create <see cref="RemoteHostClient.Session"/> for the <paramref name="serviceName"/> if possible.
-        /// otherwise, return null.
-        /// 
-        /// Creating session could fail if remote host is not available. one of example will be user killing
-        /// remote host.
-        /// </summary>
-        public Task<Session> TryCreateServiceSessionAsync(string serviceName, Solution solution, CancellationToken cancellationToken)
-        {
-            return TryCreateServiceSessionAsync(serviceName, solution, callbackTarget: null, cancellationToken: cancellationToken);
-        }
-
-        /// <summary>
-        /// Create <see cref="RemoteHostClient.Session"/> for the <paramref name="serviceName"/> if possible.
-        /// otherwise, return null.
-        /// 
-        /// Creating session could fail if remote host is not available. one of example will be user killing
-        /// remote host.
-        /// </summary>
-        public async Task<Session> TryCreateServiceSessionAsync(string serviceName, Solution solution, object callbackTarget, CancellationToken cancellationToken)
-        {
-            Func<CancellationToken, Task<PinnedRemotableDataScope>> getSnapshotAsync = ct => GetPinnedScopeAsync(solution, ct);
-            return await TryCreateServiceSessionAsync(serviceName, getSnapshotAsync, callbackTarget, cancellationToken).ConfigureAwait(false);
-        }
+        public abstract Task<Session> TryCreateSessionAsync(string serviceName, object callbackTarget, CancellationToken cancellationToken);
 
         protected abstract void OnConnected();
 
         protected abstract void OnDisconnected();
-
-        protected abstract Task<Session> TryCreateServiceSessionAsync(string serviceName, Optional<Func<CancellationToken, Task<PinnedRemotableDataScope>>> getSnapshotAsync, object callbackTarget, CancellationToken cancellationToken);
 
         internal void Shutdown()
         {
@@ -104,33 +62,55 @@ namespace Microsoft.CodeAnalysis.Remote
             ConnectionChanged?.Invoke(this, connected);
         }
 
-        private async Task<PinnedRemotableDataScope> GetPinnedScopeAsync(Solution solution, CancellationToken cancellationToken)
+        /// <summary>
+        /// NoOpClient is used if a user killed our remote host process. Basically this client never
+        /// create a session
+        /// </summary>
+        public class NoOpClient : RemoteHostClient
         {
-            if (solution == null)
+            public NoOpClient(Workspace workspace) :
+                base(workspace)
             {
-                return null;
             }
 
-            Contract.ThrowIfFalse(solution.Workspace == _workspace);
+            public override Task<Session> TryCreateSessionAsync(string serviceName, object callbackTarget, CancellationToken cancellationToken)
+            {
+                return SpecializedTasks.Default<Session>();
+            }
 
-            var service = _workspace.Services.GetService<ISolutionSynchronizationService>();
-            return await service.CreatePinnedRemotableDataScopeAsync(solution, cancellationToken).ConfigureAwait(false);
+            protected override void OnConnected()
+            {
+                // do nothing
+            }
+
+            protected override void OnDisconnected()
+            {
+                // do nothing
+            }
         }
 
-        // TODO: make this to not exposed to caller. abstract all of these under Request and Response mechanism
         public abstract class Session : IDisposable
         {
-            protected readonly PinnedRemotableDataScope PinnedScopeOpt;
             protected readonly CancellationToken CancellationToken;
+            private PinnedRemotableDataScope _scope;
 
             private bool _disposed;
 
-            protected Session(PinnedRemotableDataScope scope, CancellationToken cancellationToken)
+            protected Session(CancellationToken cancellationToken)
             {
                 _disposed = false;
+                _scope = null;
 
-                PinnedScopeOpt = scope;
                 CancellationToken = cancellationToken;
+            }
+
+            public PinnedRemotableDataScope PinnedRemotableDataScope => _scope;
+
+            public virtual Task RegisterPinnedRemotableDataScopeAsync(PinnedRemotableDataScope scope)
+            {
+                // make sure all thread can read the info
+                Interlocked.Exchange(ref _scope, scope);
+                return SpecializedTasks.EmptyTask;
             }
 
             public abstract Task InvokeAsync(string targetName, params object[] arguments);
@@ -140,12 +120,6 @@ namespace Microsoft.CodeAnalysis.Remote
             public abstract Task InvokeAsync(string targetName, IEnumerable<object> arguments, Func<Stream, CancellationToken, Task> funcWithDirectStreamAsync);
 
             public abstract Task<T> InvokeAsync<T>(string targetName, IEnumerable<object> arguments, Func<Stream, CancellationToken, Task<T>> funcWithDirectStreamAsync);
-
-            public void AddAdditionalAssets(CustomAsset asset)
-            {
-                Contract.ThrowIfNull(PinnedScopeOpt);
-                PinnedScopeOpt.AddAdditionalAsset(asset, CancellationToken);
-            }
 
             protected virtual void OnDisposed()
             {
@@ -162,32 +136,6 @@ namespace Microsoft.CodeAnalysis.Remote
                 _disposed = true;
 
                 OnDisposed();
-
-                PinnedScopeOpt?.Dispose();
-            }
-        }
-
-        public class NoOpClient : RemoteHostClient
-        {
-            public NoOpClient(Workspace workspace) :
-                base(workspace)
-            {
-            }
-
-            protected override Task<Session> TryCreateServiceSessionAsync(
-                string serviceName, Optional<Func<CancellationToken, Task<PinnedRemotableDataScope>>> getSnapshotAsync, object callbackTarget, CancellationToken cancellationToken)
-            {
-                return SpecializedTasks.Default<Session>();
-            }
-
-            protected override void OnConnected()
-            {
-                // do nothing
-            }
-
-            protected override void OnDisconnected()
-            {
-                // do nothing
             }
         }
     }

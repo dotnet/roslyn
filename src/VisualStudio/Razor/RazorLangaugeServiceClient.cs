@@ -34,9 +34,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
 
         public sealed class Session : IDisposable
         {
-            private readonly RemoteHostClient.Session _inner;
+            private readonly SessionWithSolution _inner;
 
-            internal Session(RemoteHostClient.Session inner)
+            internal Session(SessionWithSolution inner)
             {
                 _inner = inner;
             }

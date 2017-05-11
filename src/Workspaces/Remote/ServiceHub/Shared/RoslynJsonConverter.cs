@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.Text;
 using Newtonsoft.Json;
 using Roslyn.Utilities;
@@ -49,6 +50,7 @@ namespace Microsoft.CodeAnalysis.Remote
             builder.Add(typeof(DocumentId), new DocumentIdJsonConverter());
             builder.Add(typeof(TextSpan), new TextSpanJsonConverter());
             builder.Add(typeof(SymbolKey), new SymbolKeyJsonConverter());
+            builder.Add(typeof(PinnedSolutionInfo), new PinnedSolutionInfoJsonConverter());
 
             AppendRoslynSpecificJsonConverters(builder);
 
@@ -136,6 +138,44 @@ namespace Microsoft.CodeAnalysis.Remote
             public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
             {
                 writer.WriteValue(value?.ToString());
+            }
+        }
+
+        private class PinnedSolutionInfoJsonConverter : BaseJsonConverter
+        {
+            public override bool CanConvert(Type objectType) => typeof(PinnedSolutionInfo) == objectType;
+
+            public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+            {
+                Contract.ThrowIfFalse(reader.TokenType == JsonToken.StartObject);
+
+                // all integer is long
+                var scopeId = ReadProperty<long>(reader);
+                var fromPrimaryBranch = ReadProperty<bool>(reader);
+                var checksum = ReadProperty<Checksum>(serializer, reader);
+
+                Contract.ThrowIfFalse(reader.Read());
+                Contract.ThrowIfFalse(reader.TokenType == JsonToken.EndObject);
+
+                return new PinnedSolutionInfo((int)scopeId, fromPrimaryBranch, checksum);
+            }
+
+            public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+            {
+                var scope = (PinnedSolutionInfo)value;
+
+                writer.WriteStartObject();
+
+                writer.WritePropertyName("scopeId");
+                writer.WriteValue(scope.ScopeId);
+
+                writer.WritePropertyName("primary");
+                writer.WriteValue(scope.FromPrimaryBranch);
+
+                writer.WritePropertyName("checksum");
+                serializer.Serialize(writer, scope.SolutionChecksum);
+
+                writer.WriteEndObject();
             }
         }
     }
