@@ -227,6 +227,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Do not show again.
+        /// </summary>
+        internal static string Analyzer_vsix_do_not_show_again {
+            get {
+                return ResourceManager.GetString("Analyzer_vsix_do_not_show_again", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Install.
         /// </summary>
         internal static string Analyzer_vsix_hyperlink {

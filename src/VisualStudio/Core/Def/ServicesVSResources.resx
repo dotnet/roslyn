@@ -918,4 +918,7 @@ Additional information: {1}</value>
   <data name="Analyzer_vsix_try_description" xml:space="preserve">
     <value>Try the new analyzer extension!</value>
   </data>
+  <data name="Analyzer_vsix_do_not_show_again" xml:space="preserve">
+    <value>Do not show again</value>
+  </data>
 </root>

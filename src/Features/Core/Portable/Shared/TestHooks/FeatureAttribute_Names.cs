@@ -4,6 +4,7 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
 {
     internal partial class FeatureAttribute
     {
+        public const string ABTest = nameof(ABTest);
         public const string AutomaticEndConstructCorrection = nameof(AutomaticEndConstructCorrection);
         public const string AutomaticPairCompletion = nameof(AutomaticPairCompletion);
         public const string BraceHighlighting = nameof(BraceHighlighting);
