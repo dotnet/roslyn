@@ -333,9 +333,6 @@
   <data name="PdbStreamUnexpectedWhenEmittingMetadataOnly" xml:space="preserve">
     <value>PDB stream should not be given when emitting metadata only.</value>
   </data>
-  <data name="EmbedInteropTypesUnexpectedWhenEmittingRefAssembly" xml:space="preserve">
-    <value>Embedded interop type references should not be given when emitting a ref assembly.</value>
-  </data>
   <data name="MetadataPeStreamUnexpectedWhenEmittingMetadataOnly" xml:space="preserve">
     <value>Metadata PE stream should not be given when emitting metadata only.</value>
   </data>

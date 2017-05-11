@@ -1,6 +1,7 @@
 # Reference assemblies
 
 Reference assemblies are metadata-only assemblies with the minimum amount of metadata to preserve the compile-time behavior of consumers (diagnostics may be affected, though).
+The compiler may choose to remove more metadata in later versions, if it is determined to be safe (ie. respects the principle above).
 
 ## Scenarios
 There are 4 scenarios:
@@ -13,17 +14,14 @@ There are 4 scenarios:
 
 ## Definition of ref assemblies
 Metadata-only assembly have their method bodies replaced with a single `throw null` body, but include all members except anonymous types. The reason for using `throw null` bodies (as opposed to no bodies) is so that PEVerify could run and pass (thus validating the completeness of the metadata).
-Ref assemblies further remove metadata (private members) from metadata-only assemblies.
+Ref assemblies will include an assembly-level `ReferenceAssembly` attribute. This attribute may be specified in source (then we won't need to synthesize it). Because of this attribute, runtimes will refuse to load ref assemblies for execution (but they can still be loaded Reflection-only mode).
+Ref assemblies further remove metadata (private members) from metadata-only assemblies:
 
-A reference assembly will only have references for what it needs in the API surface. The real assembly may have additional references related to specific implementations. For instance, the reference assembly for `class C { private void M() { dynamic .... } }` will not have any references for `dynamic` types.
-
-Private function-members (methods, properties and events) will be removed. If there are no `InternalsVisibleTo` attributes, do the same for internal function-members
-
-All types (including private or nested types) must be kept in reference assemblies.
-
-All fields of a struct will be kept (in C# 7.1 timeframe), but this can later be refined. There are three cases to consider (ref case, struct case, generic case), where we could possibly substitute the fields with adequate placeholders that would minimize the rate of change of the ref assembly.
-
-Reference assemblies will include an assembly-level `ReferenceAssembly` attribute. If such an attribute is found in source, we won't need to synthesize it. Because of this attribute, runtimes will refuse to load reference assemblies.
+- A ref assembly will only have references for what it needs in the API surface. The real assembly may have additional references related to specific implementations. For instance, the ref assembly for `class C { private void M() { dynamic d = 1; ... } }` will not reference any types required for `dynamic`.
+- Private function-members (methods, properties and events) will be removed. If there are no `InternalsVisibleTo` attributes, do the same for internal function-members
+- But all types (including private or nested types) must be kept in ref assemblies. All attributes must be kept (even internal ones).
+- All virtual methods will be kept. Explicit interface implementations will be kept.
+- All fields of a struct will be kept. (This is a candidate for post-C#-7.1 refinement)
 
 ## API changes
 
@@ -32,15 +30,16 @@ Two mutually exclusive command-line parameters will be added to `csc.exe` and `v
 - `/refout`
 - `/refonly`
 
-The `/refout` parameter specifies a file path where the ref assembly should be output. This translates to `metadataPeStream` in the `Emit` API (see details below). The filename for the ref assembly should generally match that of the primary assembly, but it can be in a different folder.
+The `/refout` parameter specifies a file path where the ref assembly should be output. This translates to `metadataPeStream` in the `Emit` API (see details below). The filename for the ref assembly should generally match that of the primary assembly (we will warn when they don't match). The recommended convention (used by MSBuild) is to place the ref assembly in a "ref/" sub-folder relative to the primary assembly.
 
-The `/refonly` parameter is a flag that indicates that a ref assembly should be output instead of an implementation assembly. 
+The `/refonly` parameter is a flag that indicates that a ref assembly should be output instead of an implementation assembly, as the primary output.
 The `/refonly` parameter is not allowed together with the `/refout` parameter, as it doesn't make sense to have both the primary and secondary outputs be ref assemblies. Also, the `/refonly` parameter silently disables outputting PDBs, as ref assemblies cannot be executed. 
 The `/refonly` parameter translates to `EmitMetadataOnly` being `true`, and `IncludePrivateMembers` being `false` in the `Emit` API (see details below).
-Neither `/refonly` nor `/refout` are permitted with `/target:module`, `/addmodule`, or `/link:...` options.
+Neither `/refonly` nor `/refout` are permitted with net modules (`/target:module`, `/addmodule` options).
 
 The compilation from the command-line will either produce both assemblies (implementation and ref) or neither. There is no "partial success" scenario.
-When the compiler produces documentation, it is un-affected by either the `/refonly` or `/refout` parameters.
+When the compiler produces documentation, it is un-affected by either the `/refonly` or `/refout` parameters. This may change in the future.
+The main purpose of the `/refout` option is to speed up incremental build scenarios. The current implementation for this flag can produce a ref assembly with more metadata than `/refonly` (for instance, anonymous types). This is a candidate for post-C#-7.1 refinement.
 
 ### CscTask/CoreCompile
 The `CoreCompile` target will support a new output, called `IntermediateRefAssembly`, which parallels the existing `IntermediateAssembly`.
@@ -48,6 +47,8 @@ The `Csc` task will support a new output, called `OutputRefAssembly`, which para
 Both of those basically map to the `/refout` command-line parameter.
 
 An additional task, called `CopyRefAssembly`, will be provided along with the existing `Csc` task. It takes a `SourcePath` and a `DestinationPath` and generally copies the file from the source over to the destination. But if it can determine that the contents of those two files match (by comparing their MVIDs, see details below), then the destination file is left untouched.
+
+As a side-note, `CopyRefAssembly` uses the same assembly resolution/redirection trick as `Csc` and `Vbc`, to avoid type loading problems with `System.IO.FileSystem`.
 
 ### CodeAnalysis APIs
 It is already possible to produce metadata-only assemblies by using `EmitOptions.EmitMetadataOnly`, which is used in IDE scenarios with cross-language dependencies.
@@ -64,15 +65,12 @@ Going back to the 4 driving scenarios:
 
 ## Future
 As mentioned above, there may be further refinements after C# 7.1:
+- Further reduce the metadata in ref assemblies produced by `/refout`, to match those produced by `/refonly`.
 - Controlling internals (producing public ref assemblies)
 - Produce ref assemblies even when there are errors outside method bodies (emitting error types when `EmitOptions.TolerateErrors` is set)
 - When the compiler produces documentation, the contents produced could be filtered down to match the APIs that go into the primary output. In other words, the documentation could be filtered down when using the `/refonly` parameter.
 
-
 ## Open questions
-- should explicit method implementations be included in ref assemblies?
-- Non-public attributes on public APIs (emit attribute based on accessibility rule)
-- ref assemblies and NoPia
 
 ## Related issues
 - Produce ref assemblies from command-line and msbuild (https://github.com/dotnet/roslyn/issues/2184)

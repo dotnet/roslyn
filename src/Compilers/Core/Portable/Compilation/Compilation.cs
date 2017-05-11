@@ -2087,13 +2087,6 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentException(CodeAnalysisResources.IncludingPrivateMembersUnexpectedWhenEmittingToMetadataPeStream, nameof(metadataPEStream));
             }
 
-            if ((metadataPEStream != null || options?.EmitMetadataOnly == true) &&
-                options?.IncludePrivateMembers == false &&
-                References.Any(r => r.Properties.EmbedInteropTypes))
-            {
-                throw new ArgumentException(CodeAnalysisResources.EmbedInteropTypesUnexpectedWhenEmittingRefAssembly, nameof(metadataPEStream));
-            }
-
             if (options?.DebugInformationFormat == DebugInformationFormat.Embedded &&
                 options?.EmitMetadataOnly == true)
             {

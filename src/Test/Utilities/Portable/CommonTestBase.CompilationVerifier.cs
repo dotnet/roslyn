@@ -311,7 +311,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 return assemblies.Last();
             }
 
-            private static MetadataReference LoadTestEmittedExecutableForSymbolValidation(
+            internal static MetadataReference LoadTestEmittedExecutableForSymbolValidation(
                 ImmutableArray<byte> image,
                 OutputKind outputKind,
                 string display = null)

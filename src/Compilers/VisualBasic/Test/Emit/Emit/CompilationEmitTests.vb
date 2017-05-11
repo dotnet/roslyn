@@ -774,7 +774,7 @@ End Class"
         End Sub
 
         <Fact>
-        Public Sub VerifyRefAssembly()
+        Public Sub RefAssembly_VerifyTypesAndMembers()
             Dim source = "
 Public MustInherit Class PublicClass
     Public Sub PublicMethod()
@@ -790,6 +790,8 @@ Public MustInherit Class PublicClass
         System.Console.Write(""Hello"")
     End Sub
     Public MustOverride Sub AbstractMethod()
+    Public Event PublicEvent As System.Action
+    Friend Event InternalEvent As System.Action
 End Class"
             Dim comp As Compilation = CreateCompilation(source, references:={MscorlibRef},
                             options:=TestOptions.DebugDll.WithDeterministic(True))
@@ -805,10 +807,14 @@ End Class"
                 {"<Module>", "PublicClass"},
                 realAssembly.GlobalNamespace.GetMembers().Select(Function(m) m.ToDisplayString()))
 
-            AssertEx.SetEqual(
-                {"Sub PublicClass.PublicMethod()", "Sub PublicClass.PrivateMethod()",
-                    "Sub PublicClass.InternalMethod()", "Sub PublicClass.ProtectedMethod()",
-                    "Sub PublicClass.AbstractMethod()", "Sub PublicClass..ctor()"},
+            AssertEx.Equal(
+                {"PublicClass.PublicEventEvent As System.Action", "PublicClass.InternalEventEvent As System.Action",
+                    "Sub PublicClass..ctor()", "Sub PublicClass.PublicMethod()",
+                    "Sub PublicClass.PrivateMethod()", "Sub PublicClass.ProtectedMethod()",
+                    "Sub PublicClass.InternalMethod()", "Sub PublicClass.AbstractMethod()",
+                    "Sub PublicClass.add_PublicEvent(obj As System.Action)", "Sub PublicClass.remove_PublicEvent(obj As System.Action)",
+                    "Sub PublicClass.add_InternalEvent(obj As System.Action)", "Sub PublicClass.remove_InternalEvent(obj As System.Action)",
+                    "Event PublicClass.PublicEvent As System.Action", "Event PublicClass.InternalEvent As System.Action"},
                 compWithReal.GetMember(Of NamedTypeSymbol)("PublicClass").GetMembers().
                     Select(Function(m) m.ToTestDisplayString()))
 
@@ -830,10 +836,14 @@ End Class"
                 {"<Module>", "PublicClass"},
                 metadataAssembly.GlobalNamespace.GetMembers().Select(Function(m) m.ToDisplayString()))
 
-            AssertEx.SetEqual(
-                {"Sub PublicClass.PublicMethod()", "Sub PublicClass.PrivateMethod()",
-                    "Sub PublicClass.InternalMethod()", "Sub PublicClass.ProtectedMethod()",
-                    "Sub PublicClass.AbstractMethod()", "Sub PublicClass..ctor()"},
+            AssertEx.Equal(
+                {"PublicClass.PublicEventEvent As System.Action", "PublicClass.InternalEventEvent As System.Action",
+                    "Sub PublicClass..ctor()", "Sub PublicClass.PublicMethod()",
+                    "Sub PublicClass.PrivateMethod()", "Sub PublicClass.ProtectedMethod()",
+                    "Sub PublicClass.InternalMethod()", "Sub PublicClass.AbstractMethod()",
+                    "Sub PublicClass.add_PublicEvent(obj As System.Action)", "Sub PublicClass.remove_PublicEvent(obj As System.Action)",
+                    "Sub PublicClass.add_InternalEvent(obj As System.Action)", "Sub PublicClass.remove_InternalEvent(obj As System.Action)",
+                    "Event PublicClass.PublicEvent As System.Action", "Event PublicClass.InternalEvent As System.Action"},
                 compWithMetadata.GetMember(Of NamedTypeSymbol)("PublicClass").GetMembers().
                     Select(Function(m) m.ToTestDisplayString()))
 
@@ -845,7 +855,7 @@ End Class"
 
             MetadataReaderUtils.AssertEmptyOrThrowNull(comp.EmitToArray(emitMetadataOnly))
 
-            ' verify metadata (types, members, attributes) of the metadata-only assembly
+            ' verify metadata (types, members, attributes) of the ref assembly
             Dim emitRefOnly = EmitOptions.Default.WithEmitMetadataOnly(True).WithIncludePrivateMembers(False)
             CompileAndVerify(comp, emitOptions:=emitRefOnly, verify:=True)
 
@@ -859,7 +869,9 @@ End Class"
 
             AssertEx.SetEqual(
                 {"Sub PublicClass..ctor()", "Sub PublicClass.PublicMethod()",
-                    "Sub PublicClass.ProtectedMethod()", "Sub PublicClass.AbstractMethod()"},
+                    "Sub PublicClass.ProtectedMethod()", "Sub PublicClass.AbstractMethod()",
+                    "Sub PublicClass.add_PublicEvent(obj As System.Action)", "Sub PublicClass.remove_PublicEvent(obj As System.Action)",
+                    "Event PublicClass.PublicEvent As System.Action"},
                 compWithRef.GetMember(Of NamedTypeSymbol)("PublicClass").GetMembers().
                     Select(Function(m) m.ToTestDisplayString()))
 
@@ -874,6 +886,35 @@ End Class"
         End Sub
 
         <Fact>
+        Public Sub RefAssembly_VerifyTypesAndMembersOnStruct()
+            Dim source = "
+Friend Structure InternalStruct
+    Friend Property P As Integer
+End Structure"
+            Dim comp As Compilation = CreateCompilation(source, references:={MscorlibRef},
+                            options:=TestOptions.DebugDll.WithDeterministic(True))
+
+            Dim verifier = CompileAndVerify(comp, emitOptions:=EmitOptions.Default.WithEmitMetadataOnly(True), verify:=True)
+
+            ' verify metadata (types, members, attributes) of the ref assembly
+            Dim emitRefOnly = EmitOptions.Default.WithEmitMetadataOnly(True).WithIncludePrivateMembers(False)
+            CompileAndVerify(comp, emitOptions:=emitRefOnly, verify:=True)
+
+            Dim refImage = comp.EmitToImageReference(emitRefOnly)
+            Dim compWithRef = CreateCompilation("", references:={MscorlibRef, refImage},
+                            options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim refAssembly As AssemblySymbol = compWithRef.SourceModule.GetReferencedAssemblySymbols().Last()
+            AssertEx.SetEqual(
+                {"<Module>", "InternalStruct"},
+                refAssembly.GlobalNamespace.GetMembers().Select(Function(m) m.ToDisplayString()))
+
+            AssertEx.SetEqual(
+                {"Sub InternalStruct..ctor()", "InternalStruct._P As System.Int32"},
+                compWithRef.GetMember(Of NamedTypeSymbol)("InternalStruct").GetMembers().
+                    Select(Function(m) m.ToTestDisplayString()))
+        End Sub
+
+        <Fact>
         Public Sub EmitMetadataOnly_DisallowPdbs()
             Dim comp = CreateCompilation("", references:={MscorlibRef},
                             options:=TestOptions.DebugDll.WithDeterministic(True))
@@ -882,24 +923,6 @@ End Class"
                 Using pdbOutput = New MemoryStream()
                     Assert.Throws(Of ArgumentException)(Function() comp.Emit(output, pdbOutput,
                                         options:=EmitOptions.Default.WithEmitMetadataOnly(True)))
-                End Using
-            End Using
-        End Sub
-
-        <Fact>
-        Public Sub RefAssembly_DisallowEmbeddingTypes()
-            Dim comp = CreateCompilation("", references:={MscorlibRef.WithEmbedInteropTypes(True)},
-                            options:=TestOptions.DebugDll)
-
-            Using output As New MemoryStream()
-                Assert.Throws(Of ArgumentException)(Function() comp.Emit(output,
-                                    options:=EmitOptions.Default.WithEmitMetadataOnly(True).WithIncludePrivateMembers(False)))
-            End Using
-
-            Using output As New MemoryStream()
-                Using metadataOutput = New MemoryStream()
-                    Assert.Throws(Of ArgumentException)(Function() comp.Emit(output, metadataPEStream:=metadataOutput,
-                                        options:=EmitOptions.Default.WithIncludePrivateMembers(False)))
                 End Using
             End Using
         End Sub
