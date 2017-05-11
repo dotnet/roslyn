@@ -206,9 +206,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // entryPoint can be a SynthesizedEntryPointSymbol if a script is being compiled.
             SynthesizedEntryPointSymbol synthesizedEntryPoint = entryPoint as SynthesizedEntryPointSymbol;
-            if ((object)synthesizedEntryPoint == null && compilation.ReturnsAwaitableToVoidOrInt(entryPoint, diagnostics))
+            if ((object)synthesizedEntryPoint == null && (entryPoint.ReturnType.IsGenericTaskType(compilation) || entryPoint.ReturnType.IsNonGenericTaskType(compilation)))
             {
-                synthesizedEntryPoint = new SynthesizedEntryPointSymbol.AsyncForwardEntryPoint(compilation, diagnostics, entryPoint.ContainingType, entryPoint);
+                synthesizedEntryPoint = new SynthesizedEntryPointSymbol.AsyncForwardEntryPoint(compilation, entryPoint.ContainingType, entryPoint);
                 entryPoint = synthesizedEntryPoint;
                 if ((object)moduleBeingBuilt != null)
                 {
@@ -221,13 +221,44 @@ namespace Microsoft.CodeAnalysis.CSharp
                 !hasDeclarationErrors &&
                 !diagnostics.HasAnyErrors())
             {
-                var body = synthesizedEntryPoint.CreateBody();
+                BoundStatement body = synthesizedEntryPoint.CreateBody();
+
+                var dynamicAnalysisSpans = ImmutableArray<SourceSpan>.Empty;
+                VariableSlotAllocator lazyVariableSlotAllocator = null;
+                var lambdaDebugInfoBuilder = ArrayBuilder<LambdaDebugInfo>.GetInstance();
+                var closureDebugInfoBuilder = ArrayBuilder<ClosureDebugInfo>.GetInstance();
+                StateMachineTypeSymbol stateMachineTypeOpt = null;
                 const int methodOrdinal = -1;
+
+                var loweredBody = LowerBodyOrInitializer(
+                    synthesizedEntryPoint,
+                    methodOrdinal,
+                    body,
+                    null,
+                    new TypeCompilationState(synthesizedEntryPoint.ContainingType, compilation, moduleBeingBuilt),
+                    false,
+                    null,
+                    ref dynamicAnalysisSpans,
+                    diagnostics,
+                    ref lazyVariableSlotAllocator,
+                    lambdaDebugInfoBuilder,
+                    closureDebugInfoBuilder,
+                    out stateMachineTypeOpt);
+
+                Debug.Assert((object)lazyVariableSlotAllocator == null);
+                Debug.Assert((object)stateMachineTypeOpt == null);
+                Debug.Assert(dynamicAnalysisSpans.IsEmpty);
+                Debug.Assert(lambdaDebugInfoBuilder.IsEmpty());
+                Debug.Assert(closureDebugInfoBuilder.IsEmpty());
+
+                lambdaDebugInfoBuilder.Free();
+                closureDebugInfoBuilder.Free();
+
                 var emittedBody = GenerateMethodBody(
                     moduleBeingBuilt,
                     synthesizedEntryPoint,
                     methodOrdinal,
-                    body,
+                    loweredBody,
                     ImmutableArray<LambdaDebugInfo>.Empty,
                     ImmutableArray<ClosureDebugInfo>.Empty,
                     stateMachineTypeOpt: null,
