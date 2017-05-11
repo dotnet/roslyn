@@ -646,11 +646,13 @@ public class D : ITest1
     }
 }
 ";
-            verifyRefOnly(pia.EmitToImageReference(embedInteropTypes: true));
-            verifyRefOut(pia.EmitToImageReference(embedInteropTypes: true));
+            var piaImageReference = pia.EmitToImageReference(embedInteropTypes: true);
+            verifyRefOnly(piaImageReference);
+            verifyRefOut(piaImageReference);
 
-            verifyRefOnly(pia.ToMetadataReference(embedInteropTypes: true));
-            verifyRefOut(pia.ToMetadataReference(embedInteropTypes: true));
+            var piaMetadataReference = pia.ToMetadataReference(embedInteropTypes: true);
+            verifyRefOnly(piaMetadataReference);
+            verifyRefOut(piaMetadataReference);
 
             void verifyRefOnly(MetadataReference reference)
             {
@@ -696,13 +698,14 @@ public class D : ITest1
                 var module = (PEModuleSymbol)referencedAssembly.Modules[0];
 
                 var itest1 = module.GlobalNamespace.GetMember<NamedTypeSymbol>("ITest1");
-                Assert.NotNull(itest1.GetAttribute("System.Runtime.InteropServices", "TypeIdentifierAttribute").ToString());
+                Assert.NotNull(itest1.GetAttribute("System.Runtime.InteropServices", "TypeIdentifierAttribute"));
 
                 var method = (PEMethodSymbol)itest1.GetMember("M");
                 Assert.Equal("S ITest1.M()", method.ToTestDisplayString());
 
                 var s = (NamedTypeSymbol)method.ReturnType;
                 Assert.Equal("S", s.ToTestDisplayString());
+                Assert.NotNull(s.GetAttribute("System.Runtime.InteropServices", "TypeIdentifierAttribute"));
 
                 var field = s.GetMember("field");
                 Assert.Equal("System.Int32 S.field", field.ToTestDisplayString());
@@ -797,6 +800,7 @@ public class D
                 if (expectMissing)
                 {
                     Assert.Null(itest1);
+                    Assert.Null(module.GlobalNamespace.GetMember<NamedTypeSymbol>("S"));
                     return;
                 }
 
@@ -1111,11 +1115,26 @@ comp => comp.VerifyDiagnostics(
             }
         }
 
-        private void VerifyIdentitiesMatch(ImmutableArray<byte> firstImage, ImmutableArray<byte> secondImage, bool expectMatch = true)
+        private void VerifySigned(ImmutableArray<byte> image, bool expectSigned = true)
+        {
+            using (var reader = new PEReader(image))
+            {
+                var flags = reader.PEHeaders.CorHeader.Flags;
+                Assert.Equal(expectSigned, flags.HasFlag(CorFlags.StrongNameSigned));
+            }
+        }
+
+        private void VerifyIdentitiesMatch(ImmutableArray<byte> firstImage, ImmutableArray<byte> secondImage,
+            bool expectMatch = true, bool expectPublicKey = false)
         {
             var id1 = ModuleMetadata.CreateFromImage(firstImage).GetMetadataReader().ReadAssemblyIdentityOrThrow();
             var id2 = ModuleMetadata.CreateFromImage(secondImage).GetMetadataReader().ReadAssemblyIdentityOrThrow();
             Assert.Equal(expectMatch, id1 == id2);
+            if (expectPublicKey)
+            {
+                Assert.True(id1.HasPublicKey);
+                Assert.True(id2.HasPublicKey);
+            }
         }
 
         private (ImmutableArray<byte> image, ImmutableArray<byte> refImage) EmitRefOut(CSharpCompilation comp)
@@ -1154,8 +1173,50 @@ comp => comp.VerifyDiagnostics(
             comp.VerifyDiagnostics();
             var (image, refImage) = EmitRefOut(comp);
             var refOnlyImage = EmitRefOnly(comp);
-            VerifyIdentitiesMatch(image, refImage);
-            VerifyIdentitiesMatch(image, refOnlyImage);
+            VerifySigned(image);
+            VerifySigned(refImage);
+            VerifySigned(refOnlyImage);
+            VerifyIdentitiesMatch(image, refImage, expectPublicKey: true);
+            VerifyIdentitiesMatch(image, refOnlyImage, expectPublicKey: true);
+        }
+
+        [Fact]
+        public void RefAssembly_StrongNameProvider()
+        {
+            var signedDllOptions = TestOptions.ReleaseDll.
+                 WithCryptoKeyFile(SigningTestHelpers.KeyPairFile).
+                 WithStrongNameProvider(new SigningTestHelpers.VirtualizedStrongNameProvider(ImmutableArray<string>.Empty));
+
+            var comp = CreateStandardCompilation("public class C{}", options: signedDllOptions);
+
+            comp.VerifyDiagnostics();
+            var (image, refImage) = EmitRefOut(comp);
+            var refOnlyImage = EmitRefOnly(comp);
+            VerifySigned(image);
+            VerifySigned(refImage);
+            VerifySigned(refOnlyImage);
+            VerifyIdentitiesMatch(image, refImage, expectPublicKey: true);
+            VerifyIdentitiesMatch(image, refOnlyImage, expectPublicKey: true);
+        }
+
+        [Fact]
+        public void RefAssembly_StrongNameProviderAndDelaySign()
+        {
+            var signedDllOptions = TestOptions.ReleaseDll
+                .WithCryptoKeyFile(SigningTestHelpers.KeyPairFile)
+                .WithDelaySign(true)
+                .WithStrongNameProvider(new SigningTestHelpers.VirtualizedStrongNameProvider(ImmutableArray<string>.Empty));
+
+            var comp = CreateStandardCompilation("public class C{}", options: signedDllOptions);
+
+            comp.VerifyDiagnostics();
+            var (image, refImage) = EmitRefOut(comp);
+            var refOnlyImage = EmitRefOnly(comp);
+            VerifySigned(image, expectSigned: false);
+            VerifySigned(refImage, expectSigned: false);
+            VerifySigned(refOnlyImage, expectSigned: false);
+            VerifyIdentitiesMatch(image, refImage, expectPublicKey: true);
+            VerifyIdentitiesMatch(image, refOnlyImage, expectPublicKey: true);
         }
 
         [Theory]

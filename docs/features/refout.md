@@ -39,6 +39,7 @@ Neither `/refonly` nor `/refout` are permitted with net modules (`/target:module
 
 The compilation from the command-line will either produce both assemblies (implementation and ref) or neither. There is no "partial success" scenario.
 When the compiler produces documentation, it is un-affected by either the `/refonly` or `/refout` parameters. This may change in the future.
+The main purpose of the `/refout` option is to speed up incremental build scenarios. The current implementation for this flag can produce a ref assembly with more metadata than `/refonly` (for instance, anonymous types). This is a candidate for post-C#-7.1 refinement.
 
 ### CscTask/CoreCompile
 The `CoreCompile` target will support a new output, called `IntermediateRefAssembly`, which parallels the existing `IntermediateAssembly`.
@@ -64,6 +65,7 @@ Going back to the 4 driving scenarios:
 
 ## Future
 As mentioned above, there may be further refinements after C# 7.1:
+- Further reduce the metadata in ref assemblies produced by `/refout`, to match those produced by `/refonly`.
 - Controlling internals (producing public ref assemblies)
 - Produce ref assemblies even when there are errors outside method bodies (emitting error types when `EmitOptions.TolerateErrors` is set)
 - When the compiler produces documentation, the contents produced could be filtered down to match the APIs that go into the primary output. In other words, the documentation could be filtered down when using the `/refonly` parameter.
