@@ -60,8 +60,8 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                 var solution = workspace.CurrentSolution;
                 var solutionChecksum = await solution.State.GetChecksumAsync(CancellationToken.None);
 
-                var service = await GetSolutionServiceAsync(solution);
-                var synched = await service.GetSolutionAsync(solutionChecksum, primary: true, cancellationToken: CancellationToken.None);
+                var service = (ISolutionController)await GetSolutionServiceAsync(solution);
+                var synched = await service.GetSolutionAsync(solutionChecksum, fromPrimaryBranch: true, cancellationToken: CancellationToken.None);
                 Assert.Equal(solutionChecksum, await synched.State.GetChecksumAsync(CancellationToken.None));
                 Assert.True(synched.Workspace is RemoteWorkspace);
             }
@@ -278,7 +278,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
                 // update primary workspace
                 var solutionChecksum = await solution.State.GetChecksumAsync(CancellationToken.None);
-                await service.UpdatePrimaryWorkspaceAsync(solutionChecksum, CancellationToken.None);
+                await ((ISolutionController)service).UpdatePrimaryWorkspaceAsync(solutionChecksum, CancellationToken.None);
 
                 // get solution in remote host
                 var oopSolution = await service.GetSolutionAsync(solutionChecksum, CancellationToken.None);
@@ -326,7 +326,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var solutionChecksum = await solution.State.GetChecksumAsync(CancellationToken.None);
 
             // update primary workspace
-            await service.UpdatePrimaryWorkspaceAsync(solutionChecksum, CancellationToken.None);
+            await ((ISolutionController)service).UpdatePrimaryWorkspaceAsync(solutionChecksum, CancellationToken.None);
             var first = await service.GetSolutionAsync(solutionChecksum, CancellationToken.None);
 
             Assert.Equal(solutionChecksum, await first.State.GetChecksumAsync(CancellationToken.None));
@@ -344,7 +344,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             Assert.False(object.ReferenceEquals(PrimaryWorkspace.Workspace.PrimaryBranchId, second.BranchId));
 
             // do same once updating primary workspace
-            await service.UpdatePrimaryWorkspaceAsync(newSolutionChecksum, CancellationToken.None);
+            await ((ISolutionController)service).UpdatePrimaryWorkspaceAsync(newSolutionChecksum, CancellationToken.None);
             var third = await service.GetSolutionAsync(newSolutionChecksum, CancellationToken.None);
 
             Assert.Equal(newSolutionChecksum, await third.State.GetChecksumAsync(CancellationToken.None));

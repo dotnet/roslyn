@@ -5,7 +5,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.LanguageServices.Remote;
 using Roslyn.Utilities;
 using StreamJsonRpc;
@@ -27,9 +26,25 @@ namespace Microsoft.CodeAnalysis.Remote
         protected readonly AssetStorage AssetStorage;
         protected readonly CancellationToken CancellationToken;
 
+        /// <summary>
+        /// Session Id of this service. caller and callee share this id which one
+        /// can use to find matching caller and callee when debugging or logging
+        /// </summary>
         private int _sessionId;
-        private bool _primary;
+
+        /// <summary>
+        /// Mark whether the solution checksum it got is for primary branch or not 
+        /// 
+        /// this flag will be passed down to solution controller to help
+        /// solution service's cache policy. for more detail, see <see cref="SolutionService"/>
+        /// </summary>
+        private bool _fromPrimaryBranch;
+
+        /// <summary>
+        /// solution this connection belong to
+        /// </summary>
         private Checksum _solutionChecksumOpt;
+
         private RoslynServices _lazyRoslynServices;
 
         [Obsolete("For backward compatibility. this will be removed once all callers moved to new ctor")]
@@ -91,7 +106,9 @@ namespace Microsoft.CodeAnalysis.Remote
         protected Task<Solution> GetSolutionAsync()
         {
             Contract.ThrowIfNull(_solutionChecksumOpt);
-            return RoslynServices.SolutionService.GetSolutionAsync(_solutionChecksumOpt, _primary, CancellationToken);
+
+            var solutionController = (ISolutionController)RoslynServices.SolutionService;
+            return solutionController.GetSolutionAsync(_solutionChecksumOpt, _fromPrimaryBranch, CancellationToken);
         }
 
         protected virtual void Dispose(bool disposing)
@@ -104,11 +121,11 @@ namespace Microsoft.CodeAnalysis.Remote
             Log(TraceEventType.Error, message);
         }
 
-        public virtual void Initialize(int sessionId, bool primary, Checksum solutionChecksum)
+        public virtual void Initialize(int sessionId, bool fromPrimaryBranch, Checksum solutionChecksum)
         {
             // set session related information
             _sessionId = sessionId;
-            _primary = primary;
+            _fromPrimaryBranch = fromPrimaryBranch;
 
             if (solutionChecksum != null)
             {
