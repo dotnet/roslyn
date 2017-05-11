@@ -1296,7 +1296,7 @@ lReportErrorOnTwoTokens:
                 meParameter = Nothing
             Else
                 If _lazyMeParameter Is Nothing Then
-                    Interlocked.CompareExchange(Of ParameterSymbol)(_lazyMeParameter, New MeParameterSymbol(Me), Nothing)
+                    Interlocked.CompareExchange(_lazyMeParameter, New MeParameterSymbol(Me), Nothing)
                 End If
 
                 meParameter = _lazyMeParameter

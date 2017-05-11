@@ -168,6 +168,7 @@
     <Compile Include="Implementation\Structure\BlockTagState.cs" />
     <Compile Include="Implementation\Suggestions\SuggestedActionSetComparer.cs" />
     <Compile Include="Implementation\Suggestions\SuggestedActionsSource.cs" />
+    <Compile Include="Implementation\InfoBar\EditorInfoBarService.cs" />
     <Compile Include="SymbolSearch\IAddReferenceDatabaseWrapper.cs" />
     <Compile Include="SymbolSearch\IDatabaseFactoryService.cs" />
     <Compile Include="SymbolSearch\IDelayService.cs" />
