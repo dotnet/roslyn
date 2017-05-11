@@ -20,5 +20,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         OutVar,
         Patterns,
         DefaultLiteral,
+        AsyncMain,
     }
 }
