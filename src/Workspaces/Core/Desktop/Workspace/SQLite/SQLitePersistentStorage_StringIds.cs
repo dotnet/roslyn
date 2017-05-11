@@ -34,6 +34,9 @@ namespace Microsoft.CodeAnalysis.SQLite
 
         private int? TryGetStringId(SqlConnection connection, string value)
         {
+            // Null strings are not supported at all.  Just ignore these. Any read/writes 
+            // to null values will fail and will return 'false/null' to indicate failure
+            // (which is part of the documented contract of the persistence layer API).
             if (value == null)
             {
                 return null;
