@@ -91,7 +91,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             foreach (var linkedDocumentId in document.GetLinkedDocumentIds())
             {
-                yield return solution.GetDocument(linkedDocumentId);
+                var linkedDocument = solution.GetDocument(linkedDocumentId);
+                if (!linkedDocument.SupportsSyntaxTree)
+                {
+                    continue;
+                }
+
+                yield return linkedDocument;
             }
         }
     }
