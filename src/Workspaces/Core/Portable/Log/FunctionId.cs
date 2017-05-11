@@ -372,5 +372,6 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         CodeLens_GetFullyQualifiedName,
         RemoteHostClientService_Restarted,
         CodeAnalysisService_GetDesignerAttributesAsync,
+        Extension_InfoBar
     }
 }

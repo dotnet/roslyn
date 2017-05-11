@@ -196,6 +196,96 @@ IObjectCreationExpression (Constructor: Class..ctor()) (OperationKind.ObjectCrea
         }
 
         [Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")]
+        public void ParameterReference_DelegateCreationExpressionWithLambdaArgument()
+        {
+            string source = @"
+using System;
+
+class Class
+{
+    // Used parameter methods
+    public void UsedParameterMethod1(Action a)
+    {
+        Action a2 = /*<bind>*/new Action(() =>
+        {
+            a();
+        })/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+IOperation:  (OperationKind.None) (Syntax: 'new Action( ... })')
+  Children(1): ILambdaExpression (Signature: lambda expression) (OperationKind.LambdaExpression, Type: System.Action) (Syntax: '() => ... }')
+      IBlockStatement (2 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
+        IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'a();')
+          IInvocationExpression (virtual void System.Action.Invoke()) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'a()')
+            Instance Receiver: IParameterReferenceExpression: a (OperationKind.ParameterReferenceExpression, Type: System.Action) (Syntax: 'a')
+        IReturnStatement (OperationKind.ReturnStatement) (Syntax: '{ ... }')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")]
+        public void ParameterReference_DelegateCreationExpressionWithMethodArgument()
+        {
+            string source = @"
+using System;
+
+class Class
+{
+    public delegate void Delegate(int x, int y);
+
+    public void Method(Delegate d)
+    {
+        var a = /*<bind>*/new Delegate(Method2)/*</bind>*/;
+    }
+
+    public void Method2(int x, int y)
+    {
+    }
+}
+";
+            string expectedOperationTree = @"
+IOperation:  (OperationKind.None) (Syntax: 'new Delegate(Method2)')
+  Children(1): IOperation:  (OperationKind.None) (Syntax: 'Method2')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")]
+        public void ParameterReference_DelegateCreationExpressionWithInvalidArgument()
+        {
+            string source = @"
+using System;
+
+class Class
+{
+    public delegate void Delegate(int x, int y);
+
+    public void Method(int x)
+    {
+        var a = /*<bind>*/new Delegate(x)/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+IInvalidExpression (OperationKind.InvalidExpression, Type: Class.Delegate, IsInvalid) (Syntax: 'new Delegate(x)')
+  Children(1): IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0149: Method name expected
+                //         var a = /*<bind>*/new Delegate(x)/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_MethodNameExpected, "x").WithLocation(10, 40)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")]
         public void ParameterReference_DynamicCollectionInitializer()
         {
             string source = @"
