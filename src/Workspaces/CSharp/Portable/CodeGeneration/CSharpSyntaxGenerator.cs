@@ -3524,7 +3524,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         private BlockSyntax CreateBlock(IEnumerable<SyntaxNode> statements)
-            => SyntaxFactory.Block(AsStatementList(statements)).WithAdditionalAnnotations(Simplifier.Annotation);
+        {
+            return SyntaxFactory.Block(AsStatementList(statements));
+        }
 
         private SyntaxList<StatementSyntax> AsStatementList(IEnumerable<SyntaxNode> nodes)
         {
