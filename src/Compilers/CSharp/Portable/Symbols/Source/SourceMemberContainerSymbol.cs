@@ -249,7 +249,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     allowedModifiers |= DeclarationModifiers.Static | DeclarationModifiers.Sealed | DeclarationModifiers.Abstract | DeclarationModifiers.Unsafe;
                     break;
                 case TypeKind.Struct:
-                    allowedModifiers |= DeclarationModifiers.Ref | DeclarationModifiers.Unsafe;
+                    allowedModifiers |= DeclarationModifiers.Ref | DeclarationModifiers.ReadOnly | DeclarationModifiers.Unsafe;
                     break;
                 case TypeKind.Interface:
                 case TypeKind.Delegate:

@@ -1601,8 +1601,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                     return this.ParseClassOrStructOrInterfaceDeclaration(attributes, modifiers);
 
-                case SyntaxKind.RefKeyword:
                 case SyntaxKind.StructKeyword:
+                    // report use of ref struct class
+                    for (int i = 0, n = modifiers.Count; i < n; i++)
+                    {
+                        if (modifiers[i].RawKind == (int)SyntaxKind.ReadOnlyKeyword)
+                        {
+                            modifiers[i] = CheckFeatureAvailability(modifiers[i], MessageID.IDS_FeatureReadonlyStructs);
+                        }
+                    }
+                    return this.ParseClassOrStructOrInterfaceDeclaration(attributes, modifiers);
+
+                case SyntaxKind.RefKeyword:
                 case SyntaxKind.InterfaceKeyword:
                     return this.ParseClassOrStructOrInterfaceDeclaration(attributes, modifiers);
 

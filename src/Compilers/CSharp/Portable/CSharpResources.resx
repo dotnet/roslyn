@@ -174,6 +174,9 @@
   <data name="IDS_FeatureStaticClasses" xml:space="preserve">
     <value>static classes</value>
   </data>
+  <data name="IDS_FeatureReadonlyStructs" xml:space="preserve">
+    <value>readonly structs</value>
+  </data>
   <data name="IDS_FeaturePartialTypes" xml:space="preserve">
     <value>partial types</value>
   </data>
