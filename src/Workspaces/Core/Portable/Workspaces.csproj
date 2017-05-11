@@ -385,6 +385,7 @@
     <Compile Include="FindSymbols\SymbolFinder_FindRenamableReferences.cs" />
     <Compile Include="FindSymbols\SymbolFinder_Remote.cs" />
     <Compile Include="FindSymbols\SyntaxTree\SyntaxTreeIndex.LiteralInfo.cs" />
+    <Compile Include="ForwardedTypes.cs" />
     <Compile Include="LanguageServices\SyntaxFactsService\AbstractDocumentationCommentService.cs" />
     <Compile Include="LanguageServices\SyntaxFactsService\IDocumentationCommentService.cs" />
     <Compile Include="NamingStyles\EditorConfig\EditorConfigSeverityStrings.cs" />
@@ -408,6 +409,7 @@
     <Compile Include="Options\EditorConfig\EditorConfigStorageLocation.cs" />
     <Compile Include="Options\EditorConfig\IEditorConfigStorageLocation.cs" />
     <Compile Include="Options\EditorConfig\NamingStylePreferenceEditorConfigStorageLocation.cs" />
+    <Compile Include="Options\IInternalOptionSet.cs" />
     <Compile Include="PatternMatching\CamelCaseResult.cs" />
     <Compile Include="PatternMatching\ContainerPatternMatcher.cs" />
     <Compile Include="PatternMatching\PatternMatch.cs" />
@@ -484,7 +486,6 @@
     <Compile Include="Shared\Utilities\IOUtilities.cs" />
     <Compile Include="Shared\Utilities\IStreamingProgressTracker.cs" />
     <Compile Include="Shared\Utilities\StreamingProgressTracker.cs" />
-    <Compile Include="Options\OptionStorageLocation.cs" />
     <Compile Include="Options\LocalUserProfileStorageLocation.cs" />
     <Compile Include="Options\RoamingProfileStorageLocation.cs" />
     <Compile Include="SolutionCrawler\ExportIncrementalAnalyzerProviderAttribute.cs" />
@@ -555,7 +556,6 @@
     <Compile Include="FindSymbols\SymbolTree\SymbolTreeInfo_Source.cs" />
     <Compile Include="LinkedFileDiffMerging\LinkedFileDiffMergingLogger.cs" />
     <Compile Include="Options\DocumentOptionSet.cs" />
-    <Compile Include="Options\OptionSet.cs" />
     <Compile Include="Packaging\IPackageInstallerService.cs" />
     <Compile Include="SolutionCrawler\PredefinedInvocationReasons.cs" />
     <Compile Include="FindSymbols\StreamingProgressCollector.cs" />
@@ -832,14 +832,10 @@
     <Compile Include="Notification\GlobalOperationNotificationServiceFactory.cs" />
     <Compile Include="Notification\GlobalOperationRegistration.cs" />
     <Compile Include="Notification\IGlobalOperationNotificationService.cs" />
-    <Compile Include="Options\IOption.cs" />
     <Compile Include="Options\IOptionService.cs" />
-    <Compile Include="Options\Option`1.cs" />
     <Compile Include="Options\OptionChangedEventArgs.cs" />
-    <Compile Include="Options\OptionKey.cs" />
     <Compile Include="Options\OptionServiceFactory.cs" />
     <Compile Include="Options\WorkspaceOptionSet.cs" />
-    <Compile Include="Options\PerLanguageOption.cs" />
     <Compile Include="Options\Providers\ExportOptionProviderAttribute.cs" />
     <Compile Include="Options\Providers\IOptionProvider.cs" />
     <Compile Include="Options\IOptionPersister.cs" />

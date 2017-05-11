@@ -7,7 +7,7 @@ using Roslyn.Utilities;
 
 namespace Roslyn.VisualStudio.Next.UnitTests.Mocks
 {
-    internal class TestOptionSet : OptionSet
+    internal class TestOptionSet : OptionSet, IInternalOptionSet
     {
         private readonly ImmutableDictionary<OptionKey, object> _values;
 
@@ -33,7 +33,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Mocks
             return new TestOptionSet(_values.SetItem(optionAndLanguage, value));
         }
 
-        internal override IEnumerable<OptionKey> GetChangedOptions(OptionSet optionSet)
+        public virtual IEnumerable<OptionKey> GetChangedOptions(OptionSet optionSet)
         {
             foreach (var kvp in _values)
             {

@@ -55,8 +55,8 @@ End Class
     </file>
 </compilation>
 
-            For Each options In {TestOptions.ReleaseDll, TestOptions.DebugDll}
-                Dim comp = CreateCompilationWithMscorlib(source, options:=options)
+            For Each compilationOptions In {TestOptions.ReleaseDll, TestOptions.DebugDll}
+                Dim comp = CreateCompilationWithMscorlib(source, options:=compilationOptions)
 
                 Dim c = comp.GlobalNamespace.GetMember(Of NamedTypeSymbol)("C")
                 Dim p = c.GetMember(Of PropertySymbol)("P")
@@ -65,25 +65,25 @@ End Class
 
                 ' Dev11 only emits DebuggerBrowsableAttribute and CompilerGeneratedAttribute for auto-property.
                 ' Roslyn emits these attributes for all backing fields.
-                Dim expected = If(options.OptimizationLevel = OptimizationLevel.Debug,
+                Dim expected = If(compilationOptions.OptimizationLevel = OptimizationLevel.Debug,
                                 {"CompilerGeneratedAttribute", "DebuggerBrowsableAttribute"},
                                 {"CompilerGeneratedAttribute"})
 
                 Dim attrs = p.AssociatedField.GetSynthesizedAttributes()
                 AssertEx.SetEqual(expected, GetAttributeNames(attrs))
-                If options.OptimizationLevel = OptimizationLevel.Debug Then
+                If compilationOptions.OptimizationLevel = OptimizationLevel.Debug Then
                     Assert.Equal(DebuggerBrowsableState.Never, GetDebuggerBrowsableState(attrs))
                 End If
 
                 attrs = e.AssociatedField.GetSynthesizedAttributes()
                 AssertEx.SetEqual(expected, GetAttributeNames(attrs))
-                If options.OptimizationLevel = OptimizationLevel.Debug Then
+                If compilationOptions.OptimizationLevel = OptimizationLevel.Debug Then
                     Assert.Equal(DebuggerBrowsableState.Never, GetDebuggerBrowsableState(attrs))
                 End If
 
                 attrs = we.AssociatedField.GetSynthesizedAttributes()
                 AssertEx.SetEqual(expected.Concat("AccessedThroughPropertyAttribute"), GetAttributeNames(attrs))
-                If options.OptimizationLevel = OptimizationLevel.Debug Then
+                If compilationOptions.OptimizationLevel = OptimizationLevel.Debug Then
                     Assert.Equal(DebuggerBrowsableState.Never, GetDebuggerBrowsableState(attrs))
                 End If
             Next
@@ -107,8 +107,8 @@ Public MustInherit Class C
 End Class
     </file>
 </compilation>
-            For Each options In {TestOptions.ReleaseDll, TestOptions.DebugDll}
-                Dim comp = CreateCompilationWithMscorlib(source, options:=options)
+            For Each compilationOptions In {TestOptions.ReleaseDll, TestOptions.DebugDll}
+                Dim comp = CreateCompilationWithMscorlib(source, options:=compilationOptions)
 
                 Dim c = comp.GlobalNamespace.GetMember(Of NamedTypeSymbol)("C")
                 Dim p = c.GetMember(Of PropertySymbol)("P")
@@ -170,8 +170,8 @@ Public Class C
 End Class
     </file>
 </compilation>
-            For Each options In {TestOptions.ReleaseDll, TestOptions.DebugDll}
-                Dim comp = CreateCompilationWithMscorlib(source, options:=options.WithMetadataImportOptions(MetadataImportOptions.Internal))
+            For Each compilationOptions In {TestOptions.ReleaseDll, TestOptions.DebugDll}
+                Dim comp = CreateCompilationWithMscorlib(source, options:=compilationOptions.WithMetadataImportOptions(MetadataImportOptions.Internal))
 
                 CompileAndVerify(comp, symbolValidator:=
                     Sub(m)
@@ -209,8 +209,8 @@ End Class
     </file>
 </compilation>
 
-            For Each options In {TestOptions.ReleaseDll, TestOptions.DebugDll}
-                Dim comp = CreateCompilationWithMscorlib(source, options:=options)
+            For Each compilationOptions In {TestOptions.ReleaseDll, TestOptions.DebugDll}
+                Dim comp = CreateCompilationWithMscorlib(source, options:=compilationOptions)
 
                 CompileAndVerify(comp, symbolValidator:=
                     Sub(m)
@@ -259,8 +259,8 @@ End Class
     </file>
 </compilation>
 
-            For Each options In {TestOptions.ReleaseDll, TestOptions.DebugDll}
-                Dim comp = CreateCompilationWithMscorlib(source, options:=options.WithMetadataImportOptions(MetadataImportOptions.Internal))
+            For Each compilationOptions In {TestOptions.ReleaseDll, TestOptions.DebugDll}
+                Dim comp = CreateCompilationWithMscorlib(source, options:=compilationOptions.WithMetadataImportOptions(MetadataImportOptions.Internal))
 
                 CompileAndVerify(comp, symbolValidator:=
                     Sub(m)
@@ -312,11 +312,11 @@ End Class
     </file>
 </compilation>
 
-            For Each options In {TestOptions.ReleaseDll, TestOptions.DebugDll}
-                Dim comp = CreateCompilationWithMscorlibAndReferences(source, references:={SystemCoreRef}, options:=options)
+            For Each compilationOptions In {TestOptions.ReleaseDll, TestOptions.DebugDll}
+                Dim comp = CreateCompilationWithMscorlibAndReferences(source, references:={SystemCoreRef}, options:=compilationOptions)
 
                 ' Dev11 emits DebuggerStepThrough, we emit DebuggerHidden and only in /debug:full mode
-                Dim expected = If(options.OptimizationLevel = OptimizationLevel.Debug,
+                Dim expected = If(compilationOptions.OptimizationLevel = OptimizationLevel.Debug,
                                "[System.Runtime.CompilerServices.CompilerGeneratedAttribute()] [System.Diagnostics.DebuggerHiddenAttribute()]",
                                "[System.Runtime.CompilerServices.CompilerGeneratedAttribute()]")
 
@@ -341,11 +341,11 @@ End Class
     </file>
 </compilation>
 
-            For Each options In {TestOptions.ReleaseDll, TestOptions.DebugDll}
-                Dim comp = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, additionalRefs:={SystemCoreRef}, options:=options)
+            For Each compilationOptions In {TestOptions.ReleaseDll, TestOptions.DebugDll}
+                Dim comp = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, additionalRefs:={SystemCoreRef}, options:=compilationOptions)
 
                 ' Dev11 emits DebuggerStepThrough, we emit DebuggerHidden and only in /debug:full mode
-                Dim expected = If(options.OptimizationLevel = OptimizationLevel.Debug,
+                Dim expected = If(compilationOptions.OptimizationLevel = OptimizationLevel.Debug,
                                "[System.Runtime.CompilerServices.CompilerGeneratedAttribute()] [System.Diagnostics.DebuggerHiddenAttribute()]",
                                "[System.Runtime.CompilerServices.CompilerGeneratedAttribute()]")
 
@@ -365,9 +365,9 @@ Class C
 End Class
     </file>
 </compilation>
-            For Each options In {TestOptions.ReleaseDll, TestOptions.DebugDll}
+            For Each compilationOptions In {TestOptions.ReleaseDll, TestOptions.DebugDll}
 
-                Dim comp = CreateCompilationWithMscorlib(source, options:=options)
+                Dim comp = CreateCompilationWithMscorlib(source, options:=compilationOptions)
 
                 CompileAndVerify(comp, symbolValidator:=
                     Sub(m)
@@ -383,7 +383,7 @@ End Class
                             Select Case member.Name
                                 Case "$X", "$Y"
                                     ' Dev11 doesn't emit this attribute
-                                    If options.OptimizationLevel = OptimizationLevel.Debug Then
+                                    If compilationOptions.OptimizationLevel = OptimizationLevel.Debug Then
                                         expected = {"DebuggerBrowsableAttribute"}
                                     Else
                                         expected = New String() {}
@@ -395,7 +395,7 @@ End Class
 
                                 Case ".ctor", "ToString"
                                     ' Dev11 marks methods with DebuggerNonUserCodeAttribute
-                                    If options.OptimizationLevel = OptimizationLevel.Debug Then
+                                    If compilationOptions.OptimizationLevel = OptimizationLevel.Debug Then
                                         expected = {"DebuggerHiddenAttribute"}
                                     Else
                                         expected = New String() {}
@@ -1567,8 +1567,8 @@ End Class
     </file>
 </compilation>
 
-            For Each options In {TestOptions.DebugDll, TestOptions.ReleaseDll}
-                Dim reference = CreateCompilationWithMscorlib45AndVBRuntime(source, options:=options).EmitToImageReference()
+            For Each compilationOptions In {TestOptions.DebugDll, TestOptions.ReleaseDll}
+                Dim reference = CreateCompilationWithMscorlib45AndVBRuntime(source, options:=compilationOptions).EmitToImageReference()
                 Dim comp = CreateCompilationWithMscorlib45AndVBRuntime(<compilation/>, {reference}, options:=TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All))
 
                 Dim stateMachine = comp.GetMember(Of NamedTypeSymbol)("Test.VB$StateMachine_1_F")
@@ -1600,8 +1600,8 @@ Class Test
 End Class
     </file>
 </compilation>
-            For Each options In {TestOptions.DebugDll, TestOptions.ReleaseDll}
-                Dim reference = CreateCompilationWithMscorlib45AndVBRuntime(source, options:=options).EmitToImageReference()
+            For Each compilationOptions In {TestOptions.DebugDll, TestOptions.ReleaseDll}
+                Dim reference = CreateCompilationWithMscorlib45AndVBRuntime(source, options:=compilationOptions).EmitToImageReference()
                 Dim comp = CreateCompilationWithMscorlib45AndVBRuntime(<compilation/>, {reference}, options:=TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All))
 
                 Dim stateMachine = comp.GetMember(Of NamedTypeSymbol)("Test._Closure$__.VB$StateMachine___Lambda$__1-0")
@@ -1661,8 +1661,8 @@ End Class
     </file>
 </compilation>
 
-            For Each options In {TestOptions.DebugDll, TestOptions.ReleaseDll}
-                Dim reference = CreateCompilationWithMscorlib45AndVBRuntime(source, options:=options).EmitToImageReference(New EmitOptions(metadataOnly:=True))
+            For Each compilationOptions In {TestOptions.DebugDll, TestOptions.ReleaseDll}
+                Dim reference = CreateCompilationWithMscorlib45AndVBRuntime(source, options:=compilationOptions).EmitToImageReference(New EmitOptions(metadataOnly:=True))
                 Dim comp = CreateCompilationWithMscorlib45AndVBRuntime(<compilation/>, {reference}, options:=TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All))
 
                 Assert.Empty(comp.GetMember(Of NamedTypeSymbol)("Test").GetMembers("VB$StateMachine_1_F"))

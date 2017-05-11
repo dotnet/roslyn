@@ -137,6 +137,12 @@
     <Compile Include="Operations\UnaryAndBinaryOperationExtensions.cs" />
     <Compile Include="Operations\UnaryOperandKind.cs" />
     <Compile Include="Operations\UnaryOperationKind.cs" />
+    <Compile Include="Options\IOption.cs" />
+    <Compile Include="Options\OptionKey.cs" />
+    <Compile Include="Options\OptionSet.cs" />
+    <Compile Include="Options\OptionStorageLocation.cs" />
+    <Compile Include="Options\Option`1.cs" />
+    <Compile Include="Options\PerLanguageOption.cs" />
     <Compile Include="Emit\AsyncMoveNextBodyDebugInfo.cs" />
     <Compile Include="Emit\IteratorMoveNextBodyDebugInfo.cs" />
     <Compile Include="Emit\StateMachineMoveNextDebugInfo.cs" />

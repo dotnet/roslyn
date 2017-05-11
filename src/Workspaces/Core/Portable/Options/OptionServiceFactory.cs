@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.Options
                 return new DocumentSpecificOptionSet(document, realizedDocumentOptions, optionSet);
             }
 
-            private class DocumentSpecificOptionSet : OptionSet
+            private class DocumentSpecificOptionSet : OptionSet, IInternalOptionSet
             {
                 private readonly Document _document;
                 private readonly OptionSet _underlyingOptions;
@@ -209,7 +209,7 @@ namespace Microsoft.CodeAnalysis.Options
                     return new DocumentSpecificOptionSet(_document, _documentOptions, _underlyingOptions, _values.Add(optionAndLanguage, value));
                 }
 
-                internal override IEnumerable<OptionKey> GetChangedOptions(OptionSet optionSet)
+                IEnumerable<OptionKey> IInternalOptionSet.GetChangedOptions(OptionSet optionSet)
                 {
                     // GetChangedOptions only needs to be supported for OptionSets that need to be compared during application,
                     // but that's already enforced it must be a full WorkspaceOptionSet.
